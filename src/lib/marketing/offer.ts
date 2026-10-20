@@ -81,7 +81,7 @@ export const MARCH_PROGRAM = {
   includes: [
     {
       title: "Two live classes a week",
-      detail: "18 classes of 90 minutes in a group of up to six, taught by Zakaria.",
+      detail: "18 classes of 90 minutes in a group of up to six, taught by a Karman tutor.",
     },
     {
       title: "Five full-length practice tests",
@@ -90,7 +90,8 @@ export const MARCH_PROGRAM = {
     },
     {
       title: "A 60-minute 1:1 after every full-length",
-      detail: "Zakaria goes through every mistake with you — what happened and how to fix it.",
+      detail:
+        "Your tutor goes through every mistake with your student: what happened and how to fix it.",
     },
     {
       title: "A weekly live session",
@@ -107,7 +108,7 @@ export const MARCH_PROGRAM = {
     },
     {
       title: "Your cohort, between classes",
-      detail: "A group chat for your cohort. Questions to Zakaria are answered every day.",
+      detail: "A group chat for your cohort. Questions are answered by a Karman tutor every day.",
     },
     {
       title: "Weekly updates for parents",
@@ -151,7 +152,7 @@ export const PRIVATE_PACKAGES = [
 
 export const PRIVATE_INCLUDES: ProgramInclusion[] = [
   {
-    title: "Weekly 60-minute sessions with Zakaria",
+    title: "Weekly 60-minute sessions with a Karman tutor",
     detail:
       "Each session goes through every mistake on your latest full-length, or targets the skill holding you back.",
   },
@@ -183,12 +184,12 @@ export const FREE_PRACTICE_TEST = {
   durationLabel: "About 75 minutes",
   questionCount: 49,
   format: "One Reading & Writing module and one Math module — about 49 questions.",
-  delivery: "Live on Zoom, proctored by Zakaria.",
+  delivery: "Live on Zoom, with a live proctor.",
   cadence: "Every month.",
   includes: [
     "An estimated score range",
     "A domain-by-domain breakdown",
-    "A 20-minute results call with Zakaria",
+    "A 20-minute results call with a Karman tutor",
   ],
 } as const;
 

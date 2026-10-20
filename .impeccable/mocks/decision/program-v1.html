@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The SAT Program: six seats, nine weeks, one test date | Karman Prep</title>
-<meta name="description" content="A class of six that meets twice a week for nine weeks and finishes on your student's SAT date. Seats by application. $995 for founding cohorts.">
+<meta name="description" content="A class of six that meets twice a week for nine weeks and finishes on your student's SAT date. Seats by application. $995 for the founding March cohort.">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
   (function () {
@@ -211,9 +211,9 @@
   .t1 p { font-size: var(--fs-l); font-family: var(--serif); line-height: 1.3; }
   .t1 small { margin-top: auto; font-size: var(--fs-s); color: var(--ink-2); line-height: 1.5; }
   .word { grid-column: span 8; background: var(--night); color: var(--paper); min-height: 300px; display: grid; place-items: center; font-family: var(--serif); font-size: clamp(56px, 9vw, 150px); letter-spacing: -.03em; border-radius: 3px; }
-  .go { grid-column: span 4; background: var(--program); color: var(--paper); min-height: 300px; border-radius: 3px; padding: 28px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.15; }
+  .go { grid-column: span 4; background: var(--bg-2); color: var(--ink); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 6px; min-height: 300px; border-radius: 3px; padding: 28px; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.15; }
   .go svg { align-self: flex-end; }
-  .go:hover { background: var(--program-soft); }
+  .go:hover { background: var(--bg-3); }
 
   @media (max-width: 980px) {
     :root { --m: 16px; }
@@ -268,7 +268,7 @@
   .cohorts h2 { font-size: var(--fs-h3); }
   .tablist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 20px; }
   .tablist button { font: inherit; font-size: var(--fs-b); font-weight: 600; color: var(--paper); background: #123b31; border: 0; border-radius: 3px; padding: 14px 8px; cursor: pointer; transition: background-color .2s ease; }
-  .tablist button[aria-selected="true"] { background: var(--paper); color: #15202e; }
+  .tablist button[aria-selected="true"] { background: #0f342b; color: var(--paper); outline: 2px solid var(--paper); outline-offset: -2px; }
   .tablist button:hover:not([aria-selected="true"]) { background: #0f342b; }
   .cohort { margin-top: 22px; }
   .cohort dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 22px; font-size: var(--fs-b); }
@@ -314,11 +314,7 @@
   /* the nine weeks as one bar */
   .span { margin-top: 96px; }
   .span h2 { font-size: var(--fs-h2); }
-  .bar { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 40px; }
-  .bar i { height: 18px; background: var(--bg-3); border-radius: 2px; }
-  .bar i.mark { background: var(--program); }
-  .bar i.end { background: var(--private); }
-  .marks { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 14px; }
+  .marks { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 40px; padding-top: 18px; border-top: 2px solid var(--bg-3); }
   .marks div { font-size: var(--fs-s); color: var(--ink-2); }
   .marks div b { display: block; color: var(--ink); font-size: var(--fs-b); font-weight: 600; }
   .m1 { grid-column: 1 / span 2; } .m2 { grid-column: 3 / span 4; } .m3 { grid-column: 8 / span 1; } .m4 { grid-column: 9 / span 1; }
@@ -344,8 +340,8 @@
   /* price and admission */
   .apply { background: var(--program); color: var(--paper); padding: 128px 0; }
   .apply .grid { display: grid; grid-template-columns: 5fr 7fr; gap: 72px; align-items: start; }
-  .apply .price { font-family: var(--serif); font-size: clamp(64px, 8vw, 128px); line-height: .9; }
-  .apply .price-note { font-size: var(--fs-l); margin-top: 18px; color: #e3eee8; max-width: 30ch; }
+  .apply .price { font-family: var(--serif); font-size: clamp(64px, 8vw, 128px); line-height: 1; }
+  .apply .price-note { font-size: var(--fs-l); margin-top: 32px; color: #e3eee8; max-width: 30ch; }
   .apply h2 { font-size: var(--fs-h2); }
   .apply .body p { font-size: var(--fs-l); margin-top: 20px; max-width: 46ch; color: #f1f1ee; }
   .apply .body p a { color: var(--paper); }
@@ -363,9 +359,7 @@
   .wk-film video { width: 100%; height: 100%; object-fit: cover; display: block; }
   .days { grid-template-columns: 1fr; gap: 6px; }
     .day { min-height: 0; flex-direction: row; justify-content: space-between; align-items: baseline; padding: 16px; }
-    .bar { grid-template-columns: 1fr; gap: 0; }
-    .bar { display: none; }
-    .marks { grid-template-columns: 1fr; gap: 14px; border-left: 6px solid var(--program); padding-left: 16px; }
+    .marks { grid-template-columns: 1fr; gap: 14px; border-top: 0; padding-top: 0; border-left: 2px solid var(--bg-3); padding-left: 16px; }
     .marks div { grid-column: auto !important; }
     .inc .list { grid-template-columns: 1fr; padding: 26px; gap: 22px; }
     .inc-grid, .wk-head { grid-template-columns: 1fr; gap: 24px; }
@@ -392,7 +386,7 @@
             <li><a href="/free-practice-test">Free practice test<span>Any time, scored on the spot</span></a></li>
             <li><a href="/diagnostic">Diagnostic<span>35 questions, about 35 minutes</span></a></li>
             <li><a href="/daily">Daily Question and word game<span>New every day</span></a></li>
-            <li><a href="/question-bank">Question bank<span>Practice by skill and difficulty</span></a></li>
+            <li><a href="/question-bank">Question bank<span>Practice by skill</span></a></li>
           </ul>
         </li>
         <li><a href="/method">The method</a></li>
@@ -413,7 +407,7 @@
       <div class="rise">
         <h1 id="ph">The SAT Program</h1>
         <p class="lead">A class of six that meets twice a week for nine weeks and finishes on the morning of your student&apos;s SAT.</p>
-        <p class="note">Seats are by application, and every application is read by Zakaria.</p>
+        <p class="note">Seats are by application, and Karman reads every one.</p>
         <a class="btn btn-paper" href="/program/apply">Apply for a seat</a>
       </div>
       <div class="cohorts rise" aria-labelledby="ch">
@@ -456,15 +450,15 @@
     <div class="wrap grid">
       <div class="rise">
         <h2 id="wh">Who gets a seat</h2>
-        <p class="lead">Six seats means we choose carefully, and we say so when the program won&apos;t help.</p>
+        <p class="lead">Six seats means Karman chooses carefully, and says so when the program won&apos;t help.</p>
         <img class="who-photo" src="https://images.unsplash.com/photo-1593698054469-2bb6fdf4b512?w=1100&q=75&auto=format" width="1100" height="733" alt="A student writing notes beside a laptop" loading="lazy">
       </div>
       <div class="col yes rise">
-        <h3>We say yes when your student</h3>
+        <h3>A seat fits when your student</h3>
         <ul><li>can make both evening classes every week</li><li>will sit all five full-length tests</li><li>is aiming at one specific SAT date</li></ul>
       </div>
       <div class="col no rise">
-        <h3>We say no when</h3>
+        <h3>A seat won&apos;t help when</h3>
         <ul><li>your student already scores 1500 or higher</li><li>the test is less than four weeks away</li></ul>
       </div>
     </div>
@@ -475,7 +469,7 @@
       <div class="wk-head">
         <div>
           <h2 id="wk" class="rise">A week in the program</h2>
-          <p class="lead rise">Two live classes, a little practice every day, and on test weekends a full-length test that Zakaria reviews with your student one-on-one.</p>
+          <p class="lead rise">Two live classes, a little practice every day, and on test weekends a full-length test that your student&apos;s tutor reviews with them one-on-one.</p>
         </div>
         <div class="wk-film rise"><video autoplay muted loop playsinline poster="https://images.pexels.com/videos/4495519/pexels-photo-4495519.jpeg?w=1000" aria-hidden="true"><source src="https://videos.pexels.com/video-files/4495519/4495519-sd_960_540_25fps.mp4" type="video/mp4"></video></div>
       </div>
@@ -492,7 +486,6 @@
 
       <div class="span">
         <h2 class="rise">From baseline to test morning</h2>
-        <div class="bar rise" aria-hidden="true"><i class="mark"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="mark"></i><i class="end"></i></div>
         <div class="marks rise">
           <div class="m1"><b>Week one</b>An official practice test, proctored live, then a 1:1 review</div>
           <div class="m2"><b>Weeks two to seven</b>Three more full-length tests, each reviewed 1:1</div>
@@ -509,13 +502,13 @@
       <div class="inc-grid">
       <img class="inc-photo rise" src="https://images.unsplash.com/photo-1769092992494-a9087da1ab93?w=1000&q=75&auto=format" width="1000" height="1250" alt="A green desk lamp on a library table" loading="lazy">
       <div class="list rise">
-        <div class="item"><h3>18 live classes</h3><p>Ninety minutes each, twice a week, in a group of up to six, taught by Zakaria.</p></div>
+        <div class="item"><h3>18 live classes</h3><p>Ninety minutes each, twice a week, in a group of up to six, taught by a Karman tutor.</p></div>
         <div class="item"><h3>Five full-length practice tests</h3><p>The first and the dress rehearsal are official practice tests, proctored live.</p></div>
-        <div class="item"><h3>A 60-minute 1:1 after every test</h3><p>Zakaria goes through every missed question with your student.</p></div>
+        <div class="item"><h3>A 60-minute 1:1 after every test</h3><p>Your student&apos;s tutor goes through every missed question with them.</p></div>
         <div class="item"><h3>A weekly live workshop</h3><p>Pacing, Desmos, the adaptive second module, and the skills students miss most.</p></div>
         <div class="item"><h3>Daily 10</h3><p>Ten minutes a day. Every missed question comes back after 2, 7 and 21 days.</p></div>
-        <div class="item"><h3>10,000+ practice questions</h3><p>Across all 39 SAT skills at seven difficulty levels.</p></div>
-        <div class="item"><h3>The cohort chat</h3><p>Questions to Zakaria answered every day.</p></div>
+        <div class="item"><h3>10,000+ practice questions</h3><p>Original questions across all 39 SAT skills.</p></div>
+        <div class="item"><h3>The cohort chat</h3><p>Questions answered by a Karman tutor every day.</p></div>
         <div class="item"><h3>A weekly update for you</h3><p>Practice time, attendance, test scores and what comes next.</p></div>
       </div>
       </div>
@@ -526,7 +519,7 @@
     <div class="wrap grid">
             <div class="rise">
         <h2 id="gh">The 50-point guarantee</h2>
-        <p>If your student&apos;s official SAT isn&apos;t at least 50 points above the week-one baseline, the next cohort is free. Your student attends at least 80% of classes and every review, sits all five tests, and takes the SAT on the program&apos;s date.</p>
+        <p>If your student&apos;s official SAT isn&apos;t at least 50 points above the week-one baseline, the next cohort is free. To qualify, your student attends at least 80% of classes and every review, sits all five tests, and takes the SAT on the program&apos;s date.</p>
         <a href="/guarantee">Read the full terms</a>
       </div>
       <div class="rise g-pic"><img class="g-photo" src="https://images.unsplash.com/photo-1598981457915-aea220950616?w=1200&q=75&auto=format" width="1200" height="800" alt="A student working through a test in a classroom" loading="lazy"></div>
@@ -538,11 +531,11 @@
     <div class="wrap grid">
       <div class="rise">
         <p class="price">$995</p>
-        <p class="price-note">Founding cohorts. Or three monthly payments of $345. Later cohorts are $1,295.</p>
+        <p class="price-note">The founding price, for the March cohort. Or three monthly payments of $345. Later cohorts are $1,295.</p>
       </div>
       <div class="body rise">
         <h2 id="ah">How a seat is offered</h2>
-        <p>Your student applies in about three minutes. Zakaria reads it and calls you for twenty minutes. If the program fits, a $100 deposit holds the seat, and it&apos;s refundable.</p>
+        <p>Your student applies in about three minutes. Karman reads it and calls you for twenty minutes. If the program fits, a $100 deposit holds the seat, and it&apos;s refundable.</p>
         <p>One seat in every cohort is a scholarship seat, free for a student whose family can&apos;t afford the program. <a href="mailto:hello@karmanprep.com">Write to us about it</a>.</p>
         <a class="btn btn-paper" href="/program/apply">Apply for a seat</a>
       </div>
@@ -551,7 +544,7 @@
 
   <footer>
     <div class="tiles">
-      <div class="tile t1"><p>SAT prep taught live, practiced daily and reviewed one-on-one.</p><small>&copy; 2026 Karman Prep. SAT is a trademark of the College Board, which does not endorse Karman Prep.<br>*From Karman&apos;s 1:1 tutoring, median 16 weeks.</small></div>
+      <div class="tile t1"><p>SAT prep taught live, practiced daily and reviewed one-on-one.</p><small>&copy; 2026 Karman Prep. SAT is a trademark of the College Board, which does not endorse Karman Prep.</small></div>
       <div class="tile t2"><h4>Programs</h4><a href="/program">The SAT Program</a><a href="/private-tutoring">Private tutoring</a><a href="/pricing">Pricing</a><a href="/guarantee">Guarantee</a></div>
       <div class="tile t3"><h4>Free</h4><a href="/free-practice-test">Practice test</a><a href="/diagnostic">Diagnostic</a><a href="/daily">Daily Question</a><a href="/question-bank">Question bank</a></div>
       <div class="tile t4"><h4>Karman</h4><a href="/method">The method</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="mailto:hello@karmanprep.com">hello@karmanprep.com</a></div>
