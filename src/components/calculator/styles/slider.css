@@ -1,0 +1,376 @@
+/* Slider rows (SLIDERS-12, SLIDERS-15, VIS-37), measured on the reference at 1440 x 900: the Play
+   button and loop-mode opener in the gutter, the 22 px slider line under the math (labels, a 6 px
+   track, ticks, the zero marker and the thumb), the limits editor that replaces it, and the
+   options popover (SLIDERS-34). */
+
+/* The 29 px Play ring where other rows have their colour icon, and the 24 px mode opener under it. */
+.kc-slider-gutter {
+  position: absolute;
+  top: 13.5px;
+  left: 4px;
+  width: var(--kc-colour-icon);
+}
+
+.kc-slider-play,
+.kc-slider-mode {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--kc-text);
+  cursor: pointer;
+}
+
+.kc-slider-play {
+  width: var(--kc-colour-icon);
+  height: var(--kc-colour-icon);
+  border-radius: 50%;
+}
+
+.kc-slider-play-ring {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding-left: 1px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.kc-slider-play[data-playing="true"] .kc-slider-play-ring {
+  padding-left: 0;
+}
+
+.kc-slider-play:hover .kc-slider-play-ring {
+  opacity: 0.7;
+}
+
+.kc-slider-mode {
+  width: 24px;
+  height: 24px;
+  margin: 5px 0 0 2.5px;
+  border-radius: 50%;
+  color: var(--kc-row-number);
+  opacity: 0.75;
+}
+
+.kc-slider-mode:hover {
+  opacity: 1;
+}
+
+.kc-slider-play:focus-visible,
+.kc-slider-mode:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}
+
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+  :is(.kc-slider-play, .kc-slider-mode) {
+  color: var(--kc-focus-bar-label);
+}
+
+.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+  .kc-slider-play-ring {
+  opacity: 1;
+}
+
+/* The slider line spans from the gutter's edge to the row's right edge, 22 px tall. */
+.kc-slider-line {
+  margin-left: var(--kc-gutter);
+  animation: kc-warning-in var(--kc-dur-800) var(--kc-ease);
+}
+
+.kc-slider {
+  display: flex;
+  align-items: center;
+  height: 22px;
+}
+
+/* The limits: Arial 12.8 px at 60% ink in a padded hit box that reaches 10 px above and below. */
+.kc-slider-label {
+  flex: none;
+  margin: -10px 0;
+  padding: 10px 6px 10px 10px;
+  border: none;
+  background: transparent;
+  color: var(--kc-text-muted);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-small);
+  line-height: 19.08px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.kc-slider-max {
+  padding: 10px 10px 10px 6px;
+}
+
+.kc-slider-interior {
+  position: relative;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  height: 22px;
+  margin: 0 7px;
+  padding: 8px 0;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.kc-slider-track {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--kc-text) 10%, transparent);
+}
+
+/* SLIDERS-13: 2 px white dots along the track at each step. */
+.kc-slider-tick {
+  position: absolute;
+  top: 2px;
+  width: 2px;
+  height: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--kc-list);
+}
+
+/* SLIDERS-12: the 2 px zero marker, ink at 0.35. */
+.kc-slider-zero {
+  position: absolute;
+  top: 10px;
+  width: 2px;
+  height: 2px;
+  margin-left: -1px;
+  border-radius: 50%;
+  background: var(--kc-text);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* SLIDERS-12: a 38 x 33 hit box; inside, a 22 px disc at 0.35 and a solid 5.5 px centre dot. */
+.kc-slider-thumb {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 38px;
+  height: 33px;
+  margin-left: -19px;
+  border-radius: 8px;
+  outline: none;
+}
+
+.kc-slider-disc,
+.kc-slider-dot {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 12px;
+  background: var(--kc-accent); /* every thumb is the accent blue, whatever the row colour */
+  transition: transform var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-slider-disc {
+  opacity: 0.35;
+}
+
+.kc-slider-dot {
+  transform: scale(0.25);
+}
+
+.kc-slider-interior[data-dragging="true"] .kc-slider-dot,
+.kc-slider-thumb:hover .kc-slider-dot {
+  transform: scale(0.4);
+}
+
+.kc-slider-thumb:focus-visible .kc-slider-disc {
+  box-shadow: 0 0 0 2px var(--kc-focus-ring);
+}
+
+.kc-slider[data-disabled="true"] .kc-slider-thumb {
+  display: none;
+}
+
+/* SLIDERS-15: [min] ≤ a ≤ [max]  Step: [step], from the math's left edge. */
+.kc-slider-limits {
+  display: flex;
+  align-items: center;
+  height: 24.64px;
+  margin: -3px 0 0 15px;
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+}
+
+.kc-slider-interval,
+.kc-slider-step {
+  display: flex;
+  align-items: center;
+}
+
+.kc-slider-step {
+  margin-left: 10px;
+}
+
+.kc-slider-step-label {
+  font-size: var(--kc-size-slider-word);
+}
+
+.kc-slider-limit {
+  display: inline-block;
+}
+
+.kc-slider-limit > .kc-math-field.mq-editable-field,
+.kc-slider-limit > .kc-math-field.mq-editable-field.mq-focused {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: 35px;
+  height: 22.2px;
+  margin: 1px;
+  padding: 1px 2px;
+  border-width: 0 0 1px;
+  border-style: solid;
+  border-color: var(--kc-rule);
+  box-shadow: none;
+  font-size: var(--kc-size-eval);
+  line-height: 15.2px;
+}
+
+.kc-slider-limit > .kc-math-field.mq-editable-field.mq-focused {
+  border-bottom-color: var(--kc-focus-ring);
+}
+
+.kc-slider-limit[data-invalid="true"] > .kc-math-field.mq-editable-field {
+  border-bottom-color: var(--kc-warning);
+}
+
+.kc-slider-relation {
+  padding: 2px;
+  font-family: var(--kc-font-math);
+  font-size: 18.4px;
+  line-height: 18.4px;
+}
+
+.kc-slider-le {
+  display: inline-block;
+  width: 21.64px;
+  text-align: center;
+}
+
+.kc-slider-relation > var {
+  font-style: italic;
+}
+
+/* SLIDERS-34: the options popover, right of the Play button with an arrow pointing back at it. */
+.kc-slider-menu {
+  --kc-pop-line: var(--kc-boundary);
+  --kc-pop-mini-ink: color-mix(in srgb, var(--kc-text) 85%, transparent);
+  --kc-pop-mini-hover: color-mix(in srgb, var(--kc-text) 5%, var(--kc-list));
+  --kc-pop-mini-on: color-mix(in srgb, var(--kc-accent) 25%, transparent);
+  position: fixed;
+  z-index: 6;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-ui);
+  line-height: normal;
+}
+
+.kc-slider-menu::before,
+.kc-slider-menu::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  z-index: 1;
+  border: 8px solid transparent;
+  border-left-width: 0;
+  pointer-events: none;
+}
+
+.kc-slider-menu::before {
+  left: -9px;
+  border-right-color: var(--kc-boundary);
+}
+
+.kc-slider-menu::after {
+  left: -8px;
+  border-right-color: var(--kc-list);
+}
+
+.kc-slider-menu-body {
+  box-sizing: border-box;
+  width: 141px;
+  padding: 12px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+}
+
+.kc-slider-menu-title {
+  height: 18px;
+  margin-bottom: 5px;
+  color: var(--kc-text-secondary);
+}
+
+.kc-slider-menu .kc-segments[data-theme="mini"] .kc-segment {
+  width: 30px;
+  height: 26px;
+  padding: 4px 6px;
+}
+
+.kc-slider-menu .kc-segment-icon > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.kc-slider-speed {
+  margin-top: 10px;
+}
+
+.kc-slider-speed-row {
+  display: flex;
+  align-items: center;
+  height: 26px;
+}
+
+.kc-slider-speed-button {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 26px;
+  height: 26px;
+  border: 1px solid color-mix(in srgb, var(--kc-text) 20%, transparent);
+  border-radius: 4px;
+  color: var(--kc-text-secondary);
+  cursor: pointer;
+}
+
+.kc-slider-speed-button:hover {
+  background: var(--kc-hover-fill);
+}
+
+.kc-slider-speed-button[aria-disabled="true"] {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.kc-slider-speed-button:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}
+
+.kc-slider-speed-text {
+  width: 45px;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* SLIDERS-4: a chip's subscript, upright and smaller, as the math shows it. */
+.kc-letter-sub {
+  font-size: 0.75em;
+  font-style: normal;
+  line-height: 0;
+}

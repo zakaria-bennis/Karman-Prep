@@ -25,7 +25,8 @@ import {
   type PointerEvent,
   type TransitionEvent,
 } from "react";
-import { COMPLEX_HINT } from "@/lib/calculator/core/analysis";
+import { COMPLEX_HINT, displayName } from "@/lib/calculator/core/analysis";
+import { pauseSlider } from "@/lib/calculator/core/api/sliders";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator/core/latex/limits";
 import { rowIconHex } from "@/lib/calculator/theme/roles";
@@ -56,6 +57,8 @@ import { EditRowActions } from "./EditRowActions";
 import { ToastContext } from "./Toast";
 import { RowValue } from "./RowValue";
 import { AddSliderLine, addSliders, PointLabelLine } from "./RowUnderMath";
+import { SliderGutter } from "./SliderGutter";
+import { SliderLine, type SliderLineHandle } from "./SliderLine";
 import type { RowMotion } from "./row-presence";
 
 export interface ExpressionRowProps {
@@ -81,7 +84,10 @@ function writeLatex(field: MathField, latex: string, syncing: { current: boolean
 /** R-1: whether a press on `target` lands on the row body rather than a control or the field. */
 function isRowBody(target: EventTarget): boolean {
   if (!(target instanceof Element)) return false;
-  return target.closest("button, a, input, select, textarea, .mq-editable-field") === null;
+  return (
+    target.closest("button, a, input, select, textarea, .mq-editable-field, .kc-slider-line") ===
+    null
+  );
 }
 
 /** The white glyph in a row's colour icon: a wave, a dot, or a split disc for a region. */
@@ -112,7 +118,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const ids = useMemo(() => rowDomIds(row.id), [row.id]);
   const speech = useMemo(() => latexToSpeech(row.latex), [row.latex]);
   const error = row.error;
-  const tab = error === null ? rowTab(row) : null; // R-2: the warning marker takes the tab's place
+  const slider = row.slider ?? null; // SLIDERS-12: Play button and slider line in place of the tab
+  const sliderName = slider === null ? "" : displayName(slider.name);
+  const tab = error === null && slider === null ? rowTab(row) : null; // R-2: the marker replaces it
   const valueText = error === null ? row.valueText : null; // R-5: an error row shows no value
   // A11Y-3: the textbox's description lists the parts that render, in this order.
   const describedBy = [
@@ -125,6 +133,8 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     .join(" ");
 
   const itemRef = useRef<HTMLLIElement>(null);
+  const playRef = useRef<HTMLButtonElement>(null);
+  const sliderLine = useRef<SliderLineHandle | null>(null);
   const tabRef = useRef<HTMLButtonElement>(null);
   // D-13: the row menu, from a long-press on the gutter tab or a right-click or Shift+F10 anywhere
   // on the row (f(x)=E rows have no tab), only while the row has something to offer.
@@ -165,6 +175,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
         const current = fieldRef.current;
         // Snapshot writes are not edits; editThroughKeypad makes a keypad batch's one editRow.
         if (syncingRef.current || current === null || isKeypadBatch(current)) return;
+        // SLIDERS-35: typing into a playing slider's row pauses it first.
+        const playing = engine.getSnapshot().rows.find((r) => r.id === rowId)?.slider;
+        if (playing?.settings.isPlaying) pauseSlider(engine, rowId);
         if (latex === "table") {
           convertToTable(engine, focus, rowId); // D-5: typing table in an empty row
           return;
@@ -333,6 +346,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               {!row.hidden && <ColourKindGlyph kind={editing ? null : kindGlyph(row, tab)} />}
             </button>
           )}
+          {slider !== null && error === null && (
+            <SliderGutter rowId={row.id} name={sliderName} slider={slider} playRef={playRef} />
+          )}
           {menuOpen && (
             <RowMenu
               rowId={row.id}
@@ -349,7 +365,14 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           {error !== null && <ErrorMarker id={ids.error} message={error.message} variant="row" />}
         </div>
         <div className="kc-row-main">
-          <div className="kc-row-field" ref={hostRef} onPointerDown={onFieldPointerDown} />
+          <div
+            className="kc-row-field"
+            ref={hostRef}
+            onPointerDown={onFieldPointerDown}
+            onKeyDownCapture={(e) => {
+              if (e.key === "Tab" && !e.shiftKey) sliderLine.current?.hold(); // into the limits
+            }}
+          />
           <span id={ids.label} hidden>
             {row.regression?.result?.ok === true
               ? `Expression ${number}. ${STATISTICS_HINT}` // D-37
@@ -369,7 +392,21 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               </button>
             </div>
           )}
-          {error?.code === "too-many-variables" && (
+          {slider !== null && (
+            <SliderLine
+              engine={engine}
+              rowId={row.id}
+              name={sliderName}
+              slider={slider}
+              rowFocused={focusedRowId === row.id}
+              handle={sliderLine}
+              playRef={playRef}
+              onFocusRow={() => focus.focusRow(row.id, "end")}
+              onLeave={(direction) => leaveRow(engine, focus, row.id, direction)}
+              onEnter={() => insertRowBelow(engine, focus, announcer, row.id, "focus")}
+            />
+          )}
+          {(error?.code === "too-many-variables" || slider !== null) && row.chips.length > 0 && (
             <AddSliderLine
               names={row.chips}
               onAdd={(names) => addSliders(engine, announcer, row.id, names)}

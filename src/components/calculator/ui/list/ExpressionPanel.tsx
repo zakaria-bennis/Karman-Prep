@@ -28,6 +28,7 @@ import { DoubleChevronGlyph, EditListGlyph, KeyboardGlyph, UndoGlyph } from "../
 import { useAnnouncer } from "../a11y/announcer";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
+import { useSliderPlayback } from "./use-slider-playback";
 import { AddItemMenu } from "./AddItemMenu";
 import { createRowAnnouncements } from "./announcements";
 import { ExpressionRow } from "./ExpressionRow";
@@ -222,6 +223,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
   const presence = useRowPresence(rows);
   const list = useListLifecycle(engine, settings.expressionsCollapsed);
   const inputMark = useInputMark();
+  useSliderPlayback(engine); // SLIDERS-30
   const { items, exitDone } = presence;
   // While collapsed no row is mounted to report its exit, so a row that leaves then is done.
   useEffect(() => {

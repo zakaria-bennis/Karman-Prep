@@ -33,6 +33,22 @@ export function addSliders(
   if (refused === "row-limit") announcer?.announce(EDITOR_MESSAGES.rowLimit);
 }
 
+/** SLIDERS-4: at most this many name buttons; "all" still adds every missing name. */
+const MAX_CHIPS = 4;
+
+/** A name typeset as the reference shows it: an italic letter and an upright subscript. */
+function NameText(props: { name: string }): JSX.Element {
+  const shown = displayName(props.name);
+  const at = shown.indexOf("_");
+  if (at < 0) return <>{shown}</>;
+  return (
+    <>
+      {shown.slice(0, at)}
+      <sub className="kc-letter-sub">{shown.slice(at + 1)}</sub>
+    </>
+  );
+}
+
 export function AddSliderLine(props: {
   names: readonly string[];
   onAdd(names: readonly string[]): void;
@@ -44,7 +60,7 @@ export function AddSliderLine(props: {
       <span className="kc-add-slider-label" aria-hidden="true">
         add slider:
       </span>
-      {names.map((name) => (
+      {names.slice(0, MAX_CHIPS).map((name) => (
         <button
           key={name}
           type="button"
@@ -53,7 +69,7 @@ export function AddSliderLine(props: {
           aria-label={`Add slider for ${displayName(name)}`}
           onClick={() => props.onAdd([name])}
         >
-          {displayName(name)}
+          <NameText name={name} />
         </button>
       ))}
       {!single && (
