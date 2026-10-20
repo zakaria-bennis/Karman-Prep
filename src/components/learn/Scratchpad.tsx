@@ -24,8 +24,15 @@ const colors = [
   "#ffffff",
 ];
 
+/** The visible width: the root's client width, which is the screen's on a phone. innerWidth is not:
+ *  it grows with content that overflows while a page loads (432 px on a 412 px Pixel 7) and comes
+ *  back without a resize event, and it counts a desktop scrollbar. */
+function viewportWidth(): number {
+  return document.documentElement.clientWidth || window.innerWidth;
+}
+
 function constrain(next: { x: number; y: number; width: number; height: number }) {
-  const vw = window.innerWidth,
+  const vw = viewportWidth(),
     vh = window.visualViewport?.height ?? window.innerHeight;
   const width = Math.min(Math.max(260, next.width), vw - 24);
   // Always leave at least 38% of the screen available for the question.
@@ -49,7 +56,10 @@ export default function Scratchpad({ onClose, open = true, pageKey = "session" }
   const ink = useRef(false);
   const move = useRef<{ x: number; y: number; start: typeof box; resize: boolean } | null>(null);
 
+  // Fit the pad to the viewport each time it opens (the page may have settled since mount) and
+  // whenever the viewport resizes while it is open.
   useEffect(() => {
+    if (!open) return;
     const update = () => setBox((b) => constrain(b));
     update();
     window.addEventListener("resize", update);
@@ -58,7 +68,7 @@ export default function Scratchpad({ onClose, open = true, pageKey = "session" }
       window.removeEventListener("resize", update);
       window.visualViewport?.removeEventListener("resize", update);
     };
-  }, []);
+  }, [open]);
   useEffect(() => {
     setText("");
     setStrokes([]);

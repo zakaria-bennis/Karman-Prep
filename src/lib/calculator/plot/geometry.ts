@@ -36,6 +36,9 @@ export interface PointGeometry extends GeometryBase {
 export interface RegionGeometry extends GeometryBase {
   kind: "region";
   spans: Float32Array; // CSS px [yTop,yBottom,x0,x1,…] in the ViewSpec's pixel frame
+  // G-22: a list region's elements, as the index in `spans` where each one's spans start (the
+  // first is 0); absent for one element. Each element shades on its own, so overlaps stack.
+  elements?: readonly number[];
   boundaries: (CurveGeometry | LineSetGeometry)[];
 }
 export type Geometry =

@@ -148,10 +148,6 @@ test("KB-3 Escape closes the popover, ABC page, keypad, then the calculator", as
 test("KB-3 switching to the letters page, which has no Functions key, closes the Functions panel and its Escape layer", async ({
   page,
 }) => {
-  // CODE BUG (2026-10-20): the panel stays open and visible over the letters page with its Escape
-  // layer, so the next Escape closes an orphaned panel instead of the ABC page. Remove this line
-  // once the page switch closes it.
-  test.fail(true, "the Functions panel outlives the switch to the letters page");
   await page.setViewportSize({ width: 1280, height: 800 });
   await openShell(page, "?w=800&h=600");
   await rowField(page, "1").click();

@@ -244,7 +244,10 @@ export function Keypad(props: KeypadProps): JSX.Element {
   const activate = (key: KeyDef) => {
     switch (key.behaviour.type) {
       case "letters":
+        // KB-3: the letters page has no Functions key, so the switch closes the panel and its
+        // Escape layer at once, as the reference's does; the return to the main page leaves it shut.
         setPage((p) => (p === "main" ? "letters" : "main"));
+        setFunctionsState("closed");
         return;
       case "shift":
         setShift((on) => !on);

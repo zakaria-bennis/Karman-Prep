@@ -99,11 +99,6 @@ test("TR-63, TR-56 a tap on the selected pair's control opens the chooser with 4
   page,
 }, info) => {
   touchOnly(info.project.name);
-  // CODE BUG (2026-10-20, WebKit touch): the selecting tap 6 px into the 35 px pair "(2, 5)" lands
-  // 5 px below the 44 px control it reveals, and WebKit retargets that tap's click to the control,
-  // so the chooser opens on the selecting tap and the tap below closes it. Remove this line once
-  // a click from the gesture that revealed the control is ignored.
-  test.fail(info.project.name === "calculator-ios", "the selecting tap also opens the chooser");
   await openTables(page);
   await tapItem(page, TABLE_PAIR);
   const button = control(page, TABLE_PAIR);

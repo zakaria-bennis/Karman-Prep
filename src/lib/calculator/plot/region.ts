@@ -27,27 +27,62 @@ export function relationHolds(op: InequalityOp, difference: number): boolean {
 
 /**
  * Shaded spans [yTop, yBottom, x0, x1, …] in CSS px: per pixel row j, each maximal run [i0, i1) of
- * pixels where every relation holds, clipped to the view's size.
+ * pixels where every relation holds at field.pixelValue, clipped to the view's size. An inactive
+ * square is judged once at its top-left corner (field.forEachUnsplit), so only leaves, unresolved
+ * squares and the lattice's last row and column are judged pixel by pixel, which keeps a list
+ * region's elements cheap (G-22).
  */
-function shadedSpans(field: SampledField, ops: readonly InequalityOp[], view: ViewSpec): number[] {
+export function shadedSpans(
+  field: SampledField,
+  ops: readonly InequalityOp[],
+  view: ViewSpec
+): number[] {
   const { width, height } = view.size;
-  const holdsAt = (i: number, j: number) => {
+  const W = field.width;
+  const H = field.height;
+  const inside = new Uint8Array(W * H);
+  /** 1 when every relation holds at pixel (i, j), judged by pixelValue, or at node (i, j). */
+  const holdsAt = (i: number, j: number, node: boolean) => {
     for (let k = 0; k < ops.length; k++) {
-      if (!relationHolds(ops[k], field.pixelValue(i, j, k))) return false;
+      const v = node ? field.value(i, j, k) : field.pixelValue(i, j, k);
+      if (!relationHolds(ops[k], v)) return 0;
     }
-    return true;
+    return 1;
   };
-  const spans: number[] = [];
-  for (let j = 0; j < field.height; j++) {
-    let start = -1;
-    for (let i = 0; i <= field.width; i++) {
-      const inside = i < field.width && holdsAt(i, j);
-      if (inside && start < 0) {
-        start = i;
-      } else if (!inside && start >= 0) {
-        spans.push(j, Math.min(j + 1, height), start, Math.min(i, width));
-        start = -1;
+  const judge = (i: number, j: number) => {
+    inside[j * W + i] = holdsAt(i, j, false);
+  };
+  const judgeBlock = (i0: number, j0: number, i1: number, j1: number) => {
+    for (let j = j0; j < j1; j++) for (let i = i0; i < i1; i++) judge(i, j);
+  };
+  // Every node the quadtree evaluates on an inactive square's top row or left column re-tests it,
+  // so with no refusal (no unresolved square) the corner judges the whole square. A refused split
+  // may leave fresh nodes there untested, so then those edges are judged pixel by pixel.
+  const exactEdges = field.unresolved.length > 0;
+  field.forEachUnsplit((s, state) => {
+    const i1 = Math.min(s.i + s.edge, W);
+    const j1 = Math.min(s.j + s.edge, H);
+    if (s.i >= i1 || s.j >= j1) return;
+    if (state !== "inactive") return judgeBlock(s.i, s.j, i1, j1);
+    if (holdsAt(s.i, s.j, true) === 1) {
+      for (let j = s.j + (exactEdges ? 1 : 0); j < j1; j++) {
+        inside.fill(1, j * W + s.i + (exactEdges ? 1 : 0), j * W + i1);
       }
+    }
+    if (!exactEdges) return;
+    judgeBlock(s.i, s.j, i1, s.j + 1);
+    judgeBlock(s.i, s.j + 1, s.i + 1, j1);
+  });
+  // A view one pixel past the lattice's last node column or row: those pixels are nodes.
+  judgeBlock(Math.min(field.cellsX * field.cell, W), 0, W, H);
+  judgeBlock(0, Math.min(field.cellsY * field.cell, H), W, H);
+  const spans: number[] = [];
+  for (let j = 0; j < H; j++) {
+    const row = inside.subarray(j * W, (j + 1) * W);
+    for (let start = row.indexOf(1); start >= 0; ) {
+      const end = row.indexOf(0, start);
+      spans.push(j, Math.min(j + 1, height), start, Math.min(end < 0 ? W : end, width));
+      start = end < 0 ? -1 : row.indexOf(1, end);
     }
   }
   return spans;
