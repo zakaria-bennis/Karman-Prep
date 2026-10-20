@@ -49,3 +49,13 @@ it("GP-38 labels avoid overlapping each other and stay inside the graph", () => 
   const [corner] = placeLabels([{ x: 795, y: 4, ...box(10, 7.5) }], [], SIZE);
   expect(corner.quadrant).toBe("sw");
 });
+
+it("POI-TRACE-24 a trace label sits beside its dot, vertically centred, 10 px from its centre", () => {
+  const size = box(-2.5, 4.25);
+  const [p] = placeLabels([{ x: 400, y: 300, beside: true, ...size }], [], SIZE);
+  expect(p.quadrant).toBe("w");
+  expect(p.left + size.width).toBe(390);
+  expect(p.top + size.height / 2).toBe(300);
+  const [edge] = placeLabels([{ x: 20, y: 300, beside: true, ...size }], [], SIZE);
+  expect(edge.quadrant).toBe("e");
+});

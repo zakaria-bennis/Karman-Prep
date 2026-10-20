@@ -52,7 +52,12 @@ export function PoiOverlay({
   const withButton = (i: number) =>
     onExport !== undefined && !(trace !== null && i === labels.length);
   const placed = placeLabels(
-    all.map((l, i) => ({ x: l.x, y: l.y, ...labelBoxSize(l.label, withButton(i)) })),
+    all.map((l, i) => ({
+      x: l.x,
+      y: l.y,
+      beside: trace !== null && i === labels.length, // POI-TRACE-24: a trace label sits beside its dot
+      ...labelBoxSize(l.label, withButton(i)),
+    })),
     curve,
     size
   );

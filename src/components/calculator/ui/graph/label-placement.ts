@@ -6,7 +6,8 @@
 
 import type { FormattedCoordinate, FormattedLabel } from "@/lib/calculator/poi/format";
 
-export type Quadrant = "ne" | "nw" | "se" | "sw";
+/** A diagonal corner, or (a trace label) beside the dot to the west or east, vertically centred. */
+export type Quadrant = "ne" | "nw" | "se" | "sw" | "w" | "e";
 export interface PlacedLabel {
   left: number;
   top: number;
@@ -20,6 +21,9 @@ const HEIGHT_PX = 42.27;
 const FRACTION_EXTRA_PX = 19;
 const EXPORT_PX = 25.6; // POI-TRACE-18's button
 const ORDER: readonly Quadrant[] = ["ne", "nw", "se", "sw"];
+const BESIDE_ORDER: readonly Quadrant[] = ["w", "e"];
+/** POI-TRACE-24, GP-38: a trace label's near edge sits this far from the dot's centre. */
+export const BESIDE_OFFSET_PX = 10;
 const CHAR_EM: Readonly<Record<string, number>> = { ".": 0.25, ",": 0.5, "−": 0.7, "-": 0.7 };
 
 const textEm = (s: string) => [...s].reduce((w, c) => w + (CHAR_EM[c] ?? 0.5), 0);
@@ -62,6 +66,10 @@ const overlaps = (a: Box, b: Box) =>
   b.top < a.top + a.height;
 
 function boxAt(x: number, y: number, q: Quadrant, size: { width: number; height: number }): Box {
+  if (q === "w" || q === "e") {
+    const left = q === "e" ? x + BESIDE_OFFSET_PX : x - BESIDE_OFFSET_PX - size.width;
+    return { left, top: y - size.height / 2, ...size };
+  }
   const left = q.endsWith("e") ? x + LABEL_OFFSET_PX : x - LABEL_OFFSET_PX - size.width;
   const top = q.startsWith("n") ? y - LABEL_OFFSET_PX - size.height : y + LABEL_OFFSET_PX;
   return { left, top, ...size };
@@ -69,15 +77,15 @@ function boxAt(x: number, y: number, q: Quadrant, size: { width: number; height:
 
 /** Places labels in order; `curve` holds the selected curve's vertices in px. */
 export function placeLabels(
-  labels: readonly { x: number; y: number; width: number; height: number }[],
+  labels: readonly { x: number; y: number; width: number; height: number; beside?: boolean }[],
   curve: readonly (readonly [number, number])[],
   graph: { width: number; height: number }
 ): PlacedLabel[] {
   const placed: Box[] = [];
-  return labels.map(({ x, y, width, height }) => {
+  return labels.map(({ x, y, width, height, beside = false }) => {
     const size = { width, height };
     let best: { box: Box; q: Quadrant; score: number } | null = null;
-    for (const q of ORDER) {
+    for (const q of beside ? BESIDE_ORDER : ORDER) {
       const box = boxAt(x, y, q, size);
       const outside =
         box.left < 0 ||
