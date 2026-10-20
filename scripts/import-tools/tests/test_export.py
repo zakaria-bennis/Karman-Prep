@@ -40,8 +40,8 @@ class ExportDocTests(unittest.TestCase):
         self.assertNotIn(" ? ", sql)  # no jsonb ? operator (client placeholder clash)
 
     def test_fingerprint_matches_sql_definition(self):
-        rows = [row(2, publish_status=None), row(1, "kn-1:" + "a" * 64)]
-        parts = [f"{rows[1]['id']}:{1:064x}:publish_ready:ok:kn-1:{'a' * 64}", f"{rows[0]['id']}:{2:064x}::ok:"]
+        rows = [row(2, publish_status=None), row(1, "kn-2:" + "a" * 64)]
+        parts = [f"{rows[1]['id']}:{1:064x}:publish_ready:ok:kn-2:{'a' * 64}", f"{rows[0]['id']}:{2:064x}::ok:"]
         self.assertEqual(fingerprint(rows), hashlib.md5(",".join(parts).encode()).hexdigest())
         self.assertEqual(fingerprint([]), hashlib.md5(b"").hexdigest())
 

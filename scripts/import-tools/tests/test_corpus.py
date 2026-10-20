@@ -365,6 +365,32 @@ class ClusterRules(unittest.TestCase):
         text = report_md(r)
         self.assertIn("10,000", text)
         self.assertIn(f"{GOAL - 3:,}", text)
+        self.assertIn("Unique among read occurrences: 3", text)
+        self.assertIn("Not read: 1 occurrences", text)
+        self.assertIn("at least", text)
+        self.assertEqual((r.counts["distinct_live_rows"], r.counts["unread_new_upper"]), (1, 1))
+
+    def test_question_labels_and_response_notes_are_not_question_text(self):
+        stem = "What is the value of x if 3x + 2 = 11?"
+        for variant in (f"Question 7 {stem}", f"15. {stem}", f"Question 6\n{stem}", f"12 SAT Math {stem}",
+                        f"{stem}\n[blank response field]", f"{stem}\n[Empty numeric response box.]"):
+            with self.subTest(variant=variant):
+                r = run([q(1, stem, question_type="numeric_response", numeric_answer="3"),
+                         q(2, variant, question_type="numeric_response", numeric_answer="3")])
+                self.assertEqual(members(r), 1)
+        mcq = mc("Which word is underlined?")
+        r = run([q(1, mcq), q(2, mcq + "\n[The underlined word appears in the answer box.]")])
+        self.assertEqual(members(r), 0)  # a note about underlining is never dropped
+        self.assertEqual(r.roles["exam2_q2"], "unparsed")
+
+    def test_numbered_stems_stay_apart(self):
+        for a, b in (("2.5 meters of rope are cut. How many pieces?", "5 meters of rope are cut. How many pieces?"),
+                     ("12 apples are shared. How many each?", "apples are shared. How many each?"),
+                     ("3 (x + 1) = 9. What is x?", "(x + 1) = 9. What is x?")):
+            with self.subTest(a=a):
+                r = run([q(1, a, question_type="numeric_response", numeric_answer="2"),
+                         q(2, b, question_type="numeric_response", numeric_answer="2")])
+                self.assertEqual(members(r), 0)
 
     def test_outputs_feed_lint(self):
         r = cluster([rec(1, mc("Which tool cuts wood?")), rec(2, mc("Which tool cuts wood?"))])
@@ -454,6 +480,37 @@ class CertifiedAndCli(unittest.TestCase):
         res = check_certified(r)
         self.assertEqual((res[0]["ok"], res[0]["target"]), (False, SYN.format(1, 1)))
         self.assertIn("target not read: choice_parse_ambiguous", res[0]["reason"])
+        # the certified copy must never become the canonical second copy of a live row
+        self.assertEqual(r.roles[SYN.format(2, 1)], "member")
+        self.assertTrue(res[0]["held"])
+        held = [c for c in r.clusters if c["status"] == "live_elsewhere"][0]
+        self.assertEqual((held["canonical"], held["live_row"]), (None, uid(1)))
+        self.assertEqual(held["members"][0]["duplicate_of"], uid(1))
+        with tempfile.TemporaryDirectory() as d:
+            write_outputs(r, Path(d))
+            doc = json.loads((Path(d) / "clusters.json").read_text(encoding="utf-8"))
+        self.assertEqual(lint._check_dedup({"stable_question_id": SYN.format(2, 1)}, doc),
+                         ["cluster role is 'member', not canonical"])
+        self.assertEqual((r.counts["distinct_live_rows"], r.counts["live_rows_only_in_unread"],
+                          r.counts["live_unique"], r.counts["unique_not_live"]), (1, 1, 1, 0))
+
+    def test_certified_copy_held_even_when_partner_is_elsewhere(self):
+        with tempfile.TemporaryDirectory() as d:
+            ip, lp = self.tree(d, mc("Which shape has five equal sides?"))
+            r = cluster(load_corpus(ip, lp))
+        self.assertEqual(r.roles[SYN.format(2, 1)], "member")
+        # the held copy's live row is in the partner's read cluster: one question, not two
+        self.assertEqual((r.counts["live_elsewhere_same_as_read_cluster"], r.counts["unique"]), (1, 1))
+        self.assertEqual(r.founder_pairs, [])
+
+    def test_occurrence_linked_to_unread_live_row_is_not_canonical(self):
+        with tempfile.TemporaryDirectory() as d:
+            ip, lp = build_tree(Path(d), [{"id": SYN.format(1, 1), "text": mc("Which shape is round?"),
+                                           "live_rows": [uid(1)]}])
+            row = record_from_row(live_row(1, "Which shape is round?", answer="E"))  # live but unreadable
+            r = cluster(load_corpus(ip, lp), [row])
+        self.assertEqual((r.roles[SYN.format(1, 1)], r.roles[uid(1)]), ("member", "unparsed"))
+        self.assertEqual(r.counts["live_unique"], 1)
 
     def test_live_rows_with_problems(self):
         rows = [live_row(1, "Pick one.", answer="E"), live_row(2, "Pick two.", figure_kind="table"),

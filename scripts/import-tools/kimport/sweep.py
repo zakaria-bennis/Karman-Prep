@@ -25,7 +25,6 @@ Any group with a figure (figure_kind or figure_table_data set) is reported as
 """
 
 import json
-import re
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,22 +33,21 @@ from typing import TypedDict
 from kimport.keys import (
     QuestionRecord,
     answer_value,
-    clean_text,
     comparison_key,
     figure_value,
     sorted_choices,
     table_values,
 )
 from kimport.export import export_by_id, read_export
+from kimport.evidence import WORD, OutsideEvidence
 from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
 from kimport.sqlutil import do_block, lit, uuid_literal
-from kimport.typo import MAX_SPOT_CHARS, MAX_SPOTS, text_words, typo_match, words_within_spots
+from kimport.typo import typo_match
 
 PUBLISH_READY = ("publish_ready", "publish_ready_with_verified_repair")
 UNPUBLISHED_STATUS = "needs_human_review"
 UNPUBLISHED_IMPORT = "needs_review"
 FORMATS = {"multiple_choice": "mc", "numeric_entry": "numeric"}
-_WORD = re.compile(r"[^\W_]+")
 _FAR_FUTURE = datetime.max.replace(tzinfo=timezone.utc)
 
 
@@ -156,35 +154,6 @@ def blocking_key(r: QuestionRecord) -> str:
     ], ensure_ascii=False)
 
 
-def _bare_words(r: QuestionRecord) -> frozenset[str]:
-    return frozenset(_WORD.findall(clean_text(r.text)))
-
-
-# Pre-filter bounds (rulings R10, R11). words_within_spots allows MAX_SPOTS spots
-# of at most MAX_SPOT_CHARS character edits each. Word counts: an edit to a
-# space adds or drops one word, so counts differ by at most MAX_SPOTS *
-# MAX_SPOT_CHARS (6). Shared words: one spot of up to 3 edits can join or split
-# words and so touch up to 2 * 3 = 6 words on one side ("is shown in a field of"
-# -> "isshown ina fieldof"), so two spots touch up to 2 * MAX_SPOTS *
-# MAX_SPOT_CHARS = 12 and at least len(shorter) - 12 words are shared. The
-# pre-filter is a necessary condition only: it never rejects a pair the exact
-# check accepts (test_prefilter_never_rejects_a_spot_match checks this).
-_NEAR_COUNT_SLACK = MAX_SPOTS * MAX_SPOT_CHARS
-_NEAR_SHARED_SLACK = 2 * MAX_SPOTS * MAX_SPOT_CHARS
-
-
-def _near_prefilter(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
-    if abs(len(ta) - len(tb)) > _NEAR_COUNT_SLACK:
-        return False
-    shared = sum((Counter(ta) & Counter(tb)).values())
-    return shared >= min(len(ta), len(tb)) - _NEAR_SHARED_SLACK
-
-
-def _near(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
-    """Cheap necessary pre-filter, then the exact spot check."""
-    return _near_prefilter(ta, tb) and words_within_spots(ta, tb)
-
-
 def _created(r: QuestionRecord) -> datetime:
     s = r.meta.get("created_at")
     if not s:
@@ -212,8 +181,8 @@ def _keeper(cands: list[str], age_of, typo, outside_freq) -> tuple[str, bool]:
             result = typo(kx, ky)
             if result.same:
                 for side_x, side_y in result.spots:
-                    spot_words[kx].update(_WORD.findall(side_x))
-                    spot_words[ky].update(_WORD.findall(side_y))
+                    spot_words[kx].update(WORD.findall(side_x))
+                    spot_words[ky].update(WORD.findall(side_y))
     score = {k: min((outside_freq(w) for w in ws), default=0) for k, ws in spot_words.items()}
     best = min(cands, key=lambda k: (-score[k], age_of(k)))
     tie = sum(score[k] == score[best] for k in cands) > 1
@@ -235,19 +204,9 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
     for k in order:
         by_block.setdefault(block_of[k], []).append(k)
 
-    # Every exported row (live, non-live, excluded) with its words, built lazily:
-    # only needed once a typo candidate appears.
-    every: dict = {}
-
-    def index_all() -> dict:
-        if not every:
-            rows = [(text_words(r.text), _bare_words(r)) for r in records]
-            by_len: dict[int, list[int]] = {}
-            for n, (ws, _) in enumerate(rows):
-                by_len.setdefault(len(ws), []).append(n)
-            total = Counter(w for _, bare in rows for w in bare)
-            every.update(rows=rows, by_len=by_len, total=total)
-        return every
+    # Every exported row (live, non-live, excluded) as word evidence, built
+    # lazily: only needed once a typo candidate appears.
+    evidence: list = []
 
     cache: dict[tuple[str, str], object] = {}
 
@@ -260,14 +219,9 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
         """Word counts over rows outside the group (ruling R9, text only): drops
         every exported row, of any status, answer or choices, whose words equal
         or are within the typo spot limits of any candidate's words."""
-        idx = index_all()
-        own: Counter = Counter()
-        cand_words = [text_words(buckets[k][0].text) for k in cands]
-        for n in {n for cw in cand_words for d in range(-_NEAR_COUNT_SLACK, _NEAR_COUNT_SLACK + 1) for n in idx["by_len"].get(len(cw) + d, ())}:
-            ws, bare = idx["rows"][n]
-            if any(_near(cw, ws) for cw in cand_words):
-                own.update(bare)
-        return lambda w: idx["total"][w] - own[w]
+        if not evidence:
+            evidence.append(OutsideEvidence(records))
+        return evidence[0].outside([buckets[k][0].text for k in cands])
 
     done: set[str] = set()
     groups: list[dict] = []

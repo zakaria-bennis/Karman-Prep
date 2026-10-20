@@ -350,7 +350,7 @@ class BackfillCheckTests(PublishTestCase):
 
     def test_refuses_key_drift(self):
         bank = self.bank()
-        bank[2]["comparison_key"] = "kn-1:" + "0" * 64
+        bank[2]["comparison_key"] = "kn-2:" + "0" * 64
         with self.assertRaisesRegex(RefuseToBuild, "1 rows have a stored comparison_key that differs") as cm:
             self.build(self.batch(self.three(), bank))
         self.assertIn(bank[2]["id"], cm.exception.reason)

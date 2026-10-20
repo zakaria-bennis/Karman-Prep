@@ -28,8 +28,7 @@ import re
 from pathlib import Path
 
 from kimport.keys import QuestionRecord
-from kimport.lint import _NEEDS_VISUAL
-from kimport.normalize import strip_markup
+from kimport.evidence import needs_visual
 
 CHOICE = re.compile(r'^\s*([A-H])\s*[).:]\s*(.+?)\s*$')
 IMAGE = re.compile(r'(?i)(<svg|<img|!\[|\b(?:figure|graph|diagram|image|shown below|pictured|scatterplot)\b)')
@@ -37,7 +36,14 @@ VISUAL_REASON = "essential_visual_material_unreviewed"
 GENERATED_BASIS = "two_independent_question_only_reviews_without_original_key"
 _STUDENT_KEYS = ("b_final_student_text", "b_student_final_text", "B_student_final_text", "B_student_json")
 _C_HASH_KEYS = ("c_corrected_text_sha256", "C_corrected_text_sha256")
-_CF_VISUAL = ("complete", "hold")  # CF rendered (or is holding) an essential visual for this version
+_CF_VISUAL = ("complete", "hold")
+# Rule 1 (ruling R18): capture labels that are not part of the question.
+# A leading question label ("Question 7", "15.", "3)", "12 SAT Math") at the very
+# start, and trailing bracketed response-box notes ("[blank response field]",
+# "[empty numeric response box.]"). A note mentioning underlining is never dropped.
+LEAD_LABEL = re.compile(r'(?i)^(?:question\s*\d{1,3}\s*[:.]?|\d{1,3}\s*[.)]|\d{1,3}\s+sat\s+math)(?:\s+|$)')
+RESPONSE_NOTE = re.compile(
+    r'(?i)^\[(?![^\]]*underlin)(?=[^\]]*\b(?:response|answer)\b)(?=[^\]]*\b(?:box|field)\b)[^\]]*\]\.?$')  # CF rendered (or is holding) an essential visual for this version
 
 
 def _lines(text: str) -> list[str]:
@@ -48,10 +54,15 @@ def _lines(text: str) -> list[str]:
 def parse_text(text):
     lines = _lines(text)
     while lines and (re.fullmatch(r'\[Page number at bottom: \d+\.\]', lines[-1])
-                     or re.fullmatch(r'Printed page number: \d+\.', lines[-1]) or lines[-1] == 'Figures/tables: none.'):
+                     or re.fullmatch(r'Printed page number: \d+\.', lines[-1]) or lines[-1] == 'Figures/tables: none.'
+                     or RESPONSE_NOTE.match(lines[-1])):
         lines.pop()
     if lines and re.fullmatch(r'\d{1,3}', lines[0]):
         lines = lines[1:]
+    if lines:
+        lines[0] = LEAD_LABEL.sub('', lines[0], count=1)
+        if not lines[0]:
+            lines = lines[1:]
     opts = []
     while lines:
         m = CHOICE.fullmatch(lines[-1])
@@ -107,16 +118,6 @@ def _fields(body, choices, answer, typ, q) -> dict:
             'answer_format': 'mc' if typ == 'multiple_choice' else 'numeric',
             'figure_signature': q.get('reviewed_material_signature') or None,
             'choice_map': dict(choices)}
-
-
-def needs_visual(text: str) -> str | None:
-    """The lint needs-a-visual phrase (ruling R16) found in the text, if any."""
-    plain, _ = strip_markup(text)
-    for rx in _NEEDS_VISUAL:
-        m = rx.search(plain)
-        if m:
-            return m.group(0)
-    return None
 
 
 def _base_meta(meta: dict | None) -> dict:

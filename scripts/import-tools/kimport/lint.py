@@ -10,20 +10,11 @@ import os
 import re
 from pathlib import Path
 
-from .normalize import NORMALIZER_VERSION, strip_markup
+from .evidence import needs_visual
+from .normalize import NORMALIZER_VERSION
 
 # Matches REVIEWED_DIFFICULTY_RUBRIC_VERSION in karman-release reviewed-difficulty.ts.
 RUBRIC_VERSION = "karman-legacy-1-7-v1"
-_V = r"(?:graph|figure|diagram|table|scatterplot|chart|plot)s?"
-_NEEDS_VISUAL = tuple(re.compile(p, re.IGNORECASE) for p in (
-    r"\b(?:in|from|according to|based on|using)\s+the\s+" + _V + r"\b(?!\s+of\b)",
-    r"\bthe\s+" + _V + r"\s+(?:above|below|shown|shows|show|gives|give|represents|displays|models|"
-    r"summarizes|lists|contains|records|describes)\b",
-    r"\b(?:is|are)\s+shown\b(?!\s+(?:it|that|to|how)\b)",
-    r"\bshown\s+(?:above|below|here)\b",
-    r"\b(?:scatterplot|bar graph|line graph|histogram|dot plot|box plot|circle graph|pie chart|frequency table)s?\b",
-    r"\b(?:which|following|each)\s+" + _V + r"\b",
-))
 _KNOWN_FIGURE_FIELDS = ("figure_kind", "figure_table_data", "choice_tables")
 _ASSET_KEY = re.compile(r"asset|image|figure", re.IGNORECASE)
 
@@ -87,13 +78,11 @@ def _check_figure(row: dict) -> list[str]:
         if row.get("figure_table_data") in (None, "", [], {}):
             return ["figure_kind is table but figure_table_data is empty"]
         return []
-    text, _ = strip_markup(str(row.get("question_text") or ""))
     if row.get("figure_table_data") not in (None, "", [], {}) or _has_asset(row):
         return []
-    for rx in _NEEDS_VISUAL:
-        match = rx.search(text)
-        if match:
-            return [f"text refers to a visual ({match.group(0)!r}) but the row has no reviewed asset"]
+    phrase = needs_visual(str(row.get("question_text") or ""))
+    if phrase:
+        return [f"text refers to a visual ({phrase!r}) but the row has no reviewed asset"]
     return []
 
 

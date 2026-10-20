@@ -10,7 +10,7 @@ from kimport.normalize import (
 
 class NormalizeTextTests(unittest.TestCase):
     def test_version(self):
-        self.assertEqual(NORMALIZER_VERSION, "kn-1")
+        self.assertEqual(NORMALIZER_VERSION, "kn-2")
 
     def test_fraction_forms_equal(self):
         forms = [
@@ -34,6 +34,17 @@ class NormalizeTextTests(unittest.TestCase):
         self.assertEqual(a, normalize_text("x^{2}"))
         self.assertEqual(a, normalize_text("$x^2$"))
         self.assertNotEqual(a, normalize_text("x2"))
+
+    def test_compound_exponent_braces_equal_parentheses(self):
+        # kn-2: one form for a braced or parenthesized exponent group
+        self.assertEqual(normalize_text("x^{2n}"), normalize_text("x^(2n)"))
+        self.assertEqual(normalize_text("x^{(2n)}"), normalize_text("x^(2n)"))
+        self.assertEqual(normalize_text("b(x)=905(1.001)^{2x-4}"), normalize_text("b(x)=905(1.001)^(2x-4)"))
+        self.assertEqual(normalize_text("1.5^{\\frac{x}{2}-4}"), normalize_text("1.5^((x)/(2)-4)"))
+        self.assertEqual(normalize_text("f^{-1}"), normalize_text("f^(-1)"))
+        self.assertNotEqual(normalize_text("x^{2n}"), normalize_text("x^(3n)"))
+        self.assertNotEqual(normalize_text("x^(2x-4)"), normalize_text("x^(2x-8)"))
+        self.assertNotEqual(normalize_text("a ______(b)"), normalize_text("a ______b"))
 
     def test_multi_digit_superscript(self):
         self.assertEqual(normalize_text("x¹⁰"), normalize_text("x^{10}"))

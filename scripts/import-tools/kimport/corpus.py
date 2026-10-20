@@ -34,12 +34,13 @@ from collections import Counter
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from kimport.corpus_load import load_corpus, needs_visual
+from kimport.corpus_load import load_corpus
+from kimport.evidence import WORD, OutsideEvidence, needs_visual
 from kimport.export import read_export_doc
 from kimport.keys import QuestionRecord, answer_value, clean_text, comparison_key, sorted_choices
 from kimport.normalize import NORMALIZER_VERSION
-from kimport.sweep import _NEAR_COUNT_SLACK, _WORD, _bare_words, _near, blocking_key, record_from_row
-from kimport.typo import text_words, typo_match
+from kimport.sweep import blocking_key, record_from_row
+from kimport.typo import typo_match
 
 ROLES = ("canonical", "member", "pending_answer_dispute", "figure_review", "founder_review", "unparsed")
 FOUNDER_RATIO = 0.90
@@ -101,28 +102,6 @@ def _compare_text(r: QuestionRecord) -> str:
 # ---------------------------------------------------------------- clustering
 
 
-class _Evidence:
-    """Word counts over every record, minus those near a cluster (rulings R9-R11)."""
-
-    def __init__(self, records):
-        self.rows = [(text_words(r.text), _bare_words(r)) for r in records]
-        self.by_len: dict[int, list[int]] = {}
-        for n, (ws, _) in enumerate(self.rows):
-            self.by_len.setdefault(len(ws), []).append(n)
-        self.total = Counter(w for _, bare in self.rows for w in bare)
-
-    def outside(self, texts: list[str]):
-        own: Counter = Counter()
-        cw = [text_words(t) for t in texts]
-        near = {n for w in cw for d in range(-_NEAR_COUNT_SLACK, _NEAR_COUNT_SLACK + 1)
-                for n in self.by_len.get(len(w) + d, ())}
-        for n in near:
-            ws, bare = self.rows[n]
-            if any(_near(w, ws) for w in cw):
-                own.update(bare)
-        return lambda word: self.total[word] - own[word]
-
-
 def _typo_flags(cands, rep, typo, evidence) -> tuple[dict[str, int], bool]:
     """0 for the clean bucket and 1 for the others; all 0 (and tie) without evidence."""
     spot_words: dict[str, set[str]] = {k: set() for k in cands}
@@ -131,8 +110,8 @@ def _typo_flags(cands, rep, typo, evidence) -> tuple[dict[str, int], bool]:
             res = typo(kx, ky)
             if res.same:
                 for side_x, side_y in res.spots:
-                    spot_words[kx].update(_WORD.findall(side_x))
-                    spot_words[ky].update(_WORD.findall(side_y))
+                    spot_words[kx].update(WORD.findall(side_x))
+                    spot_words[ky].update(WORD.findall(side_y))
     freq = evidence.outside([rep[k].text for k in cands])
     score = {k: min((freq(w) for w in ws), default=0) for k, ws in spot_words.items()}
     top = max(score.values())
@@ -215,7 +194,7 @@ def cluster(corpus, live=None) -> ClusterResult:
     by_block: dict[str, list[str]] = {}
     for k in order:
         by_block.setdefault(block_of[k], []).append(k)
-    evidence = _Evidence(parsed + extra)
+    evidence = OutsideEvidence(parsed + extra)
     cache: dict = {}
 
     def typo(k1, k2):
@@ -255,6 +234,25 @@ def cluster(corpus, live=None) -> ClusterResult:
         settled.append((c, canon))
         roles.update({r.ref: ("canonical" if r is canon else "member") for r in recs})
 
+    read_live = {r.ref for r in parsed if r.meta.get("source") == "live"}
+    live_state = None if live is None else {r.ref: r.is_live for r in live}
+    held = []
+    for c, canon in settled:
+        recs = [by_ref[m["id"]] for m in c["members"]]
+        if any(r.is_live and not _blocked(r, live_state, read_live) for r in recs):
+            continue
+        blockers = [r for r in recs if _blocked(r, live_state, read_live)]
+        if blockers:
+            row = _blocked(blockers[0], live_state, read_live)
+            c.update(status="live_elsewhere", canonical=None, live_row=row,
+                     is_live=live_state is None or live_state.get(row, True))
+            for m in c["members"]:
+                m["duplicate_of"] = row
+                if m["match"] == "canonical":
+                    m["match"] = "exact"
+            roles.update({r.ref: "member" for r in recs})
+            held.append(c["cluster_id"])
+    settled = [(c, canon) for c, canon in settled if c["status"] == "settled"]
     pairs = _founder_pairs(settled)
     by_cid = {c["cluster_id"]: c for c, _ in settled}
     for p in pairs:
@@ -265,8 +263,25 @@ def cluster(corpus, live=None) -> ClusterResult:
 
     clusters.sort(key=lambda c: (c["canonical"] or c["members"][0]["id"]))
     cluster_of = {m["id"]: c["cluster_id"] for c in clusters for m in c["members"]}
-    counts = _counts(corpus, live_recs, live, clusters, unparsed, pairs, roles)
+    counts = _counts(corpus, live_recs, live, clusters, unparsed, pairs, roles, by_ref)
     return ClusterResult(roles, clusters, pairs, unparsed, counts, by_ref, cluster_of)
+
+
+def _blocked(r: QuestionRecord, live: dict | None, read_live: set[str]) -> str | None:
+    """The live row id this record duplicates, so it must never be canonical: a
+    ledger CERTIFIED_DUPLICATE (always), or (with an export) an occurrence whose
+    linked live rows are not read records here. A cluster that also holds a
+    read live copy is unaffected (the live copy is canonical)."""
+    cert = r.meta.get("certified_live")
+    if cert:
+        return cert
+    if r.meta.get("final_category") == "CERTIFIED_DUPLICATE" and not cert:
+        return "certified duplicate (no row id)"
+    rows = r.meta.get("live_rows") or []
+    if live is None or not rows or set(rows) & read_live:
+        return None
+    # linked rows missing from the export, or live there but not readable
+    return next((x for x in rows if live.get(x, True)), None)
 
 
 def _founder_pairs(settled) -> list[dict]:
@@ -298,9 +313,25 @@ def _side(c, r) -> dict:
             "choices": list(r.choices), "answer": r.answer, "answer_format": r.answer_format}
 
 
-def _counts(corpus, live_recs, live, clusters, unparsed, pairs, roles) -> dict:
+def _rows_of(r: QuestionRecord) -> set[str]:
+    """Live row ids a record stands for: an export row is itself; an occurrence its
+    linked rows (a live occurrence with no row id stands for itself)."""
+    if r.meta.get("source") == "live":
+        return {r.ref}
+    rows = set(r.meta.get("live_rows") or ())
+    return rows or ({r.ref} if r.is_live else set())
+
+
+def _counts(corpus, live_recs, live, clusters, unparsed, pairs, roles, by_ref) -> dict:
+    """Counts for the report. Unique counts cover READ occurrences only; the
+    unread ones are estimated separately (see report_md for the method)."""
     status = Counter(c["status"] for c in clusters)
-    live_unique = sum(1 for c in clusters if c["is_live"])
+    rows_in = {c["cluster_id"]: set().union(*(_rows_of(by_ref[m["id"]]) for m in c["members"])) for c in clusters}
+    represented = set().union(*(rows_in[c["cluster_id"]] for c in clusters if c["status"] != "live_elsewhere"))
+    # a held certified copy whose live row sits in another read cluster is that question again
+    dup_held = [c for c in clusters if c["status"] == "live_elsewhere" and c["live_row"] in represented]
+    counted = [c for c in clusters if c not in dup_held]
+    live_unique = sum(1 for c in counted if c["is_live"])
     parent: dict[str, str] = {}
 
     def find(x):
@@ -314,6 +345,17 @@ def _counts(corpus, live_recs, live, clusters, unparsed, pairs, roles) -> dict:
         if a != b:
             parent[b] = a
             merges += 1
+    if live is None:
+        all_live = set().union(*(_rows_of(r) for r in corpus))
+    else:
+        all_live = {r.ref for r in live if r.is_live}
+    read_live = set().union(*rows_in.values()) & all_live
+    unread = [by_ref[u["id"]] for u in unparsed if by_ref[u["id"]].meta.get("source", "corpus") == "corpus"]
+    unread_new = [r for r in unread if not r.meta.get("live_rows") and not r.meta.get("certified_live")]
+    read_not_live = [r for r in corpus if r.meta.get("status") != "unparsed" and not r.is_live
+                     and not r.meta.get("certified_live")]
+    not_live = len(counted) - live_unique
+    rate = not_live / len(read_not_live) if read_not_live else 1.0
     return {
         "occurrences": len(corpus),
         "live_status_from": "ledger" if live is None else "export",
@@ -324,11 +366,21 @@ def _counts(corpus, live_recs, live, clusters, unparsed, pairs, roles) -> dict:
         "clusters_settled": status["settled"],
         "clusters_answer_dispute": status["answer_dispute"],
         "clusters_figure_review": status["figure_review"],
-        "unique": len(clusters),
+        "clusters_live_elsewhere": status["live_elsewhere"],
+        "live_elsewhere_same_as_read_cluster": len(dup_held),
+        "unique": len(counted),
         "live_unique": live_unique,
-        "unique_not_live": len(clusters) - live_unique,
+        "unique_not_live": not_live,
+        "distinct_live_rows": len(all_live),
+        "live_rows_only_in_unread": len(all_live - read_live),
+        "live_rows_sharing_a_cluster": sum(max(0, len(rows_in[c["cluster_id"]] & all_live) - 1) for c in counted),
+        "unread_occurrences": len(unread),
+        "unread_live_or_certified": len(unread) - len(unread_new),
+        "unread_new_upper": len(unread_new),
+        "unread_new_at_read_rate": round(len(unread_new) * rate),
+        "read_not_live_unique_rate": round(rate, 4),
         "founder_pairs": len(pairs),
-        "unique_if_every_pair_is_same": len(clusters) - merges,
+        "unique_floor_if_every_pair_is_same": len(counted) - merges,
         "roles": dict(Counter(roles.values())),
     }
 
@@ -351,6 +403,7 @@ def check_certified(result: ClusterResult) -> list[dict]:
         ok = (target is not None and role == "member" and r.ref in result.cluster_of
               and result.cluster_of.get(r.ref) == result.cluster_of.get(target))
         out.append({"id": r.ref, "certified_live_row": uuid, "target": target, "ok": ok, "role": role,
+                    "held": role not in ("canonical", "founder_review"),
                     "reason": None if ok else _mismatch_reason(result, r, target)})
     return out
 
@@ -385,26 +438,42 @@ def _n(x) -> str:
 
 def report_md(result: ClusterResult) -> str:
     c = result.counts
-    total = c["live_unique"] + c["unique_not_live"]
-    gap = GOAL - total
-    goal_line = (f"{_n(gap)} short of the 10,000 goal" if gap > 0 else
-                 f"{_n(-gap)} over the 10,000 goal" if gap < 0 else "exactly the 10,000 goal")
+    low = c["distinct_live_rows"] + c["unique_not_live"]
+    mid = low + c["unread_new_at_read_rate"]
+    high = low + c["unread_new_upper"]
+    floor = c["distinct_live_rows"] + (c["unique_floor_if_every_pair_is_same"] - c["live_unique"])
     live_from = ("the live export" if c["live_status_from"] == "export" else
-                 "the readiness ledger (no live export given)")
+                 "the readiness ledger's linked live rows (no live export given)")
+
+    def short(n):
+        return f"{_n(GOAL - n)} short of" if n < GOAL else f"{_n(n - GOAL)} over"
+
     lines = [
         "# Corpus duplicate run",
         "",
         f"- {_n(c['occurrences'])} captured occurrences (the readiness ledger), plus "
-        f"{_n(c['live_rows_clustered'])} live bank rows. Live status comes from {live_from}.",
-        f"- {_n(c['unparsed'])} could not be read and are not counted (reasons below).",
-        f"- **{_n(c['unique'])} unique questions**: {_n(c['live_unique'])} already live, "
-        f"**{_n(c['unique_not_live'])} not yet live**.",
+        f"{_n(c['live_rows_clustered'])} live bank rows from an export. Live status comes from {live_from}.",
+        f"- **Live today: {_n(c['distinct_live_rows'])} distinct live rows.** {_n(c['live_rows_only_in_unread'])} of "
+        f"them are only in occurrences we could not read; {_n(c['live_rows_sharing_a_cluster'])} are extra live "
+        "copies of a question that already has another live row (the live sweep's job).",
+        f"- **Unique among read occurrences: {_n(c['unique'])}** ({_n(c['live_unique'])} already live, "
+        f"**{_n(c['unique_not_live'])} not yet live**).",
         f"- Of those, {_n(c['clusters_figure_review'])} are figure questions grouped by text only (the figure "
-        f"campaign confirms them) and {_n(c['clusters_answer_dispute'])} have copies with different answer keys.",
-        f"- {_n(c['founder_pairs'])} close-match pairs need your yes/no (founder_pairs.json). If every one is "
-        f"\"same\", the unique count drops to {_n(c['unique_if_every_pair_is_same'])}.",
-        f"- Live {_n(c['live_unique'])} + not yet live {_n(c['unique_not_live'])} = {_n(total)}, which is "
-        f"{goal_line}.",
+        f"campaign confirms them), {_n(c['clusters_answer_dispute'])} have copies with different answer keys, and "
+        f"{_n(c['clusters_live_elsewhere'])} are certified copies of a live row held back from publishing.",
+        f"- **Not read: {_n(c['unread_occurrences'])} occurrences.** {_n(c['unread_live_or_certified'])} of them are "
+        "already live or certified copies of a live row, so they add nothing new. The other "
+        f"{_n(c['unread_new_upper'])} could add up to {_n(c['unread_new_upper'])} more unique questions "
+        f"(about {_n(c['unread_new_at_read_rate'])} if they repeat at the rate read ones do: "
+        f"{c['read_not_live_unique_rate']:.0%} unique). Method: count unread occurrences with no linked live row "
+        "and no certificate; exam position is not used to link them.",
+        f"- {_n(c['founder_pairs'])} close-match pairs need your yes/no (founder_pairs.json). Even if every close "
+        f"match were a duplicate, there would be at least {_n(c['unique_floor_if_every_pair_is_same'])} unique "
+        "questions among the read occurrences.",
+        f"- Against 10,000: live {_n(c['distinct_live_rows'])} + not yet live among read {_n(c['unique_not_live'])} "
+        f"= {_n(low)} ({short(low)} the goal). Adding the unread estimate gives about {_n(mid)} "
+        f"(at most {_n(high)}, {short(high)} the goal). If every close match is a duplicate: about {_n(floor)} "
+        "before the unread estimate.",
         "- Captures outside the ledger (other raw scans): not counted.",
         "",
     ]
@@ -413,7 +482,9 @@ def report_md(result: ClusterResult) -> str:
         good = sum(x["ok"] for x in cert)
         lines += ["## Certified duplicates", "",
                   f"{good} of {len(cert)} ledger CERTIFIED_DUPLICATE items came out as a member of the cluster "
-                  "holding their certified live row (or the ledger occurrence linked to it).", ""]
+                  "holding their certified live row (or the ledger occurrence linked to it). "
+                  f"{sum(x['held'] for x in cert)} of {len(cert)} can never be published as a second copy "
+                  "(none is canonical or in a founder pair).", ""]
         bad = [x for x in cert if not x["ok"]]
         if bad:
             lines += ["Each of these needs an explanation before the corpus output is used:", ""]

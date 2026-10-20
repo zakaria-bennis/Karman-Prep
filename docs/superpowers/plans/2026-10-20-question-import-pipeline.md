@@ -18,7 +18,7 @@
 - **No question labels (D4).** Questions with agent-solved answers carry no label: `answer_source` stays null for `reviewed_answer.kind === "independently_confirmed_generated"`.
 - **Founder go-ahead is required before each of these live writes:** the un-publish of live duplicates, migration A plus the key backfill, migration B, and each publish batch (CLAUDE.md: "Live question writes need the founder's go-ahead for each batch").
 - **Never alter approved source bytes** or stored question text. The normalizer is for comparison only.
-- **One normalizer.** Every comparison (sweep, corpus, lint, publish guard, backfill) imports `kimport.normalize`. `NORMALIZER_VERSION = "kn-1"`.
+- **One normalizer.** Every comparison (sweep, corpus, lint, publish guard, backfill) imports `kimport.normalize`. `NORMALIZER_VERSION = "kn-2"`.
 - **Typo rule defaults:** at most 2 differing spots, at most 3 characters per spot, never in an answer choice, never inside `<u>…</u>` or a blank (`______`), and no digit, sign or math token differs.
 - **Files:** no file over about 700 lines (`npm run check:sizes`).
 - **Where code lives:** source of truth is `scripts/import-tools/` in this repo (branch `claude/import-dedup-spec`). It runs from task-3 with `python3 -I <repo>/scripts/import-tools/kimport-cli.py <command> …`. Working files go in `/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/`.
@@ -87,7 +87,7 @@ class QuestionRecord:
 
 **Interfaces:**
 
-- Produces: `NORMALIZER_VERSION: str = "kn-1"`; `normalize_text(s: str) -> str`; `strip_markup(s: str) -> tuple[str, tuple[tuple[int, int, str], ...]]` (plain text plus the `(start, end, kind)` spans of `u`, `i` and `blank`); `math_tokens(s: str) -> tuple[str, ...]` (digits, signs, variables, operators after normalization, in order).
+- Produces: `NORMALIZER_VERSION: str = "kn-2"`; `normalize_text(s: str) -> str`; `strip_markup(s: str) -> tuple[str, tuple[tuple[int, int, str], ...]]` (plain text plus the `(start, end, kind)` spans of `u`, `i` and `blank`); `math_tokens(s: str) -> tuple[str, ...]` (digits, signs, variables, operators after normalization, in order).
 
 - [ ] **Step 1: Write failing tests** in `test_normalize.py`:
   - `test_fraction_forms_equal`: `normalize_text("½ of 18") == normalize_text("1/2 of 18") == normalize_text(r"\frac{1}{2} of 18") == normalize_text(r"\dfrac{1}{2} of 18")`
@@ -113,7 +113,7 @@ class QuestionRecord:
 **Interfaces:**
 
 - Consumes: Task 1 functions.
-- Produces: `QuestionRecord` (above); `comparison_key(r: QuestionRecord) -> str` (`"kn-1:" + sha256 hex` of a JSON list: normalized text, sorted normalized choices with repeats kept, markup spans, answer_format, normalized answer, table cells, figure_signature; subject and domain are never inputs); `answer_value(r) -> str` (normalized choice text, or for numeric a canonical `Fraction` string when parseable); `typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult` where `TypoResult = NamedTuple("TypoResult", [("same", bool), ("spots", tuple[tuple[str, str], ...]), ("reason", str)])`, plus `MAX_SPOTS = 2` and `MAX_SPOT_CHARS = 3`.
+- Produces: `QuestionRecord` (above); `comparison_key(r: QuestionRecord) -> str` (`"kn-2:" + sha256 hex` of a JSON list: normalized text, sorted normalized choices with repeats kept, markup spans, answer_format, normalized answer, table cells, figure_signature; subject and domain are never inputs); `answer_value(r) -> str` (normalized choice text, or for numeric a canonical `Fraction` string when parseable); `typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult` where `TypoResult = NamedTuple("TypoResult", [("same", bool), ("spots", tuple[tuple[str, str], ...]), ("reason", str)])`, plus `MAX_SPOTS = 2` and `MAX_SPOT_CHARS = 3`.
 
 - [ ] **Step 1: Write failing tests.** The six founder examples are fixtures in `tests/fixtures/founder_examples.json` (made-up text, copied from the widget shown to the founder):
   - `test_shuffled_choices_same_key`: example 1 → keys equal

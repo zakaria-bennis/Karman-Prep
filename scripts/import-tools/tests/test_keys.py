@@ -17,8 +17,8 @@ class ComparisonKeyTests(unittest.TestCase):
     def test_key_format(self):
         a, _ = pair("shuffled_choices")
         key = comparison_key(a)
-        self.assertTrue(key.startswith("kn-1:"))
-        self.assertEqual(len(key), len("kn-1:") + 64)
+        self.assertTrue(key.startswith("kn-2:"))
+        self.assertEqual(len(key), len("kn-2:") + 64)
         self.assertEqual(key, comparison_key(a))
 
     def test_shuffled_choices_same_key(self):

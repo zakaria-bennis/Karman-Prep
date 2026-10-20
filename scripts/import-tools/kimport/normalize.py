@@ -9,7 +9,7 @@ import functools
 import re
 import unicodedata
 
-NORMALIZER_VERSION = "kn-1"
+NORMALIZER_VERSION = "kn-2"  # kn-2: compound ^{..} == ^(..), ^(simple) == ^simple
 
 _SUPERSCRIPTS = dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻", "0123456789+-"))
 _SUBSCRIPTS = dict(zip("₀₁₂₃₄₅₆₇₈₉₊₋", "0123456789+-"))
@@ -137,18 +137,40 @@ def _latex_math(s: str) -> str:
     return _LATEX_NOISE.sub("", s)
 
 
+_PAREN_SCRIPT = re.compile(r"(\^|(?<!_)_)\(")  # never the end of a blank run
+
+
 def _unbrace_scripts(s: str) -> str:
-    """`^{2}` -> `^2`, `_{-1}` -> `_-1`; keep braces around compound groups."""
+    """`^{2}` -> `^2`, `_{-1}` -> `_-1`; a compound group `^{2x-4}` -> `^(2x-4)`.
+
+    A parenthesized simple group `^(2n)` -> `^2n`, so `x^{2n}`, `x^(2n)` and
+    `x^{(2n)}` compare equal (kn-2), as do `^{(x)/(2)-4}` and `^((x)/(2)-4)`.
+    """
     out, pos = [], 0
     for m in _SCRIPT.finditer(s):
         if m.start() < pos:
             continue
         got = _read_arg(s, m.end() - 1)
-        if got is None or not _SIMPLE_GROUP.fullmatch(got[0]):
+        if got is None:
+            continue
+        inner = got[0].strip()
+        out.append(s[pos : m.start()])
+        out.append(m.group(1) + (inner if _SIMPLE_GROUP.fullmatch(inner) else _wrap(inner)))
+        pos = got[1]
+    out.append(s[pos:])
+    s, out, pos = "".join(out), [], 0
+    for m in _PAREN_SCRIPT.finditer(s):
+        if m.start() < pos:
+            continue
+        close = _match_close(s, m.end() - 1)
+        if close is None:
+            continue
+        inner = s[m.end() : close].strip()
+        if not _SIMPLE_GROUP.fullmatch(inner):
             continue
         out.append(s[pos : m.start()])
-        out.append(m.group(1) + got[0])
-        pos = got[1]
+        out.append(m.group(1) + inner)
+        pos = close + 1
     out.append(s[pos:])
     return "".join(out)
 

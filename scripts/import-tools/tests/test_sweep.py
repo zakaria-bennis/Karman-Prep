@@ -11,8 +11,8 @@ from kimport.keys import QuestionRecord
 from kimport.typo import MAX_SPOT_CHARS, MAX_SPOTS, words_within_spots
 from tests.export_fixtures import export_doc, write_export
 from kimport.export import export_by_id, read_export
+from kimport.evidence import near_prefilter as _near_prefilter
 from kimport.sweep import (
-    _near_prefilter,
     find_live_duplicates,
     load_export,
     report_md,
