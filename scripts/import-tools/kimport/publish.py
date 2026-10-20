@@ -16,6 +16,13 @@ UPDATE then sets. Rows whose figure the key cannot represent (an image, graph
 or other non-table figure; ruling R12) get no database key and no key guard;
 the precheck still runs for them and the report lists them.
 
+publish.sql opens with a block that recomputes the export fingerprint
+(kimport.export.FINGERPRINT_SQL) and stops if the bank changed since the
+export. Before building, every keyable non-batch export row must carry the key
+this normalizer computes (the backfill was applied and nothing drifted).
+Rollback is the exact inverse, restoring the comparison_key the row had in the
+private readback.
+
 Nothing here connects to a database; the SQL is text for a human-approved run.
 """
 
@@ -27,10 +34,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
 
+from kimport.export import FINGERPRINT_SQL, ExportDoc, read_export_doc
 from kimport.keys import QuestionRecord, comparison_key
 from kimport.normalize import NORMALIZER_VERSION
 from kimport.sqlutil import do_block, lit, uuid_literal
-from kimport.sweep import _unwrap, blocking_key, record_from_row
+from kimport.sweep import blocking_key, record_from_row
 from kimport.typo import typo_match
 from kimport.writer import OpenIntent, require_no_open_intents
 
@@ -38,13 +46,14 @@ MAX_ROWS = 27  # one module
 STAGED_STATUS, STAGED_IMPORT = "needs_human_review", "needs_review"
 FIGURE_NO_KEY = "figure: checked by people, no database key"
 KEYED = "keyed"
+NOT_COMPARABLE_ANSWER = "not comparable (bad answer letter)"
+NOT_COMPARABLE_FORMAT = "not comparable (format mismatch)"
 # Columns holding a figure the comparison key does not represent (ruling R12).
 _UNKEYED_FIGURE_FIELDS = ("image_url", "image_storage_path", "figure_svg", "figure_graph_data",
                           "figure_chart_data", "figure_geometry_data")
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 _BATCH = re.compile(r"[a-z0-9][a-z0-9-]{0,62}")
 _KEY = re.compile(re.escape(NORMALIZER_VERSION) + r":[0-9a-f]{64}")
-_STAMP_FIELDS = ("exported_at", "generated_at", "captured_at", "read_at")
 
 
 class RefuseToBuild(Exception):
@@ -80,41 +89,27 @@ def _stamp(s) -> datetime | None:
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
-def _top_stamps(doc) -> list[datetime]:
-    if not isinstance(doc, dict):
-        return []
-    return [t for t in (_stamp(doc.get(f)) for f in _STAMP_FIELDS) if t]
-
-
-def _export_rows(path: Path, raw) -> list[dict]:
-    """read_export, also accepting {"exported_at": ..., "<name>": [rows]}."""
-    if isinstance(raw, dict) and any(f in raw for f in _STAMP_FIELDS):
-        rest = [v for k, v in raw.items() if k not in _STAMP_FIELDS]
-        if len(rest) != 1:
-            raise RefuseToBuild(f"{path}: export wrapper must hold one row list besides its timestamp")
-        raw = rest[0]
+def _read_export(path: Path) -> ExportDoc:
     try:
-        rows = _unwrap(raw)  # same unwrapping as the sweep
-    except ValueError as e:
-        raise RefuseToBuild(f"{path}: {e}") from None
-    if not isinstance(rows, list) or not all(isinstance(r, dict) and "id" in r for r in rows):
-        raise RefuseToBuild(f"{path}: not a live_export.sql result (expected a JSON array of rows with an id)")
-    ids = [r["id"] for r in rows]
-    if len(ids) != len(set(ids)):
-        raise RefuseToBuild(f"{path}: ids repeated in export")
-    return rows
+        return read_export_doc(path)
+    except (OSError, ValueError) as e:
+        raise RefuseToBuild(f"cannot use the export: {e}") from None
 
 
-def _check_fresh(readback: Path, export: Path, readback_doc, snaps, export_raw) -> None:
+def _check_fresh(readback: Path, export: Path, snaps, doc: ExportDoc) -> None:
+    """Secondary check: the export must be taken after the private readback.
+    The run-time guard is the fingerprint block at the top of publish.sql."""
     if Path(export).stat().st_mtime < Path(readback).stat().st_mtime:
         raise RefuseToBuild(f"the export {export} is older than the private readback {readback}; "
                             "run sql/live_export.sql again and save a fresh export")
-    read_times = _top_stamps(readback_doc) + [
-        t for s in snaps for t in (_stamp(s["question"].get("updated_at")), _stamp(s["question"].get("created_at"))) if t]
-    export_times = _top_stamps(export_raw)
-    if read_times and export_times and max(export_times) < max(read_times):
+    exported = _stamp(doc.exported_at)
+    if exported is None:
+        raise RefuseToBuild(f"the export {export} has an unreadable exported_at {doc.exported_at!r}")
+    read_times = [t for s in snaps for t in (_stamp(s["question"].get("updated_at")),
+                                             _stamp(s["question"].get("created_at"))) if t]
+    if read_times and exported < max(read_times):
         raise RefuseToBuild(f"the export {export} is older than the private readback {readback} "
-                            f"(export {max(export_times).isoformat()}, readback {max(read_times).isoformat()}); "
+                            f"(exported {exported.isoformat()}, readback row {max(read_times).isoformat()}); "
                             "save a fresh export")
 
 
@@ -236,15 +231,17 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
                 raise RefuseToBuild(f"{it['id']}: export {field} {row.get(field)!r} differs from the private "
                                     f"readback {q.get(field)!r}; take a fresh readback and export")
     try:
-        others = [record_from_row(r) for r in export_rows]
+        exported = [record_from_row(r) for r in export_rows]
     except ValueError as e:
         raise RefuseToBuild(f"export: {e}") from None
-    others += [it["record"] for it in items]
+    batch_ids = {it["id"] for it in items}
+    key_of = {r.ref: comparison_key(r) for r in exported}
+    _check_backfill(exported, key_of, by_id, batch_ids)
     by_key: dict[str, set[str]] = {}
     by_block: dict[str, list[QuestionRecord]] = {}
     seen: set[tuple[str, str]] = set()
-    for r in others:
-        by_key.setdefault(comparison_key(r), set()).add(r.ref)
+    for r, k in [(r, key_of[r.ref]) for r in exported] + [(it["record"], it["full_key"]) for it in items]:
+        by_key.setdefault(k, set()).add(r.ref)
         b = blocking_key(r)
         if (b, r.ref) not in seen:
             seen.add((b, r.ref))
@@ -267,8 +264,38 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
             problems.append(f"{it['id']} duplicate: typo-level match with {', '.join(typo)}")
     if problems:
         raise RefuseToBuild("duplicate check failed: " + "; ".join(problems))
+    others = [r for r in exported if r.ref not in batch_ids]
     return {"normalizer_version": NORMALIZER_VERSION, "export_rows": len(export_rows), "passed": True,
-            "rows": rows}
+            "rows": rows,
+            NOT_COMPARABLE_ANSWER: sorted(r.ref for r in others if r.meta.get("answer_problem")
+                                          and not r.meta.get("format_problem")),
+            NOT_COMPARABLE_FORMAT: sorted(r.ref for r in others if r.meta.get("format_problem"))}
+
+
+def _check_backfill(exported, key_of: dict, by_id: dict, batch_ids: set) -> None:
+    """Every keyable non-batch row must carry the key this normalizer computes
+    (same keyable rule as kimport.backfill)."""
+    missing, drift = [], []
+    for r in exported:
+        if r.ref in batch_ids or r.meta.get("format_problem") or r.meta.get("answer_problem") \
+                or r.meta.get("figure_unkeyable"):
+            continue
+        stored = by_id[r.ref].get("comparison_key")
+        if stored is None:
+            missing.append(r.ref)
+        elif stored != key_of[r.ref]:
+            drift.append(r.ref)
+    problems = []
+    if missing:
+        problems.append(f"{len(missing)} keyable rows have no comparison_key (e.g. {', '.join(missing[:5])}): "
+                        "the backfill is not applied or rows were added since; run `kimport-cli.py backfill` "
+                        "on a fresh export, apply it, then export again")
+    if drift:
+        problems.append(f"{len(drift)} rows have a stored comparison_key that differs from the key "
+                        f"{NORMALIZER_VERSION} computes (e.g. {', '.join(drift[:5])}): normalizer drift or an "
+                        "edited row; stop and ask before publishing")
+    if problems:
+        raise RefuseToBuild("backfill check failed: " + "; ".join(problems))
 
 
 # ---------------------------------------------------------------- SQL
@@ -341,7 +368,7 @@ def _rollback_block(tag: str, it: dict) -> list[str]:
         "  THEN RAISE EXCEPTION 'published state changed: %',q.id; END IF;",
         f"  UPDATE public.quiz_questions SET import_status='{STAGED_IMPORT}',"
         "import_flag_reason=v->'question'->>'import_flag_reason',"
-        f"publish_status='{STAGED_STATUS}',comparison_key=NULL WHERE id=q.id;",
+        f"publish_status='{STAGED_STATUS}',comparison_key=v->'question'->>'comparison_key' WHERE id=q.id;",
         "  UPDATE public.answer_key_entries SET raw_model_response=v->'keys'->0->'raw_model_response' WHERE id=k.id;",
         " END LOOP;",
     ]
@@ -354,7 +381,21 @@ def _row_note(n: int, it: dict) -> str:
     return f"-- row {n}: {it['id']} ({sec} {mod} Q{num}); {what}"
 
 
-def _sql(batch: str, items: list[dict], kind: str) -> str:
+FINGERPRINT_FAILED = "bank changed since export; take a fresh export"
+
+
+def _fingerprint_block(tag: str, doc: ExportDoc) -> list[str]:
+    """Runs first inside the publish transaction: the bank must still be exactly the exported one."""
+    return do_block(tag, [
+        "DECLARE n bigint; f text;",
+        "BEGIN",
+        f" SELECT count(*), {FINGERPRINT_SQL} INTO n, f FROM public.quiz_questions q;",
+        f" IF n <> {int(doc.row_count)} OR f IS DISTINCT FROM {lit(doc.fingerprint)}",
+        f" THEN RAISE EXCEPTION {lit(FINGERPRINT_FAILED)}; END IF;",
+    ])
+
+
+def _sql(batch: str, items: list[dict], kind: str, doc: ExportDoc) -> str:
     slug = batch.replace("-", "_")
     head = {
         "publish": f"-- kimport publish: batch {batch} ({len(items)} rows). Normalizer {NORMALIZER_VERSION}.",
@@ -364,6 +405,9 @@ def _sql(batch: str, items: list[dict], kind: str) -> str:
            "-- Needs the founder's go-ahead before it runs. One transaction: any failed guard aborts every row.",
            "-- Needs migration 20261021000000 (comparison_key column). No row is ever deleted.",
            "BEGIN;", ""]
+    if kind == "publish":
+        out.append(f"-- export {doc.exported_at}: {doc.row_count} rows, fingerprint {doc.fingerprint}")
+        out += _fingerprint_block(f"kimport_publish_{slug}_fingerprint", doc)
     order = list(enumerate(items, 1))
     if kind == "rollback":
         order.reverse()
@@ -393,9 +437,9 @@ def build_publish(private_readback: Path, sealed_preview: Path, export: Path, in
     except (KeyError, TypeError):
         raise RefuseToBuild("private readback or sealed preview is not in the task-3 shape ({\"rows\": [...]})") from None
     pairs = _pair_rows(saved, seals)
-    export_raw = _json(export, "export")
-    _check_fresh(private_readback, export, readback_doc, saved, export_raw)
-    export_rows = _export_rows(export, export_raw)
+    doc = _read_export(export)
+    _check_fresh(private_readback, export, saved, doc)
+    export_rows = doc.rows
 
     items = []
     for snap, seal_row in pairs:
@@ -422,7 +466,7 @@ def build_publish(private_readback: Path, sealed_preview: Path, export: Path, in
 
     precheck = {"batch": batch, **_precheck(items, export_rows)}
     try:
-        publish_sql, rollback_sql = _sql(batch, items, "publish"), _sql(batch, items, "rollback")
+        publish_sql, rollback_sql = _sql(batch, items, "publish", doc), _sql(batch, items, "rollback", doc)
     except ValueError as e:  # dollar tag inside its own block
         raise RefuseToBuild(str(e)) from None
     return {"publish_sql": publish_sql, "rollback_sql": rollback_sql,
@@ -439,9 +483,14 @@ def run_publish(batch: str, readback: Path, sealed: Path, export: Path, intents:
         "keys.json": json.dumps(bundle["keys"], indent=2, sort_keys=True) + "\n",
         "precheck.json": json.dumps(bundle["precheck"], indent=2, ensure_ascii=False, sort_keys=True) + "\n",
     }
-    for name, text in files.items():
+    # Stage every file first, then rename rollback first and publish last, so a
+    # failure never leaves a new publish.sql beside an old rollback.sql.
+    staged = []
+    for name in ("rollback.sql", "keys.json", "precheck.json", "publish.sql"):
         tmp = out_dir / f".{name}.tmp"
-        tmp.write_text(text, encoding="utf-8")
-        os.replace(tmp, out_dir / name)
+        tmp.write_text(files[name], encoding="utf-8")
+        staged.append((tmp, out_dir / name))
+    for tmp, final in staged:
+        os.replace(tmp, final)
     keyed = sum(1 for k in bundle["keys"].values() if k)
     return {"rows": len(bundle["keys"]), "keyed": keyed, "figure_no_key": len(bundle["keys"]) - keyed}

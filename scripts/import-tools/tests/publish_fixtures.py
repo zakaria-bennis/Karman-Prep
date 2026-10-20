@@ -4,12 +4,16 @@ The dicts mirror the field layout of a real task-3 batch: the private readback
 (`{"rows": [{"snapshot": {keys, choices, question}}]}`, every column of
 quiz_questions / answer_key_entries / answer_choices as to_jsonb gives it), the
 sealed preview (`{"source_pdf_sha256", "rows": [...]}`) and the live export
-(sql/live_export.sql, with the comparison_key column present).
+(sql/live_export.sql object, with the comparison_key column present).
 """
 
 import json
 import os
 from pathlib import Path
+
+from kimport.keys import comparison_key
+from kimport.sweep import record_from_row
+from tests.export_fixtures import EXPORTED_AT, write_export
 
 SOURCE = "a" * 64
 MANIFEST = "b" * 64
@@ -132,8 +136,9 @@ def sealed(snap: dict) -> dict:
     }
 
 
-def export_row(snap: dict, comparison_key=None, **over) -> dict:
-    """The live_export.sql row for a readback snapshot (staged, not live)."""
+def export_row(snap: dict, **over) -> dict:
+    """The live_export.sql row for a readback snapshot (staged, not live); its
+    comparison_key is the readback's unless overridden."""
     q = snap["question"]
     row = {
         "id": q["id"], "question_text": q["question_text"], "correct_answer": q["correct_answer"],
@@ -146,14 +151,17 @@ def export_row(snap: dict, comparison_key=None, **over) -> dict:
         "created_at": q["created_at"],
         "choices": [{"letter": c["letter"], "choice_text": c["choice_text"]} for c in snap["choices"] or []],
         "raw_model_response": snap["keys"][0]["raw_model_response"], "answer_key_count": 1,
-        "comparison_key": comparison_key,
+        "comparison_key": q.get("comparison_key"),
     }
     row.update(over)
     return row
 
 
-def live_row(n: int, text: str, choices: dict, answer: str = "A", comparison_key=None, **over) -> dict:
-    """An unrelated live bank row in export shape."""
+_COMPUTE = object()
+
+
+def live_row(n: int, text: str, choices: dict, answer: str = "A", comparison_key=_COMPUTE, **over) -> dict:
+    """An unrelated live bank row in export shape, keyed as the backfill would key it."""
     row = {
         "id": uid(n, 3), "question_text": text, "correct_answer": answer, "question_format": "multiple_choice",
         "figure_kind": None, "figure_table_data": None, "publish_status": "publish_ready", "import_status": "ok",
@@ -162,14 +170,19 @@ def live_row(n: int, text: str, choices: dict, answer: str = "A", comparison_key
         "content_hash_v2": hexn(n, 8), "created_at": "2026-09-01T09:00:00+00:00",
         "choices": [{"letter": k, "choice_text": v} for k, v in sorted(choices.items())],
         "raw_model_response": {"student_publication_allowed": True}, "answer_key_count": 1,
-        "comparison_key": comparison_key,
+        "comparison_key": None,
     }
     row.update(over)
+    row["comparison_key"] = keyed(row) if comparison_key is _COMPUTE else comparison_key
     return row
 
 
+def keyed(row: dict) -> str:
+    return comparison_key(record_from_row(row))
+
+
 def write_batch(d: Path, snaps: list[dict], export_rows: list[dict], seals: list[dict] | None = None,
-                export_age: int = 10) -> dict:
+                export_age: int = 10, exported_at: str = EXPORTED_AT) -> dict:
     """Write readback, sealed preview, export and an empty intent log; the export
     is `export_age` seconds newer than the readback (negative: older)."""
     d = Path(d)
@@ -179,7 +192,7 @@ def write_batch(d: Path, snaps: list[dict], export_rows: list[dict], seals: list
     paths["sealed"].write_text(json.dumps({"source_pdf_sha256": SOURCE,
                                            "rows": seals if seals is not None else [sealed(s) for s in snaps]}),
                                encoding="utf-8")
-    paths["export"].write_text(json.dumps(export_rows), encoding="utf-8")
+    write_export(paths["export"], export_rows, exported_at)
     base = 1_800_000_000
     os.utime(paths["readback"], (base, base))
     os.utime(paths["sealed"], (base, base))

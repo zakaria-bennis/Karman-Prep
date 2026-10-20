@@ -69,7 +69,8 @@ def backfill_sql(records, export_by_id: dict[str, dict]) -> str:
 
 
 def run_backfill(export_path: Path, out_path: Path) -> dict:
-    from kimport.sweep import export_by_id, read_export, record_from_row
+    from kimport.export import export_by_id, read_export
+    from kimport.sweep import record_from_row
 
     rows = read_export(export_path)
     records = [record_from_row(r) for r in rows]

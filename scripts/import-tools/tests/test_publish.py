@@ -1,6 +1,5 @@
 import base64
 import json
-import os
 import re
 import subprocess
 import sys
@@ -8,8 +7,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from kimport.export import FINGERPRINT_SQL, read_export_doc
 from kimport.keys import comparison_key
-from kimport.publish import FIGURE_NO_KEY, RefuseToBuild, build_publish, readback_record
+from kimport.publish import (
+    FIGURE_NO_KEY,
+    NOT_COMPARABLE_ANSWER,
+    NOT_COMPARABLE_FORMAT,
+    RefuseToBuild,
+    build_publish,
+    readback_record,
+)
 from kimport.writer import close_intent, write_intent
 from tests import publish_fixtures as fx
 
@@ -28,6 +35,7 @@ def normalize_sql(sql: str) -> str:
     """Whitespace removed, new key lines removed, batch-specific values replaced."""
     lines = [ln for ln in sql.splitlines() if not ln.strip().startswith("--") and ln.strip() not in ("BEGIN;", "COMMIT;")]
     s = "\n".join(lines)
+    s = re.sub(r"DO \$(\w+_fingerprint)\$.*?END \$\1\$;", "", s, flags=re.S)
     s = _KEY_GUARD.sub("", s)
     s = re.sub(r",comparison_key='[^']*'", "", s)
     s = re.sub(r"decode\('[A-Za-z0-9+/=]*','base64'\)", "decode('B','base64')", s)
@@ -107,7 +115,8 @@ class KeyGuardTests(PublishTestCase):
         snaps = self.three()
         bundle = self.build(self.batch(snaps, self.bank()))
         sql = bundle["publish_sql"]
-        self.assertEqual(sql.count("DO $"), 3)
+        self.assertEqual(sql.count("DO $"), 4)  # fingerprint block + one per row
+        self.assertEqual(sql.count("DECLARE items jsonb"), 3)
         self.assertEqual(len(_KEY_GUARD.findall(sql)), 3)
         for s in snaps:
             key = comparison_key(readback_record(s))
@@ -155,9 +164,12 @@ class RefuseTests(PublishTestCase):
     def test_refuses_on_stored_key_match(self):
         snaps = self.three()
         key = comparison_key(readback_record(snaps[2]))
-        other = fx.live_row(60, "A different made-up question about clouds?", other_choices(60), comparison_key=key)
-        with self.assertRaisesRegex(RefuseToBuild, "duplicate"):
+        # an image row is skipped by the backfill check, so only the stored-key index can catch this
+        other = fx.live_row(60, "A different made-up question about clouds?", other_choices(60),
+                            comparison_key=key, figure_kind="graph")
+        with self.assertRaisesRegex(RefuseToBuild, "duplicate") as cm:
             self.build(self.batch(snaps, self.bank() + [other]))
+        self.assertIn(other["id"], cm.exception.reason)
 
     def test_refuses_on_duplicate_inside_batch(self):
         a = fx.snapshot(2, "Which choice best states the main idea of the made-up passage about otters?")
@@ -179,6 +191,7 @@ class RefuseTests(PublishTestCase):
         snaps = self.three()
         target = snaps[1]
         staged = fx.export_row(target, id=fx.uid(70, 3), content_hash_v2=fx.hexn(70, 8))
+        staged["comparison_key"] = fx.keyed(staged)
         with self.assertRaisesRegex(RefuseToBuild, "duplicate"):
             self.build(self.batch(snaps, self.bank() + [staged]))
 
@@ -195,11 +208,7 @@ class RefuseTests(PublishTestCase):
             self.build(self.batch(self.three(), self.bank(), export_age=-60))
 
     def test_refuses_stale_export_by_timestamp(self):
-        snaps = self.three()
-        rows = [fx.export_row(s) for s in snaps] + self.bank()
-        paths = fx.write_batch(self.dir, snaps, rows)
-        paths["export"].write_text(json.dumps({"exported_at": "2026-10-16T09:00:00+00:00", "export": rows}))
-        os.utime(paths["export"], (1_800_000_100, 1_800_000_100))
+        paths = self.batch(self.three(), self.bank(), exported_at="2026-10-16T09:00:00+00:00")
         with self.assertRaisesRegex(RefuseToBuild, "older than the private readback"):
             self.build(paths)
 
@@ -269,12 +278,13 @@ class RefuseTests(PublishTestCase):
 
 
 class RollbackTests(PublishTestCase):
-    def test_rollback_clears_key(self):
+    def test_rollback_restores_key(self):
         snaps = self.three()
         bundle = self.build(self.batch(snaps, self.bank()))
         rb = bundle["rollback_sql"]
         self.assertEqual(rb.count("DO $"), 3)
-        self.assertEqual(rb.count("comparison_key=NULL WHERE id=q.id;"), 3)
+        self.assertEqual(rb.count("comparison_key=v->'question'->>'comparison_key' WHERE id=q.id;"), 3)
+        self.assertNotIn("comparison_key=NULL", rb)
         for s in snaps:
             key = bundle["keys"][s["question"]["id"]]
             self.assertIn(f"OR q.comparison_key IS DISTINCT FROM '{key}'", rb)
@@ -290,10 +300,71 @@ class RollbackTests(PublishTestCase):
         ids = [p[0]["question"]["id"] for p in payloads(rb)]
         self.assertEqual(ids, [s["question"]["id"] for s in reversed(snaps)])
 
+    def test_rollback_restores_backfilled_key(self):
+        snap = fx.snapshot(2, "Which choice best states the main idea of the made-up passage about otters?")
+        key = comparison_key(readback_record(snap))
+        snap["question"]["comparison_key"] = key  # staged row keyed by the backfill
+        bundle = self.build(self.batch([snap], self.bank()))
+        (item,) = payloads(bundle["rollback_sql"])[0]
+        self.assertEqual(item["question"]["comparison_key"], key)
+        self.assertIn("comparison_key=v->'question'->>'comparison_key' WHERE id=q.id;", bundle["rollback_sql"])
+
     def test_rollback_for_unkeyed_row_requires_null_key(self):
         img = fx.snapshot(4, "Which made-up graph shows the trend?", figure_kind="graph")
         bundle = self.build(self.batch([img], self.bank()))
         self.assertIn("OR q.comparison_key IS NOT NULL", bundle["rollback_sql"])
+
+
+class FingerprintTests(PublishTestCase):
+    def test_fingerprint_block_runs_first(self):
+        paths = self.batch(self.three(), self.bank())
+        doc = read_export_doc(paths["export"])
+        sql = self.build(paths)["publish_sql"]
+        first = sql.index("DO $")
+        self.assertLess(sql.index("BEGIN;"), first)
+        block = sql[first:sql.index("END $", first)]
+        self.assertIn(FINGERPRINT_SQL, block)
+        self.assertIn(f"IF n <> {doc.row_count} OR f IS DISTINCT FROM '{doc.fingerprint}'", block)
+        self.assertIn("RAISE EXCEPTION 'bank changed since export; take a fresh export'", block)
+        self.assertNotIn("v->'question'", block)
+        self.assertNotIn("fingerprint", self.build(paths)["rollback_sql"].split("BEGIN;", 1)[1])
+
+    def test_refuses_edited_export(self):
+        paths = self.batch(self.three(), self.bank())
+        doc = json.loads(paths["export"].read_text())
+        doc["rows"][3]["publish_status"] = "needs_human_review"
+        paths["export"].write_text(json.dumps(doc))
+        with self.assertRaisesRegex(RefuseToBuild, "fingerprint"):
+            self.build(paths)
+
+
+class BackfillCheckTests(PublishTestCase):
+    def test_refuses_unkeyed_bank_row(self):
+        bank = self.bank()
+        bank[1]["comparison_key"] = None
+        bank[3]["comparison_key"] = None
+        with self.assertRaisesRegex(RefuseToBuild, "2 keyable rows have no comparison_key") as cm:
+            self.build(self.batch(self.three(), bank))
+        self.assertIn(bank[1]["id"], cm.exception.reason)
+        self.assertIn("backfill", cm.exception.reason)
+
+    def test_refuses_key_drift(self):
+        bank = self.bank()
+        bank[2]["comparison_key"] = "kn-1:" + "0" * 64
+        with self.assertRaisesRegex(RefuseToBuild, "1 rows have a stored comparison_key that differs") as cm:
+            self.build(self.batch(self.three(), bank))
+        self.assertIn(bank[2]["id"], cm.exception.reason)
+
+    def test_unkeyable_bank_rows_may_stay_null(self):
+        bank = self.bank()
+        bank.append(fx.live_row(80, "Which made-up graph is shown?", other_choices(80), comparison_key=None,
+                                figure_kind="graph"))
+        bank.append(fx.live_row(81, "Bad letter made-up row?", other_choices(81), answer="E", comparison_key=None))
+        bank.append(fx.live_row(82, "Format mismatch made-up row?", other_choices(82), comparison_key=None,
+                                question_format="numeric_entry"))
+        pre = self.build(self.batch(self.three(), bank))["precheck"]
+        self.assertEqual(pre[NOT_COMPARABLE_ANSWER], [bank[-2]["id"]])
+        self.assertEqual(pre[NOT_COMPARABLE_FORMAT], [bank[-1]["id"]])
 
 
 class CliTests(PublishTestCase):
@@ -312,6 +383,7 @@ class CliTests(PublishTestCase):
         keys = json.loads((out / "keys.json").read_text())
         self.assertEqual(len(keys), 3)
         self.assertTrue(json.loads((out / "precheck.json").read_text())["passed"])
+        self.assertEqual([p for p in out.iterdir() if p.name.endswith(".tmp")], [])
 
     def test_cli_refusal_exits_1_and_writes_nothing(self):
         out = self.dir / "batches" / "syn-batch"

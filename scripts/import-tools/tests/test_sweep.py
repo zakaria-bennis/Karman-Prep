@@ -9,12 +9,12 @@ from pathlib import Path
 
 from kimport.keys import QuestionRecord
 from kimport.typo import MAX_SPOT_CHARS, MAX_SPOTS, words_within_spots
+from tests.export_fixtures import export_doc, write_export
+from kimport.export import export_by_id, read_export
 from kimport.sweep import (
     _near_prefilter,
-    export_by_id,
     find_live_duplicates,
     load_export,
-    read_export,
     report_md,
     republish_sql,
     unpublish_sql,
@@ -39,9 +39,7 @@ def other(ref, text):
 
 
 def write_rows(d, rows):
-    p = Path(d) / "x.json"
-    p.write_text(json.dumps(rows), encoding="utf-8")
-    return p
+    return write_export(Path(d) / "x.json", rows)
 
 
 def groups():
@@ -71,15 +69,14 @@ class LoadExportTests(unittest.TestCase):
         rows = read_export(FIXTURE)
         rows[0]["publish_status"] = "needs_human_review"  # is_live stays true
         with tempfile.TemporaryDirectory() as d:
-            p = Path(d) / "x.json"
-            p.write_text(json.dumps(rows), encoding="utf-8")
+            p = write_export(Path(d) / "x.json", rows)
             self.assertFalse({r.ref: r for r in load_export(p)}[uid(1)].is_live)
 
     def test_unwraps_connector_result_row(self):
         rows = read_export(FIXTURE)
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "wrapped.json"
-            p.write_text(json.dumps([{"export": rows}]), encoding="utf-8")
+            p.write_text(json.dumps([{"export": export_doc(rows)}]), encoding="utf-8")
             self.assertEqual(read_export(p), rows)
 
     def test_live_row_with_unknown_answer_letter_excluded_and_reported(self):

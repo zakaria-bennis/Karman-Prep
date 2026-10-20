@@ -7,7 +7,8 @@ from pathlib import Path
 
 from kimport.backfill import backfill_sql
 from kimport.keys import QuestionRecord, comparison_key
-from kimport.sweep import export_by_id
+from kimport.export import export_by_id
+from tests.export_fixtures import write_export
 
 CLI = Path(__file__).resolve().parent.parent / "kimport-cli.py"
 MIGRATION = Path(__file__).resolve().parents[3] / "supabase" / "migrations" / "20261021000000_question_comparison_key.sql"
@@ -83,7 +84,7 @@ class BackfillTests(unittest.TestCase):
                  "choices": [{"letter": "A", "choice_text": "2"}, {"letter": "B", "choice_text": "4"}]}]
         with tempfile.TemporaryDirectory() as d:
             exp, out = Path(d) / "live.json", Path(d) / "sub" / "backfill.sql"
-            exp.write_text(json.dumps(rows), encoding="utf-8")
+            write_export(exp, rows)
             p = subprocess.run([sys.executable, "-I", str(CLI), "backfill", "--export", str(exp), "--out", str(out)],
                                capture_output=True, text=True)
             self.assertEqual(p.returncode, 0, p.stderr)

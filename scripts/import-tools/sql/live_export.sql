@@ -1,19 +1,29 @@
 -- kimport live export: read-only, changes nothing.
 --
--- Returns ONE JSON value (an array with one object per quiz_questions row,
--- live or not) so the connector result can be saved straight to a file and
--- passed to `kimport-cli.py sweep --export <file>`.
+-- Returns ONE JSON object so the connector result can be saved straight to a
+-- file and passed to `kimport-cli.py sweep|backfill|publish --export <file>`:
+--   {"exported_at", "row_count", "fingerprint", "rows": [one object per
+--   quiz_questions row, live or not]}
+-- The fingerprint is computed in the same statement as the rows; publish.sql
+-- recomputes it before any change and stops if the bank changed since.
+-- Keep the fingerprint expression identical to kimport.export.FINGERPRINT_SQL.
 --
 -- The table's format column is answer_format (enum multiple_choice /
 -- numeric_entry); it is exported under the name question_format.
 --
 -- comparison_key is exported only once the column exists (migration
 -- 20261021000000), read through to_jsonb(q) so this query runs before and after
--- it. `kimport-cli.py publish` refuses an export without the field.
-SELECT coalesce(jsonb_agg(
+-- it. `kimport-cli.py publish` refuses an export without the field. (The key
+-- test uses `->` IS NOT NULL rather than the jsonb `?` operator, which some
+-- SQL clients treat as a bind placeholder.)
+SELECT jsonb_build_object(
+  'exported_at', now(),
+  'row_count', (SELECT count(*) FROM public.quiz_questions),
+  'fingerprint', (SELECT md5(coalesce(string_agg(q.id::text||':'||coalesce(q.content_hash_v2::text,'')||':'||coalesce(q.publish_status::text,'')||':'||coalesce(q.import_status::text,'')||':'||coalesce(to_jsonb(q)->>'comparison_key',''), ',' ORDER BY q.id),'')) FROM public.quiz_questions q),
+  'rows', (SELECT coalesce(jsonb_agg(
          CASE WHEN x.has_comparison_key_column THEN to_jsonb(x) - 'has_comparison_key_column'
               ELSE to_jsonb(x) - 'has_comparison_key_column' - 'comparison_key' END
-         ORDER BY x.created_at, x.id), '[]'::jsonb) AS export
+         ORDER BY x.created_at, x.id), '[]'::jsonb)
 FROM (
   SELECT
     q.id,
@@ -34,7 +44,7 @@ FROM (
     q.content_hash_v2,
     q.created_at,
     to_jsonb(q) -> 'comparison_key' AS comparison_key,
-    to_jsonb(q) ? 'comparison_key' AS has_comparison_key_column,
+    (to_jsonb(q) -> 'comparison_key') IS NOT NULL AS has_comparison_key_column,
     (SELECT coalesce(jsonb_agg(jsonb_build_object('letter', c.letter, 'choice_text', c.choice_text)
                                ORDER BY c.letter), '[]'::jsonb)
        FROM public.answer_choices c
@@ -48,4 +58,5 @@ FROM (
        FROM public.answer_key_entries k
       WHERE k.question_id = q.id) AS answer_key_count
   FROM public.quiz_questions q
-) x;
+) x)
+) AS export;

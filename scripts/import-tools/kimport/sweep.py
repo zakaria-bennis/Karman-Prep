@@ -1,7 +1,7 @@
 """Live-bank duplicate sweep: find copies already live and write guarded,
 reversible un-publish SQL for the founder to approve.
 
-Input is the one JSON value returned by sql/live_export.sql. Nothing here
+Input is the one JSON object returned by sql/live_export.sql (read by kimport.export). Nothing here
 connects to a database; the SQL is text for a human-approved run.
 
 Grouping (live records only, see find_live_duplicates):
@@ -40,6 +40,7 @@ from kimport.keys import (
     sorted_choices,
     table_values,
 )
+from kimport.export import export_by_id, read_export
 from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
 from kimport.sqlutil import do_block, lit, uuid_literal
 from kimport.typo import MAX_SPOT_CHARS, MAX_SPOTS, text_words, typo_match, words_within_spots
@@ -64,33 +65,6 @@ class DuplicateGroup(TypedDict):
 
 
 # ---------------------------------------------------------------- export
-
-
-def _unwrap(data):
-    """Accept the bare array, or a connector result row wrapping it."""
-    if isinstance(data, str):
-        data = json.loads(data)
-    if isinstance(data, dict) and len(data) == 1 and "id" not in data:
-        return _unwrap(next(iter(data.values())))
-    if isinstance(data, list) and len(data) == 1 and isinstance(data[0], dict) \
-            and len(data[0]) == 1 and "id" not in data[0]:
-        return _unwrap(next(iter(data[0].values())))
-    return data
-
-
-def read_export(path: Path) -> list[dict]:
-    rows = _unwrap(json.loads(Path(path).read_text(encoding="utf-8")))
-    if not isinstance(rows, list) or not all(isinstance(r, dict) and "id" in r for r in rows):
-        raise ValueError(f"{path}: not a live_export.sql result (expected a JSON array of rows with an id)")
-    seen = Counter(r["id"] for r in rows)
-    dupes = sorted(i for i, n in seen.items() if n > 1)
-    if dupes:
-        raise ValueError(f"{path}: ids repeated in export: {', '.join(dupes[:5])}")
-    return rows
-
-
-def export_by_id(rows: list[dict]) -> dict[str, dict]:
-    return {r["id"]: r for r in rows}
 
 
 def _row_is_live(row: dict) -> bool:
