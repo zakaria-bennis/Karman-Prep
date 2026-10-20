@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import type { CurveGeometry, PointGeometry, RegionGeometry } from "../../plot/geometry";
 import { rowErrorMessage } from "../analysis";
+import type { RowErrorCode } from "../corpus/types";
 import type { Value } from "../eval/values";
 import { createWorkerBackend } from "../../worker/backend";
 import { macrotask } from "../../worker/__fixtures__/messages";
@@ -320,7 +321,7 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
   ]);
   expect(rows[7].value).toEqual({ type: "undefined" });
   for (const r of rows.filter((r) => r.error))
-    expect(r.error!.message).toBe(rowErrorMessage(r.error!.code, r.error!.names));
+    expect(r.error!.message).toBe(rowErrorMessage(r.error!.code as RowErrorCode, r.error!.names));
   expect(() => m.engine.setExpression({ id: 5 } as unknown as ExpressionState)).toThrow(
     KarmanCalculatorError
   );

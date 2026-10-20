@@ -5,6 +5,7 @@
 // Package-internal: the engine calls these before it changes anything.
 
 import type { Viewport } from "../../plot/viewport";
+import { LOOP_MODES, type SliderSettings } from "../../sliders/model";
 import { CURVE_SLOTS } from "../../theme/skins";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { KarmanCalculatorError } from "./errors";
@@ -231,6 +232,7 @@ const EXPRESSION_KEYS = [
   "hidden",
   "lineStyle",
   "pointStyle",
+  "slider",
   "sliderBounds",
   "columns",
 ] as const;
@@ -239,6 +241,17 @@ const UNSUPPORTED_TYPES: readonly string[] = ["note", "folder", "image", "text"]
 const COLUMN_KEYS = ["latex", "values", "color", "hidden"] as const;
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 const SLIDER_KEYS = ["min", "max", "step"] as const;
+const SLIDER_SETTING_KEYS = [
+  "hardMin",
+  "hardMax",
+  "min",
+  "max",
+  "step",
+  "loopMode",
+  "animationPeriod",
+  "playDirection",
+  "isPlaying",
+] as const;
 
 const id: Check<string> = (value, method, field) =>
   typeof value === "string" && value !== ""
@@ -273,6 +286,37 @@ const sliderBounds: Check<NonNullable<ExpressionState["sliderBounds"]>> = (
     max: text(own(fields, "max"), method, `${field}.max`),
     step: text(own(fields, "step"), method, `${field}.step`),
   };
+};
+
+/** SLIDERS-11: the saved `slider` object; every field optional, each checked by its type. */
+const slider: Check<NonNullable<ExpressionState["slider"]>> = (value, method, field) => {
+  const fields = strictObject(value, method, field, SLIDER_SETTING_KEYS);
+  const out: { -readonly [K in keyof SliderSettings]?: SliderSettings[K] } = {};
+  const at = (key: (typeof SLIDER_SETTING_KEYS)[number]) => own(fields, key);
+  const name = (key: string) => `${field}.${key}`;
+  for (const key of ["hardMin", "hardMax", "isPlaying"] as const) {
+    if (at(key) !== undefined) out[key] = bool(at(key), method, name(key));
+  }
+  for (const key of ["min", "max", "step"] as const) {
+    if (at(key) !== undefined) out[key] = text(at(key), method, name(key));
+  }
+  if (at("loopMode") !== undefined) {
+    out.loopMode = oneOf(LOOP_MODES)(at("loopMode"), method, name("loopMode"));
+  }
+  const period = at("animationPeriod");
+  if (period !== undefined) {
+    if (typeof period !== "number" || !Number.isFinite(period) || period <= 0) {
+      invalid(method, `${name("animationPeriod")} must be a positive number`);
+    }
+    out.animationPeriod = period;
+  }
+  const direction = at("playDirection");
+  if (direction !== undefined) {
+    if (direction !== 1 && direction !== -1)
+      invalid(method, `${name("playDirection")} must be 1 or -1`);
+    out.playDirection = direction;
+  }
+  return out;
 };
 
 /** D-1, D-6, D-8, D-9: at most 10 columns of at most 1,000 cells of at most 128 characters. */
@@ -336,6 +380,7 @@ function expressionFields(
   if (value("pointStyle") !== undefined) {
     out.pointStyle = check("pointStyle", oneOf(["filled", "open", "cross"] as const));
   }
+  if (value("slider") !== undefined) out.slider = check("slider", slider);
   if (value("sliderBounds") !== undefined) out.sliderBounds = check("sliderBounds", sliderBounds);
   if (value("columns") !== undefined) {
     if (out.type !== "table") invalid(method, `${prefix}columns needs type "table"`);

@@ -4,6 +4,13 @@
 
 import type { PixelSize, Viewport, ViewSpec } from "../../plot/viewport";
 import { nextSlot } from "../../theme/roles";
+import {
+  savedSlider,
+  sameSlider,
+  sliderFromBounds,
+  sliderFromSaved,
+  DEFAULT_SLIDER,
+} from "../../sliders/model";
 import type { MainToWorker, WireRow, WireSettings } from "../../worker/protocol";
 import type { StoredRow } from "./document";
 import {
@@ -18,7 +25,10 @@ import {
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
-/** AR-45: the rows of a `state` message; type "expression", columns null, sliderBounds or null. */
+/**
+ * AR-45: the rows of a `state` message; type "expression", columns null, sliderBounds null (slider
+ * rows already hold their shown value, SLIDERS-22).
+ */
 export function toWireRows(rows: readonly StoredRow[]): WireRow[] {
   return rows.map((row) => ({
     id: row.id,
@@ -33,7 +43,7 @@ export function toWireRows(rows: readonly StoredRow[]): WireRow[] {
           }))
         : null,
     hidden: row.hidden,
-    sliderBounds: row.sliderBounds ? { ...row.sliderBounds } : null,
+    sliderBounds: null,
     logMode: row.logMode === true,
   }));
 }
@@ -71,7 +81,14 @@ function mergeRow(base: StoredRow, state: ExpressionState): StoredRow {
   if (state.hidden !== undefined) merged.hidden = state.hidden;
   if (state.lineStyle !== undefined) merged.lineStyle = state.lineStyle;
   if (state.pointStyle !== undefined) merged.pointStyle = state.pointStyle;
-  if (state.sliderBounds !== undefined) merged.sliderBounds = { ...state.sliderBounds };
+  // SLIDERS-11: `slider` replaces the settings; the older `sliderBounds` sets hard limits on top.
+  if (state.slider !== undefined || state.sliderBounds !== undefined) {
+    const saved = state.slider ?? savedSlider(base.slider ?? DEFAULT_SLIDER) ?? {};
+    const bounds = state.sliderBounds === undefined ? {} : sliderFromBounds(state.sliderBounds);
+    const settings = sliderFromSaved({ ...saved, ...bounds });
+    if (sameSlider(settings, DEFAULT_SLIDER)) delete merged.slider;
+    else merged.slider = settings;
+  }
   if (state.type === "expression") {
     delete merged.type;
     delete merged.columns;
@@ -125,7 +142,7 @@ export function rowsFromState(expressions: readonly ExpressionState[]): StoredRo
 
 /**
  * API-4: a deep copy of one row as an expression state, with the keys id, type, latex, color and
- * hidden, then lineStyle, pointStyle and sliderBounds where set.
+ * hidden, then lineStyle, pointStyle and slider (SLIDERS-11) where set.
  */
 export function toExpressionState(row: StoredRow): ExpressionState {
   const state: ExpressionState = {
@@ -145,7 +162,8 @@ export function toExpressionState(row: StoredRow): ExpressionState {
   }
   if (row.lineStyle !== undefined) state.lineStyle = row.lineStyle;
   if (row.pointStyle !== undefined) state.pointStyle = row.pointStyle;
-  if (row.sliderBounds !== undefined) state.sliderBounds = { ...row.sliderBounds };
+  const slider = row.slider === undefined ? undefined : savedSlider(row.slider);
+  if (slider !== undefined) state.slider = slider;
   return state;
 }
 

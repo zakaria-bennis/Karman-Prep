@@ -90,7 +90,7 @@ it("API-4 getExpressions returns deep copies in list order", () => {
   e.setExpression({ id: "a", latex: "1", sliderBounds: { min: "0", max: "1", step: "0.1" } });
   const got = e.getExpressions();
   got[1].latex = "changed";
-  got[1].sliderBounds!.min = "-5";
+  got[1].slider!.min = "-5";
   got.reverse();
   expect(e.getExpressions()).toEqual([
     { id: "1", type: "expression", latex: "", color: "c1", hidden: false },
@@ -100,7 +100,7 @@ it("API-4 getExpressions returns deep copies in list order", () => {
       latex: "1",
       color: "c2",
       hidden: false,
-      sliderBounds: { min: "0", max: "1", step: "0.1" },
+      slider: { hardMin: true, min: "0", hardMax: true, max: "1", step: "0.1" },
     },
   ]);
 });

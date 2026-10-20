@@ -4,6 +4,7 @@
 // every list and row the document holds is frozen.
 
 import type { PixelSize } from "../../plot/viewport";
+import { sameSlider, type SliderSettings } from "../../sliders/model";
 import type { LineStyle, PointStyle } from "./types";
 
 /** Undo steps kept; the oldest is dropped first (Decision 6's plan value; no spec ID sets a size). */
@@ -22,7 +23,7 @@ export interface StoredRow {
   readonly hidden: boolean;
   readonly lineStyle?: LineStyle;
   readonly pointStyle?: PointStyle;
-  readonly sliderBounds?: { readonly min: string; readonly max: string; readonly step: string };
+  readonly slider?: SliderSettings; // SLIDERS-11: absent for the default settings
   readonly type?: "table"; // D-1: absent for an expression row
   readonly columns?: readonly StoredColumn[]; // tables only
   readonly logMode?: boolean; // D-30: a regression row's Log mode checkbox
@@ -52,7 +53,7 @@ type RowList = readonly StoredRow[];
 function freezeRows(rows: RowList): RowList {
   return Object.freeze(
     rows.map((row) => {
-      if (row.sliderBounds !== undefined) Object.freeze(row.sliderBounds);
+      if (row.slider !== undefined) Object.freeze(row.slider);
       if (row.columns !== undefined) {
         for (const column of row.columns) Object.freeze(Object.freeze(column).values);
         Object.freeze(row.columns);
@@ -90,8 +91,6 @@ function sameRow(a: StoredRow, b: StoredRow): boolean {
   if (a.type !== b.type || a.logMode !== b.logMode || !sameColumns(a.columns, b.columns)) {
     return false;
   }
-  const sa = a.sliderBounds,
-    sb = b.sliderBounds;
   return (
     a.id === b.id &&
     a.latex === b.latex &&
@@ -99,12 +98,7 @@ function sameRow(a: StoredRow, b: StoredRow): boolean {
     a.hidden === b.hidden &&
     a.lineStyle === b.lineStyle &&
     a.pointStyle === b.pointStyle &&
-    (sa === sb ||
-      (sa !== undefined &&
-        sb !== undefined &&
-        sa.min === sb.min &&
-        sa.max === sb.max &&
-        sa.step === sb.step))
+    sameSlider(a.slider, b.slider)
   );
 }
 
