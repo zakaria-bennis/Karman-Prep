@@ -7,7 +7,8 @@ import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "../theme/roles";
 import { SKIN_COLORS } from "../theme/skin-colors.generated";
 import { createRecordingContext } from "./__fixtures__/recording-context";
 import { pickGrid } from "./grid-plan";
-import { GraphRenderer, readRenderTheme } from "./renderer";
+import { elementRegions, GraphRenderer, readRenderTheme } from "./renderer";
+import { buildShadingRects } from "./shading";
 import type { RenderFrame, RenderTheme } from "./types";
 
 const p = SKIN_COLORS.ivory.normal;
@@ -96,4 +97,29 @@ it("G-5 readRenderTheme reads every role from the host's computed custom propert
     theme.curves.c1,
     theme.fillAlpha.c1,
   ]).toEqual(["#fbf8f1", "#222222", "#1d1d1f", "#bdb5a6", "#d9d3c7", "#0b57d0", "#1f5fbf", 0.12]);
+});
+
+it("G-22 a list region shades each element on its own, so its overlap stacks darker, as on the reference (y>[0,1]x, 1<y<[2,3])", () => {
+  // Two elements in CSS px on a 10 by 4 canvas: rows 0 to 2 full width, then rows 1 to 4 right half.
+  const spans = Float32Array.from([0, 1, 0, 10, 1, 2, 0, 10, 1, 2, 5, 10, 2, 3, 5, 10]);
+  const source = { spans, elements: [0, 8], color: "#c74440", fillAlpha: 0.4 };
+  const regions = elementRegions(source);
+  expect(regions.map((r) => Array.from(r.spans))).toEqual([
+    [0, 1, 0, 10, 1, 2, 0, 10],
+    [1, 2, 5, 10, 2, 3, 5, 10],
+  ]);
+  const rects = buildShadingRects(regions, { width: 10, height: 4 }, 1);
+  const at = (x: number, y: number) =>
+    rects.find((r) => x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height);
+  expect(at(2, 1)?.alpha).toBeCloseTo(0.4);
+  expect(at(7, 1)?.alpha).toBeCloseTo(1 - 0.6 * 0.6); // both elements
+  expect(at(7, 2)?.alpha).toBeCloseTo(0.4);
+  expect(at(7, 1)?.color).toBe("#c74440");
+  // One element (no offsets) is one region, whatever its spans overlap.
+  expect(elementRegions({ ...source, elements: undefined })).toEqual([
+    { spans, color: "#c74440", fillAlpha: 0.4 },
+  ]);
+  // Spans withheld after a zoom keep the offsets; every element is then empty.
+  const none = elementRegions({ ...source, spans: new Float32Array(0) });
+  expect(none.map((r) => r.spans.length)).toEqual([0, 0]);
 });

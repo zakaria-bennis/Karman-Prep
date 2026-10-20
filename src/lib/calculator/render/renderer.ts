@@ -3,6 +3,7 @@
 // unshaded pixels stay transparent. GP-4: the rows layer paints each row's 40% shading and then its
 // strokes, row by row, over the grid.
 
+import type { RegionGeometry } from "../plot/geometry";
 import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS } from "../theme/roles";
 import { CURVE_SLOTS, type CurveSlot } from "../theme/skins";
 import { drawPoiDots, drawTraceDot } from "./draw-poi";
@@ -18,17 +19,37 @@ export const LAYER_ORDER = ["grid", "curves", "points"] as const;
 type Ctx = CanvasRenderingContext2D;
 const PAPER_HEX = /^#[0-9a-f]{6}$/i;
 
+/** What one region row's shading is built from: its geometry's spans and elements, and fill. */
+type ShadingSource = Pick<RegionGeometry, "spans" | "elements"> & {
+  color: string;
+  fillAlpha: number;
+};
 /** One region row's shading rectangles and what they were built from. */
 type ShadingMemo = {
-  region: ShadingRegion;
+  source: ShadingSource;
   width: number;
   height: number;
   dpr: number;
   rects: ShadingRect[];
 };
 
-const sameRegion = (p: ShadingRegion, q: ShadingRegion) =>
-  p.spans === q.spans && p.color === q.color && p.fillAlpha === q.fillAlpha;
+const sameSource = (p: ShadingSource, q: ShadingSource) =>
+  p.spans === q.spans &&
+  p.elements === q.elements &&
+  p.color === q.color &&
+  p.fillAlpha === q.fillAlpha;
+
+/**
+ * G-22: one ShadingRegion per list element, in list order and in the row's one fill, so where
+ * elements overlap their fills stack (darker), as on the reference; one region without elements.
+ */
+export function elementRegions(source: ShadingSource): ShadingRegion[] {
+  const { spans, elements = [0], color, fillAlpha } = source;
+  return elements.map((start, e) => {
+    const end = e + 1 < elements.length ? elements[e + 1] : spans.length;
+    return { spans: spans.subarray(Math.min(start, spans.length), end), color, fillAlpha };
+  });
+}
 
 export class GraphRenderer {
   private readonly canvases: HTMLCanvasElement[];
@@ -102,7 +123,7 @@ export class GraphRenderer {
   }
 
   /**
-   * Each region row's shading rectangles by row id, rebuilt only when its spans, colour or fill,
+   * Each region row's shading rectangles by row id, rebuilt only when its spans, elements, colour or fill,
    * the size or the dpr changed (point- and curve-only redraws reuse them).
    */
   private shadingRects({ view, rows }: RenderFrame): Map<string, ShadingRect[]> {
@@ -111,21 +132,21 @@ export class GraphRenderer {
     const out = new Map<string, ShadingRect[]>();
     for (const { rowId, geometry: g, color, fillAlpha } of rows) {
       if (g.kind !== "region") continue;
-      const region: ShadingRegion = { spans: g.spans, color, fillAlpha };
+      const source: ShadingSource = { spans: g.spans, elements: g.elements, color, fillAlpha };
       const memo = this.shading.get(rowId);
       const fresh =
         memo !== undefined &&
         memo.width === size.width &&
         memo.height === size.height &&
         memo.dpr === dpr &&
-        sameRegion(memo.region, region)
+        sameSource(memo.source, source)
           ? memo
           : {
-              region,
+              source,
               width: size.width,
               height: size.height,
               dpr,
-              rects: buildShadingRects([region], size, dpr),
+              rects: buildShadingRects(elementRegions(source), size, dpr),
             };
       next.set(rowId, fresh);
       out.set(rowId, fresh.rects);

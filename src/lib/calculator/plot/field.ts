@@ -31,6 +31,14 @@ export interface SampledField {
    * field knows which nodes were evaluated (`value` is NaN for both undefined and unevaluated).
    */
   boundaryMixes(s: Square, k: number): boolean;
+  /**
+   * Every unsplit square of the quadtree, each with its state: a leaf, one the budget left
+   * unresolved, or inactive. The squares' half-open extents tile [0, cellsX·cell) × [0,
+   * cellsY·cell). No node strictly inside an unsplit square is evaluated, so pixelValue is the
+   * top-left corner's value at every pixel of an inactive square off its top row and left column.
+   * Region shading uses it to judge whole blocks at once.
+   */
+  forEachUnsplit(visit: (s: Square, state: "leaf" | "unresolved" | "inactive") => void): void;
 }
 
 /** The world point of node (i, j): the centre (i + 0.5, j + 0.5) of pixel (i, j). */
@@ -141,6 +149,15 @@ class Field implements SampledField {
 
   boundaryMixes(s: Square, k: number): boolean {
     return this.mixes(this.boundarySlots(s), k);
+  }
+
+  forEachUnsplit(visit: (s: Square, state: "leaf" | "unresolved" | "inactive") => void): void {
+    const stack = [...this.coarse];
+    while (stack.length > 0) {
+      const q = stack.pop() as Quad;
+      if (q.children !== null) stack.push(...q.children);
+      else visit(q, q.state === LEAF ? "leaf" : q.state === UNRESOLVED ? "unresolved" : "inactive");
+    }
   }
 
   /** Steps 1 to 3: the coarse pass, the active coarse cells, then the quadtree. */

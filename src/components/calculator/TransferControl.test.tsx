@@ -367,3 +367,27 @@ it("TR-68 a pointer click focuses the control before the transfer starts, and th
   expect(focusedAtTransfer).toBe(button);
   expect(document.querySelector("[data-transfer-tooltip]")).toHaveAttribute("hidden");
 });
+
+it("TR-56, TR-63 the selecting tap's click, retargeted by WebKit to the control it revealed, only selects; the next tap on the control or a keyboard click acts", async () => {
+  const bridge = stubbed(bridgeStub());
+  render(<Control />);
+  const item = screen.getByTestId("math");
+  const button = screen.getByRole("button", { name: "Transfer to Calculator: y=2x+3" });
+  act(() => tap(item, "touch"));
+  expect(item).toHaveAttribute("data-transfer-selected", "true");
+  // WebKit's touch adjustment: the tap's pointer events hit the item, its click the button.
+  fireEvent.click(button, { detail: 1 });
+  expect(bridge.transfer).not.toHaveBeenCalled();
+  expect(item).toHaveAttribute("data-transfer-selected", "true");
+  // A real tap on the revealed control starts its own gesture.
+  fireEvent.pointerDown(button, { pointerType: "touch", buttons: 1 });
+  fireEvent.pointerUp(button, { pointerType: "touch", buttons: 0 });
+  fireEvent.click(button, { detail: 1 });
+  await waitFor(() => expect(bridge.transfer).toHaveBeenCalledTimes(1));
+  expect(lastTrigger(bridge)).toBe("touch");
+  // A keyboard click (detail 0) right after a selecting tap is never mistaken for it.
+  act(() => tap(item, "touch"));
+  fireEvent.click(button, { detail: 0 });
+  await waitFor(() => expect(bridge.transfer).toHaveBeenCalledTimes(2));
+  expect(lastTrigger(bridge)).toBe("keyboard");
+});

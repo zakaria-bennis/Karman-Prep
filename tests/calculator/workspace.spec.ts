@@ -4,14 +4,6 @@ for (const flow of ["practice", "diagnostic"]) {
   test(`${flow}: responsive scratchpad, theme, typing, ink, navigation and guide`, async ({
     page,
   }, info) => {
-    // CODE BUG (2026-10-20): Scratchpad.tsx clamps its box once, at mount, to window.innerWidth,
-    // which on a phone grows with overflowing content while the diagnostic page loads (412, then
-    // 432 px on the Pixel 7), so the pad opens 408 px wide at x 12 and runs 8 px past the screen.
-    // Remove this line once the pad is clamped to the visible width when it opens.
-    test.fail(
-      flow === "diagnostic" && info.project.name === "calculator-android",
-      "the diagnostic scratchpad opens wider than the phone"
-    );
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(`/?flow=${flow}`);

@@ -59,15 +59,26 @@ export function mergeLines(parts: readonly LineSetGeometry[]): LineSetGeometry {
   };
 }
 
-/** Regions joined: every branch's spans, then every branch's boundaries; evaluations summed. */
+/**
+ * Regions joined: every branch's spans, with where each branch's elements start, then every
+ * branch's boundaries; evaluations summed. The renderer shades each element on its own, so where
+ * a list's elements overlap the shading is darker, as on the reference.
+ */
 export function mergeRegions(parts: readonly RegionGeometry[]): RegionGeometry {
   if (parts.length === 1) return parts[0];
+  const elements: number[] = [];
+  let at = 0;
+  for (const p of parts) {
+    for (const start of p.elements ?? [0]) elements.push(at + start);
+    at += p.spans.length;
+  }
   return {
     ...parts[0],
     spans: joined(
       parts.map((p) => p.spans),
       (n) => new Float32Array(n)
     ),
+    elements,
     boundaries: parts.flatMap((p) => p.boundaries),
     evaluations: sum(parts),
   };

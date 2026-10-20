@@ -127,6 +127,10 @@ function TransferControlBody({
     tooltip: false,
     escaped: false, // TR-49: hidden by Escape until the pointer leaves and re-enters the item
     leftSinceEscape: false,
+    // TR-56: set by the tap that selected the item, until the next pointerdown or key. WebKit's
+    // touch adjustment can retarget that same tap's click to the 44 px control it just revealed a
+    // few px above the finger; a click in that window with no pointerdown of its own is ignored.
+    revealTap: false,
     place: () => {}, // places the button now (inline and block)
   });
   const inlineOrBlock = placement !== "cluster";
@@ -207,6 +211,10 @@ function TransferControlBody({
       e.stopPropagation();
     };
     document.addEventListener("keydown", escape);
+    // Any later contact or key starts a new gesture, whose click is the control's to take.
+    const endRevealTap = () => (p.revealTap = false);
+    document.addEventListener("pointerdown", endRevealTap, true);
+    document.addEventListener("keydown", endRevealTap, true);
     const list: Listeners = [
       [a, "pointerenter", enter("overControl")],
       [
@@ -287,6 +295,7 @@ function TransferControlBody({
               if (start === null || !isTap(start, sample(e), maxMove, collapsed)) return;
               p.escaped = false; // TR-49: a tap on the item ends an Escape
               p.leftSinceEscape = false;
+              p.revealTap = true;
               const now = current.current;
               transferSelection.toggle({
                 questionKey: now.bridge.questionKey,
@@ -302,6 +311,8 @@ function TransferControlBody({
     return () => {
       stop();
       document.removeEventListener("keydown", escape);
+      document.removeEventListener("pointerdown", endRevealTap, true);
+      document.removeEventListener("keydown", endRevealTap, true);
       hideTip();
       if (el instanceof HTMLElement) {
         el.removeAttribute("data-transfer-item");
@@ -417,6 +428,11 @@ function TransferControlBody({
   function activate(event: ReactMouseEvent) {
     event.stopPropagation();
     const p = pointer.current;
+    // TR-56, TR-63: the selecting tap's own click, retargeted here, only selects the item. A
+    // keyboard click (detail 0) or a press on the button itself (lastDown) still acts.
+    const retargeted = p.revealTap && event.detail > 0 && p.lastDown === null;
+    p.revealTap = false;
+    if (retargeted) return;
     const trigger = triggerFor(p.lastDown, revealedByHoverPen());
     focusControl();
     p.lastDown = null;

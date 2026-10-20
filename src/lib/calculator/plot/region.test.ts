@@ -1,10 +1,20 @@
 import { expect, it } from "vitest";
 import { NO_DEADLINE } from "../core/deadline";
 import type { InequalityOp } from "../core/latex/ast";
-import { mid, runsOf, segmentsOf, shadedMask, UP_TO_1080, VIEW_800 } from "./__fixtures__/measure";
+import {
+  at,
+  mid,
+  runsOf,
+  segmentsOf,
+  shadedMask,
+  UP_TO_1080,
+  VIEW_800,
+} from "./__fixtures__/measure";
+import { EvaluationBudget, IMPLICIT_BUDGET } from "./budget";
+import { sampleField, type SampledField } from "./field";
 import type { CurveGeometry, RealFn2 } from "./geometry";
-import { plotConstantRegion, plotRegion } from "./region";
-import { pxToWorld } from "./viewport";
+import { plotConstantRegion, plotRegion, relationHolds, shadedSpans } from "./region";
+import { pxToWorld, type ViewSpec } from "./viewport";
 
 const LINE: RealFn2[] = [(x, y) => y, (x) => 2 * x + 1];
 const BAND: RealFn2[] = [() => 1, (x, y) => y, () => 3];
@@ -49,3 +59,57 @@ it("G-1 a strict inequality's boundary is dashed and a non-strict one solid", ()
   expect(dashes(LINE, ["<="])).toEqual([false]);
   expect(dashes(BAND, ["<", "<="])).toEqual([true, false]);
 });
+
+/** The per-pixel definition shadedSpans must reproduce: every pixel judged by pixelValue. */
+function spansByPixel(field: SampledField, ops: readonly InequalityOp[], view: ViewSpec): number[] {
+  const { width, height } = view.size;
+  const spans: number[] = [];
+  for (let j = 0; j < field.height; j++) {
+    let start = -1;
+    for (let i = 0; i <= field.width; i++) {
+      const inside =
+        i < field.width && ops.every((op, k) => relationHolds(op, field.pixelValue(i, j, k)));
+      if (inside && start < 0) start = i;
+      else if (!inside && start >= 0) {
+        spans.push(j, Math.min(j + 1, height), start, Math.min(i, width));
+        start = -1;
+      }
+    }
+  }
+  return spans;
+}
+
+it("G-17, G-22 shadedSpans judges whole inactive squares at once yet matches a pixel-by-pixel judgement, with and without refused splits", () => {
+  const cases: [RealFn2[], InequalityOp[], number][] = [
+    [[(_x, y) => y, () => 0], [">"], IMPLICIT_BUDGET],
+    [[(_x, y) => y, (x) => x], [">"], 2000],
+    [BAND, ["<", "<"], IMPLICIT_BUDGET],
+    [DISC, ["<="], 30_000],
+    [[(_x, y) => y, (x) => Math.sqrt(x) * Math.sin(3 * x)], ["<"], 50_000],
+    [[(x, y) => Math.sin(3 * x) * Math.sin(3 * y), () => 0], ["<"], 20_000],
+    [[(x, y) => Math.floor(y), () => 0], [">="], IMPLICIT_BUDGET],
+  ];
+  let refused = 0;
+  for (const view of [
+    VIEW_800,
+    at({ width: 333.5, height: 201.25 }),
+    at({ width: 7, height: 1 }),
+  ]) {
+    for (const [terms, ops, limit] of cases) {
+      const values = new Float64Array(terms.length);
+      const field = sampleField(
+        view,
+        ops.length,
+        terms.length,
+        (x, y, out) => {
+          for (let t = 0; t < terms.length; t++) values[t] = terms[t](x, y);
+          for (let k = 0; k < ops.length; k++) out[k] = values[k] - values[k + 1];
+        },
+        new EvaluationBudget(limit, NO_DEADLINE)
+      );
+      if (field.unresolved.length > 0) refused++;
+      expect(shadedSpans(field, ops, view)).toEqual(spansByPixel(field, ops, view));
+    }
+  }
+  expect(refused).toBeGreaterThan(0); // the pixel-by-pixel edge path ran too
+}, 20_000);

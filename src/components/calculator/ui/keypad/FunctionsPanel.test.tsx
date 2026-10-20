@@ -176,3 +176,20 @@ it("Functions panel lifecycle: a closing panel is inert at once and unmounts aft
   act(() => vi.advanceTimersByTime(1));
   expect(panel).not.toBeInTheDocument();
 });
+
+it("KB-3 switching to the letters page closes the Functions panel at once with its Escape layer; the next Escape closes the letters page", () => {
+  const kit = renderEditor(editor(), { rows: [""], durationMs: 100 });
+  fireEvent.click(key("Functions"));
+  expect(screen.getByRole("group", { name: "Functions" })).toBeInTheDocument();
+  fireEvent.click(key("ABC"));
+  // No closing duration: the reference's popover is gone with the page switch.
+  expect(screen.queryByRole("group", { name: "Functions" })).toBeNull();
+  const keypad = screen.getByRole("region", { name: "Keypad" });
+  expect(keypad).toHaveAttribute("data-page", "letters");
+  act(() => kit.pressEscape());
+  expect(keypad).toHaveAttribute("data-page", "main");
+  expect(keypad).toHaveAttribute("data-open", "true");
+  // Back on the main page the panel stays shut until the Functions key opens it again.
+  expect(key("Functions")).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("group", { name: "Functions" })).toBeNull();
+});
