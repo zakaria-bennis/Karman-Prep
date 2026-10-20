@@ -291,22 +291,32 @@ export const kcPaper = (page: Page) =>
     const host = document.querySelector("[data-calculator-host]");
     return host ? getComputedStyle(host).getPropertyValue("--kc-paper").trim().toLowerCase() : "";
   });
-/** graph-pixels.ts layerColors(page, "shading"), read in the calculator host's shadow root. */
-export const shadingLayer = (page: Page) =>
-  page.evaluate(() => {
-    const c = document
-      .querySelector("[data-calculator-host]")
-      ?.shadowRoot?.querySelector<HTMLCanvasElement>('canvas[data-layer="shading"]');
-    const d = c?.getContext("2d")?.getImageData(0, 0, c.width, c.height).data;
-    const opaque = new Set<string>();
-    let partial = 0;
-    if (!d) return { opaque: [], partial: -1 };
-    for (let i = 0; i < d.length; i += 4) {
-      if (d[i + 3] === 255)
-        opaque.add(
-          `#${[d[i], d[i + 1], d[i + 2]].map((v) => v.toString(16).padStart(2, "0")).join("")}`
-        );
-      else if (d[i + 3] > 0) partial++;
-    }
-    return { opaque: [...opaque], partial };
-  });
+/**
+ * GP-4: the rows canvas (each row's 40% shading, then its strokes) composited over `paper` in the
+ * calculator host's shadow root, as the colours that cover at least `share` of the canvas.
+ */
+export const rowsLayerColours = (page: Page, paper: string, share = 0.005) =>
+  page.evaluate(
+    ({ paper, share }) => {
+      const c = document
+        .querySelector("[data-calculator-host]")
+        ?.shadowRoot?.querySelector<HTMLCanvasElement>('canvas[data-layer="curves"]');
+      if (!c) return null;
+      const out = document.createElement("canvas");
+      out.width = c.width;
+      out.height = c.height;
+      const ctx = out.getContext("2d")!;
+      ctx.fillStyle = paper;
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(c, 0, 0);
+      const d = ctx.getImageData(0, 0, c.width, c.height).data;
+      const counts = new Map<string, number>();
+      for (let i = 0; i < d.length; i += 4) {
+        const hex = `#${[d[i], d[i + 1], d[i + 2]].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+        counts.set(hex, (counts.get(hex) ?? 0) + 1);
+      }
+      const min = (d.length / 4) * share;
+      return [...counts].filter(([, n]) => n >= min).map(([hex]) => hex);
+    },
+    { paper, share }
+  );

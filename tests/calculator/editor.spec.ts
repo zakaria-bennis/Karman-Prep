@@ -166,75 +166,112 @@ test("K-5 Functions templates land in the row with the caret inside", async ({ p
   await expect.poll(async () => (await latexes(page))[0]).toContain("\\log_{2}");
 });
 
-const keyBoxes = async (keypad: Locator) =>
-  Promise.all((await keypad.getByRole("button").all()).map(async (b) => (await b.boundingBox())!));
-const fromValue = (target: Locator, property: string) =>
-  target.evaluate((el, p) => {
-    const a = el.getAnimations().find((x) => (x as CSSTransition).transitionProperty === p);
-    return a ? String((a.effect as KeyframeEffect).getKeyframes()[0][p]) : null;
-  }, property);
+/** VIS-KEYPAD-2, 3: the 123 page's unit, (key block - 6) / 11, with the block min(width, 835). */
+const unit = (width: number) => (Math.min(width, 835) - 6) / 11;
+/** VIS-KEYPAD-4: the 123 page's keys in row order. */
+const MAIN_PAGE = [
+  ["x", "y", "Squared", "Power", "7", "8", "9", "Divide", "Functions"],
+  ["Left parenthesis", "Right parenthesis", "Less than", "Greater than", "4", "5", "6"],
+  ["Multiply", "Left arrow", "Right arrow"],
+  ["Absolute value", "Comma", "Less than or equal to", "Greater than or equal to", "1", "2", "3"],
+  ["Minus", "Backspace"],
+  ["ABC", "Audio trace", "Square root", "Pi", "0", "Decimal point", "Equals", "Plus", "Enter"],
+].flat();
+/** VIS-KEYPAD-3, 4: each key is its cell less a 2 px margin: n units wide, 40 px tall. */
+async function expectMainPage(keypad: Locator, width: number) {
+  const keys = keypad.locator("button.kc-key");
+  expect(await keys.evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")))).toEqual(
+    MAIN_PAGE
+  );
+  const u = unit(width);
+  const units: Record<string, number> = { Functions: 2, Enter: 2, Backspace: 1.5 };
+  for (const key of await keys.all()) {
+    const name = (await key.getAttribute("aria-label"))!;
+    const box = (await key.boundingBox())!;
+    expect(box.height, name).toBe(36);
+    expect(Math.abs(box.width - ((units[name] ?? 1) * u - 4)), name).toBeLessThanOrEqual(1);
+  }
+}
 
-test("K-1 fine-pointer tray keys and the Hide keypad control are at least 32 x 32 px", async ({
+test("K-1 the fine-pointer tray is 169 px tall with the 123 page's keys (U - 4) x 36 px in a centred block of min(W, 835) px, and a 90 x 42 Hide keypad tab", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
   await open(page, [""], "&keypad=open&pointer=fine&width=900");
   const keypad = page.getByRole("region", { name: "Keypad" });
-  await expect(keypad).toHaveAttribute("data-layout", "tray");
-  await expect(keypad.getByRole("button", { name: "Hide keypad" })).toBeVisible();
-  for (const box of await keyBoxes(keypad))
-    expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(32);
+  await expect(keypad).toHaveAttribute("data-pointer", "fine");
+  const tray = (await keypad.boundingBox())!;
+  expect(tray.height).toBe(169);
+  await expectMainPage(keypad, 900);
+  // VIS-KEYPAD-2: the block is centred, padded 3 px, and each key sits 2 px inside its cell.
+  const first = (await keypad.getByRole("button", { name: "x", exact: true }).boundingBox())!;
+  expect(Math.abs(first.x - (tray.x + (900 - 835) / 2 + 3 + 2))).toBeLessThanOrEqual(1);
+  const hide = (await keypad.getByRole("button", { name: "Hide keypad" }).boundingBox())!;
+  expect([hide.width, hide.height]).toEqual([90, 42]);
 });
 
-test("K-6 containers under 600 px use the 7 x 6 keypad with 44 px keys whatever the pointer, and wider ones the tray, every key at least 44 px on coarse pointers", async ({
+test("K-6 every width from 320 px keeps the 123 and letters pages, keys 36 px tall at the unit width, with no Show or Hide keypad control on coarse pointers", async ({
   page,
 }) => {
   const cases = [
-    [320, "phone", "coarse", 390, 844],
-    [599, "phone", "coarse", 640, 844],
-    [599, "phone", "fine", 640, 844], // a narrow floating window on a desktop
-    [600, "tray", "coarse", 640, 844],
-    [844, "tray", "coarse", 844, 390],
+    [320, 320, 700],
+    [390, 390, 844],
+    [599, 640, 844],
+    [600, 640, 844],
+    [844, 844, 390], // phone landscape
   ] as const;
-  for (const [width, layout, pointer, vw, vh] of cases) {
+  for (const [width, vw, vh] of cases) {
     await page.setViewportSize({ width: vw, height: vh });
-    await open(page, [""], `&keypad=open&pointer=${pointer}&width=${width}`);
+    await open(page, [""], `&keypad=open&pointer=coarse&width=${width}`);
     const keypad = page.getByRole("region", { name: "Keypad" });
-    await expect(keypad).toHaveAttribute("data-layout", layout);
-    await expect(keypad.getByRole("button", { name: "Tilde", exact: true })).toBeVisible();
-    for (const box of await keyBoxes(keypad))
-      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+    await expect(keypad).toHaveAttribute("data-pointer", "coarse");
+    await expectMainPage(keypad, width);
+    await expect(page.getByRole("button", { name: /^(Show|Hide) keypad$/ })).toHaveCount(0);
+    // VIS-KEYPAD-21: the letters page fills the block in 10 columns; ~ sits on its last row.
     await keypad.getByRole("button", { name: "ABC", exact: true }).click();
-    for (const box of await keyBoxes(keypad))
-      expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+    await expect(keypad.getByRole("button", { name: "Tilde", exact: true })).toBeVisible();
+    const block = Math.min(width, 835) - 6;
+    for (const name of ["q", "Tilde"]) {
+      const box = (await keypad.getByRole("button", { name, exact: true }).boundingBox())!;
+      expect(box.height, name).toBe(36);
+      expect(Math.abs(box.width - (block / 10 - 4)), name).toBeLessThanOrEqual(1);
+    }
   }
 });
 
-test("K-4 the Functions panel scrolls directly above the keypad from 560 px and covers the keypad area below 560 px", async ({
+test("K-4 the Functions popover is a 312 x 346 scrolling box 12 px above the Functions key's cell, right-aligned to it and kept inside the calculator when narrow, its arrow centred on the key", async ({
   page,
 }) => {
   const cases = [
-    [900, "above", 1280, 800],
-    [390, "cover", 390, 844],
+    [900, 1280, 800],
+    [390, 390, 844],
+    [320, 320, 700],
   ] as const;
-  for (const [width, placement, vw, vh] of cases) {
+  for (const [width, vw, vh] of cases) {
     await page.setViewportSize({ width: vw, height: vh });
     await open(page, [""], `&keypad=open&pointer=coarse&width=${width}`);
     await field(page, 1).focus();
     const keypad = page.getByRole("region", { name: "Keypad" });
-    await keypad.getByRole("button", { name: "Functions", exact: true }).click();
+    const key = keypad.getByRole("button", { name: "Functions", exact: true });
+    await key.click();
     const panel = page.locator(".kc-functions-panel");
-    await expect(panel).toHaveAttribute("data-placement", placement);
-    await expect.poll(() => transitions(panel), { intervals: [16] }).toEqual([]); // AN-2 ended
+    await expect(panel).toBeVisible();
     await expect(panel).toHaveCSS("overflow-y", "auto");
     const p = (await panel.boundingBox())!;
-    const k = (await keypad.boundingBox())!;
-    if (placement === "above") {
-      await expect(panel).toHaveCSS("max-height", "240px");
-      expect(Math.abs(p.y + p.height - k.y)).toBeLessThanOrEqual(1);
-    } else {
-      for (const d of [p.x - k.x, p.y - k.y, p.width - k.width, p.height - k.height])
-        expect(Math.abs(d)).toBeLessThanOrEqual(1);
+    const k = (await key.boundingBox())!;
+    const pad = (await keypad.boundingBox())!;
+    expect([Math.round(p.width), Math.round(p.height)]).toEqual([312, 346]);
+    // VIS-KEYPAD-25: the cell is 2 px outside the key face, and the popover sits 12 px above it.
+    expect(Math.abs(p.y + p.height - (k.y - 2 - 12))).toBeLessThanOrEqual(1.5);
+    if (width >= 450)
+      expect(Math.abs(p.x + p.width - (k.x + k.width + 2))).toBeLessThanOrEqual(1.5);
+    else {
+      // VIS-KEYPAD-41: right-aligned to the funcs key, clamped inside the calculator.
+      expect(p.x).toBeGreaterThanOrEqual(pad.x);
+      expect(p.x + p.width).toBeLessThanOrEqual(pad.x + pad.width);
     }
+    const arrow = (await page.locator(".kc-functions-arrow").boundingBox())!;
+    expect(Math.abs(arrow.x + arrow.width / 2 - (k.x + k.width / 2))).toBeLessThanOrEqual(1.5);
   }
 });
 
@@ -331,7 +368,7 @@ test("AN-1 the keypad slides on translateY over 300 ms with ease and is visibili
   await expect(tray).toHaveCSS("visibility", "hidden");
 });
 
-test("AN-2 the Functions panel fades in rising 8 px over 300 ms and closes at once", async ({
+test("AN-2 the Functions popover opens and closes at once, with no fade or movement", async ({
   page,
 }) => {
   await open(page, [""], "&keypad=open");
@@ -339,45 +376,39 @@ test("AN-2 the Functions panel fades in rising 8 px over 300 ms and closes at on
   const functions = page.getByRole("button", { name: "Functions", exact: true });
   const panel = page.locator(".kc-functions-panel");
   await functions.click();
-  await expect
-    .poll(() => transitions(panel), { intervals: [16] })
-    .toEqual(
-      expect.arrayContaining([
-        { property: "opacity", duration: 300 },
-        { property: "transform", duration: 300 },
-      ])
-    );
-  expect(await fromValue(panel, "transform")).toMatch(
-    /translateY\(8px\)|matrix\(1, 0, 0, 1, 0, 8\)/
-  );
-  await expect.poll(() => transitions(panel), { intervals: [16] }).toEqual([]);
+  await expect(panel).toBeVisible();
+  // VIS-KEYPAD-30: opacity stays 1 and there is no transform at any frame.
+  for (let frame = 0; frame < 5; frame++) {
+    expect(await transitions(panel)).toEqual([]);
+    await expect(panel).toHaveCSS("opacity", "1");
+    await expect(panel).toHaveCSS("transform", "none");
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+  }
   await functions.click();
-  await expect(panel).toHaveCount(0); // the reference's popovers leave at once
+  await expect(panel).toHaveCount(0);
 });
 
-test("AN-11 keys and toolbar buttons change background tone at once on press, with no scale or shadow", async ({
+test("AN-11 keys and toolbar buttons change tone at once on press, with no scale or shadow", async ({
   page,
 }) => {
   await open(page, [""], "&keypad=open&pointer=fine");
-  const roleOf = (target: Locator, name: string) =>
-    target.evaluate((el, n) => getComputedStyle(el).getPropertyValue(n).trim(), name);
-  const cases = [
-    [page.getByRole("button", { name: "7", exact: true }), "--kc-key", "--kc-key-operator"],
-    [page.getByRole("button", { name: "Divide", exact: true }), "--kc-key-operator", "--kc-key"],
-    [page.getByRole("button", { name: "Add item" }), null, null],
-  ] as const;
-  for (const [target, restRole, pressedRole] of cases) {
+  const look = (target: Locator) =>
+    target.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return `${s.backgroundColor} ${s.backgroundImage}`;
+    });
+  for (const name of ["7", "Divide", "Add item"]) {
+    const target = page.getByRole("button", { name, exact: true });
     await expect(target).toHaveCSS("transition-duration", "0s");
-    const rest = await target.evaluate((el) => getComputedStyle(el).backgroundColor);
-    if (restRole !== null) expect(rest).toBe(rgb(await roleOf(target, restRole)));
+    const rest = await look(target);
     await target.hover();
     await page.mouse.down();
+    // VIS-KEYPAD-10, 11: the pressed key is a flat darker tone; its raised gradient and inset
+    // highlights go at once (Enter alone eases, over 200 ms).
     await expect(target).toHaveCSS("transform", "none");
     await expect(target).toHaveCSS("box-shadow", "none");
-    await expect(target).not.toHaveCSS("background-color", rest);
-    if (pressedRole !== null) {
-      await expect(target).toHaveCSS("background-color", rgb(await roleOf(target, pressedRole)));
-    }
+    await expect(target).toHaveCSS("background-image", "none");
+    expect(await look(target)).not.toBe(rest);
     await page.mouse.up();
   }
 });

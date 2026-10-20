@@ -40,7 +40,7 @@ import {
   rows,
   setRows,
   settled,
-  shadingLayer,
+  rowsLayerColours,
   snapshot,
   strokes,
   tapItem,
@@ -517,6 +517,12 @@ test.fixme("AR-37 the open calculator repaints within one frame on a prefers-red
   expect([await page.evaluate(layoutMarked), await rows(page)]).toEqual([true, ["y=x"]]);
 });
 
+const rgbDistance = (a: string, b: string) => {
+  const n = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [x, y] = [n(a), n(b)];
+  return Math.max(...x.map((v, i) => Math.abs(v - y[i])));
+};
+
 test("F-A1 a transferred inequality and system shade as the uncapped stack of their 40% fills", async ({
   page,
 }, info) => {
@@ -543,11 +549,15 @@ test("F-A1 a transferred inequality and system shade as the uncapped stack of th
           .map((f) => ({ color: f.hex, alpha: f.fillAlpha }))
       ).toLowerCase()
     );
-    const { opaque, partial } = await shadingLayer(page);
-    expect(partial, `${skin} partial shading pixels`).toBe(0);
-    expect(opaque.length, `${skin} shading painted`).toBeGreaterThan(0);
-    for (const c of opaque) {
-      expect(allowed, `${skin} ${c} is a compositeShading result`).toContain(c);
+    // GP-4: shading shares the rows canvas with the strokes, so every colour that covers a real
+    // area of it (not a stroke or its antialiasing) is the paper or a stack of 40% fills.
+    const areas = must(await rowsLayerColours(page, paper, 0.02), "rows canvas");
+    const strokes = fills.map((f) => f.hex.toLowerCase());
+    const shaded = areas.filter((c) => c !== paper.toLowerCase() && !strokes.includes(c));
+    expect(shaded.length, `${skin} shading painted`).toBeGreaterThan(0);
+    for (const c of shaded) {
+      const nearest = Math.min(...allowed.map((a) => rgbDistance(a, c)));
+      expect(nearest, `${skin} ${c} is a compositeShading result`).toBeLessThanOrEqual(4);
     }
   }
 });

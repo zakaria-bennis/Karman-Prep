@@ -355,6 +355,8 @@ test("A11Y-1 the graph's name gives the bounds and plot count and follows pan, z
     within
   );
   await button(page, "Home").click();
+  // AN-7: Home animates back to the default view; pan from the settled view.
+  await expect(graph(page)).toHaveAttribute("aria-label", DEFAULT_NAME);
   await drag(page, isMobile, 80 * s, -60 * s);
   await expect(graph(page)).toHaveAttribute(
     "aria-label",

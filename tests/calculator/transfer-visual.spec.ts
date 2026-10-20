@@ -1,7 +1,7 @@
 // TR-43 and TR-46 say "verified by visual test": pixel baselines of the revealed Transfer control
 // at fine reveal (calculator-chrome, 1280×800) and coarse reveal (calculator-ios), in ivory and
 // observatory. The geometry tests in transfer.spec.ts stay as the
-// browser layer beside them.
+// browser layer beside them. The baselines are Linux renders, so the test runs on Linux only.
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { SKIN_COLORS } from "../../src/lib/calculator/theme/skin-colors.generated";
 import { BLOCK_SYSTEM } from "./fixture/harness/transfer-questions";
@@ -59,6 +59,10 @@ test("TR-43, TR-46 the revealed Transfer control matches its baselines at fine a
   page,
 }, info) => {
   const touch = info.project.name === "calculator-ios";
+  test.skip(
+    process.platform !== "linux",
+    "the committed baselines are Linux renders (CI); other platforms' font rasterisation differs, so they are not compared or written there"
+  );
   test.skip(
     !touch && info.project.name !== "calculator-chrome",
     "one fine (calculator-chrome, 1280×800) and one coarse (calculator-ios) baseline set"

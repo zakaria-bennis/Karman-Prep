@@ -6,12 +6,7 @@
 // stand-in graph's resizes on globalThis.__editorHarness.
 
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
-import errorTipCss from "@/components/calculator/styles/error-tip.css?inline";
-import keypadCss from "@/components/calculator/styles/keypad.css?inline";
-import listCss from "@/components/calculator/styles/list.css?inline";
-import settingsCss from "@/components/calculator/styles/settings.css?inline";
-import tokensCss from "@/components/calculator/styles/tokens.css?inline";
-import toolbarCss from "@/components/calculator/styles/toolbar.css?inline";
+import { CALCULATOR_CSS } from "@/components/calculator/styles/generated";
 import {
   AnnouncerContext,
   LiveRegion,
@@ -29,7 +24,6 @@ import { ExpressionPanel } from "@/components/calculator/ui/list/ExpressionPanel
 import { SettingsPopover } from "@/components/calculator/ui/settings/SettingsPopover";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import { SKIN_IDS, type SkinId } from "@/lib/calculator/theme/skins";
-import mathquillCss from "../../../../vendor/mathquill/mathquill.css?inline";
 import { mountHarness } from "./harness-kit";
 
 export interface EditorQuery {
@@ -208,7 +202,7 @@ globalThis.__editorHarness = { graphResizes: 0 };
 const query = readEditorQuery(location.search, matchMedia("(any-pointer: coarse)").matches);
 const { engine } = mountHarness({
   root: document.getElementById("root")!,
-  css: [tokensCss, mathquillCss, listCss, toolbarCss, errorTipCss, keypadCss, settingsCss],
+  css: [CALCULATOR_CSS], // the shadow sheet the calculator ships (tooltips, menus and all)
   skin: query.skin,
   render: (engine) => <EditorHarness engine={engine} query={query} />,
 });

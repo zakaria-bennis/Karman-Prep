@@ -125,26 +125,44 @@ async function tabCycle(page: Page): Promise<Stop[]> {
   throw new Error(`focus never returned to #outside: ${JSON.stringify(stops.map((s) => s.name))}`);
 }
 
-test("KB-3 Escape closes the popover, Functions panel, ABC page, keypad, then the calculator, by rank and not by opening order", async ({
-  page,
-}) => {
+test("KB-3 Escape closes the popover, ABC page, keypad, then the calculator", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await openShell(page, "?w=800&h=600");
   await rowField(page, "1").click();
   await api(page, "c.updateSettings({ keypad: true })");
-  for (const name of ["Functions", "ABC", "Graph settings"])
-    await page.getByRole("button", { name, exact: true }).click(); // 800 px: the tray, whose letters page keeps Functions (K-3)
+  // A key press closes the settings popover (as any press outside it does), so it opens last.
+  for (const name of ["ABC", "Graph settings"])
+    await page.getByRole("button", { name, exact: true }).click();
   await expect
     .poll(() => layers(page))
-    .toEqual({ settings: true, functions: true, abc: true, keypad: true, closed: false }); // a LIFO stack would now close ABC before Functions
+    .toEqual({ settings: true, functions: false, abc: true, keypad: true, closed: false });
   await escapeOneLayerAtATime(page, [
     { settings: false },
-    { functions: false },
     { abc: false },
     { keypad: false },
     { closed: true },
   ]);
-  expect(await prevented(page)).toEqual([true, true, true, true, false]);
+  expect(await prevented(page)).toEqual([true, true, true, false]);
+});
+
+test("KB-3 switching to the letters page, which has no Functions key, closes the Functions panel and its Escape layer", async ({
+  page,
+}) => {
+  // CODE BUG (2026-10-20): the panel stays open and visible over the letters page with its Escape
+  // layer, so the next Escape closes an orphaned panel instead of the ABC page. Remove this line
+  // once the page switch closes it.
+  test.fail(true, "the Functions panel outlives the switch to the letters page");
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await openShell(page, "?w=800&h=600");
+  await rowField(page, "1").click();
+  await api(page, "c.updateSettings({ keypad: true })");
+  await page.getByRole("button", { name: "Functions", exact: true }).click();
+  await expect.poll(() => layers(page)).toMatchObject({ functions: true, abc: false });
+  // VIS-KEYPAD-21: the letters page fills the block with no functions or arrows column.
+  await page.getByRole("button", { name: "ABC", exact: true }).click();
+  await expect.poll(() => layers(page)).toMatchObject({ functions: false, abc: true });
+  await expect(page.locator("#calc .kc-functions-panel")).toHaveCount(0);
+  await escapeOneLayerAtATime(page, [{ abc: false }]);
 });
 
 test("KB-3 on the phone keypad Escape closes the popover, Functions panel, keypad, then the calculator", async ({
@@ -266,19 +284,22 @@ test("K-2 fine pointer: the keypad starts hidden, Show keypad sits at the bottom
   await frames(page);
   expect(await keypadOpen(page)).toBe(false);
 });
-test("K-2 coarse pointer: a row touch opens the keypad; after Hide keypad the row keeps the phone keyboard until the next row touch, and there is no Show keypad tab", async ({
+test("K-2 coarse pointer: a row touch opens the keypad; after the student closes it the row keeps the phone keyboard until the next row touch, and there is no Show or Hide keypad control", async ({
   page,
   isMobile,
 }) => {
   test.skip(!isMobile, "touch projects");
   await openShell(page, `?rows=${enc(["1", "2"])}`);
-  await expect(page.getByRole("button", { name: "Show keypad" })).toHaveCount(0);
+  const controls = page.getByRole("button", { name: /^(Show|Hide) keypad$/ });
+  await expect(controls).toHaveCount(0);
   await rowField(page, "1").tap();
   await expect.poll(() => keypadOpen(page)).toBe(true);
-  await page.getByRole("button", { name: "Hide keypad" }).tap();
+  // VIS-KEYPAD-40: touch has no Hide keypad tab; Escape is a student close (keypad-policy.ts).
+  await expect(controls).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await frames(page);
   expect([await keypadOpen(page), await inputMode(page)]).toEqual([false, "text"]);
-  await expect(page.getByRole("button", { name: "Show keypad" })).toHaveCount(0);
+  await expect(controls).toHaveCount(0);
   await rowField(page, "2").tap();
   await expect.poll(() => keypadOpen(page)).toBe(true);
 });

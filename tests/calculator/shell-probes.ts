@@ -255,12 +255,40 @@ export function readTextPairs(): TextPair[] {
     const parts = m[1].split(/[\s,/]+/).filter(Boolean);
     return parts.length < 4 ? 1 : Number(parts[3]);
   };
+  const channels = (c: string) => {
+    const srgb = /^color\(srgb ([^/)]*)/.exec(c);
+    if (srgb !== null)
+      return srgb[1]
+        .trim()
+        .split(/\s+/)
+        .map((v) => Number(v) * 255);
+    const m = /^rgba?\(([^)]*)\)$/.exec(c);
+    return m === null
+      ? [255, 255, 255]
+      : m[1]
+          .split(/[\s,/]+/)
+          .slice(0, 3)
+          .map(Number);
+  };
+  // Translucent fills (a selected segment's 65% ink tone, VIS-12) composite over what is below.
   const backgroundFrom = (start: Element | null) => {
+    const layers: string[] = [];
+    let base = "rgb(255, 255, 255)";
     for (let n = start; n !== null; n = parent(n)) {
       const bg = getComputedStyle(n).backgroundColor;
-      if (alphaOf(bg) === 1) return bg;
+      if (alphaOf(bg) === 1) {
+        base = bg;
+        break;
+      }
+      if (alphaOf(bg) > 0) layers.push(bg);
     }
-    return "rgb(255, 255, 255)";
+    if (layers.length === 0) return base;
+    let rgb = channels(base);
+    for (const layer of layers.reverse()) {
+      const a = alphaOf(layer);
+      rgb = channels(layer).map((v, i) => v * a + rgb[i] * (1 - a));
+    }
+    return `rgb(${rgb.map((v) => Math.round(v)).join(", ")})`;
   };
   const opacity = (el: Element) => {
     let product = 1;

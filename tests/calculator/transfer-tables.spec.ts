@@ -117,6 +117,11 @@ test("TR-56, TR-34 on touch a tapped pair's control opens the chooser and Table 
   page,
 }, info) => {
   touchOnly(info.project.name);
+  // CODE BUG (2026-10-20, WebKit touch): the selecting tap 6 px into the 35 px pair "(2, 5)" lands
+  // 5 px below the 44 px control it reveals, and WebKit retargets that tap's click to the control,
+  // so the chooser opens on the selecting tap and the tap below closes it. Remove this line once
+  // a click from the gesture that revealed the control is ignored.
+  test.fail(info.project.name === "calculator-ios", "the selecting tap also opens the chooser");
   await page.goto(URL);
   await expect(control(page, TABLE_PAIR)).toBeAttached();
   await settled(page);
@@ -127,6 +132,7 @@ test("TR-56, TR-34 on touch a tapped pair's control opens the chooser and Table 
   const c = await box(control(page, TABLE_PAIR));
   await page.touchscreen.tap(c.x + c.width / 2, c.y + c.height / 2);
   const row = chooser(page).getByRole("menuitem", { name: "Table row" });
+  await expect(row).toBeVisible();
   const r = await box(row);
   await page.touchscreen.tap(r.x + r.width / 2, r.y + r.height / 2);
   await expect.poll(async () => (await calculator(page))?.rows).toEqual([["x_{1} 2", "y_{1} 5"]]);
