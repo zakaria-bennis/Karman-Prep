@@ -7,7 +7,7 @@ import { REFUSED_NAMES } from "../latex/operator-names";
 import { BUILTIN_ARITY } from "../lib/arity";
 import { BUILTINS } from "../lib/builtins";
 import { listFunction } from "../lib/statistics";
-import { SHAPE_NAMES, type ListProblem, type ListTyping, type Shape } from "./lists";
+import { SHAPE_NAMES, type Bound, type ListProblem, type ListTyping, type Shape } from "./lists";
 import { displayName } from "./messages";
 
 type Call = Extract<Node, { kind: "call" }>;
@@ -22,19 +22,25 @@ type Checked = Pick<Call, "name" | "args" | "span">;
  * be applied to a point."); and length with a list beside another argument ("Function 'length'
  * cannot be applied to a list of numbers and a number."). The two-list statistics and list
  * operations follow operationProblem. Every other built-in (FN-4, elementary functions and
- * square roots) takes numbers only, so a point or a list of points reads "Function 'sin' cannot be
- * applied to a point." (several arguments: "… to a point and a number."). An argument whose shape
- * analysis cannot tell is not checked. `locals` are a function head's parameters.
+ * square and nth roots) takes numbers only, so a point or a list of points reads "Function 'sin'
+ * cannot be applied to a point." (several arguments: "… to a point and a number.", an nth root
+ * being Desmos's `nthroot(radicand, index)`). A user function called with a point or a list of
+ * points is checked as Desmos type-checks it, its body with those parameter shapes, the error at
+ * the call (`f((1,2))` with `f(x)=\sin(x)` reads "Function 'sin' cannot be applied to a point.").
+ * An argument whose shape analysis cannot tell is not checked. `locals` are a function head's
+ * parameters, `bound` the shapes a call gave them and `calling` the user functions being checked.
  */
 export function listCallProblem(
   tree: Node,
   locals: readonly string[],
-  typing: ListTyping
+  typing: ListTyping,
+  bound: Bound = new Map(),
+  calling: ReadonlySet<string> = new Set()
 ): ListProblem | null {
-  for (const call of checkedCalls(tree)) {
+  for (const call of checkedCalls(tree, typing)) {
     const fn = listFunction(call.name);
     if (call.args.length === 0) continue;
-    const shapes = call.args.map((arg) => typing.shape(arg, locals)),
+    const shapes = call.args.map((arg) => typing.shape(arg, locals, bound)),
       name = displayName(call.name),
       known = !shapes.includes(null),
       applied = (k: string): ListProblem => ({
@@ -42,9 +48,13 @@ export function listCallProblem(
         names: [name, k],
         span: call.span,
       });
-    if (fn === undefined) {
+    const definition = typing.functions.get(call.name);
+    if (definition !== undefined) {
+      const problem = userCallProblem(call, shapes, typing, calling);
+      if (problem !== null) return problem;
+    } else if (fn === undefined) {
       // a count Desmos does not accept is classify.ts's arity error
-      const counts = BUILTIN_ARITY.get(call.name) ?? [1];
+      const counts = BUILTIN_ARITY.get(call.name) ?? (call.name === "nthroot" ? [2] : [1]);
       const elements = shapes.map((s) =>
         s === "points" ? "point" : s === "numbers" ? "number" : s
       );
@@ -77,6 +87,27 @@ export function listCallProblem(
     }
   }
   return null;
+}
+
+/**
+ * A user function call with a point or a list of points among its arguments: the first problem in
+ * its body with each parameter given its argument's shape, at the call's span. A count that does
+ * not match the parameters is classify.ts's arity error, and a function already being checked (a
+ * cycle) is not checked again.
+ */
+function userCallProblem(
+  call: Checked,
+  shapes: readonly (Shape | null)[],
+  typing: ListTyping,
+  calling: ReadonlySet<string>
+): ListProblem | null {
+  const definition = typing.functions.get(call.name);
+  if (definition === undefined || calling.has(call.name)) return null;
+  const { params, body } = definition;
+  if (params.length !== shapes.length || !shapes.some(isPointShape)) return null;
+  const bound = new Map(params.map((param, i) => [param, shapes[i]]));
+  const problem = listCallProblem(body, params, typing, bound, new Set([...calling, call.name]));
+  return problem === null ? null : { ...problem, span: call.span };
 }
 
 const isNumberShape = (s: Shape | null) => s === "number" || s === "numbers";
@@ -152,15 +183,27 @@ function described(shapes: readonly Shape[]): string {
     : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-/** Every built-in call and square root in `tree`, in source order. */
-function checkedCalls(tree: Node): Checked[] {
+/**
+ * Every built-in call, user function call and root in `tree`, in source order; a square root is
+ * the call `sqrt` and an nth root `nthroot(radicand, index)`, as Desmos names them in its errors.
+ */
+function checkedCalls(tree: Node, typing: ListTyping): Checked[] {
   const calls: Checked[] = [],
     pending: Node[] = [tree];
   for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
-    if (node.kind === "call" && (listFunction(node.name) !== undefined || BUILTINS.has(node.name)))
+    const { kind } = node;
+    if (
+      kind === "call" &&
+      (listFunction(node.name) !== undefined ||
+        BUILTINS.has(node.name) ||
+        typing.functions.has(node.name))
+    )
       calls.push(node);
-    if (node.kind === "root" && node.index === null)
-      calls.push({ name: "sqrt", args: [node.arg], span: node.span });
+    if (kind === "root") {
+      const [name, args] =
+        node.index === null ? ["sqrt", [node.arg]] : ["nthroot", [node.arg, node.index]];
+      calls.push({ name, args, span: node.span });
+    }
     pending.push(...sourceChildren(node));
   }
   return calls.sort((a, b) => a.span.start - b.span.start);

@@ -19,8 +19,13 @@ export interface ListTyping {
   names: ReadonlySet<string>; // value names that hold a list
   defined: ReadonlySet<string>; // every name a row, a table column or a regression defines
   isList(node: Node, locals: readonly string[]): boolean; // a list, or a list of points
-  shape(node: Node, locals: readonly string[]): Shape | null; // null when unknown
+  /** null when unknown; a `bound` local has the given shape instead of a number's */
+  shape(node: Node, locals: readonly string[], bound?: Bound): Shape | null;
+  functions: ReadonlyMap<string, DefinitionHead>; // the function heads, by name
 }
+/** The shapes a call gives a function's parameters, null where analysis cannot tell. */
+export type Bound = ReadonlyMap<string, Shape | null>;
+const UNBOUND: Bound = new Map();
 /** NM-30: a value's type as Desmos names it in "Cannot index {a number} with {a point}.". */
 export type Shape = "number" | "point" | "numbers" | "points";
 export const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
@@ -67,7 +72,8 @@ export function inferLists(
     names,
     defined: new Set([...defined, ...names, ...scalars, ...heads.map((h) => h.name)]),
     isList: (node, locals) => listValued(node, locals, names, functions),
-    shape: (node, locals) => shapeOf(node, locals, shapes),
+    shape: (node, locals, bound = UNBOUND) => shapeOf(node, locals, shapes, bound),
+    functions: new Map(heads.filter((h) => h.type === "function").map((h) => [h.name, h])),
   };
   for (let changed = true; changed; ) {
     changed = false;
@@ -92,7 +98,7 @@ export function inferLists(
 
 /**
  * NM-30: the shape of `node` where analysis can tell it, else null: numbers and constants, x, y
- * and `locals` are numbers; a point is a point; a list or range holds numbers, or points when
+ * and `locals` are numbers, unless `bound` gives a local's shape; a point is a point; a list or range holds numbers, or points when
  * every item is one; an index picks from its target's elements; and arithmetic or a built-in on
  * numbers gives a number, or a list of numbers when an operand is one; a point times a number is
  * a point. Other point arithmetic (M4), user calls, relations and undefined names are unknown.
@@ -100,14 +106,16 @@ export function inferLists(
 function shapeOf(
   node: Node,
   locals: readonly string[],
-  shapes: ReadonlyMap<string, Shape>
+  shapes: ReadonlyMap<string, Shape>,
+  bound: Bound
 ): Shape | null {
-  const of = (n: Node) => shapeOf(n, locals, shapes);
+  const of = (n: Node) => shapeOf(n, locals, shapes, bound);
   switch (node.kind) {
     case "num":
     case "const":
       return "number";
     case "id":
+      if (bound.has(node.name)) return bound.get(node.name) ?? null;
       if (locals.includes(node.name) || node.name === "x" || node.name === "y") return "number";
       return shapes.get(node.name) ?? null;
     case "point":

@@ -69,14 +69,15 @@ it("FN-68 the six functions and their typed inverses on their real domains, inde
   for (const [name, x] of outside) expect(real(name, x), `${name}(${x})`).toEqual(UNDEFINED);
 });
 
-it("FN-68, NM-19 arccosh, arctanh, arcsech and arccoth extend to complex values on the principal branch", () => {
+it("FN-68, NM-19 arccosh, arctanh, arcsech and arccoth extend to complex values on Desmos's branches", () => {
   expect([
     near(real("arccosh", 0.5, true), 0, Math.PI / 3),
     near(real("arccosh", -2, true), Math.acosh(2), Math.PI),
-    near(real("arctanh", 2, true), Math.atanh(0.5), Math.PI / 2),
+    near(real("arctanh", 2, true), Math.atanh(0.5), -Math.PI / 2),
+    near(real("arctanh", -2, true), -Math.atanh(0.5), Math.PI / 2),
     near(real("arcsech", 2, true), 0, Math.PI / 3),
     near(real("arccoth", 0.5, true), Math.atanh(0.5), Math.PI / 2),
-  ]).toEqual([true, true, true, true, true]);
+  ]).toEqual([true, true, true, true, true, true]);
   expect([real("arccsch", 0, true), real("csch", 0, true)]).toEqual([UNDEFINED, UNDEFINED]);
 });
 

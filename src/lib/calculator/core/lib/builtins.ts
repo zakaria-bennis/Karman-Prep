@@ -83,7 +83,7 @@ const RULES: ReadonlyMap<string, Rule> = new Map<string, Rule>([
   ["tan", circularRule("tan", ctan)],
   ["csc", circularRule("csc", (z) => cdiv(ONE, csin(z)))],
   ["sec", circularRule("sec", (z) => cdiv(ONE, ccos(z)))],
-  ["cot", circularRule("cot", (z) => cdiv(ccos(z), csin(z)))],
+  ["cot", circularRule("cot", (z) => cdiv(ONE, ctan(z)))],
   ["arcsin", inverseRule("arcsin", true, casin)],
   ["arccos", inverseRule("arccos", true, cacos)],
   [

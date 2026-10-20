@@ -113,6 +113,14 @@ const cases: CorpusCase[] = [
   x(81, ["PR-26"], "\\sin^{-2}x", "trig-power"),
   x(82, ["PR-26", "FN-68"], "\\cosh^{0.5}(1)", "trig-power"),
   x(83, ["PR-26"], "\\arctan^{3}(1)", "trig-power"),
+  // Desmos allows only the literal tokens `2` and `-1` (its parser compares the decimal text), so
+  // another spelling of the same number is the power error too.
+  x(84, ["PR-26"], "\\sin^{2.0}(1)", "trig-power"),
+  x(85, ["PR-26"], "\\sin^{02}(1)", "trig-power"),
+  x(86, ["PR-26"], "\\sin^{(2)}(1)", "trig-power"),
+  x(87, ["PR-26"], "\\sin^{-1.0}(0.5)", "trig-power"),
+  x(88, ["PR-26"], "\\log^{2.0}(3)", "log-power"),
+  x(89, ["PR-26"], "\\ln^{2.0}(3)", "log-power"),
   // An empty argument list keeps the base, so the call prints back as written.
   t(79, ["PR-27", "RC-20"], "\\log_{2}()", "(call log (num 2))"),
 ];

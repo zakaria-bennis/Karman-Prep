@@ -123,6 +123,33 @@ values and 63 errors for circular trig, inverse trig, exp and user-function arit
 notation as expected failures. User-function arity, `f()` and `\exp` without parentheses already
 matched.
 
+**Review fixes (task 6).** Complex sin, cos, tan, sinh, cosh and tanh now build their parts from
+the quarter-turn-exact sin, cos and tan (`exactSin`, `exactCos`, `exactTan` in `trig.ts`; tan is
++∞ at an odd quarter turn) and tanh, tan and complex arctanh and arccoth use Desmos's own formulas,
+so `\cosh(\frac{\pi}{2}i)` and `\coth(\frac{\pi}{2}i)` are 0 and `\operatorname{arctanh}(2)` has
+imaginary part −π/2. `desmos-hyperbolic.fixture.json` holds the catalogue's 211 hyperbolic values
+and 19 errors, checked in `desmos-trig.reference.test.ts` (derivatives, the `ar`-spelled inverses
+and the hidden complexArc… names are expected failures). A trig or log power is allowed only as
+the literal tokens `2` and `-1` (`\sin^{2.0}`, `\sin^{(2)}`, `\sin^{-1.0}` are the power errors).
+A user function called with a point is type-checked through its body (`f((1,2))` with
+`f(x)=\sin(x)` reads "Function 'sin' cannot be applied to a point."), and an nth root of a point
+reads "Function 'nthroot' cannot be applied to a point and a number." (both inferred from
+Desmos's source, not captured live). Left, with reasons:
+
+- **Poles as infinities.** Desmos's tan, sec, csc and cot return ±∞ at a pole, so
+  `\frac{1}{\tan(\frac{\pi}{2})}` is 0 and `\arctan(\tan(\frac{\pi}{2}))` is π/2 there. The
+  calculator's value model turns every non-finite number into undefined (`numberValue`), so
+  `\frac{1}{\frac{1}{0}}` is undefined too; this waits for infinities as values (with `\infty`
+  and `realLog` above), not a trig change.
+- **Root parsing.** `\sqrt(4)`, `\sqrt{4,9}` and `\sqrt[[2,3]]{64}` need two new parser error
+  families: Desmos's bracket matching ("Expected '(' to match ')'.") and bare comma sequences,
+  type-checked as a point ("Points are written like this: (1, 2)."; also `1,000`) or a list.
+  `\sqrt(4)` reading as `\sqrt{4}` is also PR-27's corpus case 48, so it needs a spec decision.
+- **Unshipped names.** `\operatorname{sqrt}`, `\operatorname{factorial}`, matrices and dot calls
+  (`L.\sin`, `a.\operatorname{floor}`) need the allowlist and the elementary reference script.
+- **Precision and complex rounding** (nCr(1000,500), nPr(200,100), complex floor, ceil, round
+  and mod) are outside this task.
+
 ### M3. Colour counter for new rows (TH-10, F-A1) — recorded in f-desmos-parity.md, not maths
 
 - **Desmos:** a running colour counter; a row inserted after the first of red, blue, green is

@@ -7,6 +7,7 @@ import { expect, it } from "vitest";
 import { analyzeRows } from "../analysis";
 import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
+import hyperbolic from "./desmos-hyperbolic.fixture.json";
 import trig from "./desmos-trig.fixture.json";
 import { withinTolerance } from "./tolerance";
 
@@ -130,6 +131,39 @@ for (const [key, expected] of EXACT) {
     const got = v.type === "list" ? v.value.map(exactOf) : exactOf(v);
     expect(got).toEqual(expected);
   });
+}
+
+// FN-68: every live Desmos value and error text the catalogue captured for the hyperbolic
+// functions and their inverses (desmos-hyperbolic.fixture.json), checked as the trig cases. Not
+// yet matched, each an expected failure that fails once matched: derivatives, the `ar`-spelled
+// inverse names (`\operatorname{arsinh}`) and the hidden complexArc… names, none shipped.
+const HYPERBOLIC_GAPS: readonly RegExp[] = [
+  /\\frac\{d\}/,
+  /\\operatorname\{ar(sinh|cosh|tanh|csch|sech|coth)\}/,
+  /complexArc/,
+];
+const hyperbolicGap = (key: string) => HYPERBOLIC_GAPS.some((g) => g.test(key));
+const HYPERBOLIC_VALUES = Object.entries(hyperbolic.values) as [string, Expected][];
+const HYPERBOLIC_ERRORS = Object.entries(hyperbolic.errors);
+
+it("FN-68 all 211 catalogue hyperbolic values and 19 errors are checked", () =>
+  expect([HYPERBOLIC_VALUES.length, HYPERBOLIC_ERRORS.length]).toEqual([211, 19]));
+
+for (const [key, expected] of HYPERBOLIC_VALUES) {
+  const check = () => {
+    const c = caseOf(key);
+    const v = evaluateLatex(c.latex, { rows: c.rows, settings: c.settings });
+    expect(sameValue(v, expected, c.settings.complex), JSON.stringify(v)).toBe(true);
+    expect(errorMessage(c)).toBe(undefined);
+  };
+  const shown = JSON.stringify(expected).slice(0, 60);
+  if (hyperbolicGap(key)) it.fails(`not yet matched: ${key} is ${shown} in Desmos`, check);
+  else it(`FN-68 ${key} is ${shown}, as in Desmos`, check);
+}
+
+for (const [key, message] of HYPERBOLIC_ERRORS) {
+  it(`RC-20 FN-68 ${key} reads "${message}", as in Desmos`, () =>
+    expect(errorMessage(caseOf(key))).toBe(message));
 }
 
 function exactOf(v: Value): number | null {

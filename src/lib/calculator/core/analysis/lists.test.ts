@@ -222,3 +222,26 @@ describe("lists as regression data", () => {
     expect(fits.get("r2")!.params[0].value).toBeCloseTo(2, 12);
   });
 });
+
+// FN-4, FN-5: Desmos type-checks a user function's body against each call's argument shapes and
+// names an nth root `nthroot(radicand, index)` (inferred from its source; not captured live).
+it("FN-4 a user function called with a point, and an nth root of a point, read Desmos's type error", () => {
+  const message = (...latex: string[]) => last(...latex).error?.message;
+  expect([
+    message("f(x)=\\sin(x)", "f((1,2))"),
+    message("f(x)=\\sin(x)", "g(x)=f(x)+1", "g([(1,2),(3,4)])"),
+    message("f(a,b)=\\operatorname{mod}(a,b)", "f((1,2),3)"),
+    message("f(x)=\\sin(x)", "f(2)"),
+    message("f(x)=x", "f((1,2))"),
+    message("\\sqrt[3]{(1,2)}"),
+    message("\\sqrt[(1,2)]{8}"),
+  ]).toEqual([
+    "Function 'sin' cannot be applied to a point.",
+    "Function 'sin' cannot be applied to a point.",
+    "Function 'mod' cannot be applied to a point and a number.",
+    undefined,
+    undefined,
+    "Function 'nthroot' cannot be applied to a point and a number.",
+    "Function 'nthroot' cannot be applied to a number and a point.",
+  ]);
+});

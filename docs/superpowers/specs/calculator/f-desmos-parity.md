@@ -270,6 +270,19 @@ including these, is checked in `desmos.reference.test.ts`:
   and its branch signs for arcsin, arccos, arccsc and arcsec at real x outside the domain,
   `\sin\cos(0)` (Desmos asks for parentheses), θ outside a polar row, and the degree sign, which
   Desmos does not have.
+- **Hyperbolic and complex trig (FN-68, NM-4).** Complex trig and hyperbolic parts use the same
+  quarter-turn exactness as real trig, so `\cosh(\frac{\pi}{2}i)` is 0, `\tanh(\frac{\pi}{2}i)`
+  has an undefined real part and `\operatorname{sech}(\frac{\pi}{2}i)` is undefined; complex
+  arctanh and arccoth follow Desmos's branches (`\operatorname{arctanh}(2)` is 0.549… − (π/2)i,
+  `\operatorname{arccoth}(0.5)` is 0.549… + (π/2)i). Every catalogue hyperbolic value and error
+  is checked in `desmos-trig.reference.test.ts` (`desmos-hyperbolic.fixture.json`), except
+  derivatives, the `ar`-spelled names (`\operatorname{arsinh}`) and the hidden complexArc… names.
+- **Literal powers and inlined type errors (PR-26, FN-4).** A power on a trig, hyperbolic or log
+  name is allowed only as the literal `2` or `-1`, so `\sin^{2.0}(1)`, `\sin^{(2)}(1)` and
+  `\log^{2.0}(3)` are the power errors. A user function called with a point is type-checked
+  through its body (`f((1,2))` with `f(x)=\sin(x)` reads "Function 'sin' cannot be applied to a
+  point."), and an nth root of a point reads "Function 'nthroot' cannot be applied to a point and
+  a number." (Desmos's parser and type checker; not captured live).
 - **Exact logs (FN-60).** `\log_{3}(81)` is 4 and `\log_{10}(1000)` is 3, as in Desmos, so
   `\operatorname{ceil}(\log_{3}(81))` is 4, not 5. Every log value and error in the function
   catalogue is checked in `desmos.reference.test.ts`.

@@ -30,31 +30,48 @@ function onOddQuarter(a: number): boolean {
   return k % 2 === 1 && k * Math.PI === 2 * a;
 }
 
+/** NM-4: sin of a radian argument, exactly 0 where the argument is a double k·π (Desmos's sin). */
+export function exactSin(r: number): number {
+  return onWholeTurn(Math.abs(r)) ? 0 : Math.sin(r);
+}
+
+/** NM-4: cos of a radian argument, exactly 0 where it is a double (2k + 1)·π/2 (Desmos's cos). */
+export function exactCos(r: number): number {
+  return onOddQuarter(Math.abs(r)) ? 0 : Math.cos(r);
+}
+
+/**
+ * NM-4: tan of a radian argument as Desmos computes it: exactly 0 at a double k·π and +Infinity
+ * at a double (2k + 1)·π/2, the pole the complex rules divide by.
+ */
+export function exactTan(r: number): number {
+  const a = Math.abs(r);
+  return onWholeTurn(a) ? 0 : onOddQuarter(a) ? Infinity : Math.tan(r);
+}
+
 /**
  * sin, cos, tan, csc, sec or cot of an angle in the given unit (FN-18, FN-19), as Desmos computes
  * them: a degree argument is first multiplied by π/180 (NM-26), and only quarter turns are exact
- * (NM-4). Where the radian argument r is a double that is exactly a whole multiple of π, sin and
- * tan are 0 and csc and cot undefined; where it is exactly an odd multiple of π/2, cos and cot are
- * 0 and tan and sec undefined. Everything else is the library's sin, cos and tan, and csc, sec and
- * cot their reciprocals, so `\sin(\frac{\pi}{6})` is 0.49999999999999994 and `\tan(45)` in degrees
- * is 0.9999999999999999, as in Desmos.
+ * (NM-4, exactSin, exactCos and exactTan); csc, sec and cot are their reciprocals, so csc and cot
+ * are undefined at a whole turn, tan and sec at an odd quarter turn, and cot there is 0.
+ * Everything else is the library's value, so `\sin(\frac{\pi}{6})` is 0.49999999999999994 and
+ * `\tan(45)` in degrees is 0.9999999999999999, as in Desmos.
  */
 export function circular(name: CircularName, x: number, angleMode: "radians" | "degrees"): number {
   const r = angleMode === "degrees" ? x * DEGREE : x;
-  const a = Math.abs(r);
   switch (name) {
     case "sin":
-      return onWholeTurn(a) ? 0 : result(Math.sin(r));
+      return result(exactSin(r));
     case "cos":
-      return onOddQuarter(a) ? 0 : result(Math.cos(r));
+      return result(exactCos(r));
     case "tan":
-      return onWholeTurn(a) ? 0 : onOddQuarter(a) ? NaN : result(Math.tan(r));
+      return result(exactTan(r));
     case "csc":
-      return onWholeTurn(a) ? NaN : result(1 / Math.sin(r));
+      return result(1 / exactSin(r));
     case "sec":
-      return onOddQuarter(a) ? NaN : result(1 / Math.cos(r));
+      return result(1 / exactCos(r));
     case "cot":
-      return onWholeTurn(a) ? NaN : onOddQuarter(a) ? 0 : result(1 / Math.tan(r));
+      return result(1 / exactTan(r));
   }
 }
 

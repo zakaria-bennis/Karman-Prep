@@ -80,6 +80,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   take(state);
   let base: Node | null = null;
   let power: Node | null = null;
+  let form: PowerForm = null;
   for (let token = peek(state); ; token = peek(state)) {
     if (base === null && isSymbol(token, "_") && PREFIX_FORM_NAMES.has(name.name)) {
       if (name.name !== "log") return fail("name-subscript", name.span, "a subscript", name.name);
@@ -88,6 +89,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
       base = takeArgument(state).node;
     } else if (power === null && isSymbol(token, "^") && !isDegreeSign(state)) {
       take(state);
+      form = powerForm(state);
       power = takeArgument(state).node;
     } else {
       break;
@@ -95,7 +97,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   }
   const prefixForm = PREFIX_FORM_NAMES.has(name.name);
   if (power !== null && !prefixForm) return needsParentheses(name);
-  if (power !== null && LOG_NAMES.has(name.name) && !isTwo(power)) {
+  if (power !== null && LOG_NAMES.has(name.name) && form !== "two") {
     return fail("log-power", name.span, `only ${name.name}^2 is supported`, name.name);
   }
   const open = peek(state);
@@ -108,16 +110,16 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
       // reads "Function 'log' requires an argument"), but it stays on the call.
       return takePostfix(
         state,
-        withPower(name, callNode(name, [], base, previousEnd(state)), power)
+        withPower(name, callNode(name, [], base, previousEnd(state)), power, form)
       );
     }
     const args = parseArgumentList(state);
     const call = callNode(name, args, base, previousEnd(state));
-    return takePostfix(state, withPower(name, call, power));
+    return takePostfix(state, withPower(name, call, power, form));
   }
   if (!prefixForm) return needsParentheses(name);
   const arg = parseRunArgument(state, name);
-  return withPower(name, callNode(name, [arg], base, arg.span.end), power);
+  return withPower(name, callNode(name, [arg], base, arg.span.end), power, form);
 }
 
 /** PR-26: the names whose only power is `^2`, Desmos's "Only log^2 is supported." */
@@ -241,16 +243,16 @@ function callNode(name: CommandToken, args: Node[], base: Node | null, end: numb
  * `^2` gives `pow(call, power)`, and any other power on a trig name is `trig-power` at the name,
  * once the argument has been read (Desmos reads `\sin^{-1x}` as a missing argument first).
  */
-function withPower(name: CommandToken, call: CallNode, power: Node | null): Node {
+function withPower(name: CommandToken, call: CallNode, power: Node | null, form: PowerForm): Node {
   if (power === null) return call;
-  if (!LOG_NAMES.has(call.name) && !isTwo(power) && !isMinusOne(power)) {
+  if (!LOG_NAMES.has(call.name) && form === null) {
     return fail("trig-power", name.span, `only ${name.name}^2 and ^-1 are supported`, name.name);
   }
   const forward = call.name.slice(3);
-  if (call.name.startsWith("arc") && INVERTIBLE_NAMES.has(forward) && isMinusOne(power)) {
+  if (call.name.startsWith("arc") && INVERTIBLE_NAMES.has(forward) && form === "minus-one") {
     return { ...call, name: forward };
   }
-  if (INVERTIBLE_NAMES.has(call.name) && isMinusOne(power)) {
+  if (INVERTIBLE_NAMES.has(call.name) && form === "minus-one") {
     const name = `arc${call.name}`;
     if (!isShippedBuiltin(name)) {
       return fail("unsupported", call.span, `"${name}" is not supported`);
@@ -260,12 +262,28 @@ function withPower(name: CommandToken, call: CallNode, power: Node | null): Node
   return { kind: "pow", left: call, right: power, span: call.span };
 }
 
-function isTwo(node: Node): boolean {
-  return node.kind === "num" && node.value === 2;
+/**
+ * PR-26: which of the two allowed powers on a function name the `^` argument at the cursor is,
+ * read from its tokens as Desmos does: the digit `2` alone (`^2`, `^{2}`) or a minus sign before
+ * the digit `1` alone (`^{-1}`). Any other spelling, even of the same number (`^{2.0}`, `^{02}`,
+ * `^{(2)}`, `^{-1.0}`), is neither, so it is `trig-power` or `log-power`.
+ */
+type PowerForm = "two" | "minus-one" | null;
+
+function powerForm(state: ParserState): PowerForm {
+  const [first, second, third, fourth] = [0, 1, 2, 3].map((k) => peek(state, k));
+  if (first.t === "digits") return first.text[0] === "2" ? "two" : null; // one digit is taken
+  if (first.t !== "open" || first.ch !== "{") return null;
+  if (isDigits(second, "2") && isClose(third)) return "two";
+  return isSymbol(second, "-") && isDigits(third, "1") && isClose(fourth) ? "minus-one" : null;
 }
 
-function isMinusOne(node: Node): boolean {
-  return node.kind === "neg" && node.arg.kind === "num" && node.arg.value === 1;
+function isDigits(token: Token, text: string): boolean {
+  return token.t === "digits" && token.text === text;
+}
+
+function isClose(token: Token): boolean {
+  return token.t === "close" && token.ch === "}";
 }
 
 /** Implicit multiplication inside the run, grouping left to right (PR-18). */

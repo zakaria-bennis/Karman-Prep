@@ -2,6 +2,7 @@
 // infinite part means undefined, and the Value layer maps it to UNDEFINED through complexValue.
 // On a branch cut a zero part reads as +0, as in C99. Pure TypeScript: no DOM (AR-44).
 
+import { exactCos, exactSin, exactTan } from "../lib/trig";
 import type { Complex } from "./values";
 
 export const C_I: Complex = Object.freeze({ re: 0, im: 1 });
@@ -41,22 +42,7 @@ export function cdiv(a: Complex, b: Complex): Complex {
  */
 export function cexp(z: Complex): Complex {
   const m = Math.exp(z.re);
-  return { re: m * polarCos(z.im), im: m * polarSin(z.im) };
-}
-
-/** Beyond this the doubles near multiples of π are too sparse to test. */
-const POLAR_SNAP_LIMIT = 1e12;
-
-function polarSin(t: number): number {
-  const a = Math.abs(t);
-  return a <= POLAR_SNAP_LIMIT && Math.round(a / Math.PI) * Math.PI === a ? 0 : Math.sin(t);
-}
-
-function polarCos(t: number): number {
-  const a = Math.abs(t);
-  const halves = Math.round((2 * a) / Math.PI);
-  const onHalf = a <= POLAR_SNAP_LIMIT && halves % 2 === 1 && halves * Math.PI === 2 * a;
-  return onHalf ? 0 : Math.cos(t);
+  return { re: m * exactCos(z.im), im: m * exactSin(z.im) };
 }
 
 /** Ln z = ln|z| + i·Arg z with Arg in (−π, π]: an Arg of −π (from re < 0, im = −0) is π. Ln 0 is NaN. */
@@ -78,16 +64,48 @@ export function csqrt(z: Complex): Complex {
   return { re: Math.abs(z.im) / (2 * t), im: z.im < 0 ? -t : t };
 }
 
+// The complex trig and hyperbolic functions build their parts from the quarter-turn-exact sin,
+// cos and tan of trig.ts (NM-4), as Desmos does, so `\cosh(\frac{\pi}{2}i)` is exactly 0 and
+// `\sin(\pi+i)` real; tanh, and tan through it, use Desmos's formula in tan and tanh.
+
+/** sin(a + bi) = sin a·cosh b + i·cos a·sinh b. */
 export function csin(z: Complex): Complex {
-  return { re: Math.sin(z.re) * Math.cosh(z.im), im: Math.cos(z.re) * Math.sinh(z.im) };
+  return { re: exactSin(z.re) * Math.cosh(z.im), im: exactCos(z.re) * Math.sinh(z.im) };
 }
 
+/** cos(a + bi) = cos a·cosh b − i·sin a·sinh b. */
 export function ccos(z: Complex): Complex {
-  return { re: Math.cos(z.re) * Math.cosh(z.im), im: -Math.sin(z.re) * Math.sinh(z.im) };
+  return { re: exactCos(z.re) * Math.cosh(z.im), im: -exactSin(z.re) * Math.sinh(z.im) };
 }
 
+/** tan z = −i·tanh(iz). */
 export function ctan(z: Complex): Complex {
-  return cdiv(csin(z), ccos(z));
+  const w = ctanh({ re: -z.im, im: z.re });
+  return { re: w.im, im: -w.re };
+}
+
+/** sinh(a + bi) = sinh a·cos b + i·cosh a·sin b. */
+export function csinh(z: Complex): Complex {
+  return { re: Math.sinh(z.re) * exactCos(z.im), im: Math.cosh(z.re) * exactSin(z.im) };
+}
+
+/** cosh(a + bi) = cosh a·cos b + i·sinh a·sin b. */
+export function ccosh(z: Complex): Complex {
+  return { re: Math.cosh(z.re) * exactCos(z.im), im: Math.sinh(z.re) * exactSin(z.im) };
+}
+
+/**
+ * tanh(a + bi) from t = tan b and h = tanh a: ((1 + t²)·h / (1 + t²h²), t / (1 + (1 + t²)·sinh²a)),
+ * and (1/h, 0) where tan b is infinite (b an odd quarter turn), so `\tanh(\frac{\pi}{2}i)` has an
+ * undefined real part and `\coth(\frac{\pi}{2}i)` is 0.
+ */
+export function ctanh(z: Complex): Complex {
+  const t = exactTan(z.im),
+    h = Math.tanh(z.re);
+  if (!Number.isFinite(t)) return { re: 1 / h, im: 1 / t };
+  const t2 = t * t,
+    s = Math.sinh(z.re);
+  return { re: ((1 + t2) * h) / (1 + t2 * h * h), im: t / (1 + (1 + t2) * s * s) };
 }
 
 /**

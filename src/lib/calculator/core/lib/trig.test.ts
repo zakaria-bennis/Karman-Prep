@@ -1,5 +1,15 @@
 import { expect, it } from "vitest";
-import { arctan2, circular, inverseCircular, type CircularName, type InverseName } from "./trig";
+import { evaluateLatex } from "../eval/compile";
+import {
+  arctan2,
+  circular,
+  exactCos,
+  exactSin,
+  exactTan,
+  inverseCircular,
+  type CircularName,
+  type InverseName,
+} from "./trig";
 
 const P = Math.PI;
 
@@ -96,3 +106,31 @@ it("FN-22 two-argument arctan returns the angle of (x, y) in [−π, π], as in 
     arctan2(0, 0, R),
     arctan2(-1, -1, D),
   ]).toEqual([2.356194490192345, 135, -P, -P / 2, 0, -135]));
+
+// NM-4: Desmos's complex sin, cos, tan, sinh, cosh and tanh build their parts from the same
+// quarter-turn-exact sin, cos and tan (inferred from its source; the catalogue captured
+// `\cosh(\frac{\pi}{2}i)` = 0 and `\coth(\frac{\pi}{2}i)` = 0), so these parts are exactly 0.
+it("NM-4 complex trig and hyperbolic parts are exactly 0 at quarter turns, as in Desmos", () => {
+  const value = (latex: string) => evaluateLatex(latex, { settings: { complex: true } });
+  const re = (latex: string) => {
+    const v = value(latex);
+    return v.type === "complex" ? v.value.re : NaN;
+  };
+  expect([re("\\sin(\\pi+i)"), re("\\cos(\\frac{\\pi}{2}+i)"), re("\\tan(\\pi+i)")]).toEqual([
+    0, 0, 0,
+  ]);
+  const zero = (latex: string) => {
+    const v = value(latex);
+    return v.type === "number" && v.value === 0;
+  };
+  expect([zero("\\sinh(\\pi i)"), zero("\\tanh(\\pi i)")]).toEqual([true, true]);
+});
+
+it("NM-4 exactTan is +Infinity at an odd quarter turn, the pole Desmos's complex tanh divides by", () =>
+  expect([exactTan(P / 2), exactTan(-P / 2), exactTan(P), exactSin(-P), exactCos(P / 2)]).toEqual([
+    Infinity,
+    Infinity,
+    0,
+    0,
+    0,
+  ]));
