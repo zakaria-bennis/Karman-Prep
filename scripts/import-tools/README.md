@@ -52,24 +52,23 @@ Produces `groups.json`, `report.md`, `unpublish.sql`, `republish.sql`. You read 
 
 **O5. Migration A and backfill (live write). Needs your OK.**
 
+Migration A (`supabase/migrations/20261021000000_question_comparison_key.sql`) is applied when this branch merges to `main` (`db-deploy.yml` applies new migrations to production), or by `npm run db:push`. It only adds the empty `comparison_key` column. Migration B is not in `supabase/migrations`, so neither path applies it (see O6).
+
 ```
-npm run db:push          # applies 20261021000000_question_comparison_key.sql
 k backfill --export $PIPE/live-<date>-2.json --out $PIPE/backfill.sql
 ```
 
-Produces `backfill.sql` and `backfill.dryrun.sql` (keys look like `kn-2:<sha256>`). Run the `.dryrun.sql` first, then `backfill.sql`. Both end with a `SELECT` that prints `rows_still_null`. Some rows stay without a key by design: image and graph figure rows, rows with a broken answer key, and rows whose format disagrees with their choices. The comment at the end of `backfill.sql` counts the last two. To check live rows, run this after the backfill; the number should equal the broken-answer-key plus format-mismatch count in that comment (0 when there are none), because every keyable row now has a key:
+Produces `backfill.sql` and `backfill.dryrun.sql` (keys look like `kn-2:<sha256>`). Run the `.dryrun.sql` first, then `backfill.sql`. Both end with a `SELECT` that prints `rows_still_null`. Some rows stay without a key by design: image, graph and choice-table figure rows, rows with a broken answer key, and rows whose format disagrees with their choices.
+
+**O6. Migration B (live write, separate PR). Needs your OK.**
+
+Migration B (the unique rule) lives at `scripts/import-tools/sql/migration_b_unique_comparison_key.sql`, outside `supabase/migrations`, so merging this branch never applies it. Add it later, in its own PR, as `supabase/migrations/<YYYYMMDDHHMMSS>_question_comparison_key_unique.sql`, only after O5 is verified and this check returns no rows:
 
 ```
-SELECT count(*) FROM public.quiz_questions WHERE comparison_key IS NULL AND archived_at IS NULL AND publish_status IN ('publish_ready','publish_ready_with_verified_repair') AND NOT (figure_kind IS NOT NULL AND figure_kind <> 'table');
+SELECT comparison_key, count(*) FROM public.quiz_questions WHERE comparison_key IS NOT NULL AND archived_at IS NULL AND publish_status IN ('publish_ready','publish_ready_with_verified_repair') GROUP BY 1 HAVING count(*) > 1;
 ```
 
-**O6. Migration B (live write). Needs your OK.**
-
-```
-npm run db:push          # applies 20261021000100_question_comparison_key_unique.sql
-```
-
-It fails safely, changing nothing, if a live duplicate remains. Apply it only after O4 and O5.
+If it returns rows, a live duplicate is left: run the sweep again and finish O4 first. Merging that PR (or `npm run db:push`) applies it. It fails safely, changing nothing, if a live duplicate remains.
 
 **O7. Corpus count (no OK needed).**
 

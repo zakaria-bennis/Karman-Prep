@@ -56,7 +56,7 @@ scripts/import-tools/
   tests/test_*.py             one test file per module
   README.md                   runbook (commands in order)
 supabase/migrations/20261021000000_question_comparison_key.sql
-supabase/migrations/20261021000100_question_comparison_key_unique.sql
+scripts/import-tools/sql/migration_b_unique_comparison_key.sql   (added as its own migration in a later PR, ruling R24)
 src/lib/question-bank/import-core.ts      (D4 change)
 ```
 
@@ -332,7 +332,7 @@ class QuestionRecord:
 
 **Files:**
 
-- Create: `supabase/migrations/20261021000100_question_comparison_key_unique.sql`, `scripts/import-tools/README.md`, `scripts/import-tools/kimport-cli.py` (if not created earlier; it dispatches every subcommand above)
+- Create: `scripts/import-tools/sql/migration_b_unique_comparison_key.sql` (ruling R24: not in supabase/migrations until a later PR), `scripts/import-tools/README.md`, `scripts/import-tools/kimport-cli.py` (if not created earlier; it dispatches every subcommand above)
 - Modify: `docs/ingestion/reviewed-import-rules.md` (one section: "Duplicate and publish tooling", pointing to the README)
 - Test: `scripts/import-tools/tests/test_cli.py`
 
