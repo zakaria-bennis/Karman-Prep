@@ -52,6 +52,26 @@ The calculator is excluded until the founder has reviewed it.
     to light, and the choice is remembered. All text meets WCAG AA contrast (4.5:1, or 3:1 for large text)
     in both modes, checked by calculation, not by eye.
 
+## Founder decisions, 2026-10-20
+
+34. Text never overlaps other text at any scroll position, on any screen size.
+    Fixed and sticky elements (header, dock, loader) never sit on top of text
+    being read. Check by scanning text boxes at every scroll step, not by eye.
+35. One highlighted call to action on screen at any time. Every other action is a
+    plain text link. The floating button only shows when no other button is
+    visible.
+36. No before-and-after sliders or drag-to-reveal comparisons.
+37. No scroll-driven indicators that fill boxes, light up checkpoints or tick
+    items off as the reader scrolls (route bars, filling week squares, skill
+    meters).
+38. No visible play or pause button on background film.
+39. Internal grading stays internal on marketing pages: no difficulty levels
+    ("level 4", "1 to 7", "seven levels"), no skill maps or level meters.
+40. Karman is a company, not a personal site. Marketing copy speaks as Karman,
+    not in the first person. Zakaria is named sparingly (once or twice per
+    page at most, never in headlines or button labels); the About page is where
+    he is introduced in full.
+
 ## Copy rules
 
 Set by the founder on 2026-10-19. Every word on the website follows these.
