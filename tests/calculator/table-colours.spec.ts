@@ -68,3 +68,33 @@ test("RT-6 the blank last row has no bottom rule and data cells centre their mat
   const centre = math.x + math.width / 2 - (box.x + box.width / 2);
   expect(Math.abs(centre)).toBeLessThan(2);
 });
+
+test("RT-6 columns size to their content as the reference's do, and a wide table scrolls instead of squeezing", async ({
+  page,
+}) => {
+  await linTable(page);
+  const firstWidth = () =>
+    page
+      .locator("#calc .kc-table-row[data-header='true'] .kc-table-cell")
+      .first()
+      .evaluate((e) => e.getBoundingClientRect().width);
+  expect(Math.abs((await firstWidth()) - 61)).toBeLessThan(2);
+  await page.evaluate(() =>
+    globalThis.__calculatorHarness!.engine.setExpression({
+      id: "1",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1234567"] },
+        { latex: "y_{1}", values: ["1234567"] },
+        { latex: "z_{1}", values: ["1234567"] },
+      ],
+    })
+  );
+  await expect.poll(firstWidth).toBeGreaterThan(95);
+  const grid = page.locator("#calc .kc-table");
+  const { scroll, client } = await grid.evaluate((e) => ({
+    scroll: e.scrollWidth,
+    client: e.clientWidth,
+  }));
+  expect(scroll).toBeGreaterThan(client);
+});

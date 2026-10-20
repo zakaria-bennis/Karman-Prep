@@ -13,7 +13,7 @@
    ruled off by a text-colour line and later columns by light ones, no outer frame, and math at
    17.02 px in headers and 14.72 px in cells, 20 px in from each cell's left. */
 .kc-table {
-  display: block;
+  display: grid; /* TableItem sets the content-sized column tracks (RT-6) */
   width: max-content;
   max-width: calc(100% - 15px);
   margin-left: 15px;
@@ -22,18 +22,23 @@
   font-size: 14.72px;
 }
 
-.kc-table-row {
-  display: flex;
+/* Every row lays its cells on the table's shared column tracks. */
+.kc-table-row,
+.kc-table-more {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
 }
 
+/* RT-6: as the reference measures them, a first-column cell is at least 61 px and a later one,
+   which leaves room for a colour icon, at least 81 px; the blank slot keeps its 60 px track. */
 .kc-table-cell {
   display: flex;
-  flex: 0 0 81px; /* D-42: one width per column; TableItem sets each column's basis */
   align-items: center;
   box-sizing: border-box;
-  min-width: 0;
+  min-width: 81px;
   height: 34px;
-  padding: 0 0 0 1px;
+  padding: 0 1px;
   border-right: 1px solid var(--kc-rule);
   border-bottom: 1px solid var(--kc-rule);
   overflow: hidden;
@@ -41,7 +46,13 @@
 }
 
 .kc-table-cell:first-child {
+  min-width: 61px;
   border-right-color: var(--kc-text);
+}
+
+.kc-table-cell[data-slot="true"],
+.kc-table-slot {
+  min-width: 0;
 }
 
 .kc-table-cell:not(:has(~ .kc-table-cell)) {
@@ -219,20 +230,15 @@
 
 /* RT-6, TABLES-28: the collapsed-rows line, "18 more rows" in muted italics and a "Show all"
    link, centred under the grid's columns on a row of the cells' height. */
-.kc-table-more {
-  display: flex;
-}
-
 .kc-table-more-cell {
   box-sizing: border-box;
-  flex: 1 1 auto;
-  height: 34px;
+  height: 33px;
   border-bottom: 1px solid var(--kc-rule);
   color: var(--kc-text-muted);
   font-family: var(--kc-font-ui);
   font-size: 12.8px;
   font-style: italic;
-  line-height: 33px;
+  line-height: 32px;
   text-align: center;
 }
 

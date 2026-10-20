@@ -56,8 +56,13 @@ export interface TableItemProps {
 
 /** RT-6: the reference's widths for short values: 70 px first, 81 px later (room for the colour
  * icon), 60 px for the blank header slot. */
-const columnWidth = (k: number | null): CSSProperties => ({
-  flexBasis: k === null ? "60px" : k === 0 ? "70px" : "81px",
+/**
+ * RT-6: the grid's column tracks, sized to their content as the reference's auto table layout
+ * does (table.css sets each cell's minimum), then the 60 px blank slot and the 28 px row-delete
+ * control. A table wider than the list scrolls sideways (D-42) rather than squeezing columns.
+ */
+const gridTracks = (columns: number, slot: boolean): CSSProperties => ({
+  gridTemplateColumns: `repeat(${columns}, max-content)${slot ? " 60px" : ""} 28px`,
 });
 
 /** RT-6: "1.234568×10^-4" drawn as the reference draws it, the exponent raised. */
@@ -151,7 +156,6 @@ export function TableItem(props: TableItemProps): JSX.Element {
           key={k}
           role="gridcell"
           className="kc-table-cell"
-          style={columnWidth(k)}
           data-computed="true"
           aria-readonly="true"
           aria-label={computedCellName(headers[k], r, value)}
@@ -163,7 +167,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
     const error = analysis[k]?.cellErrors[r] ?? null;
     const errorId = error === null ? null : cellErrorId(row.id, k, r);
     return (
-      <div key={k} role="gridcell" className="kc-table-cell" style={columnWidth(k)}>
+      <div key={k} role="gridcell" className="kc-table-cell">
         {error !== null && <ErrorMarker id={errorId!} message={error.message} variant="cell" />}
         <TableCell
           tableId={row.id}
@@ -244,6 +248,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
             ref={gridRef}
             role="grid"
             className="kc-table"
+            style={gridTracks(columns.length, slot)}
             aria-label={gridName(number, columns.length, rows)}
             onKeyDownCapture={onGridKeyDown}
           >
@@ -257,7 +262,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
                     key={`h-${k}`}
                     role="columnheader"
                     className="kc-table-cell"
-                    style={columnWidth(latex === null ? null : k)}
+                    data-slot={latex === null ? "true" : undefined}
                   >
                     {error !== null && (
                       <ErrorMarker id={errorId!} message={error.message} variant="cell" />
@@ -301,7 +306,11 @@ export function TableItem(props: TableItemProps): JSX.Element {
                 <Fragment key={r}>
                   {hidden !== null && r === hidden.to && (
                     <div role="row" className="kc-table-more">
-                      <div role="gridcell" className="kc-table-more-cell">
+                      <div
+                        role="gridcell"
+                        className="kc-table-more-cell"
+                        style={{ gridColumn: `1 / span ${columns.length + (slot ? 1 : 0)}` }}
+                      >
                         <span className="kc-table-more-count">
                           {hidden.to - hidden.from} more rows
                         </span>{" "}
@@ -324,7 +333,6 @@ export function TableItem(props: TableItemProps): JSX.Element {
                       <div
                         role="gridcell"
                         className="kc-table-cell kc-table-slot"
-                        style={columnWidth(null)}
                         aria-hidden="true"
                       />
                     )}
