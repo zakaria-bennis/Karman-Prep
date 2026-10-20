@@ -438,10 +438,11 @@ def _n(x) -> str:
 
 def report_md(result: ClusterResult) -> str:
     c = result.counts
-    low = c["distinct_live_rows"] + c["unique_not_live"]
+    live_q = c["distinct_live_rows"] - c["live_rows_sharing_a_cluster"]  # live questions, extra live copies removed
+    low = live_q + c["unique_not_live"]
     mid = low + c["unread_new_at_read_rate"]
     high = low + c["unread_new_upper"]
-    floor = c["distinct_live_rows"] + (c["unique_floor_if_every_pair_is_same"] - c["live_unique"])
+    floor = live_q + (c["unique_floor_if_every_pair_is_same"] - c["live_unique"])
     live_from = ("the live export" if c["live_status_from"] == "export" else
                  "the readiness ledger's linked live rows (no live export given)")
 
@@ -470,7 +471,8 @@ def report_md(result: ClusterResult) -> str:
         f"- {_n(c['founder_pairs'])} close-match pairs need your yes/no (founder_pairs.json). Even if every close "
         f"match were a duplicate, there would be at least {_n(c['unique_floor_if_every_pair_is_same'])} unique "
         "questions among the read occurrences.",
-        f"- Against 10,000: live {_n(c['distinct_live_rows'])} + not yet live among read {_n(c['unique_not_live'])} "
+        f"- Against 10,000: live questions {_n(live_q)} (live rows minus extra live copies) + not yet live among "
+        f"read {_n(c['unique_not_live'])} "
         f"= {_n(low)} ({short(low)} the goal). Adding the unread estimate gives about {_n(mid)} "
         f"(at most {_n(high)}, {short(high)} the goal). If every close match is a duplicate: about {_n(floor)} "
         "before the unread estimate.",

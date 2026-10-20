@@ -36,14 +36,14 @@ VISUAL_REASON = "essential_visual_material_unreviewed"
 GENERATED_BASIS = "two_independent_question_only_reviews_without_original_key"
 _STUDENT_KEYS = ("b_final_student_text", "b_student_final_text", "B_student_final_text", "B_student_json")
 _C_HASH_KEYS = ("c_corrected_text_sha256", "C_corrected_text_sha256")
-_CF_VISUAL = ("complete", "hold")
+_CF_VISUAL = ("complete", "hold")  # CF rendered (or is holding) an essential visual for this version
 # Rule 1 (ruling R18): capture labels that are not part of the question.
 # A leading question label ("Question 7", "15.", "3)", "12 SAT Math") at the very
 # start, and trailing bracketed response-box notes ("[blank response field]",
 # "[empty numeric response box.]"). A note mentioning underlining is never dropped.
 LEAD_LABEL = re.compile(r'(?i)^(?:question\s*\d{1,3}\s*[:.]?|\d{1,3}\s*[.)]|\d{1,3}\s+sat\s+math)(?:\s+|$)')
 RESPONSE_NOTE = re.compile(
-    r'(?i)^\[(?![^\]]*underlin)(?=[^\]]*\b(?:response|answer)\b)(?=[^\]]*\b(?:box|field)\b)[^\]]*\]\.?$')  # CF rendered (or is holding) an essential visual for this version
+    r'(?i)^\[(?![^\]]*underlin)(?=[^\]]*\b(?:response|answer)\b)(?=[^\]]*\b(?:box|field)\b)[^\]]*\]\.?$')
 
 
 def _lines(text: str) -> list[str]:

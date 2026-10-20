@@ -45,6 +45,14 @@ class NormalizeTextTests(unittest.TestCase):
         self.assertNotEqual(normalize_text("x^{2n}"), normalize_text("x^(3n)"))
         self.assertNotEqual(normalize_text("x^(2x-4)"), normalize_text("x^(2x-8)"))
         self.assertNotEqual(normalize_text("a ______(b)"), normalize_text("a ______b"))
+        # a word character after the group: never unwrapped
+        self.assertNotEqual(normalize_text("e^(2)t"), normalize_text("e^(2t)"))
+        self.assertNotEqual(normalize_text("x^{2}n"), normalize_text("x^{2n}"))
+        self.assertNotEqual(normalize_text("x^(a)b"), normalize_text("x^(ab)"))
+        self.assertNotEqual(normalize_text("x²n"), normalize_text("x^{2n}"))
+        self.assertEqual(normalize_text("x²n"), normalize_text("x^{2}n"))
+        self.assertEqual(normalize_text("e^{2}t"), normalize_text("e^(2)t"))
+        self.assertEqual(normalize_text("x^{2} + 1"), normalize_text("x^(2) + 1"))
 
     def test_multi_digit_superscript(self):
         self.assertEqual(normalize_text("x¹⁰"), normalize_text("x^{10}"))

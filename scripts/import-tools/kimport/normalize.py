@@ -118,14 +118,22 @@ def _replace_commands(s: str, pattern: re.Pattern, groups: int, build) -> str:
     return "".join(out)
 
 
+def _script(op: str, inner: str, s: str, end: int) -> str:
+    """One form for a script group: bare when simple and nothing word-like follows
+    (`x^2`), else parenthesized (`x^(2)n`, `x^(2x-4)`), so `x^{2}n` != `x^{2n}`."""
+    if _SIMPLE_GROUP.fullmatch(inner) and not (end < len(s) and (s[end].isalnum() or s[end] == "_")):
+        return op + inner
+    return op + _wrap(inner)
+
+
 def _unicode_math(s: str) -> str:
     for ch in _VULGAR:
         num, den = unicodedata.normalize("NFKD", ch).split("⁄")
         frac = f"({num})/({den})"
         s = re.sub(f"(?<=\\d){ch}", " " + frac, s)  # mixed number: 1½ -> 1 (1)/(2)
         s = s.replace(ch, frac)
-    s = _SUP_RUN.sub(lambda m: "^" + "".join(_SUPERSCRIPTS[c] for c in m.group()), s)
-    s = _SUB_RUN.sub(lambda m: "_" + "".join(_SUBSCRIPTS[c] for c in m.group()), s)
+    s = _SUP_RUN.sub(lambda m: _script("^", "".join(_SUPERSCRIPTS[c] for c in m.group()), m.string, m.end()), s)
+    s = _SUB_RUN.sub(lambda m: _script("_", "".join(_SUBSCRIPTS[c] for c in m.group()), m.string, m.end()), s)
     return s.replace("−", "-").replace("×", "*").replace("÷", "/")
 
 
@@ -155,7 +163,7 @@ def _unbrace_scripts(s: str) -> str:
             continue
         inner = got[0].strip()
         out.append(s[pos : m.start()])
-        out.append(m.group(1) + (inner if _SIMPLE_GROUP.fullmatch(inner) else _wrap(inner)))
+        out.append(_script(m.group(1), inner, s, got[1]))
         pos = got[1]
     out.append(s[pos:])
     s, out, pos = "".join(out), [], 0
@@ -166,7 +174,7 @@ def _unbrace_scripts(s: str) -> str:
         if close is None:
             continue
         inner = s[m.end() : close].strip()
-        if not _SIMPLE_GROUP.fullmatch(inner):
+        if not _SIMPLE_GROUP.fullmatch(inner) or (close + 1 < len(s) and (s[close + 1].isalnum() or s[close + 1] == "_")):
             continue
         out.append(s[pos : m.start()])
         out.append(m.group(1) + inner)
