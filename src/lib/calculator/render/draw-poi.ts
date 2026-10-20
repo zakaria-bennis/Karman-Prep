@@ -1,9 +1,10 @@
-// Point-of-interest dots (POI-1, POI-13): small grey discs for the selected row's points and a
+// Point-of-interest dots (POI-1, POI-13): small translucent grey discs for the selected row's points and a
 // larger disc in the text colour for each point whose label is open. Drawn on the points layer
 // after the row points, which drawPointLayer has already cleared and scaled.
 
 import { worldToPx, type ViewSpec } from "../plot/viewport";
 import {
+  POI_DOT_ALPHA,
   POI_DOT_TEXT_SHARE,
   POI_OPEN_RADIUS_PX,
   POI_RADIUS_PX,
@@ -43,12 +44,14 @@ export function drawPoiDots(
       if (!started) {
         started = true;
         ctx.fillStyle = open ? theme.text : poiDotColor(theme);
+        ctx.globalAlpha = open ? 1 : POI_DOT_ALPHA;
         ctx.beginPath();
       }
       ctx.moveTo(x + radius, y);
       ctx.arc(x, y, radius, 0, 2 * Math.PI);
     }
     if (started) ctx.fill();
+    ctx.globalAlpha = 1;
   }
 }
 

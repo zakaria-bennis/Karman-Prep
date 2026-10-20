@@ -26,7 +26,12 @@ it("POI-1 grey dots draw for the selected row's points inside the view and open 
     [440, 300, POI_OPEN_RADIUS_PX],
   ]);
   expect(arcs[0].state.fillStyle).toBe(poiDotColor(THEME));
-  expect(poiDotColor(THEME)).toBe("#b3b3b3"); // GP-34
-  const fills = calls.filter((c) => c.name === "fill").map((c) => c.state.fillStyle);
-  expect(fills).toEqual(["#b3b3b3", "#000000"]);
+  expect(poiDotColor(THEME)).toBe("#aaaaaa"); // GP-34: #aaaaaa at 90%, #b3b3b3 on white
+  const fills = calls
+    .filter((c) => c.name === "fill")
+    .map((c) => [c.state.fillStyle, c.state.globalAlpha]);
+  expect(fills).toEqual([
+    ["#aaaaaa", 0.9],
+    ["#000000", 1],
+  ]);
 });

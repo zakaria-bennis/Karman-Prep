@@ -3,7 +3,12 @@
 // drawing state copied at that moment, so tests read what was stroked, filled and where. Never
 // imported by production code.
 
-export type RecordedState = { fillStyle: unknown; strokeStyle: unknown; lineWidth: number };
+export type RecordedState = {
+  fillStyle: unknown;
+  strokeStyle: unknown;
+  lineWidth: number;
+  globalAlpha: number;
+};
 export type DashState = { lineDash: number[]; lineDashOffset: number };
 export type RecordedCall = { name: string; args: unknown[]; state: RecordedState & DashState };
 
@@ -42,6 +47,7 @@ export function createRecordingContext(): {
     fillStyle: "#000000",
     strokeStyle: "#000000",
     lineWidth: 1,
+    globalAlpha: 1,
     lineDashOffset: 0,
     lineJoin: "miter",
     lineCap: "butt",
@@ -57,6 +63,7 @@ export function createRecordingContext(): {
         fillStyle: target.fillStyle,
         strokeStyle: target.strokeStyle,
         lineWidth: target.lineWidth as number,
+        globalAlpha: target.globalAlpha as number,
         lineDash: [...lineDash],
         lineDashOffset: target.lineDashOffset as number,
       },

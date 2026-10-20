@@ -25,8 +25,12 @@ export const CROSS_STROKE_PX = 2.8;
 export const POI_RADIUS_PX = 4;
 export const POI_OPEN_RADIUS_PX = 5;
 export const TRACE_RADIUS_PX = 4;
-/** GP-34: the grey of a closed dot, this share of the text colour over the paper (#b3b3b3). */
-export const POI_DOT_TEXT_SHARE = 0.3;
+/**
+ * GP-34, POI-TRACE-3: a closed dot is a third of the text colour over the paper (#aaaaaa on white)
+ * at 90% opacity, so the curve under it tints it (#b3b3b3 on bare paper), as on Desmos.
+ */
+export const POI_DOT_TEXT_SHARE = 1 / 3;
+export const POI_DOT_ALPHA = 0.9;
 
 /** GP-10: axis numbers in 14 px Arial over a 3 px wide paper halo (1.5 px outside the glyph). */
 export const AXIS_FONT_PX = 14;

@@ -14,7 +14,7 @@ let trace: KeyboardTrace;
 
 const P: PoiPoint[] = [
   { x: -Math.SQRT2, y: 0, kinds: ["zero"], withRowId: null },
-  { x: 0, y: -2, kinds: ["y-intercept", "minimum"], withRowId: null },
+  { x: 0, y: -2, kinds: ["intercept", "extremum"], withRowId: null },
   { x: Math.SQRT2, y: 0, kinds: ["zero"], withRowId: null },
 ];
 const key = (k: string, mods: Partial<KeyboardEvent> = {}) => ({
@@ -65,17 +65,27 @@ it("POI-20 Page Down and Page Up step through points in x order and past the las
   trace.toggle("a");
   deliver("a", P);
   expect(trace.handleKey(key("PageDown"))).toBe(true);
-  expect(said.at(-1)).toBe("Y-intercept and Minimum at x 0, y negative 2");
+  expect(said.at(-1)).toBe("Intercept and Extremum at x 0, y negative 2");
   trace.handleKey(key("PageDown"));
   expect(said.at(-1)).toBe("Zero at x 1.41421, y 0");
   trace.handleKey(key("PageDown"));
   expect(said.at(-1)).toBe("No more points of interest. Zero at x 1.41421, y 0");
   trace.handleKey(key("PageUp"));
-  expect(said.at(-1)).toBe("Y-intercept and Minimum at x 0, y negative 2");
+  expect(said.at(-1)).toBe("Intercept and Extremum at x 0, y negative 2");
   expect(trace.handleKey(key("a"))).toBe(false); // other keys pass through
+  trace.handleKey(key("K"));
+  expect(said.at(-1)).toBe("Zero at x negative 1.41421, y 0");
+  trace.handleKey(key("Tab"));
+  expect(said.at(-1)).toBe("Intercept and Extremum at x 0, y negative 2");
+  trace.handleKey(key("t"));
+  expect(said.at(-1)).toBe("Intercept and Extremum");
+  trace.handleKey(key("p"));
+  expect(said.at(-1)).toBe("Points of interest, 3.");
+  trace.handleKey(key("y"));
+  expect(said.at(-1)).toBe("y negative 2");
 });
 
-it("POI-20 Home and End jump to the curve's ends in view, Ctrl or Cmd with Up and Down switch expression, Escape exits to the row", () => {
+it("POI-TRACE-28 Home and End jump to the curve's ends in view, Alt or Cmd with Up and Down switch expression, Escape exits to the row", () => {
   trace.toggle("a");
   deliver("a", P);
   trace.handleKey(key("End"));
@@ -84,7 +94,11 @@ it("POI-20 Home and End jump to the curve's ends in view, Ctrl or Cmd with Up an
   expect(said.at(-1)).toBe("x negative 10, y 98");
   trace.handleKey(key("ArrowRight"));
   expect(said.at(-1)).toBe("x negative 9.8, y 94.04");
-  trace.handleKey(key("ArrowDown", { ctrlKey: true }));
+  trace.handleKey(key("l"));
+  expect(said.at(-1)).toBe("x negative 9.6, y 90.16");
+  trace.handleKey(key("t"));
+  expect(said.at(-1)).toBe("Not a P O I");
+  trace.handleKey(key("ArrowDown", { altKey: true }));
   expect(trace.state?.rowId).toBe("b");
   deliver("b", [{ x: -0.5, y: 0, kinds: ["zero"], withRowId: null }]);
   expect(said.at(-1)).toBe("Expression 2. Zero at x negative 0.5, y 0");
@@ -95,16 +109,14 @@ it("POI-20 Home and End jump to the curve's ends in view, Ctrl or Cmd with Up an
   expect(focused).toEqual(["a"]);
 });
 
-it("A11Y-9 announcements use the kind words, Y-intercept and Minimum, Intersection with Expression 2", () => {
+it("A11Y-9 announcements use the kind words, Intercept and Extremum, Intersection with Expression 2", () => {
   const numbers = new Map([
     ["a", 1],
     ["b", 2],
   ]);
-  expect(kindWords(["y-intercept", "minimum"], null, numbers)).toBe("Y-intercept and Minimum");
+  expect(kindWords(["intercept", "extremum"], null, numbers)).toBe("Intercept and Extremum");
   expect(kindWords(["intersection"], "b", numbers)).toBe("Intersection with Expression 2");
-  expect(kindWords(["zero", "x-intercept", "maximum", "top", "bottom"], null, numbers)).toBe(
-    "Zero and X-intercept and Maximum and Top and Bottom"
-  );
+  expect(kindWords(["zero", "intercept"], null, numbers)).toBe("Zero and Intercept");
   expect(
     poiAnnouncement({ x: 2, y: 5, kinds: ["intersection"], withRowId: "b" }, numbers, TEST_VIEW)
   ).toBe("Intersection with Expression 2 at x 2, y 5");

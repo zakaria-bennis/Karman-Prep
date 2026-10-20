@@ -55,7 +55,7 @@ it("AR-45 isWorkerMessage accepts every versioned WorkerToMain shape and rejects
       type: "poi",
       generation: 2,
       rowId: "1",
-      points: [{ x: 0, y: 1, kinds: ["y-intercept"], withRowId: null }],
+      points: [{ x: 0, y: 1, kinds: ["intercept"], withRowId: null }],
     },
     { v: 1, type: "overrun", generation: 2, rowId: "1" },
     { v: 1, type: "heartbeat", generation: 2 },

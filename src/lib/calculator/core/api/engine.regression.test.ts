@@ -48,7 +48,7 @@ it("POI-3 a regression curve gets the y=f(x) points of interest", async () => {
     m.flushFrames();
   }
   const points = m.engine.getSnapshot().poi?.points ?? [];
-  expect(points.map((p) => p.kinds)).toEqual([["zero"], ["y-intercept"]]);
+  expect(points.map((p) => p.kinds)).toEqual([["zero"], ["intercept"]]);
   expect(points[0].x).toBeCloseTo(-0.5, 9);
   expect(points[1].y).toBeCloseTo(1, 9);
 });

@@ -51,6 +51,8 @@ it("API-7 updateSettings accepts only the listed keys and the Phase 1 values", (
     "expressionsCollapsed",
     "mode",
     "reducedMotion",
+    "trace",
+    "pointsOfInterest",
   ]);
   expect(Object.keys(DEFAULT_SETTINGS).sort()).toEqual([...v.SETTINGS_KEYS].sort());
   expect(
@@ -73,6 +75,17 @@ it("API-7 updateSettings accepts only the listed keys and the Phase 1 values", (
     null,
   ])
     expect(code(() => v.validateSettingsUpdate(bad))).toBe("invalid-argument");
+});
+it("POI-TRACE-2 trace and pointsOfInterest are booleans a saved settings object may omit", () => {
+  expect(v.validateSettingsUpdate({ trace: false, pointsOfInterest: false })).toEqual({
+    trace: false,
+    pointsOfInterest: false,
+  });
+  expect(code(() => v.validateSettingsUpdate({ trace: "no" }))).toBe("invalid-argument");
+  const { trace: _t, pointsOfInterest: _p, ...saved } = DEFAULT_SETTINGS;
+  void _t;
+  void _p;
+  expect(v.validateSettings({ ...saved })).toMatchObject({ trace: true, pointsOfInterest: true });
 });
 it("API-7 bounds need finite left < right and bottom < top", () => {
   expect(v.validateBounds({ left: -1, right: 1, bottom: -2, top: 2 })).toEqual({

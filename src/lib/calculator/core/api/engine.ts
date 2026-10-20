@@ -5,8 +5,8 @@
 
 import { clampViewport, defaultViewport, type Viewport, type ViewSpec } from "../../plot/viewport";
 import { buildCompileScope } from "../../plot/from-analysis";
-import { poiCurvesFor } from "../../poi/index";
-import type { PoiCurve } from "../../poi/types";
+import { poiBranchesFor } from "../../poi/index";
+import type { PoiBranch } from "../../poi/types";
 import type { ComputeBackend } from "../../worker/backend";
 import { analyzeRows, type AnalysisResult } from "../analysis";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
@@ -482,16 +482,14 @@ export class CalculatorEngine {
     if (id !== null) this.setSelectedRow(id);
   }
 
-  /**
-   * POI-14: row `id`'s curves compiled on the main thread from the latest analysis and the latest
-   * accepted values, for tracing; none for a row that is not graphable.
-   */
-  poiCurves(id: string): PoiCurve[] {
+  /** POI-TRACE-23: row `id`'s explicit branches in `view` (default: the current view), to trace. */
+  poiCurves(id: string, view?: ViewSpec): PoiBranch[] {
     const row = this.analysis.byId.get(id);
     if (row === undefined || !row.isGraphable) return [];
     const values = latestValues(this.doc.rows, (id) => this.inbox.result(id));
     const scope = buildCompileScope(this.analysis, values, toWireSettings(this.currentSettings));
-    return poiCurvesFor(row, scope);
+    const size = this.graph?.size ?? INITIAL_GRAPH_SIZE;
+    return poiBranchesFor(row, scope, view ?? { viewport: this.viewport, size, dpr: 1 });
   }
 
   /** POI-1, POI-17: the selected row (null for none); posts `select` when it changes. */

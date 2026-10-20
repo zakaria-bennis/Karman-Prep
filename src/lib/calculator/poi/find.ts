@@ -1,20 +1,21 @@
-// Points of interest of one curve (POI-2, POI-4, POI-7, POI-9, POI-10): intercepts and extrema by
-// curve kind, intersections with the other visible curves, coincident points merged, a kind with
-// more than POI_CAP points dropped, and only points inside the view returned. Pure TypeScript.
+// Points of interest of the selected row's branches (POI-TRACE-5 to POI-TRACE-11): zeros, the
+// intercept and extrema of each branch over the view's range of its independent coordinate (no
+// widening), all of them dropped when one branch has more than OWN_CAP; intersections with every
+// other visible row's branches, all dropped when there are more than INTERSECTION_CAP; coincident
+// points merged into one dot; only points inside the view returned. Pure TypeScript.
 
 import type { Deadline } from "../core/deadline";
-import type { Viewport, ViewSpec } from "../plot/viewport";
-import { implicitCrossings, implicitPolylines, implicitTopsAndBottoms, type Fn2 } from "./implicit";
-import { findExtrema, findRoots, type Search1D } from "./roots";
-import { POI_KINDS, type PoiCurve, type PoiKind, type PoiPoint } from "./types";
+import type { ViewSpec } from "../plot/viewport";
+import { findExtrema, findRoots, scanRange, type Search1D } from "./roots";
+import { POI_KINDS, type PoiBranch, type PoiKind, type PoiPoint } from "./types";
 
-export const POI_CAP = 100; // POI-10, per kind
-const SEARCH_MARGIN = 0.1; // POI-9: 10% of the view on each side
+/** POI-TRACE-9: a branch with more zeros, extrema and intercepts than this shows none of them. */
+export const OWN_CAP = 250;
+/** POI-TRACE-11: more intersections than this for the selected row and none are shown. */
+export const INTERSECTION_CAP = 100;
 const SAMPLES_PER_PX = 2;
-const MERGE = 1e-9; // POI-7
-/** Extrema are accurate to 1e-7 (POI-11), so a point merging with one uses that tolerance. */
-const MERGE_EXTREMUM = 1e-7;
-const EXTREMUM_KINDS: ReadonlySet<PoiKind> = new Set(["maximum", "minimum", "top", "bottom"]);
+/** Extrema are accurate to about 1e-7, so points merge within that relative distance. */
+const MERGE = 1e-7;
 
 const isNum = Number.isFinite;
 
@@ -24,145 +25,117 @@ interface Raw {
   kind: PoiKind;
   withRowId: string | null;
 }
-
-/** POI-9: the view widened by 10% on each side. */
-export function searchRange(view: ViewSpec): Viewport {
-  const { left, right, bottom, top } = view.viewport,
-    mx = (right - left) * SEARCH_MARGIN,
-    my = (top - bottom) * SEARCH_MARGIN;
-  return { left: left - mx, right: right + mx, bottom: bottom - my, top: top + my };
-}
-
-/** The curve as H(x, y) = 0, the form another curve's intersections solve against. */
-function implicitForm(c: PoiCurve): Fn2 {
-  switch (c.kind) {
-    case "explicit":
-      return c.independent === "x" ? (x, y) => y - c.f(x) : (x, y) => x - c.f(y);
-    case "implicit":
-      return c.F;
-    case "lines":
-      return c.orientation === "vertical" ? (x) => c.f(x) : (_x, y) => c.f(y);
-  }
+export interface OtherBranch {
+  rowId: string;
+  branch: PoiBranch;
 }
 
 /**
- * The points of interest of `curve` against `others` (every other visible curve) in `view`,
- * sorted by x then y. `deadline` is checked between stages.
+ * The view's range of `axis`, sampled SAMPLES_PER_PX times a px; a pair whose value changes by
+ * more than one px of the other axis however far it is halved is a jump.
+ */
+export function searchAlong(view: ViewSpec, axis: "x" | "y"): Search1D {
+  const { viewport: v, size } = view;
+  return axis === "x"
+    ? {
+        lo: v.left,
+        hi: v.right,
+        samples: Math.ceil(size.width * SAMPLES_PER_PX),
+        tol: (v.top - v.bottom) / size.height,
+      }
+    : {
+        lo: v.bottom,
+        hi: v.top,
+        samples: Math.ceil(size.height * SAMPLES_PER_PX),
+        tol: (v.right - v.left) / size.width,
+      };
+}
+
+/** (t, f(t)) as a world point of `b`. */
+const pointOf = (b: PoiBranch, t: number, v: number): [number, number] =>
+  b.independent === "x" ? [t, v] : [v, t];
+
+/**
+ * POI-TRACE-7: a straight line's zero is −b/m when it lies in the searched range (none when the
+ * line is flat, even along 0), with no extrema.
+ */
+function linearZeros(b: PoiBranch, s: Search1D): number[] {
+  const c = b.f(0),
+    m = b.f(1) - c;
+  if (!isNum(c) || !isNum(m) || m === 0) return [];
+  const t = -c / m;
+  return t >= s.lo && t <= s.hi ? [t] : [];
+}
+
+/** POI-TRACE-6 to POI-TRACE-9: one branch's zeros, intercept and extrema, or none over the cap. */
+function ownPoints(b: PoiBranch, view: ViewSpec): Raw[] {
+  const s = searchAlong(view, b.independent),
+    out: Raw[] = [];
+  const add = (t: number, v: number, kind: PoiKind) => {
+    if (isNum(t) && isNum(v)) out.push({ ...xy(pointOf(b, t, v)), kind, withRowId: null });
+  };
+  const sc = b.linear ? null : scanRange(b.f, s);
+  // A zero keeps f's value there, as Desmos does: a deep zoom on x²−2 reads (1.414214, −4.44089×10⁻¹⁶).
+  for (const t of sc === null ? linearZeros(b, s) : findRoots(b.f, s, false, sc))
+    add(t, b.f(t), "zero");
+  if (0 >= s.lo && 0 <= s.hi) add(0, b.f(0), "intercept");
+  if (sc !== null) for (const e of findExtrema(b.f, s, sc)) add(e.t, b.f(e.t), "extremum");
+  return out.length > OWN_CAP ? [] : out;
+}
+
+const xy = ([x, y]: [number, number]) => ({ x, y });
+
+/**
+ * POI-TRACE-10: where `b` meets `o`. Branches along the same coordinate solve f − g = 0 (touching
+ * meetings included); a y=f(x) against an x=g(y) solves x − g(f(x)) = 0, and the mirror.
+ */
+function meetings(b: PoiBranch, o: PoiBranch, view: ViewSpec): [number, number][] {
+  const s = searchAlong(view, b.independent);
+  const d =
+    b.independent === o.independent
+      ? (t: number) => b.f(t) - o.f(t)
+      : (t: number) => t - o.f(b.f(t));
+  return findRoots(d, s, true).flatMap((t) => {
+    const v = b.f(t);
+    return isNum(v) ? [pointOf(b, t, v)] : [];
+  });
+}
+
+/**
+ * The points of interest of the selected row's `branches` against `others` (every other visible
+ * row's branches) in `view`, sorted by x then y. `deadline` is checked between branches.
  */
 export function findPois(
-  curve: PoiCurve,
-  others: readonly { rowId: string; curve: PoiCurve }[],
+  branches: readonly PoiBranch[],
+  others: readonly OtherBranch[],
   view: ViewSpec,
   deadline: Deadline
 ): PoiPoint[] {
-  const box = searchRange(view),
-    unit = {
-      x: (view.viewport.right - view.viewport.left) / view.size.width,
-      y: (view.viewport.top - view.viewport.bottom) / view.size.height,
-    };
-  const xs: Search1D = {
-      lo: box.left,
-      hi: box.right,
-      samples: Math.ceil(view.size.width * (1 + 2 * SEARCH_MARGIN) * SAMPLES_PER_PX),
-    },
-    ys: Search1D = {
-      lo: box.bottom,
-      hi: box.top,
-      samples: Math.ceil(view.size.height * (1 + 2 * SEARCH_MARGIN) * SAMPLES_PER_PX),
-    };
   const raw: Raw[] = [];
-  const add = (x: number, y: number, kind: PoiKind, withRowId: string | null = null) => {
-    if (isNum(x) && isNum(y)) raw.push({ x, y, kind, withRowId });
-  };
-  deadline.check();
-  switch (curve.kind) {
-    case "explicit": {
-      const { f } = curve,
-        alongX = curve.independent === "x",
-        s = alongX ? xs : ys;
-      const pt = (t: number, v: number): [number, number] => (alongX ? [t, v] : [v, t]);
-      for (const t of findRoots(f, s)) add(...pt(t, 0), "zero");
-      const at0 = f(0);
-      if (0 >= s.lo && 0 <= s.hi) add(...pt(0, at0), alongX ? "y-intercept" : "x-intercept");
-      for (const e of findExtrema(f, s)) add(...pt(e.t, f(e.t)), e.kind);
-      for (const o of others) {
-        const H = implicitForm(o.curve);
-        for (const t of findRoots((u) => (alongX ? H(u, f(u)) : H(f(u), u)), s)) {
-          add(...pt(t, f(t)), "intersection", o.rowId);
-        }
-      }
-      break;
-    }
-    case "lines": {
-      const vertical = curve.orientation === "vertical";
-      for (const c of findRoots(curve.f, vertical ? xs : ys)) {
-        if (vertical) add(c, 0, "x-intercept");
-        else add(0, c, "y-intercept");
-        for (const o of others) {
-          const H = implicitForm(o.curve);
-          for (const t of findRoots((u) => (vertical ? H(c, u) : H(u, c)), vertical ? ys : xs)) {
-            if (vertical) add(c, t, "intersection", o.rowId);
-            else add(t, c, "intersection", o.rowId);
-          }
-        }
-      }
-      break;
-    }
-    case "implicit": {
-      const { F } = curve;
-      if (0 >= box.bottom && 0 <= box.top)
-        for (const x of findRoots((u) => F(u, 0), xs)) add(x, 0, "x-intercept");
-      if (0 >= box.left && 0 <= box.right)
-        for (const y of findRoots((u) => F(0, u), ys)) add(0, y, "y-intercept");
+  for (const b of branches) {
+    deadline.check();
+    raw.push(...ownPoints(b, view));
+  }
+  const crossings: Raw[] = [];
+  search: for (const b of branches) {
+    for (const o of others) {
       deadline.check();
-      const runs = implicitPolylines(F, box, view, deadline);
-      for (const p of implicitTopsAndBottoms(F, runs, unit)) add(p.x, p.y, p.kind);
-      deadline.check();
-      for (const o of others) {
-        const oc = o.curve;
-        if (oc.kind === "explicit") {
-          const { f } = oc,
-            alongX = oc.independent === "x";
-          for (const t of findRoots((u) => (alongX ? F(u, f(u)) : F(f(u), u)), alongX ? xs : ys)) {
-            if (alongX) add(t, f(t), "intersection", o.rowId);
-            else add(f(t), t, "intersection", o.rowId);
-          }
-        } else if (oc.kind === "lines") {
-          const vertical = oc.orientation === "vertical";
-          for (const c of findRoots(oc.f, vertical ? xs : ys)) {
-            for (const t of findRoots((u) => (vertical ? F(c, u) : F(u, c)), vertical ? ys : xs)) {
-              if (vertical) add(c, t, "intersection", o.rowId);
-              else add(t, c, "intersection", o.rowId);
-            }
-          }
-        } else {
-          for (const [x, y] of implicitCrossings(F, oc.F, runs, unit))
-            add(x, y, "intersection", o.rowId);
-        }
-      }
-      break;
+      for (const [x, y] of meetings(b, o.branch, view))
+        crossings.push({ x, y, kind: "intersection", withRowId: o.rowId });
+      if (crossings.length > INTERSECTION_CAP) break search;
     }
   }
+  if (crossings.length <= INTERSECTION_CAP) raw.push(...crossings);
   return finish(raw, view);
 }
 
-/** POI-10 cap per kind in the search region, POI-7 merge, then the points inside the view. */
-function finish(raw: Raw[], view: ViewSpec): PoiPoint[] {
-  const counts = new Map<PoiKind, number>();
-  for (const r of raw) counts.set(r.kind, (counts.get(r.kind) ?? 0) + 1);
+const close = (a: number, b: number) => Math.abs(a - b) <= MERGE * Math.max(1, Math.abs(a));
+
+/** POI-TRACE-4: coincident records merged into one dot; then the points inside the view. */
+function finish(raw: readonly Raw[], view: ViewSpec): PoiPoint[] {
   const merged: PoiPoint[] = [];
   for (const r of raw) {
-    if ((counts.get(r.kind) ?? 0) > POI_CAP) continue;
-    const same = merged.find((p) => {
-      const tol =
-        EXTREMUM_KINDS.has(r.kind) || p.kinds.some((k) => EXTREMUM_KINDS.has(k))
-          ? MERGE_EXTREMUM
-          : MERGE;
-      return (
-        Math.abs(p.x - r.x) <= tol * Math.max(1, Math.abs(r.x)) &&
-        Math.abs(p.y - r.y) <= tol * Math.max(1, Math.abs(r.y))
-      );
-    });
+    const same = merged.find((p) => close(p.x, r.x) && close(p.y, r.y));
     if (same === undefined) {
       merged.push({ x: r.x, y: r.y, kinds: [r.kind], withRowId: r.withRowId });
       continue;
@@ -175,7 +148,7 @@ function finish(raw: Raw[], view: ViewSpec): PoiPoint[] {
     .filter((p) => p.x >= left && p.x <= right && p.y >= bottom && p.y <= top)
     .map((p) => ({
       ...p,
-      x: p.x === 0 ? 0 : p.x, // -0
+      x: p.x === 0 ? 0 : p.x, // −0
       y: p.y === 0 ? 0 : p.y,
       kinds: [...p.kinds].sort((a, b) => POI_KINDS.indexOf(a) - POI_KINDS.indexOf(b)),
     }))

@@ -1,61 +1,76 @@
-// The press-and-drag trace (POI-14): a press within a curve's hit area claims the gesture, the
-// dot and its live label follow the pointer along that curve once it moves, the traced row becomes
-// the selected row, and release removes everything.
+// The press-and-drag trace (POI-TRACE-21 to POI-TRACE-27): a press within reach of a traceable
+// row's branch selects that row and traces it at once; the dot and its live label follow the
+// pointer along the row's nearest branch; release removes both and opens nothing.
 
 import { useCallback, useRef, useState } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import { worldToPx, type ViewSpec } from "@/lib/calculator/plot/viewport";
+import type { PoiBranch } from "@/lib/calculator/poi/types";
 import type { RenderRow } from "@/lib/calculator/render/types";
 import type { Pointer } from "../controller/media";
-import { hitCurve } from "./hit-test";
-import { traceAt, type TraceSource } from "./trace";
-import { selectedPoints, type OpenLabel } from "./use-poi-labels";
+import { hitBranch } from "./hit-test";
+import { traceAt } from "./trace";
+import type { OpenLabel } from "./use-poi-labels";
 
 export interface TraceState extends OpenLabel {
-  wx: number; // the traced world point
-  wy: number;
   color: string;
+  hole: boolean; // POI-TRACE-24: the label reads undefined
 }
-type Target = { rowId: string; source: TraceSource; color: string; pointer: Pointer };
+type Target = { rowId: string; branches: readonly PoiBranch[]; color: string };
 
 export function useTrace(engine: CalculatorEngine) {
   const [trace, setTrace] = useState<TraceState | null>(null);
   const target = useRef<Target | null>(null);
 
+  const move = useCallback((at: readonly [number, number], view: ViewSpec) => {
+    const t = target.current;
+    if (t === null) return;
+    const p = traceAt(t.branches, view, at);
+    if (p === null) return; // POI-TRACE-26: keep the last point
+    const [x, y] = worldToPx(view, p.x, p.y);
+    setTrace({
+      x,
+      y,
+      point: { x: p.x, y: p.y },
+      label: p.label,
+      opened: false,
+      hole: p.hole,
+      color: t.color,
+    });
+  }, []);
+
+  /**
+   * POI-TRACE-21: claims a press on a traceable row, selects it and traces at `at`. With the trace
+   * setting off (POI-TRACE-2) the press only selects the row ("selected"). Null: no row is hit.
+   */
   const claim = useCallback(
     (
       at: readonly [number, number],
       pointer: Pointer,
       view: ViewSpec,
       rows: readonly RenderRow[]
-    ) => {
-      const rowId = hitCurve(rows, view, at, pointer);
-      if (rowId === null) return false;
+    ): "trace" | "selected" | null => {
+      const traceable = rows.map((r) => ({
+        rowId: r.rowId,
+        branches: engine.poiCurves(r.rowId, view),
+      }));
+      const rowId = hitBranch(traceable, view, at, pointer);
+      if (rowId === null) return null;
+      if (!engine.settings.trace) {
+        engine.setSelectedRow(rowId);
+        return "selected";
+      }
       const row = rows.find((r) => r.rowId === rowId)!;
       target.current = {
         rowId,
-        pointer,
         color: row.color,
-        source: { curve: engine.poiCurves(rowId)[0] ?? null, geometry: row.geometry },
+        branches: traceable.find((r) => r.rowId === rowId)!.branches,
       };
-      return true;
+      engine.setSelectedRow(rowId);
+      move(at, view);
+      return "trace";
     },
-    [engine]
-  );
-
-  const move = useCallback(
-    (at: readonly [number, number], view: ViewSpec) => {
-      const t = target.current;
-      if (t === null) return;
-      if (engine.getSnapshot().selectedRowId !== t.rowId) engine.setSelectedRow(t.rowId);
-      const s = engine.getSnapshot();
-      const pois = s.selectedRowId === t.rowId ? selectedPoints(s) : [];
-      const p = traceAt(t.source, view, at, pois, t.pointer);
-      if (p === null) return; // keep the last point where the curve has no value
-      const [x, y] = worldToPx(view, p.x, p.y);
-      setTrace({ x, y, wx: p.x, wy: p.y, text: p.label, color: t.color });
-    },
-    [engine]
+    [engine, move]
   );
 
   const release = useCallback(() => {

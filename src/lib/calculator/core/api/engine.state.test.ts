@@ -122,6 +122,8 @@ it("API-6 setBlank restores one empty row 1, the S-9 settings, the default viewp
     expressionsCollapsed: false,
     mode: "graphing",
     reducedMotion: false,
+    trace: true,
+    pointsOfInterest: true,
   });
   expect(e.getState().viewport).toEqual({ left: -10, right: 10, bottom: -5, top: 5 });
   expect(e.canUndo()).toBe(false);

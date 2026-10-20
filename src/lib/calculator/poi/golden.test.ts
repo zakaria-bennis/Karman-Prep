@@ -1,4 +1,4 @@
-// POI-16's golden cases through the real pipeline: analyzeRows, evaluateRows, buildCompileScope,
+// POI-TRACE-5's golden cases through the real pipeline: analyzeRows, evaluateRows, buildCompileScope,
 // then findRowPois for the selected row, exactly as the executor runs them, in the default view.
 
 import { describe, expect, it } from "vitest";
@@ -11,8 +11,8 @@ import { findRowPois } from "./index";
 import type { PoiPoint } from "./types";
 
 const VIEW: ViewSpec = {
-  viewport: { left: -10, right: 10, bottom: -7.5, top: 7.5 },
-  size: { width: 800, height: 600 },
+  viewport: { left: -10, right: 10, bottom: -8.896, top: 8.896 },
+  size: { width: 960, height: 854 },
   dpr: 1,
 };
 const SETTINGS: EvalSettings = { angleMode: "radians", complex: false };
@@ -34,22 +34,22 @@ const has = (p: PoiPoint[], x: number, y: number, kinds?: string[], tol = 1e-9) 
   if (kinds) expect(hit!.kinds).toEqual(kinds);
 };
 
-describe("POI golden cases", () => {
-  it("POI-16 the golden cases pass at the default view", () => {
+describe("POI-TRACE-5 golden cases at the default view", () => {
+  it("explicit curves", () => {
     const parabola = pois("y=x^{2}-2");
     has(parabola, -Math.SQRT2, 0, ["zero"]);
     has(parabola, Math.SQRT2, 0, ["zero"]);
-    has(parabola, 0, -2, ["y-intercept", "minimum"]);
+    has(parabola, 0, -2, ["intercept", "extremum"]);
     expect(parabola).toHaveLength(3);
 
     const square = pois("y=\\left(x-2\\right)^{2}");
-    has(square, 2, 0, ["zero", "minimum"], 1e-7);
-    has(square, 0, 4, ["y-intercept"]);
+    has(square, 2, 0, ["extremum"], 1e-7);
+    has(square, 0, 4, ["intercept"]);
     expect(square).toHaveLength(2);
 
     const abs = pois("y=\\left|x-1\\right|");
-    has(abs, 1, 0, ["zero", "minimum"], 1e-7);
-    has(abs, 0, 1, ["y-intercept"]);
+    has(abs, 1, 0, ["extremum"], 1e-7);
+    has(abs, 0, 1, ["intercept"]);
     expect(abs).toHaveLength(2);
 
     const tan = pois("y=\\tan x");
@@ -58,27 +58,66 @@ describe("POI golden cases", () => {
 
     const hole = pois("y=\\frac{x^{2}-1}{x-1}");
     has(hole, -1, 0, ["zero"]);
-    has(hole, 0, 1, ["y-intercept"]);
+    has(hole, 0, 1, ["intercept"]);
     expect(hole).toHaveLength(2);
-
-    has(pois("y=2x+1", "y=-x+7"), 2, 5, ["intersection"]);
-    const circleLine = pois("x^{2}+y^{2}=25", "y=x+1");
-    has(circleLine, 3, 4, ["intersection"], 1e-7);
-    has(circleLine, -4, -3, ["intersection"], 1e-7);
-    const tangent = pois("x^{2}+y^{2}=25", "y=5");
-    expect(tangent.filter((q) => q.kinds.includes("intersection"))).toHaveLength(1);
-    has(tangent, 0, 5, undefined, 1e-6);
 
     const sin = pois("y=\\sin x");
     const zeros = sin.filter((q) => q.kinds.includes("zero")).map((q) => q.x / Math.PI);
     expect(zeros.map(Math.round)).toEqual([-3, -2, -1, 0, 1, 2, 3]);
+    expect(sin.filter((q) => q.kinds.includes("extremum"))).toHaveLength(6);
+
+    const cubic = pois("f(x)=x^{3}-3x");
+    has(cubic, -1, 2, ["extremum"], 1e-7);
+    has(cubic, 1, -2, ["extremum"], 1e-7);
+    has(cubic, 0, 0, ["zero", "intercept"]);
 
     const tiny = pois("y=10^{-8}\\left(x-3\\right)");
-    expect(tiny.filter((q) => q.kinds.includes("zero"))).toHaveLength(1);
     has(tiny, 3, 0, ["zero"]);
+    has(tiny, 0, -3e-8, ["intercept"]);
+    expect(tiny).toHaveLength(2);
   });
 
-  it("POI-1 hidden rows contribute no intersections and an error row has no points", () => {
+  it("x=g(y), lines and their intersections", () => {
+    const sideways = pois("x=y^{2}-1");
+    has(sideways, 0, 1, ["zero"]);
+    has(sideways, 0, -1, ["zero"]);
+    has(sideways, -1, 0, ["intercept", "extremum"], 1e-7);
+    const vertical = pois("x=2", "y=x^{2}");
+    has(vertical, 2, 0, ["intercept"]);
+    has(vertical, 2, 4, ["intersection"]);
+    expect(pois("y=3").map((q) => [q.x, q.y, q.kinds])).toEqual([[0, 3, ["intercept"]]]);
+    has(pois("y=2x+1", "y=-x+7"), 2, 5, ["intersection"]);
+    has(pois("y=x^{2}", "y=0"), 0, 0, ["intercept", "extremum", "intersection"], 1e-7);
+  });
+
+  it("conics split into y= branches: intercepts, extrema and intersections", () => {
+    const circle = pois("x^{2}+y^{2}=25", "y=x+1");
+    has(circle, 5, 0, ["zero"], 1e-6);
+    has(circle, -5, 0, ["zero"], 1e-6);
+    has(circle, 0, 5, ["intercept", "extremum"], 1e-7);
+    has(circle, 0, -5, ["intercept", "extremum"], 1e-7);
+    has(circle, 3, 4, ["intersection"], 1e-7);
+    has(circle, -4, -3, ["intersection"], 1e-7);
+    expect(circle).toHaveLength(6);
+    const ellipse = pois("\\frac{x^{2}}{16}+\\frac{y^{2}}{9}=1");
+    has(ellipse, 0, 3, ["intercept", "extremum"], 1e-7);
+    has(ellipse, 0, -3, ["intercept", "extremum"], 1e-7);
+    const tangent = pois("x^{2}+y^{2}=25", "y=5");
+    expect(tangent.filter((q) => q.kinds.includes("intersection"))).toHaveLength(1);
+    // the line meets the circle from the line's side too
+    has(pois("y=x+1", "x^{2}+y^{2}=25"), 3, 4, ["intersection"], 1e-7);
+  });
+
+  it("parametric-free implicit curves that are not solvable have none", () => {
+    expect(pois("x^{3}+y^{3}=3xy")).toEqual([]);
+    expect(pois("\\sin x=\\cos y")).toEqual([]);
+    expect(pois("y=x", "\\sin x=\\cos y").some((q) => q.kinds.includes("intersection"))).toBe(
+      false
+    );
+    expect(pois("\\left(1,2\\right)")).toEqual([]);
+  });
+
+  it("hidden rows contribute no intersections and an error row has no points", () => {
     const analysis = analyzeRows(
       [
         { id: "1", latex: "y=2x+1", hidden: false },
@@ -96,9 +135,19 @@ describe("POI golden cases", () => {
     expect(pois("y=x+")).toEqual([]);
   });
 
-  it("POI-4 an inequality boundary gets the boundary curve's points and meets other curves", () => {
-    const region = pois("y>x^{2}-2", "y=2");
-    has(region, 0, -2, ["y-intercept", "minimum"]);
+  it("an inequality boundary gets the boundary curve's points and meets other curves", () => {
+    const region = pois("y>x^{2}-2", "y=x");
+    has(region, 0, -2, ["intercept", "extremum"]);
     has(region, 2, 2, ["intersection"]);
+    has(region, -1, -1, ["intersection"]);
+  });
+});
+
+describe("POI-TRACE-19 extrema land on exact values so labels can show π", () => {
+  it("sin x peaks at exactly π/2 and |x−1| bottoms out at exactly 1", () => {
+    const sin = pois("y=\\sin x").filter((q) => q.kinds.includes("extremum"));
+    expect(sin.map((q) => q.x)).toContain(Math.PI / 2);
+    expect(sin.map((q) => q.x)).toContain((-5 * Math.PI) / 2);
+    expect(pois("y=\\left|x-1\\right|").map((q) => q.x)).toContain(1);
   });
 });

@@ -1,5 +1,5 @@
-// Points of interest, coordinate labels and tracing in a real calculator:
-// POI-1, POI-9, POI-13, POI-14 and POI-17 on the harness page /harness/calculator.html.
+// Points of interest, coordinate labels and tracing in a real calculator, as Desmos does them
+// (POI-TRACE-*), on the harness page /harness/calculator.html.
 
 import { expect, test, type Page } from "@playwright/test";
 import { enc, openShell, rowField, useConsoleGuard } from "./shell-helpers";
@@ -28,6 +28,8 @@ const snapshot = (page: Page) =>
     return { selected: s.selectedRowId, points: s.poi?.points.length ?? 0, left: s.viewport.left };
   });
 const labels = (page: Page) => page.locator("#calc [data-poi-label]");
+const labelTexts = (page: Page) =>
+  labels(page).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
 
 async function selectRow1(page: Page): Promise<void> {
   await openShell(page, `?w=900&h=600&rows=${ROWS}`);
@@ -43,7 +45,9 @@ async function clickAt(page: Page, isMobile: boolean, x: number, y: number): Pro
   else await page.mouse.click(px, py);
 }
 
-test("POI-1 focusing y=x^2-2 shows its grey dots and none for other rows", async ({ page }) => {
+test("POI-TRACE-1 focusing y=x^2-2 shows its grey dots and none for other rows", async ({
+  page,
+}) => {
   await selectRow1(page);
   expect(await snapshot(page)).toMatchObject({ selected: "1", points: 5 }); // two zeros, the vertex and two intersections;
   await rowField(page, "2").click();
@@ -55,46 +59,88 @@ test("POI-1 focusing y=x^2-2 shows its grey dots and none for other rows", async
   await expect.poll(async () => (await snapshot(page)).points).toBe(3);
 });
 
-test("POI-13 clicking a dot opens (1.41421, 0) and empty paper closes it", async ({
+test("POI-TRACE-13 pressing a dot opens (1.41421, 0) and empty paper closes it", async ({
   page,
   isMobile,
 }) => {
   await selectRow1(page);
   await clickAt(page, isMobile, Math.SQRT2, 0);
-  await expect(labels(page)).toHaveText(["(1.41421, 0)"]);
+  await expect.poll(() => labelTexts(page)).toEqual(["(1.41421, 0)"]);
   await clickAt(page, isMobile, 0, -2);
-  await expect(labels(page)).toHaveText(["(1.41421, 0)", "(0, −2)"]);
+  await expect.poll(() => labelTexts(page)).toEqual(["(1.41421, 0)", "(0, −2)"]);
   await clickAt(page, isMobile, -6, -5);
   await expect(labels(page)).toHaveCount(0);
   expect((await snapshot(page)).selected).toBeNull();
 });
 
-test("POI-14 dragging along y=x^2 shows a live label and releasing removes it", async ({
+test("POI-TRACE-21 pressing on y=x^2-2 traces at once without snapping; release removes it", async ({
   page,
   isMobile,
 }) => {
   test.skip(isMobile, "the press-and-drag trace is driven with a mouse here");
   await selectRow1(page);
   const before = (await snapshot(page)).left;
-  await page.mouse.move(...(await at(page, 2, 2)));
+  await page.mouse.move(...(await at(page, -2.5, 4.25)));
   await page.mouse.down();
-  await page.mouse.move(...(await at(page, 2.25, 3)), { steps: 4 });
-  await page.mouse.move(...(await at(page, 2.5, 4)), { steps: 4 });
   const trace = page.locator("#calc [data-trace-label]");
-  await expect(trace).toHaveText("(2.5, 4.25)");
+  await expect(trace).toHaveAttribute("aria-label", "(−2.5, 4.25)");
+  await page.mouse.move(...(await at(page, 0, 6)), { steps: 4 });
+  await expect(trace).toHaveAttribute("aria-label", "(0, −2)"); // only x follows the pointer
   await page.mouse.up();
   await expect(trace).toHaveCount(0);
   await expect(labels(page)).toHaveCount(0);
   expect((await snapshot(page)).left).toBe(before);
 });
 
-test("POI-17 clicking a curve selects its row", async ({ page, isMobile }) => {
+test("POI-TRACE-12 hovering a dot shows its label; leaving hides it", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "hover needs a mouse");
+  await selectRow1(page);
+  const [x, y] = await at(page, 0, -2);
+  await page.mouse.move(x, y + 12);
+  await expect.poll(() => labelTexts(page)).toEqual(["(0, −2)"]);
+  await page.mouse.move(x, y + 40);
+  await expect(labels(page)).toHaveCount(0);
+});
+
+test("POI-TRACE-18 the export button appends the point as a new row", async ({
+  page,
+  isMobile,
+}) => {
+  await selectRow1(page);
+  await clickAt(page, isMobile, Math.SQRT2, 0);
+  const button = page.locator("#calc").getByRole("button", {
+    name: "Export point to expression list",
+  });
+  await button.click();
+  await expect(labels(page)).toHaveCount(0);
+  await expect
+    .poll(() =>
+      page.evaluate(() => globalThis.__calculatorHarness!.engine.getSnapshot().rows.at(-1)?.latex)
+    )
+    .toBe("\\left(1.41421,\\ 0\\right)");
+});
+
+test("POI-TRACE-14 a press in the expression list closes open labels", async ({
+  page,
+  isMobile,
+}) => {
+  await selectRow1(page);
+  await clickAt(page, isMobile, Math.SQRT2, 0);
+  await expect(labels(page)).toHaveCount(1);
+  await rowField(page, "2").click();
+  await expect(labels(page)).toHaveCount(0);
+});
+
+test("POI-TRACE-27 pressing a curve selects its row", async ({ page, isMobile }) => {
   await selectRow1(page);
   await clickAt(page, isMobile, -6, 3);
   await expect.poll(async () => (await snapshot(page)).selected).toBe("2");
 });
 
-test("POI-9 zooming keeps the selection, closes labels and recomputes dots", async ({
+test("POI-TRACE-15 zooming keeps the selection, closes labels and recomputes dots", async ({
   page,
   isMobile,
 }) => {

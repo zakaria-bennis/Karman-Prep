@@ -30,6 +30,10 @@ export interface CalculatorSettings {
   expressionsCollapsed: boolean;
   mode: "graphing" | "scientific";
   reducedMotion: boolean;
+  /** POI-TRACE-2: pressing a curve traces it; off, a press only selects it and no dots show. */
+  trace: boolean;
+  /** POI-TRACE-2: the selected curve's grey dots (both this and trace must be on). */
+  pointsOfInterest: boolean;
 }
 
 /** S-9: the per-question defaults (and API-1's option defaults). Deep-frozen. */
@@ -51,6 +55,8 @@ export const DEFAULT_SETTINGS: CalculatorSettings = Object.freeze({
   expressionsCollapsed: false,
   mode: "graphing",
   reducedMotion: false,
+  trace: true,
+  pointsOfInterest: true,
 });
 
 export interface CalculatorOptions {

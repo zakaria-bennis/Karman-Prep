@@ -1,161 +1,172 @@
 import { describe, expect, it } from "vitest";
 import { NO_DEADLINE } from "../core/deadline";
 import type { ViewSpec } from "../plot/viewport";
-import { findPois, POI_CAP, searchRange } from "./find";
-import type { PoiCurve, PoiPoint } from "./types";
+import { findPois, INTERSECTION_CAP, OWN_CAP } from "./find";
+import { formatPoiLabel } from "./format";
+import type { PoiBranch, PoiPoint } from "./types";
 
-const view = (left = -10, right = 10, bottom = -7.5, top = 7.5): ViewSpec => ({
+const view = (left = -10, right = 10, bottom = -8, top = 8): ViewSpec => ({
   viewport: { left, right, bottom, top },
-  size: { width: 800, height: 600 },
+  size: { width: 960, height: 768 },
   dpr: 1,
 });
-const fx = (f: (x: number) => number): PoiCurve => ({ kind: "explicit", independent: "x", f });
+const fx = (f: (x: number) => number): PoiBranch => ({ independent: "x", f });
+const fy = (f: (y: number) => number): PoiBranch => ({ independent: "y", f });
+const pois = (b: PoiBranch | PoiBranch[], others: { rowId: string; branch: PoiBranch }[] = []) =>
+  findPois(Array.isArray(b) ? b : [b], others, view(), NO_DEADLINE);
 const at = (points: PoiPoint[], x: number, y: number, tol = 1e-8) =>
   points.find((p) => Math.abs(p.x - x) <= tol && Math.abs(p.y - y) <= tol);
+/** Records, as Desmos counts them: a merged dot holds one per kind. */
+const records = (points: PoiPoint[]) => points.reduce((n, p) => n + p.kinds.length, 0);
 const kindsAt = (points: PoiPoint[], x: number, y: number, tol = 1e-8) =>
   at(points, x, y, tol)?.kinds;
 
-describe("points of interest per curve", () => {
-  it("POI-2 y=f(x) gets zeros, the y-intercept and extrema; x=g(y) the mirror; lines their axis crossing", () => {
-    const p = findPois(
-      fx((x) => (x - 1) * (x - 3)),
-      [],
-      view(),
-      NO_DEADLINE
-    );
+describe("points of interest per branch", () => {
+  it("POI-TRACE-5 y=f(x) gets zeros, the intercept and extrema; x=g(y) the mirror", () => {
+    const p = pois(fx((x) => (x - 1) * (x - 3)));
     expect(kindsAt(p, 1, 0)).toEqual(["zero"]);
     expect(kindsAt(p, 3, 0)).toEqual(["zero"]);
-    expect(kindsAt(p, 0, 3)).toEqual(["y-intercept"]);
-    expect(kindsAt(p, 2, -1)).toEqual(["minimum"]);
+    expect(kindsAt(p, 0, 3)).toEqual(["intercept"]);
+    expect(kindsAt(p, 2, -1, 1e-7)).toEqual(["extremum"]);
     expect(p).toHaveLength(4);
-    const g = findPois(
-      { kind: "explicit", independent: "y", f: (y) => (y - 1) * (y - 3) },
-      [],
-      view(),
-      NO_DEADLINE
-    );
+    const g = pois(fy((y) => y * y - 1));
     expect(kindsAt(g, 0, 1)).toEqual(["zero"]);
-    expect(kindsAt(g, 3, 0)).toEqual(["x-intercept"]);
-    expect(kindsAt(g, -1, 2)).toEqual(["minimum"]);
-    const v = findPois(
-      { kind: "lines", orientation: "vertical", f: (x) => x - 3 },
-      [],
-      view(),
-      NO_DEADLINE
-    );
-    expect(v.map((q) => [q.x, q.y, q.kinds])).toEqual([[3, 0, ["x-intercept"]]]);
-    const h = findPois(
-      { kind: "lines", orientation: "horizontal", f: (y) => y + 2 },
-      [],
-      view(),
-      NO_DEADLINE
-    );
-    expect(h.map((q) => [q.x, q.y, q.kinds])).toEqual([[0, -2, ["y-intercept"]]]);
+    expect(kindsAt(g, 0, -1)).toEqual(["zero"]);
+    expect(kindsAt(g, -1, 0, 1e-7)).toEqual(["intercept", "extremum"]);
+    expect(g).toHaveLength(3);
   });
 
-  it("POI-2 a circle gets its axis intercepts and its top and bottom points, never leftmost or rightmost", () => {
-    const p = findPois(
-      { kind: "implicit", F: (x, y) => x * x + y * y - 25 },
-      [],
-      view(),
-      NO_DEADLINE
-    );
-    expect(kindsAt(p, 5, 0)).toEqual(["x-intercept"]);
-    expect(kindsAt(p, -5, 0)).toEqual(["x-intercept"]);
-    expect(kindsAt(p, 0, 5)).toEqual(["y-intercept", "top"]);
-    expect(kindsAt(p, 0, -5)).toEqual(["y-intercept", "bottom"]);
-    expect(p).toHaveLength(4);
-    const shifted = findPois(
-      { kind: "implicit", F: (x, y) => (x - 2) ** 2 + (y - 1) ** 2 - 4 },
-      [],
-      view(),
-      NO_DEADLINE
-    );
-    expect(kindsAt(shifted, 2, 3, 1e-7)).toEqual(["top"]);
-    expect(kindsAt(shifted, 2, -1, 1e-7)).toEqual(["bottom"]);
-    expect(kindsAt(shifted, 0, 1, 1e-7)).toEqual(["y-intercept"]);
+  it("POI-TRACE-5 a touching root is an extremum only; a corner is an extremum", () => {
+    const p = pois(fx((x) => (x - 2) ** 2));
+    expect(kindsAt(p, 2, 0, 1e-7)).toEqual(["extremum"]);
+    expect(kindsAt(p, 0, 4)).toEqual(["intercept"]);
+    expect(p).toHaveLength(2);
+    const abs = pois(fx((x) => Math.abs(x - 1)));
+    expect(kindsAt(abs, 1, 0, 1e-7)).toEqual(["extremum"]);
   });
 
-  it("POI-4 intersections with every other visible curve, including vertical lines and inequality boundaries", () => {
-    const others = [
-      { rowId: "2", curve: fx((x) => -x + 7) },
-      {
-        rowId: "3",
-        curve: { kind: "lines", orientation: "vertical", f: (x: number) => x + 4 } as PoiCurve,
-      },
-      {
-        rowId: "4",
-        curve: { kind: "implicit", F: (x: number, y: number) => y - x * x } as PoiCurve,
-      },
-    ];
-    const p = findPois(
+  it("POI-TRACE-7 a constant branch has only its intercept", () => {
+    expect(pois(fx(() => 3)).map((q) => [q.x, q.y, q.kinds])).toEqual([[0, 3, ["intercept"]]]);
+    expect(pois(fy(() => 2)).map((q) => [q.x, q.y, q.kinds])).toEqual([[2, 0, ["intercept"]]]);
+  });
+
+  it("POI-TRACE-5 restrictions give no endpoint dots and no intercept outside the domain", () => {
+    const p = pois(fx((x) => (x > 0 && x < 3 ? x * x - 2 : NaN)));
+    expect(p).toHaveLength(1);
+    expect(kindsAt(p, Math.SQRT2, 0)).toEqual(["zero"]);
+  });
+
+  it("POI-TRACE-10 intersections with other branches, mixed kinds and touching ones", () => {
+    const p = pois(
       fx((x) => 2 * x + 1),
-      others,
-      view(),
-      NO_DEADLINE
+      [
+        { rowId: "2", branch: fx((x) => -x + 7) },
+        { rowId: "3", branch: fy(() => -4) },
+      ]
     );
-    const meet = at(p, 2, 5);
-    expect(meet?.kinds).toEqual(["intersection"]);
-    expect(meet?.withRowId).toBe("2");
+    expect(at(p, 2, 5)).toMatchObject({ kinds: ["intersection"], withRowId: "2" });
     expect(at(p, -4, -7)?.withRowId).toBe("3");
-    expect(at(p, 1 - Math.SQRT2, 3 - 2 * Math.SQRT2, 1e-8)?.withRowId).toBe("4");
-    const circle = findPois(
-      { kind: "implicit", F: (x, y) => x * x + y * y - 25 },
-      [{ rowId: "2", curve: { kind: "implicit", F: (x, y) => y - x - 1 } }],
-      view(),
-      NO_DEADLINE
+    const vertical = pois(
+      fy(() => 2),
+      [{ rowId: "2", branch: fx((x) => x * x) }]
     );
-    expect(at(circle, 3, 4, 1e-7)?.kinds).toEqual(["intersection"]);
-    expect(at(circle, -4, -3, 1e-7)?.kinds).toEqual(["intersection"]);
+    expect(kindsAt(vertical, 2, 4)).toEqual(["intersection"]);
+    expect(kindsAt(vertical, 2, 0)).toEqual(["intercept"]);
+    const tangent = pois(
+      fx((x) => x * x),
+      [{ rowId: "2", branch: fx(() => 0) }]
+    );
+    expect(kindsAt(tangent, 0, 0, 1e-7)).toEqual(["intercept", "extremum", "intersection"]);
   });
 
-  it("POI-7 coincident points merge into one dot listing every kind", () => {
-    const p = findPois(
-      fx((x) => x * x - 2),
-      [],
-      view(),
-      NO_DEADLINE
-    );
-    expect(kindsAt(p, 0, -2)).toEqual(["y-intercept", "minimum"]);
-    expect(p).toHaveLength(3);
-    const line = findPois(
-      fx((x) => 2 * x),
-      [],
-      view(),
-      NO_DEADLINE
-    );
-    expect(line.map((q) => q.kinds)).toEqual([["zero", "y-intercept"]]);
+  it("POI-TRACE-6 steps break the curve: floor gets zeros at its zero step's ends, no extrema", () => {
+    // As live Desmos: floor(x) → (0, 0) and (1, 0); mod(x, 3) − 1 → zeros only, no tops at its jumps.
+    const floor = pois(fx(Math.floor));
+    expect(floor.map((q) => [Math.round(q.x * 1e5) / 1e5, q.y, q.kinds])).toEqual([
+      [0, 0, ["zero", "intercept"]],
+      [1, 0, ["zero"]],
+    ]);
+    const saw = pois(fx((x) => x - 3 * Math.floor(x / 3) - 1));
+    expect(saw.every((q) => !q.kinds.includes("extremum"))).toBe(true);
+    expect(saw.filter((q) => q.kinds.includes("zero"))).toHaveLength(7);
+    const round = pois(fx((x) => Math.round(x / 3)));
+    expect(round.map((q) => [Math.round(q.x * 1e5) / 1e5, q.kinds])).toEqual([
+      [-1.5, ["zero"]],
+      [0, ["intercept"]],
+      [1.5, ["zero"]],
+    ]);
+    // A flat top between a rise and a fall is one extremum at its middle.
+    const top = pois(fx((x) => Math.min(1, 4 - Math.abs(x))));
+    expect(top.filter((q) => q.kinds.includes("extremum")).map((q) => q.x)).toEqual([0]);
   });
 
-  it("POI-9 the search covers the view widened by 10% and only points inside the view are returned", () => {
-    expect(searchRange(view()).left).toBeCloseTo(-12, 12);
-    expect(searchRange(view()).top).toBeCloseTo(9, 12);
-    const p = findPois(
-      fx((x) => x - 10.5),
-      [],
-      view(),
-      NO_DEADLINE
-    );
-    expect(p).toEqual([]);
+  it("POI-TRACE-7 a straight line's zero is solved; a flat line has none, even near 0", () => {
+    const line = (f: (x: number) => number): PoiBranch => ({ independent: "x", f, linear: true });
+    expect(pois(line(() => 1e-9)).map((q) => q.kinds)).toEqual([["intercept"]]);
     expect(
-      findPois(
-        fx((x) => x - 9.5),
-        [],
-        view(),
-        NO_DEADLINE
-      )
-    ).toHaveLength(1);
+      pois(line((x) => 1e-8 * (x - 3))).map((q) => [Math.round(q.x * 1e9) / 1e9, q.kinds])
+    ).toEqual([
+      [0, ["intercept"]],
+      [3, ["zero"]],
+    ]);
+    // Not a line: a segment that ends within 5e-8 of 0 at the view's edge has a zero there.
+    const flat = pois(fx((x) => 1e-9 * Math.cos(x / 100)));
+    expect(flat.filter((q) => q.kinds.includes("zero")).map((q) => q.x)).toEqual([-10, 10]);
   });
 
-  it("POI-10 a kind with more than 100 points in the search region is dropped", () => {
-    expect(POI_CAP).toBe(100);
-    const p = findPois(
-      fx((x) => Math.sin(20 * x)),
-      [],
-      view(),
-      NO_DEADLINE
+  it("POI-TRACE-19 a zero keeps f's value, so a deep zoom shows its rounding noise", () => {
+    const r2 = Math.SQRT2;
+    const deep: ViewSpec = {
+      viewport: { left: r2 - 1e-5, right: r2 + 1e-5, bottom: -9e-6, top: 9e-6 },
+      size: { width: 992, height: 854 },
+      dpr: 1,
+    };
+    const [zero] = findPois([fx((x) => x * x - 2)], [], deep, NO_DEADLINE);
+    // Live Desmos at this view: (1.414214, −4.44089×10⁻¹⁶)
+    expect(formatPoiLabel(zero, deep).text).toBe("(1.414214, −4.44089×10^−16)");
+    expect(formatPoiLabel(zero, view()).text).toBe("(1.41421, 0)");
+  });
+
+  it("POI-TRACE-4 coincident records merge into one dot listing every kind", () => {
+    const p = pois(fx((x) => x * x - 2));
+    expect(kindsAt(p, 0, -2)).toEqual(["intercept", "extremum"]);
+    expect(p).toHaveLength(3);
+    expect(pois(fx((x) => 2 * x)).map((q) => q.kinds)).toEqual([["zero", "intercept"]]);
+  });
+
+  it("POI-TRACE-6 the search covers the view only, with no widening", () => {
+    expect(pois(fx((x) => x - 10.5))).toEqual([]);
+    expect(pois(fx((x) => x - 9.5)).some((q) => q.kinds.includes("zero"))).toBe(true);
+  });
+
+  it("POI-TRACE-9 a branch over 250 own points shows none of them (all or nothing)", () => {
+    expect(OWN_CAP).toBe(250);
+    expect(records(pois(fx((x) => Math.sin(19.5 * x))))).toBe(250);
+    expect(pois(fx((x) => Math.sin(19.7 * x)))).toEqual([]);
+    expect(pois(fx((x) => Math.sin(100 * x)))).toEqual([]);
+  });
+
+  it("POI-TRACE-11 more than 100 intersections drop every intersection only", () => {
+    expect(INTERSECTION_CAP).toBe(100);
+    const line = [{ rowId: "2", branch: fx(() => 0.5) }];
+    const kept = pois(
+      fx((x) => Math.sin(15 * x)),
+      line
     );
-    expect(p.some((q) => q.kinds.includes("zero"))).toBe(false);
-    expect(p.some((q) => q.kinds.includes("maximum"))).toBe(true);
+    expect(kept.filter((q) => q.kinds.includes("intersection"))).toHaveLength(95);
+    const dropped = pois(
+      fx((x) => Math.sin(16 * x)),
+      line
+    );
+    expect(dropped.some((q) => q.kinds.includes("intersection"))).toBe(false);
+    expect(records(dropped)).toBe(204);
+    expect(
+      records(
+        pois(
+          fx((x) => Math.sin(4 * x)),
+          line
+        )
+      )
+    ).toBe(77);
   });
 });
