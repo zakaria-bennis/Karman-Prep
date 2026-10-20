@@ -38,6 +38,8 @@ _QUOTES = str.maketrans("“”„‟‘’‚‛", "\"\"\"\"''''")
 _DASHES = str.maketrans({c: "-" for c in "‐‑‒–—―−"})
 
 _OPERATORS = "+-*/^=<>≤≥≠√"
+BLANK = "______"  # every blank (4+ underscores) compares as this one token
+_BLANK_RUN = re.compile(r"_{4,}")
 _OP_OR_BRACKET = _OPERATORS + "()"
 _PASSES = 5
 
@@ -210,6 +212,7 @@ def _bare_fractions(s: str) -> str:
 
 
 def _normalize_once(s: str) -> str:
+    s = _BLANK_RUN.sub(BLANK, s)
     s = _unicode_math(s)
     s = _unbrace_scripts(_latex_math(s))
     s = unicodedata.normalize("NFKC", s).casefold()
@@ -237,7 +240,8 @@ def strip_markup(s: str) -> tuple[str, tuple[tuple[int, int, str], ...]]:
     """Remove `<u>`/`<i>` tags; return plain text and (start, end, kind) spans.
 
     kind is "u", "i" or "blank" (a run of 4+ underscores, which stays in the
-    text). Offsets refer to the returned plain text.
+    text as the fixed BLANK token whatever its length). Offsets refer to the
+    returned plain text.
     """
     out, spans, open_at, pos, length = [], [], {"u": [], "i": []}, 0, 0
     for m in _MARKUP.finditer(s):
@@ -246,10 +250,10 @@ def strip_markup(s: str) -> tuple[str, tuple[tuple[int, int, str], ...]]:
         length += len(chunk)
         pos = m.end()
         tag = m.group(1)
-        if tag is None:  # blank: keep the underscores in the text
-            out.append(m.group())
-            spans.append((length, length + len(m.group()), "blank"))
-            length += len(m.group())
+        if tag is None:  # blank: keep it in the text as the fixed token
+            out.append(BLANK)
+            spans.append((length, length + len(BLANK), "blank"))
+            length += len(BLANK)
         elif not m.group().startswith("</"):
             open_at[tag.lower()].append(length)
         elif open_at[tag.lower()]:

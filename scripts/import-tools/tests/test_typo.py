@@ -58,10 +58,58 @@ class TypoRuleTests(unittest.TestCase):
         self.assertFalse(r.same)
         self.assertEqual(r.reason, "punctuation_differs")
 
-    def test_typo_in_blank_span(self):
+    def test_blank_length_is_not_a_difference(self):
         a = mc("b1", "Fill in: the cat ______ on the mat.")
         b = mc("b2", "Fill in: the cat _____ on the mat.")
+        self.assertEqual(typo_match(a, b), TypoResult(True, (), "identical"))
+
+    def test_typo_in_underlined_span(self):
+        a = mc("b1", "Fill in: the <u>cat</u> sat on the mat.")
+        b = mc("b2", "Fill in: the <u>cot</u> sat on the mat.")
         self.assertEqual(typo_match(a, b).reason, "in_tested_span")
+
+    def test_moved_underline_plus_typo_not_same(self):
+        a = mc("p1", "The <u>tall</u> tree grew fast, and it took years.")
+        b = mc("p2", "The tall tree <u>grew</u> fast, and in took years.")
+        r = typo_match(a, b)
+        self.assertFalse(r.same)
+        self.assertEqual(r.reason, "markup_differs")
+
+    def test_moved_blank_plus_typo_not_same(self):
+        a = mc("p1", "The ______ tree grew fast, and it took years.")
+        b = mc("p2", "The tree ______ grew fast, and in took years.")
+        self.assertFalse(typo_match(a, b).same)
+
+    def test_insert_or_delete_never_typo(self):
+        a = mc("i1", "The results were significant for the group.")
+        b = mc("i2", "The results were not significant for the group.")
+        r = typo_match(a, b)
+        self.assertEqual((r.same, r.reason, r.spots), (False, "insert_or_delete", (("", "not"),)))
+        r = typo_match(b, a)
+        self.assertEqual((r.same, r.reason), (False, "insert_or_delete"))
+
+    def test_meaning_words_never_typo(self):
+        for x, y in (("ten", "two"), ("most", "least"), ("more", "less"), ("before", "after"),
+                     ("some", "sone"), ("half", "hall"), ("nine", "mine"), ("not", "nut")):
+            a = mc("w1", f"The team found {x} nests near the river.")
+            b = mc("w2", f"The team found {y} nests near the river.")
+            r = typo_match(a, b)
+            self.assertFalse(r.same, (x, y))
+            self.assertIn(r.reason, ("meaning_word", "spot_too_long"), (x, y))
+        r = typo_match(mc("w3", "The team found ten nests."), mc("w4", "The team found two nests."))
+        self.assertEqual(r.reason, "meaning_word")
+
+    def test_punctuation_change_with_letter_typo_not_same(self):
+        a = mc("q1", "The study was small; its results held.")
+        b = mc("q2", "The study was smell, its results held.")
+        r = typo_match(a, b)
+        self.assertEqual((r.same, r.reason), (False, "punctuation_differs"))
+
+    def test_empty_figure_signature_is_no_figure(self):
+        a = mc("f1", "Use the figure.")
+        for sig in ("", "   "):
+            b = QuestionRecord(**{**a.__dict__, "figure_signature": sig})
+            self.assertTrue(typo_match(a, b).same, repr(sig))
 
     def test_typo_in_choice_never_same(self):
         a = mc("c1", "Which word fits?", ("effect", "result", "outcome", "impact"), "result")

@@ -1,6 +1,7 @@
 import unittest
 
-from kimport.keys import QuestionRecord, answer_value, comparison_key
+from kimport.keys import QuestionRecord, answer_value, comparison_key, markup_spans
+from kimport.normalize import BLANK
 from tests.founder_fixtures import pair
 
 
@@ -71,10 +72,34 @@ class ComparisonKeyTests(unittest.TestCase):
         self.assertEqual(comparison_key(a), comparison_key(b))
 
     def test_underline_position_is_in_key(self):
+        # The same repeated word, underlined at two different positions.
+        a = mc("u1", "The <u>tree</u> grew fast, and the tree grew tall.", ("A", "B"), "A")
+        b = mc("u2", "The tree grew fast, and the <u>tree</u> grew tall.", ("A", "B"), "A")
+        c = mc("u3", "The tree grew fast, and the tree grew tall.", ("A", "B"), "A")
+        self.assertEqual(len({comparison_key(a), comparison_key(b), comparison_key(c)}), 3)
+
+    def test_underline_text_is_in_key(self):
         a = mc("u1", "The <u>tall</u> tree grew fast.", ("A", "B"), "A")
         b = mc("u2", "The tall tree <u>grew</u> fast.", ("A", "B"), "A")
-        c = mc("u3", "The tall tree grew fast.", ("A", "B"), "A")
-        self.assertEqual(len({comparison_key(a), comparison_key(b), comparison_key(c)}), 3)
+        self.assertNotEqual(comparison_key(a), comparison_key(b))
+
+    def test_markup_spans_carry_word_index(self):
+        self.assertEqual(
+            markup_spans("The tree grew, and the <u>tree</u> fell ____."),
+            (("u", 5, "tree"), ("blank", 7, BLANK)),
+        )
+
+    def test_blank_length_same_key(self):
+        a = mc("b1", "Its results ______ widely cited.", ("were", "was"), "were")
+        b = mc("b2", "Its results ____ widely cited.", ("were", "was"), "were")
+        c = mc("b3", "Its results __________ widely cited.", ("were", "was"), "were")
+        self.assertEqual(len({comparison_key(a), comparison_key(b), comparison_key(c)}), 1)
+
+    def test_empty_figure_signature_same_key(self):
+        a = mc("f1", "Use the figure.", ("1", "2"), "1")
+        for sig in ("", "  "):
+            b = QuestionRecord(**{**a.__dict__, "figure_signature": sig})
+            self.assertEqual(comparison_key(a), comparison_key(b), repr(sig))
 
     def test_answer_format_table_and_figure_in_key(self):
         base = mc("t1", "Use the table.", ("1", "2"), "1")

@@ -5,10 +5,14 @@ Rule order (first failing check gives the reason):
   table_or_figure_differs table cells or figure signature differ
   math_token_differs      any digit, sign, operator or single-letter variable differs
   identical / markup_differs   same words; spans equal or not
+  markup_differs          an unchanged word is in a tested span on one side only
   in_tested_span          a changed word sits inside <u>...</u> or a blank
   punctuation_differs     a spot differs only by punctuation (never a typo)
   too_many_spots          more than MAX_SPOTS differing spots
   spot_too_long           a spot needs more than MAX_SPOT_CHARS character edits
+  punctuation_differs     a spot's punctuation characters differ ("small;" vs "smell,")
+  insert_or_delete        a spot adds or drops words (one side empty)
+  meaning_word            a spot touches a word that can flip meaning (MEANING_WORDS)
   ocr_typo                same question (same=True)
 """
 
@@ -19,6 +23,7 @@ from typing import NamedTuple
 from kimport.keys import (
     QuestionRecord,
     answer_value,
+    figure_value,
     markup_spans,
     sorted_choices,
     table_values,
@@ -28,6 +33,16 @@ from kimport.normalize import math_tokens, normalize_text, strip_markup
 MAX_SPOTS = 2
 MAX_SPOT_CHARS = 3
 _TESTED = ("u", "blank")
+
+# A spot touching any of these is never a scanning typo: one wrong letter
+# turns "most" into "least"-like meaning flips or one number into another.
+MEANING_WORDS = frozenset(
+    """not no never none nor most least more less fewer greater smaller larger
+    before after increase decrease increased decreased all some only
+    zero one two three four five six seven eight nine ten eleven twelve
+    thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty
+    hundred thousand million half third quarter twice""".split()
+)
 
 
 class TypoResult(NamedTuple):
@@ -58,9 +73,20 @@ def _levenshtein(a: str, b: str) -> int:
     return prev[-1]
 
 
+def _is_punct(c: str) -> bool:
+    return unicodedata.category(c).startswith("P")
+
+
+def _punctuation(s: str) -> str:
+    return "".join(c for c in s if _is_punct(c))
+
+
 def _without_punctuation(s: str) -> str:
-    kept = "".join(c for c in s if not unicodedata.category(c).startswith("P"))
-    return " ".join(kept.split())
+    return " ".join("".join(c for c in s if not _is_punct(c)).split())
+
+
+def _bare_words(s: str) -> set[str]:
+    return set("".join(c if not _is_punct(c) else " " for c in s).split())
 
 
 def typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult:
@@ -70,7 +96,7 @@ def typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult:
         or sorted_choices(a) != sorted_choices(b)
     ):
         return TypoResult(False, (), "choice_differs")
-    if table_values(a) != table_values(b) or a.figure_signature != b.figure_signature:
+    if table_values(a) != table_values(b) or figure_value(a) != figure_value(b):
         return TypoResult(False, (), "table_or_figure_differs")
     if math_tokens(strip_markup(a.text)[0]) != math_tokens(strip_markup(b.text)[0]):
         return TypoResult(False, (), "math_token_differs")
@@ -86,6 +112,9 @@ def typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult:
     changed = [(i1, i2, j1, j2) for tag, i1, i2, j1, j2 in ops if tag != "equal"]
     spots = tuple((" ".join(ta[i1:i2]), " ".join(tb[j1:j2])) for i1, i2, j1, j2 in changed)
 
+    for tag, i1, i2, j1, j2 in ops:  # a moved underline or blank is a different question
+        if tag == "equal" and [f for _, f in wa[i1:i2]] != [f for _, f in wb[j1:j2]]:
+            return TypoResult(False, spots, "markup_differs")
     if any(f for i1, i2, j1, j2 in changed for _, f in wa[i1:i2] + wb[j1:j2]):
         return TypoResult(False, spots, "in_tested_span")
     if any(_without_punctuation(x) == _without_punctuation(y) for x, y in spots):
@@ -94,4 +123,10 @@ def typo_match(a: QuestionRecord, b: QuestionRecord) -> TypoResult:
         return TypoResult(False, spots, "too_many_spots")
     if any(_levenshtein(x, y) > MAX_SPOT_CHARS for x, y in spots):
         return TypoResult(False, spots, "spot_too_long")
+    if any(_punctuation(x) != _punctuation(y) for x, y in spots):
+        return TypoResult(False, spots, "punctuation_differs")
+    if any(not x or not y for x, y in spots):
+        return TypoResult(False, spots, "insert_or_delete")
+    if any((_bare_words(x) | _bare_words(y)) & MEANING_WORDS for x, y in spots):
+        return TypoResult(False, spots, "meaning_word")
     return TypoResult(True, spots, "ocr_typo")

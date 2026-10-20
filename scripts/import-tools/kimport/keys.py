@@ -34,15 +34,28 @@ def clean_text(s: str) -> str:
     return normalize_text(strip_markup(s)[0])
 
 
-def markup_spans(s: str) -> tuple[tuple[str, str], ...]:
-    """(kind, normalized covered text) for each u / i / blank span, in text order."""
+def markup_spans(s: str) -> tuple[tuple[str, int, str], ...]:
+    """(kind, start word index, normalized covered text) per u / i / blank span.
+
+    The word index counts normalized plain words before the span, so the same
+    word underlined at a different position is a different span.
+    """
     plain, spans = strip_markup(s)
-    return tuple((kind, normalize_text(plain[start:end])) for start, end, kind in spans)
+    return tuple(
+        (kind, len(normalize_text(plain[:start]).split()), normalize_text(plain[start:end]))
+        for start, end, kind in spans
+    )
 
 
 def sorted_choices(r: QuestionRecord) -> tuple[str, ...]:
     """Normalized choices, order and letters ignored, repeats kept."""
     return tuple(sorted(clean_text(c) for c in r.choices))
+
+
+def figure_value(r: QuestionRecord) -> str | None:
+    """The figure signature, with empty or whitespace-only treated as no figure."""
+    sig = r.figure_signature
+    return sig if sig and sig.strip() else None
 
 
 def table_values(r: QuestionRecord) -> tuple[tuple[str, ...], ...]:
@@ -83,7 +96,7 @@ def comparison_key(r: QuestionRecord) -> str:
         r.answer_format,
         answer_value(r),
         [list(row) for row in table_values(r)],
-        r.figure_signature,
+        figure_value(r),
     ]
     blob = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     return f"{NORMALIZER_VERSION}:" + hashlib.sha256(blob.encode("utf-8")).hexdigest()

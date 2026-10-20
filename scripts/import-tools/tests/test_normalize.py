@@ -150,6 +150,10 @@ class StripMarkupTests(unittest.TestCase):
         self.assertEqual(text, "the Odyssey ends")
         self.assertEqual(spans, ((4, 11, "i"),))
 
+    def test_blank_is_fixed_token(self):
+        self.assertEqual(strip_markup("a ____ b __________ c"), ("a ______ b ______ c", ((2, 8, "blank"), (11, 17, "blank"))))
+        self.assertEqual(normalize_text("x ____ y"), normalize_text("x ________ y"))
+
     def test_short_underscore_run_is_not_blank(self):
         self.assertEqual(strip_markup("a ___ b"), ("a ___ b", ()))
 
