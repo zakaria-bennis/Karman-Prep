@@ -32,8 +32,15 @@ export const TRACK_RECORD = {
 } as const;
 
 export const QUESTION_BANK = {
-  /** Live original questions, rounded down (2,588 live on 2026-10-19). */
-  verifiedCount: "2,500+",
+  /**
+   * Original questions the site may claim. Founder target (2026-10-20):
+   * 10,000+. 2,588 were live on 2026-10-19. The release preflight
+   * (scripts/build/check-release-env.mjs, see docs/launch-checklist.md)
+   * must refuse to publish while the live count is below this claim.
+   */
+  verifiedCount: "10,000+",
+  /** The number the claim above must be checked against. */
+  claimedMinimum: 10000,
   /** Where the bank is headed — only say "growing to", never "has". */
   targetCount: "10,000+",
   /** Selectable skills in src/data/curriculum/approved-skill-taxonomy.json. */
@@ -95,7 +102,7 @@ export const MARCH_PROGRAM = {
       detail: "Ten minutes a day. Every question you miss comes back after 2, 7 and 21 days.",
     },
     {
-      title: "2,500+ original practice questions",
+      title: "10,000+ original practice questions",
       detail: "Across all 39 SAT skills at seven difficulty levels.",
     },
     {
@@ -134,7 +141,7 @@ export const PRIVATE_INCLUDES: ProgramInclusion[] = [
   },
   {
     title: "Everything on the platform",
-    detail: "Practice tests, Daily 10 and 2,500+ original questions.",
+    detail: "Practice tests, Daily 10 and 10,000+ original questions.",
   },
   {
     title: "The weekly live session",

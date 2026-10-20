@@ -1,0 +1,15 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [".impeccable/mocks/decision/home-v3.html"],
+        "createdAt": "2026-10-20T04:36:30.224Z",
+        "reason": "Claude: full-bleed colour bands (stats, eco, free) whose content sits in .wrap with 32px side margins, verified in 1440/768/390 renders; detector reads the band edge, not the inset content"
+      }
+    ]
+  }
+}

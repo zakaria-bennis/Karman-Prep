@@ -38,9 +38,10 @@ These are already written down; this spec does not repeat them, it obeys them.
 
 Facts that shape the copy:
 
-- Question bank: **2,588 live** on 2026-10-19, so the site says "2,500+".
-  `QUESTION_BANK.verifiedCount`, `QUESTION_BANK.skills` and the inclusion copy
-  in `offer.ts` are corrected to match in this change.
+- Question bank: the site claims **10,000+ original questions** (founder,
+  2026-10-20). 2,588 were live on 2026-10-19, so the release preflight gates
+  on the live count (`QUESTION_BANK.claimedMinimum`, launch checklist). The
+  word "original" stays until the founder settles the bank's sources.
 - Skills: students browse **39 selectable skills in 8 domains**
   (4 Reading and Writing, 4 Math), from `approved-skill-taxonomy.json`. The
   "89" in the business plan is the count of finer concept tags the import
@@ -52,12 +53,12 @@ Facts that shape the copy:
 
 The ecosystem is sold as separate paths, not a ladder.
 
-| Path                    | Price           | Unlocks                                                                                                                                                                                                                                                                  |
-| ----------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Visitor (no account)    | Free            | Daily Question, daily word game, the free practice test                                                                                                                                                                                                                  |
-| Free account            | Free            | The above, plus the 35-question diagnostic, word-part cards, and a fixed free set of about 150 bank questions across all 39 skills, capped at 20 a day                                                                                                                   |
-| The March Program       | $995 founding   | 18 live classes, 5 full-length tests each with a 60-minute 1:1 review, the weekly live session (test mechanics and skill workshops), Daily 10, the full bank, cohort chat with daily answers, weekly parent updates, the 50-point guarantee, video lessons when recorded |
-| Private 10 / Private 20 | $1,450 / $2,900 | Weekly 1:1 sessions, the full platform, the weekly live session, a note to parents after every session. No group classes, no guarantee                                                                                                                                   |
+| Path                                    | Price           | Unlocks                                                                                                                                                                                                                                                                  |
+| --------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Visitor (no account)                    | Free            | Daily Question, daily word game, the free practice test                                                                                                                                                                                                                  |
+| Free account                            | Free            | The above, plus the 35-question diagnostic, word-part cards, and a fixed free set of about 150 bank questions across all 39 skills, capped at 20 a day                                                                                                                   |
+| The SAT Program (a cohort per SAT date) | $995 founding   | 18 live classes, 5 full-length tests each with a 60-minute 1:1 review, the weekly live session (test mechanics and skill workshops), Daily 10, the full bank, cohort chat with daily answers, weekly parent updates, the 50-point guarantee, video lessons when recorded |
+| Private 10 / Private 20                 | $1,450 / $2,900 | Weekly 1:1 sessions, the full platform, the weekly live session, a note to parents after every session. No group classes, no guarantee                                                                                                                                   |
 
 - **Private is a separate path** (founder), for students who want 1:1 instead
   of a group. It is not an add-on and not a higher tier of the program.
@@ -75,6 +76,12 @@ The ecosystem is sold as separate paths, not a ladder.
   (`group`, `small_group`, `private`, `elite` in `SubscriptionTier`). They are
   replaced by `free`, `program`, `private` entitlements tied to the enrollment
   record, and `/plans` with `PRICING_TIERS` is deleted.
+- **Cohorts rotate** (founder, 2026-10-20). `MARCH_PROGRAM` becomes `PROGRAM`
+  (what every cohort includes) plus `COHORTS`, one entry per upcoming SAT date
+  with start, test date, seats, price and enrollment close. The SAT runs about
+  seven times a year (none in January, February, April or July), so "a new
+  cohort before every test date", never "monthly". Past cohorts drop off
+  automatically; the site never shows a date that has passed.
 
 ## 3. Visual system
 
@@ -96,13 +103,13 @@ pure white, pill buttons, shadows or checkmark bullets.
 | `surface`                 | #fbf9f4                     | #19212b                     | Panels                                  |
 | `line`                    | #dcd5c6                     | #2f3a48                     | Hairlines, borders                      |
 | `ink` / `ink-2` / `ink-3` | #15202e / #434c5a / #5a616d | #ede8de / #c2c8d0 / #a3abb5 | Text tiers                              |
-| `program`                 | #1e5b4b                     | #7cc4a5                     | The March Program (evergreen)           |
+| `program`                 | #1e5b4b                     | #7cc4a5                     | The SAT Program (evergreen)             |
 | `private`                 | #7b2d35                     | #e3959c                     | Private 1:1 (oxblood)                   |
 | `free`                    | #85570c                     | #e2b867                     | Free tools (ochre)                      |
 | `wrong`                   | #a8432f                     | #ee9a86                     | Incorrect answers only                  |
 | `band`                    | #15202e                     | #0b0f14                     | Footer and dark bands                   |
 
-Small uppercase labels appear only to name a product (The March Program,
+Small uppercase labels appear only to name a product (The SAT Program,
 Private 1:1, Free practice test) in that product's colour. No generic section
 labels above headings; the heading carries the section.
 
@@ -153,21 +160,22 @@ by a script in CI (section 9), not by eye.
 
 ### URL map
 
-| URL                                          | Page                                                  | Replaces                                            |
-| -------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------- |
-| `/`                                          | Home (the approved mockup)                            | `/`                                                 |
-| `/programs/march-sat`                        | The March SAT Program                                 | part of `/plans`                                    |
-| `/private-tutoring`                          | Private 1:1                                           | part of `/plans`                                    |
-| `/pricing`                                   | Two paths side by side                                | `/plans`                                            |
-| `/free-practice-test`                        | The December 12 test and monthly dates                | none                                                |
-| `/diagnostic`                                | Diagnostic intro, then the existing test              | `/free-diagnostic`                                  |
-| `/daily`                                     | Daily Question and word game, free, no account needed | public part of `/learn/daily`                       |
-| `/question-bank`                             | Public preview of the bank                            | `/questions`                                        |
-| `/guarantee`                                 | The 50-point guarantee and its terms                  | `/guarantee`                                        |
-| `/about`                                     | Zakaria, the method, the mission                      | `/about`                                            |
-| `/faq`                                       | FAQ with FAQPage schema                               | `/faq`                                              |
-| `/terms`, `/privacy`, `/cookies`, `/refunds` | Legal                                                 | `/terms`, `/privacy`, `/refunds`; `/cookies` is new |
-| `/sign-in`, `/sign-up`                       | Clerk, restyled                                       | `/auth/sign-in`, `/auth/sign-up`                    |
+| URL                                          | Page                                                                        | Replaces                                            |
+| -------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------- |
+| `/`                                          | Home (the approved mockup)                                                  | `/`                                                 |
+| `/program`                                   | The SAT Program: one evergreen page, upcoming cohorts listed from `COHORTS` | part of `/plans`                                    |
+| `/program/<test-date>`                       | One cohort (e.g. `/program/2027-03-06`): dates, seats, schedule, deposit    | none                                                |
+| `/private-tutoring`                          | Private 1:1                                                                 | part of `/plans`                                    |
+| `/pricing`                                   | Two paths side by side                                                      | `/plans`                                            |
+| `/free-practice-test`                        | The December 12 test and monthly dates                                      | none                                                |
+| `/diagnostic`                                | Diagnostic intro, then the existing test                                    | `/free-diagnostic`                                  |
+| `/daily`                                     | Daily Question and word game, free, no account needed                       | public part of `/learn/daily`                       |
+| `/question-bank`                             | Public preview of the bank                                                  | `/questions`                                        |
+| `/guarantee`                                 | The 50-point guarantee and its terms                                        | `/guarantee`                                        |
+| `/about`                                     | Zakaria, the method, the mission                                            | `/about`                                            |
+| `/faq`                                       | FAQ with FAQPage schema                                                     | `/faq`                                              |
+| `/terms`, `/privacy`, `/cookies`, `/refunds` | Legal                                                                       | `/terms`, `/privacy`, `/refunds`; `/cookies` is new |
+| `/sign-in`, `/sign-up`                       | Clerk, restyled                                                             | `/auth/sign-in`, `/auth/sign-up`                    |
 
 Removed outright, with 301 redirects so no old link breaks: `/plans` to
 `/pricing`, `/free-diagnostic` to `/diagnostic`, `/questions` to
@@ -208,8 +216,10 @@ answered right before each call to action, and a closing call to action.
   how the nine weeks run, who teaches with the labelled results, the two paths
   without prices, free tools, what parents see, questions (cost appears here),
   a free closing step. Footer with Terms, Privacy and Cookie Policy.
-- **The March Program:** hero with the program video, the five inclusions from
-  `MARCH_PROGRAM.includes`, a week-by-week schedule, the mistake-review demo,
+- **The SAT Program:** the page is evergreen and never names one month in its
+  title. Hero with the program video, a cohort picker (every upcoming SAT date
+  with its start date, seats left and enrollment close), the inclusions from
+  `PROGRAM.includes`, a week-by-week schedule, the mistake-review demo,
   seat count (5 + 1 scholarship, real numbers only), guarantee, intake honesty
   note (`INTAKE_NOTE`), deposit button, FAQ.
 - **Private 1:1:** founder photo, how a session runs, Private 10 and Private 20,
