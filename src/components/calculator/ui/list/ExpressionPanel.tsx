@@ -104,6 +104,9 @@ function ToolButton(props: ToolButtonProps): JSX.Element {
       aria-pressed={props.pressed}
       aria-disabled={props.disabled}
       data-tool={props.tool}
+      // The reference's toolbar buttons never take focus on press, so a click keeps the row being
+      // edited focused; Tab and Enter still reach and activate them.
+      onMouseDown={(e) => e.preventDefault()}
       onClick={props.onClick}
       {...tip.handlers}
     >
@@ -275,7 +278,8 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
       // the reference look.
       {...inputMark}
     >
-      {listState === "collapsed" && (
+      {/* Mounted on the collapse's first frame, so its delayed fade-in starts with the slide. */}
+      {(listState === "collapsed" || listState === "collapsing") && (
         <ToolButton
           label="Expand list"
           tooltip="Show List"

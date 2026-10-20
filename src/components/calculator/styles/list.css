@@ -27,13 +27,22 @@
   pointer-events: none;
 }
 
-/* RS-3: stacked, the list sits under the graph behind a 1 px top rule. */
+/* RS-3: stacked, the list sits under the graph behind a 1 px top rule, and its 4 px shadow strip
+   falls upward onto the graph (phone-375). */
 .kc-list-panel[data-layout="stacked"] {
   border-top: 1px solid var(--kc-rule);
   border-right: none;
 }
 
-.kc-list-panel[data-layout="stacked"]::after,
+.kc-list-panel[data-layout="stacked"]::after {
+  top: -5px;
+  bottom: auto;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to top, var(--kc-panel-shadow), transparent);
+}
+
 .kc-list-panel:is([data-list-state="collapsed"], [data-list-state="collapsing"])::after {
   content: none;
 }
@@ -376,18 +385,22 @@
   margin-bottom: 2px;
 }
 
-/* EL-36: 5 px from "add slider:" to the first button (with the 3 px gap). */
+/* EL-36: 5 px from "add slider:" to the first button (with the 3 px gap); error-1440: the label's
+   baseline sits a pixel below the buttons' line. */
 .kc-add-slider-label {
+  position: relative;
+  top: 1px;
   margin-right: 2px;
 }
 
-/* EL-36: 35 by 26 letter buttons on a light gradient; one undefined letter, and "all", are blue. */
+/* EL-36: 35 by 26 letter buttons on a light gradient that cools toward the bottom (#f6f6f6 to
+   #eff2f3) behind a lighter border; one undefined letter, and "all", are blue. */
 .kc-letter-button,
 .kc-row-hint-action {
   min-width: 35px;
   height: 26px;
   padding: 0 4px;
-  border: 1px solid var(--kc-row-rule);
+  border: 1px solid var(--kc-letter-border);
   border-radius: var(--kc-radius-small);
   background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
   box-shadow:
@@ -479,6 +492,7 @@
   height: 54px;
   margin-top: -1px;
   border-top: 1px solid var(--kc-row-rule);
+  border-right: 1px solid transparent; /* as a row's, so the rule stops short of the panel edge */
   cursor: text;
 }
 

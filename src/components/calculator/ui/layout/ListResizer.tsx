@@ -3,7 +3,8 @@
 // the list width live (no transition), keeping the distance between the pointer and the panel edge
 // it had at the grab, so the edge never jumps on the first move; clamped to 320 px and the container
 // width minus 200 px; the dragged width is kept when the container later resizes (re-clamped, never
-// replaced by the clamp() default). Karman addition: the strip is a focusable separator that the
+// replaced by the default). The default and the dragged width both snap to the width that leaves a
+// square graph when they come within 10 px of it, as the reference's do. Karman addition: the strip is a focusable separator that the
 // arrow keys (10 px, 50 px with Shift), Home and End move.
 
 import {
@@ -17,6 +18,7 @@ import {
 
 export const MIN_LIST_WIDTH = 320;
 const GRAPH_ROOM = 200;
+const SQUARE_SNAP = 10;
 const STEP = 10;
 const BIG_STEP = 50;
 
@@ -25,17 +27,29 @@ export function clampListWidth(width: number, containerWidth: number): number {
   return Math.round(Math.min(max, Math.max(MIN_LIST_WIDTH, width)));
 }
 
-/** EL-1: the default width, tokens.css's clamp(320px, 160px + 20%, 500px). */
+/** EL-1: the default width, clamp(320px, 160px + 20%, 500px) of the container. */
 export function defaultListWidth(containerWidth: number): number {
   return Math.min(500, Math.max(MIN_LIST_WIDTH, 160 + 0.2 * containerWidth));
 }
 
-/** The dragged width (null until the first drag) and the style that applies it to .kc-app. */
-export function useListWidth(containerWidth: number) {
+/** The width that leaves the graph square when `width` is within 10 px of it, else `width`. */
+export function snapSquare(width: number, containerWidth: number, graphHeight: number): number {
+  const square = containerWidth - graphHeight;
+  return Math.abs(square - width) <= SQUARE_SNAP ? square : width;
+}
+
+/**
+ * The list width (the dragged one, null until the first drag, or the default, either snapped to a
+ * square graph) and the style that applies it to .kc-app. The graph keeps the calculator's full
+ * height in the side-by-side layout (the keypad covers it), so its height is the container's.
+ */
+export function useListWidth(containerWidth: number, graphHeight: number) {
   const [dragged, setDragged] = useState<number | null>(null);
-  const width = dragged === null ? null : clampListWidth(dragged, containerWidth);
-  const style = width === null ? undefined : ({ "--kc-list-width": `${width}px` } as CSSProperties);
-  return { width: width ?? defaultListWidth(containerWidth), setWidth: setDragged, style };
+  const base =
+    dragged === null ? defaultListWidth(containerWidth) : clampListWidth(dragged, containerWidth);
+  const width = snapSquare(base, containerWidth, graphHeight);
+  const style = { "--kc-list-width": `${width}px` } as CSSProperties;
+  return { width, setWidth: setDragged, style };
 }
 
 export function ListResizer(props: {

@@ -19,7 +19,7 @@ it("S-2 Add item is a menu button whose menu holds Add expression then Add table
   const items = within(menu()!).getAllByRole("menuitem");
   expect(items.map((i) => i.getAttribute("aria-label"))).toEqual(["Add expression", "Add table"]);
   expect(items.map((i) => i.textContent)).toEqual(["f(x)expression", "table"]);
-  expect(items[0]).toHaveFocus();
+  expect(items[0]).not.toHaveFocus(); // a mouse open leaves focus where it was (the keyboard: S-10)
   await userEvent.setup().click(addItem());
   expect(menu()).toBeNull();
 });

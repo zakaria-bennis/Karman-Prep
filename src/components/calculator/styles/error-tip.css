@@ -64,6 +64,20 @@
   animation: kc-error-tip-in var(--kc-dur-300) var(--kc-ease);
 }
 
+/* menus-error-pinned-1440: a clicked marker pins its tip and the box turns black. */
+.kc-error-tip[data-pinned="true"] {
+  background: var(--kc-tooltip);
+}
+
+.kc-error-tip[data-pinned="true"]::before {
+  border-bottom-color: var(--kc-tooltip);
+}
+
+.kc-error-tip[data-pinned="true"][data-side="above"]::before {
+  border-top-color: var(--kc-tooltip);
+  border-bottom-color: transparent;
+}
+
 .kc-error-tip[hidden] {
   display: none;
 }

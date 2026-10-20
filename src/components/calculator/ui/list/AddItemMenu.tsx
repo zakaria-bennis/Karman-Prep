@@ -1,5 +1,6 @@
 // The Add item menu (S-2, S-10 to S-13; drawn as EL-42, EL-43): a menu button whose menu holds Add
-// expression and Add table only (owner decision 3: no inference item; CB-1: no notes, folders or images). The
+// expression and Add table only (owner decision 3: no inference item; CB-1: no notes, folders or
+// images; known deviation D6 from the reference's six items). The
 // menu-button keyboard pattern with Home and End (S-10), placement below the button on the desktop
 // layout and to its right on the stacked one (S-11), insertion after the last active row (S-12)
 // and an announcement of what was added (S-13). Escape closes it as one KB-3 layer.
@@ -48,14 +49,16 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
     if (refocus) button.current?.focus();
   };
 
-  // S-10: the first item takes focus as the menu opens.
+  /** Opened from the keyboard: only then does the first item take focus (S-10). A mouse open
+   *  leaves focus where it was (the row being edited), as the reference's menu does. */
+  const byKey = useRef(false);
   useEffect(() => {
-    if (open) items.current[0]?.focus();
+    if (open && byKey.current) items.current[0]?.focus();
   }, [open]);
-  // KB-3: Escape closes the menu and returns focus to Add item.
+  // KB-3: Escape closes the menu and returns focus to Add item when the keyboard opened it.
   useEffect(() => {
     if (!open || escape === null) return;
-    return escape.push({ id: "add-item-menu", close: () => close(true) });
+    return escape.push({ id: "add-item-menu", close: () => close(byKey.current) });
   }, [open, escape]);
   // S-10: a press outside closes the menu and still reaches its target.
   useEffect(() => {
@@ -81,6 +84,7 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
   const onButtonKey = (e: KeyboardEvent) => {
     if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
       e.preventDefault();
+      byKey.current = true;
       setOpen(true);
     }
   };
@@ -118,7 +122,12 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
         aria-label="Add item"
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        // As the reference's toolbar buttons, a mouse press does not take focus from the row.
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={(e) => {
+          byKey.current = e.detail === 0;
+          setOpen((o) => !o);
+        }}
         onKeyDown={onButtonKey}
         {...tip.handlers}
       >

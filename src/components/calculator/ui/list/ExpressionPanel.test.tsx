@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "@/lib/calculator/core/latex/limits";
@@ -34,6 +34,15 @@ it("KB-2 Undo and Redo follow Add item (and the stacked mouse Keypad toggle) and
     rows: [""],
   });
   expect(toolbarNames()).toEqual(["Add item", "Undo", "Redo", "Edit list", "Collapse list"]);
+});
+
+it("toolbar buttons never take focus on a mouse press, so the row being edited keeps it", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
+  act(() => kit.focus.focusRow("1", "end"));
+  for (const name of ["Add item", "Undo", "Redo", "Edit list", "Collapse list"]) {
+    // fireEvent returns false when a handler called preventDefault, which keeps focus in place.
+    expect(fireEvent.mouseDown(screen.getByRole("button", { name })), name).toBe(false);
+  }
 });
 
 it("KB-2 typing in one row is one undo step until 1,000 ms without edits or a focus change", async () => {

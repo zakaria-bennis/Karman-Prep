@@ -18,8 +18,8 @@
   --kc-size-slider-letter: 15.64px;
   --kc-size-slider-word: 13.6px;
 
-  /* Geometry */
-  --kc-list-width: clamp(320px, calc(160px + 20%), 500px);
+  /* Geometry; the list width is set inline on .kc-app by useListWidth (EL-1 default, square snap) */
+  --kc-list-width: 320px;
   --kc-toolbar-h: 48px;
   --kc-tool-size: 40px;
   --kc-gutter: 38px;
@@ -44,7 +44,7 @@
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);
-  --kc-row-rule: color-mix(in srgb, var(--kc-text) 15.5%, transparent);
+  --kc-row-rule: color-mix(in srgb, var(--kc-text) 15.2%, transparent); /* rgba(206,206,206,0.8) */
   --kc-tab: color-mix(in srgb, var(--kc-text) 6.7%, var(--kc-list));
   --kc-tab-rule: color-mix(in srgb, var(--kc-text) 6%, transparent);
   --kc-toolbar-top: color-mix(in srgb, var(--kc-text) 1.2%, var(--kc-list));
@@ -59,7 +59,12 @@
   --kc-panel-shadow: color-mix(in srgb, var(--kc-text) 10%, transparent);
   --kc-tooltip-error: var(--kc-text-secondary);
   --kc-letter-top: color-mix(in srgb, var(--kc-text) 3.5%, var(--kc-list));
-  --kc-letter-bottom: color-mix(in srgb, var(--kc-text) 5.5%, var(--kc-list));
+  --kc-letter-bottom: color-mix(
+    in srgb,
+    var(--kc-accent) 1.5%,
+    color-mix(in srgb, var(--kc-text) 4.5%, var(--kc-list))
+  );
+  --kc-letter-border: color-mix(in srgb, var(--kc-text) 12.5%, transparent);
   --kc-pill: color-mix(in srgb, var(--kc-text) 7%, var(--kc-list));
   --kc-pill-pressed: color-mix(in srgb, var(--kc-text) 9%, var(--kc-list));
   --kc-pill-border: color-mix(in srgb, var(--kc-text) 10%, transparent);

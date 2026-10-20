@@ -31,7 +31,7 @@ it("R-5 a numeric row shows its value below the math with NM-1, NM-2 and T-10 di
 
 const SYNTAX_MESSAGE = "This can't be read. Check for a missing bracket or operator.";
 
-it("R-2 an error row shows the warning marker in place of the tab, with a tooltip that opens on hover, focus and tap and closes on leave, blur, Escape and a press outside; the message is the textbox's description", async () => {
+it("R-2 an error row shows the warning marker in place of the tab, with a tooltip that opens on hover and focus, closes on leave, blur and Escape, and is pinned by a click or tap until a second one or a press outside; the message is the textbox's description", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=2+"] });
   const ids = rowDomIds("1");
   const row = rowItem("1");
@@ -76,15 +76,24 @@ it("R-2 an error row shows the warning marker in place of the tab, with a toolti
   expect(screen.queryByRole("tooltip")).toBeNull();
   expect(kit.escape.handleEscape()).toBe(false); // no layer left behind
 
+  // Mouse: a click pins it (black, as the reference's), so leaving no longer closes it.
+  await user.click(marker);
+  expect(screen.getByRole("tooltip")).toHaveAttribute("data-pinned", "true");
+  await user.unhover(marker);
+  expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  fireEvent.pointerDown(document.body, { pointerType: "mouse" });
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  act(() => marker.blur());
+
   // Touch: a tap toggles it; a press outside closes it.
   fireEvent.pointerDown(marker, { pointerType: "touch" });
-  fireEvent.click(marker);
+  fireEvent.click(marker, { detail: 1 });
   expect(screen.getByRole("tooltip")).toBeInTheDocument();
   fireEvent.pointerDown(marker, { pointerType: "touch" });
-  fireEvent.click(marker);
+  fireEvent.click(marker, { detail: 1 });
   expect(screen.queryByRole("tooltip")).toBeNull();
   fireEvent.pointerDown(marker, { pointerType: "touch" });
-  fireEvent.click(marker);
+  fireEvent.click(marker, { detail: 1 });
   expect(screen.getByRole("tooltip")).toBeInTheDocument();
   fireEvent.pointerDown(document.body, { pointerType: "touch" });
   expect(screen.queryByRole("tooltip")).toBeNull();

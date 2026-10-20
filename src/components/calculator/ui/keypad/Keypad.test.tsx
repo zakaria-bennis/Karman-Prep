@@ -126,6 +126,15 @@ it("KB-13 Show and Hide keypad from the keyboard keep focus on the control that 
   expect(screen.getByRole("button", { name: "Show keypad" })).toHaveFocus();
 });
 
+it("VIS-KEYPAD-37 a mouse click on Show keypad opens it onto the first row", async () => {
+  const kit = renderEditor(<StatefulKeypad initialOpen={false} />, { rows: ["", "y=x"] });
+  const focusRow = vi.spyOn(kit.focus, "focusRow");
+  await userEvent.setup().click(screen.getByRole("button", { name: "Show keypad" }));
+  expect(screen.getByRole("region", { name: "Keypad" })).toHaveAttribute("data-open", "true");
+  expect(focusRow).toHaveBeenCalledWith(kit.engine.getSnapshot().rows[0].id, "end");
+  expect(screen.getByRole("button", { name: "Hide keypad" })).not.toHaveFocus();
+});
+
 it("KB-13 Escape with focus on a key closes the keypad and focuses Show keypad", () => {
   const kit = renderEditor(<StatefulKeypad initialOpen />, { rows: [""] });
   screen.getByRole("button", { name: "Pi" }).focus();

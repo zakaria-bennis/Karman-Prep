@@ -3,16 +3,26 @@
 // filled single-colour shape in currentColor on a 24-unit box, drawn here from plain geometry to
 // the sizes measured on the reference calculator (typography-icons VIS-50, VIS-51). Each is
 // aria-hidden: the control around it carries the name.
+//
+// Provenance: every shape here is plain geometry chosen from the written descriptions (a sine, a
+// circular arc, a cross, a gear built in gearPath, rectangles). None is traced or curve-fitted to the
+// reference's icon pixels; only overall sizes and offsets were compared against screenshots.
 
 import type { JSX, ReactNode } from "react";
 
-function Glyph(props: { size: number; className?: string; children: ReactNode }): JSX.Element {
+function Glyph(props: {
+  size: number;
+  className?: string;
+  overflow?: boolean; // ink may reach past the 24-unit box (a half-pixel offset)
+  children: ReactNode;
+}): JSX.Element {
   return (
     <svg
       className={props.className ?? "kc-glyph"}
       width={props.size}
       height={props.size}
       viewBox="0 0 24 24"
+      overflow={props.overflow === true ? "visible" : undefined}
       aria-hidden="true"
       focusable="false"
     >
@@ -21,32 +31,38 @@ function Glyph(props: { size: number; className?: string; children: ReactNode })
   );
 }
 
-/** A solid cross with square ends, arms about 22% of the box thick. */
+/** A cross with rounded ends, arms about 22% of the box thick, centred a quarter pixel down-right. */
 export function AddGlyph(props: { size?: number }): JSX.Element {
   return (
-    <Glyph size={props.size ?? 17.6}>
-      <path d="M9.6 0h4.8v9.6H24v4.8h-9.6V24H9.6v-9.6H0V9.6h9.6z" fill="currentColor" />
-    </Glyph>
-  );
-}
-
-/**
- * A solid right-angled head at the lower left with a curved shaft that arches over and tapers to a
- * thin, raised tip at the right; redo is the mirror image.
- */
-export function UndoGlyph(props: { size?: number; redo?: boolean }): JSX.Element {
-  return (
-    <Glyph size={props.size ?? 21.12}>
+    <Glyph size={props.size ?? 17.6} overflow>
       <path
-        d="M0.2 6.4V17.5H11.9L8 13.9C11.3 9.2 17.2 5.8 23.9 10.1L24 9.7C21.5 5.9 16.3 3.6 12.5 4.8C9.2 5.7 6.3 7 4.4 9.9Z"
-        fill="currentColor"
-        transform={props.redo === true ? "matrix(-1 0 0 1 24 0)" : undefined}
+        d="M12.34 3.4V21.3M3.4 12.34H21.3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={5.28}
+        strokeLinecap="round"
       />
     </Glyph>
   );
 }
 
-/** An eight-tooth gear with square teeth and a round hole about 30% of its width. */
+/**
+ * VIS-50.3: a solid right-angled triangle head at the lower left, about 45% of the box tall, and a
+ * shaft that is a circular arc (radius 11, stroke 3.8, about 16% of the box) rising from the head
+ * over to the right; redo is the mirror image.
+ */
+export function UndoGlyph(props: { size?: number; redo?: boolean }): JSX.Element {
+  return (
+    <Glyph size={props.size ?? 21.12}>
+      <g transform={props.redo === true ? "matrix(-1 0 0 1 24 0)" : undefined}>
+        <path d="M0.5 6.5V17.5H11.5Z" fill="currentColor" />
+        <path d="M5 13A11 11 0 0 1 23 10" fill="none" stroke="currentColor" strokeWidth={3.8} />
+      </g>
+    </Glyph>
+  );
+}
+
+/** An eight-tooth gear with square teeth and a round hole about 35% of its width. */
 function gearPath(): string {
   const teeth = 8;
   const outer = 12;
@@ -67,7 +83,7 @@ function gearPath(): string {
     const next = ((i + 1) * 2 * Math.PI) / teeth;
     parts.push(`A${inner} ${inner} 0 0 1 ${pt(inner, next - base)}`);
   }
-  const hole = 3.6;
+  const hole = 4.2;
   return `${parts.join("")}Z M${12 + hole} 12a${hole} ${hole} 0 1 0 ${-2 * hole} 0a${hole} ${hole} 0 1 0 ${2 * hole} 0Z`;
 }
 const GEAR = gearPath();
@@ -104,10 +120,10 @@ export function RemoveGlyph(props: { size?: number }): JSX.Element {
   return (
     <Glyph size={props.size ?? 18.4}>
       <path
-        d="M1.6 1.6L22.4 22.4M22.4 1.6L1.6 22.4"
+        d="M1.6 0.95L22.4 21.75M22.4 0.95L1.6 21.75"
         fill="none"
         stroke="currentColor"
-        strokeWidth={4.9}
+        strokeWidth={5.1}
       />
     </Glyph>
   );
@@ -116,25 +132,23 @@ export function RemoveGlyph(props: { size?: number }): JSX.Element {
 /** The kind glyph inside a row's colour icon; drawn white over the row colour. */
 export type KindGlyph = "wave" | "point" | "region" | "region-strict";
 
+/** A plain sampled sine, x from 0 to 24 in 1-unit steps (period 20, amplitude 6). */
+const WAVE = Array.from({ length: 25 }, (_, x) => {
+  const y = 12 - 6 * Math.sin((2 * Math.PI * (x - 1)) / 20);
+  return `${x === 0 ? "M" : "L"}${x} ${y.toFixed(2)}`;
+}).join("");
+
 export function ColourKindGlyph(props: { kind: KindGlyph | null }): JSX.Element | null {
   if (props.kind === null) return null; // Edit list mode: a plain filled circle (EL-45)
   let body: JSX.Element;
   if (props.kind === "wave") {
-    // One period of a sine-like stroke: in low just inside the left edge, a high narrow crest, a
-    // trough two thirds across, then a steep climb out at the top right.
-    body = (
-      <path
-        d="M0.5 17.3C3.3 10.8 4.9 5.9 7.5 5.9C10.1 5.9 13.2 18.7 16.7 18.7C18.9 18.7 21 11.3 23.5 6.9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={3.6}
-      />
-    );
+    // VIS-51.9: a bold sine crossing the circle, one period of y = 12 - 6 sin(2 pi (x - 1) / 20).
+    body = <path d={WAVE} fill="none" stroke="currentColor" strokeWidth={3.6} />;
   } else if (props.kind === "point") {
     body = <circle cx={12} cy={12} r={3.1} fill="currentColor" />;
   } else {
-    // A half-tinted disc split by the boundary; a strict boundary is a thinner dashed line, two
-    // whole dashes about the centre and a short one cut by the rim at the top right.
+    // A half-tinted disc split by the boundary; a strict boundary is a thinner line of 6-unit
+    // dashes with 4-unit gaps.
     const strict = props.kind === "region-strict";
     body = (
       <>
@@ -144,8 +158,7 @@ export function ColourKindGlyph(props: { kind: KindGlyph | null }): JSX.Element 
           fill="none"
           stroke="currentColor"
           strokeWidth={strict ? 2.4 : 2.8}
-          strokeDasharray={strict ? "5.8 3.9" : undefined}
-          strokeDashoffset={strict ? 0.7 : undefined}
+          strokeDasharray={strict ? "6 4" : undefined}
         />
       </>
     );
@@ -154,55 +167,56 @@ export function ColourKindGlyph(props: { kind: KindGlyph | null }): JSX.Element 
 }
 
 /**
- * KP-32: the Show keypad glyph, a rounded keyboard outline with two rows of keys and a space bar,
- * its ink 28 by 17 px; the stacked list toolbar's Keypad toggle draws it 22 px wide.
+ * KP-32: the Show keypad glyph, a rounded keyboard outline 28 by 18 with thin (1.5) sides, two rows
+ * of separate keys about 2.5 px square on a 4 px pitch (five, then four) and an 11 px space bar; the stacked list
+ * toolbar's Keypad toggle draws it 22 px wide.
  */
 export function KeyboardGlyph(props: { width?: number }): JSX.Element {
   const width = props.width ?? 28;
   const keys: JSX.Element[] = [];
   for (let i = 0; i < 5; i++)
-    keys.push(<rect key={`a${i}`} x={5.6 + i * 3.6} y={4.6} width={2.4} height={2.4} />);
+    keys.push(<rect key={`a${i}`} x={5.2 + i * 4} y={4.2} width={2.6} height={2.6} />);
   for (let i = 0; i < 4; i++)
-    keys.push(<rect key={`b${i}`} x={7.4 + i * 3.6} y={8.2} width={2.4} height={2.4} />);
+    keys.push(<rect key={`b${i}`} x={7.2 + i * 4} y={8.2} width={2.6} height={2.6} />);
   return (
     <svg
       className="kc-glyph"
       width={width}
-      height={(width * 17) / 28}
-      viewBox="0 0 28 17"
+      height={(width * 18) / 28}
+      viewBox="0 0 28 18"
       aria-hidden="true"
       focusable="false"
     >
       <rect
-        x={1}
-        y={1}
-        width={26}
-        height={15}
+        x={0.75}
+        y={0.75}
+        width={26.5}
+        height={16.5}
         rx={2.5}
         fill="none"
         stroke="currentColor"
-        strokeWidth={2}
+        strokeWidth={1.5}
       />
       <g fill="currentColor">
         {keys}
-        <rect x={9.2} y={11.8} width={9.6} height={1.8} />
+        <rect x={9} y={12.2} width={11} height={2.4} />
       </g>
     </svg>
   );
 }
 
-/** KP-32: the small filled triangle beside the keyboard, pointing up, 12 by 6 px. */
+/** KP-32: the small filled triangle beside the keyboard, pointing up, 12 by 7 px. */
 export function CaretUpGlyph(): JSX.Element {
   return (
     <svg
       className="kc-glyph"
       width={12}
-      height={6}
-      viewBox="0 0 12 6"
+      height={7}
+      viewBox="0 0 12 7"
       aria-hidden="true"
       focusable="false"
     >
-      <path d="M0 6L6 0L12 6Z" fill="currentColor" />
+      <path d="M0 7L6 0L12 7Z" fill="currentColor" />
     </svg>
   );
 }
@@ -231,22 +245,23 @@ export function RegressionGlyph(props: { size?: number }): JSX.Element {
   );
 }
 
-/** EL-43: the Add item menu's table glyph, an outlined 3-row, 2-column grid (24 by 20 px). */
+/** EL-43, VIS-52: the Add item menu's table glyph, a 3-column by 4-row grid with a solid header
+ *  row (25 by 22 px). */
 export function TableItemGlyph(): JSX.Element {
   return (
     <svg
       className="kc-glyph"
-      width={24}
-      height={20}
-      viewBox="0 0 24 20"
+      width={25}
+      height={22}
+      viewBox="0 0 25 22"
       aria-hidden="true"
       focusable="false"
     >
-      <g fill="none" stroke="currentColor" strokeWidth={1.4}>
-        <rect x={1.5} y={1.5} width={21} height={17} />
-        <path d="M1.5 7.2H22.5M1.5 12.9H22.5M12 7.2V18.5" />
+      <rect x={0.5} y={0.5} width={24} height={6} fill="currentColor" />
+      <g fill="none" stroke="currentColor" strokeWidth={1}>
+        <rect x={0.5} y={0.5} width={24} height={21} />
+        <path d="M0.5 11.5H24.5M0.5 16.5H24.5M8.5 6.5V21.5M16.5 6.5V21.5" />
       </g>
-      <rect x={1.5} y={1.5} width={21} height={5.7} fill="currentColor" opacity={0.35} />
     </svg>
   );
 }

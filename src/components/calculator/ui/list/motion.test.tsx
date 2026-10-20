@@ -57,6 +57,8 @@ it("AN-3, EL-49 Collapse list and Expand list flip expressionsCollapsed at once 
   fireEvent.click(screen.getByRole("button", { name: "Collapse list" }));
   expect(panel).toHaveAttribute("data-list-state", "collapsing");
   expect(kit.engine.settings.expressionsCollapsed).toBe(true); // the graph resizes on frame 1
+  // Expand list mounts on the first frame, so its delayed fade-in starts with the slide.
+  expect(screen.getByRole("button", { name: "Expand list" })).not.toHaveFocus();
   act(() => vi.advanceTimersByTime(199));
   expect(panel).toHaveAttribute("data-list-state", "collapsing");
   act(() => vi.advanceTimersByTime(1));

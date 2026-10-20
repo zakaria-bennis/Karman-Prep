@@ -1,8 +1,9 @@
 // The warning marker of a row, a table cell or a column header, and its tooltip (R-2, D-6, D-10;
 // founder decision 2026-10-18 to match Desmos). The marker is a button that stands where the colour
 // tab would; the message is a role="tooltip" element below it that opens at once on pointer hover
-// and on keyboard focus, toggles on a tap, and closes on pointer leave, blur, Escape (one KB-3
-// layer) and a press outside. The tooltip element always exists, hidden while closed, so the id the
+// and on keyboard focus, and closes on pointer leave and blur. A click or tap pins it, drawn black
+// as the reference's pinned tip is, until a second click, Escape (one KB-3 layer) or a press
+// outside. The tooltip element always exists, hidden while closed, so the id the
 // field's aria-describedby names resolves for assistive technology (A11Y-3).
 //
 // A row's `.kc-row-inner` clips overflow, so the tooltip is portalled into the calculator root
@@ -64,6 +65,8 @@ function place(tip: HTMLElement, marker: HTMLElement, layer: Element): void {
 export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Element {
   const escape = useContext(EscapeContext);
   const [open, setOpen] = useState(false);
+  /** Pinned by a click or tap: pointer leave and blur no longer close it. */
+  const [pinned, setPinned] = useState(false);
   const [layer, setLayer] = useState<Element | null>(null);
   const markerRef = useRef<HTMLButtonElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -75,7 +78,10 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
     setLayer(marker.closest(".kc-app") ?? marker.parentElement);
   }, []);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    setOpen(false);
+    setPinned(false);
+  }, []);
   usePopupDismiss(
     open && layer !== null,
     "error-tooltip",
@@ -102,7 +108,14 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
   const touch = (e: PointerEvent) => e.pointerType === "touch";
 
   const tooltip = (
-    <div ref={tipRef} className="kc-error-tip" role="tooltip" id={id} hidden={!open}>
+    <div
+      ref={tipRef}
+      className="kc-error-tip"
+      role="tooltip"
+      id={id}
+      hidden={!open}
+      data-pinned={pinned ? "true" : undefined}
+    >
       {message}
     </div>
   );
@@ -123,17 +136,20 @@ export function ErrorMarker({ id, message, variant }: ErrorMarkerProps): JSX.Ele
           if (!touch(e)) setOpen(true);
         }}
         onPointerLeave={(e) => {
-          if (!touch(e)) setOpen(false);
+          if (!touch(e) && !pinned) setOpen(false);
         }}
         onFocus={() => {
           if (pressRef.current !== "touch") setOpen(true); // a tap's click toggles instead
         }}
         onBlur={() => {
           pressRef.current = "";
-          setOpen(false);
+          if (!pinned) setOpen(false);
         }}
-        onClick={() => {
-          if (pressRef.current === "touch") setOpen((was) => !was);
+        onClick={(e) => {
+          if (e.detail === 0) return; // Enter or Space: focus already shows the tip
+          const pin = !pinned;
+          setPinned(pin);
+          setOpen(pin);
         }}
       >
         <WarningGlyph size={variant === "row" ? 22 : 16} />

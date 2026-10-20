@@ -213,6 +213,13 @@ export function Keypad(props: KeypadProps): JSX.Element {
   if (escape === null) throw new Error("Keypad must be used inside EscapeContext");
   if (focus === null) throw new Error("Keypad must be used inside FocusContext");
 
+  /** The row a mouse-opened keypad types into: the focused one, the last focused, else row 1. */
+  const focusKeypadRow = () => {
+    const { focusedRowId, rows } = engine.getSnapshot();
+    if (focusedRowId !== null) return;
+    const rowId = focus.lastFocusedRowId() ?? rows.find((row) => row.type !== "table")?.id;
+    if (rowId !== undefined) focus.focusRow(rowId, "end");
+  };
   const layout = keypadLayout(page, containerWidth, pointer, shift);
   const ctx: KeyContext = { engine, focus, announcer, doubleTap };
 
@@ -353,7 +360,14 @@ export function Keypad(props: KeypadProps): JSX.Element {
           aria-label="Show keypad"
           data-layout={layout.id}
           data-pointer={pointer}
-          onClick={() => studentOpenChange(true)}
+          onClick={(event) => {
+            // VIS-KEYPAD-37: a mouse click opens the keypad onto a row, as the reference's does;
+            // Enter or Space (detail 0) keeps focus on the toggle (WCAG 2.4.3).
+            if (event.detail === 0) return studentOpenChange(true);
+            focusAfter.current = null;
+            onOpenChange(true, "student");
+            focusKeypadRow();
+          }}
         >
           <KeyboardGlyph />
           <CaretUpGlyph />

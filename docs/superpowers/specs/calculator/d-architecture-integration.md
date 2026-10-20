@@ -144,7 +144,7 @@ viewport opens full screen.
 - **AR-26** Resizing the viewport across 1024 px wide or 500 px tall switches between floating or docked and full screen in both directions, keeping rows, undo history and the focused row. (Phase 1; verified by browser test)
 - **AR-27** Close and Minimize hide the window and keep the question's calculator content; Undock returns to floating at the last floating position; hiding restores the workspace width, removes inert, `aria-hidden` and the scroll lock, and returns focus to the opener or, if it is gone, to the toolbar Calculator button (TR-68, L-10) (`CalculatorScope.tsx:58-65`). (Phase 1; verified by browser test)
 - **AR-28** Full screen is an `aria-modal` dialog: the workspace is inert and `aria-hidden`, body scrolling is locked, and focus sentinels at both ends of the frame make Tab and Shift+Tab wrap (the start sentinel calls the facade's internal `focusBoundary("last")`, because a light-DOM query cannot see shadow content). (Phase 1; verified by browser test)
-- **AR-29** The calculator picks its internal layout from its own container size through a `ResizeObserver`, never from viewport media queries: L-1 when the container is at least 560 px wide and at least 1.2 times as wide as tall, L-2 otherwise (confirm by REA behaviour capture in Phase 1); a 461 px dock at 1024 px therefore shows L-2. (Phase 1; verified by component test)
+- **AR-29** The calculator picks its internal layout from its own container size through a `ResizeObserver`, never from viewport media queries: L-1 when the container is at least 450 px wide, at any height, L-2 otherwise (amended 2026-10-19: owner decision replaces the 560 px / 1.2-aspect rule). (Phase 1; verified by component test)
 
 ## 5. Lazy loading and bundle budgets
 

@@ -24,7 +24,7 @@ it("tokens.css declares the reference calculator's type, motion and geometry tok
     "--kc-size-list": "17.6px",
     "--kc-size-math": "20.24px",
     "--kc-size-row-index": "10.4px",
-    "--kc-list-width": "clamp(320px, calc(160px + 20%), 500px)",
+    "--kc-list-width": "320px",
     "--kc-toolbar-h": "48px",
     "--kc-gutter": "38px",
     "--kc-dur-hover": "0ms",

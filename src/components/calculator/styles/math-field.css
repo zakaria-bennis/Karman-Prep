@@ -5,13 +5,22 @@
 /* VIS-TYPOGRAPHY-ICONS-19: "=", "+", "<" and the other binary operators take a 23.8 px box at
    20.24 px. They stay in the math stack's upright Times (the reference's own fallback face, whose
    thin strokes match its operators on every platform), a tenth larger so "=" is 13 px wide with
-   its bars 4 px apart, padded out to the box and lowered onto the reference's line. */
+   its bars 4 px apart, padded out to the box and lowered onto the reference's line. A 1.11
+   vertical stretch puts the "=" bars on the reference's rows (typed-1440: y 79-80 and 83-84);
+   the face itself stays Times (Symbola's licence rules out bundling it). */
 .mq-math-mode .mq-binary-operator {
   position: relative;
   top: 2px;
+  transform: translateY(-0.4px) scaleY(1.11);
   padding: 0 0.2533em;
   font-size: 1.1em;
   line-height: 0.8182;
+}
+
+/* graph-points-1440: a unary minus (MathQuill drops its binary class, leaving class="") keeps
+   about 2 px of air on each side, as the reference's does: "(−3,−2)" is 69 px wide. */
+.mq-math-mode span[class=""] {
+  padding: 0 0.11em;
 }
 
 /* VIS-TYPOGRAPHY-ICONS-20: an exponent clears its base by a pixel and rises one above the vendored
@@ -32,15 +41,11 @@
   padding-top: calc(0.1em - 1px);
 }
 
-/* VIS-MOTION-24: the caret sits a pixel lower than the vendored one; right after an exponent it
-   reaches up past the exponent's raise, 24.5 px in all, as the reference's does. */
+/* VIS-MOTION-24: the caret sits a pixel lower than the vendored one and stays one line tall after
+   an exponent, as the reference's does (focused-1440: y 72 to 92). */
 .mq-editable-field .mq-cursor {
   top: 1px;
   border-left-color: var(--kc-text);
-}
-
-.mq-editable-field .mq-supsub + .mq-cursor {
-  padding-top: 3.8px;
 }
 
 /* VIS-MOTION-24: under reduced motion the caret stays on. MathQuill blinks it by toggling a class

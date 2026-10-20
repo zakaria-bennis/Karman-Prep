@@ -49,7 +49,7 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
 
   // K-12: the keys prevent mousedown (K-10); the region extends that to its other controls, such
   // as Show keypad. A touch tap's compatibility mousedown takes the same path.
-  const listWidth = useListWidth(props.containerWidth);
+  const listWidth = useListWidth(props.containerWidth, props.containerHeight ?? Infinity);
   const resizable = props.layout === "desktop" && !props.collapsed;
 
   const rowFocused = () => props.host.shadowRoot!.activeElement?.closest("[data-row-id]") != null;

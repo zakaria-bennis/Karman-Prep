@@ -273,7 +273,7 @@
 }
 
 .kc-add-menu[data-placement="below"] {
-  top: calc(100% + 11px);
+  top: calc(100% + 10px);
   left: -1px;
 }
 
@@ -365,8 +365,13 @@
   width: 30px;
 }
 
+/* The reference hides the Show keypad pill while the Add item menu is open. */
+.kc-app:has(.kc-add-menu) .kc-show-keypad {
+  visibility: hidden;
+}
+
 .kc-add-menu-fx {
   font-family: var(--kc-font-math);
-  font-size: 17px;
+  font-size: 18.5px;
   line-height: 24px;
 }
