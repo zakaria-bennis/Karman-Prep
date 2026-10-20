@@ -10,7 +10,7 @@ const server = await createServer({
   publicDir: path.join(root, "public"),
   server: {
     host: process.env.CALCULATOR_FIXTURE_HOST ?? "127.0.0.1",
-    port: 4318,
+    port: Number(process.env.CALCULATOR_FIXTURE_PORT ?? 4318),
     strictPort: true,
     fs: { allow: [root] },
   },
