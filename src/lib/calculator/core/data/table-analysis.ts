@@ -11,6 +11,7 @@ import { normalizeLatex, parseLatex } from "../latex/index";
 import type { ParsedRow } from "../analysis/definitions";
 import type { RowError, RowSource } from "../analysis/index";
 import { displayName, rowErrorMessage } from "../analysis/messages";
+import { arityError } from "../analysis/classify";
 import { collectNameUses, COORDINATE_NAMES } from "../analysis/names";
 import type { TableRegressionSpec } from "./table-regression";
 
@@ -145,7 +146,9 @@ export function syntheticRows(
     if (name === null || !definable(name)) return;
     const cells = [...t.cells[j]];
     while (cells.length > 0 && cells[cells.length - 1].blank) cells.pop(); // D-11: trailing blanks
-    const items = cells.map((cell) => (usableCell(cell, own, declared) ? cell.tree! : NAN));
+    const items = cells.map((cell) =>
+      usableCell(cell, own, declared, builtinArity) ? cell.tree! : NAN
+    );
     const span = ZERO_SPAN;
     const body: Node = { kind: "list", items, span };
     const tree: Node = {
@@ -165,12 +168,16 @@ export function syntheticRows(
   return out;
 }
 
+/** RC-20 for built-ins alone, before definitions resolve: user functions are checked later. */
+const builtinArity: ArityCheck = (tree) => arityError(tree, { functionArity: () => null });
+
 function usableCell(
   cell: ParsedCell,
   own: ReadonlySet<string>,
-  declared: ReadonlySet<string>
+  declared: ReadonlySet<string>,
+  arity: ArityCheck
 ): boolean {
-  return cell.tree !== null && cellError(cell, own, declared) === null;
+  return cell.tree !== null && cellError(cell, own, declared, arity) === null;
 }
 
 /**
@@ -186,14 +193,21 @@ function shapeError(tree: Node, texts: ShapeMessages = TABLE_MESSAGES): string |
   return tree.operands[0]?.kind === "call" ? texts.functionDefinition : texts.equation;
 }
 
+/** RC-20: a call's argument-count error in a cell or header tree, or null. */
+export type ArityCheck = (tree: Node) => RowError | null;
+
 function cellError(
   cell: ParsedCell,
   own: ReadonlySet<string>,
-  declared: ReadonlySet<string>
+  declared: ReadonlySet<string>,
+  arity: ArityCheck
 ): RowError | null {
   if (cell.error !== null || cell.tree === null) return cell.error;
   const shape = shapeError(cell.tree);
   if (shape !== null) return message("syntax", shape);
+  // Desmos marks a cell whose call has the wrong argument count (`\sin()`, 2026-10-20)
+  const count = arity(cell.tree);
+  if (count !== null) return count;
   for (const { name } of collectNameUses(cell.tree)) {
     // TABLES-13: the reference reads its own table's column names in a cell as undefined names.
     if (own.has(name) || (!declared.has(name) && !COORDINATE_NAMES.includes(name))) {
@@ -209,11 +223,12 @@ function cellError(
 export function analyzeTable(
   t: ParsedTable,
   names: readonly (string | null)[],
-  declared: ReadonlySet<string>
+  declared: ReadonlySet<string>,
+  arity: ArityCheck
 ): TableAnalysis {
   const own = new Set(names.filter((n): n is string => n !== null));
   const columns = t.headers.map((h, j): ColumnAnalysis => {
-    const cellErrors = t.cells[j].map((cell) => cellError(cell, own, declared));
+    const cellErrors = t.cells[j].map((cell) => cellError(cell, own, declared, arity));
     const cells = t.cells[j].map((cell, k) => (cellErrors[k] === null ? cell.tree : null));
     const hidden = t.source.columns?.[j]?.hidden === true;
     const base = { index: j, tree: h.tree, cellErrors, cells, hidden };
@@ -241,6 +256,8 @@ export function analyzeTable(
     const shape = j > 0 && h.tree !== null ? shapeError(h.tree, HEADER_MESSAGES) : null;
     if (shape !== null)
       return { ...base, role: "error", name: null, error: message("syntax", shape) };
+    const count = j > 0 && h.tree !== null ? arity(h.tree) : null;
+    if (count !== null) return { ...base, role: "error", name: null, error: count };
     // a header naming another column of the same table is marked, as in Desmos; a column named
     // like another table's or row's is not: Desmos marks only the rows that use it (2026-10-20)
     const name = names[j];

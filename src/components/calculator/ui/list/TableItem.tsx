@@ -117,7 +117,9 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const rows = dataRowCount(row);
   const hidden = expanded ? null : collapsedRange(rows);
   const headers = columns.map((c, k) => headerName(c.latex, k));
-  const computed = (k: number) => analysis[k]?.role === "computed";
+  // As on the reference, a column whose header is in error shows grey, read-only cells with its
+  // values hidden until the header is fixed (live Desmos, 2026-10-20).
+  const computed = (k: number) => analysis[k]?.role === "computed" || analysis[k]?.role === "error";
   // TABLES-2: the blank header slot and its read-only column always show, as on the reference.
   const slot = columns.length < MAX_TABLE_COLUMNS;
   // RT-28: Add Regression adds a Linear table regression and focuses its model dropdown.

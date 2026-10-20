@@ -34,7 +34,8 @@ test("S-2, S-10 Add item opens by keyboard and Add table puts focus in the first
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
   await expect(cell(page, "x₁, row 1, blank")).toBeFocused();
-  await expect(page.getByRole("grid", { name: "Table 2, 2 columns, 0 rows" })).toBeVisible();
+  // no row was active, so the table is row 1, as on the reference (live Desmos, 2026-10-20)
+  await expect(page.getByRole("grid", { name: "Table 1, 2 columns, 0 rows" })).toBeVisible();
 });
 
 test("D-5, D-7 typing table converts the row, and Enter and Tab fill 1, 2, 3 against 2, 4, 6 as three points", async ({

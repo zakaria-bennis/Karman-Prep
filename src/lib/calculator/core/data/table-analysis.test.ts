@@ -212,3 +212,28 @@ it("TABLES-13 a cell or header that cannot be read, or is a point, list, relatio
   );
   expect(headerError("1,2")).toBe("Points are written like this: (1, 2).");
 });
+
+it("RC-20 a call with the wrong argument count marks its cell or header, as in Desmos (2026-10-20)", () => {
+  const a = analyzeRows(
+    [
+      table("t", [
+        ["x_{2}", ["1", "\\sin()"]],
+        ["\\sin()", ["7", "5"]],
+        ["y_{3}", ["\\sin(1,2)", "5"]],
+      ]),
+    ],
+    SETTINGS
+  );
+  const [x, header, y] = a.byId.get("t")!.table!.columns;
+  expect([
+    x.cellErrors[1]?.message,
+    header.role,
+    header.error?.message,
+    y.cellErrors[0]?.message,
+  ]).toEqual([
+    "Function 'sin' requires an argument. For example, try typing: sin(x).",
+    "error",
+    "Function 'sin' requires an argument. For example, try typing: sin(x).",
+    "Function 'sin' requires only 1 argument. For example, try typing: sin(x).",
+  ]);
+});

@@ -115,6 +115,15 @@ it("S-12 Add expression inserts after the last active row and Add table replaces
   expect(ids(kit)[2]).toEqual(["2", "expression"]);
 });
 
+it("S-12 with no active row, as on a blank list, Add table puts the table in row 1, as on the reference", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: [""] });
+  const user = userEvent.setup();
+  await user.click(addItem());
+  await user.click(screen.getByRole("menuitem", { name: "Add table" }));
+  expect(ids(kit).map(([, type]) => type)).toEqual(["table", "expression"]);
+  expect(kit.announcer.texts.at(-1)).toBe("Table 1 added");
+});
+
 it("S-13 the inserted item is announced, for example Table 2 added", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=x"] });
   const user = userEvent.setup();

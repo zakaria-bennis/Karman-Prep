@@ -221,6 +221,18 @@
   padding-left: 6px;
 }
 
+/* D-6: as on the reference, a cell's marker sits 5 px from the cell's left edge and its text
+   starts straight after it (live Desmos, 2026-10-20). */
+.kc-cell-warning:not(.kc-header-warning) {
+  width: 16px;
+  margin-left: 4px;
+}
+
+.kc-cell-warning:not(.kc-header-warning) + .kc-table-field .mq-editable-field {
+  padding-left: 0;
+  text-align: left;
+}
+
 /* Add row (ours) fades in with focus or hover anywhere in the table, so it stays reachable by
    keyboard and pointer; Zoom Fit stays, as the reference's does while points are plotted. */
 .kc-table-item:not(:focus-within):not(:hover):not([data-focused="true"])

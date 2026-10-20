@@ -17,7 +17,7 @@ import {
   type RegressionPlan,
 } from "../data/regression-analysis";
 import { normalizeLatex } from "../latex/index";
-import { classifyRow } from "./classify";
+import { arityError, classifyRow } from "./classify";
 import { distributionProblem } from "./distributions";
 import {
   declaredHead,
@@ -158,7 +158,8 @@ export function analyzeRows(
     else analysed[k] = withCurveLength(analysed[k], row, typing);
   });
   tables.forEach(({ k, table }, i) => {
-    analysed[k] = tableRow(rows[k], analyzeTable(table, names[i], declared), table);
+    const arity = (tree: Node) => arityError(tree, resolution);
+    analysed[k] = tableRow(rows[k], analyzeTable(table, names[i], declared, arity), table);
   });
   const defining = new Set<string>(),
     functions = new Map<string, FunctionDefinition>();

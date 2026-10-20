@@ -113,7 +113,25 @@ function conflictError(
 ): RowError | null {
   const cycle = resolution.cycles.get(row.source.id);
   if (cycle !== undefined) return rowError(cycle.code, cycle.names, null);
-  for (const call of callsOf(scope)) {
+  const arity = arityError(scope, resolution);
+  if (arity !== null) return arity;
+  const use = collectNameUses(scope).find(
+    ({ name }) => !locals.includes(name) && resolution.blocked.has(name)
+  );
+  if (use === undefined) return null;
+  const blocked = resolution.blocked.get(use.name)!;
+  return rowError(blocked.code, blocked.names, use.span);
+}
+
+/**
+ * RC-20: the first call in `tree`, in source order, with a count its function does not take, as
+ * Desmos words it; a table cell or header shows the same error (Desmos, 2026-10-20).
+ */
+export function arityError(
+  tree: Node,
+  resolution: Pick<Resolution, "functionArity">
+): RowError | null {
+  for (const call of callsOf(tree)) {
     if (call.member !== undefined) continue; // FN-47 to FN-51: distributions.ts counts these
     if (POINT_FUNCTIONS.has(call.name)) continue; // FN-70, FN-71: points.ts gives Desmos's texts
     const arity = expectedArity(call.name, resolution);
@@ -136,12 +154,7 @@ function conflictError(
       return rowError("arity", names, call.span);
     }
   }
-  const use = collectNameUses(scope).find(
-    ({ name }) => !locals.includes(name) && resolution.blocked.has(name)
-  );
-  if (use === undefined) return null;
-  const blocked = resolution.blocked.get(use.name)!;
-  return rowError(blocked.code, blocked.names, use.span);
+  return null;
 }
 
 /**
@@ -150,7 +163,10 @@ function conflictError(
  * a user function's parameter count from its error-free head. A call to a function whose head has
  * an error, is duplicated or is in a cycle is not checked.
  */
-function expectedArity(name: string, resolution: Resolution): readonly number[] | null {
+function expectedArity(
+  name: string,
+  resolution: Pick<Resolution, "functionArity">
+): readonly number[] | null {
   if (name === "log") return [1];
   if (isBuiltinName(name)) return BUILTIN_ARITY.get(name) ?? null;
   const count = resolution.functionArity(name);

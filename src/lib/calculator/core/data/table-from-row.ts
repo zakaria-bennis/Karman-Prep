@@ -68,8 +68,12 @@ export function tableHeaderFor(
   const tree = parsed.tree;
   if (tree.kind !== "rel" || tree.ops.length !== 1 || tree.ops[0] !== "=") return null;
   const [lhs, rhs] = tree.operands;
-  if (lhs.kind === "id" && lhs.name === "y" && !uses(rhs, "y"))
+  if (lhs.kind === "id" && lhs.name === "y" && !uses(rhs, "y")) {
+    // `y=x` would name the first column twice, so, as the reference writes `1x`, the header is
+    // `1x_{1}` (live Desmos, 2026-10-20)
+    if (rhs.kind === "id" && rhs.name === "x") return (x) => `1${x}`;
     return (x) => printLatex(rename(rhs, "x", x));
+  }
   if (lhs.kind === "call" && userFunctions.has(lhs.name) && lhs.args.length === 1) {
     const [param] = lhs.args;
     if (param.kind !== "id") return null;
