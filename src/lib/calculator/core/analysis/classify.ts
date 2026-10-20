@@ -100,9 +100,10 @@ function conflictError(
   }
   for (const call of callsOf(scope)) {
     const arity = expectedArity(call.name, resolution);
-    if (arity !== null && !arity.includes(call.args.length)) {
-      const given = String(call.args.length);
-      return rowError("arity", [displayName(call.name), arityText(arity), given], call.span);
+    const written = call.args.length - (call.base ? 1 : 0);
+    if (arity !== null && !arity.includes(written)) {
+      const names = [displayName(call.name), arityText(arity), String(written)];
+      return rowError("arity", names, call.span);
     }
   }
   const use = collectNameUses(scope).find(
@@ -112,11 +113,13 @@ function conflictError(
 }
 
 /**
- * RC-20: a built-in's counts from `BUILTIN_ARITY` (none for a variadic one), a user function's
- * parameter count from its error-free head. A call to a function whose head has an error, is
- * duplicated or is in a cycle is not checked.
+ * RC-20: the written argument counts a call accepts: a built-in's from `BUILTIN_ARITY` (none for a
+ * variadic one), except `log`, whose base is written only as a subscript (PR-27), so it takes one;
+ * a user function's parameter count from its error-free head. A call to a function whose head has
+ * an error, is duplicated or is in a cycle is not checked.
  */
 function expectedArity(name: string, resolution: Resolution): readonly number[] | null {
+  if (name === "log") return [1];
   if (isBuiltinName(name)) return BUILTIN_ARITY.get(name) ?? null;
   const count = resolution.functionArity(name);
   return count === null ? null : [count];

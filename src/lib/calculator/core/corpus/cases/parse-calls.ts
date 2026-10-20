@@ -65,7 +65,7 @@ const cases: CorpusCase[] = [
   t(39, ["PR-26"], "\\sin^{-1}x", "(call arcsin (id x))"),
   t(40, ["PR-26"], "\\cos^{-1}(0.5)", "(call arccos (num 0.5))"),
   t(41, ["PR-26"], "\\cot^{-1}x", "(call arccot (id x))"),
-  t(42, ["PR-26"], "\\ln^{-1}x", "(pow (call ln (id x)) (neg (num 1)))"),
+  x(42, ["PR-26"], "\\ln^{-1}x", "log-power"), // Desmos: "Only ln^2 is supported. Otherwise, use parens."
   t(43, ["PR-26"], "\\sin^{2}(x)", "(pow (call sin (id x)) (num 2))"),
   t(44, ["PR-27"], "\\log x", "(call log (id x))"),
   t(45, ["PR-27"], "\\log_{2}8", "(call log (num 8) (num 2))"),
@@ -96,5 +96,10 @@ const cases: CorpusCase[] = [
   x(67, ["PR-25"], "\\operatorname{nCr}(,2)", "comma-side"),
   x(68, ["PR-25"], "\\operatorname{mod}(1,)", "comma-side"),
   x(69, ["PR-25", "RC-20"], "\\log_{2}()", "arity"),
+  // A log base is written only as a subscript (Desmos function catalogue, 2026-10-19)
+  x(70, ["PR-27", "RC-20"], "\\log(1,2)", "arity"),
+  x(71, ["PR-27", "RC-20"], "\\log_{2}(8,2)", "arity"),
+  x(72, ["PR-27"], "\\log_{}(8)", "empty-subscript"),
+  x(73, ["PR-26"], "\\log^{3}(8)", "log-power"),
 ];
 export default cases;

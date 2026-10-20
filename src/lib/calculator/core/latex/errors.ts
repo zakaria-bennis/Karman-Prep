@@ -13,13 +13,15 @@ export type ParseErrorCode =
   | "function-parentheses" // PR-24: a built-in that needs `(` written without one
   | "argument-parentheses" // PR-24: a run without `(` followed by another built-in call
   | "comma-side" // PR-25: an empty argument beside a comma in a call
-  | "range-bound"; // PR-34: a range with nothing before or after its ellipsis
+  | "range-bound" // PR-34: a range with nothing before or after its ellipsis
+  | "log-power" // PR-26: a power other than 2 on the name `log` or `ln`
+  | "empty-subscript"; // PR-27: `\log_{}`
 export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
   detail: string; // English, logs and tests only
   // `unsupported`: the deferred notation a row error names ("Indexing a list");
-  // `function-parentheses` and `argument-parentheses`: the built-in's name ("floor")
+  // `function-parentheses`, `argument-parentheses` and `log-power`: the built-in's name ("floor")
   feature?: string;
 }
 
@@ -35,6 +37,8 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "argument-parentheses",
   "comma-side",
   "range-bound",
+  "log-power",
+  "empty-subscript",
 ]);
 
 export function isParseErrorCode(code: string): code is ParseErrorCode {

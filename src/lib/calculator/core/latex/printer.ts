@@ -116,7 +116,7 @@ export function printLatex(tree: Node): string {
         )
       );
     case "call":
-      return printCall(tree.name, tree.args);
+      return printCall(tree.name, tree.args, tree.base === true);
     case "sim":
       return join([printLatex(tree.left), "\\sim", printLatex(tree.right)]);
   }
@@ -136,16 +136,17 @@ function printProduct(left: Node, right: Node): string {
 
 /**
  * A call: `\sin`-style commands, `\operatorname{…}` for other built-ins and the bare name for user
- * functions, then the parenthesised arguments. `log` with two arguments writes its base as `_{B}`.
+ * functions, then the parenthesised arguments. A `log` base (PR-27) is written as `_{B}`.
  */
-function printCall(name: string, args: readonly Node[]): string {
+function printCall(name: string, args: readonly Node[], base: boolean): string {
   const head = COMMAND_NAMES.has(name)
     ? `\\${name}`
     : isBuiltinName(name)
       ? `\\operatorname{${name}}`
       : name;
-  if (name === "log" && args.length === 2) {
-    return join([head, "_{", printLatex(args[1]), "}", parenthesised([args[0]])]);
+  if (base) {
+    const written = args.slice(0, -1);
+    return join([head, "_{", printLatex(args[args.length - 1]), "}", parenthesised(written)]);
   }
   return join([head, parenthesised(args)]);
 }

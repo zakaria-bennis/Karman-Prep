@@ -105,9 +105,9 @@ These Desmos behaviours are known and recorded but not yet built:
   depends on free variable 'x'."; the calculator reads it as a list-valued graph (G-22), "Graphing
   a list of curves isn't supported yet." An expected failure in `desmos.reference.test.ts`
   (`CATALOGUE_ERROR_GAP`), for the multi-branch graph task (T11).
-- **`log` with two arguments.** In Desmos `log(1,2)` is an arity error ("requires only 1
-  argument"), because a base is written only as a subscript. The calculator parses `\log_{b}(x)` and
-  `\log(x, b)` to the same call, so it still evaluates `log(1,2)`.
+- **An infinite log base.** Desmos gives `\log_{\infty}(5)` = 0; `\infty` is not a value in the
+  calculator yet, so it is undefined. An expected failure in `desmos.reference.test.ts`
+  (`CATALOGUE_VALUE_GAP`).
 - **`length`.** Desmos evaluates `length(L)` (`length([1,5,3,8])` = 4, `length(5)` = 1,
   `length([])` = 0). The calculator has `length` on the built-in allowlist, so MathQuill turns a typed `length`
   into an operator name, but it has not shipped: no list-reducing built-in exists yet, so a row
@@ -136,6 +136,14 @@ including these, is checked in `desmos.reference.test.ts`:
 - **Empty arguments.** `\operatorname{nCr}(,2)` and `\operatorname{mod}(1,)` read "You need
   something on both sides of the ',' symbol." (the new `comma-side` error), and `\log_{2}()` reads
   "Function 'log' requires an argument. For example, try typing: log(x)."
+- **`log` with two arguments (PR-27, RC-20).** `\log(10,2)` and `\log_{2}(8,2)` read "Function
+  'log' requires only 1 argument. For example, try typing: log(x).", since a base is written only
+  as a subscript. The parser marks a subscript base on the call (`base`), and the arity check counts
+  only the written arguments. `\log_{}(8)` reads "Subscripts cannot be empty." and `\log^{-1}(100)`
+  "Only log^2 is supported. Otherwise, use parens." (`\ln` likewise).
+- **Exact logs (FN-60).** `\log_{3}(81)` is 4 and `\log_{10}(1000)` is 3, as in Desmos, so
+  `\operatorname{ceil}(\log_{3}(81))` is 4, not 5. Every log value and error in the function
+  catalogue is checked in `desmos.reference.test.ts`.
 - **Range length (NM-36).** Desmos rounds a range's element count, n = round((c − a)/s) + 1, so
   `[1...3.5]` is `[1, 2, 3, 4]` and `[1,3,...,8]` is `[1, 3, 5, 7, 9]`, and the calculator now does
   the same. A count that is not finite or is smaller than the values written before the ellipsis

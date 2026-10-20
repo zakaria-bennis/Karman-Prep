@@ -94,7 +94,7 @@ for (const [latex, message] of Object.entries(USER_ERRORS)) {
 
 // The function catalogue's live Desmos values (desmos-catalogue.fixture.json, copied from the
 // catalogue's ALL.values.json) for every built-in and notation the calculator ships and its
-// Phase 2 tasks have touched: ranges (NM-36). A "[deg] " key is evaluated in degree mode and a
+// Phase 2 tasks have touched: ranges (NM-36) and log (FN-60, PR-26, PR-27). A "[deg] " key is evaluated in degree mode and a
 // "[complex] " key in complex mode, where a value is [re, im].
 type CatalogueValue = Captured | number[][] | { length: number; first: number[]; last: number };
 const CATALOGUE_VALUES = Object.entries(catalogue.values) as [string, CatalogueValue][];
@@ -136,15 +136,23 @@ function sameValue(v: Value, expected: CatalogueValue, complex: boolean): boolea
   );
 }
 
-it("NM-36 all 24 catalogue values for ranges are checked", () =>
-  expect(CATALOGUE_VALUES.length).toBe(24));
+// Catalogue values not yet matched, each an expected failure that fails once matched: `\infty`
+// is not a value yet (the calculator reads it as undefined), so an infinite base is too.
+const CATALOGUE_VALUE_GAP: ReadonlySet<string> = new Set(["\\log_{\\infty}(5)"]);
+
+it("NM-36 FN-60 all 66 catalogue values for ranges and log are checked", () =>
+  expect(CATALOGUE_VALUES.length).toBe(66));
 
 for (const [key, expected] of CATALOGUE_VALUES) {
-  it(`NM-36 ${key} is ${JSON.stringify(expected).slice(0, 60)}, as in Desmos`, () => {
+  const check = () => {
     const { latex, settings } = catalogueCase(key);
     const v = evaluateLatex(latex, { settings });
     expect(sameValue(v, expected, settings.complex === true), JSON.stringify(v)).toBe(true);
-  });
+  };
+  const shown = JSON.stringify(expected).slice(0, 60);
+  if (CATALOGUE_VALUE_GAP.has(key))
+    it.fails(`not yet matched: ${key} is ${shown} in Desmos`, check);
+  else it(`NM-36 FN-60 ${key} is ${shown}, as in Desmos`, check);
 }
 
 // Catalogue errors not yet matched, each an expected failure that fails once matched: an
@@ -153,12 +161,12 @@ for (const [key, expected] of CATALOGUE_VALUES) {
 const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5", "[x...5]"]);
 const CATALOGUE_ERRORS = Object.entries(catalogue.errors);
 
-it("NM-36 all 16 catalogue error messages for ranges are checked", () =>
-  expect(CATALOGUE_ERRORS.length).toBe(16));
+it("NM-36 RC-20 all 23 catalogue error messages for ranges and log are checked", () =>
+  expect(CATALOGUE_ERRORS.length).toBe(23));
 
 for (const [latex, message] of CATALOGUE_ERRORS) {
   const check = () => expect(errorMessage(CATALOGUE_ROWS, latex)).toBe(message);
   if (CATALOGUE_ERROR_GAP.has(latex))
     it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
-  else it(`NM-36 ${latex} reads "${message}", as in Desmos`, check);
+  else it(`NM-36 RC-20 ${latex} reads "${message}", as in Desmos`, check);
 }

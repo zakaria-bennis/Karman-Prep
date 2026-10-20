@@ -53,8 +53,9 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
  * A built-in call (G8). An unshipped name is `unsupported` at the name before anything else is
  * read. After the name come an optional `_` base (`log` only) and `^` power, each once, in either
  * order; then a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames
- * the call to its inverse; any other power raises the call to it (PR-26). `log`'s base is its last
- * argument (PR-27). A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported` (PR-9). The
+ * the call to its inverse; on `log` and `ln` only `^2` is allowed (`log-power`); any other power
+ * raises the call to it (PR-26). `log`'s base is its last argument, marked `base` (PR-27), and an
+ * empty base is `empty-subscript`. A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported` (PR-9). The
  * run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in written without
  * `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
  */
@@ -68,6 +69,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   for (let token = peek(state); ; token = peek(state)) {
     if (base === null && name.name === "log" && isSymbol(token, "_")) {
       take(state);
+      failIfEmptyGroup(state);
       base = takeArgument(state).node;
     } else if (power === null && isSymbol(token, "^") && !isDegreeSign(state)) {
       take(state);
@@ -78,6 +80,9 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   }
   const prefixForm = PREFIX_FORM_NAMES.has(name.name);
   if (power !== null && !prefixForm) return needsParentheses(name);
+  if (power !== null && LOG_NAMES.has(name.name) && !(power.kind === "num" && power.value === 2)) {
+    return fail("log-power", name.span, `only ${name.name}^2 is supported`, name.name);
+  }
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
@@ -94,6 +99,16 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   if (!prefixForm) return needsParentheses(name);
   const arg = parseRunArgument(state, name);
   return withPower(callNode(name, [arg], base, arg.span.end), power);
+}
+
+/** PR-26: the names whose only power is `^2`, Desmos's "Only log^2 is supported." */
+const LOG_NAMES: ReadonlySet<string> = new Set(["log", "ln"]);
+
+/** PR-27: `empty-subscript` at an empty `{}` group, Desmos's "Subscripts cannot be empty." */
+function failIfEmptyGroup(state: ParserState): void {
+  const [open, close] = [peek(state), peek(state, 1)];
+  if (open.t !== "open" || open.ch !== "{" || close.t !== "close" || close.ch !== "}") return;
+  fail("empty-subscript", { start: open.span.start, end: close.span.end }, "an empty subscript");
 }
 
 /** PR-24: Desmos's "'floor' is a function. Try using parentheses." at the name. */
@@ -198,7 +213,8 @@ function parseRunArgument(state: ParserState, name: CommandToken): Node {
 
 function callNode(name: CommandToken, args: Node[], base: Node | null, end: number): CallNode {
   const span: SourceSpan = { start: name.span.start, end };
-  return { kind: "call", name: name.name, args: base === null ? args : [...args, base], span };
+  if (base === null) return { kind: "call", name: name.name, args, span };
+  return { kind: "call", name: name.name, args: [...args, base], base: true, span };
 }
 
 /**

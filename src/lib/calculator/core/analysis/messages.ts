@@ -56,7 +56,8 @@ function letter(base: string): string {
  * `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text, at every
  * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
- * `range-bound`, `range-step` and `list-too-long` use the text Desmos gave on 2026-10-19.
+ * `range-bound`, `range-step`, `list-too-long`, `log-power` and `empty-subscript` use the text
+ * Desmos gave on 2026-10-19.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   syntax: "This can't be read. Check for a missing bracket or operator.",
@@ -70,6 +71,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "argument-parentheses": "Use parentheses around the argument of '{n}'.",
   "comma-side": "You need something on both sides of the ',' symbol.",
   "range-bound": "Range must have an upper and lower bound.",
+  "log-power": "Only {n}^2 is supported. Otherwise, use parens.",
+  "empty-subscript": "Subscripts cannot be empty.",
   "too-many-params": "Functions can have at most 8 parameters.",
   "duplicate-definition":
     "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'.",
@@ -123,11 +126,10 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
  * argument" when given none (`round()`, `arctan()`), and one taking at most one "requires only 1
  * argument" when given more, each with the example `name(x)`; otherwise only the largest accepted
  * count is named, "requires {max} arguments", too many or too few, with the example
- * `name(1, …, max)` ("mod(1, 2)", "arctan(1, 2)"). `log` reads as a one-argument function, since
- * Desmos writes its base only as a subscript.
+ * `name(1, …, max)` ("mod(1, 2)", "arctan(1, 2)").
  */
 function arityMessage(name: string, k: string, given: number): string {
-  const counts = name === "log" ? [1] : k.split(/, | or /).map(Number);
+  const counts = k.split(/, | or /).map(Number);
   const max = Math.max(...counts);
   const say = (needs: string, args: string) =>
     `Function '${name}' requires ${needs}. For example, try typing: ${name}(${args}).`;

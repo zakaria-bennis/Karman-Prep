@@ -14,7 +14,9 @@ export type Node =
   | { kind: "add" | "sub" | "mul" | "div" | "pow"; left: Node; right: Node; span: SourceSpan }
   | { kind: "neg" | "pct" | "deg" | "fact" | "abs"; arg: Node; span: SourceSpan }
   | { kind: "root"; arg: Node; index: Node | null; span: SourceSpan } // \sqrt, \sqrt[n]
-  | { kind: "call"; name: string; args: Node[]; span: SourceSpan } // \log_{b}x is call "log" args [x, b]
+  // PR-27: `\log_{b}x` is call "log" with args [x, b] and `base`, which marks the last argument as
+  // the subscript, so RC-20 counts only the written ones (`\log(x,b)` is an arity error).
+  | { kind: "call"; name: string; args: Node[]; base?: true; span: SourceSpan }
   | { kind: "point"; x: Node; y: Node; span: SourceSpan }
   | { kind: "rel"; ops: RelOp[]; operands: Node[]; span: SourceSpan } // operands.length === ops.length + 1
   // PR-34: `[a,b,c]` and `[]`; a table column (D-11). With `range`, items are the bounds of

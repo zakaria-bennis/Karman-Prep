@@ -43,7 +43,7 @@ const cases: CorpusCase[] = [
   p(30, "x\\pi", "x\\cdot\\pi"),
   p(31, "2\\cdot3", "2\\cdot3"),
   p(32, "\\tan^{-1}x", "\\arctan\\left(x\\right)"),
-  p(33, "\\ln^{-1}x", "\\ln\\left(x\\right)^{-1}"),
+  p(33, "\\ln^{2}x", "\\ln\\left(x\\right)^{2}"),
   p(34, "x\\ge-y", "x\\ge-y"),
   p(35, "1000000000000000000000", "1000000000000000000000"),
   p(37, "x^{2}!", "x^{2}!"),

@@ -80,6 +80,11 @@ sequences.", which is now the `range-step` text; there is no empty range.
 
 ### M2. `log` with two arguments is an arity error (RC-20) — recorded in f-desmos-parity.md
 
+**Done.** A subscript base sets `base: true` on the call node; `classify.ts` counts only written
+arguments against `log`'s one. The catalogue's other log findings came with it: exact whole-number
+logs (`\log_{3}(81)` = 4), `log-power` ("Only log^2 is supported.") and `empty-subscript`. Left:
+`\log_{\infty}(5)` = 0 waits for `\infty` as a value.
+
 - **Desmos:** `\log(1,2)` reads "Function 'log' requires only 1 argument. For example, try typing:
   log(x)." (the same text as the captured `\log(1,2,3)`). A base is written only as a subscript.
 - **Karman:** `\log(1,2)` is a value row that evaluates log base 2 of 1, because `latex/calls.ts`

@@ -51,15 +51,26 @@ function inverseRule(
   };
 }
 
-/** FN-60: log x (base 10) and log_b x = ln x / ln b, for x > 0, b > 0 and b ≠ 1. */
+/**
+ * FN-60: log x (base 10) and log_b x, for x > 0, b > 0 and b ≠ 1, as Desmos computes them: the
+ * library's exact log for base 10, 2 and e, ln x / ln b otherwise, and the nearest whole number k
+ * whenever b^k is exactly x, so `\log_{3}(81)` is 4, not 4.000000000000001. An infinite base gives
+ * 0 (`\log_{\infty}(5)`).
+ */
 function realLog(args: readonly number[]): number {
-  const x = args[0];
-  if (!(x > 0)) return NaN;
-  if (args.length === 1) return Math.log10(x);
-  const b = args[1];
-  if (!(b > 0) || b === 1) return NaN;
-  return Math.log(x) / Math.log(b);
+  const x = args[0],
+    b = args.length === 1 ? 10 : args[1];
+  if (!(x > 0) || !(b > 0) || b === 1) return NaN;
+  const r = EXACT_LOGS.get(b)?.(x) ?? Math.log(x) / Math.log(b);
+  const k = Math.round(r);
+  return b ** k === x ? k : r;
 }
+
+const EXACT_LOGS: ReadonlyMap<number, (x: number) => number> = new Map([
+  [10, Math.log10],
+  [2, Math.log2],
+  [Math.E, Math.log],
+]);
 
 /** FN-60, FN-17: the principal-branch log, Ln z / ln 10, or Ln z / Ln b with a base. */
 function complexLog(args: readonly Complex[]): Complex {
