@@ -188,18 +188,21 @@ const LIST_EXAMPLES = new Map<string, { one?: string; many?: string }>([
  * Desmos's arity wording (captured 2026-10-19), from the expected count text `k`
  * ("1", "2", "1 or 2") and the count given. A function accepting one argument "requires an
  * argument" when given none (`round()`, `arctan()`), and one taking at most one "requires only 1
- * argument" when given more, each with the example `name(x)`; otherwise only the largest accepted
- * count is named, "requires {max} arguments", too many or too few, with the example
- * `name(1, …, max)` ("mod(1, 2)", "arctan(1, 2)").
+ * argument" when given more, each with the example `name(x)`; otherwise too few names the
+ * smallest accepted count and too many the largest, "requires {count} arguments", with the
+ * example `name(1, …, count)` ("mod(1, 2)", "arctan(1, 2)", `normalcdf(0)`'s "normalcdf(1, 2)").
  */
 function arityMessage(name: string, k: string, given: number): string {
   const counts = k.split(/, | or /).map(Number);
-  const max = Math.max(...counts);
+  const [min, max] = [Math.min(...counts), Math.max(...counts)];
   const say = (needs: string, args: string) =>
     `Function '${name}' requires ${needs}. For example, try typing: ${name}(${args}).`;
   const example = LIST_EXAMPLES.get(name);
   if (given === 0 && counts.includes(1)) return say("an argument", example?.one ?? "x");
   if (max === 1) return say("only 1 argument", example?.one ?? "x");
-  const args = Array.from({ length: max }, (_, i) => String(i + 1)).join(", ");
-  return say(`${max} arguments`, example?.many ?? args);
+  // too few names the smallest count above 1 (`normalcdf(0)` "requires 2 arguments"), too many
+  // the largest (`normalcdf(1,2,3,4,5)` "requires 4 arguments")
+  const named = given < min && min > 1 ? min : max;
+  const args = Array.from({ length: named }, (_, i) => String(i + 1)).join(", ");
+  return say(`${named} arguments`, named === max ? (example?.many ?? args) : args);
 }

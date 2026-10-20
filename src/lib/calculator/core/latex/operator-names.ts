@@ -89,6 +89,7 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   // inversecdf of data is quantile (FN-27); of a distribution it waits on distributions
   "inversecdf",
   "inverseCdf",
+  "erf", // erf and the legacy distribution names below (Phase 2 T7)
   "exp",
   "ln",
   "log",
@@ -132,6 +133,11 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "frequencyListAssert",
   "sortedLastLessIndex",
   "sortedLastLessEqualIndex",
+  "normalcdf",
+  "normalpdf",
+  "binomcdf",
+  "binompdf",
+  "invNorm",
 ]);
 
 /**
@@ -229,6 +235,7 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("inversecdf", 6, 3, [2]),
   op("inverseCdf", 6, 3, [2]), // Desmos: an alias of inversecdf (typed only)
   op("random", 6, 3, [0, 1, 2, 3]),
+  op("erf", 6, 3, [1]), // a Desmos name not in PR-12's list, typed only (not on the panel)
   // 7 Inference
   op("ztest", 7, 3, [2, 4]),
   op("ttest", 7, 3, [1, 2]),
@@ -315,6 +322,12 @@ export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("frequencyListAssert", 3, 2, [2]),
   op("sortedLastLessIndex", 3, 2, [2]),
   op("sortedLastLessEqualIndex", 3, 2, [2]),
+  // Desmos's legacy distribution names, for old saved graphs (typing splits them)
+  op("normalcdf", 6, 3, [2, 3, 4]),
+  op("normalpdf", 6, 3, [1, 2, 3]),
+  op("binomcdf", 6, 3, [3, 4]),
+  op("binompdf", 6, 3, [2, 3]),
+  op("invNorm", 6, 3, [1]),
 ]);
 
 /**

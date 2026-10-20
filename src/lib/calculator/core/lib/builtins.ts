@@ -1,5 +1,6 @@
 // Built-in functions (FN-4, FN-6, FN-18 to FN-22, FN-60; NM-25), with the hyperbolic rules of
-// hyperbolic.ts (FN-68) and the number theory rules of number-theory.ts (FN-76 to FN-78). Each one has a real rule in the current angle unit and a
+// hyperbolic.ts (FN-68), the number theory rules of number-theory.ts (FN-76 to FN-78) and erf and
+// the legacy distribution names of probability.ts (FN-47, FN-48). Each one has a real rule in the current angle unit and a
 // complex rule that is always in radians. The names and their
 // argument counts come from BUILTIN_ARITY, so the allowlist stays the one source of both. Pure
 // TypeScript: no DOM (AR-44).
@@ -9,6 +10,7 @@ import { complexValue, numberValue, UNDEFINED, type Complex, type Value } from "
 import { BUILTIN_ARITY } from "./arity";
 import { HYPERBOLIC_RULES } from "./hyperbolic";
 import { NUMBER_THEORY_RULES } from "./number-theory";
+import { PROBABILITY_RULES } from "./probability";
 import { arctan2, circular, inverseCircular, type CircularName, type InverseName } from "./trig";
 
 export interface BuiltinFunction {
@@ -123,6 +125,7 @@ const RULES: ReadonlyMap<string, Rule> = new Map<string, Rule>([
   ["log", { angle: "none", extendsToComplex: true, real: realLog, complex: complexLog }],
   ...HYPERBOLIC_RULES,
   ...NUMBER_THEORY_RULES,
+  ...PROBABILITY_RULES,
 ]);
 
 /** A real result: a non-finite value (overflow, a pole) is NaN, which means undefined. */

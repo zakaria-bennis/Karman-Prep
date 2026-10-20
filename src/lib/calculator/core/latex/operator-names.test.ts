@@ -7,7 +7,7 @@ describe("operator-name allowlist", () => {
       new Set(names()).size,
       O.mathQuillAutoOperatorNames(),
       names().every(O.isBuiltinName),
-    ]).toEqual([115, names().join(" "), true]);
+    ]).toEqual([116, names().join(" "), true]);
     for (const e of O.panelCategories().flatMap((c) => c.entries))
       expect(O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name)).toBe(true);
     expect([O.AUTO_COMMANDS.join(" "), O.mathQuillAutoCommands()]).toEqual(
@@ -21,7 +21,7 @@ describe("operator-name allowlist", () => {
         false
       );
   });
-  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, inversecdf of data, exp, ln, log, hyperbolic trig and number theory", () => {
+  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, inversecdf of data, erf, exp, ln, log, hyperbolic trig and number theory", () => {
     expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect([...names(), ...hidden].filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
@@ -33,7 +33,7 @@ describe("operator-name allowlist", () => {
       "sin cos tan csc sec cot arcsin arccos arctan arccsc arcsec arccot " +
         "mean median min max quartile quantile stdev stddev stdDev stdevp stddevp stdDevP " +
         "var variance varp cov covp mad corr spearman count total repeat join sort unique length " +
-        "inversecdf inverseCdf " +
+        "inversecdf inverseCdf erf " +
         "exp ln log sinh cosh tanh csch sech coth arcsinh arccosh arctanh arccsch arcsech arccoth " +
         "lcm gcd gcf mcd mcm mod ceil floor round sign nPr nCr abs"
     );
@@ -50,7 +50,7 @@ describe("operator-name allowlist", () => {
       [true, true, false, true, true, false],
     ]);
   });
-  it("FN-23 FN-36 FN-38 hidden built-ins are pasted latex only, never typed or on the panel", () => {
+  it("FN-23 FN-36 FN-38 FN-47 hidden built-ins are pasted latex only, never typed or on the panel", () => {
     expect(O.HIDDEN_OPERATOR_NAMES.map((n) => [n.name, n.category, n.arity])).toEqual([
       ["argmin", 3, "variadic"],
       ["argmax", 3, "variadic"],
@@ -62,6 +62,11 @@ describe("operator-name allowlist", () => {
       ["frequencyListAssert", 3, [2]],
       ["sortedLastLessIndex", 3, [2]],
       ["sortedLastLessEqualIndex", 3, [2]],
+      ["normalcdf", 6, [2, 3, 4]],
+      ["normalpdf", 6, [1, 2, 3]],
+      ["binomcdf", 6, [3, 4]],
+      ["binompdf", 6, [2, 3]],
+      ["invNorm", 6, [1]],
     ]);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect(hidden.every((n) => O.isBuiltinName(n) && O.isShippedBuiltin(n))).toBe(true);
