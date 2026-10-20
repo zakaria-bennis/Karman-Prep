@@ -143,6 +143,35 @@ function leadIn(view: ViewSpec, a: Point, b: Point, clip: ClipRect): number {
 }
 
 /**
+ * GP-22: the reference strokes an inequality's boundary in its sampling order, left to right (up
+ * the view when the boundary runs more up than across), so its dashes start at that end's cut.
+ * A traced contour has no such order: each open run (in world coordinates) is reversed when it
+ * starts at the other end. Closed runs keep their order.
+ */
+export function orientRuns(p: Float64Array): Float64Array {
+  const out = Float64Array.from(p);
+  for (let k = 0; k + 1 < p.length; ) {
+    if (!finitePair(p, k)) {
+      k += 2;
+      continue;
+    }
+    let end = k + 2;
+    while (end + 1 < p.length && finitePair(p, end)) end += 2;
+    const dx = p[end - 2] - p[k];
+    const dy = p[end - 1] - p[k + 1];
+    const across = Math.abs(dx) >= Math.abs(dy);
+    if ((across && dx < 0) || (!across && dy < 0)) {
+      for (let j = k; j < end; j += 2) {
+        out[k + end - 2 - j] = p[j];
+        out[k + end - 1 - j] = p[j + 1];
+      }
+    }
+    k = end;
+  }
+  return out;
+}
+
+/**
  * A curve's polylines: each NaN-separated run is its own path and stroke, clipped segment by
  * segment. A dashed run that starts within JOIN_TOLERANCE_PX of the previous run's end continues
  * its dash phase; any other run starts the pattern afresh.
@@ -273,7 +302,13 @@ export function drawCurveLayer(
     if (g.kind === "region") {
       fillShading(ctx, shading.get(row.rowId) ?? [], view.dpr);
       ctx.fillStyle = row.color;
-      for (const boundary of g.boundaries) drawStrokes(ctx, view, boundary, clip);
+      for (const boundary of g.boundaries) {
+        const oriented =
+          boundary.kind === "curve" && boundary.dashed
+            ? { ...boundary, polylines: orientRuns(boundary.polylines) }
+            : boundary;
+        drawStrokes(ctx, view, oriented, clip);
+      }
     } else {
       drawStrokes(ctx, view, g, clip, row.lineStyle === "dotted");
     }

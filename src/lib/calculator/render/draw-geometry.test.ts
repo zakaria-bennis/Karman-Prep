@@ -13,7 +13,7 @@ import {
   POINT_HOLE_PX,
   POINT_RADIUS_PX,
 } from "./constants";
-import { drawCurveLayer, drawPointLayer } from "./draw-geometry";
+import { drawCurveLayer, drawPointLayer, orientRuns } from "./draw-geometry";
 import type { RenderRow } from "./types";
 
 const vp = (l: number, r: number, b: number, t: number): Viewport => ({
@@ -187,4 +187,33 @@ it("GP-20, GP-22, GP-33 curves stroke 2.5 px (selected 3.5), points are 8 px dis
   expect([[...DASH_PX], AXIS_LINE_PX, GRID_LINE_PX]).toEqual([[11, 7], 1.5, 1]);
   const drawn = strokes(drawCurves([curveRow([-5, 1, 5, 1], true)]));
   expect(drawn.map((c) => [c.state.lineWidth, c.state.lineDash])).toEqual([[2.5, [11, 7]]]);
+});
+
+it("GP-22 dashed boundary runs are stroked left to right, or upward when steep; closed runs keep their order", () => {
+  const f64 = (...n: number[]) => Float64Array.from(n);
+  // right-to-left run, then a NaN gap, then a downward steep run, then a closed loop
+  const input = f64(3, 0, 1, 1, -2, 0, NaN, NaN, 0, 5, 1, -5, NaN, NaN, 0, 0, 1, 1, 0, 0);
+  expect(Array.from(orientRuns(input))).toEqual([
+    -2,
+    0,
+    1,
+    1,
+    3,
+    0,
+    NaN,
+    NaN,
+    1,
+    -5,
+    0,
+    5,
+    NaN,
+    NaN,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0,
+  ]);
+  expect(Array.from(orientRuns(f64(-1, -1, 2, 3)))).toEqual([-1, -1, 2, 3]);
 });
