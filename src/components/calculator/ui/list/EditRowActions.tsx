@@ -16,6 +16,7 @@ export function EditRowActions(props: {
   rowId: string;
   number: number;
   canTabulate: boolean;
+  convertsInPlace?: boolean; // RT-9: "Convert to Table" (a point list is replaced)
   onCreateTable(): void;
 }): JSX.Element {
   const { engine, focus, announcer, rowId, number } = props;
@@ -26,6 +27,7 @@ export function EditRowActions(props: {
           type="button"
           className="kc-edit-row-action"
           aria-label={`Create table from expression ${number}`}
+          title={props.convertsInPlace ? "Convert to Table" : "Create Table"}
           onClick={props.onCreateTable}
         >
           <TableItemGlyph />

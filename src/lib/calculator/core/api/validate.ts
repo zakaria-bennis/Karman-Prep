@@ -286,7 +286,8 @@ const columns: Check<NonNullable<ExpressionState["columns"]>> = (value, method, 
   return value.map((item: unknown, i) => {
     const name = `${field}[${i}]`;
     const fields = strictObject(item, method, name, COLUMN_KEYS);
-    const values = own(fields, "values");
+    // A computed column's state has no values (RT-3), so a missing list is an empty one.
+    const values = own(fields, "values") ?? [];
     if (!Array.isArray(values) || values.length > MAX_TABLE_ROWS) {
       invalid(method, `${name}.values must be an array of at most ${MAX_TABLE_ROWS} strings`);
     }

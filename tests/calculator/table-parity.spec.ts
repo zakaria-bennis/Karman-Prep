@@ -176,3 +176,49 @@ test("RT-8, RT-28 the column menu's Add Regression adds a regression on that col
     )
     .toBe("linear");
 });
+
+test("RT-6, TABLES-26 computed cells show 8 significant digits, raised exponents and undefined", async ({
+  page,
+}) => {
+  await openShell(page, "?w=1100&h=760&rows=%5B%5D");
+  await page.evaluate(() =>
+    globalThis.__calculatorHarness!.engine.setExpression({
+      id: "1",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "0.0001", "a"] },
+        { latex: "\\sin(x_{1})", values: [] },
+        { latex: "10^{12}x_{1}", values: [] },
+      ],
+    })
+  );
+  const cells = page.locator("#calc .kc-table-cell[data-computed]");
+  await expect(cells.nth(0)).toHaveText("0.84147098");
+  await expect(cells.nth(1)).toHaveText("1×1012");
+  await expect(cells.nth(1).locator("sup")).toHaveText("12");
+  await expect(cells.nth(2)).toHaveText("1×10−4");
+  await expect(cells.nth(4)).toHaveText("undefined");
+});
+
+test("RT-9, RT-10 Convert to Table replaces a point list with a table of its coordinates", async ({
+  page,
+}) => {
+  await openShell(page, "?w=1100&h=760&rows=%5B%22%5B(1%2C2)%2C(3%2C4)%5D%22%5D");
+  await page.getByRole("button", { name: "Edit list" }).click();
+  const convert = page.getByRole("button", { name: "Create table from expression 1" });
+  await expect(convert).toHaveAttribute("title", "Convert to Table");
+  await convert.click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        globalThis
+          .__calculatorHarness!.engine.getExpressions()[0]
+          .columns?.map((c) => [c.latex, ...c.values])
+      )
+    )
+    .toEqual([
+      ["x_{1}", "1", "3"],
+      ["y_{1}", "2", "4"],
+    ]);
+  await expect(page.getByText("Table created.")).toBeVisible();
+});

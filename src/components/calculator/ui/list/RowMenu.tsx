@@ -5,7 +5,11 @@
 
 import { useContext, useEffect, useRef, type JSX, type RefObject } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
-import { createTableFromRow } from "@/lib/calculator/core/api/row-commands";
+import {
+  convertPointsToTable,
+  createTableFromRow,
+  pointListCells,
+} from "@/lib/calculator/core/api/row-commands";
 import { tableHeaderFor } from "@/lib/calculator/core/data/table-from-row";
 import { functionDefinitionHead } from "@/lib/calculator/core/latex";
 import { useAnnouncer, type Announcer } from "../a11y/announcer";
@@ -24,7 +28,12 @@ export function offersCreateTable(engine: CalculatorEngine, rowId: string): bool
   const row = rows.find((r) => r.id === rowId);
   if (row === undefined || row.type === "table") return false;
   const functions = new Set(rows.flatMap((r) => functionDefinitionHead(r.latex)?.name ?? []));
-  return tableHeaderFor(row.latex, functions) !== null;
+  return tableHeaderFor(row.latex, functions) !== null || pointListCells(engine, rowId) !== null;
+}
+
+/** RT-9: a point list is converted in place ("Convert to Table"); a function gets a table below. */
+export function convertsInPlace(engine: CalculatorEngine, rowId: string): boolean {
+  return pointListCells(engine, rowId) !== null;
 }
 
 /** D-13: Create table below row `rowId`, its first x cell selected, with the undoable toast. */
@@ -35,7 +44,9 @@ export function createTableBelow(
   toaster: Toaster | null,
   rowId: string
 ): void {
-  const made = createTableFromRow(engine, rowId);
+  const made = convertsInPlace(engine, rowId)
+    ? convertPointsToTable(engine, rowId)
+    : createTableFromRow(engine, rowId);
   if (made === null || typeof made === "string") return;
   focus.focusRow(cellKey(made.id, 0, 0), "all");
   toaster?.show({

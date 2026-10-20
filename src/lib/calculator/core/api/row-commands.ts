@@ -2,8 +2,13 @@
 // Log mode (D-30) and Plot residuals (D-33). Kept apart from the
 // engine so it stays a list of primitives.
 
-import type { CalculatorEngine, EditRefusal } from "./engine";
+import type { CalculatorEngine, EditRefusal, RowView } from "./engine";
+import { collectNameUses } from "../analysis/names";
+import type { RegressionAnalysis } from "../data/regression-analysis";
 import type { StoredRow } from "./document";
+import { functionDefinitionHead } from "../latex/index";
+import { nextTableNames } from "../data/naming";
+import { pointTableCells } from "../data/table-from-points";
 import { nextColour, tableFromRow, withHeader, withColumnStyle } from "./table-edits";
 
 const at = (rows: readonly StoredRow[], id: string) => rows.findIndex((r) => r.id === id);
@@ -24,6 +29,63 @@ export function createTableFromRow(
   return refusal ?? (made === null ? null : { id: made });
 }
 
+/**
+ * RT-26 (REG-CUSTOM-15): the table a typed regression's residuals plot into: the first table whose
+ * first header is a plain name the model reads (`z_1\sim my_1+b` over x₁, y₁, z₁ has none).
+ */
+export function residualTable(
+  rows: readonly RowView[],
+  fit: Pick<RegressionAnalysis, "model">
+): RowView | undefined {
+  const reads = new Set(collectNameUses(fit.model).map((u) => u.name));
+  return rows.find((r) => r.type === "table" && reads.has(r.columns?.[0]?.latex.trim() ?? ""));
+}
+
+/** RT-10: the x and y cells Convert to Table would write for row `rowId`, or null. */
+export function pointListCells(
+  engine: CalculatorEngine,
+  rowId: string
+): { xs: string[]; ys: string[] } | null {
+  const rows = engine.getSnapshot().rows;
+  const view = rows.find((r) => r.id === rowId);
+  if (view === undefined || view.type === "table") return null;
+  const functions = new Set(rows.flatMap((r) => functionDefinitionHead(r.latex)?.name ?? []));
+  return pointTableCells(view.latex, view.value, functions);
+}
+
+/**
+ * RT-10: Convert to Table replaces a point-list row, in place and under its id, by a table of its
+ * coordinates: x_n in the next colour, y_n in the row's colour. One undo step.
+ */
+export function convertPointsToTable(
+  engine: CalculatorEngine,
+  rowId: string
+): { id: string } | EditRefusal | null {
+  const cells = pointListCells(engine, rowId);
+  if (cells === null) return null;
+  let made = false;
+  const refusal = engine.editRows((rows, ctx) => {
+    const i = at(rows, rowId);
+    if (i < 0) return null;
+    const row = rows[i];
+    const names = nextTableNames(ctx.used, 1);
+    const table: StoredRow = {
+      id: row.id,
+      latex: "",
+      color: row.color,
+      hidden: row.hidden,
+      type: "table",
+      columns: [
+        { latex: names.x, values: cells.xs, color: nextColour(row.color, i), hidden: false },
+        { latex: names.ys[0], values: cells.ys, color: row.color, hidden: false },
+      ],
+    };
+    made = true;
+    return rows.map((r, k) => (k === i ? table : r));
+  });
+  return refusal ?? (made ? { id: rowId } : null);
+}
+
 /** D-30: a regression row's Log mode checkbox. */
 export function setLogMode(engine: CalculatorEngine, rowId: string, on: boolean): void {
   engine.editRows((rows) => {
@@ -39,13 +101,11 @@ export function setLogMode(engine: CalculatorEngine, rowId: string, on: boolean)
  * null when the observations are not a table column or the column is already there.
  */
 export function plotResiduals(engine: CalculatorEngine, rowId: string): string | null {
-  const view = engine.getSnapshot().rows.find((r) => r.id === rowId);
+  const rows = engine.getSnapshot().rows;
+  const view = rows.find((r) => r.id === rowId);
   const fit = view?.regression?.analysis;
-  if (view === undefined || fit === undefined || fit.observed.kind !== "id") return null;
-  const observed = fit.observed.name;
-  const source = engine
-    .getSnapshot()
-    .rows.find((r) => r.type === "table" && r.columns?.some((c) => c.latex === observed));
+  if (view === undefined || fit === undefined) return null;
+  const source = residualTable(rows, fit);
   if (source === undefined || source.columns!.some((c) => c.latex === fit.residual)) return null;
   engine.editRows((rows) => {
     const i = at(rows, source.id);

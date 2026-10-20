@@ -247,3 +247,10 @@
   width: 20px;
   height: 20px;
 }
+
+/* RT-6: a computed cell's scientific exponent, raised as in the reference's typeset cells. */
+.kc-table-exponent {
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: 0.6em;
+}

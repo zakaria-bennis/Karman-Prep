@@ -60,6 +60,17 @@ const columnWidth = (k: number | null): CSSProperties => ({
   flexBasis: k === null ? "60px" : k === 0 ? "70px" : "81px",
 });
 
+/** RT-6: "1.234568×10^-4" drawn as the reference draws it, the exponent raised. */
+function ComputedValue({ text }: { text: string }): JSX.Element {
+  const m = /^(.*)×10\^(-?\d+)$/.exec(text);
+  if (m === null) return <>{text.replace(/^-/, "−")}</>;
+  return (
+    <>
+      {m[1]}×10<sup className="kc-table-exponent">{m[2].replace("-", "−")}</sup>
+    </>
+  );
+}
+
 /**
  * RT-6, TABLES-28: the data rows a long table hides, [from, to): with 29 or more data rows it
  * shows rows 1-7, "{n} more rows", then the last 4 and the blank row (n = rows - 11); else null.
@@ -147,7 +158,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
           aria-readonly="true"
           aria-label={computedCellName(headers[k], r, value)}
         >
-          {value?.replace(/^-/, "−")}
+          {value === null ? null : <ComputedValue text={value} />}
         </div>
       );
     }

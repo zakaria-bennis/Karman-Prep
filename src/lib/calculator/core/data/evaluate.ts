@@ -6,7 +6,7 @@
 import type { RowAnalysis } from "../analysis/index";
 import type { Deadline } from "../deadline";
 import { compileExpression, type CompileScope } from "../eval/compile";
-import { formatNumber } from "../eval/format";
+import { formatTableNumber } from "./table-format";
 import { numberValue, type Value } from "../eval/values";
 import { collectNameUses } from "../analysis/names";
 import type { RegressionOutcome } from "./evaluate-regression";
@@ -66,6 +66,11 @@ export function evaluateTable(
     table.columns[j].role === "computed" &&
     table.columns[j].tree?.kind === "id" &&
     (table.columns[j].tree as { name: string }).name === residualName;
+  // RT-6: a computed cell shows "undefined" where its row's x is filled in but has no value, and
+  // nothing where the x cell is blank.
+  const filled = (i: number) => first.cells[i] != null || first.cellErrors[i] != null;
+  const shown = (v: number | null, i: number) =>
+    v === null && !filled(i) ? null : formatTableNumber(v);
   const columns = table.columns.map((c, j): TableColumnResult => {
     const none = () => ({ values: new Array(n).fill(null), display: new Array(n).fill(null) });
     if (j === 0) return { values: firstValues, display: new Array(n).fill(null) };
@@ -84,7 +89,7 @@ export function evaluateTable(
       for (const [name, items] of lists) vars[name] = items[i] ?? numberValue(NaN);
       return real(compiled(vars, deadline));
     });
-    return { values, display: values.map((v) => (v === null ? null : formatNumber(v))) };
+    return { values, display: values.map((v, i) => shown(v, i)) };
   });
   if (spec === null || residualName === null || spec.y >= columns.length) return { columns };
   const regression = evaluateTableRegression(spec, columns, residualName);
@@ -93,7 +98,7 @@ export function evaluateTable(
     columns.forEach((c, j) => {
       if (!isResidual(j)) return;
       const values = Array.from({ length: n }, (_, i) => residuals[i] ?? null);
-      columns[j] = { values, display: values.map((v) => (v === null ? null : formatNumber(v))) };
+      columns[j] = { values, display: values.map((v, i) => shown(v, i)) };
     });
   }
   return { columns, regression };

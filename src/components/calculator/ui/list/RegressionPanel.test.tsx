@@ -104,3 +104,27 @@ it("D-33 plot adds a read-only e1 column to the source table in a new colour", a
   act(() => kit.engine.undo());
   expect(columnsOf(kit)).toHaveLength(2);
 });
+
+it("RT-26 plot targets the table whose first column the model reads: 2y₁~mx₁+b has it, z₁~my₁+b has none", async () => {
+  const kit = withData(["1", "2", "3"], ["2", "4", "7"], "2y_{1}\\sim mx_{1}+b");
+  await ready();
+  expect(within(panel()).getByRole("button", { name: "plot" })).toBeInTheDocument();
+  act(() =>
+    kit.engine.setExpressions([
+      {
+        id: "t",
+        type: "table",
+        columns: [
+          { latex: "x_{1}", values: ["1", "2", "3"] },
+          { latex: "y_{1}", values: ["2", "4", "7"] },
+          { latex: "z_{1}", values: ["1", "3", "4"] },
+        ],
+      },
+      { id: "r", latex: "z_{1}\\sim my_{1}+b" },
+    ])
+  );
+  await waitFor(() =>
+    expect(within(panel()).getByRole("img", { name: /^m equals/ })).toBeInTheDocument()
+  );
+  expect(within(panel()).queryByRole("button", { name: "plot" })).toBeNull();
+});

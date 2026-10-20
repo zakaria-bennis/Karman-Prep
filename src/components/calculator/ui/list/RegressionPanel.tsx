@@ -8,7 +8,7 @@
 
 import type { JSX } from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
-import { plotResiduals, setLogMode } from "@/lib/calculator/core/api/row-commands";
+import { plotResiduals, residualTable, setLogMode } from "@/lib/calculator/core/api/row-commands";
 import { formatParameterValue, formatStatisticValue } from "@/lib/calculator/regression/display";
 import { latexToSpeech } from "../../math-field/speech";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
@@ -52,11 +52,8 @@ export function RegressionPanel({ row }: { row: RowView }): JSX.Element | null {
   const fit = row.regression?.result;
   const analysis = row.regression?.analysis;
   if (fit === null || fit === undefined || !fit.ok || analysis === undefined) return null;
-  const observed = analysis.observed.kind === "id" ? analysis.observed.name : null;
-  // D-33: the table the observations come from, while it lacks the residual column.
-  const source = rows.find(
-    (r) => r.type === "table" && r.columns?.some((c) => c.latex === observed)
-  );
+  // RT-26: the table the residuals plot into, while it lacks the residual column.
+  const source = residualTable(rows, analysis);
   const plotted = source?.columns?.some((c) => c.latex === fit.residualName) === true;
   const r2 = fit.r2 === null ? null : formatStatisticValue(fit.r2);
   return (

@@ -46,8 +46,15 @@ const ZERO_SPAN: SourceSpan = { start: 0, end: 0 };
 const NAN: Node = { kind: "num", value: NaN, span: ZERO_SPAN };
 export const TABLE_MESSAGES = {
   firstHeader: "The first column needs a name, such as x₁.",
-  ownColumns: "A cell can't use its own table's columns.",
+  firstHeaderCoordinate: "First column may not be 'y', 'r', or 'θ'.", // TABLES-16
   comma: "Points are written like this: (1, 2).",
+  // TABLES-13: what a cell may not hold
+  point: "Table entry cannot be a point.",
+  equation: "Table entries must be simple expressions. Equations are not allowed.",
+  inequality: "Table entries must be simple expressions. Inequalities are not allowed.",
+  list: "Table entries must be simple expressions. Lists are not allowed.",
+  functionDefinition:
+    "Table entries must be simple expressions. Function definitions are not allowed.",
   undefinedName: (name: string) => `Too many variables. Try defining '${name}'.`,
 } as const;
 
@@ -144,15 +151,28 @@ function usableCell(
   return cell.tree !== null && cellError(cell, own, declared) === null;
 }
 
+/** TABLES-13: a cell that is a point, a list, an equation, an inequality or a definition. */
+function shapeError(tree: Node): string | null {
+  if (tree.kind === "point") return TABLE_MESSAGES.point;
+  if (tree.kind === "list") return TABLE_MESSAGES.list;
+  if (tree.kind !== "rel") return null;
+  if (tree.ops.some((op) => op !== "=")) return TABLE_MESSAGES.inequality;
+  return tree.operands[0]?.kind === "call"
+    ? TABLE_MESSAGES.functionDefinition
+    : TABLE_MESSAGES.equation;
+}
+
 function cellError(
   cell: ParsedCell,
   own: ReadonlySet<string>,
   declared: ReadonlySet<string>
 ): RowError | null {
   if (cell.error !== null || cell.tree === null) return cell.error;
+  const shape = shapeError(cell.tree);
+  if (shape !== null) return message("syntax", shape);
   for (const { name } of collectNameUses(cell.tree)) {
-    if (own.has(name)) return message("dependency", TABLE_MESSAGES.ownColumns);
-    if (!declared.has(name) && !COORDINATE_NAMES.includes(name)) {
+    // TABLES-13: the reference reads its own table's column names in a cell as undefined names.
+    if (own.has(name) || (!declared.has(name) && !COORDINATE_NAMES.includes(name))) {
       return message("dependency", TABLE_MESSAGES.undefinedName(displayName(name)), [
         displayName(name),
       ]);
@@ -181,6 +201,14 @@ export function analyzeTable(
           role: "error",
           name: null,
           error: message("syntax", TABLE_MESSAGES.firstHeader),
+        };
+      }
+      if (["y", "r", "\\theta"].includes(h.tree.name)) {
+        return {
+          ...base,
+          role: "error",
+          name: null,
+          error: message("syntax", TABLE_MESSAGES.firstHeaderCoordinate),
         };
       }
     } else if (h.blank) {

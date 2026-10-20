@@ -111,10 +111,58 @@ it("D-6 a cell using its own table's columns, an undefined name or a comma has a
   expect(errors).toEqual([
     null,
     null,
-    "A cell can't use its own table's columns.",
+    "Too many variables. Try defining 'x_1'.", // its own column, as the reference words it
     "Too many variables. Try defining 'q'.",
     "Points are written like this: (1, 2).",
     null,
   ]);
   expect(a.byId.get("t")!.table!.columns[1].cellErrors.every((e) => e === null)).toBe(true);
+});
+
+it("TABLES-16 a first column headed y, r or θ errors as on the reference; x, t and a are fine", () => {
+  for (const name of ["y", "r", "\\theta"]) {
+    const a = analyzeRows(
+      [
+        table("t", [
+          [name, ["1", "2"]],
+          ["x_{1}", ["3", "4"]],
+        ]),
+      ],
+      SETTINGS
+    );
+    const first = a.byId.get("t")!.table!.columns[0];
+    expect(first.role).toBe("error");
+    expect(first.error?.message).toBe("First column may not be 'y', 'r', or 'θ'.");
+  }
+  for (const name of ["x", "t", "a"]) {
+    const a = analyzeRows(
+      [
+        table("t", [
+          [name, ["1", "2"]],
+          ["y_{1}", ["3", "4"]],
+        ]),
+      ],
+      SETTINGS
+    );
+    expect(a.byId.get("t")!.table!.columns[0].error).toBeNull();
+  }
+});
+
+it("TABLES-13 a cell holding a point, list, equation or inequality has the reference's text", () => {
+  const a = analyzeRows(
+    [
+      table("t", [
+        ["x_{1}", ["(1,2)", "[1,2]", "x=2", "y<3", "4"]],
+        ["y_{1}", ["1", "2", "3", "4", "5"]],
+      ]),
+    ],
+    SETTINGS
+  );
+  expect(a.byId.get("t")!.table!.columns[0].cellErrors.map((e) => e?.message ?? null)).toEqual([
+    "Table entry cannot be a point.",
+    "Table entries must be simple expressions. Lists are not allowed.",
+    "Table entries must be simple expressions. Equations are not allowed.",
+    "Table entries must be simple expressions. Inequalities are not allowed.",
+    null,
+  ]);
 });
