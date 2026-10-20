@@ -30,7 +30,7 @@ class BackfillTests(unittest.TestCase):
     def test_backfill_guards_on_hash(self):
         r = rec(1)
         sql = backfill_sql([r], rows_for([r]))
-        self.assertIn(f"('{uid(1)}'::uuid, '{comparison_key(r)}'::text, '{1:064x}'::text)", sql)
+        self.assertIn(f"('{uid(1)}'::uuid, '{comparison_key(r)}'::text, '{1:064x}'::text, NULL::text, NULL::jsonb)", sql)
         self.assertIn("q.content_hash_v2 IS NOT DISTINCT FROM v.hash", sql)
         self.assertIn("q.id = v.id", sql)
 
@@ -88,7 +88,41 @@ class BackfillTests(unittest.TestCase):
                                capture_output=True, text=True)
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn(uid(1), out.read_text(encoding="utf-8"))
-            self.assertIn("1 to key", p.stdout)
+            self.assertIn("1 rows in SQL", p.stdout)
+
+
+class FigureAndGuardTests(unittest.TestCase):
+    def test_image_figure_row_is_skipped_and_counted(self):
+        img, ok = rec(1, figure_unkeyable=True), rec(2)
+        sql = backfill_sql([img, ok], rows_for([img, ok]))
+        self.assertNotIn(uid(1), sql)
+        self.assertIn(uid(2), sql)
+        self.assertIn("-- skipped 1 figure rows (not keyable without a reviewed figure signature)", sql)
+
+    def test_table_figure_row_is_keyed(self):
+        from kimport.sweep import record_from_row
+        row = {"id": uid(1), "question_text": "Read the table.", "question_format": "numeric_entry",
+               "correct_answer": "3", "content_hash_v2": "ab", "figure_kind": "table",
+               "figure_table_data": {"header_row": ["a"], "rows": [["1"]]}}
+        r = record_from_row(row)
+        self.assertFalse(r.meta["figure_unkeyable"])
+        sql = backfill_sql([r], export_by_id([row]))
+        self.assertIn(uid(1), sql)
+        self.assertIn('\'{"header_row": ["a"], "rows": [["1"]]}\'::jsonb', sql)
+
+    def test_image_kind_is_unkeyable_in_record(self):
+        from kimport.sweep import record_from_row
+        row = {"id": uid(1), "question_text": "See graph.", "question_format": "numeric_entry",
+               "correct_answer": "3", "figure_kind": "graph"}
+        self.assertTrue(record_from_row(row).meta["figure_unkeyable"])
+
+    def test_guard_covers_answer_and_table(self):
+        r = rec(1)
+        rows = {r.ref: {"id": r.ref, "content_hash_v2": "h", "correct_answer": "B"}}
+        sql = backfill_sql([r], rows)
+        self.assertIn("q.correct_answer IS NOT DISTINCT FROM v.answer", sql)
+        self.assertIn("q.figure_table_data IS NOT DISTINCT FROM v.tbl", sql)
+        self.assertIn("'B'::text, NULL::jsonb", sql)
 
 
 class MigrationTests(unittest.TestCase):

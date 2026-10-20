@@ -101,6 +101,12 @@ def _has_figure(row: dict) -> bool:
     return row.get("figure_kind") is not None or row.get("figure_table_data") is not None
 
 
+def _figure_unkeyable(row: dict) -> bool:
+    """A figure the key cannot represent: any figure_kind other than a table (images, graphs)."""
+    kind = row.get("figure_kind")
+    return kind is not None and kind != "table"
+
+
 def _table_cells(table) -> tuple[tuple[str, ...], ...]:
     """Caption, header row, body rows and footer note, as the student sees them."""
     if not isinstance(table, dict):
@@ -126,6 +132,7 @@ def record_from_row(row: dict) -> QuestionRecord:
         "created_at": row.get("created_at"),
         "has_figure": _has_figure(row),
         "figure_kind": row.get("figure_kind"),
+        "figure_unkeyable": _figure_unkeyable(row),
         "answer_problem": False,
         "format_problem": False,
     }

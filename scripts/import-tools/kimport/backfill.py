@@ -4,10 +4,11 @@ Input is the live export (sql/live_export.sql). Nothing here connects to a
 database; the SQL is text for a human-approved run. Each row is keyed only if
 it still has the exported content_hash_v2, and only while its key is NULL, so a
 row edited since the export, or one already keyed, is skipped and never
-overwritten. Rows whose answer key is broken or whose format disagrees with
-having choices cannot be keyed from the export and are listed in a comment.
+overwritten. Rows whose answer key is broken, whose format disagrees with having
+choices, or whose figure is an image (not in the key) are not keyed; a comment counts them.
 """
 
+import json
 from pathlib import Path
 
 from kimport.keys import comparison_key
@@ -18,16 +19,21 @@ CHUNK = 500
 
 
 def _value(r, row: dict) -> str:
-    return f"({lit(uuid_literal(r.ref))}::uuid, {lit(comparison_key(r))}::text, {lit(row.get('content_hash_v2'))}::text)"
+    table = row.get("figure_table_data")
+    table_sql = "NULL::jsonb" if table is None else f"{lit(json.dumps(table, ensure_ascii=False))}::jsonb"
+    return (f"({lit(uuid_literal(r.ref))}::uuid, {lit(comparison_key(r))}::text, "
+            f"{lit(row.get('content_hash_v2'))}::text, {lit(row.get('correct_answer'))}::text, {table_sql})")
 
 
 def backfill_sql(records, export_by_id: dict[str, dict]) -> str:
-    keyable, broken, mismatch = [], 0, 0
+    keyable, broken, mismatch, figures = [], 0, 0, 0
     for r in records:
         if r.meta.get("format_problem"):
             mismatch += 1
         elif r.meta.get("answer_problem"):
             broken += 1
+        elif r.meta.get("figure_unkeyable"):
+            figures += 1
         else:
             row = export_by_id.get(r.ref)
             if row is None:
@@ -36,7 +42,7 @@ def backfill_sql(records, export_by_id: dict[str, dict]) -> str:
     out = [
         f"-- kimport backfill: comparison_key for {len(keyable)} rows. Normalizer {NORMALIZER_VERSION}.",
         "-- Needs the founder's go-ahead and migration 20261021000000 applied first.",
-        "-- A row is keyed only if its content_hash_v2 still matches the export and its key is NULL.",
+        "-- A row is keyed only if its content_hash_v2, correct_answer and figure_table_data still match the export and its key is NULL.",
         "BEGIN;",
         "",
     ]
@@ -44,8 +50,10 @@ def backfill_sql(records, export_by_id: dict[str, dict]) -> str:
         values = ",\n  ".join(_value(r, row) for r, row in keyable[i:i + CHUNK])
         out += [
             "UPDATE public.quiz_questions q SET comparison_key = v.key",
-            f"FROM (VALUES\n  {values}\n) AS v(id, key, hash)",
-            "WHERE q.id = v.id AND q.content_hash_v2 IS NOT DISTINCT FROM v.hash AND q.comparison_key IS NULL;",
+            f"FROM (VALUES\n  {values}\n) AS v(id, key, hash, answer, tbl)",
+            "WHERE q.id = v.id AND q.content_hash_v2 IS NOT DISTINCT FROM v.hash",
+            "  AND q.correct_answer IS NOT DISTINCT FROM v.answer AND q.figure_table_data IS NOT DISTINCT FROM v.tbl",
+            "  AND q.comparison_key IS NULL;",
             "",
         ]
     out += [
@@ -54,6 +62,7 @@ def backfill_sql(records, export_by_id: dict[str, dict]) -> str:
         "",
         "COMMIT;",
         f"-- skipped: {broken} broken answer key, {mismatch} format mismatch (not keyed; see the sweep report)",
+        f"-- skipped {figures} figure rows (not keyable without a reviewed figure signature)",
         "",
     ]
     return "\n".join(out)
@@ -68,5 +77,6 @@ def run_backfill(export_path: Path, out_path: Path) -> dict:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(sql, encoding="utf-8")
-    skipped = sum(1 for r in records if r.meta.get("format_problem") or r.meta.get("answer_problem"))
-    return {"keyed": len(records) - skipped, "skipped": skipped}
+    skipped = sum(1 for r in records if r.meta.get("format_problem") or r.meta.get("answer_problem")
+                  or r.meta.get("figure_unkeyable"))
+    return {"in_sql": len(records) - skipped, "skipped": skipped}
