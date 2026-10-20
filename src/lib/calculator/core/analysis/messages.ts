@@ -134,7 +134,12 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
 }
 
 /** FN-27: the names whose arity example takes a list, `quantile([1,2,3], 1)`. */
-const LIST_EXAMPLES: ReadonlySet<string> = new Set(["quantile", "quartile"]);
+const LIST_EXAMPLES: ReadonlySet<string> = new Set([
+  "quantile",
+  "quartile",
+  "inversecdf",
+  "inverseCdf",
+]);
 
 /**
  * Desmos's arity wording (captured 2026-10-19), from the expected count text `k`

@@ -416,11 +416,11 @@ const statisticsGap = (key: string) => STATISTICS_GAPS.some((gap) => gap.test(ke
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 392 catalogue statistics values are checked, 272 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 309 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([392, 272]));
+  ]).toEqual([438, 309]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -438,11 +438,11 @@ for (const [key, expected] of STATISTICS_VALUES) {
 
 const STATISTICS_ERRORS = Object.entries(statistics.errors);
 
-it("FN-2 FN-23 FN-29 FN-75 all 53 catalogue statistics errors are checked, 38 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 60 matched", () =>
   expect([
     STATISTICS_ERRORS.length,
     STATISTICS_ERRORS.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([53, 38]));
+  ]).toEqual([75, 60]));
 
 for (const [key, message] of STATISTICS_ERRORS) {
   const check = () => {
