@@ -313,6 +313,7 @@
   height: 18px;
   margin-bottom: 5px;
   color: var(--kc-text-secondary);
+  white-space: nowrap;
 }
 
 .kc-slider-menu .kc-segments[data-theme="mini"] .kc-segment {

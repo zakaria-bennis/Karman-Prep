@@ -57,7 +57,7 @@ export function LoopModeGlyph(props: { mode: LoopMode; size?: number }): JSX.Ele
   const stroke = {
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 2.6,
+    strokeWidth: 2.4,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
   };
@@ -95,7 +95,7 @@ export function LoopModeGlyph(props: { mode: LoopMode; size?: number }): JSX.Ele
 export function SpeedGlyph(props: { faster: boolean; size?: number }): JSX.Element {
   const d = props.faster ? "M5 4l7 8-7 8M12 4l7 8-7 8" : "M19 4l-7 8 7 8M12 4l-7 8 7 8";
   return (
-    <Svg size={props.size ?? 10}>
+    <Svg size={props.size ?? 12}>
       <path
         d={d}
         fill="none"
