@@ -11,10 +11,16 @@ FOR UPDATE, sorted choices, one source tuple, one content hash, exact key row,
 staged status, publication flag off, tag manifest, no seal yet) and two
 additions: a Python precheck that no other exported row (live or staged) has
 the same comparison key or a typo-level match, and, inside the DO block, a
-guard that no other row holds the same comparison_key, which the publish
-UPDATE then sets. Rows whose figure the key cannot represent (an image, graph
-or other non-table figure; ruling R12) get no database key and no key guard;
-the precheck still runs for them and the report lists them.
+guard that no other non-archived row holds the same comparison_key, which the
+publish UPDATE then sets. Archived rows are ignored by both duplicate checks
+(ruling R25). Rows whose figure the key cannot represent (keys.is_unkeyable: an
+image, graph or other non-table figure, or a choice table; rulings R12, R23)
+get no database key and no key guard; the precheck still runs for them and the
+report lists them.
+
+precheck.json records publish_sql_sha256, the sha256 of publish.sql, for
+`intent open --sql-sha256` (the intent is opened after this builder runs,
+because the builder refuses while any intent is open).
 
 publish.sql opens with a block that recomputes the export fingerprint
 (kimport.export.FINGERPRINT_SQL) and stops if the bank changed since the
@@ -27,6 +33,7 @@ Nothing here connects to a database; the SQL is text for a human-approved run.
 """
 
 import base64
+import hashlib
 import json
 import os
 import re
@@ -35,7 +42,7 @@ from pathlib import Path
 from typing import TypedDict
 
 from kimport.export import FINGERPRINT_SQL, ExportDoc, read_export_doc
-from kimport.keys import QuestionRecord, comparison_key
+from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, QuestionRecord, comparison_key, is_unkeyable
 from kimport.normalize import NORMALIZER_VERSION
 from kimport.sqlutil import do_block, dryrun_variant, lit, uuid_literal
 from kimport.sweep import blocking_key, record_from_row
@@ -48,9 +55,6 @@ FIGURE_NO_KEY = "figure: checked by people, no database key"
 KEYED = "keyed"
 NOT_COMPARABLE_ANSWER = "not comparable (bad answer letter)"
 NOT_COMPARABLE_FORMAT = "not comparable (format mismatch)"
-# Columns holding a figure the comparison key does not represent (ruling R12).
-_UNKEYED_FIGURE_FIELDS = ("image_url", "image_storage_path", "figure_svg", "figure_graph_data",
-                          "figure_chart_data", "figure_geometry_data")
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 _BATCH = re.compile(r"[a-z0-9][a-z0-9-]{0,62}")
 _KEY = re.compile(re.escape(NORMALIZER_VERSION) + r":[0-9a-f]{64}")
@@ -126,22 +130,16 @@ def _export_like(snap: dict) -> dict:
         "id": q["id"], "question_text": q.get("question_text"), "correct_answer": q.get("correct_answer"),
         "question_format": q.get("answer_format"), "figure_kind": q.get("figure_kind"),
         "figure_table_data": q.get("figure_table_data"), "publish_status": q.get("publish_status"),
-        "is_live": q.get("is_live"), "created_at": q.get("created_at"),
-        "choices": sorted(({"letter": c.get("letter"), "choice_text": c.get("choice_text")}
+        "is_live": q.get("is_live"), "created_at": q.get("created_at"), "archived_at": q.get("archived_at"),
+        **{f: q.get(f) for f in PASSAGE_FIELDS + UNKEYED_FIGURE_FIELDS},
+        "choices": sorted(({"letter": c.get("letter"), "choice_text": c.get("choice_text"),
+                            "choice_table_data": c.get("choice_table_data")}
                            for c in snap.get("choices") or []), key=lambda c: c["letter"] or ""),
     }
 
 
 def readback_record(snap: dict) -> QuestionRecord:
     return record_from_row(_export_like(snap))
-
-
-def _unkeyed(snap: dict) -> bool:
-    q = snap["question"]
-    kind = q.get("figure_kind")
-    return ((kind is not None and kind != "table")
-            or any(q.get(f) is not None for f in _UNKEYED_FIGURE_FIELDS)
-            or any(c.get("choice_table_data") is not None for c in snap.get("choices") or []))
 
 
 def _source(q: dict) -> tuple:
@@ -231,7 +229,7 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
                 raise RefuseToBuild(f"{it['id']}: export {field} {row.get(field)!r} differs from the private "
                                     f"readback {q.get(field)!r}; take a fresh readback and export")
     try:
-        exported = [record_from_row(r) for r in export_rows]
+        exported = [record_from_row(r) for r in export_rows if r.get("archived_at") is None]
     except ValueError as e:
         raise RefuseToBuild(f"export: {e}") from None
     batch_ids = {it["id"] for it in items}
@@ -247,7 +245,7 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
             seen.add((b, r.ref))
             by_block.setdefault(b, []).append(r)
     for r in export_rows:
-        if r.get("comparison_key"):
+        if r.get("comparison_key") and r.get("archived_at") is None:
             by_key.setdefault(r["comparison_key"], set()).add(r["id"])
     rows, problems = [], []
     for it in items:
@@ -265,7 +263,8 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
     if problems:
         raise RefuseToBuild("duplicate check failed: " + "; ".join(problems))
     others = [r for r in exported if r.ref not in batch_ids]
-    return {"normalizer_version": NORMALIZER_VERSION, "export_rows": len(export_rows), "passed": True,
+    return {"normalizer_version": NORMALIZER_VERSION, "export_rows": len(export_rows),
+            "archived_rows_ignored": len(export_rows) - len(exported), "passed": True,
             "rows": rows,
             NOT_COMPARABLE_ANSWER: sorted(r.ref for r in others if r.meta.get("answer_problem")
                                           and not r.meta.get("format_problem")),
@@ -273,12 +272,12 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
 
 
 def _check_backfill(exported, key_of: dict, by_id: dict, batch_ids: set) -> None:
-    """Every keyable non-batch row must carry the key this normalizer computes
-    (same keyable rule as kimport.backfill)."""
+    """Every keyable non-batch, non-archived row must carry the key this normalizer
+    computes (same keyable rule as kimport.backfill). The batch's own rows need no
+    backfill: publish.sql sets their key."""
     missing, drift = [], []
     for r in exported:
-        if r.ref in batch_ids or r.meta.get("format_problem") or r.meta.get("answer_problem") \
-                or r.meta.get("figure_unkeyable"):
+        if r.ref in batch_ids or r.meta.get("format_problem") or r.meta.get("answer_problem") or is_unkeyable(r):
             continue
         stored = by_id[r.ref].get("comparison_key")
         if stored is None:
@@ -341,7 +340,7 @@ def _publish_block(tag: str, it: dict) -> list[str]:
     ]
     if key:
         body.append(f"  IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.comparison_key = {lit(key)}"
-                    " AND o.id <> q.id) THEN RAISE EXCEPTION 'duplicate comparison key: %', q.id; END IF;")
+                    " AND o.id <> q.id AND o.archived_at IS NULL) THEN RAISE EXCEPTION 'duplicate comparison key: %', q.id; END IF;")
     body += [
         "  UPDATE public.answer_key_entries SET raw_model_response=jsonb_set(",
         f"   jsonb_set(raw_model_response,{_FLAG_ON}",
@@ -452,7 +451,7 @@ def build_publish(private_readback: Path, sealed_preview: Path, export: Path, in
         if record.meta.get("answer_problem") or record.meta.get("format_problem"):
             raise RefuseToBuild(f"{qid}: answer letter or format does not fit the choices")
         full_key = comparison_key(record)
-        unkeyed = _unkeyed(snap)
+        unkeyed = is_unkeyable(record)
         stored = snap["question"]["comparison_key"]
         if unkeyed and stored is not None:
             raise RefuseToBuild(f"{qid}: has a database key but its figure is not represented in the key")
@@ -469,6 +468,8 @@ def build_publish(private_readback: Path, sealed_preview: Path, export: Path, in
         publish_sql, rollback_sql = _sql(batch, items, "publish", doc), _sql(batch, items, "rollback", doc)
     except ValueError as e:  # dollar tag inside its own block
         raise RefuseToBuild(str(e)) from None
+    precheck["publish_sql_sha256"] = hashlib.sha256(publish_sql.encode("utf-8")).hexdigest()
+    precheck["question_ids"] = [it["id"] for it in items]
     return {"publish_sql": publish_sql, "rollback_sql": rollback_sql,
             "keys": {it["id"]: it["key"] for it in items}, "precheck": precheck}
 

@@ -11,7 +11,7 @@ import json
 import os
 from pathlib import Path
 
-from kimport.keys import comparison_key
+from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, comparison_key
 from kimport.sweep import record_from_row
 from tests.export_fixtures import EXPORTED_AT, write_export
 
@@ -149,9 +149,13 @@ def export_row(snap: dict, **over) -> dict:
         "source_section": q["source_section"], "source_module": q["source_module"],
         "source_question_number": q["source_question_number"], "content_hash_v2": q["content_hash_v2"],
         "created_at": q["created_at"],
-        "choices": [{"letter": c["letter"], "choice_text": c["choice_text"]} for c in snap["choices"] or []],
+        "choices": [{"letter": c["letter"], "choice_text": c["choice_text"],
+                     "choice_table_data": True if c.get("choice_table_data") is not None else None}
+                    for c in snap["choices"] or []],
         "raw_model_response": snap["keys"][0]["raw_model_response"], "answer_key_count": 1,
         "comparison_key": q.get("comparison_key"),
+        **{f: q.get(f) for f in PASSAGE_FIELDS},
+        **{f: (True if q.get(f) is not None else None) for f in UNKEYED_FIGURE_FIELDS},  # presence, as exported
     }
     row.update(over)
     return row

@@ -82,7 +82,7 @@ def _register_backfill(sub) -> None:
     bf.add_argument("--export", required=True, help="saved result of sql/live_export.sql")
     bf.add_argument("--out", required=True, help="output file, e.g. pipeline/backfill.sql")
     bf.set_defaults(func=lambda a: _guard(lambda: print(
-        "backfill: {in_sql} rows in SQL, {skipped} skipped".format(**backfill.run_backfill(Path(a.export), Path(a.out))))))
+        "backfill: {in_sql} rows in SQL, {skipped} skipped ({skipped_live} of them live)".format(**backfill.run_backfill(Path(a.export), Path(a.out))))))
 
 
 def _register_publish(sub) -> None:

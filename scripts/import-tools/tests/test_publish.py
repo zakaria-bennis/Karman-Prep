@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import re
 import subprocess
@@ -27,7 +28,7 @@ LEGACY_READBACK = TASK3 / "oct25usv2-rw-m2q11-native-table-private-readback.json
 LEGACY_SEALED = TASK3 / "oct25usv2-rw-m2q11-native-table-sealed-preview.json"
 
 _KEY_GUARD = re.compile(r"IF EXISTS \(SELECT 1 FROM public\.quiz_questions o WHERE o\.comparison_key = "
-                        r"'[^']*' AND o\.id <> q\.id\) THEN RAISE EXCEPTION 'duplicate comparison key: %', "
+                        r"'[^']*' AND o\.id <> q\.id AND o\.archived_at IS NULL\) THEN RAISE EXCEPTION 'duplicate comparison key: %', "
                         r"q\.id; END IF;")
 
 
@@ -122,7 +123,7 @@ class KeyGuardTests(PublishTestCase):
             key = comparison_key(readback_record(s))
             self.assertEqual(bundle["keys"][s["question"]["id"]], key)
             guard = (f"IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.comparison_key = '{key}' "
-                     f"AND o.id <> q.id) THEN RAISE EXCEPTION 'duplicate comparison key: %', q.id; END IF;")
+                     f"AND o.id <> q.id AND o.archived_at IS NULL) THEN RAISE EXCEPTION 'duplicate comparison key: %', q.id; END IF;")
             self.assertEqual(sql.count(guard), 1)
             update = f"publish_status='publish_ready',comparison_key='{key}' WHERE id=q.id;"
             self.assertEqual(sql.count(update), 1)
@@ -388,8 +389,18 @@ class CliTests(PublishTestCase):
             self.assertEqual(dry.replace("ROLLBACK;", "COMMIT;"), (out / f"{name}.sql").read_text())
         keys = json.loads((out / "keys.json").read_text())
         self.assertEqual(len(keys), 3)
-        self.assertTrue(json.loads((out / "precheck.json").read_text())["passed"])
+        pre = json.loads((out / "precheck.json").read_text())
+        self.assertTrue(pre["passed"])
         self.assertEqual([p for p in out.iterdir() if p.name.endswith(".tmp")], [])
+        # the sha `intent open --sql-sha256` takes, opened after this builder ran
+        self.assertEqual(pre["publish_sql_sha256"], hashlib.sha256((out / "publish.sql").read_bytes()).hexdigest())
+        self.assertEqual(sorted(pre["question_ids"]), sorted(keys))
+        log = self.dir / "intents.jsonl"
+        write_intent(log, "syn-batch", "publish", pre["question_ids"], pre["publish_sql_sha256"],
+                     "2026-10-21T09:00:00Z")
+        again = self.run_cli(self.batch(self.three(), self.bank()), self.dir / "again")
+        self.assertEqual(again.returncode, 1)  # an open intent still blocks a second build
+        self.assertIn("open intent", again.stderr)
 
     def test_cli_refusal_exits_1_and_writes_nothing(self):
         out = self.dir / "batches" / "syn-batch"

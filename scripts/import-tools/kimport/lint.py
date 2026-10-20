@@ -11,6 +11,7 @@ from pathlib import Path
 
 from . import lane
 from .evidence import needs_visual
+from .keys import UNKEYED_FIGURE_FIELDS, is_unkeyable
 from .normalize import NORMALIZER_VERSION
 
 # Matches REVIEWED_DIFFICULTY_RUBRIC_VERSION in karman-release reviewed-difficulty.ts.
@@ -60,10 +61,12 @@ def row_sha256(row) -> str:
 
 
 def _has_asset(row: dict) -> bool:
-    if row.get("choice_tables") not in (None, "", [], {}):
+    """A reviewed asset: one keys.is_unkeyable knows (image / svg / graph / chart /
+    geometry columns, choice tables), or any other non-empty asset/image/figure field."""
+    if is_unkeyable(row):
         return True
     for key, value in row.items():
-        if key in _KNOWN_FIGURE_FIELDS or not _ASSET_KEY.search(key):
+        if key in _KNOWN_FIGURE_FIELDS or key in UNKEYED_FIGURE_FIELDS or not _ASSET_KEY.search(key):
             continue
         if value not in (None, "", [], {}):
             return True

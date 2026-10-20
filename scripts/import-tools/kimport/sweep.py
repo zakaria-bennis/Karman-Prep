@@ -20,8 +20,10 @@ nothing is removed and a person picks the keeper.
 Live rows whose correct_answer letter matches no choice ("broken answer key")
 or whose question_format disagrees with having choices ("format mismatch")
 are left out of grouping and listed in the report.
-Any group with a figure (figure_kind or figure_table_data set) is reported as
-"figure_review" with nothing to remove: a person checks those by eye.
+Any group with a figure (figure_kind or figure_table_data set, or a question
+keys.is_unkeyable says the key cannot represent: images, graphs, choice
+tables) is reported as "figure_review" with nothing to remove: a person checks
+those by eye and picks the copy to keep with `sweep resolve` (resolve_sql).
 """
 
 import json
@@ -35,6 +37,8 @@ from kimport.keys import (
     answer_value,
     comparison_key,
     figure_value,
+    is_unkeyable,
+    record_text,
     sorted_choices,
     table_values,
 )
@@ -70,13 +74,7 @@ def _row_is_live(row: dict) -> bool:
 
 
 def _has_figure(row: dict) -> bool:
-    return row.get("figure_kind") is not None or row.get("figure_table_data") is not None
-
-
-def _figure_unkeyable(row: dict) -> bool:
-    """A figure the key cannot represent: any figure_kind other than a table (images, graphs)."""
-    kind = row.get("figure_kind")
-    return kind is not None and kind != "table"
+    return row.get("figure_kind") is not None or row.get("figure_table_data") is not None or is_unkeyable(row)
 
 
 def _table_cells(table) -> tuple[tuple[str, ...], ...]:
@@ -104,7 +102,8 @@ def record_from_row(row: dict) -> QuestionRecord:
         "created_at": row.get("created_at"),
         "has_figure": _has_figure(row),
         "figure_kind": row.get("figure_kind"),
-        "figure_unkeyable": _figure_unkeyable(row),
+        "unkeyable": is_unkeyable(row),
+        "archived": row.get("archived_at") is not None,
         "answer_problem": False,
         "format_problem": False,
     }
@@ -124,7 +123,7 @@ def record_from_row(row: dict) -> QuestionRecord:
         answer = correct
     return QuestionRecord(
         ref=row["id"],
-        text=row.get("question_text") or "",
+        text=record_text(row),
         choices=choices,
         answer=answer,
         answer_format=fmt,
@@ -133,10 +132,6 @@ def record_from_row(row: dict) -> QuestionRecord:
         is_live=is_live,
         meta=meta,
     )
-
-
-def load_export(path: Path) -> list[QuestionRecord]:
-    return [record_from_row(r) for r in read_export(path)]
 
 
 # ---------------------------------------------------------------- grouping

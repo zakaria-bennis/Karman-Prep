@@ -60,6 +60,14 @@ k backfill --export $PIPE/live-<date>-2.json --out $PIPE/backfill.sql
 
 Produces `backfill.sql` and `backfill.dryrun.sql` (keys look like `kn-2:<sha256>`). Run the `.dryrun.sql` first, then `backfill.sql`. Both end with a `SELECT` that prints `rows_still_null`. Some rows stay without a key by design: image, graph and choice-table figure rows, rows with a broken answer key, and rows whose format disagrees with their choices.
 
+The comments at the end of `backfill.sql` count the skipped rows twice: once for live rows (not archived, publish-ready) and once for the rest. To check live rows, run this after the backfill. It leaves out figure rows the key cannot represent, so the number should equal the live line's broken-answer-key plus format-mismatch count (0 when there are none), because every other live row now has a key:
+
+```
+SELECT count(*) FROM public.quiz_questions q WHERE q.comparison_key IS NULL AND q.archived_at IS NULL AND q.publish_status IN ('publish_ready','publish_ready_with_verified_repair') AND (q.figure_kind IS NULL OR q.figure_kind = 'table') AND q.image_url IS NULL AND q.image_storage_path IS NULL AND q.figure_svg IS NULL AND q.figure_graph_data IS NULL AND q.figure_chart_data IS NULL AND q.figure_geometry_data IS NULL AND NOT EXISTS (SELECT 1 FROM public.answer_choices c WHERE c.question_id = q.id AND c.choice_table_data IS NOT NULL);
+```
+
+Archived rows are keyed too. That is harmless: the unique rule and the publish duplicate check ignore archived rows.
+
 **O6. Migration B (live write, separate PR). Needs your OK.**
 
 Migration B (the unique rule) lives at `scripts/import-tools/sql/migration_b_unique_comparison_key.sql`, outside `supabase/migrations`, so merging this branch never applies it. Add it later, in its own PR, as `supabase/migrations/<YYYYMMDDHHMMSS>_question_comparison_key_unique.sql`, only after O5 is verified and this check returns no rows:

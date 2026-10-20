@@ -37,7 +37,7 @@ from pathlib import Path
 from kimport.corpus_load import load_corpus
 from kimport.evidence import WORD, OutsideEvidence, needs_visual
 from kimport.export import read_export_doc
-from kimport.keys import QuestionRecord, answer_value, clean_text, comparison_key, sorted_choices
+from kimport.keys import QuestionRecord, answer_value, clean_text, comparison_key, is_unkeyable, sorted_choices
 from kimport.normalize import NORMALIZER_VERSION
 from kimport.sweep import blocking_key, record_from_row
 from kimport.typo import typo_match
@@ -75,8 +75,9 @@ def _live_record(r: QuestionRecord) -> QuestionRecord:
         m.update(status="unparsed", reason="format_mismatch")
     elif m.get("answer_problem"):
         m.update(status="unparsed", reason="broken_answer_key")
-    elif m.get("figure_unkeyable"):
-        m.update(status="figure", reason=f"figure_kind {kind}")
+    elif is_unkeyable(r):
+        m.update(status="figure", reason=f"figure_kind {kind}" if kind not in (None, "table") else
+                 "figure the key cannot represent (image, graph or choice table)")
     elif kind == "table" and not r.table_cells:
         m.update(status="figure", reason="figure_kind table with no table data")
     elif not r.table_cells and needs_visual(r.text):

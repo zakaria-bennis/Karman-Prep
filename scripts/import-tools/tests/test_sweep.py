@@ -14,7 +14,7 @@ from kimport.export import export_by_id, read_export
 from kimport.evidence import near_prefilter as _near_prefilter
 from kimport.sweep import (
     find_live_duplicates,
-    load_export,
+    record_from_row,
     report_md,
     republish_sql,
     unpublish_sql,
@@ -36,6 +36,10 @@ def live(ref, text, created, choices=("2", "4", "6", "8"), answer="4", is_live=T
 def other(ref, text):
     """An unrelated non-live exported row: only its words matter."""
     return live(ref, text, "2020-01-01T00:00:00+00:00", choices=("q", "r", "s", "t"), answer="q", is_live=False)
+
+
+def load_export(path):
+    return [record_from_row(r) for r in read_export(path)]
 
 
 def write_rows(d, rows):

@@ -19,6 +19,8 @@ import re
 from pathlib import Path
 from typing import NamedTuple
 
+from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS
+
 # Kept byte-identical in sql/live_export.sql (test_export checks it).
 FINGERPRINT_SQL = (
     "md5(coalesce(string_agg(q.id::text||':'||coalesce(q.content_hash_v2::text,'')||':'"
@@ -26,6 +28,8 @@ FINGERPRINT_SQL = (
     "||coalesce(to_jsonb(q)->>'comparison_key',''), ',' ORDER BY q.id),''))"
 )
 _FIELDS = ("content_hash_v2", "publish_status", "import_status", "comparison_key")
+# Every row of the current sql/live_export.sql carries these (null when unset).
+ROW_FIELDS = UNKEYED_FIGURE_FIELDS + PASSAGE_FIELDS
 _MD5 = re.compile(r"[0-9a-f]{32}")
 _DOC_KEYS = {"exported_at", "row_count", "fingerprint", "rows"}
 
@@ -77,7 +81,20 @@ def read_export_doc(path: Path) -> ExportDoc:
         raise ValueError(f"{path}: rows do not match the export fingerprint (file edited or cut?)")
     if not isinstance(doc["exported_at"], str) or not doc["exported_at"]:
         raise ValueError(f"{path}: exported_at missing")
+    _require_current_shape(path, rows)
     return ExportDoc(rows, doc["exported_at"], doc["row_count"], doc["fingerprint"])
+
+
+def _require_current_shape(path, rows: list[dict]) -> None:
+    """An export from an older live_export.sql lacks the figure-presence and passage
+    fields, so a table-choice or image question would look keyable. Refuse it."""
+    for r in rows:
+        missing = [f for f in ROW_FIELDS if f not in r]
+        if not missing and any(isinstance(c, dict) and "choice_table_data" not in c for c in r.get("choices") or ()):
+            missing = ["choices[].choice_table_data"]
+        if missing:
+            raise ValueError(f"{path}: row {r['id']} has no {', '.join(missing)} field: the export is from an "
+                             "older sql/live_export.sql; run the current one again")
 
 
 def read_export(path: Path) -> list[dict]:

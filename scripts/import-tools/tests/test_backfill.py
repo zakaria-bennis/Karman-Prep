@@ -62,7 +62,7 @@ class BackfillTests(unittest.TestCase):
         self.assertNotIn(uid(2), sql.split("-- skipped")[0])
         self.assertNotIn(uid(3), sql.split("-- skipped")[0])
         self.assertEqual(sql.count("UPDATE public.quiz_questions"), 1)
-        self.assertIn("-- skipped: 1 broken answer key, 1 format mismatch", sql)
+        self.assertIn("-- skipped not live: 1 broken answer key, 1 format mismatch, 0 figure rows", sql)
 
     def test_missing_export_row_raises(self):
         with self.assertRaises(ValueError):
@@ -94,11 +94,11 @@ class BackfillTests(unittest.TestCase):
 
 class FigureAndGuardTests(unittest.TestCase):
     def test_image_figure_row_is_skipped_and_counted(self):
-        img, ok = rec(1, figure_unkeyable=True), rec(2)
+        img, ok = rec(1, unkeyable=True), rec(2)
         sql = backfill_sql([img, ok], rows_for([img, ok]))
         self.assertNotIn(uid(1), sql)
         self.assertIn(uid(2), sql)
-        self.assertIn("-- skipped 1 figure rows (not keyable without a reviewed figure signature)", sql)
+        self.assertIn("-- skipped not live: 0 broken answer key, 0 format mismatch, 1 figure rows", sql)
 
     def test_table_figure_row_is_keyed(self):
         from kimport.sweep import record_from_row
@@ -106,7 +106,7 @@ class FigureAndGuardTests(unittest.TestCase):
                "correct_answer": "3", "content_hash_v2": "ab", "figure_kind": "table",
                "figure_table_data": {"header_row": ["a"], "rows": [["1"]]}}
         r = record_from_row(row)
-        self.assertFalse(r.meta["figure_unkeyable"])
+        self.assertFalse(r.meta["unkeyable"])
         sql = backfill_sql([r], export_by_id([row]))
         self.assertIn(uid(1), sql)
         self.assertIn('\'{"header_row": ["a"], "rows": [["1"]]}\'::jsonb', sql)
@@ -115,7 +115,7 @@ class FigureAndGuardTests(unittest.TestCase):
         from kimport.sweep import record_from_row
         row = {"id": uid(1), "question_text": "See graph.", "question_format": "numeric_entry",
                "correct_answer": "3", "figure_kind": "graph"}
-        self.assertTrue(record_from_row(row).meta["figure_unkeyable"])
+        self.assertTrue(record_from_row(row).meta["unkeyable"])
 
     def test_guard_covers_answer_and_table(self):
         r = rec(1)

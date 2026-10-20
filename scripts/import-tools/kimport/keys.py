@@ -88,6 +88,56 @@ def answer_value(r: QuestionRecord) -> str:
     return value
 
 
+# Figure columns the key cannot represent (ruling R23). sql/live_export.sql
+# exports each one as `true` when set, so the same test reads an export row,
+# a private-readback snapshot (full column values) or a reviewed batch row.
+UNKEYED_FIGURE_FIELDS = ("image_url", "image_storage_path", "figure_svg", "figure_graph_data",
+                         "figure_chart_data", "figure_geometry_data")
+# Passage columns, stored apart from question_text on some rows. They are put in
+# front of the question text (record_text), so a row without them keeps its key.
+PASSAGE_FIELDS = ("passage_intro", "passage", "passage_a", "passage_b")
+_EMPTY = (None, "", [], {})
+
+
+def is_unkeyable(row_or_record) -> bool:
+    """True when the key cannot represent what the student sees: a figure_kind
+    other than a table, any image / svg / graph / chart / geometry column set,
+    or a choice that is a table (answer_choices.choice_table_data, or a reviewed
+    row's choice_tables). Such questions never get a database key, are never
+    un-published automatically and are checked by people. The one rule for
+    sweep, backfill, corpus, publish and lint.
+
+    A QuestionRecord answers from meta["unkeyable"], set from its row when it
+    was built (kimport.sweep.record_from_row)."""
+    if isinstance(row_or_record, QuestionRecord):
+        return bool(row_or_record.meta.get("unkeyable"))
+    row = row_or_record
+    kind = row.get("figure_kind")
+    if kind is not None and kind != "table":
+        return True
+    if any(row.get(f) not in _EMPTY for f in UNKEYED_FIGURE_FIELDS):
+        return True
+    if row.get("choice_tables") not in _EMPTY:
+        return True
+    return any(isinstance(c, dict) and c.get("choice_table_data") not in _EMPTY for c in row.get("choices") or ())
+
+
+def keyable_sql(alias: str = "q") -> str:
+    """SQL twin of `not is_unkeyable(row)` for a quiz_questions alias (used as a
+    backfill guard and in the runbook's null-key check)."""
+    cols = " AND ".join(f"{alias}.{f} IS NULL" for f in UNKEYED_FIGURE_FIELDS)
+    return (f"({alias}.figure_kind IS NULL OR {alias}.figure_kind = 'table') AND {cols}"
+            f" AND NOT EXISTS (SELECT 1 FROM public.answer_choices c WHERE c.question_id = {alias}.id"
+            " AND c.choice_table_data IS NOT NULL)")
+
+
+def record_text(row: dict) -> str:
+    """Question text as the key sees it: any passage columns (in PASSAGE_FIELDS
+    order, blank ones skipped) and then question_text, joined by blank lines."""
+    parts = [str(row[f]) for f in PASSAGE_FIELDS if isinstance(row.get(f), str) and row[f].strip()]
+    return "\n\n".join(parts + [row.get("question_text") or ""])
+
+
 def comparison_key(r: QuestionRecord) -> str:
     payload = [
         clean_text(r.text),

@@ -11,6 +11,14 @@
 -- The table's format column is answer_format (enum multiple_choice /
 -- numeric_entry); it is exported under the name question_format.
 --
+-- Figure columns the comparison key cannot represent (image_url,
+-- image_storage_path, figure_svg, figure_graph_data, figure_chart_data,
+-- figure_geometry_data, and answer_choices.choice_table_data) are exported as
+-- `true` when set and null otherwise: only their presence is needed
+-- (kimport.keys.is_unkeyable), and it keeps the file small. The passage
+-- columns are exported in full; kimport puts them in front of question_text
+-- for the key (kimport.keys.record_text).
+--
 -- comparison_key is exported only once the column exists (migration
 -- 20261021000000), read through to_jsonb(q) so this query runs before and after
 -- it. `kimport-cli.py publish` refuses an export without the field. (The key
@@ -27,11 +35,21 @@ SELECT jsonb_build_object(
 FROM (
   SELECT
     q.id,
+    q.passage_intro,
+    q.passage,
+    q.passage_a,
+    q.passage_b,
     q.question_text,
     q.correct_answer,
     q.answer_format::text AS question_format,
     q.figure_kind,
     q.figure_table_data,
+    CASE WHEN q.image_url IS NOT NULL THEN true END AS image_url,
+    CASE WHEN q.image_storage_path IS NOT NULL THEN true END AS image_storage_path,
+    CASE WHEN q.figure_svg IS NOT NULL THEN true END AS figure_svg,
+    CASE WHEN q.figure_graph_data IS NOT NULL THEN true END AS figure_graph_data,
+    CASE WHEN q.figure_chart_data IS NOT NULL THEN true END AS figure_chart_data,
+    CASE WHEN q.figure_geometry_data IS NOT NULL THEN true END AS figure_geometry_data,
     q.publish_status,
     q.import_status,
     q.import_flag_reason,
@@ -45,7 +63,8 @@ FROM (
     q.created_at,
     to_jsonb(q) -> 'comparison_key' AS comparison_key,
     (to_jsonb(q) -> 'comparison_key') IS NOT NULL AS has_comparison_key_column,
-    (SELECT coalesce(jsonb_agg(jsonb_build_object('letter', c.letter, 'choice_text', c.choice_text)
+    (SELECT coalesce(jsonb_agg(jsonb_build_object('letter', c.letter, 'choice_text', c.choice_text,
+                                                  'choice_table_data', CASE WHEN c.choice_table_data IS NOT NULL THEN true END)
                                ORDER BY c.letter), '[]'::jsonb)
        FROM public.answer_choices c
       WHERE c.question_id = q.id) AS choices,
