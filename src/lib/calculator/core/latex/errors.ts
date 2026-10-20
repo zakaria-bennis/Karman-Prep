@@ -17,6 +17,7 @@ export type ParseErrorCode =
   | "range-bound" // PR-34: a range with nothing before or after its ellipsis
   | "empty-brackets" // PR-34: an index with nothing in its brackets, `L[]`
   | "log-power" // PR-26: a power other than 2 on the name `log` or `ln`
+  | "trig-power" // PR-26: a power other than 2 or -1 on a trig or hyperbolic name or its inverse
   | "empty-subscript" // PR-27: `\log_{}`
   | "empty-root" // G9: `\sqrt{}`
   | "empty-root-index" // G9: `\sqrt[]{8}`
@@ -30,7 +31,7 @@ export interface ParseError {
   span: SourceSpan;
   detail: string; // English, logs and tests only
   // `unsupported`: the deferred notation a row error names ("Graphing a list of curves");
-  // `function-parentheses`, `argument-parentheses`, `log-power` and `name-subscript`: the
+  // `function-parentheses`, `argument-parentheses`, `log-power`, `trig-power` and `name-subscript`: the
   // built-in's name ("floor"); `relation-side`: the operator's symbol (">")
   feature?: string;
 }
@@ -50,6 +51,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "range-bound",
   "empty-brackets",
   "log-power",
+  "trig-power",
   "empty-subscript",
   "empty-root",
   "empty-root-index",

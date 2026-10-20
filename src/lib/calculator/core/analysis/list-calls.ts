@@ -5,11 +5,14 @@
 import { sourceChildren, type Node } from "../latex/ast";
 import { REFUSED_NAMES } from "../latex/operator-names";
 import { BUILTIN_ARITY } from "../lib/arity";
+import { BUILTINS } from "../lib/builtins";
 import { listFunction } from "../lib/statistics";
 import { SHAPE_NAMES, type ListProblem, type ListTyping, type Shape } from "./lists";
 import { displayName } from "./messages";
 
 type Call = Extract<Node, { kind: "call" }>;
+/** A call, or a square root as the call `sqrt` Desmos names in its errors. */
+type Checked = Pick<Call, "name" | "args" | "span">;
 
 /**
  * The first list function call, in source order, whose arguments Desmos refuses: quantile or
@@ -18,17 +21,19 @@ type Call = Extract<Node, { kind: "call" }>;
  * point or a list of points given to a reducer that only takes numbers ("Function 'median' cannot
  * be applied to a point."); and length with a list beside another argument ("Function 'length'
  * cannot be applied to a list of numbers and a number."). The two-list statistics and list
- * operations follow operationProblem. An argument whose shape analysis cannot tell is not
- * checked. `locals` are a function head's parameters.
+ * operations follow operationProblem. Every other built-in (FN-4, elementary functions and
+ * square roots) takes numbers only, so a point or a list of points reads "Function 'sin' cannot be
+ * applied to a point." (several arguments: "… to a point and a number."). An argument whose shape
+ * analysis cannot tell is not checked. `locals` are a function head's parameters.
  */
 export function listCallProblem(
   tree: Node,
   locals: readonly string[],
   typing: ListTyping
 ): ListProblem | null {
-  for (const call of listCalls(tree)) {
+  for (const call of checkedCalls(tree)) {
     const fn = listFunction(call.name);
-    if (fn === undefined || call.args.length === 0) continue;
+    if (call.args.length === 0) continue;
     const shapes = call.args.map((arg) => typing.shape(arg, locals)),
       name = displayName(call.name),
       known = !shapes.includes(null),
@@ -37,7 +42,15 @@ export function listCallProblem(
         names: [name, k],
         span: call.span,
       });
-    if (fn.kind === "double" || fn.kind === "operation") {
+    if (fn === undefined) {
+      // a count Desmos does not accept is classify.ts's arity error
+      const counts = BUILTIN_ARITY.get(call.name) ?? [1];
+      const elements = shapes.map((s) =>
+        s === "points" ? "point" : s === "numbers" ? "number" : s
+      );
+      if (counts.includes(call.args.length) && elements.includes("point") && known)
+        return applied(described(elements as Shape[]));
+    } else if (fn.kind === "double" || fn.kind === "operation") {
       // a count Desmos does not accept is classify.ts's arity error
       const counts = BUILTIN_ARITY.get(call.name);
       if (counts !== undefined ? !counts.includes(call.args.length) : call.args.length < 2)
@@ -139,12 +152,15 @@ function described(shapes: readonly Shape[]): string {
     : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-/** Every list function call in `tree`, in source order. */
-function listCalls(tree: Node): Call[] {
-  const calls: Call[] = [],
+/** Every built-in call and square root in `tree`, in source order. */
+function checkedCalls(tree: Node): Checked[] {
+  const calls: Checked[] = [],
     pending: Node[] = [tree];
   for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
-    if (node.kind === "call" && listFunction(node.name) !== undefined) calls.push(node);
+    if (node.kind === "call" && (listFunction(node.name) !== undefined || BUILTINS.has(node.name)))
+      calls.push(node);
+    if (node.kind === "root" && node.index === null)
+      calls.push({ name: "sqrt", args: [node.arg], span: node.span });
     pending.push(...sourceChildren(node));
   }
   return calls.sort((a, b) => a.span.start - b.span.start);

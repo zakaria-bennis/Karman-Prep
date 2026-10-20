@@ -111,8 +111,7 @@ These Desmos behaviours are known and recorded but not yet built:
   failure in `desmos.reference.test.ts` (`INDEX_VALUE_GAP`, `INDEX_ERROR_GAP`, `RELATED_*_GAP`).
   `E[1...3]` with E=[] shows three undefined elements where Desmos shows no value; only its
   missing error is checked, since the display is the UI's.
-- **Root gaps (G9).** `\operatorname{sqrt}` and its arity messages, `real`, a point inside a root
-  (M4), `\sqrt{4,9}` ("Points are written like this: (1, 2)."), `\sqrt(4)` ("Expected '(' to match
+- **Root gaps (G9).** `\operatorname{sqrt}` and its arity messages, `real`, `\sqrt{4,9}` ("Points are written like this: (1, 2)."), `\sqrt(4)` ("Expected '(' to match
   ')'."; the calculator reads it as a pasted `sqrt(4)`) and `\sqrt[[2,3]]{64}` ("Expected '[' to
   match ']'."; normalizing drops `\left` and `\right`, so it reads as `\sqrt[\left[2,3\right]]{64}`,
   which is [8, 4] in Desmos too). Expected failures in `desmos.reference.test.ts`
@@ -256,8 +255,21 @@ including these, is checked in `desmos.reference.test.ts`:
   only the written arguments. `\log_{}(8)` reads "Subscripts cannot be empty." and `\log^{-1}(100)`
   "Only log^2 is supported. Otherwise, use parens." (`\ln` likewise). `\ln_{2}(8)` reads "'ln'
   cannot have a subscript." (the `name-subscript` error), as do the trig and hyperbolic names with
-  a subscript. Every ln value and error in the function catalogue is checked too, except
-  `\ln((1,2))` ("Function 'ln' cannot be applied to a point."), which waits for M4.
+  a subscript. Every ln value and error in the function catalogue is checked too.
+- **Trig, exp and point arguments (NM-4, NM-26, NM-28, PR-26, FN-4, FN-22).** Desmos is exact
+  only at quarter turns: `\sin(\frac{\pi}{6})` is 0.49999999999999994, `\tan(45)` in degrees is
+  0.9999999999999999 and `\arcsin(0.5)` in degrees is 30.000000000000004, so
+  `\operatorname{floor}(\tan(\frac{\pi}{4}))` is 0; the calculator no longer snaps multiples of
+  π/12, 15° or a degree result. `\arctan(0,0)` is 0 and `\arctan(-0,-1)` is −π. Only `^2` and
+  `^{-1}` go on a trig or hyperbolic name ("Only sin^2 and sin^-1 are supported. Otherwise, use
+  parens."). An elementary built-in or a square root of a point reads "Function 'sin' cannot be
+  applied to a point." Every catalogue value and error for circular trig, inverse trig and exp,
+  and every user-function arity text, is checked in `desmos-trig.reference.test.ts`
+  (`desmos-trig.fixture.json`; real trig values exactly). Not yet matched (`GAPS` there):
+  derivatives, integrals, sums and products, `\infty`, complex mode ignoring the degree setting
+  and its branch signs for arcsin, arccos, arccsc and arcsec at real x outside the domain,
+  `\sin\cos(0)` (Desmos asks for parentheses), θ outside a polar row, and the degree sign, which
+  Desmos does not have.
 - **Exact logs (FN-60).** `\log_{3}(81)` is 4 and `\log_{10}(1000)` is 3, as in Desmos, so
   `\operatorname{ceil}(\log_{3}(81))` is 4, not 5. Every log value and error in the function
   catalogue is checked in `desmos.reference.test.ts`.

@@ -108,6 +108,11 @@ const cases: CorpusCase[] = [
   x(76, ["PR-27"], "\\ln^{2}_{3}(8)", "name-subscript"),
   x(77, ["PR-27"], "\\ln_{}(8)", "name-subscript"),
   x(78, ["PR-27"], "\\sin_{2}(x)", "name-subscript"), // trig names share ln's rule in Desmos
+  // Desmos: "Only sin^2 and sin^-1 are supported. Otherwise, use parens." (captured 2026-10-19)
+  x(80, ["PR-26"], "\\sin^{3}(1)", "trig-power"),
+  x(81, ["PR-26"], "\\sin^{-2}x", "trig-power"),
+  x(82, ["PR-26", "FN-68"], "\\cosh^{0.5}(1)", "trig-power"),
+  x(83, ["PR-26"], "\\arctan^{3}(1)", "trig-power"),
   // An empty argument list keeps the base, so the call prints back as written.
   t(79, ["PR-27", "RC-20"], "\\log_{2}()", "(call log (num 2))"),
 ];

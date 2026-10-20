@@ -140,11 +140,11 @@ it("NM-22 a relation with a non-real or undefined operand is false, and evaluate
     UNDEFINED,
   ]);
 });
-it("NM-27 the degree sign converts, and a degree trig argument is exact in both modes", () => {
+it("NM-27 the degree sign converts, and a degree trig argument is Desmos's degree mode value in both modes", () => {
   for (const settings of [REAL, DEG])
     expect(
       ["\\sin(30^{\\circ})", "\\cos(60^{\\circ})"].map((l) => evaluateLatex(l, { settings }))
-    ).toEqual([n(0.5), n(0.5)]);
+    ).toEqual([n(0.49999999999999994), n(0.5000000000000001)]);
   expect([evaluateLatex("30^{\\circ}"), evaluateLatex("30^{\\circ}", { settings: DEG })]).toEqual([
     n(P / 6),
     n(30),

@@ -56,7 +56,7 @@ function letter(base: string): string {
  * `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text, at every
  * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
- * `range-bound`, `range-step`, `list-too-long`, `log-power`, `empty-subscript`,
+ * `range-bound`, `range-step`, `list-too-long`, `log-power`, `trig-power`, `empty-subscript`,
  * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root`,
  * `empty-root-index`, `reducer-arguments`, `first-argument-list`, `argument-type`, `both-lists`,
  * `repeat-count`, `repeat-lengths`, `refused-function`, `colon-side`, `colon-condition`,
@@ -80,6 +80,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "comma-side": "You need something on both sides of the ',' symbol.",
   "range-bound": "Range must have an upper and lower bound.",
   "log-power": "Only {n}^2 is supported. Otherwise, use parens.",
+  "trig-power": "Only {n}^2 and {n}^-1 are supported. Otherwise, use parens.",
   "empty-subscript": "Subscripts cannot be empty.",
   "name-subscript": "'{n}' cannot have a subscript.",
   "too-many-params": "Functions can have at most 8 parameters.",

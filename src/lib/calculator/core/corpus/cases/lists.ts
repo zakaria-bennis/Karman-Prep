@@ -137,5 +137,8 @@ const cases: CorpusCase[] = [
   x(84, ["FN-30"], "\\operatorname{cov}(1,2)", "both-lists"),
   x(85, ["FN-35"], "\\operatorname{join}(5)", "arity"),
   x(86, ["FN-36"], "\\operatorname{sort}(L,5)", "argument-type", { rows: ["L=[5,3,8,1]"] }),
+  // FN-4: an elementary built-in of a point, "Function 'sin' cannot be applied to a point."
+  x(87, ["FN-4"], "\\sin((1,2))", "argument-type"),
+  x(88, ["FN-4"], "\\sqrt{P}", "argument-type", { rows: ["P=[(1,2),(3,4)]"] }),
 ];
 export default cases;

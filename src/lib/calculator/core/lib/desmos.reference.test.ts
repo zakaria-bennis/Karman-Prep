@@ -195,9 +195,8 @@ for (const [latex, expected] of RANGE_VALUES) {
 }
 
 // Catalogue errors not yet matched, each an expected failure that fails once matched: an
-// ellipsis outside a list (the calculator reads a syntax error) and a built-in applied to a
-// point (task M4's point arithmetic).
-const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5", "\\ln((1,2))"]);
+// ellipsis outside a list (the calculator reads a syntax error).
+const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5"]);
 const CATALOGUE_ERRORS = Object.entries(catalogue.errors);
 
 it("NM-36 RC-20 all 31 catalogue error messages for ranges, log and ln are checked", () =>
@@ -336,8 +335,8 @@ for (const [key, message] of Object.entries(RELATED.errors)) {
 
 // G9, PR-27, FN-5: every catalogue value and error for square and nth roots
 // (desmos-root.fixture.json), keyed as the catalogue's. Not yet matched, each an expected failure
-// that fails once matched: the name `\operatorname{sqrt}` and `real` (not shipped), a point
-// argument (M4), `\sqrt{4,9}` (a point inside the braces reads as a syntax error), a bare `[`
+// that fails once matched: the name `\operatorname{sqrt}` and `real` (not shipped),
+// `\sqrt{4,9}` (a point inside the braces reads as a syntax error), a bare `[`
 // inside the index (normalizing drops `\left` and `\right`, so `\sqrt[[2,3]]{64}` reads as the
 // `\left[` spelling, which is [8, 4] in Desmos too) and `\sqrt(4)`, which the calculator reads
 // as a pasted `sqrt(4)`.
@@ -350,11 +349,9 @@ const ROOT_VALUE_GAP: ReadonlySet<string> = new Set([
 ]);
 const ROOT_ERROR_GAP: ReadonlySet<string> = new Set([
   "\\sqrt(4)",
-  "\\sqrt{(1,2)}",
   "\\sqrt[[2,3]]{64}",
   "\\operatorname{sqrt}()",
   "\\operatorname{sqrt}(4,2)",
-  "\\sqrt{(1,4)}",
   "\\sqrt{4,9}",
 ]);
 

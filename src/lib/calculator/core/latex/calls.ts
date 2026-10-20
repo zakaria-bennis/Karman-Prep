@@ -64,8 +64,9 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
  * A built-in call (G8). An unshipped name is `unsupported` at the name before anything else is
  * read. After the name come an optional `_` base and `^` power, each once, in either order; then
  * a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames the call to
- * its inverse; on `log` and `ln` only `^2` is allowed (`log-power`); any other power raises the
- * call to it (PR-26). `log`'s base is its last argument, marked `base` (PR-27), and an empty base
+ * its inverse; on `log` and `ln` only `^2` is allowed (`log-power`), and on a circular or
+ * hyperbolic trig name or its inverse only `^2` and `^{-1}` (`trig-power`, Desmos's "Only sin^2
+ * and sin^-1 are supported. Otherwise, use parens."); `^2` raises the call to it (PR-26). `log`'s base is its last argument, marked `base` (PR-27), and an empty base
  * is `empty-subscript`; any other name in PREFIX_FORM_NAMES (trig, hyperbolic, `ln`) takes no
  * subscript, so `_` after it is `name-subscript` at the name, whatever follows, Desmos's "'ln'
  * cannot have a subscript.". A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported`
@@ -94,7 +95,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   }
   const prefixForm = PREFIX_FORM_NAMES.has(name.name);
   if (power !== null && !prefixForm) return needsParentheses(name);
-  if (power !== null && LOG_NAMES.has(name.name) && !(power.kind === "num" && power.value === 2)) {
+  if (power !== null && LOG_NAMES.has(name.name) && !isTwo(power)) {
     return fail("log-power", name.span, `only ${name.name}^2 is supported`, name.name);
   }
   const open = peek(state);
@@ -105,15 +106,18 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
       // ("Function 'sin' requires an argument", "Function 'mean' requires at least one
       // argument"), not a syntax error; a log base does not count as an argument (`\log_{2}()`
       // reads "Function 'log' requires an argument"), but it stays on the call.
-      return takePostfix(state, withPower(callNode(name, [], base, previousEnd(state)), power));
+      return takePostfix(
+        state,
+        withPower(name, callNode(name, [], base, previousEnd(state)), power)
+      );
     }
     const args = parseArgumentList(state);
     const call = callNode(name, args, base, previousEnd(state));
-    return takePostfix(state, withPower(call, power));
+    return takePostfix(state, withPower(name, call, power));
   }
   if (!prefixForm) return needsParentheses(name);
   const arg = parseRunArgument(state, name);
-  return withPower(callNode(name, [arg], base, arg.span.end), power);
+  return withPower(name, callNode(name, [arg], base, arg.span.end), power);
 }
 
 /** PR-26: the names whose only power is `^2`, Desmos's "Only log^2 is supported." */
@@ -234,10 +238,14 @@ function callNode(name: CommandToken, args: Node[], base: Node | null, end: numb
 
 /**
  * PR-26: `^{-1}` on a trig name is its inverse and on an inverse trig name the forward function;
- * any other power gives `pow(call, power)`.
+ * `^2` gives `pow(call, power)`, and any other power on a trig name is `trig-power` at the name,
+ * once the argument has been read (Desmos reads `\sin^{-1x}` as a missing argument first).
  */
-function withPower(call: CallNode, power: Node | null): Node {
+function withPower(name: CommandToken, call: CallNode, power: Node | null): Node {
   if (power === null) return call;
+  if (!LOG_NAMES.has(call.name) && !isTwo(power) && !isMinusOne(power)) {
+    return fail("trig-power", name.span, `only ${name.name}^2 and ^-1 are supported`, name.name);
+  }
   const forward = call.name.slice(3);
   if (call.name.startsWith("arc") && INVERTIBLE_NAMES.has(forward) && isMinusOne(power)) {
     return { ...call, name: forward };
@@ -250,6 +258,10 @@ function withPower(call: CallNode, power: Node | null): Node {
     return { ...call, name };
   }
   return { kind: "pow", left: call, right: power, span: call.span };
+}
+
+function isTwo(node: Node): boolean {
+  return node.kind === "num" && node.value === 2;
 }
 
 function isMinusOne(node: Node): boolean {

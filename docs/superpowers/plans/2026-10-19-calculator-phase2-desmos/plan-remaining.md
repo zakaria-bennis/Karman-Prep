@@ -92,7 +92,7 @@ arguments against `log`'s one. The catalogue's other log findings came with it: 
 logs (`\log_{3}(81)` = 4), `log-power` ("Only log^2 is supported."), `empty-subscript` and
 `name-subscript` ("'ln' cannot have a subscript.", also on trig and hyperbolic names). Every
 catalogue ln value and error is checked. Left: `\log_{\infty}(5)` = 0 waits for `\infty` as a
-value, and `\ln((1,2))` ("Function 'ln' cannot be applied to a point.") for M4. When infinities
+value (`\ln((1,2))` now reads "Function 'ln' cannot be applied to a point."). When infinities
 become values, `realLog` in `core/lib/builtins.ts` must return them as Desmos's `log_base` does:
 −∞ for an argument of 0 and ±∞ for a base of 1 (NaN only for a base of 0 or a negative argument),
 so `\frac{1}{\log(0)}` is 0.
@@ -108,6 +108,20 @@ so `\frac{1}{\log(0)}` is 0.
   since it is not in the captured file, or capture it and add it to the JSON). `\log_{2}(8)` = 3
   stays.
 - **Docs:** move "`log` with two arguments" in `f-desmos-parity.md` to the matched list.
+
+### M2b. Trig exactness, trig powers and point arguments — done (function catalogue)
+
+**Done.** `core/lib/trig.ts` follows Desmos: exact only at quarter turns (a double that is a whole
+multiple of π, or twice an odd multiple of π/2), a degree argument times π/180 and an inverse's
+degree result divided by it, no π/12 or 15° snapping, cot = 1/tan, arccot through arctan(1/x)
+or π/2 − arctan(x), and arctan(y, x) as atan2 (`\arctan(0,0)` = 0). `latex/calls.ts` adds
+`trig-power` ("Only sin^2 and sin^-1 are supported. Otherwise, use parens."), and
+`analysis/list-calls.ts` gives every elementary built-in and `\sqrt` of a point "Function 'sin'
+cannot be applied to a point.". `core/lib/desmos-trig.fixture.json` holds the catalogue's 390
+values and 63 errors for circular trig, inverse trig, exp and user-function arity;
+`desmos-trig.reference.test.ts` checks them (217 real trig values exactly) with the unshipped
+notation as expected failures. User-function arity, `f()` and `\exp` without parentheses already
+matched.
 
 ### M3. Colour counter for new rows (TH-10, F-A1) — recorded in f-desmos-parity.md, not maths
 

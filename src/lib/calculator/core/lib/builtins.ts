@@ -27,7 +27,7 @@ const ONE: Complex = Object.freeze({ re: 1, im: 0 });
 const HALF_PI: Complex = Object.freeze({ re: Math.PI / 2, im: 0 });
 const LN10: Complex = Object.freeze({ re: Math.LN10, im: 0 });
 
-/** A circular function: the input is in the angle unit (FN-18, FN-19); csc, sec, cot = 1/sin, 1/cos, cos/sin. */
+/** A circular function: the input is in the angle unit (FN-18, FN-19); csc, sec, cot = 1/sin, 1/cos, 1/tan. */
 function circularRule(name: CircularName, complex: (z: Complex) => Complex): Rule {
   return {
     angle: "input",
