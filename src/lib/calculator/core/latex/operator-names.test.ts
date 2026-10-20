@@ -23,7 +23,8 @@ describe("operator-name allowlist", () => {
   });
   it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, inversecdf of data, exp, ln, log, hyperbolic trig and number theory", () => {
     expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
-    expect(names().filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
+    const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
+    expect([...names(), ...hidden].filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
     expect(
       O.OPERATOR_NAMES.filter((n) => n.category !== null && O.isShippedBuiltin(n.name))
         .map((n) => n.name)
@@ -31,7 +32,8 @@ describe("operator-name allowlist", () => {
     ).toBe(
       "sin cos tan csc sec cot arcsin arccos arctan arccsc arcsec arccot " +
         "mean median min max quartile quantile stdev stddev stdDev stdevp stddevp stdDevP " +
-        "var variance varp mad count total length inversecdf inverseCdf " +
+        "var variance varp cov covp mad corr spearman count total repeat join sort unique length " +
+        "inversecdf inverseCdf " +
         "exp ln log sinh cosh tanh csch sech coth arcsinh arccosh arctanh arccsch arcsech arccoth " +
         "lcm gcd gcf mcd mcm mod ceil floor round sign nPr nCr abs"
     );
@@ -42,11 +44,30 @@ describe("operator-name allowlist", () => {
     ).toBe("with for and or of");
     expect([
       O.OPERATOR_NAMES.find((n) => n.name === "arctan")?.arity,
-      ["mean", "sinh", "nope", "length", "abs", "cov"].map(O.isShippedBuiltin),
+      ["mean", "sinh", "nope", "length", "abs", "shuffle"].map(O.isShippedBuiltin),
     ]).toEqual([
       [1, 2],
       [true, true, false, true, true, false],
     ]);
+  });
+  it("FN-23 argmin and argmax are hidden built-ins: pasted latex only, never typed or on the panel", () => {
+    expect(O.HIDDEN_OPERATOR_NAMES.map((n) => [n.name, n.category, n.arity])).toEqual([
+      ["argmin", 3, "variadic"],
+      ["argmax", 3, "variadic"],
+    ]);
+    expect(["argmin", "argmax"].map((n) => [O.isBuiltinName(n), O.isShippedBuiltin(n)])).toEqual([
+      [true, true],
+      [true, true],
+    ]);
+    const typed = O.mathQuillAutoOperatorNames().split(" ");
+    expect([typed.includes("argmin"), typed.includes("arg"), names().includes("argmax")]).toEqual([
+      false,
+      true,
+      false,
+    ]);
+    expect(O.panelCategories().some((c) => c.entries.some((e) => e.name.startsWith("argm")))).toBe(
+      false
+    );
   });
   it("PR-12 abs and length are Desmos built-in names (appendix F decision 2)", () => {
     const byName = new Map(O.OPERATOR_NAMES.map((n) => [n.name, n]));

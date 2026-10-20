@@ -124,19 +124,28 @@ These Desmos behaviours are known and recorded but not yet built:
   aliases gcf, mcd, mcm, stddev, stdDev, stddevp, stdDevP and variance, and inversecdf and
   inverseCdf of a list match the catalogue (see below) except where a case uses notation that
   has not shipped: derivatives, colours and tones, distributions, member access
-  (`L.\operatorname{mean}`, `\operatorname{mean}(P).x`), comprehensions and matrices, the list
-  operations (`join`, `shuffle`, `unique`, `random`, `stats`, `boxplot`, `polygon`), `\arg`,
+  (`L.\operatorname{mean}`, `\operatorname{mean}(P).x`), comprehensions and matrices, `shuffle`,
+  `random`, `stats`, `boxplot` and `polygon`, `\arg`,
   `\infty` as a value, and a point-valued call such as `\operatorname{mean}(P)`, which evaluates to
   the point but is not graphed yet (M5). Desmos also gives a `y=` row a value when its right side
   is constant (`y=\operatorname{count}(x,1,2)` = 3); the calculator graphs it as a line. Each is an
   expected failure in `desmos.reference.test.ts` (`STATISTICS_GAPS`, `POINT_ROWS`). Not built
-  either: argmin and argmax, and the Statistics and Number theory panel buttons (a UI change, left
+  either: the Statistics, List operations and Number theory panel buttons (a UI change, left
   to the panel work). An unknown `\operatorname{…}` name is unsupported in the calculator, while
   Desmos reads it as one multi-letter name: `\operatorname{stddevP}()` reads "Function 'stddevP'
   is not defined.", `\operatorname{stddevP}(L,M)` "Too many variables. Try defining 'stddevP'."
   and `\operatorname{stddevP}(L)` "Try adding 'y=' to the beginning of this equation." (9 captured
   errors in the catalogue, not in the fixture). Matching them needs a multi-letter identifier in
   the parser and free-variable analysis, which is its own task.
+- **List operation gaps (FN-30 to FN-38).** cov, covp, corr, spearman, sort, unique, join,
+  repeat, argmin and argmax match the catalogue except where a case uses unshipped notation:
+  derivatives, colours and tones, member access (`L.\operatorname{sort}`, `.x`), actions (`\to`)
+  and `shuffle`. `frequency` is not a Desmos function: its errors ("Function 'frequency' is not
+  defined.") need multi-letter names, as above. Desmos folds `0.1+0.2` exactly to 0.3, so
+  `unique([0.1+0.2,0.3])` is [0.3] there and two elements here. Rows Desmos graphs as several
+  curves (`\operatorname{join}(x,1)`, `\operatorname{repeat}(x,2)`, G-22) or as a call's points
+  (`\operatorname{sort}(P,[3,1,2])`, M5) do not graph yet. Each is an expected failure in
+  `desmos.reference.test.ts` (`LIST_OPERATION_GAPS`, `LIST_OPERATION_GRAPH_GAPS`).
 - **An empty piecewise branch.** Desmos reads `\left\{1<0:5,\right\}` as "You need something on
   both sides of the ',' symbol." Piecewise braces (PR-31) have not shipped, so the calculator shows its
   unsupported-notation message. The captured error is an expected failure in

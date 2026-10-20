@@ -4,7 +4,13 @@
 
 import type { Node, SourceSpan } from "./ast";
 import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
-import { isShippedBuiltin, OPERATOR_NAMES, PREFIX_FORM_NAMES } from "./operator-names";
+import {
+  HIDDEN_OPERATOR_NAMES,
+  isShippedBuiltin,
+  OPERATOR_NAMES,
+  operatorName,
+  PREFIX_FORM_NAMES,
+} from "./operator-names";
 import {
   enter,
   fail,
@@ -20,9 +26,14 @@ import type { Token } from "./tokens";
 type CommandToken = Extract<Token, { t: "command" }>;
 type CallNode = Extract<Node, { kind: "call" }>;
 
-/** Allowlisted names with a category; `with`, `for`, `and`, `or` and `of` are operators (G8). */
+/**
+ * Allowlisted and hidden names with a category; `with`, `for`, `and`, `or` and `of` are operators
+ * (G8).
+ */
 const BUILTIN_NAMES: ReadonlySet<string> = new Set(
-  OPERATOR_NAMES.filter((n) => n.category !== null).map((n) => n.name)
+  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES]
+    .filter((n) => n.category !== null)
+    .map((n) => n.name)
 );
 
 /**
@@ -122,7 +133,7 @@ function needsParentheses(name: CommandToken): never {
 
 /** Whether a built-in needs one or more arguments: a variadic one, or a fixed count above 0. */
 function needsArguments(name: string): boolean {
-  const arity = OPERATOR_NAMES.find((n) => n.name === name)?.arity;
+  const arity = operatorName(name)?.arity;
   return arity !== undefined && (arity === "variadic" || !arity.includes(0));
 }
 

@@ -57,7 +57,8 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "arccsc",
   "arcsec",
   "arccot",
-  // FN-23 to FN-29 statistics and FN-2 length (Phase 2 task 5)
+  // FN-23 to FN-29 statistics and FN-2 length (Phase 2 task 5), FN-30 to FN-32 two-list
+  // statistics and FN-34 to FN-36, FN-38 list operations (task 6), in OPERATOR_NAMES order
   "mean",
   "median",
   "min",
@@ -73,9 +74,17 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "var",
   "variance",
   "varp",
+  "cov",
+  "covp",
   "mad",
+  "corr",
+  "spearman",
   "count",
   "total",
+  "repeat",
+  "join",
+  "sort",
+  "unique",
   "length",
   // inversecdf of data is quantile (FN-27); of a distribution it waits on distributions
   "inversecdf",
@@ -111,6 +120,9 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "nPr",
   "nCr",
   "abs",
+  // argmin and argmax, which only pasted latex reaches (HIDDEN_OPERATOR_NAMES)
+  "argmin",
+  "argmax",
 ]);
 
 /**
@@ -278,6 +290,16 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("of", null, 1, [2]),
 ]);
 
+/**
+ * Desmos built-ins that only pasted or API latex reaches, `\operatorname{argmin}(L)`: typing
+ * `argmin` gives `\arg\min` in Desmos, so these are not split targets, MathQuill names or panel
+ * entries, and typing `arg` then `min` still splits as before.
+ */
+export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
+  op("argmin", 3, 2, V),
+  op("argmax", 3, 2, V),
+]);
+
 /** Members, read only after `.` (PR-45): never built-ins, split targets or MathQuill names. */
 export const MEMBER_NAMES: readonly string[] = Object.freeze([
   "null",
@@ -309,12 +331,19 @@ export const AUTO_COMMANDS: readonly string[] = Object.freeze([
   "int",
 ]);
 
-const BY_NAME: ReadonlyMap<string, OperatorName> = new Map(OPERATOR_NAMES.map((n) => [n.name, n]));
+const BY_NAME: ReadonlyMap<string, OperatorName> = new Map(
+  [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES].map((n) => [n.name, n])
+);
 const AUTO_OPERATOR_NAMES = OPERATOR_NAMES.map((n) => n.name).join(" ");
 const AUTO_COMMAND_NAMES = AUTO_COMMANDS.join(" ");
 
 export function isBuiltinName(name: string): boolean {
   return BY_NAME.has(name);
+}
+
+/** The allowlist entry of a built-in or hidden name (HIDDEN_OPERATOR_NAMES), or undefined. */
+export function operatorName(name: string): OperatorName | undefined {
+  return BY_NAME.get(name);
 }
 
 export function isShippedBuiltin(name: string): boolean {

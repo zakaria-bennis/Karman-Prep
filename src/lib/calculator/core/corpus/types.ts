@@ -44,7 +44,10 @@ export type RowErrorCode =
   | "list-length-free" // NM-31, NM-36: a list whose length depends on x or y
   | "reducer-arguments" // FN-23: `mean()`
   | "first-argument-list" // FN-27: `quantile(5,0.5)`
-  | "argument-type"; // FN-2, FN-23, FN-27: `median(P)` of a list of points P
+  | "argument-type" // FN-2, FN-23, FN-27: `median(P)` of a list of points P
+  | "both-lists" // FN-30: `cov(1,2)`
+  | "repeat-count" // FN-34: `repeat(1,2.5)`
+  | "repeat-lengths"; // FN-34: `repeat([1,2,3],[1,2])`
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

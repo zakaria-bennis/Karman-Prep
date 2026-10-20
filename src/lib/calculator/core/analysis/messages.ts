@@ -58,8 +58,8 @@ function letter(base: string): string {
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
  * `range-bound`, `range-step`, `list-too-long`, `log-power`, `empty-subscript`,
  * `name-subscript`, `index-type`, `list-length-free`, `empty-brackets`, `empty-root`,
- * `empty-root-index`, `reducer-arguments`, `first-argument-list` and `argument-type` use the text
- * Desmos gave on 2026-10-19.
+ * `empty-root-index`, `reducer-arguments`, `first-argument-list`, `argument-type`, `both-lists`,
+ * `repeat-count` and `repeat-lengths` use the text Desmos gave on 2026-10-19.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   syntax: "This can't be read. Check for a missing bracket or operator.",
@@ -105,6 +105,10 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "first-argument-list":
     "The first argument of '{n}' must be a list. For example, try typing: {n}([1,2,3], 1).",
   "argument-type": "Function '{n}' cannot be applied to {k}.",
+  "both-lists":
+    "Both arguments of '{n}' must be lists. For example, try typing: {n}([1,2,3], [3,2,1]).",
+  "repeat-count": "'repeat' count must be a finite, non-negative integer.",
+  "repeat-lengths": "When the arguments of 'repeat' are lists, they must have the same length.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";
@@ -133,12 +137,24 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   return template.replaceAll("{n}", () => n).replaceAll("{k}", () => k);
 }
 
-/** FN-27: the names whose arity example takes a list, `quantile([1,2,3], 1)`. */
-const LIST_EXAMPLES: ReadonlySet<string> = new Set([
-  "quantile",
-  "quartile",
-  "inversecdf",
-  "inverseCdf",
+/**
+ * FN-27, FN-30, FN-35, FN-36, FN-38: the arity examples Desmos gives with lists, for one argument
+ * (`sort([3,2,1])`) and for the largest count (`quantile([1,2,3], 1)`, `sort([1,2,3],[3,2,1])`).
+ */
+const QUANTILE_EXAMPLE = { many: "[1,2,3], 1" };
+const TWO_LIST_EXAMPLE = { many: "[1,2,3], [3,2,1]" };
+const LIST_EXAMPLES = new Map<string, { one?: string; many?: string }>([
+  ["quantile", QUANTILE_EXAMPLE],
+  ["quartile", QUANTILE_EXAMPLE],
+  ["inversecdf", QUANTILE_EXAMPLE],
+  ["inverseCdf", QUANTILE_EXAMPLE],
+  ["cov", TWO_LIST_EXAMPLE],
+  ["covp", TWO_LIST_EXAMPLE],
+  ["corr", TWO_LIST_EXAMPLE],
+  ["spearman", TWO_LIST_EXAMPLE],
+  ["sort", { one: "[3,2,1]", many: "[1,2,3],[3,2,1]" }],
+  ["unique", { one: "[1,2,3]" }],
+  ["join", { many: "[1,2],[3,4]" }],
 ]);
 
 /**
@@ -154,8 +170,9 @@ function arityMessage(name: string, k: string, given: number): string {
   const max = Math.max(...counts);
   const say = (needs: string, args: string) =>
     `Function '${name}' requires ${needs}. For example, try typing: ${name}(${args}).`;
-  if (given === 0 && counts.includes(1)) return say("an argument", "x");
-  if (max === 1) return say("only 1 argument", "x");
+  const example = LIST_EXAMPLES.get(name);
+  if (given === 0 && counts.includes(1)) return say("an argument", example?.one ?? "x");
+  if (max === 1) return say("only 1 argument", example?.one ?? "x");
   const args = Array.from({ length: max }, (_, i) => String(i + 1)).join(", ");
-  return say(`${max} arguments`, LIST_EXAMPLES.has(name) ? "[1,2,3], 1" : args);
+  return say(`${max} arguments`, example?.many ?? args);
 }

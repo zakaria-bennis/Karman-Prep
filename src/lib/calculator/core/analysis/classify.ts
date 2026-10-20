@@ -103,11 +103,16 @@ function conflictError(
     const arity = expectedArity(call.name, resolution);
     const written = call.args.length - (call.base ? 1 : 0);
     const list = listFunction(call.name);
-    if (list !== undefined && list.kind !== "parameterized" && written === 0) {
+    if (list?.minArguments !== undefined && written < list.minArguments) {
+      // FN-35: Desmos's "Function 'join' requires 2 arguments.", for none or one
+      const names = [displayName(call.name), String(list.minArguments), String(written)];
+      return rowError("arity", names, call.span);
+    }
+    if ((list?.kind === "reducer" || list?.kind === "length") && written === 0) {
       // FN-23: Desmos's "Function 'mean' requires at least one argument.", and min, max and
       // length's "Function 'min' requires an argument."
       const name = displayName(call.name);
-      if (list.oneArgument) return rowError("arity", [name, "1", "0"], call.span);
+      if (list?.oneArgument) return rowError("arity", [name, "1", "0"], call.span);
       return rowError("reducer-arguments", [name], call.span);
     }
     if (arity !== null && !arity.includes(written)) {

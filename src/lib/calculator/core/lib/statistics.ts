@@ -4,21 +4,26 @@
 // broadcasts, element i reducing the i-th elements, numbers repeated and lists cut to the shortest
 // (`mean(L,10)`, `max([1,2],5)` = [5, 5]). quantile and quartile reduce their first argument, a
 // list, and broadcast over the second. length takes its arguments whole and never broadcasts. Any
-// undefined element makes an arithmetic result undefined; count and length count it. Pure
-// TypeScript: no DOM (AR-44).
+// undefined element makes an arithmetic result undefined; count and length count it, and argmin
+// and argmax give 0 for it. The two-list statistics and list operations are list-functions.ts's,
+// dispatched from here. Pure TypeScript: no DOM (AR-44).
 
 import { complexValue, numberValue, UNDEFINED, type Complex, type Value } from "../eval/values";
+import { LIST_OPERATIONS } from "./list-functions";
 
 export interface ListFunction {
-  kind: "reducer" | "parameterized" | "length";
+  kind: "reducer" | "parameterized" | "length" | "double" | "operation";
   /** Takes a list of points: mean and total give a point, count and length count them. */
   points: boolean;
   /** `f()` reads "Function 'f' requires an argument" (min, max, length), else "at least one". */
   oneArgument: boolean;
+  /** The fewest arguments Desmos accepts when the allowlist arity is variadic (join: 2). */
+  minArguments?: number;
 }
 
 interface Rule extends ListFunction {
   counts?: true; // count and length: the number of elements, undefined ones included
+  undefinedElements?: true; // argmin and argmax read an undefined element as NaN
   numbers(xs: readonly number[], p: number): number; // p: quantile's or quartile's parameter
   complex?: (zs: readonly Complex[]) => Complex; // gcd and lcm of Gaussian integers
 }
@@ -165,6 +170,28 @@ function complexLcm(zs: readonly Complex[]): Complex {
   });
 }
 
+/**
+ * The 1-based index of the smallest value, ties to the first; 0 for no values or any undefined
+ * one (`argmin(N)` = 0), as Desmos gives.
+ */
+function argmin(xs: readonly number[]): number {
+  if (xs.length === 0 || xs.some(Number.isNaN)) return 0;
+  let best = 0;
+  for (let i = 1; i < xs.length; i++) if (xs[i] < xs[best]) best = i;
+  return best + 1;
+}
+
+/**
+ * The 1-based index of the largest value, ties to the last; 0 for no values or an undefined first
+ * one, and any later undefined value is passed over (`argmax([1,0/0,1])` = 3), as Desmos gives.
+ */
+function argmax(xs: readonly number[]): number {
+  if (xs.length === 0 || Number.isNaN(xs[0])) return 0;
+  let best = 0;
+  for (let i = 1; i < xs.length; i++) if (xs[i] >= xs[best]) best = i;
+  return best + 1;
+}
+
 const reducer = (numbers: (xs: readonly number[]) => number, points = false): Rule => ({
   kind: "reducer",
   points,
@@ -215,6 +242,8 @@ const RULES: ReadonlyMap<string, Rule> = new Map<string, Rule>([
   ["stddevp", stdevpRule],
   ["stdDevP", stdevpRule],
   ["mad", reducer(meanAbsoluteDeviation)],
+  ["argmin", { ...reducer(argmin), undefinedElements: true }],
+  ["argmax", { ...reducer(argmax), undefinedElements: true }],
   ["quantile", quantileRule],
   ["inversecdf", quantileRule],
   ["inverseCdf", quantileRule],
@@ -228,18 +257,29 @@ const RULES: ReadonlyMap<string, Rule> = new Map<string, Rule>([
 
 /** The list function `name`, or undefined for any other name. */
 export function listFunction(name: string): ListFunction | undefined {
-  return RULES.get(name);
+  const rule = RULES.get(name);
+  if (rule !== undefined) return rule;
+  const operation = LIST_OPERATIONS.get(name);
+  if (operation === undefined) return undefined;
+  const { kind, minArguments } = operation;
+  return { kind, points: kind === "operation", oneArgument: false, minArguments };
 }
 
 /** The names of every list function. */
-export const LIST_FUNCTION_NAMES: readonly string[] = Object.freeze([...RULES.keys()]);
+export const LIST_FUNCTION_NAMES: readonly string[] = Object.freeze([
+  ...RULES.keys(),
+  ...LIST_OPERATIONS.keys(),
+]);
 
 /**
  * Whether a call of the list function `name` gives a list, from whether each argument is one: a
  * reducer broadcasts when it has two or more arguments and a list among them, quantile and
- * quartile when the parameter is a list, and length never.
+ * quartile when the parameter is a list, a list operation always and length and the two-list
+ * statistics never.
  */
 export function givesList(name: string, argIsList: readonly boolean[]): boolean {
+  const operation = LIST_OPERATIONS.get(name);
+  if (operation !== undefined) return operation.kind === "operation";
   const rule = RULES.get(name);
   if (rule === undefined || rule.kind === "length") return false;
   if (rule.kind === "parameterized") return argIsList[1] === true;
@@ -254,7 +294,7 @@ export function reduceNumbers(name: string, xs: readonly number[], p = NaN): num
   const rule = RULES.get(name);
   if (rule === undefined) return NaN;
   if (rule.counts) return xs.length;
-  if (xs.some(Number.isNaN)) return NaN;
+  if (!rule.undefinedElements && xs.some(Number.isNaN)) return NaN;
   const r = rule.numbers(xs, p);
   return Number.isFinite(r) ? r + 0 : NaN;
 }
@@ -263,11 +303,13 @@ type ListValue = Extract<Value, { type: "list" }>;
 const isList = (v: Value): v is ListValue => v.type === "list";
 
 /**
- * A list function applied to evaluated arguments, by the rules at the top of this file. An unknown
- * name, no arguments, a parameterized call whose data is not a list or that does not have two
+ * A list function applied to evaluated arguments, by the rules at the top of this file; a two-list
+ * statistic or list operation by list-functions.ts. An unknown name, no arguments, a parameterized call whose data is not a list or that does not have two
  * arguments, or length with a list beside another argument, gives UNDEFINED.
  */
 export function applyListFunction(name: string, args: readonly Value[]): Value {
+  const operation = LIST_OPERATIONS.get(name);
+  if (operation !== undefined) return operation.apply(args);
   const rule = RULES.get(name);
   if (rule === undefined || args.length === 0) return UNDEFINED;
   if (rule.kind === "length") {
@@ -322,8 +364,9 @@ function reduced(name: string, rule: Rule, items: readonly Value[], p = NaN): Va
   }
   const xs: number[] = [];
   for (const v of items) {
-    if (v.type !== "number") return UNDEFINED;
-    xs.push(v.value);
+    if (v.type === "number") xs.push(v.value);
+    else if (v.type === "undefined" && rule.undefinedElements) xs.push(NaN);
+    else return UNDEFINED;
   }
   return numberValue(reduceNumbers(name, xs, p));
 }

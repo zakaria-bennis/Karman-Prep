@@ -128,5 +128,14 @@ const cases: CorpusCase[] = [
   x(76, ["FN-27"], "\\operatorname{quantile}(5,0.5)", "first-argument-list"),
   x(77, ["FN-23"], "\\operatorname{median}(P)", "argument-type", { rows: ["P=[(1,2),(3,4)]"] }),
   x(78, ["FN-2"], "\\operatorname{length}(L,10)", "argument-type", { rows: ["L=[5,3,8,1]"] }),
+  // FN-30 to FN-38: two-list statistics, list operations, argmin and argmax (Desmos, 2026-10-19)
+  d(79, ["FN-36"], "\\operatorname{sort}(L)", "[1, 3, 5, 8]", { rows: ["L=[5,3,8,1]"] }),
+  d(80, ["FN-30"], "\\operatorname{cov}([1,2,3],[2,4,7])", "2.5"),
+  d(81, ["FN-35"], "\\operatorname{join}(1,[2,3],4)", "[1, 2, 3, 4]"),
+  d(82, ["FN-34"], "\\operatorname{repeat}([1,2],[2,3])", "[1, 1, 2, 2, 2]"),
+  d(83, ["FN-23"], "\\operatorname{argmax}([5,5,5])", "3"),
+  x(84, ["FN-30"], "\\operatorname{cov}(1,2)", "both-lists"),
+  x(85, ["FN-35"], "\\operatorname{join}(5)", "arity"),
+  x(86, ["FN-36"], "\\operatorname{sort}(L,5)", "argument-type", { rows: ["L=[5,3,8,1]"] }),
 ];
 export default cases;

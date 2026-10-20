@@ -7,8 +7,17 @@ export interface Complex {
   im: number;
 }
 
-/** The run-time list errors (NM-34 to NM-36) an undefined value can carry to its row (R-2). */
-export type ListErrorCode = "nested-list" | "list-too-long" | "range-step" | "list-mixed";
+/**
+ * The run-time list errors (NM-34 to NM-36, FN-34's repeat counts) an undefined value can carry to
+ * its row (R-2).
+ */
+export type ListErrorCode =
+  | "nested-list"
+  | "list-too-long"
+  | "range-step"
+  | "list-mixed"
+  | "repeat-count"
+  | "repeat-lengths";
 
 export type Value =
   | { type: "number"; value: number }

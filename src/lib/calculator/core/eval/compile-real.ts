@@ -331,12 +331,15 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Fn 
  * arguments laid out by listElements and its other arguments taken as numbers, so `y=\max(x,2)`
  * and `\operatorname{mean}([1,2,3]x)` graph; a call that gives a list (a broadcast) is NaN. An
  * argument listElements cannot lay out that may still be a list (`[1,2,3]^x`, `\sin([1,2]x)`, a
- * name defined from x) sends the call to generalNode. The values are evaluated onto the stack and
- * copied into this call site's buffer, as builtinCall does.
+ * name defined from x) sends the call to generalNode, as does every two-list statistic and list
+ * operation (FN-30 to FN-38), which take their lists whole. The values are evaluated onto the
+ * stack and copied into this call site's buffer, as builtinCall does.
  */
 function listFunctionCall(node: Call, ctx: Context): Fn {
   const { name, args: argNodes } = node,
-    parts = argNodes.map((arg) => listElements(arg, ctx));
+    kind = listFunction(name)?.kind;
+  if (kind === "double" || kind === "operation") return generalNode(node, ctx);
+  const parts = argNodes.map((arg) => listElements(arg, ctx));
   if (argNodes.some((arg, k) => parts[k] === null && mayBeList(arg, ctx.params, ctx, new Set()))) {
     return generalNode(node, ctx);
   }

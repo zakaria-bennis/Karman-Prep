@@ -1,8 +1,9 @@
-// The argument errors of list function calls (FN-2, FN-23 to FN-29, FN-75), with Desmos's texts
+// The argument errors of list function calls (FN-2, FN-23 to FN-38, FN-75), with Desmos's texts
 // (function catalogue, captured live 2026-10-19), read from the argument shapes list typing can
 // tell before anything evaluates. Pure TypeScript: no DOM (AR-44).
 
 import { sourceChildren, type Node } from "../latex/ast";
+import { BUILTIN_ARITY } from "../lib/arity";
 import { listFunction } from "../lib/statistics";
 import { SHAPE_NAMES, type ListProblem, type ListTyping, type Shape } from "./lists";
 import { displayName } from "./messages";
@@ -15,8 +16,9 @@ type Call = Extract<Node, { kind: "call" }>;
  * list of points ("Function 'quantile' cannot be applied to a list of points and a number."); a
  * point or a list of points given to a reducer that only takes numbers ("Function 'median' cannot
  * be applied to a point."); and length with a list beside another argument ("Function 'length'
- * cannot be applied to a list of numbers and a number."). An argument whose shape analysis cannot
- * tell is not checked. `locals` are a function head's parameters.
+ * cannot be applied to a list of numbers and a number."). The two-list statistics and list
+ * operations follow operationProblem. An argument whose shape analysis cannot tell is not
+ * checked. `locals` are a function head's parameters.
  */
 export function listCallProblem(
   tree: Node,
@@ -34,7 +36,15 @@ export function listCallProblem(
         names: [name, k],
         span: call.span,
       });
-    if (fn.kind === "parameterized") {
+    if (fn.kind === "double" || fn.kind === "operation") {
+      // a count Desmos does not accept is classify.ts's arity error
+      const counts = BUILTIN_ARITY.get(call.name);
+      if (counts !== undefined ? !counts.includes(call.args.length) : call.args.length < 2)
+        continue;
+      const problem = operationProblem(call.name, shapes);
+      if (problem === "both-lists") return { code: problem, names: [name], span: call.span };
+      if (problem !== null && known) return applied(described(shapes as Shape[]));
+    } else if (fn.kind === "parameterized") {
       if (call.args.length !== 2) continue;
       if (shapes[0] === "number" || shapes[0] === "point") {
         return { code: "first-argument-list", names: [name], span: call.span };
@@ -48,6 +58,50 @@ export function listCallProblem(
     }
   }
   return null;
+}
+
+const isNumberShape = (s: Shape | null) => s === "number" || s === "numbers";
+const isPointShape = (s: Shape | null) => s === "point" || s === "points";
+const isListShape = (s: Shape | null) => s === "numbers" || s === "points";
+
+/**
+ * FN-30 to FN-38, at Desmos's arity (classify.ts checks that first): "both-lists" when a two-list
+ * statistic has a number or point argument (`cov(1,2)`, `cov(S,x)`), "applied" when Desmos names
+ * the argument shapes: a two-list statistic of points, sort or unique of a number or point, sort
+ * of points without keys or with keys that are not numbers, repeat other than a value and a
+ * number or two lists of numbers counts, and join mixing numbers and points. Else null.
+ */
+function operationProblem(
+  name: string,
+  shapes: readonly (Shape | null)[]
+): "both-lists" | "applied" | null {
+  const [first, second] = shapes;
+  switch (name) {
+    case "cov":
+    case "covp":
+    case "corr":
+    case "spearman":
+      if (shapes.some((s) => s === "number" || s === "point")) return "both-lists";
+      return shapes.includes("points") ? "applied" : null;
+    case "sort":
+      if (shapes.length === 1) return first === "numbers" || first === null ? null : "applied";
+      return (isListShape(first) || first === null) && (second === "numbers" || second === null)
+        ? null
+        : "applied";
+    case "unique":
+      return isListShape(first) || first === null ? null : "applied";
+    case "repeat": {
+      const single = first === "number" || first === "point";
+      if (first === null || second === null) return null;
+      return (single && second === "number") || (isListShape(first) && second === "numbers")
+        ? null
+        : "applied";
+    }
+    case "join":
+      return shapes.some(isNumberShape) && shapes.some(isPointShape) ? "applied" : null;
+    default:
+      return null;
+  }
 }
 
 /** The argument shapes as Desmos lists them: "a list of numbers and a number". */

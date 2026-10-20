@@ -142,6 +142,9 @@ function shapeOf(
  * broadcast is a list of numbers and any other result a number.
  */
 function listCallShape(node: Call, args: readonly (Shape | null)[]): Shape | null {
+  const kind = listFunction(node.name)?.kind;
+  if (kind === "double") return "number";
+  if (kind === "operation") return operationShape(node.name, args);
   const lists = args.map((s) => s === "numbers" || s === "points"),
     broadcast = givesList(node.name, lists);
   if (listFunction(node.name)?.points !== true || ["count", "length"].includes(node.name)) {
@@ -152,6 +155,26 @@ function listCallShape(node: Call, args: readonly (Shape | null)[]): Shape | nul
   if (broadcast) return args.every(pointed) ? "points" : "numbers";
   const one = args.length === 1 && pointed(args[0]);
   return one || args.every((s) => s === "point") ? "point" : "number";
+}
+
+/**
+ * FN-34 to FN-36, FN-38: a list operation's shape: sort and unique keep their list's, repeat
+ * gives a list of its first argument's kind, and join a list of numbers or of points when every
+ * argument holds that kind. Unknown otherwise, Desmos's errors being list-calls.ts's.
+ */
+function operationShape(name: string, args: readonly (Shape | null)[]): Shape | null {
+  const [first] = args;
+  if (name === "sort" || name === "unique") {
+    return first === "numbers" || first === "points" ? first : null;
+  }
+  const kinds = (name === "repeat" ? [first] : args).map((s) =>
+    s === "number" || s === "numbers"
+      ? "numbers"
+      : s === "point" || s === "points"
+        ? "points"
+        : null
+  );
+  return kinds.length > 0 && kinds.every((k) => k === kinds[0]) ? kinds[0] : null;
 }
 
 /** Arithmetic's shape over operand shapes: unknown for a point or an unknown operand. */

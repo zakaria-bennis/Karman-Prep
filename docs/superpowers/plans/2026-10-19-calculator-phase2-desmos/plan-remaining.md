@@ -276,6 +276,21 @@ needs multi-letter identifiers, see `f-desmos-parity.md`).
 
 ### 6. Two-list and list-operation functions (FN-30, FN-31, FN-35, FN-36, FN-38; T9b)
 
+**Done.** `core/lib/list-functions.ts` holds cov, covp, corr, spearman, sort, unique, join and
+repeat; argmin and argmax join the reducers in `statistics.ts`, as hidden names
+(`HIDDEN_OPERATOR_NAMES`: pasted latex only, never split targets, MathQuill names or panel
+entries, since typing `argmin` gives `\arg\min` in Desmos). Desmos does not define `frequency`.
+Analysis types the calls (`lists.ts`) and gives Desmos's errors (`list-calls.ts`, `classify.ts`,
+the new `both-lists` code and per-name arity examples in `messages.ts`); repeat's count and length
+errors and its 10,000-element limit are run-time list errors (`repeat-count`, `repeat-lengths`,
+`list-too-long`) the row shows. The real plotter sends these calls to the general evaluator. The
+catalogue's 130 values, 72 errors and 16 rows without a value are in
+`core/lib/desmos-list-operations.fixture.json` (114, 66 and 9 match); the plan file's 9 values are
+a reference family. Not matched: derivatives, colours and tones, member access, actions, shuffle
+(T14), frequency's multi-letter-name errors, `unique([0.1+0.2,0.3])` (Desmos folds the constant sum
+exactly), and rows that graph several curves (G-22) or a call's points (M5). The plan's "mismatched
+lengths return `L` unchanged" for `sort(L,K)` is wrong: Desmos cuts to the shorter list.
+
 - **New file `core/lib/list-functions.ts`:** `cov`, `covp`, `corr`, `join`, `sort(L[, K])`,
   `unique`. Desmos: `sort(L,K)` sorts `L` by `K`, and mismatched lengths return `L` unchanged;
   `unique` keeps first-occurrence order; `join(1,2)` = `[1, 2]`.

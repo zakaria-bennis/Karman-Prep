@@ -6,10 +6,12 @@
 import { expect, it } from "vitest";
 import captured from "../../../../../docs/superpowers/plans/2026-10-19-calculator-phase2-desmos/desmos-reference-values.json";
 import { analyzeRows } from "../analysis";
+import { rowErrorMessage } from "../analysis/messages";
 import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
 import catalogue from "./desmos-catalogue.fixture.json";
 import indexing from "./desmos-index.fixture.json";
+import listOperations from "./desmos-list-operations.fixture.json";
 import roots from "./desmos-root.fixture.json";
 import statistics from "./desmos-statistics.fixture.json";
 import { withinTolerance } from "./tolerance";
@@ -37,6 +39,13 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number; rows?: string[]
     pattern:
       /^\\(operatorname\{(length|total|mean|median|min|max|count|stdev|stdevp|var|mad|quantile|quartile|gcd|lcm)\}|min|max)\(/,
     count: 38,
+    rows: ["L=[5,3,8,1]"],
+  },
+  // FN-30, FN-31, FN-35, FN-36, FN-38: two-list statistics and list operations.
+  {
+    rules: "FN-30 FN-31 FN-35 FN-36 FN-38",
+    pattern: /^\\operatorname\{(sort|unique|join|cov|corr)\}\(/,
+    count: 9,
     rows: ["L=[5,3,8,1]"],
   },
 ];
@@ -397,17 +406,17 @@ function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): bo
 
 // Statistics cases not yet matched, each an expected failure that fails once matched, by the
 // notation they use that has not shipped: derivatives, colours and tones, distributions, member
-// access (`L.\operatorname{mean}`, `.x`), comprehensions and matrices, the list operations (task
-// 6 and T14), `\arg` (complex mode), `\infty` as a value, and `y=` rows, which Desmos gives a
-// value when the right side
-// is constant (`y=\operatorname{count}(x,1,2)` = 3) and the calculator graphs as a line without one.
+// access (`L.\operatorname{mean}`, `.x`), comprehensions and matrices, shuffle and random (T14),
+// polygon, boxplot and stats, `\arg` (complex mode), `\infty` as a value, and `y=` rows, which
+// Desmos gives a value when the right side is constant (`y=\operatorname{count}(x,1,2)` = 3) and
+// the calculator graphs as a line without one.
 const STATISTICS_GAPS: readonly RegExp[] = [
   /\\frac\{d\}|'\(/,
   /\\operatorname\{(rgb|hsv|okhsv|oklab|oklch|tone)\}/,
   /dist\}/,
   /\.(\\operatorname|x$|y$)/,
   /\\operatorname\{for\}|bmatrix/,
-  /\\operatorname\{(shuffle|join|random|unique|polygon|boxplot|stats)\}/,
+  /\\operatorname\{(shuffle|random|polygon|boxplot|stats)\}/,
   /\\arg/,
   /\\infty/,
   /^y=/,
@@ -416,11 +425,11 @@ const statisticsGap = (key: string) => STATISTICS_GAPS.some((gap) => gap.test(ke
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 309 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 311 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 309]));
+  ]).toEqual([438, 311]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -480,4 +489,94 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
   };
   if (POINT_ROWS.has(latex)) it.fails(`not yet matched: ${latex} is ${note} in Desmos`, check);
   else it(`FN-23 FN-27 ${latex} is ${note}, as in Desmos`, check);
+}
+
+// FN-30, FN-31, FN-35, FN-36, FN-38 and argmin, argmax: every catalogue value, error and row
+// without a value for the two-list statistics, the list operations and argmin and argmax
+// (desmos-list-operations.fixture.json), keyed and evaluated as the statistics cases. A row's
+// error is its analysis error or, as the row shows it, the error its value carries
+// (`repeat(1,2.5)`). Not yet matched, each an expected failure that fails once matched:
+// derivatives, colours and tones, member access, actions (`\to`) and shuffle (T14); frequency,
+// which Desmos does not define, so its errors need multi-letter names; `[0.1+0.2,0.3]`, whose
+// constant sum Desmos folds exactly to 0.3; and rows Desmos graphs as several curves (G-22) or as
+// a call that gives points (M5).
+const LIST_OPERATION_GAPS: readonly RegExp[] = [
+  /\\frac\{d\}/,
+  /\\operatorname\{(rgb|tone|shuffle|frequency)\}/,
+  /\.(\\operatorname|x$)|\\to/,
+  /0\.1\+0\.2/,
+];
+const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set([
+  "\\operatorname{sort}([3,-1,2]x)",
+  "\\operatorname{sort}(P,[3,1,2])",
+  "\\operatorname{unique}([(1,2),(1,2),(3,4)])",
+  "\\operatorname{join}(P,(7,8))",
+  "\\operatorname{join}(x,1)",
+  "\\operatorname{repeat}((1,2),2)",
+  "\\operatorname{repeat}(x,2)",
+]);
+const listOperationGap = (key: string) => LIST_OPERATION_GAPS.some((gap) => gap.test(key));
+const LIST_OPERATION_VALUES = Object.entries(listOperations.values) as [string, Captured][];
+const LIST_OPERATION_ERRORS = Object.entries(listOperations.errors);
+const LIST_OPERATION_GRAPHED = Object.entries(listOperations.graphed);
+
+function shownError(rows: readonly string[], latex: string): string | undefined {
+  const v = evaluateLatex(latex, { rows: [...rows] });
+  const carried = v.type === "undefined" && v.error !== undefined ? v.error : null;
+  return errorMessage(rows, latex) ?? (carried === null ? undefined : rowErrorMessage(carried, []));
+}
+
+it("FN-30 FN-38 all 130 catalogue list operation values are checked, 114 matched", () =>
+  expect([
+    LIST_OPERATION_VALUES.length,
+    LIST_OPERATION_VALUES.filter(([k]) => !listOperationGap(k)).length,
+  ]).toEqual([130, 114]));
+
+for (const [key, expected] of LIST_OPERATION_VALUES) {
+  const check = () => {
+    const { latex, rows } = statisticsCase(key);
+    const v = evaluateLatex(latex, { rows, settings: catalogueCase(key).settings });
+    expect(sameStatisticsValue(v, expected, false), JSON.stringify(v)).toBe(true);
+    expect(errorMessage(rows, latex)).toBe(undefined);
+  };
+  const shown = JSON.stringify(expected).slice(0, 60);
+  if (listOperationGap(key)) it.fails(`not yet matched: ${key} is ${shown} in Desmos`, check);
+  else it(`FN-30 FN-38 ${key} is ${shown}, as in Desmos`, check);
+}
+
+it("FN-30 FN-38 all 72 catalogue list operation errors are checked, 66 matched", () =>
+  expect([
+    LIST_OPERATION_ERRORS.length,
+    LIST_OPERATION_ERRORS.filter(([k]) => !listOperationGap(k)).length,
+  ]).toEqual([72, 66]));
+
+for (const [key, message] of LIST_OPERATION_ERRORS) {
+  const check = () => {
+    const { latex, rows } = statisticsCase(key);
+    expect(shownError(rows, latex)).toBe(message);
+  };
+  if (listOperationGap(key))
+    it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
+  else it(`FN-30 FN-38 ${key} reads "${message}", as in Desmos`, check);
+}
+
+it("FN-35 FN-36 all 16 catalogue list operation rows without a value are checked", () =>
+  expect(LIST_OPERATION_GRAPHED.length).toBe(16));
+
+for (const [latex, note] of LIST_OPERATION_GRAPHED) {
+  const check = () => {
+    const rows = listOperations._rows;
+    if (note.startsWith("graphed")) {
+      const row = analyzeRows(
+        [...rows, latex].map((l, i) => ({ id: `row-${i}`, latex: l, hidden: false })),
+        { angleMode: "radians", complex: false }
+      ).rows[rows.length];
+      expect([row.error, row.isGraphable]).toEqual([null, true]);
+    } else {
+      expect(evaluateLatex(latex, { rows })).toEqual({ type: "list", value: [] });
+    }
+  };
+  if (LIST_OPERATION_GRAPH_GAPS.has(latex))
+    it.fails(`not yet matched: ${latex} is ${note} in Desmos`, check);
+  else it(`FN-35 FN-36 ${latex} is ${note}, as in Desmos`, check);
 }
