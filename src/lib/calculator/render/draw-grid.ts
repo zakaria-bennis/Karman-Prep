@@ -34,29 +34,36 @@ const MAX_ARC_STEPS = 4096;
 const snapDown = (v: number) => Math.floor(v + 1e-6);
 
 /**
- * An axis-aligned segment as a device-px rectangle `max(1, round(px·dpr))` thick, placed at
- * `snap(pos·dpr) − floor(thickness/2)`; draw under the identity transform. Gridlines snap down
- * (floor), as the reference's do (GP-2), so a line just left of or above the canvas stays off it.
+ * A Cartesian gridline as a device-px rectangle `max(1, round(px·dpr))` thick. Like the
+ * reference (GP-2), the line centres on the half CSS px after its position rounded down, so at
+ * DPR 2 it covers the two device px of that CSS px; a line whose CSS px is the canvas's first or
+ * its last (`extent`, the canvas size across the line) is not drawn. Draw under the identity
+ * transform.
  */
-function fillLine(
+function fillGridLine(
   ctx: Ctx,
   s: PxSegment,
   px: number,
   dpr: number,
-  snap: (v: number) => number = Math.round
+  size: ViewSpec["size"]
 ): void {
   const t = Math.max(1, Math.round(px * dpr));
-  const across = (pos: number) => snap(pos * dpr) - Math.floor(t / 2);
+  const vertical = s.x0 === s.x1;
+  if (!vertical && s.y0 !== s.y1) return;
+  const cell = snapDown(vertical ? s.x0 : s.y0);
+  const extent = vertical ? size.width : size.height;
+  if (cell === 0 || cell === snapDown(extent)) return;
+  const across = Math.round((cell + 0.5) * dpr - t / 2);
   const along = (a: number, b: number) => [
     Math.round(Math.min(a, b) * dpr),
     Math.round(Math.max(a, b) * dpr),
   ];
-  if (s.x0 === s.x1) {
+  if (vertical) {
     const [y0, y1] = along(s.y0, s.y1);
-    ctx.fillRect(across(s.x0), y0, t, y1 - y0);
-  } else if (s.y0 === s.y1) {
+    ctx.fillRect(across, y0, t, y1 - y0);
+  } else {
     const [x0, x1] = along(s.x0, s.x1);
-    ctx.fillRect(x0, across(s.y0), x1 - x0, t);
+    ctx.fillRect(x0, across, x1 - x0, t);
   }
 }
 
@@ -133,7 +140,7 @@ function paintGridClass(
     if (lines.length === 0) return;
     ctx.fillStyle = colour;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    for (const s of lines) fillLine(ctx, s, GRID_LINE_PX, dpr, snapDown);
+    for (const s of lines) fillGridLine(ctx, s, GRID_LINE_PX, dpr, view.size);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return;
   }

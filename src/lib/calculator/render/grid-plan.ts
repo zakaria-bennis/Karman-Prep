@@ -330,15 +330,19 @@ function planLabels(view: ViewSpec, grid: GridSettings, t: Ticks, measure: Measu
   return labels;
 }
 
+/** GP-7: where the axes stroke, a quarter px before the origin rounded to a whole CSS px. */
+const axisPx = (view: ViewSpec) =>
+  worldToPx(view, 0, 0).map((p) => Math.round(p) - AXIS_OFFSET_PX) as [number, number];
+
 /** GP-5: with the grid hidden, a short tick across each drawn axis at every nonzero major. */
 function addTicks(plan: GridPlan, view: ViewSpec, t: Ticks): void {
-  const [axisX, axisY] = worldToPx(view, 0, 0);
+  const [axisX, axisY] = axisPx(view);
   const half = TICK_LENGTH_PX / 2;
   if (t.xAxisDrawn) {
     for (const x of t.xs.major) {
       if (x === 0 && t.yAxisDrawn) continue;
       const px = worldToPx(view, x, 0)[0] - AXIS_OFFSET_PX;
-      const y = axisY - AXIS_OFFSET_PX;
+      const y = axisY;
       plan.ticks.push({ x0: px, y0: y - half, x1: px, y1: y + half });
     }
   }
@@ -346,7 +350,7 @@ function addTicks(plan: GridPlan, view: ViewSpec, t: Ticks): void {
     for (const y of t.ys.major) {
       if (y === 0 && t.xAxisDrawn) continue;
       const py = worldToPx(view, 0, y)[1] - AXIS_OFFSET_PX;
-      const x = axisX - AXIS_OFFSET_PX;
+      const x = axisX;
       plan.ticks.push({ x0: x - half, y0: py, x1: x + half, y1: py });
     }
   }
@@ -377,9 +381,9 @@ export function planGrid(view: ViewSpec, grid: GridSettings, measure: Measure): 
     if (grid.polarGrid) addPolar(plan, view, grid);
     else addCartesian(plan, view, grid, t);
   } else addTicks(plan, view, t);
-  // GP-7, GP-8: axes stroke a quarter px before the origin's px; with arrows the tip sits 1.5 px
-  // inside the edge.
-  const [axisX, axisY] = worldToPx(view, 0, 0).map((p) => p - AXIS_OFFSET_PX);
+  // GP-7, GP-8: axes stroke a quarter px before the origin's whole px, as the reference rounds it;
+  // with arrows the tip sits 1.5 px inside the edge.
+  const [axisX, axisY] = axisPx(view);
   if (t.xAxisDrawn) {
     const end = grid.arrows ? size.width - ARROW_AXIS_START_PX : size.width;
     plan.axes.push({ x0: 0, y0: axisY, x1: end, y1: axisY });

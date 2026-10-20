@@ -80,6 +80,13 @@
   translate: 0 0.5px;
 }
 
+/* On a touch phone the reference's + sits on the button centre across (phone-375). */
+@media (pointer: coarse) {
+  .kc-list-panel[data-layout="stacked"] .kc-add-item > .kc-list-tool > svg {
+    translate: 0 0.5px;
+  }
+}
+
 .kc-list-panel[data-layout="stacked"] .kc-list-tool[data-tool="collapse"] > svg {
   transform-origin: bottom;
   scale: 1 0.96;
