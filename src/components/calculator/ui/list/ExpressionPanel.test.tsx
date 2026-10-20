@@ -136,4 +136,5 @@ it("A11Y-2 the row limit, Clear all, Undo and Redo are announced through the sta
     EDITOR_MESSAGES.redone,
   ]);
   expect(document.querySelector('[role="alert"]')).toBeNull();
-});
+  // Rendering MAX_ROWS rows takes about 1.5 s alone; under full-suite load it passed 5 s.
+}, 20_000);
