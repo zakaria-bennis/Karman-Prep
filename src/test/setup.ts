@@ -23,6 +23,21 @@ import { installMathSplit } from "@/lib/calculator-transfer/math-split";
 // (src/lib/calculator-transfer/math-split.ts); tests that call it directly get it here.
 installMathSplit(splitMathText);
 
+// Node 25 ships its own Web Storage global. Without `--localstorage-file` it is an empty object
+// with no methods, and it shadows jsdom's `localStorage`, so `localStorage.clear()` throws in
+// component tests. Point the global back at jsdom's own spec Storage for the jsdom environment.
+const jsdomWindow = (globalThis as { jsdom?: { window: Window } }).jsdom?.window;
+if (jsdomWindow) {
+  for (const key of ["localStorage", "sessionStorage"] as const) {
+    if (typeof globalThis[key]?.clear === "function") continue;
+    Object.defineProperty(globalThis, key, {
+      configurable: true,
+      enumerable: true,
+      get: () => jsdomWindow[key],
+    });
+  }
+}
+
 afterEach(async () => {
   cleanup();
   // React's scheduler queues its remaining work (passive-effect cleanups
