@@ -46,9 +46,17 @@ k intent close --log $PIPE/intents.jsonl --intent-id <id> --outcome <outcome> --
 k sweep --export $PIPE/live-<date>.json --out $PIPE/sweep/
 ```
 
-Produces `groups.json`, `report.md`, `unpublish.sql`, `republish.sql`. You read `report.md`. Typo groups that tie go to "typo_review" and figure groups to "figure_review"; nothing is removed for those. **Needs your OK.**
+Produces `groups.json`, `report.md`, `unpublish.sql`, `republish.sql`. You read `report.md`. Typo groups that tie go to "typo_review", and groups with a figure (tables, images, graphs, choices that are tables) go to "figure_review"; nothing is removed for those. **Needs your OK.**
 
-**O4. Un-publish (live write, from your O3 OK).** Run `unpublish.dryrun.sql` through the connector first (it rolls back), then run `unpublish.sql` for real. Re-export to `$PIPE/live-<date>-2.json`, run the sweep again, and confirm no groups are left. `republish.sql` undoes it (it has a `republish.dryrun.sql` twin).
+For each typo_review or figure_review group, a person looks at the copies and picks the one to keep. Then:
+
+```
+k sweep resolve --groups $PIPE/sweep/groups.json --export $PIPE/live-<date>.json --group <n or a copy id> --keep <id> [--remove <id,id>] --out $PIPE/sweep/resolve-<n>/
+```
+
+`--group` is the group's position in `groups.json` (counting from 1) or any copy id in it. `--remove` defaults to every other copy; name a subset when some "copies" turn out to be different questions (a figure group is grouped by text only). Ids outside the group are refused. It writes the same guarded `unpublish.sql` and `republish.sql`, with `.dryrun.sql` twins. **Needs your OK**, like O4.
+
+**O4. Un-publish (live write, from your O3 OK).** Run `unpublish.dryrun.sql` through the connector first (it rolls back), then run `unpublish.sql` for real. Do the same for each `resolve-<n>/` folder you approved. Re-export to `$PIPE/live-<date>-2.json`, run the sweep again, and confirm the only groups left are figure groups whose copies a person found to be different questions. Before O6, every exact and ocr_typo group must be un-published and every figure_review or typo_review group resolved (exact table duplicates are figure_review groups, and they would block migration B). `republish.sql` undoes it (it has a `republish.dryrun.sql` twin). Once migration B is in, `republish.sql` cannot bring back an exact duplicate: the unique rule refuses a second live copy with the same key, so that block stops with a duplicate-key error and nothing changes.
 
 **O5. Migration A and backfill (live write). Needs your OK.**
 
@@ -81,10 +89,10 @@ If it returns rows, a live duplicate is left: run the sweep again and finish O4 
 **O7. Corpus count (no OK needed).**
 
 ```
-k corpus --c-index <final-current-plus-partial-question-records-*.json> --ledger <current-readiness-ledger.json> --export $PIPE/live-<date>-2.json --out $PIPE/corpus/
+k corpus --c-index <final-current-plus-partial-question-records-*.json> --ledger <current-readiness-ledger.json> --export $PIPE/live-<date>-2.json --out $PIPE/corpus/ --lane $PIPE/lane.json
 ```
 
-Produces `clusters.json`, `founder_pairs.json`, `report.md`. The summary line gives the unique count to compare against 10,000.
+Produces `clusters.json`, `founder_pairs.json`, `report.md`. A question that is open or parked in the problem lane is never picked as the canonical copy, so promotions made by `lane` survive a re-run (`--lane` defaults to `lane.json` in `--out` or one folder up). `--decision-log` names the saved answer log if it is not `founder_decisions.json` in `--out`. The summary line gives the unique count to compare against 10,000.
 
 **O8. Close matches (you answer).**
 
@@ -107,14 +115,34 @@ k slice --reviewer <name> --clusters $PIPE/corpus/clusters.json --lane $PIPE/lan
 k lint --reviewed <batch>-reviewed-import-ready.json --frozen <batch>-frozen-inputs-import-ready.json --clusters $PIPE/corpus/clusters.json --lane $PIPE/lane.json --now <time>
 ```
 
-Then the existing stage path. After any staging, take a fresh export and re-run the backfill (newly staged rows need keys or the builder refuses). Then:
+Then the existing stage path. Publishing one batch goes in this exact order:
 
-```
-k intent open --log $PIPE/intents.jsonl --batch <batch> --action publish --question-ids <id,id> --sql-sha256 <sha> --now <time>
-k publish --batch <batch> --readback <batch>-private-readback.json --sealed <batch>-sealed-preview.json --export $PIPE/live-<date>-3.json --intents $PIPE/intents.jsonl --out $PIPE/batches/<batch>/
-```
+1. **Stage** the batch (existing stage path).
+2. **Export**: run `sql/live_export.sql`, save `$PIPE/live-<date>-3.json`.
+3. **Backfill, if needed**: `k publish` refuses when some other keyable row has no key (rows staged or added since the last backfill, for example other batches). The batch's own rows never need it: `publish.sql` sets their key. If it refuses, run `k backfill` on that export, apply it (dry run first), and go on.
+4. **Private readback** of the batch rows, saved as `<batch>-private-readback.json`.
+5. **Fresh export** after the readback (the builder refuses an export older than the readback): `$PIPE/live-<date>-4.json`.
+6. **Build**:
 
-Produces `publish.sql`, `rollback.sql`, their `.dryrun.sql` twins, `keys.json`, `precheck.json`. `publish.sql` starts with a guard that stops if the bank changed since the export. Run `publish.dryrun.sql`, show you the batch, run it on your OK, read it back, then close the intent. **Needs your OK for each batch** (or one standing OK, if you give it).
+   ```
+   k publish --batch <batch> --readback <batch>-private-readback.json --sealed <batch>-sealed-preview.json --export $PIPE/live-<date>-4.json --intents $PIPE/intents.jsonl --out $PIPE/batches/<batch>/
+   ```
+
+   Produces `publish.sql`, `rollback.sql`, their `.dryrun.sql` twins, `keys.json`, `precheck.json`. `precheck.json` holds `publish_sql_sha256` (the sha256 of `publish.sql`) and `question_ids`. The builder refuses while any intent is open, so the intent is opened after it.
+
+7. **Open the intent** with the values from `precheck.json`:
+
+   ```
+   k intent open --log $PIPE/intents.jsonl --batch <batch> --action publish --question-ids <question_ids, comma-separated> --sql-sha256 <publish_sql_sha256> --now <time>
+   ```
+
+8. Run `publish.dryrun.sql` (it rolls back). `publish.sql` starts with a guard that stops if the bank changed since the export.
+9. **Your OK** for the batch (or one standing OK, if you give it).
+10. Run `publish.sql`.
+11. **Read back** the rows.
+12. `k intent close --log $PIPE/intents.jsonl --intent-id <id> --outcome verified --readback-sha256 <sha> --now <time>` (`rolled_back` or `not_applied` if it did not go through).
+
+**Needs your OK for each batch.**
 
 Problem questions. `--reason` is one of: needs_figure, asset_hold, no_answer_key, answer_dispute, extraction_repair, skill_unclear, difficulty_unclear, classification_review, variant_review, broken_or_excluded (this last one also needs `--clusters`, so the next copy becomes the canonical). When a new campaign starts, `k lane requeue --lane $PIPE/lane.json --reason <reason>` moves parked and open items of that reason back to open.
 
@@ -142,7 +170,8 @@ Messages are quoted from the tool. A `refused:` line means the SQL builder wrote
 
 - `error: open intent(s) must be closed by a readback first: batch ...`: a publish or un-publish was started and never read back. Read the rows back, then `intent close`. A second publish is refused until you do.
 - `refused: the export ... is older than the private readback ...; run sql/live_export.sql again and save a fresh export` (also "save a fresh export"): take a new export and rebuild.
-- `bank changed since export; take a fresh export`: raised by `publish.sql` itself when the bank moved after the export. Nothing was written. Re-export, re-run backfill if rows were staged, rebuild.
+- `bank changed since export; take a fresh export`: raised by `publish.sql` itself when the bank moved after the export. Nothing was written. Close the open intent with `--outcome not_applied`, then go back to step 2 of O9 (export, backfill if needed, readback, fresh export, build).
+- `error: ... has no image_url ... field: the export is from an older sql/live_export.sql`: run the current `sql/live_export.sql` again.
 - `refused: the export has no comparison_key field on N rows: migration 20261021000000 and the key backfill are not applied ...`: apply migration A and the backfill (O5), then export again.
 - `refused: duplicate check failed: <id> duplicate: same comparison key as <id>` (or `typo-level match`): a batch row duplicates another question. Pull it from the batch or set it aside; nothing was written. If migration B fails with a duplicate-key error, run `sweep` and un-publish (O3, O4), then retry; nothing changed.
 - `error: writer lock held by <name> since <time>`: another session is writing. Wait, or release with that name once they are done. Lane and claims files use `.lock` files that clear on their own when a process dies; `error: ... is in use by another session; try again in a moment` just means retry.
