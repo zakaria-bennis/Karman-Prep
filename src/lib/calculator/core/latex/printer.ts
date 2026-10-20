@@ -125,6 +125,7 @@ export function printLatex(tree: Node): string {
         )
       );
     case "call":
+      if (tree.member !== undefined) return printMember(tree.name, tree.args, tree.member);
       return printCall(tree.name, tree.args, tree.base === true);
     case "sim":
       return join([printLatex(tree.left), "\\sim", printLatex(tree.right)]);
@@ -164,6 +165,13 @@ function printCall(name: string, args: readonly Node[], base: boolean): string {
     return join([head, "_{", printLatex(args[args.length - 1]), "}", parenthesised(written)]);
   }
   return join([head, parenthesised(args)]);
+}
+
+/** PR-45: `T.\operatorname{pdf}\left(x\right)`, or `T.\operatorname{mean}` for a property. */
+function printMember(name: string, args: readonly Node[], member: "method" | "property"): string {
+  const [target, ...rest] = args;
+  const head = join([printLatex(target), ".\\operatorname{", name, "}"]);
+  return member === "method" ? join([head, parenthesised(rest)]) : head;
 }
 
 /**

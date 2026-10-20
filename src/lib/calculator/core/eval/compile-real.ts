@@ -8,10 +8,12 @@ import { NO_DEADLINE } from "../deadline";
 import { sourceChildren, type ConstName, type Node, type RelOp } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { BUILTINS } from "../lib/builtins";
+import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { givesList, listFunction, reduceNumbers } from "../lib/statistics";
 import { factorial } from "../lib/gamma";
 import { circular, type CircularName } from "../lib/trig";
 import type { Compiled, CompileScope } from "./compile";
+import { holdsDistribution } from "./distributions";
 import { linkHolds, toPlotNumber } from "./ops";
 import { exponentRational, realPow, realRoot } from "./real-pow";
 import { numberValue, type Value } from "./values";
@@ -282,6 +284,7 @@ function power(node: Binary, ctx: Context): Fn {
 }
 
 function call(node: Call, ctx: Context): Fn {
+  if (readsOrMakesDistribution(node, ctx)) return generalNode(node, ctx);
   if (listFunction(node.name) !== undefined) return listFunctionCall(node, ctx);
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);
@@ -291,6 +294,25 @@ function call(node: Call, ctx: Context): Fn {
     node.args.map((arg) => compile(arg, ctx)),
     ctx
   );
+}
+
+/**
+ * FN-45 to FN-51: a call generalNode evaluates, since a distribution is not a number: a
+ * constructor, a dot, pdf or cdf, or a statistic or quantile whose first argument holds a
+ * constructor or a name whose value is a distribution (`y=\operatorname{mean}(N)x`).
+ */
+function readsOrMakesDistribution(node: Call, ctx: Context): boolean {
+  if (node.member !== undefined || isDistributionName(node.name)) return true;
+  if (node.name === "pdf" || node.name === "cdf") return true;
+  if (!readsDistribution(node.name) || node.args.length === 0) return false;
+  const pending: Node[] = [node.args[0]];
+  for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
+    if (n.kind === "call" && isDistributionName(n.name)) return true;
+    const v = n.kind === "id" && isConstantName(n.name, ctx) ? ctx.scope.values.get(n.name) : null;
+    if (v !== undefined && v !== null && holdsDistribution(v)) return true;
+    pending.push(...sourceChildren(n));
+  }
+  return false;
 }
 
 /**

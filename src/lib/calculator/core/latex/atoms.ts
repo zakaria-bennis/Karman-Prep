@@ -4,7 +4,7 @@
 // (G11, PR-21); and single-token arguments (G4). Built-in and user calls are in calls.ts (G8).
 
 import type { Node, SourceSpan } from "./ast";
-import { isBuiltinCommand, parseBuiltinCall, parseUserCall } from "./calls";
+import { isBuiltinCommand, parseBuiltinCall, parseMember, parseUserCall } from "./calls";
 import { failIfComprehension, parseIndex, parseList } from "./lists";
 import { isPiecewiseOpen, parsePiecewise } from "./piecewise";
 import {
@@ -75,8 +75,8 @@ export function parsePostfix(state: ParserState): Node {
  * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20): `\%`,
  * the degree sign, `^` and `!` (factorial, NM-15). An exponent directly after another is `syntax`
  * (G5, PR-19); `3!^{2}` is (3!)². Every operator position follows this loop, so it reports PR-9's
- * notation there: `'` (prime) is `unsupported`, as is a `.` after a member base (isMemberBase);
- * any other `.` ends the loop and is `syntax` where the caller meets it. A built-in call with a
+ * notation there: `'` (prime) is `unsupported`, as is a `.` after a member base (isMemberBase)
+ * unless parseMember reads the member (PR-45: `D.\operatorname{pdf}(x)`); any other `.` ends the loop and is `syntax` where the caller meets it. A built-in call with a
  * `(` argument list is an atom too (PR-25). A `[` after any atom or postfix sign is PR-34's
  * indexing (parseIndex), which takes the postfix signs after it too (`L[2]^{2}`, `L[L>3][1]`,
  * `(L+1)[2]`).
@@ -91,6 +91,14 @@ export function takePostfix(state: ParserState, atom: Node): Node {
       node = indexed;
       afterExponent = false;
       continue;
+    }
+    if (token.ch === "." && isMemberBase(node)) {
+      const member = parseMember(state, node);
+      if (member !== null) {
+        node = member;
+        afterExponent = false;
+        continue;
+      }
     }
     if (UNSUPPORTED_POSTFIX.has(token.ch) || (token.ch === "." && isMemberBase(node))) {
       fail("unsupported", token.span, `"${token.ch}" is not supported`);
@@ -437,7 +445,8 @@ function isLetterRun(state: ParserState, command: Token): boolean {
 
 /**
  * A name, a call, a list, a point or an index: a `.` after one is member access (PR-45: `P.x`,
- * `L[2].x`, `[1,2].\operatorname{length}`), `unsupported` until Phase 3 (PR-9).
+ * `L[2].x`, `[1,2].\operatorname{length}`), `unsupported` (PR-9) except the members parseMember
+ * reads, which analysis allows on a distribution only (FN-47 to FN-51).
  */
 const MEMBER_BASES: ReadonlySet<Node["kind"]> = new Set(["id", "call", "list", "point", "index"]);
 

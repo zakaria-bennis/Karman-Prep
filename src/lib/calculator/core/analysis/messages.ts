@@ -61,7 +61,9 @@ function letter(base: string): string {
  * `empty-root-index`, `reducer-arguments`, `first-argument-list`, `argument-type`, `both-lists`,
  * `repeat-count`, `repeat-lengths`, `refused-function`, `colon-side`, `colon-condition`,
  * `piecewise-condition`, `piecewise-part`, `piecewise-types`, `relation-side`, `comparator-types`
- * and `double-inequality` use the text Desmos gave on 2026-10-19; `repeat-counts` is Desmos's
+ * `double-inequality`, `distribution-call`, `distribution-function`, `add-types` and
+ * `multiply-types` use the text Desmos gave on 2026-10-19 (the other operator texts are its
+ * bundle's, not yet captured live); `repeat-counts` is Desmos's
  * text for a bad count in a list of counts (its bundle's bad-counts string), and
  * `relation-chain`, `chained-equation`, `long-chain` and `double-direction` are its bundle's
  * comparator chain strings, not yet captured live.
@@ -130,6 +132,15 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "double-inequality":
     "We only support solved double inequalities. Try deleting one side of the inequality.",
   "double-direction": "Double inequalities must both go the same way, e.g. 1 < y < 2.",
+  "distribution-call":
+    "'{n}' should be called on a distribution with a number. For example, try typing: D.{n}(x) where D=normaldist().",
+  "distribution-function": "Cannot call distribution '{n}' as a function. Try '{n}.pdf(x)'.",
+  "add-types": "Cannot add {n} and {k}.",
+  "subtract-types": "Cannot subtract {k} from {n}.",
+  "multiply-types": "Cannot multiply {n} by {k}.",
+  "divide-types": "Cannot divide {n} by {k}.",
+  "power-types": "Cannot raise {n} to {k}.",
+  "negate-type": "Cannot negate {n}.",
 };
 /** RC-2, Phase 1: `unsupported` naming r or θ, whose polar graphs ship in Phase 2. */
 const POLAR_UNSUPPORTED = "{n} is for polar graphs, which aren't available yet.";

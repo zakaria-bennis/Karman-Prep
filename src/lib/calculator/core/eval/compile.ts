@@ -15,6 +15,7 @@ import { regressionDefinitionId, regressionOf } from "../data/regression-analysi
 import { sourceChildren, type Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
+import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { applyListFunction, listFunction } from "../lib/statistics";
 import { circular, type CircularName } from "../lib/trig";
 import { C_I } from "./complex";
@@ -50,6 +51,7 @@ import {
   pointValue,
   rangeValue,
 } from "./lists";
+import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
@@ -328,13 +330,26 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
       );
   }
   const args = argNodes.map((arg) => compileNode(arg, ctx));
-  // FN-2, FN-23 to FN-29, FN-75: list functions reduce lists (statistics.ts).
-  if (listFunction(name) !== undefined) {
+  // FN-45: a constructor broadcasts into a list of distributions.
+  if (isDistributionName(name)) {
     return (vars, deadline) =>
-      applyListFunction(
-        name,
-        args.map((arg) => arg(vars, deadline))
+      mapN(
+        args.map((arg) => arg(vars, deadline)),
+        (values) => makeDistribution(name, values)
       );
+  }
+  // FN-47 to FN-51: a distribution first is read element by element; pdf and cdf read nothing
+  // else, and the statistics of anything else are the list functions'.
+  const reader = readsDistribution(name);
+  // FN-2, FN-23 to FN-29, FN-75: list functions reduce lists (statistics.ts).
+  if (reader || listFunction(name) !== undefined) {
+    return (vars, deadline) => {
+      const values = args.map((arg) => arg(vars, deadline));
+      if (reader && values.length > 0 && holdsDistribution(values[0])) {
+        return mapN(values, (scalars) => readDistribution(name, scalars));
+      }
+      return listFunction(name) === undefined ? UNDEFINED : applyListFunction(name, values);
+    };
   }
   // NM-32: every other built-in applies element by element.
   return (vars, deadline) =>

@@ -51,27 +51,26 @@ function errorMessage(key: string): string | undefined {
 // use that has not shipped: derivatives; `\infty` as a value; `random` (T14); a stored ±∞ behind
 // "undefined" (`1/invNorm(1)` is 0 in Desmos, NM-6 keeps one undefined state); Desmos's "Try
 // adding 'y=' to the beginning of this equation." for `i` in real mode, where the calculator
-// offers an `i` chip (NM-17); and distribution values (FN-45 to FN-51), which have not shipped.
+// offers an `i` chip (NM-17).
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
   /\\infty/,
   /\\operatorname\{random\}/,
   /\\frac\{1\}\{\\operatorname\{invNorm\}|\\operatorname\{invNorm\}\\left\(1\\right\)>5|\\arctan/,
   /\\left\(i\\right\)$/,
-  /dist\}|\.\\operatorname|\\operatorname\{(pdf|cdf|inversecdf|inverseCdf)\}/,
 ];
 const gap = (key: string) => GAPS.some((g) => g.test(key));
 
 const VALUES = Object.entries(distributions.values) as [string, Expected][];
 const ERRORS = Object.entries(distributions.errors);
 
-it("FN-45 FN-51 all 172 catalogue distribution values and 44 errors are checked, 56 and 17 matched", () =>
+it("FN-45 FN-51 all 172 catalogue distribution values and 44 errors are checked, 148 and 35 matched", () =>
   expect([
     VALUES.length,
     ERRORS.length,
     VALUES.filter(([k]) => !gap(k)).length,
     ERRORS.filter(([k]) => !gap(k)).length,
-  ]).toEqual([172, 44, 56, 17]));
+  ]).toEqual([172, 44, 148, 35]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {

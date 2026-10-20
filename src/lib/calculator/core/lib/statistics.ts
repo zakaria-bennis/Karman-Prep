@@ -219,7 +219,7 @@ const lcmRule: Rule = { ...reducer(lcm), complex: complexLcm };
  * Every list function by name, with Desmos's aliases (statistics-lists, "Spelling aliases"):
  * stddev and stdDev are stdev, stddevp and stdDevP stdevp, variance var, gcf and mcd gcd, mcm
  * lcm. inversecdf and inverseCdf of data are quantile (distributions, "inversecdf"), so
- * `inversecdf(L,0.25)` = 1.75; their distribution form waits on distributions.
+ * `inversecdf(L,0.25)` = 1.75; of a distribution they are compile.ts's (distributions.ts).
  */
 const RULES: ReadonlyMap<string, Rule> = new Map<string, Rule>([
   ["mean", reducer(mean, true)],

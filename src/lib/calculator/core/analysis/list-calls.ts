@@ -7,12 +7,19 @@ import { REFUSED_NAMES } from "../latex/operator-names";
 import { BUILTIN_ARITY } from "../lib/arity";
 import { BUILTINS } from "../lib/builtins";
 import { listFunction } from "../lib/statistics";
-import { SHAPE_NAMES, type Bound, type ListProblem, type ListTyping, type Shape } from "./lists";
+import {
+  isDistributionShape,
+  SHAPE_NAMES,
+  type Bound,
+  type ListProblem,
+  type ListTyping,
+  type Shape,
+} from "./lists";
 import { displayName } from "./messages";
 
 type Call = Extract<Node, { kind: "call" }>;
 /** A call, or a square root as the call `sqrt` Desmos names in its errors. */
-type Checked = Pick<Call, "name" | "args" | "span">;
+type Checked = Pick<Call, "name" | "args" | "span" | "member">;
 
 /**
  * The first list function call, in source order, whose arguments Desmos refuses: quantile or
@@ -39,7 +46,7 @@ export function listCallProblem(
 ): ListProblem | null {
   for (const call of checkedCalls(tree, typing)) {
     const fn = listFunction(call.name);
-    if (call.args.length === 0) continue;
+    if (call.args.length === 0 || call.member !== undefined) continue;
     const shapes = call.args.map((arg) => typing.shape(arg, locals, bound)),
       name = displayName(call.name),
       known = !shapes.includes(null),
@@ -48,6 +55,8 @@ export function listCallProblem(
         names: [name, k],
         span: call.span,
       });
+    // FN-47 to FN-51: what reads a distribution is distributions.ts's to check
+    if (isDistributionShape(shapes[0])) continue;
     const definition = typing.functions.get(call.name);
     if (definition !== undefined) {
       const problem = userCallProblem(call, shapes, typing, calling);

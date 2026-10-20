@@ -28,7 +28,16 @@ export type Node =
   | { kind: "root"; arg: Node; index: Node | null; span: SourceSpan } // \sqrt, \sqrt[n]
   // PR-27: `\log_{b}x` is call "log" with args [x, b] and `base`, which marks the last argument as
   // the subscript, so RC-20 counts only the written ones (`\log(x,b)` is an arity error).
-  | { kind: "call"; name: string; args: Node[]; base?: true; span: SourceSpan }
+  // PR-45, FN-47 to FN-51: `T.\operatorname{pdf}(x)` is call "pdf" with args [T, x] and `member`
+  // "method"; `T.\operatorname{mean}`, without parentheses, has `member` "property".
+  | {
+      kind: "call";
+      name: string;
+      args: Node[];
+      base?: true;
+      member?: "method" | "property";
+      span: SourceSpan;
+    }
   | { kind: "point"; x: Node; y: Node; span: SourceSpan }
   | Relation
   // PR-34: `[a,b,c]` and `[]`; a table column (D-11). A range has `range`, the number of items
@@ -104,7 +113,7 @@ function listSExpr(tree: { items: readonly Node[]; range?: number }): string {
 
 /**
  * The corpus tree notation (PR-40): `(num 0.5)`, `(id a_{1})`, `(const pi)`, `(root A N)`,
- * `(call log X B)`, `(rel = A B)` for one relation and `(rel (<= <) A B C)` for a chain; a list is
+ * `(call log X B)`, a member `(call .pdf T X)`, `(rel = A B)` for one relation and `(rel (<= <) A B C)` for a chain; a list is
  * `(list A B)` and a range `(range A B)`, `(range A S B)` or `(range (A S T) (B))` (PR-34, listSExpr).
  * An index is `(index T I)` for one item, else `(index T (list I J))` or `(index T (range …))`.
  * A piecewise is `(piecewise (if C V) (if C) O)`: a part with a value, a bare condition, then the
@@ -117,8 +126,10 @@ export function toSExpr(tree: Node): string {
     case "id":
     case "const":
       return `(${tree.kind} ${tree.name})`;
-    case "call":
-      return `(${["call", tree.name, ...tree.args.map(toSExpr)].join(" ")})`;
+    case "call": {
+      const name = tree.member === undefined ? tree.name : `.${tree.name}`;
+      return `(${["call", name, ...tree.args.map(toSExpr)].join(" ")})`;
+    }
     case "list":
       return listSExpr(tree);
     case "index": {

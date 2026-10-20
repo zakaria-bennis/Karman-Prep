@@ -86,10 +86,17 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "sort",
   "unique",
   "length",
-  // inversecdf of data is quantile (FN-27); of a distribution it waits on distributions
+  // FN-45 to FN-49 normaldist, tdist and binomialdist with pdf and cdf (Phase 2 T7); inversecdf
+  // reads a distribution or, of data, is quantile (FN-27); erf and the legacy distribution names
+  // below are T7's too
+  "normaldist",
+  "tdist",
+  "binomialdist",
+  "pdf",
+  "cdf",
   "inversecdf",
   "inverseCdf",
-  "erf", // erf and the legacy distribution names below (Phase 2 T7)
+  "erf",
   "exp",
   "ln",
   "log",
@@ -223,10 +230,10 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("boxplot", 5, 3, [1]),
   // 6 Probability distributions
   op("normaldist", 6, 3, [0, 1, 2]),
-  op("tdist", 6, 3, [1]),
+  op("tdist", 6, 3, [1, 2, 3]), // Desmos: tdist(ν, location, scale)
   op("chisqdist", 6, 3, [1]),
   op("uniformdist", 6, 3, [0, 1, 2]),
-  op("binomialdist", 6, 3, [2]),
+  op("binomialdist", 6, 3, [1, 2]), // Desmos: p defaults to 0.5
   op("poissondist", 6, 3, [1]),
   op("geodist", 6, 3, [1]),
   op("discretedist", 6, 3, [1, 2]),

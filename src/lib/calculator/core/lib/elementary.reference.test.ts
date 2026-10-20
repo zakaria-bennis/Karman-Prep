@@ -11,6 +11,7 @@ import {
 import { withinTolerance } from "./tolerance";
 import { BUILTIN_ARITY } from "./arity";
 import { BUILTINS } from "./builtins";
+import { DISTRIBUTION_FUNCTION_NAMES } from "./distributions";
 import { PROBABILITY_RULES } from "./probability";
 import { LIST_FUNCTION_NAMES } from "./statistics";
 import { evaluateLatex } from "../eval/compile";
@@ -33,9 +34,12 @@ it("NM-43 elementary.json is exactly what its generator writes", async () =>
     readFileSync(ELEMENTARY_PATH, "utf8")
   ));
 // The list functions (statistics.ts) are checked against Desmos's own values instead, in
-// desmos.reference.test.ts, and erf and the legacy distribution names (probability.ts) in
-// desmos-distributions.reference.test.ts.
-const PROBABILITY_NAMES = PROBABILITY_RULES.map(([name]) => name);
+// desmos.reference.test.ts, and the distributions, erf and the legacy distribution names
+// (distributions.ts, probability.ts) in desmos-distributions.reference.test.ts.
+const PROBABILITY_NAMES = [
+  ...PROBABILITY_RULES.map(([name]) => name),
+  ...DISTRIBUTION_FUNCTION_NAMES,
+];
 it("FN-1 every shipped built-in and operator has a committed reference case, with the allowlist's arity", () => {
   const shipped = OPERATOR_NAMES.filter(
     (o) =>
@@ -54,7 +58,7 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
     BUILTIN_ARITY.get("log"),
     BUILTIN_ARITY.get("round"),
     BUILTIN_ARITY.get("nCr"),
-  ]).toEqual([60, [1], [1, 2], [1, 2], [1, 2], [2]]); // 13 of them hidden names
+  ]).toEqual([65, [1], [1, 2], [1, 2], [1, 2], [2]]); // 13 of them hidden names
   const ops = new Set(reference.cases.map((c) => c.op));
   for (const op of [
     ...shipped,

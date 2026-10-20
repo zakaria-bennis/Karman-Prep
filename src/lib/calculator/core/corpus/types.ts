@@ -55,7 +55,15 @@ export type RowErrorCode =
   | "chained-equation" // RC-14: graphing `x=y=3`
   | "long-chain" // RC-14: graphing more than two inequalities, `0<x<y<3`
   | "double-inequality" // RC-14: a graphed double inequality not solved for x or y, `x<1<2`
-  | "double-direction"; // RC-14: a graphed double inequality pointing both ways, `1<y>0`
+  | "double-direction" // RC-14: a graphed double inequality pointing both ways, `1<y>0`
+  | "distribution-call" // FN-47: `pdf(normaldist())`, pdf without a distribution and a number
+  | "distribution-function" // FN-45: `N(1)` with N a distribution
+  | "add-types" // FN-45: `normaldist()+1`; the next four are the other operators'
+  | "subtract-types"
+  | "multiply-types"
+  | "divide-types"
+  | "power-types"
+  | "negate-type";
 export interface CorpusSettings {
   angleMode?: "radians" | "degrees";
   complex?: boolean;

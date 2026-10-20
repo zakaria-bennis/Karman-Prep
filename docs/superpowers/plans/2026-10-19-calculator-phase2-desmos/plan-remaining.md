@@ -450,6 +450,24 @@ rule should already exist.
   `shuffle(L[, s])`; `branches.ts` folds `random` as a constant.
 - Deferred: Desmos's re-randomize button (FN-8).
 
+### 14. Distributions most used on the SAT (FN-45 to FN-51) — done in the maths engine
+
+- Shipped: `normaldist(μ=0, σ=1)`, `tdist(ν, location=0, scale=1)` and `binomialdist(n, p=0.5)`
+  as a distribution value (`eval/values.ts`), with `pdf`, `cdf` (one bound or two, in either
+  order), `inversecdf`/`inverseCdf`/`quantile` and `mean`, `median`, `stdev`, `var` in the call
+  form and after a dot (`D.\operatorname{pdf}(x)`, `D.\operatorname{mean}`; PR-45's member call
+  is a `call` node with `member`); lists broadcast both ways; `erf`; and the paste-only legacy
+  names `normalcdf`, `normalpdf`, `binomcdf`, `binompdf`, `invNorm` in Desmos's slot order
+  (`binomcdf(10,0.5,5)` reads the bounds 10 and 0.5 with 5 trials). Maths in `lib/probability.ts`
+  and `lib/distributions.ts`, errors in `analysis/distributions.ts`.
+- Checked by `lib/desmos-distributions.reference.test.ts`: 148 of the catalogue's 172 values and
+  35 of its 44 error texts match. Not yet matched: derivatives, `\infty` as a value, `random`
+  (task 13), a stored ±∞ behind "undefined" (`1/invNorm(1)` is 0 in Desmos; NM-6 keeps one
+  undefined state), and "Try adding 'y='…" for `i` in real mode (the calculator offers its chip).
+- Outside the maths fence, still to do: a bare distribution row shows its constructor text
+  (`tdist(3, 0, 1)`) instead of Desmos's card, and does not graph its pdf (FN-52, render and UI).
+  The other five distributions and inference stay unsupported.
+
 ## Spec text to update along the way
 
 - NM-30 (index floors), NM-36 (rounded count and new examples), RC-6 (point definitions graph,

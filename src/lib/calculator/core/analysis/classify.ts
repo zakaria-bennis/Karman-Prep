@@ -100,6 +100,7 @@ function conflictError(
     return rowError("cycle", [displayName(head.name)], null);
   }
   for (const call of callsOf(scope)) {
+    if (call.member !== undefined) continue; // FN-47 to FN-51: distributions.ts counts these
     const arity = expectedArity(call.name, resolution);
     const written = call.args.length - (call.base ? 1 : 0);
     const list = listFunction(call.name);

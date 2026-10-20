@@ -43,7 +43,7 @@ export function lengthShaping(node: Node): readonly Node[] {
 
 /**
  * Every use of a name in `tree`: each `id`, and each `call` of a non-built-in name (a pre-scanned
- * user function, PR-23) with `call: true`. Sorted by `span.start`; ties keep tree order, a node
+ * user function, PR-23) with `call: true`; a member after a dot (`D.pleft`, PR-45) names nothing. Sorted by `span.start`; ties keep tree order, a node
  * before its children. Iterative, so a deep tree cannot overflow the stack.
  */
 export function collectNameUses(tree: Node): NameUse[] {
@@ -53,7 +53,7 @@ export function collectNameUses(tree: Node): NameUse[] {
     const [node, inPoint, counted] = entry;
     if (node.kind === "id") {
       uses.push({ name: node.name, span: node.span, call: false, inPoint, counted });
-    } else if (node.kind === "call" && !isBuiltinName(node.name)) {
+    } else if (node.kind === "call" && !isBuiltinName(node.name) && node.member === undefined) {
       uses.push({ name: node.name, span: node.span, call: true, inPoint, counted });
     }
     const below = inPoint || node.kind === "point";

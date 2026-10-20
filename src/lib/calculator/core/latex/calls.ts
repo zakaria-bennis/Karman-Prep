@@ -7,8 +7,8 @@ import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
 import {
   HIDDEN_OPERATOR_NAMES,
   isShippedBuiltin,
+  MEMBER_NAMES,
   OPERATOR_NAMES,
-  operatorName,
   PREFIX_FORM_NAMES,
 } from "./operator-names";
 import {
@@ -103,11 +103,12 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);
   if (open.t === "open" && open.ch === "(") {
-    if (needsArguments(name.name) && takeEmptyList(state)) {
-      // An empty `()` on a built-in that needs arguments is RC-20's arity error, as in Desmos
-      // ("Function 'sin' requires an argument", "Function 'mean' requires at least one
-      // argument"), not a syntax error; a log base does not count as an argument (`\log_{2}()`
-      // reads "Function 'log' requires an argument"), but it stays on the call.
+    if (takeEmptyList(state)) {
+      // An empty `()` calls with no arguments: `normaldist()` is the standard normal (FN-45), and
+      // on a built-in that needs arguments it is RC-20's arity error, as in Desmos ("Function
+      // 'sin' requires an argument", "Function 'mean' requires at least one argument"), not a
+      // syntax error; a log base does not count as an argument (`\log_{2}()` reads "Function
+      // 'log' requires an argument"), but it stays on the call.
       return takePostfix(
         state,
         withPower(name, callNode(name, [], base, previousEnd(state)), power, form)
@@ -135,12 +136,6 @@ function failIfEmptyGroup(state: ParserState): void {
 /** PR-24: Desmos's "'floor' is a function. Try using parentheses." at the name. */
 function needsParentheses(name: CommandToken): never {
   return fail("function-parentheses", name.span, `"${name.name}" needs (`, name.name);
-}
-
-/** Whether a built-in needs one or more arguments: a variadic one, or a fixed count above 0. */
-function needsArguments(name: string): boolean {
-  const arity = operatorName(name)?.arity;
-  return arity !== undefined && (arity === "variadic" || !arity.includes(0));
 }
 
 /** Takes an empty `()` at the cursor and returns true, or leaves the cursor and returns false. */
@@ -199,6 +194,66 @@ export function parseUserCall(state: ParserState, callee: Node): Node {
   const args = takeEmptyList(state) ? [] : parseArgumentList(state);
   const span = { start: callee.span.start, end: previousEnd(state) };
   return { kind: "call", name: callee.name, args, span };
+}
+
+/**
+ * The built-ins a dot reads (PR-45): FN-47 to FN-51's methods and statistics of a distribution,
+ * `D.\operatorname{pdf}(x)`, `D.\operatorname{mean}`.
+ */
+const DOT_NAMES: ReadonlySet<string> = new Set([
+  "pdf",
+  "cdf",
+  "inversecdf",
+  "inverseCdf",
+  "mean",
+  "median",
+  "stdev",
+  "stddev",
+  "stdDev",
+  "var",
+  "variance",
+]);
+
+/**
+ * PR-45: the member after the `.` at the cursor, a DOT_NAMES built-in or an inference member
+ * written `\operatorname{pleft}` (MEMBER_NAMES), as the call `name(target, …)` marked `member`:
+ * "method" with a `(` argument list (an empty `()` gives none), else "property". Null, with the
+ * cursor left at the dot, for any other member, which the caller reports as unsupported.
+ */
+export function parseMember(state: ParserState, target: Node): Node | null {
+  const name = memberName(state);
+  if (name === null) return null;
+  state.pos += name.tokens;
+  const open = peek(state);
+  const method = open.t === "open" && open.ch === "(";
+  const args = !method ? [] : takeEmptyList(state) ? [] : parseArgumentList(state);
+  return {
+    kind: "call",
+    name: name.text,
+    args: [target, ...args],
+    member: method ? "method" : "property",
+    span: { start: target.span.start, end: previousEnd(state) },
+  };
+}
+
+/** The member name after the dot at the cursor and how many tokens it spans with the dot. */
+function memberName(state: ParserState): { text: string; tokens: number } | null {
+  const command = peek(state, 1);
+  if (command.t !== "command") return null;
+  if (DOT_NAMES.has(command.name)) return { text: command.name, tokens: 2 };
+  if (command.name !== "operatorname" || !isOpen(peek(state, 2), "{")) return null;
+  let text = "",
+    k = 3;
+  for (let token = peek(state, k); token.t === "letter"; token = peek(state, ++k)) {
+    text += token.ch;
+  }
+  const close = peek(state, k);
+  if (close.t !== "close" || close.ch !== "}" || !MEMBER_NAMES.includes(text)) return null;
+  return { text, tokens: k + 1 };
+}
+
+function isOpen(token: Token, ch: "(" | "[" | "{"): boolean {
+  return token.t === "open" && token.ch === ch;
 }
 
 /**

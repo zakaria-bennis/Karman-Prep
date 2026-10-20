@@ -9,6 +9,7 @@ import type { RowErrorCode } from "../corpus/types";
 import { sourceChildren as childNodes, type Node, type SourceSpan } from "../latex/ast";
 import { DEFERRED_FEATURES } from "../latex/errors";
 import { isBuiltinName } from "../latex/operator-names";
+import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { rangeShape } from "../lib/range";
 import { givesList, listFunction } from "../lib/statistics";
 import type { DefinitionHead } from "./definitions";
@@ -26,14 +27,22 @@ export interface ListTyping {
 /** The shapes a call gives a function's parameters, null where analysis cannot tell. */
 export type Bound = ReadonlyMap<string, Shape | null>;
 const UNBOUND: Bound = new Map();
-/** NM-30: a value's type as Desmos names it in "Cannot index {a number} with {a point}.". */
-export type Shape = "number" | "point" | "numbers" | "points";
+/**
+ * NM-30: a value's type as Desmos names it in "Cannot index {a number} with {a point}.";
+ * FN-45: a distribution or a list of them.
+ */
+export type Shape = "number" | "point" | "numbers" | "points" | "distribution" | "distributions";
 export const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
   number: "a number",
   point: "a point",
   numbers: "a list of numbers",
   points: "a list of points",
+  distribution: "a distribution",
+  distributions: "a list of distributions",
 };
+/** FN-45: a distribution or a list of them. */
+export const isDistributionShape = (s: Shape | null) =>
+  s === "distribution" || s === "distributions";
 type Bracket = Extract<Node, { kind: "list" | "index" }>;
 type Index = Extract<Node, { kind: "index" }>;
 type Call = Extract<Node, { kind: "call" }>;
@@ -124,6 +133,7 @@ function shapeOf(
       if (node.range !== undefined || node.items.length === 0) return "numbers";
       const items = node.items.map(of);
       if (items.every((item) => item === "point")) return "points";
+      if (items.every((item) => item === "distribution")) return "distributions";
       return items.every((item) => item === "number") ? "numbers" : null;
     }
     case "index": {
@@ -132,10 +142,14 @@ function shapeOf(
       if (indexesList(node)) return target;
       return target === "numbers" ? "number" : "point";
     }
-    case "call":
+    case "call": {
       if (!isBuiltinName(node.name)) return null;
-      if (listFunction(node.name) !== undefined) return listCallShape(node, node.args.map(of));
-      return numeric(node.args.map(of));
+      const args = node.args.map(of),
+        read = distributionCallShape(node, args);
+      if (read !== undefined) return read;
+      if (listFunction(node.name) !== undefined) return listCallShape(node, args);
+      return numeric(args);
+    }
     case "piecewise":
       return piecewiseShape(node, of);
     case "mul":
@@ -289,10 +303,38 @@ function operationShape(name: string, args: readonly (Shape | null)[]): Shape | 
   return kinds.length > 0 && kinds.every((k) => k === kinds[0]) ? kinds[0] : null;
 }
 
-/** Arithmetic's shape over operand shapes: unknown for a point or an unknown operand. */
+/** Arithmetic's shape over operand shapes: unknown for a point, a distribution or an unknown. */
 function numeric(operands: readonly (Shape | null)[]): Shape | null {
-  if (operands.some((s) => s === null || s === "point" || s === "points")) return null;
+  if (operands.some((s) => s === null || pointed(s) || isDistributionShape(s))) return null;
   return operands.includes("numbers") ? "numbers" : "number";
+}
+
+/**
+ * FN-45 to FN-51: a constructor of numbers is a distribution, and a list of them when a parameter
+ * is a list; a reader of a distribution or a list of them (`D.pdf(x)`, `mean(D)`) is a number,
+ * or a list of numbers when it or another argument is a list. Unknown for any other argument, for
+ * a dot after anything else and for pdf or cdf without a distribution first (distributions.ts
+ * reports those); undefined for every other call.
+ */
+function distributionCallShape(
+  node: Call,
+  args: readonly (Shape | null)[]
+): Shape | null | undefined {
+  const lists = args.some((s) => s === "numbers" || s === "distributions");
+  if (isDistributionName(node.name)) {
+    if (!args.every((s) => s === "number" || s === "numbers")) return null;
+    return lists ? "distributions" : "distribution";
+  }
+  const reads = readsDistribution(node.name) && isDistributionShape(args[0] ?? null);
+  if (reads) {
+    return args.slice(1).every((s) => s === "number" || s === "numbers")
+      ? lists
+        ? "numbers"
+        : "number"
+      : null;
+  }
+  if (node.member !== undefined || node.name === "pdf" || node.name === "cdf") return null;
+  return undefined;
 }
 
 /** True when `node` evaluates to a list: a literal or range, a list name or call, or any operand. */

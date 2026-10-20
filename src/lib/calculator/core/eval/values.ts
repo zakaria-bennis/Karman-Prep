@@ -20,11 +20,24 @@ export type ListErrorCode =
   | "repeat-counts"
   | "repeat-lengths";
 
+/** FN-45: the distributions that have shipped, by constructor name. */
+export type DistributionName = "normaldist" | "tdist" | "binomialdist";
+
+/**
+ * FN-45: a distribution with every parameter filled, defaults included, as written: normaldist
+ * [μ, σ], tdist [ν, location, scale], binomialdist [n, p]. NaN marks an undefined parameter.
+ */
+export interface Distribution {
+  name: DistributionName;
+  params: readonly number[];
+}
+
 export type Value =
   | { type: "number"; value: number }
   | { type: "complex"; value: Complex }
   | { type: "point"; value: [number, number] }
-  | { type: "list"; value: Value[] } // PR-34: numbers, complex values or points; never lists
+  | { type: "list"; value: Value[] } // PR-34: numbers, complex values, points or distributions; never lists
+  | { type: "distribution"; value: Distribution } // FN-45
   | { type: "undefined"; error?: ListErrorCode }; // `error`: the row's value failed with that error
 
 export const UNDEFINED: Value = Object.freeze({ type: "undefined" as const });

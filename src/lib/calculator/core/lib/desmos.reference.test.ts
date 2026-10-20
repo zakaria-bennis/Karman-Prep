@@ -396,9 +396,11 @@ function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): bo
 }
 
 // Statistics cases not yet matched, each an expected failure that fails once matched, by the
-// notation they use that has not shipped: derivatives, colours and tones, distributions, member
-// access (`L.\operatorname{mean}`, `.x`), comprehensions and matrices, shuffle and random (T14),
-// polygon, boxplot and stats, `\arg` (complex mode), `\infty` as a value, and `y=` rows, which
+// notation they use that has not shipped: derivatives, colours and tones, distributions other than
+// normaldist, tdist and binomialdist (FN-45 to FN-51), member access other than theirs
+// (`L.\operatorname{mean}`, `.x`), comprehensions and matrices, shuffle and random (T14), polygon,
+// boxplot and stats, `\arg` (complex mode), `\infty` as a value, a stored +∞ behind undefined
+// (`\arctan` of tdist(2)'s infinite stdev; NM-6 keeps one undefined state), and `y=` rows, which
 // Desmos gives a value when the right side is constant (`y=\operatorname{count}(x,1,2)` = 3) and
 // the calculator graphs as a line without one.
 const STATISTICS_GAPS: readonly RegExp[] = [
@@ -412,15 +414,18 @@ const STATISTICS_GAPS: readonly RegExp[] = [
   /\\infty/,
   /^y=/,
 ];
-const statisticsGap = (key: string) => STATISTICS_GAPS.some((gap) => gap.test(key));
+const SHIPPED_DISTRIBUTIONS = /\\operatorname\{(normaldist|tdist|binomialdist)\}/;
+const statisticsGap = (key: string) =>
+  STATISTICS_GAPS.some((gap) => gap.test(key)) &&
+  !(SHIPPED_DISTRIBUTIONS.test(key) && !/\\arctan/.test(key));
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 311 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 340 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 311]));
+  ]).toEqual([438, 340]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -438,11 +443,11 @@ for (const [key, expected] of STATISTICS_VALUES) {
 
 const STATISTICS_ERRORS = Object.entries(statistics.errors);
 
-it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 60 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 63 matched", () =>
   expect([
     STATISTICS_ERRORS.length,
     STATISTICS_ERRORS.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([75, 60]));
+  ]).toEqual([75, 63]));
 
 for (const [key, message] of STATISTICS_ERRORS) {
   const check = () => {
