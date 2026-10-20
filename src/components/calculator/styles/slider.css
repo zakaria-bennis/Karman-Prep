@@ -191,9 +191,17 @@
   box-shadow: 0 0 0 2px var(--kc-focus-ring);
 }
 
-/* SLIDERS-14: with min = max the thumb has no position and rests at the track's left end. */
+/* SLIDERS-14: with min = max the thumb has no position and rests at the track's left end; the
+   track and thumb fade to 0.3, as the reference's disabled slider does. */
 .kc-slider[data-disabled="true"] .kc-slider-interior {
+  opacity: 0.3;
   cursor: default;
+}
+
+/* SLIDERS-10: a limit's add-slider line sits 8 px below the limits editor (the reference's row is
+   113.9 px tall with the line's buttons 33.2 px below the editor's top). */
+.kc-slider-line + .kc-add-slider {
+  margin-top: 8px;
 }
 
 /* SLIDERS-15: [min] ≤ a ≤ [max]  Step: [step], from the math's left edge. */

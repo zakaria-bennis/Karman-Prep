@@ -126,3 +126,21 @@ test("SLIDERS-27, SLIDERS-34 a key on the thumb and Escape from the popover paus
   await page.keyboard.press("Enter");
   await expect.poll(() => focused(page)).toBe("2:Expression 2");
 });
+
+test("SLIDERS-14, SLIDERS-10 min = max fades the track to 0.3; a limit's chips sit below the editor", async ({
+  page,
+}) => {
+  await openShell(page, "?w=900&h=600");
+  await page.evaluate(() =>
+    globalThis.__calculatorHarness!.engine.setExpressions([
+      { id: "1", latex: "a=1", sliderBounds: { min: "1", max: "1", step: "" } },
+      { id: "2", latex: "b=2", sliderBounds: { min: "-10", max: "q", step: "" } },
+    ])
+  );
+  const interior = row(page, "1").locator(".kc-slider-interior");
+  await expect(interior).toHaveCSS("opacity", "0.3");
+  await expect(row(page, "1").getByRole("slider")).toBeVisible();
+  // The reference's row is 113.9 px tall: the limits editor, then the add-slider line 8 px lower.
+  const height = await row(page, "2").evaluate((el) => el.getBoundingClientRect().height);
+  expect(height).toBeCloseTo(113.9, 0);
+});
