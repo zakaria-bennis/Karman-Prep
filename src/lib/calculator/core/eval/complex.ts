@@ -35,9 +35,28 @@ export function cdiv(a: Complex, b: Complex): Complex {
   return { re: (a.re * r + a.im) / d, im: (a.im * r - a.re) / d };
 }
 
+/**
+ * e^z = e^re·(cos im + i·sin im), with sin exactly 0 at a double that is exactly k·π and cos
+ * exactly 0 at one that is exactly (2k + 1)·π/2, as in Desmos, so `\ln(-1)^{2}` is −π² + 0i.
+ */
 export function cexp(z: Complex): Complex {
   const m = Math.exp(z.re);
-  return { re: m * Math.cos(z.im), im: m * Math.sin(z.im) };
+  return { re: m * polarCos(z.im), im: m * polarSin(z.im) };
+}
+
+/** Beyond this the doubles near multiples of π are too sparse to test. */
+const POLAR_SNAP_LIMIT = 1e12;
+
+function polarSin(t: number): number {
+  const a = Math.abs(t);
+  return a <= POLAR_SNAP_LIMIT && Math.round(a / Math.PI) * Math.PI === a ? 0 : Math.sin(t);
+}
+
+function polarCos(t: number): number {
+  const a = Math.abs(t);
+  const halves = Math.round((2 * a) / Math.PI);
+  const onHalf = a <= POLAR_SNAP_LIMIT && halves % 2 === 1 && halves * Math.PI === 2 * a;
+  return onHalf ? 0 : Math.cos(t);
 }
 
 /** Ln z = ln|z| + i·Arg z with Arg in (−π, π]: an Arg of −π (from re < 0, im = −0) is π. Ln 0 is NaN. */

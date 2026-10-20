@@ -8,8 +8,6 @@ import { toPlotNumber } from "./ops";
 import { type ListErrorCode, type Value } from "./values";
 
 export { MAX_LIST_ELEMENTS };
-/** NM-36: how near the bound, relative to the step, the last element is taken as exactly the bound. */
-const LAST_TOLERANCE = 1e-9;
 
 type ListValue = Extract<Value, { type: "list" }>;
 
@@ -48,25 +46,17 @@ export function makeList(items: Value[]): Value {
 }
 
 /**
- * NM-36: the range `[a...c]` (second null) or `[a,b,...,c]` counted by rangeShape, with elements
- * a + k·s and the last one exactly c when within 1e-9·|s| of it (`[0,0.1,...,1]` ends at 1). A
- * list bound is `nested-list`; any other bound that is not a number counts as NaN, so the range is
+ * NM-36: the range with `starts` written before its ellipsis and `ends` after it, counted and
+ * filled by rangeShape (`[0,0.1,...,1]` is 0, 0.1, 0.2, 0.3, … 1 exactly). A list bound is
+ * `nested-list`; any other bound that is not a number counts as NaN, so the range is
  * `range-step`, as Desmos reads `[1...0/0]`.
  */
-export function rangeValue(from: Value, second: Value | null, to: Value): Value {
-  const bounds = second === null ? [from, to] : [from, second, to];
-  if (bounds.some(isList)) throw new ListError("nested-list");
-  const a = numberOf(from),
-    c = numberOf(to);
-  const shape = rangeShape(a, second === null ? null : numberOf(second), c);
+export function rangeValue(starts: readonly Value[], ends: readonly Value[]): Value {
+  if (starts.some(isList) || ends.some(isList)) throw new ListError("nested-list");
+  const shape = rangeShape(starts.map(numberOf), ends.map(numberOf));
   if (typeof shape === "string") throw new ListError(shape);
-  const { step, count } = shape;
   const items: Value[] = [];
-  for (let k = 0; k < count; k++) {
-    const v = a + k * step;
-    const exact = k === count - 1 && Math.abs(v - c) <= LAST_TOLERANCE * Math.abs(step);
-    items.push({ type: "number", value: exact ? c : v });
-  }
+  for (let k = 0; k < shape.count; k++) items.push({ type: "number", value: shape.element(k) });
   return { type: "list", value: items };
 }
 

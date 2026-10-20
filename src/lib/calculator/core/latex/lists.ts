@@ -16,11 +16,11 @@ const RELATION_SYMBOLS: ReadonlySet<string> = new Set(["=", "<", ">"]);
 
 /**
  * The `[` at the cursor and its list, one nesting level deeper (G13). Items are sums separated by
- * commas; one ellipsis, with an optional comma on either side, makes a range: one item before it
- * steps by ±1 and two items step by their difference, with exactly one item after it. An ellipsis
- * with no item before it or none after it is `range-bound` at the ellipsis, Desmos's "Range must
- * have an upper and lower bound." (`[1,...]`). An empty item or any other shape is `syntax` at the
- * token where it goes wrong.
+ * commas; one ellipsis, with an optional comma on either side, makes a range of the items before
+ * it and after it (NM-36 checks they form one arithmetic sequence: `[1,2,3,...,10]`,
+ * `[1,...,9,10]`). An ellipsis with no item before it or none after it is `range-bound` at the
+ * ellipsis, Desmos's "Range must have an upper and lower bound." (`[1,...]`). An empty item, a
+ * second ellipsis or any other shape is `syntax` at the token where it goes wrong.
  */
 export function parseList(state: ParserState, open: OpenToken): Node {
   take(state);
@@ -32,7 +32,7 @@ export function parseList(state: ParserState, open: OpenToken): Node {
       const token = peek(state);
       if (isEllipsis(token)) {
         if (items.length === 0) failRangeBound(token);
-        if (before >= 0 || items.length > 2) unexpected(state, token);
+        if (before >= 0) unexpected(state, token);
         take(state);
         before = items.length;
         if (isComma(peek(state))) take(state);
@@ -49,10 +49,7 @@ export function parseList(state: ParserState, open: OpenToken): Node {
   take(state);
   const span = { start: open.span.start, end: close.span.end };
   if (before < 0) return { kind: "list", items, span };
-  if (items.length !== before + 1) {
-    return fail("syntax", span, "a range has one item after the ellipsis");
-  }
-  return { kind: "list", items, range: true, span };
+  return { kind: "list", items, range: before, span };
 }
 
 /**

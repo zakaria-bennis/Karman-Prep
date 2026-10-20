@@ -139,7 +139,7 @@ function chainShape(tree: Rel, coordinates: ReadonlySet<string>): RowShape {
 function isPointList(tree: Node): boolean {
   return (
     tree.kind === "list" &&
-    tree.range !== true &&
+    tree.range === undefined &&
     tree.items.length > 0 &&
     tree.items.every((item) => item.kind === "point")
   );

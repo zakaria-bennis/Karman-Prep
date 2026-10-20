@@ -730,7 +730,31 @@
     "\\log_{10}\\left(1000\\right)": 3,
     "\\log_{2}\\left(\\left[2,4,8\\right]\\right)": [1, 2, 3],
     "\\log_{\\left[2,4\\right]}\\left(16\\right)": [4, 2],
-    "\\log_{1}\\left(8\\right)": null
+    "\\log_{1}\\left(8\\right)": null,
+    "\\ln(e)": 1,
+    "\\ln(0)": null,
+    "\\ln(-1)": null,
+    "\\ln(\\left[1,e\\right])": [0, 1],
+    "\\ln 2": 0.6931471805599453,
+    "\\ln e^{2}": 2,
+    "\\ln(1)": 0,
+    "\\ln(2)": 0.6931471805599453,
+    "\\ln([1,e,10])": [0, 1, 2.302585092994046],
+    "\\ln^{2}(e)": 1,
+    "\\ln(\\infty)": null,
+    "\\ln(10^{-320})": -736.8272408909739,
+    "[deg] \\ln(2)": 0.6931471805599453,
+    "[complex] \\ln(-1)": [0, 3.141592653589793],
+    "[complex] \\ln(i)": [0, 1.5707963267948966],
+    "[complex] \\ln(0)": [null, 0],
+    "[complex] \\ln(-e)": [1, 3.141592653589793],
+    "[complex] \\ln(-1)^{2}": [-9.869604401089358, 0],
+    "\\ln2": 0.6931471805599453,
+    "[1...5]": [1, 2, 3, 4, 5],
+    "[1,3,...,9]": [1, 3, 5, 7, 9],
+    "\\left[1\\ldots5\\right]": [1, 2, 3, 4, 5],
+    "[1...3.5]": [1, 2, 3, 4],
+    "[1...3.6]": [1, 2, 3, 4]
   },
   "errors": {
     "\\left[1...10001\\right]": "Lists may not have more than 10,000 elements.",
@@ -755,6 +779,14 @@
     "\\left[...5\\right]": "Range must have an upper and lower bound.",
     "\\left[1...10^{6}\\right]": "Lists may not have more than 10,000 elements.",
     "\\log_{ }\\left(8\\right)": "Subscripts cannot be empty.",
-    "\\log_{2}": "Function 'log' requires an argument. For example, try typing: log(x)."
+    "\\log_{2}": "Function 'log' requires an argument. For example, try typing: log(x).",
+    "\\ln()": "Function 'ln' requires an argument. For example, try typing: ln(x).",
+    "\\ln(1,2)": "Function 'ln' requires only 1 argument. For example, try typing: ln(x).",
+    "\\ln((1,2))": "Function 'ln' cannot be applied to a point.",
+    "\\ln": "Function 'ln' requires an argument. For example, try typing: ln(x).",
+    "\\ln_{2}(8)": "'ln' cannot have a subscript.",
+    "\\ln_{2}\\left(8\\right)": "'ln' cannot have a subscript.",
+    "\\ln^{-1}(e)": "Only ln^2 is supported. Otherwise, use parens.",
+    "[1...10001]": "Lists may not have more than 10,000 elements."
   }
 }

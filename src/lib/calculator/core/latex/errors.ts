@@ -15,13 +15,15 @@ export type ParseErrorCode =
   | "comma-side" // PR-25: an empty argument beside a comma in a call
   | "range-bound" // PR-34: a range with nothing before or after its ellipsis
   | "log-power" // PR-26: a power other than 2 on the name `log` or `ln`
-  | "empty-subscript"; // PR-27: `\log_{}`
+  | "empty-subscript" // PR-27: `\log_{}`
+  | "name-subscript"; // PR-27: a subscript on a trig, hyperbolic or `ln` name
 export interface ParseError {
   code: ParseErrorCode;
   span: SourceSpan;
   detail: string; // English, logs and tests only
   // `unsupported`: the deferred notation a row error names ("Indexing a list");
-  // `function-parentheses`, `argument-parentheses` and `log-power`: the built-in's name ("floor")
+  // `function-parentheses`, `argument-parentheses`, `log-power` and `name-subscript`: the
+  // built-in's name ("floor")
   feature?: string;
 }
 
@@ -39,6 +41,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "range-bound",
   "log-power",
   "empty-subscript",
+  "name-subscript",
 ]);
 
 export function isParseErrorCode(code: string): code is ParseErrorCode {

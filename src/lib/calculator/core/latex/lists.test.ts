@@ -29,11 +29,16 @@ describe("list syntax", () => {
     expect(normalizeLatex("[1…5]")).toBe("[1\\ldots 5]");
   });
 
+  it("PR-34 values on both sides of the ellipsis are a range's starts and ends", () => {
+    expect(tree("[1,2,3,...,10]")).toBe("(range ((num 1) (num 2) (num 3)) ((num 10)))");
+    expect(tree("[1...5,6]")).toBe("(range ((num 1)) ((num 5) (num 6)))");
+    expect(tree("[1,2,...,9,10]")).toBe("(range ((num 1) (num 2)) ((num 9) (num 10)))");
+  });
+
   it("PR-34 a malformed range or list is syntax, never a partial tree", () => {
     for (const latex of [
-      "[1,2,3,...,10]",
       "[1...5...9]",
-      "[1...5,6]",
+      "[1,...,5,...]",
       "[1,2",
       "[1,]",
       "[,1]",

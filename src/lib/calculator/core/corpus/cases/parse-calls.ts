@@ -101,5 +101,14 @@ const cases: CorpusCase[] = [
   x(71, ["PR-27", "RC-20"], "\\log_{2}(8,2)", "arity"),
   x(72, ["PR-27"], "\\log_{}(8)", "empty-subscript"),
   x(73, ["PR-26"], "\\log^{3}(8)", "log-power"),
+  // Desmos: "'ln' cannot have a subscript." (captured for \ln_{2}(8)); a subscript is checked
+  // before anything else on the name, so a power or an empty group does not change it.
+  x(74, ["PR-27"], "\\ln_{2}(8)", "name-subscript"),
+  x(75, ["PR-27"], "\\ln_{2}8", "name-subscript"),
+  x(76, ["PR-27"], "\\ln^{2}_{3}(8)", "name-subscript"),
+  x(77, ["PR-27"], "\\ln_{}(8)", "name-subscript"),
+  x(78, ["PR-27"], "\\sin_{2}(x)", "name-subscript"), // trig names share ln's rule in Desmos
+  // An empty argument list keeps the base, so the call prints back as written.
+  t(79, ["PR-27", "RC-20"], "\\log_{2}()", "(call log (num 2))"),
 ];
 export default cases;

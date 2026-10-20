@@ -59,31 +59,43 @@ function catalogue settled the open case: a count below the values written befor
 (`[1,2,...,0]`, `[1,3,...,1]`) and a non-finite count (`[1...0/0]`) are "Ranges must be arithmetic
 sequences.", which is now the `range-step` text; there is no empty range.
 
-| Case           | Desmos                 | Karman now         |
-| -------------- | ---------------------- | ------------------ |
-| `[1...3.5]`    | `[1, 2, 3, 4]`         | `[1, 2, 3]`        |
-| `[1...3.6]`    | `[1, 2, 3, 4]`         | `[1, 2, 3]`        |
-| `[0.5...3]`    | `[0.5, 1.5, 2.5, 3.5]` | `[0.5, 1.5, 2.5]`  |
-| `[1,3,...,8]`  | `[1, 3, 5, 7, 9]`      | `[1, 3, 5, 7]`     |
-| `[10,8,...,1]` | `[10, 8, 6, 4, 2, 0]`  | `[10, 8, 6, 4, 2]` |
+| Case               | Desmos                                 | Karman before                  | Karman now |
+| ------------------ | -------------------------------------- | ------------------------------ | ---------- |
+| `[1...3.5]`        | `[1, 2, 3, 4]`                         | `[1, 2, 3]`                    | as Desmos  |
+| `[1...3.6]`        | `[1, 2, 3, 4]`                         | `[1, 2, 3]`                    | as Desmos  |
+| `[0.5...3]`        | `[0.5, 1.5, 2.5, 3.5]`                 | `[0.5, 1.5, 2.5]`              | as Desmos  |
+| `[1,3,...,8]`      | `[1, 3, 5, 7, 9]`                      | `[1, 3, 5, 7]`                 | as Desmos  |
+| `[10,8,...,1]`     | `[10, 8, 6, 4, 2, 0]`                  | `[10, 8, 6, 4, 2]`             | as Desmos  |
+| `[1,2,...,0]`      | "Ranges must be arithmetic sequences." | the empty list                 | as Desmos  |
+| `[0,0.1,...,1]`    | 0.3 exactly                            | 0.30000000000000004            | as Desmos  |
+| `[1,1.1,...,1.25]` | `[1, 1.1, 1.2, 1.3]` (derived)         | `[1, 1.1, 1.2000000000000002]` | as derived |
+| `[1,2,3,...,10]`   | `[1, …, 10]` (derived)                 | syntax error                   | as derived |
 
-- **Files:** `core/eval/lists.ts` `rangeValue`: n = round((c − a)/s) + 1 with JavaScript rounding
-  (halves up, as `[1...3.5]` shows), elements a + k·s, and the last element snapped to c only when
-  it is within 1e-9·|s| of c (so `[0,0.1,...,1]` still ends at exactly 1 and `[0.5...3]` ends at
-  3.5). n ≤ 0 stays the empty list (unconfirmed; capture `[1,2,...,0]` first).
-- **Tests:** `core/lib/desmos.reference.test.ts`: delete `RANGE_COUNT_GAP`, its `it.fails` loop and
-  the "only captured list values not checked" test, so all 17 list values run as ordinary checks.
-  `core/eval/lists.test.ts` and `core/corpus/cases/lists.ts`: change any case that pins the old
-  floor (`[1...10.5]` now ends at 11, `[1,3,...,10]` is `[1, 3, 5, 7, 9, 11]`).
-- **Docs:** rewrite NM-36 in `a-math-semantics.md` with the rounded count and its examples; move
-  "Range length" in `f-desmos-parity.md` from "Not yet matched" to the matched list.
+- **Files:** `core/lib/range.ts` `rangeShape` (starts and ends, count n = 1 + round((last −
+  first)/s) with JavaScript rounding, halves up, elements first + k·s with no snap to the bound,
+  every other written value checked on the sequence within 10 bits) on exact fractions from
+  `core/lib/rational.ts` where they fit, as Desmos folds constants; `core/eval/lists.ts`
+  `rangeValue` and `core/analysis/lists.ts` both use it. `latex/lists.ts` takes any number of
+  values on each side of the ellipsis; the list node's `range` is the number of starts. There is no
+  empty range: a count below the starts or ends is `range-step`.
+- **Tests:** `core/lib/desmos.reference.test.ts` checks every catalogue range value exactly;
+  `core/eval/lists.test.ts` covers the fraction counts, the unsnapped last element and the extra
+  starts and ends; `core/corpus/cases/lists.ts` pins the new trees.
+- **Docs:** NM-36 in `a-math-semantics.md` and "Range length" and "Exact ranges" in
+  `f-desmos-parity.md`. Capture `[1,1.1,...,1.25]`, `[1...3.0000000001]`, `[1,2,3,...,10]`,
+  `[1,...,9,10]` and `[1,2,4,...,10]` live to confirm the derived rows.
 
 ### M2. `log` with two arguments is an arity error (RC-20) — recorded in f-desmos-parity.md
 
 **Done.** A subscript base sets `base: true` on the call node; `classify.ts` counts only written
 arguments against `log`'s one. The catalogue's other log findings came with it: exact whole-number
-logs (`\log_{3}(81)` = 4), `log-power` ("Only log^2 is supported.") and `empty-subscript`. Left:
-`\log_{\infty}(5)` = 0 waits for `\infty` as a value.
+logs (`\log_{3}(81)` = 4), `log-power` ("Only log^2 is supported."), `empty-subscript` and
+`name-subscript` ("'ln' cannot have a subscript.", also on trig and hyperbolic names). Every
+catalogue ln value and error is checked. Left: `\log_{\infty}(5)` = 0 waits for `\infty` as a
+value, and `\ln((1,2))` ("Function 'ln' cannot be applied to a point.") for M4. When infinities
+become values, `realLog` in `core/lib/builtins.ts` must return them as Desmos's `log_base` does:
+−∞ for an argument of 0 and ±∞ for a base of 1 (NaN only for a base of 0 or a negative argument),
+so `\frac{1}{\log(0)}` is 0.
 
 - **Desmos:** `\log(1,2)` reads "Function 'log' requires only 1 argument. For example, try typing:
   log(x)." (the same text as the captured `\log(1,2,3)`). A base is written only as a subscript.

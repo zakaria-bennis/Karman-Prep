@@ -95,8 +95,8 @@ export function listProblem(
     if (item !== undefined) return { code: "nested-list", names: [], span: item.span };
   }
   for (const list of lists) {
-    if (list.range !== true) continue;
-    const code = literalRangeError(list.items);
+    if (list.range === undefined) continue;
+    const code = literalRangeError(list.items, list.range);
     if (code !== null) return { code, names: [], span: list.span };
   }
   return null;
@@ -134,12 +134,15 @@ function listNodes(tree: Node): Extract<Node, { kind: "list" }>[] {
   return found.sort((a, b) => a.span.start - b.span.start);
 }
 
-/** NM-35, NM-36 for a range whose bounds are all number literals; null otherwise or when valid. */
-function literalRangeError(bounds: readonly Node[]): RowErrorCode | null {
+/**
+ * NM-35, NM-36 for a range whose values are all number literals, `starts` of them before the
+ * ellipsis; null otherwise or when valid.
+ */
+function literalRangeError(bounds: readonly Node[], starts: number): RowErrorCode | null {
   const values = bounds.map(literal);
   if (values.some((v) => v === null)) return null;
-  const [a, b, c] = values as number[];
-  const shape = values.length === 2 ? rangeShape(a, null, b) : rangeShape(a, b, c);
+  const numbers = values as number[];
+  const shape = rangeShape(numbers.slice(0, starts), numbers.slice(starts));
   return typeof shape === "string" ? shape : null;
 }
 

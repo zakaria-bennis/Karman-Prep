@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { exponentRational, rationalFromValue, realPow, realRoot } from "./real-pow";
-import { C_I, cacos, casin, catan, cln, cpow, csin, csqrt } from "./complex";
+import { C_I, cacos, casin, catan, cexp, cln, cpow, csin, csqrt } from "./complex";
 import { divV, mulV, powV, rootV } from "./ops";
 import { numberValue, UNDEFINED } from "./values";
 import { parseLatex } from "../latex/index";
@@ -106,6 +106,16 @@ it("NM-18 complex functions use principal branches, with C99 values on the cuts"
     rel(w.re, 0.20787957635076193),
     w.im,
   ]).toEqual([true, true, true, 0]);
+});
+it("NM-18 e^z has an exact zero part at whole multiples of π/2, as in Desmos", () => {
+  expect([cexp(c(0, P)), cexp(c(0, P / 2)), cexp(c(0, -2 * P)), cexp(c(1, 3 * P))]).toEqual([
+    c(-1, 0),
+    c(0, 1),
+    c(1, 0),
+    c(-Math.E, 0),
+  ]);
+  expect(cpow(cln(c(-1, 0)), c(2, 0)).im).toBe(0); // [complex] \ln(-1)^{2} is −π² + 0i
+  expect(cexp(c(0, 1)).im).toBe(Math.sin(1));
 });
 it("NM-19 complex mode keeps every value real mode defines", () => {
   expect([

@@ -94,8 +94,8 @@ for (const [latex, message] of Object.entries(USER_ERRORS)) {
 
 // The function catalogue's live Desmos values (desmos-catalogue.fixture.json, copied from the
 // catalogue's ALL.values.json) for every built-in and notation the calculator ships and its
-// Phase 2 tasks have touched: ranges (NM-36) and log (FN-60, PR-26, PR-27). A "[deg] " key is evaluated in degree mode and a
-// "[complex] " key in complex mode, where a value is [re, im].
+// Phase 2 tasks have touched: ranges (NM-36), log and ln (FN-60, PR-26, PR-27). A "[deg] " key is
+// evaluated in degree mode and a "[complex] " key in complex mode, where a value is [re, im].
 type CatalogueValue = Captured | number[][] | { length: number; first: number[]; last: number };
 const CATALOGUE_VALUES = Object.entries(catalogue.values) as [string, CatalogueValue][];
 const CATALOGUE_ROWS = ["L=[3,1,4,1,5,9,2,6]"]; // the catalogue's statistics-lists definitions
@@ -140,8 +140,8 @@ function sameValue(v: Value, expected: CatalogueValue, complex: boolean): boolea
 // is not a value yet (the calculator reads it as undefined), so an infinite base is too.
 const CATALOGUE_VALUE_GAP: ReadonlySet<string> = new Set(["\\log_{\\infty}(5)"]);
 
-it("NM-36 FN-60 all 66 catalogue values for ranges and log are checked", () =>
-  expect(CATALOGUE_VALUES.length).toBe(66));
+it("NM-36 FN-60 all 90 catalogue values for ranges, log and ln are checked", () =>
+  expect(CATALOGUE_VALUES.length).toBe(90));
 
 for (const [key, expected] of CATALOGUE_VALUES) {
   const check = () => {
@@ -155,14 +155,36 @@ for (const [key, expected] of CATALOGUE_VALUES) {
   else it(`NM-36 FN-60 ${key} is ${shown}, as in Desmos`, check);
 }
 
+// NM-36: Desmos folds a range of constants in exact fractions, so a range's elements are the
+// captured doubles exactly, not merely within the tolerance (`[0,0.1,...,1]` holds 0.3).
+const RANGE_VALUES = CATALOGUE_VALUES.filter(
+  ([key, expected]) =>
+    /^(\\left)?\[[^\]]*(\.\.\.|\\ldots)/.test(key) &&
+    Array.isArray(expected) &&
+    expected.every((e) => typeof e === "number")
+);
+
+it("NM-36 all 27 catalogue range values are checked exactly", () =>
+  expect(RANGE_VALUES.length).toBe(27));
+
+for (const [latex, expected] of RANGE_VALUES) {
+  it(`NM-36 ${latex} holds exactly the captured elements`, () => {
+    const v = evaluateLatex(latex);
+    expect(
+      v.type === "list" ? v.value.map((item) => item.type === "number" && item.value) : v
+    ).toEqual(expected);
+  });
+}
+
 // Catalogue errors not yet matched, each an expected failure that fails once matched: an
-// ellipsis outside a list (the calculator reads a syntax error) and a range whose length depends
-// on x (G-22's list-valued graphs, task T11).
-const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5", "[x...5]"]);
+// ellipsis outside a list (the calculator reads a syntax error), a range whose length depends
+// on x (G-22's list-valued graphs, task T11) and a built-in applied to a point (task M4's point
+// arithmetic).
+const CATALOGUE_ERROR_GAP: ReadonlySet<string> = new Set(["1...5", "[x...5]", "\\ln((1,2))"]);
 const CATALOGUE_ERRORS = Object.entries(catalogue.errors);
 
-it("NM-36 RC-20 all 23 catalogue error messages for ranges and log are checked", () =>
-  expect(CATALOGUE_ERRORS.length).toBe(23));
+it("NM-36 RC-20 all 31 catalogue error messages for ranges, log and ln are checked", () =>
+  expect(CATALOGUE_ERRORS.length).toBe(31));
 
 for (const [latex, message] of CATALOGUE_ERRORS) {
   const check = () => expect(errorMessage(CATALOGUE_ROWS, latex)).toBe(message);

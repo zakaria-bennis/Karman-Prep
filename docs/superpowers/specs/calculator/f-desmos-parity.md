@@ -140,7 +140,10 @@ including these, is checked in `desmos.reference.test.ts`:
   'log' requires only 1 argument. For example, try typing: log(x).", since a base is written only
   as a subscript. The parser marks a subscript base on the call (`base`), and the arity check counts
   only the written arguments. `\log_{}(8)` reads "Subscripts cannot be empty." and `\log^{-1}(100)`
-  "Only log^2 is supported. Otherwise, use parens." (`\ln` likewise).
+  "Only log^2 is supported. Otherwise, use parens." (`\ln` likewise). `\ln_{2}(8)` reads "'ln'
+  cannot have a subscript." (the `name-subscript` error), as do the trig and hyperbolic names with
+  a subscript. Every ln value and error in the function catalogue is checked too, except
+  `\ln((1,2))` ("Function 'ln' cannot be applied to a point."), which waits for M4.
 - **Exact logs (FN-60).** `\log_{3}(81)` is 4 and `\log_{10}(1000)` is 3, as in Desmos, so
   `\operatorname{ceil}(\log_{3}(81))` is 4, not 5. Every log value and error in the function
   catalogue is checked in `desmos.reference.test.ts`.
@@ -149,7 +152,15 @@ including these, is checked in `desmos.reference.test.ts`:
   the same. A count that is not finite or is smaller than the values written before the ellipsis
   (`[1,1,...,5]`, `[1...0/0]`, `[1,3,...,1]`, `[1,2,...,0]`) reads "Ranges must be arithmetic
   sequences." Every range value and error in the function catalogue is checked in
-  `desmos.reference.test.ts` (`desmos-catalogue.fixture.json`).
+  `desmos.reference.test.ts` (`desmos-catalogue.fixture.json`), the range values exactly.
+- **Exact ranges (NM-36).** Desmos folds a range of constants in exact fractions, so
+  `[0,0.1,...,1]` holds 0.3, not 0.30000000000000004, and `[1,1.1,...,1.25]` counts 2.5 steps,
+  rounded to 3. The calculator computes the count and elements on fractions too
+  (`core/lib/rational.ts`), and never swaps the last element for the bound (`[1...3.0000000001]`
+  is `[1, 2, 3]`). Ranges may have more values on either side of the ellipsis
+  (`[1,2,3,...,10]`, `[1,...,9,10]`), checked to lie on the sequence (`[1,2,4,...,10]` is "Ranges
+  must be arithmetic sequences."). Only `[0,0.1,...,1]` is captured live; the rest follow Desmos's
+  range builder.
 - **List errors.** `[1,...]` reads "Range must have an upper and lower bound." (the new
   `range-bound` error) and `[1...10001]` reads "Lists may not have more than 10,000 elements."
   (NM-35's wording, changed to Desmos's).

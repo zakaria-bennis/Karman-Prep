@@ -108,7 +108,7 @@ export function printLatex(tree: Node): string {
     case "point":
       return join(["\\left(", printLatex(tree.x), ",", printLatex(tree.y), "\\right)"]);
     case "list":
-      return join(["\\left[", ...listItems(tree.items, tree.range === true), "\\right]"]);
+      return join(["\\left[", ...listItems(tree.items, tree.range), "\\right]"]);
     case "rel":
       return join(
         tree.operands.flatMap((operand, i) =>
@@ -152,16 +152,19 @@ function printCall(name: string, args: readonly Node[], base: boolean): string {
 }
 
 /**
- * PR-34: list items separated by commas, as MathQuill writes them; a range puts `\\ldots` before
- * its last item, joined to it directly after one item (`1\\ldots10`) and by commas after two
- * (`1,3,\\ldots,10`).
+ * PR-34: list items separated by commas, as MathQuill writes them; a range puts `\\ldots` after
+ * its `range` starts, joined to them directly after one start (`1\\ldots10`) and by commas after
+ * more (`1,3,\\ldots,10`), its ends following it by commas (`1\\ldots9,10`).
  */
-function listItems(items: readonly Node[], range: boolean): string[] {
+function listItems(items: readonly Node[], range: number | undefined): string[] {
   const parts = items.map(printLatex);
-  if (!range) return parts.flatMap((part, i) => (i === 0 ? [part] : [",", part]));
-  const last = parts.length - 1;
-  const head = parts.slice(0, last).flatMap((part, i) => (i === 0 ? [part] : [",", part]));
-  return last === 1 ? [...head, "\\ldots", parts[last]] : [...head, ",\\ldots,", parts[last]];
+  const commas = (part: string, i: number) => (i === 0 ? [part] : [",", part]);
+  if (range === undefined) return parts.flatMap(commas);
+  const [starts, ends] = [
+    parts.slice(0, range).flatMap(commas),
+    parts.slice(range).flatMap(commas),
+  ];
+  return [...starts, range === 1 ? "\\ldots" : ",\\ldots,", ...ends];
 }
 
 function parenthesised(args: readonly Node[]): string {

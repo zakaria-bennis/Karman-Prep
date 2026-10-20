@@ -56,7 +56,8 @@ function letter(base: string): string {
  * `{n}` is `names[0]` and `{k}` is `names[1]`, both already display text, at every
  * place they appear. Appendix F recorded the reference's text for `duplicate-definition` (19),
  * `sim-side` (3) and `nested-list`, which these use; `argument-parentheses`, `comma-side`,
- * `range-bound`, `range-step`, `list-too-long`, `log-power` and `empty-subscript` use the text
+ * `range-bound`, `range-step`, `list-too-long`, `log-power`, `empty-subscript` and
+ * `name-subscript` use the text
  * Desmos gave on 2026-10-19.
  */
 const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
@@ -73,6 +74,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "range-bound": "Range must have an upper and lower bound.",
   "log-power": "Only {n}^2 is supported. Otherwise, use parens.",
   "empty-subscript": "Subscripts cannot be empty.",
+  "name-subscript": "'{n}' cannot have a subscript.",
   "too-many-params": "Functions can have at most 8 parameters.",
   "duplicate-definition":
     "You've defined '{n}' in more than one place. Try deleting some of the definitions of '{n}'.",

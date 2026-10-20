@@ -51,13 +51,15 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
 
 /**
  * A built-in call (G8). An unshipped name is `unsupported` at the name before anything else is
- * read. After the name come an optional `_` base (`log` only) and `^` power, each once, in either
- * order; then a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames
- * the call to its inverse; on `log` and `ln` only `^2` is allowed (`log-power`); any other power
- * raises the call to it (PR-26). `log`'s base is its last argument, marked `base` (PR-27), and an
- * empty base is `empty-subscript`. A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported` (PR-9). The
- * run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in written without
- * `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
+ * read. After the name come an optional `_` base and `^` power, each once, in either order; then
+ * a `(` argument list, or else the PR-24 run. A `^{-1}` power on a trig name renames the call to
+ * its inverse; on `log` and `ln` only `^2` is allowed (`log-power`); any other power raises the
+ * call to it (PR-26). `log`'s base is its last argument, marked `base` (PR-27), and an empty base
+ * is `empty-subscript`; any other name in PREFIX_FORM_NAMES (trig, hyperbolic, `ln`) takes no
+ * subscript, so `_` after it is `name-subscript` at the name, whatever follows, Desmos's "'ln'
+ * cannot have a subscript.". A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported`
+ * (PR-9). The run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in
+ * written without `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
  */
 export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   if (!isShippedBuiltin(name.name)) {
@@ -67,7 +69,8 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   let base: Node | null = null;
   let power: Node | null = null;
   for (let token = peek(state); ; token = peek(state)) {
-    if (base === null && name.name === "log" && isSymbol(token, "_")) {
+    if (base === null && isSymbol(token, "_") && PREFIX_FORM_NAMES.has(name.name)) {
+      if (name.name !== "log") return fail("name-subscript", name.span, "a subscript", name.name);
       take(state);
       failIfEmptyGroup(state);
       base = takeArgument(state).node;
@@ -89,8 +92,8 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
     if (takesFixedArguments(name.name) && takeEmptyList(state)) {
       // An empty `()` on a fixed-arity built-in is RC-20's arity error, as in Desmos ("Function
       // 'sin' requires an argument"), not a syntax error; a log base does not count as an argument
-      // (`\log_{2}()` reads "Function 'log' requires an argument").
-      return takePostfix(state, withPower(callNode(name, [], null, previousEnd(state)), power));
+      // (`\log_{2}()` reads "Function 'log' requires an argument"), but it stays on the call.
+      return takePostfix(state, withPower(callNode(name, [], base, previousEnd(state)), power));
     }
     const args = parseArgumentList(state);
     const call = callNode(name, args, base, previousEnd(state));

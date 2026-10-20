@@ -149,12 +149,15 @@ function compileNode(node: Node, ctx: Context): Compiled {
     case "list": {
       // PR-34, NM-36: a literal (or a D-11 table column) or a range; each item evaluates on its own
       const items = node.items.map((item) => compileNode(item, ctx));
-      if (node.range !== true) {
+      if (node.range === undefined) {
         return (vars, deadline) => makeList(items.map((item) => item(vars, deadline)));
       }
-      const [from, second, to] = items.length === 2 ? [items[0], null, items[1]] : items;
+      const [starts, ends] = [items.slice(0, node.range), items.slice(node.range)];
       return (vars, deadline) =>
-        rangeValue(from(vars, deadline), second?.(vars, deadline) ?? null, to(vars, deadline));
+        rangeValue(
+          starts.map((start) => start(vars, deadline)),
+          ends.map((end) => end(vars, deadline))
+        );
     }
     case "sim": // D-2: a regression row is fitted by the values pass, never compiled
       return constant(UNDEFINED);

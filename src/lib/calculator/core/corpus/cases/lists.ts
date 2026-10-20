@@ -52,7 +52,9 @@ const cases: CorpusCase[] = [
   t(8, ["PR-34"], "2[1,2]", "(mul (num 2) (list (num 1) (num 2)))"),
   t(9, ["PR-34"], "(L_{1},L_{2})", "(point (id L_{1}) (id L_{2}))"),
   x(10, ["PR-34"], "[1...]", "range-bound"), // Desmos: "Range must have an upper and lower bound."
-  x(11, ["PR-34"], "[1,2,3,...,10]", "syntax"),
+  // Desmos takes any number of values before and after the ellipsis (validateRangeLength).
+  t(11, ["PR-34"], "[1,2,3,...,10]", "(range ((num 1) (num 2) (num 3)) ((num 10)))"),
+  t(47, ["PR-34"], "[1,...,9,10]", "(range ((num 1)) ((num 9) (num 10)))"),
   x(12, ["PR-34", "NM-30"], "L[2]", "unsupported"),
   x(13, ["PR-34", "NM-31"], "L[1...2]", "unsupported"),
   x(14, ["PR-34", "NM-31"], "L[L>2]", "unsupported"),
@@ -82,6 +84,9 @@ const cases: CorpusCase[] = [
   x(35, ["NM-34"], "[1...L]", "nested-list", { rows: ["L=[1,2]"] }),
   x(36, ["NM-35", "NM-42"], "[1...10001]", "list-too-long"),
   x(37, ["NM-36"], "[1,1,...,5]", "range-step"),
+  x(48, ["NM-36"], "[1,2,4,...,10]", "range-step"), // a written value off the sequence
+  d(49, ["NM-36"], "[1,2,3,...,6]", "[1, 2, 3, 4, 5, 6]"),
+  d(50, ["NM-36"], "[1,1.1,...,1.25]", "[1, 1.1, 1.2, 1.3]"), // 2.5 steps exactly, rounded up
   x(29, ["NM-36"], "[1,2,...,0]", "range-step"), // Desmos: "Ranges must be arithmetic sequences."
   x(38, ["NM-34"], "[(L,1)]", "nested-list", { rows: ["L=[1,2]"] }),
   { ...x(39, ["G-22"], "y=[1,2,3]x", "unsupported"), kind: "error" }, // analysis, not parse

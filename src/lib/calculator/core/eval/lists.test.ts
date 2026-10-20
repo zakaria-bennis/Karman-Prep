@@ -76,7 +76,8 @@ describe("list values", () => {
     const v = numbers(evaluateLatex("[0,0.1,...,1]"));
     expect(v.length).toBe(11);
     expect(v[10]).toBe(1);
-    expect(v[3]).toBe(3 * 0.1); // a + k·s, never accumulated
+    // Exact, as Desmos folds a constant range in fractions: not 3·0.1 = 0.30000000000000004.
+    expect(v).toEqual([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]);
   });
 
   it("NM-36 ranges step by ±1 or by b − a and round their count, so the last element can pass c", () => {
@@ -91,13 +92,37 @@ describe("list values", () => {
     expect(numbers(evaluateLatex("[1...n]", { rows: ["n=3"] }))).toEqual([1, 2, 3]);
   });
 
+  it("NM-36 counts and elements are exact on fractions, as Desmos folds a constant range", () => {
+    // (1.25 − 1)/(1.1 − 1) is 2.5 exactly, rounded up; in doubles it is 2.499999999999998.
+    expect(numbers(evaluateLatex("[1,1.1,...,1.25]"))).toEqual([1, 1.1, 1.2, 1.3]);
+    expect(numbers(evaluateLatex("[2,2.1,...,2.15]"))).toEqual([2, 2.1, 2.2]);
+    // Elements are a + k·s, never the bound: the last one is 3, not 3.0000000001.
+    expect(numbers(evaluateLatex("[1...3.0000000001]"))).toEqual([1, 2, 3]);
+    expect(numbers(evaluateLatex("[0,\\frac{1}{3},...,1]"))).toEqual([0, 1 / 3, 2 / 3, 1]);
+    expect(numbers(evaluateLatex("[a,a+0.1,...,a+0.3]", { rows: ["a=0"] }))).toEqual([
+      0, 0.1, 0.2, 0.3,
+    ]);
+  });
+
+  it("NM-36 more values before or after the ellipsis must sit on the one sequence", () => {
+    expect(numbers(evaluateLatex("[1,2,3,...,10]"))).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(numbers(evaluateLatex("[1,...,9,10]"))).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(numbers(evaluateLatex("[0,0.1,0.2,...,0.9,1]")).at(3)).toBe(0.3);
+    expect(errorOf(direct("[1,2,4,...,10]"))).toBe("range-step");
+    expect(errorOf(direct("[1,2,...,9,11]"))).toBe("range-step");
+    expect(errorOf(direct("[1,2,...,a,10]", ["a=8"]))).toBe("range-step");
+    // A count below the number of values written on either side: [1, 2] cannot hold 3 values.
+    expect(errorOf(direct("[1,2,3,...,2]"))).toBe("range-step");
+    expect(errorOf(direct("[1...0,1]"))).toBe("range-step");
+  });
+
   it("NM-36 a range Desmos does not count as arithmetic is a range-step error", () => {
     expect(errorOf(direct("[1,1,...,5]"))).toBe("range-step");
     expect(errorOf(direct("[a,a,...,5]", ["a=2"]))).toBe("range-step");
     expect(errorOf(direct("[1,2,...,a]", ["a=0"]))).toBe("range-step");
     expect(errorOf(direct("[1,0,...,a]", ["a=5"]))).toBe("range-step");
-    expect(() => rangeValue(UNDEFINED, null, n(3))).toThrow(new ListError("range-step"));
-    expect(() => rangeValue(n(1), null, n(NaN))).toThrow(new ListError("range-step"));
+    expect(() => rangeValue([UNDEFINED], [n(3)])).toThrow(new ListError("range-step"));
+    expect(() => rangeValue([n(1)], [n(NaN)])).toThrow(new ListError("range-step"));
   });
 
   it("NM-32 a list of points and a point of lists are lists of points; mixing numbers and points is list-mixed", () => {
