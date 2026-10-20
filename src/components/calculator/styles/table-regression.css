@@ -112,10 +112,7 @@
 }
 
 .kc-tr-select-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: fixed;
   z-index: 7;
   box-sizing: border-box;
   border: 1px solid var(--kc-rule);
@@ -145,7 +142,7 @@
 }
 
 .kc-tr-select-footer {
-  padding: 6px 8px 7px;
+  padding: 6px 30px 7px 8px;
   border-top: 1px solid var(--kc-rule);
   color: var(--kc-text-muted);
   font-size: 12.8px;
@@ -211,9 +208,7 @@
 }
 
 .kc-tr-options {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: -12px;
+  position: fixed;
   z-index: 7;
   box-sizing: border-box;
   width: 245px;
@@ -227,7 +222,7 @@
 .kc-tr-options::after {
   content: "";
   position: absolute;
-  right: 16px;
+  right: 13px;
   border: 8px solid transparent;
   border-top-width: 0;
 }

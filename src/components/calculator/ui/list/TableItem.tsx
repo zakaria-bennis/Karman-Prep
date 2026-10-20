@@ -122,7 +122,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
           aria-readonly="true"
           aria-label={computedCellName(headers[k], r, value)}
         >
-          {value}
+          {value?.replace(/^-/, "−")}
         </div>
       );
     }

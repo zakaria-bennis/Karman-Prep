@@ -76,6 +76,7 @@ test("RT-26, RT-27 plot adds the e1 column without moving the view and Zoom Fit 
   );
   expect(after).toEqual(before);
   const zoom = panel(page).getByRole("button", { name: "Zoom Fit" });
+  await expect(zoom).toBeFocused();
   await zoom.click();
   await expect
     .poll(() =>

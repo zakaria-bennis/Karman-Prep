@@ -6,7 +6,7 @@
 // undefined" when y has no spread) and RESIDUALS (e_k with "plot", then a Zoom Fit icon). A data
 // or logarithmic-x error replaces everything below the header with a warning icon.
 
-import { useContext, type CSSProperties, type JSX } from "react";
+import { useContext, useEffect, useRef, type CSSProperties, type JSX } from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 import type { StoredRow } from "@/lib/calculator/core/api/document";
 import { zoomFitSeries } from "@/lib/calculator/core/api/table-paste";
@@ -61,6 +61,15 @@ export function TableRegression(props: {
   const skin = useSkin();
   const focus = useContext(FocusContext);
   const { geometry, settings, viewport } = useEngineSnapshot(engine);
+  // RT-26: after "plot", focus moves to the Zoom Fit icon once it appears.
+  const zoomRef = useRef<HTMLButtonElement>(null);
+  const focusZoom = useRef(false);
+  useEffect(() => {
+    if (focusZoom.current && zoomRef.current !== null) {
+      focusZoom.current = false;
+      zoomRef.current.focus();
+    }
+  });
   const r = stored.regression;
   if (r === undefined) return null;
   const result = row.table?.result?.regression;
@@ -227,7 +236,10 @@ export function TableRegression(props: {
                   <button
                     type="button"
                     className="kc-tr-plot"
-                    onClick={() => plotTableResiduals(engine, row.id)}
+                    onClick={() => {
+                      focusZoom.current = true;
+                      plotTableResiduals(engine, row.id);
+                    }}
                   >
                     plot
                   </button>
@@ -236,6 +248,7 @@ export function TableRegression(props: {
                   zoomWouldMove && (
                     <button
                       type="button"
+                      ref={zoomRef}
                       className="kc-tr-zoom"
                       aria-label="Zoom Fit"
                       title="Zoom Fit"

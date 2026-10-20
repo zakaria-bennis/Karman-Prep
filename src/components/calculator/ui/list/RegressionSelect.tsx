@@ -26,6 +26,8 @@ export function RegressionSelect<T extends string | number>(props: {
   const escape = useContext(EscapeContext);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  // The list is fixed to the viewport under the button, so the list item cannot clip it.
+  const [place, setPlace] = useState<{ top: number; left: number; width: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const current = props.options.find((o) => o.value === props.value) ?? props.options[0];
@@ -44,6 +46,8 @@ export function RegressionSelect<T extends string | number>(props: {
     if (open) list.current?.querySelectorAll<HTMLElement>("[role=option]")[active]?.focus();
   }, [open, active]);
   const show = () => {
+    const rect = button.current?.getBoundingClientRect();
+    if (rect !== undefined) setPlace({ top: rect.bottom, left: rect.left, width: rect.width });
     setActive(Math.max(0, props.options.indexOf(current)));
     setOpen(true);
   };
@@ -78,6 +82,7 @@ export function RegressionSelect<T extends string | number>(props: {
           className="kc-tr-select-list"
           role="listbox"
           aria-label={props.buttonLabel ?? "Options"}
+          style={place ?? undefined}
           onKeyDown={(e) => {
             const n = props.options.length;
             if (e.key === "ArrowDown") setActive((a) => (a + 1) % n);

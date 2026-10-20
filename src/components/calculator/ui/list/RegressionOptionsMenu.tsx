@@ -27,6 +27,8 @@ export function RegressionOptionsMenu(props: {
   const focus = useContext(FocusContext);
   const escape = useContext(EscapeContext);
   const [open, setOpen] = useState(false);
+  // Fixed to the viewport under ⋮ (its arrow 16 px in from the right), so no list item clips it.
+  const [place, setPlace] = useState<{ top: number; left: number } | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const close = (refocus: boolean) => {
@@ -57,7 +59,11 @@ export function RegressionOptionsMenu(props: {
         title="Regression options"
         aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          const rect = button.current?.getBoundingClientRect();
+          if (rect !== undefined) setPlace({ top: rect.bottom + 8, left: rect.right + 12 - 245 });
+          setOpen((o) => !o);
+        }}
       >
         <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
           <circle cx="9" cy="3.5" r="1.8" fill="currentColor" />
@@ -66,7 +72,13 @@ export function RegressionOptionsMenu(props: {
         </svg>
       </button>
       {open && (
-        <div ref={panel} className="kc-tr-options" role="dialog" aria-label="Regression options">
+        <div
+          ref={panel}
+          className="kc-tr-options"
+          role="dialog"
+          aria-label="Regression options"
+          style={place ?? undefined}
+        >
           <div className="kc-tr-options-section">
             <div className="kc-tr-title">Regression Model Structure</div>
             <StaticMath
