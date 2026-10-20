@@ -1,0 +1,1831 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Karman Prep: SAT prep with live classes, daily practice and 1:1 review</title>
+<meta name="description" content="SAT prep aimed at your student's test date: live classes in groups of up to six, daily practice, and an hour with Zakaria after every full-length test. Start with a free practice test.">
+<link rel="canonical" href="https://karmanprep.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://karmanprep.com/">
+<meta property="og:title" content="Karman Prep: SAT prep with live classes, daily practice and 1:1 review">
+<meta property="og:description" content="One program aimed at your student's SAT date, taught by Zakaria Bennis. Start with a free practice test.">
+<meta property="og:image" content="https://karmanprep.com/og/home.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.pexels.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<script>
+  /* The one place the page's offer facts live in this mockup (mirrors src/lib/marketing/offer.ts).
+     Every mention on the page is filled from here, so no figure is typed twice. */
+  window.KARMAN_OFFER = { bankCountLabel: "10,000+" };
+  (function () {
+    var root = document.documentElement, t = null;
+    try { t = localStorage.getItem("karman-theme"); } catch (e) {}
+    if (t === "light" || t === "dark") root.setAttribute("data-theme", t);
+    root.classList.add("js");
+  })();
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"Organization","@id":"https://karmanprep.com/#org","name":"Karman Prep","url":"https://karmanprep.com/","email":"hello@karmanprep.com","founder":{"@type":"Person","name":"Zakaria Bennis"}},
+ {"@type":"Course","name":"The March SAT Program","description":"Nine weeks of live SAT classes in a group of up to six, five full-length tests and a one-on-one review after each, ending on the Saturday, March 6, 2027 SAT.","provider":{"@id":"https://karmanprep.com/#org"},"url":"https://karmanprep.com/program","hasCourseInstance":{"@type":"CourseInstance","courseMode":"online","startDate":"2027-01-04","endDate":"2027-03-06","instructor":{"@type":"Person","name":"Zakaria Bennis"}},"offers":{"@type":"Offer","price":"995","priceCurrency":"USD","category":"Paid"}},
+ {"@type":"Course","name":"Private SAT tutoring","description":"Weekly one-on-one SAT sessions with Zakaria Bennis, planned back from your test date.","provider":{"@id":"https://karmanprep.com/#org"},"url":"https://karmanprep.com/private-tutoring","offers":{"@type":"Offer","price":"1450","priceCurrency":"USD","category":"Paid"}},
+ {"@type":"Event","name":"Free SAT practice test","startDate":"2026-12-12","eventAttendanceMode":"https://schema.org/OnlineEventAttendanceMode","location":{"@type":"VirtualLocation","url":"https://karmanprep.com/free-practice-test"},"organizer":{"@id":"https://karmanprep.com/#org"},"isAccessibleForFree":true,"description":"One Reading and Writing module and one Math module, about 49 questions, live on Zoom, proctored by Zakaria."},
+ {"@type":"FAQPage","mainEntity":[
+  {"@type":"Question","name":"What does it cost?","acceptedAnswer":{"@type":"Answer","text":"The SAT Program is $995 for the founding March cohort, or three payments of $345. Later cohorts are $1,295. Private tutoring starts at $1,450 for 10 hours."}},
+  {"@type":"Question","name":"What if the score doesn't go up?","acceptedAnswer":{"@type":"Answer","text":"If your official score isn't at least 50 points above your baseline, your next cohort is free, if you meet the conditions."}},
+  {"@type":"Question","name":"When are the classes?","acceptedAnswer":{"@type":"Answer","text":"Tuesdays and Thursdays, 7:00 to 8:30 p.m. ET, live on Zoom."}},
+  {"@type":"Question","name":"Do we talk to Zakaria first?","acceptedAnswer":{"@type":"Answer","text":"Yes. After a three-minute application, you have a 20-minute call with Zakaria. A refundable $100 deposit then holds the seat."}},
+  {"@type":"Question","name":"Is there financial help?","acceptedAnswer":{"@type":"Answer","text":"One seat in every cohort is a scholarship seat, free for a student whose family can't afford the program."}}
+ ]}
+]}
+</script>
+<style>
+  /* ---------- tokens (brief Part 3.5) ---------- */
+  :root {
+    color-scheme: light;
+    --field-night: #15202e; --field-day: #f1f1ee; --bg-2: #e8e6df; --bg-3: #dcd9cf;
+    --ink: #15202e; --ink-2: #3f4856; --on-dark: #f1f1ee; --on-dark-2: #c9cfd6; --night-2: #1f2c3d;
+    --program: #1e5b4b; --private: #7b2d35; --free: #85570c; --gold: #e2b867;
+    --program-ui: #1e5b4b; --right: #1e5b4b; --wrong: #a8432f; --wrong-text: #963a27;
+    --ring-day: #15202e; --dock-day-bg: #85570c; --dock-day-fg: #f1f1ee;
+    --ease-out: cubic-bezier(.22,1,.36,1); --ease-expo: cubic-bezier(.16,1,.3,1); --ease-in-out: cubic-bezier(.76,0,.24,1);
+    --ease-soft: cubic-bezier(.33,1,.68,1); --ease-exit: cubic-bezier(.55,.055,.675,.19);
+    --t-instant: 67ms; --t-press: 140ms; --t-hover: 180ms; --t-ui: 240ms; --t-ring: 300ms; --t-dock: 400ms; --t-reveal: 900ms; --t-open: 1000ms; --t-set: 1200ms;
+    --serif: "Source Serif 4", Georgia, serif; --sans: "Hanken Grotesk", system-ui, sans-serif;
+    --m: 32px; --gap: 24px; --head: 72px; --pad: 80px;
+    --fs-h1: clamp(44px, 5.2vw, 76px); --fs-h2: clamp(30px, 3.6vw, 52px); --fs-display: clamp(44px, 9vw, 136px);
+    --fs-tool: 40px; --fs-stmt: 34px; --fs-h3: 26px; --fs-lead: 18px; --fs-b: 18px; --fs-f: 18px; --fs-s: 15px;
+    interpolate-size: allow-keywords;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --field-night: #0b0f14; --field-day: #11161d; --bg-2: #18202a; --bg-3: #212b37;
+    --ink: #ecebe6; --ink-2: #c3c9d1; --on-dark: #ecebe6; --on-dark-2: #c3c9d1; --night-2: #151c26;
+    --program-ui: #7cc4a5; --right: #7cc4a5; --wrong: #ee9a86; --wrong-text: #ee9a86;
+    --ring-day: #e2b867; --dock-day-bg: #e2b867; --dock-day-fg: #15202e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --field-night: #0b0f14; --field-day: #11161d; --bg-2: #18202a; --bg-3: #212b37;
+      --ink: #ecebe6; --ink-2: #c3c9d1; --on-dark: #ecebe6; --on-dark-2: #c3c9d1; --night-2: #151c26;
+      --program-ui: #7cc4a5; --right: #7cc4a5; --wrong: #ee9a86; --wrong-text: #ee9a86;
+      --ring-day: #e2b867; --dock-day-bg: #e2b867; --dock-day-fg: #15202e;
+    }
+  }
+
+  /* ---------- base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: var(--field-day); color: var(--ink); font-family: var(--sans); font-size: var(--fs-b); line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+  img, video, svg { display: block; max-width: 100%; }
+  img { height: auto; }
+  [hidden] { display: none !important; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  h1, h2, h3, .serif { font-family: var(--serif); font-weight: 500; }
+  h2 { font-size: var(--fs-h2); line-height: 1.05; letter-spacing: -.02em; max-width: 18ch; }
+  h3 { font-size: var(--fs-h3); line-height: 1.15; letter-spacing: -.01em; }
+  .wrap { width: 100%; max-width: 1600px; margin-inline: auto; padding-inline: var(--m); }
+  .lead { font-size: var(--fs-lead); line-height: 1.5; max-width: 52ch; }
+  .small { font-size: var(--fs-s); }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* grounds: field colour, ink and the focus ring colour per ground */
+  [data-ground="night"] { background: var(--field-night); color: var(--on-dark); --ring: var(--gold); }
+  [data-ground="day"] { background: var(--field-day); color: var(--ink); --ring: var(--ring-day); }
+  [data-ground="green"] { background: var(--program); color: var(--on-dark); --ring: var(--gold); }
+  [data-ground="oxblood"] { background: var(--private); color: var(--on-dark); --ring: var(--gold); }
+  [data-ground="ochre"] { background: var(--free); color: var(--on-dark); --ring: #f1f1ee; }
+  :focus-visible { outline: 3px solid var(--ring, var(--ring-day)); outline-offset: 3px; }
+
+  /* controls: fill steps one tone, press 1px, 4px corners, flat */
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 26px; border-radius: 4px; font-weight: 600; font-size: var(--fs-f); text-decoration: none; white-space: nowrap; transition: background-color var(--t-hover) ease, transform var(--t-press) ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn--gold { background: var(--gold); color: #15202e; }
+  .btn--gold:hover { background: #ebc781; }
+  .btn--bone { background: #f1f1ee; color: #15202e; }
+  .btn--bone:hover { background: #dcd9cf; }
+  .btn--free { background: var(--dock-day-bg); color: var(--dock-day-fg); }
+  .btn--free:hover { background: #6f4709; }
+  :root[data-theme="dark"] .btn--free:hover { background: #ebc781; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn--free:hover { background: #ebc781; } }
+  .tlink { display: inline-block; font-weight: 600; font-size: var(--fs-f); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; transition: text-decoration-thickness var(--t-hover) ease, color var(--t-hover) ease; padding: 6px 0; }
+  .tlink:hover { text-decoration-thickness: 2px; }
+
+  /* line masks: text rises out of a clipped line; padding keeps ascenders and descenders inside */
+  .ln { display: block; overflow: clip; padding-block: .1em; margin-block: -.1em; }
+  .ln__in { display: block; }
+
+  /* ---------- header ---------- */
+  .head { position: fixed; inset: 0 0 auto; z-index: 60; height: var(--head); color: var(--hd-ink, #f1f1ee); background: var(--hd-bg, transparent); transition: background-color .3s ease, color .3s ease, transform var(--t-ui) var(--ease-out); }
+  .head[data-ground="clear"] { --hd-bg: transparent; --hd-ink: #f1f1ee; --ring: var(--gold); }
+  .head[data-ground="night"] { --hd-bg: var(--field-night); --hd-ink: var(--on-dark); background: var(--hd-bg); color: var(--hd-ink); }
+  .head[data-ground="day"] { --hd-bg: var(--field-day); --hd-ink: var(--ink); background: var(--hd-bg); color: var(--hd-ink); }
+  .head[data-ground="green"] { --hd-bg: var(--program); --hd-ink: var(--on-dark); background: var(--hd-bg); color: var(--hd-ink); }
+  .head[data-ground="oxblood"] { --hd-bg: var(--private); --hd-ink: var(--on-dark); background: var(--hd-bg); color: var(--hd-ink); }
+  .head[data-ground="ochre"] { --hd-bg: var(--free); --hd-ink: var(--on-dark); background: var(--hd-bg); color: var(--hd-ink); }
+  .head.is-hidden { transform: translateY(-100%); transition-timing-function: var(--ease-exit); }
+  .head__in { height: 100%; display: flex; align-items: center; gap: 28px; }
+  .mark { font-family: var(--serif); font-size: var(--fs-h3); font-weight: 500; letter-spacing: -.01em; text-decoration: none; white-space: nowrap; }
+  .nav { display: flex; align-items: center; gap: 4px; list-style: none; font-size: var(--fs-f); font-weight: 500; }
+  .nav > li { position: relative; }
+  .nav > li > a, .nav > li > button { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; text-decoration: none; border-radius: 4px; }
+  .nav > li > a:hover, .nav > li > button:hover { text-decoration: underline; text-underline-offset: 6px; }
+  .chev { width: 10px; height: 10px; flex: none; transition: transform var(--t-ui) var(--ease-out); }
+  .nav button[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .drop { position: absolute; top: calc(100% + 6px); left: 0; min-width: 300px; list-style: none; padding: 8px; border-radius: 4px; background: var(--field-day); color: var(--ink); --ring: var(--ring-day); display: none; }
+  .nav > li.is-open .drop { display: block; }
+  @media (prefers-reduced-motion: no-preference) { .nav > li.is-open .drop { animation: kp-drop var(--t-ui) var(--ease-out) both; } }
+  @keyframes kp-drop { from { opacity: 0; transform: translateY(6px); } }
+  .drop a { display: block; padding: 10px 14px; border-radius: 4px; text-decoration: none; font-weight: 600; }
+  .drop a:hover { background: var(--bg-2); }
+  .drop a span { display: block; font-weight: 400; font-size: var(--fs-s); color: var(--ink-2); }
+  .drop a[data-prod="program"] { color: var(--program-ui); }
+  .drop a[data-prod="private"] { color: #7b2d35; }
+  :root[data-theme="dark"] .drop a[data-prod="private"] { color: #e3959c; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .drop a[data-prod="private"] { color: #e3959c; } }
+  .head__right { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: var(--fs-f); font-weight: 500; }
+  .head__right a { text-decoration: none; padding: 0 12px; min-height: 44px; display: inline-flex; align-items: center; }
+  .head__right a:hover { text-decoration: underline; text-underline-offset: 6px; }
+  .theme { min-height: 44px; padding: 0 12px; font-size: var(--fs-f); font-weight: 500; border-radius: 4px; white-space: nowrap; }
+  .theme:hover { text-decoration: underline; text-underline-offset: 6px; }
+  .menu-btn { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: 4px; }
+  .menu-btn svg line { transition: transform var(--t-ui) var(--ease-out); transform-origin: 10px 10px; }
+  .menu-btn[aria-expanded="true"] svg line:first-child { transform: translateY(3px) rotate(45deg); }
+  .menu-btn[aria-expanded="true"] svg line:last-child { transform: translateY(-3px) rotate(-45deg); }
+
+  /* phone menu: a full-height ink sheet */
+  .sheet { position: fixed; inset: 0; z-index: 55; background: var(--field-night); color: var(--on-dark); --ring: var(--gold); padding: calc(var(--head) + 24px) var(--m) 32px; overflow-y: auto; display: none; }
+  .sheet.is-open { display: block; }
+  @media (prefers-reduced-motion: no-preference) { .sheet.is-open { animation: kp-sheet var(--t-dock) var(--ease-in-out) both; } }
+  @keyframes kp-sheet { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+  .sheet ul { list-style: none; }
+  .sheet__grp { margin-bottom: 28px; }
+  .sheet__grp p { font-size: var(--fs-s); color: var(--on-dark-2); margin-bottom: 6px; }
+  .sheet a { display: block; font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.2; padding: 8px 0; text-decoration: none; }
+  .sheet a[data-prod="program"] { color: #7cc4a5; }
+  .sheet a[data-prod="private"] { color: #e3959c; }
+  .sheet a[data-prod="free"] { color: var(--gold); }
+  .sheet .theme { padding: 0; font-size: var(--fs-f); text-decoration: underline; text-underline-offset: 5px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet.is-open li { animation: kp-rise16 .4s var(--ease-out) both; }
+    @keyframes kp-rise16 { from { opacity: 0; transform: translateY(16px); } }
+  }
+
+  /* ---------- chapters 1 and 2: #portrait ---------- */
+  .portrait { position: relative; }
+  .pt-stage { position: relative; }
+  .hero { position: relative; height: 100svh; min-height: 620px; max-height: 1100px; overflow: hidden; color: #f1f1ee; background: #0b0f14; --ring: var(--gold); }
+  .film { position: absolute; inset: 0; overflow: hidden; transform-origin: 0 0; will-change: transform; }
+  .film__media { position: absolute; inset: 0; }
+  .film__poster, .film__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .film__video { opacity: 0; transition: opacity .6s ease; }
+  .film__video.is-on { opacity: 1; }
+  .film__scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(11 15 20 / .8) 0%, rgb(11 15 20 / .72) 52%, rgb(11 15 20 / .3) 82%, rgb(11 15 20 / .12) 100%); } /* taste-skill-ignore: the one neutral scrim under text on film */
+  .film__dim { position: absolute; inset: 0; background: #0b0f14; opacity: 0; }
+  .hero__copy { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: center; padding-top: var(--head); }
+  .hero h1 { font-size: var(--fs-h1); line-height: 1.02; letter-spacing: -.03em; max-width: 860px; }
+  .hero__sub .lead { margin-top: 32px; color: #f1f1ee; }
+  .hero__act-in { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; margin-top: 36px; }
+  .filmctl { position: absolute; z-index: 3; right: var(--m); bottom: 24px; min-height: 44px; padding: 0 16px; font-size: var(--fs-s); font-weight: 600; color: #f1f1ee; background: rgb(11 15 20 / .72); border-radius: 4px; display: inline-flex; align-items: center; gap: 10px; transform-origin: 100% 100%; }
+  .filmctl:hover { background: rgb(11 15 20 / .86); }
+  .filmctl svg { width: 20px; height: 20px; }
+
+  .note { padding: var(--pad) 0; background: var(--field-night); }
+  .note__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: center; }
+  .note__frame { grid-column: 1 / 7; aspect-ratio: var(--vp-ar, 16 / 10); border-radius: 6px; overflow: hidden; background: #0b0f14; }
+  .note__still { width: 100%; height: 100%; object-fit: cover; }
+  .film__poster { height: 100%; }
+  .note__body { grid-column: 8 / 13; }
+  .note__body h2 { max-width: 15em; }
+  .note__p { margin-top: 24px; max-width: 46ch; }
+  .sig { margin-top: 28px; font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.2; letter-spacing: -.01em; }
+  .proof { margin-top: 28px; display: grid; grid-template-columns: auto auto; gap: 4px 28px; align-items: start; justify-content: start; }
+  .proof p { font-size: var(--fs-b); }
+  .proof b { font-weight: 700; }
+  .proof .src { grid-column: 2; grid-row: 1 / 3; font-size: var(--fs-s); color: var(--on-dark-2); max-width: 18ch; align-self: center; }
+  .note__body .tlink { margin-top: 22px; }
+
+  /* the held stage (only once GSAP runs, never under reduced motion) */
+  .scene-d .portrait { height: 235svh; } /* brief: 250svh; trimmed for the page-length gate */
+  .scene-p .portrait { height: 200svh; }
+  .scene-d .pt-stage, .scene-p .pt-stage { position: sticky; top: 0; height: 100svh; overflow: clip; }
+  .scene-d .hero, .scene-p .hero { position: absolute; inset: 0; height: auto; min-height: 0; max-height: none; overflow: visible; background: var(--field-night); }
+  .scene-d .note, .scene-p .note { position: absolute; inset: 0; padding: 0; background: transparent; z-index: 2; pointer-events: none; display: flex; align-items: center; }
+  .scene-p .note { align-items: flex-start; padding-top: var(--note-top, 50svh); }
+  .scene-d .note a, .scene-p .note a { pointer-events: auto; }
+  .scene-d .note__frame { visibility: hidden; background: transparent; }
+  .scene-d .hero { z-index: 1; }
+  .scene-p .note__frame { display: none; }
+  .scene-p .note__body { grid-column: 1 / -1; }
+
+  /* load sequence: four things move, done by 1.2s */
+  @media (prefers-reduced-motion: no-preference) {
+    .js:not(.arrived) .film__poster { animation: kp-settle var(--t-set) var(--ease-soft) both; }
+    .js:not(.arrived) .hero h1 .ln__in { animation: kp-line var(--t-reveal) var(--ease-expo) .1s both; }
+    .js:not(.arrived) .hero h1 .ln + .ln .ln__in { animation-delay: .21s; }
+    .js:not(.arrived) .hero__sub .lead { animation: kp-rise .5s var(--ease-out) .42s both; }
+    .js:not(.arrived) .hero__act-in { animation: kp-rise .5s var(--ease-out) .48s both; }
+  }
+  @media (prefers-reduced-motion: no-preference) and (max-width: 767px) {
+    .js:not(.arrived) .film__poster { animation: none; }
+  }
+  @keyframes kp-settle { from { transform: scale(1.06); } }
+  @keyframes kp-line { from { transform: translateY(105%); } }
+  @keyframes kp-rise { from { opacity: 0; transform: translateY(12px); } }
+
+  /* ---------- chapter 3: #tools ---------- */
+  .sec { padding: var(--pad) 0; }
+  .tools__head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: end; }
+  .tools__head h2 { grid-column: 1 / 7; }
+  .tools__head .lead { grid-column: 7 / 13; color: var(--on-dark); }
+  .tools__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); margin-top: 36px; align-items: start; }
+  .tools__frame { grid-column: 1 / 6; position: sticky; top: calc(var(--head) + 24px); aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; background: var(--bg-2); }
+  .tools__list { grid-column: 6 / 13; list-style: none; }
+  /* every row shares one status column, wide enough for "Coming, winter 2027" at 15px (138px), so the name and fact columns line up from row to row */
+  .tool { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1.2fr) 140px; gap: 12px; align-items: center; padding: 8px 12px; border-radius: 4px; text-decoration: none; transition: background-color var(--t-hover) ease; }
+  .tool + .tool, .tools__list li + li { margin-top: 2px; }
+  .tool:hover, .tool:focus-visible, .tool.is-active { background: var(--night-2); }
+  .tool__name { font-family: var(--serif); font-size: var(--fs-tool); line-height: 1.05; letter-spacing: -.02em; }
+  .tool__fact { font-size: var(--fs-f); line-height: 1.45; }
+  .tool__status { font-size: var(--fs-s); text-align: right; color: var(--on-dark-2); white-space: nowrap; }
+  /* below 1200px the status takes its own line under the fact, so a long status never pushes the row wider than the column */
+  @media (min-width: 768px) and (max-width: 1199px) {
+    .tool { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); column-gap: 18px; row-gap: 2px; }
+    .tool__name { grid-row: 1 / 3; }
+    .tool__fact { grid-column: 2; grid-row: 1; }
+    .tool__status { grid-column: 2; grid-row: 2; text-align: left; }
+  }
+  .tool__status[data-s="live"] { color: #7cc4a5; }
+  .tool__status[data-s="coming"] { color: var(--gold); }
+  .tool:hover .tool__name, .tool.is-active .tool__name { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; }
+
+  /* product screens in the preview frame (interface fragments) */
+  .scr { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg-2); color: var(--ink); font-size: var(--fs-s); opacity: 0; visibility: hidden; transition: opacity .4s ease, transform .6s var(--ease-expo), visibility 0s linear .4s; transform: scale(1.04); }
+  .scr.is-on { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .scr__bar { display: flex; justify-content: space-between; gap: 12px; padding: 14px 20px; background: var(--bg-3); font-size: var(--fs-s); }
+  .scr__bar b { font-weight: 600; }
+  .scr__body { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden; }
+  .scr__title { font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.15; }
+  .scr__row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--field-day); border-radius: 4px; }
+  .scr__row span:last-child { color: var(--ink-2); white-space: nowrap; }
+  .scr__tag { align-self: flex-start; padding: 4px 10px; border-radius: 4px; background: var(--field-night); color: var(--on-dark); font-weight: 600; }
+  .scr__tag--coming { background: var(--gold); color: #15202e; }
+  .scr__seats { display: flex; gap: 6px; align-items: center; }
+  .scr__seats i { width: 14px; height: 14px; border-radius: 2px; background: var(--program-ui); }
+  .scr__msg { padding: 12px 14px; border-radius: 4px; background: var(--field-day); max-width: 88%; }
+  .scr__msg--z { align-self: flex-end; background: var(--program); color: #f1f1ee; }
+  .scr__msg small { display: block; font-size: var(--fs-s); opacity: .85; margin-bottom: 2px; }
+  .scr__levels { display: flex; gap: 6px; }
+  .scr__levels span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 4px; background: var(--field-day); font-weight: 600; }
+  .scr__levels span.on { background: var(--field-night); color: var(--on-dark); }
+  .scr__choices { display: grid; gap: 6px; }
+  .scr__choices span { padding: 8px 12px; border-radius: 4px; background: var(--field-day); }
+  .tiles { display: grid; grid-template-columns: repeat(5, 40px); gap: 6px; }
+  .tiles i { width: 40px; height: 40px; display: grid; place-items: center; font-style: normal; font-weight: 700; border-radius: 4px; background: var(--bg-3); }
+  .tiles i.hit { background: var(--free); color: #f1f1ee; }
+  .tiles i.near { background: var(--field-day); outline: 2px solid var(--free); outline-offset: -2px; }
+  :root[data-theme="dark"] .tiles i.near { outline-color: var(--gold); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tiles i.near { outline-color: var(--gold); } }
+  .tiles i.blank { background: var(--field-day); }
+  .tiles--mini { grid-template-columns: repeat(3, 18px); gap: 3px; }
+  .tiles--mini i { width: 18px; height: 18px; }
+  .tiles--mini i:not(.hit):not(.near) { background: var(--field-day); }
+
+  /* phone accordion, built from the same rows */
+  .acc__btn { display: none; }
+  .acc__panel { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .tools__list > li { opacity: 0; transform: translateY(16px); transition: opacity .6s var(--ease-out) var(--d, 0ms), transform .6s var(--ease-out) var(--d, 0ms); }
+    .js .tools__list.in > li { opacity: 1; transform: none; }
+  }
+
+  /* ---------- chapter 4: #method ---------- */
+  .method__head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
+  .method__head h2 { grid-column: 1 / 6; }
+  .method__claim { grid-column: 7 / 13; }
+  .stmt { font-family: var(--serif); font-size: var(--fs-stmt); line-height: 1.22; letter-spacing: -.01em; max-width: 24em; }
+  .cite { margin-top: 18px; font-size: var(--fs-s); max-width: 56ch; }
+  .cite a { font-weight: 600; text-underline-offset: 4px; margin-left: 4px; }
+  .cite a:hover { text-decoration-thickness: 2px; }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .js .stmt { view-timeline-name: --stmt; }
+      .js .stmt .w { animation: kp-ink linear both; animation-timeline: --stmt; animation-range: cover calc(20% + var(--i) * 1%) cover calc(26% + var(--i) * 1%); }
+    }
+  }
+  @keyframes kp-ink { from { color: color-mix(in srgb, var(--ink) var(--ink-start, 55%), var(--field-day)); } to { color: var(--ink); } }
+
+  .method__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); margin-top: 48px; align-items: start; }
+  .page-wrap { grid-column: 1 / 8; }
+  .page { position: relative; display: grid; container-type: inline-size; border-radius: 6px; background: var(--bg-2); color: var(--ink); --ring: var(--ring-day); user-select: none; touch-action: pan-y; }
+  .page__layer { grid-area: 1 / 1; min-width: 0; border-radius: 6px; background: var(--bg-2); }
+  .page__layer--review { clip-path: inset(0 0 0 var(--x, 50%)); background: var(--bg-2); }
+  .page__bar { display: flex; justify-content: space-between; gap: 16px; padding: 14px 22px; background: var(--bg-3); border-radius: 6px 6px 0 0; font-size: var(--fs-s); }
+  .page__bar b { font-weight: 600; }
+  .page__cols { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 22px; padding: 22px; }
+  .page__who { font-size: var(--fs-s); font-weight: 600; margin-bottom: 10px; }
+  .page__passage { font-family: var(--serif); font-size: var(--fs-f); line-height: 1.55; }
+  .page__ask { font-weight: 600; font-size: var(--fs-f); margin: 12px 0 10px; }
+  .pch { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; padding: 8px 10px; margin-top: 6px; border-radius: 4px; background: var(--field-day); font-size: var(--fs-f); }
+  .pch i { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: var(--fs-s); font-weight: 700; background: var(--bg-3); }
+  .pch.is-wrong i { background: var(--wrong); color: var(--field-day); }
+  .pch.is-right { outline: 2px solid var(--right); outline-offset: -2px; }
+  .pch.is-right i { background: var(--right); color: var(--field-day); }
+  .notes { list-style: none; display: grid; gap: 16px; align-content: start; }
+  .notes li { font-size: var(--fs-s); line-height: 1.5; }
+  .notes b { display: block; font-size: var(--fs-s); font-weight: 700; color: var(--program-ui); }
+  .sweep { position: relative; display: block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .sweep { clip-path: inset(0 100% 0 0); }
+    .js .sweep::after { content: ""; position: absolute; inset: 0; background: var(--program-ui); transform-origin: 100% 50%; }
+    .js .notes.is-swept .sweep { clip-path: inset(0); transition: clip-path .6s var(--ease-out) var(--d, 0ms); }
+    .js .notes.is-swept .sweep::after { transform: scaleX(0); transition: transform .6s var(--ease-in-out) calc(var(--d, 0ms) + 300ms); }
+  }
+  .handle { position: absolute; top: 0; bottom: 0; left: var(--x, 50%); width: 0; z-index: 3; }
+  .handle::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1.5px; width: 3px; background: var(--ink); }
+  .handle__knob { position: absolute; top: 50%; left: -22px; width: 44px; height: 44px; margin-top: -22px; border-radius: 4px; background: var(--ink); color: var(--field-day); display: grid; place-items: center; cursor: ew-resize; transform: translateX(calc(max(0px, 22px - var(--xn, 50) * 1cqw) - max(0px, var(--xn, 50) * 1cqw + 22px - 100cqw))); }
+  .handle__knob svg { width: 20px; height: 20px; }
+  .page__tabs { display: none; gap: 8px; margin-top: 12px; }
+  .page__tabs button { min-height: 44px; padding: 0 16px; border-radius: 4px; background: var(--bg-2); font-weight: 600; font-size: var(--fs-s); transition: background-color var(--t-hover) ease; }
+  .page__tabs button[aria-pressed="true"] { background: var(--ink); color: var(--field-day); }
+  @media (hover: none) { .page__tabs { display: flex; } .page.is-edge .handle { visibility: hidden; } }
+  .page.is-wipe .page__layer--review, .page.is-wipe .handle, .page.is-wipe .handle__knob { transition: clip-path .6s var(--ease-in-out), left .6s var(--ease-in-out), transform .6s var(--ease-in-out); }
+
+  .route { grid-column: 9 / 13; position: relative; }
+  .route h3 { margin-bottom: 22px; }
+  .route__lanes { display: grid; grid-template-columns: minmax(0, 38%) 4px minmax(0, 1fr); column-gap: 18px; position: relative; }
+  .route__chipLane { position: relative; }
+  .route__chip { position: absolute; left: 0; right: 0; top: 0; padding: 8px 10px; border-radius: 4px; background: var(--program); color: #f1f1ee; font-size: var(--fs-s); font-weight: 600; line-height: 1.35; will-change: transform; }
+  .route__rail { position: relative; background: var(--bg-3); border-radius: 2px; }
+  .route__bar { position: absolute; inset: 0; background: var(--program-ui); border-radius: 2px; transform-origin: 50% 0; transform: scaleY(var(--p, 1)); }
+  .route__stops { list-style: none; display: grid; gap: 22px; }
+  .route__stops li { position: relative; color: color-mix(in srgb, var(--ink) 65%, var(--field-day)); transition: color .3s ease; }
+  .route__stops li.on { color: var(--ink); }
+  .route__stops li::before { content: ""; position: absolute; left: -29px; top: 5px; width: 14px; height: 14px; border-radius: 2px; background: var(--field-day); outline: 2px solid var(--program-ui); outline-offset: -2px; transition: background-color .3s var(--ease-out); }
+  .route__stops li.on::before { background: var(--program-ui); }
+  .route__stops b { display: block; font-weight: 700; font-size: var(--fs-f); }
+  .route__stops span { display: block; font-size: var(--fs-f); line-height: 1.45; text-wrap: pretty; }
+  .route__stops em { display: inline-block; margin-top: 4px; font-style: normal; font-size: var(--fs-s); font-weight: 600; color: var(--ink); background: var(--bg-2); padding: 2px 8px; border-radius: 4px; }
+  .route .tlink { margin-top: 24px; }
+
+  /* ---------- chapter 5: #season ---------- */
+  .season__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
+  .season__stage { grid-column: 1 / 8; position: sticky; top: calc(var(--head) + 16px); height: calc(100svh - var(--head) - 32px); display: flex; flex-direction: column; gap: 20px; }
+  .season__pics { position: relative; flex: 1 1 auto; min-height: 220px; border-radius: 6px; overflow: hidden; background: var(--bg-3); }
+  .season__pics img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .5s ease; }
+  .season__pics img.is-on { opacity: 1; }
+  .season__below { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: end; flex: none; }
+  .smap { list-style: none; display: grid; gap: 6px; }
+  .smap li { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 12px; align-items: center; font-size: var(--fs-s); line-height: 1.2; }
+  .segs { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .segs i { height: 12px; border-radius: 2px; background: var(--bg-3); position: relative; overflow: hidden; }
+  .segs i::after { content: ""; position: absolute; inset: 0; background: var(--program-ui); transform: scaleX(0); transform-origin: 0 50%; transition: transform var(--t-ring) var(--ease-out) var(--d, 0ms); }
+  .segs i.on::after { transform: none; }
+  .smap__cap { font-size: var(--fs-s); color: var(--ink-2); margin-bottom: 4px; }
+  .weeks__row { display: flex; gap: 6px; }
+  .weeks__row i { width: 14px; height: 14px; border-radius: 2px; background: var(--bg-3); position: relative; overflow: hidden; }
+  .weeks__row i::after { content: ""; position: absolute; inset: 0; background: var(--program-ui); opacity: 0; transition: opacity var(--t-ring) ease var(--d, 0ms); }
+  .weeks__row i.on::after { opacity: 1; }
+  .weeks__end { margin-top: 12px; font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.15; color: color-mix(in srgb, var(--ink) 65%, var(--field-day)); transition: color .3s ease; }
+  .weeks__end.on { color: var(--ink); }
+  .season__count { margin-top: 6px; font-size: var(--fs-s); color: var(--ink-2); }
+  .season__steps { grid-column: 8 / 13; }
+  /* desktop hold: the H2 and a lead-in fill the column until the stage sticks, so caption one crosses the 40-60% band while the stage is held;
+     each caption then gets about a third of the hold. Captions are 26svh and the hold about 0.8 screens (the brief's 70svh and 1.4 screens
+     would push the page past the length gate) */
+  @media (min-width: 992px) and (prefers-reduced-motion: no-preference) {
+    .season__steps { padding-bottom: 27svh; }
+    .season__steps > h2 { min-height: 45svh; }
+  }
+  .step { min-height: 26svh; display: flex; flex-direction: column; justify-content: center; color: color-mix(in srgb, var(--ink) 65%, var(--field-day)); transition: color .3s ease; }
+  .step.on { color: var(--ink); }
+  .step p { margin-top: 14px; max-width: 40ch; }
+  .step__pic { display: none; }
+  .season__more { padding-bottom: 8px; }
+
+  /* ---------- chapter 6: #paths ---------- */
+  .paths { padding-top: var(--pad); }
+  .doors { display: grid; grid-template-columns: 1fr 1fr; margin-top: 32px; overflow: clip; }
+  .door { min-height: 76svh; padding: 48px var(--m) 40px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .door > * { min-width: 0; max-width: 100%; }
+  .door h3 { font-size: var(--fs-h2); line-height: 1.05; letter-spacing: -.02em; }
+  .door > p { max-width: 44ch; }
+  .door__lead { font-size: var(--fs-lead); }
+  .seats { display: flex; gap: 8px; margin-top: 4px; }
+  .seats i { width: 28px; height: 28px; border-radius: 2px; background: rgb(241 241 238 / .22); position: relative; overflow: hidden; }
+  .seats i::after { content: ""; position: absolute; inset: 0; background: #f1f1ee; transform: scaleY(0); transform-origin: 50% 100%; transition: transform var(--t-ring) var(--ease-out) var(--d, 0ms); }
+  .seats i.sch::after { background: var(--gold); }
+  .seats.on i::after { transform: none; }
+  .door__pic { margin-top: auto; border-radius: 6px; overflow: hidden; }
+  .door__pic-in { transform-origin: 50% 50%; }
+  .door .btn { align-self: flex-start; margin-top: 6px; }
+  .cohorts { width: 100%; border-collapse: collapse; background: var(--bg-2); color: var(--ink); font-size: var(--fs-s); }
+  .cohorts caption { caption-side: top; text-align: left; padding: 12px 16px; background: var(--bg-3); font-weight: 600; }
+  .cohorts th, .cohorts td { text-align: left; padding: 11px 16px; vertical-align: top; }
+  .cohorts thead th { font-weight: 600; color: var(--ink-2); }
+  .cohorts tbody tr + tr td, .cohorts tbody tr + tr th { border-top: 1px solid var(--bg-3); }
+  .cohorts tbody th { font-weight: 700; white-space: nowrap; }
+  .snote { background: var(--bg-2); color: var(--ink); padding: 24px 26px; font-size: var(--fs-s); }
+  .snote__top { display: flex; justify-content: space-between; gap: 16px; color: var(--ink-2); }
+  .snote__top b { color: var(--ink); font-size: var(--fs-f); }
+  .snote dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 22px; margin-top: 18px; font-size: var(--fs-f); }
+  .snote dt { color: var(--ink-2); }
+  .snote dd { font-weight: 600; }
+  .snote__msg { margin-top: 18px; padding: 14px 16px; border-radius: 4px; background: var(--field-day); font-family: var(--serif); font-size: var(--fs-f); line-height: 1.45; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .door { opacity: 0; transform: translateX(-14%); transition: opacity var(--t-open) var(--ease-expo), transform var(--t-open) var(--ease-expo); }
+    .js .door--private { transform: translateX(14%); transition-delay: 90ms; }
+    .js .doors.in .door { opacity: 1; transform: none; }
+    .js .door__pic-in { transform: scale(1.06); transition: transform var(--t-set) var(--ease-soft) .1s; }
+    .js .doors.in .door__pic-in { transform: none; }
+  }
+
+  /* ---------- chapter 7: #free ---------- */
+  .free__head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: end; }
+  .free__head h2 { grid-column: 1 / 7; }
+  .free__head .lead { grid-column: 7 / 13; }
+  .fan { --cw: min(360px, calc((100vw - 2 * var(--m) - 96px) / 3)); --dw: clamp(var(--cw), calc(100vw - 2 * var(--m) - 2 * var(--cw) - 160px), 540px); position: relative; margin-top: 32px; display: grid; grid-template-columns: var(--dw); justify-content: center; }
+  .fcard { grid-area: 1 / 1; width: var(--cw); border-radius: 6px; overflow: hidden; background: var(--bg-2); color: var(--ink); --ring: var(--ring-day); display: flex; flex-direction: column; text-decoration: none; }
+  .fcard--dq { position: relative; z-index: 2; width: var(--dw); }
+  .fcard--side { align-self: start; justify-self: center; margin-top: 28px; transform: translateX(var(--fx)) rotate(var(--fr)) scale(.93); transition: transform var(--t-open) var(--ease-expo) var(--d, 0ms), background-color var(--t-hover) ease; }
+  .fcard--l { --fx: calc(-1 * ((var(--dw) + var(--cw)) / 2 + 32px)); --fr: -7deg; }
+  .fcard--r { --fx: calc((var(--dw) + var(--cw)) / 2 + 32px); --fr: 7deg; --d: 70ms; }
+  .fcard--side:hover, .fcard--side:focus-visible { background: var(--bg-3); }
+  .free .fcard--side { --ring: #f1f1ee; }
+  .fcard--side:hover .fcard__go, .fcard--side:focus-visible .fcard__go { text-decoration-thickness: 2px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .fan:not(.in) .fcard--l { transform: translateX(calc(-1 * ((var(--dw) + var(--cw)) / 2 * .78 + 32px))) rotate(0deg) scale(.93); }
+    .js .fan:not(.in) .fcard--r { transform: translateX(calc((var(--dw) + var(--cw)) / 2 * .78 + 32px)) rotate(0deg) scale(.93); }
+  }
+  .fcard__bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 52px; padding: 0 20px; background: var(--bg-3); font-size: var(--fs-s); }
+  .fcard__bar b { font-weight: 600; font-size: var(--fs-f); }
+  .fcard__body { padding: 20px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+  .fcard__name { font-family: var(--serif); font-size: var(--fs-h3); line-height: 1.15; }
+  .fcard__line { font-size: var(--fs-f); }
+  .fcard__list { list-style: none; display: grid; gap: 6px; font-size: var(--fs-f); }
+  .fcard__list li { padding: 8px 12px; background: var(--field-day); border-radius: 4px; }
+  .fcard__go { margin-top: auto; font-weight: 600; font-size: var(--fs-f); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
+  .fcard__pic { display: none; }
+  .free__links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px 32px; margin-top: 24px; }
+
+  /* the session shell (E1) */
+  .shell__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-height: 52px; padding: 8px 20px; background: var(--bg-3); font-size: var(--fs-s); overflow: hidden; }
+  .shell__skill { font-weight: 600; font-size: var(--fs-f); }
+  .shell__meta { margin-left: auto; }
+  .shell__res { font-weight: 700; font-size: var(--fs-f); display: none; }
+  .shell__res.is-right { color: var(--right); }
+  /* result text sits on bg-3: the darker red keeps it at 4.5:1 or better; the disc fill keeps --wrong */
+  .shell__res.is-wrong { color: var(--wrong-text); }
+  .shell.is-answered .shell__res { display: block; margin-left: auto; }
+  .shell.is-answered .shell__meta { margin-left: 0; }
+  .shell__body { padding: 18px 20px 20px; }
+  .shell__passage { font-family: var(--serif); font-size: var(--fs-f); line-height: 1.55; }
+  .shell__ask { margin: 14px 0 10px; font-weight: 600; font-size: var(--fs-f); }
+  /* the four short transitions sit two by two from 768px; on phones they stack full width, like the SAT. Each choice is at least 56px tall */
+  .choices { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  /* the fan's centre card narrows to about 360px between 992 and 1300px: there, too, the choices stack so "Accordingly," fits its button */
+  .shell { container-type: inline-size; }
+  @container (max-width: 440px) { .choices { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+  .ch { position: relative; display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: center; width: 100%; min-height: 56px; padding: 8px 12px; text-align: left; border-radius: 4px; background: var(--field-day); font-size: var(--fs-f); transition: background-color var(--t-hover) ease, opacity var(--t-hover) ease; }
+  .ch:hover:not([aria-disabled="true"]) { background: var(--bg-3); }
+  .ch[aria-disabled="true"] { cursor: default; }
+  .ch__disc { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: var(--fs-s); background: var(--bg-3); color: var(--ink); transition: background-color var(--t-instant) linear, color var(--t-instant) linear; }
+  .ch__ring { position: absolute; left: -6px; top: -6px; width: 48px; height: 48px; pointer-events: none; overflow: visible; }
+  .ch__ring circle { fill: none; stroke: var(--right); stroke-width: 1.5; stroke-dasharray: 138.3; stroke-dashoffset: 138.3; opacity: 0; transform: rotate(-90deg); transform-origin: 24px 24px; }
+  .ch.is-picked .ch__disc { background: var(--ink); color: var(--field-day); }
+  .ch.is-dim { color: color-mix(in srgb, var(--ink) 65%, var(--field-day)); transition: color var(--t-hover) ease; }
+  .ch.is-dim .ch__disc { color: color-mix(in srgb, var(--ink) 65%, var(--field-day)); }
+  .ch.is-good .ch__disc { background: var(--right); color: var(--field-day); }
+  .ch.is-bad .ch__disc { background: var(--wrong); color: var(--field-day); }
+  .ch.is-answer { outline: 2px solid var(--right); outline-offset: -2px; opacity: 1; }
+  .ch.is-ring .ch__ring circle { opacity: 1; stroke-dashoffset: 0; transition: stroke-dashoffset var(--t-ring) var(--ease-out); }
+  .hero-faded #hero-h, .hero-faded #hero-sub, .hero-faded #hero-act { pointer-events: none; }
+  .ch.is-ring-out .ch__ring circle { opacity: 0; transition: opacity .2s ease; stroke-dashoffset: 0; }
+  /* reduced motion: the ring is already drawn */
+  @media (prefers-reduced-motion: reduce) { .ch.is-ring .ch__ring circle { transition: none; } }
+  .shell__status { min-height: 0; font-size: var(--fs-s); }
+  .shell__status:not(:empty) { margin-top: 10px; }
+  .shell__retry { font-size: var(--fs-s); padding: 10px 0; }
+  .shell__exp, .shell__ret { text-wrap: pretty; margin-top: 12px; padding: 12px 16px; border-radius: 4px; background: var(--field-day); font-size: var(--fs-f); line-height: 1.5; }
+  .shell__exp + .shell__ret { margin-top: 2px; }
+  .shell__ret b { font-size: var(--fs-s); display: inline-block; margin-top: 4px; }
+  .shell__foot { padding: 0 20px 16px; }
+  .shell__foot .tlink { padding: 4px 0 0; }
+  .shell__noscript { display: none; }
+  html:not(.js) .shell__noscript { display: block; }
+  @media (prefers-reduced-motion: no-preference) {
+    .shell__res.show, .shell__exp.show, .shell__ret.show { animation: kp-up .3s var(--ease-out) both; }
+    .shell__ret.show { animation-duration: .24s; }
+  }
+  @keyframes kp-up { from { opacity: 0; transform: translateY(8px); } }
+
+  /* ---------- chapter 8: #faq ---------- */
+  .faq__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
+  .faq__side { grid-column: 1 / 5; }
+  .faq__side .tlink { margin-top: 20px; }
+  .faq__list { grid-column: 5 / 13; display: grid; gap: 4px; }
+  .faq details { background: var(--bg-2); border-radius: 4px; transition: background-color var(--t-hover) ease; }
+  .faq details:hover, .faq details[open] { background: var(--bg-3); }
+  .faq summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 60px; padding: 12px 22px; font-size: var(--fs-lead); font-weight: 600; cursor: pointer; border-radius: 4px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .plus { width: 20px; height: 20px; flex: none; transition: transform var(--t-ui) var(--ease-in-out); }
+  .faq details[open] .plus { transform: rotate(45deg); }
+  .faq details::details-content { block-size: 0; overflow: clip; transition: block-size .32s var(--ease-out), content-visibility .32s allow-discrete; }
+  .faq details[open]::details-content { block-size: auto; }
+  .faq__a { padding: 0 22px 20px; max-width: 62ch; }
+  .faq__a a { font-weight: 600; text-underline-offset: 4px; }
+  .faq__a a:hover { text-decoration-thickness: 2px; }
+
+  /* ---------- chapter 9: #start ---------- */
+  .close { position: relative; height: 44svh; min-height: 380px; overflow: hidden; background: var(--field-night); color: #f1f1ee; --ring: var(--gold); }
+  .close__clip { position: absolute; inset: 0; overflow: hidden; clip-path: inset(var(--ci-y, 0px) var(--ci-x, 0px) round var(--ci-r, 0px)); }
+  .close__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(var(--cs, 1)); }
+  .close__scrim { position: absolute; inset: 0; background: linear-gradient(0deg, rgb(11 15 20 / .78) 0%, rgb(11 15 20 / .55) 38%, rgb(11 15 20 / 0) 70%); } /* taste-skill-ignore: neutral scrim under the date on the photo */
+  .close__date { position: absolute; left: 0; right: 0; bottom: 48px; }
+  .display { font-family: var(--serif); font-weight: 500; font-size: var(--fs-display); line-height: .95; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .start__body { padding: 56px 0 var(--pad); }
+  .start__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
+  .start__main { grid-column: 1 / 7; }
+  .start__main .lead { margin-top: 22px; }
+  .start__obj { margin-top: 22px; max-width: 52ch; font-weight: 500; }
+  .start__act { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; margin-top: 22px; }
+  .start__side { grid-column: 8 / 13; }
+  .start__side .fcard { width: 100%; }
+  .is-settle { transform: scale(.96); }
+  .is-settled { transform: none; transition: transform var(--t-dock) var(--ease-out), background-color var(--t-hover) ease; }
+
+  /* ---------- footer ---------- */
+  .foot { padding: 72px 0 32px; }
+  .foot__word { font-family: var(--serif); font-size: var(--fs-display); line-height: .95; letter-spacing: -.03em; }
+  .foot__top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 32px; }
+  .foot__sig { padding-bottom: 14px; font-family: var(--serif); font-size: var(--fs-h3); color: var(--on-dark-2); }
+  .foot__nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: var(--gap); margin-top: 32px; }
+  .foot__nav p { font-size: var(--fs-s); color: var(--on-dark-2); margin-bottom: 8px; }
+  .foot__nav ul { list-style: none; }
+  .foot__nav a { display: inline-block; padding: 5px 0; text-decoration: none; font-size: var(--fs-f); }
+  .foot__nav a:hover { text-decoration: underline; text-underline-offset: 5px; }
+  .foot__nav .theme { padding: 0; min-height: 44px; text-decoration: underline; text-underline-offset: 5px; }
+  .foot__fine { margin-top: 24px; display: grid; gap: 6px; font-size: var(--fs-s); color: var(--on-dark-2); max-width: 110ch; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js .foot__word .ln__in, .js .close__date .ln__in { transform: translateY(105%); transition: transform var(--t-reveal) var(--ease-expo); }
+    .js .foot__word.in .ln__in, .js .close__date.in .ln__in { transform: none; }
+  }
+
+  /* ---------- dock ---------- */
+  .dock { position: fixed; z-index: 50; right: var(--m); bottom: 32px; transform: translateY(calc(100% + 40px)); visibility: hidden; transition: transform var(--t-dock) var(--ease-out), visibility 0s linear var(--t-dock), background-color .3s ease, color .3s ease; }
+  .dock.is-on { transform: none; visibility: visible; transition-delay: 0s; }
+  .dock.is-leaving { transition: transform .26s var(--ease-exit), visibility 0s linear .26s, background-color .3s ease, color .3s ease; }
+  .dock[data-on="day"] { background: var(--dock-day-bg); color: var(--dock-day-fg); --ring: var(--ring-day); }
+  .dock[data-on="dark"] { background: var(--gold); color: #15202e; --ring: var(--gold); }
+  @media (prefers-reduced-motion: reduce) {
+    .dock { transform: none; opacity: 0; transition: opacity .2s ease, visibility 0s linear .2s; }
+    .dock.is-on { opacity: 1; }
+  }
+
+  /* ---------- reveal once ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .js [data-rise] { opacity: 0; transform: translateY(16px); transition: opacity .6s var(--ease-out) var(--d, 0ms), transform .8s var(--ease-expo) var(--d, 0ms); }
+    .js [data-rise].in { opacity: 1; transform: none; }
+  }
+  /* phones: the last chapter's copy is simply there (it sits beyond where most readers stop to wait for a reveal) */
+  @media (max-width: 767px) { .js .start [data-rise] { opacity: 1; transform: none; } }
+
+  /* ---------- tablet and phone ---------- */
+  @media (max-width: 1099px) {
+    .nav, .head__right .signin, .head__right .theme { display: none; }
+    .menu-btn { display: inline-flex; }
+  }
+  @media (max-width: 1099px) { :root { --fs-stmt: 30px; } }
+  @media (max-width: 991px) {
+    :root { --pad: 80px; }
+    .hero__copy { justify-content: flex-end; padding-bottom: 92px; }
+    .film__scrim { background: linear-gradient(0deg, rgb(11 15 20 / .86) 0%, rgb(11 15 20 / .78) 58%, rgb(11 15 20 / .35) 86%, rgb(11 15 20 / .2) 100%); } /* taste-skill-ignore: phone and tablet scrim from the bottom */
+    .note__frame { grid-column: 1 / -1; }
+    .note__body { grid-column: 1 / -1; }
+    .tools__head h2, .tools__head .lead { grid-column: 1 / -1; }
+    .tools__frame { grid-column: 1 / -1; position: relative; top: 0; max-width: 560px; }
+    .tools__list { grid-column: 1 / -1; }
+    .method__head h2, .method__claim, .page-wrap, .route { grid-column: 1 / -1; }
+    .route { margin-top: 40px; }
+    .route__lanes { grid-template-columns: minmax(0, 340px) 4px minmax(0, 1fr); }
+    .season__grid { display: flex; flex-direction: column; }
+    .season__stage { position: static; height: auto; margin-top: 40px; order: 2; }
+    .season__pics { display: none; }
+    .step { min-height: 0; color: var(--ink); padding: 28px 0 0; }
+    .step__pic { display: block; margin-top: 16px; aspect-ratio: 3 / 2; width: 100%; height: auto; object-fit: cover; border-radius: 6px; }
+    .doors { grid-template-columns: 1fr; }
+    .door { min-height: 0; padding: 48px var(--m) 40px; }
+    .free__head h2, .free__head .lead { grid-column: 1 / -1; }
+    .fan { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+    .fcard, .fcard--dq { width: 100%; max-width: 560px; margin-inline: auto; }
+    .fcard--side { transform: none; margin-top: 0; flex-direction: row; align-items: center; gap: 16px; padding: 12px; }
+    .fcard--side .fcard__bar, .fcard--side .fcard__body > :not(.fcard__name):not(.fcard__line) { display: none; }
+    .fcard--side .fcard__body { padding: 0; gap: 2px; }
+    .fcard--side .fcard__name { font-size: var(--fs-b); font-family: var(--sans); font-weight: 700; }
+    .fcard__pic { display: grid; flex: none; width: 88px; height: 88px; border-radius: 4px; background: var(--bg-3); place-items: center; }
+    .fcard--l { order: 2; } .fcard--r { order: 3; }
+    .faq__side, .faq__list { grid-column: 1 / -1; }
+    .start__main, .start__side { grid-column: 1 / -1; }
+    .start__side { margin-top: 32px; }
+    .foot__nav { grid-template-columns: 1fr 1fr; }
+    .dock { left: var(--m); right: var(--m); bottom: calc(12px + env(safe-area-inset-bottom)); }
+    .dock .btn, .dock { min-height: 52px; }
+  }
+  @media (prefers-reduced-motion: no-preference) and (max-width: 991px) {
+    .js .fan:not(.in) .fcard--l, .js .fan:not(.in) .fcard--r { transform: translateY(16px); opacity: 0; }
+    .fcard--side { transition: transform .6s var(--ease-out) var(--d, 0ms), opacity .6s var(--ease-out) var(--d, 0ms), background-color var(--t-hover) ease; }
+    .js .door, .js .door--private { transform: translateY(24px); }
+  }
+  @media (max-width: 767px) {
+    :root { --m: 16px; --head: 60px; --pad: 72px; --fs-stmt: 22px; --fs-tool: 24px; --fs-b: 17px; --fs-lead: 17px; --fs-f: 17px; --fs-h3: 24px; }
+    .hero h1 { font-size: 32px; padding-left: 1px; }
+    .hero__sub .lead { margin-top: 20px; }
+    .hero__act-in { margin-top: 24px; }
+    .hero__act-in .btn { width: 100%; }
+    .filmctl { left: var(--m); right: auto; bottom: 20px; transform-origin: 0 100%; }
+    .stmt { --ink-start: 68%; }
+    .tools__frame { display: none; }
+    .tool { grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 4px; }
+    .tool__fact { grid-column: 1 / -1; grid-row: 2; }
+    .tool__status { grid-column: 2; grid-row: 1; }
+    .tools.is-acc .tool { display: none; }
+    .tools.is-acc .acc__btn { display: grid; grid-template-columns: 1fr auto 20px; gap: 4px 12px; align-items: center; width: 100%; padding: 16px 4px; text-align: left; border-radius: 4px; }
+    .tools.is-acc .acc__btn .tool__fact { display: none; }
+    .acc__fact { font-size: var(--fs-f); margin: 2px 0 10px; }
+    .tools.is-acc .acc__btn .plus { grid-column: 3; grid-row: 1; transition: transform var(--t-ui) var(--ease-in-out); }
+    .tools.is-acc .acc__btn[aria-expanded="true"] .plus { transform: rotate(45deg); }
+    .tools.is-acc .acc__panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s var(--ease-out); }
+    .tools.is-acc li.open .acc__panel { grid-template-rows: 1fr; }
+    .acc__inner { overflow: hidden; min-height: 0; transition: visibility 0s linear .32s; }
+    .tools.is-acc li:not(.open) .acc__inner, .tools.is-acc li:not(.open) .acc__screen .scr { visibility: hidden; }
+    .tools.is-acc li.open .acc__inner { transition-delay: 0s; }
+    .acc__screen { position: relative; aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; margin: 4px 0 10px; }
+    .acc__screen .scr { opacity: 1; visibility: visible; transform: none; }
+    .acc__inner .tlink { margin-bottom: 14px; }
+    .page__cols { grid-template-columns: 1fr; gap: 16px; padding: 16px; }
+    .page__cols > div:first-child { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 6px; align-content: start; }
+    .page__cols > div:first-child > :not(.pch) { grid-column: 1 / -1; }
+    .pch { grid-template-columns: 26px 1fr; gap: 8px; padding: 8px; font-size: var(--fs-s); }
+    .pch i { width: 26px; height: 26px; }
+    .route__lanes { grid-template-columns: minmax(0, 31%) 4px minmax(0, 1fr); column-gap: 14px; }
+    .route__chip { padding: 6px 8px; }
+    .route__stops li::before { left: -25px; }
+    .season__below { grid-template-columns: 1fr; }
+    .door h3 { font-size: 30px; }
+    .door__pic .snote, .cohorts th, .cohorts td { font-size: var(--fs-s); }
+    .cohorts th, .cohorts td { padding: 9px 10px; }
+    .snote dl { grid-template-columns: 1fr; gap: 2px; }
+    .snote dd { margin-bottom: 8px; }
+    .faq summary { font-size: var(--fs-b); min-height: 60px; padding: 12px 16px; }
+    .faq__a { padding: 0 16px 16px; }
+    .close { height: 40svh; min-height: 320px; }
+    .close__date { bottom: 28px; }
+    .start__body { padding-top: 48px; }
+    .start__act .btn { width: 100%; }
+    .foot { padding-top: 48px; }
+    .foot__nav { margin-top: 36px; }
+    .foot__nav > div:last-child { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; }
+    .foot__nav > div:last-child p { margin: 0; }
+    :root { --pad: 44px; }
+    .snote dl { grid-template-columns: auto 1fr; gap: 6px 14px; }
+    .snote dd { margin-bottom: 0; }
+    .snote { padding: 18px; }
+    .step__pic { aspect-ratio: 2 / 1; }
+    .step { padding-top: 20px; }
+    .doors { margin-top: 24px; }
+    .note__frame { aspect-ratio: 16 / 9; }
+    .faq summary { min-height: 56px; }
+    .tools.is-acc .acc__btn { padding: 8px 4px; min-height: 44px; }
+    .acc__screen { aspect-ratio: 16 / 10; }
+    .step__pic { aspect-ratio: 2 / 1; }
+    .door { padding: 40px var(--m) 32px; gap: 14px; }
+    .route__stops { gap: 12px; }
+    .step p { margin-top: 10px; }
+    .method__grid, .tools__grid { margin-top: 32px; }
+    .route { margin-top: 32px; }
+    /* the right column is never empty: on phones it holds only the finish card, once today's question is answered */
+    .start__side:not(.is-answered) { display: none; }
+    .choices { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .free__links { display: none; }
+    .foot__nav { gap: 16px; }
+    .foot__nav a { padding: 3px 0; font-size: var(--fs-s); }
+    .foot__fine { margin-top: 24px; }
+    .smap { gap: 4px; }
+    .proof { grid-template-columns: 1fr; gap: 2px; }
+    .proof .src { grid-column: 1; grid-row: auto; max-width: none; }
+    .note__p { margin-top: 16px; }
+    .sig, .proof { margin-top: 18px; }
+    .note__body .tlink { margin-top: 12px; }
+    /* page length on phones: the finish card and the stacked choices cost about 0.6 screens, won back here with tighter gaps and smaller pictures */
+    :root { --pad: 36px; }
+    .step { padding-top: 16px; }
+    .step__pic { aspect-ratio: 3 / 1; margin-top: 12px; }
+    .season__stage { margin-top: 28px; }
+    .acc__screen { aspect-ratio: 2 / 1; }
+    .door { padding: 32px var(--m) 28px; }
+    .doors { margin-top: 20px; }
+    .fan { margin-top: 24px; }
+    .fcard__pic { width: 64px; height: 64px; }
+    .shell__body { padding: 16px 16px 18px; }
+    .shell__bar, .shell__foot { padding-inline: 16px; }
+    .close { height: 30svh; min-height: 250px; }
+    .start__body { padding-top: 36px; }
+    .start__side { margin-top: 20px; }
+    #start-finish .fcard__bar { min-height: 44px; padding: 0 16px; }
+    #start-finish .fcard__body { padding: 16px; gap: 8px; }
+    .foot { padding-top: 40px; }
+    .foot__nav { margin-top: 28px; }
+  }
+  @media (max-width: 360px) { .hero h1 { font-size: 30px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .season__grid { display: flex; flex-direction: column; }
+    .season__stage { position: static; height: auto; margin-top: 40px; order: 2; }
+    .season__pics { display: none; }
+    .step { min-height: 0; color: var(--ink); padding: 28px 0 0; }
+    .step__pic { display: block; margin-top: 16px; aspect-ratio: 3 / 2; width: 100%; height: auto; max-width: 760px; object-fit: cover; border-radius: 6px; }
+    .scr, .film__video, .season__pics img { transition: none; }
+  }
+  @media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+    .step { padding-top: 16px; }
+    .step__pic { aspect-ratio: 3 / 1; margin-top: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) and (min-width: 992px) {
+    .season__grid { display: grid; }
+    .season__steps { display: block; grid-column: 1 / 8; grid-row: 1; }
+    .season__steps > h2 { margin-bottom: 8px; }
+    .season__stage { grid-column: 9 / 13; grid-row: 1; order: 0; margin-top: 0; padding-top: 4px; }
+    .season__below { grid-template-columns: 1fr; gap: 32px; }
+    .step { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: var(--gap); align-items: start; padding-top: 32px; }
+    .step h3, .step p { grid-column: 1; }
+    .step__pic { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+  }
+</style>
+</head>
+<body>
+  <header class="head" id="head" data-ground="clear">
+    <div class="wrap head__in">
+      <a class="mark" href="/">Karman Prep</a>
+      <ul class="nav" id="nav">
+        <li>
+          <button type="button" aria-expanded="false" aria-controls="drop-programs">Programs<svg class="chev" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+          <ul class="drop" id="drop-programs">
+            <li><a href="/program" data-prod="program">The SAT Program<span>A class of up to six, aimed at one SAT date</span></a></li>
+            <li><a href="/private-tutoring" data-prod="private">Private tutoring<span>Weekly one-on-one sessions with Zakaria</span></a></li>
+            <li><a href="/pricing">Pricing<span>Both ways to work with Zakaria</span></a></li>
+          </ul>
+        </li>
+        <li>
+          <button type="button" aria-expanded="false" aria-controls="drop-free">Free tools<svg class="chev" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+          <ul class="drop" id="drop-free">
+            <li><a href="/free-practice-test">Free practice test<span>Live on Zoom, Saturday, December 12</span></a></li>
+            <li><a href="/diagnostic">Diagnostic<span>35 questions, about 35 minutes</span></a></li>
+            <li><a href="/daily">Daily Question and word game<span>A new question and a new word every day</span></a></li>
+            <li><a href="/question-bank">Question bank<span>Practice by skill and level</span></a></li>
+          </ul>
+        </li>
+        <li><a href="/method">The method</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/faq">FAQ</a></li>
+      </ul>
+      <div class="head__right">
+        <button class="theme" type="button" data-theme-toggle>Dark mode</button>
+        <a class="signin" href="/sign-in">Sign in</a>
+        <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="sheet" aria-label="Open menu">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><line x1="2" y1="7" x2="18" y2="7" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="13" x2="18" y2="13" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sheet" id="sheet" aria-label="Menu">
+    <div class="sheet__grp"><p>Programs</p><ul>
+      <li><a href="/program" data-prod="program">The SAT Program</a></li>
+      <li><a href="/private-tutoring" data-prod="private">Private tutoring</a></li>
+      <li><a href="/pricing">Pricing</a></li>
+    </ul></div>
+    <div class="sheet__grp"><p>Free tools</p><ul>
+      <li><a href="/free-practice-test" data-prod="free">Free practice test</a></li>
+      <li><a href="/diagnostic">Diagnostic</a></li>
+      <li><a href="/daily">Daily Question and word game</a></li>
+      <li><a href="/question-bank">Question bank</a></li>
+    </ul></div>
+    <div class="sheet__grp"><ul>
+      <li><a href="/method">The method</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/faq">FAQ</a></li>
+      <li><a href="/sign-in">Sign in</a></li>
+      <li><button class="theme" type="button" data-theme-toggle>Dark mode</button></li>
+    </ul></div>
+  </nav>
+
+  <main id="main">
+  <!-- chapters 1 and 2: the evening, then the coach's note -->
+  <section class="portrait" id="portrait" data-ground="night" aria-labelledby="hero-h">
+    <div class="pt-stage" id="pt-stage">
+      <div class="hero" id="hero">
+        <div class="film" id="film">
+          <div class="film__media" id="film-media">
+            <img class="film__poster" id="poster" src="https://images.pexels.com/videos/15198034/pexels-photo-15198034.jpeg?w=1920" alt="" width="1920" height="1080" fetchpriority="high">
+            <video class="film__video" id="video" muted playsinline loop preload="none" aria-hidden="true" poster="https://images.pexels.com/videos/15198034/pexels-photo-15198034.jpeg?w=1920" data-src="https://videos.pexels.com/video-files/15198034/15198034-hd_1280_720_24fps.mp4"></video>
+          </div>
+          <div class="film__scrim" id="scrim"></div>
+          <div class="film__dim" id="dim"></div>
+        </div>
+        <div class="wrap hero__copy">
+          <h1 id="hero-h"><span class="ln" id="h1a"><span class="ln__in">SAT prep with live classes,</span></span><span class="ln" id="h1b"><span class="ln__in">daily practice, 1:1 review</span></span></h1>
+          <div class="hero__sub" id="hero-sub"><p class="lead">One program aimed at your student&apos;s SAT date. Groups of up to six, <span data-offer="bankCountLabel">10,000+</span> practice questions at seven levels, and an hour with Zakaria after every full-length test.</p></div>
+          <div class="hero__act" id="hero-act"><div class="hero__act-in">
+            <a class="btn btn--gold" id="hero-cta" href="/free-practice-test" data-cta="free-test">Take the free practice test</a>
+            <a class="tlink" href="/program">See the SAT Program</a>
+          </div></div>
+        </div>
+        <button class="filmctl" id="filmctl" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><g class="i-pause"><line x1="7" y1="4" x2="7" y2="16" stroke="currentColor" stroke-width="1.5"/><line x1="13" y1="4" x2="13" y2="16" stroke="currentColor" stroke-width="1.5"/></g><path class="i-play" d="M6 4.5v11l9-5.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Pause film</span></button>
+      </div>
+
+      <div class="note" id="note">
+        <div class="wrap note__grid">
+          <div class="note__frame" id="note-frame"><img class="note__still" src="https://images.pexels.com/videos/15198034/pexels-photo-15198034.jpeg?w=960" alt="A desk at night: a laptop open under a lamp and a hand writing notes" loading="lazy" width="960" height="540"></div>
+          <div class="note__body" id="note-body">
+            <h2 id="note-h">I review every full-length test myself</h2>
+            <p class="note__p" id="note-p">After each of the five full-length tests, your student and I spend an hour on every question they missed: what happened and what to do next time. Between tests I teach the live classes and answer the cohort&apos;s questions every day.</p>
+            <p class="sig" id="sig"><span class="ln"><span class="ln__in" id="sig-in">Zakaria Bennis</span></span></p>
+            <div class="proof" id="proof">
+              <p><b>+285 points</b> on average, from 1235 to 1520</p>
+              <p><b>94%</b> reached their target</p>
+              <p class="src">Karman 1:1 tutoring, median 16 weeks</p>
+            </div>
+            <a class="tlink" id="note-link" href="/about">Meet Zakaria</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- chapter 3: the nine tools -->
+  <section class="tools sec" id="tools" data-ground="night" aria-labelledby="tools-h">
+    <div class="wrap">
+      <div class="tools__head">
+        <h2 id="tools-h" data-rise>Nine tools aimed at one test date</h2>
+        <p class="lead" data-rise>Each part feeds the next: a question missed in class comes back in practice, gets reviewed one-on-one, and shows up in your weekly update.</p>
+      </div>
+      <div class="tools__grid">
+        <div class="tools__frame" id="tools-frame" aria-hidden="true">
+          <div class="scr is-on" data-ui data-scr="0">
+            <div class="scr__bar"><b>Live class</b><span>Tuesday, 7:00 p.m. ET</span></div>
+            <div class="scr__body">
+              <p class="scr__title">Class 1 of 18: transitions and logical flow</p>
+              <div class="scr__row"><span>Warm-up on last week&apos;s misses</span><span>15 min</span></div>
+              <div class="scr__row"><span>Lesson: cause, contrast and sequence</span><span>40 min</span></div>
+              <div class="scr__row"><span>Timed set of 12, then review</span><span>35 min</span></div>
+              <div class="scr__seats"><i></i><i></i><i></i><i></i><i></i><i></i><span>&nbsp;Six students, with Zakaria</span></div>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="1">
+            <div class="scr__bar"><b>Review after full-length test 2</b><span>60 minutes</span></div>
+            <div class="scr__body">
+              <p class="scr__title">Every missed question, by domain</p>
+              <div class="scr__row"><span>Expression of Ideas</span><span>4 missed</span></div>
+              <div class="scr__row"><span>Advanced Math</span><span>3 missed</span></div>
+              <div class="scr__row"><span>Information and Ideas</span><span>2 missed</span></div>
+              <div class="scr__row"><span>Geometry and Trigonometry</span><span>1 missed</span></div>
+              <span class="scr__tag">Starts with Transitions</span>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="2">
+            <div class="scr__bar"><b>Daily 10</b><span>3 of 10</span></div>
+            <div class="scr__body">
+              <span class="scr__tag scr__tag--coming">Coming, winter 2027</span>
+              <p>Words in Context, level 5 of 7. Back from Monday: you missed it two days ago.</p>
+              <div class="scr__choices"><span>A) dismissed</span><span>B) tempered</span><span>C) amplified</span><span>D) disguised</span></div>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="3">
+            <div class="scr__bar"><b>Question bank</b><span><span data-offer="bankCountLabel">10,000+</span> questions</span></div>
+            <div class="scr__body">
+              <div class="scr__row"><span>Skill</span><span>Transitions</span></div>
+              <div class="scr__row"><span>Domain</span><span>Expression of Ideas</span></div>
+              <p>Level</p>
+              <div class="scr__levels"><span>1</span><span>2</span><span>3</span><span class="on">4</span><span class="on">5</span><span>6</span><span>7</span></div>
+              <span class="scr__tag">Practice 20 questions</span>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="4">
+            <div class="scr__bar"><b>Weekly live session</b><span>Once a week</span></div>
+            <div class="scr__body">
+              <div class="scr__row"><span>Pacing a 32-minute module</span><span>Week 1</span></div>
+              <div class="scr__row"><span>Workshop: Transitions</span><span>Week 2</span></div>
+              <div class="scr__row"><span>Desmos for systems of equations</span><span>Week 3</span></div>
+              <div class="scr__row"><span>How the adaptive second module works</span><span>Week 4</span></div>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="5">
+            <div class="scr__bar"><b>March cohort</b><span>Cohort chat</span></div>
+            <div class="scr__body">
+              <p class="scr__msg"><small>A student, 8:14 p.m.</small>Question 14 on test 2: why is it C and not B?</p>
+              <p class="scr__msg scr__msg--z"><small>Zakaria, 8:31 p.m.</small>B repeats the claim but never supports it. C gives the evidence. Read the last sentence of the passage again.</p>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="6">
+            <div class="scr__bar"><b>Weekly update, week 3</b><span>Sent to you</span></div>
+            <div class="scr__body">
+              <div class="scr__row"><span>Practice time</span><span>2 h 40 min</span></div>
+              <div class="scr__row"><span>Classes attended</span><span>2 of 2</span></div>
+              <div class="scr__row"><span>Full-length test 2</span><span>Reviewed Thursday</span></div>
+              <div class="scr__row"><span>Next</span><span>Desmos session</span></div>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="7">
+            <div class="scr__bar"><b>Daily Question</b><span>Transitions, level 6 of 7</span></div>
+            <div class="scr__body">
+              <p>In 1938, chemist Roy Plunkett opened a cylinder of gas he planned to use in refrigerant research and found that it had turned into a slick white powder.</p>
+              <div class="scr__choices"><span>A) Even so,</span><span>B) Accordingly,</span><span>C) Similarly,</span><span>D) For instance,</span></div>
+            </div>
+          </div>
+          <div class="scr" data-ui data-scr="8">
+            <div class="scr__bar"><b>Word game</b><span>Today&apos;s word</span></div>
+            <div class="scr__body">
+              <p>Five letters: concerned with right and wrong.</p>
+              <div class="tiles"><i>C</i><i class="near">L</i><i>E</i><i class="hit">A</i><i class="near">R</i><i>T</i><i class="near">R</i><i>I</i><i class="hit">A</i><i class="hit">L</i><i class="blank"></i><i class="blank"></i><i class="blank"></i><i class="blank"></i><i class="blank"></i></div>
+            </div>
+          </div>
+        </div>
+        <ul class="tools__list" id="tools-list">
+          <li><a class="tool is-active" data-n="0" href="/program#how-it-runs" data-more="How the live classes run"><span class="tool__name">Live classes</span><span class="tool__fact">Two 90-minute classes a week, groups of up to six.</span><span class="tool__status" data-s="starts">Starts January 4</span></a></li>
+          <li><a class="tool" data-n="1" href="/program#reviews" data-more="How the 1:1 reviews work"><span class="tool__name">Full-length tests with a 1:1 review</span><span class="tool__fact">Five tests, each followed by an hour with Zakaria on every mistake.</span><span class="tool__status" data-s="starts">Starts January 4</span></a></li>
+          <li><a class="tool" data-n="2" href="/method#daily-10" data-more="How Daily 10 spaces practice"><span class="tool__name">Daily 10</span><span class="tool__fact">Ten minutes a day. Missed questions return after 2, 7 and 21 days.</span><span class="tool__status" data-s="coming">Coming, winter 2027</span></a></li>
+          <li><a class="tool" data-n="3" href="/question-bank" data-more="Open the question bank"><span class="tool__name">Question bank</span><span class="tool__fact"><span data-offer="bankCountLabel">10,000+</span> questions across 39 skills at seven levels.</span><span class="tool__status" data-s="live">Live</span></a></li>
+          <li><a class="tool" data-n="4" href="/program#weekly-session" data-more="What the weekly session covers"><span class="tool__name">Weekly live session</span><span class="tool__fact">Pacing, Desmos, the adaptive second module, and skill workshops.</span><span class="tool__status" data-s="starts">Starts January 4</span></a></li>
+          <li><a class="tool" data-n="5" href="/program#cohort" data-more="How the cohort chat works"><span class="tool__name">Cohort chat</span><span class="tool__fact">Questions to Zakaria answered every day.</span><span class="tool__status" data-s="live">Live</span></a></li>
+          <li><a class="tool" data-n="6" href="/program#parents" data-more="What the parent update shows"><span class="tool__name">Weekly parent update</span><span class="tool__fact">Practice time, attendance, test scores and what&apos;s next.</span><span class="tool__status" data-s="starts">Starts January 4</span></a></li>
+          <li><a class="tool" data-n="7" href="/daily" data-more="Answer today&apos;s question"><span class="tool__name">Daily Question</span><span class="tool__fact">One original SAT question a day, free, no account needed.</span><span class="tool__status" data-s="live">Live</span></a></li>
+          <li><a class="tool" data-n="8" href="/daily#word-game" data-more="Play the word game"><span class="tool__name">Word game</span><span class="tool__fact">A daily vocabulary game, free.</span><span class="tool__status" data-s="live">Live</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- chapter 4: the method -->
+  <section class="method sec" id="method" data-ground="day" aria-labelledby="method-h">
+    <div class="wrap">
+      <div class="method__head">
+        <h2 id="method-h" data-rise>What happens to a missed question</h2>
+        <div class="method__claim">
+          <p class="stmt" id="stmt">A 2013 review of ten study techniques rated two highest: practice tests and spaced practice. Karman is built on both.</p>
+          <p class="cite" data-rise>Dunlosky, Rawson, Marsh, Nathan and Willingham (2013), Psychological Science in the Public Interest. <a href="/method">See the research</a></p>
+        </div>
+      </div>
+      <div class="method__grid">
+        <div class="page-wrap">
+          <div class="page" id="page" data-ui>
+            <div class="page__layer page__layer--attempt">
+              <div class="page__bar"><b>Transitions</b><span>Reading and Writing, level 4 of 7</span></div>
+              <div class="page__cols">
+                <div>
+                  <p class="page__who">Their answer, in class on Monday</p>
+                  <p class="page__passage">Marine biologist Sylvia Earle led the first team of women aquanauts in 1970, living for two weeks in an underwater habitat off the U.S. Virgin Islands. ______ she set a record for the deepest untethered walk on the ocean floor.</p>
+                  <p class="page__ask">Which choice completes the text with the most logical transition?</p>
+                  <div class="pch"><i>A</i>In other words,</div>
+                  <div class="pch"><i>B</i>For instance,</div>
+                  <div class="pch"><i>C</i>Later,</div>
+                  <div class="pch is-wrong"><i>D</i>As a result,</div>
+                </div>
+                <div></div>
+              </div>
+            </div>
+            <div class="page__layer page__layer--review" id="page-review" role="group" aria-label="The same question after the review with Zakaria">
+              <div class="page__bar"><b>Transitions</b><span>After the 1:1 with Zakaria</span></div>
+              <div class="page__cols">
+                <div>
+                  <p class="page__who">The review, Thursday</p>
+                  <p class="page__passage">Marine biologist Sylvia Earle led the first team of women aquanauts in 1970, living for two weeks in an underwater habitat off the U.S. Virgin Islands. ______ she set a record for the deepest untethered walk on the ocean floor.</p>
+                  <p class="page__ask">Which choice completes the text with the most logical transition?</p>
+                  <div class="pch"><i>A</i>In other words,</div>
+                  <div class="pch"><i>B</i>For instance,</div>
+                  <div class="pch is-right"><i>C</i>Later,</div>
+                  <div class="pch is-wrong"><i>D</i>As a result,</div>
+                </div>
+                <ul class="notes" id="notes">
+                  <li><span class="sweep" style="--d:0ms"><b>What it tests</b>The order of events. The record came after the habitat, and nothing says one caused the other.</span></li>
+                  <li><span class="sweep" style="--d:90ms"><b>Why D looked right</b>Two achievements in a row feel connected, so a cause word sounds natural.</span></li>
+                  <li><span class="sweep" style="--d:180ms"><b>The fix</b>Say how the two sentences relate in your own words first, then pick the transition that names it.</span></li>
+                </ul>
+              </div>
+            </div>
+            <div class="handle" id="handle"><div class="handle__knob" id="knob" role="slider" tabindex="0" aria-label="Compare their answer with the review" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="Half their answer, half the review"><svg viewBox="0 0 20 20" aria-hidden="true"><line x1="7" y1="5" x2="7" y2="15" stroke="currentColor" stroke-width="1.5"/><line x1="13" y1="5" x2="13" y2="15" stroke="currentColor" stroke-width="1.5"/></svg></div></div>
+          </div>
+          <div class="page__tabs" role="group" aria-label="Show the page">
+            <button type="button" data-wipe="100" aria-pressed="false">Their answer</button>
+            <button type="button" data-wipe="0" aria-pressed="false">The review</button>
+          </div>
+        </div>
+        <div class="route" id="route" role="group" aria-labelledby="route-h">
+          <h3 id="route-h" data-rise>The dates it comes back</h3>
+          <div class="route__lanes">
+            <div class="route__chipLane"><p class="route__chip" id="chip">A missed question: Transitions, level&nbsp;4</p></div>
+            <div class="route__rail" id="rail"><i class="route__bar" id="bar"></i></div>
+            <ol class="route__stops" id="stops">
+              <li class="on"><b>Monday, January 4</b><span>Missed in class. Zakaria&apos;s note goes in the mistake log.</span></li>
+              <li class="on"><b>Wednesday, January 6</b><span>Back in the Daily 10.</span><em>Coming, winter 2027</em></li>
+              <li class="on"><b>Monday, January 11</b><span>Back again, and answered right.</span><em>Coming, winter 2027</em></li>
+              <li class="on"><b>Monday, January 25</b><span>Answered three weeks later. Transitions moves from level&nbsp;4 to level&nbsp;5.</span><em>Coming, winter 2027</em></li>
+            </ol>
+          </div>
+          <a class="tlink" href="/daily">Try today&apos;s question</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- chapter 5: the season -->
+  <section class="season sec" id="season" data-ground="day" aria-labelledby="season-h">
+    <div class="wrap">
+      <div class="season__grid">
+        <div class="season__stage" id="season-stage">
+          <div class="season__pics" id="season-pics">
+            <img class="is-on" src="https://images.unsplash.com/photo-1771596378772-858323ca698f?w=1600&amp;q=75&amp;auto=format" alt="A wooden kitchen table and chairs in morning sunlight, nobody there yet" width="1600" height="1200">
+            <img src="https://images.unsplash.com/photo-1619608135352-868e8313e121?w=1600&amp;q=75&amp;auto=format" alt="A desk in the evening: an open laptop under a lamp, books stacked beside it" width="1600" height="1067">
+            <img src="https://images.unsplash.com/photo-1777984994806-ec544b1c8924?w=1600&amp;q=75&amp;auto=format" alt="A dining table in low evening sun from a large window" width="1600" height="1067">
+          </div>
+          <div class="season__below">
+            <div>
+              <p class="smap__cap">Skill map, levels 1 to 7</p>
+              <ul class="smap" id="smap" data-ui>
+                <li><span>Information and Ideas</span><span class="segs"></span></li>
+                <li><span>Craft and Structure</span><span class="segs"></span></li>
+                <li><span>Expression of Ideas</span><span class="segs"></span></li>
+                <li><span>Standard English Conventions</span><span class="segs"></span></li>
+                <li><span>Algebra</span><span class="segs"></span></li>
+                <li><span>Advanced Math</span><span class="segs"></span></li>
+                <li><span>Problem-Solving and Data Analysis</span><span class="segs"></span></li>
+                <li><span>Geometry and Trigonometry</span><span class="segs"></span></li>
+              </ul>
+            </div>
+            <div class="weeks">
+              <p class="smap__cap">Nine weeks</p>
+              <div class="weeks__row" id="weeks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <p class="weeks__end on" id="weeks-end">Test day, Saturday, March 6</p>
+              <p class="season__count"><span id="season-count" aria-live="polite">3 of 3</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="season__steps" id="season-steps">
+          <h2 id="season-h" data-rise>How the nine weeks run</h2>
+          <article class="step on" data-step="0">
+            <h3>Monday, January 4</h3>
+            <p>Classes start. The baseline is a Bluebook practice test from the College Board, proctored live on Zoom, so you see where your student starts.</p>
+            <img class="step__pic" src="https://images.unsplash.com/photo-1771596378772-858323ca698f?w=1600&amp;q=75&amp;auto=format" alt="A wooden kitchen table and chairs in morning sunlight, nobody there yet" width="1600" height="1200">
+          </article>
+          <article class="step on" data-step="1">
+            <h3>Every week</h3>
+            <p>Two 90-minute live classes in a group of up to six, and the weekly live session on pacing, Desmos and the adaptive second module. Ten minutes of Daily 10 every day (coming, winter 2027).</p>
+            <img class="step__pic" src="https://images.unsplash.com/photo-1619608135352-868e8313e121?w=1600&amp;q=75&amp;auto=format" alt="A desk in the evening: an open laptop under a lamp, books stacked beside it" width="1600" height="1067">
+          </article>
+          <article class="step on" data-step="2">
+            <h3>After each full-length test</h3>
+            <p>An hour one-on-one with Zakaria on every mistake, and a weekly update for you. The last test is the dress rehearsal, the week before Saturday, March 6.</p>
+            <img class="step__pic" src="https://images.unsplash.com/photo-1777984994806-ec544b1c8924?w=1600&amp;q=75&amp;auto=format" alt="A dining table in low evening sun from a large window" width="1600" height="1067">
+          </article>
+          <p class="season__more"><a class="tlink" href="/program/2027-03-06">See the full schedule</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- chapter 6: two doors -->
+  <section class="paths" id="paths" data-ground="day" aria-labelledby="paths-h">
+    <div class="wrap"><h2 id="paths-h" data-rise>Two ways to work with Zakaria</h2></div>
+    <div class="doors" id="doors">
+      <div class="door door--program" data-ground="green" style="view-transition-name: field-program">
+        <h3>The SAT Program</h3>
+        <p class="door__lead">A class of up to six aimed at one SAT date. Admission by application.</p>
+        <div class="seats" id="seats" role="img" aria-label="Six seats: five seats and one scholarship seat"><i></i><i></i><i></i><i></i><i></i><i class="sch"></i></div>
+        <p>Five seats, plus one scholarship seat.</p>
+        <p>Seats are offered by application, and Zakaria reads every one.</p>
+        <div class="door__pic"><div class="door__pic-in">
+          <table class="cohorts" data-ui>
+            <caption>Next: Saturday, March 6. Then May 1 and June 5.</caption>
+            <thead><tr><th scope="col">SAT date</th><th scope="col">Classes start</th><th scope="col">Applications close</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Saturday, March 6</th><td>Monday, January 4</td><td>Wednesday, December 30</td></tr>
+              <tr><th scope="row">Saturday, May 1</th><td colspan="2">Dates set in February</td></tr>
+              <tr><th scope="row">Saturday, June 5</th><td colspan="2">Dates set in February</td></tr>
+            </tbody>
+          </table>
+        </div></div>
+        <a class="btn btn--gold" href="/program">See the SAT Program</a>
+      </div>
+      <div class="door door--private" data-ground="oxblood" style="view-transition-name: field-private">
+        <h3>Private tutoring</h3>
+        <p class="door__lead">Weekly one-on-one sessions with Zakaria, planned back from your test date.</p>
+        <div class="door__pic"><div class="door__pic-in">
+          <div class="snote" data-ui role="group" aria-label="The note parents receive after a session">
+            <div class="snote__top"><b>Note after Thursday&apos;s session</b><span>Sent to you and your student</span></div>
+            <dl>
+              <dt>Covered</dt><dd>Every missed question on practice test 3</dd>
+              <dt>Focus skill</dt><dd>Transitions</dd>
+              <dt>Before next time</dt><dd>20 Transitions questions in the question bank</dd>
+              <dt>Next session</dt><dd>Thursday, 6:00 p.m.</dd>
+            </dl>
+            <p class="snote__msg">Most misses came from reading past the contrast word. We fixed the habit; now it needs repetition. Zakaria</p>
+          </div>
+        </div></div>
+        <a class="btn btn--gold" href="/private-tutoring">See private tutoring</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- chapter 7: free, today -->
+  <section class="free sec" id="free" data-ground="ochre" aria-labelledby="free-h">
+    <div class="wrap">
+      <div class="free__head">
+        <h2 id="free-h" data-rise>Try today&apos;s SAT question, free</h2>
+        <p class="lead" data-rise>No account needed. Your student can also play the daily word game or take the free practice test.</p>
+      </div>
+      <div class="fan" id="fan">
+        <a class="fcard fcard--side fcard--l" href="/daily#word-game" data-ui aria-label="Play the word game">
+          <span class="fcard__pic" aria-hidden="true"><span class="tiles tiles--mini"><i class="hit"></i><i></i><i class="near"></i></span></span>
+          <span class="fcard__bar"><b>Word game</b><span>Today</span></span>
+          <span class="fcard__body">
+            <span class="fcard__name">Word game</span>
+            <span class="fcard__line">A daily vocabulary game, free.</span>
+            <span class="tiles" aria-hidden="true"><i>C</i><i class="near">L</i><i>E</i><i class="hit">A</i><i class="near">R</i><i>T</i><i class="near">R</i><i>I</i><i class="hit">A</i><i class="hit">L</i><i class="blank"></i><i class="blank"></i><i class="blank"></i><i class="blank"></i><i class="blank"></i></span>
+            <span class="fcard__line">Five letters: concerned with right and wrong.</span>
+            <span class="fcard__go">Play the word game</span>
+          </span>
+        </a>
+
+        <div class="fcard fcard--dq shell" id="dq" data-ui style="view-transition-name: dq-card">
+          <div class="shell__bar"><span class="shell__skill">Transitions</span><span class="shell__meta">Level 6 of 7</span><span class="shell__res" id="dq-res"></span></div>
+          <div class="shell__body">
+            <p class="shell__passage">In 1938, chemist Roy Plunkett opened a cylinder of gas he planned to use in refrigerant research and found that it had turned into a slick white powder. Testing showed that the material, later sold as Teflon, was attacked by almost no chemical it touched. ______ its first large-scale use was not in kitchens: during World War II, it lined equipment that handled some of the most corrosive compounds of the Manhattan Project.</p>
+            <p class="shell__ask" id="dq-ask">Which choice completes the text with the most logical transition?</p>
+            <div class="choices" role="group" aria-labelledby="dq-ask" id="dq-choices">
+              <button class="ch" type="button" data-c="A"><span class="ch__disc"><svg class="ch__ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/></svg>A</span><span>Even so,</span></button>
+              <button class="ch" type="button" data-c="B"><span class="ch__disc"><svg class="ch__ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/></svg>B</span><span>Accordingly,</span></button>
+              <button class="ch" type="button" data-c="C"><span class="ch__disc"><svg class="ch__ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/></svg>C</span><span>Similarly,</span></button>
+              <button class="ch" type="button" data-c="D"><span class="ch__disc"><svg class="ch__ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/></svg>D</span><span>For instance,</span></button>
+            </div>
+            <p class="shell__status" id="dq-status"></p>
+            <p class="vh" id="dq-live" aria-live="polite"></p>
+            <p class="shell__exp" id="dq-exp" hidden>The material resisted almost every chemical, so it was used where corrosive compounds had to be contained. The last sentence follows from the one before it, which calls for <i>Accordingly</i>. <i>Even so</i> would signal a contrast the text never sets up.</p>
+            <p class="shell__ret" id="dq-ret" hidden>In the March program this would come back on Wednesday, January&nbsp;6; Monday, January&nbsp;11; and Monday, January&nbsp;25.<br><b>Daily 10, coming winter 2027</b></p>
+          </div>
+          <div class="shell__foot">
+            <a class="tlink shell__noscript" href="/daily">Answer it on the daily page</a>
+            <a class="tlink" id="dq-open" href="/daily" hidden>Open the daily page</a>
+          </div>
+        </div>
+
+        <a class="fcard fcard--side fcard--r" href="/free-practice-test" data-ui aria-label="Take the free practice test">
+          <span class="fcard__pic" aria-hidden="true"><span class="serif" style="font-size:24px;line-height:1">Dec<br>12</span></span>
+          <span class="fcard__bar"><b>Free practice test</b><span>Live on Zoom</span></span>
+          <span class="fcard__body">
+            <span class="fcard__name">Saturday, December 12</span>
+            <span class="fcard__line">Live on Zoom, proctored by Zakaria. About 75 minutes.</span>
+            <span class="fcard__line">One Reading and Writing module and one Math module, about 49 questions.</span>
+            <span class="fcard__list"><span>An estimated score range</span><span>A domain-by-domain breakdown</span><span>A 20-minute results call</span></span>
+            <span class="fcard__go">Take the free practice test</span>
+          </span>
+        </a>
+      </div>
+      <div class="free__links">
+        <a class="tlink" href="/daily#word-game">Play the word game</a>
+        <a class="btn btn--bone" href="/free-practice-test" data-cta="free-test">Take the free practice test</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- chapter 8: questions parents ask -->
+  <section class="faq sec" id="faq" data-ground="day" aria-labelledby="faq-h">
+    <div class="wrap faq__grid">
+      <div class="faq__side">
+        <h2 id="faq-h" data-rise>Questions parents ask</h2>
+        <a class="tlink" href="/faq" data-rise>See every question</a>
+      </div>
+      <div class="faq__list">
+        <details name="home-faq" data-rise><summary>What does it cost?<svg class="plus" viewBox="0 0 20 20" aria-hidden="true"><line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5"/></svg></summary><div class="faq__a"><p>The SAT Program is $995 for the founding March cohort, or three payments of $345. Later cohorts are $1,295. Private tutoring starts at $1,450 for 10 hours. <a href="/pricing">See pricing</a></p></div></details>
+        <details name="home-faq" data-rise><summary>What if the score doesn&apos;t go up?<svg class="plus" viewBox="0 0 20 20" aria-hidden="true"><line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5"/></svg></summary><div class="faq__a"><p>If your official score isn&apos;t at least 50 points above your baseline, your next cohort is free, if you meet the conditions. <a href="/guarantee">Read the guarantee</a></p></div></details>
+        <details name="home-faq" data-rise><summary>When are the classes?<svg class="plus" viewBox="0 0 20 20" aria-hidden="true"><line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5"/></svg></summary><div class="faq__a"><p>Tuesdays and Thursdays, 7:00 to 8:30 p.m. ET, live on Zoom.</p></div></details>
+        <details name="home-faq" data-rise><summary>Do we talk to Zakaria first?<svg class="plus" viewBox="0 0 20 20" aria-hidden="true"><line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5"/></svg></summary><div class="faq__a"><p>Yes. After a three-minute application, you have a 20-minute call with Zakaria. A refundable $100 deposit then holds the seat.</p></div></details>
+        <details name="home-faq" data-rise><summary>Is there financial help?<svg class="plus" viewBox="0 0 20 20" aria-hidden="true"><line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5"/></svg></summary><div class="faq__a"><p>One seat in every cohort is a scholarship seat, free for a student whose family can&apos;t afford the program.</p></div></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- chapter 9: test morning -->
+  <section class="start" id="start" aria-labelledby="start-h">
+    <div class="close" id="close" data-ground="night">
+      <div class="close__clip" id="close-clip">
+        <img class="close__img" src="https://images.unsplash.com/photo-1773098587057-eea07f18aa8b?w=1600&amp;q=75&amp;auto=format" alt="A kitchen and its back door in early morning light, the chairs pushed in" width="1600" height="1067">
+        <div class="close__scrim"></div>
+      </div>
+      <div class="wrap close__date" id="close-date"><p class="display"><span class="vh">Saturday, March 6, 2027</span><span class="ln" aria-hidden="true"><span class="ln__in">Saturday, March 6</span></span></p></div>
+    </div>
+    <div class="start__body" data-ground="day">
+      <div class="wrap start__grid">
+        <div class="start__main">
+          <h2 id="start-h" data-rise>Start with a free practice test</h2>
+          <p class="lead" data-rise>Live on Zoom on Saturday, December 12, proctored by Zakaria. About 75 minutes, with an estimated score range, a domain-by-domain breakdown and a 20-minute results call.</p>
+          <p class="start__obj" data-rise>If you&apos;re already scoring 1500 or higher, or your test is less than four weeks away, we&apos;ll tell you honestly that a program probably isn&apos;t the best use of your money.</p>
+          <div class="start__act" data-rise>
+            <a class="btn btn--free" id="close-cta" href="/free-practice-test" data-cta="free-test">Take the free practice test</a>
+            <a class="tlink" href="/diagnostic">Or start the 35-question diagnostic now</a>
+          </div>
+        </div>
+        <div class="start__side">
+          <a class="fcard" id="start-intro" href="/free-practice-test" data-ui aria-label="Take the free practice test">
+            <span class="fcard__bar"><b>Free practice test</b><span>Live on Zoom</span></span>
+            <span class="fcard__body">
+              <span class="fcard__name">Saturday, December 12</span>
+              <span class="fcard__line">One Reading and Writing module and one Math module, about 49 questions.</span>
+              <span class="fcard__list"><span>An estimated score range</span><span>A domain-by-domain breakdown</span><span>A 20-minute results call</span></span>
+              <span class="fcard__go">Save a spot</span>
+            </span>
+          </a>
+          <div class="fcard" id="start-finish" data-ui hidden>
+            <div class="fcard__bar"><b>Today&apos;s question</b><span>Transitions, level 6 of 7</span></div>
+            <div class="fcard__body">
+              <p class="fcard__name" id="finish-head">You answered today&apos;s Transitions question.</p>
+              <p class="fcard__line" id="finish-line"></p>
+              <p class="fcard__line" id="finish-ret" hidden>It would come back on Wednesday, January&nbsp;6; Monday, January&nbsp;11; and Monday, January&nbsp;25.<br><b class="small">Daily 10, coming winter 2027</b></p>
+              <a class="tlink" href="/daily">Open the daily page</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <footer class="foot" id="foot" data-ground="night">
+    <div class="wrap">
+      <div class="foot__top"><p class="foot__word" id="foot-word"><span class="ln"><span class="ln__in">Karman Prep</span></span></p>
+      <p class="foot__sig">Zakaria Bennis</p></div>
+      <nav class="foot__nav" aria-label="Footer">
+        <div><p>Programs</p><ul><li><a href="/program">The SAT Program</a></li><li><a href="/private-tutoring">Private tutoring</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/guarantee">Guarantee</a></li></ul></div>
+        <div><p>Free tools</p><ul><li><a href="/free-practice-test">Free practice test</a></li><li><a href="/diagnostic">Diagnostic</a></li><li><a href="/daily">Daily Question and word game</a></li><li><a href="/question-bank">Question bank</a></li></ul></div>
+        <div><p>Company</p><ul><li><a href="/about">About</a></li><li><a href="/method">The method</a></li><li><a href="/faq">FAQ</a></li><li><a href="mailto:hello@karmanprep.com">Contact</a></li></ul></div>
+        <div><p>Legal</p><ul><li><a href="/terms">Terms of Service</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/cookies">Cookie Policy</a></li><li><a href="/refunds">Refunds</a></li></ul></div>
+        <div><p>Display</p><button class="theme" type="button" data-theme-toggle>Dark mode</button></div>
+      </nav>
+      <div class="foot__fine">
+        <p>Pictures: the evening film is from Pexels. Photographs from Unsplash by mindeurle lee, Huzaifa Tariq, Beth Stevenson and Franco Debartolo. None of them shows a Karman student or class.</p>
+        <p>SAT is a trademark registered by the College Board, which is not affiliated with, and does not endorse, this website.</p>
+        <p>&copy; 2026 Karman Prep</p>
+      </div>
+    </div>
+  </footer>
+
+  <a class="btn dock" id="dock" href="/free-practice-test" data-on="day" tabindex="-1" aria-hidden="true">Take the free practice test</a>
+
+  <script>
+  (function () {
+    "use strict";
+    var root = document.documentElement;
+    var mqReduce = matchMedia("(prefers-reduced-motion: reduce)");
+    var reduce = function () { return mqReduce.matches; };
+    var $ = function (s, c) { return (c || document).querySelector(s); };
+    var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+
+    /* ---------- offer facts: every mention filled from one constant ---------- */
+    $$("[data-offer]").forEach(function (el) { var k = el.getAttribute("data-offer"); if (window.KARMAN_OFFER[k] != null) el.textContent = window.KARMAN_OFFER[k]; });
+
+    /* the load sequence hands its elements to the scroll scene once it has finished */
+    setTimeout(function () { root.classList.add("arrived"); }, 1300);
+
+    /* ---------- theme ---------- */
+    var toggles = $$("[data-theme-toggle]");
+    function curTheme() { var t = root.getAttribute("data-theme"); if (t) return t; return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+    function labelTheme() { var d = curTheme() === "dark"; toggles.forEach(function (b) { b.textContent = d ? "Light mode" : "Dark mode"; b.setAttribute("aria-label", d ? "Switch to light mode" : "Switch to dark mode"); }); }
+    toggles.forEach(function (b) {
+      b.addEventListener("click", function () {
+        var next = curTheme() === "dark" ? "light" : "dark";
+        var apply = function () { root.setAttribute("data-theme", next); try { localStorage.setItem("karman-theme", next); } catch (e) {} labelTheme(); requestTick(); };
+        if (document.startViewTransition && !reduce()) document.startViewTransition(apply); else apply();
+      });
+    });
+    labelTheme();
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", labelTheme);
+
+    /* ---------- header: dropdowns, phone sheet ---------- */
+    var head = $("#head");
+    $$("#nav > li").forEach(function (li) {
+      var btn = $("button", li); if (!btn) return;
+      var open = function (v) { li.classList.toggle("is-open", v); btn.setAttribute("aria-expanded", v ? "true" : "false"); };
+      btn.addEventListener("click", function (e) { var hov = matchMedia("(hover: hover)").matches; open(e.detail === 0 || !hov ? !li.classList.contains("is-open") : true); });
+      li.addEventListener("mouseenter", function () { if (matchMedia("(hover: hover)").matches) open(true); });
+      li.addEventListener("mouseleave", function () { if (matchMedia("(hover: hover)").matches) open(false); });
+      li.addEventListener("focusout", function (e) { if (!li.contains(e.relatedTarget)) open(false); });
+      li.addEventListener("keydown", function (e) { if (e.key === "Escape") { open(false); btn.focus(); } });
+    });
+    var sheet = $("#sheet"), menuBtn = $("#menu-btn"), menuOpen = false;
+    function setMenu(v) {
+      menuOpen = v; sheet.classList.toggle("is-open", v); menuBtn.setAttribute("aria-expanded", v ? "true" : "false");
+      menuBtn.setAttribute("aria-label", v ? "Close menu" : "Open menu");
+      head.classList.remove("is-hidden");
+      if (v) { head.setAttribute("data-ground", "night"); $$("li", sheet).forEach(function (li, i) { li.style.animationDelay = (120 + i * 50) + "ms"; }); setTimeout(function () { var a = $("a", sheet); if (a) a.focus(); }, 60); }
+      else { menuBtn.focus(); }
+      document.body.style.overflow = v ? "hidden" : "";
+      requestTick();
+    }
+    menuBtn.addEventListener("click", function () { setMenu(!menuOpen); });
+    document.addEventListener("keydown", function (e) {
+      if (!menuOpen) return;
+      if (e.key === "Escape") { setMenu(false); return; }
+      if (e.key === "Tab") {
+        var f = [menuBtn].concat($$("a, button", sheet)); var i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+      }
+    });
+
+    /* ---------- reveal once: one shared observer ---------- */
+    var rise = $$("[data-rise]");
+    var groups = new Map();
+    rise.forEach(function (el) { var p = el.parentElement, n = groups.get(p) || 0; el.style.setProperty("--d", (n * 70) + "ms"); groups.set(p, n + 1); });
+    var onceList = [];
+    function revealNow(el) { el.classList.add("in"); }
+    var io = "IntersectionObserver" in window ? new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { var fn = e.target._onReveal; revealNow(e.target); if (fn) fn(); io.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -15% 0px" }) : null;
+    function once(el, fn) { if (!el) return; el._onReveal = fn; onceList.push(el); if (io) io.observe(el); else { revealNow(el); if (fn) fn(); } }
+    rise.forEach(function (el) { once(el); });
+    /* failsafe: whatever is on screen or above it is shown by 2.5s, whatever happens */
+    function failsafe() {
+      onceList.forEach(function (el) {
+        if (el.classList.contains("in")) return;
+        var r = el.getBoundingClientRect();
+        if (r.top < innerHeight) { revealNow(el); if (el._onReveal) el._onReveal(); if (io) io.unobserve(el); }
+      });
+    }
+    addEventListener("load", function () { setTimeout(failsafe, 2500); });
+    var seenIO = io ? new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        var el = e.target;
+        if (e.isIntersecting) el._seenT = setTimeout(function () { if (!el.classList.contains("in")) { revealNow(el); if (el._onReveal) el._onReveal(); io.unobserve(el); } seenIO.unobserve(el); }, 900);
+        else clearTimeout(el._seenT);
+      });
+    }) : null;
+    var _once = once; once = function (el, fn) { _once(el, fn); if (el && seenIO) seenIO.observe(el); };
+    rise.forEach(function (el) { if (seenIO) seenIO.observe(el); });
+    var fsT; addEventListener("scroll", function () { clearTimeout(fsT); fsT = setTimeout(failsafe, 900); }, { passive: true });
+
+    /* ---------- the film ---------- */
+    var video = $("#video"), ctl = $("#filmctl"), ctlLabel = $("span", ctl), userPaused = false, filmInView = true;
+    var conn = navigator.connection || {};
+    var lowData = !!conn.saveData || /(^|-)(slow-2g|2g|3g)$/.test(conn.effectiveType || "");
+    function setCtl() {
+      var playing = !userPaused && !reduce() && !lowData;
+      ctlLabel.textContent = playing ? "Pause film" : "Play film";
+      ctl.querySelector(".i-pause").style.display = playing ? "" : "none";
+      ctl.querySelector(".i-play").style.display = playing ? "none" : "";
+    }
+    function loadFilm() { if (!video.getAttribute("src")) { video.src = video.getAttribute("data-src"); video.load(); } }
+    function syncFilm() {
+      var want = !userPaused && filmInView && (!reduce() && !lowData || ctl._forced);
+      if (want) { loadFilm(); var p = video.play(); if (p && p.catch) p.catch(function () {}); }
+      else if (!video.paused) video.pause();
+    }
+    video.addEventListener("playing", function () { video.classList.add("is-on"); });
+    ctl.addEventListener("click", function () {
+      var playingNow = ctlLabel.textContent === "Pause film";
+      if (playingNow) { userPaused = true; ctl._forced = false; }
+      else { userPaused = false; ctl._forced = true; }
+      ctlLabel.textContent = playingNow ? "Play film" : "Pause film";
+      ctl.querySelector(".i-pause").style.display = playingNow ? "none" : "";
+      ctl.querySelector(".i-play").style.display = playingNow ? "" : "none";
+      syncFilm();
+    });
+    setCtl();
+    if (io) new IntersectionObserver(function (es) { filmInView = es[0].isIntersecting; if (video.getAttribute("src")) syncFilm(); }).observe($("#film"));
+    function idle(fn) { if ("requestIdleCallback" in window) requestIdleCallback(fn, { timeout: 2000 }); else setTimeout(fn, 200); }
+    if (document.readyState === "complete") idle(syncFilm); else addEventListener("load", function () { idle(syncFilm); });
+
+    /* ---------- chapter 3: tools ---------- */
+    var toolsSec = $("#tools"), list = $("#tools-list"), rows = $$(".tool", list), screens = $$("#tools-frame .scr");
+    function showTool(n) {
+      rows.forEach(function (r) { r.classList.toggle("is-active", +r.getAttribute("data-n") === n); });
+      screens.forEach(function (s) { s.classList.toggle("is-on", +s.getAttribute("data-scr") === n); });
+    }
+    rows.forEach(function (r) {
+      var n = +r.getAttribute("data-n");
+      r.addEventListener("mouseenter", function () { showTool(n); });
+      r.addEventListener("focus", function () { showTool(n); });
+    });
+    $$("li", list).forEach(function (li, i) { li.style.setProperty("--d", (i * 70) + "ms"); });
+    once(list);
+    /* touch tablets: the frame follows the row crossing the middle band */
+    if (io && matchMedia("(hover: none) and (min-width: 768px)").matches) {
+      var midIO = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) showTool(+e.target.getAttribute("data-n")); }); }, { rootMargin: "-45% 0px -45% 0px" });
+      rows.forEach(function (r) { midIO.observe(r); });
+    }
+    /* phones: an accordion built from the same rows, first row open */
+    var mqPhone = matchMedia("(max-width: 767px)"), accBuilt = false;
+    function buildAcc() {
+      if (accBuilt || !mqPhone.matches) return; accBuilt = true;
+      $$("li", list).forEach(function (li, i) {
+        var a = $(".tool", li), n = +a.getAttribute("data-n");
+        var btn = document.createElement("button"); btn.type = "button"; btn.className = "acc__btn";
+        btn.innerHTML = a.innerHTML + '<svg class="plus" viewBox="0 0 20 20" aria-hidden="true"><line x1="10" y1="3" x2="10" y2="17" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>';
+        btn.querySelector(".tool__name").removeAttribute("style");
+        var panel = document.createElement("div"); panel.className = "acc__panel"; panel.id = "acc-" + n;
+        btn.setAttribute("aria-controls", panel.id); btn.setAttribute("aria-expanded", i === 0 ? "true" : "false");
+        var inner = document.createElement("div"); inner.className = "acc__inner";
+        var scr = document.createElement("div"); scr.className = "acc__screen"; scr.setAttribute("aria-hidden", "true");
+        scr.appendChild(screens[n].cloneNode(true));
+        var link = document.createElement("a"); link.className = "tlink"; link.href = a.getAttribute("href"); link.textContent = a.getAttribute("data-more");
+        var fact = document.createElement("p"); fact.className = "acc__fact"; fact.innerHTML = $(".tool__fact", a).innerHTML;
+        inner.appendChild(fact); inner.appendChild(scr); inner.appendChild(link); panel.appendChild(inner);
+        li.insertBefore(btn, a); li.appendChild(panel);
+        if (i === 0) li.classList.add("open");
+        btn.addEventListener("click", function () {
+          var willOpen = !li.classList.contains("open");
+          $$("li", list).forEach(function (o) { o.classList.remove("open"); var b = $(".acc__btn", o); if (b) b.setAttribute("aria-expanded", "false"); });
+          if (willOpen) { li.classList.add("open"); btn.setAttribute("aria-expanded", "true"); }
+        });
+      });
+      toolsSec.classList.add("is-acc");
+    }
+    buildAcc(); mqPhone.addEventListener("change", buildAcc);
+
+    /* ---------- chapter 4: ink fill words, the handle, the sweep, the route ---------- */
+    (function () {
+      var stmt = $("#stmt"), words = stmt.textContent.trim().split(/\s+/);
+      stmt.innerHTML = words.map(function (w, i) { return '<span class="w" style="--i:' + i + '">' + w + "</span>"; }).join(" ");
+    })();
+    var page = $("#page"), knob = $("#knob"), x = 50, tx = 50, raf = 0;
+    function setX(v) { x = v; page.style.setProperty("--x", v.toFixed(2) + "%"); page.style.setProperty("--xn", v.toFixed(2)); page.classList.toggle("is-edge", v <= 0.5 || v >= 99.5); knob.setAttribute("aria-valuenow", Math.round(v)); knob.setAttribute("aria-valuetext", Math.round(100 - v) + "% of the page shows the review"); }
+    function lerp() { x += (tx - x) * 0.18; if (Math.abs(tx - x) < 0.05) { setX(tx); raf = 0; return; } setX(x); raf = requestAnimationFrame(lerp); }
+    function goX(v, jump) { tx = Math.max(0, Math.min(100, v)); page.classList.remove("is-wipe"); if (jump || reduce()) { setX(tx); return; } if (!raf) raf = requestAnimationFrame(lerp); }
+    page.addEventListener("pointermove", function (e) { if (e.pointerType !== "mouse") return; var r = page.getBoundingClientRect(); goX((e.clientX - r.left) / r.width * 100); });
+    knob.addEventListener("keydown", function (e) {
+      var k = e.key, v = null;
+      if (k === "ArrowLeft" || k === "ArrowDown") v = tx - 10; else if (k === "ArrowRight" || k === "ArrowUp") v = tx + 10; else if (k === "Home") v = 0; else if (k === "End") v = 100;
+      if (v !== null) { e.preventDefault(); goX(v, true); }
+    });
+    var dragging = false;
+    knob.addEventListener("pointerdown", function (e) { if (e.pointerType === "mouse") return; dragging = true; knob.setPointerCapture(e.pointerId); });
+    knob.addEventListener("pointermove", function (e) { if (!dragging) return; var r = page.getBoundingClientRect(); goX((e.clientX - r.left) / r.width * 100, true); });
+    knob.addEventListener("pointerup", function () { dragging = false; });
+    $$(".page__tabs button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var v = +b.getAttribute("data-wipe");
+        $$(".page__tabs button").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+        if (!reduce()) page.classList.add("is-wipe"); tx = v; setX(v);
+      });
+    });
+    setX(matchMedia("(hover: none)").matches ? 0 : 50);
+    if (matchMedia("(hover: none)").matches) { tx = 0; var rv = $('.page__tabs [data-wipe="0"]'); if (rv) rv.setAttribute("aria-pressed", "true"); }
+    once($("#notes"), function () { $("#notes").classList.add("is-swept"); });
+
+    var route = $("#route"), rail = $("#rail"), bar = $("#bar"), chip = $("#chip"), stops = $$("#stops li");
+    function routeTick() {
+      var r = rail.getBoundingClientRect(), H = r.height, p;
+      if (reduce()) p = 1;
+      else { var cover = (innerHeight - r.top) / (innerHeight + H); p = Math.max(0, Math.min(1, (cover - 0.3) / 0.4)); }
+      bar.style.setProperty("--p", p.toFixed(4));
+      var edge = p * H;
+      stops.forEach(function (li) { var top = li.offsetTop + 12; li.classList.toggle("on", edge >= top - 2 || p >= 0.999); });
+      var ch = chip.offsetHeight, last = stops[stops.length - 1], maxY = last.offsetTop + 12 - ch / 2;
+      var y = Math.max(0, Math.min(maxY, edge - ch / 2));
+      chip.style.transform = "translateY(" + y.toFixed(1) + "px)";
+    }
+
+    /* ---------- chapter 5: the season ---------- */
+    var LEVELS = [[3, 3, 2, 3, 4, 2, 3, 2], [4, 4, 4, 4, 5, 3, 4, 3], [5, 5, 5, 6, 6, 4, 5, 4]];
+    var WEEKS = [1, 7, 9];
+    var segRows = $$("#smap .segs");
+    segRows.forEach(function (s) { for (var i = 0; i < 7; i++) s.appendChild(document.createElement("i")); });
+    var weekSq = $$("#weeks i"), stepEls = $$("#season .step"), pics = $$("#season-pics img"), countEl = $("#season-count"), weeksEnd = $("#weeks-end");
+    var curStep = -1;
+    function setStep(k, animate) {
+      if (k === curStep) return; var prev = curStep; curStep = k;
+      stepEls.forEach(function (s, i) { s.classList.toggle("on", i === k); });
+      pics.forEach(function (p, i) { p.classList.toggle("is-on", i === k); });
+      segRows.forEach(function (row, r) {
+        $$("i", row).forEach(function (seg, j) {
+          var on = j < LEVELS[k][r], was = seg.classList.contains("on");
+          if (on && !was) seg.style.setProperty("--d", animate ? (r * 70 + (j - (prev >= 0 ? LEVELS[prev][r] : 0)) * 40) + "ms" : "0ms");
+          seg.classList.toggle("on", on);
+        });
+      });
+      weekSq.forEach(function (w, i) { var on = i < WEEKS[k], was = w.classList.contains("on"); if (on && !was) w.style.setProperty("--d", animate ? ((i - (prev >= 0 ? WEEKS[prev] : 0)) * 50) + "ms" : "0ms"); w.classList.toggle("on", on); });
+      weeksEnd.classList.toggle("on", k === 2);
+      countEl.textContent = (k + 1) + " of 3";
+    }
+    var mqSeasonStage = matchMedia("(min-width: 992px) and (prefers-reduced-motion: no-preference)");
+    var stepIO = null;
+    function initSeason() {
+      if (stepIO) { stepIO.disconnect(); stepIO = null; }
+      if (io && mqSeasonStage.matches) {
+        curStep = -1; setStep(0, false);
+        stepIO = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) setStep(+e.target.getAttribute("data-step"), true); }); }, { rootMargin: "-40% 0px -40% 0px" });
+        stepEls.forEach(function (s) { stepIO.observe(s); });
+      } else if (io && !reduce()) {
+        /* phones: the map and week row appear once, after step three, and fill on view */
+        curStep = -1; setStep(0, false); stepEls.forEach(function (s) { s.classList.add("on"); });
+        once($("#season-stage"), function () { setStep(2, true); stepEls.forEach(function (s) { s.classList.add("on"); }); });
+      } else { curStep = -1; setStep(2, false); stepEls.forEach(function (s) { s.classList.add("on"); }); }
+    }
+    initSeason(); mqSeasonStage.addEventListener("change", initSeason);
+
+    /* ---------- chapter 6: the doors ---------- */
+    if (reduce()) $("#seats").classList.add("on");
+    once($("#doors"), function () { var s = $("#seats"); $$("i", s).forEach(function (i, n) { i.style.setProperty("--d", (400 + n * 70) + "ms"); }); s.classList.add("on"); });
+
+    /* ---------- chapter 7: the fan and today's question (E1) ---------- */
+    once($("#fan"));
+    var TODAY = (function () { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); })();
+    var KEY = "karman.dq." + TODAY, SKILL = "Transitions", LEVEL = 6, ANSWER = "B";
+    var dq = $("#dq"), chs = $$(".ch", dq), res = $("#dq-res"), live = $("#dq-live"), statusEl = $("#dq-status"), exp = $("#dq-exp"), ret = $("#dq-ret"), openLink = $("#dq-open");
+    function readState() { try { return JSON.parse(sessionStorage.getItem(KEY) || "null"); } catch (e) { return null; } }
+    function writeState(s) { try { sessionStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+    /* stands in for the server action: the key stays off the client in the real build */
+    function checkAnswer(c) { return new Promise(function (ok) { setTimeout(function () { ok({ correct: c === ANSWER, answer: ANSWER }); }, 120); }); }
+    function showReply(chosen, reply, instant) {
+      var picked = chs.filter(function (b) { return b.getAttribute("data-c") === chosen; })[0];
+      var right = chs.filter(function (b) { return b.getAttribute("data-c") === reply.answer; })[0];
+      picked.classList.remove("is-picked"); picked.classList.add(reply.correct ? "is-good" : "is-bad");
+      if (!reply.correct) right.classList.add("is-answer");
+      chs.forEach(function (b) { b.setAttribute("aria-disabled", "true"); if (b !== picked && b !== right) b.classList.add("is-dim"); });
+      right.classList.remove("is-dim");
+      var after = function (ms, fn) { if (instant) fn(); else setTimeout(fn, ms); };
+      after(40, function () {
+        if (instant || reduce()) { right.classList.add("is-ring"); return; }
+        right.classList.add("is-ring");
+        setTimeout(function () { right.classList.add("is-ring-out"); }, 700);
+      });
+      after(120, function () { res.textContent = reply.correct ? "Correct" : "Not quite"; res.className = "shell__res " + (reply.correct ? "is-right" : "is-wrong") + (instant ? "" : " show"); dq.classList.add("is-answered"); });
+      after(250, function () { exp.hidden = false; if (!instant) exp.classList.add("show"); openLink.hidden = false; });
+      if (!reply.correct) after(550, function () { ret.hidden = false; if (!instant) ret.classList.add("show"); });
+      live.textContent = reply.correct ? "Correct. The answer is " + reply.answer + "." : "Not quite. You chose " + chosen + ". The answer is " + reply.answer + ".";
+    }
+    chs.forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (dq.classList.contains("is-busy") || dq.classList.contains("is-answered")) return;
+        var c = b.getAttribute("data-c"); dq.classList.add("is-busy");
+        b.classList.add("is-picked"); chs.forEach(function (o) { if (o !== b) o.classList.add("is-dim"); });
+        var slow = setTimeout(function () { statusEl.textContent = "Checking your answer"; }, 400);
+        checkAnswer(c).then(function (reply) {
+          clearTimeout(slow); statusEl.textContent = ""; dq.classList.remove("is-busy");
+          showReply(c, reply, false);
+          /* the page updates from the answer it holds; storage only keeps it for a reload, and may be blocked */
+          var state = { skill: SKILL, level: LEVEL, chosen: c, answer: reply.answer, correct: reply.correct };
+          writeState(state);
+          setTimeout(function () { applyAnswered(state); }, reply.correct ? 0 : 550);
+        }).catch(function () {
+          clearTimeout(slow); dq.classList.remove("is-busy");
+          chs.forEach(function (o) { o.classList.remove("is-picked", "is-dim"); });
+          statusEl.textContent = "Could not check that answer. "; live.textContent = "Could not check that answer.";
+          var again = document.createElement("button"); again.type = "button"; again.className = "tlink shell__retry"; again.textContent = "Try again";
+          again.addEventListener("click", function () { b.focus(); statusEl.textContent = ""; b.click(); });
+          statusEl.appendChild(again); again.focus();
+        });
+      });
+    });
+    function applyAnswered(s) {
+      if (!s) return;
+      $("#start-intro").hidden = true; $("#start-finish").hidden = false; $(".start__side").classList.add("is-answered");
+      $("#finish-head").textContent = "You answered today’s " + s.skill + " question.";
+      $("#finish-line").textContent = s.correct ? "Correct." : "You chose " + s.chosen + ". The answer was " + s.answer + ".";
+      $("#finish-ret").hidden = !!s.correct;
+      /* the route tells the visitor's own miss end to end, as what would happen in the March program: chip, stops and level line agree */
+      var own = !s.correct, spans = stops.map(function (li) { return $("span", li); });
+      if (!chip._def) { chip._def = chip.innerHTML; spans.forEach(function (sp) { sp._def = sp.textContent; }); }
+      var next = Math.min(7, s.level + 1);
+      var mine = [
+        "In the March program, your miss goes in the mistake log.",
+        "Back in the Daily 10.",
+        "Back again a week later.",
+        "Back again three weeks later. If answered right, " + s.skill + " moves from level\u00a0" + s.level + " to level\u00a0" + next + "."
+      ];
+      chip.innerHTML = own ? "Your miss: " + s.skill + ", level&nbsp;" + s.level : chip._def;
+      spans.forEach(function (sp, i) { sp.textContent = own ? mine[i] : sp._def; });
+      /* the mistake log is not built yet, so the visitor's own stop carries the same status label as the Daily 10 stops */
+      var logTag = $("em", stops[0]);
+      if (!logTag) { logTag = document.createElement("em"); logTag.textContent = "Coming, winter 2027"; stops[0].appendChild(logTag); }
+      logTag.hidden = !own;
+      requestTick();
+    }
+    (function () { var s = readState(); if (s) { showReply(s.chosen, { correct: s.correct, answer: s.answer }, true); applyAnswered(s); } })();
+
+    /* ---------- chapter 9: the close and the footer ---------- */
+    once($("#close-date"));
+    once($("#foot-word"));
+    var closeCta = $("#close-cta");
+    if (!reduce()) { closeCta.classList.add("is-settle"); once(closeCta, function () { closeCta.classList.add("is-settled"); closeCta.classList.remove("is-settle"); }); }
+    var closeEl = $("#close"), closeImg = $(".close__img");
+    function closeTick() {
+      if (reduce() || innerWidth < 992) { closeEl.style.removeProperty("--ci-y"); closeEl.style.removeProperty("--ci-x"); closeEl.style.removeProperty("--ci-r"); closeImg.style.removeProperty("--cs"); return; }
+      var r = closeEl.getBoundingClientRect(), p = Math.max(0, Math.min(1, (innerHeight - r.top) / innerHeight)), q = 1 - p;
+      var clip = $("#close-clip");
+      clip.style.setProperty("--ci-y", (q * innerHeight * 0.08).toFixed(1) + "px");
+      clip.style.setProperty("--ci-x", (q * 32).toFixed(1) + "px");
+      clip.style.setProperty("--ci-r", (q * 6).toFixed(1) + "px");
+      closeImg.style.setProperty("--cs", (1 + q * 0.06).toFixed(4));
+    }
+
+    /* ---------- header ground, dock ---------- */
+    /* the dock steps aside for every button the page itself shows: the free-test buttons, each door's button and the sections' own calls to action */
+    var dock = $("#dock"), foot = $("#foot"), heroCta = $("#hero-cta"), ctas = $$('[data-cta="free-test"], main .btn').filter(function (c, i, a) { return a.indexOf(c) === i; }), portrait = $("#portrait"), lastY = scrollY;
+    /* desktop safe zone: the dock only shows where the box around it (about 316 x 96px, bottom right) holds no reading text */
+    var textNodes = null, textRange = document.createRange(), zoneBlockedAt = -1e9, zoneTimer = 0;
+    if ("MutationObserver" in window) new MutationObserver(function () { textNodes = null; }).observe($("#main"), { childList: true, subtree: true, characterData: true });
+    function collectText() {
+      textNodes = [];
+      var w = document.createTreeWalker($("#main"), NodeFilter.SHOW_TEXT, { acceptNode: function (n) { return /\S/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } }), n;
+      while ((n = w.nextNode())) textNodes.push(n);
+    }
+    /* ahead > 0 also checks the next `ahead` px of page in the scroll direction (down: below the zone, up: above it), so the dock
+       only comes up where it can stay up for a while instead of flashing for a line or two */
+    var heroCopy = [$("#hero-h"), $("#hero-sub"), $("#hero-act")];
+    function textInZone(ahead, down) {
+      if (!textNodes) collectText();
+      var R = innerWidth - 24, L = innerWidth - 32 - Math.max(300, dock.offsetWidth) - 8, B = innerHeight - 12, T = innerHeight - 108;
+      if (ahead) { if (down) B += ahead; else T -= ahead; }
+      var faded = root.classList.contains("hero-faded");
+      for (var i = 0; i < textNodes.length; i++) {
+        var el = textNodes[i].parentElement; if (!el) continue;
+        if (faded && heroCopy.some(function (h) { return h && h.contains(el); })) continue;
+        var r = el.getBoundingClientRect();
+        if (r.right <= L || r.left >= R || r.bottom <= T || r.top >= B || !r.width) continue;
+        textRange.selectNodeContents(textNodes[i]);
+        var rs = textRange.getClientRects();
+        for (var k = 0; k < rs.length; k++) {
+          var q = rs[k];
+          if (q.width && q.right > L && q.left < R && q.bottom > T && q.top < B && getComputedStyle(el).visibility !== "hidden") return true;
+        }
+      }
+      return false;
+    }
+    var sceneProgress = null; /* set by the portrait scene while it runs */
+    var dockLastY = scrollY, dockDown = false, dockDirDown = true;
+    function groundAt(px, py, cards) {
+      var els = document.elementsFromPoint(px, py);
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i]; if (head.contains(el) || dock.contains(el) || sheet.contains(el)) continue;
+        if (cards && el.closest("[data-ui], .fcard")) return DAY;
+        var g = el.closest("[data-ground]"); if (g && g !== head) return g;
+      }
+      return null;
+    }
+    var DAY = { getAttribute: function () { return "day"; } };
+    function visible(el) { if (root.classList.contains("hero-faded") && heroCopy.some(function (h) { return h && h.contains(el); })) return false; var r = el.getBoundingClientRect(); if (!r.width || r.bottom <= 0 || r.top >= innerHeight) return false; var cs = getComputedStyle(el); return cs.visibility !== "hidden" && +cs.opacity > 0.05; }
+    function tick() {
+      ticking = false;
+      var y = scrollY;
+      /* header ink follows the ground under its midline; clear over the film */
+      if (!menuOpen) {
+        var g = groundAt(innerWidth / 2, Math.round(parseFloat(getComputedStyle(head).height) / 2));
+        var overFilm = sceneProgress !== null ? (sceneProgress < 0.3 && y < portrait.offsetTop + portrait.offsetHeight - innerHeight) : ($("#hero").getBoundingClientRect().bottom > 40);
+        head.setAttribute("data-ground", overFilm ? "clear" : (g ? g.getAttribute("data-ground") : "day"));
+        if (innerWidth < 768) { if (y > lastY + 4 && y > 160) head.classList.add("is-hidden"); else if (y < lastY - 4) head.classList.remove("is-hidden"); }
+        else head.classList.remove("is-hidden");
+      }
+      lastY = y;
+      /* dock */
+      var heroGone = sceneProgress !== null ? (sceneProgress >= 0.3 || y > portrait.offsetTop + portrait.offsetHeight - innerHeight) : heroCta.getBoundingClientRect().bottom < 0;
+      var ctaShown = ctas.some(function (c) { return c !== heroCta && visible(c); }) || (sceneProgress === null && visible(heroCta));
+      var dr = dock.getBoundingClientRect(), under = groundAt(dr.left + dr.width / 2, innerHeight - 40), fill = groundAt(dr.left + dr.width / 2, innerHeight - 40, true);
+      var gname = under ? under.getAttribute("data-ground") : "day";
+      var overFoot = foot.getBoundingClientRect().top < innerHeight - 20;
+      /* phones and tablets: the bar steps aside while the reader scrolls down and returns on the way up. The brief asks for a persistent
+         bar, but a fixed bar then sits on headings mid-read (inspect's covered-text gate); kept pending the founder's call */
+      if (y !== dockLastY) dockDirDown = y > dockLastY; /* last scroll direction, kept across idle ticks */
+      if (innerWidth < 992) { if (y > dockLastY + 4) dockDown = true; else if (y < dockLastY - 4) dockDown = false; } else dockDown = false;
+      dockLastY = y;
+      var show = heroGone && !ctaShown && !menuOpen && !overFoot && gname !== "ochre" && !dockDown;
+      if (show && innerWidth >= 992) {
+        /* hide at once when text reaches the zone; come back only after it has been clear for 300ms, so the dock does not flicker between lines */
+        var now = performance.now(), isOn = dock.classList.contains("is-on");
+        /* while up, only text actually in the zone takes it down; to come up, the zone must also stay clear for the next 240px of scroll */
+        if (textInZone(isOn ? 0 : 240, dockDirDown)) zoneBlockedAt = now;
+        if (now - zoneBlockedAt < 300) { show = false; clearTimeout(zoneTimer); zoneTimer = setTimeout(requestTick, 320 - (now - zoneBlockedAt)); }
+      }
+      dock.setAttribute("data-on", (fill ? fill.getAttribute("data-ground") : "day") === "day" ? "day" : "dark");
+      if (show !== dock.classList.contains("is-on")) {
+        dock.classList.toggle("is-leaving", !show);
+        dock.classList.toggle("is-on", show);
+        dock.setAttribute("aria-hidden", show ? "false" : "true");
+        dock.tabIndex = show ? 0 : -1;
+      }
+      routeTick(); closeTick();
+    }
+    var ticking = false;
+    function requestTick() { if (!ticking) { ticking = true; requestAnimationFrame(tick); } }
+    addEventListener("scroll", requestTick, { passive: true });
+    addEventListener("resize", requestTick);
+    document.addEventListener("focusin", function (e) { if (dock.contains(e.target)) return; if (e.target.closest && e.target.closest("input, textarea, select")) { dock.classList.remove("is-on"); } });
+    requestTick();
+
+    /* ---------- the portrait scene: GSAP, after load and idle, never under reduced motion ---------- */
+    function loadScript(src) { return new Promise(function (ok, no) { var s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
+    function startScene() {
+      if (reduce() || root.classList.contains("motion-off")) return;
+      loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js")
+        .then(function () { return loadScript("https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"); })
+        .then(function () { return document.fonts ? document.fonts.ready : null; })
+        .then(buildScene).catch(function () {});
+    }
+    function splitLines(el) {
+      if (!el._text) el._text = el.textContent;
+      el.innerHTML = el._text.split(/\s+/).map(function (w) { return '<span class="sw" style="display:inline-block">' + w + "</span>"; }).join(" ");
+      var lines = [], top = null;
+      $$(".sw", el).forEach(function (w) { if (top === null || Math.abs(w.offsetTop - top) > 4) { lines.push([]); top = w.offsetTop; } lines[lines.length - 1].push(w.textContent); });
+      el.innerHTML = lines.map(function (l) { return '<span class="ln"><span class="ln__in">' + l.join(" ") + "</span></span>"; }).join("");
+      el.setAttribute("aria-label", el._text);
+      return $$(".ln__in", el);
+    }
+    function buildScene() {
+      var gsap = window.gsap, ST = window.ScrollTrigger; if (!gsap || !ST) return;
+      gsap.registerPlugin(ST);
+      root.classList.add("arrived");
+      var film = $("#film"), media = $("#film-media"), scrim = $("#scrim"), dim = $("#dim"), stage = $("#pt-stage"), frame = $("#note-frame");
+      var h1a = $("#h1a"), h1b = $("#h1b"), sub = $("#hero-sub"), act = $("#hero-act");
+      var noteH = $("#note-h"), noteP = $("#note-p"), sigIn = $("#sig-in"), proof = $("#proof"), noteLink = $("#note-link"), noteBody = $("#note-body");
+      var mm = gsap.matchMedia();
+      /* the hero copy fades with opacity, not autoAlpha, so the page's only H1 keeps its text in the accessibility tree; the faded copy takes no clicks (.hero-faded) */
+      function common(tl, slide) {
+        /* the fade sits on each line's text span, the slide on the line around it */
+        tl.to([h1a.firstElementChild, h1b.firstElementChild], { opacity: 0, duration: 0.3 }, 0);
+        if (slide) tl.to(h1a, { x: function () { return -innerWidth * 0.1; }, duration: 0.3 }, 0).to(h1b, { x: function () { return innerWidth * 0.1; }, duration: 0.3 }, 0);
+        tl
+          .to(sub, { y: -24, opacity: 0, duration: 0.3 }, 0)
+          .to(act, { y: -24, opacity: 0, duration: 0.3 }, 0)
+          .to(scrim, { opacity: 0, duration: 0.4 }, 0)
+          .to(dim, { opacity: 0.2, duration: 0.55 }, 0)
+          .from(noteBody, { autoAlpha: 0, duration: 0.04 }, 0.3);
+      }
+      function track(self) { sceneProgress = self.progress; root.classList.toggle("hero-faded", self.progress > 0.2); requestTick(); }
+      function focusGuard(tl) {
+        var onFocus = function (e) {
+          var st = tl.scrollTrigger; if (!st) return;
+          if (noteBody.contains(e.target) && st.progress < 1) window.scrollTo(0, st.end);
+          else if (act.contains(e.target) && st.progress > 0.25) window.scrollTo(0, st.start);
+        };
+        document.addEventListener("focusin", onFocus);
+        return function () { document.removeEventListener("focusin", onFocus); };
+      }
+      mm.add("(min-width: 992px) and (prefers-reduced-motion: no-preference)", function () {
+        root.classList.add("scene-d");
+        root.style.setProperty("--vp-ar", (innerWidth / innerHeight).toFixed(4));
+        var lines = splitLines(noteH);
+        var fr = function () { var s = stage.getBoundingClientRect(), f = frame.getBoundingClientRect(); return { x: f.left - s.left, y: f.top - s.top, s: f.width / s.width }; };
+        var ctlTo = function () { var s = stage.getBoundingClientRect(), f = frame.getBoundingClientRect(), c = ctl.getBoundingClientRect(), cx = c.left - s.left - gsap.getProperty(ctl, "x"), cy = c.top - s.top - gsap.getProperty(ctl, "y"); return { x: (f.right - s.left - 12) - (cx + c.width), y: (f.bottom - s.top - 12) - (cy + c.height) }; };
+        var tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: portrait, start: "top top", end: "bottom bottom", scrub: 0.6, invalidateOnRefresh: true, onUpdate: track, onRefreshInit: function () { root.style.setProperty("--vp-ar", (innerWidth / innerHeight).toFixed(4)); } } });
+        common(tl, true);
+        tl.to(film, { x: function () { return fr().x; }, y: function () { return fr().y; }, scale: function () { return fr().s; }, borderRadius: function () { return (6 / fr().s).toFixed(2) + "px"; }, duration: 0.55 }, 0)
+          .to(ctl, { x: function () { return ctlTo().x; }, y: function () { return ctlTo().y; }, duration: 0.55 }, 0)
+          .from(lines, { yPercent: 105, duration: 0.2, stagger: 0.09 * 0.3 }, 0.4)
+          .from(noteP, { y: 16, opacity: 0, duration: 0.2 }, 0.5)
+          .from(sigIn, { yPercent: 105, duration: 0.4 }, 0.55)
+          .from([proof, noteLink], { y: 12, opacity: 0, duration: 0.15 }, 0.85)
+          .set({}, {}, 1);
+        var unguard = focusGuard(tl);
+        return function () { unguard(); root.classList.remove("scene-d", "hero-faded"); noteH.innerHTML = noteH._text; noteH.removeAttribute("aria-label"); sceneProgress = null; requestTick(); };
+      });
+      mm.add("(max-width: 991px) and (prefers-reduced-motion: no-preference)", function () {
+        /* the card takes 27% of the stage, not the brief's 44%: at 44% the note no longer fits below it on a 390x844 phone, and the stage would not hold */
+        var W = innerWidth, H = innerHeight, top = (parseFloat(getComputedStyle(head).height) || 60) + 12, cardH = Math.round(H * 0.27), noteTop = top + cardH + 20;
+        root.style.setProperty("--note-top", noteTop + "px");
+        root.classList.add("scene-p");
+        /* only hold the stage when the note fits below the card; otherwise the page stays unpinned */
+        if (noteBody.offsetHeight > H - noteTop - 16) { root.classList.remove("scene-p"); return function () {}; }
+        var sx = (W - 32) / W, sy = cardH / H;
+        /* measured against the stage, like the desktop target, so a first scroll past the scene cannot skew it */
+        var ctlPhone = function () {
+          var st = stage.getBoundingClientRect(), c = ctl.getBoundingClientRect();
+          var cx = c.left - st.left - gsap.getProperty(ctl, "x"), cy = c.top - st.top - gsap.getProperty(ctl, "y");
+          var tx = W < 768 ? (16 + 12) - cx : (W - 16 - 12) - (cx + c.width);
+          return { x: tx, y: (top + cardH - 10) - (cy + c.height) };
+        };
+        var tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: portrait, start: "top top", end: "bottom bottom", scrub: 0.6, invalidateOnRefresh: true, onUpdate: track } });
+        /* phones: the H1 lines only fade; a sideways slide would carry line 1 into the 16px margin */
+        common(tl, false);
+        tl.to(film, { x: 16, y: top, scaleX: sx, scaleY: sy, borderRadius: (6 / sx).toFixed(2) + "px / " + (6 / sy).toFixed(2) + "px", duration: 0.55 }, 0)
+          .to(media, { scaleY: sx / sy, duration: 0.55 }, 0)
+          /* the film control leaves the hero copy alone: it fades out, travels hidden, and returns at the card's corner once the card has landed */
+          .to(ctl, { autoAlpha: 0, duration: 0.05 }, 0.02)
+          .to(ctl, { x: function () { return ctlPhone().x; }, y: function () { return ctlPhone().y; }, duration: 0.4 }, 0.08)
+          .to(ctl, { autoAlpha: 1, duration: 0.06 }, 0.5)
+          .from(noteH, { y: 16, opacity: 0, duration: 0.12 }, 0.55)
+          .from(noteP, { y: 16, opacity: 0, duration: 0.12 }, 0.6)
+          .from(sigIn, { yPercent: 105, duration: 0.25 }, 0.65)
+          .from([proof, noteLink], { y: 12, opacity: 0, duration: 0.12 }, 0.82)
+          .set({}, {}, 1);
+        var unguard = focusGuard(tl);
+        return function () { unguard(); root.classList.remove("scene-p", "hero-faded"); sceneProgress = null; requestTick(); };
+      });
+      ST.refresh();
+    }
+    if (document.readyState === "complete") idle(startScene); else addEventListener("load", function () { idle(startScene); });
+  })();
+  </script>
+</body>
+</html>

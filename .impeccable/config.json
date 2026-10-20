@@ -9,6 +9,27 @@
         "files": [".impeccable/mocks/decision/home-v3.html"],
         "createdAt": "2026-10-20T04:36:30.224Z",
         "reason": "Claude: full-bleed colour bands (stats, eco, free) whose content sits in .wrap with 32px side margins, verified in 1440/768/390 renders; detector reads the band edge, not the inset content"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [".impeccable/mocks/decision/home-v4.html"],
+        "createdAt": "2026-10-20T12:56:35.976Z",
+        "reason": "Claude: full-bleed film/photo frames (portrait, close, tools preview, practice page) and product-card bars with visible padding, verified in 1440/768/390 screenshots"
+      },
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [".impeccable/mocks/decision/home-v4.html"],
+        "createdAt": "2026-10-20T12:56:36.001Z",
+        "reason": "Claude: inactive season stills at opacity 0 by design; they crossfade in as each caption becomes active (verified in motion frames)"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [".impeccable/mocks/decision/home-v4.html"],
+        "createdAt": "2026-10-20T12:56:36.027Z",
+        "reason": "Claude: 26px rotated card titles that set on one line; detector counts the rotated box height as two lines (verified via computed metrics)"
       }
     ]
   }
