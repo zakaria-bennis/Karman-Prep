@@ -6,10 +6,10 @@ here reads the clock (callers pass `now`) and nothing edits question text.
 
 import hashlib
 import json
-import os
 import re
 from pathlib import Path
 
+from . import lane
 from .evidence import needs_visual
 from .normalize import NORMALIZER_VERSION
 
@@ -220,39 +220,16 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path) -> dict:
 
 
 def write_lane(lane_path: Path, pulled: list, now: str) -> int:
-    """Add or update open lane entries for pulled rows; never remove entries.
-    Entries that were closed are reopened with a failed-lint attempt. Returns entries written."""
-    lane_path = Path(lane_path)
-    if lane_path.exists():
-        try:
-            data = _load(lane_path)
-            items = data["items"]
-            if not isinstance(items, dict):
-                raise TypeError
-        except (ValueError, KeyError, TypeError) as e:
-            raise ValueError(f"lane file {lane_path} is not readable lane JSON") from e
-    else:
-        data = {"items": {}}
-        items = data["items"]
+    """Hand pulled rows to the problem lane (lane.add_open owns the file). A row with several
+    problems becomes one entry: reason from its first code, detail listing every code."""
     by_id: dict = {}
     for p in pulled:
         by_id.setdefault(p["id"], []).append(p)
-    written = 0
-    for sid, entries in by_id.items():
-        entries.sort(key=lambda p: _CODE_ORDER.index(p["code"]))
-        existing = items.get(sid)
-        detail = " | ".join(f"{p['code']}: {p['detail']}" for p in entries)
-        base = dict(existing) if existing else {"since": now, "attempts": []}
-        attempts = list(base.get("attempts", []))
-        if existing is not None and existing.get("status") != "open":
-            attempts.append({"method": "lint", "ok": False, "at": now, "detail": detail})
-        items[sid] = {**base, "reason": LANE_REASON[entries[0]["code"]], "status": "open",
-                      "detail": detail, "attempts": attempts}
-        written += 1
-    tmp = lane_path.with_name(lane_path.name + f".tmp{os.getpid()}")
-    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    os.replace(tmp, lane_path)
-    return written
+    entries = {}
+    for sid, found in by_id.items():
+        found.sort(key=lambda p: _CODE_ORDER.index(p["code"]))
+        entries[sid] = (LANE_REASON[found[0]["code"]], " | ".join(f"{p['code']}: {p['detail']}" for p in found))
+    return lane.add_open(lane_path, entries, now, "lint")
 
 
 def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str) -> dict:

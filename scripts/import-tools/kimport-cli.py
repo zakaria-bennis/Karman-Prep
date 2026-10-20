@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, corpus, lint, pairs_page, publish, sweep, writer  # noqa: E402
+from kimport import backfill, corpus, lane, lint, pairs_page, publish, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -24,6 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_lint(sub)
     _register_corpus(sub)
     _register_pairs(sub)
+    _register_lane(sub)
     return parser
 
 
@@ -148,6 +149,101 @@ def _register_pairs(sub) -> None:
     ap.set_defaults(func=lambda a: _guard(lambda: pairs_page.apply_decisions(
         Path(a.pairs), Path(a.decisions), Path(a.clusters),
         Path(a.decisions_file) if a.decisions_file else None, a.now) or print("pairs: decisions applied")))
+
+
+def _register_lane(sub) -> None:
+    ln = sub.add_parser("lane", help="problem lane: set a question aside, record attempts, requeue, summarise")
+    ln.set_defaults(func=lambda a: ln.print_help(sys.stderr) or 2)
+    lsub = ln.add_subparsers(dest="lane_action", metavar="<action>")
+    sa = lsub.add_parser("set-aside", help="put a question in the lane with a typed reason")
+    sa.add_argument("--lane", required=True, help="pipeline/lane.json")
+    sa.add_argument("--id", required=True, help="occurrence id")
+    sa.add_argument("--reason", required=True, help="one of: " + ", ".join(lane.REASONS))
+    sa.add_argument("--detail", required=True)
+    sa.add_argument("--now", required=True)
+    sa.add_argument("--clusters", help="clusters.json: when --reason is broken_or_excluded, promote the next member")
+
+    def set_aside(a):
+        lane.set_aside(Path(a.lane), a.id, a.reason, a.detail, a.now)
+        print(f"lane: {a.id} set aside as {a.reason}")
+        if a.reason == "broken_or_excluded" and a.clusters:
+            _promote(a.clusters, a.id)
+
+    sa.set_defaults(func=lambda a: _guard(lambda: set_aside(a)))
+    at = lsub.add_parser("attempt", help="record a fix attempt (two failed attempts by different methods park it)")
+    at.add_argument("--lane", required=True)
+    at.add_argument("--id", required=True)
+    at.add_argument("--method", required=True)
+    outcome = at.add_mutually_exclusive_group(required=True)
+    outcome.add_argument("--ok", action="store_true", help="the attempt fixed it (resolves the item)")
+    outcome.add_argument("--failed", action="store_true")
+    at.add_argument("--detail", default="")
+    at.add_argument("--now", required=True)
+    at.add_argument("--clusters", help="clusters.json: when the item becomes parked, promote the next member")
+
+    def attempt(a):
+        status = lane.record_attempt(Path(a.lane), a.id, a.method, a.ok, a.now, a.detail)
+        print(f"lane: {a.id} is {status}")
+        if status == "parked" and a.clusters:
+            _promote(a.clusters, a.id)
+
+    at.set_defaults(func=lambda a: _guard(lambda: attempt(a)))
+    rq = lsub.add_parser("requeue", help="a campaign starts: parked and open items with a reason go back to open")
+    rq.add_argument("--lane", required=True)
+    rq.add_argument("--reason", required=True)
+    rq.set_defaults(func=lambda a: _guard(lambda: print(
+        "lane: {} requeued".format(len(lane.requeue(Path(a.lane), a.reason))))))
+    sm = lsub.add_parser("summary", help="counts by reason and status, with the oldest age per reason")
+    sm.add_argument("--lane", required=True)
+    sm.add_argument("--now", required=True)
+
+    def summary(a):
+        s = lane.summary(Path(a.lane), a.now)
+        print(f"lane: {s['total']} questions")
+        for r, counts in s["by_reason"].items():
+            if sum(counts.values()):
+                age = s["oldest_age_days"][r]
+                print(f"  {r}: " + ", ".join(f"{n} {k}" for k, n in counts.items()) +
+                      ("" if age is None else f"; oldest {age} days"))
+
+    sm.set_defaults(func=lambda a: _guard(lambda: summary(a)))
+
+    sl = sub.add_parser("slice", help="give a reviewer the next slice of canonical questions (one exam module)")
+    sl.add_argument("--reviewer")
+    sl.add_argument("--clusters", help="corpus/clusters.json")
+    sl.add_argument("--lane", help="pipeline/lane.json")
+    sl.add_argument("--ledger", help="current-readiness-ledger.json")
+    sl.add_argument("--claims", help="pipeline/claims.json (default: next to the lane file)")
+    sl.add_argument("--size", type=int, default=lane.SLICE_SIZE)
+    sl.add_argument("--now", help="ISO-8601 time stamped on the claim")
+    sl.add_argument("--release", action="store_true", help="give back all of --reviewer's claims")
+    sl.add_argument("--release-done", action="store_true", help="drop claims that are resolved or live")
+
+    def slice_cmd(a):
+        def need(*names):
+            missing = [n for n in names if not getattr(a, n)]
+            if missing:
+                raise ValueError("slice needs " + ", ".join("--" + n for n in missing))
+        claims = Path(a.claims) if a.claims else None
+        if a.release_done:
+            need("lane", "ledger")
+            claims = claims or lane.claims_path_for(Path(a.lane))
+            print(f"slice: {len(lane.release_done(claims, Path(a.lane), Path(a.ledger)))} finished claims dropped")
+        elif a.release:
+            need("reviewer", "claims")
+            print(f"slice: released {len(lane.release(claims, a.reviewer))} for {a.reviewer}")
+        else:
+            need("reviewer", "clusters", "lane", "ledger", "now")
+            for i in lane.next_slice(Path(a.clusters), Path(a.lane), Path(a.ledger), a.reviewer,
+                                     a.size, claims, a.now):
+                print(i)
+
+    sl.set_defaults(func=lambda a: _guard(lambda: slice_cmd(a)))
+
+
+def _promote(clusters: str, occ_id: str) -> None:
+    new = lane.promote_next_member(Path(clusters), occ_id)
+    print(f"lane: promoted {new} to canonical" if new else f"lane: no member to promote for {occ_id}")
 
 
 def _guard(fn) -> int:
