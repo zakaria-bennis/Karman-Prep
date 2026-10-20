@@ -70,11 +70,28 @@ def _register_writer(sub) -> None:
 
 def _register_sweep(sub) -> None:
     sw = sub.add_parser("sweep", help="find live duplicates; write groups, report and un-publish SQL")
-    sw.add_argument("--export", required=True, help="saved result of sql/live_export.sql")
-    sw.add_argument("--out", required=True, help="output folder, e.g. pipeline/sweep/")
-    sw.set_defaults(func=lambda a: _guard(lambda: print(
-        "sweep: {live} live, {groups} groups, {remove} to un-publish".format(
-            **sweep.run_sweep(Path(a.export), Path(a.out))))))
+    sw.add_argument("--export", help="saved result of sql/live_export.sql")
+    sw.add_argument("--out", help="output folder, e.g. pipeline/sweep/")
+
+    def run(a):
+        if not (a.export and a.out):
+            raise ValueError("sweep needs --export and --out")
+        print("sweep: {live} live, {groups} groups, {remove} to un-publish".format(
+            **sweep.run_sweep(Path(a.export), Path(a.out))))
+
+    sw.set_defaults(func=lambda a: _guard(lambda: run(a)))
+    ssub = sw.add_subparsers(dest="sweep_action", metavar="[resolve]")
+    rs = ssub.add_parser("resolve", help="after a person looks: un-publish SQL for a figure_review or typo_review group")
+    rs.add_argument("--groups", required=True, help="groups.json from the sweep")
+    rs.add_argument("--export", required=True, help="fresh result of sql/live_export.sql")
+    rs.add_argument("--group", required=True, help="the group's 1-based position in groups.json, or any copy id in it")
+    rs.add_argument("--keep", required=True, help="the copy that stays live")
+    rs.add_argument("--remove", help="comma-separated copies to un-publish (default: every other copy in the group)")
+    rs.add_argument("--out", required=True, help="output folder, e.g. pipeline/sweep/resolve-<n>/")
+    rs.set_defaults(func=lambda a: _guard(lambda: print(
+        "sweep resolve: keep {keep}, {remove} to un-publish ({relation})".format(**sweep.run_resolve(
+            Path(a.groups), Path(a.export), a.group, a.keep,
+            [x for x in a.remove.split(",") if x] if a.remove else None, Path(a.out))))))
 
 
 def _register_backfill(sub) -> None:

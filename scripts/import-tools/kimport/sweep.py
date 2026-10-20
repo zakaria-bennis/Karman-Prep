@@ -418,6 +418,67 @@ def republish_sql(groups, export_by_id: dict[str, dict]) -> str:
     return "\n".join(out + ["COMMIT;", ""])
 
 
+# ---------------------------------------------------------------- resolve
+
+RESOLVABLE = ("figure_review", "typo_review")
+
+
+def find_group(doc: dict, group: str) -> dict:
+    """A group in groups.json by its 1-based position, or by any copy id in it."""
+    groups = doc.get("groups") or []
+    if group.isdigit():
+        n = int(group)
+        if not 1 <= n <= len(groups):
+            raise ValueError(f"group {n}: groups.json has {len(groups)} groups (count from 1)")
+        return groups[n - 1]
+    found = [g for g in groups if group == g["keep"] or group in [e["id"] for e in g["evidence"]]]
+    if len(found) != 1:
+        raise ValueError(f"{group} is in {len(found)} groups of groups.json; give the group's position instead")
+    return found[0]
+
+
+def resolve_group(doc: dict, group: str, keep: str, remove: list[str] | None = None) -> DuplicateGroup:
+    """The person's pick for a figure_review or typo_review group: `keep` stays,
+    `remove` (default: every other copy in the group) is un-published. Ids not in
+    the group are refused."""
+    if doc.get("normalizer_version") != NORMALIZER_VERSION:
+        raise ValueError(f"groups.json was made with normalizer {doc.get('normalizer_version')!r}, not "
+                         f"{NORMALIZER_VERSION!r}: run the sweep again")
+    g = find_group(doc, group)
+    if g["relation"] not in RESOLVABLE:
+        raise ValueError(f"group {group} is {g['relation']}: the sweep's unpublish.sql already covers it")
+    ids = [g["keep"]] + [e["id"] for e in g["evidence"]]
+    if keep not in ids:
+        raise ValueError(f"--keep {keep} is not a copy in group {group} ({', '.join(ids)})")
+    others = [i for i in ids if i != keep]
+    remove = others if remove is None else list(remove)
+    bad = [i for i in remove if i not in others]
+    if bad:
+        raise ValueError(f"not other copies in group {group}: {', '.join(bad)} (copies: {', '.join(ids)})")
+    if not remove or len(set(remove)) != len(remove):
+        raise ValueError("--remove must name each copy to un-publish once")
+    return {"keep": keep, "remove": remove, "relation": g["relation"],
+            "evidence": [{"id": i, "match": "picked by a person"} for i in remove], "keeper_tie": False}
+
+
+def run_resolve(groups_path: Path, export_path: Path, group: str, keep: str, remove: list[str] | None,
+                out_dir: Path) -> dict:
+    """Write guarded un-publish / republish SQL (and dry-run twins) for one resolved review group."""
+    doc = json.loads(Path(groups_path).read_text(encoding="utf-8"))
+    resolved = resolve_group(doc, group, keep, remove)
+    by_id = export_by_id(read_export(export_path))
+    unpublish, republish = unpublish_sql([resolved], by_id), republish_sql([resolved], by_id)
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "resolution.json").write_text(json.dumps({"normalizer_version": NORMALIZER_VERSION, "group": group,
+                                                         **resolved}, indent=2, ensure_ascii=False) + "\n",
+                                             encoding="utf-8")
+    for name, sql in (("unpublish", unpublish), ("republish", republish)):
+        (out_dir / f"{name}.sql").write_text(sql, encoding="utf-8")
+        (out_dir / f"{name}.dryrun.sql").write_text(dryrun_variant(sql), encoding="utf-8")
+    return {"keep": keep, "remove": len(resolved["remove"]), "relation": resolved["relation"]}
+
+
 # ---------------------------------------------------------------- report
 
 _RELATION_WORDS = {
