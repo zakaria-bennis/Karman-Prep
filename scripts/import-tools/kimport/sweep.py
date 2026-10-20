@@ -179,21 +179,24 @@ def _bare_words(r: QuestionRecord) -> frozenset[str]:
     return frozenset(_WORD.findall(clean_text(r.text)))
 
 
-# Pre-filter slack (ruling R10). words_within_spots allows MAX_SPOTS spots of at
-# most MAX_SPOT_CHARS character edits each: 2 x 3 = 6 edits in all. Only an edit
-# to a space adds or drops a word, so the word counts differ by at most 6, and
-# 6 edits can touch at most 6 words of the shorter text, so at least
-# len(shorter) - 6 of its words are shared. The pre-filter is a necessary
-# condition only: it never rejects a pair the exact check accepts
-# (test_prefilter_never_rejects_a_spot_match checks this on random pairs).
-_NEAR_SLACK = MAX_SPOTS * MAX_SPOT_CHARS
+# Pre-filter bounds (rulings R10, R11). words_within_spots allows MAX_SPOTS spots
+# of at most MAX_SPOT_CHARS character edits each. Word counts: an edit to a
+# space adds or drops one word, so counts differ by at most MAX_SPOTS *
+# MAX_SPOT_CHARS (6). Shared words: one spot of up to 3 edits can join or split
+# words and so touch up to 2 * 3 = 6 words on one side ("is shown in a field of"
+# -> "isshown ina fieldof"), so two spots touch up to 2 * MAX_SPOTS *
+# MAX_SPOT_CHARS = 12 and at least len(shorter) - 12 words are shared. The
+# pre-filter is a necessary condition only: it never rejects a pair the exact
+# check accepts (test_prefilter_never_rejects_a_spot_match checks this).
+_NEAR_COUNT_SLACK = MAX_SPOTS * MAX_SPOT_CHARS
+_NEAR_SHARED_SLACK = 2 * MAX_SPOTS * MAX_SPOT_CHARS
 
 
 def _near_prefilter(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
-    if abs(len(ta) - len(tb)) > _NEAR_SLACK:
+    if abs(len(ta) - len(tb)) > _NEAR_COUNT_SLACK:
         return False
     shared = sum((Counter(ta) & Counter(tb)).values())
-    return shared >= min(len(ta), len(tb)) - _NEAR_SLACK
+    return shared >= min(len(ta), len(tb)) - _NEAR_SHARED_SLACK
 
 
 def _near(ta: tuple[str, ...], tb: tuple[str, ...]) -> bool:
@@ -279,7 +282,7 @@ def find_live_duplicates(records) -> list[DuplicateGroup]:
         idx = index_all()
         own: Counter = Counter()
         cand_words = [text_words(buckets[k][0].text) for k in cands]
-        for n in {n for cw in cand_words for d in range(-_NEAR_SLACK, _NEAR_SLACK + 1) for n in idx["by_len"].get(len(cw) + d, ())}:
+        for n in {n for cw in cand_words for d in range(-_NEAR_COUNT_SLACK, _NEAR_COUNT_SLACK + 1) for n in idx["by_len"].get(len(cw) + d, ())}:
             ws, bare = idx["rows"][n]
             if any(_near(cw, ws) for cw in cand_words):
                 own.update(bare)

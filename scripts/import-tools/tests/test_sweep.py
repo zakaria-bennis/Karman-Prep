@@ -257,11 +257,41 @@ class FindDuplicatesTests(unittest.TestCase):
                 lo = rnd.randint(0, len(b))
                 hi = min(len(b), lo + rnd.randint(0, 6))
                 b = b[:lo] + mutate(b[lo:hi]) + b[hi:]
+            for _ in range(rnd.randint(0, 2)):  # join adjacent words / split a word (OCR spacing damage)
+                ws = b.split()
+                if len(ws) > 1 and rnd.random() < 0.5:
+                    i = rnd.randrange(len(ws) - 1)
+                    ws[i:i + 2] = [ws[i] + ws[i + 1]]
+                elif ws:
+                    i = rnd.randrange(len(ws))
+                    k = rnd.randint(0, len(ws[i]))
+                    ws[i:i + 1] = [w for w in (ws[i][:k], ws[i][k:]) if w]
+                b = " ".join(ws)
             ta, tb = tuple(a.split()), tuple(b.split())
             if words_within_spots(ta, tb):
                 accepted += 1
                 self.assertTrue(_near_prefilter(ta, tb), (ta, tb))
         self.assertGreater(accepted, 1000)
+
+    def test_prefilter_accepts_joined_and_split_word_runs(self):
+        a = tuple("x1 a b c d e f mid gh ij kl end".split())
+        b = tuple("x1 ab cd ef mid g h i j k l end".split())
+        self.assertTrue(words_within_spots(a, b))
+        self.assertTrue(_near_prefilter(a, b))
+
+    def test_clean_copy_survives_held_copy_with_joined_and_split_words(self):
+        clean = ("Researchers is shown in a field of study while a farmer watered young trees "
+                 "with understanding each evening.")
+        typo = clean.replace("watered", "watcred")
+        held_text = typo.replace("is shown in a field of", "isshown ina fieldof").replace(
+            "understanding", "un der stand ing")
+        held = live("h", held_text, "2025-01-01T00:00:00+00:00", answer="6", is_live=False)
+        recs = [live("t", typo, "2026-01-01T00:00:00+00:00"), live("cl", clean, "2026-01-02T00:00:00+00:00"), held,
+                other("o", "Rain watered the fields overnight.")]
+        for g in find_live_duplicates(recs[:3]):  # no outside evidence: never removes the clean copy
+            self.assertNotIn("cl", g["remove"])
+        [g] = [g for g in find_live_duplicates(recs) if "t" in (g["keep"], *g["remove"])]
+        self.assertEqual(g["keep"], "cl")
 
     def test_equal_copies_without_outside_evidence_go_to_review(self):
         clean = "The farmer watered the young trees each evening during the dry summer months."
