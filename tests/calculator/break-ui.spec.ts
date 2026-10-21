@@ -271,13 +271,21 @@ test.describe("phone keypad", () => {
       page.evaluate(() => globalThis.__calculatorHarness!.engine.getSnapshot().settings.keypad);
     await rowField(page, "1").tap();
     await expect.poll(keypad).toBe(true);
+    // Upright the graph grows into the bar's space at the same centre and scale (owner,
+    // 2026-10-21), so "moves nothing" is the centre and the x bounds.
     const view = () =>
-      api<string>(page, "return JSON.stringify(c.graphpaperBounds.mathCoordinates)");
+      api<string>(
+        page,
+        "const m = c.graphpaperBounds.mathCoordinates; return JSON.stringify([m.left, m.right, (m.top + m.bottom) / 2])"
+      );
     const before = await view();
     const graph = (await page.locator("#calc .kc-graph-surface").boundingBox())!;
     await page.touchscreen.tap(graph.x + graph.width / 2, graph.y + graph.height / 3);
     await expect(page.locator("#calc .kc-keypad")).toHaveAttribute("data-minimized", "true");
     expect(await keypad()).toBe(true);
+    await expect
+      .poll(async () => (await page.locator("#calc .kc-keypad").boundingBox())!.height)
+      .toBe(37);
     expect(await view()).toBe(before);
     await rowField(page, "1").tap();
     await expect(page.locator("#calc .kc-keypad")).not.toHaveAttribute("data-minimized", "true");

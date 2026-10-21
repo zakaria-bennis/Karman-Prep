@@ -153,7 +153,10 @@ test("a plotted point's label converts its rational coordinate and keeps the oth
 test("keyboard: Tab reaches the toggle, Enter and Space switch it, focus stays", async ({
   page,
   isMobile,
+  browserName,
 }) => {
+  // WebKit moves to buttons with Alt+Tab unless its "Press Tab to highlight" setting is on
+  const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
   test.skip(isMobile, "keyboard on desktop");
   await openThird(page, false);
   await toggle(page).focus();
@@ -164,10 +167,10 @@ test("keyboard: Tab reaches the toggle, Enter and Space switch it, focus stays",
   await expect(toggle(page)).toHaveAttribute("aria-label", FRACTION);
   await page.keyboard.press("Space");
   await expect.poll(() => labels(page)).toEqual(["(0.33333, 0)"]);
-  await page.keyboard.press("Shift+Tab");
-  await page.keyboard.press("Tab");
+  await page.keyboard.press(`Shift+${tab}`);
+  await page.keyboard.press(tab);
   await expect(toggle(page)).toBeFocused();
-  await page.keyboard.press("Tab");
+  await page.keyboard.press(tab);
   await expect(page.locator("#calc .kc-poi-export")).toBeFocused();
 });
 
