@@ -37,7 +37,7 @@ it("D-9 typing a name in the header slot adds a data column in the next colour, 
   expect(screen.queryByRole("textbox", { name: "New column header" })).toBeNull();
 });
 
-it("D-9 Backspace in an empty header moves to the previous header and never deletes data", () => {
+it("D-9 Backspace in the empty header slot moves to the last header and deletes nothing", () => {
   const kit = withColumns(
     ["x_{1}", "y_{1}"],
     [
@@ -45,10 +45,9 @@ it("D-9 Backspace in an empty header moves to the previous header and never dele
       ["3", "4"],
     ]
   );
-  act(() => box("Column 2 header").focus());
-  act(() => kit.fields.byLabel("Column 2 header").emitEdit(""));
-  act(() => kit.fields.byLabel("Column 2 header").options.onDeleteOutOf("left"));
-  expect(box("Column 1 header")).toHaveFocus();
+  act(() => box("New column header").focus());
+  act(() => kit.fields.byLabel("New column header").options.onDeleteOutOf("left"));
+  expect(box("Column 2 header")).toHaveFocus();
   expect(stored(kit).map((c) => c.values)).toEqual([
     ["1", "2"],
     ["3", "4"],

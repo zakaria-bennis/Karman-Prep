@@ -3,7 +3,8 @@
 // the table from the blank row, Tab and Shift+Tab walk the headers then
 // the cells row by row (never the header slot or a computed cell), the arrows move one cell and
 // leave the table at its top or bottom, ArrowLeft and ArrowRight cross cells at the caret's edge,
-// and Backspace in an empty cell moves back, deleting a wholly empty data row. A cell entered by
+// and Backspace in an empty cell moves back, deleting a wholly empty data row; in an empty header
+// it deletes the column (the first column's takes the table). A cell entered by
 // Tab, Enter or an arrow has its content selected (requirement 9). Each call reads the latest
 // snapshot, so a key acts on the table as it is when pressed.
 
@@ -173,7 +174,8 @@ export function cellKeys(ctx: TableKeyContext, column: number, row: number | "h"
       const t = read();
       if (t === null) return;
       if (row === "h") {
-        if (column > 0) enter(ctx, { column: column - 1, row: "h" }, "end");
+        if (column < (t.view.columns ?? []).length) deleteColumnByKey(ctx, column);
+        else if (column > 0) enter(ctx, { column: column - 1, row: "h" }, "end");
         return;
       }
       if (row >= t.rows) {
@@ -193,6 +195,21 @@ export function cellKeys(ctx: TableKeyContext, column: number, row: number | "h"
       if (place !== null) enter(ctx, place, row === 0 ? "end" : "select");
     },
   };
+}
+
+/**
+ * D-9, as the reference does it: Backspace in an empty header deletes that column with its data
+ * and moves to the end of the previous header; in the first column's empty header it deletes the
+ * whole table, leaving R-9's empty row with the caret.
+ */
+function deleteColumnByKey(ctx: TableKeyContext, column: number): void {
+  if (column === 0) {
+    ctx.engine.deleteRow(ctx.tableId);
+    ctx.focus.focusRow(ctx.tableId, "end");
+    return;
+  }
+  ctx.engine.deleteTableColumn(ctx.tableId, column);
+  enter(ctx, { column: column - 1, row: "h" }, "end");
 }
 
 /** D-8: Add row to table n focuses the blank row's first editable cell; refused at the limit. */

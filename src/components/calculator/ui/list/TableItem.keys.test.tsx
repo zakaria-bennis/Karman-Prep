@@ -176,3 +176,23 @@ it("D-8 Add row to table n focuses the blank row and each data row has a Delete 
   act(() => kit.engine.undo());
   expect(columns(kit)[0]).toEqual(["1", "2"]);
 });
+
+it("D-9 Backspace in an empty later header deletes that column with its data and moves to the previous header", () => {
+  const kit = withTable(["y=x"], ["1", "2"], ["3", "4"]);
+  act(() => field(kit, "Column 2 header").emitEdit(""));
+  press(kit, "Column 2 header", "onDeleteOutOf");
+  const table = kit.engine.getSnapshot().rows.find((r) => r.id === "t")!;
+  expect(table.columns!.map((c) => c.latex)).toEqual(["x_{1}"]);
+  expect(columns(kit)).toEqual([["1", "2"]]);
+  expect(box("Column 1 header")).toHaveFocus();
+});
+
+it("D-9 Backspace in the first column's empty header deletes the table, leaving an empty row; Undo brings it back", () => {
+  const kit = withTable(["y=x"], ["1", "2"], ["3", "4"]);
+  act(() => field(kit, "Column 1 header").emitEdit(""));
+  press(kit, "Column 1 header", "onDeleteOutOf");
+  const rows = () => kit.engine.getSnapshot().rows.map((r) => `${r.id}:${r.type}:${r.latex}`);
+  expect(rows()).toEqual(["1:expression:y=x", "t:expression:"]);
+  act(() => kit.engine.undo());
+  expect(kit.engine.getSnapshot().rows.find((r) => r.id === "t")?.type).toBe("table");
+});
