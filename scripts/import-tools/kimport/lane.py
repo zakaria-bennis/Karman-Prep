@@ -21,7 +21,8 @@ from .keys import QuestionRecord
 
 REASONS = ("needs_figure", "asset_hold", "no_answer_key", "answer_dispute", "extraction_repair",
            "skill_unclear", "difficulty_unclear", "classification_review", "variant_review",
-           "broken_or_excluded")
+           "broken_or_excluded", "already_live")
+ALREADY_LIVE = "already_live"  # the occurrence is live, or duplicates a live row: resolved, and never sliced again
 STATUSES = ("open", "parked", "resolved")
 LINT_METHOD = "lint"  # a pull by the batch checks is not a fix method; it never counts toward parking
 SLICE_SIZE = 27
@@ -165,6 +166,13 @@ def blocked_ids(lane_path: Path | None) -> set[str]:
     return {i for i, it in _read_lane(lane_path)["items"].items() if it.get("status") in ("open", "parked")}
 
 
+def live_ids(lane_path: Path | None) -> set[str]:
+    """Ids the lane records as already live (reason already_live, any status): never sliced."""
+    if lane_path is None:
+        return set()
+    return {i for i, it in _read_lane(lane_path)["items"].items() if it.get("reason") == ALREADY_LIVE}
+
+
 def promote_next_member(clusters_path: Path, occ_id: str, lane_path: Path | None = None):
     """When canonical `occ_id` is parked or broken, elect the next member (corpus.elect, the
     parked one excluded), make it canonical and the former canonical a member. Returns the new
@@ -255,13 +263,15 @@ def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer
     roles = load_json(clusters_path)["roles"]
     ledger = {e["id"]: e for e in load_json(ledger_path)["items"]}
     blocked_lane = blocked_ids(lane_path)
+    already_live = live_ids(lane_path)
     with FileLock(claims_path):
         claims = _read_claims(claims_path)
         claimed = {i for c in claims.values() for i in c.get("claimed", [])}
         eligible = []
         for occ, role in roles.items():
             entry = ledger.get(occ)
-            if role != "canonical" or entry is None or _is_live(entry) or _ruled_out(entry) or occ in blocked_lane or occ in claimed:
+            if (role != "canonical" or entry is None or _is_live(entry) or _ruled_out(entry) or occ in blocked_lane
+                    or occ in claimed or occ in already_live):
                 continue
             exam, section, module, num = parse_id(occ)
             eligible.append(((entry.get("bucket") != "awaiting_evidence", exam, section, _module_key(module), num, occ),
@@ -321,6 +331,31 @@ def release_ids(claims_path: Path, ids) -> list[str]:
             entry["claimed"] = [i for i in entry.get("claimed", []) if i not in gone_set]
         atomic_write_json(claims_path, claims)
     return dropped
+
+
+def mark_already_live(lane_path: Path, entries: dict, now: str, method: str) -> list[str]:
+    """Record occurrences as already live ({id: (live row id or None, detail)}): reason already_live,
+    status resolved, with an ok attempt. An existing entry keeps its history (its old reason goes in the
+    detail). Returns the ids newly marked."""
+    lane_path = Path(lane_path)
+    done = []
+    with FileLock(lane_path):
+        data = _read_lane(lane_path)
+        for sid, (row, detail) in sorted(entries.items()):
+            item = data["items"].get(sid)
+            if item is not None and item.get("reason") == ALREADY_LIVE:
+                continue
+            base = dict(item) if item else {"since": now, "attempts": []}
+            if item is not None:
+                detail = f"[was {item.get('reason')} {item.get('status')}] {detail}"
+            base["attempts"] = list(base.get("attempts", [])) + [{"method": method, "ok": True, "at": now,
+                                                                  "detail": detail}]
+            data["items"][sid] = {**base, "reason": ALREADY_LIVE, "status": "resolved", "detail": detail,
+                                  "live_row": row}
+            done.append(sid)
+        if done:
+            atomic_write_json(lane_path, data)
+    return done
 
 
 def resolve_ids(lane_path: Path, ids, method: str, now: str, detail: str = "") -> list[str]:

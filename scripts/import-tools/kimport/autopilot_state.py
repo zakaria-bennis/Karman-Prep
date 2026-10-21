@@ -6,7 +6,7 @@ so no batch is staged twice:
    "runs": {run id: {"at", "result", "published", "held", "fixed", "refused", "visible_after", "batches"}},
    "held": {stable id: {"run", "batch", "reason"}}}
 status is published (some rows went live), held (rows staged but held at seal), refused (nothing
-staged), or stopped (the run stopped part-way; a person must look before it is retried).
+staged), evidence_corrected (a corrected batch for live rows: their evidence was replaced), or stopped (the run stopped part-way; a person must look before it is retried).
 "held" lists rows staged and held at seal; a corrected batch for them is an evidence update
 (kimport.fix). A held row that is later published moves to the run's "fixed" count.
 
@@ -47,6 +47,8 @@ def write_state(pipe: Path, state: dict) -> None:
 def reason_kind(reason: str) -> str:
     """A short bucket name for a precheck refusal reason."""
     r = reason or ""
+    if r.startswith("live correction: "):
+        return "live_fix_refused"
     for test, kind in (("in this run", "duplicate_in_run"), ("same comparison key", "same_key_in_bank"),
                        ("typo-level", "typo_match"), ("source question already", "source_in_bank"),
                        ("content_hash_v2 already", "same_hash_in_bank"),
@@ -107,6 +109,11 @@ def write_status(pipe: Path, state: dict, run: dict | None, message: str, error:
         "last_run_refused_by_reason": (run or {}).get("refused") or {},
         "batches_waiting": waiting(pipe, state),
         "last_error": error,
+        "evidence_corrected_total": sum(r.get("evidence_corrected", 0) for r in runs.values()),
+        "corpus_unique_not_live": next((r["corpus"].get("unique_not_live") for _, r in
+                                        sorted(runs.items(), key=lambda x: x[1].get("at") or "", reverse=True)
+                                        if isinstance(r.get("corpus"), dict) and "unique_not_live" in r["corpus"]),
+                                       None),
     }
     path = Path(pipe) / STATUS
     with FileLock(path):

@@ -22,11 +22,22 @@ open, so the next run refuses to start until someone has looked. The writer
 lock is released at the end, on error too. Every run's files are in
 pipeline/auto-<timestamp>/, with run.log in plain English.
 
+A corrected batch for rows that are already LIVE (kimport.live_fix) is an
+evidence-only correction of those live rows, run before any stage file
+(kimport.autopilot_live.live_phase). At the end, rows refused as duplicates of
+a live row go in the lane as already_live, and after a run that published
+anything the corpus duplicate map is rebuilt from a fresh export
+(kimport.autopilot_live.after_run).
+
+--retry <folder pattern> takes batch folders the ledger lists as refused or published again
+(for example after a builder learned a new kind of correction).
+
 --dry does every read-only step (export, build, every stage and evidence
 dry-run) and writes nothing outside its run folder: no lock, intent, lane,
 claims, ledger or status. With no new READY batch it returns at once.
 """
 
+import fnmatch
 import hashlib
 import json
 import re
@@ -35,8 +46,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from kimport import autopilot_live as apl
 from kimport import autopilot_state as aps
-from kimport import bulk, fix, lane, writer
+from kimport import bulk, fix, lane, live_fix, writer
 from kimport import stage as st
 from kimport.export import _unwrap, read_export_doc
 from kimport.fetch import ExportFailed, run_export
@@ -45,6 +57,7 @@ from kimport.sqlutil import uuid_literal
 
 REPO = Path(__file__).resolve().parents[3]
 CHUNK = 200
+RETRYABLE = ("refused", "published")  # --retry never takes a stopped batch: a person must look at it first
 TRIES = 4
 VISIBLE = "('publish_ready','publish_ready_with_verified_repair')"
 _TRANSIENT = re.compile(r"connection reset|reset by peer|timed? ?out|timeout|unexpected eof|\bEOF\b|connection refused|"
@@ -96,7 +109,7 @@ class Deps:
 
     def __init__(self, db=supabase_file_runner, exporter=None, rows_runner=st.stage_rows,
                  row_sealer=st.seal_rows_per_row, clock=None, sleep=time.sleep, log=print,
-                 exams_dir: Path = bulk.EXAMS, chunk_size: int = CHUNK):
+                 exams_dir: Path = bulk.EXAMS, chunk_size: int = CHUNK, corpus_runner=apl.run_corpus):
         self.db = db
         self.exporter = exporter or (lambda out: run_export(out, log=lambda m: None))
         self.rows_runner = rows_runner
@@ -106,6 +119,7 @@ class Deps:
         self.log = log
         self.exams_dir = Path(exams_dir)
         self.chunk_size = chunk_size
+        self.corpus_runner = corpus_runner
 
 
 def _sha_files(paths) -> str:
@@ -139,13 +153,15 @@ def visible_sql(ids: list[str]) -> str:
 
 
 class Autopilot:
-    def __init__(self, pipe: Path, deps: Deps, dry: bool = False, max_rows: int | None = None):
-        self.pipe, self.d, self.dry, self.max_rows = Path(pipe), deps, dry, max_rows
+    def __init__(self, pipe: Path, deps: Deps, dry: bool = False, max_rows: int | None = None, retry=()):
+        self.pipe, self.d, self.dry, self.max_rows, self.retry = Path(pipe), deps, dry, max_rows, tuple(retry)
         self.intents = self.pipe / "intents.jsonl"
         self.lane = self.pipe / "lane.json"
         self.lock = self.pipe / "writer.lock"
         self.open_intent = None   # (id, kind) while an intent of ours is open
         self.wrote = False        # any database write committed in this run
+        self.live_res = None      # kimport.autopilot_live.live_phase result
+        self.all_refused = []     # every refused row of the run (precheck shape)
 
     # ------------------------------------------------------------ helpers
 
@@ -210,7 +226,9 @@ class Autopilot:
 
     def start(self) -> dict:
         state = aps.read_state(self.pipe)
-        new = [d for d in aps.ready_folders(self.pipe) if d.name not in state["batches"]]
+        new = [d for d in aps.ready_folders(self.pipe) if d.name not in state["batches"]
+               or (state["batches"][d.name].get("status") in RETRYABLE
+                   and any(fnmatch.fnmatchcase(d.name, pat) for pat in self.retry))]
         if not new:
             msg = "Nothing new: every reviewed batch has already been handled."
             if not self.dry:
@@ -226,7 +244,7 @@ class Autopilot:
         self.run_id = f"auto-{stamp}" + ("-dry" if self.dry else "")
         self.run_dir = self.pipe / self.run_id
         self.run = {"id": self.run_id, "at": self.now(), "result": None, "published": 0, "held": 0, "fixed": 0,
-                    "refused": {}, "visible_after": None, "batches": [d.name for d in dirs], "dry": self.dry}
+                    "evidence_corrected": 0, "refused": {}, "visible_after": None, "batches": [d.name for d in dirs], "dry": self.dry}
         self.state, self.dirs = state, dirs
         if not self.dry:
             try:
@@ -289,6 +307,11 @@ class Autopilot:
                 cache[key] = self.d.rows_runner(reviewed, pdf, frozen, sha)
             return cache[key]
 
+        live_dirs, normal_dirs = live_fix.split(normal_dirs, doc.rows, self.d.exams_dir, rows_runner)
+        if live_dirs:
+            apl.live_phase(self, live_dirs, doc, rows_runner)
+        n_live = (self.live_res or {}).get("corrected" if not self.dry else "would_correct", 0)
+
         stage_dir, fix_dir = self.run_dir / "stage", self.run_dir / "fix"
         sres, spre = None, {"refused": [], "refused_batches": [], "batches": {}, "staged_ids": [], "chunks": [],
                             "readback_files": []}
@@ -322,11 +345,17 @@ class Autopilot:
             st._write_all(fix_dir, fres["files"])
         fixed = fres["items"] if fres else []
         self.batch_info(spre, fres, mixed)
+        live_note = f" {n_live} live rows {'would get' if self.dry else 'got'} corrected evidence." if live_dirs else ""
         if not staged and not fixed:
-            self.run["result"] = "nothing_to_stage"
             self.finish_batches({}, set(), set())
+            if self.dry:
+                self.run["result"] = "dry_run_ok" if n_live else "nothing_to_stage"
+                return f"Dry run passed: nothing to stage.{live_note} Nothing was written."
+            self.run["result"] = "evidence_corrected" if n_live else "nothing_to_stage"
+            apl.after_run(self, False, [], doc.rows)
             return (f"No row of the {len(self.dirs)} new batches could be staged; the reasons are in "
-                    f"{self.run_id}/stage/precheck.json and fix/fix-precheck.json.")
+                    f"{self.run_id}/stage/precheck.json, fix/fix-precheck.json and live/live-precheck.json."
+                    + live_note)
 
         chunks = [stage_dir / c["file"] for c in spre.get("chunks", [])]
         chunks += [fix_dir / c["file"] for c in (fres["precheck"]["chunks"] if fres else [])]
@@ -337,7 +366,7 @@ class Autopilot:
         if self.dry:
             self.run["result"] = "dry_run_ok"
             return (f"Dry run passed: {len(staged)} new rows and {len(fixed)} corrected rows would be staged, "
-                    f"{self.refused_total()} refused. Nothing was written.")
+                    f"{self.refused_total()} refused.{live_note} Nothing was written.")
 
         preview_rows = json.loads((stage_dir / "stage-preview.json").read_text())["rows"] if staged else []
         preview_rows += fres["preview_rows"] if fres else []
@@ -379,7 +408,8 @@ class Autopilot:
         if res["rows"] == 0:
             self.run["result"] = "held_all"
             self.finish_batches({}, {h["stable_question_id"] for h in held}, set())
-            return f"Every staged row ({len(held)}) was held at seal; nothing was published."
+            apl.after_run(self, False, [], doc.rows)
+            return f"Every staged row ({len(held)}) was held at seal; nothing was published.{live_note}"
 
         doc2, export2 = self.export("live-after-stage.json")
         if doc2.row_count != doc.row_count + len(staged):
@@ -427,9 +457,10 @@ class Autopilot:
         released = lane.release_ids(lane.claims_path_for(self.lane), sealed_ids)
         self.finish_batches({i: True for i in sealed_ids}, {h["stable_question_id"] for h in held}, fixed_ids)
         self.say(f"Visible now: {counts['bank_visible']}. {len(released)} finished claims released.")
+        apl.after_run(self, True, sealed_ids, doc2.rows)
         return (f"Published {len(qids)} questions ({len(fixed_ids)} of them corrected rows held earlier); "
                 f"{counts['bank_visible']} visible to students now. {len(held)} held for review, "
-                f"{self.refused_total()} refused (reasons in the run folder).")
+                f"{self.refused_total()} refused (reasons in the run folder).{live_note}")
 
     # ------------------------------------------------------------ steps
 
@@ -473,7 +504,10 @@ class Autopilot:
 
     def batch_info(self, spre: dict, fres: dict | None, mixed: dict) -> None:
         """Per-batch counts and refusal reasons, kept for the ledger."""
-        refused = list(spre.get("refused", [])) + (fres["precheck"]["refused"] if fres else [])
+        live = self.live_res or {}
+        refused = (list(spre.get("refused", [])) + (fres["precheck"]["refused"] if fres else [])
+                   + live.get("refused", []))
+        self.all_refused = refused
         rbatches = list(spre.get("refused_batches", [])) + (fres["precheck"]["refused_batches"] if fres else [])
         rbatches += [{"folder": k, "reason": v} for k, v in mixed.items()]
         self.run["refused"] = aps.refused_by_reason(refused, rbatches)
@@ -513,5 +547,6 @@ class Autopilot:
                                                    "at": at, "reason": rb["reason"]}
 
 
-def run_autopilot(pipe: Path, dry: bool = False, max_rows: int | None = None, deps: Deps | None = None) -> dict:
-    return Autopilot(Path(pipe), deps or Deps(), dry, max_rows).start()
+def run_autopilot(pipe: Path, dry: bool = False, max_rows: int | None = None, deps: Deps | None = None,
+                  retry=()) -> dict:
+    return Autopilot(Path(pipe), deps or Deps(), dry, max_rows, retry).start()

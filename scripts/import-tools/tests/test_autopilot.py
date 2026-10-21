@@ -76,6 +76,14 @@ class FakeBank:
         kind = kind.group(1) if kind else None
         if name.endswith(".dryrun.sql"):
             return []
+        live = re.match(r"live-(evidence|rollback)-\d+\.sql$", name)
+        if live:
+            expected = json.loads((path.parent / "live-expected.json").read_text())
+            for sid in _ROW.findall(sql):
+                want = expected[sid]
+                self.rows[want["question"]["id"]]["keys"][0]["raw_model_response"] = copy.deepcopy(
+                    want["key"]["raw_model_response"] if live.group(1) == "evidence" else want["old_evidence"])
+            return []
         if "readback" in name:
             want = {(v, s, m, int(n)) for v, s, m, n in _TUPLE.findall(sql)}
             snaps = [s for s in self.rows.values() if st._source(s["question"]) in want]
@@ -134,6 +142,9 @@ class AutopilotCase(unittest.TestCase):
         self.bank = FakeBank(None)
         self.t = datetime(2026, 10, 21, 8, 0, 0, tzinfo=timezone.utc)
         self.logs = []
+        self.corpus_calls = []
+        self.corpus_roles = {}
+        self.sealer = per_row_sealer
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -154,11 +165,18 @@ class AutopilotCase(unittest.TestCase):
     def deps(self, chunk_size=200):
         return ap.Deps(db=self.bank, exporter=self.bank.export,
                        rows_runner=lambda reviewed, pdf, frozen, sha: copy.deepcopy(self.docs[str(reviewed)]),
-                       row_sealer=per_row_sealer, clock=self.clock, sleep=lambda s: None, log=self.logs.append,
-                       exams_dir=self.d / "exams", chunk_size=chunk_size)
+                       row_sealer=self.sealer, clock=self.clock, sleep=lambda s: None, log=self.logs.append,
+                       exams_dir=self.d / "exams", chunk_size=chunk_size, corpus_runner=self.fake_corpus)
 
-    def run_ap(self, dry=False, chunk_size=200, max_rows=None):
-        return ap.run_autopilot(self.pipe, dry, max_rows, self.deps(chunk_size))
+    def fake_corpus(self, export, out_dir, lane_path):
+        """Stands in for `k corpus`: records the call and writes a clusters.json with self.corpus_roles."""
+        self.corpus_calls.append((Path(export).name, Path(out_dir), Path(lane_path)))
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        (Path(out_dir) / "clusters.json").write_text(json.dumps({"roles": self.corpus_roles}))
+        return {"unique": 7, "unique_not_live": 3, "live_unique": 4}
+
+    def run_ap(self, dry=False, chunk_size=200, max_rows=None, retry=()):
+        return ap.run_autopilot(self.pipe, dry, max_rows, self.deps(chunk_size), retry)
 
     def status(self):
         return json.loads((self.pipe / aps.STATUS).read_text())

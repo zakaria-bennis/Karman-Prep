@@ -87,7 +87,7 @@ def db_snapshot(preview_row: dict, n: int) -> dict:
 
 
 def fake_sealer(path: Path) -> list[dict]:
-    """Stands in for ts/seal-readback.ts: a deterministic hash per row."""
+    """Stands in for ts/seal-readback.ts: a deterministic hash per row; publication allowed as the evidence says."""
     rows = json.loads(Path(path).read_text(encoding="utf-8"))["rows"]
     out = []
     for r in rows:
@@ -96,5 +96,5 @@ def fake_sealer(path: Path) -> list[dict]:
         out.append({"question_id": q["id"], "stable_question_id": ev["approved_tags"]["stable_question_id"],
                     "source_version": q["source_version"], "content_hash_v2": q["content_hash_v2"],
                     "question_payload_sha256": hashlib.sha256(q["question_text"].encode()).hexdigest(),
-                    "publication_allowed_in_snapshot": False})
+                    "publication_allowed_in_snapshot": ev.get("student_publication_allowed") is True})
     return out

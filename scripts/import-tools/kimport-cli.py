@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopilot, autopilot_state, backfill, bulk, corpus, fetch, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
+from kimport import autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -356,16 +356,27 @@ def _register_autopilot(sub) -> None:
     ap.add_argument("--max-rows", type=int, help="stage at most this many reviewed rows (whole batches)")
     ap.add_argument("--dry", action="store_true", help="read-only: export, build, run every dry run; write nothing")
     ap.add_argument("--chunk-size", type=int, default=autopilot.CHUNK, help="rows per SQL file")
+    ap.add_argument("--retry", nargs="+", default=[], metavar="PATTERN",
+                    help="also take batch folders the ledger lists as refused or published, by name pattern (e.g. 'r2-fix-*')")
 
     def run(a):
         res = autopilot.run_autopilot(Path(a.pipe), a.dry, a.max_rows,
                                       autopilot.Deps(chunk_size=a.chunk_size,
-                                                     log=lambda m: print(m, file=sys.stderr, flush=True)))
+                                                     log=lambda m: print(m, file=sys.stderr, flush=True)),
+                                      a.retry)
         print(json.dumps(res))
         if res["result"] in ("stopped", "lock_held"):
             raise ValueError(res["message"])
 
     ap.set_defaults(func=lambda a: _guard(lambda: run(a)))
+
+    rf = sub.add_parser("autopilot-refresh", help="for an earlier run: record its refused duplicates of live rows "
+                        "in the lane and rebuild the corpus duplicate map from a fresh export")
+    rf.add_argument("--pipe", required=True)
+    rf.add_argument("--run", required=True, help="run folder name inside --pipe, e.g. auto-20261021-075531")
+    rf.add_argument("--now", required=True)
+    rf.set_defaults(func=lambda a: _guard(lambda: print(autopilot_live.refresh_now(
+        Path(a.pipe), a.run, lambda out: fetch.run_export(out, log=lambda m: None), a.now)["message"])))
 
     rc = sub.add_parser("autopilot-record", help="enter a run done by hand (e.g. bulk-1) into autopilot-state.json")
     rc.add_argument("--pipe", required=True)
