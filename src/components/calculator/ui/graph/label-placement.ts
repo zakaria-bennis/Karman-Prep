@@ -8,7 +8,8 @@
 // the layout is redone (`relayout`: while tracing, and once a trace ends), a label that was
 // already showing keeps its spot and only new labels choose. Box
 // sizes are estimated from the label (GP-37): the 20.24 px math serif, 4 px side padding and a
-// 1 px border, 42.27 px tall (taller with a fraction), plus the export button.
+// 1 px border, 42.27 px tall (taller with a fraction), plus the decimal/fraction toggle and the
+// export button when they show.
 
 import type { FormattedCoordinate, FormattedLabel } from "@/lib/calculator/poi/format";
 
@@ -40,6 +41,7 @@ const CHROME_PX = 10; // 4 px side padding and a 1 px border each side
 const HEIGHT_PX = 42.27;
 const FRACTION_EXTRA_PX = 19;
 const EXPORT_PX = 21.6; // POI-TRACE-18's button: 25.6 px wide, 4 px of it over the math and padding
+const FRACTION_TOGGLE_PX = 28; // the label's decimal/fraction toggle: 24 px and 4 px of air before it
 const CHAR_EM: Readonly<Record<string, number>> = { ".": 0.25, ",": 0.5, "−": 0.7, "-": 0.7 };
 
 const textEm = (s: string) => [...s].reduce((w, c) => w + (CHAR_EM[c] ?? 0.5), 0);
@@ -58,18 +60,35 @@ function coordinateEm(c: FormattedCoordinate): number {
     }
     case "scientific":
       return textEm(p.mantissa) + 0.9 + 1 + 0.7 * textEm(p.exponent);
+    case "fraction":
+      return (
+        0.9 * Math.max(textEm(String(p.n)), textEm(String(p.d))) + 0.4 + (p.negative ? 0.7 : 0)
+      );
   }
 }
 
-/** GP-37: the label box's size for `label`, with room for the export button when it shows. */
+/** The buttons a label shows after its math. */
+export interface LabelButtons {
+  export: boolean; // POI-TRACE-18
+  fraction: boolean; // the decimal/fraction toggle (owner decision, 2026-10-21)
+}
+
+const stacked = (c: FormattedCoordinate) =>
+  c.parts.kind === "fraction" || (c.parts.kind === "pi" && c.parts.d !== 1);
+
+/** GP-37: the label box's size for `label`, with room for the buttons that show. */
 export function labelBoxSize(
   label: FormattedLabel,
-  withButton: boolean
+  buttons: LabelButtons
 ): { width: number; height: number } {
   const em = 1.1 + coordinateEm(label.x) + 0.5 + coordinateEm(label.y);
-  const fraction = [label.x, label.y].some((c) => c.parts.kind === "pi" && c.parts.d !== 1);
+  const fraction = stacked(label.x) || stacked(label.y);
   return {
-    width: CHROME_PX + em * EM + (withButton ? EXPORT_PX : 0),
+    width:
+      CHROME_PX +
+      em * EM +
+      (buttons.fraction ? FRACTION_TOGGLE_PX : 0) +
+      (buttons.export ? EXPORT_PX : 0),
     height: HEIGHT_PX + (fraction ? FRACTION_EXTRA_PX : 0),
   };
 }

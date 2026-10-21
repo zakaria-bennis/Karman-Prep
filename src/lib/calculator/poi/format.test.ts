@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ViewSpec } from "../plot/viewport";
-import { coordinateScale, formatCoordinate, formatPoiLabel } from "./format";
+import {
+  coordinateScale,
+  formatCoordinate,
+  formatPoiLabel,
+  fractionLabel,
+  hasLabelFraction,
+} from "./format";
 
 /** A view `width` units wide over 960 px, centred on the origin, 1:1 units per px. */
 const view = (width = 20, height = width * (854 / 960)): ViewSpec => ({
@@ -69,5 +75,37 @@ describe("POI-TRACE-19 coordinate labels", () => {
     expect(formatPoiLabel({ x: 1, y: NaN }, view()).text).toBe("(1, undefined)");
     expect(formatPoiLabel({ x: -2.5, y: 4.25 }, view()).text).toBe("(−2.5, 4.25)");
     expect(formatPoiLabel({ x: -1.414, y: -0.000604 }, view()).text).toBe("(−1.414, −0.0006)");
+  });
+});
+
+describe("the label's fraction form (owner decision, 2026-10-21)", () => {
+  const label = (x: number, y: number) => formatPoiLabel({ x, y }, view());
+  const toggles = (x: number, y: number) => hasLabelFraction(label(x, y), { x, y });
+  const shown = (x: number, y: number) => fractionLabel(label(x, y), { x, y });
+
+  it("a clean rational with q ≤ 100 gets the toggle, root-finding noise included", () => {
+    expect(toggles(0.333333333, 0)).toBe(true); // within 1e-9 of 1/3
+    expect(toggles(0.5, 2)).toBe(true);
+    expect(toggles(Math.SQRT2, -2.5)).toBe(true); // one coordinate is enough
+    expect(toggles(1 / 97, 0)).toBe(true);
+  });
+
+  it("integers only, irrationals, π multiples and q > 100 get none", () => {
+    expect(toggles(2, -4)).toBe(false);
+    expect(toggles(Math.SQRT2, 3)).toBe(false);
+    expect(toggles(Math.PI / 2, 0)).toBe(false); // shows as π/2 already
+    expect(toggles(Math.E, Math.SQRT2)).toBe(false);
+    expect(toggles(1 / 101, 0)).toBe(false);
+    expect(toggles(0.3333, 0)).toBe(false); // 1e-5 off 1/3
+  });
+
+  it("toggled on: improper fractions with a true minus; the rest stay decimal", () => {
+    expect(shown(2.5, -1 / 3)).toMatchObject({
+      text: "(5/2, −1/3)",
+      latex: "\\left(\\frac{5}{2},\\ -\\frac{1}{3}\\right)",
+    });
+    expect(shown(Math.SQRT2, 0.75).text).toBe("(1.41421, 3/4)");
+    expect(shown(0.333333333, 4).y.parts).toEqual({ kind: "number", text: "4" });
+    expect(shown(-1.5, 0).x.parts).toEqual({ kind: "fraction", negative: true, n: 3, d: 2 });
   });
 });

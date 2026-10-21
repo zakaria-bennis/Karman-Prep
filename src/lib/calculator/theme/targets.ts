@@ -45,3 +45,18 @@ export const ROLE_TARGETS: readonly RoleTarget[] = [
   { fg: "accentLabel", on: ["accent"], min: 7 },
   { fg: "boundary", on: ["list", "chrome", "key"], min: 3 },
 ];
+
+/**
+ * The five default curve colours (owner decision, 2026-10-21): each at least 3:1 on the graph paper
+ * (WCAG 1.4.11), and at least this OKLab ΔE from each other and from the axis and grid greys. The bar is
+ * Desmos's own closest pair, blue and purple (0.125 on white), so Desmos's colours pass wherever
+ * nothing else is wrong.
+ */
+export const CURVE_MIN_CONTRAST = 3;
+export const CURVE_MIN_DELTA_E = 0.12;
+/** The greys a curve must stand apart from. */
+export const CURVE_GREYS = [
+  "axis",
+  "gridMajor",
+  "gridMinor",
+] as const satisfies readonly ColorRole[];

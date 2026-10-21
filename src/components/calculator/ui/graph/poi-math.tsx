@@ -1,6 +1,6 @@
 // A coordinate label's math (POI-TRACE-17, POI-TRACE-19): `\left(X,\ Y\right)` typeset as static
 // MathQuill markup, so it picks up the row fields' math styles: brackets that stretch to the
-// content, π fractions, m×10^e and undefined. Hidden from assistive technology; the label's
+// content, π fractions, plain fractions (the label's fraction form), m×10^e and undefined. Hidden from assistive technology; the label's
 // accessible name carries the text.
 
 import type { CoordinateParts, FormattedCoordinate } from "@/lib/calculator/poi/format";
@@ -47,6 +47,19 @@ function Pi({ n }: { n: number }): JSX.Element {
   );
 }
 
+/** A stacked fraction as MathQuill writes one. */
+function Fraction({ num, den }: { num: JSX.Element; den: number }): JSX.Element {
+  return (
+    <span className="mq-fraction mq-non-leaf">
+      <span className="mq-numerator">{num}</span>
+      <span className="mq-denominator">
+        <Digits text={String(den)} />
+      </span>
+      <span style={{ display: "inline-block", width: 0 }}>{"\u200b"}</span>
+    </span>
+  );
+}
+
 function Coordinate({ parts }: { parts: CoordinateParts }): JSX.Element {
   switch (parts.kind) {
     case "undefined":
@@ -57,19 +70,14 @@ function Coordinate({ parts }: { parts: CoordinateParts }): JSX.Element {
       return (
         <>
           {parts.negative && <Minus />}
-          {parts.d === 1 ? (
-            <Pi n={parts.n} />
-          ) : (
-            <span className="mq-fraction mq-non-leaf">
-              <span className="mq-numerator">
-                <Pi n={parts.n} />
-              </span>
-              <span className="mq-denominator">
-                <Digits text={String(parts.d)} />
-              </span>
-              <span style={{ display: "inline-block", width: 0 }}>{"​"}</span>
-            </span>
-          )}
+          {parts.d === 1 ? <Pi n={parts.n} /> : <Fraction num={<Pi n={parts.n} />} den={parts.d} />}
+        </>
+      );
+    case "fraction":
+      return (
+        <>
+          {parts.negative && <Minus />}
+          <Fraction num={<Digits text={String(parts.n)} />} den={parts.d} />
         </>
       );
     case "scientific":

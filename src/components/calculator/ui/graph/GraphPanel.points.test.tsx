@@ -137,6 +137,28 @@ it("POI-LIVE-1, POI-LIVE-2 pressing plotted points toggles their labels without 
   expect(labels()).toEqual([]);
 });
 
+it("a plotted point with a clean rational coordinate gets the decimal/fraction toggle", async () => {
+  await setup();
+  await tap(px(1), py(2));
+  expect(document.querySelector(".kc-poi-fraction")).toBeNull(); // (1, 2): integers only
+  const generation = t.latestGeneration();
+  t.emit({ v: 1, type: "plot", generation, rowId: "q", geometry: point("q", 2.5, -1 / 3) });
+  t.emit({ v: 1, type: "done", generation });
+  await flush();
+  await tap(px(2.5), py(-1 / 3), "touch");
+  expect(labels()).toEqual(["(1, 2) plotted", "(2.5, −0.33333) plotted"]);
+  const toggle = document.querySelector<HTMLButtonElement>(".kc-poi-fraction")!;
+  expect(toggle.getAttribute("aria-label")).toBe(
+    "Displaying as decimal. Press Enter to display as Fraction"
+  );
+  await act(async () => fireEvent.click(toggle));
+  await flush();
+  expect(labels()).toEqual(["(1, 2) plotted", "(5/2, −1/3) plotted"]);
+  await act(async () => fireEvent.click(toggle));
+  await flush();
+  expect(labels()).toEqual(["(1, 2) plotted", "(2.5, −0.33333) plotted"]);
+});
+
 it("POI-LIVE-1 a point is in reach 20 px from a finger", async () => {
   await setup();
   await tap(px(3) + 19, py(-2), "touch");

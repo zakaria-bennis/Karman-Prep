@@ -5,8 +5,21 @@
 // interactive blue (focus, selection, the Enter key and the focused row) from math, the colour the
 // quiz gives its selected answers and focus rings, as the reference calculator uses its one blue.
 import type { SiteTheme } from "../../themes/palettes";
-import { adjustLightness, compositeOver, contrastRatio, fromOklch, toOklch } from "./contrast";
-import { CLASSIC_ROLES, DESMOS_FILL_ALPHA, desmosCurves } from "./desmos-palette";
+import {
+  adjustLightness,
+  compositeOver,
+  contrastRatio,
+  deltaEOk,
+  fromOklch,
+  toOklch,
+} from "./contrast";
+import {
+  CLASSIC_ROLES,
+  DESMOS_FILL_ALPHA,
+  NEW_ROW_COLOURS,
+  desmosCurves,
+  invertHex,
+} from "./desmos-palette";
 import { deriveTones, referenceTones } from "./tones";
 import {
   COLOR_ROLES,
@@ -17,7 +30,13 @@ import {
   type SkinId,
   type SkinPalette,
 } from "./skins";
-import { GRID_MAX_CHROMA, MINOR_GRID_TARGET, TEXT_BACKGROUNDS } from "./targets";
+import {
+  CURVE_GREYS,
+  CURVE_MIN_CONTRAST,
+  GRID_MAX_CHROMA,
+  MINOR_GRID_TARGET,
+  TEXT_BACKGROUNDS,
+} from "./targets";
 
 const MAX_ADJUST_ROUNDS = 10;
 // R-2 (founder decision 2026-10-18): the warning marker's seed is Desmos's orange; written as a
@@ -106,12 +125,43 @@ export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
   >;
 }
 
+const isSlot = (c: string): c is CurveSlot => (CURVE_SLOTS as readonly string[]).includes(c);
+
+/**
+ * The five colours new rows take (red, blue, new-row green, purple, black) as a skin with these
+ * curves draws them; an explicit colour is inverted on a dark skin, as roles.ts resolves it.
+ */
+export function defaultCurveColours(dark: boolean, curves: Record<CurveSlot, string>): string[] {
+  return NEW_ROW_COLOURS.map((c) => (isSlot(c) ? curves[c] : dark ? invertHex(c) : c));
+}
+
+/**
+ * Black (c6) on a dark skin (owner decision, 2026-10-21). Desmos's inverse is white, which the
+ * near-white axis hides (OKLab ΔE about 0.04), so it is the neutral grey, in 1% OKLCH lightness
+ * steps from 0.50 to 0.95, that stands furthest from the axis, the gridlines and the other four
+ * curves while keeping 3:1 on the paper.
+ */
+function darkInk(roles: Record<ColorRole, string>, others: readonly string[]): string {
+  const refs = [...CURVE_GREYS.map((role) => roles[role]), ...others];
+  let best: string | null = null,
+    bestScore = -1;
+  for (let step = 50; step <= 95; step++) {
+    const grey = fromOklch(step / 100, 0, 0);
+    if (contrastRatio(grey, roles.paper) < CURVE_MIN_CONTRAST) continue;
+    const score = Math.min(...refs.map((r) => deltaEOk(grey, r)));
+    if (score > bestScore) [best, bestScore] = [grey, score];
+  }
+  if (best === null) throw new Error("No grey reaches 3:1 on the paper");
+  return best;
+}
+
 function palette(
   dark: boolean,
   roles: Record<ColorRole, string>,
   tones: SkinPalette["tones"]
 ): SkinPalette {
   const curves = desmosCurves(dark);
+  if (dark) curves.c6 = darkInk(roles, defaultCurveColours(dark, curves).slice(0, 4));
   const fillAlpha = Object.fromEntries(
     CURVE_SLOTS.map((slot) => [slot, DESMOS_FILL_ALPHA])
   ) as Record<CurveSlot, number>;
@@ -120,7 +170,7 @@ function palette(
 
 /**
  * One skin's roles and tones, with Desmos's curve colours (inverted on dark skins, as its Reverse
- * contrast shows them) and 40% fill on every slot (F-A1).
+ * contrast shows them, black excepted: see darkInk) and 40% fill on every slot (F-A1).
  */
 export function buildSkinPalette(theme: SiteTheme): SkinPalette {
   const roles = deriveRoles(theme);
