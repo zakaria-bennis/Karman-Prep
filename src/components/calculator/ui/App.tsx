@@ -30,7 +30,7 @@ import { SkinContext } from "./hooks/skin";
 import { KeyboardTrace, KeyboardTraceContext } from "./graph/keyboard-trace";
 import { EngineContext, useEngineSnapshot } from "./hooks/use-engine";
 import { CalculatorLayout } from "./layout/CalculatorLayout";
-import { insertRowBelow, performRedo, performUndo } from "./list/row-actions";
+import { performRedo, performUndo } from "./list/row-actions";
 import { ShortcutsHost } from "./shortcuts/ShortcutsHost";
 
 export interface AppProps {
@@ -156,9 +156,6 @@ export function App(props: AppProps): JSX.Element {
         );
       case "toggle-keypad":
         return toggleKeypad(); // a student change
-      case "add-row-end":
-        insertRowBelow(engine, focus, announcer, null, "focus"); // NM-42 on a refusal
-        return;
       case "audio-trace": {
         const s = engine.getSnapshot();
         return trace.toggle(s.focusedRowId ?? s.selectedRowId ?? s.activeRowId);

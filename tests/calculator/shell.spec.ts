@@ -281,12 +281,12 @@ test("A11Y-2 Ctrl or Cmd+Z and the redo shortcut announce Undone. and Redone. li
   await page.keyboard.press("ControlOrMeta+Shift+KeyZ");
   await expect.poll(() => announced(page)).toContain(EDITOR_MESSAGES.redone);
 });
-test("NM-42 an Alt+Enter row-limit refusal announces the row-limit message and adds no row", async ({
+test("NM-42 an Enter row-limit refusal announces the row-limit message and adds no row", async ({
   page,
 }) => {
   await openShell(page, `?rows=${enc(Array.from({ length: 100 }, (_, i) => String(i)))}`);
   await rowField(page, "1").click();
-  await page.keyboard.press("Alt+Enter");
+  await page.keyboard.press("Enter");
   await expect.poll(() => announced(page)).toContain(EDITOR_MESSAGES.rowLimit);
   expect(await rows(page)).toHaveLength(100);
 });

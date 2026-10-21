@@ -15,6 +15,7 @@ import {
   openShell,
   rowField,
   rows,
+  shortcutKeys,
   tap,
   useConsoleGuard,
 } from "./shell-helpers";
@@ -181,26 +182,50 @@ test("KB-3 on the phone keypad Escape closes the popover, Functions panel, keypa
   expect(await prevented(page)).toEqual([true, true, true, false]);
 });
 
-test("KB-7 shortcuts match event.code with Option-modified keys and skip composition", async ({
+test("KB-7 shortcuts match event.code with Option-modified keys and skip composition; the keys are Desmos's for the platform", async ({
   page,
 }) => {
   await openShell(page);
   await rowField(page, "1").click();
   await page.keyboard.type("x");
-  await send(page, { code: "KeyK", key: "˚", altKey: true });
+  const { mac, keypad } = await shortcutKeys(page);
+  // the keypad: Ctrl+K on a Mac, Alt+K (an Option-modified key on a Mac keyboard) elsewhere
+  const toggle = mac ? { ctrlKey: true, key: "k" } : { altKey: true, key: "˚" };
+  const other = mac ? { altKey: true, key: "˚" } : { ctrlKey: true, key: "k" };
+  await send(page, { code: "KeyK", ...toggle });
   await expect.poll(() => keypadOpen(page)).toBe(true);
-  await send(page, { code: "KeyK", key: "k", ctrlKey: true, isComposing: true });
+  await send(page, { code: "KeyK", ...toggle, isComposing: true });
+  await send(page, { code: "KeyK", ...other });
   await frames(page);
   expect(await keypadOpen(page)).toBe(true);
-  await send(page, { code: "KeyZ", key: "w", ctrlKey: true });
+  // undo and redo: Cmd on a Mac, Ctrl elsewhere; the other modifier does nothing
+  const [mod, notMod] = mac ? (["metaKey", "ctrlKey"] as const) : (["ctrlKey", "metaKey"] as const);
+  await send(page, { code: "KeyZ", key: "w", [notMod]: true });
+  await frames(page);
+  expect((await rows(page))[0].latex).toBe("x");
+  await send(page, { code: "KeyZ", key: "w", [mod]: true });
   await expect.poll(async () => (await rows(page))[0].latex).toBe("");
-  await send(page, { code: "KeyY", key: "z", ctrlKey: true });
+  await send(page, { code: "KeyY", key: "z", [mod]: true });
   await expect.poll(async () => (await rows(page))[0].latex).toBe("x");
-  await page.keyboard.press("Alt+KeyK");
+  await page.keyboard.press(keypad);
   await expect.poll(() => keypadOpen(page)).toBe(false);
 });
 
-test("KB-7 undo, redo and Alt+Enter in a Graph settings text field leave the expression rows alone", async ({
+test("KB-7 Alt+Enter, Shift+Enter and Ctrl or Cmd+Enter add no row, as in Desmos; Enter does", async ({
+  page,
+}) => {
+  await openShell(page);
+  await rowField(page, "1").click();
+  await page.keyboard.type("12");
+  for (const key of ["Alt+Enter", "Shift+Enter", "Control+Enter", "Meta+Enter"])
+    await page.keyboard.press(key);
+  await frames(page);
+  expect((await rows(page)).map((r) => r.latex)).toEqual(["12"]);
+  await page.keyboard.press("Enter");
+  await expect.poll(async () => (await rows(page)).map((r) => r.latex)).toEqual(["12", ""]);
+});
+
+test("KB-7 undo and redo in a Graph settings text field leave the expression rows alone", async ({
   page,
 }) => {
   await openShell(page, "?w=800&h=600");
@@ -213,7 +238,7 @@ test("KB-7 undo, redo and Alt+Enter in a Graph settings text field leave the exp
   const label = page.getByRole("textbox", { name: "Label", exact: true }).first();
   await label.click();
   await page.keyboard.type("ab");
-  for (const key of ["ControlOrMeta+KeyZ", "ControlOrMeta+Shift+KeyZ", "Alt+Enter"])
+  for (const key of ["ControlOrMeta+KeyZ", "ControlOrMeta+Shift+KeyZ"])
     await page.keyboard.press(key);
   await frames(page);
   expect(await rows(page)).toEqual(before);
@@ -225,7 +250,8 @@ test("KB-13 Delete All, Undo, Redo, Done and every keypad key are tabbable in vi
 }) => {
   await openShell(page, `?w=800&h=600&rows=${enc(["1"])}`);
   await rowField(page, "1").click();
-  for (const key of ["End", "2", "Control+KeyZ", "Control+KeyK"]) await page.keyboard.press(key); // Undo and Redo both enabled; keypad open
+  const { mod, keypad } = await shortcutKeys(page);
+  for (const key of ["End", "2", `${mod}+KeyZ`, keypad]) await page.keyboard.press(key); // Undo and Redo both enabled; keypad open
   await page.getByRole("button", { name: /^edit list/i }).click();
   // AN-1: measure the keys once the keypad's 300 ms slide has ended.
   await expect

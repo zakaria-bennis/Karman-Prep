@@ -43,21 +43,33 @@ afterEach(() => {
   restore();
 });
 
-it("KB-7 shortcuts match event.code, accept Option-modified keys and ignore composition", () => {
-  const cases: [Partial<ShortcutKey>, ShortcutAction | null][] = [
-    [{ code: "KeyK", key: "˚", altKey: true }, "toggle-keypad"],
-    [{ code: "KeyK", key: "k", ctrlKey: true }, "toggle-keypad"],
-    [{ code: "KeyK", key: "k", metaKey: true }, null],
-    [{ code: "KeyZ", key: "w", ctrlKey: true }, "undo"],
-    [{ code: "KeyZ", key: "z", metaKey: true }, "undo"],
-    [{ code: "KeyZ", key: "Z", metaKey: true, shiftKey: true }, "redo"],
-    [{ code: "KeyY", key: "y", ctrlKey: true }, "redo"],
-    [{ code: "KeyY", key: "y", metaKey: true }, "redo"], // break-ui: Cmd+Y, as the reference
-    [{ code: "KeyW", key: "z", ctrlKey: true }, null],
-    [{ code: "Enter", key: "Enter", altKey: true }, "add-row-end"],
-    [{ code: "KeyZ", key: "z", ctrlKey: true, isComposing: true }, null],
+it("KB-7 shortcuts match event.code and ignore composition; the set and modifiers are Desmos's per platform (owner decision, 2026-10-21)", () => {
+  // [key, Windows or ChromeOS action, Mac action]
+  const cases: [Partial<ShortcutKey>, ShortcutAction | null, ShortcutAction | null][] = [
+    [{ code: "KeyZ", key: "w", ctrlKey: true }, "undo", null],
+    [{ code: "KeyZ", key: "z", metaKey: true }, null, "undo"],
+    [{ code: "KeyZ", key: "Z", ctrlKey: true, shiftKey: true }, "redo", null],
+    [{ code: "KeyZ", key: "Z", metaKey: true, shiftKey: true }, null, "redo"],
+    [{ code: "KeyY", key: "y", ctrlKey: true }, "redo", null],
+    [{ code: "KeyY", key: "y", metaKey: true }, null, "redo"], // break-ui: Cmd+Y, as the reference
+    [{ code: "KeyZ", key: "z", ctrlKey: true, altKey: true }, null, null],
+    [{ code: "KeyK", key: "˚", altKey: true }, "toggle-keypad", null],
+    [{ code: "KeyK", key: "k", ctrlKey: true }, null, "toggle-keypad"],
+    [{ code: "KeyK", key: "k", metaKey: true }, null, null],
+    [{ code: "KeyK", key: "k", ctrlKey: true, altKey: true }, null, null],
+    [{ code: "KeyK", key: "K", altKey: true, shiftKey: true }, null, null],
+    [{ code: "KeyW", key: "z", ctrlKey: true }, null, null],
+    [{ code: "Enter", key: "Enter", altKey: true }, null, null],
+    [{ code: "Enter", key: "Enter", shiftKey: true }, null, null],
+    [{ code: "KeyZ", key: "z", ctrlKey: true, isComposing: true }, null, null],
+    [{ code: "KeyZ", key: "z", metaKey: true, isComposing: true }, null, null],
   ];
-  for (const [init, action] of cases) expect(matchShortcut(k(init))).toBe(action);
+  for (const [init, win, mac] of cases) {
+    expect([matchShortcut(k(init), false), matchShortcut(k(init), true)], init.code).toEqual([
+      win,
+      mac,
+    ]);
+  }
 });
 
 it("KB-3 installShellKeyboard prevents a handled Escape without stopping it, and prevents and stops shortcuts", () => {
@@ -66,10 +78,11 @@ it("KB-3 installShellKeyboard prevents a handled Escape without stopping it, and
   const heard: string[] = [];
   const ac = new AbortController();
   document.addEventListener("keydown", (e) => heard.push(e.key), { signal: ac.signal });
-  const off = installShellKeyboard(root, {
-    onShortcut: (a) => actions.push(a),
-    onEscape: () => closes.shift()!,
-  });
+  const off = installShellKeyboard(
+    root,
+    { onShortcut: (a) => actions.push(a), onEscape: () => closes.shift()! },
+    false
+  );
   expect([
     press(inner, { key: "Escape" }),
     press(inner, { key: "Escape" }),
@@ -82,12 +95,13 @@ it("KB-3 installShellKeyboard prevents a handled Escape without stopping it, and
   ac.abort();
 });
 
-it("KB-7 undo, redo and add-row-end stay with a native text input; a math field's textarea, a radio and toggle-keypad still get them", () => {
+it("KB-7 undo and redo stay with a native text input; a math field's textarea, a radio and toggle-keypad still get them", () => {
   const actions: string[] = [];
-  const off = installShellKeyboard(root, {
-    onShortcut: (a) => actions.push(a),
-    onEscape: () => false,
-  });
+  const off = installShellKeyboard(
+    root,
+    { onShortcut: (a) => actions.push(a), onEscape: () => false },
+    false
+  );
   const input = root
     .appendChild(document.createElement("label"))
     .appendChild(Object.assign(document.createElement("input"), { type: "text" }));
@@ -98,12 +112,11 @@ it("KB-7 undo, redo and add-row-end stay with a native text input; a math field'
   expect([
     press(input, { code: "KeyZ", key: "z", ctrlKey: true }),
     press(input, { code: "KeyY", key: "y", ctrlKey: true }),
-    press(input, { code: "KeyZ", key: "Z", metaKey: true, shiftKey: true }),
-    press(input, { code: "Enter", key: "Enter", altKey: true }),
-  ]).toEqual([false, false, false, false]);
+    press(input, { code: "KeyZ", key: "Z", ctrlKey: true, shiftKey: true }),
+  ]).toEqual([false, false, false]);
   expect(actions).toEqual([]);
   expect([
-    press(input, { code: "KeyK", key: "k", ctrlKey: true }),
+    press(input, { code: "KeyK", key: "k", altKey: true }),
     press(mqTextarea, { code: "KeyZ", key: "z", ctrlKey: true }),
     press(inner, { code: "KeyY", key: "y", ctrlKey: true }),
     press(radio, { code: "KeyZ", key: "z", ctrlKey: true }),
@@ -113,9 +126,13 @@ it("KB-7 undo, redo and add-row-end stay with a native text input; a math field'
 });
 
 it("POI-20 Alt or Option+T starts or stops the keyboard trace, matched on its code", () => {
-  expect(matchShortcut(k({ code: "KeyT", key: "†", altKey: true }))).toBe("audio-trace");
-  expect(matchShortcut(k({ code: "KeyT", key: "t", altKey: true, ctrlKey: true }))).toBeNull();
-  expect(matchShortcut(k({ code: "KeyT", key: "t" }))).toBeNull();
+  for (const mac of [false, true]) {
+    expect(matchShortcut(k({ code: "KeyT", key: "†", altKey: true }), mac)).toBe("audio-trace");
+    expect(
+      matchShortcut(k({ code: "KeyT", key: "t", altKey: true, ctrlKey: true }), mac)
+    ).toBeNull();
+    expect(matchShortcut(k({ code: "KeyT", key: "t" }), mac)).toBeNull();
+  }
 });
 
 it("POI-20 a key the running trace takes is prevented and stopped before shortcuts and Escape", () => {

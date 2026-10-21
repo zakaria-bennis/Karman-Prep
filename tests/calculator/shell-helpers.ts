@@ -40,6 +40,18 @@ export async function openShell(page: Page, query = ""): Promise<void> {
   await page.locator("#calc [data-kc-layout]").waitFor({ state: "attached" });
 }
 
+/**
+ * The shortcut keys of the page's platform, as Desmos binds them (owner decision, 2026-10-21):
+ * undo and redo on Cmd on a Mac and Ctrl elsewhere; the keypad on Ctrl+K on a Mac and Alt+K
+ * elsewhere.
+ */
+export async function shortcutKeys(
+  page: Page
+): Promise<{ mac: boolean; mod: "Meta" | "Control"; keypad: string }> {
+  const mac = await page.evaluate(() => /^(Mac|iPhone|iPad|iPod)/.test(navigator.platform));
+  return { mac, mod: mac ? "Meta" : "Control", keypad: mac ? "Control+KeyK" : "Alt+KeyK" };
+}
+
 export function enc(rows: string[]): string {
   return encodeURIComponent(JSON.stringify(rows));
 }

@@ -4,8 +4,8 @@
 // keypad tab at the bottom-left for a mouse in the side-by-side layout only (VIS-RESPONSIVE-15: a
 // stacked mouse layout opens it from the list toolbar, and a touch opens it by focusing a row). A closed keypad stays mounted, hidden from assistive technology and inert, so the
 // AN-1 slide has something to move. The audio key starts and stops the keyboard trace (K-9, POI-20). Insert and Enter
-// keys act through pressKey without taking focus from the row (K-10); arrows and Backspace repeat
-// while held (K-11); a pressed key carries data-pressed for its tone (AN-11). The Functions key
+// keys act through pressKey without taking focus from the row (K-10); every key acts once per press,
+// on its click, with no hold-to-repeat, as Desmos's does (K-11); a pressed key carries data-pressed for its tone (AN-11). The Functions key
 // opens the Functions panel (K-4, K-5): a panel button inserts its template into the keypad's row
 // in one run call, closes the panel and returns focus to the row.
 
@@ -34,7 +34,6 @@ import { MotionContext } from "../list/motion";
 import { keypadTarget, pressKey, type KeyContext } from "./apply-key";
 import { createDoubleTapTracker } from "./double-tap";
 import { FunctionsPanel } from "./FunctionsPanel";
-import { createKeyRepeat } from "./key-repeat";
 import { KeyFace } from "./KeyFace";
 import { CaretDownGlyph, TabKeyboardGlyph } from "./keypad-icons";
 import { keypadLayout, placeRow, NARROW_BELOW, type KeyDef, type KeypadLayout } from "./keys";
@@ -142,11 +141,8 @@ export function Keypad(props: KeypadProps): JSX.Element {
   const [shift, setShift] = useState(false);
   /** The key held by a pointer, drawn with its press tone (AN-11). */
   const [pressed, setPressed] = useState<string | null>(null);
-  // One double-tap tracker (K-7) and one hold-to-repeat (K-11) per mount.
+  // One double-tap tracker (K-7) per mount.
   const [doubleTap] = useState(() => createDoubleTapTracker(() => performance.now()));
-  const [repeat] = useState(createKeyRepeat);
-  /** Repeat keys whose pointer press already acted: the click that follows it is ignored. */
-  const pointerPressed = useRef(new Set<string>());
   const functionsPanelId = useId();
   const [functionsState, setFunctionsState] = useState<FunctionsState>("closed");
   const sectionRef = useRef<HTMLElement>(null);
@@ -175,17 +171,14 @@ export function Keypad(props: KeypadProps): JSX.Element {
   }, [open]);
 
   // Closing the keypad resets the page and Shift, so it always reopens on the main page, and ends
-  // a held key, whose pointerup an inert keypad never receives.
+  // a held key's press tone, whose pointerup an inert keypad never receives.
   useEffect(() => {
     if (open) return;
-    repeat.stop();
-    pointerPressed.current.clear();
     setPressed(null);
     setPage("main");
     setShift(false);
     setFunctionsState("closed");
-  }, [open, repeat]);
-  useEffect(() => () => repeat.stop(), [repeat]);
+  }, [open]);
   // KB-3: Escape closes the ABC page before the keypad (ESCAPE_RANK).
   useEscapeLayer(escape, "keypad", open, () => studentOpenChange(false));
   useEscapeLayer(escape, "letters", open && page === "letters", () => setPage("main"));
@@ -267,17 +260,9 @@ export function Keypad(props: KeypadProps): JSX.Element {
   const startPress = (event: PointerEvent<HTMLButtonElement>, key: KeyDef) => {
     if (event.button > 0) return; // the primary button, a touch or a pen contact
     setPressed(key.id);
-    if (!key.repeat) return;
-    pointerPressed.current.add(key.id);
-    repeat.start(() => pressKey(ctx, key));
   };
   const endPress = (key: KeyDef) => {
     setPressed((id) => (id === key.id ? null : id));
-    if (key.repeat) repeat.stop();
-  };
-  const click = (key: KeyDef) => {
-    if (pointerPressed.current.delete(key.id)) return;
-    activate(key);
   };
 
   // VIS-KEYPAD-3: each key fills its cell less a 2 px margin, edges rounded to whole pixels.
@@ -305,9 +290,8 @@ export function Keypad(props: KeypadProps): JSX.Element {
       onPointerUp={() => endPress(key)}
       onPointerCancel={() => endPress(key)}
       onPointerLeave={() => endPress(key)}
-      // A pointer press that ended off the key leaves no click; a keyboard press acts.
-      onKeyDown={() => pointerPressed.current.delete(key.id)}
-      onClick={() => click(key)}
+      // K-11: one action per press, on its click; a press that ends off the key leaves no click.
+      onClick={() => activate(key)}
     >
       <KeyFace face={key.face} />
     </button>

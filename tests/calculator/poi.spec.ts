@@ -135,6 +135,20 @@ test("POI-TRACE-14 a press in the expression list closes open labels", async ({
   await expect(labels(page)).toHaveCount(0);
 });
 
+test("POI-13 Escape leaves open labels alone, as Desmos's does; the next press closes them (owner decision, 2026-10-21)", async ({
+  page,
+  isMobile,
+}) => {
+  await selectRow1(page);
+  await clickAt(page, isMobile, Math.SQRT2, 0);
+  await expect(labels(page)).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(100);
+  await expect(labels(page)).toHaveCount(1);
+  await clickAt(page, isMobile, -6, -5);
+  await expect(labels(page)).toHaveCount(0);
+});
+
 test("POI-TRACE-27 pressing a curve selects its row", async ({ page, isMobile }) => {
   await selectRow1(page);
   await clickAt(page, isMobile, -6, 3);

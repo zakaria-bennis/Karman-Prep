@@ -24,6 +24,7 @@ import {
   rowField,
   rows,
   seconds,
+  shortcutKeys,
   strokes,
   tabRings,
   toHex,
@@ -71,7 +72,7 @@ test("AR-38 CSS transitions and keyframes stop under prefers-reduced-motion and 
   expect(allZero(await motionAcrossLayers(page))).toBe(true);
   await page.keyboard.press("Escape");
   await expect.poll(() => keypadOpen(page)).toBe(false); // focus is on Graph settings; closes the keypad left open
-  await page.keyboard.press("Control+KeyK");
+  await page.keyboard.press((await shortcutKeys(page)).keypad);
   await frames(page, 1);
   const keypad = page.getByRole("region", { name: "Keypad" });
   const first = await keypad.boundingBox();

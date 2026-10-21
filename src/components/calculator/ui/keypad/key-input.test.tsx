@@ -114,24 +114,24 @@ it("K-7, A11Y-2 a second = within 300 ms becomes ~ in one undo step and is annou
   expect(kit.engine.getSnapshot().rows[0].latex).toBe("y=x=x=");
 });
 
-it("K-11 Backspace repeats while held, after 400 ms then every 80 ms, and marks the press for tone feedback", () => {
+it("K-11 a held Backspace or arrow acts once, on its click, with no repeat (as Desmos), and marks the press for tone feedback", () => {
   vi.useFakeTimers();
   const kit = renderEditor(editor(), { rows: ["123456"] });
   const field = kit.fields.forRow("1");
   act(() => kit.focus.focusRow("1", "end"));
-  field.calls = [];
-  const backspace = key("Backspace");
-  fireEvent.pointerDown(backspace, { pointerType: "mouse" });
-  expect(backspace).toHaveAttribute("data-pressed", "true");
-  act(() => vi.advanceTimersByTime(399));
-  expect(field.calls).toHaveLength(1);
-  act(() => vi.advanceTimersByTime(81));
-  expect(field.calls).toHaveLength(3);
-  fireEvent.pointerUp(backspace);
-  fireEvent.click(backspace);
-  act(() => vi.advanceTimersByTime(500));
-  expect(field.calls).toHaveLength(3);
-  expect(backspace).not.toHaveAttribute("data-pressed");
+  for (const name of ["Backspace", "Left arrow", "Right arrow"]) {
+    field.calls = [];
+    const held = key(name);
+    fireEvent.pointerDown(held, { pointerType: "mouse" });
+    expect(held).toHaveAttribute("data-pressed", "true");
+    act(() => vi.advanceTimersByTime(2000));
+    expect(field.calls).toEqual([]);
+    fireEvent.pointerUp(held);
+    fireEvent.click(held);
+    act(() => vi.advanceTimersByTime(500));
+    expect(field.calls).toHaveLength(1);
+    expect(held).not.toHaveAttribute("data-pressed");
+  }
 });
 
 it("T-13, NM-42 a keypad key at the 2,048-character limit is refused with the status message and leaves the row unchanged", async () => {

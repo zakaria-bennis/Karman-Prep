@@ -1,7 +1,7 @@
 // The panel's point-of-interest state (POI-TRACE-1, POI-TRACE-12 to POI-TRACE-18): the open and
 // hovered labels, kept in step with the engine's selection, recomputes and points; the press and
-// hover rules; the dots and labels a frame draws; and exporting a point as a new row. Escape closes
-// open labels as one KB-3 layer.
+// hover rules; the dots and labels a frame draws; and exporting a point as a new row. Escape leaves
+// open labels alone, as Desmos's does: the next press closes them (owner decision, 2026-10-21).
 
 import { startTransition, useCallback, useContext, useEffect, useReducer, useRef } from "react";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
@@ -12,7 +12,6 @@ import type { PoiDot } from "@/lib/calculator/render/types";
 import { nextSlot } from "@/lib/calculator/theme/roles";
 import type { Pointer } from "../controller/media";
 import { AnnouncerContext } from "../a11y/announcer";
-import { EscapeContext } from "../focus/escape-stack";
 import { poiAnnouncement } from "./keyboard-trace";
 import { hitPoi } from "./hit-test";
 import { NO_LABELS, reduceLabels, samePoint, type LabelPoint, type LabelState } from "./poi-labels";
@@ -67,7 +66,6 @@ export function shownLabels(s: EngineSnapshot, labels: LabelState, view: ViewSpe
 
 export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine) {
   const [labels, dispatch] = useReducer(reduceLabels, NO_LABELS);
-  const escape = useContext(EscapeContext);
   const announcer = useContext(AnnouncerContext);
   const stepIndex = useRef(-1);
 
@@ -91,10 +89,6 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
     }
   }, [points, snapshot.selectedRowId]);
   const anyOpen = labels.open.length > 0;
-  useEffect(() => {
-    if (!anyOpen || escape === null) return;
-    return escape.push({ id: "poi-labels", close: () => dispatch({ type: "close" }) });
-  }, [anyOpen, escape]);
   // POI-TRACE-14: any press in the page that is not on a dot, a curve or a label closes them.
   useEffect(() => {
     if (!anyOpen) return;

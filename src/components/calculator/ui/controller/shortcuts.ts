@@ -1,9 +1,13 @@
 // Shell keyboard shortcuts (KB-7) and the Escape hand-off (KB-3). Shortcuts match on
-// `event.code`, so Option-modified keys on macOS (Option+K types "˚") still work, and never fire
-// while an IME is composing. KB-7 also lists KeyC, which arrives with KB-11 (Phase 2); KeyT starts
-// the keyboard trace (POI-20), whose tones A11Y-13 adds in Phase 4.
+// `event.code`, so Option-modified keys on macOS (Option+T types "†") still work, and never fire
+// while an IME is composing. The set and its modifiers are Desmos's, per platform (owner decision,
+// 2026-10-21): undo is Cmd+Z on a Mac and Ctrl+Z elsewhere, redo Cmd+Shift+Z or Cmd+Y (Ctrl
+// elsewhere), the keypad toggles on Ctrl+K on a Mac and Alt+K elsewhere, and Alt/Option+T starts the
+// keyboard trace (POI-20). KB-7 also lists KeyC, which arrives with KB-11 (Phase 2).
 
-export type ShortcutAction = "undo" | "redo" | "toggle-keypad" | "add-row-end" | "audio-trace";
+import { currentPlatform, isMacPlatform } from "../shortcuts/help-keys";
+
+export type ShortcutAction = "undo" | "redo" | "toggle-keypad" | "audio-trace";
 export type ShortcutKey = Pick<
   KeyboardEvent,
   "code" | "key" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "isComposing"
@@ -14,20 +18,22 @@ export interface ShellKeyboardHandlers {
   onKey?(event: KeyboardEvent): boolean; // POI-20: true when the running keyboard trace took the key
 }
 
-export function matchShortcut(event: ShortcutKey): ShortcutAction | null {
+export function matchShortcut(event: ShortcutKey, mac: boolean): ShortcutAction | null {
   if (event.isComposing) return null;
   const { code, ctrlKey, metaKey, altKey, shiftKey } = event;
-  const command = (ctrlKey || metaKey) && !altKey;
-  if (command && code === "KeyZ") return shiftKey ? "redo" : "undo";
-  if ((ctrlKey || metaKey) && !altKey && code === "KeyY") return "redo"; // Cmd+Y on a Mac, as the reference
-  if ((ctrlKey || altKey) && !metaKey && code === "KeyK") return "toggle-keypad";
-  if (altKey && (code === "Enter" || code === "NumpadEnter")) return "add-row-end";
+  // "Mod" is Cmd on a Mac and Ctrl elsewhere; the other of the two never counts as it.
+  const mod = !altKey && (mac ? metaKey && !ctrlKey : ctrlKey && !metaKey);
+  if (mod && code === "KeyZ") return shiftKey ? "redo" : "undo";
+  if (mod && !shiftKey && code === "KeyY") return "redo";
+  const single =
+    !shiftKey && (mac ? ctrlKey && !metaKey && !altKey : altKey && !ctrlKey && !metaKey);
+  if (single && code === "KeyK") return "toggle-keypad";
   if (altKey && !ctrlKey && !metaKey && code === "KeyT") return "audio-trace"; // POI-20
   return null;
 }
 
-/** Shortcuts a native text control keeps for itself (its own text undo and redo, and Alt+Enter). */
-const NATIVE_EDITING: ReadonlySet<ShortcutAction> = new Set(["undo", "redo", "add-row-end"]);
+/** Shortcuts a native text control keeps for itself (its own text undo and redo). */
+const NATIVE_EDITING: ReadonlySet<ShortcutAction> = new Set(["undo", "redo"]);
 
 /**
  * Whether the event's composed target is a native text field or select (a Graph settings field).
@@ -57,16 +63,18 @@ const NON_TEXT_INPUTS: ReadonlySet<string> = new Set([
 
 /**
  * One capture-phase `keydown` listener on `root`. A shortcut gets preventDefault() and
- * stopPropagation() (so MathQuill never sees it), then `onShortcut`. Undo, redo and add-row-end
+ * stopPropagation() (so MathQuill never sees it), then `onShortcut`. Undo and redo
  * are left alone in a native text input or select (a Graph settings text field), so its own
  * text undo works and no expression row behind the popover changes; toggle-keypad stays global. Escape is matched on the key
  * and gets preventDefault() only when `onEscape()` closed a layer; it is never stopped, so the
  * light-DOM frame closes the calculator only when `defaultPrevented` is false (KB-3's last layer).
- * Returns the function that removes the listener.
+ * `mac` picks the platform's modifiers (matchShortcut). Returns the function that removes the
+ * listener.
  */
 export function installShellKeyboard(
   root: HTMLElement,
-  handlers: ShellKeyboardHandlers
+  handlers: ShellKeyboardHandlers,
+  mac = isMacPlatform(currentPlatform())
 ): () => void {
   const onKeyDown = (event: KeyboardEvent) => {
     if (!event.isComposing && handlers.onKey?.(event) === true) {
@@ -78,7 +86,7 @@ export function installShellKeyboard(
       if (handlers.onEscape()) event.preventDefault();
       return;
     }
-    const action = matchShortcut(event);
+    const action = matchShortcut(event, mac);
     if (action === null) return;
     if (NATIVE_EDITING.has(action) && inNativeTextControl(event)) return;
     event.preventDefault();

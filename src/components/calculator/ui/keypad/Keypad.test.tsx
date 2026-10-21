@@ -64,13 +64,15 @@ it("VIS-KEYPAD-32, 40 coarse pointers and the stacked layout (under 450 px) have
   }
 });
 
-it("K-3 ABC switches to the letters page and back; Shift is a pressed toggle that stays on", async () => {
+it("K-3 ABC switches to the letters page and back, named Toggle Numbers there as in Desmos; Shift is a pressed toggle that stays on", async () => {
   renderEditor(keypad(), { rows: [""] });
   const user = userEvent.setup();
-  const abc = () => screen.getByRole("button", { name: "ABC" });
+  const abc = () => screen.getByRole("button", { name: /^(ABC|Toggle Numbers)$/ });
+  expect(abc()).toHaveAccessibleName("ABC");
   expect(abc()).toHaveAttribute("aria-pressed", "false");
   expect(abc()).toHaveTextContent("A B C");
   await user.click(abc());
+  expect(abc()).toHaveAccessibleName("Toggle Numbers");
   expect(abc()).toHaveAttribute("aria-pressed", "true");
   expect(abc()).toHaveTextContent("1 2 3");
   expect(keyIds()).toEqual(layoutKeys(keypadLayout("letters", 900, false)).map((k) => k.id));

@@ -11,7 +11,7 @@ import type { MathFieldAction } from "@/lib/calculator/core/latex/operator-names
 export type KeyBehaviour =
   | { type: "insert"; action: MathFieldAction }
   | { type: "enter" }
-  | { type: "letters" } // the ABC key: "A B C" or "1 2 3", accessible name "ABC" on both pages
+  | { type: "letters" } // the ABC key: "A B C" or "1 2 3", accessible name "ABC" on the main page and "Toggle Numbers" on the letters page
   | { type: "shift" } // aria-pressed
   | { type: "functions" } // aria-expanded
   | { type: "audio" }; // K-9: starts and stops the keyboard trace (POI-20)
@@ -44,7 +44,6 @@ export interface KeyDef {
   behaviour: KeyBehaviour;
   width: number; // fraction of the key block's inner width taken by the key's cell
   tone: KeyTone;
-  repeat: boolean; // true for left, right and backspace only (K-11)
 }
 /** An empty cell: a fixed fraction of the inner width, or "fill" to share what the row leaves. */
 export interface KeySpacer {
@@ -81,16 +80,15 @@ function fixed(
   tone: KeyTone = "light",
   face: KeyFace = math(label)
 ): FixedKey {
-  return { label, face, name, behaviour, tone, repeat: false };
+  return { label, face, name, behaviour, tone };
 }
 function iconKey(
   icon: KeyIcon,
   name: string,
   behaviour: KeyBehaviour,
-  tone: KeyTone = "dark",
-  repeat = false
+  tone: KeyTone = "dark"
 ): FixedKey {
-  return { label: "", face: { kind: "icon", icon }, name, behaviour, tone, repeat };
+  return { label: "", face: { kind: "icon", icon }, name, behaviour, tone };
 }
 
 // Behaviours follow the package Decisions' reading E2 of K-10: `a²` is one write("^2"), the named
@@ -125,9 +123,9 @@ const FIXED_KEYS: Readonly<Record<string, FixedKey>> = {
   plus: fixed("+", "Plus", typed("+")),
   equals: fixed("=", "Equals", typed("=")),
   audio: iconKey("audio", "Audio trace", { type: "audio" }),
-  left: iconKey("left", "Left arrow", insert("keystroke", "Left"), "dark", true),
-  right: iconKey("right", "Right arrow", insert("keystroke", "Right"), "dark", true),
-  backspace: iconKey("backspace", "Backspace", insert("keystroke", "Backspace"), "dark", true),
+  left: iconKey("left", "Left arrow", insert("keystroke", "Left")),
+  right: iconKey("right", "Right arrow", insert("keystroke", "Right")),
+  backspace: iconKey("backspace", "Backspace", insert("keystroke", "Backspace")),
   enter: iconKey("enter", "Enter", { type: "enter" }, "accent"),
   shift: iconKey("shift", "Shift", { type: "shift" }),
 };
@@ -149,7 +147,6 @@ function shiftableKey(id: string, shift: boolean): FixedKey | null {
       name: names[i],
       behaviour: inserts[i],
       tone: "light",
-      repeat: false,
     };
   };
   switch (id) {
@@ -166,15 +163,15 @@ function shiftableKey(id: string, shift: boolean): FixedKey | null {
           })
         : fixed("aᵦ", "Subscript", insert("cmd", "_"), "light", { kind: "subscript" });
     case "bang":
-      return dual("!", "′", ["Factorial", "Prime"], [typed("!"), typed("'")]);
+      return dual("!", "′", ["!", "'"], [typed("!"), typed("'")]);
     case "bracket":
-      return dual("[", "]", ["Left bracket", "Right bracket"], [typed("["), typed("]")]);
+      return dual("[", "]", ["[", "]"], [typed("["), typed("]")]);
     case "brace":
-      return dual("{", "}", ["Left brace", "Right brace"], [typed("{"), typed("}")]);
+      return dual("{", "}", ["{", "}"], [typed("{"), typed("}")]);
     case "tilde":
-      return dual("~", "%", ["Tilde", "Percent"], [typed("~"), typed("%")], true);
+      return dual("~", "%", ["~", "%"], [typed("~"), typed("%")], true);
     case "colon":
-      return dual(":", ";", ["Colon", "Semicolon"], [typed(":"), typed(";")]);
+      return dual(":", ";", [":", ";"], [typed(":"), typed(";")]);
     default:
       return null;
   }
@@ -196,7 +193,6 @@ function keyDef(
       behaviour: typed(id),
       width,
       tone: "dark",
-      repeat: false,
     };
   }
   if (/^[a-z]$/.test(id) && page === "letters") {
@@ -211,7 +207,6 @@ function keyDef(
       behaviour,
       width,
       tone: "light",
-      repeat: false,
     };
   }
   if (id === "letters") {
@@ -219,7 +214,9 @@ function keyDef(
     const text = page === "main" ? (spaced ? "A B C" : "ABC") : "1 2 3";
     const behaviour: KeyBehaviour = { type: "letters" };
     const face: KeyFace = { kind: "word", text };
-    return { id, label: text, face, name: "ABC", behaviour, width, tone: "dark", repeat: false };
+    // Desmos names the letters page's key "Toggle Numbers" (owner decision, 2026-10-21).
+    const name = page === "main" ? "ABC" : "Toggle Numbers";
+    return { id, label: text, face, name, behaviour, width, tone: "dark" };
   }
   if (id === "functions") {
     const text = containerWidth < NARROW_BELOW ? "funcs" : "functions";
@@ -233,7 +230,6 @@ function keyDef(
       behaviour,
       width,
       tone: "dark",
-      repeat: false,
     };
   }
   const key = shiftableKey(id, shift) ?? FIXED_KEYS[id];

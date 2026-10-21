@@ -10,7 +10,7 @@ import type {
   MathQuillConfig,
   MathQuillInterface,
 } from "../../../../vendor/mathquill/mathquill";
-import { isNativeHistoryChord, mathQuillOptions } from "./config";
+import { isModifiedEnter, isNativeHistoryChord, mathQuillOptions } from "./config";
 import { toMathFieldLatex } from "./load-latex";
 import { overRowLimit, pastedLatex, pastedLines } from "./paste-text";
 import { latexToSpeech } from "./speech";
@@ -85,9 +85,11 @@ class KarmanMathField implements MathField {
     const config: MathQuillConfig = {
       ...mathQuillOptions(),
       substituteTextarea: () => this.createTextarea(),
-      overrideTypedText: (text) => this.transact((mq) => mq.typedText(text)),
+      overrideTypedText: (text) => this.transact((mq) => typeInto(mq, text)),
       overrideKeystroke: (key, event) => {
-        if (isNativeHistoryChord(key)) event.preventDefault();
+        // A modified Enter (Shift, Alt, Ctrl or Cmd) does nothing, as in Desmos: preventing it
+        // stops the newline MathQuill would read as Enter (owner decision, 2026-10-21).
+        if (isNativeHistoryChord(key) || isModifiedEnter(key)) event.preventDefault();
         else this.transact((mq) => mq.keystroke(key, event));
       },
       handlers: {
@@ -152,7 +154,7 @@ class KarmanMathField implements MathField {
   }
 
   typedText(text: string): void {
-    this.transact((mq) => mq.typedText(text));
+    this.transact((mq) => typeInto(mq, text));
   }
 
   run(actions: readonly MathFieldAction[]): void {
@@ -161,7 +163,7 @@ class KarmanMathField implements MathField {
         if (op === "write") mq.write(toMathFieldLatex(arg));
         else if (op === "cmd") mq.cmd(arg);
         else if (op === "keystroke") mq.keystroke(arg);
-        else mq.typedText(arg);
+        else typeInto(mq, arg);
       }
     });
   }
@@ -330,4 +332,12 @@ export function renderStaticMath(host: HTMLElement, latex: string): void {
   } catch {
     host.textContent = latex;
   }
+}
+
+/** Types `text`, a typed ° being Desmos's `\degree` (owner decision, 2026-10-21). */
+function typeInto(mq: EditableMathQuill, text: string): void {
+  text.split("°").forEach((part, k) => {
+    if (k > 0) mq.cmd("\\degree");
+    if (part !== "") mq.typedText(part);
+  });
 }

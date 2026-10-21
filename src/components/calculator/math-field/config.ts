@@ -24,6 +24,11 @@ export function isNativeHistoryChord(key: string): boolean {
   return NATIVE_HISTORY_CHORDS.includes(key);
 }
 
+/** MathQuill's name for Enter with any modifier ("Shift-Enter", "Ctrl-Alt-Enter", ...). */
+export function isModifiedEnter(key: string): boolean {
+  return key !== "Enter" && key.endsWith("-Enter");
+}
+
 /** The members of mathquill.d.ts `MathQuillConfig` minus the four hooks. */
 export interface MathQuillOptions {
   autoOperatorNames: string;

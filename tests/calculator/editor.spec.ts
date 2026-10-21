@@ -226,11 +226,12 @@ test("K-6 every width from 320 px keeps the 123 and letters pages, keys 36 px ta
     await expect(keypad).toHaveAttribute("data-pointer", "coarse");
     await expectMainPage(keypad, width);
     await expect(page.getByRole("button", { name: /^(Show|Hide) keypad$/ })).toHaveCount(0);
-    // VIS-KEYPAD-21: the letters page fills the block in 10 columns; ~ sits on its last row.
+    // VIS-KEYPAD-21: the letters page fills the block in 10 columns; ~ sits on its last row,
+    // named by its symbol as in Desmos.
     await keypad.getByRole("button", { name: "ABC", exact: true }).click();
-    await expect(keypad.getByRole("button", { name: "Tilde", exact: true })).toBeVisible();
+    await expect(keypad.getByRole("button", { name: "~", exact: true })).toBeVisible();
     const block = Math.min(width, 835) - 6;
-    for (const name of ["q", "Tilde"]) {
+    for (const name of ["q", "~"]) {
       const box = (await keypad.getByRole("button", { name, exact: true }).boundingBox())!;
       expect(box.height, name).toBe(36);
       expect(Math.abs(box.width - (block / 10 - 4)), name).toBeLessThanOrEqual(1);

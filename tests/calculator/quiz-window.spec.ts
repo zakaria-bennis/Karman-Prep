@@ -11,6 +11,7 @@ import {
   trigger,
   workspace,
 } from "./quiz-helpers";
+import { shortcutKeys } from "./shell-helpers";
 
 test("L-4 the toolbar and the phone side button open the calculator in Math questions only", async ({
   page,
@@ -264,7 +265,7 @@ test("KB-6, AR-18 calculator keys never reach window or document listeners; Esca
   await page.getByRole("button", { name: "Karman calculator", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
   await row(page).focus();
-  await page.keyboard.press("Control+KeyK");
+  await page.keyboard.press((await shortcutKeys(page)).keypad);
   await expect(keypad).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(keypad).toBeHidden();

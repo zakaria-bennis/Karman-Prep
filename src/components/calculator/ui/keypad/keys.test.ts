@@ -100,20 +100,14 @@ it("VIS-KEYPAD-23 Shift capitalises letters, swaps θ for τ, aᵦ for aᵇ and 
     "Subscript",
     "Superscript",
   ]);
+  // Desmos names these keys by their symbols, and the page's 123 key "Toggle Numbers" (owner
+  // decision, 2026-10-21).
   const duals = ["bang", "bracket", "brace", "tilde", "colon"];
-  expect(duals.map((id) => key(false, id).name)).toEqual([
-    "Factorial",
-    "Left bracket",
-    "Left brace",
-    "Tilde",
-    "Colon",
-  ]);
-  expect(duals.map((id) => key(true, id).name)).toEqual([
-    "Prime",
-    "Right bracket",
-    "Right brace",
-    "Percent",
-    "Semicolon",
+  expect(duals.map((id) => key(false, id).name)).toEqual(["!", "[", "{", "~", ":"]);
+  expect(duals.map((id) => key(true, id).name)).toEqual(["'", "]", "}", "%", ";"]);
+  expect([key(false, "letters").name, key(true, "letters").name]).toEqual([
+    "Toggle Numbers",
+    "Toggle Numbers",
   ]);
   expect(duals.map((id) => key(true, id).behaviour)).toEqual(
     ["'", "]", "}", "%", ";"].map((arg) => ({ type: "insert", action: { op: "typedText", arg } }))
