@@ -9,6 +9,7 @@ import {
 import {
   dragViewport,
   nextViewportForSize,
+  pinchState,
   pinchViewport,
   viewportForKey,
   wheelViewport,
@@ -125,6 +126,21 @@ it("G-5 a pinch zooms by the distance ratio about the midpoint and pans with it"
     pinchViewport(view(), { mid: [400, 300], distance: 100 }, { mid: [400, 300], distance: NaN }),
     DEFAULT
   );
+});
+
+it("G-5 a pinch along an axis near it scales only that axis, as in Desmos", () => {
+  const spread = (a: Point, b: Point, c: Point, d: Point) =>
+    pinchViewport(view(), pinchState(a, b), pinchState(c, d));
+  // horizontal on the x-axis: x only; vertical on the y-axis: y only; 20° off: both
+  expectVp(spread([370, 300], [430, 300], [300, 300], [500, 300]), vp(-3, 3, -7.5, 7.5));
+  expectVp(spread([400, 270], [400, 330], [400, 200], [400, 400]), vp(-10, 10, -2.25, 2.25));
+  const tilt = Math.tan((20 * Math.PI) / 180) * 30;
+  const both = spread([370, 300 + tilt], [430, 300 - tilt], [300, 300 + tilt], [500, 300 - tilt]);
+  expect(both.right - both.left).toBeLessThan(20);
+  expect(both.top - both.bottom).toBeLessThan(15);
+  // a horizontal pinch far from the x-axis scales both
+  const far = spread([370, 100], [430, 100], [300, 100], [500, 100]);
+  expect(far.top - far.bottom).toBeLessThan(15);
 });
 
 it("G-5 resizes keep the default view default and keep units per pixel otherwise", () => {

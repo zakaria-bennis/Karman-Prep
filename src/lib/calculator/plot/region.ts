@@ -88,6 +88,31 @@ export function shadedSpans(
   return spans;
 }
 
+/** Each relation's non-strict form, so a boundary keeps the edges it shares with another. */
+const CLOSED: Record<InequalityOp, InequalityOp> = { "<": "<=", "<=": "<=", ">": ">=", ">=": ">=" };
+
+/**
+ * True when every relation but `k` holds, in its non-strict form, at the fractional lattice point
+ * (i, j), each judged by the bilinear blend of its leaf's four corner values.
+ */
+function othersHold(
+  field: SampledField,
+  ops: readonly InequalityOp[],
+  k: number,
+  i: number,
+  j: number
+): boolean {
+  const [i0, j0] = [Math.floor(i), Math.floor(j)];
+  const [u, w] = [i - i0, j - j0];
+  for (let m = 0; m < ops.length; m++) {
+    if (m === k) continue;
+    const top = (1 - u) * field.value(i0, j0, m) + u * field.value(i0 + 1, j0, m);
+    const bottom = (1 - u) * field.value(i0, j0 + 1, m) + u * field.value(i0 + 1, j0 + 1, m);
+    if (!relationHolds(CLOSED[ops[m]], (1 - w) * top + w * bottom)) return false;
+  }
+  return true;
+}
+
 /**
  * The region where terms[k] ops[k] terms[k + 1] holds for every k (G-17), with one boundary per
  * relation, dashed for `<` and `>` and solid for `<=` and `>=` (G-1), within `limit` evaluations.
@@ -113,7 +138,10 @@ export function plotRegion(
     budget
   );
   const boundaries = ops.map((op, k): CurveGeometry => {
-    const { polylines, bands } = contourField(field, k, view);
+    // G-17: a chained relation's boundary is drawn only where its other relations hold.
+    const keep =
+      ops.length > 1 ? (i: number, j: number) => othersHold(field, ops, k, i, j) : undefined;
+    const { polylines, bands } = contourField(field, k, view, keep);
     return {
       rowId,
       kind: "curve",

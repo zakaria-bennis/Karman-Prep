@@ -26,7 +26,8 @@ export interface SampledField {
   /**
    * Package addition to Task 5's interface: true when the evaluated relation-k nodes on the
    * boundary of `s` (its corners and any evaluated node on its edges) mix finite and non-finite
-   * values, or are finite and not all of one strict sign (a zero counts as mixed). The quadtree's
+   * values, or are finite and not all of one strict sign (a zero beside a non-zero counts as mixed;
+   * all zeros do not). The quadtree's
    * activity test and the contour's band rule for unresolved squares both use it, and only the
    * field knows which nodes were evaluated (`value` is NaN for both undefined and unevaluated).
    */
@@ -39,6 +40,12 @@ export interface SampledField {
    * Region shading uses it to judge whole blocks at once.
    */
   forEachUnsplit(visit: (s: Square, state: "leaf" | "unresolved" | "inactive") => void): void;
+  /**
+   * Relation k at the fractional lattice point (i, j), evaluated now within the budget: NaN when
+   * not finite, undefined when the budget refuses. Not stored; the contour bisects leaf edges
+   * with it to tell a crossing from a jump.
+   */
+  probe(i: number, j: number, k: number): number | undefined;
 }
 
 /** The world point of node (i, j): the centre (i + 0.5, j + 0.5) of pixel (i, j). */
@@ -149,6 +156,15 @@ class Field implements SampledField {
 
   boundaryMixes(s: Square, k: number): boolean {
     return this.mixes(this.boundarySlots(s), k);
+  }
+
+  probe(i: number, j: number, k: number): number | undefined {
+    if (!this.budget.take(this.callsPerNode)) return undefined;
+    const [x, y] = pxToWorld(this.view, i + 0.5, j + 0.5);
+    this.scratch.fill(NaN);
+    this.evaluate(x, y, this.scratch);
+    const v = this.scratch[k];
+    return Number.isFinite(v) ? v : NaN;
   }
 
   forEachUnsplit(visit: (s: Square, state: "leaf" | "unresolved" | "inactive") => void): void {
@@ -265,7 +281,8 @@ class Field implements SampledField {
         else zero = true;
       }
     }
-    return finite && (undefinedValue || zero || (positive && negative));
+    // All zero (x − x) is no boundary: an identity or an empty set draws nothing (Desmos).
+    return finite && (undefinedValue || (positive && negative) || (zero && (positive || negative)));
   }
 
   private nearZero(s: Quad, k: number): boolean {
@@ -286,7 +303,7 @@ class Field implements SampledField {
       Math.abs(br - bl),
       Math.abs(bl - tl)
     );
-    return least <= NEAR_ZERO_FACTOR * step;
+    return step > 0 && least <= NEAR_ZERO_FACTOR * step;
   }
 
   /** Slots of the evaluated nodes on the boundary of `s`: its corners and edge nodes. */

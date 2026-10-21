@@ -1,9 +1,11 @@
 // Lines x = c, y = c and the roots of one-variable equations (G-8). The independent axis t is
-// sampled every half pixel; a sample that is exactly zero is a root, a pair with strictly opposite
-// signs is bisected toward its root (a pair whose sign change is a pole is rejected), and a sample
-// whose neighbours share its sign but lie further from zero is searched for a touching root such as
-// (x − 3)² = 0. Lines carry positions only; 08 strokes each across the whole view. Pure
-// TypeScript, no DOM (AR-44).
+// sampled every half pixel; a sample that is exactly zero is a root unless a neighbour is zero too
+// (f vanishing over an interval, such as x = x, draws nothing, as in Desmos, but where it meets
+// f > 0 is a line, so floor(x) = 0 draws x = 1), a pair with strictly opposite signs is bisected
+// toward its root (a pair whose sign change is a pole is rejected), and a sample whose neighbours
+// share its sign but lie further from zero is searched for a touching root such as (x − 3)² = 0.
+// Lines carry positions only; 08 strokes each across the whole view. Pure TypeScript, no DOM
+// (AR-44).
 
 import type { Deadline } from "../core/deadline";
 import { EvaluationBudget, EXPLICIT_BUDGET } from "./budget";
@@ -58,7 +60,11 @@ class RootFinder {
     };
     for (let k = 0; k < t.length; k++) {
       if (v[k] === 0) {
-        roots.push(t[k]);
+        // A zero beside another zero lies in an interval where f vanishes (x = x): no line there.
+        if (v[k - 1] !== 0 && v[k + 1] !== 0) roots.push(t[k]);
+        else if (v[k + 1] > 0)
+          add(this.plateauEnd(k, k + 1)); // floor(x) = 0 draws x = 1
+        else if (v[k - 1] > 0) add(this.plateauEnd(k, k - 1));
         continue;
       }
       if (this.touches(k)) add(this.touchingRoot(k));
@@ -100,6 +106,26 @@ class RootFinder {
     if (Number.isNaN(vm)) return null;
     const pole = Math.abs(vm) > smaller && Math.min(Math.abs(vLo), Math.abs(vHi)) > smaller;
     return pole ? null : m;
+  }
+
+  /**
+   * Where an interval on which f vanishes (sample `zero`, a neighbour also zero) meets f > 0 at the
+   * adjacent sample `positive`: bisected ROOT_BISECTIONS times keeping zero on one side. As in
+   * Desmos, an equation's line runs between f ≤ 0 and f > 0. Undefined when the budget refuses.
+   */
+  private plateauEnd(zero: number, positive: number): number | null | undefined {
+    if (zero + (zero - positive) < 0 || this.v[zero + (zero - positive)] !== 0) return null;
+    let [z, p] = [this.t[zero], this.t[positive]];
+    for (let n = 0; n < ROOT_BISECTIONS; n++) {
+      const m = 0.5 * (z + p);
+      if (m === z || m === p) break;
+      const vm = this.evaluate(m);
+      if (vm === undefined) return undefined;
+      if (Number.isNaN(vm)) return null;
+      if (vm > 0) p = m;
+      else z = m;
+    }
+    return 0.5 * (z + p);
   }
 
   /**

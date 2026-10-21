@@ -187,11 +187,11 @@ it("API-7 setMathBounds stores valid bounds and rejects invalid ones without cha
 it("API-7 setMathBounds clamps finite, ordered bounds to the G-23 limits instead of rejecting them", () => {
   e.setMathBounds({ left: -1e16, right: 0, bottom: 0, top: 1 });
   expect(e.getState().viewport).toEqual({ left: -1e15, right: 0, bottom: 0, top: 1 });
-  const tiny = { left: 0, right: 1e-10, bottom: 0, top: 1 };
+  const tiny = { left: 1, right: 1 + 1e-12, bottom: 0, top: 1 }; // G-23's limit is relative to |centre|
   e.setMathBounds(tiny);
   expect(e.getState().viewport).toEqual(clampViewport(tiny));
   const v = e.getState().viewport;
-  expect(v.right - v.left).toBeGreaterThanOrEqual(1e-9 * (1 - 1e-12));
+  expect(v.right - v.left).toBeGreaterThanOrEqual(1e-11 * (1 - 1e-4));
 });
 it("AR-46 state and view sends share one generation counter that increases by one per send", () => {
   e.setView(TEST_VIEW);

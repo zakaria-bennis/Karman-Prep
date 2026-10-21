@@ -202,17 +202,26 @@ test("G-5 the wheel zooms about the pointer", async ({ page, isMobile }) => {
     .toBe(true);
 });
 
-test("G-5 a two-finger pinch zooms about the midpoint", async ({ page, isMobile }) => {
+test("G-5 a two-finger pinch zooms about the midpoint, along one axis when it starts along it", async ({
+  page,
+  isMobile,
+}) => {
   const { w } = await openGraph(page, isMobile);
   const s = w / 800;
   const { cx, cy } = await layersBox(page);
-  await touch(page, "pointerdown", 1, cx - 50 * s, cy);
-  await touch(page, "pointerdown", 2, cx + 50 * s, cy);
-  await touch(page, "pointermove", 1, cx - 100 * s, cy);
-  await touch(page, "pointermove", 2, cx + 100 * s, cy);
-  await touch(page, "pointerup", 1, cx - 100 * s, cy);
-  await touch(page, "pointerup", 2, cx + 100 * s, cy);
+  const pinch = async ([dx0, dy0]: [number, number], [dx1, dy1]: [number, number]) => {
+    await touch(page, "pointerdown", 1, cx - dx0 * s, cy - dy0 * s);
+    await touch(page, "pointerdown", 2, cx + dx0 * s, cy + dy0 * s);
+    await touch(page, "pointermove", 1, cx - dx1 * s, cy - dy1 * s);
+    await touch(page, "pointermove", 2, cx + dx1 * s, cy + dy1 * s);
+    await touch(page, "pointerup", 1, cx - dx1 * s, cy - dy1 * s);
+    await touch(page, "pointerup", 2, cx + dx1 * s, cy + dy1 * s);
+  };
+  // Diagonal: both axes. Along the x-axis (Desmos): x only.
+  await pinch([50, 50], [100, 100]);
   await expect.poll(() => viewport(page)).toEqual(near(vp(-5, 5, -3.75, 3.75)));
+  await pinch([50, 0], [100, 0]);
+  await expect.poll(() => viewport(page)).toEqual(near(vp(-2.5, 2.5, -3.75, 3.75)));
 });
 
 test("KB-8 the graph is one tab stop and its keys pan, zoom and reset while its name follows", async ({
