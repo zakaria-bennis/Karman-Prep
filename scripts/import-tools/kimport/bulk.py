@@ -48,27 +48,52 @@ WORKERS = 6
 # ---------------------------------------------------------------- inputs
 
 
-def find_pdf(ready: dict, exams_dir: Path) -> Path:
-    """The batch's exam PDF: exams/<source_document_id>/original_exam.pdf, where the
-    id comes from the reviewed rows, checked against the frozen manifest's sha256."""
+def find_pdf(ready: dict, exams_dir: Path, new_exams_dir: Path | None = None) -> Path:
+    """The batch's exam PDF, under the file name its reviewed rows give in source_pdf
+    (stage-rows' preflight requires that name to match the file it is handed).
+
+    New-exam forms were copied to <pipeline>/new-exams/<exam>/source/<source_pdf>;
+    ledger exams sit at exams/<exam>/original_exam.pdf. The new-exam copy is looked
+    for first, then exams/<exam>/<source_pdf>. The file must match the frozen
+    manifest's source_pdf_sha256 and every row's sourceVersion.sha256."""
     try:
         reviewed = json.loads(Path(ready["reviewed_file"]).read_text(encoding="utf-8"))
         manifest = json.loads(Path(ready["frozen_manifest"]).read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise RefuseToBuild(f"cannot read the reviewed file or frozen manifest: {e}") from None
-    qs = reviewed.get("questions") if isinstance(reviewed, dict) else None
-    docs = {q.get("source_document_id") for q in qs or [] if isinstance(q, dict)}
+    qs = [q for q in (reviewed.get("questions") if isinstance(reviewed, dict) else None) or []
+          if isinstance(q, dict)]
+    docs = {q.get("source_document_id") for q in qs}
     if len(docs) != 1 or not isinstance(next(iter(docs)), str):
         raise RefuseToBuild(f"reviewed rows name {len(docs)} source documents; expected one exam")
     doc = next(iter(docs))
     if "/" in doc or doc.startswith("."):
         raise RefuseToBuild(f"unexpected source_document_id {doc!r}")
-    pdf = Path(exams_dir) / doc / "original_exam.pdf"
-    if not pdf.is_file():
-        raise RefuseToBuild(f"no exam PDF at {pdf}")
-    if st._sha256_file(pdf) != manifest.get("source_pdf_sha256"):
-        raise RefuseToBuild(f"{pdf} does not match the frozen manifest's source_pdf_sha256")
-    return pdf
+    names = {q.get("source_pdf") or "original_exam.pdf" for q in qs}
+    if len(names) != 1 or not isinstance(next(iter(names)), str):
+        raise RefuseToBuild(f"reviewed rows name {len(names)} source PDF files; expected one")
+    name = next(iter(names))
+    if "/" in name or "\\" in name or name.startswith("."):
+        raise RefuseToBuild(f"unexpected source_pdf {name!r}")
+    want = manifest.get("source_pdf_sha256")
+    row_shas = {(q.get("sourceVersion") or {}).get("sha256") for q in qs} - {None}
+    if row_shas - {want}:
+        raise RefuseToBuild("reviewed rows' sourceVersion.sha256 differs from the frozen manifest's "
+                            "source_pdf_sha256")
+    candidates = ([Path(new_exams_dir) / doc / "source" / name] if new_exams_dir else []) \
+        + [Path(exams_dir) / doc / name]
+    found = [p for p in candidates if p.is_file()]
+    if not found:
+        raise RefuseToBuild(f"no exam PDF named {name} at {' or '.join(str(p) for p in candidates)}")
+    for pdf in found:
+        if st._sha256_file(pdf) == want:
+            return pdf
+    raise RefuseToBuild(f"{found[0]} does not match the frozen manifest's source_pdf_sha256")
+
+
+def new_exams_dir_for(batch_dir: Path) -> Path:
+    """<pipeline>/new-exams for a batch folder at <pipeline>/batches/<name>."""
+    return Path(batch_dir).resolve().parent.parent / "new-exams"
 
 
 def ready_dirs(paths) -> list[Path]:
@@ -85,7 +110,7 @@ def _load_batch(d: Path, exams_dir: Path, rows_doc, rows_runner) -> dict:
     ready = st.read_ready(d)
     binding_sha = st._sha256_file(ready["tag_binding"])
     if rows_doc is None:
-        pdf = find_pdf(ready, exams_dir)
+        pdf = find_pdf(ready, exams_dir, new_exams_dir_for(d))
         rows_doc = rows_runner(Path(ready["reviewed_file"]), pdf, Path(ready["frozen_manifest"]),
                                ready["frozen_manifest_sha256"])
     rows = rows_doc["rows"]

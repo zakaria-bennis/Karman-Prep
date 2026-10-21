@@ -122,7 +122,8 @@ def _register_stage(sub) -> None:
     st.add_argument("--batches", nargs="+", help="bulk: many batch folders (folders without READY are skipped)")
     st.add_argument("--name", help="bulk: run name, e.g. bulk-1")
     st.add_argument("--exams-dir", default=str(bulk.EXAMS),
-                    help="bulk: folder of <exam>/original_exam.pdf; each batch's exam comes from its reviewed rows")
+                    help="bulk: folder of <exam>/original_exam.pdf; each batch's exam comes from its reviewed rows "
+                         "(new-exam forms are found first in <pipeline>/new-exams/<exam>/source/)")
     st.add_argument("--chunk-size", type=int, default=0, help="bulk: rows per stage file (0: one file)")
     st.add_argument("--export", required=True, help="fresh live export (k export)")
     st.add_argument("--pdf", help="single batch: the source exam PDF the frozen manifest pins")

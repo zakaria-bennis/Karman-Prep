@@ -175,6 +175,93 @@ class TestFindPdf(BulkCase):
             bulk.find_pdf(ready, exams)
 
 
+NEW_PDF = b"%PDF made-up new-exam form"
+NEW_SHA = hashlib.sha256(NEW_PDF).hexdigest()
+NEW_NAME = "abc123def456-209901syn.pdf"
+
+
+class TestFindNewExamPdf(BulkCase):
+    """New-exam forms: the rows name the copied PDF (source_pdf) and its sha256; the
+    PDF lives at <pipeline>/new-exams/<exam>/source/<source_pdf>."""
+
+    def setup(self, rows=None, manifest_sha=NEW_SHA, old_bytes=None, new_bytes=NEW_PDF):
+        exams, new_exams = self.d / "exams", self.d / "pipe" / "new-exams"
+        if old_bytes is not None:
+            (exams / "2099-01_SYN_V1").mkdir(parents=True)
+            (exams / "2099-01_SYN_V1" / "original_exam.pdf").write_bytes(old_bytes)
+        if new_bytes is not None:
+            (new_exams / "2099-01_SYN_V1" / "source").mkdir(parents=True)
+            (new_exams / "2099-01_SYN_V1" / "source" / NEW_NAME).write_bytes(new_bytes)
+        one = {"source_document_id": "2099-01_SYN_V1", "source_pdf": NEW_NAME, "sourceVersion": {"sha256": NEW_SHA}}
+        reviewed, frozen = self.d / "reviewed.json", self.d / "frozen.json"
+        reviewed.write_text(json.dumps({"questions": rows if rows is not None else [one, one]}))
+        frozen.write_text(json.dumps({"source_pdf_sha256": manifest_sha}))
+        return exams, new_exams, {"reviewed_file": str(reviewed), "frozen_manifest": str(frozen)}
+
+    def test_finds_the_copied_pdf_by_name(self):
+        exams, new_exams, ready = self.setup()
+        pdf = bulk.find_pdf(ready, exams, new_exams)
+        self.assertEqual(pdf, new_exams / "2099-01_SYN_V1" / "source" / NEW_NAME)
+        self.assertEqual(pdf.name, NEW_NAME)  # the name stage-rows' preflight compares with source_pdf
+
+    def test_same_bytes_as_old_original_exam_still_uses_the_named_copy(self):
+        # the failure seen in auto-20261021-165536: the old original_exam.pdf has the same
+        # bytes, but handing it over under that name fails the source_pdf preflight
+        exams, new_exams, ready = self.setup(old_bytes=NEW_PDF)
+        self.assertEqual(bulk.find_pdf(ready, exams, new_exams).name, NEW_NAME)
+
+    def test_falls_back_to_the_exams_folder_under_the_row_name(self):
+        exams, new_exams, ready = self.setup(new_bytes=None)
+        (exams / "2099-01_SYN_V1").mkdir(parents=True)
+        (exams / "2099-01_SYN_V1" / NEW_NAME).write_bytes(NEW_PDF)
+        self.assertEqual(bulk.find_pdf(ready, exams, new_exams), exams / "2099-01_SYN_V1" / NEW_NAME)
+
+    def test_only_an_original_exam_pdf_is_not_used_for_another_name(self):
+        exams, new_exams, ready = self.setup(old_bytes=NEW_PDF, new_bytes=None)
+        with self.assertRaisesRegex(RefuseToBuild, f"no exam PDF named {NEW_NAME}"):
+            bulk.find_pdf(ready, exams, new_exams)
+
+    def test_copy_with_other_bytes_refused(self):
+        exams, new_exams, ready = self.setup(new_bytes=b"%PDF something else")
+        with self.assertRaisesRegex(RefuseToBuild, "does not match"):
+            bulk.find_pdf(ready, exams, new_exams)
+
+    def test_row_sha_differing_from_manifest_refused(self):
+        exams, new_exams, ready = self.setup(manifest_sha="0" * 64)
+        with self.assertRaisesRegex(RefuseToBuild, "sourceVersion.sha256"):
+            bulk.find_pdf(ready, exams, new_exams)
+
+    def test_two_pdf_names_in_one_batch_refused(self):
+        a = {"source_document_id": "2099-01_SYN_V1", "source_pdf": NEW_NAME}
+        b = {"source_document_id": "2099-01_SYN_V1", "source_pdf": "other.pdf"}
+        exams, new_exams, ready = self.setup(rows=[a, b])
+        with self.assertRaisesRegex(RefuseToBuild, "2 source PDF files"):
+            bulk.find_pdf(ready, exams, new_exams)
+
+    def test_path_like_name_refused(self):
+        a = {"source_document_id": "2099-01_SYN_V1", "source_pdf": "../x.pdf"}
+        exams, new_exams, ready = self.setup(rows=[a])
+        with self.assertRaisesRegex(RefuseToBuild, "unexpected source_pdf"):
+            bulk.find_pdf(ready, exams, new_exams)
+
+    def test_load_batches_hands_stage_rows_the_copied_pdf(self):
+        exams, new_exams, _ = self.setup()
+        d = fx.write_batch_dir(self.d / "pipe" / "batches" / "r9-ne-1", name="r9-ne-1")
+        ready = stage.read_ready(d)
+        one = {"source_document_id": "2099-01_SYN_V1", "source_pdf": NEW_NAME, "sourceVersion": {"sha256": NEW_SHA}}
+        Path(ready["reviewed_file"]).write_text(json.dumps({"questions": [one, one]}))
+        Path(ready["frozen_manifest"]).write_text(json.dumps({"source_pdf_sha256": NEW_SHA}))
+        seen = []
+
+        def runner(reviewed, pdf, frozen, sha):
+            seen.append(Path(pdf))
+            return fx.rows_doc([row(1), row(2)])
+        loaded, refused = bulk.load_batches([d], exams, None, runner, workers=1)
+        self.assertEqual(refused, {})
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(seen, [(new_exams / "2099-01_SYN_V1" / "source" / NEW_NAME).resolve()])
+
+
 class TestBulkSealAndPublish(BulkCase):
     def stage_and_seal(self, groups: dict, readback_parts: int = 2):
         dirs = [self.batch(name, rows) for name, rows in groups.items()]
