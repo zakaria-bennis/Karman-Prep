@@ -1,0 +1,147 @@
+{
+  "master": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. ",
+  "concepts": [
+    [
+      "Thin Air",
+      "Concept: below the Karman line the K is solid; above the line the K breaks into horizontal stripes that get thinner and further apart as they rise, the way air thins with altitude (visual rhythm)."
+    ],
+    [
+      "Lifted",
+      "Concept: the K is cut cleanly by one horizontal line through its upper third and the upper part is lifted slightly; the thin horizontal gap is the Karman line itself and continues a short distance beyond the letter on both sides (negative space)."
+    ],
+    [
+      "Apogee",
+      "Concept: the upper arm of the K is a launch trajectory that curves upward through a thin horizontal line and levels off at its highest point, like the top of a flight path (visual flow)."
+    ],
+    [
+      "Open Sky",
+      "Concept: one horizontal line crosses the K's upper third; below the line the K is solid black, above it the K is drawn only as a heavy outline, so past the line the letter becomes open sky (unexpected twist)."
+    ],
+    [
+      "Planet Edge",
+      "Concept: the K stands over the gently curved edge of the earth seen from high above; where the letter overlaps the curved shape the black and white invert, and one arc just above the curve marks the edge of space (overlapping geometry)."
+    ],
+    [
+      "Altimeter",
+      "Concept: the stem of the K is an altitude scale made of evenly spaced horizontal bars, and exactly one bar extends far to the left as the Karman line (visual rhythm)."
+    ],
+    [
+      "Split Seal",
+      "Concept: a circular emblem divided by one horizontal line; the K crosses the line and inverts from black to white between the two halves. Minimal, like a modern version of an old institution's seal (overlapping geometry)."
+    ],
+    [
+      "Square Cut",
+      "Concept: a solid black square with softly rounded corners; the K is cut out of it in negative space, and the horizontal Karman line is also cut through the square and flows into the K's upper arm (negative space)."
+    ],
+    [
+      "Wordmark Line",
+      "Concept: a wordmark-led logo. Custom lettering for KARMAN where one horizontal line runs through the whole word at cap height and only the two A's rise through it; the brand mark is a compact K monogram drawn from the same lettering with the same line."
+    ],
+    [
+      "Designer's Choice",
+      "Concept: your own strongest idea combining the capital K and a single horizontal line the letter rises past, so that the line and the K become one shape that could not exist without each other."
+    ]
+  ],
+  "requests": [
+    {
+      "index": 0,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: below the Karman line the K is solid; above the line the K breaks into horizontal stripes that get thinner and further apart as they rise, the way air thins with altitude (visual rhythm)."
+      }
+    },
+    {
+      "index": 1,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: the K is cut cleanly by one horizontal line through its upper third and the upper part is lifted slightly; the thin horizontal gap is the Karman line itself and continues a short distance beyond the letter on both sides (negative space)."
+      }
+    },
+    {
+      "index": 2,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: the upper arm of the K is a launch trajectory that curves upward through a thin horizontal line and levels off at its highest point, like the top of a flight path (visual flow)."
+      }
+    },
+    {
+      "index": 3,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: one horizontal line crosses the K's upper third; below the line the K is solid black, above it the K is drawn only as a heavy outline, so past the line the letter becomes open sky (unexpected twist)."
+      }
+    },
+    {
+      "index": 4,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: the K stands over the gently curved edge of the earth seen from high above; where the letter overlaps the curved shape the black and white invert, and one arc just above the curve marks the edge of space (overlapping geometry)."
+      }
+    },
+    {
+      "index": 5,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: the stem of the K is an altitude scale made of evenly spaced horizontal bars, and exactly one bar extends far to the left as the Karman line (visual rhythm)."
+      }
+    },
+    {
+      "index": 6,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: a circular emblem divided by one horizontal line; the K crosses the line and inverts from black to white between the two halves. Minimal, like a modern version of an old institution's seal (overlapping geometry)."
+      }
+    },
+    {
+      "index": 7,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: a solid black square with softly rounded corners; the K is cut out of it in negative space, and the horizontal Karman line is also cut through the square and flows into the K's upper arm (negative space)."
+      }
+    },
+    {
+      "index": 8,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: a wordmark-led logo. Custom lettering for KARMAN where one horizontal line runs through the whole word at cap height and only the two A's rise through it; the brand mark is a compact K monogram drawn from the same lettering with the same line."
+      }
+    },
+    {
+      "index": 9,
+      "params": {
+        "model": "gpt_image_2",
+        "resolution": "1k",
+        "quality": "low",
+        "aspect_ratio": "16:9",
+        "prompt": "Logo design presentation board for KARMAN PREP, a premium SAT preparation company for well-off families: small live cohorts that each end on one specific SAT test date, private one-on-one tutoring over Zoom, and a daily digital practice app. The name comes from the Karman line, the boundary 100 km up where the sky ends and space begins: the line you rise past. Design it the way Allan Peters (author of Logos That Last) designs brand marks: one bold, simple, geometric mark built from heavy strokes of one even weight, merging the capital letter K with the Karman line (a single horizontal line) and at most one more idea into one inseparable, ownable shape. Use one of his tools: negative space, overlapping geometry, visual rhythm, an unexpected twist on a familiar shape, or visual flow. Crisp vector edges, generous internal spacing, no thin hairlines, so it reads clearly at 16 pixels and in one colour. Layout: pure black artwork on a plain white background. On the left, the brand mark alone, large. On the right, a horizontal lockup: the same mark followed by the wordmark KARMAN PREP in custom-drawn geometric capital letters whose stroke weight matches the mark (not a stock typeface), spelled exactly K-A-R-M-A-N P-R-E-P, with generous letter spacing. Flat 2D vector only. No gradients, no shadows, no 3D, no texture, no paper or device mockup, no colour, no other text, no tagline. Avoid clich\u00e9s: no graduation caps, owls, books, pencils, lightbulbs, rockets, ringed planets, swooshes, globes or shooting stars. The feeling: established, calm and confident, like an old institution with a modern edge. Not playful, not techy, not a startup app icon. Concept: your own strongest idea combining the capital K and a single horizontal line the letter rises past, so that the line and the K become one shape that could not exist without each other."
+      }
+    }
+  ]
+}
