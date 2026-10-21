@@ -5,6 +5,7 @@ export read and write them there; official keys keep the exact legacy SQL (made-
 
 import copy
 import json
+import os
 import unittest
 
 from kimport.answer_evidence import GENERATED, ambiguous, evidence_root, json_path, sql_get, sql_remove
@@ -15,7 +16,11 @@ from kimport.sweep import republish_sql, unpublish_sql
 from kimport.export import export_by_id, read_export
 from tests import publish_fixtures as fx
 from tests import stage_fixtures as sfx
+from kimport import stage
+from kimport.publish import build_publish
+from tests.export_fixtures import write_export
 from tests.test_publish import PublishTestCase, payloads
+from tests.test_stage import StageCase
 from tests.test_sweep import FIXTURE, groups, uid
 
 
@@ -108,6 +113,38 @@ class PublishGenerated(PublishTestCase):
         snap, seal = generated(2, "Which choice best states the main idea of the made-up passage about otters?", True)
         with self.assertRaisesRegex(RefuseToBuild, "student_publication_allowed"):
             self.build(self.batch([snap], seals=[seal]))
+
+
+class EndToEnd(StageCase):
+    """A generated-key row and an official row staged together, sealed, then published."""
+
+    def test_stage_seal_publish_generated_row(self):
+        gen = sfx.stage_row(1, "Which choice best completes the made-up text about tidal pools?")
+        gen["key"]["raw_model_response"] = envelope(gen["key"]["raw_model_response"])
+        off = sfx.stage_row(2, "Which finding from the made-up study about bees would support the claim?")
+        raw, snaps = self.staged_readback([gen, off])
+        sealed_path = self.out / "sealed-preview.json"
+        res = stage.run_seal(raw, self.batch, sealed_path, sealer=sfx.fake_sealer)
+        self.assertEqual(res["rows"], 2)
+        sealed = json.loads(sealed_path.read_text())
+        by_n = {r["source_question_number"]: r for r in sealed["rows"]}
+        self.assertEqual(by_n[1]["answer_evidence"]["kind"], GENERATED)
+        readback = self.out / "private-readback.json"
+        export = self.d / "export-after.json"
+        write_export(export, [fx.export_row(s) for s in snaps])
+        os.utime(export, (readback.stat().st_mtime + 10,) * 2)
+        bundle = build_publish(readback, sealed_path, export, self.d / "intents.jsonl", "syn-1")
+        self.assertTrue(bundle["precheck"]["passed"])
+        blocks = [b for b in bundle["publish_sql"].split("\nDO ") if "private answer changed" in b]
+        g = next(b for b in blocks if payloads(b)[0][0]["question"]["source_question_number"] == 1)
+        o = next(b for b in blocks if payloads(b)[0][0]["question"]["source_question_number"] == 2)
+        # the seal and the flag go where readCatalogQuestionScope reads them, and the guard checks that root
+        self.assertIn("'{evidence,approved_tags,question_payload_sha256}'", g)
+        self.assertIn("'{evidence,student_publication_allowed}','true'::jsonb", g)
+        self.assertIn("k.raw_model_response->'evidence'->'approved_tags'->>'tag_binding_manifest_sha256'", g)
+        self.assertNotIn("'{approved_tags,question_payload_sha256}'", g)
+        self.assertIn("'{approved_tags,question_payload_sha256}'", o)
+        self.assertIn("'{student_publication_allowed}','true'::jsonb", o)
 
 
 class SweepGenerated(unittest.TestCase):

@@ -11,6 +11,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from kimport.answer_evidence import evidence_root
 from tests.publish_fixtures import CREATED, MODULE, SECTION, SOURCE, _evidence, hexn, uid
 
 BINDING = {"schema": "SYNTHETIC_BINDING_V1", "bindings": ["made-up"]}
@@ -92,7 +93,7 @@ def fake_sealer(path: Path) -> list[dict]:
     out = []
     for r in rows:
         q = r["snapshot"]["question"]
-        ev = r["snapshot"]["keys"][0]["raw_model_response"]
+        ev = evidence_root(r["snapshot"]["keys"][0]["raw_model_response"])  # as readCatalogQuestionScope reads it
         out.append({"question_id": q["id"], "stable_question_id": ev["approved_tags"]["stable_question_id"],
                     "source_version": q["source_version"], "content_hash_v2": q["content_hash_v2"],
                     "question_payload_sha256": hashlib.sha256(q["question_text"].encode()).hexdigest(),

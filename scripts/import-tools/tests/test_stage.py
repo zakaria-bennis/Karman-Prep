@@ -38,6 +38,15 @@ class StageCase(unittest.TestCase):
         stage._write_all(self.out, res["files"])
         return res
 
+    def staged_readback(self, rows):
+        self.run_stage(rows)
+        prev = json.loads((self.out / "stage-preview.json").read_text())
+        snaps = [fx.db_snapshot(p, i) for i, p in enumerate(prev["rows"], 1)]
+        path = self.d / "readback-raw.json"
+        # the CLI result shape: one row wrapping the object
+        path.write_text(json.dumps([{"readback": {"rows": [{"snapshot": s} for s in reversed(snaps)]}}]))
+        return path, snaps
+
 
 class TestReady(StageCase):
     def test_reads_paths_and_batch_name(self):
@@ -201,15 +210,6 @@ class TestPrecheck(StageCase):
 
 
 class TestSealAndPublish(StageCase):
-    def staged_readback(self, rows):
-        self.run_stage(rows)
-        prev = json.loads((self.out / "stage-preview.json").read_text())
-        snaps = [fx.db_snapshot(p, i) for i, p in enumerate(prev["rows"], 1)]
-        path = self.d / "readback-raw.json"
-        # the CLI result shape: one row wrapping the object
-        path.write_text(json.dumps([{"readback": {"rows": [{"snapshot": s} for s in reversed(snaps)]}}]))
-        return path, snaps
-
     def test_seal_writes_publish_inputs_that_publish_accepts(self):
         rows = [fx.stage_row(1, TEXT1), fx.stage_row(2, TEXT2),
                 fx.stage_row(3, "What made-up count does the clerk record?", answer="12", fmt="numeric_entry")]
