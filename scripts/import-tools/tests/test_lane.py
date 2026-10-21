@@ -333,6 +333,39 @@ class SliceTests(Base):
         self.put(self.clusters, clusters_doc([settled(i, []) for i in ids]))
         self.put(self.ledger, ledger_doc([(i, "awaiting_evidence", None) for i in ids]))
 
+    def make_batch(self, name, ids, ready=True, named=True):
+        b = self.tmp / "batches" / name
+        b.mkdir(parents=True)
+        f = b / f"{name}-reviewed-import-ready.json"
+        f.write_text(json.dumps({"questions": [{"stable_question_id": i} for i in ids]}))
+        if ready:
+            (b / "READY").write_text("reviewer: r1\n" + (f"reviewed_file: {f}\n" if named else ""))
+        return b
+
+    def test_handed_over_ids_not_reissued(self):
+        self.setup_bank()
+        self.make_batch("r1-1", self.ids[:3])
+        self.make_batch("r1-2", self.ids[3:5], named=False)
+        self.make_batch("r1-3", self.ids[5:7], ready=False)
+        got = lane.next_slice(self.clusters, self.lane, self.ledger, "r1", size=100, claims_path=self.claims, now="t")
+        for i in self.ids[:5]:
+            self.assertNotIn(i, got)
+        for i in self.ids[5:7]:
+            self.assertIn(i, got)
+
+    def test_handed_over_reissued_when_reopened_for_rework_later(self):
+        self.setup_bank()
+        self.make_batch("r1-1", self.ids[:3])
+        later = "2999-01-01T00:00:00Z"
+        self.put(self.lane, {"items": {
+            self.ids[0]: {"since": later, "attempts": [], "reason": "extraction_repair", "status": "open", "detail": ""},
+            self.ids[1]: {"since": "2000-01-01T00:00:00Z", "attempts": [], "reason": "extraction_repair", "status": "open", "detail": ""},
+            self.ids[2]: {"since": later, "attempts": [], "reason": "answer_dispute", "status": "open", "detail": ""}}})
+        blocked = lane.handed_over_blocked(self.lane)
+        self.assertNotIn(self.ids[0], blocked)   # reopened for rework after the batch
+        self.assertIn(self.ids[1], blocked)      # reopened before the batch was written
+        self.assertIn(self.ids[2], blocked)      # not a reviewer-rework reason
+
     def test_slice_canonicals_only(self):
         self.setup_bank()
         doc = json.loads(self.clusters.read_text())

@@ -12,7 +12,7 @@ nothing edits question text.
 """
 
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .corpus import elect
@@ -260,12 +260,77 @@ def _extra_ledgers(extra, near: Path) -> list[Path]:
     return [p] if p.exists() else []
 
 
+REWORK_REASONS = ("extraction_repair", "classification_review", "skill_unclear", "difficulty_unclear", "variant_review")
+
+
+def _ready_reviewed_file(batch: Path) -> Path | None:
+    try:
+        for line in (batch / "READY").read_text(encoding="utf-8").splitlines():
+            if line.startswith("reviewed_file:"):
+                named = Path(line.split(":", 1)[1].strip())
+                if named.is_file():
+                    return named
+                if (batch / named.name).is_file():
+                    return batch / named.name
+    except OSError:
+        return None
+    found = sorted(batch.glob("*reviewed-import-ready.json"))
+    return found[0] if found else None
+
+
+def handed_over_ids(lane_path: Path) -> dict[str, float]:
+    """Occurrence ids already built and handed over: every pipeline/batches/*/ folder with a READY
+    file whose reviewed file lists the id as stable_question_id. Maps id to the newest READY mtime
+    (epoch seconds). Unreadable batches are skipped."""
+    out: dict[str, float] = {}
+    for ready in Path(lane_path).parent.glob("batches/*/READY"):
+        reviewed = _ready_reviewed_file(ready.parent)
+        if reviewed is None:
+            continue
+        try:
+            mtime = ready.stat().st_mtime
+            questions = load_json(reviewed).get("questions", [])
+        except (OSError, ValueError, AttributeError):
+            continue
+        for q in questions:
+            sid = q.get("stable_question_id") if isinstance(q, dict) else None
+            if sid:
+                out[sid] = max(out.get(sid, 0.0), mtime)
+    return out
+
+
+def _epoch(stamp: str) -> float:
+    dt = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    return (dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).timestamp()
+
+
+def _reopened_after(item: dict, when: float) -> bool:
+    stamps = [item.get("since")] + [a.get("at") for a in item.get("attempts", [])]
+    try:
+        return max(_epoch(t) for t in stamps if t) > when
+    except ValueError:
+        return False
+
+
+def handed_over_blocked(lane_path: Path) -> set[str]:
+    """Handed-over ids that must not be sliced again, unless the lane reopened them for reviewer
+    rework (open, a rework reason) after their batch was written."""
+    items = _read_lane(lane_path)["items"]
+    blocked = set()
+    for sid, when in handed_over_ids(lane_path).items():
+        it = items.get(sid)
+        if it and it.get("status") == "open" and it.get("reason") in REWORK_REASONS and _reopened_after(it, when):
+            continue
+        blocked.add(sid)
+    return blocked
+
+
 def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer: str,
                size: int = SLICE_SIZE, claims_path: Path | None = None, now: str | None = None,
                extra_ledgers=None) -> list[str]:
     """Up to `size` unclaimed canonical questions from one exam module, oldest unreviewed first
     (ledger bucket awaiting_evidence, then the rest; exam, section, module, number). Skips lane items
-    that are open or parked, live questions, and anything claimed by any reviewer. The picked ids are
+    that are open or parked, live questions, ids already handed over in a batch (unless reopened for rework since), and anything claimed by any reviewer. The picked ids are
     recorded as `reviewer`'s claim under a lockfile, so two reviewers never get the same item."""
     if size < 1:
         raise ValueError("size must be at least 1")
@@ -275,7 +340,7 @@ def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer
     # new-exam occurrences (pipeline/new-exams) come from a supplementary ledger next to clusters.json
     ledger = ledger_entries(ledger_path, _extra_ledgers(extra_ledgers, Path(clusters_path).parent))
     blocked_lane = blocked_ids(lane_path)
-    already_live = live_ids(lane_path)
+    already_live = live_ids(lane_path) | handed_over_blocked(lane_path)
     with FileLock(claims_path):
         claims = _read_claims(claims_path)
         claimed = {i for c in claims.values() for i in c.get("claimed", [])}
