@@ -2,7 +2,24 @@
 import { chromium } from "/Users/zakariabennis/Karman-Prep/node_modules/playwright/index.mjs";
 // [shot, [[screen, kind, hintX, hintY], ...]] hints are where the device sits, as fractions of the photo
 const JOBS = [
-  ["c1-bus", [["daily10-dark", "phone", 0.7, 0.66]]],
+  [
+    "c1-bus",
+    [
+      [
+        "daily10-dark",
+        "phone",
+        0.7,
+        0.66,
+        [
+          [1871, 801],
+          [2064, 816],
+          [1927, 1292],
+          [1738, 1266],
+        ],
+      ],
+    ],
+    200,
+  ],
   [
     "c2-music",
     [
@@ -80,7 +97,7 @@ const b = await chromium.launch();
 for (const [shot, screens, thr = 214] of JOBS) {
   if (only && !only.split(",").includes(shot)) continue;
   const p = await b.newPage({ viewport: { width: 1200, height: 800 } });
-  await p.goto("http://localhost:8765/hf-shots/");
+  await p.goto("http://localhost:8765/hf-shots/blank.html");
   const ok = await p.evaluate(
     async ({ shot, screens, thr }) => {
       const load = (src) =>
@@ -191,7 +208,7 @@ for (const [shot, screens, thr = 214] of JOBS) {
       const out = document.createElement("div");
       out.id = "out";
       out.style.cssText = `position:relative;width:${W}px;height:${H}px;overflow:hidden`;
-      img.style.cssText = "position:absolute;left:0;top:0";
+      img.style.cssText = `position:absolute;left:0;top:0;width:${W}px;height:${H}px;max-width:none`;
       out.appendChild(img);
       const solve = (src, dst) => {
         // homography: 8 unknowns
@@ -306,7 +323,7 @@ for (const [shot, screens, thr = 214] of JOBS) {
           quad
         );
         const m = [hh[0], hh[3], 0, hh[6], hh[1], hh[4], 0, hh[7], 0, 0, 1, 0, hh[2], hh[5], 0, 1];
-        s.style.cssText = `position:absolute;left:0;top:0;transform-origin:0 0;transform:matrix3d(${m.join(",")});border-radius:${kind === "phone" ? sw * 0.09 : 0}px;filter:brightness(.93) contrast(.97) saturate(.95)`;
+        s.style.cssText = `position:absolute;left:0;top:0;width:${sw}px;height:${sh}px;max-width:none;transform-origin:0 0;transform:matrix3d(${m.join(",")});border-radius:${kind === "phone" ? sw * 0.09 : 0}px;filter:brightness(.93) contrast(.97) saturate(.95)`;
         // mask: inside the quad, keep only pixels that were screen-white, so fingers stay in front
         const xs = quad.map((q) => q[0]),
           ys = quad.map((q) => q[1]);
@@ -372,11 +389,9 @@ for (const [shot, screens, thr = 214] of JOBS) {
   }
   await p.setViewportSize({ width: ok[0], height: ok[1] });
   await p.waitForTimeout(300);
-  await p
-    .locator("#out")
-    .screenshot({
-      path: `/Users/zakariabennis/Karman-Prep/.impeccable/mocks/decision/hf-shots/final-${shot}.png`,
-    });
+  await p.locator("#out").screenshot({
+    path: `/Users/zakariabennis/Karman-Prep/.impeccable/mocks/decision/hf-shots/final-${shot}.png`,
+  });
   console.log(shot, "ok");
   await p.close();
 }
