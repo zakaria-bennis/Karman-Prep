@@ -122,6 +122,16 @@ function speak(node: Node, source: string): string {
         ),
         ...(node.otherwise === null ? [] : ["otherwise", at(node.otherwise, 2)])
       );
+    case "for": // NM-37: "n squared for n equals list 1 2"
+      return words(
+        speak(node.body, source),
+        ...node.bindings.flatMap((b) => [
+          "for",
+          identifier(b.name),
+          "equals",
+          speak(b.list, source),
+        ])
+      );
     case "rel": {
       const parts = [speak(node.operands[0], source)];
       node.ops.forEach((op, i) =>

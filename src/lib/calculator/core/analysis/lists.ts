@@ -13,6 +13,7 @@ import {
   type SourceSpan,
 } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
+import { printLatex } from "../latex/printer";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { POINT_FUNCTIONS } from "../lib/geometry";
 import { rangeShape } from "../lib/range";
@@ -162,6 +163,16 @@ function shapeOf(node: Node, locals: readonly string[], known: Known, bound: Bou
     }
     case "piecewise":
       return piecewiseShape(node, of);
+    case "for": {
+      // NM-37: the body with each name an element of its list
+      const inner = new Map(bound);
+      for (const b of node.bindings) {
+        const list = of(b.list);
+        inner.set(b.name, list === "numbers" ? "number" : list === "points" ? "point" : null);
+      }
+      const body = shapeOf(node.body, locals, known, inner);
+      return body === "number" ? "numbers" : body === "point" ? "points" : null;
+    }
     case "rel":
     case "sim":
       return null;
@@ -386,6 +397,7 @@ function listValued(
   for (let n = pending.pop(); n !== undefined; n = pending.pop()) {
     switch (n.kind) {
       case "list":
+      case "for":
         return true;
       case "index":
         // NM-30, NM-31: an element is a list only when the index is one; T's own list is not
@@ -425,6 +437,8 @@ export function listProblem(
   locals: readonly string[],
   typing: ListTyping
 ): ListProblem | null {
+  const notList = comprehensionProblem(tree, locals, typing);
+  if (notList !== null) return notList;
   const brackets = bracketNodes(tree);
   for (const node of brackets) {
     if (node.kind !== "index") continue;
@@ -447,6 +461,28 @@ export function listProblem(
     if (free !== null) {
       return { code: "list-length-free", names: [displayName(free)], span: node.span };
     }
+  }
+  return null;
+}
+
+/**
+ * NM-37: the first comprehension definition that is a number, Desmos's "A definition on the
+ * right-hand side of 'for' must be a list, but n is a number. Try n=[1]." (captured 2026-10-20).
+ */
+function comprehensionProblem(
+  tree: Node,
+  locals: readonly string[],
+  typing: ListTyping
+): ListProblem | null {
+  const pending: Node[] = [tree];
+  for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
+    if (node.kind === "for") {
+      const bad = node.bindings.find((b) => typing.shape(b.list, locals) === "number");
+      if (bad !== undefined) {
+        return { code: "for-list", names: [bad.name, printLatex(bad.list)], span: bad.span };
+      }
+    }
+    pending.push(...childNodes(node));
   }
   return null;
 }

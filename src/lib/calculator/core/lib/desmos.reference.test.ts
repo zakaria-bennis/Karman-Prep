@@ -231,12 +231,10 @@ function sameIndexValue(v: Value, expected: Captured): boolean {
   );
 }
 
-// Index values not yet matched, each an expected failure that fails once matched: `and`, `or`
-// and comprehensions (NM-37) have not shipped.
+// Index values not yet matched, each an expected failure that fails once matched: `and` and `or`
+// have not shipped.
 const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
   "L[L>3 \\operatorname{and} L<9]",
-  "[L[i] \\operatorname{for} i=[1...3]]",
-  "[i^2 \\operatorname{for} i=[1...3]][2]",
   "L[(L>3) \\operatorname{or} (L<2)]",
 ]);
 
@@ -405,7 +403,7 @@ const STATISTICS_GAPS: readonly RegExp[] = [
   /\\operatorname\{(rgb|hsv|okhsv|oklab|oklch|tone)\}/,
   /dist\}/,
   /\.\\operatorname/,
-  /\\operatorname\{for\}|bmatrix/,
+  /bmatrix|\\operatorname\{for\}.*;/, // matrices, `[… \operatorname{for} i=…;j=…]` among them
   /\\operatorname\{(shuffle|random|polygon|boxplot|stats)\}/,
   /\\arg/,
   /^y=/,
@@ -429,11 +427,11 @@ const statisticsGap = (key: string) =>
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 347 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 349 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 347]));
+  ]).toEqual([438, 349]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -451,16 +449,20 @@ for (const [key, expected] of STATISTICS_VALUES) {
 
 const STATISTICS_ERRORS = Object.entries(statistics.errors);
 
-it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 65 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 66 matched", () =>
   expect([
     STATISTICS_ERRORS.length,
     STATISTICS_ERRORS.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([75, 65]));
+  ]).toEqual([75, 66]));
 
 for (const [key, message] of STATISTICS_ERRORS) {
   const check = () => {
     const { latex, rows, complex } = statisticsCase(key);
-    expect(errorMessage(rows, latex, complex)).toBe(message);
+    // a list error found while evaluating counts too (NM-35: a comprehension that is too long)
+    const v = evaluateLatex(latex, { rows, settings: { complex } });
+    const carried = v.type === "undefined" && v.error !== undefined ? v.error : null;
+    const shown = errorMessage(rows, latex, complex) ?? (carried && rowErrorMessage(carried, []));
+    expect(shown).toBe(message);
   };
   if (statisticsGap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`FN-2 FN-23 FN-29 FN-75 ${key} reads "${message}", as in Desmos`, check);

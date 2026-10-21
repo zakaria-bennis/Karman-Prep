@@ -72,7 +72,7 @@ const cases: CorpusCase[] = [
   x(62, ["NM-30"], "5[1]", "index-type"), // Desmos: "Cannot index a number with a number."
   x(63, ["NM-31"], "L[L>x]", "list-length-free", { rows: ["L=[5,3,8,1]"] }),
   k(64, ["G-3", "NM-30"], "[(1,2),(3,4)][1]", "point"),
-  x(15, ["PR-34", "NM-37"], "[n^{2}\\operatorname{for}n=[1...5]]", "unsupported"),
+  x(15, ["PR-34", "NM-37"], "[n\\operatorname{for}n=[1,2],n]", "for-ambiguous"),
   x(16, ["PR-30"], "y_{1}\\sim", "sim-side"),
   x(17, ["PR-30"], "\\sim x_{1}", "sim-side"),
   d(18, ["NM-32"], "[1,2,3]+1", "[2, 3, 4]"),

@@ -194,6 +194,7 @@ function compile(node: Node, ctx: Context): Fn {
       return piecewise(node, ctx);
     case "point": // a point is not a real number
     case "list": // nor is a list
+    case "for": // nor a comprehension (branches.ts picks its elements)
     case "sim": // a regression row is fitted by the values pass (D-2)
       return undefinedFn;
   }

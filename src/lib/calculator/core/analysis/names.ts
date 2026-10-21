@@ -48,10 +48,11 @@ export function lengthShaping(node: Node): readonly Node[] {
  */
 export function collectNameUses(tree: Node): NameUse[] {
   const uses: NameUse[] = [];
-  const pending: [Node, boolean, boolean][] = [[tree, false, false]];
+  const none: ReadonlySet<string> = new Set();
+  const pending: [Node, boolean, boolean, ReadonlySet<string>][] = [[tree, false, false, none]];
   for (let entry = pending.pop(); entry !== undefined; entry = pending.pop()) {
-    const [node, inPoint, counted] = entry;
-    if (node.kind === "id") {
+    const [node, inPoint, counted, local] = entry;
+    if (node.kind === "id" && !local.has(node.name)) {
       uses.push({ name: node.name, span: node.span, call: false, inPoint, counted });
     } else if (node.kind === "call" && !isBuiltinName(node.name) && node.member === undefined) {
       uses.push({ name: node.name, span: node.span, call: true, inPoint, counted });
@@ -60,8 +61,12 @@ export function collectNameUses(tree: Node): NameUse[] {
     const counts = counted || (node.kind === "call" && COUNTING_NAMES.has(node.name));
     const kids = sourceChildren(node),
       shaping = counts ? lengthShaping(node) : [];
+    // NM-37: a comprehension's names are local to its body
+    const inner =
+      node.kind === "for" ? new Set([...local, ...node.bindings.map((b) => b.name)]) : local;
     for (let i = kids.length - 1; i >= 0; i -= 1) {
-      pending.push([kids[i], below, counts && !shaping.includes(kids[i])]);
+      const scope = node.kind === "for" && i === 0 ? inner : local;
+      pending.push([kids[i], below, counts && !shaping.includes(kids[i]), scope]);
     }
   }
   return uses.sort((a, b) => a.span.start - b.span.start);

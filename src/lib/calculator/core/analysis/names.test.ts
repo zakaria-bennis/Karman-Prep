@@ -128,23 +128,23 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
   for (const [name, text] of shown) expect(displayName(name)).toBe(text);
 });
 
-it("PR-30, PR-34, NM-37 a half-typed regression and deferred list notation have their own copy", () => {
+it("PR-30, NM-37 a half-typed regression and a comprehension of a number have Desmos's copy", () => {
   const table: [RowErrorCode, string[], string][] = [
-    ["sim-side", [], "You need something on both sides of the '∼' symbol."],
+    ["sim-side", ["∼"], "You need something on both sides of the '∼' symbol."],
     [
-      "unsupported",
-      ["Building a list with 'for'"],
-      "Building a list with 'for' isn't supported yet.",
+      "for-list",
+      ["n", "1"],
+      "A definition on the right-hand side of 'for' must be a list, but n is a number. Try n=[1].",
     ],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
-  const rows = ["[n^{2}\\operatorname{for}n=[1...5]]", "y_{1}\\sim"].map((latex, k) => ({
+  const rows = ["[n^{2}\\operatorname{for}n=1]", "y_{1}\\sim"].map((latex, k) => ({
     id: `r${k}`,
     latex,
     hidden: false,
   }));
   expect(analyzeRows(rows, REAL).rows.map((r) => r.error?.message)).toEqual([
-    "Building a list with 'for' isn't supported yet.",
+    "A definition on the right-hand side of 'for' must be a list, but n is a number. Try n=[1].",
     "You need something on both sides of the '∼' symbol.",
   ]);
 });

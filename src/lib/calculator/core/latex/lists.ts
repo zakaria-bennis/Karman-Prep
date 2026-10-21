@@ -1,10 +1,9 @@
 // List brackets (PR-34): literals `[a,b,c]` and `[]`, the ranges `[a...b]` and `[a,b,...,c]` (the
 // ellipsis is `...`, `\ldots`, `\dots` or `…`, one token after normalizing), and indexing,
-// slicing and filtering `L[…]` (NM-30, NM-31). Comprehensions, whose meaning has not shipped
-// (NM-37), are `unsupported` naming their DEFERRED_FEATURES entry.
+// slicing and filtering `L[…]` (NM-30, NM-31), and comprehensions `[e \operatorname{for} n=L,m=M]`
+// (NM-37), which a whole row may also be without brackets (`n\operatorname{for}n=[1,2]`).
 
-import type { Node, SourceSpan } from "./ast";
-import { DEFERRED_FEATURES } from "./errors";
+import type { Binding, Node, SourceSpan } from "./ast";
 import {
   enter,
   fail,
@@ -23,6 +22,7 @@ interface Bracket {
   items: Node[];
   before: number; // items before the ellipsis; -1 without one
   span: SourceSpan;
+  comprehension: Extract<Node, { kind: "for" }> | null; // `[e for n=L]`: its body is items[0]
 }
 
 /**
@@ -34,7 +34,8 @@ interface Bracket {
  * second ellipsis or any other shape is `syntax` at the token where it goes wrong.
  */
 export function parseList(state: ParserState, open: OpenToken): Node {
-  const { items, before, span } = parseBracket(state, open, false);
+  const { items, before, span, comprehension } = parseBracket(state, open, false);
+  if (comprehension !== null) return { ...comprehension, brackets: true, span };
   if (before < 0) return { kind: "list", items, span };
   return { kind: "list", items, range: before, span };
 }
@@ -72,6 +73,7 @@ function parseBracket(state: ParserState, open: OpenToken, index: boolean): Brac
   take(state);
   const items: Node[] = [];
   let before = -1;
+  let comprehension: Bracket["comprehension"] = null;
   enter(state, open, () => {
     if (isClose(peek(state))) return;
     for (;;) {
@@ -90,20 +92,59 @@ function parseBracket(state: ParserState, open: OpenToken, index: boolean): Brac
       items.push(index ? parseCondition(state) : parseSum(state));
       const next = peek(state);
       if (isComma(next)) take(state);
-      else if (!isEllipsis(next)) return;
+      else if (!index && isFor(next)) {
+        if (items.length > 1 || before >= 0) failAmbiguous(next);
+        comprehension = takeComprehension(state, items[0]);
+        return;
+      } else if (!isEllipsis(next)) return;
     }
   });
   const close = peek(state);
   if (!isClose(close)) unexpected(state, close);
   take(state);
-  return { items, before, span: { start: open.span.start, end: close.span.end } };
+  const span = { start: open.span.start, end: close.span.end };
+  return { items, before, span, comprehension };
 }
 
-/** `unsupported` at `\operatorname{for}`, the comprehension operator (PR-34, NM-37). */
-export function failIfComprehension(command: Token): void {
-  if (command.t !== "command" || command.name !== "for") return;
-  const feature = DEFERRED_FEATURES.comprehension;
-  fail("unsupported", command.span, `${feature} is not supported`, feature);
+/** True for the comprehension operator `\operatorname{for}`. */
+export function isFor(token: Token): boolean {
+  return token.t === "command" && token.name === "for";
+}
+
+/**
+ * NM-37: the `for` at the cursor and its definitions `n=L, m=M` after `body`, as Desmos reads them
+ * (captured 2026-10-20): nothing after `for` is "You need something on both sides of the 'for'
+ * symbol."; a second `for`, or a comma before something that is not a definition, is "Ambiguous use
+ * of ',' and 'for'. Add parentheses around the 'for' expression."; a name defined twice is "You
+ * can't define 'a' more than once on the right-hand side of 'for'.".
+ */
+export function takeComprehension(state: ParserState, body: Node): Extract<Node, { kind: "for" }> {
+  const keyword = take(state);
+  const bindings: Binding[] = [];
+  for (;;) {
+    const start = peek(state);
+    if (start.t === "end" || start.t === "close") {
+      fail("operator-side", keyword.span, "nothing after for", "for");
+    }
+    const part = parseCondition(state);
+    const [name, list] = part.kind === "rel" ? part.operands : [];
+    const single = part.kind === "rel" && part.ops.length === 1 && part.ops[0] === "=";
+    if (!single || name.kind !== "id") return failAmbiguous(keyword);
+    if (bindings.some((b) => b.name === name.name)) {
+      fail("for-duplicate", name.span, "a name defined twice after for", undefined, [name.name]);
+    }
+    bindings.push({ name: name.name, list, span: part.span });
+    const next = peek(state);
+    if (isFor(next)) failAmbiguous(next);
+    if (!isComma(next)) break;
+    take(state);
+  }
+  const span = { start: body.span.start, end: bindings[bindings.length - 1].span.end };
+  return { kind: "for", body, bindings, brackets: false, span };
+}
+
+function failAmbiguous(token: Token): never {
+  return fail("for-ambiguous", token.span, "a comma beside a for");
 }
 
 function failRangeBound(ellipsis: Token): never {

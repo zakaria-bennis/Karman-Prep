@@ -87,10 +87,13 @@ describe("list syntax", () => {
     expect(tree("L[L>2,1]")).toBe("inequality-here");
     expect(tree("L[1...L>2]")).toBe("inequality-here");
     expect(tree("L[1...2...3]")).toBe("unexpected-symbol: ...");
+    // NM-37: comprehensions, and Desmos's errors around them (captured 2026-10-20)
     expect(tree("[n^{2}\\operatorname{for}n=[1...5]]")).toBe(
-      "unsupported: Building a list with 'for'"
+      "(for (pow (id n) (num 2)) (n (range (num 1) (num 5))))"
     );
-    expect(tree("x\\operatorname{for}")).toBe("unsupported: Building a list with 'for'");
+    expect(tree("x\\operatorname{for}")).toBe("operator-side: for");
+    expect(tree("[n\\operatorname{for}n=[1,2],n]")).toBe("for-ambiguous");
+    expect(tree("[a\\operatorname{for}a=[1],a=[2]]")).toBe("for-duplicate");
   });
 
   it("PR-34 an index prints as MathQuill writes it and reads back the same", () => {
@@ -113,9 +116,11 @@ describe("list syntax", () => {
   });
 
   it("PR-30 a regression with an empty side is sim-side, not a generic syntax error", () => {
-    for (const latex of ["\\sim", "y\\sim", "y_{1}\\sim", "\\sim x", "~", "y~ "])
-      expect(tree(latex), latex).toBe("sim-side");
+    // the message names the symbol as written: ∼ for `\sim`, ~ for a typed `~` (Desmos, 2026-10-20)
+    for (const latex of ["\\sim", "y\\sim", "y_{1}\\sim", "\\sim x"])
+      expect(tree(latex), latex).toBe("sim-side: ∼");
+    for (const latex of ["~", "y~ "]) expect(tree(latex), latex).toBe("sim-side: ~");
     expect(tree("y\\sim x\\sim2")).toBe("unexpected-symbol: ~");
-    expect(tree("y=\\sim x")).toBe("sim-side");
+    expect(tree("y=\\sim x")).toBe("sim-side: ∼");
   });
 });

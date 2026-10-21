@@ -43,7 +43,7 @@ const cases: CorpusCase[] = [
   x(29, ["PR-9"], "stats(1,2)", "requires-list"),
   n(32, ["PR-9"], "\\operatorname{foo}(x)", "curve-y", ["\\operatorname{foo}"]),
   x(33, ["PR-9"], "nthrootx", "unsupported"),
-  x(54, ["PR-9"], "x\\operatorname{for}", "unsupported"),
+  x(54, ["PR-9", "NM-37"], "x\\operatorname{for}", "operator-side"),
   n(55, ["PR-11"], "\\omicron", "value", ["\\omicron"]),
   x(35, ["PR-38"], "\\frac{}{}", "fraction-empty"),
   x(36, ["PR-38"], "x^{}", "empty-superscript"),

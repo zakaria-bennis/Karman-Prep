@@ -24,7 +24,7 @@ type Captured = Coordinate | Coordinate[] | Coordinate[][];
 
 const GAPS: readonly RegExp[] = [
   /^(?!.*length)(?!\(1,2,3(,4)?\)$).*(\(\d,\d,\d|\\times\()/,
-  /\\operatorname\{(for|with)\}/,
+  /\\operatorname\{with\}/,
   /\\operatorname\{(hypot|pointDot|pointDet|pointPerp|complexMultiplyPoints)\}/,
   /\.\\operatorname\{length\}/,
   /\(t,|;; y=/,
@@ -98,8 +98,8 @@ const VALUES = Object.entries(geometry.values) as [string, Captured][];
 const ERRORS = Object.entries(geometry.errors);
 const GRAPHED = Object.keys(geometry.graphed);
 
-it("FN-70 FN-71 NM-32 PR-45 all 136 catalogue point values are checked, 114 matched", () =>
-  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([136, 114]));
+it("FN-70 FN-71 NM-32 PR-45 all 136 catalogue point values are checked, 117 matched", () =>
+  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([136, 117]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {

@@ -1634,11 +1634,7 @@
   {
     "cat": "redefine",
     "rows": ["\\operatorname{for}=1"],
-    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }]
   },
   {
     "cat": "redefine",
@@ -2360,11 +2356,7 @@
   {
     "cat": "empty",
     "rows": ["~"],
-    "desmos": [{ "error": "You need something on both sides of the '~' symbol." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "You need something on both sides of the '∼' symbol." }]
-    }
+    "desmos": [{ "error": "You need something on both sides of the '~' symbol." }]
   },
   {
     "cat": "empty",
@@ -4807,20 +4799,12 @@
   {
     "cat": "for",
     "rows": ["[n^{2}\\operatorname{for}n=[1...5]]"],
-    "desmos": [{ "graph": false, "shown": true, "value": [1, 4, 9, 16, 25] }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 4, 9, 16, 25] }]
   },
   {
     "cat": "for",
     "rows": ["[n\\operatorname{for}n=[]]"],
-    "desmos": [{ "graph": false, "shown": true, "value": [] }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [] }]
   },
   {
     "cat": "for",
@@ -4829,85 +4813,49 @@
       {
         "error": "A definition on the right-hand side of 'for' must be a list, but n is a number. Try n=[1]."
       }
-    ],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    ]
   },
   {
     "cat": "for",
     "rows": ["[n\\operatorname{for}n=[1...10^{6}]]"],
-    "desmos": [{ "error": "Lists may not have more than 10,000 elements." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "Lists may not have more than 10,000 elements." }]
   },
   {
     "cat": "for",
     "rows": ["[a+b\\operatorname{for}a=[1,2],b=[3,4]]"],
-    "desmos": [{ "graph": false, "shown": true, "value": [4, 5, 5, 6] }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [4, 5, 5, 6] }]
   },
   {
     "cat": "for",
     "rows": ["[a+b\\operatorname{for}a=[1,2],a=[3,4]]"],
-    "desmos": [{ "error": "You can't define 'a' more than once on the right-hand side of 'for'." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "You can't define 'a' more than once on the right-hand side of 'for'." }]
   },
   {
     "cat": "for",
     "rows": ["[n\\operatorname{for}]"],
-    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }]
   },
   {
     "cat": "for",
     "rows": ["[\\operatorname{for}n=[1,2]]"],
-    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }]
   },
   {
     "cat": "for",
     "rows": ["[n\\operatorname{for}n=[1,2]\\operatorname{for}m=[1]]"],
     "desmos": [
       { "error": "Ambiguous use of ',' and 'for'. Add parentheses around the 'for' expression." }
-    ],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    ]
   },
   {
     "cat": "for",
     "rows": ["n\\operatorname{for}n=[1,2]"],
-    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }]
   },
   {
     "cat": "for",
     "rows": ["[x\\operatorname{for}x=[1,2]]"],
-    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }]
   },
   {
     "cat": "for",
@@ -4918,58 +4866,34 @@
         "shown": true,
         "value": [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]
       }
-    ],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    ]
   },
   {
     "cat": "for",
     "rows": ["[(n,n)\\operatorname{for}n=[1...3]]"],
-    "desmos": [{ "graph": true, "shown": true, "value": { "text": [1, 1, 2, 2, 3, 3] } }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": { "text": [1, 1, 2, 2, 3, 3] } }]
   },
   {
     "cat": "for",
     "rows": ["[[n]\\operatorname{for}n=[1,2]]"],
-    "desmos": [{ "error": "Cannot store a list of numbers in a list." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "Cannot store a list of numbers in a list." }]
   },
   {
     "cat": "for",
     "rows": ["[n\\operatorname{for}n=[1,2],n]"],
     "desmos": [
       { "error": "Ambiguous use of ',' and 'for'. Add parentheses around the 'for' expression." }
-    ],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    ]
   },
   {
     "cat": "for",
     "rows": ["[y\\operatorname{for}y=[1,2]]"],
-    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }]
   },
   {
     "cat": "for",
     "rows": ["[n\\operatorname{for}n=[1...100],m=[1...100],k=[1...100]]"],
-    "desmos": [{ "error": "Lists may not have more than 10,000 elements." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "Lists may not have more than 10,000 elements." }]
   },
   {
     "cat": "for",
@@ -4978,29 +4902,17 @@
       {
         "error": "A definition on the right-hand side of 'for' must be a list, but n is a number. Try n=[x]."
       }
-    ],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    ]
   },
   {
     "cat": "for",
     "rows": ["y=[nx\\operatorname{for}n=[1,2]]"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "for",
     "rows": ["\\operatorname{for}"],
-    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }],
-    "known": {
-      "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
-    }
+    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }]
   },
   {
     "cat": "for",
@@ -9785,7 +9697,19 @@
     ],
     "known": {
       "reason": "not built yet: list comprehension 'for' (NM-37)",
-      "ours": [{ "error": "Building a list with 'for' isn't supported yet." }]
+      "ours": [
+        {
+          "graph": true,
+          "shown": true,
+          "value": {
+            "text": [
+              1, 1, 2, 4, 3, 9, 4, 16, 5, 25, 6, 36, 7, 49, 8, 64, 9, 81, 10, 100, 11, 121, 12, 144,
+              13, 169, 14, 196, 15, 225, 16, 256, 17, 289, 18, 324, 19, 361, 20, 400, 21, 441, 22,
+              484, 23, 529, 24, 576, 25, 625, 26, 676, 27, 729, 28, 784, 29, 841, 30, 900
+            ]
+          }
+        }
+      ]
     }
   },
   {

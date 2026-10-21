@@ -27,6 +27,12 @@ export interface MixedNumber {
   numerator: string;
   denominator: string;
 }
+/** NM-37: one `n=L` of a comprehension. */
+export interface Binding {
+  name: string;
+  list: Node;
+  span: SourceSpan;
+}
 export type Node =
   // `mixed`: a mixed number `2\frac{1}{2}` (2.5), as Desmos reads one (mixed-numbers.ts);
   // `grouped`: written in brackets, `(2)`, so no literal (a row of it shows its value)
@@ -62,7 +68,10 @@ export type Node =
   | { kind: "sim"; left: Node; right: Node; span: SourceSpan } // PR-30, D-2: a regression row L ~ M
   // PR-31, PR-32: `\{c_1:v_1,c_2,…,v\}`, its parts with a condition in order and the bare last
   // value (the otherwise case) or null. A restriction is a product with one (`y=x\{x>0\}`).
-  | { kind: "piecewise"; branches: Branch[]; otherwise: Node | null; span: SourceSpan };
+  | { kind: "piecewise"; branches: Branch[]; otherwise: Node | null; span: SourceSpan }
+  // NM-37: `[body \operatorname{for} n=L, m=M]`, every combination with the first name varying
+  // fastest; the names are local to the body. `brackets`: written inside `[…]`.
+  | { kind: "for"; body: Node; bindings: Binding[]; brackets: boolean; span: SourceSpan };
 
 export const isAxis = (name: string): name is Axis => name === "x" || name === "y" || name === "z";
 
@@ -111,6 +120,8 @@ export function sourceChildren(node: Node): readonly Node[] {
         ...node.branches.flatMap(({ cond, value }) => (value === null ? [cond] : [cond, value])),
         ...(node.otherwise === null ? [] : [node.otherwise]),
       ];
+    case "for":
+      return [node.body, ...node.bindings.map((b) => b.list)];
   }
 }
 
@@ -164,6 +175,10 @@ export function toSExpr(tree: Node): string {
       );
       if (tree.otherwise !== null) parts.push(toSExpr(tree.otherwise));
       return `(${["piecewise", ...parts].join(" ")})`;
+    }
+    case "for": {
+      const bindings = tree.bindings.map((b) => `(${b.name} ${toSExpr(b.list)})`);
+      return `(${["for", toSExpr(tree.body), ...bindings].join(" ")})`;
     }
     case "rel": {
       const ops = tree.ops.length === 1 ? tree.ops[0] : `(${tree.ops.join(" ")})`;

@@ -133,6 +133,12 @@ export function printLatex(tree: Node): string {
       return join([printLatex(tree.left), "\\sim", printLatex(tree.right)]);
     case "piecewise": // PR-31: `\left\{x>0:x,-x\right\}`
       return join(["\\left\\{", piecewiseParts(tree).join(","), "\\right\\}"]);
+    case "for": {
+      // NM-37: `\left[n^{2}\operatorname{for}n=\left[1,2\right]\right]`
+      const bindings = tree.bindings.map((b) => `${b.name}=${printLatex(b.list)}`).join(",");
+      const text = `${printLatex(tree.body)}\\operatorname{for}${bindings}`;
+      return tree.brackets ? join(["\\left[", text, "\\right]"]) : text;
+    }
   }
 }
 

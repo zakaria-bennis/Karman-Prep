@@ -44,6 +44,8 @@ export type ParseErrorCode =
   | "invalid-subscript" // `x_{a+b}`; names the first piece that is not a letter or digit
   | "subscript-target" // a subscript on a number or group, `1_2`
   | "adjacent-numbers" // `1.2.3`; names both numbers
+  | "for-duplicate" // NM-37: a name defined twice after `for`; names it
+  | "for-ambiguous" // NM-37: a comma or second `for` beside a comprehension
   | "mixed-number" // a mixed number multiplied without a sign, `x2\frac{1}{2}`; names it
   | "number-dot" // `1..5`
   | "point-3d" // `(1,2,3)`
@@ -119,6 +121,8 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "subscript-target",
   "adjacent-numbers",
   "mixed-number",
+  "for-duplicate",
+  "for-ambiguous",
   "number-dot",
   "point-3d",
   "percent-of",
@@ -148,6 +152,4 @@ export function isParseErrorCode(code: string): code is ParseErrorCode {
  * NM-37). An `unsupported` row error naming one of these reads
  * "{feature} isn't supported yet." (R-2).
  */
-export const DEFERRED_FEATURES = Object.freeze({
-  comprehension: "Building a list with 'for'",
-} as const);
+export const DEFERRED_FEATURES = Object.freeze({} as const);

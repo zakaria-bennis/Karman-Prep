@@ -53,7 +53,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "relation-side": "You need something on both sides of the '{n}' symbol.",
   "too-many-nodes": "This row is too long to evaluate. Split it into smaller definitions.",
   "too-deep": "This row is nested too deeply.",
-  "sim-side": "You need something on both sides of the '∼' symbol.",
+  "sim-side": "You need something on both sides of the '{n}' symbol.", // ~ or ∼, as written
   "function-parentheses": "'{n}' is a function. Try using parentheses.",
   "argument-parentheses": "Use parentheses around the argument of '{n}'.",
   "comma-side": "You need something on both sides of the ',' symbol.",
@@ -153,6 +153,10 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "subscript-target": "Only functions and variables may have subscripts.",
   "adjacent-numbers":
     "Sorry, I don't know what to do with adjacent numbers '{n}' and '{k}'. Try using parentheses or a '*' symbol.",
+  "for-duplicate": "You can't define '{n}' more than once on the right-hand side of 'for'.",
+  "for-ambiguous": "Ambiguous use of ',' and 'for'. Add parentheses around the 'for' expression.",
+  "for-list":
+    "A definition on the right-hand side of 'for' must be a list, but {n} is a number. Try {n}=[{k}].",
   "mixed-number":
     "Sorry, I don't know what to do with mixed number '{n}'. Try using a '*' symbol around it.",
   "number-dot": "Sorry, I don't understand this use of '.' after a constant number.",

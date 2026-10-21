@@ -7,7 +7,7 @@ import type { Node, SourceSpan } from "./ast";
 import { commandName } from "./command-names";
 import { displayGreek } from "./greek";
 import { isBuiltinCommand, parseBuiltinCall, parseMember, parseUserCall } from "./calls";
-import { failIfComprehension, parseIndex, parseList } from "./lists";
+import { parseIndex, parseList } from "./lists";
 import { takeMixedNumber } from "./mixed-numbers";
 import { isPiecewiseOpen, parsePiecewise } from "./piecewise";
 import {
@@ -484,7 +484,6 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
     }
     return { kind: "id", name, span: token.span };
   }
-  failIfComprehension(token);
   failIfLogicOutsideCondition(state, token);
   failIfLeadingWith(state, token);
   const [open, close] = [peek(state), peek(state, 1)];

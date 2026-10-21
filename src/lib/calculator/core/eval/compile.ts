@@ -54,6 +54,7 @@ import {
 } from "./lists";
 import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
+import { comprehensionValue } from "./comprehension";
 import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
 import {
@@ -179,6 +180,19 @@ function compileNode(node: Node, ctx: Context): Compiled {
     }
     case "call":
       return call(node, ctx);
+    case "for": {
+      // NM-37: the body runs with each combination of the definitions' elements over `vars`
+      const lists = node.bindings.map((b) => compileNode(b.list, ctx));
+      const body = compileNode(node.body, ctx);
+      const names = node.bindings.map((b) => b.name);
+      return (vars, deadline) =>
+        comprehensionValue(
+          names,
+          lists.map((list) => list(vars, deadline)),
+          (bound) => body({ ...vars, ...bound }, deadline),
+          deadline
+        );
+    }
     case "list": {
       // PR-34, NM-36: a literal (or a D-11 table column) or a range; each item evaluates on its own
       const items = node.items.map((item) => compileNode(item, ctx));
