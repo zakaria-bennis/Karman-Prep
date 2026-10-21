@@ -17,6 +17,7 @@ import {
 import {
   enter,
   fail,
+  ParseFailure,
   parseSum,
   peek,
   startsFactor,
@@ -138,7 +139,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
  * (desmos-calls.ts); written without `(` it is "'shuffle' is a function. Try using parentheses.",
  * as in Desmos. Any other form stays `unsupported` at the name.
  */
-function failUnshippedCall(state: ParserState, name: CommandToken): never {
+function failUnshippedCall(state: ParserState, name: CommandToken): Node {
   const open = peek(state, 1);
   const known = operatorName(name.name);
   if (known === undefined) return fail("unsupported", name.span, `"${name.name}" is not supported`);
@@ -151,8 +152,19 @@ function failUnshippedCall(state: ParserState, name: CommandToken): never {
   const args = takeEmptyList(state) ? [] : parseArgumentList(state);
   if (COMPLEX_ONLY.has(name.name) && args.length === 1) complexOnly();
   const counts = known.arity === "variadic" ? null : known.arity;
-  return failUnevaluatedCall(state, name, args, counts);
+  if (!EVALUATED.has(name.name)) return failUnevaluatedCall(state, name, args, counts);
+  // random and shuffle keep the reference's argument errors, and evaluate (eval/random.ts)
+  try {
+    return failUnevaluatedCall(state, name, args, counts);
+  } catch (thrown) {
+    const notation = thrown instanceof ParseFailure && thrown.error.code === "unsupported";
+    if (!notation) throw thrown;
+    return takePostfix(state, callNode(name, args, null, previousEnd(state)));
+  }
 }
+
+/** Built-ins outside SHIPPED that evaluate once their arguments pass the reference's checks. */
+const EVALUATED: ReadonlySet<string> = new Set(["random", "shuffle"]);
 
 /** The complex-number built-ins, which Desmos offers only in complex mode. */
 const COMPLEX_ONLY: ReadonlySet<string> = new Set(["arg", "real", "imag", "conj"]);

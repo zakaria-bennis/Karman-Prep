@@ -16,7 +16,7 @@ import { circular, type CircularName } from "../lib/trig";
 import type { Compiled, CompileScope } from "./compile";
 import { holdsDistribution } from "./distributions";
 import { linkHolds, toPlotNumber } from "./ops";
-import { exactConstant } from "./exact";
+import { exactConstant, usesNoName } from "./exact";
 import { exponentRational, realPow, realRoot } from "./real-pow";
 import {
   RECURSION_BUDGET,
@@ -136,7 +136,7 @@ export function compileReal(
 }
 
 function compile(node: Node, ctx: Context): Fn {
-  const exact = exactConstant(node); // MATHS-CORE-1, as compileExpression folds it (exact.ts)
+  const exact = exactConstant(node); // MATHS-CORE-1 (exact.ts)
   if (exact !== null) return () => exact;
   // NM-32: arithmetic and |…| on points give points or numbers the plain-number rules cannot
   // carry, so `y=\left|A-(x,0)\right|` and `y=(x,1)\cdot(1,1)` go to the general evaluator.
@@ -315,6 +315,7 @@ function call(node: Call, ctx: Context): Fn {
   // FN-70, FN-71: distance and midpoint read points, which are not numbers
   if (POINT_FUNCTIONS.has(node.name)) return generalNode(node, ctx);
   if (listFunction(node.name) !== undefined) return listFunctionCall(node, ctx);
+  if (node.name === "random" || node.name === "shuffle") return generalNode(node, ctx);
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   // NM-32: a point argument is not a number, so the general evaluator binds it (`g((x,0))`).
   if (node.args.some((arg) => mayBePoint(arg, ctx))) return generalNode(node, ctx);
@@ -453,8 +454,10 @@ function listFunctionCall(node: Call, ctx: Context): Fn {
  */
 function generalNode(node: Node, ctx: Context): Fn {
   if (ctx.general === null) return undefinedFn;
-  const run = ctx.general(node),
-    names = [...new Set(["x", "y", ...ctx.params])],
+  const run = ctx.general(node);
+  let folded: number | null = null; // a constant subtree runs once, not at every sample
+  if (usesNoName(node)) return () => (folded ??= toPlotNumber(run({}, NO_DEADLINE)));
+  const names = [...new Set(["x", "y", ...ctx.params])],
     slots = names.map((name) => slotOf(name, ctx)),
     { env, bound } = ctx;
   return () => {

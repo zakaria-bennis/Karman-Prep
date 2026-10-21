@@ -12,7 +12,7 @@ import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
 import { evaluateTable, type DataSink } from "../data/evaluate";
 import { evaluateRegression, regressionValues } from "../data/evaluate-regression";
 import { regressionDefinitionId, regressionOf } from "../data/regression-analysis";
-import { coordinateAxis, sourceChildren, type Node } from "../latex/ast";
+import { coordinateAxis, sourceChildren, toSExpr, type Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
 import { applyPointFunction, coordinate, POINT_FUNCTIONS } from "../lib/geometry";
@@ -56,6 +56,7 @@ import { holdsDistribution, makeDistribution, readDistribution } from "./distrib
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { comprehensionValue } from "./comprehension";
 import { exactConstant } from "./exact";
+import { hashText, randomValue, shuffleValue } from "./random";
 import { lineConstantSide } from "./line-value";
 import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
@@ -344,6 +345,17 @@ function call(node: Call, ctx: Context): Compiled {
     // PR-45: `P.x`, element by element on a list of points (`L.x`)
     const target = compileNode(node.args[0], ctx);
     return (vars, deadline) => map1(target(vars, deadline), (v) => coordinate(v, axis));
+  }
+  if (node.name === "random" || node.name === "shuffle") {
+    // keyed by the call, so a row keeps its values from one evaluation to the next
+    const key = hashText(`${node.span.start}:${toSExpr(node)}`);
+    const args = node.args.map((arg) => compileNode(arg, ctx));
+    const run = node.name === "random" ? randomValue : shuffleValue;
+    return (vars, deadline) =>
+      run(
+        args.map((arg) => arg(vars, deadline)),
+        key
+      );
   }
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);

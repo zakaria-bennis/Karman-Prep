@@ -131,6 +131,12 @@ function splitCall(node: Call, ctx: Context): Split {
         : lists.includes(true);
     return list ? opaque(node, ctx) : null;
   }
+  if (name === "random" || name === "shuffle") {
+    // eval/random.ts: random() and random(L) are one value, anything else a list
+    const one = name === "random" && node.args.length <= 1;
+    const element = node.args.length === 0 || splitNode(node.args[0], ctx) !== null;
+    return one && element ? null : opaque(node, ctx);
+  }
   if (isBuiltinName(name)) return broadcast(node, ctx);
   const definition = ctx.scope.functions.get(name);
   if (definition === undefined || definition.params.length !== node.args.length) return null;

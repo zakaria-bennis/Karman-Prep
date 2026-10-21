@@ -14,6 +14,7 @@ export interface Complex {
 export type ListErrorCode =
   | "nested-list"
   | "nested-empty-list" // Desmos's own text for an empty list in a list, `[[]]`
+  | "sample-size" // `random(-1)`: a sample size that is negative or not finite
   | "list-too-long"
   | "range-step"
   | "list-mixed"

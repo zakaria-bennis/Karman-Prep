@@ -154,6 +154,7 @@ function shapeOf(node: Node, locals: readonly string[], known: Known, bound: Bou
     }
     case "call": {
       if (POINT_FUNCTIONS.has(node.name)) return pointCallShape(node, of);
+      if (node.name === "random" || node.name === "shuffle") return randomShape(node, of);
       if (!isBuiltinName(node.name)) return userCallShape(node, node.args.map(of), known);
       const args = node.args.map(of),
         read = distributionCallShape(node, args);
@@ -409,6 +410,14 @@ function listValued(
         break;
       case "call":
         if (!isBuiltinName(n.name) && functions.has(n.name)) return true;
+        // random(n), random(L, n) and shuffle(L) are lists; random() and random(L) one value
+        if (n.name === "shuffle") return true;
+        if (n.name === "random") {
+          if (n.args.length === 0) break;
+          const fromList = listValued(n.args[0], locals, names, functions);
+          if (!fromList || n.args.length > 1) return true;
+          break;
+        }
         if (listFunction(n.name) !== undefined) {
           // FN-23: a list function gives a list only when it broadcasts
           const lists = n.args.map((arg) => listValued(arg, locals, names, functions));
@@ -472,6 +481,17 @@ export function listProblem(
   return null;
 }
 
+/** eval/random.ts's shapes: random() a number, random(n) numbers, random(L) an element of L. */
+function randomShape(node: Call, of: (n: Node) => Shape | null): Shape | null {
+  const first = node.args.length === 0 ? "number" : of(node.args[0]);
+  if (node.args.length === 0) return node.name === "random" ? "number" : null;
+  if (first === "numbers" || first === "points") {
+    if (node.name === "shuffle" || node.args.length > 1) return first;
+    return first === "numbers" ? "number" : "point";
+  }
+  return node.name === "random" && first === "number" ? "numbers" : null;
+}
+
 /**
  * NM-37: the first comprehension definition that is a number, Desmos's "A definition on the
  * right-hand side of 'for' must be a list, but n is a number. Try n=[1]." (captured 2026-10-20).
@@ -483,6 +503,19 @@ function comprehensionProblem(
 ): ListProblem | null {
   const pending: Node[] = [tree];
   for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
+    // Desmos: "Function 'shuffle' cannot be applied to a number." (captured 2026-10-20)
+    if (node.kind === "call" && node.name === "shuffle" && node.args.length > 0) {
+      const shape = typing.shape(node.args[0], locals);
+      if (shape === "number" || shape === "point") {
+        return { code: "argument-type", names: ["shuffle", SHAPE_NAMES[shape]], span: node.span };
+      }
+      // a seed that is not a number: "… cannot be applied to a list of numbers and a list of numbers."
+      const seed = node.args.length === 2 ? typing.shape(node.args[1], locals) : "number";
+      if (shape !== null && seed !== null && seed !== "number") {
+        const both = `${SHAPE_NAMES[shape]} and ${SHAPE_NAMES[seed]}`;
+        return { code: "argument-type", names: ["shuffle", both], span: node.span };
+      }
+    }
     if (node.kind === "for") {
       const bad = node.bindings.find((b) => typing.shape(b.list, locals) === "number");
       if (bad !== undefined) {

@@ -35,6 +35,7 @@ export function lengthShaping(node: Node): readonly Node[] {
       return node.range !== undefined || node.items[0]?.kind === "rel" ? node.items : [];
     case "call":
       if (node.name === "repeat") return node.args.slice(1);
+      if (node.name === "random") return node.args.slice(0, 2); // random(n): n elements
       return node.name === "unique" ? node.args : [];
     default:
       return [];

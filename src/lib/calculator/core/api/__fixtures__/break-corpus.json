@@ -1144,36 +1144,24 @@
     "rows": ["\\operatorname{random}()"],
     "desmos": [{ "graph": false, "shown": true, "value": 0.8901138089566086 }],
     "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
+      "reason": "random draws: both give random values, which differ",
+      "ours": [{ "graph": false, "shown": true, "value": 0.6453456748276949 }]
     }
   },
   {
     "cat": "nested-fn",
     "rows": ["\\operatorname{random}(-1)"],
-    "desmos": [{ "error": "Sample size must be a finite, non-negative number." }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "error": "Sample size must be a finite, non-negative number." }]
   },
   {
     "cat": "nested-fn",
     "rows": ["\\operatorname{random}(10^{7})"],
-    "desmos": [{ "error": "Lists may not have more than 10,000 elements." }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "error": "Lists may not have more than 10,000 elements." }]
   },
   {
     "cat": "nested-fn",
     "rows": ["\\operatorname{shuffle}([])"],
-    "desmos": [{ "graph": false, "shown": true, "value": [] }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [] }]
   },
   {
     "cat": "recursion",
@@ -5060,11 +5048,7 @@
   {
     "cat": "piecewise",
     "rows": ["\\{\\operatorname{random}()>2:1\\}"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "piecewise",
@@ -6447,8 +6431,8 @@
     "rows": ["a=\\operatorname{random}()"],
     "desmos": [{ "graph": false, "shown": true, "value": 0.1832621117965355 }],
     "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
+      "reason": "random draws: both give random values, which differ",
+      "ours": [{ "graph": false, "shown": true, "value": 0.008647121954709291 }]
     }
   },
   {
@@ -11793,8 +11777,8 @@
     "rows": ["y=\\operatorname{random}([1...10000])"],
     "desmos": [{ "graph": true, "shown": true, "value": 8890 }],
     "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
+      "reason": "random draws: both give random values, which differ",
+      "ours": [{ "graph": true, "shown": true, "value": 3230 }]
     }
   },
   { "cat": "stress", "rows": ["y=x^{[1...1000]}"], "desmos": [{ "graph": true, "shown": false }] },
@@ -17803,20 +17787,12 @@
   {
     "cat": "scout",
     "rows": ["\\operatorname{random}\\left(\\left[\\right]\\right)"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "scout",
     "rows": ["\\operatorname{shuffle}\\left(\\left[\\right]\\right)"],
-    "desmos": [{ "graph": false, "shown": true, "value": [] }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [] }]
   },
   {
     "cat": "scout",
@@ -17856,7 +17832,7 @@
     ],
     "desmos": [{ "graph": false, "shown": true, "value": 5 }],
     "known": {
-      "reason": "not built yet: random and shuffle",
+      "reason": "random and shuffle: not yet matched",
       "ours": [{ "error": "This calculator doesn't support that notation." }]
     }
   },
@@ -17867,7 +17843,7 @@
     ],
     "desmos": [{ "error": "Sample size must be a finite, non-negative number." }],
     "known": {
-      "reason": "not built yet: random and shuffle",
+      "reason": "random and shuffle: not yet matched",
       "ours": [{ "error": "This calculator doesn't support that notation." }]
     }
   },
@@ -17942,31 +17918,19 @@
     "rows": [
       "\\operatorname{length}\\left(\\operatorname{shuffle}\\left(\\left[1...10\\right]\\right)\\right)"
     ],
-    "desmos": [{ "graph": false, "shown": true, "value": 10 }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 10 }]
   },
   {
     "cat": "scout",
     "rows": ["\\operatorname{random}\\left(-1\\right)"],
-    "desmos": [{ "error": "Sample size must be a finite, non-negative number." }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "error": "Sample size must be a finite, non-negative number." }]
   },
   {
     "cat": "scout",
     "rows": [
       "\\operatorname{length}\\left(\\operatorname{random}\\left(\\left[1,2,3\\right],5\\right)\\right)"
     ],
-    "desmos": [{ "graph": false, "shown": true, "value": 5 }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 5 }]
   },
   {
     "cat": "scout",
@@ -18052,8 +18016,8 @@
     "rows": ["\\operatorname{random}\\left(\\right)"],
     "desmos": [{ "graph": false, "shown": true, "value": 0.28715168828954574 }],
     "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
+      "reason": "random draws: both give random values, which differ",
+      "ours": [{ "graph": false, "shown": true, "value": 0.6453456748276949 }]
     }
   },
   {
@@ -18061,20 +18025,12 @@
     "rows": [
       "\\operatorname{length}\\left(\\operatorname{shuffle}\\left(\\left[1,2,3\\right]\\right)\\right)"
     ],
-    "desmos": [{ "graph": false, "shown": true, "value": 3 }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 3 }]
   },
   {
     "cat": "scout",
     "rows": ["\\operatorname{length}\\left(\\operatorname{random}\\left(5\\right)\\right)"],
-    "desmos": [{ "graph": false, "shown": true, "value": 5 }],
-    "known": {
-      "reason": "not built yet: random and shuffle",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 5 }]
   },
   {
     "cat": "scout",

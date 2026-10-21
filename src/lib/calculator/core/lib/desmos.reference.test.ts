@@ -393,7 +393,7 @@ function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): bo
 // Statistics cases not yet matched, each an expected failure that fails once matched, by the
 // notation they use that has not shipped: derivatives, colours and tones, distributions other than
 // normaldist, tdist and binomialdist (FN-45 to FN-51), member access other than theirs and
-// coordinates (`L.\operatorname{mean}`), comprehensions and matrices, shuffle and random (T14), polygon,
+// coordinates (`L.\operatorname{mean}`), comprehensions and matrices, polygon,
 // boxplot and stats, `\arg` (complex mode), and `y=` rows, which
 // Desmos gives a value when the right side is constant (`y=\operatorname{count}(x,1,2)` = 3) and
 // the calculator graphs as a line without one.
@@ -403,7 +403,7 @@ const STATISTICS_GAPS: readonly RegExp[] = [
   /dist\}/,
   /\.\\operatorname/,
   /bmatrix|\\operatorname\{for\}.*;/, // matrices, `[… \operatorname{for} i=…;j=…]` among them
-  /\\operatorname\{(shuffle|random|polygon|boxplot|stats)\}/,
+  /\\operatorname\{(polygon|boxplot|stats)\}/,
   /\\arg/,
   /^y=/,
 ];
@@ -426,11 +426,11 @@ const statisticsGap = (key: string) =>
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 349 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 356 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 349]));
+  ]).toEqual([438, 356]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -495,15 +495,14 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
 // (desmos-list-operations.fixture.json), keyed and evaluated as the statistics cases. A row's
 // error is its analysis error or, as the row shows it, the error its value carries
 // (`repeat(1,2.5)`). Not yet matched, each an expected failure that fails once matched:
-// derivatives, colours and tones, member access other than coordinates, actions (`\to`) and
-// shuffle (T14); frequency, which Desmos does not define, so its errors need multi-letter names;
-// and `[0.1+0.2,0.3]`, whose constant sum Desmos folds exactly to 0.3.
+// derivatives, colours and tones, member access other than coordinates and actions (`\to`);
+// frequency, which Desmos does not define, so its errors need multi-letter names.
 const LIST_OPERATION_GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
-  /\\operatorname\{(rgb|tone|shuffle|frequency)\}/,
+  /\\operatorname\{(rgb|tone|frequency)\}/,
   /\.\\operatorname|\\to/,
 ];
-const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set(["\\operatorname{shuffle}(E)"]);
+const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set<string>([]);
 const listOperationGap = (key: string) =>
   !MATCHED.has(key) && LIST_OPERATION_GAPS.some((gap) => gap.test(key));
 const LIST_OPERATION_VALUES = Object.entries(listOperations.values) as [string, Captured][];
@@ -516,11 +515,11 @@ function shownError(rows: readonly string[], latex: string): string | undefined 
   return errorMessage(rows, latex) ?? (carried === null ? undefined : rowErrorMessage(carried, []));
 }
 
-it("FN-30 FN-38 all 136 catalogue list operation values are checked, 124 matched", () =>
+it("FN-30 FN-38 all 136 catalogue list operation values are checked, 125 matched", () =>
   expect([
     LIST_OPERATION_VALUES.length,
     LIST_OPERATION_VALUES.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([136, 124]));
+  ]).toEqual([136, 125]));
 
 for (const [key, expected] of LIST_OPERATION_VALUES) {
   const check = () => {
@@ -534,11 +533,11 @@ for (const [key, expected] of LIST_OPERATION_VALUES) {
   else it(`FN-30 FN-38 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 149 matched", () =>
+it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 152 matched", () =>
   expect([
     LIST_OPERATION_ERRORS.length,
     LIST_OPERATION_ERRORS.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([157, 149]));
+  ]).toEqual([157, 152]));
 
 for (const [key, message] of LIST_OPERATION_ERRORS) {
   const check = () => {

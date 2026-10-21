@@ -4,7 +4,8 @@
 // fraction that rounds to their double (0.1 is 1/10); a fraction past 2^53 − 1, a division by
 // zero, or any other node gives null, and the caller works in doubles. Pure TypeScript: no DOM.
 
-import type { Node } from "../latex/ast";
+import { sourceChildren, type Node } from "../latex/ast";
+import { isBuiltinName } from "../latex/operator-names";
 import {
   addFractions,
   divFractions,
@@ -56,4 +57,11 @@ function fractionValue(node: Node): Fraction | null {
     default:
       return null;
   }
+}
+
+/** True when no name or user call appears in `node`, so its value never changes. */
+export function usesNoName(node: Node): boolean {
+  if (node.kind === "id" || node.kind === "for") return false;
+  if (node.kind === "call" && !isBuiltinName(node.name)) return false;
+  return sourceChildren(node).every(usesNoName);
 }
