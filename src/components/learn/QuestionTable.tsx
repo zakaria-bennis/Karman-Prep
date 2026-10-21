@@ -1,7 +1,7 @@
 // ============================================================
 // QuestionTable — renders a question figure as a native HTML
 // table, styled with Karman's observatory tokens (warm dark
-// canvas + bronze rules + ivory text).
+// canvas + thin ivory rules edge to edge + ivory text).
 //
 // Used in place of the raster crop when a question's figure_kind
 // is 'table' and figure_table_data is populated. The data shape
@@ -62,7 +62,7 @@ export default function QuestionTable({
     <figure
       aria-label={ariaLabel ?? (caption ? undefined : "Question data table")}
       className={cn(
-        // Container: warm card surface, bronze frame (observatory system).
+        // Container: thin-ruled frame; cells, not the card, carry the padding so rules reach the border.
         "themed-question-figure themed-question-table my-4 inline-block max-w-full overflow-x-auto rounded-lg border border-ivory/70 bg-surface shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         className
       )}
