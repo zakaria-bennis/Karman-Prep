@@ -156,10 +156,13 @@ it("NM-27 the degree sign converts, and a degree trig argument is Desmos's degre
     n(30),
   ]);
 });
-it("FN-17 complex mode uses principal branches, keeps real-mode values and plots only real points", () => {
-  expect(
-    ["(-8)^{\\frac{1}{3}}", "\\ln(-1)", "2+3"].map((l) => evaluateLatex(l, { settings: CX }))
-  ).toEqual([n(-2), { type: "complex", value: { re: 0, im: P } }, n(5)]);
+it("FN-17 complex mode uses principal branches and plots only real points", () => {
+  const cube = evaluateLatex("(-8)^{\\frac{1}{3}}", { settings: CX }); // 1+1.732i, as in Desmos
+  expect(cube.type === "complex" && Math.abs(cube.value.im - Math.sqrt(3)) < 1e-12).toBe(true);
+  expect(["\\ln(-1)", "2+3"].map((l) => evaluateLatex(l, { settings: CX }))).toEqual([
+    { type: "complex", value: { re: 0, im: P } },
+    n(5),
+  ]);
   expect(compileRealFunction1(tree("\\ln(x)"), "x", empty(CX))(-1)).toBeNaN();
 });
 // toBe is Object.is: both paths keep -0 (Conventions), and NaN equals NaN

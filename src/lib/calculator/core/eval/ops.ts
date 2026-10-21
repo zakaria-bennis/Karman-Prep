@@ -130,6 +130,11 @@ export function degV(a: Value, angleMode: "radians" | "degrees"): Value {
  */
 export function powV(a: Value, b: Value, rational: Rational | null, complex: boolean): Value {
   if (a.type === "number" && b.type === "number") {
+    // complex mode takes the principal power of a negative base (Desmos, 2026-10-20):
+    // `(-8)^{\frac{1}{3}}` is 1+1.732i there, −2 in real mode
+    if (complex && a.value < 0 && !Number.isInteger(b.value)) {
+      return fromComplex(cpow({ re: a.value, im: 0 }, { re: b.value, im: 0 }));
+    }
     const r = realPow(a.value, b.value, rational);
     if (Number.isNaN(r) && complex && a.value < 0) {
       return fromComplex(cpow({ re: a.value, im: 0 }, { re: b.value, im: 0 }));

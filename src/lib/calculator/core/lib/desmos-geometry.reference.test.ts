@@ -30,7 +30,7 @@ const GAPS: readonly RegExp[] = [
   /\(t,|;; y=/,
   /\(i,1\)|\\int|^area|^dist$/,
   /\\frac\{d\}\{d|\\sum|\\prod/,
-  /\\arg|\\operatorname\{(det|random|tone)\}/,
+  /\\operatorname\{(det|random|tone)\}/,
 ];
 // Errors matched since: calls of built-ins the calculator reads but does not evaluate
 // (desmos-calls.ts), whose argument counts and literal arguments give Desmos's texts.
@@ -113,8 +113,8 @@ for (const [key, expected] of VALUES) {
   else it(`FN-70 FN-71 NM-32 PR-45 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 83 matched", () =>
-  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 83]));
+it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 84 matched", () =>
+  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 84]));
 
 // A row's error is its analysis error or, as the row shows it, the error its value carries
 // (`[(1,2),3]`, NM-32).

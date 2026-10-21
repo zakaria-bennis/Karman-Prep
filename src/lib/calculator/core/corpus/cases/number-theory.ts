@@ -45,7 +45,7 @@ const cases: CorpusCase[] = [
   d(18, ["FN-4"], "\\operatorname{abs}(-3)", "3"),
   d(19, ["FN-4", "NM-18"], "\\operatorname{abs}(3+4i)", "5", CX),
   d(20, ["PR-13", "FN-77"], "floor(2.5)", "2"),
-  d(21, ["FN-77", "NM-18"], "\\operatorname{floor}(i)", "undefined", CX),
+  d(21, ["FN-77", "NM-18"], "\\operatorname{floor}(i)", "i", CX), // Desmos's complex floor
   x(22, ["RC-20"], "\\operatorname{floor}(2.7,1)", "arity"),
   x(23, ["RC-20"], "\\operatorname{nCr}(5)", "arity"),
   // FN-75 gcd and lcm, rounding non-integers first, and their aliases (Desmos values, 2026-10-19)

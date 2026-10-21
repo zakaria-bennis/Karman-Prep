@@ -42,6 +42,9 @@ const PROBABILITY_NAMES = [
   ...PROBABILITY_RULES.map(([name]) => name),
   ...DISTRIBUTION_FUNCTION_NAMES,
 ];
+/** The complex-number functions, checked against Desmos in desmos.reference.test.ts instead. */
+const COMPLEX_NAMES = ["real", "imag", "conj", "arg"];
+
 it("FN-1 every shipped built-in and operator has a committed reference case, with the allowlist's arity", () => {
   const shipped = OPERATOR_NAMES.filter(
     (o) =>
@@ -49,10 +52,15 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
       o.category !== null &&
       !LIST_FUNCTION_NAMES.includes(o.name) &&
       !PROBABILITY_NAMES.includes(o.name) &&
-      !POINT_FUNCTIONS.has(o.name)
+      !POINT_FUNCTIONS.has(o.name) &&
+      !COMPLEX_NAMES.includes(o.name)
   ).map((o) => o.name);
   expect(new Set(shipped)).toEqual(
-    new Set([...BUILTINS.keys()].filter((name) => !PROBABILITY_NAMES.includes(name)))
+    new Set(
+      [...BUILTINS.keys()].filter(
+        (name) => !PROBABILITY_NAMES.includes(name) && !COMPLEX_NAMES.includes(name)
+      )
+    )
   );
   expect([
     BUILTIN_ARITY.size,
@@ -61,7 +69,7 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
     BUILTIN_ARITY.get("log"),
     BUILTIN_ARITY.get("round"),
     BUILTIN_ARITY.get("nCr"),
-  ]).toEqual([71, [1], [1, 2], [1, 2], [1, 2], [2]]); // 17 of them hidden names
+  ]).toEqual([75, [1], [1, 2], [1, 2], [1, 2], [2]]); // 17 of them hidden names
   const ops = new Set(reference.cases.map((c) => c.op));
   for (const op of [
     ...shipped,

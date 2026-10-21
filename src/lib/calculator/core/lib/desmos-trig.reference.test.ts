@@ -73,14 +73,12 @@ function errorMessage({ latex, rows, settings }: Case): string | undefined {
 // Cases not yet matched, each an expected failure that fails once matched: derivatives, integrals,
 // sums and products; the degree sign, which Desmos does not have (it reads
 // `\circ` and `\degree` as variables; PR-8 keeps it); complex mode ignoring the degree setting
-// for a real argument; Desmos's branch signs for arcsin, arccos, arccsc and arcsec on the real
-// axis outside their domain.
+// for a real argument.
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}|'/,
   /\\int|\\sum|\\prod/,
   /\\circ|\\degree/,
-  /^\[complex\+deg\] \\[a-z]+\([0-9.,]+\)$/,
-  /^\[complex\] \\arc(sin|cos)\(2\)$|^\[complex\] \\arc(csc|sec)\(0\.5\)$/,
+  /^\[complex\+deg\] \\(?!arcsin\(2\)$)[a-z]+\([0-9.,]+\)$/,
 ];
 const gap = (key: string) => GAPS.some((g) => g.test(key));
 

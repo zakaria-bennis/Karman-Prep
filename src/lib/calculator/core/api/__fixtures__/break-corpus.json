@@ -7374,7 +7374,7 @@
     ],
     "known": {
       "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "graph": false, "shown": true, "value": -2 }]
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 1, "im": 1.732050807568877 } }]
     }
   },
   {
@@ -7436,7 +7436,7 @@
         {
           "graph": false,
           "shown": true,
-          "value": { "re": 1.5707963267948966, "im": 1.3169578969248166 }
+          "value": { "re": 1.5707963267948966, "im": -1.3169578969248166 }
         }
       ]
     }
@@ -7455,21 +7455,13 @@
     "cat": "complex-on",
     "rows": ["\\operatorname{real}(3+4i)"],
     "settings": { "allowComplex": true },
-    "desmos": [{ "graph": false, "shown": true, "value": 3 }],
-    "known": {
-      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 3 }]
   },
   {
     "cat": "complex-on",
     "rows": ["\\operatorname{imag}(3+4i)"],
     "settings": { "allowComplex": true },
-    "desmos": [{ "graph": false, "shown": true, "value": 4 }],
-    "known": {
-      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 4 }]
   },
   {
     "cat": "complex-on",
@@ -7478,18 +7470,14 @@
     "desmos": [{ "graph": true, "shown": true, "value": { "re": 3, "im": -4 } }],
     "known": {
       "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 3, "im": -4 } }]
     }
   },
   {
     "cat": "complex-on",
     "rows": ["\\operatorname{arg}(-1)"],
     "settings": { "allowComplex": true },
-    "desmos": [{ "graph": false, "shown": true, "value": 3.141592653589793 }],
-    "known": {
-      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 3.141592653589793 }]
   },
   {
     "cat": "complex-on",
@@ -7536,7 +7524,7 @@
     "desmos": [{ "graph": true, "shown": true, "value": { "re": 0, "im": 1 } }],
     "known": {
       "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "graph": false, "shown": true, "value": "undef" }]
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 0, "im": 1 } }]
     }
   },
   {
@@ -7588,7 +7576,7 @@
     "desmos": [{ "graph": true, "shown": true, "value": { "re": 0, "im": 1 } }],
     "known": {
       "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "graph": false, "shown": true, "value": "undef" }]
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 0, "im": 1 } }]
     }
   },
   {
@@ -18501,5 +18489,302 @@
       "reason": "differs: not yet fixed",
       "ours": [{ "error": "You need something on both sides of the '>' symbol." }]
     }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\arcsin(-2)"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": -1.5707963267948966, "im": 1.3169578969248166 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [
+        {
+          "graph": false,
+          "shown": true,
+          "value": { "re": -1.5707963267948966, "im": 1.3169578969248166 }
+        }
+      ]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\arccos(2)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": 0, "im": 1.3169578969248166 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 0, "im": 1.3169578969248166 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\arccos(-2)"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": 3.141592653589793, "im": -1.3169578969248166 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [
+        {
+          "graph": false,
+          "shown": true,
+          "value": { "re": 3.141592653589793, "im": -1.3169578969248166 }
+        }
+      ]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{arccsc}(0.5)"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": 1.5707963267948966, "im": -1.3169578969248166 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [
+        {
+          "graph": false,
+          "shown": true,
+          "value": { "re": 1.5707963267948966, "im": -1.3169578969248166 }
+        }
+      ]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{arcsinh}(2i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": 1.3169578969248166, "im": 1.5707963267948966 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [
+        {
+          "graph": false,
+          "shown": true,
+          "value": { "re": 1.3169578969248166, "im": 1.5707963267948966 }
+        }
+      ]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{arccosh}(-2)"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": 1.3169578969248166, "im": 3.141592653589793 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [
+        {
+          "graph": false,
+          "shown": true,
+          "value": { "re": 1.3169578969248166, "im": 3.141592653589793 }
+        }
+      ]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{arctanh}(2)"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": 0.5493061443340549, "im": -1.5707963267948966 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [
+        {
+          "graph": false,
+          "shown": true,
+          "value": { "re": 0.5493061443340549, "im": -1.5707963267948966 }
+        }
+      ]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\arctan(2i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": 1.5707963267948966, "im": 0.5493061443340549 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [
+        {
+          "graph": false,
+          "shown": true,
+          "value": { "re": 1.5707963267948966, "im": 0.5493061443340548 }
+        }
+      ]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{floor}(1.5+2.2i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": 1, "im": 2 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 1, "im": 2 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{floor}(1.7+2.5i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": 2, "im": 2 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 2, "im": 2 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{ceil}(1.2+2.2i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": 1, "im": 3 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 1, "im": 3 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{round}(1.5+2.5i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": 2, "im": 3 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 2, "im": 3 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{mod}(5+7i,3)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": -1, "im": 1 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": -1, "im": 1 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{sign}(3+4i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": 0.6, "im": 0.8 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 0.6, "im": 0.8 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{real}(5)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": false, "shown": true, "value": 5 }]
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\operatorname{arg}(i)"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": false, "shown": true, "value": 1.5707963267948966 }]
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["(-1)^{0.5}"],
+    "settings": { "allowComplex": true },
+    "desmos": [{ "graph": true, "shown": true, "value": { "re": 0, "im": 1 } }],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 0, "im": 1 } }]
+    }
+  },
+  {
+    "cat": "complex-on",
+    "rows": ["\\sqrt[3]{-8}"],
+    "settings": { "allowComplex": true },
+    "desmos": [
+      {
+        "graph": true,
+        "shown": true,
+        "value": { "re": 1.0000000000000002, "im": 1.7320508075688772 }
+      }
+    ],
+    "known": {
+      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
+      "ours": [{ "graph": false, "shown": true, "value": { "re": 1, "im": 1.732050807568877 } }]
+    }
+  },
+  {
+    "cat": "numbers",
+    "rows": ["\\frac{1}{\\ln(0)}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "numbers",
+    "rows": ["\\arctan(e^{1000})"],
+    "desmos": [{ "graph": false, "shown": true, "value": 1.5707963267948966 }]
+  },
+  {
+    "cat": "numbers",
+    "rows": ["\\frac{1}{e^{1000}}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "numbers",
+    "rows": ["\\{\\frac{1}{0}>0:1,0\\}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 1 }]
+  },
+  {
+    "cat": "numbers",
+    "rows": ["\\operatorname{real}(3)"],
+    "desmos": [{ "error": "The 'real' function is only available in complex mode." }]
+  },
+  {
+    "cat": "numbers",
+    "rows": ["1.1\\cdot1.1"],
+    "desmos": [{ "graph": false, "shown": true, "value": 1.21 }]
+  },
+  {
+    "cat": "numbers",
+    "rows": ["0.1^{3}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0.001 }]
   }
 ]

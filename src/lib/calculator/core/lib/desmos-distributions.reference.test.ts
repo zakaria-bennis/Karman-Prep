@@ -59,7 +59,6 @@ function errorMessage(key: string): string | undefined {
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
   /\\operatorname\{random\}/,
-  /\\frac\{1\}\{\\operatorname\{invNorm\}|\\operatorname\{invNorm\}\\left\(1\\right\)>5/,
   /\\left\(i\\right\)$/,
   /^\\operatorname\{inv\}N\\operatorname\{or\}m/,
 ];
@@ -68,13 +67,13 @@ const gap = (key: string) => GAPS.some((g) => g.test(key));
 const VALUES = Object.entries(distributions.values) as [string, Expected][];
 const ERRORS = Object.entries(distributions.errors);
 
-it("FN-45 FN-51 all 194 catalogue distribution values and 69 errors are checked, 180 and 59 matched", () =>
+it("FN-45 FN-51 all 194 catalogue distribution values and 69 errors are checked, 183 and 59 matched", () =>
   expect([
     VALUES.length,
     ERRORS.length,
     VALUES.filter(([k]) => !gap(k)).length,
     ERRORS.filter(([k]) => !gap(k)).length,
-  ]).toEqual([194, 69, 180, 59]));
+  ]).toEqual([194, 69, 183, 59]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {

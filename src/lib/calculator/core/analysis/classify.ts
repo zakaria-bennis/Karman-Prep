@@ -18,6 +18,9 @@ import type { Resolution } from "./resolve";
 
 type Call = Extract<Node, { kind: "call" }>;
 
+/** The complex-number built-ins, which Desmos offers only in complex mode. */
+const COMPLEX_ONLY: ReadonlySet<string> = new Set(["real", "imag", "conj", "arg"]);
+
 /**
  * Classifies one parsed row: a definition by its head (RC-4, RC-5, RC-6), every other row by
  * `shapeOf`, with 's error order. A row with an error keeps its tree, `defines` and
@@ -53,6 +56,15 @@ export function classifyRow(
   }
   // PR-30, D-2: a regression row; regression-analysis.ts adds its parameters and errors.
   if (row.tree.kind === "sim") return { ...analysis, kind: "regression", uses };
+  // Desmos: "The 'real' function is only available in complex mode." (captured 2026-10-20)
+  // (with one argument: `\operatorname{real}()` is the arity error first)
+  const complexOnly = settings.complex
+    ? undefined
+    : callsOf(scope).find((c) => COMPLEX_ONLY.has(c.name) && c.args.length === 1);
+  if (complexOnly !== undefined) {
+    const error = rowError("complex-only", [complexOnly.name], complexOnly.span);
+    return { ...analysis, kind: "error", error, uses };
+  }
   const conflict = conflictError(row, scope, locals, resolution);
   if (conflict !== null) return { ...analysis, kind: "error", error: conflict, uses };
   const shape =

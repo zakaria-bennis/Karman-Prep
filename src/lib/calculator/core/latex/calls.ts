@@ -122,6 +122,12 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
     const call = callNode(name, args, base, previousEnd(state));
     return takePostfix(state, withPower(name, call, power, form));
   }
+  // Desmos reads `\arg\min(L)` as the complex-only arg (captured 2026-10-20)
+  if (COMPLEX_ONLY.has(name.name))
+    fail("complex-only", name.span, "a complex-mode function", name.name);
+  // Desmos reads `\arg\min(L)` as the complex-only arg (captured 2026-10-20)
+  if (COMPLEX_ONLY.has(name.name))
+    fail("complex-only", name.span, "a complex-mode function", name.name);
   if (!prefixForm) return needsParentheses(name);
   const arg = parseRunArgument(state, name);
   return withPower(name, callNode(name, [arg], base, arg.span.end), power, form);

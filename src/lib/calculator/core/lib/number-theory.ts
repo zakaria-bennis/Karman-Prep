@@ -17,6 +17,35 @@ const PRODUCT_LIMIT = 1000;
 const NAN: Complex = Object.freeze({ re: NaN, im: NaN });
 
 /**
+ * Desmos's complex rules for the rounding functions (captured 2026-10-20): floor is McDonnell's
+ * complex floor (the floors of the parts, moved up one in the larger fractional part when the
+ * fractional parts add to 1 or more: floor(1.5+2.7i) = 1+3i, floor(1.7+2.5i) = 2+2i) and ceil(z)
+ * is −floor(−z); round acts on each part; sign is z/|z|; and mod(z, n) is the remainder
+ * z − n·floor(z/n) (`\operatorname{mod}(5+7i,3)` = −1+i, `\operatorname{mod}(i,2)` = i).
+ */
+function gaussianFloor(z: Complex): Complex {
+  const [a, b] = [Math.floor(z.re), Math.floor(z.im)];
+  const [x, y] = [z.re - a, z.im - b];
+  if (x + y < 1) return { re: a + 0, im: b + 0 };
+  return x >= y ? { re: a + 1, im: b + 0 } : { re: a + 0, im: b + 1 };
+}
+function negate(z: Complex): Complex {
+  return { re: -z.re + 0, im: -z.im + 0 };
+}
+function unit(z: Complex): Complex {
+  const r = Math.hypot(z.re, z.im);
+  return r === 0 ? { re: 0, im: 0 } : { re: z.re / r, im: z.im / r };
+}
+function complexMod(args: readonly Complex[]): Complex {
+  const [z, n] = args;
+  const d = n.re * n.re + n.im * n.im;
+  if (d === 0) return NAN;
+  const q = { re: (z.re * n.re + z.im * n.im) / d, im: (z.im * n.re - z.re * n.im) / d };
+  const k = gaussianFloor(q);
+  return { re: z.re - (n.re * k.re - n.im * k.im), im: z.im - (n.re * k.im + n.im * k.re) };
+}
+
+/**
  * FN-77: round(x) is Math.round (halves toward +∞, so round(−2.5) = −2). round(x, n) rounds n to a
  * whole number (it may be negative: round(1234, −2) = 1200, round(2.5, 1.5) = 2.5) and shifts x by
  * n decimal places through its decimal text, as Desmos does, so round(1.005, 2) = 1.01 although
@@ -156,19 +185,27 @@ function realOnly2(fn: (a: number, b: number) => number): Rule {
 }
 
 export const NUMBER_THEORY_RULES: readonly (readonly [string, Rule])[] = [
-  ["floor", realOnly((x) => Math.floor(x) + 0)],
-  ["ceil", realOnly((x) => Math.ceil(x) + 0)],
+  ["floor", { ...realOnly((x) => Math.floor(x) + 0), complex: (args) => gaussianFloor(args[0]) }],
+  [
+    "ceil",
+    {
+      ...realOnly((x) => Math.ceil(x) + 0),
+      complex: (args) => negate(gaussianFloor(negate(args[0]))),
+    },
+  ],
   [
     "round",
     {
       angle: "none",
       extendsToComplex: false,
       real: (args) => roundTo(args[0], args.length === 2 ? args[1] : 0),
-      complex: () => NAN,
+      // Desmos rounds each part of a complex number (captured 2026-10-20)
+      complex: (args) =>
+        args.length === 2 ? NAN : { re: roundTo(args[0].re, 0), im: roundTo(args[0].im, 0) },
     },
   ],
-  ["sign", realOnly((x) => Math.sign(x) + 0)], // sign(0) = 0
-  ["mod", realOnly2(mod)],
+  ["sign", { ...realOnly((x) => Math.sign(x) + 0), complex: (args) => unit(args[0]) }], // sign(0) = 0
+  ["mod", { ...realOnly2(mod), complex: complexMod }],
   ["nCr", realOnly2(nCr)],
   ["nPr", realOnly2(nPr)],
   [

@@ -81,7 +81,7 @@ it("NM-13, NM-14, FN-14 0^0 is 1; division by zero and overflow are ±∞ (shown
   ]).toEqual([n(Infinity), n(Infinity), n(Infinity), n(-Infinity), n(Infinity), n(Infinity)]);
   expect(divV(n(0), n(0))).toEqual(UNDEFINED);
 });
-it("NM-18 complex functions use principal branches, with C99 values on the cuts", () => {
+it("NM-18 complex functions use principal branches; arcsin and arccos on the cut follow Desmos's formula", () => {
   expect([cln(c(-1, 0)), csqrt(c(-4, 0)), csqrt(c(3, 4)), csin(c(0, 1))]).toEqual([
     c(0, P),
     c(0, 2),
@@ -89,10 +89,11 @@ it("NM-18 complex functions use principal branches, with C99 values on the cuts"
     c(0, Math.sinh(1)),
   ]);
   expect(cln(c(-1, -0)).im).toBe(P);
+  // −i·Ln(iz + √(1 − z²)) with principal Ln and √ (Desmos, 2026-10-20), not C99's casin
   expect([casin(c(2, 0)), casin(c(-2, 0)), cacos(c(2, 0))]).toEqual([
-    c(P / 2, Math.acosh(2)),
+    c(P / 2, -Math.acosh(2)),
     c(-P / 2, Math.acosh(2)),
-    c(0, -Math.acosh(2)),
+    c(0, Math.acosh(2)),
   ]);
   expect([catan(c(0, 2)), catan(c(0, -2))]).toEqual([
     c(P / 2, Math.atanh(0.5)),
@@ -117,12 +118,15 @@ it("NM-18 e^z has an exact zero part at whole multiples of π/2, as in Desmos", 
   expect(cpow(cln(c(-1, 0)), c(2, 0)).im).toBe(0); // [complex] \ln(-1)^{2} is −π² + 0i
   expect(cexp(c(0, 1)).im).toBe(Math.sin(1));
 });
-it("NM-19 complex mode keeps every value real mode defines", () => {
-  expect([
-    powV(n(-8), n(1 / 3), { p: 1, q: 3 }, true),
-    rootV(n(-4), null, true),
-    powV(n(0), n(-1), null, true),
-  ]).toEqual([n(-2), { type: "complex", value: c(0, 2) }, n(Infinity)]);
+it("NM-19 complex mode takes the principal power of a negative base, as Desmos does", () => {
+  const cube = powV(n(-8), n(1 / 3), { p: 1, q: 3 }, true); // 1+1.732i, not −2
+  expect(cube.type === "complex" && rel(cube.value.re, 1) && rel(cube.value.im, Math.sqrt(3))).toBe(
+    true
+  );
+  expect([rootV(n(-4), null, true), powV(n(0), n(-1), null, true)]).toEqual([
+    { type: "complex", value: c(0, 2) },
+    n(Infinity),
+  ]);
   const half = powV(n(-8), n(0.5), { p: 1, q: 2 }, true);
   expect(half.type === "complex" && rel(half.value.im, Math.sqrt(8))).toBe(true);
 });
