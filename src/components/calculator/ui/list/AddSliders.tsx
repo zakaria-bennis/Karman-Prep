@@ -18,7 +18,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import { displayName } from "@/lib/calculator/core/analysis";
 import type { Announcer } from "../a11y/announcer";
@@ -220,7 +220,8 @@ export function AddSlidersButton(props: {
             props.onAdd(names, keyboard);
           }}
           onClose={(refocus) => {
-            setOpen(null);
+            // Committed at once, so a key pressed straight after Escape (ArrowDown) reopens it
+            flushSync(() => setOpen(null));
             if (refocus && open.keyboard) button.current?.focus();
           }}
         />
