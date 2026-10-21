@@ -282,35 +282,10 @@ S["review"] = ["laptop", `<div class="app">${RAIL("Question bank")}<main class="
 
 const p = new URLSearchParams(location.search);
 const t = p.get("t") || "dark";
-/* ===== Zoom: the live class (Priya's screen) and the 1:1 (Ethan's and David's) ===== */
-const ZTILE = (img, name, talk) => `<div class="zt-tile ${talk ? "talk" : ""}"><img src="assets/tiles/${img}" alt=""><span>${name}</span></div>`;
-const ZCTRL = (n) => `<div class="zc"><a><span>Mute</span></a><a><span>Stop Video</span></a><a><span>Participants ${n}</span></a><a><span>Chat</span></a><a><span>Reactions</span></a><span class="leave">Leave</span></div>`;
-const SLIDE = `<div class="slide"><h2>Transitions: cause, contrast, sequence</h2>
-  <p class="ex">The new bike lanes were expected to ease traffic on Elm Street. <span class="blank"></span>, traffic on the street rose by 12 percent in the first year.</p>
-  <div class="opts"><span>Similarly</span><span class="hl">However</span><span>For example</span><span>Therefore</span></div>
-  <p class="tip">Contrast: the second sentence pushes against what the first one expected.</p><span class="brand">Karman</span></div>`;
-S["zoom-class"] = ["zoomwin", `<div class="zw"><div class="zt"><span class="dots"><i></i><i></i><i></i></span><span class="share">You are viewing David's screen</span></div>
-  <div class="zb chat"><div class="zshare">${SLIDE}</div>
-  <div class="zstrip">${ZTILE("david.jpg", "David (Karman)", true)}${ZTILE("t1.jpg", "Ava")}${ZTILE("t2.jpg", "Clara")}${ZTILE("t3.jpg", "Mateo")}${ZTILE("t4.jpg", "Julian")}${ZTILE("t6.jpg", "Owen")}</div>
-  <div class="zchat"><h4>Chat</h4>
-   <div class="m"><small>David (Karman) to Everyone</small><p>Which word fits the blank, and why?</p></div>
-   <div class="m"><small>Owen to Everyone</small><p>However</p></div>
-   <div class="m"><small>Clara to Everyone</small><p>However, the traffic went up when they expected it to go down</p></div>
-   <div class="inp">However: the second sentence goes against the first</div></div></div>
-  ${ZCTRL(7)}</div>`];
-S["zoom-1on1"] = ["zoomwin", `<div class="zw"><div class="zt"><span class="dots"><i></i><i></i><i></i></span><span class="share">You are viewing David's screen</span></div>
-  <div class="zb"><div class="zshare"><div class="inner"><iframe src="/screens/app2.html?s=review&t=${t}&still=1" title="Shared screen"></iframe></div></div>
-  <div class="zstrip">${ZTILE("david.jpg", "David (Karman)", true)}${ZTILE("ethan.jpg", "Ethan")}</div></div>
-  ${ZCTRL(2)}</div>`];
-S["texts"] = ["msgs", STATUS("11:52") + `<div class="mh2"><span class="back"></span><span class="av">M</span><b>Mom</b></div>
-  <div class="thread"><time>Today 7:41 AM</time><div class="bub in">Good luck today. Text me when you're out.</div>
-  <time>11:52 AM</time><div class="bub out">I'm outside.</div><div class="bub out">That was the easiest test of my life.</div><span class="del">Delivered</span></div>`];
-
 const s = p.get("s") || "student-dashboard";
 document.documentElement.dataset.t = t;
 document.body.className = S[s][0] + (s === "student-dashboard" ? " dash" : "");
 document.getElementById("root").innerHTML = S[s][1];
-document.querySelectorAll(".zshare iframe").forEach(f => { const box = f.parentElement; const k = Math.min(box.clientWidth / 1440, box.clientHeight / 900); f.style.transform = `scale(${k})`; });
 
 /* the sky moves: a few stars twinkle and the field drifts very slowly (off under reduced motion) */
 (function () {
@@ -319,7 +294,7 @@ document.querySelectorAll(".zshare iframe").forEach(f => { const box = f.parentE
   size(); addEventListener("resize", size);
   let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const stars = Array.from({ length: 38 }, () => ({ x: rnd(), y: rnd(), r: 0.5 + rnd() * 1.1, ph: rnd() * 6.28, sp: 0.4 + rnd() * 0.9 }));
-  const light = t === "light" || document.body.className === "msgs", still = matchMedia("(prefers-reduced-motion: reduce)").matches || p.has("still");
+  const light = t === "light", still = matchMedia("(prefers-reduced-motion: reduce)").matches || p.has("still");
   function draw(ms) {
     x.clearRect(0, 0, c.width, c.height);
     const drift = still ? 0 : ms * 0.000004;
