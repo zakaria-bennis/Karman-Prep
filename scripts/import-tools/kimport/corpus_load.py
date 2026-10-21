@@ -363,7 +363,7 @@ def _png_sha(bdir: Path) -> str | None:
 def load_reread(path: Path) -> dict[str, dict]:
     """Supplementary corrected texts (re-read from the source page by hand), keyed by occurrence id.
     {"schema": "kimport-reread-records-v1", "records": [{"question_id", "B_final_version",
-    "B_package_path", "source_png_sha256", "text", "figure"?} | {"question_id", "not_readable": reason}]}
+    "B_package_path", "source_png_sha256", "text", "figure"?} | {"question_id", "not_readable": short reason code, "detail"?}]}
     "figure": true marks a question that needs its figure (never auto-merged, like a ledger visual hold)."""
     data = _read_json(Path(path))
     if not isinstance(data, dict) or data.get("schema") != REREAD_SCHEMA or not isinstance(data.get("records"), list):
@@ -465,6 +465,8 @@ def load_corpus(c_index: Path, ledger: Path, extra: Path | None = None, stats: d
                 st["reread_unused"] += 1
             elif r.get("not_readable"):
                 reason = "not_readable: " + str(r["not_readable"])
+                if r.get("detail"):
+                    meta["not_readable_detail"] = str(r["detail"])
                 rec = None
             else:
                 try:

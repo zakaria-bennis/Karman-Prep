@@ -214,7 +214,7 @@ class RereadRecords(unittest.TestCase):
                 {**good, "question_id": qid(4), "B_final_version": "b-4"},
                 {"question_id": qid(5), "B_final_version": "b-5", "B_package_path": str(bad),
                  "source_png_sha256": "png-other", "text": mc("Wrong page?")},
-                {"question_id": qid(6), "not_readable": "source page missing"},
+                {"question_id": qid(6), "not_readable": "source page missing", "detail": "page 9 not captured"},
                 {"question_id": qid(7), "B_final_version": "b-7", "B_package_path": str(b7),
                  "source_png_sha256": "png-7", "text": STEM + "\nA) alpha\nA) twice"}]
         return ip, lp, reread_file(Path(d) / "reread.json", recs)
@@ -231,6 +231,7 @@ class RereadRecords(unittest.TestCase):
         self.assertNotIn("text_source", recs[qid(4)].meta)
         self.assertEqual(recs[qid(5)].meta["reason"], "no_corrected_text")
         self.assertEqual(recs[qid(6)].meta["reason"], "not_readable: source page missing")
+        self.assertEqual(recs[qid(6)].meta["not_readable_detail"], "page 9 not captured")
         self.assertEqual(recs[qid(7)].meta["reason"], "reread_choice_parse_ambiguous")
         self.assertEqual((st["reread_used"], st["reread_unused"], st["reread_failed"]), (1, 1, 2))
         self.assertEqual(st["reread_failures"][qid(5)], "reread_source_image_differs")
