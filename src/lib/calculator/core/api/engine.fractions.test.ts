@@ -136,3 +136,29 @@ it("NM-7 degree mode and complex mode keep the toggle for a real value", async (
   await m.settled();
   expect(offered("b")).toBe("1/4");
 });
+
+it("R-5 a bare regression parameter offers no toggle, even after its flag was stored; other rows keep theirs", async () => {
+  m.engine.setExpressions([
+    {
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "2", "3"] },
+        { latex: "y_{1}", values: ["2", "4", "6.5"] },
+      ],
+    },
+    { id: "r", latex: "y_{1}\\sim mx_{1}+b" },
+    { id: "m", latex: "m" },
+    { id: "b", latex: " b " },
+    { id: "m2", latex: "2m" },
+    { id: "h", latex: "\\frac{1}{2}" },
+  ]);
+  await m.settled();
+  expect(row("m")).toMatchObject({ fraction: null, asFraction: false, valueText: "2.25" });
+  expect(row("b").fraction).toBeNull();
+  expect(row("m2").fraction).not.toBeNull(); // 4.5: not a bare name
+  expect(row("h").fraction).toMatchObject({ n: 1, d: 2 });
+  toggleRowFraction(m.engine, "m"); // a stored flag (say, from a saved state) still shows decimal
+  await m.settled();
+  expect(row("m")).toMatchObject({ fraction: null, asFraction: false, valueText: "2.25" });
+});

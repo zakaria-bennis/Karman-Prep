@@ -33,7 +33,13 @@ import {
 import { HelperRegistry, type HelperExpression } from "./helper-expression";
 import { ResultInbox, sentRows } from "./inbox";
 import { EngineObservers } from "./observers";
-import { buildRowView, latestValues, snapshotAnalysis, type EngineSnapshot } from "./results";
+import {
+  buildRowView,
+  latestValues,
+  snapshotAnalysis,
+  withoutRegressionParameterFractions,
+  type EngineSnapshot,
+} from "./results";
 import { analyzeDocument, editSliderLatex, type DocumentAnalysis } from "./sliders";
 import {
   acceptView,
@@ -662,8 +668,10 @@ export class CalculatorEngine {
     const s = this.sliders.sliders; // SLIDERS-1: the slider rows' views
     return {
       revision: this.revision,
-      rows: this.doc.rows.map((row) =>
-        buildRowView(row, this.analysis.byId.get(row.id)!, this.inbox.result(row.id), s)
+      rows: withoutRegressionParameterFractions(
+        this.doc.rows.map((row) =>
+          buildRowView(row, this.analysis.byId.get(row.id)!, this.inbox.result(row.id), s)
+        )
       ),
       settings: this.currentSettings,
       viewport: this.viewport,

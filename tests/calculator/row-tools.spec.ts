@@ -5,7 +5,16 @@
 
 import { expect, test, type Page } from "@playwright/test";
 import { contrastRatio } from "@/lib/calculator/theme/contrast";
-import { enc, openShell, rowField, toHex, useConsoleGuard } from "./shell-helpers";
+import {
+  announced,
+  enc,
+  frames,
+  openShell,
+  rowField,
+  shortcutKeys,
+  toHex,
+  useConsoleGuard,
+} from "./shell-helpers";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- registers Playwright hooks; not a React hook
 useConsoleGuard();
@@ -88,8 +97,9 @@ test("R-6 the keyboard reaches the icon, opens the menu, moves with arrows and p
 
 test("R-6 on a phone a tap opens the menu and a tap on a name adds its slider", async ({
   page,
-}, info) => {
-  test.skip(info.project.name === "calculator-chrome", "touch runs on the phone projects");
+  isMobile,
+}) => {
+  test.skip(!isMobile, "touch runs on the phone projects");
   await openShell(page, `?w=390&h=844&rows=${enc(["y=kx"])}&reducedMotion=1`);
   await row(page, "1").getByRole("button", { name: "Add sliders" }).tap();
   const k = page.getByRole("menuitem", { name: "Add slider for k" });
@@ -141,7 +151,8 @@ for (const skin of ["classic", "charcoal"]) {
 
 test("R-11 a trig row shows DEG or RAD after its value or at its end, following the setting; other rows show none", async ({
   page,
-}, info) => {
+  isMobile,
+}) => {
   await openShell(
     page,
     `?w=900&h=600&rows=${enc(["\\sin(2)", "y=\\arctan(x)", "y=x^2", "\\sinh(1)", "\\cos^{-1}(0.5)"])}&reducedMotion=1`
@@ -160,7 +171,7 @@ test("R-11 a trig row shows DEG or RAD after its value or at its end, following 
   await expect(badge("1")).toHaveText("DEG");
   await expect(badge("2")).toHaveText("DEG");
   await expect(badge("1")).not.toHaveAttribute("tabindex");
-  if (info.project.name === "calculator-chrome") {
+  if (!isMobile) {
     await badge("2").hover();
     await expect(page.locator("#calc .kc-row-tip")).toHaveText(
       "Angle mode. Change it in Settings."
@@ -212,4 +223,44 @@ test("R-5 a regression parameter row shows its value with no decimal/fraction to
   await expect(row(page, "m").locator(".kc-row-value")).toHaveText(/2\.25/);
   await expect(row(page, "m").locator(".kc-row-fraction")).toHaveCount(0);
   await expect(row(page, "h").locator(".kc-row-fraction")).toHaveCount(1);
+});
+
+test("R-5 Alt+Shift+A (Cmd+Shift+A) on a regression parameter row does nothing and announces nothing", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "hardware keyboard");
+  await openShell(page, `?w=900&h=600&rows=${enc(["y=x"])}&reducedMotion=1`);
+  await page.evaluate(() => {
+    const c = globalThis.__shell!.handle.calculator;
+    c.setState({
+      ...c.getState(),
+      expressions: [
+        {
+          id: "t",
+          type: "table",
+          columns: [
+            { latex: "x_{1}", values: ["1", "2", "3"] },
+            { latex: "y_{1}", values: ["2", "4", "6.5"] },
+          ],
+        },
+        { id: "r", latex: "y_{1}\\sim mx_{1}+b" },
+        { id: "m", latex: "m" },
+      ] as ReturnType<typeof c.getState>["expressions"],
+    });
+  });
+  await expect(row(page, "m").locator(".kc-row-value")).toHaveText(/2\.25/);
+  const { mac } = await shortcutKeys(page);
+  await rowField(page, "m").click();
+  const before = await announced(page);
+  await page.keyboard.press(mac ? "Meta+Shift+KeyA" : "Alt+Shift+KeyA");
+  await frames(page);
+  await expect(row(page, "m").locator(".kc-row-value")).toHaveText(/2\.25/);
+  await expect(row(page, "m").locator(".kc-row-value-fraction")).toHaveCount(0);
+  expect(await announced(page)).toEqual(before);
+  const m = await page.evaluate(() =>
+    globalThis.__shell!.handle.calculator.getState().expressions.find((e) => e.id === "m")
+  );
+  expect(m).toMatchObject({ latex: "m" });
+  expect(m).not.toHaveProperty("displayEvaluationAsFraction");
 });

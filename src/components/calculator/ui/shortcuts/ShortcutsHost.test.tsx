@@ -2,7 +2,7 @@
 import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useRef } from "react";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { renderEditor } from "../list/__fixtures__/render-editor";
 import { ShortcutsHost } from "./ShortcutsHost";
 import { SHORTCUT_SECTIONS, shortcutParts } from "./shortcut-rows";
@@ -116,4 +116,38 @@ it("SETTINGS-33 shortcut strings become key caps with the separators as text", (
   ]);
   expect(shortcutParts("ALT + +")).toEqual([{ cap: "ALT" }, { text: "+" }, { cap: "+" }]);
   expect(shortcutParts("~sum")).toEqual([{ cap: "s" }, { cap: "u" }, { cap: "m" }]);
+});
+
+it("R-5 Alt+Shift+A switches a row that offers the toggle; on a regression parameter it does nothing and announces nothing", async () => {
+  const kit = renderEditor(<Root />, { rows: [""] });
+  act(() =>
+    kit.engine.setExpressions([
+      {
+        id: "t",
+        type: "table",
+        columns: [
+          { latex: "x_{1}", values: ["1", "2", "3"] },
+          { latex: "y_{1}", values: ["2", "4", "6.5"] },
+        ],
+      },
+      { id: "r", latex: "y_{1}\\sim mx_{1}+b" },
+      { id: "m", latex: "m" },
+      { id: "b", latex: " b " },
+      { id: "m2", latex: "2m" },
+      { id: "h", latex: "\\frac{1}{2}" },
+    ])
+  );
+  const row = (id: string) => kit.engine.getSnapshot().rows.find((r) => r.id === id)!;
+  await vi.waitFor(() => expect(row("m").value).not.toBeNull());
+  act(() => kit.engine.setFocusedRow("m"));
+  await press("KeyA", { altKey: true, shiftKey: true });
+  expect(row("m")).toMatchObject({ fraction: null, asFraction: false });
+  expect(kit.engine.getExpressions().find((e) => e.id === "m")).not.toHaveProperty(
+    "displayEvaluationAsFraction"
+  );
+  expect(kit.announcer.texts).toEqual([]);
+  act(() => kit.engine.setFocusedRow("h"));
+  await press("KeyA", { altKey: true, shiftKey: true });
+  expect(row("h").asFraction).toBe(true);
+  expect(kit.announcer.texts).toEqual(["Show as Fraction"]);
 });

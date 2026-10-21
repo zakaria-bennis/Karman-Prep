@@ -284,6 +284,25 @@ export function buildRowView(
 }
 
 /**
+ * R-5 (owner decision, 2026-10-21): a row that is a bare reference to a fitted regression
+ * parameter (`m` after `y_1~mx_1+b`) offers no decimal/fraction toggle, so its view carries no
+ * fraction and never shows one; Alt+Shift+A leaves it alone, as on any row without the toggle.
+ */
+export function withoutRegressionParameterFractions(views: RowView[]): RowView[] {
+  const fitted = new Set<string>();
+  for (const v of views) {
+    const fit = v.regression?.result;
+    if (fit?.ok === true) for (const p of fit.params) fitted.add(p.name);
+  }
+  if (fitted.size === 0) return views;
+  return views.map((v) =>
+    v.fraction !== null && fitted.has(v.latex.trim())
+      ? { ...v, fraction: null, asFraction: false }
+      : v
+  );
+}
+
+/**
  * Every row's latest accepted value by row id, and each regression's fitted names by their
  * synthetic definition ids (D-22), as buildCompileScope reads them.
  */

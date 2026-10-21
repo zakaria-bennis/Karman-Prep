@@ -6,8 +6,9 @@
 // single-modifier =, - and 0 press the graph's Zoom in, Zoom out and Home buttons and announce
 // "Graph zoom in", "Graph zoom out" or "Graph viewport default"; with that button absent (a locked
 // view, Home at the default view) they do nothing and announce nothing. Alt+Shift+A (Cmd+Shift+A)
-// switches the focused expression row between decimal and fraction and announces "Show as
-// Fraction" or "Show as Decimal" (R-5); with no expression row focused it is left alone. The listener is in the
+// switches the focused row between decimal and fraction and announces "Show as Fraction" or "Show
+// as Decimal" (R-5); with no focused row that offers the toggle (a regression parameter, a graphed
+// row, a table) it does nothing and announces nothing. The listener is in the
 // capture phase, so a math field never types the key.
 
 import { useEffect, useRef, useState, type JSX, type RefObject } from "react";
@@ -46,11 +47,16 @@ export function ShortcutsHost(props: {
       const action = matchHelpKey(event, mac);
       if (action === null) return;
       if (action === "toggle-fraction") {
-        const rowId = engine.getSnapshot().focusedRowId;
-        const shown = rowId === null ? null : toggleRowFraction(engine, rowId);
-        if (shown === null) return;
+        const snapshot = engine.getSnapshot();
+        const row = snapshot.rows.find((r) => r.id === snapshot.focusedRowId);
+        if (row === undefined) return;
         event.preventDefault();
         event.stopPropagation();
+        // R-5: only a row that offers the toggle switches; on any other row (a regression
+        // parameter, a graphed row, a table) the keys do nothing and announce nothing
+        if (row.fraction === null) return;
+        const shown = toggleRowFraction(engine, row.id);
+        if (shown === null) return;
         announcer.announce(fractionAnnouncement(shown));
         return;
       }

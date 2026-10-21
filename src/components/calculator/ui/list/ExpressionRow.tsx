@@ -5,7 +5,7 @@
 // speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
 // replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
 // ErrorMarker), the decimal/fraction toggle of a value with a fraction form (R-5,
-// FractionToggle; never on a regression parameter, owner 2026-10-21), the add-sliders icon under
+// FractionToggle; the engine offers none on a regression parameter), the add-sliders icon under
 // the marker of a row with undefined names (R-6, AddSliders), the DEG/RAD badge of a trig row
 // (AngleBadge), and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
@@ -63,7 +63,6 @@ import { RowValue } from "./RowValue";
 import { FractionToggle } from "./FractionToggle";
 import { AddSlidersButton, addSliders } from "./AddSliders";
 import { AngleBadge, usesTrig } from "./AngleBadge";
-import { isRegressionParameter } from "./fraction-toggle";
 import { PointLabelLine } from "./RowUnderMath";
 import { SliderGutter } from "./SliderGutter";
 import { SliderLine, type SliderLineHandle } from "./SliderLine";
@@ -118,7 +117,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
   const engine = useEngine();
-  const { focusedRowId, activeRowId, selectedRowId, rows, settings } = useEngineSnapshot(engine);
+  const { focusedRowId, activeRowId, selectedRowId, settings } = useEngineSnapshot(engine);
   const focus = useFocusController();
   const announcer = useAnnouncer();
   const createField = useContext(MathFieldFactoryContext);
@@ -138,8 +137,6 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const shown =
     slider !== null && slider.error === null ? withSliderValue(row.latex, slider.value) : row.latex;
   const valueText = error === null ? row.valueText : null; // R-5: an error row shows no value
-  // R-5 (owner, 2026-10-21): a regression parameter row offers no decimal/fraction toggle.
-  const fraction = isRegressionParameter(row, rows) ? null : row.fraction;
   const trig = usesTrig(row.latex) ? settings.angleMode : null; // owner, 2026-10-21
   const chips = (error?.code === "too-many-variables" || slider !== null) && row.chips.length > 0;
   // A11Y-3: the textbox's description lists the parts that render, in this order.
@@ -397,7 +394,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               {!row.hidden && <ColourKindGlyph kind={editing ? null : kindGlyph(row, tab)} />}
             </button>
           )}
-          {fraction !== null && slider === null && error === null && (
+          {row.fraction !== null && slider === null && error === null && (
             <FractionToggle rowId={row.id} asFraction={row.asFraction} />
           )}
           {slider !== null && error === null && (
@@ -477,7 +474,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               id={ids.value}
               value={row.value}
               valueText={valueText}
-              fraction={row.asFraction ? fraction : null}
+              fraction={row.asFraction ? row.fraction : null}
               badge={trig === null ? null : <AngleBadge mode={trig} placement="value" />}
             />
           )}

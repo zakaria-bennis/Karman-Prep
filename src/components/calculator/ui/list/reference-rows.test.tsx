@@ -117,7 +117,7 @@ it("R-5 a regression parameter row offers no decimal/fraction toggle", async () 
     ])
   );
   await screen.findByText("2.25");
-  expect(kit.engine.getSnapshot().rows.find((r) => r.id === "m")?.fraction).not.toBeNull();
+  expect(kit.engine.getSnapshot().rows.find((r) => r.id === "m")?.fraction).toBeNull();
   expect(rowItem("m").querySelector(".kc-row-fraction")).toBeNull();
   expect(rowItem("h").querySelector(".kc-row-fraction")).not.toBeNull();
 });
