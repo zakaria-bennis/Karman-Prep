@@ -1,0 +1,97 @@
+{
+  "about": "Long clips for the landing-page ascent. Generated at build time, graded to docs/style-bible.md, encoded with keyframes every 2 frames for scroll scrubbing. Prices are Higgsfield credits checked 2026-10-21.",
+  "defaults": {
+    "duration": 15,
+    "aspect_ratios": ["16:9", "9:16"],
+    "audio": false,
+    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. Slow, physical camera move. No text, letters, numbers, logos, watermarks, neon, lens flare, purple, glowing orbs or rockets."
+  },
+  "options": [
+    {
+      "model": "seedance_2_0_mini",
+      "resolution": "720p",
+      "credits_per_clip": 15,
+      "note": "cheapest; used for the current film"
+    },
+    { "model": "wan3_0", "resolution": "720p", "credits_per_clip": 26.25 },
+    {
+      "model": "seedance_2_5",
+      "resolution": "480p",
+      "draft": true,
+      "credits_per_clip": 45,
+      "note": "finish keepers at 1080p within 7 days"
+    }
+  ],
+  "clips": [
+    {
+      "id": "c1",
+      "chapter": 1,
+      "reference": null,
+      "camera": "crane rising",
+      "prompt": "Night over a quiet suburban town of warm lit windows. The camera rises slowly and steadily straight up over the rooftops, through a thin layer of cloud, until the curve of the Earth and the thin blue line of the atmosphere appear against black space and stars."
+    },
+    {
+      "id": "c2",
+      "chapter": 2,
+      "reference": "cast/b1-ava",
+      "camera": "slow dolly in, then a gentle arc",
+      "prompt": "Dawn on a school bus. The 16 year old girl from the reference image sits by the window with one AirPod in, reading a phone held low and side-on so its screen is not visible, its glow on her face. Low sun flickers through the windows as the bus rolls; trees blur past. She works, pauses, and smiles slightly at the end."
+    },
+    {
+      "id": "c3",
+      "chapter": 3,
+      "reference": "cast/b7-parent1",
+      "camera": "slow push in through the windshield",
+      "prompt": "Afternoon, a high school pickup line, seen from outside the car through the windshield. The mother from the reference image reads her phone held facing her, then smiles warmly and sits back. Students with backpacks walk past in soft focus; reflections of trees slide across the glass."
+    },
+    {
+      "id": "c4",
+      "chapter": 4,
+      "reference": "cast/b3-mateo",
+      "camera": "slow lateral track along the bench",
+      "prompt": "Golden hour at a soccer training pitch. The 17 year old player from the reference image sits on the team bench at a water break, towel on his shoulder, AirPod in, reading his phone side-on, then drinks from a water bottle in slow motion. Two teammates sit further along the bench talking."
+    },
+    {
+      "id": "c5",
+      "chapter": 5,
+      "reference": "cast/b5-priya",
+      "camera": "slow push in from beside the laptop",
+      "prompt": "Dusk in a bedroom. The girl with glasses from the reference image is in a live online class; the camera sits beside her open laptop so only the back of the lid shows at the frame edge and the screen faces her, its glow on her face. She listens, then types an answer. Blue dusk sky in the window, warm desk lamp on."
+    },
+    {
+      "id": "c6",
+      "chapter": 6,
+      "reference": "cast/b9-david",
+      "camera": "slow arc around the desk",
+      "prompt": "Night in a warm home office. The tutor from the reference image speaks into a microphone on a boom arm, explaining with gentle hand gestures, looking at his monitor which faces him just out of frame. Bookshelf and plant behind him in soft focus."
+    },
+    {
+      "id": "c7",
+      "chapter": 7,
+      "reference": "cast/b1-ava + cast/b2-clara",
+      "camera": "steady follow from behind, then a slow rise",
+      "prompt": "Early Saturday morning in flat grey light. The two girls from the reference images walk side by side toward the glass doors of a brick high school, no headphones, calm. As they reach the doors, the doors open and bright light spills over them; the camera rises slightly."
+    },
+    {
+      "id": "c8",
+      "chapter": 8,
+      "reference": null,
+      "camera": "slow drift along the horizon",
+      "prompt": "From orbit: sunrise breaking along the curve of the Earth, the thin blue line of the atmosphere turning gold, black space and faint stars above."
+    }
+  ],
+  "plates": [
+    {
+      "id": "clouds-near",
+      "model": "gpt_image_2_5",
+      "resolution": "2k",
+      "prompt": "A thin layer of soft cumulus cloud seen from just above, edge to edge, natural daylight, on a plain dark background for compositing, no horizon."
+    },
+    {
+      "id": "clouds-far",
+      "model": "gpt_image_2_5",
+      "resolution": "2k",
+      "prompt": "High, wispy cirrus cloud seen from above at dusk, sparse, natural colour, plain dark background for compositing."
+    }
+  ]
+}

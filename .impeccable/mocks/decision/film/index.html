@@ -13,9 +13,12 @@
   * { box-sizing: border-box; margin: 0; }
   html { background: var(--night); }
   html.lenis, html.lenis body { height: auto; }
-  body { background: var(--night); color: var(--ink); font: 18px/1.5 "Hanken Grotesk", system-ui, sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  body { background: transparent; color: var(--ink); font: 18px/1.5 "Hanken Grotesk", system-ui, sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
   .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* the sky: drawn in code, fixed behind the whole climb */
+  #sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
 
   .hd { position: fixed; inset: 0 0 auto 0; z-index: 50; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(16px, 4vw, 56px); transition: transform .2s var(--ease); }
   .hd.away { transform: translateY(-100%); }
@@ -25,22 +28,29 @@
   .hd nav a:hover, .hd nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 5px; }
   @media (max-width: 760px) { .hd nav a:not(.keep) { display: none; } }
 
-  /* one pinned stage; every chapter is a scene revealed through the one before it */
-  .track { position: relative; }
-  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #000; }
-  .scene { position: absolute; inset: 0; overflow: hidden; perspective: 1400px; }
-  .scene video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
-  .scene .dim { position: absolute; inset: 0; background: #04080c; opacity: 0; pointer-events: none; }
-  .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,18,26,.74) 0%, rgba(11,18,26,.22) 55%, rgba(11,18,26,0) 100%); }
-  .scrim.full { background: rgba(11,18,26,.4); }
+  main { position: relative; z-index: 1; }
+  /* a chapter: its film is a window that rises through the sky; its words hold while the window passes */
+  .sc { position: relative; height: 210vh; }
+  .sc.first { height: 190vh; }
+  .sc.last { height: 170vh; }
+  .frame { position: absolute; left: 0; right: 0; top: 18vh; height: 150vh; overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+            mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%); }
+  .sc.first .frame { top: 0; height: 170vh; -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%); }
+  .frame .cam { position: absolute; left: -6%; right: -6%; top: 0; height: 100%; will-change: transform; }
+  .frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .frame .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,18,26,.66) 0%, rgba(11,18,26,.18) 55%, rgba(11,18,26,0) 100%); }
+  .sc.center .frame .scrim { background: rgba(11,18,26,.36); }
 
+  .copy { position: sticky; top: 0; height: 100vh; height: 100svh; perspective: 1400px; pointer-events: none; }
+  .copy a { pointer-events: auto; }
   .kin { position: absolute; left: clamp(16px, 5vw, 80px); top: 50%; transform: translateY(-50%); font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: clamp(40px, min(6.6vw, 10.5vh), 112px); line-height: .98; letter-spacing: -0.03em; max-width: 11ch; perspective: 900px; }
   .kin .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .1em; margin-right: .2em; }
   .kin.free .w { overflow: visible; }
   .kin .w > span, .kin .w .l { display: inline-block; will-change: transform; }
   .stack { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: clamp(14px, 2.2vh, 30px); padding: 96px 16px 56px; text-align: center; }
   .stack .kin { position: static; transform: none; max-width: 14ch; font-size: min(7vw, 11vh, 118px); }
-  .lede { width: min(620px, 100%); font-size: clamp(17px, 1.5vw, 20px); color: var(--ink); }
+  .lede { width: min(620px, 100%); font-size: clamp(17px, 1.5vw, 20px); }
   .act { display: grid; justify-items: center; gap: 10px; }
   .btn { display: inline-block; background: var(--ink); color: var(--night); font-weight: 700; font-size: 17px; text-decoration: none; padding: 17px 30px; border-radius: 999px; transition: transform .18s var(--ease), background-color .18s var(--ease); }
   .btn:hover { background: #fff; transform: translateY(-1px); }
@@ -56,11 +66,11 @@
   .feat figcaption b { color: var(--ink); font-weight: 600; }
   .feat.card { width: min(420px, 38vw); margin-top: -130px; background: #101923; border-radius: 22px; padding: 26px 28px; }
   .card .date { font-family: "Source Serif 4", Georgia, serif; font-size: clamp(26px, 2.3vw, 38px); line-height: 1.1; white-space: nowrap; margin-top: 4px; }
-  .card .later { margin: 12px 0 16px; font-size: 16px; color: var(--ink); font-weight: 600; }
+  .card .later { margin: 12px 0 16px; font-size: 16px; font-weight: 600; }
   .card p { font-size: 16px; color: var(--ink2); }
+  .card .later, .card .date { color: var(--ink); }
   .card a { color: var(--ink); text-underline-offset: 4px; }
 
-  /* the clock: the day moves forward chapter by chapter */
   .time { position: absolute; left: clamp(16px, 5vw, 80px); bottom: 30px; display: flex; align-items: flex-end; gap: 14px; }
   .time .digits { font-family: "Source Serif 4", Georgia, serif; font-weight: 400; font-size: clamp(40px, 5vw, 84px); line-height: .9; letter-spacing: -0.02em; display: inline-flex; }
   .time .c { display: inline-block; overflow: hidden; padding-bottom: .06em; }
@@ -68,7 +78,7 @@
   .time .meta { display: grid; font-size: 15px; line-height: 1.3; color: var(--ink2); padding-bottom: 4px; }
   .time .meta b { color: var(--ink); font-weight: 600; }
 
-  .ft { position: relative; z-index: 2; background: var(--night); padding: 64px clamp(16px, 5vw, 80px) 48px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; color: var(--ink2); font-size: 15px; }
+  .ft { position: relative; z-index: 2; background: #04070d; padding: 64px clamp(16px, 5vw, 80px) 48px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; color: var(--ink2); font-size: 15px; }
   .ft .mark { font-family: "Source Serif 4", Georgia, serif; font-size: 28px; color: var(--ink); }
   .ft nav { display: flex; gap: 22px; flex-wrap: wrap; }
 
@@ -85,23 +95,20 @@
     .time { bottom: 16px; gap: 10px; }
     .time .digits { font-size: 30px; }
     .time .meta { font-size: 13px; padding-bottom: 1px; }
-    .scrim { background: linear-gradient(180deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.12) 42%, rgba(11,18,26,.8) 100%); }
+    .frame .scrim { background: linear-gradient(180deg, rgba(11,18,26,.7) 0%, rgba(11,18,26,.1) 42%, rgba(11,18,26,.78) 100%); }
   }
-
-  /* reduced motion: each chapter is a still screen, one after another */
-  .still .track { height: auto !important; }
-  .still .stage { position: static; height: auto; overflow: visible; }
-  .still .scene { position: relative; height: 100vh; }
+  .still .sc { height: auto; }
+  .still .frame { position: relative; top: 0; height: 100vh; -webkit-mask-image: none; mask-image: none; }
+  .still .copy { position: absolute; inset: 0; }
 </style>
 </head>
 <body>
+<canvas id="sky" aria-hidden="true"></canvas>
 <header class="hd">
   <a class="mark" href="/">Karman</a>
   <nav aria-label="Main"><a href="/program">The SAT Program</a><a href="/private-tutoring">Private tutoring</a><a href="/pricing">Pricing</a><a class="keep" href="/sign-in">Sign in</a></nav>
 </header>
-
-<main class="track" id="track"><div class="stage" id="stage"></div></main>
-
+<main id="climb"></main>
 <footer class="ft">
   <span class="mark">Karman</span>
   <nav aria-label="Legal"><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/cookies">Cookie Policy</a><a href="mailto:hello@karmanprep.com">hello@karmanprep.com</a></nav>
@@ -113,46 +120,42 @@
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script>
 (function () {
-  /* ---------- the fixed parts of each chapter: film, layout, motion ---------- */
+  /* ---------- chapters: film, layout, motion (the words come from copy.js) ---------- */
   const SCENES = [
     { film: "c1", layout: "center", kin: "letters" },
-    { film: "c2", kin: "scale", reveal: "rise", feat: ["../screens/v2-daily10-dark.png", "phone", "Your Daily 10 on Karman"] },
-    { film: "c6", kin: "mask", reveal: "iris", feat: ["../screens/v2-parent-update-dark.png", "phone", "The weekly parent update on Karman"] },
-    { film: "c3", kin: "scatter", reveal: "split", feat: ["../screens/v2-word-game-dark.png", "phone", "Wordline on Karman"] },
-    { film: "c4", kin: "flicker", reveal: "zoom", feat: ["../screens/v2-schedule-dark.png", "lap", "The cohort schedule on Karman"] },
-    { film: "c5", kin: "flip", reveal: "iris", feat: ["../screens/v2-review-dark.png", "lap", "A full-length review on Karman"] },
-    { film: "c7", kin: "collide", reveal: "wipe", card: true },
-    { film: "c8", layout: "center", kin: "letters", reveal: "rise" },
+    { film: "c2", kin: "scale", feat: ["../screens/v2-daily10-dark.png", "phone", "Your Daily 10 on Karman"] },
+    { film: "c6", kin: "mask", feat: ["../screens/v2-parent-update-dark.png", "phone", "The weekly parent update on Karman"] },
+    { film: "c3", kin: "scatter", feat: ["../screens/v2-word-game-dark.png", "phone", "Wordline on Karman"] },
+    { film: "c4", kin: "flicker", feat: ["../screens/v2-schedule-dark.png", "lap", "The cohort schedule on Karman"] },
+    { film: "c5", kin: "flip", feat: ["../screens/v2-review-dark.png", "lap", "A full-length review on Karman"] },
+    { film: "c7", kin: "collide", card: true },
+    { film: "c8", layout: "center", kin: "letters" },
   ];
-
-  /* ---------- the founder's copy, from copy.js ---------- */
-  const COPY = {};
-  let cur = null;
+  const COPY = {}; let cur = null;
   (window.KARMAN_COPY || "").split("\n").forEach(line => {
     const h = line.match(/^##\s*(\d+)/); if (h) { cur = COPY[+h[1]] = {}; return; }
     const m = line.match(/^\s*([a-z ]+):\s*(.*)$/i); if (m && cur) cur[m[1].trim().toLowerCase()] = m[2].trim();
   });
   const esc = s => (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-  const stage = document.getElementById("stage");
+  const climb = document.getElementById("climb"), last = SCENES.length - 1;
   SCENES.forEach((sc, i) => {
     const c = COPY[i + 1] || {}, el = document.createElement("section");
-    el.className = "scene"; el.id = "s" + (i + 1); el.style.zIndex = i + 1;
+    el.className = "sc" + (i === 0 ? " first" : "") + (i === last ? " last" : "") + (sc.layout === "center" ? " center" : "");
     const H = i === 0 ? "h1" : "h2";
-    let html = `<video src="${sc.film}.mp4" poster="${sc.film}.jpg" muted playsinline loop preload="${i < 2 ? "auto" : "metadata"}" aria-hidden="true"></video><div class="scrim ${sc.layout === "center" ? "full" : ""}"></div>`;
+    let copy = "";
     if (sc.layout === "center") {
-      html += `<div class="stack">${c.headline ? `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>` : ""}${c.text ? `<p class="lede">${esc(c.text)}</p>` : ""}${c.button ? `<div class="act"><a class="btn" href="/free-practice-test">${esc(c.button)}</a>${c["button note"] ? `<small>${esc(c["button note"])}</small>` : ""}</div>` : ""}</div>`;
+      copy = `<div class="stack">${c.headline ? `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>` : ""}${c.text ? `<p class="lede">${esc(c.text)}</p>` : ""}${c.button ? `<div class="act"><a class="btn" href="/free-practice-test">${esc(c.button)}</a>${c["button note"] ? `<small>${esc(c["button note"])}</small>` : ""}</div>` : ""}</div>`;
     } else {
-      if (c.headline) html += `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>`;
-      if (sc.feat) html += `<figure class="feat ${sc.feat[1] === "lap" ? "lap" : ""}"><img src="${sc.feat[0]}" alt="${sc.feat[2]}">${c["feature title"] || c["feature text"] ? `<figcaption><b>${esc(c["feature title"])}</b> ${esc(c["feature text"])}</figcaption>` : ""}</figure>`;
-      if (sc.card) html += `<div class="feat card">${c["card intro"] ? `<p>${esc(c["card intro"])}</p>` : ""}${c["card date"] ? `<p class="date">${esc(c["card date"])}</p>` : ""}${c["card later"] ? `<p class="later">${esc(c["card later"])}</p>` : ""}${c["card text"] ? `<p>${esc(c["card text"])}${c["card link"] ? ` <a href="/guarantee">${esc(c["card link"])}</a>` : ""}</p>` : ""}</div>`;
-      if (c.time) { const [d, ...rest] = c.time.split(" "); html += `<p class="time"><span class="digits" aria-hidden="true">${[...d].map(ch => `<span class="c"><span>${esc(ch)}</span></span>`).join("")}</span><span class="vh">${esc(c.time)}</span><span class="meta"><span>${esc(rest.join(" "))}</span><b>${esc(c.name)}</b></span></p>`; }
+      if (c.headline) copy += `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>`;
+      if (sc.feat) copy += `<figure class="feat ${sc.feat[1] === "lap" ? "lap" : ""}"><img src="${sc.feat[0]}" alt="${sc.feat[2]}">${c["feature title"] || c["feature text"] ? `<figcaption><b>${esc(c["feature title"])}</b> ${esc(c["feature text"])}</figcaption>` : ""}</figure>`;
+      if (sc.card) copy += `<div class="feat card">${c["card intro"] ? `<p>${esc(c["card intro"])}</p>` : ""}${c["card date"] ? `<p class="date">${esc(c["card date"])}</p>` : ""}${c["card later"] ? `<p class="later">${esc(c["card later"])}</p>` : ""}${c["card text"] ? `<p>${esc(c["card text"])}${c["card link"] ? ` <a href="/guarantee">${esc(c["card link"])}</a>` : ""}</p>` : ""}</div>`;
+      if (c.time) { const [d, ...rest] = c.time.split(" "); copy += `<p class="time"><span class="digits" aria-hidden="true">${[...d].map(ch => `<span class="c"><span>${esc(ch)}</span></span>`).join("")}</span><span class="vh">${esc(c.time)}</span><span class="meta"><span>${esc(rest.join(" "))}</span><b>${esc(c.name)}</b></span></p>`; }
     }
-    html += `<div class="dim"></div>`;
-    el.innerHTML = html; stage.appendChild(el);
+    el.innerHTML = `<div class="frame"><div class="cam"><video src="${sc.film}.mp4" poster="${sc.film}.jpg" muted playsinline preload="${i < 2 ? "auto" : "metadata"}" aria-hidden="true"></video><div class="scrim"></div></div></div><div class="copy">${copy}</div>`;
+    climb.appendChild(el);
   });
 
-  // split each headline into masked words, or words of masked letters
   document.querySelectorAll(".kin").forEach(k => {
     const mode = k.dataset.kin, text = k.textContent.trim();
     k.setAttribute("aria-label", text);
@@ -162,103 +165,118 @@
     if (["scale", "scatter", "collide"].includes(mode)) k.classList.add("free");
   });
 
-  const scenes = [...document.querySelectorAll(".scene")];
+  const secs = [...document.querySelectorAll(".sc")];
   const params = new URLSearchParams(location.search), REC = params.has("rec");
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches && !REC) {
-    document.documentElement.classList.add("still");
-    scenes.forEach(s => s.querySelector("video").play().catch(() => {}));
-    return;
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches && !REC;
+
+  /* ---------- the sky: colour by altitude, stars that sharpen, constellations that draw themselves ---------- */
+  const sky = document.getElementById("sky"), g = sky.getContext("2d");
+  const LAYERS = [ // [page progress, top colour, bottom colour]
+    [0.00, "#0e161f", "#1b2532"], [0.18, "#1a2c40", "#2d4a66"], [0.42, "#0c1726", "#13243a"],
+    [0.66, "#060b14", "#0a1220"], [0.90, "#04070d", "#060b14"], [1.00, "#04070d", "#04070d"]];
+  const hex = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
+  const mix = (a, b, t) => a.map((v, k) => Math.round(v + (b[k] - v) * t));
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const STARS = Array.from({ length: 220 }, () => ({ x: rnd(), y: rnd(), r: 0.35 + rnd() * 1.1, tw: rnd() * 6.28, born: 0.25 + rnd() * 0.5 }));
+  // low-poly constellations from the app: Reading is a heart, Math is a brain (straight lines only)
+  const HEART = { at: [0.75, 0.26], s: 0.16, pts: [[0, .35], [-.22, .1], [-.42, -.02], [-.5, -.22], [-.38, -.42], [-.18, -.42], [0, -.25], [.18, -.42], [.38, -.42], [.5, -.22], [.42, -.02], [.22, .1]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,0],[1,6],[6,11],[2,5],[10,7]], span: [0.5, 0.62] };
+  const BRAIN = { at: [0.25, 0.24], s: 0.17, pts: [[-.5, .05], [-.42, -.22], [-.2, -.38], [.05, -.42], [.3, -.34], [.48, -.15], [.5, .1], [.32, .22], [.08, .2], [-.16, .24], [-.36, .2], [-.12, -.12], [.16, -.08], [.02, .26], [.06, .42]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,0],[1,11],[11,12],[12,4],[11,9],[12,7],[8,13],[13,14]], span: [0.7, 0.84] };
+  function drawShape(sh, prog, W, H, a) {
+    const k = Math.max(0, Math.min(1, (prog - sh.span[0]) / (sh.span[1] - sh.span[0]))); if (k <= 0) return;
+    const S = Math.min(W, H) * sh.s * 2, cx = sh.at[0] * W, cy = sh.at[1] * H, P = sh.pts.map(([x, y]) => [cx + x * S, cy + y * S]);
+    const n = sh.edges.length * k;
+    g.strokeStyle = `rgba(200,220,235,${0.38 * a})`; g.lineWidth = 1.1 * devicePixelRatio;
+    sh.edges.forEach(([u, v], e) => { if (e >= n) return; const f = Math.min(1, n - e); g.beginPath(); g.moveTo(P[u][0], P[u][1]); g.lineTo(P[u][0] + (P[v][0] - P[u][0]) * f, P[u][1] + (P[v][1] - P[u][1]) * f); g.stroke(); });
+    P.forEach(([x, y], j) => { const lit = sh.edges.some(([u, v], e) => e < n && (u === j || v === j)); if (!lit) return; g.fillStyle = `rgba(241,241,238,${0.9 * a})`; g.beginPath(); g.arc(x, y, 1.9 * devicePixelRatio, 0, 6.29); g.fill(); });
   }
+  let prog = 0, clock = 0;
+  function drawSky() {
+    const W = sky.width = innerWidth * devicePixelRatio, H = sky.height = innerHeight * devicePixelRatio;
+    let i = 0; while (i < LAYERS.length - 2 && prog > LAYERS[i + 1][0]) i++;
+    const [p0, t0, b0] = LAYERS[i], [p1, t1, b1] = LAYERS[i + 1], t = Math.max(0, Math.min(1, (prog - p0) / (p1 - p0)));
+    const top = mix(hex(t0), hex(t1), t), bot = mix(hex(b0), hex(b1), t);
+    const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, `rgb(${top})`); gr.addColorStop(1, `rgb(${bot})`);
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    // stars appear as the air thins and drift down slowly as you rise
+    STARS.forEach(s => { const a = Math.max(0, Math.min(1, (prog - s.born) / 0.2)); if (!a) return;
+      const y = ((s.y + prog * 0.35) % 1) * H, tw = 0.7 + 0.3 * Math.sin(s.tw + clock * 0.0012);
+      g.fillStyle = `rgba(232,240,250,${a * tw * 0.9})`; g.beginPath(); g.arc(s.x * W, y, s.r * devicePixelRatio * (0.6 + a * 0.4), 0, 6.29); g.fill(); });
+    drawShape(HEART, prog, W, H, 1); drawShape(BRAIN, prog, W, H, 1);
+    // the Kármán line: a thin band of airglow as you reach the top
+    const kl = Math.max(0, Math.min(1, (prog - 0.88) / 0.08));
+    if (kl > 0) { const y = H * (0.58 - kl * 0.12); const ag = g.createLinearGradient(0, y - 18 * devicePixelRatio, 0, y + 18 * devicePixelRatio);
+      ag.addColorStop(0, "rgba(124,196,165,0)"); ag.addColorStop(.5, `rgba(124,196,165,${0.11 * kl})`); ag.addColorStop(1, "rgba(79,143,184,0)"); g.fillStyle = ag; g.fillRect(0, y - 18 * devicePixelRatio, W, 36 * devicePixelRatio); }
+  }
+  const pageProg = () => Math.max(0, Math.min(1, scrollY / (document.documentElement.scrollHeight - innerHeight)));
+  function skyTick(ms) { clock = ms || 0; prog = pageProg(); drawSky(); if (!REC && !still) requestAnimationFrame(skyTick); }
 
-  /* ---------- the master timeline: one unit of time = 24vh of scroll ---------- */
-  const STEP = 10, last = scenes.length - 1, TOTAL = last * STEP + 8;
-  document.getElementById("track").style.height = `calc(${TOTAL * 24}vh + 100vh)`;
-  const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
-  const rnd = (i, s) => { const x = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return x - Math.floor(x); };
+  if (still) { document.documentElement.classList.add("still"); skyTick(0); secs.forEach(s => s.querySelector("video").play().catch(() => {})); return; }
 
-  const KIN_IN = {
-    letters: (p, at) => tl.from(p, { yPercent: 115, rotateX: -70, opacity: 0, transformOrigin: "50% 100%", stagger: 0.035, duration: 1.4, ease: "expo.out" }, at),
-    scale: (p, at) => tl.from(p, { scale: 3.2, opacity: 0, transformOrigin: "0% 60%", stagger: 0.18, duration: 1.3, ease: "expo.out" }, at),
-    mask: (p, at) => tl.from(p, { yPercent: 115, rotate: 4, stagger: 0.12, duration: 1.2 }, at),
-    scatter: (p, at) => p.forEach((s, j) => tl.from(s, { x: (rnd(j, 1) - .5) * 600, y: 30 + rnd(j, 2) * 110, rotate: (rnd(j, 3) - .5) * 60, opacity: 0, duration: 1.5, ease: "expo.out" }, at + j * 0.1)),
-    flicker: (p, at) => tl.from(p, { opacity: 0, duration: 0.5, ease: "steps(4)", stagger: { each: 0.12, from: "random" } }, at),
-    flip: (p, at) => tl.from(p, { rotateX: -95, yPercent: 30, opacity: 0, transformOrigin: "50% 100%", stagger: 0.1, duration: 1.2 }, at),
-    collide: (p, at) => { const half = Math.ceil(p.length / 2); p.forEach((s, j) => tl.from(s, { xPercent: j < half ? -260 : 260, opacity: 0, duration: 1.4, ease: "expo.out" }, at + (j < half ? j : j - half) * 0.08)); },
+  /* ---------- kinetic words, scrubbed by scroll ---------- */
+  const rn = (i, s) => { const x = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const KIN = {
+    letters: (tl, p, at, d) => tl.from(p, { yPercent: 115, rotateX: -70, opacity: 0, transformOrigin: "50% 100%", stagger: d / p.length * 0.6, duration: d * 0.5, ease: "expo.out" }, at),
+    scale: (tl, p, at, d) => tl.from(p, { scale: 3, opacity: 0, transformOrigin: "0% 60%", stagger: d / p.length * 0.7, duration: d * 0.45, ease: "expo.out" }, at),
+    mask: (tl, p, at, d) => tl.from(p, { yPercent: 115, rotate: 4, stagger: d / p.length * 0.7, duration: d * 0.45, ease: "power3.out" }, at),
+    scatter: (tl, p, at, d) => p.forEach((s, j) => tl.from(s, { x: (rn(j, 1) - .5) * 600, y: 30 + rn(j, 2) * 110, rotate: (rn(j, 3) - .5) * 60, opacity: 0, duration: d * 0.6, ease: "expo.out" }, at + j * d * 0.07)),
+    flicker: (tl, p, at, d) => tl.from(p, { opacity: 0, duration: d * 0.2, ease: "steps(4)", stagger: { each: d * 0.1, from: "random" } }, at),
+    flip: (tl, p, at, d) => tl.from(p, { rotateX: -95, yPercent: 30, opacity: 0, transformOrigin: "50% 100%", stagger: d / p.length * 0.7, duration: d * 0.45, ease: "power3.out" }, at),
+    collide: (tl, p, at, d) => { const half = Math.ceil(p.length / 2); p.forEach((s, j) => tl.from(s, { xPercent: j < half ? -260 : 260, opacity: 0, duration: d * 0.6, ease: "expo.out" }, at + (j < half ? j : j - half) * d * 0.06)); },
   };
-  const REVEAL = {
-    rise: (s, at) => tl.fromTo(s, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 2.5, ease: "power2.inOut" }, at),
-    iris: (s, at) => tl.fromTo(s, { clipPath: "circle(0% at 76% 48%)" }, { clipPath: "circle(150% at 76% 48%)", duration: 2.5, ease: "power2.inOut" }, at),
-    split: (s, at) => tl.fromTo(s, { clipPath: "inset(0% 50% 0% 50%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 2.5, ease: "power2.inOut" }, at),
-    zoom: (s, at) => tl.fromTo(s, { opacity: 0, scale: 1.25 }, { opacity: 1, scale: 1, duration: 2.5, ease: "power2.inOut" }, at),
-    wipe: (s, at) => tl.fromTo(s, { clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)" }, { clipPath: "polygon(0% 0%, 120% 0%, 100% 100%, -20% 100%)", duration: 2.5, ease: "power2.inOut" }, at),
-  };
 
-  scenes.forEach((s, i) => {
-    const S = i * STEP, sc = SCENES[i];
-    const kin = s.querySelector(".kin"), parts = kin ? [...kin.querySelectorAll(".w > span, .w .l")] : [];
-    const feat = s.querySelector(".feat"), time = s.querySelector(".time"), digits = time ? time.querySelectorAll(".c > span") : [], meta = time ? time.querySelector(".meta") : null;
-    const extra = s.querySelectorAll(".lede, .act"), video = s.querySelector("video");
+  const hd = document.querySelector(".hd");
+  const away = () => hd.classList.toggle("away", climb.getBoundingClientRect().bottom < innerHeight + 160);
+  gsap.registerPlugin(ScrollTrigger);
 
-    // the film pushes in slowly for the whole life of the scene
-    tl.fromTo(video, { scale: 1.18 }, { scale: 1, ease: "none", duration: STEP + 2.5, immediateRender: i === 0 }, Math.max(0, S - 2.5));
-    if (i > 0) {
-      REVEAL[sc.reveal](s, S - 2.5);
-      const prev = scenes[i - 1];
-      tl.to(prev.querySelector(".dim"), { opacity: .65, duration: 2.5, ease: "power2.in" }, S - 2.5);
-    }
-    // arrive: headline, clock, product
-    if (parts.length && (i > 0 || REC)) KIN_IN[sc.kin](parts, i === 0 ? 0 : S - 0.8);
-    if (digits.length) { tl.from(digits, { yPercent: 105, stagger: 0.07, duration: 0.9 }, S - 0.4); tl.from(meta, { opacity: 0, x: -12, duration: 0.8 }, S); }
-    if (feat) tl.fromTo(feat, { opacity: 0, rotateY: -32, rotateX: 10, z: -260, xPercent: 18 }, { opacity: 1, rotateY: -6, rotateX: 2, z: 0, xPercent: 0, duration: 1.8, ease: "expo.out" }, S + 0.4)
-                 .to(feat, { rotateY: 4, rotateX: -1, yPercent: -3, duration: 4, ease: "sine.inOut" }, S + 2.2);
-    if (extra.length && i === last) tl.from(extra, { opacity: 0, y: 26, stagger: 0.15, duration: 1 }, S + 1.6);
-    // leave, before the next scene starts to show
-    if (i < last) {
-      // masked words lift out of their masks; free words sink and fade, so nothing rises under the header
+  secs.forEach((sec, i) => {
+    const sc = SCENES[i], video = sec.querySelector("video"), cam = sec.querySelector(".cam");
+    const kin = sec.querySelector(".kin"), parts = kin ? [...kin.querySelectorAll(".w > span, .w .l")] : [];
+    const feat = sec.querySelector(".feat"), time = sec.querySelector(".time"), digits = time ? time.querySelectorAll(".c > span") : [], meta = time ? time.querySelector(".meta") : null;
+    const extra = sec.querySelectorAll(".lede, .act");
+    const first = i === 0, end = i === last;
+    // one timeline per chapter, 0 to 1 over the whole time it is on screen
+    const tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: sec, start: "top bottom", end: "bottom top", scrub: true,
+      onUpdate: self => { // the film plays forward only as you scroll
+        if (!video.duration) return; const k = Math.max(0, Math.min(1, (self.progress - 0.04) / 0.92)); const t = k * (video.duration - 0.05);
+        if (Math.abs(video.currentTime - t) > 1 / 60) video.currentTime = t; } } });
+    // the camera cranes up and eases in while the window rises through the sky
+    tl.fromTo(cam, { yPercent: -9, scale: 1.24, rotate: first ? 0 : -0.8 }, { yPercent: 9, scale: 1.04, rotate: first ? 0 : 0.6, duration: 1 }, 0);
+    const len = sec.offsetHeight, vh = innerHeight, pass = len + vh, pinA = vh / pass, pinB = len / pass; // when the words hold
+    const inAt = first ? 0 : pinA - 0.1, outAt = end ? 2 : pinB - 0.11;
+    if (parts.length && !first) KIN[sc.kin](tl, parts, inAt, 0.13);
+    if (digits.length) { tl.from(digits, { yPercent: 105, stagger: 0.012, duration: 0.05, ease: "power3.out" }, inAt + 0.03); tl.from(meta, { opacity: 0, x: -12, duration: 0.05 }, inAt + 0.06); }
+    if (feat) tl.fromTo(feat, { opacity: 0, rotateY: -32, rotateX: 10, z: -260, xPercent: 18 }, { opacity: 1, rotateY: -8, rotateX: 3, z: 0, xPercent: 0, duration: 0.12, ease: "expo.out" }, inAt + 0.05)
+                 .to(feat, { rotateY: 6, rotateX: -2, yPercent: -4, duration: (outAt - inAt) - 0.14, ease: "sine.inOut" }, inAt + 0.17);
+    if (extra.length && end) tl.from(extra, { opacity: 0, y: 26, stagger: 0.03, duration: 0.08, ease: "power3.out" }, inAt + 0.08);
+    if (!end) {
       if (parts.length) kin.classList.contains("free")
-        ? tl.to(parts, { y: 40, scale: .92, opacity: 0, ease: "power2.in", stagger: 0.02, duration: 0.9 }, S + 6.2)
-        : tl.to(parts, { yPercent: -120, opacity: 0, ease: "power2.in", stagger: 0.02, duration: 0.9 }, S + 6.2);
-      if (extra.length) tl.to(extra, { opacity: 0, y: -24, ease: "power2.in", duration: 0.9 }, S + 6);
-      if (feat) tl.to(feat, { opacity: 0, rotateY: 24, z: -200, xPercent: -8, ease: "power2.in", duration: 1 }, S + 6.4);
-      if (digits.length) { tl.to(digits, { yPercent: -105, stagger: 0.05, ease: "power2.in", duration: 0.7 }, S + 6.6); tl.to(meta, { opacity: 0, duration: 0.5, ease: "power2.in" }, S + 6.6); tl.set(time, { autoAlpha: 0 }, S + 7.4); }
+        ? tl.to(parts, { y: 40, scale: .92, opacity: 0, stagger: 0.004, duration: 0.06, ease: "power2.in" }, outAt)
+        : tl.to(parts, { yPercent: -120, opacity: 0, stagger: 0.004, duration: 0.06, ease: "power2.in" }, outAt);
+      if (extra.length) tl.to(extra, { opacity: 0, y: -24, duration: 0.06, ease: "power2.in" }, outAt - 0.01);
+      if (feat) tl.to(feat, { opacity: 0, rotateY: 24, z: -200, xPercent: -8, duration: 0.07, ease: "power2.in" }, outAt);
+      if (digits.length) { tl.to(digits, { yPercent: -105, stagger: 0.008, duration: 0.05, ease: "power2.in" }, outAt + 0.02); tl.to(meta, { opacity: 0, duration: 0.04 }, outAt + 0.02); tl.set(time, { autoAlpha: 0 }, outAt + 0.09); }
     }
+    tl.to({}, { duration: 0.001 }, 1);
   });
-  tl.to({}, { duration: 0.01 }, TOTAL);
-
-  // only the scenes on screen are drawn, and only their films play
-  const startOf = i => i === 0 ? -1 : i * STEP - 2.6;
-  function sync(t) {
-    scenes.forEach((s, i) => {
-      const on = t >= startOf(i) && (i === last || t < (i + 1) * STEP + 0.05);
-      s.style.visibility = on ? "visible" : "hidden";
-      const v = s.querySelector("video");
-      if (!REC) { if (on && v.paused) v.play().catch(() => {}); else if (!on && !v.paused) v.pause(); }
-    });
-  }
-
-  // the header steps aside as the film hands over to the footer
-  const hd = document.querySelector(".hd"), track = document.getElementById("track");
-  const away = () => hd.classList.toggle("away", track.getBoundingClientRect().bottom < innerHeight + 160);
 
   if (REC) {
-    window.__TOTAL = TOTAL;
-    window.__setTime = t => { tl.time(t, false); sync(t); away(); };
-    tl.time(0); sync(0);
+    window.__go = async y => { scrollTo(0, y); ScrollTrigger.update(); away(); prog = pageProg(); drawSky();
+      await Promise.all(secs.map(s => s.querySelector("video")).filter(v => v.seeking).map(v => new Promise(r => { v.addEventListener("seeked", r, { once: true }); setTimeout(r, 900); }))); };
+    window.__max = () => document.documentElement.scrollHeight - innerHeight;
+    window.__clock = ms => { clock = ms; drawSky(); };
+    skyTick(0); away();
     return;
   }
 
-  gsap.registerPlugin(ScrollTrigger);
-  const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
+  const lenis = new Lenis({ lerp: 0.08, wheelMultiplier: 0.9 });
   lenis.on("scroll", ScrollTrigger.update);
   gsap.ticker.add(t => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
-  ScrollTrigger.create({ trigger: track, start: "top top", end: "bottom bottom", onUpdate: self => { tl.progress(self.progress); sync(tl.time()); } });
-  addEventListener("scroll", away, { passive: true });
-  tl.progress(0); sync(0); away();
-
+  addEventListener("scroll", away, { passive: true }); away();
+  requestAnimationFrame(skyTick);
   // the opening line arrives on its own, before any scroll
-  gsap.from(scenes[0].querySelectorAll(".kin .l"), { yPercent: 115, rotateX: -70, opacity: 0, transformOrigin: "50% 100%", stagger: 0.035, duration: 1.4, ease: "expo.out", delay: .2 });
-  gsap.from(scenes[0].querySelectorAll(".lede, .act"), { opacity: 0, y: 24, stagger: .15, duration: 1, ease: "power3.out", delay: .9 });
+  gsap.from(secs[0].querySelectorAll(".kin .l"), { yPercent: 115, rotateX: -70, opacity: 0, transformOrigin: "50% 100%", stagger: 0.035, duration: 1.4, ease: "expo.out", delay: .2 });
+  gsap.from(secs[0].querySelectorAll(".lede, .act"), { opacity: 0, y: 24, stagger: .15, duration: 1, ease: "power3.out", delay: .9 });
 })();
 </script>
 </body>
