@@ -3,11 +3,14 @@
 // the graph's one role img surface, named from the view and the plotted rows. The engine holds the
 // viewport. The controls (G-5, L-1) zoom by 2 about
 // the centre; Home shows only off the default view and fades (AN-8); the surface takes the graph
-// keys (KB-8) and the panel drag, pinch and wheel (useGraphInput).
+// keys (KB-8) and the panel drag, pinch and wheel (useGraphInput). Zoom to fit sits under Home
+// (fit-view.ts); on a phone the view stays centred above the open keypad (view-inset.ts); the first
+// curve a student graphs shows a one-time hint (curve-hint.tsx).
 
 import {
   type KeyboardEvent,
   type RefObject,
+  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -19,7 +22,6 @@ import { formatPoiLabel } from "@/lib/calculator/poi/format";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
 import {
   defaultViewport,
-  isDefaultViewport,
   ZOOM_BUTTON_FACTOR,
   zoomViewport,
   type Viewport,
@@ -36,7 +38,9 @@ import { countPlots, graphAccessibleName } from "./accessible-name";
 import { createViewportAnimator, type ViewportAnimator } from "./animate-viewport";
 import { homeFadeMs, useHomePresence, type HomePhase } from "./home-presence";
 import { KeyboardTraceContext, type KeyboardTrace } from "./keyboard-trace";
-import { GraphHomeGlyph, GraphWrenchGlyph, GraphZoomGlyph } from "./graph-glyphs";
+import { CurveHint, useCurveHint } from "./curve-hint";
+import { collectFitPoints, fitSearchView, fitViewport } from "./fit-view";
+import { GraphFitGlyph, GraphHomeGlyph, GraphWrenchGlyph, GraphZoomGlyph } from "./graph-glyphs";
 import { GRAPH_CONTROL_LABELS } from "./labels";
 import { PoiOverlay } from "./PoiOverlay";
 import type { LabelState } from "./poi-labels";
@@ -53,6 +57,7 @@ import { useLabelInk } from "./use-label-ink";
 import { keepLabelsOpen, poiDots, shownLabels, usePoiLabels } from "./use-poi-labels";
 import { shownPointLabels, usePointLabels } from "./use-point-labels";
 import { useTrace, type TraceState } from "./use-trace";
+import { insetHome, isInsetHome, raiseView, useInsetShift } from "./view-inset";
 
 export { graphAccessibleName };
 
@@ -62,6 +67,8 @@ export interface GraphPanelProps {
   reducedMotion: boolean;
   settingsOpen: boolean;
   onOpenSettings(anchor: HTMLElement): void; // Settings control (L-1)
+  pointer?: "fine" | "coarse"; // the curve hint's wording
+  keypadInset?: number; // CSS px of the graph's bottom the open phone keypad covers
 }
 
 /** What a frame draws, as of the latest commit. */
@@ -205,6 +212,7 @@ function keyboardTracePoint(
 
 export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const { host, themeRevision, reducedMotion, settingsOpen, onOpenSettings } = props;
+  const inset = props.keypadInset ?? 0;
   const engine = useEngine();
   const snapshot = useEngineSnapshot(engine);
   const skin = useSkin();
@@ -321,7 +329,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   // reduced (AN-8 fades in as well as out); once mounted, its computed transition gives the time.
   const fadeMs = (): number =>
     homeRef.current === null ? (reducedMotion ? 0 : 1) : homeFadeMs(reducedMotion, homeRef.current);
-  const offDefault = size !== null && !isDefaultViewport(snapshot.viewport, size.size);
+  const offDefault = size !== null && !isInsetHome(snapshot.viewport, size.size, inset);
   const phase = useHomePresence(offDefault, fadeMs);
 
   // GP-46, GP-47: the buttons and Home animate unless motion is reduced; a click during an
@@ -336,15 +344,30 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
       return null;
     });
   };
+  // The zoom buttons zoom about the middle of the visible graph, above any phone keypad.
   const zoom = (factor: number) =>
     animateTo((v) => {
       const { left, right, bottom, top } = v.viewport;
-      return zoomViewport(v.viewport, factor, { x: (left + right) / 2, y: (bottom + top) / 2 });
+      const visible = Math.max(0, v.size.height - inset) / v.size.height;
+      return zoomViewport(v.viewport, factor, {
+        x: (left + right) / 2,
+        y: top - ((top - bottom) * visible) / 2,
+      });
     });
   const goHome = (): void => {
     surface.current?.focus({ preventScroll: true });
-    animateTo((v) => defaultViewport(v.size));
+    animateTo((v) => insetHome(v.size, inset));
   };
+  const fitAll = (): void =>
+    animateTo((v) => {
+      const search = fitSearchView(v, defaultViewport(v.size));
+      const points = collectFitPoints(engine, engine.getSnapshot(), v, search);
+      return fitViewport(points, v, inset) ?? v.viewport;
+    });
+  const fittable = snapshot.geometry.size > 0;
+  useInsetShift(inset, size !== null, (px) => animateTo((v) => raiseView(v.viewport, v.size, px)));
+  const hintRoot = useCallback(() => panel.current?.getRootNode() ?? null, []);
+  const hint = useCurveHint(engine, snapshot, hintRoot, props.pointer !== "fine");
 
   return (
     <div ref={panel} className="kc-graph" data-graph-panel="">
@@ -405,7 +428,19 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
         {phase !== "absent" && !locked && (
           <HomeButton phase={phase} homeRef={homeRef} surface={surface} onActivate={goHome} />
         )}
+        {fittable && !locked && (
+          <button
+            type="button"
+            aria-label={GRAPH_CONTROL_LABELS.fit}
+            title={GRAPH_CONTROL_LABELS.fit}
+            data-graph-fit=""
+            onClick={fitAll}
+          >
+            <GraphFitGlyph />
+          </button>
+        )}
       </div>
+      {hint !== null && <CurveHint text={hint} insetPx={inset} />}
     </div>
   );
 }

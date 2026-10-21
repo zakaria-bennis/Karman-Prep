@@ -1,5 +1,6 @@
 // The graph controls' own glyphs (GP-40 to GP-42), drawn for this package: a wrench for Graph
-// settings and a plus or minus for the zoom buttons. Each fills in currentColor.
+// settings, a plus or minus for the zoom buttons, a house
+// for Home and corner brackets for Zoom to fit. Each fills in currentColor.
 
 import { useId } from "react";
 
@@ -62,6 +63,21 @@ export function GraphHomeGlyph(): JSX.Element {
       />
       <path d="M11.2 1.9H13V5.6L11.2 4Z" fill="currentColor" />
       <path d="M2.6 8.7L8 4L13.4 8.7V14H9.2V10.4H6.8V14H2.6Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Zoom to fit (owner decision, 2026-10-21): the four corner brackets of a square (16 px). */
+export function GraphFitGlyph(): JSX.Element {
+  return (
+    <svg {...svgProps} width={16} height={16} viewBox="0 0 16 16">
+      <path
+        d="M1.5 5.5V1.5H5.5M10.5 1.5H14.5V5.5M14.5 10.5V14.5H10.5M5.5 14.5H1.5V10.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="square"
+      />
     </svg>
   );
 }

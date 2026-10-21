@@ -482,3 +482,50 @@
     top: -1px;
   }
 }
+
+/* Owner decision 2026-10-21: on a phone a touch on the graph shrinks the open keypad to a thin
+   bar holding a keyboard and an up caret (Show keypad); the keys stay mounted but hidden. */
+.kc-keypad[data-minimized="true"] {
+  height: 37px;
+}
+
+.kc-keypad[data-minimized="true"] > .kc-keypad-keys {
+  display: none;
+}
+
+.kc-keypad-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--kc-text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.kc-keypad-bar > svg {
+  flex: none;
+  opacity: var(--kc-icon-rest);
+}
+
+.kc-keypad-bar > svg:first-child {
+  margin-bottom: 4px;
+}
+
+.kc-keypad-bar:active {
+  background-color: var(--kc-pill-pressed);
+}
+
+.kc-keypad-bar:active > svg {
+  opacity: var(--kc-icon-pressed);
+}
+
+.kc-keypad-bar:focus-visible {
+  outline-offset: -2px;
+}

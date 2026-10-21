@@ -4,14 +4,17 @@
 // rootRef lands on section.kc-app, where the shell installs its keyboard handling. A ResizeObserver
 // on the list region keeps the focused or active row in view (L-14), and focus
 // entering the list closes the settings popover. A mousedown in the keypad region
-// while a row has focus is cancelled, so focus and caret stay in the row (K-12).
+// while a row has focus is cancelled, so focus and caret stay in the row (K-12). On a phone the
+// open keypad keeps the graph in view (phone-keypad.ts).
 
 import { useEffect, useRef, type JSX, type Ref } from "react";
 import { GraphPanel } from "../graph/GraphPanel";
+import { useEngine } from "../hooks/use-engine";
 import { Keypad } from "../keypad/Keypad";
 import { ExpressionPanel } from "../list/ExpressionPanel";
 import { SettingsPopover } from "../settings/SettingsPopover";
 import { ListResizer, useListWidth } from "./ListResizer";
+import { usePhoneKeypad } from "./phone-keypad";
 import { revealRow } from "./reveal-row";
 
 export interface CalculatorLayoutProps {
@@ -52,6 +55,22 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
   const listWidth = useListWidth(props.containerWidth, props.containerHeight ?? Infinity);
   const resizable = props.layout === "desktop" && !props.collapsed;
 
+  // RS (responsive.md): a touch calculator under 450 by 495 px is a phone; it drops the zoom buttons.
+  const phone =
+    props.pointer === "coarse" &&
+    (props.containerWidth < 450 || (props.containerHeight ?? Infinity) < 495);
+  const engine = useEngine();
+  const graphRegion = useRef<HTMLDivElement>(null);
+  const keypadRegion = useRef<HTMLDivElement>(null);
+  const phoneKeypad = usePhoneKeypad({
+    phone,
+    keypadOpen: props.keypadOpen,
+    engine,
+    graph: graphRegion,
+    keypad: keypadRegion,
+    sizeKey: `${props.layout} ${props.containerWidth} ${props.containerHeight}`,
+  });
+
   const rowFocused = () => props.host.shadowRoot!.activeElement?.closest("[data-row-id]") != null;
 
   return (
@@ -63,13 +82,7 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
       data-kc-layout={props.layout}
       data-collapsed={String(props.collapsed)}
       data-keypad={String(props.keypadOpen)}
-      // RS (responsive.md): a touch calculator under 450 by 495 px drops the zoom buttons.
-      data-compact-touch={
-        props.pointer === "coarse" &&
-        (props.containerWidth < 450 || (props.containerHeight ?? Infinity) < 495)
-          ? "true"
-          : undefined
-      }
+      data-compact-touch={phone ? "true" : undefined}
       style={props.layout === "desktop" ? listWidth.style : undefined}
     >
       <div
@@ -94,16 +107,23 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
           onResize={listWidth.setWidth}
         />
       )}
-      <div className="kc-graph-region">
+      <div
+        ref={graphRegion}
+        className="kc-graph-region"
+        onPointerDownCapture={phoneKeypad.onGraphPointerDown}
+      >
         <GraphPanel
           host={props.host}
           themeRevision={props.themeRevision}
           reducedMotion={props.reducedMotion}
           settingsOpen={props.settingsAnchor !== null}
           onOpenSettings={props.onOpenSettings}
+          pointer={props.pointer}
+          keypadInset={phoneKeypad.keypadInset}
         />
       </div>
       <div
+        ref={keypadRegion}
         className="kc-keypad-region"
         onMouseDownCapture={(e) => {
           if (rowFocused()) e.preventDefault(); // K-12: focus and caret stay in the row
@@ -114,6 +134,8 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
           layout={props.layout}
           pointer={props.pointer}
           open={props.keypadOpen}
+          minimized={phoneKeypad.minimized}
+          onRestore={phoneKeypad.restore}
           onOpenChange={props.onKeypadChange}
         />
       </div>

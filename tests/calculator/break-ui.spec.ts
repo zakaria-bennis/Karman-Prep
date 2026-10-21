@@ -263,7 +263,7 @@ test.describe("list, popovers and window", () => {
 test.describe("phone keypad", () => {
   test.skip(({ isMobile }) => !isMobile, "touch projects");
 
-  test("with the keypad up, a tap on the graph only puts it away; a tap on a focused row's cross moves to the next row", async ({
+  test("with the keypad up, a tap on the graph shrinks it to its bar (owner, 2026-10-21) and moves nothing; a tap on a focused row's cross moves to the next row", async ({
     page,
   }) => {
     await openShell(page, `?rows=${enc(["y=x", "y=2x", "y=3x"])}`);
@@ -276,10 +276,11 @@ test.describe("phone keypad", () => {
     const before = await view();
     const graph = (await page.locator("#calc .kc-graph-surface").boundingBox())!;
     await page.touchscreen.tap(graph.x + graph.width / 2, graph.y + graph.height / 3);
-    await expect.poll(keypad).toBe(false);
+    await expect(page.locator("#calc .kc-keypad")).toHaveAttribute("data-minimized", "true");
+    expect(await keypad()).toBe(true);
     expect(await view()).toBe(before);
     await rowField(page, "1").tap();
-    await expect.poll(keypad).toBe(true);
+    await expect(page.locator("#calc .kc-keypad")).not.toHaveAttribute("data-minimized", "true");
     await page.getByRole("button", { name: "Delete expression 1" }).tap();
     await expect.poll(() => latexes(page)).toEqual(["y=2x", "y=3x"]);
     await expect.poll(() => focusedRow(page)).toBe("2");

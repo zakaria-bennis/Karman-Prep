@@ -13,7 +13,7 @@ import {
   type RefObject,
 } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
-import type { Viewport, ViewSpec } from "@/lib/calculator/plot/viewport";
+import { worldToPx, type Viewport, type ViewSpec } from "@/lib/calculator/plot/viewport";
 import {
   dragViewport,
   pinchState,
@@ -51,6 +51,31 @@ export interface GraphInteraction {
   hover(at: Point | null): void;
   viewChanged(): void;
 }
+/**
+ * Measured on live Desmos (2026-10-21): a wheel zooming in with the pointer within this many CSS
+ * px of the origin on both axes zooms about the origin itself (30 px off snaps, 60 px does not).
+ */
+export const WHEEL_ORIGIN_SNAP_PX = 50;
+
+/**
+ * The wheel step's direction and anchor as Desmos reads them: deltaY, or deltaX when deltaY is 0
+ * (a sideways wheel zooms too); zooming in near the origin anchors on it. Null for no step.
+ */
+export function wheelStep(
+  view: ViewSpec,
+  e: Pick<WheelEvent, "deltaX" | "deltaY">,
+  at: Point
+): { dy: number; at: Point } | null {
+  const dy = e.deltaY !== 0 ? e.deltaY : e.deltaX;
+  if (dy === 0 || !Number.isFinite(dy)) return null;
+  if (dy > 0) return { dy, at };
+  const origin = worldToPx(view, 0, 0);
+  const near =
+    Math.abs(at[0] - origin[0]) <= WHEEL_ORIGIN_SNAP_PX &&
+    Math.abs(at[1] - origin[1]) <= WHEEL_ORIGIN_SNAP_PX;
+  return { dy, at: near ? origin : at };
+}
+
 /** A pan that moves less than this is not a view change yet. */
 export const CLICK_SLOP_PX = 4;
 /** Applies `next(current view)` at once; false (and nothing done) when the size is unknown or it is null. */
@@ -179,7 +204,8 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       if (e.button !== 0) return;
       // POI-LIVE-5: a second finger while one traces neither pinches nor ends the trace.
       if (s.press?.kind === "trace" && s.press.id !== e.pointerId) return;
-      surface.current?.focus({ preventScroll: true });
+      // A pointer press never shows the keyboard focus ring, even when focus leaves a row for it.
+      surface.current?.focus({ preventScroll: true, focusVisible: false } as FocusOptions);
       try {
         element.setPointerCapture(e.pointerId);
       } catch {
@@ -251,9 +277,10 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
       const view = currentView();
       if (view === null) return;
       e.preventDefault();
-      if (s.wheeled || e.deltaY === 0 || latest.current.locked) return;
+      const step = wheelStep(view, e, position(e));
+      if (s.wheeled || step === null || latest.current.locked) return;
       latest.current.interaction?.viewChanged();
-      schedule(wheelViewport(view, e.deltaY, position(e)));
+      schedule(wheelViewport(view, step.dy, step.at));
       s.wheeled = true;
     };
 
