@@ -87,7 +87,7 @@ these owners:
 | Window job                                               | Owner                                                           |
 | -------------------------------------------------------- | --------------------------------------------------------------- |
 | Graphing/Scientific select                               | CB-3 mode control in the window title bar (L-12, SC-1; Phase 2) |
-| Ctrl/Alt+K keypad toggle                                 | KB- shortcut handled inside the calculator                      |
+| Keypad toggle (Ctrl+K on a Mac, Alt+K elsewhere)         | KB- shortcut handled inside the calculator                      |
 | Paste button, manual paste box, paste and drop listeners | AR-14 and AR-15 (not built yet)                                 |
 | Global "Paste points as" select                          | Per-item choice in `c-transfer.md`                              |
 | Drag, resize, maximize, minimize, close                  | `CalculatorWindow` (AR-22, AR-27)                               |

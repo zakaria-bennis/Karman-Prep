@@ -39,6 +39,36 @@ conflict.
 7. **Fonts.** All calculator UI text, including the window title, uses the sans UI font (Arial);
    only math uses KaTeX fonts.
 
+## Owner decision (2026-10-21): exactly Desmos, extras removed
+
+The owner decided that the following behave exactly as live Desmos does (checked headless against
+www.desmos.com/calculator on 2026-10-21), and Karman's extras for them are removed:
+
+1. **Keypad keys do not repeat.** A held Backspace or arrow key on the on-screen keypad acts once,
+   when the press ends (K-11).
+2. **The letters page is Desmos's.** Desmos's ABC page has q to p, a to l and θ (τ with Shift),
+   Shift, z to m, Backspace, then "1 2 3", aᵦ (aᵇ), ! (′), [ (]), { (}), ~ (%), : (;) and Enter.
+   The key set was already Desmos's; the keys now carry Desmos's names: "!", "[", "{", "~", ":"
+   ("'", "]", "}", "%", ";" with Shift) and "Toggle Numbers" for the 1 2 3 key (A11Y-5).
+3. **Shortcuts are Desmos's, per platform.** Undo is Cmd+Z on a Mac and Ctrl+Z elsewhere; redo
+   Cmd+Shift+Z or Cmd+Y on a Mac and Ctrl+Shift+Z or Ctrl+Y elsewhere; the keypad toggles on Ctrl+K
+   on a Mac and Alt+K elsewhere; Alt/Option+T is the audio trace. Alt+Enter, and Enter with any
+   modifier (Shift, Alt, Ctrl, Cmd), does nothing, although Desmos's help dialog lists
+   "Add an Expression: ALT + ENTER" (section 6, KB-7).
+4. **Escape leaves point labels open.** Open coordinate labels stay until the next press (POI-13).
+   The quiz window's rule stands: Escape leaves the row, and a second Escape closes the window.
+5. **The degree sign is a name.** `\degree` (what a typed ° becomes) is the name degree and
+   `^{\circ}` is a power of the name circ: `\sin(30\degree)` asks "Try adding 'y=' to the
+   beginning of this equation." with an add-slider chip shown as °, `y=\sin(x\degree)` reads "Too
+   many variables. Try defining 'degree'.", and with `\degree=3`, `\sin(30\degree)` is sin 90. A
+   raw ° in API LaTeX is "Sorry, I don't understand the '°' symbol." (PR-8, NM-27).
+6. **A lone i in real mode is an ordinary name.** `2i` and `1+i` ask "Try adding 'y=' …" and offer
+   an add-slider chip for i; a lone `i` offers none, like any lone name. The "Turn on complex mode
+   to use i." hint and its button are removed (NM-17, FN-16). Complex mode is unchanged.
+
+The adversarial break corpus (`break-corpus.json`) records these as matching Desmos, with 14 cases
+captured on 2026-10-21.
+
 ## Parity increment scope
 
 The parity increment (finished 2026-10-18) delivered these IDs
@@ -268,8 +298,8 @@ including these, is checked in `desmos.reference.test.ts`:
   (`desmos-trig.fixture.json`; real trig values exactly). Not yet matched (`GAPS` there):
   derivatives, integrals, sums and products, `\infty`, complex mode ignoring the degree setting
   and its branch signs for arcsin, arccos, arccsc and arcsec at real x outside the domain,
-  `\sin\cos(0)` (Desmos asks for parentheses), θ outside a polar row, and the degree sign, which
-  Desmos does not have.
+  `\sin\cos(0)` (Desmos asks for parentheses) and θ outside a polar row. The degree sign matches
+  since the owner decision of 2026-10-21: Desmos reads `\circ` and `\degree` as names.
 - **Hyperbolic and complex trig (FN-68, NM-4).** Complex trig and hyperbolic parts use the same
   quarter-turn exactness as real trig, so `\cosh(\frac{\pi}{2}i)` is 0, `\tanh(\frac{\pi}{2}i)`
   has an undefined real part and `\operatorname{sech}(\frac{\pi}{2}i)` is undefined; complex
@@ -518,7 +548,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 20. Releasing a trace removes the trace dot and label and pins nothing.
 21. A circle (implicit conic) gets its axis intercepts and its top and bottom points as POIs, and no leftmost or rightmost points.
 22. Intersections with every other visible curve are POIs of the selected curve, and hidden rows contribute no intersections.
-23. Escape does not dismiss open POI labels (Karman may choose to differ; see gaps).
+23. Escape does not dismiss open POI labels (matched: owner decision 2026-10-21).
 24. Audio trace (Alt/Option+T or the keypad key) starts at a POI of the focused row and announces "Audio trace on" with the key help and the first point's kind and coordinates.
 25. In audio trace, Page Down and Page Up move to the next and previous POI in x order and announce the kind ("Zero", "Intercept and Extremum", "Intersection with Expression 2") and coordinates.
 26. In audio trace, past the last POI the announcement starts "No more points of interest" and the on-screen Next POI button is disabled.
@@ -542,7 +572,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 | A11Y-13                   | Left/Right move 1/50 of width (Shift 1/10); Escape or Alt+T stops          | Desmos steps 1/100 of width; Shift does nothing; Page Up/Down for POIs; Home/End; Cmd+Up/Down switches rows; start announcement includes key help; starts on a POI (steps 32-39)                            | Add POI jumps, Home/End, row switching, start-on-POI and "No more points of interest" to A11Y-13; step size is a design choice.                                                                              |
 | AN-6                      | Labels fade 100 ms                                                         | Not measurable here (reduced motion was on)                                                                                                                                                                 | Unverified.                                                                                                                                                                                                  |
 | K-9                       | Audio key disabled until Phase 4                                           | Desmos phone keypad's speaker key starts trace and swaps in a navigation panel (step 50)                                                                                                                    | Phase 4 design input: navigation panel layout (Point, Point of Interest, Curve, Describe).                                                                                                                   |
-| (none)                    | —                                                                          | Escape does not close labels (step 10)                                                                                                                                                                      | Karman could close labels on Escape as a deliberate improvement; record the decision.                                                                                                                        |
+| (none)                    | —                                                                          | Escape does not close labels (step 10)                                                                                                                                                                      | Decided 2026-10-21: match Desmos; Escape leaves labels open (POI-13).                                                                                                                                        |
 | (none)                    | —                                                                          | Touch trace label sits below-right, under the finger's side (step 48)                                                                                                                                       | Consider raising the touch trace label above the finger.                                                                                                                                                     |
 
 ## Visual look: curves, grid, rows, typography
