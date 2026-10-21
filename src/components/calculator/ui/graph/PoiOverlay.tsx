@@ -88,7 +88,7 @@ export function PoiOverlay({
     return null;
   }
   const withButton = (i: number) =>
-    onExport !== undefined && !(trace !== null && i === labels.length);
+    onExport !== undefined && !(trace !== null && i === labels.length) && !all[i].plotted;
   const keyOf = (label: OpenLabel, i: number) =>
     trace !== null && i === labels.length
       ? "trace"
@@ -123,6 +123,7 @@ export function PoiOverlay({
             data-poi-label={isTrace ? undefined : ""}
             data-trace-label={isTrace ? "" : undefined}
             data-opened={label.opened ? "" : undefined}
+            data-plotted={label.plotted ? "" : undefined}
             data-hole={isTrace && trace.hole ? "" : undefined}
             data-orientation={placed[i].orientation}
             style={{ left: placed[i].left, top: placed[i].top }}

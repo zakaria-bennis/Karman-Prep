@@ -30,8 +30,8 @@ describe("POI-TRACE-23 the trace point", () => {
   it("an x=g(y) branch rounds y and computes x", () => {
     const g: PoiBranch = { independent: "y", f: (y) => y * y - 1 };
     const p = traceAt([g], VIEW, [px(3.1087), py(2.027)]);
-    expect(p?.y).toBe(2.03);
-    expect(p?.x).toBeCloseTo(2.03 ** 2 - 1, 12);
+    expect(p?.y).toBe(2.027); // the reference reads (3.10873, 2.027) here (spec L-6)
+    expect(p?.x).toBeCloseTo(2.027 ** 2 - 1, 12);
   });
 
   it("at a hole the label reads undefined and the dot sits half a px away", () => {
@@ -47,6 +47,24 @@ describe("POI-TRACE-23 the trace point", () => {
     const lines = [1, 2, 3].map((k): PoiBranch => ({ independent: "x", f: (x) => k * x }));
     const p = traceAt(lines, VIEW, [px(1), py(2.9)])!;
     expect(p.y / p.x).toBeCloseTo(3, 9);
+  });
+});
+
+describe("POI-LIVE-9, POI-LIVE-10 the reference's polyline", () => {
+  it("off a straight line the trace goes to the nearest point (no polyline on the far side)", () => {
+    const line: PoiBranch = { independent: "x", f: (x) => 2 * x + 1, linear: true };
+    // (1.5, −6) is nearest (−2.5, −4) on y=2x+1 when both axes have 40 px per unit
+    const p = traceAt([line], VIEW, [px(1.5), py(-6)]);
+    expect(p?.x).toBeCloseTo(-2.5, 1);
+  });
+
+  it("past a restriction's end the trace shows nothing", () => {
+    const restricted: PoiBranch = {
+      independent: "x",
+      f: (x) => (x > -1 && x < 2 ? x * x : NaN),
+    };
+    expect(traceAt([restricted], VIEW, [px(1.9), py(3.61)])).toMatchObject({ hidden: false });
+    expect(traceAt([restricted], VIEW, [px(3), py(9)])).toMatchObject({ hidden: true });
   });
 });
 

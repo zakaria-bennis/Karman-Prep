@@ -51,6 +51,7 @@ import { useGraphInput } from "./use-graph-input";
 import { useGraphSize, type GraphSize } from "./use-graph-size";
 import { useLabelInk } from "./use-label-ink";
 import { keepLabelsOpen, poiDots, shownLabels, usePoiLabels } from "./use-poi-labels";
+import { shownPointLabels, usePointLabels } from "./use-point-labels";
 import { useTrace, type TraceState } from "./use-trace";
 
 export { graphAccessibleName };
@@ -213,6 +214,7 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   const homeRef = useRef<HTMLButtonElement>(null);
   const size = useGraphSize(layers, engine);
   const poi = usePoiLabels(snapshot, engine);
+  const points = usePointLabels();
   const tracer = useTrace(engine);
   const keyboardTrace = useContext(KeyboardTraceContext);
   useSyncExternalStore(
@@ -243,7 +245,16 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
           keepLabelsOpen(event);
           return "dot";
         }
-        const claimed = tracer.claim(at, pointer, sc.view, sc.rows);
+        // The selected row's curve comes before a plotted point on it; a point before any other
+        // curve (POI-LIVE-1: pressing a point on an unselected line opens the point's label).
+        const selected = engine.getSnapshot().selectedRowId;
+        const mine = sc.rows.filter((r) => r.rowId === selected);
+        let claimed = mine.length > 0 ? tracer.claim(at, pointer, sc.view, mine) : null;
+        if (claimed === null && points.press(at, pointer, sc.view, sc.rows)) {
+          keepLabelsOpen(event);
+          return "dot";
+        }
+        claimed ??= tracer.claim(at, pointer, sc.view, sc.rows);
         if (claimed === "trace") {
           keepLabelsOpen(event);
           return "trace";
@@ -286,13 +297,13 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
     maxWaitMs: NAME_MAX_WAIT_MS,
   });
 
-  const shownTrace =
-    tracer.trace ??
-    keyboardTracePoint(
-      keyboardTrace,
-      view,
-      view === null ? [] : buildRenderRows(snapshot, skin, view, cache)
-    );
+  const drawnRows = view === null ? [] : buildRenderRows(snapshot, skin, view, cache);
+  const { retrace } = tracer;
+  useEffect(() => {
+    if (view !== null) retrace(view); // POI-LIVE-12: the wheel zooms under a held trace
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the view's values, not its identity
+  }, [retrace, snapshot.viewport, size]);
+  const shownTrace = tracer.trace ?? keyboardTracePoint(keyboardTrace, view, drawnRows);
   useRenderLoop(
     layers,
     { snapshot, skin, cache, size, host, labels: poi.labels, trace: shownTrace },
@@ -348,7 +359,10 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
       />
       {view !== null && (
         <PoiOverlay
-          labels={shownLabels(snapshot, poi.labels, view)}
+          labels={[
+            ...shownPointLabels(points.open, drawnRows, view),
+            ...shownLabels(snapshot, poi.labels, view),
+          ]}
           size={view.size}
           readInk={readLabelInk}
           trace={shownTrace}

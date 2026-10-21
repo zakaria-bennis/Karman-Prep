@@ -25,6 +25,13 @@ export const POI_HIT_PX: Readonly<Record<Pointer, number>> = Object.freeze({
  */
 const SLACK_PX = 1e-3;
 
+/**
+ * The farthest a hit may be: up to and including the reach for a mouse, short of it for a finger
+ * (the reference hits a curve 19.5 px from a touch but not 20, and a dot at 21.5 but not 22).
+ */
+export const hitLimit = (reach: number, pointer: Pointer): number =>
+  pointer === "fine" ? reach + SLACK_PX : reach - SLACK_PX;
+
 /** The index of the dot nearest `at` within the hit radius, or null. */
 export function hitPoi(
   points: readonly Pick<PoiPoint, "x" | "y">[],
@@ -33,7 +40,7 @@ export function hitPoi(
   pointer: Pointer
 ): number | null {
   let best: number | null = null,
-    bestDistance = POI_HIT_PX[pointer] + SLACK_PX;
+    bestDistance = hitLimit(POI_HIT_PX[pointer], pointer);
   points.forEach((p, i) => {
     const [x, y] = worldToPx(view, p.x, p.y);
     const d = Math.hypot(x - at[0], y - at[1]);
@@ -62,7 +69,7 @@ export function hitBranch(
   pointer: Pointer
 ): string | null {
   let best: string | null = null,
-    bestDistance = CURVE_HIT_PX[pointer] + SLACK_PX;
+    bestDistance = hitLimit(CURVE_HIT_PX[pointer], pointer);
   for (const row of rows) {
     for (const b of row.branches) {
       const d = branchDistance(b, view, at);
