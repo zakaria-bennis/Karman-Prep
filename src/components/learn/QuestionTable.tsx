@@ -51,25 +51,25 @@ export default function QuestionTable({
 
   // When there's a multi-column header, the first body cell of each row is
   // a row label — render it as <th scope="row"> so screen readers announce
-  // it as the heading for the rest of the row (and the bronze-accent style).
+  // it as the heading for the rest of the row ().
   const hasRowHeaders = Boolean(header_row && header_row.length > 1);
   const rowLabelClass =
-    "border-b border-bronze/60 px-3 py-2 text-left font-sans text-[13px] font-normal text-taupe";
+    "border-b border-ivory/70 px-4 py-3 text-left text-base font-normal leading-snug text-ivory";
   const cellClass =
-    "border-b border-bronze/60 px-3 py-2 text-center font-sans text-[13px] text-ivory";
+    "border-b border-ivory/70 px-4 py-3 text-center text-base leading-snug tabular-nums text-ivory";
 
   return (
     <figure
       aria-label={ariaLabel ?? (caption ? undefined : "Question data table")}
       className={cn(
         // Container: warm card surface, bronze frame (observatory system).
-        "themed-question-figure themed-question-table my-4 inline-block max-w-full overflow-x-auto rounded-lg border border-bronze bg-surface px-5 py-4 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
+        "themed-question-figure themed-question-table my-4 inline-block max-w-full overflow-x-auto rounded-lg border border-ivory/70 bg-surface shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         className
       )}
     >
       <table className="w-full border-collapse text-sm">
         {caption && (
-          <caption className="mb-3 caption-top text-center font-serif text-[15px] italic leading-snug text-ivory">
+          <caption className="caption-top border-b border-ivory/70 px-4 py-3 text-center text-base italic leading-snug text-ivory">
             {renderCell(caption, "caption")}
           </caption>
         )}
@@ -83,9 +83,9 @@ export default function QuestionTable({
                     scope={group.label ? "colgroup" : undefined}
                     colSpan={Math.max(1, Math.floor(group.span))}
                     className={cn(
-                      "px-3 pb-1 pt-2 text-center font-serif text-[13px] font-normal leading-tight text-ivory",
-                      group.label && "border-b border-bronze/60",
-                      i > 0 && "border-l border-bronze/60"
+                      "px-4 py-3 text-center text-base font-normal leading-snug text-ivory",
+                      group.label && "border-b border-ivory/70",
+                      i > 0 && "border-l border-ivory/70"
                     )}
                   >
                     {group.label ? renderCell(group.label, `group-${i}`) : null}
@@ -100,8 +100,8 @@ export default function QuestionTable({
                     key={`h-${i}`}
                     scope="col"
                     className={cn(
-                      "border-b border-bronze px-3 py-2 text-center font-serif text-[13px] font-normal leading-tight text-ivory",
-                      i > 0 && "border-l border-bronze/60"
+                      "border-b border-ivory/70 px-4 py-3 text-center text-base font-semibold leading-snug text-ivory",
+                      i > 0 && "border-l border-ivory/70"
                     )}
                   >
                     {renderCell(h, `head-${i}`)}
@@ -113,7 +113,10 @@ export default function QuestionTable({
         )}
         <tbody>
           {rows.map((row, ri) => (
-            <tr key={`r-${ri}`}>
+            <tr
+              key={`r-${ri}`}
+              className={ri === rows.length - 1 && !footer_note ? "[&>*]:border-b-0" : undefined}
+            >
               {row.map((cell, ci) =>
                 hasRowHeaders && ci === 0 ? (
                   <th key={`r-${ri}-c-${ci}`} scope="row" className={rowLabelClass}>
@@ -122,7 +125,7 @@ export default function QuestionTable({
                 ) : (
                   <td
                     key={`r-${ri}-c-${ci}`}
-                    className={cn(cellClass, ci > 0 && "border-l border-bronze/60")}
+                    className={cn(cellClass, ci > 0 && "border-l border-ivory/70")}
                   >
                     {renderCell(cell, `r-${ri}-c-${ci}`)}
                   </td>
@@ -136,7 +139,7 @@ export default function QuestionTable({
             <tr>
               <td
                 colSpan={header_row?.length || rows[0]?.length || 1}
-                className="pt-3 text-center text-[11px] italic text-taupe"
+                className="border-t border-ivory/70 px-4 py-3 text-center text-sm italic text-taupe"
               >
                 {renderCell(footer_note, "footer")}
               </td>
@@ -145,11 +148,13 @@ export default function QuestionTable({
         )}
       </table>
       {calculator && (
-        <CalculatorTableAction
-          rows={rows}
-          headers={header_row ?? undefined}
-          itemId={calculatorItemId}
-        />
+        <div className="border-t border-ivory/70 px-4 py-2">
+          <CalculatorTableAction
+            rows={rows}
+            headers={header_row ?? undefined}
+            itemId={calculatorItemId}
+          />
+        </div>
       )}
     </figure>
   );
