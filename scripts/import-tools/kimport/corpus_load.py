@@ -463,8 +463,11 @@ def read_new_exam(r: dict, item: dict) -> dict:
         if teacher.get("key_answer") is not None:
             key, kind = str(teacher["key_answer"]), ("official" if teacher.get("acceptance_basis") == "printed_key" else None)
         else:
+            # no printed key in the package: the transcriber's solve, else the record's own (unofficial)
+            # key, so the question still compares; never official
             solved = (teacher.get("transcriber_review") or {}).get("answer")
-            key, kind = (None if solved in (None, "") else str(solved)), None
+            key = solved if solved not in (None, "") else r.get("key")
+            key, kind = (None if key in (None, "") else str(key)), None
         return {"text": text, "key": key, "kind": kind, "b_version": bver, "c_hash_recorded": True,
                 "c_text_sha256": r["text_sha256"], "b_dir": str(bdir)}
     return {"text": text, "key": None if key in (None, "") else str(key), "kind": kind, "b_version": bver,

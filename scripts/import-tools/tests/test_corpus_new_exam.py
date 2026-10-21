@@ -184,6 +184,14 @@ class NewExamPackages(unittest.TestCase):
             r = by_ref(load_corpus(ip, lp, [nr], {}, [nl]))[nid(1)]
         self.assertEqual((r.answer, r.meta["reviewed_answer"]), ("gamma", {"kind": None}))
 
+    def test_doubted_printed_key_still_compares_unofficially(self):
+        with tempfile.TemporaryDirectory() as d:
+            text = mc(STEM)
+            pk = package(d, nid(1), text, printed=False, solved=None)
+            ip, lp, nl, nr = bundle(d, [new_row(nid(1))], [new_rec(nid(1), text, key="D", kind=None, **pk)])
+            r = by_ref(load_corpus(ip, lp, [nr], {}, [nl]))[nid(1)]
+        self.assertEqual((r.meta["status"], r.answer, r.meta["reviewed_answer"]), ("ok", "delta", {"kind": None}))
+
     def test_package_mismatches_make_it_unparsed(self):
         with tempfile.TemporaryDirectory() as d:
             text = mc(STEM)
