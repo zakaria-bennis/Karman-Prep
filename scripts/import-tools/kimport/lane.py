@@ -251,8 +251,18 @@ def claims_path_for(lane_path: Path) -> Path:
     return Path(lane_path).with_name("claims.json")
 
 
+def _extra_ledgers(extra, near: Path) -> list[Path]:
+    """Supplementary new-exam ledgers: the ones given, else new-exam-ledger.json in `near` if present."""
+    from .corpus_load import NEW_EXAM_LEDGER_FILE
+    if extra is not None:
+        return [Path(p) for p in extra]
+    p = Path(near) / NEW_EXAM_LEDGER_FILE
+    return [p] if p.exists() else []
+
+
 def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer: str,
-               size: int = SLICE_SIZE, claims_path: Path | None = None, now: str | None = None) -> list[str]:
+               size: int = SLICE_SIZE, claims_path: Path | None = None, now: str | None = None,
+               extra_ledgers=None) -> list[str]:
     """Up to `size` unclaimed canonical questions from one exam module, oldest unreviewed first
     (ledger bucket awaiting_evidence, then the rest; exam, section, module, number). Skips lane items
     that are open or parked, live questions, and anything claimed by any reviewer. The picked ids are
@@ -260,8 +270,10 @@ def next_slice(clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer
     if size < 1:
         raise ValueError("size must be at least 1")
     claims_path = Path(claims_path) if claims_path else claims_path_for(lane_path)
+    from .corpus_load import ledger_entries
     roles = load_json(clusters_path)["roles"]
-    ledger = {e["id"]: e for e in load_json(ledger_path)["items"]}
+    # new-exam occurrences (pipeline/new-exams) come from a supplementary ledger next to clusters.json
+    ledger = ledger_entries(ledger_path, _extra_ledgers(extra_ledgers, Path(clusters_path).parent))
     blocked_lane = blocked_ids(lane_path)
     already_live = live_ids(lane_path)
     with FileLock(claims_path):
@@ -298,10 +310,12 @@ def release(claims_path: Path, reviewer: str) -> list[str]:
         return list(gone)
 
 
-def release_done(claims_path: Path, lane_path: Path, ledger_path: Path) -> list[str]:
-    """Drop claims that are finished: resolved in the lane, or live in the ledger."""
+def release_done(claims_path: Path, lane_path: Path, ledger_path: Path, extra_ledgers=None) -> list[str]:
+    """Drop claims that are finished: resolved in the lane, or live in the ledger (the readiness
+    ledger plus new-exam ledgers: given, else <lane folder>/corpus/new-exam-ledger.json if present)."""
+    from .corpus_load import ledger_entries
     claims_path = Path(claims_path)
-    ledger = {e["id"]: e for e in load_json(ledger_path)["items"]}
+    ledger = ledger_entries(ledger_path, _extra_ledgers(extra_ledgers, Path(lane_path).parent / "corpus"))
     lane_items = _read_lane(lane_path)["items"]
 
     def done(i):

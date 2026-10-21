@@ -283,7 +283,7 @@ class RereadRecords(unittest.TestCase):
             (out / REREAD_FILE).write_bytes(rr.read_bytes())
             counts = run_corpus(ip, lp, None, out)  # default: reread-records.json in --out
             doc = json.loads((out / "clusters.json").read_text(encoding="utf-8"))
-            self.assertEqual(doc["inputs"]["extra_c_records"], str(out / REREAD_FILE))
+            self.assertEqual(doc["inputs"]["extra_c_records"], [str(out / REREAD_FILE)])
             self.assertEqual(doc["inputs"]["load"]["reread_used"], 1)
             self.assertEqual(counts["unparsed"], 3)
             out2 = Path(d) / "out2"
@@ -292,7 +292,7 @@ class RereadRecords(unittest.TestCase):
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn("3 unparsed", p.stdout)
             doc2 = json.loads((out2 / "clusters.json").read_text(encoding="utf-8"))
-            self.assertEqual(doc2["inputs"]["extra_c_records_sha256"], hashlib.sha256(rr.read_bytes()).hexdigest())
+            self.assertEqual(doc2["inputs"]["extra_c_records_sha256"], [hashlib.sha256(rr.read_bytes()).hexdigest()])
             counts3 = run_corpus(ip, lp, None, Path(d) / "out3")  # no file: unchanged behaviour
             self.assertEqual(counts3["unparsed"], 4)
 

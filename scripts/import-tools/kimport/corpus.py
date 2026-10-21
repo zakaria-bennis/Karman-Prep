@@ -36,7 +36,7 @@ from collections import Counter
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from kimport.corpus_load import load_corpus
+from kimport.corpus_load import NEW_EXAM_LEDGER_FILE, NEW_EXAM_RECORDS_FILE, load_corpus
 from kimport.evidence import WORD, OutsideEvidence, needs_visual
 from kimport.export import read_export_doc
 from kimport.jsonio import FileLock, atomic_write_json, write_text_atomic
@@ -594,16 +594,38 @@ def default_reread(out_dir: Path) -> Path | None:
     return p if p.exists() else None
 
 
+def default_extra_c_records(out_dir: Path) -> list[Path]:
+    """reread-records.json and new-exam-c-records.json in out_dir, those present."""
+    return [p for p in (Path(out_dir) / REREAD_FILE, Path(out_dir) / NEW_EXAM_RECORDS_FILE) if p.exists()]
+
+
+def default_extra_ledgers(out_dir: Path) -> list[Path]:
+    p = Path(out_dir) / NEW_EXAM_LEDGER_FILE
+    return [p] if p.exists() else []
+
+
+def _as_paths(v) -> list[Path] | None:
+    if v is None:
+        return None
+    return [Path(v)] if isinstance(v, (str, Path)) else [Path(x) for x in v]
+
+
 def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
                decision_log: Path | None = None, lane_path: Path | None = None,
-               extra_c_records: Path | None = None) -> dict:
-    """extra_c_records: re-read corrected texts (corpus_load.load_reread); default
-    reread-records.json in out_dir when present, so every re-run (the autopilot's too) keeps them."""
+               extra_c_records=None, extra_ledgers=None) -> dict:
+    """extra_c_records: one or more files of extra corrected texts (corpus_load.load_reread: hand
+    re-reads, and new-exam captures); default reread-records.json and new-exam-c-records.json in
+    out_dir when present. extra_ledgers: supplementary ledgers of new-exam occurrences; default
+    new-exam-ledger.json in out_dir when present. The defaults mean every re-run (the autopilot's
+    too) keeps them."""
     from kimport.lane import blocked_ids  # lane imports this module
 
-    extra = Path(extra_c_records) if extra_c_records else default_reread(out_dir)
+    extra = _as_paths(extra_c_records)
+    extra = default_extra_c_records(out_dir) if extra is None else extra
+    ledgers = _as_paths(extra_ledgers)
+    ledgers = default_extra_ledgers(out_dir) if ledgers is None else ledgers
     load_stats: dict = {}
-    corpus = load_corpus(Path(c_index), Path(ledger), extra, load_stats)
+    corpus = load_corpus(Path(c_index), Path(ledger), extra, load_stats, ledgers)
     live = None
     if export is not None:
         live = [record_from_row(row) for row in read_export_doc(Path(export)).rows]
@@ -617,8 +639,10 @@ def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
     result.inputs = {"c_index": str(c_index), "c_index_sha256": _file_sha(c_index), "ledger": str(ledger),
                      "ledger_sha256": _file_sha(ledger), "export": str(export) if export is not None else None,
                      "lane": str(lane_path) if lane_path else None, "lane_blocked": len(blocked),
-                     "extra_c_records": str(extra) if extra else None,
-                     "extra_c_records_sha256": _file_sha(extra) if extra else None,
+                     "extra_c_records": [str(p) for p in extra] or None,
+                     "extra_c_records_sha256": [_file_sha(p) for p in extra] or None,
+                     "extra_ledgers": [str(p) for p in ledgers] or None,
+                     "extra_ledgers_sha256": [_file_sha(p) for p in ledgers] or None,
                      "load": load_stats}
     log = Path(decision_log) if decision_log else Path(out_dir) / "founder_decisions.json"
     write_outputs(result, Path(out_dir), log)

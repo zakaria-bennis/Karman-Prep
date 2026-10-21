@@ -229,15 +229,20 @@ def _register_corpus(sub) -> None:
                     "(default: <out>/founder_decisions.json if present)")
     cp.add_argument("--lane", help="pipeline/lane.json: open or parked items are never elected canonical "
                     "(default: lane.json in --out, or one folder up, if present)")
-    cp.add_argument("--extra-c-records", help="re-read corrected texts for occurrences the C index cannot give "
-                    "(default: reread-records.json in --out, if present)")
+    cp.add_argument("--extra-c-records", action="append",
+                    help="extra corrected texts: hand re-reads for occurrences the C index cannot give, and "
+                    "new-exam captures; repeatable (default: reread-records.json and new-exam-c-records.json "
+                    "in --out, those present)")
+    cp.add_argument("--extra-ledger", action="append",
+                    help="supplementary ledger of new-exam occurrences; repeatable "
+                    "(default: new-exam-ledger.json in --out, if present)")
     cp.set_defaults(func=lambda a: _guard(lambda: print(
         "corpus: {occurrences} occurrences, {unique} unique, {unique_not_live} not yet live, "
         "{founder_pairs} founder pairs, {unparsed} unparsed".format(
             **corpus.run_corpus(Path(a.c_index), Path(a.ledger), Path(a.export) if a.export else None,
                                 Path(a.out), Path(a.decision_log) if a.decision_log else None,
                                 Path(a.lane) if a.lane else None,
-                                Path(a.extra_c_records) if a.extra_c_records else None)))))
+                                a.extra_c_records, a.extra_ledger)))))
 
 
 def _register_pairs(sub) -> None:
@@ -329,6 +334,9 @@ def _register_lane(sub) -> None:
     sl.add_argument("--now", help="ISO-8601 time stamped on the claim")
     sl.add_argument("--release", action="store_true", help="give back all of --reviewer's claims")
     sl.add_argument("--release-done", action="store_true", help="drop claims that are resolved or live")
+    sl.add_argument("--extra-ledger", action="append",
+                    help="supplementary ledger of new-exam occurrences; repeatable (default: new-exam-ledger.json "
+                    "next to --clusters, or in <lane folder>/corpus for --release-done, if present)")
 
     def slice_cmd(a):
         def need(*names):
@@ -339,7 +347,7 @@ def _register_lane(sub) -> None:
         if a.release_done:
             need("lane", "ledger")
             claims = claims or lane.claims_path_for(Path(a.lane))
-            print(f"slice: {len(lane.release_done(claims, Path(a.lane), Path(a.ledger)))} finished claims dropped")
+            print(f"slice: {len(lane.release_done(claims, Path(a.lane), Path(a.ledger), a.extra_ledger))} finished claims dropped")
         elif a.release:
             need("reviewer", "lane")
             claims = claims or lane.claims_path_for(Path(a.lane))
@@ -347,7 +355,7 @@ def _register_lane(sub) -> None:
         else:
             need("reviewer", "clusters", "lane", "ledger", "now")
             for i in lane.next_slice(Path(a.clusters), Path(a.lane), Path(a.ledger), a.reviewer,
-                                     a.size, claims, a.now):
+                                     a.size, claims, a.now, a.extra_ledger):
                 print(i)
 
     sl.set_defaults(func=lambda a: _guard(lambda: slice_cmd(a)))

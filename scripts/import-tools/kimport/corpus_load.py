@@ -375,10 +375,75 @@ def load_reread(path: Path) -> dict[str, dict]:
             raise ValueError(f"{path}: record without question_id")
         if qid in out:
             raise ValueError(f"{path}: repeated question id {qid}")
-        if not r.get("not_readable") and not (r.get("text") and r.get("B_package_path") and r.get("B_final_version")):
+        if r.get("origin") == NEW_EXAM_ORIGIN:
+            if not (r.get("text") and r.get("source_sha256") and r.get("text_sha256")):
+                raise ValueError(f"{path}: {qid} (new exam capture) needs text, text_sha256 and source_sha256")
+        elif not r.get("not_readable") and not (r.get("text") and r.get("B_package_path") and r.get("B_final_version")):
             raise ValueError(f"{path}: {qid} needs text, B_package_path and B_final_version (or not_readable)")
         out[qid] = r
     return out
+
+
+def load_reread_files(paths) -> dict[str, dict]:
+    """Several --extra-c-records files (re-reads and new-exam captures); an id in two files is an error."""
+    out: dict[str, dict] = {}
+    for p in paths or ():
+        for qid, r in load_reread(p).items():
+            if qid in out:
+                raise ValueError(f"{p}: question id {qid} is also in another extra C records file")
+            out[qid] = r
+    return out
+
+
+# New exam forms captured after the readiness ledger was built (pipeline/new-exams): their
+# occurrences come from a supplementary ledger (--extra-ledger, same row shape as the readiness
+# ledger with "origin": "new_exam_capture") and their text from an extra C records file whose
+# records carry the same origin, the transcribed text, the printed (or transcriber-solved) key and
+# the copied source PDF hash. There is no B package; the checks are the source hash and text hash.
+NEW_EXAM_ORIGIN = "new_exam_capture"
+NEW_EXAM_LEDGER_FILE = "new-exam-ledger.json"
+NEW_EXAM_RECORDS_FILE = "new-exam-c-records.json"
+
+
+def extra_ledger_items(paths) -> list[dict]:
+    """Rows of supplementary ledgers; each must be a new-exam capture (they never restate the
+    readiness ledger's own occurrences)."""
+    rows: list[dict] = []
+    for p in paths or ():
+        items = _read_json(Path(p)).get("items")
+        if not isinstance(items, list):
+            raise ValueError(f"{p}: no 'items' list (expected a supplementary ledger)")
+        for it in items:
+            if it.get("origin") != NEW_EXAM_ORIGIN:
+                raise ValueError(f"{p}: {it.get('id')} is not a new exam capture row")
+        rows += items
+    return rows
+
+
+def ledger_entries(ledger: Path, extra_ledgers=()) -> dict[str, dict]:
+    """id -> ledger row over the readiness ledger plus supplementary ledgers (k slice, release-done)."""
+    out = {e["id"]: e for e in _read_json(Path(ledger))["items"]}
+    for e in extra_ledger_items(extra_ledgers):
+        if e["id"] in out:
+            raise ValueError(f"supplementary ledger repeats readiness ledger occurrence {e['id']}")
+        out[e["id"]] = e
+    return out
+
+
+def read_new_exam(r: dict, item: dict) -> dict:
+    """Checks for a new-exam record: it belongs to a new-exam ledger row, both name the same copied
+    source PDF, and the text is the one the record hashed. Only a printed key counts as official."""
+    if item.get("origin") != NEW_EXAM_ORIGIN:
+        raise ValueError("new_exam_record_for_ledger_occurrence")
+    if r.get("source_sha256") != item.get("source_sha256"):
+        raise ValueError("new_exam_source_differs")
+    text = str(r["text"])
+    if _sha(text.encode("utf-8")) != r.get("text_sha256"):
+        raise ValueError("new_exam_text_changed")
+    key = r.get("key")
+    kind = "official" if r.get("answer_kind") == "official" and key not in (None, "") else None
+    return {"text": text, "key": None if key in (None, "") else str(key), "kind": kind, "b_version": None,
+            "c_hash_recorded": True, "c_text_sha256": r["text_sha256"], "b_dir": None}
 
 
 def read_reread(r: dict, item: dict) -> dict:
@@ -402,7 +467,8 @@ def read_reread(r: dict, item: dict) -> dict:
             "c_text_sha256": _sha(text.encode("utf-8")), "b_dir": str(bdir)}
 
 
-def load_corpus(c_index: Path, ledger: Path, extra: Path | None = None, stats: dict | None = None) -> list[QuestionRecord]:
+def load_corpus(c_index: Path, ledger: Path, extra=None, stats: dict | None = None,
+                extra_ledgers=()) -> list[QuestionRecord]:
     """extra: optional re-read records file (load_reread). An occurrence uses its re-read text only
     when the C index gives no usable text (none, older B version, or a text that does not parse).
     stats, when given, is filled with how each fallback was used."""
@@ -412,14 +478,19 @@ def load_corpus(c_index: Path, ledger: Path, extra: Path | None = None, stats: d
             raise ValueError("repeated question id in C index: " + x["question_id"])
         index[x["question_id"]] = x
     roots = list(dict.fromkeys(r for r in (_c_root(x.get("C_output_path") or "") for x in index.values()) if r))
-    reread = load_reread(extra) if extra else {}
+    extra_files = [extra] if isinstance(extra, (str, Path)) else list(extra or ())
+    reread = load_reread_files(extra_files)
     items = _read_json(ledger).get("items")
     if not isinstance(items, list):
         raise ValueError(f"{ledger}: no 'items' list (expected current-readiness-ledger.json)")
+    new_items = extra_ledger_items(extra_ledgers)
+    items = items + new_items
     ids = {item["id"] for item in items}
     st = stats if stats is not None else {}
-    for k in ("newer_c_text", "retained_alias", "reread_used", "reread_unused", "reread_failed"):
+    for k in ("newer_c_text", "retained_alias", "reread_used", "reread_unused", "reread_failed",
+              "new_exam_occurrences", "new_exam_used", "new_exam_failed"):
         st.setdefault(k, 0)
+    st["new_exam_occurrences"] += len(new_items)
     st.setdefault("reread_failures", {})
     seen: set[str] = set()
     cf = _CfVisual()
@@ -469,22 +540,28 @@ def load_corpus(c_index: Path, ledger: Path, extra: Path | None = None, stats: d
                     meta["not_readable_detail"] = str(r["detail"])
                 rec = None
             else:
+                fresh = r.get("origin") == NEW_EXAM_ORIGIN
                 try:
-                    rocc = read_reread(r, item)
+                    rocc = read_new_exam(r, item) if fresh else read_reread(r, item)
                 except ValueError as e:
-                    st["reread_failed"] += 1
+                    st["new_exam_failed" if fresh else "reread_failed"] += 1
                     st["reread_failures"][oid] = str(e)
+                    if fresh:
+                        reason = str(e)
                 else:
-                    meta.update(text_source="reread", reread_replaces=reason)
+                    if fresh:
+                        meta.update(text_source=NEW_EXAM_ORIGIN, new_exam_key_kind=r.get("answer_kind"))
+                    else:
+                        meta.update(text_source="reread", reread_replaces=reason)
                     if r.get("figure") and not meta["figure_reason"]:
                         meta["figure_reason"] = "re-read: the question needs its figure"
                     rec = _record(item, rocc, meta, live, cf)
                     if rec.meta["status"] == "unparsed":
-                        st["reread_failed"] += 1
+                        st["new_exam_failed" if fresh else "reread_failed"] += 1
                         st["reread_failures"][oid] = "reread_" + rec.meta["reason"]
                         reason = "reread_" + rec.meta["reason"]
                     else:
-                        st["reread_used"] += 1
+                        st["new_exam_used" if fresh else "reread_used"] += 1
                         reason = None
         if reason is not None and (rec is None or rec.meta["status"] != "unparsed" or rec.meta["reason"] != reason):
             rec = unparsed_record(oid, reason, is_live=live, meta=meta)
