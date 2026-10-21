@@ -45,3 +45,13 @@ the film where a feature is named. It is never pasted into a generated picture.
 Eight chapters at Seedance 2.0 fast cost about 100 credits; at full quality,
 about 480. The balance on 2026-10-21 is about 52, so the full film needs a
 credit top-up. Run one test chapter first and compare models before buying.
+
+## Test result, 2026-10-21
+
+Chapter 2 was made on both cheaper tiers with Ava's portrait as reference.
+Seedance 2.0 Mini (5 credits) won: natural dawn light, the phone held side-on,
+a consistent face and a small smile at the end. Seedance 2.0 fast (12.5
+credits) copied the lettering from Ava's original pullover and put a band of
+light across her forehead. Use Mini for the remaining chapters (about 35
+credits for seven). The chapter is built at `.impeccable/mocks/decision/film/`
+with its kinetic line and the real Daily 10 screen beside the film.

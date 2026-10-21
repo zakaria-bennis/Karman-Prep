@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karman Scroll Chapter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root { --night: #0b121a; --ink: #f1f1ee; --ink2: #b9c2cb; --acc: #7cc4a5; }
+  * { box-sizing: border-box; margin: 0; }
+  html { background: var(--night); }
+  body { background: var(--night); color: var(--ink); font: 18px/1.5 "Hanken Grotesk", system-ui, sans-serif; overflow-x: hidden; }
+  .intro, .outro { height: 70vh; display: grid; place-items: center; text-align: center; padding: 0 16px; color: var(--ink2); }
+  .intro p { font-family: "Source Serif 4", Georgia, serif; font-size: clamp(22px, 3vw, 34px); max-width: 26ch; color: var(--ink); }
+  /* one chapter: the film holds the screen while the scroll moves the words and the product */
+  .ch { position: relative; height: 320vh; }
+  .stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+  .stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; }
+  .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.2) 55%, rgba(11,18,26,0) 100%); }
+  .kin { position: absolute; left: clamp(16px, 5vw, 80px); top: 50%; transform: translateY(-50%); font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: clamp(44px, 7.4vw, 124px); line-height: .98; letter-spacing: -0.03em; max-width: 11ch; }
+  .kin .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-right: .22em; }
+  .kin .w > span { display: inline-block; will-change: transform; }
+  .feat { position: absolute; right: clamp(16px, 6vw, 110px); top: 50%; width: min(300px, 34vw); transform: translateY(-50%); will-change: transform, opacity; }
+  .feat img { width: 100%; display: block; border-radius: 34px; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+  .feat figcaption { margin-top: 14px; font-size: 16px; color: var(--ink2); }
+  .feat figcaption b { color: var(--ink); font-weight: 600; }
+  .cap { position: absolute; left: clamp(16px, 5vw, 80px); bottom: 36px; font-size: 15px; color: var(--ink2); letter-spacing: .01em; }
+  .cap b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 760px) {
+    .kin { top: 9%; transform: none; font-size: clamp(38px, 11vw, 56px); max-width: 12ch; }
+    .feat { right: 50%; top: auto; bottom: 64px; width: 44vw; transform: translateX(50%); }
+    .feat figcaption { font-size: 14px; }
+    .cap { bottom: 20px; }
+    .scrim { background: linear-gradient(180deg, rgba(11,18,26,.7) 0%, rgba(11,18,26,.1) 45%, rgba(11,18,26,.75) 100%); }
+  }
+  @media (prefers-reduced-motion: reduce) { .kin .w > span, .feat, .stage video { transform: none !important; opacity: 1 !important; } }
+</style>
+</head>
+<body>
+  <section class="intro"><p>One weekday, six students, one test date.</p></section>
+
+  <section class="ch" id="ch2" aria-label="Ava on the way to school">
+    <div class="stage">
+      <video src="ch2.mp4" muted playsinline loop autoplay preload="auto" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <h2 class="kin">Ten minutes on the way to school.</h2>
+      <figure class="feat"><img src="../screens/v2-daily10-dark.png" alt="Your Daily 10 on Karman: question 3 of 10, with highlight, scratch pad and timer"><figcaption><b>Your Daily 10.</b> Missed questions come back after 2, 7 and 21 days.</figcaption></figure>
+      <p class="cap"><b>Ava, 6:50 a.m.</b></p>
+    </div>
+  </section>
+
+  <section class="outro"><p>Chapter 3 continues here.</p></section>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script>
+  // kinetic line: each word rises out of its own mask as the chapter scrolls in, then the line tracks up and away
+  const kin = document.querySelector(".kin");
+  kin.innerHTML = kin.textContent.trim().split(" ").map(w => `<span class="w"><span>${w}</span></span>`).join("");
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    gsap.registerPlugin(ScrollTrigger);
+    const tl = gsap.timeline({ scrollTrigger: { trigger: "#ch2", start: "top top", end: "bottom bottom", scrub: 0.6 } });
+    tl.from(".kin .w > span", { yPercent: 115, rotate: 4, ease: "power3.out", stagger: 0.08, duration: 0.5 }, 0)
+      .fromTo(".stage video", { scale: 1.12 }, { scale: 1, ease: "none", duration: 2 }, 0)
+      .from(".feat", { yPercent: 40, opacity: 0, ease: "power3.out", duration: 0.6 }, 0.55)
+      .to(".kin .w > span", { yPercent: -115, ease: "power2.in", stagger: 0.05, duration: 0.45 }, 1.55)
+      .to(".feat", { yPercent: -30, opacity: 0, ease: "power2.in", duration: 0.45 }, 1.6);
+  }
+</script>
+</body>
+</html>
