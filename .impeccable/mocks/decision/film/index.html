@@ -9,15 +9,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
 <style>
-  :root { --night: #0b121a; --ink: #f1f1ee; --ink2: #b9c2cb; --acc: #7cc4a5; --och: #e2b867; --ease: cubic-bezier(.22, 1, .36, 1); }
+  :root { --night: #0b121a; --ink: #f1f1ee; --ink2: #b9c2cb; --acc: #7cc4a5; --ease: cubic-bezier(.22, 1, .36, 1); }
   * { box-sizing: border-box; margin: 0; }
   html { background: var(--night); }
+  html.lenis, html.lenis body { height: auto; }
   body { background: var(--night); color: var(--ink); font: 18px/1.5 "Hanken Grotesk", system-ui, sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-  /* header: a quiet bar; the one highlighted action lives in the film, not here (rule 35) */
-  .hd { position: fixed; inset: 0 0 auto 0; z-index: 20; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(16px, 4vw, 56px); }
-  .hd { transition: transform .2s var(--ease); }
+  .hd { position: fixed; inset: 0 0 auto 0; z-index: 50; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(16px, 4vw, 56px); transition: transform .2s var(--ease); }
   .hd.away { transform: translateY(-100%); }
   .hd .mark { font-family: "Source Serif 4", Georgia, serif; font-size: 24px; font-weight: 500; text-decoration: none; letter-spacing: -.01em; }
   .hd nav { display: flex; gap: clamp(14px, 2.4vw, 32px); font-size: 15px; font-weight: 600; }
@@ -25,19 +25,21 @@
   .hd nav a:hover, .hd nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 5px; }
   @media (max-width: 760px) { .hd nav a:not(.keep) { display: none; } }
 
-  /* a chapter: the film holds the screen while the scroll moves the words and the product */
-  .ch { position: relative; height: 300vh; }
-  .ch.short { height: 220vh; }
-  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
-  .stage video, .stage .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* one pinned stage; every chapter is a scene revealed through the one before it */
+  .track { position: relative; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: #000; }
+  .scene { position: absolute; inset: 0; overflow: hidden; perspective: 1400px; }
+  .scene video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+  .scene .dim { position: absolute; inset: 0; background: #04080c; opacity: 0; pointer-events: none; }
   .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,18,26,.74) 0%, rgba(11,18,26,.22) 55%, rgba(11,18,26,0) 100%); }
-  .scrim.full { background: rgba(11,18,26,.38); }
-  .kin { position: absolute; left: clamp(16px, 5vw, 80px); top: 50%; transform: translateY(-50%); font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: clamp(40px, min(6.6vw, 10.5vh), 112px); line-height: .98; letter-spacing: -0.03em; max-width: 11ch; }
+  .scrim.full { background: rgba(11,18,26,.4); }
+
+  .kin { position: absolute; left: clamp(16px, 5vw, 80px); top: 50%; transform: translateY(-50%); font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: clamp(40px, min(6.6vw, 10.5vh), 112px); line-height: .98; letter-spacing: -0.03em; max-width: 11ch; perspective: 900px; }
   .kin .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .1em; margin-right: .2em; }
-  .kin .w > span { display: inline-block; will-change: transform; }
-  /* centred chapters stack in normal flow, so the headline can never sit on the paragraph */
+  .kin.free .w { overflow: visible; }
+  .kin .w > span, .kin .w .l { display: inline-block; will-change: transform; }
   .stack { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: clamp(14px, 2.2vh, 30px); padding: 96px 16px 56px; text-align: center; }
-  .stack .kin.center { position: static; transform: none; max-width: 14ch; font-size: min(7vw, 11vh, 118px); }
+  .stack .kin { position: static; transform: none; max-width: 14ch; font-size: min(7vw, 11vh, 118px); }
   .lede { width: min(620px, 100%); font-size: clamp(17px, 1.5vw, 20px); color: var(--ink); }
   .act { display: grid; justify-items: center; gap: 10px; }
   .btn { display: inline-block; background: var(--ink); color: var(--night); font-weight: 700; font-size: 17px; text-decoration: none; padding: 17px 30px; border-radius: 999px; transition: transform .18s var(--ease), background-color .18s var(--ease); }
@@ -45,41 +47,51 @@
   .btn:active { transform: scale(.97); }
   .btn:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; }
   .act small { font-size: 14px; color: var(--ink2); }
-  .feat { position: absolute; right: clamp(16px, 6vw, 110px); top: 50%; transform: translateY(-50%); width: min(300px, 32vw, calc((100vh - 260px) * 0.46)); will-change: transform, opacity; }
-  .feat.lap { width: min(640px, 46vw, calc((100vh - 280px) * 1.6)); }
-  .feat img { width: 100%; display: block; border-radius: 34px; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+
+  .feat { position: absolute; right: clamp(16px, 6vw, 110px); top: 50%; margin-top: calc(min(300px, 32vw, (100vh - 260px) * .46) * -1.05); width: min(300px, 32vw, calc((100vh - 260px) * .46)); transform-style: preserve-3d; will-change: transform, opacity; }
+  .feat.lap { width: min(640px, 46vw, calc((100vh - 280px) * 1.6)); margin-top: calc(min(640px, 46vw, (100vh - 280px) * 1.6) * -.36); }
+  .feat img { width: 100%; display: block; border-radius: 34px; box-shadow: 0 40px 90px rgba(0,0,0,.6); }
   .feat.lap img { border-radius: 14px; border: 8px solid #121315; }
   .feat figcaption { margin-top: 16px; font-size: 16px; color: var(--ink2); max-width: 36ch; }
   .feat figcaption b { color: var(--ink); font-weight: 600; }
-  .feat.card { width: min(420px, 38vw); }
-  .card { background: #101923; border-radius: 22px; padding: 26px 28px; }
-  .card .date { font-family: "Source Serif 4", Georgia, serif; font-size: clamp(26px, 2.3vw, 38px); line-height: 1.1; white-space: nowrap; }
-  .card .dates { display: flex; gap: 18px; margin: 14px 0 18px; font-size: 16px; color: var(--ink2); }
-  .card .dates b { color: var(--ink); }
+  .feat.card { width: min(420px, 38vw); margin-top: -130px; background: #101923; border-radius: 22px; padding: 26px 28px; }
+  .card .date { font-family: "Source Serif 4", Georgia, serif; font-size: clamp(26px, 2.3vw, 38px); line-height: 1.1; white-space: nowrap; margin-top: 4px; }
+  .card .later { margin: 12px 0 16px; font-size: 16px; color: var(--ink); font-weight: 600; }
   .card p { font-size: 16px; color: var(--ink2); }
-  .card p a { color: var(--ink); text-underline-offset: 4px; }
-  .cap { position: absolute; left: clamp(16px, 5vw, 80px); bottom: 34px; font-size: 15px; color: var(--ink2); }
-  .cap b { color: var(--ink); font-weight: 600; }
+  .card a { color: var(--ink); text-underline-offset: 4px; }
 
-  .ft { padding: 64px clamp(16px, 5vw, 80px) 48px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; color: var(--ink2); font-size: 15px; }
+  /* the clock: the day moves forward chapter by chapter */
+  .time { position: absolute; left: clamp(16px, 5vw, 80px); bottom: 30px; display: flex; align-items: flex-end; gap: 14px; }
+  .time .digits { font-family: "Source Serif 4", Georgia, serif; font-weight: 400; font-size: clamp(40px, 5vw, 84px); line-height: .9; letter-spacing: -0.02em; display: inline-flex; }
+  .time .c { display: inline-block; overflow: hidden; padding-bottom: .06em; }
+  .time .c > span { display: inline-block; }
+  .time .meta { display: grid; font-size: 15px; line-height: 1.3; color: var(--ink2); padding-bottom: 4px; }
+  .time .meta b { color: var(--ink); font-weight: 600; }
+
+  .ft { position: relative; z-index: 2; background: var(--night); padding: 64px clamp(16px, 5vw, 80px) 48px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; color: var(--ink2); font-size: 15px; }
   .ft .mark { font-family: "Source Serif 4", Georgia, serif; font-size: 28px; color: var(--ink); }
   .ft nav { display: flex; gap: 22px; flex-wrap: wrap; }
 
   @media (max-width: 760px) {
     .kin { top: 92px; transform: none; font-size: clamp(30px, min(10.5vw, 5.6vh), 54px); max-width: 12ch; }
     .stack { padding: 88px 16px 40px; }
-    .stack .kin.center { font-size: clamp(36px, min(12.5vw, 6.4vh), 60px); }
+    .stack .kin { font-size: clamp(36px, min(12.5vw, 6.4vh), 60px); }
     .lede { font-size: 16px; }
-    .feat, .feat.lap { right: 50%; top: auto; bottom: 64px; transform: translateX(50%); }
+    .feat, .feat.lap, .feat.card { right: 50%; top: auto; margin: 0; bottom: 78px; transform: translateX(50%); }
     .feat { width: min(42vw, 16vh); }
-    .feat.card { width: calc(100% - 32px); }
-    .feat.lap { width: calc(100% - 32px); }
+    .feat.lap, .feat.card { width: calc(100% - 32px); }
     .feat figcaption { font-size: 14px; }
-    .card { padding: 20px; }
-    .cap { bottom: 18px; }
-    .scrim { background: linear-gradient(180deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.12) 42%, rgba(11,18,26,.78) 100%); }
+    .feat.card { padding: 18px 20px; }
+    .time { bottom: 16px; gap: 10px; }
+    .time .digits { font-size: 30px; }
+    .time .meta { font-size: 13px; padding-bottom: 1px; }
+    .scrim { background: linear-gradient(180deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.12) 42%, rgba(11,18,26,.8) 100%); }
   }
-  @media (prefers-reduced-motion: reduce) { .kin .w > span, .feat, .stage video { transform: none !important; opacity: 1 !important; } }
+
+  /* reduced motion: each chapter is a still screen, one after another */
+  .still .track { height: auto !important; }
+  .still .stage { position: static; height: auto; overflow: visible; }
+  .still .scene { position: relative; height: 100vh; }
 </style>
 </head>
 <body>
@@ -88,154 +100,165 @@
   <nav aria-label="Main"><a href="/program">The SAT Program</a><a href="/private-tutoring">Private tutoring</a><a href="/pricing">Pricing</a><a class="keep" href="/sign-in">Sign in</a></nav>
 </header>
 
-<main>
-  <!-- 1: the line you rise past -->
-  <section class="ch short" id="c1" aria-labelledby="h1">
-    <div class="stage">
-      <video src="c1.mp4" poster="c1.jpg" muted playsinline loop autoplay preload="auto" aria-hidden="true"></video>
-      <div class="scrim full"></div>
-      <div class="stack">
-        <h1 class="kin center" id="h1" data-kin="letters">Rise past the line.</h1>
-        <p class="lede">SAT programs that end on your student's test date: live classes, daily practice, and a one-on-one review after every full-length test.</p>
-        <div class="act"><a class="btn" href="/free-practice-test">Take the free practice test</a><small>Saturday, December 12, live on Zoom</small></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2: dawn, the Daily 10 -->
-  <section class="ch" id="c2" aria-labelledby="h2">
-    <div class="stage">
-      <video src="c2.mp4" poster="c2.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
-      <div class="scrim"></div>
-      <h2 class="kin" id="h2" data-kin="rise">Ten minutes on the way to school.</h2>
-      <figure class="feat"><img src="../screens/v2-daily10-dark.png" alt="Your Daily 10, question 3 of 10, with highlight, scratch pad and timer"><figcaption><b>Your Daily 10.</b> Missed questions come back after 2, 7 and 21 days.</figcaption></figure>
-      <p class="cap"><b>Ava, 6:50 a.m.</b></p>
-    </div>
-  </section>
-
-  <!-- 3: the bench, Wordline -->
-  <section class="ch" id="c3" aria-labelledby="h3">
-    <div class="stage">
-      <video src="c3.mp4" poster="c3.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
-      <div class="scrim"></div>
-      <h2 class="kin" id="h3" data-kin="slide">Practice fits around everything else.</h2>
-      <figure class="feat"><img src="../screens/v2-word-game-dark.png" alt="Wordline, today's SAT word in six tries"><figcaption><b>Wordline and the Challenge question.</b> Today's SAT word in six tries, and one hard question a day.</figcaption></figure>
-      <p class="cap"><b>Mateo, 4:30 p.m.</b></p>
-    </div>
-  </section>
-
-  <!-- 4: dusk, the live class -->
-  <section class="ch" id="c4" aria-labelledby="h4">
-    <div class="stage">
-      <video src="c4.mp4" poster="c4.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
-      <div class="scrim"></div>
-      <h2 class="kin" id="h4" data-kin="rise">Live, twice a week, six students.</h2>
-      <figure class="feat lap"><img src="../screens/v2-schedule-dark.png" alt="The cohort schedule: live classes, workshops, office hours, lessons and tests"><figcaption><b>Tuesdays and Thursdays, 7:00 p.m. ET.</b> Ninety minutes, a group of up to six, and every lesson and due date on one calendar.</figcaption></figure>
-      <p class="cap"><b>Priya, 8:00 p.m.</b></p>
-    </div>
-  </section>
-
-  <!-- 5: night, the review -->
-  <section class="ch" id="c5" aria-labelledby="h5">
-    <div class="stage">
-      <video src="c5.mp4" poster="c5.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
-      <div class="scrim"></div>
-      <h2 class="kin" id="h5" data-kin="turn">An hour one-on-one after every full-length test.</h2>
-      <figure class="feat lap"><img src="../screens/v2-review-dark.png" alt="A full-length review: the missed question, the right answer and the tutor's note"><figcaption><b>Every missed question, explained.</b> Five full-length tests, each followed by a 60-minute review with a Karman tutor.</figcaption></figure>
-      <p class="cap"><b>David, Karman tutor</b></p>
-    </div>
-  </section>
-
-  <!-- 6: the parent -->
-  <section class="ch" id="c6" aria-labelledby="h6">
-    <div class="stage">
-      <video src="c6.mp4" poster="c6.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
-      <div class="scrim"></div>
-      <h2 class="kin" id="h6" data-kin="rise">You see the week, every week.</h2>
-      <figure class="feat"><img src="../screens/v2-parent-update-dark.png" alt="The weekly parent update: questions answered, practice time, skills and the tutor's note"><figcaption><b>The weekly update.</b> Practice time, questions answered, skills mastered and a note from the tutor.</figcaption></figure>
-      <p class="cap"><b>3:15 p.m., the pickup line</b></p>
-    </div>
-  </section>
-
-  <!-- 7: test morning -->
-  <section class="ch" id="c7" aria-labelledby="h7">
-    <div class="stage">
-      <video src="c7.mp4" poster="c7.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
-      <div class="scrim"></div>
-      <h2 class="kin" id="h7" data-kin="slide">One date. One plan.</h2>
-      <div class="feat card">
-        <p>Every cohort ends on one SAT date.</p>
-        <p class="date">Saturday, March 6</p>
-        <div class="dates"><span>Then <b>May 1</b></span><span>and <b>June 5</b></span></div>
-        <p>If your official score isn't at least 50 points above your baseline, your next cohort is free. <a href="/guarantee">How the guarantee works</a></p>
-      </div>
-      <p class="cap"><b>Ava and Clara, 7:40 a.m.</b></p>
-    </div>
-  </section>
-
-  <!-- 8: back to the sky -->
-  <section class="ch short" id="c8" aria-labelledby="h8">
-    <div class="stage">
-      <video src="c8.mp4" poster="c8.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
-      <div class="scrim full"></div>
-      <div class="stack">
-        <h2 class="kin center" id="h8" data-kin="letters">Start with a free practice test.</h2>
-        <p class="lede">About 75 minutes, live on Zoom with a proctor, then an estimated score range, a domain-by-domain breakdown and a 20-minute results call.</p>
-        <div class="act"><a class="btn" href="/free-practice-test">Take the free practice test</a><small>Saturday, December 12, 10:00 a.m. ET</small></div>
-      </div>
-    </div>
-  </section>
-</main>
+<main class="track" id="track"><div class="stage" id="stage"></div></main>
 
 <footer class="ft">
   <span class="mark">Karman</span>
   <nav aria-label="Legal"><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/cookies">Cookie Policy</a><a href="mailto:hello@karmanprep.com">hello@karmanprep.com</a></nav>
 </footer>
 
+<script src="copy.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script>
 (function () {
-  // split each kinetic line into masked words (or letters) so the scroll can move them
+  /* ---------- the fixed parts of each chapter: film, layout, motion ---------- */
+  const SCENES = [
+    { film: "c1", layout: "center", kin: "letters" },
+    { film: "c2", kin: "scale", reveal: "rise", feat: ["../screens/v2-daily10-dark.png", "phone", "Your Daily 10 on Karman"] },
+    { film: "c6", kin: "mask", reveal: "iris", feat: ["../screens/v2-parent-update-dark.png", "phone", "The weekly parent update on Karman"] },
+    { film: "c3", kin: "scatter", reveal: "split", feat: ["../screens/v2-word-game-dark.png", "phone", "Wordline on Karman"] },
+    { film: "c4", kin: "flicker", reveal: "zoom", feat: ["../screens/v2-schedule-dark.png", "lap", "The cohort schedule on Karman"] },
+    { film: "c5", kin: "flip", reveal: "iris", feat: ["../screens/v2-review-dark.png", "lap", "A full-length review on Karman"] },
+    { film: "c7", kin: "collide", reveal: "wipe", card: true },
+    { film: "c8", layout: "center", kin: "letters", reveal: "rise" },
+  ];
+
+  /* ---------- the founder's copy, from copy.js ---------- */
+  const COPY = {};
+  let cur = null;
+  (window.KARMAN_COPY || "").split("\n").forEach(line => {
+    const h = line.match(/^##\s*(\d+)/); if (h) { cur = COPY[+h[1]] = {}; return; }
+    const m = line.match(/^\s*([a-z ]+):\s*(.*)$/i); if (m && cur) cur[m[1].trim().toLowerCase()] = m[2].trim();
+  });
+  const esc = s => (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  const stage = document.getElementById("stage");
+  SCENES.forEach((sc, i) => {
+    const c = COPY[i + 1] || {}, el = document.createElement("section");
+    el.className = "scene"; el.id = "s" + (i + 1); el.style.zIndex = i + 1;
+    const H = i === 0 ? "h1" : "h2";
+    let html = `<video src="${sc.film}.mp4" poster="${sc.film}.jpg" muted playsinline loop preload="${i < 2 ? "auto" : "metadata"}" aria-hidden="true"></video><div class="scrim ${sc.layout === "center" ? "full" : ""}"></div>`;
+    if (sc.layout === "center") {
+      html += `<div class="stack">${c.headline ? `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>` : ""}${c.text ? `<p class="lede">${esc(c.text)}</p>` : ""}${c.button ? `<div class="act"><a class="btn" href="/free-practice-test">${esc(c.button)}</a>${c["button note"] ? `<small>${esc(c["button note"])}</small>` : ""}</div>` : ""}</div>`;
+    } else {
+      if (c.headline) html += `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>`;
+      if (sc.feat) html += `<figure class="feat ${sc.feat[1] === "lap" ? "lap" : ""}"><img src="${sc.feat[0]}" alt="${sc.feat[2]}">${c["feature title"] || c["feature text"] ? `<figcaption><b>${esc(c["feature title"])}</b> ${esc(c["feature text"])}</figcaption>` : ""}</figure>`;
+      if (sc.card) html += `<div class="feat card">${c["card intro"] ? `<p>${esc(c["card intro"])}</p>` : ""}${c["card date"] ? `<p class="date">${esc(c["card date"])}</p>` : ""}${c["card later"] ? `<p class="later">${esc(c["card later"])}</p>` : ""}${c["card text"] ? `<p>${esc(c["card text"])}${c["card link"] ? ` <a href="/guarantee">${esc(c["card link"])}</a>` : ""}</p>` : ""}</div>`;
+      if (c.time) { const [d, ...rest] = c.time.split(" "); html += `<p class="time"><span class="digits" aria-hidden="true">${[...d].map(ch => `<span class="c"><span>${esc(ch)}</span></span>`).join("")}</span><span class="vh">${esc(c.time)}</span><span class="meta"><span>${esc(rest.join(" "))}</span><b>${esc(c.name)}</b></span></p>`; }
+    }
+    html += `<div class="dim"></div>`;
+    el.innerHTML = html; stage.appendChild(el);
+  });
+
+  // split each headline into masked words, or words of masked letters
   document.querySelectorAll(".kin").forEach(k => {
-    const mode = k.dataset.kin, words = k.textContent.trim().split(" ");
-    k.setAttribute("aria-label", k.textContent.trim());
-    k.innerHTML = words.map(w => mode === "letters"
-      ? `<span class="w" aria-hidden="true">${[...w].map(c => `<span>${c}</span>`).join("")}</span>`
+    const mode = k.dataset.kin, text = k.textContent.trim();
+    k.setAttribute("aria-label", text);
+    k.innerHTML = text.split(" ").map(w => mode === "letters"
+      ? `<span class="w" aria-hidden="true">${[...w].map(ch => `<span class="l">${ch}</span>`).join("")}</span>`
       : `<span class="w" aria-hidden="true"><span>${w}</span></span>`).join(" ");
+    if (["scale", "scatter", "collide"].includes(mode)) k.classList.add("free");
   });
 
-  // films play only while their chapter is on screen
-  const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target.querySelector("video"); if (!v) return; if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }), { threshold: 0.01 });
-  document.querySelectorAll(".ch").forEach(c => io.observe(c));
+  const scenes = [...document.querySelectorAll(".scene")];
+  const params = new URLSearchParams(location.search), REC = params.has("rec");
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches && !REC) {
+    document.documentElement.classList.add("still");
+    scenes.forEach(s => s.querySelector("video").play().catch(() => {}));
+    return;
+  }
 
-  // the header steps aside while the last chapter scrolls off, so it never sits over its headline (rule 34)
-  const hd = document.querySelector(".hd"), lastCh = document.querySelector(".ch:last-of-type");
-  const away = () => hd.classList.toggle("away", lastCh.getBoundingClientRect().bottom < innerHeight + 160);
-  addEventListener("scroll", away, { passive: true }); away();
+  /* ---------- the master timeline: one unit of time = 24vh of scroll ---------- */
+  const STEP = 10, last = scenes.length - 1, TOTAL = last * STEP + 8;
+  document.getElementById("track").style.height = `calc(${TOTAL * 24}vh + 100vh)`;
+  const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+  const rnd = (i, s) => { const x = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return x - Math.floor(x); };
 
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const KIN_IN = {
+    letters: (p, at) => tl.from(p, { yPercent: 115, rotateX: -70, opacity: 0, transformOrigin: "50% 100%", stagger: 0.035, duration: 1.4, ease: "expo.out" }, at),
+    scale: (p, at) => tl.from(p, { scale: 3.2, opacity: 0, transformOrigin: "0% 60%", stagger: 0.18, duration: 1.3, ease: "expo.out" }, at),
+    mask: (p, at) => tl.from(p, { yPercent: 115, rotate: 4, stagger: 0.12, duration: 1.2 }, at),
+    scatter: (p, at) => p.forEach((s, j) => tl.from(s, { x: (rnd(j, 1) - .5) * 600, y: 30 + rnd(j, 2) * 110, rotate: (rnd(j, 3) - .5) * 60, opacity: 0, duration: 1.5, ease: "expo.out" }, at + j * 0.1)),
+    flicker: (p, at) => tl.from(p, { opacity: 0, duration: 0.5, ease: "steps(4)", stagger: { each: 0.12, from: "random" } }, at),
+    flip: (p, at) => tl.from(p, { rotateX: -95, yPercent: 30, opacity: 0, transformOrigin: "50% 100%", stagger: 0.1, duration: 1.2 }, at),
+    collide: (p, at) => { const half = Math.ceil(p.length / 2); p.forEach((s, j) => tl.from(s, { xPercent: j < half ? -260 : 260, opacity: 0, duration: 1.4, ease: "expo.out" }, at + (j < half ? j : j - half) * 0.08)); },
+  };
+  const REVEAL = {
+    rise: (s, at) => tl.fromTo(s, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 2.5, ease: "power2.inOut" }, at),
+    iris: (s, at) => tl.fromTo(s, { clipPath: "circle(0% at 76% 48%)" }, { clipPath: "circle(150% at 76% 48%)", duration: 2.5, ease: "power2.inOut" }, at),
+    split: (s, at) => tl.fromTo(s, { clipPath: "inset(0% 50% 0% 50%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 2.5, ease: "power2.inOut" }, at),
+    zoom: (s, at) => tl.fromTo(s, { opacity: 0, scale: 1.25 }, { opacity: 1, scale: 1, duration: 2.5, ease: "power2.inOut" }, at),
+    wipe: (s, at) => tl.fromTo(s, { clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)" }, { clipPath: "polygon(0% 0%, 120% 0%, 100% 100%, -20% 100%)", duration: 2.5, ease: "power2.inOut" }, at),
+  };
+
+  scenes.forEach((s, i) => {
+    const S = i * STEP, sc = SCENES[i];
+    const kin = s.querySelector(".kin"), parts = kin ? [...kin.querySelectorAll(".w > span, .w .l")] : [];
+    const feat = s.querySelector(".feat"), time = s.querySelector(".time"), digits = time ? time.querySelectorAll(".c > span") : [], meta = time ? time.querySelector(".meta") : null;
+    const extra = s.querySelectorAll(".lede, .act"), video = s.querySelector("video");
+
+    // the film pushes in slowly for the whole life of the scene
+    tl.fromTo(video, { scale: 1.18 }, { scale: 1, ease: "none", duration: STEP + 2.5, immediateRender: i === 0 }, Math.max(0, S - 2.5));
+    if (i > 0) {
+      REVEAL[sc.reveal](s, S - 2.5);
+      const prev = scenes[i - 1];
+      tl.to(prev.querySelector(".dim"), { opacity: .65, duration: 2.5, ease: "power2.in" }, S - 2.5);
+    }
+    // arrive: headline, clock, product
+    if (parts.length && (i > 0 || REC)) KIN_IN[sc.kin](parts, i === 0 ? 0 : S - 0.8);
+    if (digits.length) { tl.from(digits, { yPercent: 105, stagger: 0.07, duration: 0.9 }, S - 0.4); tl.from(meta, { opacity: 0, x: -12, duration: 0.8 }, S); }
+    if (feat) tl.fromTo(feat, { opacity: 0, rotateY: -32, rotateX: 10, z: -260, xPercent: 18 }, { opacity: 1, rotateY: -6, rotateX: 2, z: 0, xPercent: 0, duration: 1.8, ease: "expo.out" }, S + 0.4)
+                 .to(feat, { rotateY: 4, rotateX: -1, yPercent: -3, duration: 4, ease: "sine.inOut" }, S + 2.2);
+    if (extra.length && i === last) tl.from(extra, { opacity: 0, y: 26, stagger: 0.15, duration: 1 }, S + 1.6);
+    // leave, before the next scene starts to show
+    if (i < last) {
+      // masked words lift out of their masks; free words sink and fade, so nothing rises under the header
+      if (parts.length) kin.classList.contains("free")
+        ? tl.to(parts, { y: 40, scale: .92, opacity: 0, ease: "power2.in", stagger: 0.02, duration: 0.9 }, S + 6.2)
+        : tl.to(parts, { yPercent: -120, opacity: 0, ease: "power2.in", stagger: 0.02, duration: 0.9 }, S + 6.2);
+      if (extra.length) tl.to(extra, { opacity: 0, y: -24, ease: "power2.in", duration: 0.9 }, S + 6);
+      if (feat) tl.to(feat, { opacity: 0, rotateY: 24, z: -200, xPercent: -8, ease: "power2.in", duration: 1 }, S + 6.4);
+      if (digits.length) { tl.to(digits, { yPercent: -105, stagger: 0.05, ease: "power2.in", duration: 0.7 }, S + 6.6); tl.to(meta, { opacity: 0, duration: 0.5, ease: "power2.in" }, S + 6.6); tl.set(time, { autoAlpha: 0 }, S + 7.4); }
+    }
+  });
+  tl.to({}, { duration: 0.01 }, TOTAL);
+
+  // only the scenes on screen are drawn, and only their films play
+  const startOf = i => i === 0 ? -1 : i * STEP - 2.6;
+  function sync(t) {
+    scenes.forEach((s, i) => {
+      const on = t >= startOf(i) && (i === last || t < (i + 1) * STEP + 0.05);
+      s.style.visibility = on ? "visible" : "hidden";
+      const v = s.querySelector("video");
+      if (!REC) { if (on && v.paused) v.play().catch(() => {}); else if (!on && !v.paused) v.pause(); }
+    });
+  }
+
+  // the header steps aside as the film hands over to the footer
+  const hd = document.querySelector(".hd"), track = document.getElementById("track");
+  const away = () => hd.classList.toggle("away", track.getBoundingClientRect().bottom < innerHeight + 160);
+
+  if (REC) {
+    window.__TOTAL = TOTAL;
+    window.__setTime = t => { tl.time(t, false); sync(t); away(); };
+    tl.time(0); sync(0);
+    return;
+  }
+
   gsap.registerPlugin(ScrollTrigger);
+  const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+  ScrollTrigger.create({ trigger: track, start: "top top", end: "bottom bottom", onUpdate: self => { tl.progress(self.progress); sync(tl.time()); } });
+  addEventListener("scroll", away, { passive: true });
+  tl.progress(0); sync(0); away();
 
-  document.querySelectorAll(".ch").forEach((ch, i) => {
-    const kin = ch.querySelector(".kin"), parts = kin.querySelectorAll(".w > span"), mode = kin.dataset.kin;
-    const feat = ch.querySelector(".feat"), extra = ch.querySelectorAll(".lede, .act"), video = ch.querySelector("video");
-    const first = i === 0;
-    const tl = gsap.timeline({ scrollTrigger: { trigger: ch, start: first ? "top top" : "top top", end: "bottom bottom", scrub: 0.6 } });
-    const into = { rise: { yPercent: 115, rotate: 3 }, slide: { xPercent: 60, opacity: 0 }, turn: { yPercent: 100, rotateX: -80, transformOrigin: "50% 100%" }, letters: { yPercent: 120, opacity: 0 } }[mode];
-    // the first chapter is already readable on arrival; it only leaves as you scroll
-    if (!first) tl.from(parts, Object.assign({ ease: "power3.out", stagger: mode === "letters" ? 0.02 : 0.08, duration: 0.5 }, into), 0);
-    tl.fromTo(video, { scale: 1.12 }, { scale: 1, ease: "none", duration: 2 }, 0);
-    if (feat) tl.from(feat, { yPercent: 35, opacity: 0, ease: "power3.out", duration: 0.6 }, first ? 0 : 0.55);
-    // leave: words lift away, product follows
-    const last = i === document.querySelectorAll(".ch").length - 1;
-    // the last chapter stays: its line and button are where the page ends
-    if (!last) tl.to(parts, { yPercent: -120, opacity: 0, ease: "power2.in", stagger: mode === "letters" ? 0.01 : 0.05, duration: 0.4 }, 1.4);
-    if (feat) tl.to(feat, { yPercent: -25, opacity: 0, ease: "power2.in", duration: 0.4 }, 1.45);
-    tl.to({}, { duration: 0.25 });
-    if (extra.length && !last) tl.to(extra, { opacity: 0, y: -20, ease: "power2.in", duration: 0.4 }, 1.5);
-    if (last) { tl.from(extra, { opacity: 0, y: 24, ease: "power3.out", duration: 0.5 }, 0.5); tl.to({}, { duration: 0.6 }); }
-  });
+  // the opening line arrives on its own, before any scroll
+  gsap.from(scenes[0].querySelectorAll(".kin .l"), { yPercent: 115, rotateX: -70, opacity: 0, transformOrigin: "50% 100%", stagger: 0.035, duration: 1.4, ease: "expo.out", delay: .2 });
+  gsap.from(scenes[0].querySelectorAll(".lede, .act"), { opacity: 0, y: 24, stagger: .15, duration: 1, ease: "power3.out", delay: .9 });
 })();
 </script>
 </body>
