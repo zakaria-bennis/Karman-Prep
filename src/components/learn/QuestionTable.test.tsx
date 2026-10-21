@@ -59,10 +59,10 @@ describe("QuestionTable — accessibility semantics", () => {
   });
 
   it("renders the footer note", () => {
-    const { getByText } = render(
+    const { container } = render(
       <QuestionTable data={withHeaderAndRowLabels} renderMath={false} />
     );
-    expect(getByText("Source: 2020 Census")).toBeTruthy();
+    expect(container.querySelector("tfoot")?.textContent).toBe("Source: 2020 Census");
   });
 });
 
@@ -92,7 +92,7 @@ describe("QuestionTable — headerless / captionless tables", () => {
 
 describe("QuestionTable — grouped column headers", () => {
   it("spans a group heading over only its columns", () => {
-    const { getByText } = render(
+    const { container } = render(
       <QuestionTable
         data={{
           header_groups: [
@@ -105,7 +105,8 @@ describe("QuestionTable — grouped column headers", () => {
         renderMath={false}
       />
     );
-    const group = getByText("Grade level").closest("th")!;
+    const group = container.querySelector("th[scope=colgroup]")!;
+    expect(group.textContent).toBe("Grade level");
     expect(group.getAttribute("colspan")).toBe("2");
     expect(group.getAttribute("scope")).toBe("colgroup");
   });
@@ -125,9 +126,51 @@ describe("QuestionTable — wide-table density", () => {
   it("shrinks padding and type but keeps legible size and wrapping headers", () => {
     const { container } = render(<QuestionTable data={wide(8)} renderMath={false} />);
     const th = container.querySelector("thead th") as HTMLElement;
-    expect(th.className).toContain("px-1.5");
-    expect(th.className).toContain("text-[13px]");
+    expect(th.className).toContain("group-data-[table-density=dense]/table:px-1.5");
+    expect(th.className).toContain("group-data-[table-density=dense]/table:text-[13px]");
     expect(th.className).not.toContain("whitespace-nowrap");
-    expect(container.querySelector("figure")?.className).toContain("overflow-x-auto");
+    // The sideways scroll lives inside the frame, not on the frame itself.
+    expect(container.querySelector("figure > div > div")?.className).toContain("overflow-x-auto");
+  });
+});
+
+describe("QuestionTable — words never break", () => {
+  const data = {
+    header_row: ["Country", "Exports (millions)"],
+    rows: [
+      ["Mexico", "1,250"],
+      ["United States", "12.5%"],
+    ],
+  };
+  it("wraps only at spaces in every cell, with no hyphenation", () => {
+    const { container } = render(<QuestionTable data={data} renderMath={false} />);
+    const cells = Array.from(container.querySelectorAll("th, td"));
+    expect(cells.length).toBeGreaterThan(0);
+    for (const cell of cells) {
+      expect(cell.className).toContain("[word-break:normal]");
+      expect(cell.className).toContain("[overflow-wrap:normal]");
+      expect(cell.className).toContain("[hyphens:none]");
+      expect(cell.className).not.toContain("overflow-wrap:anywhere");
+      expect(cell.className).not.toContain("break-all");
+    }
+  });
+  it("keeps numbers on one line but lets word cells wrap at spaces", () => {
+    const { getByText } = render(<QuestionTable data={data} renderMath={false} />);
+    expect(getByText("1,250").closest("td")?.className).toContain("whitespace-nowrap");
+    expect(getByText("12.5%").closest("td")?.className).toContain("whitespace-nowrap");
+    expect(getByText("United").closest("th")?.className).not.toContain("whitespace-nowrap");
+  });
+  it("renders each word unbreakable so hyphenated words like 1980-81 stay whole", () => {
+    const { container } = render(
+      <QuestionTable
+        data={{ header_row: ["Lake", "1980-81"], rows: [["Lake Neusiedl", "77"]] }}
+        renderMath={false}
+      />
+    );
+    const words = Array.from(container.querySelectorAll("span.whitespace-nowrap")).map(
+      (s) => s.textContent
+    );
+    expect(words).toEqual(expect.arrayContaining(["1980-81", "Lake", "Neusiedl"]));
+    expect(container.querySelector("tbody th")?.textContent).toBe("Lake Neusiedl");
   });
 });
