@@ -264,3 +264,33 @@ test("R-5 Alt+Shift+A (Cmd+Shift+A) on a regression parameter row does nothing a
   expect(m).toMatchObject({ latex: "m" });
   expect(m).not.toHaveProperty("displayEvaluationAsFraction");
 });
+
+test("R-6, R-5 a click or tap on the slider icon or the fraction toggle draws no focus ring; the keyboard does", async ({
+  page,
+  isMobile,
+}) => {
+  await openShell(page, `?w=900&h=600&rows=${enc(["y=mx+b", "\\frac{1}{2}"])}&reducedMotion=1`);
+  const icon = row(page, "1").getByRole("button", { name: "Add sliders" });
+  const toggle = row(page, "2").locator(".kc-row-fraction");
+  const ring = (el: typeof icon) =>
+    el.evaluate((e) => ({
+      style: getComputedStyle(e).outlineStyle,
+      visible: e.matches(":focus-visible"),
+    }));
+  const press = (el: typeof icon) => (isMobile ? el.tap() : el.click());
+  await press(toggle);
+  expect(await ring(toggle)).toEqual({ style: "none", visible: false });
+  await press(icon);
+  await expect(page.getByRole("menu")).toBeVisible();
+  expect(await ring(icon)).toEqual({ style: "none", visible: false });
+  await press(icon);
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  expect(await ring(icon)).toEqual({ style: "none", visible: false });
+  if (isMobile) return;
+  // a keyboard user arriving on the toggle (WebKit does not Tab to buttons by default)
+  await rowField(page, "2").click();
+  await page.keyboard.press("Shift");
+  await toggle.focus();
+  await expect(toggle).toBeFocused();
+  expect(await ring(toggle)).toEqual({ style: "solid", visible: true });
+});

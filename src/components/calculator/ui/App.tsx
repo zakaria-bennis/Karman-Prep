@@ -48,6 +48,8 @@ export interface AppProps {
  * to the light-DOM frame around it, and the next Escape would skip every open layer and close the
  * calculator. A click that leaves focus on an ancestor of the host (or on nothing) focuses the
  * clicked control, as Chromium and Firefox do on mousedown. Focus kept elsewhere is left alone.
+ * The focus is a pointer's, so it draws no keyboard ring (focusVisible: false; owner decision,
+ * 2026-10-21: the slider icon and the fraction toggles ring only for the keyboard).
  */
 function focusClickedControl(event: MouseEvent): void {
   const root = event.currentTarget as HTMLElement;
@@ -60,7 +62,8 @@ function focusClickedControl(event: MouseEvent): void {
   if (inside !== null && root.contains(inside)) return;
   const outside = root.ownerDocument.activeElement;
   if (outside !== null && !outside.contains(shadow.host)) return;
-  control.focus({ preventScroll: true });
+  // FocusOptions.focusVisible is not in TypeScript's DOM types yet
+  control.focus({ preventScroll: true, focusVisible: false } as FocusOptions);
 }
 
 /**
