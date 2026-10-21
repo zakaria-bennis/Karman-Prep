@@ -10,14 +10,11 @@ import { worldToPx, type ViewSpec } from "@/lib/calculator/plot/viewport";
 import { formatPoiLabel } from "@/lib/calculator/poi/format";
 import type { RenderRow } from "@/lib/calculator/render/types";
 import type { Pointer } from "../controller/media";
-import { CURVE_HIT_PX } from "./hit-test";
+import { CURVE_HIT_PX, hitLimit } from "./hit-test";
 import { samePoint, type LabelPoint } from "./poi-labels";
 import { isKeptPress, LABEL_SELECTOR, type OpenLabel } from "./use-poi-labels";
 
 type Point = readonly [number, number];
-
-/** POI-LIVE-1: a point is hit within the curve reach (10 px mouse, 20 px touch). */
-const SLACK_PX = 1e-3;
 
 /** Every finite point the rows draw, in world units. */
 export function drawnPoints(rows: readonly RenderRow[]): LabelPoint[] {
@@ -42,7 +39,7 @@ export function hitDrawnPoint(
   pointer: Pointer
 ): LabelPoint | null {
   let best: LabelPoint | null = null,
-    bestDistance = CURVE_HIT_PX[pointer] + SLACK_PX;
+    bestDistance = hitLimit(CURVE_HIT_PX[pointer], pointer); // 10 px mouse, 20 touch
   for (const p of drawnPoints(rows)) {
     const [x, y] = worldToPx(view, p.x, p.y);
     const d = Math.hypot(x - at[0], y - at[1]);

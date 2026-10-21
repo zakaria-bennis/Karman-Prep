@@ -146,10 +146,11 @@ it("POI-TRACE-12 hovering within 12 px of a dot shows its label until the mouse 
     });
     await flush();
   };
-  await hover(px(ROOT2), py(0) + 12);
-  expect(labels()).toEqual(["(1.41421, 0)"]);
+  // The vertex sits on whole px; a mouse is read at whole px (POI-LIVE-11).
+  await hover(px(0), py(-2) + 12);
+  expect(labels()).toEqual(["(0, −2)"]);
   expect(document.querySelector("[data-poi-label]")?.hasAttribute("data-opened")).toBe(false);
-  await hover(px(ROOT2), py(0) + 13);
+  await hover(px(0), py(-2) + 13);
   expect(labels()).toEqual([]);
 });
 

@@ -49,6 +49,11 @@ const labels = (page: Page) =>
     .evaluateAll((els) =>
       els.map((e) => `${e.getAttribute("aria-label")}${e.hasAttribute("data-plotted") ? " *" : ""}`)
     );
+/** The (x, y) a label reads, as numbers. */
+const onCurve = (label: string | null): [number, number] => {
+  const [x, y] = (label ?? "").replace(/[()]/g, "").replace(/−/g, "-").split(", ").map(Number);
+  return [x, y];
+};
 const traceLabel = (page: Page) => page.locator("#calc [data-trace-label]");
 
 /**
@@ -291,6 +296,62 @@ test.describe("POI-LIVE", () => {
     await finger.move(await at(page, 1, -3));
     await expect(traceLabel(page)).toHaveAttribute("aria-label", "(1, −3)");
     expect((await state(page)).left).toBe(before);
+    await finger.up();
+  });
+
+  test("POI-LIVE-10 dragged off a straight line, the trace goes to the line's nearest point", async ({
+    page,
+  }) => {
+    await openShell(page, `?rows=${enc(["y=2x+1"])}`);
+    await plotted(page, "1");
+    await finger.down(await at(page, -2, -3));
+    await expect(traceLabel(page)).toHaveAttribute("aria-label", "(−2, −3)");
+    await finger.move(await at(page, 1.5, -6));
+    // The foot of the perpendicular from (1.5, −6) in screen px (the axes' scales may differ).
+    const foot = await page.evaluate(() => {
+      const s = globalThis.__calculatorHarness!.engine.getSnapshot();
+      const { left, right, bottom, top } = s.viewport;
+      const kx = s.view!.size.width / (right - left),
+        ky = s.view!.size.height / (top - bottom);
+      return (kx * kx * 1.5 - 2 * ky * ky * 7) / (kx * kx + 4 * ky * ky);
+    });
+    await expect
+      .poll(async () => {
+        const [x, y] = onCurve(await traceLabel(page).getAttribute("aria-label"));
+        return Math.abs(x - foot) < 0.05 && Math.abs(y - (2 * x + 1)) < 1e-9;
+      })
+      .toBe(true);
+    await finger.up();
+  });
+
+  test("POI-LIVE-9 past a restricted curve's end the trace shows nothing until the pointer comes back", async ({
+    page,
+  }) => {
+    await openShell(page, `?rows=${enc(["y=x^{2}\\left\\{-1<x<2\\right\\}"])}`);
+    await plotted(page, "1");
+    await finger.down(await at(page, 0.5, 0.25));
+    await expect(traceLabel(page)).toHaveAttribute("aria-label", "(0.5, 0.25)");
+    await finger.move(await at(page, 2.6, 6));
+    await expect(traceLabel(page)).toHaveCount(0);
+    await finger.move(await at(page, 1, 1));
+    await expect(traceLabel(page)).toHaveAttribute("aria-label", "(1, 1)");
+    await finger.up();
+  });
+
+  test("POI-LIVE-12 the wheel zooms under a held trace and the trace follows the new view", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "a wheel needs a mouse");
+    await openShell(page, `?rows=${enc(["y=x^{2}-4"])}`);
+    await plotted(page, "1");
+    const before = (await state(page)).left;
+    await finger.down(await at(page, 3, 5));
+    await expect(traceLabel(page)).toHaveAttribute("aria-label", "(3, 5)");
+    for (let k = 0; k < 6; k++) await page.mouse.wheel(0, -60);
+    await expect.poll(async () => (await state(page)).left).toBeGreaterThan(before);
+    const [x, y] = onCurve(await traceLabel(page).getAttribute("aria-label"));
+    expect(y).toBeCloseTo(x * x - 4, 6);
     await finger.up();
   });
 });

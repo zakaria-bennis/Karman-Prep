@@ -166,9 +166,12 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
         if (pending !== null) latest.current.engine.setMathBounds(pending);
       });
     };
-    const position = (e: { clientX: number; clientY: number }): Point => {
+    // POI-LIVE-11: a mouse is read at whole page px, as mouse events report it (the reference
+    // traces from those), so a trace or a hit lands on the same pixel; touch keeps its fraction.
+    const position = (e: { clientX: number; clientY: number; pointerType?: string }): Point => {
       const rect = element.getBoundingClientRect();
-      return [e.clientX - rect.left, e.clientY - rect.top];
+      const whole = e.pointerType === "mouse" ? Math.floor : (v: number) => v;
+      return [whole(e.clientX) - rect.left, whole(e.clientY) - rect.top];
     };
 
     const onPointerDown = (e: PointerEvent): void => {

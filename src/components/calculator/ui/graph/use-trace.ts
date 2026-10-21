@@ -21,12 +21,18 @@ type Target = { rowId: string; branches: readonly PoiBranch[]; color: string };
 export function useTrace(engine: CalculatorEngine) {
   const [trace, setTrace] = useState<TraceState | null>(null);
   const target = useRef<Target | null>(null);
+  const pointer = useRef<readonly [number, number] | null>(null);
 
   const move = useCallback((at: readonly [number, number], view: ViewSpec) => {
     const t = target.current;
     if (t === null) return;
+    pointer.current = at;
     const p = traceAt(t.branches, view, at);
     if (p === null) return; // POI-TRACE-26: keep the last point
+    if (p.hidden) {
+      setTrace(null); // POI-LIVE-9: past a restriction's end nothing shows until the curve is back
+      return;
+    }
     const [x, y] = worldToPx(view, p.x, p.y);
     setTrace({
       x,
@@ -76,8 +82,17 @@ export function useTrace(engine: CalculatorEngine) {
 
   const release = useCallback(() => {
     target.current = null;
+    pointer.current = null;
     setTrace(null);
   }, []);
 
-  return { trace, claim, move, release };
+  /** POI-LIVE-12: a zoom while a trace is held traces again under the still pointer. */
+  const retrace = useCallback(
+    (view: ViewSpec) => {
+      if (pointer.current !== null) move(pointer.current, view);
+    },
+    [move]
+  );
+
+  return { trace, claim, move, release, retrace };
 }

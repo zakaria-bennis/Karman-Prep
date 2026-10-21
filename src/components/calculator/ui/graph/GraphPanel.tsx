@@ -298,6 +298,11 @@ export function GraphPanel(props: GraphPanelProps): JSX.Element {
   });
 
   const drawnRows = view === null ? [] : buildRenderRows(snapshot, skin, view, cache);
+  const { retrace } = tracer;
+  useEffect(() => {
+    if (view !== null) retrace(view); // POI-LIVE-12: the wheel zooms under a held trace
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the view's values, not its identity
+  }, [retrace, snapshot.viewport, size]);
   const shownTrace = tracer.trace ?? keyboardTracePoint(keyboardTrace, view, drawnRows);
   useRenderLoop(
     layers,
