@@ -44,7 +44,7 @@ export default function QuestionTable({
   calculator = false,
   calculatorItemId = "table",
 }: Props) {
-  const { caption, header_row, rows, footer_note } = data;
+  const { caption, header_groups, header_row, rows, footer_note } = data;
   const renderCell = (text: string, key: string) => (
     <span key={key}>{renderMath ? <MathText text={text} /> : text}</span>
   );
@@ -73,22 +73,42 @@ export default function QuestionTable({
             {renderCell(caption, "caption")}
           </caption>
         )}
-        {header_row && header_row.length > 0 && (
+        {((header_row && header_row.length > 0) || !!header_groups?.length) && (
           <thead>
-            <tr>
-              {header_row.map((h, i) => (
-                <th
-                  key={`h-${i}`}
-                  scope="col"
-                  className={cn(
-                    "border-b border-bronze px-3 py-2 text-center font-serif text-[13px] font-normal leading-tight text-ivory",
-                    i > 0 && "border-l border-bronze/60"
-                  )}
-                >
-                  {renderCell(h, `head-${i}`)}
-                </th>
-              ))}
-            </tr>
+            {!!header_groups?.length && (
+              <tr>
+                {header_groups.map((group, i) => (
+                  <th
+                    key={`g-${i}`}
+                    scope={group.label ? "colgroup" : undefined}
+                    colSpan={Math.max(1, Math.floor(group.span))}
+                    className={cn(
+                      "px-3 pb-1 pt-2 text-center font-serif text-[13px] font-normal leading-tight text-ivory",
+                      group.label && "border-b border-bronze/60",
+                      i > 0 && "border-l border-bronze/60"
+                    )}
+                  >
+                    {group.label ? renderCell(group.label, `group-${i}`) : null}
+                  </th>
+                ))}
+              </tr>
+            )}
+            {header_row && header_row.length > 0 && (
+              <tr>
+                {header_row.map((h, i) => (
+                  <th
+                    key={`h-${i}`}
+                    scope="col"
+                    className={cn(
+                      "border-b border-bronze px-3 py-2 text-center font-serif text-[13px] font-normal leading-tight text-ivory",
+                      i > 0 && "border-l border-bronze/60"
+                    )}
+                  >
+                    {renderCell(h, `head-${i}`)}
+                  </th>
+                ))}
+              </tr>
+            )}
           </thead>
         )}
         <tbody>

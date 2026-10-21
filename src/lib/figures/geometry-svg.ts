@@ -18,7 +18,12 @@
 // screenshot.
 // ============================================================
 
-import { placeAngleMark, placeLengthLabel } from "./geometry-layout";
+import {
+  labelHalfExtent,
+  placeClearAngleMark,
+  placeClearLengthLabel,
+  placeVertexLabel,
+} from "./geometry-layout";
 
 interface Pt {
   /** Internal source reference; never printed as a vertex label. */
@@ -168,6 +173,25 @@ function resolveVertexPos(
   return null;
 }
 
+/** Points joined to (x, y) by a drawn side: polygon neighbors and adjacent polyline points. */
+function neighborsOf(shapes: Shape[], x: number, y: number) {
+  const result: Array<{ x: number; y: number }> = [];
+  for (const shape of shapes) {
+    const pts = (shape.vertices_or_points ?? []).filter((p) => isNum(p.x) && isNum(p.y)) as Array<{
+      x: number;
+      y: number;
+    }>;
+    const closed = pts.length > 2 && shape.kind !== "line_segment";
+    pts.forEach((p, i) => {
+      if (p.x !== x || p.y !== y) return;
+      const prev = i > 0 ? pts[i - 1] : closed ? pts[pts.length - 1] : null;
+      const next = i < pts.length - 1 ? pts[i + 1] : closed ? pts[0] : null;
+      for (const n of [prev, next]) if (n && (n.x !== x || n.y !== y)) result.push(n);
+    });
+  }
+  return result;
+}
+
 /**
  * Render figure_geometry_data to an SVG string.
  *
@@ -203,9 +227,19 @@ export function buildGeometrySvg(
     cy = (minY + maxY) / 2;
   // Scale-independent stroke/label sizing from the figure's extent.
   const unit = Math.max(vbW, vbH);
-  const sw = Math.max(1, unit * 0.004);
-  const fs = Math.max(9, unit * (balanced ? 0.06 : 0.04));
+  const sw = Math.max(1, unit * (balanced ? 0.0045 : 0.004));
+  const fs = Math.max(9, unit * (balanced ? 0.055 : 0.04));
   const dot = sw * 2.2;
+  // Balanced layout: printed-figure proportions. Side lengths at full size, vertex
+  // letters and angle measures slightly smaller, one gap and arc radius throughout.
+  const vertexFs = fs * 0.9;
+  const angleFs = fs * 0.85;
+  const gap = fs * 0.35;
+  const arcRadius = fs * 1.5;
+  const sourceCenter = {
+    x: all.reduce((sum, point) => sum + point.x, 0) / all.length,
+    y: all.reduce((sum, point) => sum + point.y, 0) / all.length,
+  };
   if (balanced) {
     const supported = new Set(["point", "line_segment", "triangle", "quadrilateral", "polygon"]);
     const references = new Map<string, { x: number; y: number }>();
@@ -240,7 +274,9 @@ export function buildGeometrySvg(
       const rays = am.between_vertices;
       const a = rays ? byReference.get(rays[0]) : undefined;
       const b = rays ? byReference.get(rays[1]) : undefined;
-      const mark = vertex && a && b ? placeAngleMark(vertex, a, b, fs) : null;
+      const half = labelHalfExtent(katexToUnicode(am.measure ?? ""), angleFs);
+      const mark =
+        vertex && a && b ? placeClearAngleMark(vertex, a, b, arcRadius, gap, half) : null;
       if (!mark || (am.right_angle && !mark.perpendicular)) {
         return { svg: null, renderable: false, reason: "unresolved_angle_mark" };
       }
@@ -279,14 +315,11 @@ export function buildGeometrySvg(
     const b = byReference.get(seg[seg.length - 1]);
     if (!a || !b) continue;
     if (balanced) {
-      const sourceCenter = {
-        x: all.reduce((sum, point) => sum + point.x, 0) / all.length,
-        y: all.reduce((sum, point) => sum + point.y, 0) / all.length,
-      };
-      const position = placeLengthLabel(a, b, sourceCenter, fs * 1.6);
+      const text = katexToUnicode(lm.value);
+      const position = placeClearLengthLabel(a, b, sourceCenter, gap, labelHalfExtent(text, fs));
       if (!position) return { svg: null, renderable: false, reason: "zero_length_segment" };
       parts.push(
-        `<text data-length-mark="${esc(seg.join("-"))}" x="${position.x}" y="${position.y}" ${FONT} font-size="${fs * 0.85}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="middle">${esc(katexToUnicode(lm.value))}</text>`
+        `<text data-length-mark="${esc(seg.join("-"))}" x="${position.x}" y="${position.y}" ${FONT} font-size="${fs}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`
       );
       continue;
     }
@@ -319,13 +352,15 @@ export function buildGeometrySvg(
     if (balanced) {
       const vertex = byReference.get(am.at_vertex!)!;
       const [a, b] = am.between_vertices!.map((ref) => byReference.get(ref)!);
-      const mark = placeAngleMark(vertex, a, b, fs)!;
+      const text = katexToUnicode(am.measure ?? "");
+      const half = labelHalfExtent(text, angleFs);
+      const mark = placeClearAngleMark(vertex, a, b, arcRadius, gap, half)!;
       parts.push(
         `<path data-angle-mark="${esc(am.at_vertex)}" d="${am.right_angle ? mark.rightAngle : mark.arc}" fill="none" stroke="${STROKE}" stroke-width="${sw * 0.8}" />`
       );
       if (am.measure)
         parts.push(
-          `<text x="${mark.label.x}" y="${mark.label.y}" ${FONT} font-size="${fs * 0.8}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="middle">${esc(katexToUnicode(am.measure))}</text>`
+          `<text x="${mark.label.x}" y="${mark.label.y}" ${FONT} font-size="${angleFs}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`
         );
       continue;
     }
@@ -374,8 +409,24 @@ export function buildGeometrySvg(
     });
   }
 
-  // ── Vertex labels (offset outward from the centroid) ──
-  for (const { x, y, label } of byLabel.values()) {
+  // ── Vertex labels ──
+  if (balanced) {
+    for (const { x, y, label } of byLabel.values()) {
+      const text = katexToUnicode(label);
+      const position = placeVertexLabel(
+        { x, y },
+        neighborsOf(shapes, x, y),
+        sourceCenter,
+        gap,
+        labelHalfExtent(text, vertexFs)
+      );
+      parts.push(
+        `<text x="${position.x}" y="${position.y}" ${FONT} font-size="${vertexFs}" font-style="italic" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`
+      );
+    }
+  }
+  // Legacy layout: offset outward from the centroid.
+  for (const { x, y, label } of balanced ? [] : byLabel.values()) {
     const ox = x - cx,
       oy = y - cy,
       mag = Math.hypot(ox, oy) || 1;
@@ -394,5 +445,10 @@ export function buildGeometrySvg(
     parts.join("") +
     `</svg>`;
 
-  return { svg, renderable: true };
+  // Round to 0.01 so server and browser emit identical markup (trig results can differ
+  // in the last bits between engines, which broke hydration).
+  return {
+    svg: svg.replace(/-?\d+\.\d{3,}/g, (n) => String(Math.round(Number(n) * 100) / 100)),
+    renderable: true,
+  };
 }

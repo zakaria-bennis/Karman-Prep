@@ -246,3 +246,36 @@ describe("ChartFigure", () => {
     expect(container.textContent).toContain("Class B");
   });
 });
+
+describe("ChartFigure — printed-figure options", () => {
+  const tickTexts = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll("text")).map((t) => t.textContent);
+
+  it("labels every label_step while keeping a grid line at every tick", () => {
+    const { container } = render(
+      <ChartFigure
+        data={baseFigure({ y_axis: baseAxis({ label: "Y", max: 4, tick_step: 1, label_step: 2 }) })}
+      />
+    );
+    const texts = tickTexts(container);
+    expect(texts).toContain("2");
+    expect(texts).toContain("4");
+    expect(texts.filter((t) => t === "3")).toHaveLength(0);
+  });
+
+  it("hides the 0 labels at the origin and uses a square frame when asked", () => {
+    const { container } = render(
+      <ChartFigure data={baseFigure({ hide_origin_label: true, frame: "square" })} />
+    );
+    expect(tickTexts(container)).not.toContain("0");
+    expect(container.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 500 500");
+  });
+
+  it("prints one-letter axis labels in italic at the axis ends", () => {
+    const { container } = render(
+      <ChartFigure data={baseFigure({ x_axis: baseAxis({ label: "x" }) })} />
+    );
+    const x = Array.from(container.querySelectorAll("text")).find((t) => t.textContent === "x")!;
+    expect(x.getAttribute("font-style")).toBe("italic");
+  });
+});

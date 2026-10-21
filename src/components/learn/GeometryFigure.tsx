@@ -60,9 +60,7 @@ export default function GeometryFigure({
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       {data.notes ? (
-        <figcaption className="mt-2 text-center text-[11px] italic text-taupe">
-          {data.notes}
-        </figcaption>
+        <figcaption className="mt-2 text-center text-[13px] text-taupe">{data.notes}</figcaption>
       ) : null}
     </figure>
   );

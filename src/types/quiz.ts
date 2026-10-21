@@ -191,12 +191,7 @@ export interface QuizQuestion {
     | null;
   /** Phase 4a — structured table data when figure_kind='table'.
    *  See src/components/learn/QuestionTable.tsx for the shape. */
-  figure_table_data: {
-    caption?: string | null;
-    header_row?: string[] | null;
-    rows: string[][];
-    footer_note?: string | null;
-  } | null;
+  figure_table_data: import("./question-table").QuestionTableData | null;
   /** Phase 4d — structured chart data when figure_kind='chart'.
    *  See src/types/chart.ts ChartFigure for the full shape. */
   figure_chart_data: import("./chart").ChartFigure | null;

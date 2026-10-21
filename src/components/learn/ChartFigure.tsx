@@ -35,6 +35,16 @@ const SUBJECT_CHART_COLOR: Record<string, string> = {
   reading: "var(--figure-reading)",
 };
 import { numericTicks, formatTickLabel, generateAltText } from "./chart-figure-helpers";
+import {
+  Axes,
+  CHART_COLOR,
+  TICK_FONT,
+  TITLE_FONT,
+  makeLayout,
+  makeXMap,
+  makeYMap,
+  type ChartLayout,
+} from "./chart-figure-axes";
 
 interface Props {
   data: ChartFigure;
@@ -48,27 +58,7 @@ interface Props {
   alt?: string;
 }
 
-// ── Layout constants ──────────────────────────────────────────
-// 600x400 viewBox so the SVG scales nicely without breakpoints.
-// Pad enough on the left for y-axis labels (digits + a unit word)
-// and on the bottom for x-axis labels. Top + right are tight.
-const VIEW_W = 600;
-const VIEW_H = 400;
-const PAD = { top: 28, right: 24, bottom: 56, left: 64 };
-const PLOT_W = VIEW_W - PAD.left - PAD.right;
-const PLOT_H = VIEW_H - PAD.top - PAD.bottom;
-
-// Karman observatory palette (docs/brand.md) — the figure sits flush
-// on the warm night canvas: ivory text, taupe structure, bronze grid.
-// Data series carry the subject signal (SUBJECT_CHART_COLOR).
-const COLOR = {
-  bgNight: "var(--figure-background)", // app background (warm night) — figure sits flush
-  surface: "var(--figure-background)", // card surface (legend inset)
-  ivory: "var(--figure-text)", // primary text: title + axis labels
-  taupe: "var(--figure-axis)", // tick labels + axis lines (legible structure)
-  bronze: "var(--figure-axis)", // axis lines + tick marks (key kept for minimal churn)
-  bronzeMuted: "var(--figure-grid)", // grid lines + border (bronze proper)
-} as const;
+const COLOR = CHART_COLOR;
 
 export default function ChartFigure({ data, subject, className, alt }: Props) {
   // ── Pick the per-series color ───────────────────────────────
@@ -82,6 +72,7 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
 
   // useId keeps the server and client ids identical (Math.random broke hydration).
   const describedBy = `chart-desc-${useId()}`;
+  const L = makeLayout(data);
   const accessibleSummary = alt ?? generateAltText(data);
 
   return (
@@ -89,7 +80,7 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
     // definite width and collapsed to the 300px replaced-element default.
     <figure className={cn("themed-question-figure block w-full max-w-full", className)}>
       <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        viewBox={`0 0 ${L.viewW} ${L.viewH}`}
         role="img"
         aria-describedby={describedBy}
         className="block h-auto w-full rounded-lg border border-bronze bg-night"
@@ -98,11 +89,10 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
 
         {data.title && (
           <text
-            x={VIEW_W / 2}
+            x={L.viewW / 2}
             y={16}
             textAnchor="middle"
-            fontSize={13}
-            fontFamily="var(--font-plex-sans), system-ui, sans-serif"
+            fontSize={TITLE_FONT}
             fill={COLOR.ivory}
             fontWeight={600}
           >
@@ -113,17 +103,24 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
         {/* Pie has no axes (its own circular layout); boxplot uses only a
             value axis. Everything else gets the standard axes + series. */}
         {data.kind === "pie" ? (
-          <PieGlyph series={data.series} />
+          <PieGlyph L={L} series={data.series} />
         ) : data.kind === "boxplot" ? (
-          <BoxplotGlyph series={data.series} xAxis={data.x_axis} showGrid={data.show_grid} />
+          <BoxplotGlyph L={L} series={data.series} xAxis={data.x_axis} showGrid={data.show_grid} />
         ) : (
           <>
             {/* ── Axes ─── */}
-            <Axes xAxis={data.x_axis} yAxis={data.y_axis} showGrid={data.show_grid} />
+            <Axes
+              L={L}
+              xAxis={data.x_axis}
+              yAxis={data.y_axis}
+              showGrid={data.show_grid}
+              hideOriginLabel={!!data.hide_origin_label}
+            />
 
             {/* ── Series ─── */}
             {data.series.map((s, i) => (
               <SeriesGlyph
+                L={L}
                 key={i}
                 series={s}
                 color={colors[i]}
@@ -133,7 +130,7 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
             ))}
 
             {/* ── Legend (only when multi-series) ─── */}
-            {data.series.length > 1 && <Legend series={data.series} colors={colors} />}
+            {data.series.length > 1 && <Legend L={L} series={data.series} colors={colors} />}
           </>
         )}
       </svg>
@@ -141,223 +138,82 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
   );
 }
 
-// ── Coordinate transforms ────────────────────────────────────
-// Map a value in axis space (e.g. y = 7 on an axis 0..10) to the
-// pixel y inside the plot area. SVG's y grows downward so we
-// invert for the y-axis.
-
-function makeXMap(xAxis: ChartAxis): (v: number) => number {
-  if (xAxis.categories) {
-    // Categorical x-axis: position each category in the center of
-    // its bucket. categoryWidth = PLOT_W / N.
-    const n = xAxis.categories.length;
-    const w = PLOT_W / n;
-    return (idx) => PAD.left + w * (idx + 0.5);
-  }
-  const min = xAxis.min ?? 0;
-  const max = xAxis.max ?? 1;
-  const span = max - min || 1;
-  return (v) => PAD.left + ((v - min) / span) * PLOT_W;
-}
-
-function makeYMap(yAxis: ChartAxis): (v: number) => number {
-  const min = yAxis.min ?? 0;
-  const max = yAxis.max ?? 1;
-  const span = max - min || 1;
-  // Invert: high y-values land at the top of the plot.
-  return (v) => PAD.top + PLOT_H - ((v - min) / span) * PLOT_H;
-}
-
-// ── Axes + grid ──────────────────────────────────────────────
-
-function Axes({
-  xAxis,
-  yAxis,
-  showGrid,
-}: {
-  xAxis: ChartAxis;
-  yAxis: ChartAxis;
-  showGrid: boolean;
-}) {
-  // Numeric tick positions for the y-axis. Categorical x-axis falls
-  // back to per-category label centers; numeric x-axis uses ticks.
-  const yTicks = numericTicks(yAxis);
-  const xTicks = xAxis.categories ? null : numericTicks(xAxis);
-  const xMap = makeXMap(xAxis);
-  const yMap = makeYMap(yAxis);
-
-  return (
-    <g>
-      {/* Grid lines */}
-      {showGrid && (
-        <g stroke={COLOR.bronzeMuted} strokeWidth={0.5} opacity="var(--figure-grid-opacity)">
-          {yTicks.map((v, i) => (
-            <line key={`gy-${i}`} x1={PAD.left} x2={PAD.left + PLOT_W} y1={yMap(v)} y2={yMap(v)} />
-          ))}
-          {xTicks?.map((v, i) => (
-            <line key={`gx-${i}`} y1={PAD.top} y2={PAD.top + PLOT_H} x1={xMap(v)} x2={xMap(v)} />
-          ))}
-        </g>
-      )}
-
-      {/* Axis lines */}
-      <line
-        x1={PAD.left}
-        y1={PAD.top + PLOT_H}
-        x2={PAD.left + PLOT_W}
-        y2={PAD.top + PLOT_H}
-        stroke={COLOR.bronze}
-        strokeWidth={1}
-      />
-      <line
-        x1={PAD.left}
-        y1={PAD.top}
-        x2={PAD.left}
-        y2={PAD.top + PLOT_H}
-        stroke={COLOR.bronze}
-        strokeWidth={1}
-      />
-
-      {/* Tick marks + labels */}
-      <g
-        fill={COLOR.taupe}
-        fontSize={10}
-        fontFamily="var(--font-plex-mono), ui-monospace, monospace"
-      >
-        {yTicks.map((v, i) => (
-          <g key={`yt-${i}`}>
-            <line
-              x1={PAD.left - 4}
-              x2={PAD.left}
-              y1={yMap(v)}
-              y2={yMap(v)}
-              stroke={COLOR.bronze}
-              strokeWidth={1}
-            />
-            <text x={PAD.left - 6} y={yMap(v) + 3} textAnchor="end">
-              {formatTickLabel(v)}
-            </text>
-          </g>
-        ))}
-        {xAxis.categories
-          ? xAxis.categories.map((cat, i) => (
-              <text key={`xc-${i}`} x={xMap(i)} y={PAD.top + PLOT_H + 16} textAnchor="middle">
-                {cat}
-              </text>
-            ))
-          : xTicks?.map((v, i) => (
-              <g key={`xt-${i}`}>
-                <line
-                  y1={PAD.top + PLOT_H}
-                  y2={PAD.top + PLOT_H + 4}
-                  x1={xMap(v)}
-                  x2={xMap(v)}
-                  stroke={COLOR.bronze}
-                  strokeWidth={1}
-                />
-                <text x={xMap(v)} y={PAD.top + PLOT_H + 16} textAnchor="middle">
-                  {formatTickLabel(v)}
-                </text>
-              </g>
-            ))}
-      </g>
-
-      {/* Axis labels (slightly larger, ivory) */}
-      <text
-        x={PAD.left + PLOT_W / 2}
-        y={VIEW_H - 16}
-        textAnchor="middle"
-        fontSize={12}
-        fontFamily="var(--font-plex-sans), system-ui, sans-serif"
-        fill={COLOR.ivory}
-      >
-        {xAxis.label}
-      </text>
-      <text
-        x={20}
-        y={PAD.top + PLOT_H / 2}
-        textAnchor="middle"
-        transform={`rotate(-90, 20, ${PAD.top + PLOT_H / 2})`}
-        fontSize={12}
-        fontFamily="var(--font-plex-sans), system-ui, sans-serif"
-        fill={COLOR.ivory}
-      >
-        {yAxis.label}
-      </text>
-    </g>
-  );
-}
-
 // ── Per-series rendering ─────────────────────────────────────
 
 function SeriesGlyph({
+  L,
   series,
   color,
   xAxis,
   yAxis,
 }: {
+  L: ChartLayout;
   series: ChartSeries;
   color: string;
   xAxis: ChartAxis;
   yAxis: ChartAxis;
 }) {
   if (series.kind === "scatter")
-    return <ScatterDots series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
+    return <ScatterDots L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
   if (series.kind === "line")
-    return <LinePath series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
+    return <LinePath L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
   if (series.kind === "bar")
-    return <BarRects series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
+    return <BarRects L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
   if (series.kind === "function")
-    return <FunctionCurve series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
+    return <FunctionCurve L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
   // boxplot / pie render via their own dedicated layouts, never here.
   return null;
 }
 
 function ScatterDots({
+  L,
   series,
   color,
   xAxis,
   yAxis,
 }: {
+  L: ChartLayout;
   series: ScatterSeries;
   color: string;
   xAxis: ChartAxis;
   yAxis: ChartAxis;
 }) {
-  const xMap = makeXMap(xAxis);
-  const yMap = makeYMap(yAxis);
+  const xMap = makeXMap(L, xAxis);
+  const yMap = makeYMap(L, yAxis);
   return (
     <g fill={color}>
       {series.points.map(([x, y], i) => (
-        <circle key={i} cx={xMap(x)} cy={yMap(y)} r={3.5} />
+        <circle key={i} cx={xMap(x)} cy={yMap(y)} r={5.5} />
       ))}
     </g>
   );
 }
 
 function LinePath({
+  L,
   series,
   color,
   xAxis,
   yAxis,
 }: {
+  L: ChartLayout;
   series: LineSeries;
   color: string;
   xAxis: ChartAxis;
   yAxis: ChartAxis;
 }) {
-  const xMap = makeXMap(xAxis);
-  const yMap = makeYMap(yAxis);
+  const xMap = makeXMap(L, xAxis);
+  const yMap = makeYMap(L, yAxis);
   const d = series.points
     .map(([x, y], i) => `${i === 0 ? "M" : "L"} ${xMap(x)} ${yMap(y)}`)
     .join(" ");
   return (
     <>
-      <path d={d} stroke={color} strokeWidth={2} fill="none" strokeLinecap="round" />
+      <path d={d} stroke={color} strokeWidth={2.5} fill="none" strokeLinecap="round" />
       {/* Also dot the vertices so individual data points stay visible. */}
       <g fill={color}>
         {series.points.map(([x, y], i) => (
-          <circle key={i} cx={xMap(x)} cy={yMap(y)} r={2.5} />
+          <circle key={i} cx={xMap(x)} cy={yMap(y)} r={4} />
         ))}
       </g>
     </>
@@ -365,11 +221,13 @@ function LinePath({
 }
 
 function BarRects({
+  L,
   series,
   color,
   xAxis,
   yAxis,
 }: {
+  L: ChartLayout;
   series: BarSeries;
   color: string;
   xAxis: ChartAxis;
@@ -377,16 +235,16 @@ function BarRects({
 }) {
   const categories = xAxis.categories ?? series.bars.map((b) => b.category);
   const n = categories.length;
-  const slotW = PLOT_W / n;
+  const slotW = L.plotW / n;
   const barW = slotW * 0.6;
-  const yMap = makeYMap(yAxis);
+  const yMap = makeYMap(L, yAxis);
   const yBaseline = yMap(0); // bars rise from y=0
   return (
     <g fill={color}>
       {series.bars.map((b, i) => {
         const idx = categories.indexOf(b.category);
         if (idx < 0) return null;
-        const cx = PAD.left + slotW * (idx + 0.5);
+        const cx = L.pad.left + slotW * (idx + 0.5);
         const yTop = yMap(b.value);
         const h = Math.abs(yBaseline - yTop);
         const yRect = Math.min(yBaseline, yTop);
@@ -397,18 +255,20 @@ function BarRects({
 }
 
 function FunctionCurve({
+  L,
   series,
   color,
   xAxis,
   yAxis,
 }: {
+  L: ChartLayout;
   series: FunctionSeries;
   color: string;
   xAxis: ChartAxis;
   yAxis: ChartAxis;
 }) {
-  const xMap = makeXMap(xAxis);
-  const yMap = makeYMap(yAxis);
+  const xMap = makeXMap(L, xAxis);
+  const yMap = makeYMap(L, yAxis);
   const [xLo, xHi] = series.domain ?? [xAxis.min ?? 0, xAxis.max ?? 1];
   const f = evaluator(series.expression);
   // 64 samples is enough for smooth quadratics; the renderer
@@ -423,7 +283,7 @@ function FunctionCurve({
   }
   if (pts.length === 0) return null;
   const d = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${xMap(x)} ${yMap(y)}`).join(" ");
-  return <path d={d} stroke={color} strokeWidth={2} fill="none" strokeLinecap="round" />;
+  return <path d={d} stroke={color} strokeWidth={2.5} fill="none" strokeLinecap="round" />;
 }
 
 // Closure-based evaluator. Strictly bounded to the FunctionSeries
@@ -443,15 +303,23 @@ function evaluator(expr: FunctionSeries["expression"]): (x: number) => number {
 
 // ── Legend (multi-series only) ───────────────────────────────
 
-function Legend({ series, colors }: { series: ChartSeries[]; colors: string[] }) {
+function Legend({
+  L,
+  series,
+  colors,
+}: {
+  L: ChartLayout;
+  series: ChartSeries[];
+  colors: string[];
+}) {
   const itemsWithLabel = series
     .map((s, i) => ({ label: s.label ?? `Series ${i + 1}`, color: colors[i] }))
     .filter((s) => s.label && s.label.length > 0);
   if (itemsWithLabel.length === 0) return null;
-  const x0 = PAD.left + 8;
-  const y0 = PAD.top + 8;
+  const x0 = L.pad.left + 8;
+  const y0 = L.pad.top + 8;
   return (
-    <g fontSize={10} fontFamily="var(--font-plex-sans), system-ui, sans-serif" fill={COLOR.ivory}>
+    <g fontSize={13} fill={COLOR.ivory}>
       <rect
         x={x0 - 6}
         y={y0 - 12}
@@ -478,7 +346,7 @@ function Legend({ series, colors }: { series: ChartSeries[]; colors: string[] })
 // Each slice's angle is its share of the total; slices walk the cool
 // sequential palette and are labelled with category + percentage.
 
-function PieGlyph({ series }: { series: ChartSeries[] }) {
+function PieGlyph({ L, series }: { L: ChartLayout; series: ChartSeries[] }) {
   const slices = series.flatMap((s) => (s.kind === "pie" ? (s as PieSeries).slices : []));
   const total = slices.reduce(
     (sum, sl) => sum + (Number.isFinite(sl.value) ? Math.max(0, sl.value) : 0),
@@ -486,9 +354,9 @@ function PieGlyph({ series }: { series: ChartSeries[] }) {
   );
   if (slices.length === 0 || total <= 0) return null;
 
-  const cx = VIEW_W / 2;
-  const cy = PAD.top + PLOT_H / 2 + 4;
-  const r = Math.min(PLOT_W, PLOT_H) / 2 - 18;
+  const cx = L.viewW / 2;
+  const cy = L.pad.top + L.plotH / 2 + 4;
+  const r = Math.min(L.plotW, L.plotH) / 2 - 18;
 
   let a0 = -Math.PI / 2; // start at 12 o'clock
   const arcs = slices.map((sl, i) => {
@@ -529,8 +397,7 @@ function PieGlyph({ series }: { series: ChartSeries[] }) {
           y={a.ly}
           textAnchor={a.anchor}
           dominantBaseline="middle"
-          fontSize={11}
-          fontFamily="var(--font-plex-sans), system-ui, sans-serif"
+          fontSize={14}
           fill={COLOR.ivory}
         >
           {`${a.label} (${a.pct}%)`}
@@ -545,20 +412,22 @@ function PieGlyph({ series }: { series: ChartSeries[] }) {
 // numeric-axis helpers for the value axis along the bottom.
 
 function BoxplotGlyph({
+  L,
   series,
   xAxis,
   showGrid,
 }: {
+  L: ChartLayout;
   series: ChartSeries[];
   xAxis: ChartAxis;
   showGrid: boolean;
 }) {
   const boxes = series.flatMap((s) => (s.kind === "boxplot" ? (s as BoxplotSeries).boxes : []));
   if (boxes.length === 0) return null;
-  const xMap = makeXMap(xAxis);
+  const xMap = makeXMap(L, xAxis);
   const xTicks = numericTicks(xAxis);
-  const baseY = PAD.top + PLOT_H;
-  const rowH = PLOT_H / boxes.length;
+  const baseY = L.pad.top + L.plotH;
+  const rowH = L.plotH / boxes.length;
   const boxH = Math.min(46, rowH * 0.5);
 
   return (
@@ -566,23 +435,19 @@ function BoxplotGlyph({
       {showGrid && (
         <g stroke={COLOR.bronzeMuted} strokeWidth={0.5} opacity="var(--figure-grid-opacity)">
           {xTicks.map((v, i) => (
-            <line key={`g-${i}`} x1={xMap(v)} x2={xMap(v)} y1={PAD.top} y2={baseY} />
+            <line key={`g-${i}`} x1={xMap(v)} x2={xMap(v)} y1={L.pad.top} y2={baseY} />
           ))}
         </g>
       )}
       <line
-        x1={PAD.left}
+        x1={L.pad.left}
         y1={baseY}
-        x2={PAD.left + PLOT_W}
+        x2={L.pad.left + L.plotW}
         y2={baseY}
         stroke={COLOR.bronze}
         strokeWidth={1}
       />
-      <g
-        fill={COLOR.taupe}
-        fontSize={10}
-        fontFamily="var(--font-plex-mono), ui-monospace, monospace"
-      >
+      <g fill={COLOR.taupe} fontSize={TICK_FONT}>
         {xTicks.map((v, i) => (
           <g key={`t-${i}`}>
             <line
@@ -593,24 +458,23 @@ function BoxplotGlyph({
               stroke={COLOR.bronze}
               strokeWidth={1}
             />
-            <text x={xMap(v)} y={baseY + 16} textAnchor="middle">
+            <text x={xMap(v)} y={baseY + 20} textAnchor="middle">
               {formatTickLabel(v)}
             </text>
           </g>
         ))}
       </g>
       <text
-        x={PAD.left + PLOT_W / 2}
-        y={VIEW_H - 16}
+        x={L.pad.left + L.plotW / 2}
+        y={L.viewH - 16}
         textAnchor="middle"
-        fontSize={12}
-        fontFamily="var(--font-plex-sans), system-ui, sans-serif"
+        fontSize={TITLE_FONT}
         fill={COLOR.ivory}
       >
         {xAxis.label}
       </text>
       {boxes.map((b, i) => {
-        const yc = PAD.top + rowH * (i + 0.5);
+        const yc = L.pad.top + rowH * (i + 0.5);
         const cap = boxH * 0.35;
         return (
           <g key={`b-${i}`} stroke={COLOR.bronze} strokeWidth={1.5}>
@@ -634,14 +498,13 @@ function BoxplotGlyph({
             />
             {b.category ? (
               <text
-                x={PAD.left - 6}
+                x={L.pad.left - 6}
                 y={yc}
                 textAnchor="end"
                 dominantBaseline="middle"
                 stroke="none"
                 fill={COLOR.taupe}
-                fontSize={10}
-                fontFamily="var(--font-plex-sans), system-ui, sans-serif"
+                fontSize={TICK_FONT}
               >
                 {b.category}
               </text>

@@ -1,0 +1,12 @@
+/* One shared figure typeface: every label in every question figure (reviewed SVGs,
+   geometry, charts, tables) uses the printed-SAT-style serif (STIX Two Text, bundled
+   in fonts/stix-two-text, OFL). Italic stays per element (variables); numbers stay
+   upright. Kept out of globals.css, which the calculator guards against changes. */
+.themed-question-figure {
+  --figure-font: var(--font-figure, "Times New Roman"), "Times New Roman", Times, serif;
+}
+.themed-question-figure svg text,
+.themed-question-figure figcaption,
+.themed-question-table :is(caption, th, td) {
+  font-family: var(--figure-font);
+}

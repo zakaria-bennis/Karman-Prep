@@ -27,8 +27,45 @@ export function placeLengthLabel(
   return { x: midpoint.x + normal.x * distance, y: midpoint.y + normal.y * distance };
 }
 
-/** The smaller angle between two explicitly identified rays. Unresolved/straight rays are held. */
-export function placeAngleMark(vertex: LayoutPoint, a: LayoutPoint, b: LayoutPoint, size: number) {
+/** Approximate half-size of a one-line label in the figure serif (digits ≈ 0.5em wide). */
+export function labelHalfExtent(text: string, fontSize: number) {
+  const width = Math.max(1, [...text].length) * fontSize * 0.52;
+  return { x: width / 2, y: fontSize * 0.36 };
+}
+
+/** Half-extent of a label box measured along a unit direction. */
+const extentAlong = (half: LayoutPoint, dir: LayoutPoint) =>
+  Math.abs(dir.x) * half.x + Math.abs(dir.y) * half.y;
+
+/**
+ * Side-length label centered on the side and pushed outward along the perpendicular
+ * so the label box keeps the same visible `gap` from every side, whatever its slope.
+ */
+export function placeClearLengthLabel(
+  a: LayoutPoint,
+  b: LayoutPoint,
+  center: LayoutPoint,
+  gap: number,
+  half: LayoutPoint
+) {
+  const direction = unitVector(a, b);
+  if (!direction) return null;
+  const normal = { x: -direction.y, y: direction.x };
+  return placeLengthLabel(a, b, center, gap + extentAlong(half, normal));
+}
+
+/**
+ * Angle marking with a consistent arc radius; the label sits inside the angle on its
+ * bisector, far enough out that its box clears both rays by `gap`.
+ */
+export function placeClearAngleMark(
+  vertex: LayoutPoint,
+  a: LayoutPoint,
+  b: LayoutPoint,
+  arcRadius: number,
+  gap: number,
+  half: LayoutPoint
+) {
   const u = unitVector(vertex, a);
   const v = unitVector(vertex, b);
   if (!u || !v) return null;
@@ -37,15 +74,51 @@ export function placeAngleMark(vertex: LayoutPoint, a: LayoutPoint, b: LayoutPoi
   const by = u.y + v.y;
   const magnitude = Math.hypot(bx, by);
   if (Math.abs(cross) < 1e-8 || magnitude < 1e-8) return null;
-  const radius = Math.min(size * 1.3, Math.min(u.length, v.length) * 0.18);
-  const labelDistance = radius + size * 1.4;
+  const shortest = Math.min(u.length, v.length);
+  const radius = Math.min(arcRadius, shortest * 0.3);
+  const square = Math.min(arcRadius * 0.6, shortest * 0.2);
+  const bisector = { x: bx / magnitude, y: by / magnitude };
+  const halfAngle = Math.acos(Math.max(-1, Math.min(1, u.x * v.x + u.y * v.y))) / 2;
+  const reach = Math.hypot(half.x, half.y);
+  const distance = Math.max(
+    radius + gap + extentAlong(half, bisector),
+    (reach + gap) / Math.max(Math.sin(halfAngle), 0.05)
+  );
   return {
     arc: `M ${vertex.x + u.x * radius} ${vertex.y + u.y * radius} A ${radius} ${radius} 0 0 ${cross > 0 ? 1 : 0} ${vertex.x + v.x * radius} ${vertex.y + v.y * radius}`,
-    rightAngle: `M ${vertex.x + u.x * radius} ${vertex.y + u.y * radius} L ${vertex.x + (u.x + v.x) * radius} ${vertex.y + (u.y + v.y) * radius} L ${vertex.x + v.x * radius} ${vertex.y + v.y * radius}`,
-    label: {
-      x: vertex.x + (bx / magnitude) * labelDistance,
-      y: vertex.y + (by / magnitude) * labelDistance,
-    },
+    rightAngle: `M ${vertex.x + u.x * square} ${vertex.y + u.y * square} L ${vertex.x + (u.x + v.x) * square} ${vertex.y + (u.y + v.y) * square} L ${vertex.x + v.x * square} ${vertex.y + v.y * square}`,
+    label: { x: vertex.x + bisector.x * distance, y: vertex.y + bisector.y * distance },
     perpendicular: Math.abs(u.x * v.x + u.y * v.y) < 1e-6,
   };
+}
+
+/**
+ * Vertex letter just outside the vertex along the outward bisector of the sides that
+ * meet there. A point in the middle of a straight side goes to the side away from the
+ * figure's center; an isolated point goes directly away from the center.
+ */
+export function placeVertexLabel(
+  vertex: LayoutPoint,
+  neighbors: LayoutPoint[],
+  center: LayoutPoint,
+  gap: number,
+  half: LayoutPoint
+) {
+  const units = neighbors
+    .map((n) => unitVector(vertex, n))
+    .filter((u): u is NonNullable<typeof u> => !!u);
+  let dir = { x: -units.reduce((s, u) => s + u.x, 0), y: -units.reduce((s, u) => s + u.y, 0) };
+  const away = unitVector(center, vertex) ?? { x: 0, y: -1 };
+  if (Math.hypot(dir.x, dir.y) < 0.25) {
+    if (units.length >= 2) {
+      dir = { x: -units[0].y, y: units[0].x };
+      if (dir.x * away.x + dir.y * away.y < 0) dir = { x: -dir.x, y: -dir.y };
+    } else {
+      dir = away;
+    }
+  }
+  const length = Math.hypot(dir.x, dir.y);
+  const unit = { x: dir.x / length, y: dir.y / length };
+  const distance = gap + extentAlong(half, unit);
+  return { x: vertex.x + unit.x * distance, y: vertex.y + unit.y * distance };
 }

@@ -48,6 +48,10 @@ export interface ChartAxis {
   /** Categorical labels for bar-chart x-axes. Mutually exclusive
    *  with numeric min/max/tick_step. */
   categories: string[] | null;
+  /** Print a tick label only every `label_step` (grid lines and tick marks
+   *  still every tick_step), e.g. a grid every 1 labelled 2, 4, 6. Null or
+   *  absent = label every tick. */
+  label_step?: number | null;
 }
 
 export interface ScatterSeries {
@@ -135,6 +139,11 @@ export interface ChartFigure {
   y_axis: ChartAxis;
   /** Show the background grid? Default true. */
   show_grid: boolean;
+  /** "square" for figures whose source plot is square; absent/"wide" = 3:2. */
+  frame?: "wide" | "square" | null;
+  /** Omit the 0 tick labels where the axes meet (printed SAT figures leave the
+   *  origin unlabelled or mark it O). */
+  hide_origin_label?: boolean | null;
   /** One or more series. Multi-series charts trigger the sequential
    *  color palette + a legend. */
   series: ChartSeries[];

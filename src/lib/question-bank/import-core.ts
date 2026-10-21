@@ -219,7 +219,14 @@ export function computeContentHashV2(fields: {
   const canonicalTable = (table: QuestionTableData | null | undefined) =>
     table == null
       ? null
-      : [table.caption ?? null, table.header_row ?? null, table.rows, table.footer_note ?? null];
+      : [
+          table.caption ?? null,
+          table.header_row ?? null,
+          table.rows,
+          table.footer_note ?? null,
+          // Appended only when present so existing content hashes stay unchanged.
+          ...(table.header_groups?.length ? [table.header_groups] : []),
+        ];
   const tables = [
     canonicalTable(fields.figure_table_data),
     ...(["A", "B", "C", "D"] as const).map((letter) =>

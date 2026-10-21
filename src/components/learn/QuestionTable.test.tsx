@@ -89,3 +89,24 @@ describe("QuestionTable — headerless / captionless tables", () => {
     expect(figure?.getAttribute("aria-label")).toBe("Question data table");
   });
 });
+
+describe("QuestionTable — grouped column headers", () => {
+  it("spans a group heading over only its columns", () => {
+    const { getByText } = render(
+      <QuestionTable
+        data={{
+          header_groups: [
+            { label: "", span: 1 },
+            { label: "Grade level", span: 2 },
+          ],
+          header_row: ["Subject", "Sixth", "Seventh"],
+          rows: [["English", "4", "9"]],
+        }}
+        renderMath={false}
+      />
+    );
+    const group = getByText("Grade level").closest("th")!;
+    expect(group.getAttribute("colspan")).toBe("2");
+    expect(group.getAttribute("scope")).toBe("colgroup");
+  });
+});
