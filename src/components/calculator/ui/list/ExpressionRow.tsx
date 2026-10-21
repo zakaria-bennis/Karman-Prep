@@ -144,6 +144,8 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const itemRef = useRef<HTMLLIElement>(null);
   const playRef = useRef<HTMLButtonElement>(null);
   const sliderLine = useRef<SliderLineHandle | null>(null);
+  // The pointer that pressed the delete cross: WebKit reports a tap's click as a mouse click.
+  const deletePointer = useRef<string | null>(null);
   const tabRef = useRef<HTMLButtonElement>(null);
   // D-13: the row menu, from a right-click or Shift+F10 anywhere on the row (f(x)=E rows have no
   // tab), only while the row has something to offer.
@@ -518,11 +520,15 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               if (e.shiftKey) focus.focusRow(row.id, "end");
               else sliderLine.current.focusField("first");
             }}
+            onPointerDown={(e) => void (deletePointer.current = e.pointerType)}
             onClick={(e) => {
               // A keyboard press (detail 0) moves on to the next row (R-3), and so does a tap
               // while the keypad is up, so the keypad keeps a row to type into (break-ui mobile);
               // a click leaves no row selected, as the reference does, with focus kept on the list.
-              const touch = (e.nativeEvent as { pointerType?: string }).pointerType === "touch";
+              const pointer =
+                deletePointer.current ?? (e.nativeEvent as { pointerType?: string }).pointerType;
+              deletePointer.current = null;
+              const touch = e.detail !== 0 && pointer === "touch";
               if (e.detail === 0 || (touch && engine.settings.keypad)) {
                 deleteRowByControl(engine, focus, row.id);
                 return;
