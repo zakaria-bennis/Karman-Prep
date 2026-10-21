@@ -16,6 +16,7 @@
 // panel when confidence is below the auto-publish threshold.
 // ============================================================
 
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 import type {
   ChartFigure,
@@ -79,11 +80,14 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
       ? [SUBJECT_CHART_COLOR[subject ?? ""] ?? SEQUENTIAL_PALETTE[0]]
       : data.series.map((_, i) => SEQUENTIAL_PALETTE[i % SEQUENTIAL_PALETTE.length]);
 
-  const describedBy = `chart-desc-${Math.random().toString(36).slice(2, 9)}`;
+  // useId keeps the server and client ids identical (Math.random broke hydration).
+  const describedBy = `chart-desc-${useId()}`;
   const accessibleSummary = alt ?? generateAltText(data);
 
   return (
-    <figure className={cn("themed-question-figure inline-block max-w-full", className)}>
+    // Block + full width: as an inline-block (or flex item) the width:100% SVG had no
+    // definite width and collapsed to the 300px replaced-element default.
+    <figure className={cn("themed-question-figure block w-full max-w-full", className)}>
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         role="img"
