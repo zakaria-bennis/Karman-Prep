@@ -1,14 +1,14 @@
-// Paste in the expression list. Rendered inside ToastHost; it listens on its parent element in the
-// capture phase, so it adds no box to the list and runs before the math field (which blocks the
-// browser's own paste).
+// Paste in the expression list, for what one field cannot do alone (the MathField adapter writes a
+// single pasted line itself, and owns copy and cut). Rendered inside ToastHost; it listens on its
+// parent element in the capture phase, so it adds no box to the list and runs before the field.
 // - Tabular text (RT-8, TABLES-49, -51, -52) pasted into an expression row or a table cell that
 //   parses as a numeric grid becomes a new table, in place of an empty row or below the row pasted
 //   into, focused at row 1 of its first column. When the view zooms to fit the pasted points, a
 //   toast says "We zoomed to fit your data." with Undo, which puts the view back.
-// - Other text pasted into a math field is math (break-ui, as the reference): one line is written
-//   at the caret; several lines fill the row pasted into, then each becomes a new row below it,
-//   with focus at the end of the last one. NM-42's 100-row and T-13's 2,048-character limits stop
-//   it with their messages, and a field that is not a row's (a table cell) takes the first line.
+// - Several lines of other text are math, as on the reference (break-ui): the first fills the row
+//   pasted into and each other line becomes a new row below it, with focus at the end of the last
+//   one; pasted into a table cell, every line becomes a row below the table. NM-42's 100-row and
+//   T-13's 2,048-character limits stop it with their messages.
 
 import { useContext, useEffect, useRef, type JSX } from "react";
 import { parsePastedGrid } from "@/lib/calculator/core/data/paste-grid";
@@ -19,7 +19,7 @@ import { useAnnouncer, type Announcer } from "../a11y/announcer";
 import { cellKey, FocusContext, type FocusController } from "../focus/focus-controller";
 import { useEngine } from "../hooks/use-engine";
 import { EDITOR_MESSAGES } from "./messages";
-import { overRowLimit, pastedLatex, pastedLines } from "./paste-text";
+import { overRowLimit, pastedLatex, pastedLines } from "../../math-field/paste-text";
 import { ToastContext } from "./Toast";
 
 interface Kit {
@@ -43,37 +43,51 @@ function ownRow(field: MathField, engine: CalculatorEngine): string | null {
   return engine.getSnapshot().rows.some((r) => r.id === id && r.type !== "table") ? id : null;
 }
 
-/** Writes pasted math lines; see the file comment. */
+/** Inserts each of `lines` as a new row after `after`; the id of the last one, or `after`. */
+function insertLines(kit: Kit, after: string, lines: string[]): string {
+  const { engine, announcer } = kit;
+  let last = after;
+  let tooLong = false;
+  for (const line of lines) {
+    if (overRowLimit(line)) {
+      tooLong = true;
+      continue;
+    }
+    const inserted = engine.insertRowAfter(last);
+    if (typeof inserted === "string") {
+      announcer?.announce(EDITOR_MESSAGES.rowLimit);
+      break;
+    }
+    last = inserted.id;
+    if (engine.editRow(last, line, "paste") !== null) tooLong = true;
+  }
+  if (tooLong) announcer?.announce(EDITOR_MESSAGES.charLimit);
+  return last;
+}
+
+/** Writes two or more pasted math lines; see the file comment. */
 function pasteMath(kit: Kit, field: MathField, lines: string[]): void {
   const { engine, focus, announcer } = kit;
   const latex = lines.map(pastedLatex);
   const rowId = ownRow(field, engine);
-  const [first, ...rest] = rowId === null ? latex.slice(0, 1) : latex;
+  const owner = field.element.closest<HTMLElement>("[data-row-id]")?.dataset.rowId ?? null;
+  if (rowId === null && latex.length > 1 && owner !== null) {
+    // Several lines pasted into a table cell become rows below the table, as on the reference.
+    const last = insertLines(kit, owner, latex);
+    if (last !== owner) focus?.focusRow(last, "end");
+    return;
+  }
+  const [first, ...rest] = latex;
   engine.endEditGroup(); // a paste is its own undo step, apart from the typing before it
   if (overRowLimit(first)) announcer?.announce(EDITOR_MESSAGES.charLimit);
   else field.write(first);
   engine.endEditGroup();
   if (rowId === null || rest.length === 0) return;
-  let after = rowId;
-  let tooLong = false;
-  for (const line of rest) {
-    if (overRowLimit(line)) {
-      tooLong = true;
-      continue;
-    }
-    const inserted = engine.insertRowAfter(after);
-    if (typeof inserted === "string") {
-      announcer?.announce(EDITOR_MESSAGES.rowLimit);
-      break;
-    }
-    after = inserted.id;
-    if (engine.editRow(after, line, "paste") !== null) tooLong = true;
-  }
-  if (tooLong) announcer?.announce(EDITOR_MESSAGES.charLimit);
-  if (after !== rowId) focus?.focusRow(after, "end");
+  const last = insertLines(kit, rowId, rest);
+  if (last !== rowId) focus?.focusRow(last, "end");
 }
 
-export function ListPaste(): JSX.Element {
+export function ListClipboard(): JSX.Element {
   const engine = useEngine();
   const focus = useContext(FocusContext);
   const toaster = useContext(ToastContext);
@@ -91,12 +105,13 @@ export function ListPaste(): JSX.Element {
       const { engine: e, focus: f, toaster: t, announcer: a } = latest.current;
       const grid = parsePastedGrid(text);
       if (grid === null) {
+        const lines = pastedLines(text);
         const field = targetField(event, f);
-        if (field === null) return; // a native field (slider limits) pastes for itself
+        // One line, or a field that is not a row's or a cell's (slider limits), pastes for itself.
+        if (field === null || lines.length < 2) return;
         event.preventDefault();
         event.stopPropagation();
-        const lines = pastedLines(text);
-        if (lines.length > 0) pasteMath({ engine: e, focus: f, announcer: a }, field, lines);
+        pasteMath({ engine: e, focus: f, announcer: a }, field, lines);
         return;
       }
       event.preventDefault();

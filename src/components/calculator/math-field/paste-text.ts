@@ -1,8 +1,7 @@
-// Math text pasted into the expression list (break-ui, matching the reference): the plain text is
-// cleaned, split into lines and turned into LaTeX through the shared normalizer. One line is
-// written at the caret; more lines fill the row pasted into and then become new rows below it.
-// Text far over the row limit is refused before it reaches MathQuill, so a 100,000-character paste
-// cannot freeze the page.
+// Pasted math text (break-ui, matching the reference): the plain text is cleaned, split into lines
+// and turned into LaTeX through the shared normalizer. The MathField adapter writes one line at the
+// caret; the expression list turns more lines into rows. Text over the field's limit is refused
+// before it reaches MathQuill, so a 100,000-character paste cannot freeze the page.
 
 import { MAX_ROW_CHARACTERS } from "@/lib/calculator/core/latex/limits";
 import { normalizeLatex } from "@/lib/calculator/core/latex/normalize";
@@ -31,9 +30,10 @@ export function pastedLatex(line: string): string {
 }
 
 /**
- * Whether `latex` is too long for any row even before MathQuill reformats it (spaces never count,
- * as MathQuill drops them), so it can be refused at once with the T-13 message.
+ * Whether `latex` is too long for a field of `limit` characters (a row's by default) even before
+ * MathQuill reformats it (spaces never count, as MathQuill drops them), so it can be refused at
+ * once with the T-13 message.
  */
-export function overRowLimit(latex: string): boolean {
-  return latex.replace(/\s+/g, "").length > MAX_ROW_CHARACTERS;
+export function overRowLimit(latex: string, limit = MAX_ROW_CHARACTERS): boolean {
+  return latex.replace(/\s+/g, "").length > limit;
 }

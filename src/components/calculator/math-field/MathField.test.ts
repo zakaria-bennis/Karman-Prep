@@ -160,6 +160,38 @@ it("createMathField: native undo, redo, copy, cut and paste never reach MathQuil
   await new Promise((resolve) => setTimeout(resolve, 0));
   expect([field.latex(), field.selectedLatex()]).toEqual(["x", "x"]);
 });
+/** A clipboard event with a working clipboardData (jsdom has no DataTransfer). */
+function clipboardEvent(type: string, text = "") {
+  const store = new Map<string, string>([["text/plain", text]]);
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(event, "clipboardData", {
+    value: {
+      getData: (f: string) => store.get(f) ?? "",
+      setData: (f: string, v: string) => store.set(f, v),
+    },
+  });
+  return { event, read: () => store.get("text/plain") };
+}
+it("break-ui copy takes the selection or, with none, the whole field; cut deletes the selection", () => {
+  const { field, textarea } = mount();
+  field.latex("y=x^{2}");
+  const copy = clipboardEvent("copy");
+  textarea.dispatchEvent(copy.event);
+  expect([copy.event.defaultPrevented, copy.read()]).toEqual([true, "y=x^{2}"]);
+  field.select();
+  const cut = clipboardEvent("cut");
+  textarea.dispatchEvent(cut.event);
+  expect([cut.read(), field.latex()]).toEqual(["y=x^{2}", ""]);
+});
+it("break-ui paste writes the first cleaned line at the caret and refuses text over maxLength", () => {
+  const { field, textarea, options } = mount({ maxLength: 20 });
+  field.latex("y=");
+  textarea.dispatchEvent(clipboardEvent("paste", "\u0000 2x+1 \nignored").event);
+  expect(field.latex()).toBe("y=2x+1");
+  textarea.dispatchEvent(clipboardEvent("paste", "x".repeat(21)).event);
+  expect(field.latex()).toBe("y=2x+1");
+  expect(options.onRefused).toHaveBeenCalledWith("char-limit");
+});
 it("createMathField: speechText reads the parser tree and falls back to MathQuill for unparsed input", () => {
   const { field } = mount();
   expect(field.speechText()).toBe("");

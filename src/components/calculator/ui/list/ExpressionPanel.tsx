@@ -36,7 +36,7 @@ import { MotionContext } from "./motion";
 import { clearAllRows, insertRowBelow, performRedo, performUndo } from "./row-actions";
 import { useRowPresence } from "./row-presence";
 import { TableItem } from "./TableItem";
-import { ListPaste } from "./ListPaste";
+import { ListClipboard } from "./ListClipboard";
 import { ToastHost } from "./Toast";
 import { Tooltip, useTooltip } from "./Tooltip";
 
@@ -392,7 +392,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
             }}
           >
             <ToastHost>
-              <ListPaste />
+              <ListClipboard />
               {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
               <ol className="kc-list" role="list" aria-label="Expressions" tabIndex={-1}>
                 {numbered.map(({ row, motion, number }) =>
