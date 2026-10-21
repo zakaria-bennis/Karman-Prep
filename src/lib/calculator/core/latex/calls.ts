@@ -17,6 +17,7 @@ import {
 import {
   enter,
   fail,
+  ParseFailure,
   parseSum,
   peek,
   startsFactor,
@@ -122,6 +123,12 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
     const call = callNode(name, args, base, previousEnd(state));
     return takePostfix(state, withPower(name, call, power, form));
   }
+  // Desmos reads `\arg\min(L)` as the complex-only arg (captured 2026-10-20)
+  if (COMPLEX_ONLY.has(name.name))
+    fail("complex-only", name.span, "a complex-mode function", name.name);
+  // Desmos reads `\arg\min(L)` as the complex-only arg (captured 2026-10-20)
+  if (COMPLEX_ONLY.has(name.name))
+    fail("complex-only", name.span, "a complex-mode function", name.name);
   if (!prefixForm) return needsParentheses(name);
   const arg = parseRunArgument(state, name);
   return withPower(name, callNode(name, [arg], base, arg.span.end), power, form);
@@ -132,7 +139,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
  * (desmos-calls.ts); written without `(` it is "'shuffle' is a function. Try using parentheses.",
  * as in Desmos. Any other form stays `unsupported` at the name.
  */
-function failUnshippedCall(state: ParserState, name: CommandToken): never {
+function failUnshippedCall(state: ParserState, name: CommandToken): Node {
   const open = peek(state, 1);
   const known = operatorName(name.name);
   if (known === undefined) return fail("unsupported", name.span, `"${name.name}" is not supported`);
@@ -145,8 +152,19 @@ function failUnshippedCall(state: ParserState, name: CommandToken): never {
   const args = takeEmptyList(state) ? [] : parseArgumentList(state);
   if (COMPLEX_ONLY.has(name.name) && args.length === 1) complexOnly();
   const counts = known.arity === "variadic" ? null : known.arity;
-  return failUnevaluatedCall(state, name, args, counts);
+  if (!EVALUATED.has(name.name)) return failUnevaluatedCall(state, name, args, counts);
+  // random and shuffle keep the reference's argument errors, and evaluate (eval/random.ts)
+  try {
+    return failUnevaluatedCall(state, name, args, counts);
+  } catch (thrown) {
+    const notation = thrown instanceof ParseFailure && thrown.error.code === "unsupported";
+    if (!notation) throw thrown;
+    return takePostfix(state, callNode(name, args, null, previousEnd(state)));
+  }
 }
+
+/** Built-ins outside SHIPPED that evaluate once their arguments pass the reference's checks. */
+const EVALUATED: ReadonlySet<string> = new Set(["random", "shuffle"]);
 
 /** The complex-number built-ins, which Desmos offers only in complex mode. */
 const COMPLEX_ONLY: ReadonlySet<string> = new Set(["arg", "real", "imag", "conj"]);
@@ -366,25 +384,44 @@ function isOpen(token: Token, ch: "(" | "[" | "{"): boolean {
  * Each `-` wraps the first factor, as at level 8 (`-2x` is `(mul (neg (num 2)) (id x))`).
  */
 function parseRunArgument(state: ParserState, name: CommandToken): Node {
-  const start = state.pos;
   const minuses: Token[] = [];
   for (let sign = peek(state); isSign(sign); sign = peek(state)) {
     take(state);
     if (isSymbol(sign, "-")) minuses.push(sign);
   }
+  const needsParens = (): never =>
+    fail("argument-parentheses", name.span, `"${name.name}" needs (`, name.name);
   let arg: Node | null = null;
   while (startsFactor(state) && !isBuiltinCommand(peek(state))) {
+    // Desmos: a root or bars starting the run need parentheses too, `\sin\sqrt{x}`
+    const callLike = arg === null && isCallLike(peek(state));
     const factor = parsePostfix(state);
+    if (callLike) needsParens();
     arg = arg === null ? negated(minuses, factor) : product(arg, factor);
   }
   const next = peek(state);
-  if (arg !== null && isBuiltinCommand(next)) {
-    return fail("argument-parentheses", name.span, `"${name.name}" needs (`, name.name);
-  }
+  if (arg !== null && isBuiltinCommand(next)) return needsParens();
   if (arg !== null) return arg;
-  if (next.t === "end" && state.pos === start) return needsParentheses(name);
+  if ((next.t === "end" || next.t === "close") && minuses.length === 0)
+    return needsParentheses(name);
+  const symbol = next.t === "end" ? null : relationOrComma(next);
+  if (symbol !== null) return fail("operator-side", next.span, `nothing before ${symbol}`, symbol);
   if (!isBuiltinCommand(next)) return unexpected(state, next);
-  return negated(minuses, parseBuiltinCall(state, next));
+  // Desmos reads the inner call first (`\sin\cos` is cos's own error), then asks for
+  // parentheses: `\sin\cos x`, `\ln\ln x`, `\sin-\cos x` (captured 2026-10-20)
+  parseBuiltinCall(state, next);
+  return needsParens();
+}
+
+/** A root or absolute-value bars, which Desmos reads as calls. */
+function isCallLike(token: Token): boolean {
+  return token.t === "command" && (token.name === "sqrt" || token.name === "lvert");
+}
+
+/** A relation operator or comma, as Desmos names it in "You need something on both sides". */
+function relationOrComma(token: Token): string | null {
+  if (token.t === "command") return token.name === "le" ? "≤" : token.name === "ge" ? "≥" : null;
+  return token.t === "symbol" && "=<>,".includes(token.ch) ? token.ch : null;
 }
 
 function callNode(name: CommandToken, args: Node[], base: Node | null, end: number): CallNode {

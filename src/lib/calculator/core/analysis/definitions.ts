@@ -152,14 +152,26 @@ function readHead(
       body,
       span: left.span,
     };
+    // Desmos: "You can't use 'e' as a parameter of this function because 'e' is already
+    // defined.", for e, π and τ, before "Cannot use 'x' for multiple parameters of this
+    // function." (captured 2026-10-20)
+    const constant = params.find((p) => p === "e" || p === "pi" || p === "tau");
+    if (constant !== undefined) {
+      return { head, error: rowError("parameter-defined", [displayName(constant)], null) };
+    }
     const names = repeated === undefined ? null : [displayName(repeated)];
-    // Desmos: "Cannot use 'x' for multiple parameters of this function." (captured 2026-10-20)
-    return { head, error: names === null ? null : rowError("repeated-parameter", names, null) };
+    if (names !== null) return { head, error: rowError("repeated-parameter", names, null) };
+    // Desmos: `f(x)=y` is "Try including 'y' as an argument by defining the function as
+    // 'f(x,y)'." (captured 2026-10-20)
+    const used = new Set(collectNameUses(body).map(({ name }) => name));
+    const free = ["x", "y"].find((c) => used.has(c) && !params.includes(c));
+    if (free === undefined) return { head, error: null };
+    const signature = `${displayName(left.name)}(${[...params, free].map(displayName).join(",")})`;
+    return { head, error: rowError("function-coordinate", [free, signature], null) };
   }
-  if (left.kind === "const") {
-    const head = valueHead(left.name, body, left.span);
-    return { head, error: rowError("reserved-name", [displayName(left.name)], null) };
-  }
+  // Desmos reads `e=1`, `\pi=3` and `\infty=1` as equations of constants, with no error and
+  // nothing drawn (captured 2026-10-20)
+  if (left.kind === "const") return { head: null, error: null };
   if (left.kind !== "id" || left.name === "x" || left.name === "y")
     return { head: null, error: null };
   if (left.name === "r" || left.name === "\\theta") {

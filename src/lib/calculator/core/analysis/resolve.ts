@@ -15,6 +15,8 @@ export interface Blocked {
 }
 export interface Resolution {
   isDefined(name: string): boolean;
+  baseCaseRecursion: ReadonlySet<string>; // recursive functions with an `n=c` base case: not graphed
+  isFunction(name: string): boolean; // some row's head, with or without an error, defines a function of that name
   coordinatesOf(tree: Node, locals: readonly string[]): ReadonlySet<string>; // ⊆ COORDINATE_NAMES, through definitions
   duplicates: ReadonlySet<string>; // names with two or more error-free heads
   cycles: ReadonlyMap<string, Blocked>; // each row id in a cycle and the cycle's error
@@ -43,7 +45,9 @@ interface DependencyGraph {
  * as locals (RC-4); cycles are safe.
  */
 export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
-  const defined = new Set(rows.flatMap((row) => declaredHead(row)?.name ?? []));
+  const declared = rows.flatMap((row) => declaredHead(row) ?? []);
+  const defined = new Set(declared.map((head) => head.name));
+  const functionNames = new Set(declared.flatMap((h) => (h.type === "function" ? h.name : [])));
   const heads: DefiningRow[] = rows.flatMap((row) =>
     row.head !== null && row.error === null && row.head.anonymous !== true
       ? [{ id: row.source.id, head: row.head }]
@@ -52,6 +56,7 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
   const duplicates = repeatedNames(heads.map(({ head }) => head.name)),
     graph = dependencyGraph(heads.filter(({ head }) => !duplicates.has(head.name))),
     cycles = cycleErrors(graph),
+    baseCaseRecursion = equalityBaseCases(graph),
     cyclicRows = new Set(cycles.keys());
   const arity = new Map(
     graph.rows.flatMap(({ id, head }) =>
@@ -63,6 +68,8 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
   const reached = reachedCoordinates(heads.map(({ head }) => head));
   return {
     isDefined: (name) => defined.has(name),
+    isFunction: (name) => functionNames.has(name),
+    baseCaseRecursion,
     coordinatesOf(tree, locals) {
       const found = new Set<string>();
       for (const { name, counted } of collectNameUses(tree)) {
@@ -74,7 +81,7 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
     },
     duplicates,
     cycles,
-    blocked: blockedNames(graph, duplicates, cycles),
+    blocked: withHeadErrors(blockedNames(graph, duplicates, cycles), rows),
     valueOrder: postOrder(graph).filter((id) => !cyclicRows.has(id)),
     functionArity: (name) => arity.get(name) ?? null,
   };
@@ -148,6 +155,7 @@ function cycleErrors(graph: DependencyGraph): Map<string, Blocked> {
   const errors = new Map<string, Blocked>();
   for (const component of components(graph)) {
     const members = component.map((v) => graph.rows[v]);
+    if (isRecursion(members.map(({ head }) => head))) continue;
     const error: Blocked = members.every(({ head }) => head.type === "function")
       ? functionCycle(graph, component)
       : {
@@ -159,6 +167,53 @@ function cycleErrors(graph: DependencyGraph): Map<string, Blocked> {
     for (const { id } of members) errors.set(id, error);
   }
   return errors;
+}
+
+/**
+ * Desmos's recursion (captured 2026-10-20): functions that call each other are a recursion, not a
+ * cycle error, when one of them can return without calling the group, through a piecewise branch
+ * (`f(n)=\{n=0:1,nf(n-1)\}`, Fibonacci, Ackermann). A group that calls itself on every path
+ * (`f(x)=f(x-1)`) stays an error, as does any cycle through a value.
+ */
+function isRecursion(heads: readonly DefinitionHead[]): boolean {
+  if (!heads.every((head) => head.type === "function")) return false;
+  const names = new Set(heads.map((head) => head.name));
+  return heads.some((head) => !alwaysCalls(head.body, names));
+}
+
+/**
+ * The functions of each recursion whose base case is an equation (`f(n)=\{n=0:1,nf(n-1)\}`):
+ * Desmos does not graph their rows (captured 2026-10-20), as they are defined at whole numbers.
+ */
+function equalityBaseCases(graph: DependencyGraph): Set<string> {
+  const found = new Set<string>();
+  for (const component of components(graph)) {
+    const heads = component.map((v) => graph.rows[v].head);
+    if (!isRecursion(heads)) continue;
+    const equation = heads.some((head) => {
+      const pending: Node[] = [head.body];
+      for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
+        if (node.kind === "piecewise" && node.branches.some((b) => b.cond.ops.includes("="))) {
+          return true;
+        }
+        pending.push(...sourceChildren(node));
+      }
+      return false;
+    });
+    if (equation) for (const head of heads) found.add(head.name);
+  }
+  return found;
+}
+
+/** True when every evaluation of `node` calls one of `names`. */
+function alwaysCalls(node: Node, names: ReadonlySet<string>): boolean {
+  if (node.kind === "call" && names.has(node.name)) return true;
+  if (node.kind === "piecewise") {
+    if (node.branches.length > 0 && alwaysCalls(node.branches[0].cond, names)) return true;
+    const values = [...node.branches.map((b) => b.value), node.otherwise];
+    return values.every((value) => value !== null && alwaysCalls(value, names));
+  }
+  return sourceChildren(node).some((child) => alwaysCalls(child, names));
 }
 
 function functionCycle(graph: DependencyGraph, component: number[]): Blocked {
@@ -227,6 +282,30 @@ function blockedNames(
       blocked.set(head.name, blocked.get(use.name)!);
       changed = true;
     }
+  }
+  return blocked;
+}
+
+/** Head errors Desmos repeats on every row that calls the function (captured 2026-10-20). */
+const SHARED_HEAD_ERRORS: ReadonlySet<RowErrorCode> = new Set([
+  "repeated-parameter",
+  "parameter-defined",
+  "function-coordinate",
+]);
+
+/**
+ * `blocked` with each function whose head has a SHARED_HEAD_ERRORS error: `f(1,2)` with
+ * `f(x,x)=x` reads "Cannot use 'x' for multiple parameters of this function.", as Desmos shows.
+ */
+function withHeadErrors(
+  blocked: Map<string, Blocked>,
+  rows: readonly ParsedRow[]
+): Map<string, Blocked> {
+  for (const row of rows) {
+    const { head, error } = row;
+    if (head === null || error === null || head.type !== "function") continue;
+    if (!SHARED_HEAD_ERRORS.has(error.code as RowErrorCode) || blocked.has(head.name)) continue;
+    blocked.set(head.name, { code: error.code as RowErrorCode, names: error.names });
   }
   return blocked;
 }

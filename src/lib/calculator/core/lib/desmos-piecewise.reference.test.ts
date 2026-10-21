@@ -3,9 +3,7 @@
 // ALL.values.json), plus the piecewise rows of the plan's capture that Desmos graphs. A key's rows
 // are separated by " ;; " or " ⟹ ", the last one being the case; " [degrees]" marks degree mode.
 // Not yet matched, each an expected failure that fails once matched, by the notation they use that
-// has not shipped: derivatives and integrals, the stored +∞ behind `invNorm(1)`'s undefined (NM-6
-// keeps one undefined state), recursion with a piecewise base case, `and` and `or`, `\sum` and
-// `polygon`.
+// has not shipped: derivatives and integrals, `and` and `or`, `\sum` and `polygon`.
 import { expect, it } from "vitest";
 import captured from "../../../../../docs/superpowers/plans/2026-10-19-calculator-phase2-desmos/desmos-reference-values.json";
 import { analyzeRows } from "../analysis";
@@ -18,8 +16,6 @@ type Captured = number | number[] | null | string;
 
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}|\\int/,
-  /invNorm/,
-  /^p\\left\(n\\right\)=/,
   /\\operatorname\{(and|or)\}/,
   /\\sum|polygon/,
 ];
@@ -42,7 +38,9 @@ function lastRow(rows: readonly string[], latex: string) {
 }
 
 function matches(v: Value, expected: number | null): boolean {
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -61,8 +59,8 @@ function sameValue(v: Value, expected: number | number[] | null): boolean {
 const VALUES = Object.entries(piecewise.values) as [string, Captured][];
 const ERRORS = Object.entries(piecewise.errors);
 
-it("PR-31 PR-32 all 33 catalogue piecewise values are checked, 24 matched", () =>
-  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([33, 24]));
+it("PR-31 PR-32 all 33 catalogue piecewise values are checked, 27 matched", () =>
+  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([33, 27]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {

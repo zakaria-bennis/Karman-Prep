@@ -13,6 +13,8 @@ export interface Complex {
  */
 export type ListErrorCode =
   | "nested-list"
+  | "nested-empty-list" // Desmos's own text for an empty list in a list, `[[]]`
+  | "sample-size" // `random(-1)`: a sample size that is negative or not finite
   | "list-too-long"
   | "range-step"
   | "list-mixed"
@@ -44,7 +46,7 @@ export const UNDEFINED: Value = Object.freeze({ type: "undefined" as const });
 
 /** A real value: non-finite → UNDEFINED; -0 stays -0 (only formatNumber shows it as 0). */
 export function numberValue(v: number): Value {
-  return Number.isFinite(v) ? { type: "number", value: v } : UNDEFINED;
+  return Number.isNaN(v) ? UNDEFINED : { type: "number", value: v };
 }
 
 /** A complex value: a non-finite part → UNDEFINED; a zero imaginary part gives a number (decision 7). */

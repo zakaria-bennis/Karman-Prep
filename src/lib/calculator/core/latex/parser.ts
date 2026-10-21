@@ -8,6 +8,8 @@ import { parseFactor } from "./atoms";
 import type { ParseError, ParseErrorCode } from "./errors";
 import type { ParseOptions } from "./index";
 import { MAX_NESTING_DEPTH } from "./limits";
+import { isFor, takeComprehension } from "./lists";
+import { checkMixedProduct } from "./mixed-numbers";
 import type { Token } from "./tokens";
 
 export interface ParserState {
@@ -40,6 +42,7 @@ const OPERATOR_COMMANDS: ReadonlySet<string> = new Set([
   "of",
   "sim",
   "ldots", // PR-34: the range ellipsis, read only inside list brackets
+  "for", // NM-37: the comprehension operator
   "}", // PR-31: the closing piecewise brace `\}`
 ]);
 
@@ -132,6 +135,7 @@ const INFIX_COMMANDS: Readonly<Record<string, string>> = {
   ge: "≥",
   of: "% of",
   with: "with",
+  for: "for",
 };
 
 /** True for the end of the row or a closing bracket, bar or brace. */
@@ -152,10 +156,15 @@ export function missingOperand(state: ParserState, token: Token): never {
   if (token.t === "symbol" && token.ch === "!") {
     return fail("operator-before", token.span, "nothing before !", "!");
   }
+  // Desmos: `^2`, `^{}`, `_2` and `_{1}` with nothing before them (captured 2026-10-20)
+  if (token.t === "symbol" && (token.ch === "^" || token.ch === "_")) {
+    const name = token.ch === "^" ? "superscript" : "subscript";
+    return fail("operator-before", token.span, `nothing before ${name}`, name);
+  }
   if (token.t === "symbol" && token.ch === "|") {
     return fail("unknown-symbol", token.span, "a raw bar", "|");
   }
-  if (isSim(token)) return fail("sim-side", token.span, "nothing before \\sim");
+  if (isSim(token)) return fail("sim-side", token.span, "nothing before \\sim", simSymbol(token));
   const misplaced = misplacedSymbol(token);
   if (misplaced !== null) {
     return fail("unexpected-symbol", token.span, "a misplaced symbol", misplaced);
@@ -220,12 +229,19 @@ export function parseRow(state: ParserState): Node {
   // PR-30: `L \sim M` (or `~`) is a whole row; an empty side is `sim-side`, and anything after M,
   // or a relation, is `syntax`.
   const first = peek(state);
-  if (isSim(first)) fail("sim-side", first.span, "nothing before \\sim");
+  if (isSim(first)) fail("sim-side", first.span, "nothing before \\sim", simSymbol(first));
   const operands = [parseSum(state)];
+  // NM-37: a whole row may be a comprehension without brackets, `n\operatorname{for}n=[1,2]`
+  if (isFor(peek(state))) {
+    const comprehension = takeComprehension(state, operands[0]);
+    const after = peek(state);
+    if (after.t !== "end") unexpectedAfterSum(state, after);
+    return comprehension;
+  }
   const sim = peek(state);
   if (isSim(sim)) {
     take(state);
-    if (peek(state).t === "end") fail("sim-side", sim.span, "nothing after \\sim");
+    if (peek(state).t === "end") fail("sim-side", sim.span, "nothing after \\sim", simSymbol(sim));
     const right = parseSum(state);
     const after = peek(state);
     if (after.t !== "end") fail("unexpected-symbol", sim.span, "more after a regression", "~");
@@ -313,7 +329,9 @@ function parseTerm(state: ParserState): Node {
       left = { kind, left, right: right.node, span: spanning(left, right.node) };
       factor = right.factor;
     } else if (startsFactor(state)) {
+      const before = factor;
       factor = parseFactor(state);
+      checkMixedProduct(state, before, factor);
       left = { kind: "mul", left, right: factor, span: spanning(left, factor) };
     } else {
       return left;
@@ -405,6 +423,11 @@ function checkChain(ops: readonly RelOp[], relop: { op: RelOp; span: SourceSpan 
   if ((relop.op === "=") !== (previous === "=")) {
     fail("relation-chain", relop.span, `"${relop.op}" cannot follow "${previous}" in a chain`);
   }
+}
+
+/** Desmos names a typed `~` as written and `\sim` as ∼ (captured 2026-10-20). */
+function simSymbol(token: Token): string {
+  return token.t === "symbol" ? "~" : "∼";
 }
 
 function isSim(token: Token): boolean {

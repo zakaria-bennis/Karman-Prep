@@ -7,7 +7,8 @@ import type { Node, SourceSpan } from "./ast";
 import { commandName } from "./command-names";
 import { displayGreek } from "./greek";
 import { isBuiltinCommand, parseBuiltinCall, parseMember, parseUserCall } from "./calls";
-import { failIfComprehension, parseIndex, parseList } from "./lists";
+import { parseIndex, parseList } from "./lists";
+import { takeMixedNumber } from "./mixed-numbers";
 import { isPiecewiseOpen, parsePiecewise } from "./piecewise";
 import {
   enter,
@@ -195,7 +196,13 @@ export function parseAtom(state: ParserState): Node {
   switch (token.t) {
     case "digits":
       take(state);
-      return { kind: "num", value: Number(token.text), span: token.span };
+      return (
+        takeMixedNumber(state, token) ?? {
+          kind: "num",
+          value: Number(token.text),
+          span: token.span,
+        }
+      );
     case "letter":
       return parseUserCall(state, parseLetter(state, token));
     case "open":
@@ -298,7 +305,8 @@ function parseGroup(state: ParserState, open: OpenToken): Node {
     return fail("point-arity", span, `a point has 2 coordinates, not ${parts.length}`);
   }
   if (parts.length === 2) return { kind: "point", x: parts[0], y: parts[1], span };
-  const group: Node = { ...parts[0], span };
+  const group: Node =
+    parts[0].kind === "num" ? { ...parts[0], span, grouped: true } : { ...parts[0], span };
   // PR-45: a `.` after a `(` group is member access on the whole group, `((1,2)+(3,4)).x`
   const dot = peek(state);
   if (open.ch !== "(" || dot.t !== "symbol" || dot.ch !== "." || isMemberBase(group)) return group;
@@ -456,6 +464,10 @@ function failIfLogicOutsideCondition(state: ParserState, command: Token): void {
 function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
   if (!startsFactor(state)) return missingOperand(state, peek(state));
   const token = take(state) as Extract<Token, { t: "command" }>;
+  // Desmos reads `\infty` (and `\infinity`) as the number ∞ (captured 2026-10-20)
+  if (token.name === "infty" || token.name === "infinity") {
+    return { kind: "const", name: "infty", span: token.span };
+  }
   if (token.name === "pi" || token.name === "tau") {
     // Desmos reads `\pi_{2}` as a name, like any letter with a subscript
     const next = peek(state);
@@ -472,7 +484,6 @@ function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
     }
     return { kind: "id", name, span: token.span };
   }
-  failIfComprehension(token);
   failIfLogicOutsideCondition(state, token);
   failIfLeadingWith(state, token);
   const [open, close] = [peek(state), peek(state, 1)];

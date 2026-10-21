@@ -38,7 +38,9 @@ function caseOf(key: string): Case {
 
 function matches(v: Value | undefined, expected: number | null): boolean {
   if (v === undefined) return false;
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -69,19 +71,14 @@ function errorMessage({ latex, rows, settings }: Case): string | undefined {
 }
 
 // Cases not yet matched, each an expected failure that fails once matched: derivatives, integrals,
-// sums and products; `\infty` as a value; the degree sign, which Desmos does not have (it reads
+// sums and products; the degree sign, which Desmos does not have (it reads
 // `\circ` and `\degree` as variables; PR-8 keeps it); complex mode ignoring the degree setting
-// for a real argument; Desmos's branch signs for arcsin, arccos, arccsc and arcsec on the real
-// axis outside their domain; and `\sin\cos(0)`, which Desmos asks to write with parentheses
-// (PR-24 reads it as sin(cos 0)).
+// for a real argument.
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}|'/,
   /\\int|\\sum|\\prod/,
-  /\\infty/,
   /\\circ|\\degree/,
-  /^\[complex\+deg\] \\[a-z]+\([0-9.,]+\)$/,
-  /^\[complex\] \\arc(sin|cos)\(2\)$|^\[complex\] \\arc(csc|sec)\(0\.5\)$/,
-  /^\\sin\\cos\(0\)$/,
+  /^\[complex\+deg\] \\(?!arcsin\(2\)$)[a-z]+\([0-9.,]+\)$/,
 ];
 const gap = (key: string) => GAPS.some((g) => g.test(key));
 
@@ -120,8 +117,8 @@ const EXACT = VALUES.filter(
     /^(\[deg\] )?\\(arc)?(sin|cos|tan|csc|sec|cot)(\^\{-1\})?\([^()]*\)$/.test(key) && !gap(key)
 );
 
-it("NM-4 NM-26 NM-28 all 217 real trig values of numbers are checked exactly", () =>
-  expect(EXACT.length).toBe(217));
+it("NM-4 NM-26 NM-28 all 227 real trig values of numbers are checked exactly", () =>
+  expect(EXACT.length).toBe(227));
 
 for (const [key, expected] of EXACT) {
   it(`NM-4 NM-26 NM-28 ${key} is exactly ${JSON.stringify(expected)}`, () => {

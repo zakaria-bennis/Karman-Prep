@@ -323,7 +323,8 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
     "mixed-variables", // x+y
     "sim-side", // \sim with nothing on either side (PR-30: a half-typed regression)
   ]);
-  expect(rows[7].value).toEqual({ type: "undefined" });
+  expect(rows[7].value).toEqual({ type: "number", value: Infinity }); // 1/0 is +∞, as in Desmos
+  expect(rows[7].valueText).toBe("undefined");
   for (const r of rows.filter((r) => r.error))
     expect(r.error!.message).toBe(rowErrorMessage(r.error!.code as RowErrorCode, r.error!.names));
   expect(() => m.engine.setExpression({ id: 5 } as unknown as ExpressionState)).toThrow(

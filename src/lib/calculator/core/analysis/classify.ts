@@ -18,6 +18,9 @@ import type { Resolution } from "./resolve";
 
 type Call = Extract<Node, { kind: "call" }>;
 
+/** The complex-number built-ins, which Desmos offers only in complex mode. */
+const COMPLEX_ONLY: ReadonlySet<string> = new Set(["real", "imag", "conj", "arg"]);
+
 /**
  * Classifies one parsed row: a definition by its head (RC-4, RC-5, RC-6), every other row by
  * `shapeOf`, with 's error order. A row with an error keeps its tree, `defines` and
@@ -53,6 +56,15 @@ export function classifyRow(
   }
   // PR-30, D-2: a regression row; regression-analysis.ts adds its parameters and errors.
   if (row.tree.kind === "sim") return { ...analysis, kind: "regression", uses };
+  // Desmos: "The 'real' function is only available in complex mode." (captured 2026-10-20)
+  // (with one argument: `\operatorname{real}()` is the arity error first)
+  const complexOnly = settings.complex
+    ? undefined
+    : callsOf(scope).find((c) => COMPLEX_ONLY.has(c.name) && c.args.length === 1);
+  if (complexOnly !== undefined) {
+    const error = rowError("complex-only", [complexOnly.name], complexOnly.span);
+    return { ...analysis, kind: "error", error, uses };
+  }
   const conflict = conflictError(row, scope, locals, resolution);
   if (conflict !== null) return { ...analysis, kind: "error", error: conflict, uses };
   const shape =
@@ -76,8 +88,9 @@ export function classifyRow(
   // a curve whose value is a point or points (`y=(1,2)x`) is neither graphed nor marked (Desmos,
   // 2026-10-20)
   const pointCurve = shape.graph?.kind === "explicit" && pointValued(shape.graph.expr, typing);
+  const baseCase = row.head !== null && resolution.baseCaseRecursion.has(row.head.name);
   const isGraphable =
-    shape.graph !== null && !pointCurve && chips.length === 0 && !row.source.hidden;
+    shape.graph !== null && !pointCurve && !baseCase && chips.length === 0 && !row.source.hidden;
   const coordinates = resolution.coordinatesOf(row.tree, []).size > 0;
   return {
     ...analysis,
@@ -98,7 +111,8 @@ export function classifyRow(
 }
 
 /**
- * 's errors after the head errors and before the shape errors, in order: a row in a cycle
+ * 's errors after the head errors and before the shape errors, in order: a function's name
+ * used without a call; a row in a cycle
  * (RC-8); the first call, in source order, with a count its function does not take (RC-20); the
  * first use of a name defined twice, in a cycle, or defined through one of those (RC-7, RC-8),
  * with that name's error. As in Desmos, the rows that define a name twice are not marked: only
@@ -111,6 +125,14 @@ function conflictError(
   locals: readonly string[],
   resolution: Resolution
 ): RowError | null {
+  // Desmos: a function's name used as a value, `f`, `f+1`, `f 3`, `f^{2}(3)` or `f(x)=f`, is
+  // "'f' is a function. Try using parentheses." (captured 2026-10-20), before any cycle
+  const bare = collectNameUses(scope).find(
+    ({ name, call }) => !call && !locals.includes(name) && resolution.isFunction(name)
+  );
+  if (bare !== undefined) {
+    return rowError("function-parentheses", [displayName(bare.name)], bare.span);
+  }
   const cycle = resolution.cycles.get(row.source.id);
   if (cycle !== undefined) return rowError(cycle.code, cycle.names, null);
   const arity = arityError(scope, resolution);

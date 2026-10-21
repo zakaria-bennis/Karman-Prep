@@ -79,3 +79,8 @@ function gcd(a: bigint, b: bigint): bigint {
   while (b !== ZERO) [a, b] = [b, a % b];
   return a === ZERO ? ONE : a;
 }
+
+/** a · b, or null when the result does not fit. */
+export function mulFractions(a: Fraction, b: Fraction): Fraction | null {
+  return reduced(BigInt(a.n) * BigInt(b.n), BigInt(a.d) * BigInt(b.d));
+}

@@ -6,7 +6,7 @@ export interface SourceSpan {
 } // UTF-16 offsets into normalizeLatex(input)
 export type RelOp = "=" | "<" | ">" | "<=" | ">=";
 export type InequalityOp = Exclude<RelOp, "=">;
-export type ConstName = "e" | "pi" | "tau";
+export type ConstName = "e" | "pi" | "tau" | "infty"; // `\infty`: Infinity, shown as undefined
 /** PR-45, NM-32: a coordinate member, `P.x`; points have two, so `.z` is an error. */
 export type Axis = "x" | "y" | "z";
 /** A relation or chain, `operands.length === ops.length + 1` (G12, PR-29). */
@@ -21,8 +21,22 @@ export interface Branch {
   cond: Relation;
   value: Node | null;
 }
+/** A mixed number's written parts: whole `2`, numerator `1`, denominator `2` for `2\frac{1}{2}`. */
+export interface MixedNumber {
+  whole: string;
+  numerator: string;
+  denominator: string;
+}
+/** NM-37: one `n=L` of a comprehension. */
+export interface Binding {
+  name: string;
+  list: Node;
+  span: SourceSpan;
+}
 export type Node =
-  | { kind: "num"; value: number; span: SourceSpan }
+  // `mixed`: a mixed number `2\frac{1}{2}` (2.5), as Desmos reads one (mixed-numbers.ts);
+  // `grouped`: written in brackets, `(2)`, so no literal (a row of it shows its value)
+  | { kind: "num"; value: number; span: SourceSpan; mixed?: MixedNumber; grouped?: true }
   | { kind: "id"; name: string; span: SourceSpan } // "x", "A", "a_{1}", "v_{max}", "\\alpha", "e_{3}"
   | { kind: "const"; name: ConstName; span: SourceSpan }
   | { kind: "add" | "sub" | "mul" | "div" | "pow"; left: Node; right: Node; span: SourceSpan }
@@ -54,7 +68,10 @@ export type Node =
   | { kind: "sim"; left: Node; right: Node; span: SourceSpan } // PR-30, D-2: a regression row L ~ M
   // PR-31, PR-32: `\{c_1:v_1,c_2,…,v\}`, its parts with a condition in order and the bare last
   // value (the otherwise case) or null. A restriction is a product with one (`y=x\{x>0\}`).
-  | { kind: "piecewise"; branches: Branch[]; otherwise: Node | null; span: SourceSpan };
+  | { kind: "piecewise"; branches: Branch[]; otherwise: Node | null; span: SourceSpan }
+  // NM-37: `[body \operatorname{for} n=L, m=M]`, every combination with the first name varying
+  // fastest; the names are local to the body. `brackets`: written inside `[…]`.
+  | { kind: "for"; body: Node; bindings: Binding[]; brackets: boolean; span: SourceSpan };
 
 export const isAxis = (name: string): name is Axis => name === "x" || name === "y" || name === "z";
 
@@ -103,6 +120,8 @@ export function sourceChildren(node: Node): readonly Node[] {
         ...node.branches.flatMap(({ cond, value }) => (value === null ? [cond] : [cond, value])),
         ...(node.otherwise === null ? [] : [node.otherwise]),
       ];
+    case "for":
+      return [node.body, ...node.bindings.map((b) => b.list)];
   }
 }
 
@@ -157,6 +176,10 @@ export function toSExpr(tree: Node): string {
       if (tree.otherwise !== null) parts.push(toSExpr(tree.otherwise));
       return `(${["piecewise", ...parts].join(" ")})`;
     }
+    case "for": {
+      const bindings = tree.bindings.map((b) => `(${b.name} ${toSExpr(b.list)})`);
+      return `(${["for", toSExpr(tree.body), ...bindings].join(" ")})`;
+    }
     case "rel": {
       const ops = tree.ops.length === 1 ? tree.ops[0] : `(${tree.ops.join(" ")})`;
       return `(${["rel", ops, ...tree.operands.map(toSExpr)].join(" ")})`;
@@ -185,9 +208,11 @@ function sameIgnoringSpans(a: unknown, b: unknown): boolean {
   }
   const left = a as Record<string, unknown>;
   const right = b as Record<string, unknown>;
-  const keys = Object.keys(left).filter((k) => k !== "span");
+  // a span and a number's brackets (`grouped`) are how the source wrote the tree
+  const shape = (k: string) => k !== "span" && k !== "grouped";
+  const keys = Object.keys(left).filter(shape);
   return (
-    keys.length === Object.keys(right).filter((k) => k !== "span").length &&
+    keys.length === Object.keys(right).filter(shape).length &&
     keys.every((k) => k in right && sameIgnoringSpans(left[k], right[k]))
   );
 }

@@ -80,6 +80,9 @@ function readPart(state: ParserState): Part {
   }
   if (left.kind !== "rel") fail("colon-condition", left.span, "the left of ':' is not a condition");
   const value = parseSum(state);
+  // Desmos: a second `:` in one part, `\{x>0:1:2\}` (captured 2026-10-20)
+  const extra = peek(state);
+  if (isSymbol(extra, ":")) fail("unexpected-symbol", extra.span, "a second ':'", ":");
   return { cond: left, value, span: { start: left.span.start, end: value.span.end } };
 }
 

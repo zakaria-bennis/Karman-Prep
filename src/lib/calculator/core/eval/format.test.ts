@@ -25,7 +25,8 @@ it("NM-1, NM-2, NM-3, NM-6 numbers: 12 significant digits, plain or m×10^n, no 
     [-Infinity, "undefined"],
   ];
   for (const [v, s] of rows) expect(formatNumber(v), String(v)).toBe(s);
-  expect([numberValue(Infinity), complexValue(NaN, 1), complexValue(3, 0)]).toEqual([
+  // ±∞ is a value (Desmos keeps 1/0 as +∞) that shows as undefined; NaN is undefined
+  expect([numberValue(NaN), complexValue(NaN, 1), complexValue(3, 0)]).toEqual([
     UNDEFINED,
     UNDEFINED,
     n(3),
@@ -36,7 +37,7 @@ it("NM-5, NM-20 points show (a, b) and complex values a+bi with negligible parts
   const points: [[number, number], string][] = [
     [[1, 2], "(1, 2)"],
     [[1 / 3, 2 ** 40], "(0.333333333333, 1.09951162778×10^12)"],
-    [[1, NaN], "(1, undefined)"],
+    [[1, NaN], "undefined"], // Desmos shows such a point as one undefined (2026-10-20)
   ];
   for (const [value, s] of points) expect(formatValue({ type: "point", value })).toBe(s);
   const complex: [number, number, string][] = [

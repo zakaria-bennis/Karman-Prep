@@ -109,12 +109,14 @@ export function ctanh(z: Complex): Complex {
 }
 
 /**
- * casin(z) = −i·Ln(iz + √(1 − z²)). On the cut (im zero, read as +0, and |re| > 1) the C99 value
- * is (sign(re)·π/2, acosh|re|).
+ * casin(z) = −i·Ln(iz + √(1 − z²)) with the principal Ln and √, as Desmos computes it (captured
+ * 2026-10-20): on the cut (im zero and |re| > 1) that is (sign(re)·π/2, −sign(re)·acosh|re|), so
+ * arcsin(2) = π/2 − 1.317i and arcsin(−2) = −π/2 + 1.317i (C99's casin gives +1.317i for both).
  */
 export function casin(z: Complex): Complex {
   if (z.im === 0 && Math.abs(z.re) > 1) {
-    return { re: Math.sign(z.re) * HALF_PI, im: Math.acosh(Math.abs(z.re)) };
+    const s = Math.sign(z.re);
+    return { re: s * HALF_PI, im: -s * Math.acosh(Math.abs(z.re)) };
   }
   const iz = cmul(C_I, z);
   const w = cln(cadd(iz, csqrt(csub(ONE, cmul(z, z)))));

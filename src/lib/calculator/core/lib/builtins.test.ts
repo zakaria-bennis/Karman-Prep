@@ -66,8 +66,12 @@ it("FN-4 every built-in returns undefined outside its domain, shows undefined an
     ["log", [5, 1]],
     ["sin", [1, 2]],
   ];
-  for (const [name, args] of outside)
-    expect([f(name, args), formatValue(f(name, args))], name).toEqual([UNDEFINED, "undefined"]);
+  for (const [name, args] of outside) {
+    // undefined, or ±∞ (exp(1000), ln(0)), which Desmos keeps as a value and shows as undefined
+    const v = f(name, args);
+    const shown = v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
+    expect([shown, formatValue(v)], name).toEqual([true, "undefined"]);
+  }
   for (const name of BUILTINS.keys())
     expect(applyBuiltin(name, [UNDEFINED], "radians", false), name).toEqual(UNDEFINED);
   expect(applyBuiltin("sin", [{ type: "point", value: [1, 2] }], "radians", false)).toEqual(

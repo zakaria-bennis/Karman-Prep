@@ -53,7 +53,9 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number; rows?: string[]
 ];
 
 function matches(v: Value, expected: number | null): boolean {
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -154,9 +156,9 @@ function sameValue(v: Value, expected: CatalogueValue, complex: boolean): boolea
   );
 }
 
-// Catalogue values not yet matched, each an expected failure that fails once matched: `\infty`
-// is not a value yet (the calculator reads it as undefined), so an infinite base is too.
-const CATALOGUE_VALUE_GAP: ReadonlySet<string> = new Set(["\\log_{\\infty}(5)"]);
+// Catalogue values not yet matched, each an expected failure that fails once matched (none now:
+// `\infty` is a value, so an infinite base works too).
+const CATALOGUE_VALUE_GAP: ReadonlySet<string> = new Set<string>([]);
 
 it("NM-36 FN-60 all 90 catalogue values for ranges, log and ln are checked", () =>
   expect(CATALOGUE_VALUES.length).toBe(90));
@@ -229,12 +231,10 @@ function sameIndexValue(v: Value, expected: Captured): boolean {
   );
 }
 
-// Index values not yet matched, each an expected failure that fails once matched: `and`, `or`
-// and comprehensions (NM-37) have not shipped.
+// Index values not yet matched, each an expected failure that fails once matched: `and` and `or`
+// have not shipped.
 const INDEX_VALUE_GAP: ReadonlySet<string> = new Set([
   "L[L>3 \\operatorname{and} L<9]",
-  "[L[i] \\operatorname{for} i=[1...3]]",
-  "[i^2 \\operatorname{for} i=[1...3]][2]",
   "L[(L>3) \\operatorname{or} (L<2)]",
 ]);
 
@@ -333,7 +333,7 @@ for (const [key, message] of Object.entries(RELATED.errors)) {
 
 // G9, PR-27, FN-5: every catalogue value and error for square and nth roots
 // (desmos-root.fixture.json), keyed as the catalogue's. Not yet matched, each an expected failure
-// that fails once matched: the name `\operatorname{sqrt}` and `real` (not shipped), a bare `[`
+// that fails once matched: the name `\operatorname{sqrt}`, a bare `[`
 // inside the index (normalizing drops `\left` and `\right`, so `\sqrt[[2,3]]{64}` reads as the
 // `\left[` spelling, which is [8, 4] in Desmos too) and `\sqrt(4)`, which the calculator reads
 // as a pasted `sqrt(4)`.
@@ -341,7 +341,6 @@ const ROOT_VALUES = Object.entries(roots.values) as [string, CatalogueValue][];
 const ROOT_ERRORS = Object.entries(roots.errors);
 const ROOT_VALUE_GAP: ReadonlySet<string> = new Set([
   "\\operatorname{sqrt}(4)",
-  "[complex] \\operatorname{real}(\\sqrt{-4})",
   "[complex] \\operatorname{sqrt}(4)",
 ]);
 const ROOT_ERROR_GAP: ReadonlySet<string> = new Set([
@@ -394,9 +393,8 @@ function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): bo
 // Statistics cases not yet matched, each an expected failure that fails once matched, by the
 // notation they use that has not shipped: derivatives, colours and tones, distributions other than
 // normaldist, tdist and binomialdist (FN-45 to FN-51), member access other than theirs and
-// coordinates (`L.\operatorname{mean}`), comprehensions and matrices, shuffle and random (T14), polygon,
-// boxplot and stats, `\arg` (complex mode), `\infty` as a value, a stored +∞ behind undefined
-// (`\arctan` of tdist(2)'s infinite stdev; NM-6 keeps one undefined state), and `y=` rows, which
+// coordinates (`L.\operatorname{mean}`), comprehensions and matrices, polygon,
+// boxplot and stats, `\arg` (complex mode), and `y=` rows, which
 // Desmos gives a value when the right side is constant (`y=\operatorname{count}(x,1,2)` = 3) and
 // the calculator graphs as a line without one.
 const STATISTICS_GAPS: readonly RegExp[] = [
@@ -404,10 +402,9 @@ const STATISTICS_GAPS: readonly RegExp[] = [
   /\\operatorname\{(rgb|hsv|okhsv|oklab|oklch|tone)\}/,
   /dist\}/,
   /\.\\operatorname/,
-  /\\operatorname\{for\}|bmatrix/,
-  /\\operatorname\{(shuffle|random|polygon|boxplot|stats)\}/,
+  /bmatrix|\\operatorname\{for\}.*;/, // matrices, `[… \operatorname{for} i=…;j=…]` among them
+  /\\operatorname\{(polygon|boxplot|stats)\}/,
   /\\arg/,
-  /\\infty/,
   /^y=/,
 ];
 const SHIPPED_DISTRIBUTIONS = /\\operatorname\{(normaldist|tdist|binomialdist)\}/;
@@ -425,15 +422,15 @@ const MATCHED: ReadonlySet<string> = new Set([
 const statisticsGap = (key: string) =>
   !MATCHED.has(key) &&
   STATISTICS_GAPS.some((gap) => gap.test(key)) &&
-  !(SHIPPED_DISTRIBUTIONS.test(key) && !/\\arctan/.test(key));
+  !SHIPPED_DISTRIBUTIONS.test(key);
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 345 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 356 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 345]));
+  ]).toEqual([438, 356]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -451,16 +448,20 @@ for (const [key, expected] of STATISTICS_VALUES) {
 
 const STATISTICS_ERRORS = Object.entries(statistics.errors);
 
-it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 65 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 75 catalogue statistics errors are checked, 66 matched", () =>
   expect([
     STATISTICS_ERRORS.length,
     STATISTICS_ERRORS.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([75, 65]));
+  ]).toEqual([75, 66]));
 
 for (const [key, message] of STATISTICS_ERRORS) {
   const check = () => {
     const { latex, rows, complex } = statisticsCase(key);
-    expect(errorMessage(rows, latex, complex)).toBe(message);
+    // a list error found while evaluating counts too (NM-35: a comprehension that is too long)
+    const v = evaluateLatex(latex, { rows, settings: { complex } });
+    const carried = v.type === "undefined" && v.error !== undefined ? v.error : null;
+    const shown = errorMessage(rows, latex, complex) ?? (carried && rowErrorMessage(carried, []));
+    expect(shown).toBe(message);
   };
   if (statisticsGap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`FN-2 FN-23 FN-29 FN-75 ${key} reads "${message}", as in Desmos`, check);
@@ -494,16 +495,14 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
 // (desmos-list-operations.fixture.json), keyed and evaluated as the statistics cases. A row's
 // error is its analysis error or, as the row shows it, the error its value carries
 // (`repeat(1,2.5)`). Not yet matched, each an expected failure that fails once matched:
-// derivatives, colours and tones, member access other than coordinates, actions (`\to`) and
-// shuffle (T14); frequency, which Desmos does not define, so its errors need multi-letter names;
-// and `[0.1+0.2,0.3]`, whose constant sum Desmos folds exactly to 0.3.
+// derivatives, colours and tones, member access other than coordinates and actions (`\to`);
+// frequency, which Desmos does not define, so its errors need multi-letter names.
 const LIST_OPERATION_GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
-  /\\operatorname\{(rgb|tone|shuffle|frequency)\}/,
+  /\\operatorname\{(rgb|tone|frequency)\}/,
   /\.\\operatorname|\\to/,
-  /0\.1\+0\.2/,
 ];
-const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set(["\\operatorname{shuffle}(E)"]);
+const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set<string>([]);
 const listOperationGap = (key: string) =>
   !MATCHED.has(key) && LIST_OPERATION_GAPS.some((gap) => gap.test(key));
 const LIST_OPERATION_VALUES = Object.entries(listOperations.values) as [string, Captured][];
@@ -516,11 +515,11 @@ function shownError(rows: readonly string[], latex: string): string | undefined 
   return errorMessage(rows, latex) ?? (carried === null ? undefined : rowErrorMessage(carried, []));
 }
 
-it("FN-30 FN-38 all 136 catalogue list operation values are checked, 123 matched", () =>
+it("FN-30 FN-38 all 136 catalogue list operation values are checked, 125 matched", () =>
   expect([
     LIST_OPERATION_VALUES.length,
     LIST_OPERATION_VALUES.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([136, 123]));
+  ]).toEqual([136, 125]));
 
 for (const [key, expected] of LIST_OPERATION_VALUES) {
   const check = () => {
@@ -534,11 +533,11 @@ for (const [key, expected] of LIST_OPERATION_VALUES) {
   else it(`FN-30 FN-38 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 149 matched", () =>
+it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 152 matched", () =>
   expect([
     LIST_OPERATION_ERRORS.length,
     LIST_OPERATION_ERRORS.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([157, 149]));
+  ]).toEqual([157, 152]));
 
 for (const [key, message] of LIST_OPERATION_ERRORS) {
   const check = () => {

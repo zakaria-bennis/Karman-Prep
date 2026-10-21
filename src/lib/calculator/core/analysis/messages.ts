@@ -53,7 +53,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "relation-side": "You need something on both sides of the '{n}' symbol.",
   "too-many-nodes": "This row is too long to evaluate. Split it into smaller definitions.",
   "too-deep": "This row is nested too deeply.",
-  "sim-side": "You need something on both sides of the '∼' symbol.",
+  "sim-side": "You need something on both sides of the '{n}' symbol.", // ~ or ∼, as written
   "function-parentheses": "'{n}' is a function. Try using parentheses.",
   "argument-parentheses": "Use parentheses around the argument of '{n}'.",
   "comma-side": "You need something on both sides of the ',' symbol.",
@@ -71,6 +71,9 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "recursive-cycle": "The definitions of functions {n} depend on each other.",
   "implicit-variables": "We only support implicit equations of x and y.",
   "repeated-parameter": "Cannot use '{n}' for multiple parameters of this function.",
+  "function-coordinate": "Try including '{n}' as an argument by defining the function as '{k}'.",
+  "parameter-defined":
+    "You can't use '{n}' as a parameter of this function because '{n}' is already defined.",
   "equation-required": "Try adding '{n}' to the beginning of this equation.",
   "reserved-name": "{n} is reserved and can't be redefined.",
   arity: "Function '{n}' requires {k} arguments.", // arityMessage gives the full text
@@ -84,6 +87,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "regression-params": "A regression can fit at most 8 parameters.",
   "regression-fit": "We couldn't find any region where this model is defined.",
   "nested-list": "Cannot store a list of numbers in a list.",
+  "sample-size": "Sample size must be a finite, non-negative number.", // Desmos, 2026-10-20
+  "nested-empty-list": "Cannot store an empty list in a list.", // Desmos, 2026-10-20
   "list-too-long": "Lists may not have more than 10,000 elements.",
   "range-step": "Ranges must be arithmetic sequences.",
   "list-mixed": "All elements of a list must have the same type.",
@@ -150,6 +155,12 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "subscript-target": "Only functions and variables may have subscripts.",
   "adjacent-numbers":
     "Sorry, I don't know what to do with adjacent numbers '{n}' and '{k}'. Try using parentheses or a '*' symbol.",
+  "for-duplicate": "You can't define '{n}' more than once on the right-hand side of 'for'.",
+  "for-ambiguous": "Ambiguous use of ',' and 'for'. Add parentheses around the 'for' expression.",
+  "for-list":
+    "A definition on the right-hand side of 'for' must be a list, but {n} is a number. Try {n}=[{k}].",
+  "mixed-number":
+    "Sorry, I don't know what to do with mixed number '{n}'. Try using a '*' symbol around it.",
   "number-dot": "Sorry, I don't understand this use of '.' after a constant number.",
   "point-3d": "This calculator cannot plot a 3d point.",
   "percent-of": "'%' must be used with 'of'. Try '25% of 12'.",

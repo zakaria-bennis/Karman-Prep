@@ -118,20 +118,32 @@ const RULES: ReadonlyMap<string, Rule> = new Map<string, Rule>([
     {
       angle: "none",
       extendsToComplex: true,
-      real: (args) => (args[0] > 0 ? Math.log(args[0]) : NaN),
+      real: (args) => (args[0] > 0 ? Math.log(args[0]) : args[0] === 0 ? -Infinity : NaN),
       complex: (args) => cln(args[0]),
     },
   ],
   ["log", { angle: "none", extendsToComplex: true, real: realLog, complex: complexLog }],
+  // complex mode only (Desmos, captured 2026-10-20); arg is in radians whatever the angle unit
+  ...(
+    [
+      ["real", (x) => x, (z) => ({ re: z.re, im: 0 })],
+      ["imag", () => 0, (z) => ({ re: z.im, im: 0 })],
+      ["conj", (x) => x, (z) => ({ re: z.re, im: -z.im })],
+      ["arg", (x) => Math.atan2(0, x), (z) => ({ re: Math.atan2(z.im, z.re), im: 0 })],
+    ] as [string, (x: number) => number, (z: Complex) => Complex][]
+  ).map(([name, real, complex]): [string, Rule] => [
+    name,
+    {
+      angle: "none",
+      extendsToComplex: false,
+      real: (args) => real(args[0]),
+      complex: (args) => complex(args[0]),
+    },
+  ]),
   ...HYPERBOLIC_RULES,
   ...NUMBER_THEORY_RULES,
   ...PROBABILITY_RULES,
 ]);
-
-/** A real result: a non-finite value (overflow, a pole) is NaN, which means undefined. */
-function finite(v: number): number {
-  return Number.isFinite(v) ? v : NaN;
-}
 
 /** Every shipped built-in with its BUILTIN_ARITY counts, in allowlist order. */
 export const BUILTINS: ReadonlyMap<string, BuiltinFunction> = new Map(
@@ -143,8 +155,9 @@ export const BUILTINS: ReadonlyMap<string, BuiltinFunction> = new Map(
       arity,
       angle: rule.angle,
       extendsToComplex: rule.extendsToComplex,
+      // ±∞ is kept, as Desmos keeps it (`\arctan(e^{1000})` is π/2); NaN is undefined
       real: (args: readonly number[], angleMode: "radians" | "degrees") =>
-        finite(rule.real(args, angleMode)),
+        rule.real(args, angleMode),
       complex: rule.complex,
     });
     return [[name, fn] as const];

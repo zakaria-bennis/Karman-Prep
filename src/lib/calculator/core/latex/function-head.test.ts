@@ -23,8 +23,12 @@ it("PR-23 functionDefinitionHead finds f(p1,…,pn)= heads for single letters", 
       "f(xy)=1",
       "ln(x)=2",
       "",
-      "\\alpha(x)=x",
       "f(\\theta)=\\theta",
     ].map(functionDefinitionHead)
-  ).toEqual(Array(10).fill(null)); // the last two: G15, Latin-only heads
+  ).toEqual(Array(9).fill(null)); // the last: a Greek parameter
+  // Desmos takes a Greek name, `\omega(x)=x^2`, and π or τ as a parameter only to refuse it
+  expect(["\\alpha(x)=x", "f(\\pi)=1"].map(functionDefinitionHead)).toEqual([
+    { name: "\\alpha", params: ["x"] },
+    { name: "f", params: ["pi"] },
+  ]);
 });

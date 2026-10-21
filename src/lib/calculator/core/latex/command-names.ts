@@ -15,8 +15,6 @@ const UNSHIPPED: ReadonlySet<string> = new Set([
   "sum",
   "prod",
   "int",
-  "infty",
-  "infinity",
   "nthroot",
   "to",
   "end",

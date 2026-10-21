@@ -30,7 +30,10 @@ function closerOf(token: Token): string | null {
  */
 export function delimiterError(tokens: readonly Token[]): ParseError | null {
   const open: { opener: Opener; token: Token }[] = [];
+  let previous: Token | null = null;
   for (const token of tokens) {
+    const before = previous;
+    previous = token;
     const opener = openerOf(token);
     if (opener !== null) {
       open.push({ opener, token });
@@ -43,7 +46,10 @@ export function delimiterError(tokens: readonly Token[]): ParseError | null {
       open.pop();
       continue;
     }
-    return unpaired(top?.opener ?? PARTNER[closer], top?.token ?? token);
+    // a wrong closer right after its opener names the closer's own partner: `(]` and
+    // `\left[\left(\right]` read "Expected '[' to match ']'.", `(1]` "Expected '(' …"
+    if (top === undefined || top.token === before) return unpaired(PARTNER[closer], token);
+    return unpaired(top.opener, top.token);
   }
   const top = open[open.length - 1];
   return top === undefined ? null : unpaired(top.opener, top.token);

@@ -56,7 +56,7 @@ it("NM-42, API-13 at 100 rows setExpression throws invalid-argument for a new id
 it("NM-42 tree-node, nesting-depth and parameter limits give row errors", () => {
   e.setExpressions([
     { id: "n", latex: "1+".repeat(1000) + "1" },
-    { id: "d", latex: "\\sqrt{".repeat(65) + "x" + "}".repeat(65) },
+    { id: "d", latex: "\\sqrt{".repeat(257) + "x" + "}".repeat(257) },
     { id: "p", latex: "f(a,b,c,d,g,h,k,m,n)=1" },
   ]);
   expect(

@@ -85,10 +85,11 @@ it("RC-9 evaluateRows follows dependency order and skips a row whose deadline ex
   expect([late.has("r1"), late.get("r0"), late.get("r2")]).toEqual([false, UNDEFINED, n(1)]);
 });
 it("NM-9 later rows and conditions use the full double, not the displayed value", () =>
-  expect([evaluateLatex("a-0.3", { rows: ["a=0.1+0.2"] }), value("0.1+0.2>0.3")]).toEqual([
-    n(5.551115123125783e-17),
-    n(1),
-  ]));
+  // constants of literals fold exactly first (MATHS-CORE-1): a is exactly 0.3, as in Desmos
+  expect([
+    evaluateLatex("a-0.3", { rows: ["a=0.1+0.2"] }),
+    evaluateLatex("a-2", { rows: ["a=\\sqrt{2}^{2}"] }),
+  ]).toEqual([n(0), n(2 ** 0.5 * 2 ** 0.5 - 2)]));
 it("NM-12 division by zero, bad logs, even roots, inverse-trig domains and poles are undefined", () => {
   for (const l of [
     "\\frac{1}{0}",
@@ -105,8 +106,13 @@ it("NM-12 division by zero, bad logs, even roots, inverse-trig domains and poles
     "\\sec(\\frac{\\pi}{2})",
     "\\csc(0)",
     "\\cot(0)",
-  ])
-    expect(evaluateLatex(l), l).toEqual(UNDEFINED);
+  ]) {
+    // undefined, or ±∞, which shows as undefined (Desmos keeps 1/0 as +∞, captured 2026-10-20)
+    const v = evaluateLatex(l);
+    expect(v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value)), l).toBe(
+      true
+    );
+  }
 });
 it("NM-21 complex-mode curves plot only where the value is real", () => {
   const f = (l: string) => compileRealFunction1(tree(l), "x", empty(CX)),
@@ -150,10 +156,13 @@ it("NM-27 the degree sign converts, and a degree trig argument is Desmos's degre
     n(30),
   ]);
 });
-it("FN-17 complex mode uses principal branches, keeps real-mode values and plots only real points", () => {
-  expect(
-    ["(-8)^{\\frac{1}{3}}", "\\ln(-1)", "2+3"].map((l) => evaluateLatex(l, { settings: CX }))
-  ).toEqual([n(-2), { type: "complex", value: { re: 0, im: P } }, n(5)]);
+it("FN-17 complex mode uses principal branches and plots only real points", () => {
+  const cube = evaluateLatex("(-8)^{\\frac{1}{3}}", { settings: CX }); // 1+1.732i, as in Desmos
+  expect(cube.type === "complex" && Math.abs(cube.value.im - Math.sqrt(3)) < 1e-12).toBe(true);
+  expect(["\\ln(-1)", "2+3"].map((l) => evaluateLatex(l, { settings: CX }))).toEqual([
+    { type: "complex", value: { re: 0, im: P } },
+    n(5),
+  ]);
   expect(compileRealFunction1(tree("\\ln(x)"), "x", empty(CX))(-1)).toBeNaN();
 });
 // toBe is Object.is: both paths keep -0 (Conventions), and NaN equals NaN
@@ -164,8 +173,9 @@ it("NM-21 the real plotting path agrees with compileExpression on every real-mod
     if (c.rows || c.settings?.complex || !("latex" in c.input)) continue;
     const s: EvalSettings = { angleMode: c.settings?.angleMode ?? "radians", complex: false },
       t = tree(c.input.latex);
+    const general = toPlotNumber(compileExpression(t, empty(s))({}, NO_DEADLINE));
     expect(compileRealFunction1(t, "x", empty(s))(0), c.id).toBe(
-      toPlotNumber(compileExpression(t, empty(s))({}, NO_DEADLINE))
+      Number.isFinite(general) ? general : NaN
     );
   }
 });

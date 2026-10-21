@@ -78,7 +78,7 @@ it("FN-78 nCr and nPr are exact for whole arguments and follow Γ elsewhere", ()
     close(nPr(5, -1), 1 / 6),
     close(nPr(4.5, 1.5), gamma(5.5) / gamma(4)),
   ]).toEqual([true, true, true, true, true]);
-  expect([nCr(-1, 0.5), f("nCr", [1e6, 5e5])]).toEqual([NaN, UNDEFINED]);
+  expect([nCr(-1, 0.5), f("nCr", [1e6, 5e5])]).toEqual([NaN, numberValue(Infinity)]); // shown undefined
 });
 
 it("FN-79 Γ reads correctly rounded factorials at whole numbers and is undefined at its poles", () => {
@@ -107,8 +107,15 @@ it("FN-79 Γ reads correctly rounded factorials at whole numbers and is undefine
 it("FN-4 abs is the absolute value, and the modulus of a complex number", () => {
   expect([f("abs", [-3]), f("abs", [0])]).toEqual([n(3), n(0)]);
   expect(applyBuiltin("abs", [complexValue(3, 4)], "radians", true)).toEqual(n(5));
-  for (const name of ["floor", "ceil", "round", "sign"])
-    expect(applyBuiltin(name, [complexValue(1, 1)], "radians", true), name).toEqual(UNDEFINED);
+  // Desmos's complex rounding (captured 2026-10-20): floor(1.5+2.7i) = 1+3i, sign(3+4i) = 0.6+0.8i
+  expect(
+    ["floor", "ceil", "round"].map((name) =>
+      applyBuiltin(name, [complexValue(1.5, 2.7)], "radians", true)
+    )
+  ).toEqual([complexValue(1, 3), complexValue(2, 3), complexValue(2, 3)]);
+  expect(applyBuiltin("sign", [complexValue(3, 4)], "radians", true)).toEqual(
+    complexValue(0.6, 0.8)
+  );
   expect(evaluateLatex("\\operatorname{abs}(-2)+\\operatorname{floor}(2.5)")).toEqual(n(4));
 });
 

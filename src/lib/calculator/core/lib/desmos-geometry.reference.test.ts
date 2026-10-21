@@ -24,13 +24,13 @@ type Captured = Coordinate | Coordinate[] | Coordinate[][];
 
 const GAPS: readonly RegExp[] = [
   /^(?!.*length)(?!\(1,2,3(,4)?\)$).*(\(\d,\d,\d|\\times\()/,
-  /\\operatorname\{(for|with)\}/,
+  /\\operatorname\{with\}/,
   /\\operatorname\{(hypot|pointDot|pointDet|pointPerp|complexMultiplyPoints)\}/,
   /\.\\operatorname\{length\}/,
   /\(t,|;; y=/,
   /\(i,1\)|\\int|^area|^dist$/,
   /\\frac\{d\}\{d|\\sum|\\prod/,
-  /\\arg|\\operatorname\{(det|random|tone)\}/,
+  /\\operatorname\{(det|random|tone)\}/,
 ];
 // Errors matched since: calls of built-ins the calculator reads but does not evaluate
 // (desmos-calls.ts), whose argument counts and literal arguments give Desmos's texts.
@@ -60,7 +60,9 @@ function lastRow(rows: readonly string[], latex: string) {
 }
 
 function matches(v: Value, expected: Coordinate): boolean {
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -69,7 +71,7 @@ function matches(v: Value, expected: Coordinate): boolean {
 
 /** A point's coordinate: NaN is Desmos's null. */
 function sameCoordinate(c: number, expected: Coordinate): boolean {
-  if (expected === null) return Number.isNaN(c);
+  if (expected === null) return !Number.isFinite(c);
   return Number.isInteger(expected) ? c === expected : withinTolerance(c, expected, "default");
 }
 
@@ -96,8 +98,8 @@ const VALUES = Object.entries(geometry.values) as [string, Captured][];
 const ERRORS = Object.entries(geometry.errors);
 const GRAPHED = Object.keys(geometry.graphed);
 
-it("FN-70 FN-71 NM-32 PR-45 all 136 catalogue point values are checked, 114 matched", () =>
-  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([136, 114]));
+it("FN-70 FN-71 NM-32 PR-45 all 136 catalogue point values are checked, 117 matched", () =>
+  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([136, 117]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {
@@ -111,8 +113,8 @@ for (const [key, expected] of VALUES) {
   else it(`FN-70 FN-71 NM-32 PR-45 ${key} is ${shown}, as in Desmos`, check);
 }
 
-it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 83 matched", () =>
-  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 83]));
+it("FN-70 FN-71 NM-32 PR-45 all 103 catalogue point errors are checked, 84 matched", () =>
+  expect([ERRORS.length, ERRORS.filter(([key]) => !isGap(key)).length]).toEqual([103, 84]));
 
 // A row's error is its analysis error or, as the row shows it, the error its value carries
 // (`[(1,2),3]`, NM-32).

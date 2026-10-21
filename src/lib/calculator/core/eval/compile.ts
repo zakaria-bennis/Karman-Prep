@@ -12,7 +12,7 @@ import { DeadlineExceeded, NO_DEADLINE, type Deadline } from "../deadline";
 import { evaluateTable, type DataSink } from "../data/evaluate";
 import { evaluateRegression, regressionValues } from "../data/evaluate-regression";
 import { regressionDefinitionId, regressionOf } from "../data/regression-analysis";
-import { coordinateAxis, sourceChildren, type Node } from "../latex/ast";
+import { coordinateAxis, sourceChildren, toSExpr, type Node } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { applyBuiltin } from "../lib/builtins";
 import { applyPointFunction, coordinate, POINT_FUNCTIONS } from "../lib/geometry";
@@ -54,8 +54,21 @@ import {
 } from "./lists";
 import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
+import { comprehensionValue } from "./comprehension";
+import { exactConstant } from "./exact";
+import { hashText, randomValue, shuffleValue } from "./random";
+import { lineConstantSide } from "./line-value";
 import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
+import {
+  RECURSION_BUDGET,
+  cachedOrMissing,
+  recursiveNames,
+  trampoline,
+  type Frame,
+  type RecursionBudget,
+  type RecursionRun,
+} from "./recursion";
 import { complexValue, numberValue, UNDEFINED, type Value } from "./values";
 
 export interface EvalSettings {
@@ -77,6 +90,7 @@ type Relation = Extract<Node, { kind: "rel" }>;
 
 /** A user function, compiled once per compileExpression. */
 interface CompiledFunction {
+  name: string;
   params: readonly string[];
   body: Compiled;
 }
@@ -85,6 +99,8 @@ interface Context {
   scope: CompileScope;
   functions: Map<string, CompiledFunction>;
   depth: number; // user-function calls in progress
+  recursion: RecursionRun<Value> | null; // a recursion in progress (recursion.ts)
+  budget: RecursionBudget;
 }
 
 const ONE: Value = Object.freeze(numberValue(1));
@@ -106,7 +122,13 @@ const hasOwn = (vars: Readonly<Record<string, Value>>, name: string) =>
  * whole result an undefined value carrying its code; the closure never throws it (AR-54).
  */
 export function compileExpression(tree: Node, scope: CompileScope): Compiled {
-  const root = compileNode(tree, { scope, functions: new Map(), depth: 0 });
+  const root = compileNode(tree, {
+    scope,
+    functions: new Map(),
+    depth: 0,
+    recursion: null,
+    budget: { left: RECURSION_BUDGET },
+  });
   // NM-34 to NM-36: a list error anywhere below is the root's value, an undefined that names it.
   return (vars, deadline) => {
     try {
@@ -123,6 +145,8 @@ function constant(v: Value): Compiled {
 }
 
 function compileNode(node: Node, ctx: Context): Compiled {
+  const exact = exactConstant(node); // MATHS-CORE-1: `0.1+0.2-0.3` is 0 (exact.ts)
+  if (exact !== null) return constant(Object.freeze(numberValue(exact)));
   const { angleMode, complex } = ctx.scope.settings;
   switch (node.kind) {
     case "num":
@@ -161,6 +185,19 @@ function compileNode(node: Node, ctx: Context): Compiled {
     }
     case "call":
       return call(node, ctx);
+    case "for": {
+      // NM-37: the body runs with each combination of the definitions' elements over `vars`
+      const lists = node.bindings.map((b) => compileNode(b.list, ctx));
+      const body = compileNode(node.body, ctx);
+      const names = node.bindings.map((b) => b.name);
+      return (vars, deadline) =>
+        comprehensionValue(
+          names,
+          lists.map((list) => list(vars, deadline)),
+          (bound) => body({ ...vars, ...bound }, deadline),
+          deadline
+        );
+    }
     case "list": {
       // PR-34, NM-36: a literal (or a D-11 table column) or a range; each item evaluates on its own
       const items = node.items.map((item) => compileNode(item, ctx));
@@ -309,6 +346,17 @@ function call(node: Call, ctx: Context): Compiled {
     const target = compileNode(node.args[0], ctx);
     return (vars, deadline) => map1(target(vars, deadline), (v) => coordinate(v, axis));
   }
+  if (node.name === "random" || node.name === "shuffle") {
+    // keyed by the call, so a row keeps its values from one evaluation to the next
+    const key = hashText(`${node.span.start}:${toSExpr(node)}`);
+    const args = node.args.map((arg) => compileNode(arg, ctx));
+    const run = node.name === "random" ? randomValue : shuffleValue;
+    return (vars, deadline) =>
+      run(
+        args.map((arg) => arg(vars, deadline)),
+        key
+      );
+  }
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);
   if (fn === null || fn.params.length !== node.args.length) return constant(UNDEFINED);
@@ -379,6 +427,7 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
  * checked, and a call past MAX_CALL_DEPTH nested calls is UNDEFINED.
  */
 function userCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Context): Compiled {
+  if (recursiveNames(ctx.scope.functions).has(fn.name)) return recursiveCall(fn, args, ctx);
   return (vars, deadline) => {
     const values = args.map((arg) => arg(vars, deadline));
     deadline.check();
@@ -397,6 +446,49 @@ function userCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Context)
 }
 
 /**
+ * A call of a recursive function (recursion.ts): inside a recursion its cached result, else a new
+ * recursion from this call, each frame run with the entry's variables and its own parameters.
+ */
+function recursiveCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Context): Compiled {
+  return (vars, deadline) => {
+    const frame = { fn: fn.name, args: args.map((arg) => arg(vars, deadline)) };
+    const cached = cachedOrMissing(ctx.recursion, frame);
+    if (cached !== null) return cached;
+    const invoke = (f: Frame<Value>): Value => {
+      deadline.check();
+      const called = userFunction(f.fn, ctx);
+      if (called === null) return UNDEFINED;
+      const inner: Record<string, Value> = { ...vars };
+      called.params.forEach((param, k) => (inner[param] = f.args[k]));
+      const depth = ctx.depth;
+      ctx.depth = 0;
+      try {
+        return called.body(inner, deadline);
+      } finally {
+        ctx.depth = depth;
+      }
+    };
+    const run = (values: readonly Value[]): Value => {
+      ctx.recursion = { cache: new Map() };
+      try {
+        return trampoline(
+          { fn: fn.name, args: values },
+          invoke,
+          UNDEFINED,
+          ctx.recursion,
+          ctx.budget
+        );
+      } finally {
+        ctx.recursion = null;
+      }
+    };
+    // Desmos maps a recursion over a list argument, `f([1,2,3])` (captured 2026-10-20)
+    if (frame.args.some((v) => v.type === "list")) return mapN(frame.args, run);
+    return run(frame.args);
+  };
+}
+
+/**
  * The function `name` of `scope.functions`, compiled once per compileExpression. It is cached
  * before its body compiles, and calls read `body` when they run, so a body reaching its own name
  * compiles (and is cut off at run time by MAX_CALL_DEPTH).
@@ -406,7 +498,7 @@ function userFunction(name: string, ctx: Context): CompiledFunction | null {
   if (known !== undefined) return known;
   const definition = ctx.scope.functions.get(name);
   if (definition === undefined) return null;
-  const fn: CompiledFunction = { params: definition.params, body: constant(UNDEFINED) };
+  const fn: CompiledFunction = { name, params: definition.params, body: constant(UNDEFINED) };
   ctx.functions.set(name, fn);
   fn.body = compileNode(definition.body, ctx);
   return fn;
@@ -463,6 +555,8 @@ function generalWith(scope: CompileScope): GeneralCompile {
 }
 
 /** decision 5: the rows evaluateRows gives a value, by kind; and only without an error or chips. */
+const LINE_KINDS: readonly RowAnalysis["kind"][] = ["horizontal-lines", "vertical-lines"];
+
 function evaluable(row: RowAnalysis, kinds: readonly RowAnalysis["kind"][]): boolean {
   return kinds.includes(row.kind) && row.error === null && row.chips.length === 0;
 }
@@ -532,6 +626,9 @@ export function evaluateRows(
   const ordered = new Set(analysis.valueOrder);
   for (const row of analysis.rows) {
     if (evaluable(row, ["value", "point"]) && row.tree !== null) evaluate(row.id, row.tree);
+    // a line `y=c` shows the value of c (line-value.ts)
+    const side = evaluable(row, LINE_KINDS) ? lineConstantSide(row.tree) : null;
+    if (side !== null) evaluate(row.id, side);
     // A name defined twice: each defining row still shows its own value, as in Desmos, but binds
     // no name (the rows that use it are marked).
     const body = definitionBody(row);

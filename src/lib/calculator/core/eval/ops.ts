@@ -126,10 +126,15 @@ export function degV(a: Value, angleMode: "radians" | "degrees"): Value {
 /**
  * a^b. Two numbers follow realPow (NM-10, NM-13, NM-14) with `rational` from the tree; in complex
  * mode a NaN from a negative base falls back to cpow, so a value real mode defines never changes
- * (NM-19). A non-real operand always uses cpow. Overflow and 0 to a negative power stay UNDEFINED.
+ * (NM-19). A non-real operand always uses cpow. Overflow and 0 to a negative power are ±∞.
  */
 export function powV(a: Value, b: Value, rational: Rational | null, complex: boolean): Value {
   if (a.type === "number" && b.type === "number") {
+    // complex mode takes the principal power of a negative base (Desmos, 2026-10-20):
+    // `(-8)^{\frac{1}{3}}` is 1+1.732i there, −2 in real mode
+    if (complex && a.value < 0 && !Number.isInteger(b.value)) {
+      return fromComplex(cpow({ re: a.value, im: 0 }, { re: b.value, im: 0 }));
+    }
     const r = realPow(a.value, b.value, rational);
     if (Number.isNaN(r) && complex && a.value < 0) {
       return fromComplex(cpow({ re: a.value, im: 0 }, { re: b.value, im: 0 }));
@@ -192,15 +197,16 @@ export function linkHolds(a: number, op: RelOp, b: number): boolean {
 }
 
 /**
- * NM-22, : a relation holds when every operand is a finite number and every link
- * holds. A non-real, undefined, point or list operand makes it false.
+ * NM-22: a relation holds when every operand is a number (±∞ included, as in Desmos:
+ * `\{\frac{1}{0}>0:1,0\}` is 1) and every link holds. A non-real, undefined, point or list
+ * operand makes it false.
  */
 export function relationHolds(values: readonly Value[], ops: readonly RelOp[]): boolean {
   if (values.length !== ops.length + 1) return false;
   let previous = NaN;
   for (let k = 0; k < values.length; k++) {
     const v = values[k];
-    if (v.type !== "number" || !Number.isFinite(v.value)) return false;
+    if (v.type !== "number" || Number.isNaN(v.value)) return false;
     if (k > 0 && !linkHolds(previous, ops[k - 1], v.value)) return false;
     previous = v.value;
   }

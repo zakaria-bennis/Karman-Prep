@@ -16,6 +16,7 @@ import {
 import type { RowKind } from "../corpus/types";
 import type { Node } from "../latex/ast";
 import { formatValue } from "../eval/format";
+import { lineConstantSide } from "../eval/line-value";
 import type { Value } from "../eval/values";
 import type { TableResult } from "../data/evaluate";
 import type { TableAnalysis } from "../data/table-analysis";
@@ -120,14 +121,25 @@ export function toApiEvaluation(value: Value, display: string | null): ApiEvalua
 /**
  * Decision 5, R-5, RC-6, RC-15: a row shows its value (a number, point or list) when its kind is
  * `value`, `definition` or `point`, with no error, no chips and no overrun, once a value without a
- * list error has arrived. As in Desmos, a point or list of points written as literals (`(2,3)`,
- * `A=(1,2)`, `[(1,2),(3,4)]`) shows none, while every other point result does (`2(1,2)`, `P`,
- * `[(1,2),(3,4)]+(1,1)`; geometry captures 2026-10-19).
+ * list error has arrived. As in Desmos, a literal shows none: a point or list of points written
+ * with numerals (`(2,3)`, `A=(1,2)`, `[(1,2),(3,4)]`), a numeral (`2`, `-1.5`, `2\frac{1}{2}`) and
+ * a list of numerals (`[1,-2]`, `[]`, `L=[]`), while every other result does (`2(1,2)`, `P`,
+ * `(1)`, `--1`, `[1,1+1]`; captures 2026-10-19 and 2026-10-20).
  */
 export function rowShowsValue(row: RowAnalysis, value: Value | null, overrun: boolean): boolean {
+  return rowHasValue(row, value, overrun) && !literalRow(row.tree, false);
+}
+
+/**
+ * True when a row has a value to report, shown or not: Desmos's `expressionAnalysis` gives a
+ * literal's and a slider's evaluation without showing it (`1`, `a=1`; captured 2026-10-20).
+ */
+export function rowHasValue(row: RowAnalysis, value: Value | null, overrun: boolean): boolean {
+  const line =
+    (row.kind === "horizontal-lines" || row.kind === "vertical-lines") &&
+    lineConstantSide(row.tree) !== null;
   return (
-    (row.kind === "value" || row.kind === "definition" || row.kind === "point") &&
-    !literalPoints(row.tree) &&
+    (line || row.kind === "value" || row.kind === "definition" || row.kind === "point") &&
     row.error === null &&
     row.chips.length === 0 &&
     !overrun &&
@@ -159,20 +171,32 @@ function chipsError(row: RowAnalysis): RowError | null {
 }
 
 /**
- * RC-15: a row, or a definition's body, that is a point whose coordinates are numerals (a sign
- * allowed) or a list of such points, whose value Desmos leaves unshown.
+ * RC-15: a row, or a definition's body, whose value Desmos leaves unshown: a point whose
+ * coordinates are numerals (a sign allowed), a list of such points, a list of numerals, and, as a
+ * whole row, a numeral. A definition `a=2\frac{1}{2}` is no slider and shows its value. Desmos
+ * shows a list of numerals as an "N element list" chip, so the row keeps its value text for the
+ * list's own display and only the API reports it undisplayed (`numberLists`).
  */
-function literalPoints(tree: Node | null): boolean {
+function literalRow(tree: Node | null, numberLists: boolean): boolean {
   if (tree?.kind === "rel" && tree.ops.length === 1 && tree.ops[0] === "=") {
     const [name, body] = tree.operands;
-    return name.kind === "id" && literalPoints(body);
+    const mixed = body.kind === "num" && body.mixed !== undefined;
+    return name.kind === "id" && !mixed && literalRow(body, numberLists);
   }
-  const numeral = (n: Node) => n.kind === "num" || (n.kind === "neg" && n.arg.kind === "num");
+  const plain = (n: Node) => n.kind === "num" && n.grouped === undefined;
+  const numeral = (n: Node) => plain(n) || (n.kind === "neg" && plain(n.arg));
   const point = (n: Node) => n.kind === "point" && numeral(n.x) && numeral(n.y);
   if (tree?.kind === "list") {
-    return tree.range === undefined && tree.items.length > 0 && tree.items.every(point);
+    if (tree.range !== undefined) return false;
+    if (tree.items.length > 0 && tree.items.every(point)) return true;
+    // a mixed number in a list shows its value, `[2\frac{1}{2}]` "= 2.5"
+    const whole = (n: Node) => {
+      const m = n.kind === "neg" ? n.arg : n;
+      return numeral(n) && m.kind === "num" && m.mixed === undefined;
+    };
+    return numberLists && tree.items.every(whole);
   }
-  return tree !== null && point(tree);
+  return tree !== null && (point(tree) || numeral(tree));
 }
 
 /** NM-34 to NM-36, NM-42: the list error a row's value carries, as its row error (R-2). */
@@ -265,7 +289,8 @@ function fitError(fit: RegressionOutcome | undefined): RowView["error"] {
 /**
  * API-9: each row id mapped to its analysis, deep-frozen. `isGraphable` comes from the main-thread
  * analysis; `isError` and `errorMessage` from the view's error, which is the timeout error for an
- * overrun row; `evaluation` only when the row shows its value.
+ * overrun row; `evaluation` whenever the row has a value, and `evaluationDisplayed` when it shows
+ * it, so a literal (`1`) or a slider (`a=1`) has an evaluation it does not display, as in Desmos.
  */
 export function buildExpressionAnalysis(
   views: readonly RowView[],
@@ -273,7 +298,10 @@ export function buildExpressionAnalysis(
 ): Record<string, ExpressionAnalysis> {
   const entries = views.map((view): [string, ExpressionAnalysis] => {
     const row = analysis.byId.get(view.id)!;
-    const shown = view.value !== null && rowShowsValue(row, view.value, view.overrun);
+    const evaluated =
+      view.error === null && view.value !== null && rowHasValue(row, view.value, view.overrun);
+    // a slider shows no value (SLIDERS-12), nor does a list of numerals (literalRow)
+    const shown = evaluated && view.valueText !== null && !literalRow(row.tree, true);
     return [
       view.id,
       {
@@ -281,7 +309,7 @@ export function buildExpressionAnalysis(
         isError: view.error !== null,
         ...(view.error !== null && { errorMessage: view.error.message }),
         evaluationDisplayed: shown,
-        ...(shown && { evaluation: toApiEvaluation(view.value!, view.valueText) }),
+        ...(evaluated && { evaluation: toApiEvaluation(view.value!, view.valueText) }),
       },
     ];
   });

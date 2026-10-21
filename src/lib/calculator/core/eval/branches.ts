@@ -76,6 +76,8 @@ function splitNode(node: Node, ctx: Context): Split {
     case "list":
       if (node.range !== undefined) return opaque(node, ctx);
       return node.items.length === 0 ? [] : [...node.items];
+    case "for": // NM-37: picked element by element
+      return opaque(node, ctx);
     case "index": {
       // NM-30: one number item picks one element (`L[x]` is a step curve); anything else is a list
       const [item] = node.items;
@@ -128,6 +130,12 @@ function splitCall(node: Call, ctx: Context): Split {
         ? givesList(name, lists)
         : lists.includes(true);
     return list ? opaque(node, ctx) : null;
+  }
+  if (name === "random" || name === "shuffle") {
+    // eval/random.ts: random() and random(L) are one value, anything else a list
+    const one = name === "random" && node.args.length <= 1;
+    const element = node.args.length === 0 || splitNode(node.args[0], ctx) !== null;
+    return one && element ? null : opaque(node, ctx);
   }
   if (isBuiltinName(name)) return broadcast(node, ctx);
   const definition = ctx.scope.functions.get(name);
@@ -277,6 +285,10 @@ function withChildren(node: Node, kids: readonly Node[]): Node {
         return { cond, value: value === null ? null : kids[at++] };
       });
       return { ...node, branches, otherwise: node.otherwise === null ? null : kids[at] };
+    }
+    case "for": {
+      const bindings = node.bindings.map((b, k) => ({ ...b, list: kids[k + 1] }));
+      return { ...node, body: kids[0], bindings };
     }
   }
 }

@@ -30,6 +30,9 @@ export type RowErrorCode =
   | "recursive-cycle" // the same, passing other arguments around the cycle (a recursion)
   | "implicit-variables" // a value defined in terms of itself, `a=a+1`
   | "repeated-parameter" // `f(x,x)=x`
+  | "function-coordinate" // a coordinate the parameters leave out, `f(x)=y`
+  | "for-list" // NM-37: a comprehension's definition that is not a list, `[n\operatorname{for}n=1]`
+  | "parameter-defined" // a constant as a parameter, `f(e)=e`, `f(\pi)=1`
   | "equation-required" // an expression in x and y, or that is only a name: needs `y=` or `=`
   | "reserved-name"
   | "arity"
@@ -42,6 +45,8 @@ export type RowErrorCode =
   | "regression-params" // D-22
   | "regression-fit" // D-24
   | "nested-list" // NM-34
+  | "sample-size" // `random(-1)`
+  | "nested-empty-list" // NM-34: an empty list in a list, `[[]]`
   | "list-too-long" // NM-35, NM-42
   | "range-step" // NM-36
   | "list-mixed" // PR-34: numbers and points in one list

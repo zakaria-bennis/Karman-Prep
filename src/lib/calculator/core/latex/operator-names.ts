@@ -133,6 +133,11 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "nPr",
   "nCr",
   "abs",
+  // the complex-number functions, refused in real mode by analysis (classify.ts)
+  "real",
+  "imag",
+  "conj",
+  "arg",
   // hidden names, which only pasted latex reaches (HIDDEN_OPERATOR_NAMES); the refused ones
   // (REFUSED_NAMES) parse so that analysis can give Desmos's argument errors and refusal
   "argmin",
