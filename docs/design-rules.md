@@ -101,6 +101,37 @@ The calculator is excluded until the founder has reviewed it.
 48. Colour in pictures is not limited to the site palette. Pictures must look
     graded and coordinated with each other and with the page around them.
 
+## Product app, 2026-10-21
+
+The student, parent and tutor app (and its screens shown on the site) follow
+these on top of the rules above. Where they conflict, these win inside the app.
+
+49. The app's ground is a subtle, slowly moving constellation sky: faint stars
+    and lines on night navy in dark mode, faint ink on bone in light mode. It
+    never competes with the content and stops moving under reduced motion.
+50. Buttons and controls are liquid glass, not flat frosted glass: they bend
+    the background behind them, carry a bright top edge and a soft shadow, and
+    look slightly raised. This overrides rules 5 and 8 inside the app only.
+    Cards and panels are heavier and darker than buttons, so glass never sits
+    on glass of the same weight.
+51. No unnecessary subtitles. A row says what it is; a second line appears only
+    when it carries a date, a due time or a state the person needs.
+52. Icons are custom drawn for Karman (never Lucide or a stock set). Desktop
+    navigation is a slim icon rail of a few icons, not a wide sidebar.
+53. Product names: "Your Daily 10", "Challenge question" (not Daily Question),
+    "Full-length review session" (not 1:1 review). The word game's name is
+    being chosen with the founder.
+54. Tutors are named on product screens (the March cohort's tutor is David).
+55. Every due item shows its due date. Fill-in blanks are one solid underline,
+    never a row of underscores.
+56. Question screens carry the tools a student expects: highlight, scratch pad,
+    and a timer that can be hidden. A question-set indicator shows which
+    questions were right and wrong.
+57. Parent screens lead with skill mastery and questions answered. Attendance
+    is a flag only when a class is missed, never a headline number.
+58. Phone screens are drawn for the iPhone 17 Pro Max (440 x 956 points, thin
+    bezel, Dynamic Island). Light mode is bone, never pure white.
+
 ## Copy rules
 
 Set by the founder on 2026-10-19. Every word on the website follows these.

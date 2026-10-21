@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app2.css">
+</head>
+<body>
+<!-- the liquid-glass lens: bends whatever sits behind a control -->
+<svg width="0" height="0" style="position:absolute">
+  <filter id="liquid" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="2" result="nb"/>
+    <feDisplacementMap in="SourceGraphic" in2="nb" scale="38" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<canvas id="stars"></canvas>
+<div id="root"></div>
+<script>
+const ICON = n => `<span class="ic" style="--m:url(assets/icon-${n}.png)"></span>`;
+const STATUS = t => `<div class="sb"><span>${t}</span><span class="sbr"><svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="8" width="3.4" height="4" rx="1"/><rect x="5" y="5.5" width="3.4" height="6.5" rx="1"/><rect x="10" y="3" width="3.4" height="9" rx="1"/><rect x="15" y="0" width="3.4" height="12" rx="1"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="9" rx="2"/><rect x="24.6" y="4.3" width="1.8" height="4.4" rx=".9" opacity=".4"/></svg></span></div>`;
+const GAME = "Wordline";
+
+/* ---------- the question-set constellation: one star per question ---------- */
+function constellation(states, opt = {}) {
+  const n = states.length, W = opt.w || 400, H = opt.h || 64, pad = 14;
+  const pts = states.map((s, i) => {
+    const x = pad + (W - 2 * pad) * (i / (n - 1));
+    const y = H / 2 + Math.sin(i * 1.15 + 0.6) * (H * 0.28) + (i % 3 === 0 ? 4 : -2);
+    return [x, y];
+  });
+  let lines = "", marks = "";
+  for (let i = 0; i < n - 1; i++) {
+    const done = states[i] !== "todo" && states[i + 1] !== "todo";
+    const [x1, y1] = pts[i], [x2, y2] = pts[i + 1];
+    lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--star-line)" stroke-width="${done ? 1.4 : 1}" ${done ? "" : 'stroke-dasharray="2 5" opacity=".55"'}/>`;
+  }
+  const star = (x, y, r) => { let p = []; for (let k = 0; k < 8; k++) { const a = Math.PI / 4 * k - Math.PI / 2, rr = k % 2 ? r * 0.38 : r; p.push(`${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`); } return p.join(" "); };
+  states.forEach((s, i) => {
+    const [x, y] = pts[i];
+    if (s === "right") marks += `<polygon points="${star(x, y, 11)}" fill="var(--acc)"/>`;
+    else if (s === "wrong") marks += `<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="var(--ox)" stroke-width="2"/><line x1="${x - 4}" y1="${y + 4}" x2="${x + 4}" y2="${y - 4}" stroke="var(--ox)" stroke-width="2" stroke-linecap="round"/>`;
+    else if (s === "now") marks += `<circle cx="${x}" cy="${y}" r="15" fill="var(--ink)" opacity=".12"/><polygon points="${star(x, y, 12)}" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>`;
+    else marks += `<circle cx="${x}" cy="${y}" r="2.6" fill="var(--ink3)"/>`;
+  });
+  return `<svg class="const" viewBox="0 0 ${W} ${H}" role="img" aria-label="${states.filter(s => s === "right").length} right, ${states.filter(s => s === "wrong").length} wrong, question ${states.indexOf("now") + 1} of ${n}">${lines}${marks}</svg>`;
+}
+
+/* ---------- skills (exact names from the approved taxonomy); mastered at 85% or more ---------- */
+const SKILLS = {
+  "Information and Ideas": [["Central Ideas and Details", 88], ["Command of Evidence", 72], ["Inferences", 64]],
+  "Craft and Structure": [["Words in Context", 91], ["Text Structure and Purpose", 78], ["Cross-Text Connections", 58]],
+  "Expression of Ideas": [["Rhetorical Synthesis", 86], ["Transitions", 82]],
+  "Standard English Conventions": [["Sentence boundaries and joining independent clauses", 90], ["Joining main and dependent clauses", 87], ["Essential versus nonessential information including names and titles", 70], ["Colons and dashes introducing explanations or lists", 61], ["Lists and series", 84], ["Unnecessary punctuation within a sentence", 75], ["Subject-verb agreement", 93], ["Pronoun-antecedent agreement", 88], ["Finite versus nonfinite verb forms", 66], ["Verb tense and aspect", 79], ["Modifier placement", 57], ["Plurals possessives and contractions", 80]],
+  "Algebra": [["Linear equations in one variable", 92], ["Linear equations in two variables", 74], ["Linear functions", 63], ["Systems of two linear equations in two variables", 77], ["Linear inequalities in one or two variables", 69]],
+  "Advanced Math": [["Equivalent expressions", 81], ["Nonlinear equations in one variable and systems of equations in two variables", 55], ["Nonlinear functions", 52]],
+  "Problem-Solving and Data Analysis": [["Ratios rates proportional relationships and units", 85], ["Percentages", 83], ["One-variable data: distributions and measures of center and spread", 76], ["Two-variable data: models and scatterplots", 68], ["Probability and conditional probability", 71], ["Inference from sample statistics and margin of error", 49], ["Evaluating statistical claims: observational studies and experiments", 62]],
+  "Geometry and Trigonometry": [["Area and volume", 74], ["Lines angles and triangles", 70], ["Right triangles and trigonometry", 60], ["Circles", 46]],
+};
+const ALL = Object.values(SKILLS).flat();
+const MASTERED = ALL.filter(s => s[1] >= 85).length;
+console.assert(ALL.length === 39, "39 skills");
+console.assert(MASTERED === 9, "9 mastered");
+
+function skyOf(skills, seed) {
+  const W = 260, H = 116, n = skills.length;
+  const pts = skills.map((s, i) => {
+    const a = seed + i * 2.399, r = 0.28 + 0.62 * ((i + 1) / (n + 1));
+    return [W / 2 + Math.cos(a) * r * (W * 0.46), H / 2 + Math.sin(a) * r * (H * 0.44)];
+  });
+  let l = "", m = "";
+  for (let i = 0; i < n - 1; i++) l += `<line x1="${pts[i][0].toFixed(1)}" y1="${pts[i][1].toFixed(1)}" x2="${pts[i + 1][0].toFixed(1)}" y2="${pts[i + 1][1].toFixed(1)}" stroke="var(--star-line)" stroke-width="1"/>`;
+  skills.forEach(([name, v], i) => {
+    const [x, y] = pts[i], r = 2 + (v / 100) * 5;
+    if (v >= 85) { let p = []; for (let k = 0; k < 8; k++) { const a = Math.PI / 4 * k - Math.PI / 2, rr = k % 2 ? r * 0.42 : r * 1.6; p.push(`${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`); } m += `<polygon points="${p.join(" ")}" fill="var(--och)"><title>${name}: ${v}%</title></polygon>`; }
+    else m += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="var(--ink)" opacity="${(0.25 + v / 140).toFixed(2)}"><title>${name}: ${v}%</title></circle>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${l}${m}</svg>`;
+}
+
+/* ---------- word game (real daily word, accepted guesses) ---------- */
+function scoreWord(g, a) { const res = Array(7).fill("x"), rem = a.split(""); for (let i = 0; i < 7; i++) if (g[i] === a[i]) { res[i] = "g"; rem[i] = null; } for (let i = 0; i < 7; i++) if (res[i] === "x") { const j = rem.indexOf(g[i]); if (j >= 0) { res[i] = "y"; rem[j] = null; } } return res; }
+const GUESSES = ["STATION", "VENTURE", "NERVOUS"], ANSWER = "TENUOUS";
+const KEYS = {}; const RANK = { x: 0, y: 1, g: 2 };
+const BOARD = Array.from({ length: 6 }, (_, i) => {
+  if (i >= GUESSES.length) return `<div class="wrow">${'<i class="t e"></i>'.repeat(7)}</div>`;
+  const r = scoreWord(GUESSES[i], ANSWER);
+  GUESSES[i].split("").forEach((c, k) => { if (!(c in KEYS) || RANK[r[k]] > RANK[KEYS[c]]) KEYS[c] = r[k]; });
+  return `<div class="wrow">${GUESSES[i].split("").map((c, k) => `<i class="t ${r[k]}">${c}</i>`).join("")}</div>`;
+}).join("");
+const KBD = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"].map((row, ri) => `<div class="krow">${ri === 2 ? '<b class="k lg wide">Enter</b>' : ""}${row.split("").map(c => `<b class="k lg ${KEYS[c] || ""}">${c}</b>`).join("")}${ri === 2 ? '<b class="k lg wide">Delete</b>' : ""}</div>`).join("");
+
+const TABS = on => `<nav class="tabbar lg">${[["home", "Today"], ["question", "Practice"], ["calendar", "Schedule"], ["progress", "Progress"], ["chat", "Chat"]].map(([i, l]) => `<a class="tab ${l === on ? "on" : ""}">${ICON(i)}<span>${l}</span></a>`).join("")}</nav>`;
+const BELL = n => `<a class="cbtn lg" aria-label="Notifications">${ICON("bell")}${n ? `<span class="badge">${n}</span>` : ""}</a>`;
+const CLOSE = `<a class="cbtn lg" aria-label="Close"><span class="xmark"></span></a>`;
+const BACK = `<a class="cbtn lg" aria-label="Back"><span class="chev"></span></a>`;
+
+const S = {};
+/* ===== phone ===== */
+S["student-dashboard"] = ["phone", STATUS("6:48") + `
+<div class="ph">
+  <div class="topbar"><span class="date">Tuesday, February 2</span><span></span>${BELL(2)}</div>
+  <h1 class="ser greet">Good morning, Ava</h1>
+  <section class="panel sat">
+    <div><div class="ser big">Your SAT is on <b>March 6</b></div><div class="sub">32 days away</div></div>
+    <div class="next"><div><b>Live class tonight</b><small>7:00 p.m. ET</small></div><a class="cbtn lg" aria-label="Open">${ICON("play")}</a></div>
+  </section>
+  <h2 class="sec">Today</h2>
+  <section class="panel rows">
+    <a class="r">${ICON("star")}<span class="rt">Your Daily 10</span><span class="v num">0 of 10</span></a>
+    <a class="r">${ICON("question")}<span class="rt">Challenge question</span><span class="v go">New</span></a>
+    <a class="r">${ICON("tiles")}<span class="rt">${GAME}</span><span class="v">Ready</span></a>
+  </section>
+  <h2 class="sec">This week</h2>
+  <section class="panel rows">
+    <a class="r">${ICON("notepad")}<span class="rt">Full-length test 3</span><span class="v">Due Sat, Feb 6</span></a>
+    <a class="r">${ICON("play")}<span class="rt">Lesson: Transitions</span><span class="v">Due Thu, Feb 4</span></a>
+    <a class="r">${ICON("play")}<span class="rt">Lesson: Linear functions</span><span class="v">Due Fri, Feb 5</span></a>
+    <a class="r">${ICON("family")}<span class="rt">Full-length review session with David</span><span class="v">Mon, Feb 8</span></a>
+  </section>
+</div>` + TABS("Today")];
+
+S["daily10"] = ["phone", STATUS("6:50") + `
+<div class="ph">
+  <div class="topbar">${CLOSE}<h1>Your Daily 10</h1><span class="date num">3 of 10</span></div>
+  ${constellation(["right", "wrong", "now", "todo", "todo", "todo", "todo", "todo", "todo", "todo"])}
+  <div class="tools"><a class="tool lg">${ICON("highlight")}Highlight</a><a class="tool lg">${ICON("notepad")}Scratch pad</a><a class="timer lg num">4:12<span class="eye" aria-label="Hide timer">${ICON("eyeoff")}</span></a></div>
+  <p class="skill">Sentence boundaries and joining independent clauses</p>
+  <p class="q">The museum's new wing opened in <span class="blank" aria-label="blank"></span> its first exhibit drew more visitors in one week than the old galleries had in a month.</p>
+  <p class="q2">Which choice completes the text so that it conforms to the conventions of Standard English?</p>
+  <div class="choices">
+    <a class="ch lg"><i>A</i>March, and</a><a class="ch lg"><i>B</i>March</a><a class="ch lg sel"><i>C</i>March; and</a><a class="ch lg"><i>D</i>March and</a>
+  </div>
+  <button class="btn lg primary">Check</button>
+</div>`];
+
+S["challenge"] = ["phone", STATUS("12:41") + `
+<div class="ph">
+  <div class="topbar">${CLOSE}<h1>Challenge question</h1><span class="date">Feb 2</span></div>
+  <p class="skill">Words in Context</p>
+  <p class="q">Though the architect's early sketches were <span class="blank" aria-label="blank"></span>, her finished buildings were known for their careful, exact proportions.</p>
+  <p class="q2">Which choice completes the text with the most logical and precise word or phrase?</p>
+  <div class="choices">
+    <a class="ch lg dim"><i>A</i>precise</a><a class="ch lg right"><i>B</i>tentative</a><a class="ch lg dim"><i>C</i>symmetrical</a><a class="ch lg dim"><i>D</i>ornate</a>
+  </div>
+  <div class="panel result"><b>Right.</b> "Though" sets up a contrast with "careful, exact," so the early sketches were the opposite: unsure and unfinished. A new challenge arrives tomorrow.</div>
+</div>`];
+
+S["word-game"] = ["phone", STATUS("4:31") + `
+<div class="ph">
+  <div class="topbar">${CLOSE}<h1>${GAME}</h1><span class="date">Feb 2</span></div>
+  <div class="board">${BOARD}</div>
+</div><div class="kbd">${KBD}</div>`];
+
+S["flashcards"] = ["phone", STATUS("9:12") + `
+<div class="ph">
+  <div class="topbar">${CLOSE}<h1>Flashcards</h1><span class="date num">12 of 83</span></div>
+  <div class="seg panel"><a class="on">Prefixes</a><a>Suffixes</a><a>Roots</a></div>
+  <div class="fcard panel">
+    <b class="ser front">bene-</b><div class="rule"></div>
+    <p class="meaning">Well; favorably or for good.</p>
+    <p class="note">Contrast mal-.</p>
+  </div>
+  <div class="fnav"><a class="tlink">Previous</a><a class="tlink">Flip back</a></div>
+  <button class="btn lg primary">Next card</button>
+</div>`];
+
+S["parent-update"] = ["phone", STATUS("3:12") + `
+<div class="ph">
+  <div class="topbar">${BACK}<h1>Ava's week</h1>${BELL(0)}</div>
+  <p class="date" style="margin-top:-6px">January 25 to 31</p>
+  <div class="kp">
+    <div class="panel"><b class="num">186</b><small>Questions answered</small></div>
+    <div class="panel"><b class="num">3h 40m</b><small>Practice</small></div>
+    <div class="panel"><b class="num">${MASTERED} of 39</b><small>Skills mastered, 2 new</small></div>
+    <div class="panel warn"><b>Incomplete</b><small>Full-length test 3, due Sat, Feb 6</small></div>
+  </div>
+  <h2 class="sec">Skills that moved</h2>
+  <section class="panel">
+    <div class="meter"><b>Transitions</b><span class="pct num"><span class="up">+24</span> to 82%</span><div class="tr"><i style="width:82%"></i></div></div>
+    <div class="meter"><b>Linear equations in one variable</b><span class="pct num"><span class="up">+9</span> to 92%</span><div class="tr"><i style="width:92%"></i></div></div>
+    <div class="meter"><b>Linear functions</b><span class="pct num">63%</span><div class="tr"><i style="width:63%"></i></div></div>
+  </section>
+  <h2 class="sec">From David</h2>
+  <section class="panel note" style="padding:16px 18px">
+    <p><em>Reading and Writing</em>Ava got 9 of 10 transitions right on Thursday, up from 6 of 10 the week before. The cause-and-contrast lesson clicked.</p>
+    <p><em>Math</em>Four of her seven misses on test 2 were the last questions of module 2, where she ran short on time. Monday we work on pacing.</p>
+  </section>
+</div>`];
+
+/* ===== laptop ===== */
+const RAIL = on => `<aside class="rail panel"><span class="mark">K</span>${[["home", "Today"], ["question", "Question bank"], ["star", "Daily 10"], ["cards", "Flashcards"], ["tiles", GAME], ["calendar", "Schedule"], ["progress", "Progress"], ["chat", "Cohort chat"]].map(([i, l]) => `<a class="${l === on ? "on" : ""}" title="${l}" aria-label="${l}">${ICON(i)}</a>`).join("")}<span class="sp"></span><a title="Notifications" aria-label="Notifications">${ICON("bell")}</a><a title="Settings" aria-label="Settings">${ICON("gear")}</a><span class="av">A</span></aside>`;
+const PRAIL = on => `<aside class="rail panel"><span class="mark">K</span>${[["home", "Overview"], ["progress", "Skills"], ["calendar", "Schedule"], ["chat", "Messages"]].map(([i, l]) => `<a class="${l === on ? "on" : ""}" title="${l}" aria-label="${l}">${ICON(i)}</a>`).join("")}<span class="sp"></span><a title="Notifications" aria-label="Notifications">${ICON("bell")}</a><a title="Settings" aria-label="Settings">${ICON("gear")}</a><span class="av">M</span></aside>`;
+
+S["quiz"] = ["laptop", `<div class="app">${RAIL("Question bank")}<main class="main">
+  <div class="mh"><h1 class="ser">Linear equations in one variable</h1><div class="tools"><a class="tool lg">${ICON("highlight")}Highlight</a><a class="tool lg">${ICON("notepad")}Scratch pad</a><a class="timer lg num">6:12<span class="eye" aria-label="Hide timer">${ICON("eyeoff")}</span></a></div></div>
+  <div style="width:min(820px,100%);margin:0 auto">${constellation(["right", "right", "wrong", "now", "todo", "todo", "todo", "todo", "todo", "todo", "todo", "todo"], { w: 820, h: 70 })}</div>
+  <section class="qwrap">
+    <p class="qbig">If 3(x &minus; 4) = 2x + 5, what is the value of x?</p>
+    <div class="choices"><a class="ch lg"><i>A</i>1</a><a class="ch lg"><i>B</i>9</a><a class="ch lg sel"><i>C</i>17</a><a class="ch lg"><i>D</i>21</a></div>
+    <div class="qfoot"><a class="tlink">Mark for review</a><button class="btn lg primary">Check</button></div>
+  </section>
+</main></div>`];
+
+const EV = (k, t, s) => `<div class="ev ${k}">${t}${s ? `<small>${s}</small>` : ""}</div>`;
+const DAYS = [
+  ["Mon", 1, [EV("hours", "Office hours", "4:00 p.m.")]],
+  ["Tue", 2, [EV("session", "Live class", "7:00 p.m.")], true],
+  ["Wed", 3, [EV("work", "Workshop: pacing module 2", "7:00 p.m."), EV("tutorhw", "From David: timed set of 12", "Due tonight")]],
+  ["Thu", 4, [EV("session", "Live class", "7:00 p.m."), EV("lesson", "Lesson: Transitions", "Due today")]],
+  ["Fri", 5, [EV("hours", "Office hours", "4:00 p.m."), EV("lesson", "Lesson: Linear functions", "Due today"), EV("hw", "Transitions set", "Due today")]],
+  ["Sat", 6, [EV("test", "Full-length test 3", "Due today")]],
+  ["Sun", 7, []],
+  ["Mon", 8, [EV("session", "Full-length review session with David", "6:00 p.m.")]],
+  ["Tue", 9, [EV("session", "Live class", "7:00 p.m.")]],
+  ["Wed", 10, [EV("work", "Workshop: Command of Evidence", "7:00 p.m.")]],
+  ["Thu", 11, [EV("session", "Live class", "7:00 p.m."), EV("tutorhw", "From David: review test 3 misses", "Due today")]],
+  ["Fri", 12, [EV("hours", "Office hours", "4:00 p.m.")]],
+  ["Sat", 13, [EV("hw", "Daily 10 catch-up", "Due today")]],
+  ["Sun", 14, [EV("lesson", "Lesson: Nonlinear functions", "Due today")]],
+];
+S["schedule"] = ["laptop", `<div class="app">${RAIL("Schedule")}<main class="main">
+  <div class="mh"><h1 class="ser">February 1 to 14</h1><span class="muted">The SAT, Saturday, March 6</span></div>
+  <div class="legend"><span><i class="sw ev session"></i>Classes and sessions</span><span><i class="sw ev work"></i>Workshops</span><span><i class="sw ev hours"></i>Office hours</span><span><i class="sw ev lesson"></i>Lessons</span><span><i class="sw ev tutorhw"></i>Homework from David</span><span><i class="sw ev hw"></i>Homework</span><span><i class="sw ev test"></i>Tests</span></div>
+  <div class="cal">${DAYS.map(([d, n, evs, today]) => `<div class="dc panel ${today ? "today" : ""}"><div class="dh"><span>${d}</span><b class="num">${n}</b></div>${evs.join("")}</div>`).join("")}</div>
+</main></div>`];
+
+const doms = Object.entries(SKILLS);
+S["progress"] = ["laptop", `<div class="app">${RAIL("Progress")}<main class="main">
+  <div class="mh"><h1 class="ser">Your skills</h1><div class="sum"><div><b class="num">${MASTERED} of 39</b><small>Skills mastered</small></div><div><b class="num">1,284</b><small>Questions answered</small></div><div><b class="num">2 of 5</b><small>Full-length tests</small></div></div></div>
+  <div class="skillgrid">${doms.map(([d, sk], i) => {
+    const m = sk.filter(s => s[1] >= 85).length;
+    const top = [...sk].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    return `<section class="dom panel"><h3>${d.replace("Problem-Solving and Data Analysis", "Problem-Solving and Data").replace("Standard English Conventions", "Conventions")}<span class="num">${m} of ${sk.length}</span></h3>${skyOf(sk, i * 1.7 + 0.4)}<ul>${top.map(([n, v]) => `<li class="${v >= 85 ? "m" : ""}"><b title="${n}">${n}</b><span class="num">${v}%</span></li>`).join("")}</ul></section>`;
+  }).join("")}</div>
+</main></div>`];
+
+S["parent-dashboard"] = ["laptop", `<div class="app">${PRAIL("Overview")}<main class="main">
+  <div class="mh"><h1 class="ser">Ava's week, January 25 to 31</h1><span class="muted">The SAT, Saturday, March 6</span></div>
+  <div class="kpl">
+    <div class="panel"><b class="num">${MASTERED} of 39</b><small>Skills mastered, 2 new this week</small></div>
+    <div class="panel"><b class="num">186</b><small>Questions answered this week</small></div>
+    <div class="panel"><b class="num">3h 40m</b><small>Practice this week</small></div>
+    <div class="panel warn"><b>Incomplete</b><small>Full-length test 3, due Sat, Feb 6</small></div>
+  </div>
+  <div class="two">
+    <section class="panel"><h2>Skill mastery</h2>
+      ${[["Transitions", 82, "+24"], ["Linear equations in one variable", 92, "+9"], ["Words in Context", 91, "+3"], ["Command of Evidence", 72, "+5"], ["Linear functions", 63, ""], ["Nonlinear functions", 52, ""]].map(([n, v, d]) => `<div class="meter"><b>${n}</b><span class="pct num">${d ? `<span class="up">${d}</span> to ` : ""}${v}%</span><div class="tr"><i style="width:${v}%"></i></div></div>`).join("")}
+    </section>
+    <section class="panel"><h2>From David</h2>
+      <div class="note"><p><em>Reading and Writing</em>Ava got 9 of 10 transitions right on Thursday, up from 6 of 10 the week before. The cause-and-contrast lesson clicked.</p><p><em>Math</em>Four of her seven misses on test 2 were the last questions of module 2, where she ran short on time. Monday we work on pacing.</p></div>
+      <a class="tlink">Reply to David</a>
+      <h2 style="margin-top:8px">Coming up for you</h2>
+      <section class="rows" style="padding:0">
+        <a class="r">${ICON("progress")}<span class="rt">Test 3 results</span><span class="v">Sun, Feb 7</span></a>
+        <a class="r">${ICON("chat")}<span class="rt">David's notes from the review session</span><span class="v">Mon, Feb 8</span></a>
+      </section>
+    </section>
+  </div>
+</main></div>`];
+
+S["review"] = ["laptop", `<div class="app">${RAIL("Question bank")}<main class="main">
+  <div class="mh"><h1 class="ser">Full-length test 2, question 14</h1><span class="muted">Central Ideas and Details</span></div>
+  <div class="rv">
+    <div class="psg panel">
+      <p class="muted" style="font-size:14px">The following text is from William Shakespeare's play <i>Measure for Measure</i>, first performed in 1604. Isabella is pleading with Angelo, who has been given temporary power to govern Vienna and has sentenced her brother to death.</p>
+      <p class="verse">Could great men thunder<br>As Jove himself does, Jove would ne'er be quiet,<br>For every pelting, petty officer<br>Would use his heaven for thunder,<br>Nothing but thunder! Merciful heaven,<br>Thou rather with thy sharp and sulphurous bolt<br>Splits the unwedgeable and gnarled oak<br>Than the soft myrtle: but <mark>man, proud man,<br>Drest in a little brief authority,</mark><br>Most ignorant of what he's most assured,<br>His glassy essence, like an angry ape,<br>Plays such fantastic tricks before high heaven<br>As make the angels weep.</p>
+    </div>
+    <div class="qs">
+      <p style="font-weight:700">Which choice best states the main idea of the text?</p>
+      <a class="ch lg wrong"><i>A</i>Isabella argues that heaven punishes powerful people more harshly than it punishes ordinary people.<span class="lab">Your answer</span></a>
+      <a class="ch lg right"><i>B</i>Isabella suggests that people given small, temporary power often use it more harshly and foolishly than heaven uses its far greater power.<span class="lab">Correct</span></a>
+      <a class="ch lg dim"><i>C</i>Isabella warns Angelo that the people of Vienna will rebel if he continues to issue harsh sentences.</a>
+      <a class="ch lg dim"><i>D</i>Isabella claims that Angelo's authority is illegitimate because it was granted to him only for a short time.</a>
+      <div class="tnote"><b>David</b><p>The oak and myrtle show heaven's restraint, not its harshness. The contrast is with "man, proud man" and his "little brief authority."</p></div>
+    </div>
+  </div>
+</main></div>`];
+
+const p = new URLSearchParams(location.search);
+const s = p.get("s") || "student-dashboard", t = p.get("t") || "dark";
+document.documentElement.dataset.t = t;
+document.body.className = S[s][0] + (s === "student-dashboard" ? " dash" : "");
+document.getElementById("root").innerHTML = S[s][1];
+
+/* the sky moves: a few stars twinkle and the field drifts very slowly (off under reduced motion) */
+(function () {
+  const c = document.getElementById("stars"), x = c.getContext("2d"), dpr = devicePixelRatio || 1;
+  function size() { c.width = innerWidth * dpr; c.height = innerHeight * dpr; }
+  size(); addEventListener("resize", size);
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const stars = Array.from({ length: 38 }, () => ({ x: rnd(), y: rnd(), r: 0.5 + rnd() * 1.1, ph: rnd() * 6.28, sp: 0.4 + rnd() * 0.9 }));
+  const light = t === "light", still = matchMedia("(prefers-reduced-motion: reduce)").matches || p.has("still");
+  function draw(ms) {
+    x.clearRect(0, 0, c.width, c.height);
+    const drift = still ? 0 : ms * 0.000004;
+    for (const s of stars) {
+      const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(s.ph + (still ? 0 : ms * 0.001 * s.sp)));
+      x.fillStyle = light ? `rgba(21,32,46,${a * 0.5})` : `rgba(220,235,255,${a})`;
+      x.beginPath(); x.arc(((s.x + drift) % 1) * c.width, s.y * c.height, s.r * dpr, 0, 6.28); x.fill();
+    }
+    if (!still) requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
