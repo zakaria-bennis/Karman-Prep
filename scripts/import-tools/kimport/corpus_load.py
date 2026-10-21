@@ -363,7 +363,8 @@ def _png_sha(bdir: Path) -> str | None:
 def load_reread(path: Path) -> dict[str, dict]:
     """Supplementary corrected texts (re-read from the source page by hand), keyed by occurrence id.
     {"schema": "kimport-reread-records-v1", "records": [{"question_id", "B_final_version",
-    "B_package_path", "source_png_sha256", "text"} | {"question_id", "not_readable": reason}]}"""
+    "B_package_path", "source_png_sha256", "text", "figure"?} | {"question_id", "not_readable": reason}]}
+    "figure": true marks a question that needs its figure (never auto-merged, like a ledger visual hold)."""
     data = _read_json(Path(path))
     if not isinstance(data, dict) or data.get("schema") != REREAD_SCHEMA or not isinstance(data.get("records"), list):
         raise ValueError(f"{path}: expected {{'schema': '{REREAD_SCHEMA}', 'records': [...]}}")
@@ -473,6 +474,8 @@ def load_corpus(c_index: Path, ledger: Path, extra: Path | None = None, stats: d
                     st["reread_failures"][oid] = str(e)
                 else:
                     meta.update(text_source="reread", reread_replaces=reason)
+                    if r.get("figure") and not meta["figure_reason"]:
+                        meta["figure_reason"] = "re-read: the question needs its figure"
                     rec = _record(item, rocc, meta, live, cf)
                     if rec.meta["status"] == "unparsed":
                         st["reread_failed"] += 1

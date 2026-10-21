@@ -230,6 +230,18 @@ class RereadRecords(unittest.TestCase):
         self.assertEqual((st["reread_used"], st["reread_unused"], st["reread_failed"]), (1, 1, 2))
         self.assertEqual(st["reread_failures"][qid(5)], "reread_source_image_differs")
 
+    def test_reread_figure_flag_marks_a_figure_question(self):
+        with tempfile.TemporaryDirectory() as d:
+            t = Tree(Path(d))
+            bdir = t.b_package(qid(3), "b-3", png="png-3")
+            t.ledger(qid(3), bver="b-3", png="png-3")
+            ip, lp = t.write()
+            rr = reread_file(Path(d) / "rr.json", [{"question_id": qid(3), "B_final_version": "b-3",
+                                                    "B_package_path": str(bdir), "source_png_sha256": "png-3",
+                                                    "text": mc("Which value is correct?"), "figure": True}])
+            r = by_ref(load_corpus(ip, lp, rr))[qid(3)]
+        self.assertEqual((r.meta["status"], r.meta["reason"]), ("figure", "re-read: the question needs its figure"))
+
     def test_reread_for_another_b_version_is_refused(self):
         with tempfile.TemporaryDirectory() as d:
             t = Tree(Path(d))
