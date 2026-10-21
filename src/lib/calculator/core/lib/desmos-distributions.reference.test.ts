@@ -22,7 +22,9 @@ function caseOf(key: string): { latex: string; rows: string[] } {
 
 function matches(v: Value | undefined, expected: number | null): boolean {
   if (v === undefined) return false;
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -56,10 +58,8 @@ function errorMessage(key: string): string | undefined {
 // `\operatorname{inv}` the parser refuses before it reaches the `or`.
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
-  /\\infty/,
   /\\operatorname\{random\}/,
   /\\frac\{1\}\{\\operatorname\{invNorm\}|\\operatorname\{invNorm\}\\left\(1\\right\)>5/,
-  /^\\arctan\\left\(\\operatorname\{tdist\}\\left\(2\\right\)\.\\operatorname\{stdev\}\\right\)$/,
   /\\left\(i\\right\)$/,
   /^\\operatorname\{inv\}N\\operatorname\{or\}m/,
 ];
@@ -68,13 +68,13 @@ const gap = (key: string) => GAPS.some((g) => g.test(key));
 const VALUES = Object.entries(distributions.values) as [string, Expected][];
 const ERRORS = Object.entries(distributions.errors);
 
-it("FN-45 FN-51 all 194 catalogue distribution values and 69 errors are checked, 169 and 58 matched", () =>
+it("FN-45 FN-51 all 194 catalogue distribution values and 69 errors are checked, 180 and 59 matched", () =>
   expect([
     VALUES.length,
     ERRORS.length,
     VALUES.filter(([k]) => !gap(k)).length,
     ERRORS.filter(([k]) => !gap(k)).length,
-  ]).toEqual([194, 69, 169, 58]));
+  ]).toEqual([194, 69, 180, 59]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {

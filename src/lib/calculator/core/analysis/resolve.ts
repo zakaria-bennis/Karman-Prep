@@ -15,6 +15,7 @@ export interface Blocked {
 }
 export interface Resolution {
   isDefined(name: string): boolean;
+  baseCaseRecursion: ReadonlySet<string>; // recursive functions with an `n=c` base case: not graphed
   isFunction(name: string): boolean; // some row's head, with or without an error, defines a function of that name
   coordinatesOf(tree: Node, locals: readonly string[]): ReadonlySet<string>; // ⊆ COORDINATE_NAMES, through definitions
   duplicates: ReadonlySet<string>; // names with two or more error-free heads
@@ -55,6 +56,7 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
   const duplicates = repeatedNames(heads.map(({ head }) => head.name)),
     graph = dependencyGraph(heads.filter(({ head }) => !duplicates.has(head.name))),
     cycles = cycleErrors(graph),
+    baseCaseRecursion = equalityBaseCases(graph),
     cyclicRows = new Set(cycles.keys());
   const arity = new Map(
     graph.rows.flatMap(({ id, head }) =>
@@ -67,6 +69,7 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
   return {
     isDefined: (name) => defined.has(name),
     isFunction: (name) => functionNames.has(name),
+    baseCaseRecursion,
     coordinatesOf(tree, locals) {
       const found = new Set<string>();
       for (const { name, counted } of collectNameUses(tree)) {
@@ -152,6 +155,7 @@ function cycleErrors(graph: DependencyGraph): Map<string, Blocked> {
   const errors = new Map<string, Blocked>();
   for (const component of components(graph)) {
     const members = component.map((v) => graph.rows[v]);
+    if (isRecursion(members.map(({ head }) => head))) continue;
     const error: Blocked = members.every(({ head }) => head.type === "function")
       ? functionCycle(graph, component)
       : {
@@ -163,6 +167,53 @@ function cycleErrors(graph: DependencyGraph): Map<string, Blocked> {
     for (const { id } of members) errors.set(id, error);
   }
   return errors;
+}
+
+/**
+ * Desmos's recursion (captured 2026-10-20): functions that call each other are a recursion, not a
+ * cycle error, when one of them can return without calling the group, through a piecewise branch
+ * (`f(n)=\{n=0:1,nf(n-1)\}`, Fibonacci, Ackermann). A group that calls itself on every path
+ * (`f(x)=f(x-1)`) stays an error, as does any cycle through a value.
+ */
+function isRecursion(heads: readonly DefinitionHead[]): boolean {
+  if (!heads.every((head) => head.type === "function")) return false;
+  const names = new Set(heads.map((head) => head.name));
+  return heads.some((head) => !alwaysCalls(head.body, names));
+}
+
+/**
+ * The functions of each recursion whose base case is an equation (`f(n)=\{n=0:1,nf(n-1)\}`):
+ * Desmos does not graph their rows (captured 2026-10-20), as they are defined at whole numbers.
+ */
+function equalityBaseCases(graph: DependencyGraph): Set<string> {
+  const found = new Set<string>();
+  for (const component of components(graph)) {
+    const heads = component.map((v) => graph.rows[v].head);
+    if (!isRecursion(heads)) continue;
+    const equation = heads.some((head) => {
+      const pending: Node[] = [head.body];
+      for (let node = pending.pop(); node !== undefined; node = pending.pop()) {
+        if (node.kind === "piecewise" && node.branches.some((b) => b.cond.ops.includes("="))) {
+          return true;
+        }
+        pending.push(...sourceChildren(node));
+      }
+      return false;
+    });
+    if (equation) for (const head of heads) found.add(head.name);
+  }
+  return found;
+}
+
+/** True when every evaluation of `node` calls one of `names`. */
+function alwaysCalls(node: Node, names: ReadonlySet<string>): boolean {
+  if (node.kind === "call" && names.has(node.name)) return true;
+  if (node.kind === "piecewise") {
+    if (node.branches.length > 0 && alwaysCalls(node.branches[0].cond, names)) return true;
+    const values = [...node.branches.map((b) => b.value), node.otherwise];
+    return values.every((value) => value !== null && alwaysCalls(value, names));
+  }
+  return sourceChildren(node).some((child) => alwaysCalls(child, names));
 }
 
 function functionCycle(graph: DependencyGraph, component: number[]): Blocked {

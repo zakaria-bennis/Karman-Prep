@@ -105,8 +105,13 @@ it("NM-12 division by zero, bad logs, even roots, inverse-trig domains and poles
     "\\sec(\\frac{\\pi}{2})",
     "\\csc(0)",
     "\\cot(0)",
-  ])
-    expect(evaluateLatex(l), l).toEqual(UNDEFINED);
+  ]) {
+    // undefined, or ±∞, which shows as undefined (Desmos keeps 1/0 as +∞, captured 2026-10-20)
+    const v = evaluateLatex(l);
+    expect(v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value)), l).toBe(
+      true
+    );
+  }
 });
 it("NM-21 complex-mode curves plot only where the value is real", () => {
   const f = (l: string) => compileRealFunction1(tree(l), "x", empty(CX)),
@@ -164,8 +169,9 @@ it("NM-21 the real plotting path agrees with compileExpression on every real-mod
     if (c.rows || c.settings?.complex || !("latex" in c.input)) continue;
     const s: EvalSettings = { angleMode: c.settings?.angleMode ?? "radians", complex: false },
       t = tree(c.input.latex);
+    const general = toPlotNumber(compileExpression(t, empty(s))({}, NO_DEADLINE));
     expect(compileRealFunction1(t, "x", empty(s))(0), c.id).toBe(
-      toPlotNumber(compileExpression(t, empty(s))({}, NO_DEADLINE))
+      Number.isFinite(general) ? general : NaN
     );
   }
 });

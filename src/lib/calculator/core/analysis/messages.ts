@@ -71,6 +71,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "recursive-cycle": "The definitions of functions {n} depend on each other.",
   "implicit-variables": "We only support implicit equations of x and y.",
   "repeated-parameter": "Cannot use '{n}' for multiple parameters of this function.",
+  "function-coordinate": "Try including '{n}' as an argument by defining the function as '{k}'.",
   "parameter-defined":
     "You can't use '{n}' as a parameter of this function because '{n}' is already defined.",
   "equation-required": "Try adding '{n}' to the beginning of this equation.",

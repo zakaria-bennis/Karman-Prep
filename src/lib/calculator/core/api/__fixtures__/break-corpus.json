@@ -174,65 +174,37 @@
   {
     "cat": "numbers",
     "rows": ["\\infty"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "numbers",
     "rows": ["-\\infty"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "numbers",
     "rows": ["\\infty-\\infty"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "numbers",
     "rows": ["\\frac{\\infty}{\\infty}"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "numbers",
     "rows": ["0\\cdot\\infty"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "numbers",
     "rows": ["\\infty^0"],
-    "desmos": [{ "graph": false, "shown": true, "value": 1 }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 1 }]
   },
   {
     "cat": "numbers",
     "rows": ["1^{\\infty}"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "numbers",
@@ -733,11 +705,7 @@
   {
     "cat": "trig",
     "rows": ["\\sin(\\infty)"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "trig",
@@ -752,11 +720,7 @@
   {
     "cat": "trig",
     "rows": ["\\arctan(\\infty)"],
-    "desmos": [{ "graph": false, "shown": true, "value": 1.5707963267948966 }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 1.5707963267948966 }]
   },
   {
     "cat": "trig",
@@ -933,11 +897,7 @@
   {
     "cat": "trig",
     "rows": ["\\ln(\\infty)"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "trig",
@@ -1088,11 +1048,7 @@
   {
     "cat": "nested-fn",
     "rows": ["\\operatorname{ceil}(\\infty)"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "nested-fn",
@@ -1259,18 +1215,7 @@
     "desmos": [
       { "graph": false, "shown": false },
       { "graph": false, "shown": true, "value": 120 }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1278,18 +1223,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 120 }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1297,18 +1231,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": "undef" }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1316,18 +1239,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 6765 }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1335,18 +1247,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 832040 }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1354,18 +1255,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 1 }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1373,18 +1263,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": "undef" }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1392,18 +1271,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": true, "shown": false }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1462,18 +1330,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": "undef" }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1481,18 +1338,7 @@
     "desmos": [
       { "graph": false, "shown": false },
       { "graph": false, "shown": true, "value": "undef" }
-    ],
-    "known": {
-      "reason": "not built yet: recursive functions",
-      "ours": [
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        },
-        {
-          "error": "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "recursion",
@@ -1524,16 +1370,14 @@
     "rows": ["f(x)=y"],
     "desmos": [
       { "error": "Try including 'y' as an argument by defining the function as 'f(x,y)'." }
-    ],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    ]
   },
   {
     "cat": "recursion",
     "rows": ["f(y)=x"],
     "desmos": [
       { "error": "Try including 'x' as an argument by defining the function as 'f(y,x)'." }
-    ],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    ]
   },
   {
     "cat": "circular",
@@ -1671,24 +1515,8 @@
   },
   { "cat": "redefine", "rows": ["x=3"], "desmos": [{ "graph": true, "shown": false }] },
   { "cat": "redefine", "rows": ["y=5"], "desmos": [{ "graph": true, "shown": false }] },
-  {
-    "cat": "redefine",
-    "rows": ["e=1"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "e is reserved and can't be redefined." }]
-    }
-  },
-  {
-    "cat": "redefine",
-    "rows": ["\\pi=3"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "π is reserved and can't be redefined." }]
-    }
-  },
+  { "cat": "redefine", "rows": ["e=1"], "desmos": [{ "graph": false, "shown": false }] },
+  { "cat": "redefine", "rows": ["\\pi=3"], "desmos": [{ "graph": false, "shown": false }] },
   { "cat": "redefine", "rows": ["i=2"], "desmos": [{ "graph": false, "shown": false }] },
   { "cat": "redefine", "rows": ["t=1"], "desmos": [{ "graph": false, "shown": false }] },
   {
@@ -1777,15 +1605,7 @@
     }
   },
   { "cat": "redefine", "rows": ["d=1"], "desmos": [{ "graph": false, "shown": false }] },
-  {
-    "cat": "redefine",
-    "rows": ["\\infty=1"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
-  },
+  { "cat": "redefine", "rows": ["\\infty=1"], "desmos": [{ "graph": false, "shown": false }] },
   {
     "cat": "redefine",
     "rows": ["\\operatorname{random}=2"],
@@ -1825,15 +1645,7 @@
     "rows": ["\\operatorname{with}=1"],
     "desmos": [{ "error": "You need something on both sides of the 'with' symbol." }]
   },
-  {
-    "cat": "redefine",
-    "rows": ["\\tau=6"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "τ is reserved and can't be redefined." }]
-    }
-  },
+  { "cat": "redefine", "rows": ["\\tau=6"], "desmos": [{ "graph": false, "shown": false }] },
   {
     "cat": "redefine",
     "rows": ["\\operatorname{ans}=1"],
@@ -1854,14 +1666,7 @@
     "desmos": [
       { "graph": false, "shown": false },
       { "graph": false, "shown": true, "value": 7.38905609893065 }
-    ],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [
-        { "error": "e is reserved and can't be redefined." },
-        { "graph": false, "shown": true, "value": 7.38905609893065 }
-      ]
-    }
+    ]
   },
   {
     "cat": "redefine-ctx",
@@ -4903,11 +4708,7 @@
   {
     "cat": "ranges",
     "rows": ["[1...\\infty]"],
-    "desmos": [{ "error": "Ranges must be arithmetic sequences." }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "error": "Ranges must be arithmetic sequences." }]
   },
   {
     "cat": "ranges",
@@ -5316,11 +5117,7 @@
   {
     "cat": "piecewise",
     "rows": ["\\{1>0:[1,2],[3]\\}"],
-    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "graph": false, "shown": true, "value": [1] }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }]
   },
   {
     "cat": "piecewise",
@@ -5381,11 +5178,7 @@
   {
     "cat": "piecewise",
     "rows": ["\\{1>0:\\infty\\}"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "piecewise",
@@ -5486,15 +5279,7 @@
     "rows": ["x\\le y\\le x"],
     "desmos": [{ "graph": true, "shown": false }]
   },
-  {
-    "cat": "inequalities",
-    "rows": ["x>\\infty"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
-  },
+  { "cat": "inequalities", "rows": ["x>\\infty"], "desmos": [{ "graph": true, "shown": false }] },
   { "cat": "inequalities", "rows": ["x<0/0"], "desmos": [{ "graph": true, "shown": false }] },
   {
     "cat": "inequalities",
@@ -5607,7 +5392,7 @@
     "desmos": [{ "graph": true, "shown": true, "value": "undef" }],
     "known": {
       "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
+      "ours": [{ "graph": true, "shown": false }]
     }
   },
   {
@@ -5616,7 +5401,7 @@
     "desmos": [{ "graph": true, "shown": true, "value": "undef" }],
     "known": {
       "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
+      "ours": [{ "graph": true, "shown": false }]
     }
   },
   { "cat": "equations", "rows": ["x^{2}=-1"], "desmos": [{ "graph": true, "shown": false }] },
@@ -5878,29 +5663,17 @@
   {
     "cat": "points",
     "rows": ["(1/0,1)"],
-    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "graph": true, "shown": true, "value": { "text": ["undef", 1] } }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }]
   },
   {
     "cat": "points",
     "rows": ["(0/0,0/0)"],
-    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "graph": true, "shown": true, "value": { "text": ["undef", "undef"] } }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }]
   },
   {
     "cat": "points",
     "rows": ["(10^{400},1)"],
-    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "graph": true, "shown": true, "value": { "text": ["undef", 1] } }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }]
   },
   {
     "cat": "points",
@@ -6495,11 +6268,7 @@
   {
     "cat": "latex-junk",
     "rows": ["\\infty\\infty"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   {
     "cat": "latex-junk",
@@ -6800,11 +6569,7 @@
   {
     "cat": "sliders",
     "rows": ["a=\\infty"],
-    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "error": "This calculator doesn't support that notation." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
   },
   { "cat": "sliders", "rows": ["a=[1,2]"], "desmos": [{ "graph": false, "shown": false }] },
   { "cat": "sliders", "rows": ["a=(1,2)"], "desmos": [{ "graph": true, "shown": false }] },
@@ -6885,14 +6650,7 @@
     "desmos": [
       { "graph": false, "shown": true, "value": "undef" },
       { "graph": false, "shown": true, "value": "undef" }
-    ],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [
-        { "error": "This calculator doesn't support that notation." },
-        { "error": "Try adding 'y=' to the beginning of this equation." }
-      ]
-    }
+    ]
   },
   {
     "cat": "sliders-use",
@@ -7896,11 +7654,7 @@
     "cat": "complex-on",
     "rows": ["(1,i)"],
     "settings": { "allowComplex": true },
-    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }],
-    "known": {
-      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "graph": true, "shown": true, "value": { "text": [1, "undef"] } }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": { "text": ["undef"] } }]
   },
   {
     "cat": "complex-on",
@@ -17258,5 +17012,121 @@
     "rows": ["x=10^{308}"],
     "desmos": [{ "graph": true, "shown": true, "value": 1e308 }],
     "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+  },
+  {
+    "cat": "recursion",
+    "rows": ["f(n)=\\{n<1:0,f(n-1)+1\\}", "f(9999)", "f(10001)", "y=f(x)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 9999 },
+      { "graph": false, "shown": true, "value": "undef" },
+      { "graph": true, "shown": false }
+    ]
+  },
+  {
+    "cat": "recursion",
+    "rows": ["f(n)=\\{n=0:0,f(n-1)+1\\}", "f(9999)", "f(2.5)", "y=f(x)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 9999 },
+      { "graph": false, "shown": true, "value": "undef" },
+      { "graph": true, "shown": false }
+    ]
+  },
+  {
+    "cat": "recursion",
+    "rows": ["f(n)=\\{n=0:0,n=1:1,f(n-1)+f(n-2)\\}", "f(30)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 832040 }
+    ]
+  },
+  {
+    "cat": "recursion",
+    "rows": ["f(n)=\\{n\\le0:0,g(n-1)\\}", "g(n)=f(n)+1", "f(10)", "y=g(x)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 10 },
+      { "graph": true, "shown": false }
+    ]
+  },
+  {
+    "cat": "recursion",
+    "rows": ["A(m,n)=\\{m=0:n+1,n=0:A(m-1,1),A(m-1,A(m,n-1))\\}", "A(2,2)", "A(3,3)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 7 },
+      { "graph": false, "shown": true, "value": 61 }
+    ]
+  },
+  {
+    "cat": "recursion",
+    "rows": ["f(n)=\\{n\\le1:[n],\\operatorname{join}(f(n-1),n)\\}", "f(5)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": [1, 2, 3, 4, 5] }
+    ],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [
+        { "graph": true, "shown": false },
+        { "graph": false, "shown": true, "value": [1, 2, 3, 4, 5] }
+      ]
+    }
+  },
+  {
+    "cat": "recursion",
+    "rows": ["f(n)=\\{n\\le1:n,f(n-1)+f(n-2)\\}", "f(100)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 354224848179262000000 }
+    ]
+  },
+  {
+    "cat": "recursion",
+    "rows": ["g(n)=\\{n\\le1:1,ng(n-1)\\}", "g(10)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 3628800 }
+    ]
+  },
+  {
+    "cat": "recursion",
+    "rows": ["f(n)=\\{n\\le0:0,f(n-2)+1\\}", "f(19999)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": "undef" }
+    ]
+  },
+  {
+    "cat": "piecewise",
+    "rows": ["\\{1>0:[1,2,3],[4,5]\\}"],
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 2, 3] }]
+  },
+  {
+    "cat": "piecewise",
+    "rows": ["\\{1<0:[1,2,3],[4,5]\\}"],
+    "desmos": [{ "graph": false, "shown": true, "value": [4, 5] }]
+  },
+  {
+    "cat": "piecewise",
+    "rows": ["\\{1>0:[1,2],[]\\}"],
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }]
+  },
+  {
+    "cat": "piecewise",
+    "rows": ["\\{1<0:1,2<1:[1,2],[5,6,7]\\}"],
+    "desmos": [{ "graph": false, "shown": true, "value": [5, 6, 7] }]
+  },
+  {
+    "cat": "piecewise",
+    "rows": ["\\{1>0:[1,2],2>1:[3],[4,5,6]\\}"],
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 2] }]
+  },
+  {
+    "cat": "piecewise",
+    "rows": ["\\{1<0:[1,2],[3,4,5]\\}"],
+    "desmos": [{ "graph": false, "shown": true, "value": [3, 4, 5] }]
   }
 ]

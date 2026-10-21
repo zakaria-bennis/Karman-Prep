@@ -464,6 +464,10 @@ function failIfLogicOutsideCondition(state: ParserState, command: Token): void {
 function parseCommandAtom(state: ParserState, subscripts: boolean): Node {
   if (!startsFactor(state)) return missingOperand(state, peek(state));
   const token = take(state) as Extract<Token, { t: "command" }>;
+  // Desmos reads `\infty` (and `\infinity`) as the number ∞ (captured 2026-10-20)
+  if (token.name === "infty" || token.name === "infinity") {
+    return { kind: "const", name: "infty", span: token.span };
+  }
   if (token.name === "pi" || token.name === "tau") {
     // Desmos reads `\pi_{2}` as a name, like any letter with a subscript
     const next = peek(state);

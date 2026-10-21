@@ -17,6 +17,13 @@ import type { Compiled, CompileScope } from "./compile";
 import { holdsDistribution } from "./distributions";
 import { linkHolds, toPlotNumber } from "./ops";
 import { exponentRational, realPow, realRoot } from "./real-pow";
+import {
+  RECURSION_BUDGET,
+  realRecursiveCall,
+  recursiveNames,
+  type RecursionBudget,
+  type RecursionRun,
+} from "./recursion";
 import { numberValue, type Value } from "./values";
 
 /** User-function calls nest at most this deep; a call past it is undefined. */
@@ -32,6 +39,7 @@ type Fn = () => number;
 
 /** A user function, compiled once per compileReal: the slots of its parameters and its body. */
 interface RealFunction {
+  name: string;
   slots: readonly number[];
   body: Fn;
 }
@@ -55,17 +63,24 @@ interface Context {
   sp: number; // the first free stack index
   depth: number; // user-function calls in progress
   functions: Map<string, RealFunction>;
+  recursion: RecursionRun<number> | null; // a recursion in progress (recursion.ts)
+  budget: RecursionBudget;
 }
 
 const undefinedFn: Fn = () => NaN;
 
-/** A finite result, or NaN for an overflow or any other non-finite value (NM-12, NM-14). */
+/**
+ * A finite result, or NaN for an overflow or any other non-finite value (NM-12, NM-14): applied
+ * to the inputs and the final result only, so ±∞ flows through arithmetic as in Desmos
+ * (`\frac{1}{\frac{1}{x}}` is 0 at x=0).
+ */
 function finite(v: number): number {
   return Number.isFinite(v) ? v : NaN;
 }
 
 /** The value of a constant node: e, π, or τ = 2π. */
 export function constantValue(name: ConstName): number {
+  if (name === "infty") return Infinity;
   return name === "e" ? Math.E : name === "pi" ? Math.PI : 2 * Math.PI;
 }
 
@@ -107,13 +122,15 @@ export function compileReal(
     sp: 0,
     depth: 0,
     functions: new Map(),
+    recursion: null,
+    budget: { left: RECURSION_BUDGET },
   };
   const root = compile(tree, ctx),
     env = ctx.env;
   return (x, y) => {
     env[0] = finite(x);
     env[1] = finite(y);
-    return root();
+    return finite(root());
   };
 }
 
@@ -125,7 +142,7 @@ function compile(node: Node, ctx: Context): Fn {
   }
   switch (node.kind) {
     case "num": {
-      const v = finite(node.value);
+      const v = node.value;
       return () => v;
     }
     case "const": {
@@ -155,7 +172,7 @@ function compile(node: Node, ctx: Context): Fn {
     }
     case "deg": {
       const a = compile(node.arg, ctx);
-      return ctx.scope.settings.angleMode === "degrees" ? a : () => finite((a() * Math.PI) / 180);
+      return ctx.scope.settings.angleMode === "degrees" ? a : () => (a() * Math.PI) / 180;
     }
     case "root": {
       const a = compile(node.arg, ctx);
@@ -268,13 +285,13 @@ const isArithmetic = (node: Node): node is Binary =>
 function combined(kind: Binary["kind"], a: Fn, b: Fn): Fn {
   switch (kind) {
     case "add":
-      return () => finite(a() + b());
+      return () => a() + b();
     case "sub":
-      return () => finite(a() - b());
+      return () => a() - b();
     case "mul":
-      return () => finite(a() * b());
+      return () => a() * b();
     default:
-      return () => finite(a() / b()); // ÷ 0 is not finite, so undefined (NM-12)
+      return () => a() / b(); // ÷ 0 is ±∞, which the root shows as undefined (NM-12)
   }
 }
 
@@ -441,7 +458,7 @@ function generalNode(node: Node, ctx: Context): Fn {
     for (let k = 0; k < names.length; k++) {
       if (bound[slots[k]] === 1) vars[names[k]] = numberValue(env[slots[k]]);
     }
-    return finite(toPlotNumber(run(vars, NO_DEADLINE)));
+    return toPlotNumber(run(vars, NO_DEADLINE));
   };
 }
 
@@ -550,6 +567,9 @@ function bodyMayBeList(name: string, ctx: Context, seen: Set<string>): boolean {
  * then swapped into the parameters' slots, and the replaced values are restored after the body.
  */
 function userCall(fn: RealFunction, args: readonly Fn[], ctx: Context): Fn {
+  if (recursiveNames(ctx.scope.functions).has(fn.name)) {
+    return realRecursiveCall(ctx, fn.name, args, (name) => userFunction(name, ctx));
+  }
   const { env, bound, stack, boundStack } = ctx,
     count = args.length;
   return () => {
@@ -590,6 +610,7 @@ function userFunction(name: string, ctx: Context): RealFunction | null {
   const definition = ctx.scope.functions.get(name);
   if (definition === undefined) return null;
   const fn: RealFunction = {
+    name,
     slots: definition.params.map((param) => slotOf(param, ctx)),
     body: undefinedFn,
   };

@@ -6,7 +6,7 @@ export interface SourceSpan {
 } // UTF-16 offsets into normalizeLatex(input)
 export type RelOp = "=" | "<" | ">" | "<=" | ">=";
 export type InequalityOp = Exclude<RelOp, "=">;
-export type ConstName = "e" | "pi" | "tau";
+export type ConstName = "e" | "pi" | "tau" | "infty"; // `\infty`: Infinity, shown as undefined
 /** PR-45, NM-32: a coordinate member, `P.x`; points have two, so `.z` is an error. */
 export type Axis = "x" | "y" | "z";
 /** A relation or chain, `operands.length === ops.length + 1` (G12, PR-29). */

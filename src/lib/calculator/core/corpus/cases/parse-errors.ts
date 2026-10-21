@@ -25,7 +25,6 @@ const cases: CorpusCase[] = [
   n(3, ["PR-9"], "x\\ne3", "curve-y", ["\\ne"]),
   n(4, ["PR-9"], "x\\neq3", "curve-y", ["\\neq"]),
   x(5, ["PR-9"], "x\\approx3", "unknown-symbol"), // "Sorry, I don't understand the '≈' symbol."
-  x(6, ["PR-9"], "\\infty", "unsupported"),
   x(7, ["PR-9"], "\\text{hello}", "syntax"), // "Sorry, I don't understand this."
   x(8, ["PR-9"], "\\begin{matrix}1\\end{matrix}", "syntax"),
   n(9, ["PR-9"], "x\\simeq3", "curve-y", ["\\simeq"]),
@@ -44,8 +43,6 @@ const cases: CorpusCase[] = [
   x(29, ["PR-9"], "stats(1,2)", "requires-list"),
   n(32, ["PR-9"], "\\operatorname{foo}(x)", "curve-y", ["\\operatorname{foo}"]),
   x(33, ["PR-9"], "nthrootx", "unsupported"),
-  x(34, ["PR-9"], "infinity", "unsupported"),
-  x(52, ["PR-9"], "x^\\infty", "unsupported"),
   x(54, ["PR-9"], "x\\operatorname{for}", "unsupported"),
   n(55, ["PR-11"], "\\omicron", "value", ["\\omicron"]),
   x(35, ["PR-38"], "\\frac{}{}", "fraction-empty"),

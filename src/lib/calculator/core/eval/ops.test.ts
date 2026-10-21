@@ -68,18 +68,18 @@ it("NM-11, FN-13 odd roots of negatives are real; even, zeroth and other negativ
     powV(n(-8), n(P), null, false),
   ]).toEqual([n(-2), UNDEFINED, UNDEFINED]);
 });
-it("NM-13, NM-14, FN-14 0^0 is 1, division by zero and overflow are undefined, underflow is 0", () => {
+it("NM-13, NM-14, FN-14 0^0 is 1; division by zero and overflow are ±∞ (shown undefined), 0/0 undefined, underflow 0", () => {
   expect([powV(n(0), n(0), null, false), powV(n(10), n(-400), null, false)]).toEqual([n(1), n(0)]);
-  for (const v of [
+  // as in Desmos (captured 2026-10-20): ±∞ is a value that shows as undefined, so 1/(1/0) is 0
+  expect([
     powV(n(10), n(400), null, false),
     mulV(n(1e308), n(10)),
     divV(n(5), n(0)),
     divV(n(-5), n(0)),
-    divV(n(0), n(0)),
     powV(n(0), n(-1), null, false),
     powV(n(2), n(1024), null, false),
-  ])
-    expect(v).toEqual(UNDEFINED);
+  ]).toEqual([n(Infinity), n(Infinity), n(Infinity), n(-Infinity), n(Infinity), n(Infinity)]);
+  expect(divV(n(0), n(0))).toEqual(UNDEFINED);
 });
 it("NM-18 complex functions use principal branches, with C99 values on the cuts", () => {
   expect([cln(c(-1, 0)), csqrt(c(-4, 0)), csqrt(c(3, 4)), csin(c(0, 1))]).toEqual([
@@ -122,7 +122,7 @@ it("NM-19 complex mode keeps every value real mode defines", () => {
     powV(n(-8), n(1 / 3), { p: 1, q: 3 }, true),
     rootV(n(-4), null, true),
     powV(n(0), n(-1), null, true),
-  ]).toEqual([n(-2), { type: "complex", value: c(0, 2) }, UNDEFINED]);
+  ]).toEqual([n(-2), { type: "complex", value: c(0, 2) }, n(Infinity)]);
   const half = powV(n(-8), n(0.5), { p: 1, q: 2 }, true);
   expect(half.type === "complex" && rel(half.value.im, Math.sqrt(8))).toBe(true);
 });

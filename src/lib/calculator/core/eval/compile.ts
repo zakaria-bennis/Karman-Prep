@@ -56,6 +56,15 @@ import { holdsDistribution, makeDistribution, readDistribution } from "./distrib
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
+import {
+  RECURSION_BUDGET,
+  cachedOrMissing,
+  recursiveNames,
+  trampoline,
+  type Frame,
+  type RecursionBudget,
+  type RecursionRun,
+} from "./recursion";
 import { complexValue, numberValue, UNDEFINED, type Value } from "./values";
 
 export interface EvalSettings {
@@ -77,6 +86,7 @@ type Relation = Extract<Node, { kind: "rel" }>;
 
 /** A user function, compiled once per compileExpression. */
 interface CompiledFunction {
+  name: string;
   params: readonly string[];
   body: Compiled;
 }
@@ -85,6 +95,8 @@ interface Context {
   scope: CompileScope;
   functions: Map<string, CompiledFunction>;
   depth: number; // user-function calls in progress
+  recursion: RecursionRun<Value> | null; // a recursion in progress (recursion.ts)
+  budget: RecursionBudget;
 }
 
 const ONE: Value = Object.freeze(numberValue(1));
@@ -106,7 +118,13 @@ const hasOwn = (vars: Readonly<Record<string, Value>>, name: string) =>
  * whole result an undefined value carrying its code; the closure never throws it (AR-54).
  */
 export function compileExpression(tree: Node, scope: CompileScope): Compiled {
-  const root = compileNode(tree, { scope, functions: new Map(), depth: 0 });
+  const root = compileNode(tree, {
+    scope,
+    functions: new Map(),
+    depth: 0,
+    recursion: null,
+    budget: { left: RECURSION_BUDGET },
+  });
   // NM-34 to NM-36: a list error anywhere below is the root's value, an undefined that names it.
   return (vars, deadline) => {
     try {
@@ -379,6 +397,7 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
  * checked, and a call past MAX_CALL_DEPTH nested calls is UNDEFINED.
  */
 function userCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Context): Compiled {
+  if (recursiveNames(ctx.scope.functions).has(fn.name)) return recursiveCall(fn, args, ctx);
   return (vars, deadline) => {
     const values = args.map((arg) => arg(vars, deadline));
     deadline.check();
@@ -397,6 +416,38 @@ function userCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Context)
 }
 
 /**
+ * A call of a recursive function (recursion.ts): inside a recursion its cached result, else a new
+ * recursion from this call, each frame run with the entry's variables and its own parameters.
+ */
+function recursiveCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Context): Compiled {
+  return (vars, deadline) => {
+    const frame = { fn: fn.name, args: args.map((arg) => arg(vars, deadline)) };
+    const cached = cachedOrMissing(ctx.recursion, frame);
+    if (cached !== null) return cached;
+    const invoke = (f: Frame<Value>): Value => {
+      deadline.check();
+      const called = userFunction(f.fn, ctx);
+      if (called === null) return UNDEFINED;
+      const inner: Record<string, Value> = { ...vars };
+      called.params.forEach((param, k) => (inner[param] = f.args[k]));
+      const depth = ctx.depth;
+      ctx.depth = 0;
+      try {
+        return called.body(inner, deadline);
+      } finally {
+        ctx.depth = depth;
+      }
+    };
+    ctx.recursion = { cache: new Map() };
+    try {
+      return trampoline(frame, invoke, UNDEFINED, ctx.recursion, ctx.budget);
+    } finally {
+      ctx.recursion = null;
+    }
+  };
+}
+
+/**
  * The function `name` of `scope.functions`, compiled once per compileExpression. It is cached
  * before its body compiles, and calls read `body` when they run, so a body reaching its own name
  * compiles (and is cut off at run time by MAX_CALL_DEPTH).
@@ -406,7 +457,7 @@ function userFunction(name: string, ctx: Context): CompiledFunction | null {
   if (known !== undefined) return known;
   const definition = ctx.scope.functions.get(name);
   if (definition === undefined) return null;
-  const fn: CompiledFunction = { params: definition.params, body: constant(UNDEFINED) };
+  const fn: CompiledFunction = { name, params: definition.params, body: constant(UNDEFINED) };
   ctx.functions.set(name, fn);
   fn.body = compileNode(definition.body, ctx);
   return fn;

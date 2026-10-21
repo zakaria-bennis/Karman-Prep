@@ -44,7 +44,7 @@ export const UNDEFINED: Value = Object.freeze({ type: "undefined" as const });
 
 /** A real value: non-finite → UNDEFINED; -0 stays -0 (only formatNumber shows it as 0). */
 export function numberValue(v: number): Value {
-  return Number.isFinite(v) ? { type: "number", value: v } : UNDEFINED;
+  return Number.isNaN(v) ? UNDEFINED : { type: "number", value: v };
 }
 
 /** A complex value: a non-finite part → UNDEFINED; a zero imaginary part gives a number (decision 7). */

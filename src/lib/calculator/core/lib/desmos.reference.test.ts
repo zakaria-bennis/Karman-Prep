@@ -53,7 +53,9 @@ const FAMILIES: { rules: string; pattern: RegExp; count: number; rows?: string[]
 ];
 
 function matches(v: Value, expected: number | null): boolean {
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -154,9 +156,9 @@ function sameValue(v: Value, expected: CatalogueValue, complex: boolean): boolea
   );
 }
 
-// Catalogue values not yet matched, each an expected failure that fails once matched: `\infty`
-// is not a value yet (the calculator reads it as undefined), so an infinite base is too.
-const CATALOGUE_VALUE_GAP: ReadonlySet<string> = new Set(["\\log_{\\infty}(5)"]);
+// Catalogue values not yet matched, each an expected failure that fails once matched (none now:
+// `\infty` is a value, so an infinite base works too).
+const CATALOGUE_VALUE_GAP: ReadonlySet<string> = new Set<string>([]);
 
 it("NM-36 FN-60 all 90 catalogue values for ranges, log and ln are checked", () =>
   expect(CATALOGUE_VALUES.length).toBe(90));
@@ -395,8 +397,7 @@ function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): bo
 // notation they use that has not shipped: derivatives, colours and tones, distributions other than
 // normaldist, tdist and binomialdist (FN-45 to FN-51), member access other than theirs and
 // coordinates (`L.\operatorname{mean}`), comprehensions and matrices, shuffle and random (T14), polygon,
-// boxplot and stats, `\arg` (complex mode), `\infty` as a value, a stored +∞ behind undefined
-// (`\arctan` of tdist(2)'s infinite stdev; NM-6 keeps one undefined state), and `y=` rows, which
+// boxplot and stats, `\arg` (complex mode), and `y=` rows, which
 // Desmos gives a value when the right side is constant (`y=\operatorname{count}(x,1,2)` = 3) and
 // the calculator graphs as a line without one.
 const STATISTICS_GAPS: readonly RegExp[] = [
@@ -407,7 +408,6 @@ const STATISTICS_GAPS: readonly RegExp[] = [
   /\\operatorname\{for\}|bmatrix/,
   /\\operatorname\{(shuffle|random|polygon|boxplot|stats)\}/,
   /\\arg/,
-  /\\infty/,
   /^y=/,
 ];
 const SHIPPED_DISTRIBUTIONS = /\\operatorname\{(normaldist|tdist|binomialdist)\}/;
@@ -425,15 +425,15 @@ const MATCHED: ReadonlySet<string> = new Set([
 const statisticsGap = (key: string) =>
   !MATCHED.has(key) &&
   STATISTICS_GAPS.some((gap) => gap.test(key)) &&
-  !(SHIPPED_DISTRIBUTIONS.test(key) && !/\\arctan/.test(key));
+  !SHIPPED_DISTRIBUTIONS.test(key);
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 345 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 347 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 345]));
+  ]).toEqual([438, 347]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {

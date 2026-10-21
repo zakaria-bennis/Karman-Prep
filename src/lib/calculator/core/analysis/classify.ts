@@ -76,8 +76,9 @@ export function classifyRow(
   // a curve whose value is a point or points (`y=(1,2)x`) is neither graphed nor marked (Desmos,
   // 2026-10-20)
   const pointCurve = shape.graph?.kind === "explicit" && pointValued(shape.graph.expr, typing);
+  const baseCase = row.head !== null && resolution.baseCaseRecursion.has(row.head.name);
   const isGraphable =
-    shape.graph !== null && !pointCurve && chips.length === 0 && !row.source.hidden;
+    shape.graph !== null && !pointCurve && !baseCase && chips.length === 0 && !row.source.hidden;
   const coordinates = resolution.coordinatesOf(row.tree, []).size > 0;
   return {
     ...analysis,

@@ -74,6 +74,8 @@ function format(v: Value, style: Style): string {
     case "complex":
       return formatComplex(v.value, style);
     case "point":
+      // Desmos shows a point with an undefined coordinate as one undefined (captured 2026-10-20)
+      if (!v.value.every(Number.isFinite)) return formatReal(NaN, style);
       return style.point(formatReal(v.value[0], style), formatReal(v.value[1], style));
     case "list":
       return style.list(

@@ -19,7 +19,6 @@ type Captured = number | number[] | null | string;
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}|\\int/,
   /invNorm/,
-  /^p\\left\(n\\right\)=/,
   /\\operatorname\{(and|or)\}/,
   /\\sum|polygon/,
 ];
@@ -42,7 +41,9 @@ function lastRow(rows: readonly string[], latex: string) {
 }
 
 function matches(v: Value, expected: number | null): boolean {
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -61,8 +62,8 @@ function sameValue(v: Value, expected: number | number[] | null): boolean {
 const VALUES = Object.entries(piecewise.values) as [string, Captured][];
 const ERRORS = Object.entries(piecewise.errors);
 
-it("PR-31 PR-32 all 33 catalogue piecewise values are checked, 24 matched", () =>
-  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([33, 24]));
+it("PR-31 PR-32 all 33 catalogue piecewise values are checked, 26 matched", () =>
+  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([33, 26]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {

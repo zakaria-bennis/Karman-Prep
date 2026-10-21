@@ -74,7 +74,8 @@ function gcd(a: number, b: number): number {
 /**
  * a^b in real mode (NM-10, NM-13, NM-14). A negative base with a non-integer exponent is real only
  * for p/q with odd q ≤ 99, taken from `rational` (the tree) or else from the value, and is then
- * (−1)^p·|a|^b. 0^0 is 1, underflow is 0, and overflow or any other non-finite result is NaN.
+ * (−1)^p·|a|^b. 0^0 is 1, underflow is 0, and overflow is ±∞, which shows as undefined (as in
+ * Desmos: `10^{400}` is +∞, so `\frac{1}{10^{400}}` is 0).
  */
 export function realPow(a: number, b: number, rational: Rational | null): number {
   if (Number.isNaN(a) || Number.isNaN(b)) return NaN;
@@ -86,7 +87,7 @@ export function realPow(a: number, b: number, rational: Rational | null): number
   } else {
     result = Math.pow(a, b);
   }
-  return Number.isFinite(result) ? result : NaN;
+  return result;
 }
 
 /**
@@ -99,7 +100,7 @@ export function realRoot(x: number, n: number): number {
   if (!Number.isInteger(n)) return realPow(x, 1 / n, null);
   if (x < 0 && Math.abs(n) % 2 === 0) return NaN;
   const result = x < 0 ? -positiveRoot(-x, n) : positiveRoot(x, n);
-  return Number.isFinite(result) ? result : NaN;
+  return result;
 }
 
 function positiveRoot(x: number, n: number): number {

@@ -60,19 +60,22 @@ describe("PR-31 piecewiseValue", () => {
     expect(piecewiseValue(parts, unsafe(n(0)))).toEqual(list(n(1), n(6)));
   });
 
-  it("NM-33 with scalar conditions, a safe list value broadcasts the picked value", () => {
+  it("NM-33 with scalar conditions, a safe list value broadcasts a picked number", () => {
     const holds = [{ test: () => n(1), value: safe(n(1)) }];
     expect(piecewiseValue(holds, safe(list(n(1), n(2))))).toEqual(list(n(1), n(1)));
+    // a picked list is the result whole (Desmos, 2026-10-20)
     const fails = [{ test: () => UNDEFINED, value: safe(list(n(1), n(2))) }];
-    expect(piecewiseValue(fails, safe(list(n(3), n(4), n(5))))).toEqual(list(n(3), n(4)));
+    expect(piecewiseValue(fails, safe(list(n(3), n(4), n(5))))).toEqual(list(n(3), n(4), n(5)));
     expect(piecewiseValue(holds, unsafe(list(n(1), n(2))))).toEqual(n(1));
   });
 });
 
 describe("PR-31 PR-32 evaluation", () => {
-  it("NM-41 `=` compares the full doubles and undefined holds no condition", () => {
+  it("NM-41 `=` compares the full doubles; ±∞ compares and undefined holds no condition", () => {
     expect(evaluateLatex("\\{0.1+0.2=0.3:1,0\\}")).toEqual(n(0));
-    expect(evaluateLatex("\\{\\frac{1}{0}>0:1,0\\}")).toEqual(n(0));
+    // Desmos, captured 2026-10-20: 1/0 is +∞, which is greater than 0
+    expect(evaluateLatex("\\{\\frac{1}{0}>0:1,0\\}")).toEqual(n(1));
+    expect(evaluateLatex("\\{\\frac{0}{0}>0:1,0\\}")).toEqual(n(0));
   });
 
   it("several restrictions multiply: the row is undefined where any is false", () => {
@@ -160,11 +163,11 @@ describe("PR-31 PR-32 point rows, broadcasting and conditions", () => {
     expect(row(["(t,t^{2})\\{t>0.5\\}"])).toEqual(["error", false, notation]);
   });
 
-  it("NM-33 a list value broadcasts a scalar condition's pick, to the shortest list", () => {
+  it("NM-33 a list value broadcasts a scalar condition's picked number; a picked list is whole", () => {
     expect(evaluateLatex("\\{1>0:1,[1,2]\\}")).toEqual(list(n(1), n(1)));
     expect(evaluateLatex("\\operatorname{length}(\\{1>0:1,[1,2]\\})")).toEqual(n(2));
     expect(evaluateLatex("\\{1>0:1,[1,2]\\}[2]")).toEqual(n(1));
-    expect(evaluateLatex("\\{1<0:[1,2],[3,4,5]\\}")).toEqual(list(n(3), n(4)));
+    expect(evaluateLatex("\\{1<0:[1,2],[3,4,5]\\}")).toEqual(list(n(3), n(4), n(5)));
   });
 
   it("NM-31 a condition comparing points is Desmos's comparator error", () => {

@@ -60,7 +60,9 @@ function lastRow(rows: readonly string[], latex: string) {
 }
 
 function matches(v: Value, expected: Coordinate): boolean {
-  if (expected === null) return v.type === "undefined";
+  // Desmos's JSON writes NaN and ±∞ alike as null; both show as undefined
+  if (expected === null)
+    return v.type === "undefined" || (v.type === "number" && !Number.isFinite(v.value));
   if (v.type !== "number") return false;
   return Number.isInteger(expected)
     ? v.value === expected
@@ -69,7 +71,7 @@ function matches(v: Value, expected: Coordinate): boolean {
 
 /** A point's coordinate: NaN is Desmos's null. */
 function sameCoordinate(c: number, expected: Coordinate): boolean {
-  if (expected === null) return Number.isNaN(c);
+  if (expected === null) return !Number.isFinite(c);
   return Number.isInteger(expected) ? c === expected : withinTolerance(c, expected, "default");
 }
 

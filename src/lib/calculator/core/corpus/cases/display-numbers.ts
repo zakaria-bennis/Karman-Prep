@@ -27,7 +27,8 @@ const cases: CorpusCase[] = [
   d(12, ["NM-3"], "0.1+0.2-0.3", "5.55111512313×10^-17"),
   d(13, ["NM-5"], "(1,2)", "(1, 2)"),
   d(14, ["NM-5"], "(\\frac{1}{3},2^{40})", "(0.333333333333, 1.09951162778×10^12)"),
-  d(15, ["NM-5"], "(1,\\frac{1}{0})", "(1, undefined)"),
+  // Desmos shows a point with an undefined coordinate as one undefined (captured 2026-10-20)
+  d(15, ["NM-5"], "(1,\\frac{1}{0})", "undefined"),
   d(16, ["NM-6"], "\\frac{1}{0}", "undefined"),
   d(17, ["NM-6"], "\\frac{0}{0}", "undefined"),
   d(18, ["NM-6", "NM-14"], "10^{400}", "undefined"),

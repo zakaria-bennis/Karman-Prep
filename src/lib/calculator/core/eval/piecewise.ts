@@ -2,7 +2,8 @@
 // first condition that holds picks its value, a bare condition's value is 1, and with none holding
 // the otherwise value or, without one, undefined; `\{\}` is 1. Desmos's piecewise broadcasts every
 // list among its conditions and values, truncating to the shortest list (NM-33):
-// `\{[1,2,3]>1:4,9\}` is [9, 4, 4] and `\{1>0:1,[1,2]\}` is [1, 1]. Pure TypeScript: no DOM (AR-44).
+// `\{[1,2,3]>1:4,9\}` is [9, 4, 4] and `\{1>0:1,[1,2]\}` is [1, 1]; under a condition that is
+// not a list, a picked list is the result whole. Pure TypeScript: no DOM (AR-44).
 
 import { mapN } from "./lists";
 import { numberValue, UNDEFINED, type Value } from "./values";
@@ -46,11 +47,12 @@ export function piecewiseValue(
   const k = tests.findIndex((t) => t.type !== "undefined");
   const chosen = k < 0 ? otherwise : parts[k].value;
   const picked = chosen !== null ? chosen.run() : k < 0 ? UNDEFINED : ONE;
-  const lists = [picked, ...unpicked(parts, otherwise, chosen)].filter(isList);
+  // a picked list is the result whole (`\{1>0:[1,2,3],[4,5]\}` is [1, 2, 3], captured 2026-10-20)
+  if (picked.type === "list") return picked;
+  const lists = unpicked(parts, otherwise, chosen).filter(isList);
   if (lists.length === 0) return picked;
   const n = Math.min(...lists.map((list) => (list.type === "list" ? list.value.length : 0)));
-  const at = (i: number) => (picked.type === "list" ? picked.value[i] : picked);
-  return { type: "list", value: Array.from({ length: n }, (_, i) => at(i)) };
+  return { type: "list", value: Array.from({ length: n }, () => picked) };
 }
 
 /** The values of the safe values other than `chosen`. */

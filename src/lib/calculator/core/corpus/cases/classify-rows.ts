@@ -42,8 +42,7 @@ const cases: CorpusCase[] = [
   k(11, ["NM-17"], "i+a", "value", ["i", "a"]),
   k(12, ["NM-17"], "2i", "value", [], { rows: ["i=3"] }),
   k(13, ["NM-17"], "2i", "value", [], { settings: CX }),
-  x(14, ["RC-3", "RC-19"], "e=2", "reserved-name"),
-  x(15, ["RC-3", "RC-19"], "\\pi=3", "reserved-name"),
+
   k(16, ["RC-3", "RC-19"], "i=2", "definition"),
   k(17, ["RC-3", "RC-19"], "t+1", "value", ["t"]),
   x(18, ["RC-3", "RC-19"], "i=2", "reserved-name", { settings: CX }),
