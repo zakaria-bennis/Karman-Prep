@@ -67,7 +67,7 @@ it("mathQuillOptions sets no autoParenthesizedFunctions", () =>
   expect("autoParenthesizedFunctions" in config).toBe(false));
 it("mathQuillOptions turns on enableDigitGrouping", () =>
   expect(config.enableDigitGrouping).toBe(true));
-it("mathQuillOptions turns on disableCopyPaste, NATIVE_HISTORY_CHORDS lists the five chords and no other option is set", () => {
+it("mathQuillOptions turns on disableCopyPaste, NATIVE_HISTORY_CHORDS lists the six chords and no other option is set", () => {
   expect(config.disableCopyPaste).toBe(true);
   expect(NATIVE_HISTORY_CHORDS).toEqual([
     "Ctrl-Z",
@@ -75,6 +75,7 @@ it("mathQuillOptions turns on disableCopyPaste, NATIVE_HISTORY_CHORDS lists the 
     "Ctrl-Shift-Z",
     "Meta-Shift-Z",
     "Ctrl-Y",
+    "Meta-Y",
   ]);
   expect(isNativeHistoryChord("Meta-Shift-Z")).toBe(true);
   expect(isNativeHistoryChord("Ctrl-A")).toBe(false);

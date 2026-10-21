@@ -123,17 +123,26 @@
   padding-bottom: 6px;
 }
 
-/* VIS-22: the focused row, or the keypad's target row while focus is in the keypad: 2 px accent
-   top and bottom, 1 px right, an accent tab with a white number; the inner box gives back the
-   extra pixels so the row keeps its height. A blurred row (a graph click, Escape) goes back to
-   the plain look, as the reference's does. */
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"]) {
+/* VIS-22: the selected row (focused, its curve pressed on the graph, or left with Escape), or the
+   keypad's target row while focus is in the keypad: 2 px accent top and bottom, 1 px right, an
+   accent tab with a white number; the inner box gives back the extra pixels so the row keeps its
+   height. As in the reference, a press on empty graph paper deselects it and it goes back to the
+   plain look; a table stays selected the same way after its cell blurs. */
+.kc-row:is(
+  [data-focused="true"],
+  [data-selected="true"],
+  .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+) {
   border-top: 2px solid var(--kc-focus-bar);
   border-right-color: var(--kc-focus-bar);
   border-bottom: 2px solid var(--kc-focus-bar);
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   > .kc-row-inner {
   margin: -1px 0;
 }
@@ -158,13 +167,21 @@
   line-height: 11px;
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-row-gutter {
   border-right-color: transparent;
   background: var(--kc-focus-bar);
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-row-number {
   color: var(--kc-focus-bar-label);
 }
@@ -235,18 +252,30 @@
   fill: var(--kc-tab);
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-row-warning {
   color: var(--kc-focus-bar-label);
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-row-warning
   .kc-warning-mark {
   stroke: var(--kc-focus-bar);
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-row-warning
   .kc-warning-mark-dot {
   fill: var(--kc-focus-bar);

@@ -12,6 +12,7 @@ import type {
 } from "../../../../vendor/mathquill/mathquill";
 import { isNativeHistoryChord, mathQuillOptions } from "./config";
 import { toMathFieldLatex } from "./load-latex";
+import { overRowLimit, pastedLatex, pastedLines } from "./paste-text";
 import { latexToSpeech } from "./speech";
 
 export interface MathFieldOptions {
@@ -256,10 +257,32 @@ class KarmanMathField implements MathField {
     this.options.onEdit(latex);
   }
 
+  /** Copy or cut: see createTextarea. */
+  private copyTo(event: ClipboardEvent, cut: boolean): void {
+    event.preventDefault();
+    const selected = this.selectedLatex();
+    const text = selected ?? this.latex();
+    if (text === "" || !event.clipboardData) return;
+    event.clipboardData.setData("text/plain", text);
+    if (cut && selected !== null) this.keystroke("Backspace");
+  }
+
+  /** Paste: the first math line at the caret, refused at once when over maxLength (T-13). */
+  private pasteFrom(event: ClipboardEvent): void {
+    event.preventDefault();
+    const [line] = pastedLines(event.clipboardData?.getData("text/plain") ?? "");
+    if (line === undefined) return;
+    const latex = pastedLatex(line);
+    if (overRowLimit(latex, this.options.maxLength)) this.options.onRefused("char-limit");
+    else this.write(latex);
+  }
+
   /**
    * MathQuill's substituteTextarea hook. The listeners are bound here, before MathQuill binds
-   * its own. Copy, cut and paste only prevent the default action: the capture-phase bridge on
-   * the shadow root has already run, and MathQuill (disableCopyPaste) never edits on them.
+   * its own. Copy, cut and paste are the adapter's (MathQuill has disableCopyPaste), as the
+   * reference's: copy puts the selection's LaTeX, or the whole field's when nothing is selected,
+   * on the clipboard; cut also deletes the selection; paste writes the first math line at the caret
+   * (the expression list's capture listener has already taken grids and multi-line pastes).
    */
   private createTextarea(): HTMLTextAreaElement {
     const textarea = this.element.ownerDocument.createElement("textarea");
@@ -267,7 +290,6 @@ class KarmanMathField implements MathField {
       textarea.setAttribute(name, value);
     textarea.setAttribute("inputmode", "text");
     textarea.setAttribute("aria-label", this.options.ariaLabel);
-    const prevent = (event: Event) => event.preventDefault();
     this.listeners = [
       ["focus", () => this.live() && this.options.onFocus()],
       ["blur", () => this.live() && this.options.onBlur()],
@@ -278,9 +300,9 @@ class KarmanMathField implements MathField {
           if (inputType === "historyUndo" || inputType === "historyRedo") event.preventDefault();
         },
       ],
-      ["copy", prevent],
-      ["cut", prevent],
-      ["paste", prevent],
+      ["copy", (event) => this.copyTo(event as ClipboardEvent, false)],
+      ["cut", (event) => this.copyTo(event as ClipboardEvent, true)],
+      ["paste", (event) => this.pasteFrom(event as ClipboardEvent)],
     ];
     for (const [type, listener] of this.listeners) textarea.addEventListener(type, listener);
     this.textarea = textarea;

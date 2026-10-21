@@ -79,8 +79,8 @@ export function convertToTable(
 
 /**
  * S-12, S-13, D-5: Add table; an empty active row becomes the table, any other anchor gets one
- * after it, and with no anchor (a blank list) the table is row 1, as on the reference; focus
- * goes to the first x cell.
+ * after it, and with no anchor the table is row 1, taking the place of a lone blank row, as on
+ * the reference; focus goes to the first x cell.
  */
 export function insertTableItem(
   engine: CalculatorEngine,
@@ -88,7 +88,11 @@ export function insertTableItem(
   announcer: Announcer | null,
   anchor: string | null
 ): string | null {
-  const inserted = anchor === null ? insertTableFirst(engine) : engine.replaceWithTable(anchor);
+  // A list holding only its blank row (a fresh calculator) turns that row into the table.
+  const { rows } = engine.getSnapshot();
+  const blank = rows.length === 1 && rows[0].type !== "table" && rows[0].latex === "";
+  const target = anchor ?? (blank ? rows[0].id : null);
+  const inserted = target === null ? insertTableFirst(engine) : engine.replaceWithTable(target);
   if (typeof inserted === "string") {
     announcer?.announce(EDITOR_MESSAGES.rowLimit);
     return null;
@@ -98,7 +102,11 @@ export function insertTableItem(
   return inserted.id;
 }
 
-/** R-3: up → previous row at "end", down → next row at "start"; nothing at either end of the list. */
+/**
+ * R-3: up → previous row at "end", down → next row at "start", as on the reference: a table is
+ * entered at its first header from above and at its last data row from below, and ArrowDown on
+ * the last row adds a new empty row (NM-42's limit adds none); nothing above the first row.
+ */
 export function leaveRow(
   engine: CalculatorEngine,
   focus: FocusController,
@@ -108,23 +116,27 @@ export function leaveRow(
   const { rows } = engine.getSnapshot();
   const i = indexOf(engine, rowId);
   if (i < 0) return;
-  if (direction === "up") {
-    if (i > 0) focus.focusRow(rows[i - 1].id, "end");
-  } else if (i < rows.length - 1) {
-    focus.focusRow(rows[i + 1].id, "start");
+  const target = direction === "up" ? rows[i - 1] : rows[i + 1];
+  if (target === undefined) {
+    if (direction === "down" && rows[i].type !== "table")
+      insertRowBelow(engine, focus, null, rowId, "focus");
+    return;
   }
+  if (target.type === "table") {
+    const blank = Math.max(0, ...(target.columns ?? []).map((c) => c.values.length));
+    const row = direction === "down" ? "h" : Math.max(0, blank - 1);
+    focus.focusRow(cellKey(target.id, 0, row), direction === "up" ? "end" : "start");
+  } else focus.focusRow(target.id, direction === "up" ? "end" : "start");
 }
 
 /**
- * R-9, Backspace or Delete in an empty row: the only row stays (empty, focused); otherwise
- * deleteRow, then "left" → previous row at "end" (the new first row at "start" when there is
- * none), "right" → next row at "start" (the previous row at "end" when there is none).
+ * R-9, Backspace in an empty row: the only row stays (empty, focused); otherwise deleteRow, then
+ * the previous row at "end" (a table above: its blank row), else the new first row at "start".
  */
 export function deleteFromEmptyRow(
   engine: CalculatorEngine,
   focus: FocusController,
-  rowId: string,
-  direction: "left" | "right"
+  rowId: string
 ): void {
   const { rows } = engine.getSnapshot();
   const i = indexOf(engine, rowId);
@@ -137,18 +149,12 @@ export function deleteFromEmptyRow(
   }
   const previous = i > 0 ? rows[i - 1] : null;
   const next = i < rows.length - 1 ? rows[i + 1] : null;
-  if (direction === "left") {
-    // D-8 (appendix F requirement 15): below a table, Backspace enters the table's blank row.
-    if (previous?.type === "table") {
-      const blank = Math.max(0, ...(previous.columns ?? []).map((c) => c.values.length));
-      focus.focusRow(cellKey(previous.id, 0, blank), "start");
-    } else if (previous !== null) focus.focusRow(previous.id, "end");
-    else if (next !== null) focus.focusRow(next.id, "start");
-  } else if (next !== null) {
-    focus.focusRow(next.id, "start");
-  } else if (previous !== null) {
-    focus.focusRow(previous.id, "end");
-  }
+  // D-8 (appendix F requirement 15): below a table, Backspace enters the table's blank row.
+  if (previous?.type === "table") {
+    const blank = Math.max(0, ...(previous.columns ?? []).map((c) => c.values.length));
+    focus.focusRow(cellKey(previous.id, 0, blank), "start");
+  } else if (previous !== null) focus.focusRow(previous.id, "end");
+  else if (next !== null) focus.focusRow(next.id, "start");
 }
 
 /** The row's Delete control (R-3): deleteRow, then the row now at that index, else the previous one, at "end". */

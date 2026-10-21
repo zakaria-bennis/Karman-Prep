@@ -111,7 +111,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
   const engine = useEngine();
-  const { focusedRowId, activeRowId } = useEngineSnapshot(engine);
+  const { focusedRowId, activeRowId, selectedRowId } = useEngineSnapshot(engine);
   const focus = useFocusController();
   const announcer = useAnnouncer();
   const createField = useContext(MathFieldFactoryContext);
@@ -206,7 +206,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       onEnter: () => insertRowBelow(engine, focus, announcer, rowId, "focus"),
       onArrowOut: (direction) => leaveRow(engine, focus, rowId, direction),
       onDeleteOutOf(direction) {
-        if (fieldRef.current?.latex() === "") deleteFromEmptyRow(engine, focus, rowId, direction);
+        // R-9: Backspace deletes an empty row; Delete does nothing there, as on the reference.
+        if (direction === "left" && fieldRef.current?.latex() === "")
+          deleteFromEmptyRow(engine, focus, rowId);
       },
       onFocus() {
         setFieldFocused(true);
@@ -336,6 +338,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       data-row-id={row.id}
       data-focused={focusedRowId === row.id ? "true" : undefined}
       data-active={activeRowId === row.id ? "true" : undefined}
+      data-selected={selectedRowId === row.id ? "true" : undefined}
       data-motion={motion}
       aria-hidden={exiting ? "true" : undefined}
       onTransitionEnd={onRowTransitionEnd}
@@ -516,9 +519,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               else sliderLine.current.focusField("first");
             }}
             onClick={(e) => {
-              // A keyboard press (detail 0) moves on to the next row (R-3); a click leaves no row
-              // selected, as the reference does, with focus kept on the list.
-              if (e.detail === 0) {
+              // A keyboard press (detail 0) moves on to the next row (R-3), and so does a tap
+              // while the keypad is up, so the keypad keeps a row to type into (break-ui mobile);
+              // a click leaves no row selected, as the reference does, with focus kept on the list.
+              const touch = (e.nativeEvent as { pointerType?: string }).pointerType === "touch";
+              if (e.detail === 0 || (touch && engine.settings.keypad)) {
                 deleteRowByControl(engine, focus, row.id);
                 return;
               }

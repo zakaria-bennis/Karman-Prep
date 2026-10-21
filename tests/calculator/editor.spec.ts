@@ -42,7 +42,7 @@ test("R-3 each row has Delete; Enter inserts a row below and focuses it; Up and 
   await expect(field(page, 3)).toBeFocused();
 });
 
-test("R-9 Backspace and Delete in an empty row delete it and move to the neighbour's edge; the last row only empties", async ({
+test("R-9 Backspace in an empty row deletes it and moves to the previous row's end, Delete does nothing; the last row only empties", async ({
   page,
 }) => {
   await open(page, ["y=x", "", "y=2"]);
@@ -54,10 +54,9 @@ test("R-9 Backspace and Delete in an empty row delete it and move to the neighbo
   await expect.poll(() => latexes(page)).toEqual(["y=x+1", "y=2"]);
   await open(page, ["a", "", "b"]);
   await field(page, 2).focus();
-  await page.keyboard.press("Delete");
-  await expect.poll(() => latexes(page)).toEqual(["a", "b"]);
+  await page.keyboard.press("Delete"); // as on the reference (break-ui)
   await page.keyboard.type("c");
-  await expect.poll(() => latexes(page)).toEqual(["a", "cb"]);
+  await expect.poll(() => latexes(page)).toEqual(["a", "c", "b"]);
   await open(page, ["y"]);
   await field(page, 1).focus();
   await page.keyboard.press("End");

@@ -25,7 +25,7 @@ import { reduceKeypad, type KeypadEvent } from "./controller/keypad-policy";
 import type { ShellStore } from "./controller/shell-store";
 import { installShellKeyboard, type ShortcutAction } from "./controller/shortcuts";
 import { EscapeContext, type EscapeStack } from "./focus/escape-stack";
-import { FocusContext, type FocusController } from "./focus/focus-controller";
+import { cellKey, FocusContext, type FocusController } from "./focus/focus-controller";
 import { SkinContext } from "./hooks/skin";
 import { KeyboardTrace, KeyboardTraceContext } from "./graph/keyboard-trace";
 import { EngineContext, useEngineSnapshot } from "./hooks/use-engine";
@@ -132,14 +132,28 @@ export function App(props: AppProps): JSX.Element {
   );
   const touchFocusRow = useCallback(() => keypadEvent({ type: "touch-focus-row" }), [keypadEvent]);
 
+  // An undo or redo from a row that removes that row (undoing Enter) moves focus to the row now in
+  // its place, else the one above, so the next Ctrl+Z still reaches the calculator (break-ui).
+  const keepRowFocus = (run: () => void) => {
+    const before = engine.getSnapshot();
+    const index = before.rows.findIndex((r) => r.id === before.focusedRowId);
+    run();
+    const { rows } = engine.getSnapshot();
+    if (index < 0 || rows.some((r) => r.id === before.focusedRowId) || rows.length === 0) return;
+    const target = rows[Math.min(index, rows.length - 1)];
+    if (target.type === "table") focus.focusRow(cellKey(target.id, 0, 0), "end");
+    else focus.focusRow(target.id, "end");
+  };
+
   // KB-7: the current shortcut handler, read through a ref so the listener installs once per stack.
   const latest = useRef<(action: ShortcutAction) => void>(() => {});
   latest.current = (action) => {
     switch (action) {
       case "undo":
-        return performUndo(engine, announcer);
       case "redo":
-        return performRedo(engine, announcer);
+        return keepRowFocus(() =>
+          action === "undo" ? performUndo(engine, announcer) : performRedo(engine, announcer)
+        );
       case "toggle-keypad":
         return toggleKeypad(); // a student change
       case "add-row-end":
@@ -159,11 +173,27 @@ export function App(props: AppProps): JSX.Element {
       onKey: (e) => trace.handleKey(e),
     });
     root.addEventListener("click", focusClickedControl);
+    // As the reference's touch calculator: with the keypad up, a touch on the graph or on empty
+    // list space only puts the keypad away (the graph does not pan, zoom or trace on it).
+    const onTouchDown = (event: PointerEvent) => {
+      if (event.pointerType !== "touch" || !engine.settings.keypad) return;
+      const target = event.composedPath()[0];
+      if (!(target instanceof Element)) return;
+      const onGraph = target.closest(".kc-graph-surface") !== null;
+      const onEmptyList =
+        target.closest(".kc-list-panel") !== null &&
+        target.closest("[data-row-id], .kc-ghost-row, .kc-list-toolbar, button, input") === null;
+      if (!onGraph && !onEmptyList) return;
+      if (onGraph) event.stopPropagation();
+      keypadEvent({ type: "set", open: false, by: "system" });
+    };
+    root.addEventListener("pointerdown", onTouchDown, true);
     return () => {
       off();
       root.removeEventListener("click", focusClickedControl);
+      root.removeEventListener("pointerdown", onTouchDown, true);
     };
-  }, [escape, trace]);
+  }, [engine, escape, keypadEvent, trace]);
 
   return (
     <EngineContext.Provider value={engine}>

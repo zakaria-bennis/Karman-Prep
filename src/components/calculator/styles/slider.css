@@ -67,12 +67,20 @@
   outline-offset: 1px;
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   :is(.kc-slider-play, .kc-slider-mode) {
   color: var(--kc-focus-bar-label);
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-slider-play-ring {
   opacity: 1;
 }

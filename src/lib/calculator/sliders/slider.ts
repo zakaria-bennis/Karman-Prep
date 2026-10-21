@@ -174,8 +174,13 @@ export function describeSlider(
     hardMin: settings.hardMin,
     hardMax: settings.hardMax,
   };
+  // With min > max the reference clamps to max and then to min, so the value reads as the min.
   const value =
-    error === null ? snap({ target: typed, hardMin, hardMax, step: range.step }) : typed;
+    error === null
+      ? snap({ target: typed, hardMin, hardMax, step: range.step })
+      : error === ORDER_MESSAGE
+        ? Math.max(lo, Math.min(hi, typed))
+        : typed;
   return {
     name,
     typed,

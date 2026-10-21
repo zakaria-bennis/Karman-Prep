@@ -106,7 +106,9 @@ test("RC-7 a name defined twice marks only the rows that use it; its definitions
   ]);
 });
 
-test("S-12 Add table on a blank list makes the table row 1", async ({ page }) => {
+test("S-12 Add table on a blank list turns its blank row into the table, as on the reference", async ({
+  page,
+}) => {
   await openShell(page, `?w=1200&h=800&rows=${enc([""])}&reducedMotion=1`);
   await page.getByRole("button", { name: "Add item" }).click();
   await page.getByRole("menuitem", { name: "Add table" }).click();
@@ -114,7 +116,7 @@ test("S-12 Add table on a blank list makes the table row 1", async ({ page }) =>
   const types = await page.evaluate(() =>
     globalThis.__calculatorHarness!.engine.getExpressions().map((e) => e.type)
   );
-  expect(types).toEqual(["table", "expression"]);
+  expect(types).toEqual(["table"]);
 });
 
 test("R-2 a row's triangle reads Desmos's text for a half-typed operator", async ({ page }) => {
