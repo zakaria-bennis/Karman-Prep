@@ -144,6 +144,68 @@ class NewExamLoad(unittest.TestCase):
                 load_corpus(ip, lp, [nr, other], {}, [nl])
 
 
+def package(root: Path, oid: str, text: str, key="A", printed=True, solved=None, png=b"png-bytes") -> dict:
+    """A B-layout package (original.png, source.json, student.json, teacher.json, version.json)
+    hashed like agent-b-output; returns the record fields pointing at it."""
+    pdir = Path(root) / "pkg" / oid
+    pdir.mkdir(parents=True)
+    teacher = {"question_id": oid, "key_answer": key if printed else None,
+               "acceptance_basis": "printed_key" if printed else "no_printed_key",
+               "transcriber_review": {"answer": solved}}
+    files = {"original.png": png,
+             "source.json": json.dumps({"png_sha256": hashlib.sha256(png).hexdigest()}).encode(),
+             "student.json": json.dumps({"question_id": oid, "renderable_text": text}).encode(),
+             "teacher.json": json.dumps(teacher).encode()}
+    for name, b in files.items():
+        (pdir / name).write_bytes(b)
+    hashes = {n: hashlib.sha256(b).hexdigest() for n, b in sorted(files.items())}
+    ver = hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()
+    (pdir / "version.json").write_text(json.dumps({"final_version_sha256": ver, "file_sha256": hashes}))
+    return {"B_package_path": str(pdir), "B_final_version": ver, "source_png_sha256": hashlib.sha256(png).hexdigest()}
+
+
+class NewExamPackages(unittest.TestCase):
+    def test_package_key_and_version_are_used(self):
+        with tempfile.TemporaryDirectory() as d:
+            text = mc(STEM)
+            pk = package(d, nid(1), text, key="B")
+            row = dict(new_row(nid(1)), B_package_sha256=pk["B_final_version"], A_png_sha256=pk["source_png_sha256"])
+            ip, lp, nl, nr = bundle(d, [row], [new_rec(nid(1), text, key="A", **pk)])
+            r = by_ref(load_corpus(ip, lp, [nr], {}, [nl]))[nid(1)]
+        self.assertEqual((r.meta["status"], r.answer), ("ok", "beta"))  # teacher.json key wins
+        self.assertEqual(r.meta["reviewed_answer"], {"kind": "official"})
+        self.assertEqual(r.meta["b_version"], pk["B_final_version"])
+
+    def test_no_printed_key_uses_the_transcriber_solve_unofficially(self):
+        with tempfile.TemporaryDirectory() as d:
+            text = mc(STEM)
+            pk = package(d, nid(1), text, printed=False, solved="C")
+            ip, lp, nl, nr = bundle(d, [new_row(nid(1))], [new_rec(nid(1), text, key="C", kind="transcriber_solved", **pk)])
+            r = by_ref(load_corpus(ip, lp, [nr], {}, [nl]))[nid(1)]
+        self.assertEqual((r.answer, r.meta["reviewed_answer"]), ("gamma", {"kind": None}))
+
+    def test_package_mismatches_make_it_unparsed(self):
+        with tempfile.TemporaryDirectory() as d:
+            text = mc(STEM)
+            cases = {}
+            pk1 = package(d, nid(1), text)
+            cases[nid(1)] = (dict(new_row(nid(1)), B_package_sha256="other"), new_rec(nid(1), text, **pk1),
+                             "new_exam_package_for_other_version")
+            pk2 = package(d, nid(2), mc(STEM + " Changed."))
+            cases[nid(2)] = (new_row(nid(2)), new_rec(nid(2), text, **pk2), "new_exam_package_text_differs")
+            pk3 = package(d, nid(3), text)
+            cases[nid(3)] = (dict(new_row(nid(3)), A_png_sha256="other-png"), new_rec(nid(3), text, **pk3),
+                             "new_exam_package_image_differs")
+            pk4 = package(d, nid(4), text)
+            (Path(pk4["B_package_path"]) / "version.json").write_text(json.dumps({"final_version_sha256": "tampered"}))
+            cases[nid(4)] = (new_row(nid(4)), new_rec(nid(4), text, **pk4), "new_exam_package_changed")
+            ip, lp, nl, nr = bundle(d, [c[0] for c in cases.values()], [c[1] for c in cases.values()])
+            st = {}
+            got = by_ref(load_corpus(ip, lp, [nr], st, [nl]))
+        for oid, (_, _, reason) in cases.items():
+            self.assertEqual(got[oid].meta["reason"], reason, oid)
+
+
 class NewExamCorpus(unittest.TestCase):
     def test_duplicate_of_a_ledger_question_joins_its_cluster(self):
         with tempfile.TemporaryDirectory() as d:

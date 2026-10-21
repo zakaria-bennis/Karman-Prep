@@ -432,7 +432,10 @@ def ledger_entries(ledger: Path, extra_ledgers=()) -> dict[str, dict]:
 
 def read_new_exam(r: dict, item: dict) -> dict:
     """Checks for a new-exam record: it belongs to a new-exam ledger row, both name the same copied
-    source PDF, and the text is the one the record hashed. Only a printed key counts as official."""
+    source PDF, and the text is the one the record hashed. When the record points at a built
+    question package (B_package_path / B_final_version, the B layout), the package must be that
+    version, be the ledger's B_package_sha256, carry the same student text and the same page image,
+    and its teacher.json gives the key. Only a printed key counts as official."""
     if item.get("origin") != NEW_EXAM_ORIGIN:
         raise ValueError("new_exam_record_for_ledger_occurrence")
     if r.get("source_sha256") != item.get("source_sha256"):
@@ -442,8 +445,30 @@ def read_new_exam(r: dict, item: dict) -> dict:
         raise ValueError("new_exam_text_changed")
     key = r.get("key")
     kind = "official" if r.get("answer_kind") == "official" and key not in (None, "") else None
-    return {"text": text, "key": None if key in (None, "") else str(key), "kind": kind, "b_version": None,
-            "c_hash_recorded": True, "c_text_sha256": r["text_sha256"], "b_dir": None}
+    bver, bdir = None, None
+    if r.get("B_package_path"):
+        bdir = Path(r["B_package_path"])
+        bver = r.get("B_final_version")
+        if item.get("B_package_sha256") and item["B_package_sha256"] != bver:
+            raise ValueError("new_exam_package_for_other_version")
+        if _read_json(bdir / "version.json").get("final_version_sha256") != bver:
+            raise ValueError("new_exam_package_changed")
+        if str(_read_json(bdir / "student.json").get("renderable_text")) != text:
+            raise ValueError("new_exam_package_text_differs")
+        png = r.get("source_png_sha256")
+        for want in (_png_sha(bdir), item.get("A_png_sha256")):
+            if want and png != want:
+                raise ValueError("new_exam_package_image_differs")
+        teacher = _read_json(bdir / "teacher.json")
+        if teacher.get("key_answer") is not None:
+            key, kind = str(teacher["key_answer"]), ("official" if teacher.get("acceptance_basis") == "printed_key" else None)
+        else:
+            solved = (teacher.get("transcriber_review") or {}).get("answer")
+            key, kind = (None if solved in (None, "") else str(solved)), None
+        return {"text": text, "key": key, "kind": kind, "b_version": bver, "c_hash_recorded": True,
+                "c_text_sha256": r["text_sha256"], "b_dir": str(bdir)}
+    return {"text": text, "key": None if key in (None, "") else str(key), "kind": kind, "b_version": bver,
+            "c_hash_recorded": True, "c_text_sha256": r["text_sha256"], "b_dir": bdir}
 
 
 def read_reread(r: dict, item: dict) -> dict:
