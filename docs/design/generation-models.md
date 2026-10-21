@@ -2,96 +2,89 @@
 
 Every model from the outside chat except Kling 4.0, the cheapest place to run
 each one, and how Claude Code runs them. Prices were checked on 2026-10-21;
-they move every few weeks, so Claude Code re-checks the real charge on the
-first job with each provider before running a batch.
+they move every few weeks, so the script quotes before every run and checks
+the real charge after every job.
 
 ## The decision
 
-Leave Higgsfield. It is the cheapest option for only one model, and only on
-an annual plan. Use five pay-as-you-go accounts instead, each holding a small
-prepaid balance. Claude Code calls them from a script that keeps every prompt
-in `assets/manifest.json`.
+Leave Higgsfield. Four pay-as-you-go accounts hold small prepaid balances, and
+Claude Code calls them from `scripts/generate-assets.mjs`, which reads every
+prompt from `assets/manifest.json`. No Recraft account: vectors come from
+Ideogram 4.5 or GPT Image 2.5 instead.
 
-| Model                         | Cheapest route                  | Its price                                                       | Higgsfield price, for comparison           |
-| ----------------------------- | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
-| Seedance 2.5 (people scenes)  | Atlas Cloud                     | about $0.134 a second, any resolution: $2.01 for 15 s           | 105 credits, about $5.15, for 15 s at 720p |
-| Wan 3.0 (sky, clouds, ascent) | fal                             | $0.10 a second at 720p, $0.20 at 1080p: $1.50 for 15 s at 720p  | 26.25 credits, about $1.29                 |
-| Wan 3.0 Prime                 | fal                             | $0.14 a second at 720p: $2.10 for 15 s                          | 45 credits, about $2.21                    |
-| Veo 3.1                       | Google Gemini API, Fast or Lite | Fast $0.10 a second at 720p; Lite $0.05: $0.40 to $0.80 for 8 s | 32 credits, about $1.57 for 8 s            |
-| Gemini Omni Flash 1.1         | Google Gemini API               | about $0.10 a second at 720p: $1.00 for 10 s                    | 30 credits, about $1.47                    |
-| Nano Banana 2.1               | Google Gemini API, batch mode   | $0.025 per 2K image in batch ($0.05 normal)                     | 2 credits, about $0.10                     |
-| Nano Banana Pro               | Google Gemini API, batch mode   | $0.12 per 4K image in batch ($0.24 normal)                      | 4 credits, about $0.20                     |
-| GPT Image 2.5                 | OpenAI API                      | about $0.013 at medium quality, 1024 px; more at 2K             | 1 credit, about $0.05 at 2K                |
-| Ideogram 4.5                  | fal                             | $0.06 at medium, $0.22 at high                                  | 6.25 credits, about $0.31                  |
-| Recraft V4.1 Vector           | Recraft API                     | $0.08 an image                                                  | 10 credits, about $0.49                    |
-| FLUX 3 Image                  | fal or Black Forest Labs API    | $0.048 at 1K, $0.10 at 2K                                       | 3 credits, about $0.15                     |
+Prices for Atlas Cloud were read from its own quote endpoint on 2026-10-21 and
+replace the earlier estimates; the earlier "$2.01 for 15 s" was the 480p price.
 
-Notes on the table:
+| Model                           | Route                           | Price                                                                 | Higgsfield, for comparison   |
+| ------------------------------- | ------------------------------- | --------------------------------------------------------------------- | ---------------------------- |
+| Seedance 2.5 (people scenes)    | Atlas Cloud                     | 15 s: $2.10 at 480p, $4.52 at 720p, $8.90 at 1080p                    | about $5.15 for 15 s at 720p |
+| Seedance 2.5, draft then finish | Atlas Cloud                     | $2.10 draft at 480p, then the 1080p finish (about $3.95, unconfirmed) | no draft mode                |
+| Seedance 2.0 Mini               | Atlas Cloud                     | $1.46 for 15 s at 720p                                                | about $2.20                  |
+| Wan 3.0 (sky, town)             | Atlas Cloud                     | 15 s: $0.60 at 480p, $1.20 at 720p, $2.40 at 1080p                    | about $1.29 at 720p          |
+| Wan 3.0 Prime                   | Atlas Cloud                     | $1.89 for 15 s at 720p                                                | about $2.21                  |
+| Veo 3.1                         | Google Gemini API, Fast or Lite | Fast $0.10 a second at 720p; Lite $0.05; 8 s maximum                  | about $1.57 for 8 s          |
+| Gemini Omni Flash 1.1           | Google Gemini API               | about $0.10 a second at 720p (not wired into the script yet)          | about $1.47 for 10 s         |
+| Nano Banana 2.1                 | Google Gemini API               | about $0.05 per 2K image ($0.025 in batch mode)                       | about $0.10                  |
+| Nano Banana Pro                 | Google Gemini API               | about $0.24 per 4K image ($0.12 in batch mode)                        | about $0.20                  |
+| GPT Image 2.5                   | OpenAI API                      | about $0.013 to $0.05 an image                                        | about $0.05                  |
+| Ideogram 4.5                    | fal                             | $0.06 at medium, $0.22 at high                                        | about $0.31                  |
+| FLUX 3 Image                    | fal                             | $0.048 per megapixel                                                  | about $0.15                  |
 
-- Higgsfield credits are worked out at about $0.049 each (Plus, $59 a month for
-  1,200 credits). On the annual plan, about $0.039, Wan 3.0 is slightly cheaper
-  there ($1.02 for 15 s); everything else is still cheaper direct.
-- Seedance 2.5 prices disagree across sources. Atlas Cloud's own page says a
-  flat $0.134 a second, while some comparison sites report $0.30 at 720p. The
-  first clip settles it. If Atlas turns out to charge more, the fallback is
-  BytePlus ModelArk (ByteDance's own platform, $0.103 a second at 480p), which
-  may not be open to US accounts.
-- Two models cannot be called from Claude Code at all: Midjourney V8 has no
-  official API (use midjourney.com and drop the files in the project), and
-  Firefly Image 5 needs an Adobe developer account (Firefly Services).
+Notes:
 
-## What the current plan would cost
+- Atlas is also cheaper than fal for Wan 3.0 ($0.08 a second at 720p against
+  $0.10), so fal now covers only Ideogram and FLUX.
+- Seedance 2.5 is billed by video tokens, so cost rises with resolution and
+  length. Drafting at 480p and finishing only approved shots saves about a
+  third against rendering at 1080p directly.
+- Midjourney V8 has no official API, and Firefly Image 5 needs an Adobe
+  developer account; neither can be called from Claude Code.
+- The closing orbit shot can be real NASA space-station footage, which is free
+  (see `docs/design/scene-plan.md`).
 
-The climb needs 8 clips of 15 seconds, each in 16:9 for desktop and 9:16 for
-phones, so 16 clips in all.
+## What the current plan costs
 
-- 6 people clips on Seedance 2.5 via Atlas: 12 clips × about $2.01 = about $24
-- 2 sky clips on Wan 3.0 via fal at 720p: 4 clips × $1.50 = $6
-- Retakes, assuming about half the clips need a second try: about $15
-- Two cloud plates and test images on Nano Banana 2.1 or GPT Image 2.5: under $1
+See `docs/design/scene-plan.md` for the scenes. Desktop set, about $45:
+six people scenes drafted at 480p ($12.61), about three retakes ($6.30),
+the six approved drafts finished at 1080p (about $23.70), the town opener on
+Wan 3.0 at 1080p ($2.40), and the orbit shot from NASA ($0). Phone versions are
+cropped from these first; a separate vertical version costs about $6 a scene.
 
-**About $45 in total.** The same set on Higgsfield would be about $100.
+## Setup (done 2026-10-21)
 
-## Setup: 20 minutes, once
+Keys are in `.env.local`, which git ignores. Names:
 
-1. **Create five accounts and load a small prepaid balance on each.** Prepaid
-   balances are the spending cap; nothing can run past them.
-   - **Atlas Cloud** (atlascloud.ai): $25, for Seedance 2.5
-   - **fal** (fal.ai): $20, for Wan 3.0, Ideogram 4.5 and FLUX 3
-   - **Google AI Studio** (aistudio.google.com): turn on billing and set a $20
-     budget alert in Google Cloud Billing. Covers Veo 3.1, Gemini Omni Flash and
-     Nano Banana.
-   - **OpenAI** (platform.openai.com): $10 prepaid, for GPT Image 2.5
-   - **Recraft** (recraft.ai, API tab): the smallest API package, for vectors
-2. **Create an API key in each** and paste it into `.env.local` in the project
-   folder. That file is never committed. Use exactly these names:
+```
+ATLAS_API_KEY=          Atlas Cloud: Seedance, Wan
+FAL_KEY=                fal: Ideogram, FLUX
+GEMINI_API_KEY=         Google: Veo, Omni Flash, Nano Banana
+OPENAI_IMAGES_API_KEY=  OpenAI: GPT Image (kept apart from OPENAI_API_KEY, which the app's moderation uses)
+```
 
-   ```
-   ATLAS_API_KEY=
-   FAL_KEY=
-   GEMINI_API_KEY=
-   OPENAI_API_KEY=
-   RECRAFT_API_KEY=
-   ```
+Balances on 2026-10-21: Atlas $25.00, fal $20.00. Google and OpenAI bill the
+card on file; set a budget alert in each billing page.
 
-   Never paste a key into the chat.
+## How to use it
 
-3. **Tell Claude Code:** "The generation keys are in .env.local. Build the
-   generate-assets script and run chapter 2 as a test."
+Say to Claude Code, for example: "Approve c2 and run it as a draft." Claude
+Code then marks the shot approved in the manifest and runs:
 
-## What Claude Code does with them
+```
+node scripts/generate-assets.mjs                     # price every approved shot, spend nothing
+node scripts/generate-assets.mjs --only c2 --run     # generate it
+node scripts/generate-assets.mjs --finish c2 --run   # finish the approved draft at 1080p
+node scripts/generate-assets.mjs --balance           # prepaid balances
+```
 
-- Writes `scripts/generate-assets.mjs`. It reads `assets/manifest.json`, sends
-  each shot to the cheapest provider for that model, waits for the result,
-  downloads it to `.impeccable/mocks/decision/film/raw/`, and logs the real
-  charge per job to `assets/spend-log.csv`.
-- Runs one test job per provider first, compares the real charge with the
-  table above, and stops to ask you if any provider is more than 25% off.
-- Never runs a batch over a limit you set. The default is $10 per run; change it
-  by saying "the budget for this run is $X".
-- Grades, adds grain to, and encodes every clip to `docs/style-bible.md`, then
-  shows you the result before it goes in a page.
-- Asks before any Seedance 2.5 clip is finished at 1080p, which costs the most.
+The script's safeguards:
+
+- A shot runs only when the manifest marks it `"approved"`.
+- A run stops before it starts if the quoted total is over the budget
+  ($10 unless you say otherwise).
+- After each Atlas or fal job it reads the real charge from the balance, logs
+  it to `assets/spend-log.csv`, and stops if the charge is more than 25% above
+  the quote.
+- Keys are read from `.env.local` and never printed.
 
 ## When to switch, later
 
@@ -101,4 +94,4 @@ phones, so 16 clips in all.
   starts and updates this file when a cheaper route appears. One model ID
   change in the script switches provider.
 - **Commercial use:** confirm each provider's terms allow generated assets on
-  the launch site (Atlas, fal, Google, OpenAI and Recraft all publish theirs).
+  the launch site (Atlas, fal, Google and OpenAI all publish theirs).
