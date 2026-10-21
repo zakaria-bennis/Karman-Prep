@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karman Prep: SAT programs that end on your test date</title>
+<meta name="description" content="Live SAT classes in groups of up to six, daily practice, and a one-on-one review after every full-length test, all planned back from your student's SAT date.">
+<link rel="canonical" href="https://karmanprep.com/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root { --night: #0b121a; --ink: #f1f1ee; --ink2: #b9c2cb; --acc: #7cc4a5; --och: #e2b867; --ease: cubic-bezier(.22, 1, .36, 1); }
+  * { box-sizing: border-box; margin: 0; }
+  html { background: var(--night); }
+  body { background: var(--night); color: var(--ink); font: 18px/1.5 "Hanken Grotesk", system-ui, sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+
+  /* header: a quiet bar; the one highlighted action lives in the film, not here (rule 35) */
+  .hd { position: fixed; inset: 0 0 auto 0; z-index: 20; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(16px, 4vw, 56px); }
+  .hd { transition: transform .2s var(--ease); }
+  .hd.away { transform: translateY(-100%); }
+  .hd .mark { font-family: "Source Serif 4", Georgia, serif; font-size: 24px; font-weight: 500; text-decoration: none; letter-spacing: -.01em; }
+  .hd nav { display: flex; gap: clamp(14px, 2.4vw, 32px); font-size: 15px; font-weight: 600; }
+  .hd nav a { text-decoration: none; opacity: .88; }
+  .hd nav a:hover, .hd nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 5px; }
+  @media (max-width: 760px) { .hd nav a:not(.keep) { display: none; } }
+
+  /* a chapter: the film holds the screen while the scroll moves the words and the product */
+  .ch { position: relative; height: 300vh; }
+  .ch.short { height: 220vh; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  .stage video, .stage .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,18,26,.74) 0%, rgba(11,18,26,.22) 55%, rgba(11,18,26,0) 100%); }
+  .scrim.full { background: rgba(11,18,26,.38); }
+  .kin { position: absolute; left: clamp(16px, 5vw, 80px); top: 50%; transform: translateY(-50%); font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: clamp(40px, min(6.6vw, 10.5vh), 112px); line-height: .98; letter-spacing: -0.03em; max-width: 11ch; }
+  .kin .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .1em; margin-right: .2em; }
+  .kin .w > span { display: inline-block; will-change: transform; }
+  /* centred chapters stack in normal flow, so the headline can never sit on the paragraph */
+  .stack { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: clamp(14px, 2.2vh, 30px); padding: 96px 16px 56px; text-align: center; }
+  .stack .kin.center { position: static; transform: none; max-width: 14ch; font-size: min(7vw, 11vh, 118px); }
+  .lede { width: min(620px, 100%); font-size: clamp(17px, 1.5vw, 20px); color: var(--ink); }
+  .act { display: grid; justify-items: center; gap: 10px; }
+  .btn { display: inline-block; background: var(--ink); color: var(--night); font-weight: 700; font-size: 17px; text-decoration: none; padding: 17px 30px; border-radius: 999px; transition: transform .18s var(--ease), background-color .18s var(--ease); }
+  .btn:hover { background: #fff; transform: translateY(-1px); }
+  .btn:active { transform: scale(.97); }
+  .btn:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; }
+  .act small { font-size: 14px; color: var(--ink2); }
+  .feat { position: absolute; right: clamp(16px, 6vw, 110px); top: 50%; transform: translateY(-50%); width: min(300px, 32vw, calc((100vh - 260px) * 0.46)); will-change: transform, opacity; }
+  .feat.lap { width: min(640px, 46vw, calc((100vh - 280px) * 1.6)); }
+  .feat img { width: 100%; display: block; border-radius: 34px; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+  .feat.lap img { border-radius: 14px; border: 8px solid #121315; }
+  .feat figcaption { margin-top: 16px; font-size: 16px; color: var(--ink2); max-width: 36ch; }
+  .feat figcaption b { color: var(--ink); font-weight: 600; }
+  .feat.card { width: min(420px, 38vw); }
+  .card { background: #101923; border-radius: 22px; padding: 26px 28px; }
+  .card .date { font-family: "Source Serif 4", Georgia, serif; font-size: clamp(26px, 2.3vw, 38px); line-height: 1.1; white-space: nowrap; }
+  .card .dates { display: flex; gap: 18px; margin: 14px 0 18px; font-size: 16px; color: var(--ink2); }
+  .card .dates b { color: var(--ink); }
+  .card p { font-size: 16px; color: var(--ink2); }
+  .card p a { color: var(--ink); text-underline-offset: 4px; }
+  .cap { position: absolute; left: clamp(16px, 5vw, 80px); bottom: 34px; font-size: 15px; color: var(--ink2); }
+  .cap b { color: var(--ink); font-weight: 600; }
+
+  .ft { padding: 64px clamp(16px, 5vw, 80px) 48px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; color: var(--ink2); font-size: 15px; }
+  .ft .mark { font-family: "Source Serif 4", Georgia, serif; font-size: 28px; color: var(--ink); }
+  .ft nav { display: flex; gap: 22px; flex-wrap: wrap; }
+
+  @media (max-width: 760px) {
+    .kin { top: 92px; transform: none; font-size: clamp(30px, min(10.5vw, 5.6vh), 54px); max-width: 12ch; }
+    .stack { padding: 88px 16px 40px; }
+    .stack .kin.center { font-size: clamp(36px, min(12.5vw, 6.4vh), 60px); }
+    .lede { font-size: 16px; }
+    .feat, .feat.lap { right: 50%; top: auto; bottom: 64px; transform: translateX(50%); }
+    .feat { width: min(42vw, 16vh); }
+    .feat.card { width: calc(100% - 32px); }
+    .feat.lap { width: calc(100% - 32px); }
+    .feat figcaption { font-size: 14px; }
+    .card { padding: 20px; }
+    .cap { bottom: 18px; }
+    .scrim { background: linear-gradient(180deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.12) 42%, rgba(11,18,26,.78) 100%); }
+  }
+  @media (prefers-reduced-motion: reduce) { .kin .w > span, .feat, .stage video { transform: none !important; opacity: 1 !important; } }
+</style>
+</head>
+<body>
+<header class="hd">
+  <a class="mark" href="/">Karman</a>
+  <nav aria-label="Main"><a href="/program">The SAT Program</a><a href="/private-tutoring">Private tutoring</a><a href="/pricing">Pricing</a><a class="keep" href="/sign-in">Sign in</a></nav>
+</header>
+
+<main>
+  <!-- 1: the line you rise past -->
+  <section class="ch short" id="c1" aria-labelledby="h1">
+    <div class="stage">
+      <video src="c1.mp4" poster="c1.jpg" muted playsinline loop autoplay preload="auto" aria-hidden="true"></video>
+      <div class="scrim full"></div>
+      <div class="stack">
+        <h1 class="kin center" id="h1" data-kin="letters">Rise past the line.</h1>
+        <p class="lede">SAT programs that end on your student's test date: live classes, daily practice, and a one-on-one review after every full-length test.</p>
+        <div class="act"><a class="btn" href="/free-practice-test">Take the free practice test</a><small>Saturday, December 12, live on Zoom</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2: dawn, the Daily 10 -->
+  <section class="ch" id="c2" aria-labelledby="h2">
+    <div class="stage">
+      <video src="c2.mp4" poster="c2.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <h2 class="kin" id="h2" data-kin="rise">Ten minutes on the way to school.</h2>
+      <figure class="feat"><img src="../screens/v2-daily10-dark.png" alt="Your Daily 10, question 3 of 10, with highlight, scratch pad and timer"><figcaption><b>Your Daily 10.</b> Missed questions come back after 2, 7 and 21 days.</figcaption></figure>
+      <p class="cap"><b>Ava, 6:50 a.m.</b></p>
+    </div>
+  </section>
+
+  <!-- 3: the bench, Wordline -->
+  <section class="ch" id="c3" aria-labelledby="h3">
+    <div class="stage">
+      <video src="c3.mp4" poster="c3.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <h2 class="kin" id="h3" data-kin="slide">Practice fits around everything else.</h2>
+      <figure class="feat"><img src="../screens/v2-word-game-dark.png" alt="Wordline, today's SAT word in six tries"><figcaption><b>Wordline and the Challenge question.</b> Today's SAT word in six tries, and one hard question a day.</figcaption></figure>
+      <p class="cap"><b>Mateo, 4:30 p.m.</b></p>
+    </div>
+  </section>
+
+  <!-- 4: dusk, the live class -->
+  <section class="ch" id="c4" aria-labelledby="h4">
+    <div class="stage">
+      <video src="c4.mp4" poster="c4.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <h2 class="kin" id="h4" data-kin="rise">Live, twice a week, six students.</h2>
+      <figure class="feat lap"><img src="../screens/v2-schedule-dark.png" alt="The cohort schedule: live classes, workshops, office hours, lessons and tests"><figcaption><b>Tuesdays and Thursdays, 7:00 p.m. ET.</b> Ninety minutes, a group of up to six, and every lesson and due date on one calendar.</figcaption></figure>
+      <p class="cap"><b>Priya, 8:00 p.m.</b></p>
+    </div>
+  </section>
+
+  <!-- 5: night, the review -->
+  <section class="ch" id="c5" aria-labelledby="h5">
+    <div class="stage">
+      <video src="c5.mp4" poster="c5.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <h2 class="kin" id="h5" data-kin="turn">An hour one-on-one after every full-length test.</h2>
+      <figure class="feat lap"><img src="../screens/v2-review-dark.png" alt="A full-length review: the missed question, the right answer and the tutor's note"><figcaption><b>Every missed question, explained.</b> Five full-length tests, each followed by a 60-minute review with a Karman tutor.</figcaption></figure>
+      <p class="cap"><b>David, Karman tutor</b></p>
+    </div>
+  </section>
+
+  <!-- 6: the parent -->
+  <section class="ch" id="c6" aria-labelledby="h6">
+    <div class="stage">
+      <video src="c6.mp4" poster="c6.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <h2 class="kin" id="h6" data-kin="rise">You see the week, every week.</h2>
+      <figure class="feat"><img src="../screens/v2-parent-update-dark.png" alt="The weekly parent update: questions answered, practice time, skills and the tutor's note"><figcaption><b>The weekly update.</b> Practice time, questions answered, skills mastered and a note from the tutor.</figcaption></figure>
+      <p class="cap"><b>3:15 p.m., the pickup line</b></p>
+    </div>
+  </section>
+
+  <!-- 7: test morning -->
+  <section class="ch" id="c7" aria-labelledby="h7">
+    <div class="stage">
+      <video src="c7.mp4" poster="c7.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <h2 class="kin" id="h7" data-kin="slide">One date. One plan.</h2>
+      <div class="feat card">
+        <p>Every cohort ends on one SAT date.</p>
+        <p class="date">Saturday, March 6</p>
+        <div class="dates"><span>Then <b>May 1</b></span><span>and <b>June 5</b></span></div>
+        <p>If your official score isn't at least 50 points above your baseline, your next cohort is free. <a href="/guarantee">How the guarantee works</a></p>
+      </div>
+      <p class="cap"><b>Ava and Clara, 7:40 a.m.</b></p>
+    </div>
+  </section>
+
+  <!-- 8: back to the sky -->
+  <section class="ch short" id="c8" aria-labelledby="h8">
+    <div class="stage">
+      <video src="c8.mp4" poster="c8.jpg" muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      <div class="scrim full"></div>
+      <div class="stack">
+        <h2 class="kin center" id="h8" data-kin="letters">Start with a free practice test.</h2>
+        <p class="lede">About 75 minutes, live on Zoom with a proctor, then an estimated score range, a domain-by-domain breakdown and a 20-minute results call.</p>
+        <div class="act"><a class="btn" href="/free-practice-test">Take the free practice test</a><small>Saturday, December 12, 10:00 a.m. ET</small></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="ft">
+  <span class="mark">Karman</span>
+  <nav aria-label="Legal"><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/cookies">Cookie Policy</a><a href="mailto:hello@karmanprep.com">hello@karmanprep.com</a></nav>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  // split each kinetic line into masked words (or letters) so the scroll can move them
+  document.querySelectorAll(".kin").forEach(k => {
+    const mode = k.dataset.kin, words = k.textContent.trim().split(" ");
+    k.setAttribute("aria-label", k.textContent.trim());
+    k.innerHTML = words.map(w => mode === "letters"
+      ? `<span class="w" aria-hidden="true">${[...w].map(c => `<span>${c}</span>`).join("")}</span>`
+      : `<span class="w" aria-hidden="true"><span>${w}</span></span>`).join(" ");
+  });
+
+  // films play only while their chapter is on screen
+  const io = new IntersectionObserver(es => es.forEach(e => { const v = e.target.querySelector("video"); if (!v) return; if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }), { threshold: 0.01 });
+  document.querySelectorAll(".ch").forEach(c => io.observe(c));
+
+  // the header steps aside while the last chapter scrolls off, so it never sits over its headline (rule 34)
+  const hd = document.querySelector(".hd"), lastCh = document.querySelector(".ch:last-of-type");
+  const away = () => hd.classList.toggle("away", lastCh.getBoundingClientRect().bottom < innerHeight + 160);
+  addEventListener("scroll", away, { passive: true }); away();
+
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.querySelectorAll(".ch").forEach((ch, i) => {
+    const kin = ch.querySelector(".kin"), parts = kin.querySelectorAll(".w > span"), mode = kin.dataset.kin;
+    const feat = ch.querySelector(".feat"), extra = ch.querySelectorAll(".lede, .act"), video = ch.querySelector("video");
+    const first = i === 0;
+    const tl = gsap.timeline({ scrollTrigger: { trigger: ch, start: first ? "top top" : "top top", end: "bottom bottom", scrub: 0.6 } });
+    const into = { rise: { yPercent: 115, rotate: 3 }, slide: { xPercent: 60, opacity: 0 }, turn: { yPercent: 100, rotateX: -80, transformOrigin: "50% 100%" }, letters: { yPercent: 120, opacity: 0 } }[mode];
+    // the first chapter is already readable on arrival; it only leaves as you scroll
+    if (!first) tl.from(parts, Object.assign({ ease: "power3.out", stagger: mode === "letters" ? 0.02 : 0.08, duration: 0.5 }, into), 0);
+    tl.fromTo(video, { scale: 1.12 }, { scale: 1, ease: "none", duration: 2 }, 0);
+    if (feat) tl.from(feat, { yPercent: 35, opacity: 0, ease: "power3.out", duration: 0.6 }, first ? 0 : 0.55);
+    // leave: words lift away, product follows
+    const last = i === document.querySelectorAll(".ch").length - 1;
+    // the last chapter stays: its line and button are where the page ends
+    if (!last) tl.to(parts, { yPercent: -120, opacity: 0, ease: "power2.in", stagger: mode === "letters" ? 0.01 : 0.05, duration: 0.4 }, 1.4);
+    if (feat) tl.to(feat, { yPercent: -25, opacity: 0, ease: "power2.in", duration: 0.4 }, 1.45);
+    tl.to({}, { duration: 0.25 });
+    if (extra.length && !last) tl.to(extra, { opacity: 0, y: -20, ease: "power2.in", duration: 0.4 }, 1.5);
+    if (last) { tl.from(extra, { opacity: 0, y: 24, ease: "power3.out", duration: 0.5 }, 0.5); tl.to({}, { duration: 0.6 }); }
+  });
+})();
+</script>
+</body>
+</html>
