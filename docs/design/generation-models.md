@@ -1,86 +1,104 @@
-# Using the image and video models with Claude Code
+# Generating images and video for Karman, as cheaply as possible
 
-Every model from the outside chat except Kling 4.0, and how to use each one from
-Claude Code. Model IDs and prices were read live from the Higgsfield catalog on
-2026-10-21; credits are Higgsfield credits.
+Every model from the outside chat except Kling 4.0, the cheapest place to run
+each one, and how Claude Code runs them. Prices were checked on 2026-10-21;
+they move every few weeks, so Claude Code re-checks the real charge on the
+first job with each provider before running a batch.
 
-## The short version
+## The decision
 
-Most of the models already work in Claude Code through the Higgsfield
-connector, which is installed and signed in. Each run costs credits, and the
-account has 1.42 left, so the only setup step is a credit top-up.
+Leave Higgsfield. It is the cheapest option for only one model, and only on
+an annual plan. Use five pay-as-you-go accounts instead, each holding a small
+prepaid balance. Claude Code calls them from a script that keeps every prompt
+in `assets/manifest.json`.
 
-1. Top up credits at higgsfield.ai (Plans and credits).
-2. In Claude Code, ask in plain words, for example:
-   - "Use Higgsfield Seedance 2.5 to make chapter 4 from the manifest."
-   - "Make the dusk sky plate with GPT Image 2.5, 2K, medium quality."
-3. Claude Code checks the price first (`get_cost`), tells you, generates,
-   downloads the file into the project, grades it to the style bible and shows
-   it to you.
+| Model                         | Cheapest route                  | Its price                                                       | Higgsfield price, for comparison           |
+| ----------------------------- | ------------------------------- | --------------------------------------------------------------- | ------------------------------------------ |
+| Seedance 2.5 (people scenes)  | Atlas Cloud                     | about $0.134 a second, any resolution: $2.01 for 15 s           | 105 credits, about $5.15, for 15 s at 720p |
+| Wan 3.0 (sky, clouds, ascent) | fal                             | $0.10 a second at 720p, $0.20 at 1080p: $1.50 for 15 s at 720p  | 26.25 credits, about $1.29                 |
+| Wan 3.0 Prime                 | fal                             | $0.14 a second at 720p: $2.10 for 15 s                          | 45 credits, about $2.21                    |
+| Veo 3.1                       | Google Gemini API, Fast or Lite | Fast $0.10 a second at 720p; Lite $0.05: $0.40 to $0.80 for 8 s | 32 credits, about $1.57 for 8 s            |
+| Gemini Omni Flash 1.1         | Google Gemini API               | about $0.10 a second at 720p: $1.00 for 10 s                    | 30 credits, about $1.47                    |
+| Nano Banana 2.1               | Google Gemini API, batch mode   | $0.025 per 2K image in batch ($0.05 normal)                     | 2 credits, about $0.10                     |
+| Nano Banana Pro               | Google Gemini API, batch mode   | $0.12 per 4K image in batch ($0.24 normal)                      | 4 credits, about $0.20                     |
+| GPT Image 2.5                 | OpenAI API                      | about $0.013 at medium quality, 1024 px; more at 2K             | 1 credit, about $0.05 at 2K                |
+| Ideogram 4.5                  | fal                             | $0.06 at medium, $0.22 at high                                  | 6.25 credits, about $0.31                  |
+| Recraft V4.1 Vector           | Recraft API                     | $0.08 an image                                                  | 10 credits, about $0.49                    |
+| FLUX 3 Image                  | fal or Black Forest Labs API    | $0.048 at 1K, $0.10 at 2K                                       | 3 credits, about $0.15                     |
 
-If the connector ever stops working, run this once in the Mac Terminal, then
-type `/mcp` in Claude Code and sign in:
+Notes on the table:
 
-```bash
-claude mcp add --transport http --scope user higgsfield https://mcp.higgsfield.ai/mcp
-```
+- Higgsfield credits are worked out at about $0.049 each (Plus, $59 a month for
+  1,200 credits). On the annual plan, about $0.039, Wan 3.0 is slightly cheaper
+  there ($1.02 for 15 s); everything else is still cheaper direct.
+- Seedance 2.5 prices disagree across sources. Atlas Cloud's own page says a
+  flat $0.134 a second, while some comparison sites report $0.30 at 720p. The
+  first clip settles it. If Atlas turns out to charge more, the fallback is
+  BytePlus ModelArk (ByteDance's own platform, $0.103 a second at 480p), which
+  may not be open to US accounts.
+- Two models cannot be called from Claude Code at all: Midjourney V8 has no
+  official API (use midjourney.com and drop the files in the project), and
+  Firefly Image 5 needs an Adobe developer account (Firefly Services).
 
-## Video models
+## What the current plan would cost
 
-| Model                 | Higgsfield ID                     | Lengths     | Best for on Karman                                                      | Price checked                                    |
-| --------------------- | --------------------------------- | ----------- | ----------------------------------------------------------------------- | ------------------------------------------------ |
-| Seedance 2.5          | `seedance_2_5`                    | 4 to 30 s   | The long scroll clips; keeps a face from a reference image              | 105 credits for 15 s at 720p; 45 as a 480p draft |
-| Seedance 2.5 draft    | `seedance_2_5` with `draft: true` | 4 to 30 s   | Trying a shot cheaply, then finishing the keeper at 1080p within 7 days | 45 credits for 15 s                              |
-| Wan 3.0               | `wan3_0`                          | up to 30 s  | Long, cheaper clips: sky, clouds, the ascent                            | 26.25 credits for 15 s at 720p                   |
-| Wan 3.0 Prime         | `wan3_0_prime`                    | up to 30 s  | Wan's higher-quality tier                                               | 45 credits for 15 s at 720p                      |
-| Veo 3.1               | `veo3_1`                          | 4, 6 or 8 s | Short, very reliable shots                                              | 32 credits for 8 s (fast, basic)                 |
-| Gemini Omni Flash 1.1 | `gemini_omni_flash_1_1`           | 3 to 10 s   | Cheap tests and quick edits of an existing clip                         | 30 credits for 10 s at 720p                      |
-| Seedance 2.0 Mini     | `seedance_2_0_mini`               | 4 to 15 s   | The cheapest people clips (used for the current film)                   | 15 credits for 15 s at 720p                      |
+The climb needs 8 clips of 15 seconds, each in 16:9 for desktop and 9:16 for
+phones, so 16 clips in all.
 
-Rules for every clip (from `docs/style-bible.md`): no text in the frame,
-16:9 for desktop plus a 9:16 version for phones, slow physical camera moves,
-at least 15 seconds so nothing loops in under 10. Ask for sound off.
+- 6 people clips on Seedance 2.5 via Atlas: 12 clips × about $2.01 = about $24
+- 2 sky clips on Wan 3.0 via fal at 720p: 4 clips × $1.50 = $6
+- Retakes, assuming about half the clips need a second try: about $15
+- Two cloud plates and test images on Nano Banana 2.1 or GPT Image 2.5: under $1
 
-## Image models
+**About $45 in total.** The same set on Higgsfield would be about $100.
 
-| Model           | Higgsfield ID                                  | Best for on Karman                                             | Price checked                  |
-| --------------- | ---------------------------------------------- | -------------------------------------------------------------- | ------------------------------ |
-| GPT Image 2.5   | `gpt_image_2_5` (variants `flare`, `sunburst`) | Anything with words in it: share images, posters; strong edits | 1 credit at 2K, medium quality |
-| Nano Banana 2.1 | `nano_banana_2_1`                              | Everyday stills and edits with references; best value          | 2 credits at 2K                |
-| Nano Banana Pro | `nano_banana_pro`                              | Native 4K stills, posters for the clips                        | 4 credits at 4K                |
-| Ideogram 4.5    | `ideogram_4_5`                                 | Typography and lettering studies                               | 6.25 credits at 2K, high       |
-| Recraft V4.1    | `recraft_v4_1` (set `model_type: vector`)      | Icons, the logo, vector shapes                                 | 10 credits at 2K vector        |
-| FLUX 3 Image    | `flux_3_image`                                 | Up to ten reference images in one shot                         | 3 credits at 2K                |
+## Setup: 20 minutes, once
 
-## Two models that are not on Higgsfield
+1. **Create five accounts and load a small prepaid balance on each.** Prepaid
+   balances are the spending cap; nothing can run past them.
+   - **Atlas Cloud** (atlascloud.ai): $25, for Seedance 2.5
+   - **fal** (fal.ai): $20, for Wan 3.0, Ideogram 4.5 and FLUX 3
+   - **Google AI Studio** (aistudio.google.com): turn on billing and set a $20
+     budget alert in Google Cloud Billing. Covers Veo 3.1, Gemini Omni Flash and
+     Nano Banana.
+   - **OpenAI** (platform.openai.com): $10 prepaid, for GPT Image 2.5
+   - **Recraft** (recraft.ai, API tab): the smallest API package, for vectors
+2. **Create an API key in each** and paste it into `.env.local` in the project
+   folder. That file is never committed. Use exactly these names:
 
-- **Midjourney V8**: there is no official API, so Claude Code cannot call it.
-  Use midjourney.com yourself, download the image into
-  `.impeccable/mocks/decision/`, and Claude Code takes it from there.
-- **Adobe Firefly Image 5**: available through Adobe's Firefly Services API,
-  which needs an Adobe developer account. Its selling point is that it is
-  trained on licensed images, which makes it the safest choice commercially.
-  If you want it, create the account and put the key in `.env.local`, and
-  Claude Code can call it from a script.
+   ```
+   ATLAS_API_KEY=
+   FAL_KEY=
+   GEMINI_API_KEY=
+   OPENAI_API_KEY=
+   RECRAFT_API_KEY=
+   ```
 
-## Paying the providers directly instead (later)
+   Never paste a key into the chat.
 
-Once the shot list is settled, a build script can call the providers without
-Higgsfield. This is cheaper per second for Wan 3.0 and Seedance 2.5 (see the
-handoff's price table) and keeps every prompt in `assets/manifest.json`.
+3. **Tell Claude Code:** "The generation keys are in .env.local. Build the
+   generate-assets script and run chapter 2 as a test."
 
-1. Create accounts and API keys: fal.ai (Wan 3.0, Seedance 2.5, Nano Banana,
-   Recraft, Ideogram), Atlas Cloud (Seedance 2.5), OpenAI (GPT Image 2.5),
-   Google AI Studio (Veo 3.1, Gemini Omni Flash, Nano Banana).
-2. Put each key in `.env.local`, which is never committed, for example
-   `FAL_KEY=...`, `OPENAI_API_KEY=...`, `GEMINI_API_KEY=...`. Do not paste keys
-   into chat.
-3. Tell Claude Code which keys exist. It will write `scripts/generate-assets`,
-   confirm each model's exact name on the provider's page, run one test call,
-   and only then run the manifest.
+## What Claude Code does with them
 
-## Before anything ships
+- Writes `scripts/generate-assets.mjs`. It reads `assets/manifest.json`, sends
+  each shot to the cheapest provider for that model, waits for the result,
+  downloads it to `.impeccable/mocks/decision/film/raw/`, and logs the real
+  charge per job to `assets/spend-log.csv`.
+- Runs one test job per provider first, compares the real charge with the
+  table above, and stops to ask you if any provider is more than 25% off.
+- Never runs a batch over a limit you set. The default is $10 per run; change it
+  by saying "the budget for this run is $X".
+- Grades, adds grain to, and encodes every clip to `docs/style-bible.md`, then
+  shows you the result before it goes in a page.
+- Asks before any Seedance 2.5 clip is finished at 1080p, which costs the most.
 
-- Check each provider's commercial-use terms for the launch site.
-- Every generated file gets the shared grade and grain, and is encoded for the
-  web (clips under about 2 MB each on phones, with a poster image).
+## When to switch, later
+
+- **Higgsfield:** use up the remaining 1.42 credits or ignore them. Cancel Plus
+  before it renews if it is on a monthly plan.
+- **Prices drop often.** Claude Code re-checks the table every time a new batch
+  starts and updates this file when a cheaper route appears. One model ID
+  change in the script switches provider.
+- **Commercial use:** confirm each provider's terms allow generated assets on
+  the launch site (Atlas, fal, Google, OpenAI and Recraft all publish theirs).
