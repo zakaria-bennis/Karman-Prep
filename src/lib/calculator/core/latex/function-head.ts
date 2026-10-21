@@ -25,8 +25,10 @@ export function functionDefinitionHead(input: string): { name: string; params: s
   const params: string[] = [];
   for (pos += 1; ; pos += 2) {
     const param = tokens[pos];
-    if (param === undefined || param.t !== "letter") return null;
-    params.push(param.ch);
+    // `\pi` and `\tau` are read so analysis can refuse them as Desmos does (`f(\pi)=1`)
+    const constant = param?.t === "command" && (param.name === "pi" || param.name === "tau");
+    if (param === undefined || (param.t !== "letter" && !constant)) return null;
+    params.push(param.t === "letter" ? param.ch : (param as { name: string }).name);
     if (isBracket(tokens[pos + 1], "close", ")")) break;
     if (!isSymbol(tokens[pos + 1], ",")) return null;
   }

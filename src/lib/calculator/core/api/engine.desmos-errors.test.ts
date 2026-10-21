@@ -160,24 +160,25 @@ const Y_EQUALS = "Try adding 'y=' to the beginning of this equation.";
 const recursive = (f: string) =>
   `The definition of function '${f}' depends on itself. If '${f}' is meant to be a recursive function, try adding a valid base case.`;
 
-// Each case is a list of rows and what live Desmos showed on each (captured 2026-10-20).
+// Each case is a list of rows and what live Desmos showed on each (captured 2026-10-20). A slider
+// row such as `a=1` shows no value ("ok"), as Desmos's evaluationDisplayed says.
 const LISTS: [string[], string[]][] = [
   // a name defined twice: only the rows that use it, directly or through a definition, are marked
   [
     ["a=1", "a=2"],
-    ["VALUE", "VALUE"],
+    ["ok", "ok"],
   ],
   [
     ["a=1", "a=2", "a+1"],
-    ["VALUE", "VALUE", dup("a")],
+    ["ok", "ok", dup("a")],
   ],
   [
     ["a=1", "a=2", "b=a", "b+1"],
-    ["VALUE", "VALUE", dup("a"), dup("a")],
+    ["ok", "ok", dup("a"), dup("a")],
   ],
   [
     ["a=1", "a=2", "y=ax"],
-    ["VALUE", "VALUE", dup("a")],
+    ["ok", "ok", dup("a")],
   ],
   [
     ["f(x)=x", "f(x)=2x", "f(1)"],
@@ -185,14 +186,14 @@ const LISTS: [string[], string[]][] = [
   ],
   [
     ["a=1", "a=2", "f(x)=ax", "f(2)"],
-    ["VALUE", "VALUE", dup("a"), dup("a")],
+    ["ok", "ok", dup("a"), dup("a")],
   ],
   // cycles
   [["a=a+1"], [IMPLICIT]],
   [["a=2a"], [IMPLICIT]],
   [
     ["a=1", "a=a+1"],
-    ["VALUE", IMPLICIT],
+    ["ok", IMPLICIT],
   ],
   [["a=b", "b=a"], Array(2).fill("'a' and 'b' can't be defined in terms of each other.")],
   [

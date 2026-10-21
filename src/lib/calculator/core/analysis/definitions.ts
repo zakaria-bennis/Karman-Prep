@@ -152,8 +152,14 @@ function readHead(
       body,
       span: left.span,
     };
+    // Desmos: "You can't use 'e' as a parameter of this function because 'e' is already
+    // defined.", for e, π and τ, before "Cannot use 'x' for multiple parameters of this
+    // function." (captured 2026-10-20)
+    const constant = params.find((p) => p === "e" || p === "pi" || p === "tau");
+    if (constant !== undefined) {
+      return { head, error: rowError("parameter-defined", [displayName(constant)], null) };
+    }
     const names = repeated === undefined ? null : [displayName(repeated)];
-    // Desmos: "Cannot use 'x' for multiple parameters of this function." (captured 2026-10-20)
     return { head, error: names === null ? null : rowError("repeated-parameter", names, null) };
   }
   if (left.kind === "const") {

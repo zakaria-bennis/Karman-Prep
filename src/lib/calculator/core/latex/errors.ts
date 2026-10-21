@@ -44,6 +44,7 @@ export type ParseErrorCode =
   | "invalid-subscript" // `x_{a+b}`; names the first piece that is not a letter or digit
   | "subscript-target" // a subscript on a number or group, `1_2`
   | "adjacent-numbers" // `1.2.3`; names both numbers
+  | "mixed-number" // a mixed number multiplied without a sign, `x2\frac{1}{2}`; names it
   | "number-dot" // `1..5`
   | "point-3d" // `(1,2,3)`
   | "percent-of" // `50\%x`: a percent sign without `of`
@@ -117,6 +118,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "invalid-subscript",
   "subscript-target",
   "adjacent-numbers",
+  "mixed-number",
   "number-dot",
   "point-3d",
   "percent-of",

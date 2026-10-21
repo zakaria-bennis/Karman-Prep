@@ -71,6 +71,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "recursive-cycle": "The definitions of functions {n} depend on each other.",
   "implicit-variables": "We only support implicit equations of x and y.",
   "repeated-parameter": "Cannot use '{n}' for multiple parameters of this function.",
+  "parameter-defined":
+    "You can't use '{n}' as a parameter of this function because '{n}' is already defined.",
   "equation-required": "Try adding '{n}' to the beginning of this equation.",
   "reserved-name": "{n} is reserved and can't be redefined.",
   arity: "Function '{n}' requires {k} arguments.", // arityMessage gives the full text
@@ -150,6 +152,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "subscript-target": "Only functions and variables may have subscripts.",
   "adjacent-numbers":
     "Sorry, I don't know what to do with adjacent numbers '{n}' and '{k}'. Try using parentheses or a '*' symbol.",
+  "mixed-number":
+    "Sorry, I don't know what to do with mixed number '{n}'. Try using a '*' symbol around it.",
   "number-dot": "Sorry, I don't understand this use of '.' after a constant number.",
   "point-3d": "This calculator cannot plot a 3d point.",
   "percent-of": "'%' must be used with 'of'. Try '25% of 12'.",

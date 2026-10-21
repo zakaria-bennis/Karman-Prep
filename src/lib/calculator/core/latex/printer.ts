@@ -70,7 +70,9 @@ const POSTFIXED: ReadonlySet<Kind> = new Set(["add", "sub", "mul", "neg", "rel"]
 export function printLatex(tree: Node): string {
   switch (tree.kind) {
     case "num":
-      return plainDecimal(tree.value);
+      return tree.mixed === undefined
+        ? plainDecimal(tree.value)
+        : `${tree.mixed.whole}\\frac{${tree.mixed.numerator}}{${tree.mixed.denominator}}`;
     case "id":
       return tree.name;
     case "const":

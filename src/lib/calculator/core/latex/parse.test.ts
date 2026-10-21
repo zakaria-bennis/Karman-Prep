@@ -58,18 +58,18 @@ describe("parse never throws", () => {
     expect([
       MAX_TREE_NODES,
       MAX_NESTING_DEPTH,
-      spanOf("(".repeat(65) + "x" + ")".repeat(65)),
-    ]).toEqual([2000, 64, ["too-deep", 64, 65]]);
+      spanOf("(".repeat(257) + "x" + ")".repeat(257)),
+    ]).toEqual([2000, 256, ["too-deep", 256, 257]]);
     expect(
       [
         "x+".repeat(999) + "x",
         "x+".repeat(1000) + "x",
         "-".repeat(5000) + "x",
-        "(".repeat(64) + "x" + ")".repeat(64),
-        "\\sqrt{".repeat(100) + "x" + "}".repeat(100),
+        "(".repeat(256) + "x" + ")".repeat(256),
+        "\\sqrt{".repeat(300) + "x" + "}".repeat(300),
       ].map(code)
     ).toEqual(["ok", "too-many-nodes", "too-many-nodes", "ok", "too-deep"]);
-    expect([64, 65].map((k) => code("x^{".repeat(k) + "1" + "}".repeat(k)))).toEqual([
+    expect([256, 257].map((k) => code("x^{".repeat(k) + "1" + "}".repeat(k)))).toEqual([
       "ok",
       "too-deep",
     ]);

@@ -50,11 +50,13 @@ const cases: CorpusCase[] = [
   t(26, ["PR-24"], "\\sin x\\cdot2", "(mul (call sin (id x)) (num 2))"),
   t(27, ["PR-24"], "\\sin x/2", "(div (call sin (id x)) (num 2))"),
   t(28, ["PR-24"], "2\\sin x", "(mul (num 2) (call sin (id x)))"),
-  t(29, ["PR-24"], "\\sin\\cos x", "(call sin (call cos (id x)))"),
+  // Desmos asks for parentheses when the argument starts with a call, a root or bars (captured
+  // 2026-10-20): "Use parentheses around the argument of 'sin'."
+  x(29, ["PR-24"], "\\sin\\cos x", "argument-parentheses"),
   x(30, ["PR-24"], "\\sin", "function-parentheses"),
   t(31, ["PR-24"], "\\sin\\frac{x}{2}", "(call sin (div (id x) (num 2)))"),
-  t(52, ["PR-24"], "\\sin\\left|x\\right|", "(call sin (abs (id x)))"),
-  t(53, ["PR-24"], "\\sin\\sqrt{x}", "(call sin (root (id x)))"),
+  x(52, ["PR-24"], "\\sin\\left|x\\right|", "argument-parentheses"),
+  x(53, ["PR-24"], "\\sin\\sqrt{x}", "argument-parentheses"),
   t(32, ["PR-25"], "\\sin(x)y", "(mul (call sin (id x)) (id y))"),
   t(33, ["PR-25"], "\\sin(x)^{2}", "(pow (call sin (id x)) (num 2))"),
   t(34, ["PR-25"], "\\sin\\left(x\\right)", "(call sin (id x))"),

@@ -366,25 +366,44 @@ function isOpen(token: Token, ch: "(" | "[" | "{"): boolean {
  * Each `-` wraps the first factor, as at level 8 (`-2x` is `(mul (neg (num 2)) (id x))`).
  */
 function parseRunArgument(state: ParserState, name: CommandToken): Node {
-  const start = state.pos;
   const minuses: Token[] = [];
   for (let sign = peek(state); isSign(sign); sign = peek(state)) {
     take(state);
     if (isSymbol(sign, "-")) minuses.push(sign);
   }
+  const needsParens = (): never =>
+    fail("argument-parentheses", name.span, `"${name.name}" needs (`, name.name);
   let arg: Node | null = null;
   while (startsFactor(state) && !isBuiltinCommand(peek(state))) {
+    // Desmos: a root or bars starting the run need parentheses too, `\sin\sqrt{x}`
+    const callLike = arg === null && isCallLike(peek(state));
     const factor = parsePostfix(state);
+    if (callLike) needsParens();
     arg = arg === null ? negated(minuses, factor) : product(arg, factor);
   }
   const next = peek(state);
-  if (arg !== null && isBuiltinCommand(next)) {
-    return fail("argument-parentheses", name.span, `"${name.name}" needs (`, name.name);
-  }
+  if (arg !== null && isBuiltinCommand(next)) return needsParens();
   if (arg !== null) return arg;
-  if (next.t === "end" && state.pos === start) return needsParentheses(name);
+  if ((next.t === "end" || next.t === "close") && minuses.length === 0)
+    return needsParentheses(name);
+  const symbol = next.t === "end" ? null : relationOrComma(next);
+  if (symbol !== null) return fail("operator-side", next.span, `nothing before ${symbol}`, symbol);
   if (!isBuiltinCommand(next)) return unexpected(state, next);
-  return negated(minuses, parseBuiltinCall(state, next));
+  // Desmos reads the inner call first (`\sin\cos` is cos's own error), then asks for
+  // parentheses: `\sin\cos x`, `\ln\ln x`, `\sin-\cos x` (captured 2026-10-20)
+  parseBuiltinCall(state, next);
+  return needsParens();
+}
+
+/** A root or absolute-value bars, which Desmos reads as calls. */
+function isCallLike(token: Token): boolean {
+  return token.t === "command" && (token.name === "sqrt" || token.name === "lvert");
+}
+
+/** A relation operator or comma, as Desmos names it in "You need something on both sides". */
+function relationOrComma(token: Token): string | null {
+  if (token.t === "command") return token.name === "le" ? "≤" : token.name === "ge" ? "≥" : null;
+  return token.t === "symbol" && "=<>,".includes(token.ch) ? token.ch : null;
 }
 
 function callNode(name: CommandToken, args: Node[], base: Node | null, end: number): CallNode {

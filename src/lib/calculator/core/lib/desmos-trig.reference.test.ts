@@ -72,8 +72,7 @@ function errorMessage({ latex, rows, settings }: Case): string | undefined {
 // sums and products; `\infty` as a value; the degree sign, which Desmos does not have (it reads
 // `\circ` and `\degree` as variables; PR-8 keeps it); complex mode ignoring the degree setting
 // for a real argument; Desmos's branch signs for arcsin, arccos, arccsc and arcsec on the real
-// axis outside their domain; and `\sin\cos(0)`, which Desmos asks to write with parentheses
-// (PR-24 reads it as sin(cos 0)).
+// axis outside their domain.
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}|'/,
   /\\int|\\sum|\\prod/,
@@ -81,7 +80,6 @@ const GAPS: readonly RegExp[] = [
   /\\circ|\\degree/,
   /^\[complex\+deg\] \\[a-z]+\([0-9.,]+\)$/,
   /^\[complex\] \\arc(sin|cos)\(2\)$|^\[complex\] \\arc(csc|sec)\(0\.5\)$/,
-  /^\\sin\\cos\(0\)$/,
 ];
 const gap = (key: string) => GAPS.some((g) => g.test(key));
 

@@ -21,8 +21,16 @@ export interface Branch {
   cond: Relation;
   value: Node | null;
 }
+/** A mixed number's written parts: whole `2`, numerator `1`, denominator `2` for `2\frac{1}{2}`. */
+export interface MixedNumber {
+  whole: string;
+  numerator: string;
+  denominator: string;
+}
 export type Node =
-  | { kind: "num"; value: number; span: SourceSpan }
+  // `mixed`: a mixed number `2\frac{1}{2}` (2.5), as Desmos reads one (mixed-numbers.ts);
+  // `grouped`: written in brackets, `(2)`, so no literal (a row of it shows its value)
+  | { kind: "num"; value: number; span: SourceSpan; mixed?: MixedNumber; grouped?: true }
   | { kind: "id"; name: string; span: SourceSpan } // "x", "A", "a_{1}", "v_{max}", "\\alpha", "e_{3}"
   | { kind: "const"; name: ConstName; span: SourceSpan }
   | { kind: "add" | "sub" | "mul" | "div" | "pow"; left: Node; right: Node; span: SourceSpan }
@@ -185,9 +193,11 @@ function sameIgnoringSpans(a: unknown, b: unknown): boolean {
   }
   const left = a as Record<string, unknown>;
   const right = b as Record<string, unknown>;
-  const keys = Object.keys(left).filter((k) => k !== "span");
+  // a span and a number's brackets (`grouped`) are how the source wrote the tree
+  const shape = (k: string) => k !== "span" && k !== "grouped";
+  const keys = Object.keys(left).filter(shape);
   return (
-    keys.length === Object.keys(right).filter((k) => k !== "span").length &&
+    keys.length === Object.keys(right).filter(shape).length &&
     keys.every((k) => k in right && sameIgnoringSpans(left[k], right[k]))
   );
 }

@@ -8,6 +8,7 @@ import { parseFactor } from "./atoms";
 import type { ParseError, ParseErrorCode } from "./errors";
 import type { ParseOptions } from "./index";
 import { MAX_NESTING_DEPTH } from "./limits";
+import { checkMixedProduct } from "./mixed-numbers";
 import type { Token } from "./tokens";
 
 export interface ParserState {
@@ -313,7 +314,9 @@ function parseTerm(state: ParserState): Node {
       left = { kind, left, right: right.node, span: spanning(left, right.node) };
       factor = right.factor;
     } else if (startsFactor(state)) {
+      const before = factor;
       factor = parseFactor(state);
+      checkMixedProduct(state, before, factor);
       left = { kind: "mul", left, right: factor, span: spanning(left, factor) };
     } else {
       return left;

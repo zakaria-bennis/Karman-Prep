@@ -30,6 +30,7 @@ export type RowErrorCode =
   | "recursive-cycle" // the same, passing other arguments around the cycle (a recursion)
   | "implicit-variables" // a value defined in terms of itself, `a=a+1`
   | "repeated-parameter" // `f(x,x)=x`
+  | "parameter-defined" // a constant as a parameter, `f(e)=e`, `f(\pi)=1`
   | "equation-required" // an expression in x and y, or that is only a name: needs `y=` or `=`
   | "reserved-name"
   | "arity"

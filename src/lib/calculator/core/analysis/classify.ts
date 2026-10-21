@@ -98,7 +98,8 @@ export function classifyRow(
 }
 
 /**
- * 's errors after the head errors and before the shape errors, in order: a row in a cycle
+ * 's errors after the head errors and before the shape errors, in order: a function's name
+ * used without a call; a row in a cycle
  * (RC-8); the first call, in source order, with a count its function does not take (RC-20); the
  * first use of a name defined twice, in a cycle, or defined through one of those (RC-7, RC-8),
  * with that name's error. As in Desmos, the rows that define a name twice are not marked: only
@@ -111,6 +112,14 @@ function conflictError(
   locals: readonly string[],
   resolution: Resolution
 ): RowError | null {
+  // Desmos: a function's name used as a value, `f`, `f+1`, `f 3`, `f^{2}(3)` or `f(x)=f`, is
+  // "'f' is a function. Try using parentheses." (captured 2026-10-20), before any cycle
+  const bare = collectNameUses(scope).find(
+    ({ name, call }) => !call && !locals.includes(name) && resolution.isFunction(name)
+  );
+  if (bare !== undefined) {
+    return rowError("function-parentheses", [displayName(bare.name)], bare.span);
+  }
   const cycle = resolution.cycles.get(row.source.id);
   if (cycle !== undefined) return rowError(cycle.code, cycle.names, null);
   const arity = arityError(scope, resolution);

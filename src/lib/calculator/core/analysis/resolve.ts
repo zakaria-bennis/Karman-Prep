@@ -15,6 +15,7 @@ export interface Blocked {
 }
 export interface Resolution {
   isDefined(name: string): boolean;
+  isFunction(name: string): boolean; // some row's head, with or without an error, defines a function of that name
   coordinatesOf(tree: Node, locals: readonly string[]): ReadonlySet<string>; // ⊆ COORDINATE_NAMES, through definitions
   duplicates: ReadonlySet<string>; // names with two or more error-free heads
   cycles: ReadonlyMap<string, Blocked>; // each row id in a cycle and the cycle's error
@@ -43,7 +44,9 @@ interface DependencyGraph {
  * as locals (RC-4); cycles are safe.
  */
 export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
-  const defined = new Set(rows.flatMap((row) => declaredHead(row)?.name ?? []));
+  const declared = rows.flatMap((row) => declaredHead(row) ?? []);
+  const defined = new Set(declared.map((head) => head.name));
+  const functionNames = new Set(declared.flatMap((h) => (h.type === "function" ? h.name : [])));
   const heads: DefiningRow[] = rows.flatMap((row) =>
     row.head !== null && row.error === null && row.head.anonymous !== true
       ? [{ id: row.source.id, head: row.head }]
@@ -63,6 +66,7 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
   const reached = reachedCoordinates(heads.map(({ head }) => head));
   return {
     isDefined: (name) => defined.has(name),
+    isFunction: (name) => functionNames.has(name),
     coordinatesOf(tree, locals) {
       const found = new Set<string>();
       for (const { name, counted } of collectNameUses(tree)) {

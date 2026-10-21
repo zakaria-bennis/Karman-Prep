@@ -176,17 +176,19 @@ const cases: CorpusCase[] = [
     { latex: "-\\frac{5}{2}", tree: "(neg (div (num 5) (num 2)))", display: "-2.5" },
     { context: "coordinate" }
   ),
+  // Desmos reads any whole number before a fraction of whole numbers as a mixed number, an
+  // improper one too (captured 2026-10-20: `2\frac{3}{2}` is 3.5, typed `2\frac{1}{2}` 2.5)
   q(42, ["PR-6"], "2\\frac{3}{2}", {
     latex: "2\\frac{3}{2}",
-    tree: "(mul (num 2) (div (num 3) (num 2)))",
-    display: "3",
+    tree: "(num 3.5)",
+    display: "3.5",
   }),
   q(43, ["PR-6"], "2.5\\frac{1}{2}", {
     latex: "2.5\\frac{1}{2}",
     tree: "(mul (num 2.5) (div (num 1) (num 2)))",
     display: "1.25",
   }),
-  t(44, ["PR-6"], "2\\frac{1}{2}", { tree: "(mul (num 2) (div (num 1) (num 2)))", display: "1" }),
+  t(44, ["PR-6"], "2\\frac{1}{2}", { tree: "(num 2.5)", display: "2.5" }),
   q(45, ["PR-44", "TR-11", "TR-26"], "y=2x+3", {
     latex: "y=2x+3",
     tree: "(rel = (id y) (add (mul (num 2) (id x)) (num 3)))",
