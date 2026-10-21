@@ -21,6 +21,9 @@ vi.mock("../KarmanCalculator", () => ({
     getExpressions() {
       return [{ id: "1" }];
     }
+    observe() {
+      return () => undefined;
+    }
     destroy() {
       return undefined;
     }

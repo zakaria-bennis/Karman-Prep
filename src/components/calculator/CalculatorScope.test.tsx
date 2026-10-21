@@ -98,17 +98,18 @@ it("AR-9 useCalculator is null when ineligible and the bridge otherwise", () => 
   });
 });
 
-it("A11Y-7 the trigger and side button use aria-expanded and aria-controls naming the shadow host", () => {
+it("A11Y-7 the trigger is a toggle (aria-pressed), the side button uses aria-expanded, and both name the shadow host", () => {
   phone();
   render(<Host />);
   const side = screen.getByRole("button", { name: "Open Karman calculator" });
   const id = side.getAttribute("aria-controls")!;
   expect(id).toMatch(/^\S+$/);
   expect(trigger()).toHaveAttribute("aria-controls", id);
-  expect(trigger()).toHaveAttribute("aria-expanded", "false");
+  expect(trigger()).toHaveAttribute("aria-pressed", "false");
+  expect(side).toHaveAttribute("aria-expanded", "false");
   fireEvent.click(side);
   expect(document.getElementById(id)).toHaveAttribute("data-calculator-host");
-  expect(trigger(true)).toHaveAttribute("aria-expanded", "true");
+  expect(trigger(true)).toHaveAttribute("aria-pressed", "true");
   expect(screen.queryByRole("button", { name: "Open Karman calculator", hidden: true })).toBeNull();
 });
 
@@ -150,7 +151,7 @@ it("AR-53 the render-error fallback is a window-shaped dialog that Close calcula
   // full screen's modal inertness is dropped while the fallback shows (AR-28 resumes on retry)
   expect(screen.getByText("Question body").closest("[inert]")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Close calculator" }));
-  expect(trigger()).toHaveAttribute("aria-expanded", "false");
+  expect(trigger()).toHaveAttribute("aria-pressed", "false");
   h.throwWindow = false;
   fireEvent.click(screen.getByRole("button", { name: "Open Karman calculator" }));
   expect(screen.queryByText(MOUNT_FAILED_COPY, { exact: true })).toBeNull();
@@ -175,4 +176,49 @@ it("L-4 the toolbar opens the calculator docked on a wide viewport and full scre
   fireEvent.click(trigger());
   expect(mode()).toBe("fullscreen");
   expect(calculatorWindowStore.get().mode).not.toBe("docked");
+});
+
+it("the toolbar trigger toggles the window, and reopening restores the floating rect, the dock or maximized (owner, 2026-10-21)", () => {
+  const mode = () => document.querySelector("[data-mode]")?.getAttribute("data-mode");
+  const frame = () => document.querySelector<HTMLElement>("[data-calculator-window]")!;
+  const shown = () => !document.querySelector("[data-calculator-root]")!.hasAttribute("hidden");
+  render(<Host />);
+  fireEvent.click(trigger());
+  expect(trigger()).toHaveAttribute("aria-pressed", "true");
+  calculatorWindowStore.set({
+    mode: "floating",
+    floatingRect: { x: 200, y: 90, width: 500, height: 380 },
+  });
+  fireEvent.click(trigger());
+  expect([shown(), trigger().getAttribute("aria-pressed")]).toEqual([false, "false"]);
+  fireEvent.click(trigger());
+  expect([shown(), mode()]).toEqual([true, "floating"]);
+  expect([
+    frame().style.left,
+    frame().style.top,
+    frame().style.width,
+    frame().style.height,
+  ]).toEqual(["200px", "90px", "500px", "380px"]);
+  calculatorWindowStore.set({ mode: "maximized" });
+  fireEvent.click(trigger());
+  fireEvent.click(trigger());
+  expect(mode()).toBe("maximized");
+  fireEvent.click(screen.getByRole("button", { name: "Restore calculator size" }));
+  expect(mode()).toBe("floating");
+});
+
+it("a stored rect larger than a shrunken browser window is drawn clamped on-screen, and the store keeps it", () => {
+  const rect = { x: 900, y: 500, width: 700, height: 500 };
+  calculatorWindowStore.set({ mode: "floating", restoreMode: "floating", floatingRect: rect });
+  Object.assign(window, { innerWidth: 1100, innerHeight: 700 });
+  render(<Host />);
+  fireEvent.click(trigger());
+  const style = document.querySelector<HTMLElement>("[data-calculator-window]")!.style;
+  expect([style.left, style.top, style.width, style.height]).toEqual([
+    "400px",
+    "200px",
+    "700px",
+    "500px",
+  ]);
+  expect(calculatorWindowStore.get().floatingRect).toEqual(rect);
 });

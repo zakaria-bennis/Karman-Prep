@@ -53,15 +53,18 @@ test("RC-21 after setBlank nothing from the previous question resolves", async (
   await expect
     .poll(async () => (await snapshot(page)).rows.map((r) => r.chips))
     .toEqual([["a"], ["f"], []]);
+  // Degrees carry to the next question (owner decision, 2026-10-21), so sin(90) is 1.
   await expect
     .poll(async () => {
       const v = (await snapshot(page)).rows[2].value;
-      return v?.type === "number" && Math.abs(v.value - Math.sin(90)) < 1e-12;
+      return v?.type === "number" && Math.abs(v.value - 1) < 1e-12;
     })
     .toBe(true);
 });
 
-test("NM-24 degrees chosen on one question are back to radians on the next", async ({ page }) => {
+test("NM-24 degrees chosen on one question stay on for the next (owner decision, 2026-10-21)", async ({
+  page,
+}) => {
   await open(page);
   const value = async () => {
     await expect.poll(async () => (await snapshot(page)).rows[0].value?.type).toBe("number");
@@ -76,8 +79,8 @@ test("NM-24 degrees chosen on one question are back to radians on the next", asy
   await press(page, "Skip this question");
   await expect(rowItem(page)).toBeVisible();
   await setRows(page, [{ id: "1", latex: "\\sin(90)" }]);
-  expect(await value()).toBeCloseTo(Math.sin(90), 12);
-  expect((await snapshot(page)).state.settings.angleMode).toBe("radians");
+  expect(await value()).toBeCloseTo(1, 12);
+  expect((await snapshot(page)).state.settings.angleMode).toBe("degrees");
 });
 
 test("AR-59 closing and reopening within a question keeps rows, history, settings, mode and viewport", async ({
@@ -107,7 +110,7 @@ test("AR-59 closing and reopening within a question keeps rows, history, setting
   expect(after.canUndo).toBe(true);
 });
 
-test("AR-58, S-9 a new question's calculator starts blank with every per-question setting at its default, the keypad included, and announces the reset once, only while open", async ({
+test("AR-58 a new question's calculator starts blank with the student's settings kept (owner decision, 2026-10-21) and announces the reset once, only while open", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -152,16 +155,19 @@ test("AR-58, S-9 a new question's calculator starts blank with every per-questio
   expect(s.state.expressions.map((e) => e.latex ?? "")).toEqual([""]);
   expect(s.canUndo).toBe(false);
   expect(s.geometry).toBe(0);
-  expect(s.state.settings).toEqual(DEFAULT_SETTINGS); // keypad false: K-2's fine-pointer default
+  expect(s.state.settings).toEqual({
+    ...DEFAULT_SETTINGS,
+    angleMode: "degrees",
+    complex: true,
+    showGrid: false,
+    polarGrid: true,
+    minorGridlines: false,
+    arrows: true,
+    axisNumbers: false,
+    keypad: true,
+  });
   expect(s.state.mode).toBe("graphing");
   expect([s.state.viewport.left, s.state.viewport.right]).toEqual([-10, 10]);
-  expect(
-    await page.evaluate(() =>
-      (
-        globalThis as unknown as { __calculatorWindowStore: { get(): object } }
-      ).__calculatorWindowStore.get()
-    )
-  ).toMatchObject({ displaySize: null, reverseContrast: null });
   await page.getByRole("button", { name: "Close calculator", exact: true }).click();
   await press(page, "Previous");
   await trigger(page).click();

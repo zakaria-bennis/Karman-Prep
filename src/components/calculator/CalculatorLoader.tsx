@@ -11,6 +11,7 @@ import type {
   QuizMountOptions,
 } from "@/components/calculator/host/quiz-host";
 import type { CalculatorLoadFailure, CalculatorLoadStatus } from "./CalculatorScope";
+import { calculatorWindowStore } from "./calculator-window-store";
 import { onCalculatorFontsLoaded, warmCalculatorFonts } from "./font-warmup";
 import { reportCalculatorError } from "./report-error";
 import styles from "./CalculatorWindow.module.css";
@@ -160,6 +161,8 @@ export function CalculatorLoader(props: CalculatorLoaderProps) {
       chromeSlot,
       reducedMotion: latest.current.reducedMotion,
       announceReset: latest.current.announceReset,
+      preferences: calculatorWindowStore.get().preferences,
+      onPreferences: (preferences) => calculatorWindowStore.set({ preferences }),
     };
     let handle: QuizCalculatorHandle;
     try {

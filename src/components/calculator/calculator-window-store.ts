@@ -1,8 +1,13 @@
-// Page-session window state for the quiz calculator (AR-25): the mode, the floating place and
-// size, and the dock width outlive one question's scope, so after Next or Previous the window
-// reopens where it was while its content is fresh. The store is module state, so it survives
-// client-side navigation and is lost on a full reload. Eager module: no browser global at module
-// scope (AR-2); geometry helpers take the viewport as an argument.
+// Window state and student preferences for the quiz calculator (AR-25, owner decisions of
+// 2026-10-21). The mode, the floating place and size, and the dock width outlive one question's
+// scope and the page: they are kept in localStorage, so after Next, Previous, a close or a reload
+// the window reopens where it was while its content is fresh. The student's calculator settings
+// (angle mode and the rest, PREFERENCE_KEYS) carry from one question's calculator to the next for
+// the page session. Every storage access is in try/catch, so the store also works without
+// storage. Eager module: no browser global at module scope (AR-2); geometry helpers take the
+// viewport as an argument.
+
+import type { CalculatorSettings } from "@/lib/calculator/core/api/types"; // type-only (AR-1)
 
 export type WindowMode = "floating" | "docked" | "maximized" | "fullscreen";
 
@@ -18,8 +23,45 @@ export interface WindowStoreState {
   restoreMode: "floating" | "docked";
   floatingRect: WindowRect | null;
   dockWidth: number | null;
-  displaySize: "default" | "large" | null; // written from Phase 4
-  reverseContrast: boolean | null; // written from Phase 4
+  preferences: CalculatorPreferences | null; // null until a calculator of this page reports them
+}
+
+/**
+ * The settings a student keeps from question to question. The rest of a calculator's settings
+ * reset with its content: `mode` (graphing only), `reducedMotion` (set by the host) and
+ * `expressionsCollapsed` (a collapsed list would hide the fresh question's empty row).
+ */
+export const PREFERENCE_KEYS = [
+  "angleMode",
+  "complex",
+  "showGrid",
+  "polarGrid",
+  "minorGridlines",
+  "arrows",
+  "axisNumbers",
+  "xAxis",
+  "yAxis",
+  "lockViewport",
+  "piAxisLabels",
+  "displaySize",
+  "reverseContrast",
+  "keypad",
+  "trace",
+  "pointsOfInterest",
+  "brailleMode",
+  "sixKeyInput",
+] as const satisfies readonly (keyof CalculatorSettings)[];
+
+export type CalculatorPreferences = Pick<CalculatorSettings, (typeof PREFERENCE_KEYS)[number]>;
+
+/** The preference subset of `settings`, copied so later changes to `settings` never leak in. */
+export function preferencesOf(settings: CalculatorSettings): CalculatorPreferences {
+  const out: Record<string, unknown> = {};
+  for (const key of PREFERENCE_KEYS) {
+    const value = settings[key];
+    out[key] = typeof value === "object" && value !== null ? { ...value } : value;
+  }
+  return out as CalculatorPreferences;
 }
 
 export interface ViewportSize {
@@ -115,13 +157,93 @@ function initialState(): WindowStoreState {
     restoreMode: "floating",
     floatingRect: null,
     dockWidth: null,
-    displaySize: null,
-    reverseContrast: null,
+    preferences: null,
   };
 }
 
+/** The localStorage key of the window geometry (mode, restore mode, floating rect, dock width). */
+export const WINDOW_STORAGE_KEY = "karman.calculator.window";
+
+type StoredGeometry = Pick<WindowStoreState, "mode" | "restoreMode" | "floatingRect" | "dockWidth">;
+
+const finite = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value);
+
+function readRect(value: unknown): WindowRect | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { x, y, width, height } = value as Record<string, unknown>;
+  return finite(x) && finite(y) && finite(width) && finite(height) && width > 0 && height > 0
+    ? { x, y, width, height }
+    : null;
+}
+
+/** The stored geometry, field by field; anything missing or malformed is left at its default. */
+export function parseStoredGeometry(text: string | null): Partial<StoredGeometry> {
+  if (text === null) return {};
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    return {};
+  }
+  if (typeof raw !== "object" || raw === null) return {};
+  const fields = raw as Record<string, unknown>;
+  const out: Partial<StoredGeometry> = {};
+  // Full screen follows the viewport (AR-26), so it is never a mode to come back to.
+  if (fields.mode === "floating" || fields.mode === "docked" || fields.mode === "maximized") {
+    out.mode = fields.mode;
+  }
+  if (fields.restoreMode === "floating" || fields.restoreMode === "docked") {
+    out.restoreMode = fields.restoreMode;
+  }
+  const rect = readRect(fields.floatingRect);
+  if (rect) out.floatingRect = rect;
+  if (finite(fields.dockWidth) && fields.dockWidth > 0) out.dockWidth = fields.dockWidth;
+  return out;
+}
+
+function storage(): Storage | null {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null; // blocked storage throws on access
+  }
+}
+
+function load(): Partial<StoredGeometry> {
+  try {
+    return parseStoredGeometry(storage()?.getItem(WINDOW_STORAGE_KEY) ?? null);
+  } catch {
+    return {};
+  }
+}
+
+function save(next: WindowStoreState) {
+  const geometry: StoredGeometry = {
+    mode: next.mode === "fullscreen" ? next.restoreMode : next.mode,
+    restoreMode: next.restoreMode,
+    floatingRect: next.floatingRect,
+    dockWidth: next.dockWidth,
+  };
+  try {
+    storage()?.setItem(WINDOW_STORAGE_KEY, JSON.stringify(geometry));
+  } catch {
+    // Full or blocked storage: the page session keeps the geometry in memory.
+  }
+}
+
 let state: WindowStoreState = initialState();
+let hydrated = false;
 const listeners = new Set<() => void>();
+
+/** The state, read from storage on the first client access of the page. */
+function current(): WindowStoreState {
+  if (!hydrated && typeof window !== "undefined") {
+    hydrated = true;
+    state = { ...state, ...load() };
+  }
+  return state;
+}
 
 export const calculatorWindowStore: {
   get(): WindowStoreState;
@@ -131,7 +253,7 @@ export const calculatorWindowStore: {
 } = {
   /** The current snapshot; a new object after every `set`, so it suits `useSyncExternalStore`. */
   get() {
-    return state;
+    return current();
   },
   /**
    * Merges `patch` (keys whose value is `undefined` are absent) into a new snapshot and notifies
@@ -142,11 +264,18 @@ export const calculatorWindowStore: {
     const defined = Object.fromEntries(
       Object.entries(patch).filter(([, value]) => value !== undefined)
     ) as Partial<WindowStoreState>;
-    const next: WindowStoreState = { ...state, ...defined };
+    const before = current();
+    const next: WindowStoreState = { ...before, ...defined };
     if ((patch.mode === "floating" || patch.mode === "docked") && patch.restoreMode === undefined) {
       next.restoreMode = patch.mode;
     }
     state = next;
+    const geometryChanged =
+      next.mode !== before.mode ||
+      next.restoreMode !== before.restoreMode ||
+      next.floatingRect !== before.floatingRect ||
+      next.dockWidth !== before.dockWidth;
+    if (geometryChanged) save(next);
     for (const listener of [...listeners]) listener();
   },
   /** Calls `listener` after every `set`; the returned function unsubscribes it. */
@@ -156,8 +285,17 @@ export const calculatorWindowStore: {
       listeners.delete(listener);
     };
   },
-  /** Restores the state a fresh page starts with. Subscribers are kept and not notified. */
+  /**
+   * Restores the state a first visit starts with: the stored geometry is removed and the next
+   * `get` reads storage again, as after a reload. Subscribers are kept and not notified.
+   */
   resetForTests() {
+    try {
+      storage()?.removeItem(WINDOW_STORAGE_KEY);
+    } catch {
+      // Blocked storage: nothing to remove.
+    }
     state = initialState();
+    hydrated = false;
   },
 };

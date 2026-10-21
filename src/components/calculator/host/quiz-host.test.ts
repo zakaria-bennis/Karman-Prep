@@ -2,6 +2,8 @@
 import { readFileSync } from "node:fs";
 import { beforeEach, expect, it, vi, type Mock } from "vitest";
 import { reportCalculatorError } from "@/components/calculator/report-error";
+import { DEFAULT_SETTINGS } from "@/lib/calculator/core/api/types";
+import { PREFERENCE_KEYS, preferencesOf } from "../calculator-window-store";
 import { CALCULATOR_BUILD } from "../styles/generated";
 import { mountQuizCalculator, type QuizMountOptions } from "./quiz-host";
 
@@ -17,6 +19,9 @@ const h = vi.hoisted(() => ({
   instance: null as unknown as Record<string, Fn>,
   lastRow: null as string | null,
   unexpose: null as unknown as Fn,
+  unobserve: null as unknown as Fn,
+  settings: {} as Record<string, unknown>,
+  throwSettings: false,
 }));
 
 vi.mock("../KarmanCalculator", async () => {
@@ -27,10 +32,16 @@ vi.mock("../KarmanCalculator", async () => {
     focusExpression = v.fn();
     activateExpression = v.fn();
     focusBoundary = v.fn();
-    updateSettings = v.fn();
+    updateSettings = v.fn(() => {
+      if (h.throwSettings) throw new Error("invalid");
+    });
     reflow = v.fn();
     destroy = v.fn();
     getExpressions = v.fn(() => [{ id: "1" }, { id: "2" }]);
+    observe = v.fn(() => h.unobserve);
+    get settings() {
+      return h.settings;
+    }
     constructor(...args: unknown[]) {
       h.ctor(...(args as Parameters<typeof h.ctor>));
       h.instance = this as unknown as Record<string, Fn>;
@@ -52,6 +63,9 @@ vi.mock("../ui/hooks/dev-hooks", async () => {
 beforeEach(() => {
   vi.clearAllMocks();
   h.lastRow = null;
+  h.unobserve = vi.fn();
+  h.throwSettings = false;
+  h.settings = { ...DEFAULT_SETTINGS, angleMode: "degrees", reducedMotion: true };
 });
 
 function opts(o: Partial<QuizMountOptions> = {}): QuizMountOptions {
@@ -91,6 +105,8 @@ it("AR-35 the quiz host uses only the public API, focusBoundary and the recorded
     "activateExpression",
     "getExpressions",
     "updateSettings",
+    "observe",
+    "settings",
     "focusBoundary",
     "reflow",
     "destroy",
@@ -133,4 +149,30 @@ it("KB-4 focusOnOpen('touch') activates the last focused row and focuses the fra
   expect(h.instance.activateExpression).toHaveBeenCalledWith("2");
   expect(h.instance.focusExpression).not.toHaveBeenCalled();
   expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+});
+
+it("the previous question's settings are applied at mount; changes and destroy report them back (owner, 2026-10-21)", () => {
+  const carried = preferencesOf({ ...DEFAULT_SETTINGS, angleMode: "degrees", keypad: true });
+  const onPreferences = vi.fn();
+  const handle = mountQuizCalculator(opts({ preferences: carried, onPreferences }));
+  expect(h.instance.updateSettings).toHaveBeenCalledWith(carried);
+  const [[name, callback]] = h.instance.observe.mock.calls as [[string, () => void]];
+  expect(name).toBe("settings");
+  callback();
+  const reported = onPreferences.mock.calls[0][0];
+  expect(Object.keys(reported).sort()).toEqual([...PREFERENCE_KEYS].sort());
+  expect(reported).toMatchObject({ angleMode: "degrees" });
+  expect(reported).not.toHaveProperty("reducedMotion");
+  handle.destroy();
+  expect(onPreferences).toHaveBeenCalledTimes(2);
+  expect(h.unobserve).toHaveBeenCalledTimes(1);
+});
+
+it("a first calculator (no carried settings) keeps the defaults, and a malformed carry is reported, not thrown", () => {
+  mountQuizCalculator(opts());
+  expect(h.instance.updateSettings).not.toHaveBeenCalled();
+  h.throwSettings = true;
+  const bad = { angleMode: "gradians" } as unknown as ReturnType<typeof preferencesOf>;
+  expect(() => mountQuizCalculator(opts({ preferences: bad }))).not.toThrow();
+  expect(reportCalculatorError).toHaveBeenCalledTimes(1);
 });
