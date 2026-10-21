@@ -517,9 +517,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               else sliderLine.current.focusField("first");
             }}
             onClick={(e) => {
-              // A keyboard press (detail 0) moves on to the next row (R-3); a click leaves no row
-              // selected, as the reference does, with focus kept on the list.
-              if (e.detail === 0) {
+              // A keyboard press (detail 0) moves on to the next row (R-3), and so does a tap
+              // while the keypad is up, so the keypad keeps a row to type into (break-ui mobile);
+              // a click leaves no row selected, as the reference does, with focus kept on the list.
+              const touch = (e.nativeEvent as { pointerType?: string }).pointerType === "touch";
+              if (e.detail === 0 || (touch && engine.settings.keypad)) {
                 deleteRowByControl(engine, focus, row.id);
                 return;
               }

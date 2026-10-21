@@ -159,11 +159,27 @@ export function App(props: AppProps): JSX.Element {
       onKey: (e) => trace.handleKey(e),
     });
     root.addEventListener("click", focusClickedControl);
+    // As the reference's touch calculator: with the keypad up, a touch on the graph or on empty
+    // list space only puts the keypad away (the graph does not pan, zoom or trace on it).
+    const onTouchDown = (event: PointerEvent) => {
+      if (event.pointerType !== "touch" || !engine.settings.keypad) return;
+      const target = event.composedPath()[0];
+      if (!(target instanceof Element)) return;
+      const onGraph = target.closest(".kc-graph-surface") !== null;
+      const onEmptyList =
+        target.closest(".kc-list-panel") !== null &&
+        target.closest("[data-row-id], .kc-ghost-row, .kc-list-toolbar, button, input") === null;
+      if (!onGraph && !onEmptyList) return;
+      if (onGraph) event.stopPropagation();
+      keypadEvent({ type: "set", open: false, by: "system" });
+    };
+    root.addEventListener("pointerdown", onTouchDown, true);
     return () => {
       off();
       root.removeEventListener("click", focusClickedControl);
+      root.removeEventListener("pointerdown", onTouchDown, true);
     };
-  }, [escape, trace]);
+  }, [engine, escape, keypadEvent, trace]);
 
   return (
     <EngineContext.Provider value={engine}>

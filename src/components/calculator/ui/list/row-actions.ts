@@ -79,8 +79,8 @@ export function convertToTable(
 
 /**
  * S-12, S-13, D-5: Add table; an empty active row becomes the table, any other anchor gets one
- * after it, and with no anchor (a blank list) the table is row 1, as on the reference; focus
- * goes to the first x cell.
+ * after it, and with no anchor the table is row 1, taking the place of a lone blank row, as on
+ * the reference; focus goes to the first x cell.
  */
 export function insertTableItem(
   engine: CalculatorEngine,
@@ -88,7 +88,11 @@ export function insertTableItem(
   announcer: Announcer | null,
   anchor: string | null
 ): string | null {
-  const inserted = anchor === null ? insertTableFirst(engine) : engine.replaceWithTable(anchor);
+  // A list holding only its blank row (a fresh calculator) turns that row into the table.
+  const { rows } = engine.getSnapshot();
+  const blank = rows.length === 1 && rows[0].type !== "table" && rows[0].latex === "";
+  const target = anchor ?? (blank ? rows[0].id : null);
+  const inserted = target === null ? insertTableFirst(engine) : engine.replaceWithTable(target);
   if (typeof inserted === "string") {
     announcer?.announce(EDITOR_MESSAGES.rowLimit);
     return null;
