@@ -23,6 +23,7 @@ export interface OpenLabel {
   point: LabelPoint; // world units
   label: FormattedLabel;
   opened: boolean; // pinned by a press (a black dot under it), else hovered or traced
+  plotted?: boolean; // POI-LIVE-2: a drawn point's label: no dot under it, no export button
 }
 
 const NO_POINTS: readonly PoiPoint[] = Object.freeze([]);
@@ -30,6 +31,7 @@ const NO_POINTS: readonly PoiPoint[] = Object.freeze([]);
 /** Presses that must not close open labels (POI-TRACE-14): on a dot, a curve or a label. */
 const keptPresses = new WeakSet<Event>();
 export const keepLabelsOpen = (e: Event): void => void keptPresses.add(e);
+export const isKeptPress = (e: Event): boolean => keptPresses.has(e);
 export const LABEL_SELECTOR = "[data-poi-label], [data-trace-label]";
 
 /**
@@ -94,7 +96,7 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
   useEffect(() => {
     if (!anyOpen) return;
     const onPress = (e: PointerEvent) => {
-      if (keptPresses.has(e)) return;
+      if (isKeptPress(e)) return;
       const onLabel = e
         .composedPath()
         .some((t) => t instanceof Element && t.matches(LABEL_SELECTOR));

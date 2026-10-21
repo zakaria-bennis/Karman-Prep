@@ -268,7 +268,9 @@ export function runPoi(
     });
     const points = outcome.overrun.has(rowId)
       ? []
-      : findRowPois(rowId, outcome.analysis, outcome.scope, view, deadline);
+      : findRowPois(rowId, outcome.analysis, outcome.scope, view, deadline, {
+          result: (id) => ({ table: outcome.tables.get(id) }),
+        });
     ctx.post({ v: 1, type: "poi", generation, rowId, points });
   } catch (thrown) {
     if (!(thrown instanceof DeadlineExceeded)) postFault(ctx, thrown);

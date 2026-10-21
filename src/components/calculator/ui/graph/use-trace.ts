@@ -50,9 +50,10 @@ export function useTrace(engine: CalculatorEngine) {
       view: ViewSpec,
       rows: readonly RenderRow[]
     ): "trace" | "selected" | null => {
-      const traceable = rows.map((r) => ({
-        rowId: r.rowId,
-        branches: engine.poiCurves(r.rowId, view),
+      // A table draws several rows (its regression curve, then its columns) under one id.
+      const traceable = [...new Set(rows.map((r) => r.rowId))].map((rowId) => ({
+        rowId,
+        branches: engine.poiCurves(rowId, view),
       }));
       const rowId = hitBranch(traceable, view, at, pointer);
       if (rowId === null) return null;

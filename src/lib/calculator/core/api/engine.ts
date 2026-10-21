@@ -494,8 +494,8 @@ export class CalculatorEngine {
     if (row === undefined || !row.isGraphable) return [];
     const values = latestValues(this.doc.rows, (id) => this.inbox.result(id));
     const scope = buildCompileScope(this.analysis, values, toWireSettings(this.currentSettings));
-    const size = this.graph?.size ?? INITIAL_GRAPH_SIZE;
-    return poiBranchesFor(row, scope, view ?? { viewport: this.viewport, size, dpr: 1 });
+    view ??= { viewport: this.viewport, size: this.graph?.size ?? INITIAL_GRAPH_SIZE, dpr: 1 };
+    return poiBranchesFor(row, scope, view, this.inbox); // the inbox: a table's regression curve
   }
 
   /** POI-1, POI-17: the selected row (null for none); posts `select` when it changes. */
