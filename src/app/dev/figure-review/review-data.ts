@@ -156,8 +156,39 @@ function lastNote(status: StatusDoc, decision: string): string | null {
   return hit ? hit.note || "" : null;
 }
 
+async function buildItem(dir: string, id: string, status: StatusDoc): Promise<ReviewItem | null> {
+  const { readFile } = await import("node:fs/promises");
+  let bytes: Buffer;
+  try {
+    bytes = await readFile(path.join(dir, id, "figure.json"));
+  } catch {
+    return null;
+  }
+  const fileSha256 = sha256(bytes);
+  const doc = JSON.parse(bytes.toString("utf8")) as FigureDoc;
+  const submitted = [...status.history].reverse().find((h) => h.decision === "submitted");
+  return {
+    id,
+    round: status.round,
+    fileSha256,
+    submittedAt: (status.submitted_at as string | undefined) ?? submitted?.at ?? null,
+    submittedBy: submitted?.by ?? null,
+    reviewerNote: typeof doc.notes === "string" ? doc.notes : "",
+    previousNote: status.round > 1 ? lastNote(status, "rejected") : null,
+    correctAnswer: typeof doc.correct_answer === "string" ? doc.correct_answer : "",
+    question: toQuestion(id, doc, fileSha256),
+  };
+}
+
+/** One queue item whatever its status (the snapshot exporter renders it), or null. */
+export async function loadItem(id: string, dir = figureReviewDir()): Promise<ReviewItem | null> {
+  if (!FIGURE_ID.test(id)) return null;
+  const status = (await readJson<StatusDoc>(path.join(dir, id, "status.json")))?.doc;
+  return status ? buildItem(dir, id, status) : null;
+}
+
 export async function loadQueue(dir = figureReviewDir()): Promise<QueueState> {
-  const { readdir, readFile } = await import("node:fs/promises");
+  const { readdir } = await import("node:fs/promises");
   const counts = { waiting: 0, approved: 0, rejected: 0, drafting: 0 };
   const items: ReviewItem[] = [];
   let names: string[] = [];
@@ -175,27 +206,10 @@ export async function loadQueue(dir = figureReviewDir()): Promise<QueueState> {
     else if (status.status === "rejected") counts.rejected += 1;
     else if (status.status === "drafting") counts.drafting += 1;
     if (status.status !== "ready_for_founder") continue;
-    let bytes: Buffer;
-    try {
-      bytes = await readFile(path.join(dir, id, "figure.json"));
-    } catch {
-      continue;
-    }
-    const fileSha256 = sha256(bytes);
-    const doc = JSON.parse(bytes.toString("utf8")) as FigureDoc;
-    const submitted = [...status.history].reverse().find((h) => h.decision === "submitted");
+    const item = await buildItem(dir, id, status);
+    if (!item) continue;
     counts.waiting += 1;
-    items.push({
-      id,
-      round: status.round,
-      fileSha256,
-      submittedAt: (status.submitted_at as string | undefined) ?? submitted?.at ?? null,
-      submittedBy: submitted?.by ?? null,
-      reviewerNote: typeof doc.notes === "string" ? doc.notes : "",
-      previousNote: status.round > 1 ? lastNote(status, "rejected") : null,
-      correctAnswer: typeof doc.correct_answer === "string" ? doc.correct_answer : "",
-      question: toQuestion(id, doc, fileSha256),
-    });
+    items.push(item);
   }
   items.sort(
     (a, b) => (a.submittedAt ?? "").localeCompare(b.submittedAt ?? "") || a.id.localeCompare(b.id)

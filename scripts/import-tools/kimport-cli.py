@@ -464,6 +464,22 @@ def _register_figures(sub) -> None:
 
     sw.set_defaults(func=lambda a: _guard(lambda: sweep(a)))
 
+    sn = fsub.add_parser("snapshot", help="one review image per figure (original left, real quiz render right) + manifest.json")
+    sn.add_argument("--figures", default=str(figures.PIPELINE_FIGURES), help="pipeline/figures")
+    sn.add_argument("--out", required=True, help="output folder")
+    sn.add_argument("--status", default="ready_for_founder")
+    sn.add_argument("--limit", type=int)
+    sn.add_argument("--base-url", default="http://127.0.0.1:3107",
+                    help="dev server started with FIGURE_REVIEW_DIR=<figures> npx next dev --webpack -H 127.0.0.1 -p 3107")
+
+    def snapshot(a):
+        r = figures.snapshot(Path(a.figures), Path(a.out), a.status, a.limit, a.base_url)
+        for f in r["failed"]:
+            print(f"FAILED {f['id']}: {f['error']}")
+        print(f"figures snapshot: {r['produced']} in manifest, {len(r['failed'])} failed, to {a.out}", file=sys.stderr)
+
+    sn.set_defaults(func=lambda a: _guard(lambda: snapshot(a)))
+
     nf = fsub.add_parser("no-figure", help="original.png shows no figure: send the question back to the text lane")
     nf.add_argument("--figures", help="pipeline/figures (default: figures/ next to --lane)")
     nf.add_argument("--lane", help="pipeline/lane.json (to find figures/ when --figures is not given)")

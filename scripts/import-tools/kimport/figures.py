@@ -24,6 +24,7 @@ not change under it); here every read-modify-write holds a FileLock.
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from . import figure_gate as fg
@@ -35,6 +36,7 @@ FIGURE_STATUS = "figure_review"  # clusters.json status of a group grouped by te
 
 
 REPO = Path(__file__).resolve().parents[3]
+PIPELINE_FIGURES = Path("/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures")
 CHECK_TS = REPO / "scripts/import-tools/ts/check-figure.ts"
 
 
@@ -315,3 +317,56 @@ def summary(figures_dir: Path) -> dict:
         if state == "drafting":
             drafting[s.get("claimed_by") or "?"] = drafting.get(s.get("claimed_by") or "?", 0) + 1
     return {"counts": counts, "drafting_by_reviewer": drafting, "total": sum(counts.values())}
+
+
+def snapshot(figures_dir: Path, out_dir: Path, status: str = "ready_for_founder", limit: int | None = None,
+             base_url: str = "http://127.0.0.1:3107") -> dict:
+    """One composite JPEG per figure with this status (original.png left, the real quiz render right) for a
+    hosted review page, plus manifest.json. Resumable: a file already there for the same round is kept.
+    Rendering is done by figure-snapshot.mjs against the dev server's /dev/figure-review/render route."""
+    import tempfile
+    out_dir.mkdir(parents=True, exist_ok=True)
+    items, jobs, skipped = [], [], []
+    for d in _folders(figures_dir):
+        s = fg.read_status(d) or {}
+        if s.get("status") != status:
+            continue
+        if limit is not None and len(items) >= limit:
+            break
+        rnd = s.get("round") or 1
+        try:
+            fig = json.loads((d / "figure.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            fig = {}
+        entry = {"id": d.name, "round": rnd, "file": f"{d.name}.r{rnd}.jpg",
+                 "prev_note": last_note(s) if rnd > 1 else "",
+                 "kind": fig.get("figure_kind"), "subject": fig.get("subject")}
+        items.append(entry)
+        if not (d / "original.png").is_file():
+            skipped.append({"id": d.name, "error": "no original.png"})
+        elif not (out_dir / entry["file"]).is_file():
+            jobs.append({"id": d.name, "original": str(d / "original.png"), "out": str(out_dir / entry["file"])})
+    failed = list(skipped)
+    if jobs:
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            json.dump(jobs, f)
+        script = Path(__file__).resolve().parent.parent / "figure-snapshot.mjs"
+        proc = subprocess.Popen(["node", str(script), f.name, base_url], stdout=subprocess.PIPE, text=True,
+                                cwd=str(script.parent.parent.parent))
+        done = 0
+        for line in proc.stdout:
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            done += 1
+            if not r.get("ok"):
+                failed.append({"id": r["id"], "error": r.get("error")})
+            if done % 50 == 0:
+                print(f"figures snapshot: {done}/{len(jobs)}", file=sys.stderr, flush=True)
+        proc.wait()
+    bad = {x["id"] for x in failed}
+    kept = [e for e in items if e["id"] not in bad and (out_dir / e["file"]).is_file()]
+    atomic_write_json(out_dir / "manifest.json", kept)
+    return {"produced": len(kept), "rendered_now": len(jobs) - len([f for f in failed if f not in skipped]),
+            "failed": failed}
