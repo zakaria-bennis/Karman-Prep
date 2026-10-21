@@ -8,8 +8,8 @@ import type { Geometry } from "@/lib/calculator/plot/geometry";
 import type { Viewport } from "@/lib/calculator/plot/viewport";
 
 /**
- * The kinds that always draw when visible and error-free. countPlots adds point,
- * constant-relation and function-definition rows by rule.
+ * The kinds that always draw when visible and error-free. countPlots adds point, table and
+ * function-definition rows by rule; a constant relation never draws (RC-14).
  */
 export const PLOT_KINDS: ReadonlySet<RowKind> = new Set<RowKind>([
   "curve-y",
@@ -49,11 +49,6 @@ function drawsPlot(row: RowView, geo: ReadonlyMap<string, Geometry>): boolean {
       // D-11: a table draws when some column has points
       const g = geo.get(row.id);
       return g?.kind === "table" && g.series.some((series) => series.coords.length > 0);
-    }
-    case "constant-relation": {
-      // only a true inequality draws: its region has spans
-      const g = geo.get(row.id);
-      return g?.kind === "region" && g.spans.length > 0;
     }
     case "function-definition":
       // only a one-parameter definition ever gets geometry

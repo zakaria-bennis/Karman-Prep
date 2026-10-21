@@ -41,7 +41,8 @@ const GRAPHS: Record<string, [string[], string][]> = {
   ],
   "RC-14": [
     [["1<y<3"], "region < < (num 1) (id y) (num 3)"],
-    [["2<3"], "constant-region < (num 2) (num 3)"],
+    [["2<3"], "null"],
+    [["1<2<3"], "null"],
     [["2=3"], "null"],
   ],
   "RC-15": [

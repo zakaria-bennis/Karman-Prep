@@ -70,7 +70,6 @@ export type RowGraph =
   | { kind: "implicit"; expr: Node } // sub(lhs, rhs)
   | { kind: "lines"; orientation: "vertical" | "horizontal"; expr: Node } // roots in x (vertical) or y; x^2=4 gives sub(pow(x,2),4)
   | { kind: "region"; operands: Node[]; ops: InequalityOp[] } // the chain as written; 1<y<3 has three operands
-  | { kind: "constant-region"; operands: Node[]; ops: InequalityOp[] } // constant-relation inequality; holds or not everywhere
   | { kind: "point" } // coordinates come from the row's value
   | { kind: "table" }; // D-11: the table's later columns against its first
 export interface RowAnalysis {

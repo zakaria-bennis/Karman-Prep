@@ -38,7 +38,6 @@ const BUDGET: Record<PlotInput["kind"], number> = {
   implicit: IMPLICIT_BUDGET,
   region: IMPLICIT_BUDGET,
   points: 0,
-  "constant-region": 0,
 };
 
 /**

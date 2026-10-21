@@ -33,12 +33,11 @@ const row = (id: string, kind: RowKind, extra: Partial<RowView> = {}): RowView =
 });
 const REGION_STUB: RegionGeometry = {
   kind: "region",
-  rowId: "9",
+  rowId: "10",
   evaluations: 0,
   spans: new Float32Array([0, 1, 0, 1]),
   boundaries: [],
 };
-const EMPTY_REGION: RegionGeometry = { ...REGION_STUB, rowId: "15", spans: new Float32Array(0) };
 const CURVE_STUB: CurveGeometry = {
   kind: "curve",
   rowId: "16",
@@ -73,8 +72,7 @@ it("A11Y-1 bounds keep at most 4 significant digits", () => {
 
 it("A11Y-1 only visible, error-free, chip-free graphed rows count as plots", () => {
   const geometry = new Map<string, Geometry>([
-    ["9", REGION_STUB],
-    ["15", EMPTY_REGION],
+    ["10", REGION_STUB],
     ["16", CURVE_STUB],
   ]);
   const syntax = { code: "syntax" as const, message: "Syntax error", names: [], span: null };
@@ -82,7 +80,6 @@ it("A11Y-1 only visible, error-free, chip-free graphed rows count as plots", () 
     // counted
     row("1", "curve-y"),
     row("6", "point", { value: { type: "point", value: [2, 3] } }),
-    row("9", "constant-relation"),
     row("11", "region"),
     row("12", "vertical-lines"),
     row("13", "curve-x"),
@@ -95,11 +92,10 @@ it("A11Y-1 only visible, error-free, chip-free graphed rows count as plots", () 
     row("5", "curve-y", { chips: ["a"] }),
     row("7", "point", { value: null }),
     row("8", "point", { value: { type: "point", value: [NaN, 3] } }),
-    row("10", "constant-relation"),
-    row("15", "constant-relation"),
+    row("10", "constant-relation"), // RC-14: never counted, even beside region geometry
     row("17", "function-definition"),
   ];
-  expect(countPlots(rows, geometry)).toBe(8);
+  expect(countPlots(rows, geometry)).toBe(7);
 });
 
 it("A11Y-1 a table with plotted columns counts as one plot", () => {

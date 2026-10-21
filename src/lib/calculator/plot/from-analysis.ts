@@ -4,9 +4,7 @@
 // so it runs unchanged in the worker and in the main-thread executor (AR-44).
 
 import type { AnalysisResult, RowAnalysis } from "../core/analysis/index";
-import { NO_DEADLINE } from "../core/deadline";
 import {
-  compileExpression,
   compileRealFunction1,
   compileRealFunction2,
   type CompileScope,
@@ -14,7 +12,6 @@ import {
 } from "../core/eval/compile";
 import { branchTrees, chainBranches } from "../core/eval/branches";
 import type { Value } from "../core/eval/values";
-import type { Node } from "../core/latex/ast";
 import type { PlotInput } from "./index";
 
 /**
@@ -45,9 +42,8 @@ export function buildCompileScope(
  * compiles once per branch of branchTrees (G-22: a list-valued tree draws one per element):
  * explicit → compileRealFunction1(branch, independent); implicit → compileRealFunction2(branch);
  * lines → compileRealFunction1(branch, "x" for vertical, "y" for horizontal); region →
- * compileRealFunction2 per operand of each branch of the chain (chainBranches). constant-region compiles the chain as
- * one `rel` node and evaluates it once: it holds exactly when the result is n(1), which
- * compileExpression gives only when every link holds between real operands (NM-22).
+ * compileRealFunction2 per operand of each branch of the chain (chainBranches). An inequality with
+ * no coordinates has no graph (RC-14), so it never reaches here.
  */
 export function plotInputFor(
   row: RowAnalysis,
@@ -90,20 +86,6 @@ export function plotInputFor(
         ),
         ops: [...graph.ops],
       };
-    case "constant-region": {
-      const rel: Node = {
-        kind: "rel",
-        ops: graph.ops,
-        operands: graph.operands,
-        span: row.tree?.span ?? { start: 0, end: 0 },
-      };
-      const result = compileExpression(rel, scope)({}, NO_DEADLINE);
-      return {
-        rowId,
-        kind: "constant-region",
-        holds: result.type === "number" && result.value === 1,
-      };
-    }
     case "table":
       return null; // D-11: the runPlot unit plots tables from their TableResult
     case "point": {

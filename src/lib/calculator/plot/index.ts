@@ -11,7 +11,7 @@ import { plotImplicit } from "./implicit";
 import { plotLines } from "./lines";
 import { mergeCurves, mergeLines, mergeRegions } from "./merge";
 import { plotPoints } from "./points";
-import { plotConstantRegion, plotRegion } from "./region";
+import { plotRegion } from "./region";
 import type { ViewSpec } from "./viewport";
 
 /**
@@ -24,8 +24,7 @@ export type PlotInput =
   | { rowId: string; kind: "implicit"; Fs: RealFn2[] }
   | { rowId: string; kind: "lines"; orientation: "vertical" | "horizontal"; fs: RealFn1[] }
   | { rowId: string; kind: "points"; points: [number, number][] }
-  | { rowId: string; kind: "region"; branches: RealFn2[][]; ops: InequalityOp[] }
-  | { rowId: string; kind: "constant-region"; holds: boolean };
+  | { rowId: string; kind: "region"; branches: RealFn2[][]; ops: InequalityOp[] };
 export { EXPLICIT_BUDGET, IMPLICIT_BUDGET } from "./budget"; // so no plot module imports index.ts
 
 /** A view at least 1 px wide and tall in finite CSS px; anything else (a hidden graph) draws nothing. */
@@ -61,7 +60,6 @@ function emptyGeometry(input: PlotInput): Geometry {
     case "points":
       return plotPoints(rowId, input.points);
     case "region":
-    case "constant-region":
       return {
         rowId,
         kind: "region",
@@ -107,7 +105,5 @@ export function plotRow(input: PlotInput, view: ViewSpec, deadline: Deadline): G
         branches.map((terms) => plotRegion(rowId, terms, ops, view, deadline, limit))
       );
     }
-    case "constant-region":
-      return plotConstantRegion(rowId, input.holds, view);
   }
 }

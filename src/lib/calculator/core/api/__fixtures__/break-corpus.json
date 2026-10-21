@@ -5066,47 +5066,27 @@
   {
     "cat": "inequalities",
     "rows": ["1<2"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "inequalities",
     "rows": ["2<1"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "inequalities",
     "rows": ["1<2<3"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "inequalities",
     "rows": ["3>2>1"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "inequalities",
     "rows": ["1<2>3"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "inequalities",
@@ -5136,20 +5116,12 @@
   {
     "cat": "inequalities",
     "rows": ["1<1"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "inequalities",
     "rows": ["1\\le1"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "inequalities",
@@ -7473,11 +7445,7 @@
     "cat": "complex-on",
     "rows": ["i<1"],
     "settings": { "allowComplex": true },
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "complex mode: Desmos plots complex values as points and uses other branches",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "complex-on",

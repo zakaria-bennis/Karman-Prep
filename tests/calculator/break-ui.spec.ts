@@ -5,10 +5,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { enc, openShell, rowField, rows } from "./shell-helpers";
 
-// React's development-only warning for setState in effects can fire under synthetic input
-// spam (500 keys a second) from the graph's label effects; it is never thrown and never ships.
-const DEV_ONLY = /This can happen when a component calls setState inside useEffect/;
-
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(({ page }) => {
   const list: string[] = [];
@@ -16,12 +12,7 @@ test.beforeEach(({ page }) => {
   page.on("pageerror", (error) => list.push(`pageerror: ${error.message}`));
   page.on("console", (m) => {
     // A full Chrome asks for /favicon.ico, which the harness does not serve.
-    if (
-      m.type() !== "error" ||
-      DEV_ONLY.test(m.text()) ||
-      m.location().url.endsWith("/favicon.ico")
-    )
-      return;
+    if (m.type() !== "error" || m.location().url.endsWith("/favicon.ico")) return;
     list.push(`console: ${m.text()}`);
   });
 });

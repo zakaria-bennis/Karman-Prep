@@ -229,10 +229,10 @@ it("G-5 inequality shading follows a pan while the region is re-plotted", async 
   await run(() =>
     engine.setExpressions([
       { id: "1", latex: "y<1" },
-      { id: "2", latex: "3>2" },
+      { id: "2", latex: "x=2" }, // a second plot (`3>2` draws nothing, as on Desmos: RC-14)
     ])
   );
-  await settle("2", "region");
+  await settle("2", "lines");
   await settle("1", "region");
   const before = Array.from(regionOf("1").spans);
   expect(before.length).toBeGreaterThan(0);

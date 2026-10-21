@@ -193,8 +193,9 @@ it("AR-44 plotInputFor maps inequalities to regions and evaluates 3>2 once", () 
     ["<="],
     [0, 3],
   ]);
-  expect(run(["3>2"]).input()).toMatchObject({ kind: "constant-region", holds: true });
-  expect(run(["3<2"]).input()).toMatchObject({ kind: "constant-region", holds: false });
+  // RC-14: an inequality of constants draws nothing, true or false, as on Desmos
+  expect(run(["3>2"]).input()).toBeNull();
+  expect(run(["3<2"]).input()).toBeNull();
 });
 it("AR-44 plotInputFor plots (2,3) and returns null for undefined points, hidden, error and non-graphing rows", () => {
   expect(run(["(2,3)"]).input()).toEqual({ rowId: "r0", kind: "points", points: [[2, 3]] });

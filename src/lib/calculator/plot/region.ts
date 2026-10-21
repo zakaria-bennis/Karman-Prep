@@ -159,15 +159,3 @@ export function plotRegion(
     evaluations: budget.used,
   };
 }
-
-/** RC-14's constant inequality: the whole view when it holds, else nothing; no boundaries. */
-export function plotConstantRegion(rowId: string, holds: boolean, view: ViewSpec): RegionGeometry {
-  const { width, height } = view.size;
-  return {
-    rowId,
-    kind: "region",
-    spans: Float32Array.from(holds ? [0, height, 0, width] : []),
-    boundaries: [],
-    evaluations: 0,
-  };
-}

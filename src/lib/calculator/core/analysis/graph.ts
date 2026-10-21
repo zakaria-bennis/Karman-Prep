@@ -172,13 +172,12 @@ function chainProblem(
 
 /**
  * RC-14: an inequality chain with coordinates is a region, as written; one without is a constant
- * relation that shades the whole view when it holds.
+ * relation that, like Desmos (break corpus, 2026-10-20), draws nothing whether or not it holds.
  */
 function chainShape(tree: Rel, coordinates: ReadonlySet<string>): RowShape {
-  const ops = tree.ops.filter((op): op is InequalityOp => op !== "="),
-    operands = tree.operands;
-  if (coordinates.size > 0) return shape("region", { kind: "region", operands, ops });
-  return shape("constant-relation", { kind: "constant-region", operands, ops });
+  if (coordinates.size === 0) return shape("constant-relation", null);
+  const ops = tree.ops.filter((op): op is InequalityOp => op !== "=");
+  return shape("region", { kind: "region", operands: tree.operands, ops });
 }
 
 /**

@@ -3,7 +3,7 @@
 // hover rules; the dots and labels a frame draws; and exporting a point as a new row. Escape closes
 // open labels as one KB-3 layer.
 
-import { useCallback, useContext, useEffect, useReducer, useRef } from "react";
+import { startTransition, useCallback, useContext, useEffect, useReducer, useRef } from "react";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
 import { worldToPx, type ViewSpec } from "@/lib/calculator/plot/viewport";
 import { formatPoiLabel, type FormattedLabel } from "@/lib/calculator/poi/format";
@@ -71,20 +71,23 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
   const announcer = useContext(AnnouncerContext);
   const stepIndex = useRef(-1);
 
+  // The three syncs below run after every snapshot. They are transitions so that a burst of
+  // snapshots (key spam) does not chain urgent effect updates into React's update-depth limit.
   useEffect(
-    () => dispatch({ type: "selection", rowId: snapshot.selectedRowId }),
+    () => startTransition(() => dispatch({ type: "selection", rowId: snapshot.selectedRowId })),
     [snapshot.selectedRowId]
   );
   const revision = useRef(snapshot.revision);
   useEffect(() => {
     if (revision.current === snapshot.revision) return;
     revision.current = snapshot.revision;
-    dispatch({ type: "close" }); // POI-TRACE-15: a row edit or a view change
+    startTransition(() => dispatch({ type: "close" })); // POI-TRACE-15: a row edit or a view change
   }, [snapshot.revision]);
   const points = selectedPoints(snapshot);
   useEffect(() => {
     if (snapshot.selectedRowId !== null) {
-      dispatch({ type: "poi-updated", rowId: snapshot.selectedRowId, points });
+      const rowId = snapshot.selectedRowId;
+      startTransition(() => dispatch({ type: "poi-updated", rowId, points }));
     }
   }, [points, snapshot.selectedRowId]);
   const anyOpen = labels.open.length > 0;

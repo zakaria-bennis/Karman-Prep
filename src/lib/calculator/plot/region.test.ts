@@ -13,7 +13,7 @@ import {
 import { EvaluationBudget, IMPLICIT_BUDGET } from "./budget";
 import { sampleField, type SampledField } from "./field";
 import type { CurveGeometry, RealFn2 } from "./geometry";
-import { plotConstantRegion, plotRegion, relationHolds, shadedSpans } from "./region";
+import { plotRegion, relationHolds, shadedSpans } from "./region";
 import { pxToWorld, type ViewSpec } from "./viewport";
 
 const LINE: RealFn2[] = [(x, y) => y, (x) => 2 * x + 1];
@@ -49,8 +49,6 @@ it("G-17 every pixel centre more than 1 px from the boundary is shaded exactly w
       }
     }
   }
-  expect(Array.from(plotConstantRegion("k", true, VIEW_800).spans)).toEqual([0, 600, 0, 800]);
-  expect(plotConstantRegion("k", false, VIEW_800).spans).toHaveLength(0);
 }, 30_000);
 it("G-1 a strict inequality's boundary is dashed and a non-strict one solid", () => {
   const dashes = (t: RealFn2[], ops: InequalityOp[]) =>
