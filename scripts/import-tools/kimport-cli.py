@@ -452,6 +452,18 @@ def _register_figures(sub) -> None:
         "figures submit: {occurrence_id} ready for the founder (round {round})".format(
             **figures.submit(Path(a.figures), a.id, a.by, a.now)))))
 
+    sw = fsub.add_parser("sweep", help="return ready_for_founder figures the quiz cannot draw to drafting")
+    sw.add_argument("--figures", required=True, help="pipeline/figures")
+    sw.add_argument("--now", required=True)
+
+    def sweep(a):
+        got = figures.return_unrenderable(Path(a.figures), a.now)
+        for g in got:
+            print(f"{g['id']}  {g['error']}")
+        print(f"figures sweep: {len(got)} returned to drafting", file=sys.stderr)
+
+    sw.set_defaults(func=lambda a: _guard(lambda: sweep(a)))
+
     nf = fsub.add_parser("no-figure", help="original.png shows no figure: send the question back to the text lane")
     nf.add_argument("--figures", help="pipeline/figures (default: figures/ next to --lane)")
     nf.add_argument("--lane", help="pipeline/lane.json (to find figures/ when --figures is not given)")

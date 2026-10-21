@@ -21,7 +21,9 @@ The review page writes status.json too (atomically, after checking the file did
 not change under it); here every read-modify-write holds a FileLock.
 """
 
+import json
 import shutil
+import subprocess
 from pathlib import Path
 
 from . import figure_gate as fg
@@ -30,6 +32,25 @@ from .jsonio import FileLock, atomic_write_json, load_json
 B_ROOT = Path("/Users/zakariabennis/Documents/Codex/2026-10-05/task-3/agent-b-output/revisions")
 SLICE_SIZE = 10
 FIGURE_STATUS = "figure_review"  # clusters.json status of a group grouped by text only, with a figure
+
+
+REPO = Path(__file__).resolve().parents[3]
+CHECK_TS = REPO / "scripts/import-tools/ts/check-figure.ts"
+
+
+def render_errors(figure_file: Path) -> list[str]:
+    """Run the app's own renderers' checks (ts/check-figure.ts) on a figure.json: geometry
+    buildGeometrySvg rejects, SVG failing svg-figure-check, table/chart data the renderer
+    cannot draw. [] means it draws; otherwise the renderer's messages."""
+    try:
+        r = subprocess.run(["npx", "--no-install", "tsx", str(CHECK_TS), str(figure_file)],
+                           cwd=REPO, capture_output=True, text=True, timeout=120)
+        out = json.loads(r.stdout.strip().splitlines()[-1])
+    except (OSError, subprocess.TimeoutExpired, ValueError, IndexError) as e:
+        raise ValueError(f"renderability check could not run: {e}") from None
+    if r.returncode != 0:
+        raise ValueError(f"renderability check failed: {r.stderr.strip()[-300:]}")
+    return [] if out.get("ok") else [str(x) for x in out.get("errors", [])]
 
 
 def _folders(figures_dir: Path):
@@ -184,6 +205,10 @@ def submit(figures_dir: Path, occ_id: str, by: str, now: str) -> dict:
         problems = fg.validate_figure(doc, occ_id)
         if problems:
             raise ValueError(f"{occ_id}: figure.json is not ready:\n  - " + "\n  - ".join(problems))
+        drawn = render_errors(folder / fg.FIGURE_FILE)
+        if drawn:
+            raise ValueError(f"{occ_id}: the quiz renderer cannot draw this figure (it would show blank):\n  - "
+                             + "\n  - ".join(drawn))
         if state == "rejected":
             status["round"] = int(status.get("round") or 1) + 1
         status.update({"status": "ready_for_founder", "submitted_file_sha256": fg.file_sha256(folder / fg.FIGURE_FILE),
@@ -192,6 +217,30 @@ def submit(figures_dir: Path, occ_id: str, by: str, now: str) -> dict:
             _event(now, "submitted", by, str(doc.get("notes") or ""))]
         _write_status(folder, status)
         return status
+
+
+def return_unrenderable(figures_dir: Path, now: str, by: str = "coordinator") -> list[dict]:
+    """Sweep: every ready_for_founder figure the renderers cannot draw goes back to drafting
+    (history: returned, "renders blank: <error>") so rework picks it up. Returns [{id, error}]."""
+    out = []
+    for d in _folders(figures_dir):
+        status_path = d / fg.STATUS_FILE
+        s = fg.read_status(d)
+        if not s or s.get("status") != "ready_for_founder":
+            continue
+        errs = render_errors(d / fg.FIGURE_FILE)
+        if not errs:
+            continue
+        with FileLock(status_path):
+            s = load_json(status_path)
+            if s.get("status") != "ready_for_founder":
+                continue
+            note = "renders blank: " + "; ".join(errs)
+            s.update({"status": "drafting", "submitted_file_sha256": None, "approved_file_sha256": None})
+            s["history"] = list(s.get("history", [])) + [_event(now, "returned", by, note)]
+            _write_status(d, s)
+        out.append({"id": d.name, "error": note})
+    return out
 
 
 def no_figure(figures_dir: Path, occ_id: str, reviewer: str, note: str, now: str) -> dict:
@@ -237,15 +286,22 @@ def last_note(status: dict, decision: str = "rejected") -> str:
 
 
 def rework(figures_dir: Path, reviewer: str | None = None) -> list[dict]:
-    """Rejected figures with the founder's note, oldest rejection first (optionally one reviewer's)."""
+    """Rejected figures (and ones returned for rendering blank) with the note, oldest rejection first (optionally one reviewer's)."""
     out = []
     for d in _folders(figures_dir):
         s = fg.read_status(d)
-        if not s or s.get("status") != "rejected" or (reviewer and s.get("claimed_by") != reviewer):
+        if not s or (reviewer and s.get("claimed_by") != reviewer):
             continue
-        at = next((h.get("at") for h in reversed(s.get("history", [])) if h.get("decision") == "rejected"), "")
+        hist = s.get("history", [])
+        # rejected by the founder, or returned by the coordinator's renderability sweep
+        decision = ("rejected" if s.get("status") == "rejected"
+                    else "returned" if s.get("status") == "drafting" and hist and hist[-1].get("decision") == "returned"
+                    else None)
+        if not decision:
+            continue
+        at = next((h.get("at") for h in reversed(hist) if h.get("decision") == decision), "")
         out.append({"id": d.name, "round": s.get("round"), "claimed_by": s.get("claimed_by"), "rejected_at": at,
-                    "note": last_note(s), "folder": str(d)})
+                    "note": last_note(s, decision), "folder": str(d)})
     return sorted(out, key=lambda x: (x["rejected_at"] or "", x["id"]))
 
 

@@ -36,6 +36,31 @@ interface Props {
   calculatorItemId?: string;
 }
 
+/**
+ * Wide tables shrink their cell padding and type so they fit the quiz column without a
+ * sideways scroll (the scroll stays only as a last resort on a phone). Headers wrap.
+ * 1-5 columns: roomy; 6-7: compact; 8+: tighter still. Never below 13px.
+ */
+export function tableDensity(columns: number) {
+  if (columns >= 8)
+    return {
+      tier: "dense",
+      cell: "px-1.5 py-1.5 text-[13px] leading-tight",
+      head: "px-1.5 py-1.5 text-[13px] leading-tight",
+    } as const;
+  if (columns >= 6)
+    return {
+      tier: "compact",
+      cell: "px-2.5 py-2 text-sm leading-snug",
+      head: "px-2.5 py-2 text-sm leading-snug",
+    } as const;
+  return {
+    tier: "roomy",
+    cell: "px-4 py-3 text-base leading-snug",
+    head: "px-4 py-3 text-base leading-snug",
+  } as const;
+}
+
 export default function QuestionTable({
   data,
   renderMath = true,
@@ -52,15 +77,22 @@ export default function QuestionTable({
   // When there's a multi-column header, the first body cell of each row is
   // a row label — render it as <th scope="row"> so screen readers announce
   // it as the heading for the rest of the row ().
+  const columns = Math.max(header_row?.length ?? 0, ...rows.map((r) => r.length), 1);
+  const density = tableDensity(columns);
   const hasRowHeaders = Boolean(header_row && header_row.length > 1);
-  const rowLabelClass =
-    "border-b border-ivory/70 px-4 py-3 text-left text-base font-normal leading-snug text-ivory";
-  const cellClass =
-    "border-b border-ivory/70 px-4 py-3 text-center text-base leading-snug tabular-nums text-ivory";
+  const rowLabelClass = cn(
+    "border-b border-ivory/70 text-left font-normal text-ivory [overflow-wrap:anywhere]",
+    density.cell
+  );
+  const cellClass = cn(
+    "border-b border-ivory/70 text-center tabular-nums text-ivory [overflow-wrap:anywhere]",
+    density.cell
+  );
 
   return (
     <figure
       aria-label={ariaLabel ?? (caption ? undefined : "Question data table")}
+      data-table-density={density.tier}
       className={cn(
         // Container: thin-ruled frame; cells, not the card, carry the padding so rules reach the border.
         "themed-question-figure themed-question-table my-4 inline-block max-w-full overflow-x-auto rounded-lg border border-ivory/70 bg-surface shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
@@ -83,7 +115,8 @@ export default function QuestionTable({
                     scope={group.label ? "colgroup" : undefined}
                     colSpan={Math.max(1, Math.floor(group.span))}
                     className={cn(
-                      "px-4 py-3 text-center text-base font-normal leading-snug text-ivory",
+                      "text-center font-normal text-ivory",
+                      density.head,
                       group.label && "border-b border-ivory/70",
                       i > 0 && "border-l border-ivory/70"
                     )}
@@ -100,7 +133,8 @@ export default function QuestionTable({
                     key={`h-${i}`}
                     scope="col"
                     className={cn(
-                      "border-b border-ivory/70 px-4 py-3 text-center text-base font-semibold leading-snug text-ivory",
+                      "border-b border-ivory/70 text-center font-semibold text-ivory [overflow-wrap:anywhere]",
+                      density.head,
                       i > 0 && "border-l border-ivory/70"
                     )}
                   >

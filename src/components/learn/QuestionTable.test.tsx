@@ -110,3 +110,24 @@ describe("QuestionTable — grouped column headers", () => {
     expect(group.getAttribute("scope")).toBe("colgroup");
   });
 });
+
+describe("QuestionTable — wide-table density", () => {
+  const wide = (n: number) => ({
+    header_row: Array.from({ length: n }, (_, i) => `Column heading ${i + 1}`),
+    rows: [Array.from({ length: n }, (_, i) => `v${i}`)],
+  });
+  it("uses roomy, compact, then dense cells as columns grow", () => {
+    const tier = (n: number) =>
+      render(<QuestionTable data={wide(n)} renderMath={false} />).container.querySelector("figure")
+        ?.dataset.tableDensity;
+    expect([tier(4), tier(6), tier(7), tier(8)]).toEqual(["roomy", "compact", "compact", "dense"]);
+  });
+  it("shrinks padding and type but keeps legible size and wrapping headers", () => {
+    const { container } = render(<QuestionTable data={wide(8)} renderMath={false} />);
+    const th = container.querySelector("thead th") as HTMLElement;
+    expect(th.className).toContain("px-1.5");
+    expect(th.className).toContain("text-[13px]");
+    expect(th.className).not.toContain("whitespace-nowrap");
+    expect(container.querySelector("figure")?.className).toContain("overflow-x-auto");
+  });
+});

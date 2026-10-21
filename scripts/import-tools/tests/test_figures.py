@@ -218,3 +218,43 @@ class Validation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RenderabilityTests(unittest.TestCase):
+    """submit refuses what the real renderers cannot draw; the sweep returns such figures."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.figs = Path(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+
+    def bad_doc(self, occ):
+        doc = table_doc(occ)
+        doc.update({"figure_kind": "geometric", "figure_table_data": None, "figure_geometry_data": {
+            "layout_version": "balanced-v1", "kind": "geometric",
+            "shapes": [{"kind": "triangle", "label": "RST", "vertices_or_points": [
+                {"label": "R", "x": 255, "y": 170}, {"label": "S", "x": 430, "y": 80}, {"label": "T", "x": 425, "y": 170}]}],
+            "angle_markings": [{"at_vertex": "T", "between_vertices": ["R", "S"], "right_angle": True}],
+            "length_markings": []}})
+        return doc
+
+    def test_submit_refuses_unrenderable_geometry(self):
+        occ = "2023-03_UNSPECIFIED_V1_Math_MUNSPECIFIED_Q01"
+        ffx.write_figure(self.figs, occ, self.bad_doc(occ), status="drafting")
+        with self.assertRaisesRegex(ValueError, "unresolved_angle_mark"):
+            figures.submit(self.figs, occ, "r1", "2026-10-21T10:05:00Z")
+        self.assertEqual(fg.read_status(self.figs / occ)["status"], "drafting")
+
+    def test_sweep_returns_only_unrenderable_ready_figures(self):
+        bad, good = ("2023-03_UNSPECIFIED_V1_Math_MUNSPECIFIED_Q01", "2023-03_UNSPECIFIED_V1_Math_MUNSPECIFIED_Q02")
+        ffx.write_figure(self.figs, bad, self.bad_doc(bad), status="ready_for_founder")
+        ffx.write_figure(self.figs, good, table_doc(good), status="ready_for_founder")
+        got = figures.return_unrenderable(self.figs, "2026-10-21T12:00:00Z")
+        self.assertEqual([g["id"] for g in got], [bad])
+        s = fg.read_status(self.figs / bad)
+        self.assertEqual(s["status"], "drafting")
+        self.assertEqual(s["history"][-1]["decision"], "returned")
+        self.assertEqual(s["history"][-1]["by"], "coordinator")
+        self.assertTrue(s["history"][-1]["note"].startswith("renders blank: "))
+        self.assertEqual(fg.read_status(self.figs / good)["status"], "ready_for_founder")
+        self.assertEqual([i["id"] for i in figures.rework(self.figs)], [bad])
