@@ -150,3 +150,29 @@ it("KB-13 Escape with focus on a key closes the keypad and focuses Show keypad",
   act(() => kit.pressEscape());
   expect(screen.getByRole("button", { name: "Show keypad" })).toHaveFocus();
 });
+
+it("a minimized phone keypad shows only its Show keypad bar, keys hidden and inert; the bar restores it", async () => {
+  const onRestore = vi.fn();
+  renderEditor(
+    keypad({
+      containerWidth: 390,
+      layout: "stacked",
+      pointer: "coarse",
+      minimized: true,
+      onRestore,
+    }),
+    { rows: [""] }
+  );
+  const region = screen.getByRole("region", { name: "Keypad" });
+  expect(region).toHaveAttribute("data-minimized", "true");
+  expect(within(region).queryByRole("button", { name: "Squared" })).toBeNull();
+  const keys = region.querySelector(".kc-keypad-keys")!;
+  expect(keys).toHaveAttribute("inert");
+  const bar = within(region).getByRole("button", { name: "Show keypad" });
+  expect(bar).not.toHaveTextContent(/\w/);
+  await userEvent.setup().click(bar);
+  expect(onRestore).toHaveBeenCalledOnce();
+  cleanup();
+  renderEditor(keypad({ open: false, minimized: true }), { rows: [""] });
+  expect(document.querySelector(".kc-keypad-bar")).toBeNull();
+});

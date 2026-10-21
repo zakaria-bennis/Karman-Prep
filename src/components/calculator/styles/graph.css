@@ -214,3 +214,36 @@
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: -2px;
 }
+
+/* Zoom to fit (owner decision 2026-10-21): the corner-bracket glyph, centred. */
+.kc-graph-controls [data-graph-fit] > svg {
+  translate: 0 0;
+}
+
+/* The one-time curve hint (owner decision 2026-10-21): a small quiet pill, centred low on the
+   graph above any phone keypad; it takes no pointer input and fades in. */
+.kc-curve-hint {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 1;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  padding: 5px 12px;
+  border: 1px solid var(--kc-pill-border);
+  border-radius: 999px;
+  background: var(--kc-pill);
+  box-shadow: var(--kc-pill-shadow);
+  color: color-mix(in srgb, var(--kc-text) 75%, transparent);
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: center;
+  pointer-events: none;
+  animation: kc-curve-hint-in var(--kc-dur-300) var(--kc-ease) backwards;
+}
+
+@keyframes kc-curve-hint-in {
+  from {
+    opacity: 0;
+  }
+}

@@ -171,7 +171,8 @@ export function App(props: AppProps): JSX.Element {
     });
     root.addEventListener("click", focusClickedControl);
     // As the reference's touch calculator: with the keypad up, a touch on the graph or on empty
-    // list space only puts the keypad away (the graph does not pan, zoom or trace on it).
+    // list space only puts the keypad away (the graph does not pan, zoom or trace on it); on a
+    // phone the graph takes the touch (owner decision, 2026-10-21).
     const onTouchDown = (event: PointerEvent) => {
       if (event.pointerType !== "touch" || !engine.settings.keypad) return;
       const target = event.composedPath()[0];
@@ -181,6 +182,8 @@ export function App(props: AppProps): JSX.Element {
         target.closest(".kc-list-panel") !== null &&
         target.closest("[data-row-id], .kc-ghost-row, .kc-list-toolbar, button, input") === null;
       if (!onGraph && !onEmptyList) return;
+      // On a phone a graph touch shrinks the keypad to its bar instead (layout/phone-keypad.ts).
+      if (onGraph && root.dataset.compactTouch === "true") return;
       if (onGraph) event.stopPropagation();
       keypadEvent({ type: "set", open: false, by: "system" });
     };

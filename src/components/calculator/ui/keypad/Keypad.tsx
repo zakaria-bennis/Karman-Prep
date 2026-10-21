@@ -7,7 +7,9 @@
 // keys act through pressKey without taking focus from the row (K-10); every key acts once per press,
 // on its click, with no hold-to-repeat, as Desmos's does (K-11); a pressed key carries data-pressed for its tone (AN-11). The Functions key
 // opens the Functions panel (K-4, K-5): a panel button inserts its template into the keypad's row
-// in one run call, closes the panel and returns focus to the row.
+// in one run call, closes the panel and returns focus to the row. On a phone a touch on the graph
+// shrinks the open keypad to a thin Show keypad bar (`minimized`, owner decision 2026-10-21); the
+// bar brings the keys back onto the row last typed in.
 
 import {
   useContext,
@@ -43,6 +45,9 @@ export interface KeypadProps {
   layout: "desktop" | "stacked"; // L-1 side by side, L-2 stacked (under 450 px)
   pointer: "fine" | "coarse"; // VIS-KEYPAD-32: Show/Hide controls only for a mouse side by side
   open: boolean;
+  /** The open keypad shows only its Show keypad bar (phone, after a graph touch). */
+  minimized?: boolean;
+  onRestore?(): void;
   onOpenChange(open: boolean, by: "student" | "system"): void;
 }
 
@@ -111,6 +116,7 @@ const noSubscribe = () => () => undefined;
 
 export function Keypad(props: KeypadProps): JSX.Element {
   const { containerWidth, pointer, open, onOpenChange } = props;
+  const minimized = open && props.minimized === true;
   const engine = useEngine();
   const focus = useContext(FocusContext);
   const announcer = useContext(AnnouncerContext);
@@ -312,7 +318,22 @@ export function Keypad(props: KeypadProps): JSX.Element {
         data-abc-size={abcSize(containerWidth)}
         data-pointer={pointer}
         data-page={page}
+        data-minimized={minimized ? "true" : undefined}
       >
+        {minimized && (
+          <button
+            type="button"
+            className="kc-keypad-bar"
+            aria-label="Show keypad"
+            onClick={() => {
+              props.onRestore?.();
+              focusKeypadRow();
+            }}
+          >
+            <KeyboardGlyph />
+            <CaretUpGlyph />
+          </button>
+        )}
         {controls && (
           <button
             ref={hideRef}
@@ -325,7 +346,11 @@ export function Keypad(props: KeypadProps): JSX.Element {
             <CaretDownGlyph />
           </button>
         )}
-        <div className="kc-keypad-keys">
+        <div
+          className="kc-keypad-keys"
+          aria-hidden={minimized ? true : undefined}
+          {...(minimized ? INERT : {})}
+        >
           {layout.rows.map((row, r) => (
             <div key={r} className="kc-keypad-row">
               {placeRow(row).map((cell) => renderKey(cell.key, cell.x, cell.width))}

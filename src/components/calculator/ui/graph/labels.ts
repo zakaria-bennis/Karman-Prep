@@ -7,4 +7,5 @@ export const GRAPH_CONTROL_LABELS = {
   zoomIn: "Zoom in",
   zoomOut: "Zoom out",
   home: "Home",
+  fit: "Zoom to fit", // owner decision 2026-10-21: a Karman control under Home
 } as const;
