@@ -119,8 +119,8 @@ these on top of the rules above. Where they conflict, these win inside the app.
 52. Icons are custom drawn for Karman (never Lucide or a stock set). Desktop
     navigation is a slim icon rail of a few icons, not a wide sidebar.
 53. Product names: "Your Daily 10", "Challenge question" (not Daily Question),
-    "Full-length review session" (not 1:1 review). The word game's name is
-    being chosen with the founder.
+    "Full-length review session" (not 1:1 review). The word game is called
+    Wordline (founder, 2026-10-21).
 54. Tutors are named on product screens (the March cohort's tutor is David).
 55. Every due item shows its due date. Fill-in blanks are one solid underline,
     never a row of underscores.
