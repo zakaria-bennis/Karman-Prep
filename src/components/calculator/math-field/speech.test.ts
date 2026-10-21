@@ -34,7 +34,7 @@ it("T-5 speech text covers every Phase 1 tree head", () => {
     ["y\\ge2x+1", "y greater than or equal to 2 x plus 1"],
     ["A_{1}+\\theta", "upper A sub 1 plus theta"],
     ["44\\%\\operatorname{of}2", "44 percent times 2"],
-    ["30^{\\circ}", "30 degrees"],
+    ["30\\degree", "30 degrees"],
     ["f(x)=x^{2}", "f of x equals x squared"],
   ];
   for (const [latex, speech] of cases) expect(latexToSpeech(latex), latex).toBe(speech);

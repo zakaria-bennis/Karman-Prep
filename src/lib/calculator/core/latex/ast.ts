@@ -40,7 +40,7 @@ export type Node =
   | { kind: "id"; name: string; span: SourceSpan } // "x", "A", "a_{1}", "v_{max}", "\\alpha", "e_{3}"
   | { kind: "const"; name: ConstName; span: SourceSpan }
   | { kind: "add" | "sub" | "mul" | "div" | "pow"; left: Node; right: Node; span: SourceSpan }
-  | { kind: "neg" | "pct" | "deg" | "fact" | "abs"; arg: Node; span: SourceSpan }
+  | { kind: "neg" | "pct" | "fact" | "abs"; arg: Node; span: SourceSpan }
   | { kind: "root"; arg: Node; index: Node | null; span: SourceSpan } // \sqrt, \sqrt[n]
   // PR-27: `\log_{b}x` is call "log" with args [x, b] and `base`, which marks the last argument as
   // the subscript, so RC-20 counts only the written ones (`\log(x,b)` is an arity error).
@@ -99,7 +99,6 @@ export function sourceChildren(node: Node): readonly Node[] {
       return [node.left, node.right];
     case "neg":
     case "pct":
-    case "deg":
     case "fact":
     case "abs":
       return [node.arg];

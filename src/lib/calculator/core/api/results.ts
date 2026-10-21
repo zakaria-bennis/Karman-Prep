@@ -35,7 +35,6 @@ export interface RowView {
   kind: RowKind;
   error: ViewError | null;
   chips: string[]; // RC-10 names, or a slider's undefined limit names (SLIDERS-10)
-  complexHint: boolean;
   value: Value | null; // null until the worker reports
   valueText: string | null; // formatValue, only when the row shows a value (R-5)
   overrun: boolean; // AR-48/AR-49 message showing
@@ -150,10 +149,10 @@ export function rowHasValue(row: RowAnalysis, value: Value | null, overrun: bool
 
 /**
  * RC-10, EL-34: a row whose only problem is undefined names shows the reference's "Too many
- * variables" warning beside its add-slider chips. The complex-mode hint row (NM-17) keeps its hint.
+ * variables" warning beside its add-slider chips. In real mode `i` is such a name, as in Desmos.
  */
-function chipsError(row: RowAnalysis): RowError | null {
-  if (row.chips.length === 0 || row.complexHint) return null;
+export function chipsError(row: RowAnalysis): RowError | null {
+  if (row.chips.length === 0) return null;
   const names = row.chips.map(displayName);
   if (row.asksForEquation === true) {
     // RC-17: Desmos's "Try adding 'y=' to the beginning of this equation." for one undefined name
@@ -237,7 +236,6 @@ export function buildRowView(
         valueError(value) ??
         fitError(result.regression)),
     chips: slider === null ? [...analysis.chips] : [...slider.limitNames],
-    complexHint: analysis.complexHint,
     value,
     // SLIDERS-12: a slider row has no value readout
     valueText:

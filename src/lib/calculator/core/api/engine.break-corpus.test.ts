@@ -7,7 +7,8 @@ import { runBreakCase, type BreakCase } from "./__fixtures__/break-run";
  * The adversarial corpus: absurd numbers, deep nesting, recursion, redefined built-ins, empty and
  * dangling notation, lists, ranges, piecewise, relations, points, pasted LaTeX, regressions,
  * sliders, calculus, complex and degree modes. Each case is a set of rows and what live Desmos's
- * `Calc.expressionAnalysis` gave on every row (captured 2026-10-20). Every case must finish with
+ * `Calc.expressionAnalysis` gave on every row (captured 2026-10-20; the degree-sign cases and
+ * more real-mode `i` cases 2026-10-21, owner decision). Every case must finish with
  * no thrown error, and match Desmos, unless it is a known difference: then it must still give the
  * recorded outcome, so a fix (or a regression) shows up here and the entry is updated.
  */

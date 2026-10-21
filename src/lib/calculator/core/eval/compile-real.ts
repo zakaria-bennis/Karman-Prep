@@ -1,4 +1,4 @@
-// The real-mode plotting compiler (NM-12, NM-27, G-6): compileExpression's rules and arithmetic on
+// The real-mode plotting compiler (NM-12, G-6): compileExpression's rules and arithmetic on
 // plain numbers, with NaN for undefined, points and lists and -0 kept. Every node's result is a
 // finite number or NaN. Variables live in slots, one per name, and a user-function call saves the
 // slots of its parameters on a shared stack and restores them afterwards, so an evaluation
@@ -12,7 +12,6 @@ import { POINT_FUNCTIONS } from "../lib/geometry";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { givesList, listFunction, reduceNumbers } from "../lib/statistics";
 import { factorial } from "../lib/gamma";
-import { circular, type CircularName } from "../lib/trig";
 import type { Compiled, CompileScope } from "./compile";
 import { holdsDistribution } from "./distributions";
 import { linkHolds, toPlotNumber } from "./ops";
@@ -29,8 +28,6 @@ import { numberValue, type Value } from "./values";
 
 /** User-function calls nest at most this deep; a call past it is undefined. */
 export const MAX_CALL_DEPTH = 64;
-
-const CIRCULAR_NAMES: ReadonlySet<string> = new Set(["sin", "cos", "tan", "csc", "sec", "cot"]);
 
 type Binary = Extract<Node, { left: Node }>;
 type Call = Extract<Node, { kind: "call" }>;
@@ -83,16 +80,6 @@ function finite(v: number): number {
 export function constantValue(name: ConstName): number {
   if (name === "infty") return Infinity;
   return name === "e" ? Math.E : name === "pi" ? Math.PI : 2 * Math.PI;
-}
-
-/**
- * NM-27: the `A` of a circular-trig call written `name(deg(A))`, which NM-26 evaluates exactly in
- * degrees in both angle modes; null for any other call.
- */
-export function degreeArgument(name: string, args: readonly Node[]): Node | null {
-  if (!CIRCULAR_NAMES.has(name) || args.length !== 1) return null;
-  const [arg] = args;
-  return arg.kind === "deg" ? arg.arg : null;
 }
 
 /**
@@ -172,10 +159,6 @@ function compile(node: Node, ctx: Context): Fn {
     case "abs": {
       const a = compile(node.arg, ctx);
       return () => Math.abs(a());
-    }
-    case "deg": {
-      const a = compile(node.arg, ctx);
-      return ctx.scope.settings.angleMode === "degrees" ? a : () => (a() * Math.PI) / 180;
     }
     case "root": {
       const a = compile(node.arg, ctx);
@@ -358,16 +341,11 @@ function readsOrMakesDistribution(node: Call, ctx: Context): boolean {
 
 /**
  * A built-in's real rule in the angle unit (FN-4): NaN for an unshipped name, a count outside its
- * arity or a NaN argument. `name(deg(A))` of a circular function is NM-26's exact degree path.
+ * arity or a NaN argument.
  * The arguments are evaluated onto the stack and then copied into this call site's buffer, so a
  * nested evaluation of the same call site cannot overwrite them.
  */
 function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Fn {
-  const degrees = degreeArgument(name, argNodes);
-  if (degrees !== null) {
-    const angle = compile(degrees, ctx);
-    return () => circular(name as CircularName, angle(), "degrees");
-  }
   const fn = BUILTINS.get(name);
   if (fn === undefined || !fn.arity.includes(argNodes.length)) return undefinedFn;
   const args = argNodes.map((arg) => compile(arg, ctx)),

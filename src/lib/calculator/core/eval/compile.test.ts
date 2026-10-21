@@ -146,15 +146,13 @@ it("NM-22 a relation with a non-real or undefined operand is false, and evaluate
     UNDEFINED,
   ]);
 });
-it("NM-27 the degree sign converts, and a degree trig argument is Desmos's degree mode value in both modes", () => {
-  for (const settings of [REAL, DEG])
-    expect(
-      ["\\sin(30^{\\circ})", "\\cos(60^{\\circ})"].map((l) => evaluateLatex(l, { settings }))
-    ).toEqual([n(0.49999999999999994), n(0.5000000000000001)]);
-  expect([evaluateLatex("30^{\\circ}"), evaluateLatex("30^{\\circ}", { settings: DEG })]).toEqual([
-    n(P / 6),
-    n(30),
-  ]);
+it("NM-27 the degree sign is Desmos's name degree and ^{\\circ} a power of the name circ, in both angle modes (owner decision, 2026-10-21)", () => {
+  for (const settings of [REAL, DEG]) {
+    expect(evaluateLatex("\\sin(30\\degree)", { settings })).toEqual(UNDEFINED);
+    expect(evaluateLatex("30\\degree", { rows: ["\\degree=3"], settings })).toEqual(n(90));
+    expect(evaluateLatex("30^{\\circ}", { rows: ["\\circ=2"], settings })).toEqual(n(900));
+  }
+  expect(evaluateLatex("\\sin(30\\degree)", { rows: ["\\degree=3"] })).toEqual(n(Math.sin(90)));
 });
 it("FN-17 complex mode uses principal branches and plots only real points", () => {
   const cube = evaluateLatex("(-8)^{\\frac{1}{3}}", { settings: CX }); // 1+1.732i, as in Desmos

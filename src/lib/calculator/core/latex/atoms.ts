@@ -71,14 +71,14 @@ export function parseFactor(state: ParserState): Node {
   return isBuiltinCommand(token) ? parseBuiltinCall(state, token) : parsePostfix(state);
 }
 
-/** `postfix := atom ("^" exponent | "\%" | "^{\circ}")*` (G2). */
+/** `postfix := atom ("^" exponent | "\%")*` (G2). */
 export function parsePostfix(state: ParserState): Node {
   return takePostfix(state, parseAtom(state));
 }
 
 /**
  * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20): `\%`,
- * the degree sign, `^` and `!` (factorial, NM-15). An exponent directly after another is `syntax`
+ * `^` and `!` (factorial, NM-15). An exponent directly after another is `syntax`
  * (G5, PR-19); `3!^{2}` is (3!)². Every operator position follows this loop, so it reports PR-9's
  * notation there: `'` (prime) is `unsupported`, as is a `.` after a member base (isMemberBase)
  * unless parseMember reads the member (PR-45: `D.\operatorname{pdf}(x)`); any other `.` ends the loop and is `syntax` where the caller meets it. A built-in call with a
@@ -117,11 +117,6 @@ export function takePostfix(state: ParserState, atom: Node): Node {
       take(state);
       const kind = token.ch === "%" ? "pct" : "fact";
       node = { kind, arg: node, span: { start: node.span.start, end: token.span.end } };
-      afterExponent = false;
-    } else if (token.ch === "^" && isDegreeSign(state)) {
-      for (let i = 0; i < 3; i++) take(state);
-      const close = take(state);
-      node = { kind: "deg", arg: node, span: { start: node.span.start, end: close.span.end } };
       afterExponent = false;
     } else if (token.ch === "^") {
       if (afterExponent) unexpected(state, token);
@@ -263,19 +258,6 @@ function takeDelimited(state: ParserState, open: OpenToken, closer: ")" | "]" | 
   }
   take(state);
   return { node, end: close.span.end };
-}
-
-/** True when the `^` at the cursor starts `^{\circ}`, the postfix degree sign (G5, PR-8). */
-export function isDegreeSign(state: ParserState): boolean {
-  const [open, circ, close] = [peek(state, 1), peek(state, 2), peek(state, 3)];
-  return (
-    open.t === "open" &&
-    open.ch === "{" &&
-    circ.t === "command" &&
-    circ.name === "circ" &&
-    close.t === "close" &&
-    close.ch === "}"
-  );
 }
 
 /**

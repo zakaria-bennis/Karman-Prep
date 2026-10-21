@@ -88,8 +88,6 @@ function speak(node: Node, source: string): string {
       return words("negative", at(node.arg, 4));
     case "pct":
       return words(at(node.arg, 7), "percent");
-    case "deg":
-      return words(at(node.arg, 7), "degrees");
     case "fact":
       return words(at(node.arg, 7), "factorial");
     case "abs":
@@ -161,7 +159,6 @@ function precedence(node: Node): number {
       return 5;
     case "pow":
     case "pct":
-    case "deg":
     case "fact":
       return 6;
     default:
@@ -195,6 +192,7 @@ function isIntegerLiteral(node: Node, source: string): node is Extract<Node, { k
 function identifier(name: string): string {
   const subscript = /^(.+?)_\{(.+)\}$/.exec(name);
   if (subscript !== null) return words(identifier(subscript[1]), "sub", subscript[2]);
+  if (name === "\\degree") return "degrees"; // Desmos's word for its ° name
   if (name.startsWith("\\")) return name.slice(1).replace(/^var/, "");
   if (/^[A-Z]$/.test(name)) return words("upper", name);
   return name;

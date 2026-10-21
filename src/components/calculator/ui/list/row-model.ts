@@ -44,10 +44,9 @@ export interface RowDomIds {
   speech: string;
   value: string;
   error: string;
-  hint: string;
 }
 
-/** The ids of a row's label, speech, value, error and hint parts: `kc-row-<id>-<part>`. */
+/** The ids of a row's label, speech, value and error parts: `kc-row-<id>-<part>`. */
 export function rowDomIds(rowId: string): RowDomIds {
   const id = (part: keyof RowDomIds) => `kc-row-${rowId}-${part}`;
   return {
@@ -55,7 +54,6 @@ export function rowDomIds(rowId: string): RowDomIds {
     speech: id("speech"),
     value: id("value"),
     error: id("error"),
-    hint: id("hint"),
   };
 }
 

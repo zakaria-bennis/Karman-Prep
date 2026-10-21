@@ -948,11 +948,7 @@
     "cat": "trig-deg",
     "rows": ["\\sin(90°)"],
     "settings": { "degreeMode": true },
-    "desmos": [{ "error": "Sorry, I don't understand the '°' symbol." }],
-    "known": {
-      "reason": "deliberate: the degree sign stays (owner)",
-      "ours": [{ "graph": false, "shown": true, "value": 1 }]
-    }
+    "desmos": [{ "error": "Sorry, I don't understand the '°' symbol." }]
   },
   {
     "cat": "trig-deg",
@@ -6040,11 +6036,7 @@
   {
     "cat": "latex-junk",
     "rows": ["90^{\\circ}"],
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": {
-      "reason": "deliberate: the degree sign stays (owner)",
-      "ours": [{ "graph": false, "shown": true, "value": 1.5707963267948966 }]
-    }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "latex-junk",
@@ -7576,8 +7568,7 @@
   {
     "cat": "complex-off",
     "rows": ["i^{2}"],
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "complex-off",
@@ -7587,14 +7578,12 @@
   {
     "cat": "complex-off",
     "rows": ["e^{i\\pi}"],
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "complex-off",
     "rows": ["3+4i"],
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "complex-off",
@@ -7614,8 +7603,7 @@
   {
     "cat": "complex-off",
     "rows": ["\\left|3+4i\\right|"],
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "window",
@@ -18068,17 +18056,12 @@
   {
     "cat": "scout",
     "rows": ["\\sin\\left(30^{\\circ}\\right)"],
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": {
-      "reason": "deliberate: the degree sign stays (owner)",
-      "ours": [{ "graph": false, "shown": true, "value": 0.49999999999999994 }]
-    }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "scout",
     "rows": ["i"],
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "scout",
@@ -18131,11 +18114,7 @@
     "cat": "scout",
     "rows": ["\\sin\\left(30\\degree\\right)"],
     "settings": { "degreeMode": true },
-    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "graph": false, "shown": true, "value": 0.49999999999999994 }]
-    }
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
   },
   {
     "cat": "scout",
@@ -18354,11 +18333,7 @@
   {
     "cat": "scout",
     "rows": ["90°"],
-    "desmos": [{ "error": "Sorry, I don't understand the '°' symbol." }],
-    "known": {
-      "reason": "deliberate: the degree sign stays (owner)",
-      "ours": [{ "graph": false, "shown": true, "value": 1.5707963267948966 }]
-    }
+    "desmos": [{ "error": "Sorry, I don't understand the '°' symbol." }]
   },
   {
     "cat": "scout",
@@ -18710,5 +18685,89 @@
     "cat": "numbers",
     "rows": ["0.1^{3}"],
     "desmos": [{ "graph": false, "shown": true, "value": 0.001 }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["30\\degree"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["\\degree"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["\\degree=3", "\\sin(30\\degree)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 0.8939966636005579 }
+    ]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["y=\\sin(x\\degree)"],
+    "desmos": [{ "error": "Too many variables. Try defining 'degree'." }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["\\circ=2", "30^{\\circ}"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 900 }
+    ]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["y=x^{\\circ}"],
+    "desmos": [{ "error": "Too many variables. Try defining 'circ'." }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["\\sin(30\\degree)"],
+    "settings": { "degreeMode": true },
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["30^\\circ"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["\\cos(\\pi\\degree)"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
+  },
+  {
+    "cat": "degree-sign",
+    "rows": ["\\degree=3", "30\\degree", "30^{\\circ}"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 90 },
+      { "error": "Try adding 'y=' to the beginning of this equation." }
+    ]
+  },
+  {
+    "cat": "complex-off",
+    "rows": ["1+i"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
+  },
+  {
+    "cat": "complex-off",
+    "rows": ["2i"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }]
+  },
+  {
+    "cat": "complex-off",
+    "rows": ["i=3", "2i"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 6 }
+    ]
+  },
+  {
+    "cat": "complex-off",
+    "rows": ["y=ix"],
+    "desmos": [{ "error": "Too many variables. Try defining 'i'." }]
   }
 ]

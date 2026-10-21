@@ -4,7 +4,7 @@
 // (A11Y-3) and described by the row's T-5
 // speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
 // replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
-// ErrorMarker) and the complex-mode hint (FN-16, OI-4), and the Delete control. The
+// ErrorMarker), and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
 // past the T-13 limit is refused, restored and announced. Under the math it shows the add-slider
@@ -25,7 +25,7 @@ import {
   type PointerEvent,
   type TransitionEvent,
 } from "react";
-import { COMPLEX_HINT, displayName } from "@/lib/calculator/core/analysis";
+import { displayName } from "@/lib/calculator/core/analysis";
 import { pauseSlider } from "@/lib/calculator/core/api/sliders";
 import { spokenName, withSliderValue } from "@/lib/calculator/sliders/slider";
 import type { RowView } from "@/lib/calculator/core/api/engine";
@@ -136,7 +136,6 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     ids.speech,
     valueText !== null ? ids.value : null,
     error !== null ? ids.error : null,
-    row.complexHint ? ids.hint : null,
   ]
     .filter((id) => id !== null)
     .join(" ");
@@ -327,12 +326,6 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
     if (!exiting && isRowBody(event.target)) focus.focusRow(row.id, "end");
   };
 
-  // FN-16 (OI-4): sets the S-5 complex checkbox and returns to the row; the hint then unmounts.
-  const turnOnComplexMode = () => {
-    engine.updateSettings({ complex: true });
-    focus.focusRow(row.id, "end");
-  };
-
   return (
     <li
       ref={itemRef}
@@ -457,14 +450,6 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           </span>
           {valueText !== null && (
             <RowValue id={ids.value} value={row.value} valueText={valueText} />
-          )}
-          {row.complexHint && (
-            <div className="kc-row-hint">
-              <span id={ids.hint}>{COMPLEX_HINT.text}</span>
-              <button type="button" className="kc-row-hint-action" onClick={turnOnComplexMode}>
-                {COMPLEX_HINT.action}
-              </button>
-            </div>
           )}
           {slider !== null && (
             <SliderLine

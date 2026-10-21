@@ -80,7 +80,6 @@ export interface RowAnalysis {
   defines: { name: string; type: "value" | "function"; params: string[] } | null;
   uses: string[]; // referenced names, first-appearance order
   chips: string[]; // RC-10 undefined names, first-appearance order; UI adds "all" when length >= 2
-  complexHint: boolean; // NM-17, FN-16: real mode and the only undefined name is i
   asksForEquation?: true; // RC-17: a bare expression whose only problem is one undefined name
   isGraphable: boolean; // false when error, chips, hidden, or a non-graphing kind
   relation: { ops: RelOp[] } | null; // relations only; strict = "<" | ">"
@@ -244,7 +243,6 @@ function withCurveLength(row: RowAnalysis, parsed: ParsedRow, typing: ListTyping
     kind: "error",
     error: { code, message: rowErrorMessage(code, names), names, span },
     chips: [],
-    complexHint: false,
     isGraphable: false,
     relation: null,
     graph: null,
@@ -291,7 +289,6 @@ function tableRow(
     defines: null,
     uses: [...uses],
     chips: [],
-    complexHint: false,
     isGraphable,
     relation: null,
     graph: isGraphable ? { kind: "table" } : null,
@@ -305,9 +302,3 @@ export function userFunctionNames(
 ): ReadonlySet<string> {
   return new Set([...functions].flatMap(([name, f]) => (f.params.length > 0 ? [name] : [])));
 }
-
-/** NM-17, FN-16: the hint a real-mode row whose only undefined name is `i` shows. */
-export const COMPLEX_HINT = {
-  text: "Turn on complex mode to use i.",
-  action: "Turn on complex mode",
-} as const;

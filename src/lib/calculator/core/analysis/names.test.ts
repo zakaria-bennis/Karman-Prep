@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { collectNameUses, isReservedName } from "./names";
 import { displayName, rowErrorMessage } from "./messages";
-import { analyzeRows, COMPLEX_HINT } from "./index";
+import { analyzeRows } from "./index";
 import { parseLatex } from "../latex/index";
 import type { RowErrorCode } from "../corpus/types";
 
@@ -112,10 +112,6 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
     ["timeout", [], "This is taking too long. Try a smaller range or fewer terms."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
-  expect(COMPLEX_HINT).toEqual({
-    text: "Turn on complex mode to use i.",
-    action: "Turn on complex mode",
-  });
   const shown = [
     ["\\theta", "θ"],
     ["pi", "π"],

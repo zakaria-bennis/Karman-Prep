@@ -67,11 +67,8 @@ it("toMathFieldLatex writes a brace group in atom position as parentheses, which
   ])
     expect(toMathFieldLatex(s), s).toBe(s);
 });
-it("toMathFieldLatex writes a degree sign after a superscript as \\degree, which MathQuill would merge into it", () => {
-  expect(toMathFieldLatex("x^{2}^{\\circ}")).toBe("x^{2}\\degree");
-  expect(toMathFieldLatex("x^2^\\circ+1")).toBe("x^2\\degree+1");
-  expect(toMathFieldLatex("x^{2} ^{ \\circ }y")).toBe("x^{2} \\degree y");
-  for (const s of ["x^{\\circ}", "x_{1}^{\\circ}", "x^{2}\\%", "x^{2}\\degree"])
+it("toMathFieldLatex leaves every degree sign as written: Desmos's names degree and circ (owner decision, 2026-10-21)", () => {
+  for (const s of ["x^{\\circ}", "x_{1}^{\\circ}", "x^{2}^{\\circ}", "x^{2}\\%", "30\\degree"])
     expect(toMathFieldLatex(s), s).toBe(s);
 });
 it("toMathFieldLatex gives \\sqrt a parenthesised radicand as its braced argument", () => {

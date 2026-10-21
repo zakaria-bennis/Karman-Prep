@@ -396,10 +396,9 @@
   overflow-wrap: anywhere;
 }
 
-/* EL-36, FN-16: the lines under the math (add slider, Label, the complex-mode hint), 53 px in,
-   in small muted text, fading in like the value line. */
-.kc-row-under,
-.kc-row-hint {
+/* EL-36: the lines under the math (add slider, Label), 53 px in, in small muted text, fading in
+   like the value line. */
+.kc-row-under {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -426,8 +425,7 @@
 
 /* EL-36: 35 by 26 letter buttons on a light gradient that cools toward the bottom (#f6f6f6 to
    #eff2f3) behind a lighter border; one undefined letter, and "all", are blue. */
-.kc-letter-button,
-.kc-row-hint-action {
+.kc-letter-button {
   min-width: 35px;
   height: 26px;
   padding: 0 4px;
@@ -456,8 +454,7 @@
   font-style: normal;
 }
 
-.kc-letter-button:not([data-tone="accent"]):hover,
-.kc-row-hint-action:hover {
+.kc-letter-button:not([data-tone="accent"]):hover {
   border-color: var(--kc-boundary);
   background: var(--kc-letter-bottom);
 }

@@ -17,7 +17,6 @@ const UNICODE: ReadonlyMap<string, string> = new Map([
   ["τ", "\\tau "], // τ
   ["≤", "\\le "], // ≤
   ["≥", "\\ge "], // ≥
-  ["°", "^{\\circ}"], // °
   ["…", "\\ldots "], // … (PR-34's range ellipsis)
 ]);
 /** Superscript two and three; a run of them becomes one `^{…}` group. */
@@ -46,7 +45,6 @@ const COMMAND_REWRITES: ReadonlyMap<string, string> = new Map([
   ["geqslant", "\\ge"],
   ["lt", "<"],
   ["gt", ">"],
-  ["degree", "^{\\circ}"],
   ["dots", "\\ldots"], // PR-34
 ]);
 /** `\left` and `\right` with a `|` become bar commands; with a `.` they vanish with it. */
@@ -62,7 +60,7 @@ const isLetter = (ch: string | undefined): boolean =>
 
 /** Normalizes typed, API or pasted LaTeX (PR-3, PR-4); see the file comment. */
 export function normalizeLatex(input: string): string {
-  // A removal can join pieces into a new rewrite (`\text\,{sin}`, `^\,\circ`), so pass 3 repeats
+  // A removal can join pieces into a new rewrite (`\text\,{sin}`), so pass 3 repeats
   // until nothing changes. Every repeat needs an earlier removal, which shortened the text.
   let out = escapePercent(mapUnicode(input));
   for (let previous = ""; out !== previous; ) {
@@ -166,11 +164,6 @@ function rewriteCommands(input: string): string {
   };
   while (i < input.length) {
     const ch = input[i];
-    if (ch === "^" && input.startsWith("\\circ", i + 1) && !isLetter(input[i + 6])) {
-      out += "^{\\circ}";
-      i += 6;
-      continue;
-    }
     if (ch !== "\\") {
       out += ch;
       i += 1;

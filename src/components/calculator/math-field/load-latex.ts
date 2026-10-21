@@ -8,8 +8,6 @@
 //    - a non-empty `{…}` group in atom position becomes `\left(…\right)` (`{x+1}2`), with `\cdot`
 //      before it after a Latin identifier so it never becomes a user-function call (PR-23);
 //      MathQuill drops the braces;
-//    - a degree sign directly after a superscript (`x^{2}^{\circ}`, PR-20) becomes `\degree`, which
-//      normalizes back to `^{\circ}`; MathQuill would merge it into the superscript;
 //    - `\sqrt(…)` (PR-27) becomes `\sqrt{…}`; MathQuill would take `(` as the radicand;
 //    - a bare piecewise brace `\{…\}` (PR-31) becomes `\left\{…\right\}`; MathQuill cannot read it.
 //    In a built-in's PR-24 run argument `\cdot` would end the run and parentheses right after the
@@ -81,15 +79,13 @@ const OPERATOR_CHARS: ReadonlySet<string> = new Set(["*", "/", "=", "<", ">", ":
 const POSTFIX_CHARS: ReadonlySet<string> = new Set(["!", "%", "'"]);
 /** Text-style wrappers that hold an operator name (PR-3). */
 const NAME_WRAPPERS: ReadonlySet<string> = new Set(["operatorname", "text", "mathrm"]);
-/** A degree sign the parser reads (G5): `^{\circ}` with any spaces, or `^\circ` written whole. */
-const DEGREE_SIGN = /\^(?:\s*\{\s*\\circ\s*\}|\\circ(?![a-zA-Z]))/y;
 
 interface Scan {
   readonly s: string;
   i: number;
 }
 /** The previous item of a sequence, for the rules that look back. */
-type Last = "identifier" | "superscript" | "other";
+type Last = "identifier" | "other";
 /**
  * Where a sequence stands in a built-in's PR-24 run argument (G8): `start` right after the name,
  * its `_` base or `^` power and any leading signs; `factors` once a factor of the run is read.
@@ -152,17 +148,9 @@ function sequence(scan: Scan, close: ")" | "]" | "}" | null): Sequence {
         run = OPERATOR_COMMANDS.has(item.name) ? "none" : afterName(item.name, run);
       }
     } else if (ch === "^") {
-      DEGREE_SIGN.lastIndex = scan.i;
-      const degree = last === "superscript" ? DEGREE_SIGN.exec(s) : null;
-      if (degree !== null) {
-        scan.i += degree[0].length;
-        out.text += isLetter(s[scan.i]) ? "\\degree " : "\\degree";
-        last = "other";
-      } else {
-        scan.i += 1;
-        out.text += "^" + argument(scan, "math");
-        last = "superscript";
-      }
+      scan.i += 1;
+      out.text += "^" + argument(scan, "math");
+      last = "other";
     } else if (ch === "_") {
       scan.i += 1;
       out.text += "_" + argument(scan, "text");

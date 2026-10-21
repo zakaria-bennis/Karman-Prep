@@ -21,7 +21,6 @@ const row = (id: string, kind: RowKind, extra: Partial<RowView> = {}): RowView =
   color: "c1",
   error: null,
   chips: [],
-  complexHint: false,
   value: null,
   valueText: null,
   overrun: false,

@@ -20,7 +20,6 @@ function rename(tree: Node, from: string, to: string): Node {
         return { ...n, left: walk(n.left), right: walk(n.right) };
       case "neg":
       case "pct":
-      case "deg":
       case "fact":
       case "abs":
         return { ...n, arg: walk(n.arg) };

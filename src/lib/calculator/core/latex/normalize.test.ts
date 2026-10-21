@@ -28,9 +28,9 @@ it("PR-4 normalizeLatex maps the Unicode math characters, including all ten subs
     "a_{0123456789}",
   ]);
 });
-it("normalizeLatex escapes raw percent and writes every degree sign as ^{\\circ}", () => {
+it("normalizeLatex escapes raw percent and leaves every degree sign as written (Desmos's names, owner decision 2026-10-21)", () => {
   expect([N("44%+5\\%"), N("30°+40\\degree+50^\\circ")]).toEqual([
     "44\\%+5\\%",
-    "30^{\\circ}+40^{\\circ}+50^{\\circ}",
+    "30°+40\\degree+50^\\circ",
   ]);
 });

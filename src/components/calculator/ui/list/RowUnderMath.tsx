@@ -35,9 +35,13 @@ export function addSliders(
 /** SLIDERS-4: at most this many name buttons; "all" still adds every missing name. */
 const MAX_CHIPS = 4;
 
+/** Desmos's degree sign is the name `\degree`: its button shows ° and is spoken "degrees". */
+const DEGREE = "\\degree";
+const chipName = (name: string) => (name === DEGREE ? "degrees" : displayName(name));
+
 /** A name typeset as the reference shows it: an italic letter and an upright subscript. */
 function NameText(props: { name: string }): JSX.Element {
-  const shown = displayName(props.name);
+  const shown = props.name === DEGREE ? "°" : displayName(props.name);
   const at = shown.indexOf("_");
   if (at < 0) return <>{shown}</>;
   return (
@@ -65,7 +69,7 @@ export function AddSliderLine(props: {
           type="button"
           className="kc-letter-button"
           data-tone={single ? "accent" : undefined}
-          aria-label={`Add slider for ${displayName(name)}`}
+          aria-label={`Add slider for ${chipName(name)}`}
           onClick={(e) => props.onAdd([name], e.detail === 0)}
         >
           <NameText name={name} />

@@ -50,7 +50,6 @@ const BARE_BASES: ReadonlySet<Kind> = new Set([
   "abs",
   "root",
   "pct",
-  "deg",
   "fact",
   "point",
   "list",
@@ -63,7 +62,7 @@ const SUMS: ReadonlySet<Kind> = new Set(["add", "sub"]);
 const PRODUCTS: ReadonlySet<Kind> = new Set(["add", "sub", "mul"]);
 /** Wrapped under a unary minus. */
 const NEGATED: ReadonlySet<Kind> = new Set(["add", "sub", "mul", "neg"]);
-/** Wrapped before `\%`, `^{\circ}` and `!`. */
+/** Wrapped before `\%` and `!`. */
 const POSTFIXED: ReadonlySet<Kind> = new Set(["add", "sub", "mul", "neg", "rel"]);
 
 /** The canonical MathQuill LaTeX of `tree` (PR-37). */
@@ -99,8 +98,6 @@ export function printLatex(tree: Node): string {
       return join(["-", wrapIf(tree.arg, NEGATED)]);
     case "pct":
       return join([wrapIf(tree.arg, POSTFIXED), "\\%"]);
-    case "deg":
-      return join([wrapIf(tree.arg, POSTFIXED), "^{\\circ}"]);
     case "fact":
       return join([wrapIf(tree.arg, POSTFIXED), "!"]);
     case "abs":

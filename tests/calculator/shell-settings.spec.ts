@@ -32,7 +32,7 @@ test("NM-29 angle and complex switches post a new generation in the same task; 2
     info.project.name !== "calculator-chrome",
     "the 250 ms budget is set for the desktop CI profile"
   );
-  // ids 1 to 17: the NM-25 to NM-28, NM-18 and NM-19 cases; no imaginary unit, so no chips
+  // ids 1 to 17: the NM-4, NM-25, NM-26, NM-28, NM-18 and NM-19 cases; no imaginary unit, so no chips
   const values = [
     "\\sin(30)",
     "\\cos(60)",
@@ -43,8 +43,8 @@ test("NM-29 angle and complex switches post a new generation in the same task; 2
     "\\tan(90)",
     "\\csc(30)",
     "\\sec(90)",
-    "\\sin(30^{\\circ})",
-    "30^{\\circ}",
+    "\\sin\\pi", // NM-4 (the degree sign is a name now, as in Desmos: owner decision 2026-10-21)
+    "\\tan\\frac{\\pi}{4}",
     "\\arcsin(0.5)",
     "\\arctan(1)",
     "\\arccos(-1)",

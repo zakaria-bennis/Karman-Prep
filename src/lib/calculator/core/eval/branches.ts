@@ -260,7 +260,6 @@ function withChildren(node: Node, kids: readonly Node[]): Node {
       return { ...node, left: kids[0], right: kids[1] };
     case "neg":
     case "pct":
-    case "deg":
     case "fact":
     case "abs":
       return { ...node, arg: kids[0] };

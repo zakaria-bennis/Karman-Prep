@@ -1,5 +1,5 @@
 // The closure compiler and row evaluation (NM-9, NM-12, NM-21, NM-22,
-// NM-27, FN-17, G-6). Trees compile once into closures over `Value`; real-mode plotting functions
+// FN-17, G-6). Trees compile once into closures over `Value`; real-mode plotting functions
 // use compile-real.ts on plain numbers. Pure TypeScript: no DOM (AR-44), and no eval or Function.
 
 import {
@@ -18,19 +18,11 @@ import { applyBuiltin } from "../lib/builtins";
 import { applyPointFunction, coordinate, POINT_FUNCTIONS } from "../lib/geometry";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { applyListFunction, listFunction } from "../lib/statistics";
-import { circular, type CircularName } from "../lib/trig";
 import { C_I } from "./complex";
-import {
-  compileReal,
-  constantValue,
-  degreeArgument,
-  MAX_CALL_DEPTH,
-  type GeneralCompile,
-} from "./compile-real";
+import { compileReal, constantValue, MAX_CALL_DEPTH, type GeneralCompile } from "./compile-real";
 import {
   absV,
   addV,
-  degV,
   divV,
   factV,
   mulV,
@@ -112,8 +104,7 @@ const hasOwn = (vars: Readonly<Record<string, Value>>, name: string) =>
  * Compiles `tree` into a closure over `Value`. A name resolves to `vars`, then `i` in complex mode,
  * then `scope.values`, then a zero-parameter entry of `scope.functions` (its body compiled once
  * and run with the same `vars`), else UNDEFINED. Arithmetic goes through ops.ts, built-ins through
- * applyBuiltin, and `name(deg(A))` of a circular function with a real A through NM-26's exact
- * degree path (NM-27). A user call binds its parameters over the caller's `vars`, calls
+ * applyBuiltin. A user call binds its parameters over the caller's `vars`, calls
  * `deadline.check()`, and is UNDEFINED past MAX_CALL_DEPTH nested calls or when the name has no
  * `scope.functions` entry (a head with an error). : a `rel` node is n(1) when every
  * link holds between real operands, else UNDEFINED. NM-32, NM-33: operators and built-ins apply
@@ -147,7 +138,7 @@ function constant(v: Value): Compiled {
 function compileNode(node: Node, ctx: Context): Compiled {
   const exact = exactConstant(node); // MATHS-CORE-1: `0.1+0.2-0.3` is 0 (exact.ts)
   if (exact !== null) return constant(Object.freeze(numberValue(exact)));
-  const { angleMode, complex } = ctx.scope.settings;
+  const { complex } = ctx.scope.settings;
   switch (node.kind) {
     case "num":
       return constant(Object.freeze(numberValue(node.value)));
@@ -171,8 +162,6 @@ function compileNode(node: Node, ctx: Context): Compiled {
       return unary(node.arg, ctx, pctV);
     case "abs":
       return unary(node.arg, ctx, absV);
-    case "deg":
-      return unary(node.arg, ctx, (a) => degV(a, angleMode));
     case "fact":
       return unary(node.arg, ctx, factV);
     case "root": {
@@ -367,23 +356,9 @@ function call(node: Call, ctx: Context): Compiled {
   );
 }
 
-/**
- * A built-in through applyBuiltin (FN-4, FN-6, FN-17). NM-27: a circular function of `deg(A)` with
- * a real A is evaluated exactly in degrees (NM-26) whatever the angle unit; a non-real A takes the
- * general path, so its complex rule stays in radians (NM-25).
- */
+/** A built-in through applyBuiltin (FN-4, FN-6, FN-17). */
 function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Compiled {
-  const { angleMode, complex } = ctx.scope.settings,
-    degrees = degreeArgument(name, argNodes);
-  if (degrees !== null) {
-    const angle = compileNode(degrees, ctx);
-    return (vars, deadline) =>
-      map1(angle(vars, deadline), (a) =>
-        a.type === "number"
-          ? numberValue(circular(name as CircularName, a.value, "degrees"))
-          : applyBuiltin(name, [degV(a, angleMode)], angleMode, complex)
-      );
-  }
+  const { angleMode, complex } = ctx.scope.settings;
   const args = argNodes.map((arg) => compileNode(arg, ctx));
   // FN-70, FN-71: distance and midpoint broadcast over lists of points.
   if (POINT_FUNCTIONS.has(name)) {

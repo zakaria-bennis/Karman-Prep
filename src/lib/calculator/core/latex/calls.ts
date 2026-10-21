@@ -3,7 +3,7 @@
 // no parenthesis, the PR-24 run of implicitly multiplied factors (level 9).
 
 import { isAxis, type Node, type SourceSpan } from "./ast";
-import { isDegreeSign, parsePostfix, takeArgument, takePostfix } from "./atoms";
+import { parsePostfix, takeArgument, takePostfix } from "./atoms";
 import { failUnevaluatedCall } from "./desmos-calls";
 import { DESMOS_BUILTIN_NAMES, DESMOS_ONLY_CALLS } from "./desmos-names";
 import {
@@ -92,7 +92,7 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
       take(state);
       failIfEmptyGroup(state);
       base = takeArgument(state).node;
-    } else if (power === null && isSymbol(token, "^") && !isDegreeSign(state)) {
+    } else if (power === null && isSymbol(token, "^")) {
       take(state);
       form = powerForm(state);
       power = takeArgument(state).node;

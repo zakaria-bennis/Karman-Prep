@@ -115,14 +115,6 @@ export function factV(a: Value): Value {
   return a.type === "number" ? numberValue(factorial(a.value)) : UNDEFINED;
 }
 
-/** a° in the angle mode's unit: (a·π)/180 in radians, a itself in degrees. */
-export function degV(a: Value, angleMode: "radians" | "degrees"): Value {
-  if (a.type !== "number" && a.type !== "complex") return UNDEFINED;
-  if (angleMode === "degrees") return a;
-  if (a.type === "number") return numberValue((a.value * Math.PI) / 180);
-  return complexValue((a.value.re * Math.PI) / 180, (a.value.im * Math.PI) / 180);
-}
-
 /**
  * a^b. Two numbers follow realPow (NM-10, NM-13, NM-14) with `rational` from the tree; in complex
  * mode a NaN from a negative base falls back to cpow, so a value real mode defines never changes

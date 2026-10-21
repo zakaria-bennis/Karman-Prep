@@ -46,13 +46,13 @@ it("sourceChildren lists every node kind's children in source order", () => {
     right: y,
     span: s,
   });
-  const one = (kind: "neg" | "pct" | "deg" | "fact" | "abs"): Node => ({ kind, arg: x, span: s });
+  const one = (kind: "neg" | "pct" | "fact" | "abs"): Node => ({ kind, arg: x, span: s });
   const cases: [Node, Node[]][] = [
     [n(1), []],
     [x, []],
     [{ kind: "const", name: "e", span: s }, []],
     ...(["add", "sub", "mul", "div", "pow"] as const).map((k): [Node, Node[]] => [two(k), [x, y]]),
-    ...(["neg", "pct", "deg", "fact", "abs"] as const).map((k): [Node, Node[]] => [one(k), [x]]),
+    ...(["neg", "pct", "fact", "abs"] as const).map((k): [Node, Node[]] => [one(k), [x]]),
     [root, [n(3), x]],
     [{ kind: "root", arg: x, index: null, span: s }, [x]],
     [{ kind: "call", name: "f", args: [x, y], span: s }, [x, y]],
@@ -63,6 +63,6 @@ it("sourceChildren lists every node kind's children in source order", () => {
     [{ kind: "sim", left: y, right: x, span: s }, [y, x]],
   ];
   const kinds = new Set(cases.map(([node]) => node.kind));
-  expect(kinds.size).toBe(19);
+  expect(kinds.size).toBe(18);
   for (const [node, expected] of cases) expect(sourceChildren(node)).toEqual(expected);
 });

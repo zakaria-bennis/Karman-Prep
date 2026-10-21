@@ -31,11 +31,9 @@ it("RC-6 a dependent definition joins functions with no parameters and never par
 it("RC-10 uses lists every referenced name in first-appearance order", () =>
   expect(analyze(["c=1", "b+a+c+b"]).rows[1].uses).toEqual(["b", "a", "c"]));
 
-it("NM-17 the complex hint shows only when i is the only undefined name in real mode", () => {
-  expect(analyze(["2i"]).rows[0]).toMatchObject({ chips: ["i"], complexHint: true });
-  expect([
-    analyze(["i+a"]).rows[0].complexHint,
-    analyze(["i=3", "2i"]).rows[1].complexHint,
-  ]).toEqual([false, false]);
-  expect(analyze(["2i"], CX).rows[0]).toMatchObject({ chips: [], complexHint: false });
+it("NM-17 in real mode i is an ordinary undefined name, as in Desmos (owner decision, 2026-10-21)", () => {
+  expect(analyze(["2i"]).rows[0]).toMatchObject({ chips: ["i"], asksForEquation: true });
+  expect(analyze(["i"]).rows[0]).toMatchObject({ chips: ["i"], asksForEquation: true });
+  expect(analyze(["i=3", "2i"]).rows[1].chips).toEqual([]);
+  expect(analyze(["2i"], CX).rows[0].chips).toEqual([]);
 });

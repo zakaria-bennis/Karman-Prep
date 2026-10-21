@@ -13,7 +13,7 @@ import { expect, it } from "vitest";
 import { panelProps, renderEditor, rowItem, textbox } from "./__fixtures__/render-editor";
 import { ExpressionPanel } from "./ExpressionPanel";
 import { ExpressionRow } from "./ExpressionRow";
-import { fieldTextbox, rowDomIds } from "./row-model";
+import { rowDomIds } from "./row-model";
 
 // Testing Library's default normalizer collapses \s+, U+2009 included, so T-10 text is matched
 // with whitespace collapsing off.
@@ -191,16 +191,14 @@ it("A11Y-3 the value element and the error element are linked from the textbox b
   expect(textbox(2)).toHaveAttribute("aria-invalid", "true");
 });
 
-it("FN-16 a row whose only undefined name is i shows the complex-mode hint, whose action turns on complex mode (OI-4)", async () => {
-  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["2i", "a+i"] });
-  expect(kit.engine.getSnapshot().rows.map((r) => r.chips)).toEqual([["i"], ["a", "i"]]);
-  expect(within(rowItem("1")).getByText("Turn on complex mode to use i.")).toBeInTheDocument();
-  expect(within(rowItem("2")).queryByText("Turn on complex mode to use i.")).toBeNull();
-  expect(textbox(1)).not.toHaveAttribute("aria-invalid");
-  await userEvent
-    .setup()
-    .click(within(rowItem("1")).getByRole("button", { name: "Turn on complex mode" }));
-  expect(kit.engine.settings.complex).toBe(true);
-  expect(await within(rowItem("1")).findByText("2i")).toBeInTheDocument();
-  expect(fieldTextbox(kit.fields.forRow("1"))).toHaveFocus();
+it("FN-16 in real mode i is an ordinary undefined name, as in Desmos: 2i offers its slider and a lone i none (owner decision, 2026-10-21)", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["2i", "i"] });
+  expect(kit.engine.getSnapshot().rows.map((r) => r.chips)).toEqual([["i"], ["i"]]);
+  expect(
+    within(rowItem("1")).getByRole("button", { name: "Add slider for i" })
+  ).toBeInTheDocument();
+  expect(within(rowItem("2")).queryByRole("button", { name: "Add slider for i" })).toBeNull();
+  expect(textbox(1)).toHaveAttribute("aria-invalid", "true");
+  expect(textbox(2)).toHaveAttribute("aria-invalid", "true");
+  expect(screen.queryByText(/complex mode/i)).toBeNull();
 });

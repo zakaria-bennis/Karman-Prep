@@ -44,7 +44,7 @@ describe("list values", () => {
     expect(evaluateLatex("\\frac{[2,4]}{2}")).toEqual(list(1, 2));
     expect(evaluateLatex("\\ln([1,1])")).toEqual(list(0, 0));
     expect(show("\\sin[0,\\pi]")).toBe("[0, 0]");
-    expect(show("\\sin([30,90]^{\\circ})")).toBe("[0.5, 1]");
+    expect(show("\\sin([30,90]\\degree)", ["\\degree=\\frac{\\pi}{180}"])).toBe("[0.5, 1]");
     expect(evaluateLatex("f([1,2,3])", { rows: ["f(a)=a^{2}+1"] })).toEqual(list(2, 5, 10));
     expect(evaluateLatex("L+L", { rows: ["L=[1,2]"] })).toEqual(list(2, 4));
     expect(show("[1,0]/0")).toBe("[undefined, undefined]");

@@ -26,7 +26,7 @@ const cases: CorpusCase[] = [
   p(13, "1/2x", "\\frac{1}{2}\\cdot x"),
   p(14, "2\\pi x", "2\\pi\\cdot x"),
   p(15, "x^{2}\\%\\operatorname{of}3", "x^{2}\\%\\operatorname{of}3"),
-  p(16, "30°", "30^{\\circ}"),
+  p(16, "30\\degree", "30\\degree"),
   p(17, "e_{3}", "e_{3}"),
   p(18, "\\alpha x", "\\alpha\\cdot x"),
   p(19, "0.0000001", "0.0000001"),

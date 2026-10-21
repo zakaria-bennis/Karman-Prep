@@ -35,10 +35,18 @@ const cases: CorpusCase[] = [
   d(15, ["FN-19"], "\\cot(0)", "undefined"),
   g(16, ["FN-19"], "\\csc(30)", "2"),
   g(17, ["FN-19"], "\\sec(90)", "undefined"),
-  d(18, ["NM-27"], "\\sin(30^{\\circ})", "0.5"),
-  d(19, ["NM-27"], "30^{\\circ}", "0.523598775598"),
-  g(20, ["NM-27"], "\\sin(30^{\\circ})", "0.5"),
-  g(21, ["NM-27"], "30^{\\circ}", "30"),
+  // NM-27: the degree sign is Desmos's name degree, and ^{\circ} a power of the name circ
+  // (owner decision, 2026-10-21)
+  d(18, ["NM-27"], "30\\degree", "90", { rows: ["\\degree=3"] }),
+  d(19, ["NM-27"], "30^{\\circ}", "900", { rows: ["\\circ=2"] }),
+  {
+    id: `${FILE}-20`,
+    rules: ["NM-27"],
+    input: { latex: "\\sin(30\\degree)" },
+    settings: DEG,
+    chips: ["\\degree"],
+  },
+  { id: `${FILE}-21`, rules: ["NM-27"], input: { latex: "y=x^{\\circ}" }, chips: ["\\circ"] },
   g(22, ["NM-28"], "\\arcsin(0.5)", "30"),
   g(23, ["NM-28"], "\\arctan(1)", "45"),
   g(24, ["NM-28"], "\\arccos(-1)", "180"),

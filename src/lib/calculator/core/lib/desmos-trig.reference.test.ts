@@ -5,6 +5,7 @@
 // Desmos) must be undefined, a list element by element, and a complex value [re, im] by parts.
 import { expect, it } from "vitest";
 import { analyzeRows } from "../analysis";
+import { chipsError } from "../api/results";
 import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
 import hyperbolic from "./desmos-hyperbolic.fixture.json";
@@ -67,17 +68,16 @@ function errorMessage({ latex, rows, settings }: Case): string | undefined {
     [...rows, latex].map((row, i) => ({ id: `row-${i}`, latex: row, hidden: false })),
     settings
   );
-  return analysis.rows[rows.length].error?.message;
+  const row = analysis.rows[rows.length];
+  return (row.error ?? chipsError(row))?.message; // a row's undefined names speak as in the list
 }
 
 // Cases not yet matched, each an expected failure that fails once matched: derivatives, integrals,
-// sums and products; the degree sign, which Desmos does not have (it reads
-// `\circ` and `\degree` as variables; PR-8 keeps it); complex mode ignoring the degree setting
-// for a real argument.
+// sums and products; complex mode ignoring the degree setting for a real argument. The degree
+// sign matches: Desmos reads `\circ` and `\degree` as names (PR-8, owner decision 2026-10-21).
 const GAPS: readonly RegExp[] = [
   /\\frac\{d\}|'/,
   /\\int|\\sum|\\prod/,
-  /\\circ|\\degree/,
   /^\[complex\+deg\] \\(?!arcsin\(2\)$)[a-z]+\([0-9.,]+\)$/,
 ];
 const gap = (key: string) => GAPS.some((g) => g.test(key));
