@@ -185,9 +185,17 @@ export class KarmanCalculator {
       host: this.#element,
       onError: this.#report,
       onReset: () => this.#resetFromBoundary(),
+      onRecover: () => this.#refocusAfterRecovery(),
     };
     // createElement's third argument supplies the required children prop.
     this.#root.render(createElement(ErrorBoundary, boundary as ErrorBoundaryProps, app));
+  }
+
+  /** After ErrorBoundary's silent remount: focus returns to the row it was in, if it was in one. */
+  #refocusAfterRecovery(): void {
+    const id = this.engine.getSnapshot().focusedRowId ?? this.#focus.lastFocusedRowId();
+    if (id === null || this.#destroyed) return;
+    this.#whenField(id, () => this.#focus.focusRow(id, "end"));
   }
 
   /** AR-52 Reset: this question's calculator only, keeping the reduced-motion setting. */

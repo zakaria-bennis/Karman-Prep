@@ -5,8 +5,25 @@
 
 import { createContext, useCallback, useContext, useSyncExternalStore } from "react";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
+import { isUpdateDepthError } from "../ErrorBoundary";
 
 export const EngineContext = createContext<CalculatorEngine | null>(null);
+
+/**
+ * React's listener, guarded: when fast input trips React's update-depth guard inside it (see
+ * ErrorBoundary), React has reset its count, so the change is passed on again in the next task
+ * instead of escaping the engine's listener loop and skipping the other subscribers.
+ */
+function guarded(listener: () => void): () => void {
+  return () => {
+    try {
+      listener();
+    } catch (error) {
+      if (!isUpdateDepthError(error)) throw error;
+      setTimeout(listener, 0);
+    }
+  };
+}
 
 /**
  * The engine's current snapshot, re-read after every commit and worker frame. React calls
@@ -14,7 +31,10 @@ export const EngineContext = createContext<CalculatorEngine | null>(null);
  * them unbound.
  */
 export function useEngineSnapshot(engine: CalculatorEngine): EngineSnapshot {
-  const subscribe = useCallback((listener: () => void) => engine.subscribe(listener), [engine]);
+  const subscribe = useCallback(
+    (listener: () => void) => engine.subscribe(guarded(listener)),
+    [engine]
+  );
   const getSnapshot = useCallback(() => engine.getSnapshot(), [engine]);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

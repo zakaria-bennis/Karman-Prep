@@ -1,9 +1,12 @@
 // Row presence for AN-5: which rows the list renders and in which motion state. A row
-// that joins the list is "enter" for one commit, then "idle", so its height can grow from 0; a row
-// that leaves stays at its last index as "exit" until its row reports the exit transition done.
-// The first render shows every row "idle", so opening the calculator animates nothing.
+// that joins the list is "enter" until the rows next change, then "idle" (VIS-30 adds a row at
+// once, so "enter" draws nothing of its own); a row that leaves stays at its last index as "exit"
+// until its row reports the exit transition done. The first render shows every row "idle", so
+// opening the calculator animates nothing. No effect flips "enter" to "idle": an update from a
+// passive effect on every added row waits as Default-lane work, and under fast input (a held
+// Enter) that work starves until React's update-depth guard throws (break-ui).
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { RowView } from "@/lib/calculator/core/api/engine";
 
 export type RowMotion = "enter" | "idle" | "exit";
@@ -31,15 +34,16 @@ interface Presence {
 
 /**
  * The items for `rows` after `previous`: each row with its latest view, "enter" when its id was
- * not in the list before (a row that returns while exiting enters again), otherwise its previous
- * motion; then each row that left, as "exit" at its index in `previous`, in index order.
+ * not in the list before (a row that returns while exiting enters again), "idle" when it was there
+ * (an earlier "enter" included); then each row that left, as "exit" at its index in `previous`, in
+ * index order.
  */
 function reconcile(previous: readonly PresentRow[], rows: readonly RowView[]): PresentRow[] {
   const before = new Map(previous.map((item) => [item.row.id, item.motion]));
   const ids = new Set(rows.map((row) => row.id));
   const items: PresentRow[] = rows.map((row) => {
     const motion = before.get(row.id);
-    return { row, motion: motion === undefined || motion === "exit" ? "enter" : motion };
+    return { row, motion: motion === undefined || motion === "exit" ? "enter" : "idle" };
   });
   previous.forEach((item, index) => {
     if (ids.has(item.row.id)) return;
@@ -65,15 +69,6 @@ export function useRowPresence(rows: readonly RowView[]): {
     setPresence(current);
   }
   const { items } = current;
-
-  // "enter" lasts one commit: the row has drawn its collapsed height, so "idle" transitions.
-  useEffect(() => {
-    if (!items.some((item) => item.motion === "enter")) return;
-    setPresence((p) => ({
-      rows: p.rows,
-      items: p.items.map((item) => (item.motion === "enter" ? { ...item, motion: "idle" } : item)),
-    }));
-  }, [items]);
 
   // Only a row that is still exiting leaves; a late call for a row that came back does nothing.
   const exitDone = useCallback((rowId: string) => {

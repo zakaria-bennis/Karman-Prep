@@ -36,7 +36,7 @@ import { MotionContext } from "./motion";
 import { clearAllRows, insertRowBelow, performRedo, performUndo } from "./row-actions";
 import { useRowPresence } from "./row-presence";
 import { TableItem } from "./TableItem";
-import { TablePaste } from "./TablePaste";
+import { ListPaste } from "./ListPaste";
 import { ToastHost } from "./Toast";
 import { Tooltip, useTooltip } from "./Tooltip";
 
@@ -385,10 +385,14 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
           </div>
           <div
             className="kc-list-body"
-            onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
+            onScroll={(e) => {
+              // Only a change updates: every scroll of a held Enter would otherwise queue one.
+              const next = e.currentTarget.scrollTop > 0;
+              if (next !== scrolled) setScrolled(next);
+            }}
           >
             <ToastHost>
-              <TablePaste />
+              <ListPaste />
               {/* role="list" keeps list semantics in WebKit, which drops them under list-style: none */}
               <ol className="kc-list" role="list" aria-label="Expressions" tabIndex={-1}>
                 {numbered.map(({ row, motion, number }) =>
