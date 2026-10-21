@@ -45,6 +45,7 @@ export type RowErrorCode =
   | "regression-params" // D-22
   | "regression-fit" // D-24
   | "nested-list" // NM-34
+  | "nested-empty-list" // NM-34: an empty list in a list, `[[]]`
   | "list-too-long" // NM-35, NM-42
   | "range-step" // NM-36
   | "list-mixed" // PR-34: numbers and points in one list

@@ -445,11 +445,18 @@ export function listProblem(
     const names = indexTypeError(node, locals, typing);
     if (names !== null) return { code: "index-type", names, span: node.span };
   }
-  for (const node of brackets) {
+  // innermost first, as Desmos reports `[[[[]]]]` (captured 2026-10-20)
+  for (const node of [...brackets].reverse()) {
     if (node.kind === "index" && !indexesList(node)) continue;
     if (node.kind === "index" && node.items[0]?.kind === "rel") continue;
-    const item = node.items.find((i) => typing.isList(i, locals));
-    if (item !== undefined) return { code: "nested-list", names: [], span: item.span };
+    const k = node.items.findIndex((i) => typing.isList(i, locals));
+    if (k < 0) continue;
+    const item = node.items[k];
+    // a list literal after a number is Desmos's type mix, `[1,[]]` (but `[1,L]` is nested)
+    if (k > 0 && node.kind === "list" && item.kind === "list")
+      return { code: "list-mixed", names: [], span: item.span };
+    const empty = item.kind === "list" && item.range === undefined && item.items.length === 0;
+    return { code: empty ? "nested-empty-list" : "nested-list", names: [], span: item.span };
   }
   for (const node of brackets) {
     if (node.range === undefined) continue;

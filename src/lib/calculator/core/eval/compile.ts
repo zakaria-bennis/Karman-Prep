@@ -453,12 +453,23 @@ function recursiveCall(fn: CompiledFunction, args: readonly Compiled[], ctx: Con
         ctx.depth = depth;
       }
     };
-    ctx.recursion = { cache: new Map() };
-    try {
-      return trampoline(frame, invoke, UNDEFINED, ctx.recursion, ctx.budget);
-    } finally {
-      ctx.recursion = null;
-    }
+    const run = (values: readonly Value[]): Value => {
+      ctx.recursion = { cache: new Map() };
+      try {
+        return trampoline(
+          { fn: fn.name, args: values },
+          invoke,
+          UNDEFINED,
+          ctx.recursion,
+          ctx.budget
+        );
+      } finally {
+        ctx.recursion = null;
+      }
+    };
+    // Desmos maps a recursion over a list argument, `f([1,2,3])` (captured 2026-10-20)
+    if (frame.args.some((v) => v.type === "list")) return mapN(frame.args, run);
+    return run(frame.args);
   };
 }
 

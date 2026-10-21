@@ -22,7 +22,7 @@ const listOf = (v: Value | undefined): number[] | null =>
   v !== undefined && v.type === "list" ? v.value.map((item) => real(item)) : null;
 
 /** D-22: the error a regression shows in place of results. */
-const failed = (r: RegressionAnalysis, error: string): RegressionOutcome => ({
+const failed = (r: RegressionAnalysis, error: string | null): RegressionOutcome => ({
   ok: false,
   error,
   params: [],
@@ -89,6 +89,9 @@ export function evaluateRegression(
   const pairs = lists.length === 0 ? 1 : Math.min(...lists.map((l) => l.length));
   const observed = scalar ? new Array<number>(pairs).fill(real(left)) : listOf(left);
   if (observed === null) return failed(r, rowErrorMessage("regression-data", []));
+  // Desmos fits nothing and shows no error when there is nothing to fit: no parameter
+  // (`[1,2]\sim[3,4]`) or no defined observation (`y_{5}\sim mx_{5}+b`, captured 2026-10-20)
+  if (r.params.length === 0 || !observed.some(Number.isFinite)) return failed(r, null);
   const compiled = compileExpression(r.model, scope);
   const vars: Record<string, Value> = {};
   const model = (p: Float64Array, i: number): number => {

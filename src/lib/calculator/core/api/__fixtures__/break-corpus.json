@@ -5376,7 +5376,7 @@
       }
     ],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [
         {
           "error": "'x' may not be used as a regression parameter. Try using a different variable name."
@@ -6224,7 +6224,7 @@
       }
     ],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [
         {
           "error": "'x' may not be used as a regression parameter. Try using a different variable name."
@@ -6235,11 +6235,7 @@
   {
     "cat": "regression",
     "rows": ["y_{1}\\sim mx_{1}+b"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "We couldn't find any region where this model is defined." }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "regression",
@@ -6250,7 +6246,7 @@
       }
     ],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [
         {
           "error": "'y' may not be used as a regression parameter. Try using a different variable name."
@@ -6259,15 +6255,7 @@
     }
   },
   { "cat": "regression", "rows": ["1\\sim1"], "desmos": [{ "graph": false, "shown": false }] },
-  {
-    "cat": "regression",
-    "rows": ["a\\sim1"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "We couldn't find any region where this model is defined." }]
-    }
-  },
+  { "cat": "regression", "rows": ["a\\sim1"], "desmos": [{ "graph": false, "shown": false }] },
   {
     "cat": "regression",
     "rows": ["y\\sim mx\\sim b"],
@@ -6276,18 +6264,14 @@
   {
     "cat": "regression",
     "rows": ["[1,2]\\sim[3,4]"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "We couldn't find any region where this model is defined." }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "regression",
     "rows": ["[1,2]\\sim m[3,4]"],
     "desmos": [{ "error": "Cannot index a number with a list of numbers." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [{ "error": "We couldn't find any region where this model is defined." }]
     }
   },
@@ -6296,7 +6280,7 @@
     "rows": ["[1,2]\\sim m[3,4,5]"],
     "desmos": [{ "error": "Cannot index a number with a list of numbers." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [{ "error": "We couldn't find any region where this model is defined." }]
     }
   },
@@ -6305,7 +6289,7 @@
     "rows": ["[1,2,3]\\sim m[1,2,3]+b"],
     "desmos": [{ "error": "Cannot index a number with a list of numbers." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [{ "error": "We couldn't find any region where this model is defined." }]
     }
   },
@@ -6314,7 +6298,7 @@
     "rows": ["[1,2,3]\\sim[1,2,3]m"],
     "desmos": [{ "graph": false, "shown": false }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [{ "error": "We couldn't find any region where this model is defined." }]
     }
   },
@@ -6333,7 +6317,7 @@
     "rows": ["[1]\\sim m[1]+b"],
     "desmos": [{ "error": "Cannot index a number with a number." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "regression differs: parameter placement and point data not built yet",
       "ours": [{ "error": "We couldn't find any region where this model is defined." }]
     }
   },
@@ -7819,11 +7803,7 @@
   {
     "cat": "robustness",
     "rows": ["[[[[]]]]"],
-    "desmos": [{ "error": "Cannot store an empty list in a list." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Cannot store a list of numbers in a list." }]
-    }
+    "desmos": [{ "error": "Cannot store an empty list in a list." }]
   },
   {
     "cat": "robustness",
@@ -17005,5 +16985,1521 @@
     "cat": "piecewise",
     "rows": ["\\{1<0:[1,2],[3,4,5]\\}"],
     "desmos": [{ "graph": false, "shown": true, "value": [3, 4, 5] }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sin=2", "\\sin(1)"],
+    "desmos": [
+      { "error": "You need something on both sides of the '=' symbol." },
+      { "graph": false, "shown": true, "value": 0.8414709848078965 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=5", "y+1"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "error": "Try adding 'x=' to the beginning of this equation." }
+    ],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [
+        { "graph": true, "shown": false },
+        { "graph": true, "shown": false }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["e=1", "e+1"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 3.718281828459045 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\pi=3", "\\pi"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 3.141592653589793 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=3"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=3", "r+1"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 4 }
+    ],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [
+        { "error": "r is for polar graphs, which aren't available yet." },
+        { "error": "Try adding 'y=' to the beginning of this equation." }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\theta=1", "\\theta+1"],
+    "desmos": [
+      { "error": "Sorry, you can't graph θ as a function of anything yet." },
+      { "error": "Try adding 'r=' to the beginning of this equation." }
+    ],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [
+        { "error": "θ is for polar graphs, which aren't available yet." },
+        { "error": "Try adding 'r=' to the beginning of this equation." }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["t=2", "(\\cos t,\\sin t)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": true, "shown": true, "value": { "text": [-0.41614684, 0.90929743] } }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=3", "r=\\theta"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": true, "shown": false }
+    ],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [
+        { "error": "r is for polar graphs, which aren't available yet." },
+        { "error": "r is for polar graphs, which aren't available yet." }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\ln=3"],
+    "desmos": [{ "error": "You need something on both sides of the '=' symbol." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(x)=\\sin(x)", "\\sin=f"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "error": "You need something on both sides of the '=' symbol." }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\omega(x)=x^2", "\\omega(3)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 9 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["dx=3"],
+    "desmos": [{ "error": "We only support implicit equations of x and y." }],
+    "known": {
+      "reason": "deliberate: an equation with an undefined name offers a slider chip, as 3p+4=19 does (owner)",
+      "ours": [{ "error": "Too many variables. Try defining 'd'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "f(5)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 5 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "f(500)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 500 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "f(10000)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 10000 }
+    ],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [
+        { "graph": false, "shown": false },
+        { "graph": false, "shown": true, "value": "undef" }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "f(-1)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": "undef" }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "f(2.5)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": "undef" }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n<2:n,f(n-1)+f(n-2)\\right\\}", "f(20)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 6765 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n<2:n,f(n-1)+f(n-2)\\right\\}", "f(30)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 832040 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["g(n)=\\left\\{n\\le1:1,n\\cdot g(n-1)\\right\\}", "g(10)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": 3628800 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "y=f(x)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": true, "shown": false }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "f([1,2,3])"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": [1, 2, 3] }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "e_{v}(n)=\\left\\{n=0:1,o_{d}(n-1)\\right\\}",
+      "o_{d}(n)=\\left\\{n=0:0,e_{v}(n-1)\\right\\}",
+      "e_{v}(4)"
+    ],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 1 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n>0:f(n-1)\\right\\}", "f(3)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": true, "value": "undef" }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n,m)=\\left\\{n=0:m,f(n-1,m+1)\\right\\}", "f(3,0)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 3 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["A(m,n)=\\left\\{m=0:n+1,n=0:A(m-1,1),A(m-1,A(m,n-1))\\right\\}", "A(2,2)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 7 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "f(100.5)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": "undef" }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(n)=\\left\\{n=0:0,f(n-1)+1\\right\\}", "\\sum_{k=1}^{10}f(k)"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 55 }
+    ],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [
+        { "graph": false, "shown": false },
+        { "error": "This calculator doesn't support that notation." }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(x,x)=x", "f(1,2)"],
+    "desmos": [
+      { "error": "Cannot use 'x' for multiple parameters of this function." },
+      { "error": "Cannot use 'x' for multiple parameters of this function." }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(\\sin)=\\sin"],
+    "desmos": [{ "error": "Function 'sin' requires an argument. For example, try typing: sin(x)." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(\\pi)=\\pi"],
+    "desmos": [
+      {
+        "error": "You can't use 'π' as a parameter of this function because 'π' is already defined."
+      }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(e)=e", "f(2)"],
+    "desmos": [
+      {
+        "error": "You can't use 'e' as a parameter of this function because 'e' is already defined."
+      },
+      {
+        "error": "You can't use 'e' as a parameter of this function because 'e' is already defined."
+      }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(a+b)=a"],
+    "desmos": [{ "graph": false, "shown": false }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Too many variables. Try defining 'f', 'a' or 'b'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a=b+1", "b=c", "c=2", "a"],
+    "desmos": [
+      { "graph": false, "shown": true, "value": 3 },
+      { "graph": false, "shown": true, "value": 2 },
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": 3 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(x,y)=x^2+y^2", "f(x,y)=1"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": false }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(x)=x^2", "f(y)"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "error": "Try adding 'x=' to the beginning of this equation." }
+    ],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [
+        { "graph": true, "shown": false },
+        { "graph": true, "shown": false }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["f(x)=xy"],
+    "desmos": [
+      { "error": "Try including 'y' as an argument by defining the function as 'f(x,y)'." }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["a+b=3"],
+    "desmos": [{ "error": "We only support implicit equations of x and y." }],
+    "known": {
+      "reason": "deliberate: an equation with an undefined name offers a slider chip, as 3p+4=19 does (owner)",
+      "ours": [{ "error": "Too many variables. Try defining 'a' or 'b'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a+b=3", "a"],
+    "desmos": [
+      { "error": "We only support implicit equations of x and y." },
+      { "error": "Try adding 'y=' to the beginning of this equation." }
+    ],
+    "known": {
+      "reason": "deliberate: an equation with an undefined name offers a slider chip, as 3p+4=19 does (owner)",
+      "ours": [
+        { "error": "Too many variables. Try defining 'a' or 'b'." },
+        { "error": "Try adding 'y=' to the beginning of this equation." }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["2a=6"],
+    "desmos": [{ "error": "We only support implicit equations of x and y." }],
+    "known": {
+      "reason": "deliberate: an equation with an undefined name offers a slider chip, as 3p+4=19 does (owner)",
+      "ours": [{ "error": "Too many variables. Try defining 'a'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a^2=4"],
+    "desmos": [{ "error": "We only support implicit equations of x and y." }],
+    "known": {
+      "reason": "deliberate: an equation with an undefined name offers a slider chip, as 3p+4=19 does (owner)",
+      "ours": [{ "error": "Too many variables. Try defining 'a'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a=3", "a+b=3"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "error": "We only support implicit equations of x and y." }
+    ],
+    "known": {
+      "reason": "deliberate: an equation with an undefined name offers a slider chip, as 3p+4=19 does (owner)",
+      "ours": [
+        { "graph": false, "shown": false },
+        { "error": "Too many variables. Try defining 'b'." }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a=3", "b=a+x"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": true, "shown": false }
+    ],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [
+        { "graph": false, "shown": false },
+        { "graph": false, "shown": false }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["b=x"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a=x+1", "a"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": true, "shown": false }
+    ],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [
+        { "graph": false, "shown": false },
+        { "graph": true, "shown": false }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["[a,b]=[1,2]"],
+    "desmos": [{ "error": "We only support implicit equations of x and y." }],
+    "known": {
+      "reason": "deliberate: an equation with an undefined name offers a slider chip, as 3p+4=19 does (owner)",
+      "ours": [{ "error": "Too many variables. Try defining 'a' or 'b'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["P=(a,2)", "a=1", "P"],
+    "desmos": [
+      { "graph": true, "shown": true, "value": { "text": [1, 2] } },
+      { "graph": false, "shown": false },
+      { "graph": true, "shown": true, "value": { "text": [1, 2] } }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["x_{1}=[1,2]", "y_{1}=x_{1}^2", "(x_{1},y_{1})"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": [1, 4] },
+      { "graph": true, "shown": true, "value": { "text": [1, 1, 2, 4] } }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["a=3\\left\\{x>0\\right\\}"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a=b", "y=ax"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "error": "Too many variables. Try defining 'b'." }
+    ],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [
+        { "error": "Too many variables. Try defining 'b'." },
+        { "graph": true, "shown": false }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=x+r"],
+    "desmos": [{ "error": "Too many variables. Try defining 'r'." }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=x+\\theta"],
+    "desmos": [{ "error": "Too many variables, I don't know what to do with this." }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "θ is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["x=a"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Too many variables. Try defining 'a'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a=3", "x=a"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": true, "shown": true, "value": 3 }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=e^x", "e=2"],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": false }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\ln\\left|x\\right|"],
+    "desmos": [{ "error": "Use parentheses around the argument of 'ln'." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{floor}(x)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{round}(x)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{ceil}(x)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{mod}(x,3)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{sign}(x)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\left\\{x<0:-1,x<2:1,3\\right\\}"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{floor}(10x)/10"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{floor}(x^{2})"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=x-\\operatorname{floor}(x)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\operatorname{mod}(-x,2)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  { "cat": "scout", "rows": ["y=\\log(\\sin x)"], "desmos": [{ "graph": true, "shown": false }] },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{floor}(x^{2}+y^{2})=4"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  { "cat": "scout", "rows": ["\\tan(x)=y^{2}"], "desmos": [{ "graph": true, "shown": false }] },
+  { "cat": "scout", "rows": ["y>\\frac{1}{x}"], "desmos": [{ "graph": true, "shown": false }] },
+  { "cat": "scout", "rows": ["-1<y<x"], "desmos": [{ "graph": true, "shown": false }] },
+  { "cat": "scout", "rows": ["x^{2}<y<4"], "desmos": [{ "graph": true, "shown": false }] },
+  { "cat": "scout", "rows": ["y>\\tan x"], "desmos": [{ "graph": true, "shown": false }] },
+  {
+    "cat": "scout",
+    "rows": ["y>\\operatorname{floor}(x)"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  { "cat": "scout", "rows": ["0=x-x"], "desmos": [{ "graph": true, "shown": false }] },
+  {
+    "cat": "scout",
+    "rows": ["r<2"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=\\cos(4\\theta)"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=\\theta\\left\\{0\\le\\theta\\le 6\\pi\\right\\}"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=\\frac{1}{\\cos\\theta}"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=-2"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["1<r<2"],
+    "desmos": [{ "error": "We only plot double inequalities of x and y." }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["r=\\sqrt{\\cos(2\\theta)}"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: polar graphs",
+      "ours": [{ "error": "r is for polar graphs, which aren't available yet." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["(\\sin(3t),\\sin(4t))"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: parametric curves",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["(t,\\tan t)"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: parametric curves",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["(\\frac{1}{t},t)"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: parametric curves",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["(t,t^{2})\\left\\{-1\\le t\\le 2\\right\\}"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["(0,t)"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: parametric curves",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  { "cat": "scout", "rows": ["y=x"], "desmos": [{ "graph": true, "shown": false }] },
+  { "cat": "scout", "rows": ["y=\\sin x"], "desmos": [{ "graph": true, "shown": false }] },
+  { "cat": "scout", "rows": ["y>x^{2}"], "desmos": [{ "graph": true, "shown": false }] },
+  {
+    "cat": "scout",
+    "rows": ["\\left[1...\\infty\\right]"],
+    "desmos": [{ "error": "Ranges must be arithmetic sequences." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[n^{2}\\operatorname{for}n=\\left[1...5\\right]\\right]"],
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 4, 9, 16, 25] }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[a+b\\operatorname{for}a=\\left[1,2\\right],b=\\left[10,20,30\\right]\\right]"],
+    "desmos": [{ "graph": false, "shown": true, "value": [11, 12, 21, 22, 31, 32] }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[n\\operatorname{for}n=\\left[\\right]\\right]"],
+    "desmos": [{ "graph": false, "shown": true, "value": [] }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[\\left(n,n^{2}\\right)\\operatorname{for}n=\\left[1...3\\right]\\right]"],
+    "desmos": [{ "graph": true, "shown": true, "value": { "text": [1, 1, 2, 4, 3, 9] } }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[n\\operatorname{for}n=5\\right]"],
+    "desmos": [
+      {
+        "error": "A definition on the right-hand side of 'for' must be a list, but n is a number. Try n=[5]."
+      }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[n^{2}\\operatorname{for}\\right]"],
+    "desmos": [{ "error": "You need something on both sides of the 'for' symbol." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[nx\\operatorname{for}n=\\left[1...3\\right]\\right]"],
+    "desmos": [{ "graph": true, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\left[\\left[n\\operatorname{for}n=\\left[1...m\\right]\\right]\\operatorname{for}m=\\left[1...3\\right]\\right]"
+    ],
+    "desmos": [{ "error": "Cannot store a list of numbers in a list." }],
+    "known": {
+      "reason": "not built yet: list comprehension 'for' (NM-37)",
+      "ours": [{ "error": "Can't plot a list whose length depends on free variable 'm'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\operatorname{length}\\left(\\left[a\\operatorname{for}a=\\left[1...1000\\right],b=\\left[1...1000\\right]\\right]\\right)"
+    ],
+    "desmos": [{ "error": "Lists may not have more than 10,000 elements." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[n\\operatorname{for}n=\\left[1,2\\right],n=\\left[3,4\\right]\\right]"],
+    "desmos": [{ "error": "You can't define 'n' more than once on the right-hand side of 'for'." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[x^{2}\\operatorname{for}x=\\left[1,2,3\\right]\\right]"],
+    "desmos": [{ "graph": false, "shown": true, "value": [1, 4, 9] }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["n=10", "\\left[n\\operatorname{for}n=\\left[1,2\\right]\\right]"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": [1, 2] }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[a+b\\operatorname{for}a=\\left[1,2\\right],b=\\left[1...a\\right]\\right]"],
+    "desmos": [
+      {
+        "error": "A definition on the right-hand side of 'for' can't depend on input variable 'a'."
+      }
+    ],
+    "known": {
+      "reason": "not built yet: list comprehension 'for' (NM-37)",
+      "ours": [{ "error": "Can't plot a list whose length depends on free variable 'a'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[\\left[\\right]\\right]"],
+    "desmos": [{ "error": "Cannot store an empty list in a list." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{random}\\left(\\left[\\right]\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{shuffle}\\left(\\left[\\right]\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": [] }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["A=\\left[1,2,3,4,5\\right]", "A\\left[\\infty\\right]"],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": true, "value": "undef" }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{total}\\left(\\left[\\infty,-\\infty\\right]\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{poissondist}\\left(-1\\right).\\operatorname{pdf}\\left(0\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
+    "known": {
+      "reason": "not built yet: poisson and uniform distributions",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{uniformdist}\\left(5,1\\right).\\operatorname{pdf}\\left(3\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
+    "known": {
+      "reason": "not built yet: poisson and uniform distributions",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\operatorname{length}\\left(\\operatorname{normaldist}\\left(0,1\\right).\\operatorname{random}\\left(5\\right)\\right)"
+    ],
+    "desmos": [{ "graph": false, "shown": true, "value": 5 }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\operatorname{normaldist}\\left(0,1\\right).\\operatorname{random}\\left(-1\\right)"
+    ],
+    "desmos": [{ "error": "Sample size must be a finite, non-negative number." }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y_{5}\\sim mx_{5}+b"],
+    "desmos": [{ "graph": false, "shown": false }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[1,2,3\\right]\\sim m\\left[2,4,6\\right]"],
+    "desmos": [{ "error": "Cannot index a number with a list of numbers." }],
+    "known": {
+      "reason": "regression differs: parameter placement and point data not built yet",
+      "ours": [{ "error": "We couldn't find any region where this model is defined." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "x_{1}=\\left[1,2,3,4\\right]",
+      "y_{1}=\\left[2,4,7,8\\right]",
+      "ay_{1}\\sim mx_{1}+b"
+    ],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": false }
+    ],
+    "known": {
+      "reason": "regression differs: parameter placement and point data not built yet",
+      "ours": [
+        { "graph": false, "shown": false },
+        { "graph": false, "shown": false },
+        { "graph": true, "shown": false }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "Q=\\left[\\left(1,2\\right),\\left(2,4\\right),\\left(3,7\\right)\\right]",
+      "Q.y\\sim mQ.x+b"
+    ],
+    "desmos": [
+      { "graph": true, "shown": false },
+      { "graph": false, "shown": false }
+    ],
+    "known": {
+      "reason": "regression differs: parameter placement and point data not built yet",
+      "ours": [
+        { "graph": true, "shown": false },
+        { "error": "We couldn't find any region where this model is defined." }
+      ]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "x_{1}=\\left[1,2,3,4\\right]",
+      "y_{1}=\\left[2,4,7,8\\right]",
+      "y_{1}\\sim a\\sin\\left(bx_{1}\\right)"
+    ],
+    "desmos": [
+      { "graph": false, "shown": false },
+      { "graph": false, "shown": false },
+      { "graph": true, "shown": false }
+    ]
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\operatorname{length}\\left(\\operatorname{shuffle}\\left(\\left[1...10\\right]\\right)\\right)"
+    ],
+    "desmos": [{ "graph": false, "shown": true, "value": 10 }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{random}\\left(-1\\right)"],
+    "desmos": [{ "error": "Sample size must be a finite, non-negative number." }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\operatorname{length}\\left(\\operatorname{random}\\left(\\left[1,2,3\\right],5\\right)\\right)"
+    ],
+    "desmos": [{ "graph": false, "shown": true, "value": 5 }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sum_{n=1}^{3}\\left[1,2,3\\right]n"],
+    "desmos": [{ "graph": false, "shown": true, "value": [6, 12, 18] }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\prod_{n=1}^{\\left[2,3\\right]}n"],
+    "desmos": [{ "graph": false, "shown": true, "value": [2, 6] }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\int_{0}^{\\left[1,2\\right]}tdt"],
+    "desmos": [{ "graph": false, "shown": true, "value": [0.5, 2] }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\frac{d}{dx}\\left[x,x^{2}\\right]"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\operatorname{mean}\\left(\\left[ab\\operatorname{for}a=\\left[1...3\\right],b=\\left[1...3\\right]\\right]\\right)"
+    ],
+    "desmos": [{ "graph": false, "shown": true, "value": 4 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{poissondist}\\left(2\\right).\\operatorname{pdf}\\left(1\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0.2706705664732254 }],
+    "known": {
+      "reason": "not built yet: poisson and uniform distributions",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{uniformdist}\\left(1,5\\right).\\operatorname{pdf}\\left(3\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0.25 }],
+    "known": {
+      "reason": "not built yet: poisson and uniform distributions",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sum_{n=1}^{3}n"],
+    "desmos": [{ "graph": false, "shown": true, "value": 6 }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\int_{0}^{1}tdt"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0.5 }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{random}\\left(\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0.28715168828954574 }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": [
+      "\\operatorname{length}\\left(\\operatorname{shuffle}\\left(\\left[1,2,3\\right]\\right)\\right)"
+    ],
+    "desmos": [{ "graph": false, "shown": true, "value": 3 }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{length}\\left(\\operatorname{random}\\left(5\\right)\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": 5 }],
+    "known": {
+      "reason": "not built yet: random and shuffle",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[1,\\infty\\right]"],
+    "desmos": [{ "graph": false, "shown": true, "value": [1, "undef"] }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\frac{1}{10^{309}}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\frac{1}{\\frac{1}{0}}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\infty\\cdot0"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\infty+1"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["2^{\\infty}"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["0.5^{\\infty}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\infty^{0}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 1 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\frac{1}{\\infty}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sin\\left(\\infty\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\operatorname{mod}\\left(\\infty,3\\right)"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["0.1+0.2-0.3"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["0.3-0.1-0.2"],
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sin\\left(30^{\\circ}\\right)"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
+    "known": {
+      "reason": "deliberate: the degree sign stays (owner)",
+      "ours": [{ "graph": false, "shown": true, "value": 0.49999999999999994 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["i"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
+    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": false, "shown": false }] }
+  },
+  {
+    "cat": "scout",
+    "rows": ["3\\frac{3}{4}+1"],
+    "desmos": [{ "graph": false, "shown": true, "value": 4.75 }]
+  },
+  { "cat": "scout", "rows": ["2\\ \\frac{1}{2}"], "desmos": [{ "graph": false, "shown": false }] },
+  {
+    "cat": "scout",
+    "rows": ["\\sum_{n=1}^{1000000}1"],
+    "desmos": [{ "graph": false, "shown": true, "value": 1000000 }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sum_{n=1}^{100}\\frac{1}{n^{2}}"],
+    "desmos": [{ "graph": false, "shown": true, "value": 1.6349839001848923 }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\prod_{n=1}^{171}n"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sum_{n=1}^{10}0.1"],
+    "desmos": [{ "graph": false, "shown": true, "value": 1 }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["2\\frac{1}{2}+0"],
+    "desmos": [{ "graph": false, "shown": true, "value": 2.5 }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\sin\\left(30\\degree\\right)"],
+    "settings": { "degreeMode": true },
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "graph": false, "shown": true, "value": 0.49999999999999994 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["2^{^{3}}"],
+    "desmos": [{ "error": "You need something before the 'superscript' symbol." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["{}^{2}"],
+    "desmos": [{ "error": "You need something before the 'superscript' symbol." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Sorry, I don't understand this." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\left[\\right]+1"],
+    "desmos": [{ "graph": false, "shown": true, "value": [] }]
+  },
+  { "cat": "scout", "rows": ["([)]"], "desmos": [{ "error": "Expected '(' to match ')'." }] },
+  {
+    "cat": "scout",
+    "rows": [
+      "2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{2^{1}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+    ],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=x2"],
+    "desmos": [{ "graph": true, "shown": false }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Too many variables. Try defining 'x_2'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=sinx"],
+    "desmos": [{ "error": "Too many variables. Try defining 's', 'i' or 'n'." }],
+    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=\\sin\\sin x"],
+    "desmos": [{ "error": "Use parentheses around the argument of 'sin'." }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\mathrm{sin}\\left(1\\right)"],
+    "desmos": [{ "error": "Too many variables. Try defining 'mathrm', 's', 'i' or 'n'." }],
+    "known": {
+      "reason": "deliberate: question-dialect LaTeX is read (PR-5)",
+      "ours": [{ "graph": false, "shown": true, "value": 0.8414709848078965 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["x\\to2"],
+    "desmos": [{ "error": "Variable 'x' cannot be updated." }],
+    "known": {
+      "reason": "not built yet: 'with' and actions",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["1+\\infty"],
+    "desmos": [{ "graph": false, "shown": true, "value": "undef" }]
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\int x"],
+    "desmos": [{ "error": "Integrals must have upper and lower bounds." }],
+    "known": {
+      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\lim_{x\\to0}\\frac{\\sin x}{x}"],
+    "desmos": [{ "error": "Subscripts may only contain letters and digits. '→' is not allowed." }],
+    "known": {
+      "reason": "not built yet: 'with' and actions",
+      "ours": [{ "error": "Subscripts may only contain letters and digits. 'to' is not allowed." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["1\\quad+2"],
+    "desmos": [{ "error": "Try adding 'y=' to the beginning of this equation." }],
+    "known": {
+      "reason": "deliberate: question-dialect LaTeX is read (PR-5)",
+      "ours": [{ "graph": false, "shown": true, "value": 3 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["\\"],
+    "desmos": [{ "error": "Sorry, I don't understand the '' symbol." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Sorry, I don't understand this." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["π"],
+    "desmos": [{ "error": "Sorry, I don't understand the 'π' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": false, "shown": true, "value": 3.141592653589793 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["2π"],
+    "desmos": [{ "error": "Sorry, I don't understand the 'π' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": false, "shown": true, "value": 6.283185307179586 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["x²"],
+    "desmos": [{ "error": "Sorry, I don't understand the '²' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": true, "shown": false }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y=x²"],
+    "desmos": [{ "error": "Sorry, I don't understand the '²' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": true, "shown": false }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["2×3"],
+    "desmos": [{ "error": "Sorry, I don't understand the '×' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": false, "shown": true, "value": 6 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["6÷3"],
+    "desmos": [{ "error": "Sorry, I don't understand the '÷' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": false, "shown": true, "value": 2 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["5–3"],
+    "desmos": [{ "error": "Sorry, I don't understand the '–' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": false, "shown": true, "value": 2 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["5−3"],
+    "desmos": [{ "error": "Sorry, I don't understand the '−' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": false, "shown": true, "value": 2 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["1+😀"],
+    "desmos": [{ "error": "Sorry, I don't understand the '\ud83d' symbol." }],
+    "known": {
+      "reason": "Desmos names half of the emoji's surrogate pair; this names the whole character",
+      "ours": [{ "error": "Sorry, I don't understand the '😀' symbol." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y≤x"],
+    "desmos": [{ "error": "Sorry, I don't understand the '≤' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": true, "shown": false }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y≥x"],
+    "desmos": [{ "error": "Sorry, I don't understand the '≥' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": true, "shown": false }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["2·3"],
+    "desmos": [{ "error": "Sorry, I don't understand the '·' symbol." }],
+    "known": {
+      "reason": "deliberate: pasted Unicode math is read (PR-1 paste normalisation)",
+      "ours": [{ "graph": false, "shown": true, "value": 6 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["90°"],
+    "desmos": [{ "error": "Sorry, I don't understand the '°' symbol." }],
+    "known": {
+      "reason": "deliberate: the degree sign stays (owner)",
+      "ours": [{ "graph": false, "shown": true, "value": 1.5707963267948966 }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["1+2 # comment"],
+    "desmos": [{ "error": "Use # to make a matrix. Type #22 for a 2×2 matrix." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Sorry, I don't understand the '#' symbol." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["1+2 % comment"],
+    "desmos": [{ "error": "Sorry, I don't understand the '%' symbol." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "'%' must be used with 'of'. Try '25% of 12'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["1;2"],
+    "desmos": [{ "error": "Sorry, I don't understand the way that ';' is used here." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "This calculator doesn't support that notation." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["0x1F"],
+    "desmos": [{ "error": "Too many variables. Try defining 'F'." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Too many variables. Try defining 'x_1' or 'F'." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["a:=2"],
+    "desmos": [{ "error": "You need something on both sides of the '=' symbol." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "Sorry, I don't understand this." }]
+    }
+  },
+  {
+    "cat": "scout",
+    "rows": ["y->x"],
+    "desmos": [{ "error": "Variable 'y' cannot be updated." }],
+    "known": {
+      "reason": "differs: not yet fixed",
+      "ours": [{ "error": "You need something on both sides of the '>' symbol." }]
+    }
   }
 ]

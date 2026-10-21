@@ -37,7 +37,8 @@ export function makeList(items: Value[]): Value {
   let points = 0,
     others = 0;
   for (const item of items) {
-    if (isList(item)) throw new ListError("nested-list");
+    if (isList(item))
+      throw new ListError(item.value.length === 0 ? "nested-empty-list" : "nested-list");
     if (item.type === "point") points += 1;
     else if (item.type !== "undefined") others += 1;
   }

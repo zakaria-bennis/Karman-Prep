@@ -87,6 +87,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "regression-params": "A regression can fit at most 8 parameters.",
   "regression-fit": "We couldn't find any region where this model is defined.",
   "nested-list": "Cannot store a list of numbers in a list.",
+  "nested-empty-list": "Cannot store an empty list in a list.", // Desmos, 2026-10-20
   "list-too-long": "Lists may not have more than 10,000 elements.",
   "range-step": "Ranges must be arithmetic sequences.",
   "list-mixed": "All elements of a list must have the same type.",

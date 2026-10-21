@@ -81,7 +81,7 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
     },
     duplicates,
     cycles,
-    blocked: blockedNames(graph, duplicates, cycles),
+    blocked: withHeadErrors(blockedNames(graph, duplicates, cycles), rows),
     valueOrder: postOrder(graph).filter((id) => !cyclicRows.has(id)),
     functionArity: (name) => arity.get(name) ?? null,
   };
@@ -282,6 +282,30 @@ function blockedNames(
       blocked.set(head.name, blocked.get(use.name)!);
       changed = true;
     }
+  }
+  return blocked;
+}
+
+/** Head errors Desmos repeats on every row that calls the function (captured 2026-10-20). */
+const SHARED_HEAD_ERRORS: ReadonlySet<RowErrorCode> = new Set([
+  "repeated-parameter",
+  "parameter-defined",
+  "function-coordinate",
+]);
+
+/**
+ * `blocked` with each function whose head has a SHARED_HEAD_ERRORS error: `f(1,2)` with
+ * `f(x,x)=x` reads "Cannot use 'x' for multiple parameters of this function.", as Desmos shows.
+ */
+function withHeadErrors(
+  blocked: Map<string, Blocked>,
+  rows: readonly ParsedRow[]
+): Map<string, Blocked> {
+  for (const row of rows) {
+    const { head, error } = row;
+    if (head === null || error === null || head.type !== "function") continue;
+    if (!SHARED_HEAD_ERRORS.has(error.code as RowErrorCode) || blocked.has(head.name)) continue;
+    blocked.set(head.name, { code: error.code as RowErrorCode, names: error.names });
   }
   return blocked;
 }
