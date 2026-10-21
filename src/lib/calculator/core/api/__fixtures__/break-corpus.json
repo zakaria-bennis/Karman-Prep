@@ -1935,11 +1935,7 @@
   {
     "cat": "names",
     "rows": ["_{1}"],
-    "desmos": [{ "error": "You need something before the 'subscript' symbol." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Sorry, I don't understand this." }]
-    }
+    "desmos": [{ "error": "You need something before the 'subscript' symbol." }]
   },
   {
     "cat": "names",
@@ -1975,7 +1971,7 @@
     "rows": ["%"],
     "desmos": [{ "error": "Sorry, I don't understand the '%' symbol." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "deliberate: a raw % is read as \\% (question dialect, PR-5)",
       "ours": [{ "error": "You need something on both sides of the '% of' symbol." }]
     }
   },
@@ -2133,20 +2129,12 @@
   {
     "cat": "empty",
     "rows": ["^{}"],
-    "desmos": [{ "error": "You need something before the 'superscript' symbol." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Sorry, I don't understand this." }]
-    }
+    "desmos": [{ "error": "You need something before the 'superscript' symbol." }]
   },
   {
     "cat": "empty",
     "rows": ["_{}"],
-    "desmos": [{ "error": "You need something before the 'subscript' symbol." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Sorry, I don't understand this." }]
-    }
+    "desmos": [{ "error": "You need something before the 'subscript' symbol." }]
   },
   { "cat": "empty", "rows": ["\\left[\\right]"], "desmos": [{ "graph": false, "shown": false }] },
   {
@@ -2498,7 +2486,7 @@
     "rows": ["2\\times\\times3"],
     "desmos": [{ "error": "You need something on both sides of the '×' symbol." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "wording: \\times and \\div are read as ⋅ and / before parsing, so their errors name those",
       "ours": [{ "error": "You need something on both sides of the '⋅' symbol." }]
     }
   },
@@ -2532,7 +2520,7 @@
     "rows": ["2%"],
     "desmos": [{ "error": "Sorry, I don't understand the '%' symbol." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "deliberate: a raw % is read as \\% (question dialect, PR-5)",
       "ours": [{ "error": "'%' must be used with 'of'. Try '25% of 12'." }]
     }
   },
@@ -2609,7 +2597,7 @@
     "rows": ["\\times"],
     "desmos": [{ "error": "You need something on both sides of the '×' symbol." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "wording: \\times and \\div are read as ⋅ and / before parsing, so their errors name those",
       "ours": [{ "error": "You need something on both sides of the '⋅' symbol." }]
     }
   },
@@ -2618,27 +2606,19 @@
     "rows": ["\\div"],
     "desmos": [{ "error": "You need something on both sides of the '÷' symbol." }],
     "known": {
-      "reason": "differs: not yet fixed",
+      "reason": "wording: \\times and \\div are read as ⋅ and / before parsing, so their errors name those",
       "ours": [{ "error": "You need something on both sides of the '/' symbol." }]
     }
   },
   {
     "cat": "operators",
     "rows": ["^2"],
-    "desmos": [{ "error": "You need something before the 'superscript' symbol." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Sorry, I don't understand this." }]
-    }
+    "desmos": [{ "error": "You need something before the 'superscript' symbol." }]
   },
   {
     "cat": "operators",
     "rows": ["_2"],
-    "desmos": [{ "error": "You need something before the 'subscript' symbol." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Sorry, I don't understand this." }]
-    }
+    "desmos": [{ "error": "You need something before the 'subscript' symbol." }]
   },
   {
     "cat": "operators",
@@ -2690,24 +2670,8 @@
   },
   { "cat": "operators", "rows": [")("], "desmos": [{ "error": "Expected '(' to match ')'." }] },
   { "cat": "operators", "rows": ["]["], "desmos": [{ "error": "Expected '[' to match ']'." }] },
-  {
-    "cat": "operators",
-    "rows": ["(]"],
-    "desmos": [{ "error": "Expected '[' to match ']'." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Expected '(' to match ')'." }]
-    }
-  },
-  {
-    "cat": "operators",
-    "rows": ["[)"],
-    "desmos": [{ "error": "Expected '(' to match ')'." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Expected '[' to match ']'." }]
-    }
-  },
+  { "cat": "operators", "rows": ["(]"], "desmos": [{ "error": "Expected '[' to match ']'." }] },
+  { "cat": "operators", "rows": ["[)"], "desmos": [{ "error": "Expected '(' to match ')'." }] },
   { "cat": "operators", "rows": ["((1)"], "desmos": [{ "error": "Expected '(' to match ')'." }] },
   { "cat": "operators", "rows": ["(1))"], "desmos": [{ "error": "Expected '(' to match ')'." }] },
   { "cat": "implicit", "rows": ["2x(3)"], "desmos": [{ "graph": true, "shown": false }] },
@@ -4984,11 +4948,7 @@
   {
     "cat": "piecewise",
     "rows": ["\\{x>0:1:2\\}"],
-    "desmos": [{ "error": "Sorry, I don't understand the way that ':' is used here." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Sorry, I don't understand this." }]
-    }
+    "desmos": [{ "error": "Sorry, I don't understand the way that ':' is used here." }]
   },
   {
     "cat": "piecewise",
@@ -5123,31 +5083,46 @@
     "cat": "inequalities",
     "rows": ["1<2"],
     "desmos": [{ "graph": false, "shown": false }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "known": {
+      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
+      "ours": [{ "graph": true, "shown": false }]
+    }
   },
   {
     "cat": "inequalities",
     "rows": ["2<1"],
     "desmos": [{ "graph": false, "shown": false }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "known": {
+      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
+      "ours": [{ "graph": true, "shown": false }]
+    }
   },
   {
     "cat": "inequalities",
     "rows": ["1<2<3"],
     "desmos": [{ "graph": false, "shown": false }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "known": {
+      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
+      "ours": [{ "graph": true, "shown": false }]
+    }
   },
   {
     "cat": "inequalities",
     "rows": ["3>2>1"],
     "desmos": [{ "graph": false, "shown": false }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "known": {
+      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
+      "ours": [{ "graph": true, "shown": false }]
+    }
   },
   {
     "cat": "inequalities",
     "rows": ["1<2>3"],
     "desmos": [{ "graph": false, "shown": false }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "known": {
+      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
+      "ours": [{ "graph": true, "shown": false }]
+    }
   },
   {
     "cat": "inequalities",
@@ -5178,13 +5153,19 @@
     "cat": "inequalities",
     "rows": ["1<1"],
     "desmos": [{ "graph": false, "shown": false }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "known": {
+      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
+      "ours": [{ "graph": true, "shown": false }]
+    }
   },
   {
     "cat": "inequalities",
     "rows": ["1\\le1"],
     "desmos": [{ "graph": false, "shown": false }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "known": {
+      "reason": "graph builder: an inequality of constants shades the plane here; Desmos draws nothing",
+      "ours": [{ "graph": true, "shown": false }]
+    }
   },
   {
     "cat": "inequalities",
@@ -5289,32 +5270,22 @@
   {
     "cat": "equations",
     "rows": ["x=0/0"],
-    "desmos": [{ "graph": true, "shown": true, "value": "undef" }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": "undef" }]
   },
   {
     "cat": "equations",
     "rows": ["y=0/0"],
-    "desmos": [{ "graph": true, "shown": true, "value": "undef" }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": "undef" }]
   },
   {
     "cat": "equations",
     "rows": ["y=\\infty"],
-    "desmos": [{ "graph": true, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": "undef" }]
   },
   {
     "cat": "equations",
     "rows": ["x=\\infty"],
-    "desmos": [{ "graph": true, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: \\infty as a value",
-      "ours": [{ "graph": true, "shown": false }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": "undef" }]
   },
   { "cat": "equations", "rows": ["x^{2}=-1"], "desmos": [{ "graph": true, "shown": false }] },
   { "cat": "equations", "rows": ["x^{2}=x^{2}"], "desmos": [{ "graph": true, "shown": false }] },
@@ -6132,11 +6103,7 @@
   {
     "cat": "latex-junk",
     "rows": ["\\parallel"],
-    "desmos": [{ "error": "This calculator does not support the 'parallel' function." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "'parallel' is a function. Try using parentheses." }]
-    }
+    "desmos": [{ "error": "This calculator does not support the 'parallel' function." }]
   },
   {
     "cat": "latex-junk",
@@ -7766,8 +7733,7 @@
   {
     "cat": "window",
     "rows": ["y=\\{\\}"],
-    "desmos": [{ "graph": true, "shown": true, "value": 1 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 1 }]
   },
   {
     "cat": "robustness",
@@ -7867,11 +7833,7 @@
   {
     "cat": "robustness",
     "rows": ["\\left[\\left(\\right]\\right)"],
-    "desmos": [{ "error": "Expected '[' to match ']'." }],
-    "known": {
-      "reason": "differs: not yet fixed",
-      "ours": [{ "error": "Expected '(' to match ')'." }]
-    }
+    "desmos": [{ "error": "Expected '[' to match ']'." }]
   },
   {
     "cat": "robustness",
@@ -8146,8 +8108,7 @@
   {
     "cat": "robustness",
     "rows": ["y=2\\frac{1}{2}"],
-    "desmos": [{ "graph": true, "shown": true, "value": 2.5 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 2.5 }]
   },
   {
     "cat": "robustness",
@@ -8303,28 +8264,24 @@
   {
     "cat": "robustness",
     "rows": ["y=1+1"],
-    "desmos": [{ "graph": true, "shown": true, "value": 2 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 2 }]
   },
   {
     "cat": "robustness",
     "rows": ["x=1+1"],
-    "desmos": [{ "graph": true, "shown": true, "value": 2 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 2 }]
   },
   { "cat": "robustness", "rows": ["y=2"], "desmos": [{ "graph": true, "shown": false }] },
   {
     "cat": "robustness",
     "rows": ["y=\\frac{1}{2}"],
-    "desmos": [{ "graph": true, "shown": true, "value": 0.5 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 0.5 }]
   },
   { "cat": "robustness", "rows": ["y=[1,2]"], "desmos": [{ "graph": true, "shown": false }] },
   {
     "cat": "robustness",
     "rows": ["y=\\sqrt{2}"],
-    "desmos": [{ "graph": true, "shown": true, "value": 1.4142135623730951 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 1.4142135623730951 }]
   },
   {
     "cat": "robustness",
@@ -9007,8 +8964,7 @@
           9994, 9995, 9996, 9997, 9998, 9999, 10000
         ]
       }
-    ],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    ]
   },
   {
     "cat": "stress",
@@ -9675,8 +9631,7 @@
           9994, 9995, 9996, 9997, 9998, 9999, 10000
         ]
       }
-    ],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    ]
   },
   { "cat": "stress", "rows": ["y=x+[1...10000]"], "desmos": [{ "graph": true, "shown": false }] },
   {
@@ -16927,15 +16882,13 @@
   {
     "cat": "stress",
     "rows": ["y=10^{-320}"],
-    "desmos": [{ "graph": true, "shown": true, "value": 1e-320 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 1e-320 }]
   },
   { "cat": "stress", "rows": ["y=-10^{-320}x"], "desmos": [{ "graph": true, "shown": false }] },
   {
     "cat": "stress",
     "rows": ["x=10^{308}"],
-    "desmos": [{ "graph": true, "shown": true, "value": 1e308 }],
-    "known": { "reason": "differs: not yet fixed", "ours": [{ "graph": true, "shown": false }] }
+    "desmos": [{ "graph": true, "shown": true, "value": 1e308 }]
   },
   {
     "cat": "recursion",

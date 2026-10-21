@@ -55,6 +55,7 @@ import {
 import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { comprehensionValue } from "./comprehension";
+import { lineConstantSide } from "./line-value";
 import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
 import {
@@ -528,6 +529,8 @@ function generalWith(scope: CompileScope): GeneralCompile {
 }
 
 /** decision 5: the rows evaluateRows gives a value, by kind; and only without an error or chips. */
+const LINE_KINDS: readonly RowAnalysis["kind"][] = ["horizontal-lines", "vertical-lines"];
+
 function evaluable(row: RowAnalysis, kinds: readonly RowAnalysis["kind"][]): boolean {
   return kinds.includes(row.kind) && row.error === null && row.chips.length === 0;
 }
@@ -597,6 +600,9 @@ export function evaluateRows(
   const ordered = new Set(analysis.valueOrder);
   for (const row of analysis.rows) {
     if (evaluable(row, ["value", "point"]) && row.tree !== null) evaluate(row.id, row.tree);
+    // a line `y=c` shows the value of c (line-value.ts)
+    const side = evaluable(row, LINE_KINDS) ? lineConstantSide(row.tree) : null;
+    if (side !== null) evaluate(row.id, side);
     // A name defined twice: each defining row still shows its own value, as in Desmos, but binds
     // no name (the rows that use it are marked).
     const body = definitionBody(row);

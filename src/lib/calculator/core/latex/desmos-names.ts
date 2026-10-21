@@ -38,6 +38,8 @@ export const DESMOS_ONLY_CALLS: ReadonlyMap<string, Rule> = new Map<string, Rule
     "rotate",
     "dilate",
     "reflect",
+    "parallel",
+    "perpendicular",
     "triangle",
     "sphere",
     "inv",

@@ -16,6 +16,7 @@ import {
 import type { RowKind } from "../corpus/types";
 import type { Node } from "../latex/ast";
 import { formatValue } from "../eval/format";
+import { lineConstantSide } from "../eval/line-value";
 import type { Value } from "../eval/values";
 import type { TableResult } from "../data/evaluate";
 import type { TableAnalysis } from "../data/table-analysis";
@@ -134,8 +135,11 @@ export function rowShowsValue(row: RowAnalysis, value: Value | null, overrun: bo
  * literal's and a slider's evaluation without showing it (`1`, `a=1`; captured 2026-10-20).
  */
 export function rowHasValue(row: RowAnalysis, value: Value | null, overrun: boolean): boolean {
+  const line =
+    (row.kind === "horizontal-lines" || row.kind === "vertical-lines") &&
+    lineConstantSide(row.tree) !== null;
   return (
-    (row.kind === "value" || row.kind === "definition" || row.kind === "point") &&
+    (line || row.kind === "value" || row.kind === "definition" || row.kind === "point") &&
     row.error === null &&
     row.chips.length === 0 &&
     !overrun &&

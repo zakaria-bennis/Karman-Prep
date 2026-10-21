@@ -156,6 +156,11 @@ export function missingOperand(state: ParserState, token: Token): never {
   if (token.t === "symbol" && token.ch === "!") {
     return fail("operator-before", token.span, "nothing before !", "!");
   }
+  // Desmos: `^2`, `^{}`, `_2` and `_{1}` with nothing before them (captured 2026-10-20)
+  if (token.t === "symbol" && (token.ch === "^" || token.ch === "_")) {
+    const name = token.ch === "^" ? "superscript" : "subscript";
+    return fail("operator-before", token.span, `nothing before ${name}`, name);
+  }
   if (token.t === "symbol" && token.ch === "|") {
     return fail("unknown-symbol", token.span, "a raw bar", "|");
   }
