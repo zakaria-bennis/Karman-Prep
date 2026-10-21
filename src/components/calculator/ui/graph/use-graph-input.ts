@@ -16,6 +16,7 @@ import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import type { Viewport, ViewSpec } from "@/lib/calculator/plot/viewport";
 import {
   dragViewport,
+  pinchState,
   pinchViewport,
   viewportForKey,
   wheelViewport,
@@ -73,11 +74,6 @@ type InputState = {
 
 const pointerOf = (e: PointerEvent): Pointer => (e.pointerType === "mouse" ? "fine" : "coarse");
 
-const pinchOf = (a: Point, b: Point): PinchState => ({
-  mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2],
-  distance: Math.hypot(b[0] - a[0], b[1] - a[1]),
-});
-
 export function useGraphInput(o: GraphInputOptions): GraphInput {
   const { panel, surface, engine, size, interaction } = o;
   const locked = o.locked === true;
@@ -119,7 +115,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
         kind: "pinch",
         ids: pair,
         start: view,
-        from: pinchOf(s.pointers.get(pair[0])!, s.pointers.get(pair[1])!),
+        from: pinchState(s.pointers.get(pair[0])!, s.pointers.get(pair[1])!),
       };
     } else if (ids.length === 1) {
       s.gesture = { kind: "drag", id: ids[0], start: view, at: s.pointers.get(ids[0])! };
@@ -231,7 +227,7 @@ export function useGraphInput(o: GraphInputOptions): GraphInput {
         const at = s.pointers.get(g.id)!;
         schedule(dragViewport(g.start, at[0] - g.at[0], at[1] - g.at[1]));
       } else if (g?.kind === "pinch" && g.ids.includes(e.pointerId)) {
-        const now = pinchOf(s.pointers.get(g.ids[0])!, s.pointers.get(g.ids[1])!);
+        const now = pinchState(s.pointers.get(g.ids[0])!, s.pointers.get(g.ids[1])!);
         schedule(pinchViewport(g.start, g.from, now));
       }
     };

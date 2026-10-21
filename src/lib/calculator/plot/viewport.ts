@@ -19,13 +19,19 @@ export interface ViewSpec {
 export const ZOOM_BUTTON_FACTOR = 2; // G-5: + button zoomViewport(v, 2, centre), − button zoomViewport(v, 1/2, centre)
 export const ZOOM_KEY_FACTOR = 1.25; // KB table: + or = zoomViewport(v, 1.25, centre); − zoomViewport(v, 1/1.25, centre)
 export const KEY_PAN_FRACTION = 0.1;
-export const MIN_SPAN_FACTOR = 1e-9; // G-23: span >= 1e-9 * max(1, |centre|)
+/**
+ * G-23: span ≥ max(1e-11·|centre|, MIN_ABS_SPAN). The limit is relative, as Desmos's is: about 0
+ * a view may be far narrower than 1e-10, a 1e-10 view about 1 keeps over 40 doubles per px of a
+ * 1000 px graph, and each axis keeps the span it was given, so a view with equal units stays equal.
+ */
+export const MIN_SPAN_FACTOR = 1e-11;
+export const MIN_ABS_SPAN = 1e-300;
 export const MAX_SPAN = 1e15;
 export const MAX_ABS_BOUND = 1e15;
 
-/** G-23: the smallest span an axis centred on `centre` may have, MIN_SPAN_FACTOR · max(1, |centre|). */
+/** G-23: the smallest span an axis centred on `centre` may have. */
 export function minSpan(centre: number): number {
-  return MIN_SPAN_FACTOR * Math.max(1, Math.abs(centre));
+  return Math.max(MIN_SPAN_FACTOR * Math.abs(centre), MIN_ABS_SPAN);
 }
 
 const isPositive = (n: number) => Number.isFinite(n) && n > 0;
@@ -84,13 +90,14 @@ export function isDefaultViewport(v: Viewport, size: PixelSize): boolean {
 
 /**
  * The largest zoom-in factor f for one axis whose view meets G-23 at its own post-zoom centre
- * `anchor + (centre − anchor)/f`: span/f ≥ minSpan(that centre) holds exactly when f ≤ K and
- * |anchor·f + centre − anchor| ≤ K, with K = span/MIN_SPAN_FACTOR.
+ * `anchor + (centre − anchor)/f`: span/f ≥ minSpan(that centre) holds exactly when
+ * f ≤ span/MIN_ABS_SPAN and |anchor·f + centre − anchor| ≤ K, with K = span/MIN_SPAN_FACTOR.
  */
 function zoomInLimit(span: number, centre: number, anchor: number): number {
   const k = span / MIN_SPAN_FACTOR;
-  if (anchor === 0) return k;
-  return Math.min(k, 1 + (k - Math.sign(anchor) * centre) / Math.abs(anchor));
+  const absolute = span / MIN_ABS_SPAN;
+  if (anchor === 0) return absolute;
+  return Math.min(absolute, 1 + (k - Math.sign(anchor) * centre) / Math.abs(anchor));
 }
 
 /** factor > 1 zooms in (each span divided by factor) about `anchor`; clamped by G-23. */

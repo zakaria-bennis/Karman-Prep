@@ -1,5 +1,6 @@
 // Explicit curves y = f(x) and x = f(y) (G-9 to G-13, G-15). The independent axis t is sampled
-// every half pixel; pairs that jump are bisected to find poles, extrema closer than
+// every half pixel; pairs that jump are bisected to find poles and jumps (floor, mod, sign and
+// piecewise seams break there instead of drawing a riser, as in Desmos), extrema closer than
 // BAND_EXTREMA_PX turn their columns into filled bands, pairs that meet an undefined sample are
 // bisected to find the domain edge, the remaining extrema are refined, band columns are sampled
 // across their width, and the rest join into polylines clipped to a guard band half a view beyond
@@ -20,7 +21,18 @@ export type ExplicitSamples = { polyline: number[]; bands: number[] };
 
 export const MAX_COLUMNS = 4096;
 export const POLE_BISECTIONS = 30;
+/** A pair is bisected as a possible jump when its |Δv| is over this many times both neighbours'. */
+export const JUMP_SPIKE = 3;
+/** A jump is clean when the halves set aside in this many final halvings each moved ≤ 1 px. */
+export const CLEAN_JUMP_ROUNDS = 10;
 export const EDGE_BISECTIONS = 12;
+/**
+ * Past EDGE_BISECTIONS, a domain edge keeps halving (up to EDGE_BISECTIONS_MAX) while its defined
+ * end still moves more than EDGE_SETTLE_PX and lies inside the guard band, so log(sin x) runs its
+ * spikes off the view as Desmos does.
+ */
+export const EDGE_BISECTIONS_MAX = 64;
+const EDGE_SETTLE_PX = 0.5;
 export const GUARD_FRACTION = 0.5;
 export const BAND_EXTREMA_PX = 2;
 export const EXTREMUM_ROUNDS = 5;
@@ -164,15 +176,27 @@ class ExplicitSampler {
     }
   }
 
-  /** Phase 2: bisect pairs that jump more than the view height or cross zero by more than 1 px. */
+  /**
+   * Phase 2: bisect pairs that jump more than the view height, cross or meet zero by more than
+   * 1 px, or jump more than 1 px and more than JUMP_SPIKE times both neighbouring pairs (a step, a
+   * sawtooth wrap or a piecewise seam, where the curve on either side is flat or gentle).
+   */
   poles(): void {
     const candidates: number[] = [];
+    const jumps: number[] = []; // the base pairs' |Δv| in px, NaN for a pair with an undefined value
+    for (let a = 0; this.next[a] >= 0; a = this.next[a]) {
+      const va = this.v[a];
+      const vb = this.v[this.next[a]];
+      jumps.push(Number.isNaN(va) || Number.isNaN(vb) ? NaN : this.jumpPx(a));
+    }
+    const near = (k: number) => (k >= 0 && k < jumps.length && jumps[k] >= 0 ? jumps[k] : 0);
     for (let a = 0; this.next[a] >= 0; a = this.next[a]) {
       const va = this.v[a];
       const vb = this.v[this.next[a]];
       if (Number.isNaN(va) || Number.isNaN(vb) || this.offView(va, vb)) continue;
-      const jump = this.jumpPx(a);
-      if (jump > this.frame.vPx || (va * vb < 0 && jump > 1)) candidates.push(a);
+      const jump = jumps[a];
+      const spike = jump > 1 && jump > JUMP_SPIKE * Math.max(near(a - 1), near(a + 1));
+      if (jump > this.frame.vPx || (va * vb <= 0 && jump > 1) || spike) candidates.push(a);
     }
     this.refineAll(candidates, (a) => this.bisectPole(a), this.pairColumn);
   }
@@ -180,11 +204,17 @@ class ExplicitSampler {
   /**
    * Halves the pair starting at `start` up to POLE_BISECTIONS times, keeping the half with the
    * larger |Δv|; the other half stays an ordinary pair. A pair too narrow to halve (deep zoom)
-   * ends the halving early, as if every bisection were spent. False when the budget refuses.
+   * ends the halving early, as if every bisection were spent. A jump still over 1 px at the end is
+   * a break when it is over the view height (a pole) or when every half set aside in the last
+   * CLEAN_JUMP_ROUNDS halvings moved at most 1 px (a jump between flat or gentle pieces: floor,
+   * mod, sign, a piecewise seam); otherwise (wild oscillation) its column becomes a band. False
+   * when the budget refuses.
    */
   private bisectPole(start: number): boolean {
     let a = start;
-    for (let n = 0; n < POLE_BISECTIONS; n++) {
+    let messy = 0; // the last halving whose set-aside half moved more than 1 px
+    let n = 0;
+    for (; n < POLE_BISECTIONS; n++) {
       const b = this.next[a];
       const tm = this.midpoint(a, b);
       if (Number.isNaN(tm)) break;
@@ -192,11 +222,17 @@ class ExplicitSampler {
       if (vm === undefined) return false;
       const m = this.insertAfter(a, tm, vm);
       if (Number.isNaN(vm)) return true; // split at an undefined point: both mixed pairs are edges
-      if (Math.abs(this.v[b] - vm) > Math.abs(vm - this.v[a])) a = m;
+      const right = Math.abs(this.v[b] - vm) > Math.abs(vm - this.v[a]);
+      const aside = right ? a : m;
+      if (right) a = m;
+      if (this.jumpPx(aside) > 1) messy = n + 1;
       if (this.jumpPx(a) <= 1) return true; // continuous
     }
-    if (this.jumpPx(a) > this.frame.vPx) this.poleBreak[a] = 1;
-    else this.band[this.col[a]] = 1;
+    if (this.jumpPx(a) > this.frame.vPx || n - messy >= Math.min(n, CLEAN_JUMP_ROUNDS)) {
+      this.poleBreak[a] = 1;
+    } else {
+      this.band[this.col[a]] = 1;
+    }
     return true;
   }
 
@@ -209,16 +245,27 @@ class ExplicitSampler {
     this.refineAll(mixed, (a) => this.bisectEdge(a), this.pairColumn);
   }
 
-  /** Halves a mixed pair EDGE_BISECTIONS times, keeping the half that is still mixed. */
+  /**
+   * Halves a mixed pair EDGE_BISECTIONS times, keeping the half that is still mixed, then goes on
+   * up to EDGE_BISECTIONS_MAX while the defined end keeps moving more than EDGE_SETTLE_PX and is
+   * not beyond a guard line; a value that leaps more than the view height is not kept.
+   */
   private bisectEdge(start: number): boolean {
     let a = start;
-    for (let n = 0; n < EDGE_BISECTIONS; n++) {
-      const tm = this.midpoint(a, this.next[a]);
+    for (let n = 0; n < EDGE_BISECTIONS_MAX; n++) {
+      const b = this.next[a];
+      const defined = Number.isNaN(this.v[a]) ? this.v[b] : this.v[a];
+      if (n >= EDGE_BISECTIONS && (defined > this.guardHigh || defined < this.guardLow)) break;
+      const tm = this.midpoint(a, b);
       if (Number.isNaN(tm)) break;
       const vm = this.evaluate(tm);
       if (vm === undefined) return false;
+      const move = Math.abs(vm - defined) * this.vScale;
+      if (n >= EDGE_BISECTIONS && move > this.frame.vPx) break; // a leap, not a settling edge
       const m = this.insertAfter(a, tm, vm);
       if (Number.isNaN(vm) === Number.isNaN(this.v[a])) a = m;
+      const settled = !Number.isNaN(vm) && move <= EDGE_SETTLE_PX;
+      if (n + 1 >= EDGE_BISECTIONS && settled) break;
     }
     return true;
   }
