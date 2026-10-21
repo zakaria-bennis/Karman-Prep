@@ -9,7 +9,7 @@ import json
 import re
 from pathlib import Path
 
-from . import lane
+from . import figure_gate, lane
 from .evidence import needs_visual
 from .keys import UNKEYED_FIGURE_FIELDS, is_unkeyable
 from .normalize import NORMALIZER_VERSION
@@ -73,7 +73,7 @@ def _has_asset(row: dict) -> bool:
     return False
 
 
-def _check_figure(row: dict) -> list[str]:
+def _check_figure(row: dict, no_figure=frozenset()) -> list[str]:
     kind = row.get("figure_kind")
     if kind not in (None, "table"):
         return [f"figure_kind {kind!r} is not null or table"]
@@ -84,7 +84,7 @@ def _check_figure(row: dict) -> list[str]:
     if row.get("figure_table_data") not in (None, "", [], {}) or _has_asset(row):
         return []
     phrase = needs_visual(str(row.get("question_text") or ""))
-    if phrase:
+    if figure_gate.is_figure_question(row.get("stable_question_id"), phrase, no_figure):
         return [f"text refers to a visual ({phrase!r}) but the row has no reviewed asset"]
     return []
 
@@ -173,9 +173,11 @@ class LintError(ValueError):
     pass
 
 
-def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path) -> dict:
+def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=frozenset()) -> dict:
     """Return {"passed": [ids], "pulled": [{id, code, detail}]}. A row with several
-    problems gets one pulled entry per code and is not in `passed`."""
+    problems gets one pulled entry per code and is not in `passed`. no_figure: ids a
+    reviewer found to have no figure (figure_gate.no_figure_ids); their text may mention
+    a graph without a reviewed asset."""
     data = _load(reviewed)
     rows = data.get("questions") if isinstance(data, dict) else None
     if not isinstance(rows, list):
@@ -206,7 +208,7 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path) -> dict:
         if sid in dupes:
             binding.append("stable_question_id repeats within the batch")
         found = {
-            "PF_FIGURE": _check_figure(row),
+            "PF_FIGURE": _check_figure(row, no_figure),
             "PF_ENVELOPE": _check_envelope(row),
             "PF_BINDING": binding,
             "PF_DIFFICULTY": _check_difficulty(row),
@@ -236,7 +238,8 @@ def write_lane(lane_path: Path, pulled: list, now: str) -> int:
 
 
 def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str) -> dict:
-    result = lint_batch(reviewed, frozen, clusters)
+    """lint_batch, with no-figure.json read from figures/ beside the lane file."""
+    result = lint_batch(reviewed, frozen, clusters, figure_gate.no_figure_ids(Path(lane).parent / "figures"))
     if result["pulled"]:
         write_lane(lane, result["pulled"], now)
     return {"passed": len(result["passed"]), "pulled_rows": len({p["id"] for p in result["pulled"]}),

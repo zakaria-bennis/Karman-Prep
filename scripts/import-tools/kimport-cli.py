@@ -238,13 +238,16 @@ def _register_corpus(sub) -> None:
     cp.add_argument("--extra-ledger", action="append",
                     help="supplementary ledger of new-exam occurrences; repeatable "
                     "(default: new-exam-ledger.json in --out, if present)")
+    cp.add_argument("--figures", help="pipeline/figures: ids in its no-figure.json are text questions "
+                    "(default: figures/ next to the lane file)")
     cp.set_defaults(func=lambda a: _guard(lambda: print(
         "corpus: {occurrences} occurrences, {unique} unique, {unique_not_live} not yet live, "
         "{founder_pairs} founder pairs, {unparsed} unparsed".format(
             **corpus.run_corpus(Path(a.c_index), Path(a.ledger), Path(a.export) if a.export else None,
                                 Path(a.out), Path(a.decision_log) if a.decision_log else None,
                                 Path(a.lane) if a.lane else None,
-                                a.extra_c_records, a.extra_ledger)))))
+                                a.extra_c_records, a.extra_ledger,
+                                Path(a.figures) if a.figures else None)))))
 
 
 def _register_pairs(sub) -> None:
@@ -414,7 +417,7 @@ def _register_autopilot(sub) -> None:
 
 
 def _register_figures(sub) -> None:
-    fp = sub.add_parser("figures", help="figure lane: hand out figure questions, submit them to the founder, rework")
+    fp = sub.add_parser("figures", help="figure lane: hand out figure questions, submit them to the founder, no-figure, rework")
     fp.set_defaults(func=lambda a: fp.print_help(sys.stderr) or 2)
     fsub = fp.add_subparsers(dest="figures_action", metavar="<action>")
 
@@ -448,6 +451,24 @@ def _register_figures(sub) -> None:
     sm.set_defaults(func=lambda a: _guard(lambda: print(
         "figures submit: {occurrence_id} ready for the founder (round {round})".format(
             **figures.submit(Path(a.figures), a.id, a.by, a.now)))))
+
+    nf = fsub.add_parser("no-figure", help="original.png shows no figure: send the question back to the text lane")
+    nf.add_argument("--figures", help="pipeline/figures (default: figures/ next to --lane)")
+    nf.add_argument("--lane", help="pipeline/lane.json (to find figures/ when --figures is not given)")
+    nf.add_argument("--id", required=True, help="occurrence id")
+    nf.add_argument("--reviewer", required=True, help="your reviewer name")
+    nf.add_argument("--note", required=True, help="what original.png shows, e.g. 'text, one equation, four choices'")
+    nf.add_argument("--now", required=True)
+
+    def no_figure(a):
+        if not (a.figures or a.lane):
+            raise ValueError("no-figure needs --figures (or --lane)")
+        fdir = Path(a.figures) if a.figures else Path(a.lane).parent / "figures"
+        e = figures.no_figure(fdir, a.id, a.reviewer, a.note, a.now)
+        also = f" (and its copies {', '.join(e['covers'])})" if e["covers"] else ""
+        print(f"figures no-figure: {e['id']}{also} back to the text lane; re-run k corpus, then k slice hands it out")
+
+    nf.set_defaults(func=lambda a: _guard(lambda: no_figure(a)))
 
     rw = fsub.add_parser("rework", help="figures the founder rejected, with his notes (do these first)")
     rw.add_argument("--figures", required=True)

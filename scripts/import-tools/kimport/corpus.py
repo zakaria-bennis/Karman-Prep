@@ -13,7 +13,9 @@ Grouping (cluster):
      to be equal) are compared with typo_match. A bucket joins a cluster only
      by matching the cluster's canonical, so close matches never chain;
   4. records whose figure the key cannot represent never merge: they are
-     grouped by text as "figure_review" candidates for the figure campaign;
+     grouped by text as "figure_review" candidates for the figure campaign
+     (an id a reviewer found to have no figure, in figures/no-figure.json, is
+     a text question: figure_gate.is_figure_question);
   5. canonicals with the same answer, no figure and a difflib ratio of at
      least FOUNDER_RATIO form founder yes/no pairs (founder_pairs.json); a
      non-live canonical in a pair gets role founder_review until decided.
@@ -39,6 +41,7 @@ from pathlib import Path
 from kimport.corpus_load import NEW_EXAM_LEDGER_FILE, NEW_EXAM_RECORDS_FILE, load_corpus
 from kimport.evidence import WORD, OutsideEvidence, needs_visual
 from kimport.export import read_export_doc
+from kimport.figure_gate import no_figure_ids, no_figure_path
 from kimport.jsonio import FileLock, atomic_write_json, write_text_atomic
 from kimport.keys import QuestionRecord, answer_value, clean_text, comparison_key, is_unkeyable, sorted_choices
 from kimport.normalize import NORMALIZER_VERSION
@@ -612,8 +615,9 @@ def _as_paths(v) -> list[Path] | None:
 
 def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
                decision_log: Path | None = None, lane_path: Path | None = None,
-               extra_c_records=None, extra_ledgers=None) -> dict:
-    """extra_c_records: one or more files of extra corrected texts (corpus_load.load_reread: hand
+               extra_c_records=None, extra_ledgers=None, figures_dir: Path | None = None) -> dict:
+    """figures_dir: pipeline/figures, whose no-figure.json lists ids a reviewer found to have no
+    figure (default: figures/ beside the lane file, else beside out_dir). extra_c_records: one or more files of extra corrected texts (corpus_load.load_reread: hand
     re-reads, and new-exam captures); default reread-records.json and new-exam-c-records.json in
     out_dir when present. extra_ledgers: supplementary ledgers of new-exam occurrences; default
     new-exam-ledger.json in out_dir when present. The defaults mean every re-run (the autopilot's
@@ -624,12 +628,15 @@ def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
     extra = default_extra_c_records(out_dir) if extra is None else extra
     ledgers = _as_paths(extra_ledgers)
     ledgers = default_extra_ledgers(out_dir) if ledgers is None else ledgers
+    lane_path = Path(lane_path) if lane_path else default_lane(out_dir)
+    if figures_dir is None:
+        figures_dir = (lane_path.parent if lane_path else Path(out_dir).parent) / "figures"
+    no_figure = no_figure_ids(figures_dir)
     load_stats: dict = {}
-    corpus = load_corpus(Path(c_index), Path(ledger), extra, load_stats, ledgers)
+    corpus = load_corpus(Path(c_index), Path(ledger), extra, load_stats, ledgers, no_figure)
     live = None
     if export is not None:
         live = [record_from_row(row) for row in read_export_doc(Path(export)).rows]
-    lane_path = Path(lane_path) if lane_path else default_lane(out_dir)
     blocked = blocked_ids(lane_path)
     if blocked:
         corpus = _mark_blocked(corpus, blocked)
@@ -643,6 +650,9 @@ def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
                      "extra_c_records_sha256": [_file_sha(p) for p in extra] or None,
                      "extra_ledgers": [str(p) for p in ledgers] or None,
                      "extra_ledgers_sha256": [_file_sha(p) for p in ledgers] or None,
+                     "no_figure": str(no_figure_path(figures_dir)), "no_figure_ids": len(no_figure),
+                     "no_figure_sha256": _file_sha(no_figure_path(figures_dir))
+                     if no_figure_path(figures_dir).exists() else None,
                      "load": load_stats}
     log = Path(decision_log) if decision_log else Path(out_dir) / "founder_decisions.json"
     write_outputs(result, Path(out_dir), log)

@@ -27,11 +27,20 @@ import json
 import re
 from pathlib import Path
 
+from kimport.figure_gate import is_figure_question
 from kimport.keys import QuestionRecord
 from kimport.evidence import needs_visual
 
 CHOICE = re.compile(r'^\s*([A-H])\s*(?:[):]|\.(?![A-Z]\.))\s*(.+?)\s*$')  # "A.J. Noss" (initials) is not a choice
-IMAGE = re.compile(r'(?i)(<svg|<img|!\[|\b(?:figure|graph|diagram|image|shown below|pictured|scatterplot)\b)')
+# A visual in the proofread text: markup, a bracketed description ("[Graph: ...]", "[Coordinate
+# graph: ...]", in the stem or a choice), a figure word, or a graph / image that is "shown". The bare
+# words "graph" and "image" are not enough: "the graph of y = 2x + 3 in the xy-plane" and "images
+# of dogs" are prose with no figure (a sample of figure_review groups, 2026-10-21: 9 of 40 had no
+# figure, all flagged by one of those two words alone).
+_VISUAL_NOUN = r'(?:graph|figure|image|diagram|chart|table|scatterplot|plot|picture|map|photo|illustration|visual)s?'
+IMAGE = re.compile(r'(?i)(<svg|<img|!\[|\[\s*(?:[\w-]+\s+){0,3}' + _VISUAL_NOUN + r'\b[^\]\n]{0,40}?:'
+                   r'|\b(?:figure|diagram|shown below|pictured|scatterplot|shaded region)\b'
+                   r'|\b(?:graph|image)s?\b[^.?!\n]{0,40}?\bshown\b)')
 VISUAL_REASON = "essential_visual_material_unreviewed"
 GENERATED_BASIS = "two_independent_question_only_reviews_without_original_key"
 _STUDENT_KEYS = ("b_final_student_text", "b_student_final_text", "B_student_final_text", "B_student_json", "student_json")
@@ -147,10 +156,12 @@ def parse_text(text):
     return {'body': '\n'.join(lines), 'choices': opts}
 
 
-def classify(q):
+def classify(q, may_be_figure: bool = True):
     """(fields, reason). As dedup.classify, except that a question needing an
     unreviewed visual is still parsed (fields returned with VISUAL_REASON) so
-    the corpus can group figure candidates by text without merging them."""
+    the corpus can group figure candidates by text without merging them.
+    may_be_figure False (a reviewer found no figure: figure_gate.is_figure_question)
+    still reports the visual flag but needs a key like any text question."""
     p = parse_text(q['text'])
     if not p:
         return None, 'choice_parse_ambiguous'
@@ -161,10 +172,10 @@ def classify(q):
         return None, 'type_choice_mismatch'
     visual = None
     # Asset review must describe the full figure/data semantics; byte hashes are lineage only.
-    if IMAGE.search(p['body']) and not q.get('reviewed_material_signature'):
+    seen = IMAGE.search(p['body']) or any(IMAGE.search(c) for _, c in p['choices']) or q.get('assets')
+    if seen and not q.get('reviewed_material_signature'):
         visual = VISUAL_REASON
-    if q.get('assets') and not q.get('reviewed_material_signature'):
-        visual = VISUAL_REASON
+    held = visual if may_be_figure else None  # a cleared question needs its key like any text question
     body = p['body']
     if not body:
         return None, 'empty_prompt'
@@ -173,11 +184,11 @@ def classify(q):
     if typ == 'multiple_choice':
         mapped = dict(choices)
         if key not in mapped:
-            return (None, 'key_unmapped') if not visual else (_fields(body, choices, '', typ, q), visual)
+            return (None, 'key_unmapped') if not held else (_fields(body, choices, '', typ, q), visual)
         answer = mapped[key]
     else:
         answer = str(q.get('numeric_answer', key) or '').strip()
-        if not answer and not visual:
+        if not answer and not held:
             return None, 'numeric_answer_missing'
     return _fields(body, choices, answer, typ, q), visual
 
@@ -202,16 +213,20 @@ def unparsed_record(ref: str, reason: str, *, is_live=False, meta=None) -> Quest
     return QuestionRecord(ref=ref, text="", choices=(), answer="", answer_format="mc", is_live=is_live, meta=m)
 
 
-def record_from_question(q: dict, ref: str, *, is_live=False, meta=None) -> QuestionRecord:
+def record_from_question(q: dict, ref: str, *, is_live=False, meta=None, no_figure=frozenset()) -> QuestionRecord:
     """A dedup.py style question dict -> QuestionRecord. meta["status"] is
-    "ok", "figure" (never auto-merged) or "unparsed" (meta["reason"] says why)."""
-    fields, reason = classify(q)
+    "ok", "figure" (never auto-merged) or "unparsed" (meta["reason"] says why).
+    no_figure: ids a reviewer found to have no figure (figure_gate.no_figure_ids)."""
+    fields, reason = classify(q, is_figure_question(ref, True, no_figure))
     if fields is None:
         return unparsed_record(ref, reason, is_live=is_live, meta=meta)
     m = _base_meta(meta)
     phrase = None if fields['figure_signature'] else needs_visual(fields['body'])
-    if reason or phrase or m.get("figure_reason"):
-        m.update(status="figure", reason=reason or m.get("figure_reason") or f"text refers to a visual: {phrase!r}")
+    flag = reason or m.get("figure_reason") or (phrase and f"text refers to a visual: {phrase!r}")
+    if is_figure_question(ref, flag, no_figure):
+        m.update(status="figure", reason=flag)
+    elif flag:
+        m["no_figure"] = f"reviewer found no figure in original.png (was: {flag})"
     m["choice_map"] = fields['choice_map']
     return QuestionRecord(ref=ref, text=fields['body'], choices=fields['choices'], answer=fields['answer'],
                           answer_format=fields['answer_format'], figure_signature=fields['figure_signature'],
@@ -496,10 +511,11 @@ def read_reread(r: dict, item: dict) -> dict:
 
 
 def load_corpus(c_index: Path, ledger: Path, extra=None, stats: dict | None = None,
-                extra_ledgers=()) -> list[QuestionRecord]:
+                extra_ledgers=(), no_figure=frozenset()) -> list[QuestionRecord]:
     """extra: optional re-read records file (load_reread). An occurrence uses its re-read text only
     when the C index gives no usable text (none, older B version, or a text that does not parse).
-    stats, when given, is filled with how each fallback was used."""
+    stats, when given, is filled with how each fallback was used. no_figure: ids a reviewer found
+    to have no figure (figure_gate.no_figure_ids); they are read as text questions."""
     index: dict[str, dict] = {}
     for x in _index_rows(_read_json(c_index)):
         if x["question_id"] in index:
@@ -555,7 +571,7 @@ def load_corpus(c_index: Path, ledger: Path, extra=None, stats: dict | None = No
                     meta["c_newer_text"] = newer["c_output_path"]
                     st["newer_c_text"] += 1
         if reason is None:
-            rec = _record(item, occ, meta, live, cf)
+            rec = _record(item, occ, meta, live, cf, no_figure)
             if rec.meta["status"] == "unparsed":
                 reason = rec.meta["reason"]
         r = reread.get(oid)
@@ -583,7 +599,7 @@ def load_corpus(c_index: Path, ledger: Path, extra=None, stats: dict | None = No
                         meta.update(text_source="reread", reread_replaces=reason)
                     if r.get("figure") and not meta["figure_reason"]:
                         meta["figure_reason"] = "re-read: the question needs its figure"
-                    rec = _record(item, rocc, meta, live, cf)
+                    rec = _record(item, rocc, meta, live, cf, no_figure)
                     if rec.meta["status"] == "unparsed":
                         st["new_exam_failed" if fresh else "reread_failed"] += 1
                         st["reread_failures"][oid] = "reread_" + rec.meta["reason"]
@@ -597,11 +613,12 @@ def load_corpus(c_index: Path, ledger: Path, extra=None, stats: dict | None = No
     return out
 
 
-def _record(item: dict, occ: dict, meta: dict, live: bool, cf: "_CfVisual") -> QuestionRecord:
+def _record(item: dict, occ: dict, meta: dict, live: bool, cf: "_CfVisual", no_figure=frozenset()) -> QuestionRecord:
     m = dict(meta)
     m.update(c_hash_recorded=occ["c_hash_recorded"], c_text_sha256=occ["c_text_sha256"],
              b_version=occ["b_version"], reviewed_answer={"kind": occ["kind"]})
     status = cf.status(item)
     if status in _CF_VISUAL and not m["figure_reason"]:
         m["figure_reason"] = f"CF essential visual ({status})"
-    return record_from_question({"text": occ["text"], "key": occ["key"]}, item["id"], is_live=live, meta=m)
+    return record_from_question({"text": occ["text"], "key": occ["key"]}, item["id"], is_live=live, meta=m,
+                                no_figure=no_figure)

@@ -1,4 +1,4 @@
-"""Figure lane work queue: `k figures slice | submit | rework | status`.
+"""Figure lane work queue: `k figures slice | submit | no-figure | rework | status`.
 
 `pipeline/figures/<occurrence id>/` holds one figure question:
   original.png  the source question crop (copied from its B question package)
@@ -10,6 +10,10 @@
 Statuses: drafting (a reviewer has it) -> ready_for_founder (submitted) ->
 approved | rejected (the founder, in /dev/figure-review). A rejected item goes
 back to its reviewer through `rework`; submitting it again opens round + 1.
+A question whose original.png shows no figure (a false figure flag) is set to
+no_figure by `no-figure`: the claim is released and the id, with the copies of
+its figure group, is appended to no-figure.json, which sends it back to the text
+lane (figure_gate.is_figure_question).
 A folder is the claim: slice never hands out an id (or another copy in the same
 figure_review group) that already has a folder, whatever its status.
 
@@ -76,11 +80,13 @@ def find_original(entry: dict, b_root: Path, new_exam_packages: Path) -> Path | 
     return None
 
 
-def candidates(clusters_path: Path, lane_path: Path, ledger: dict) -> list[tuple[str, list[str]]]:
+def candidates(clusters_path: Path, lane_path: Path, ledger: dict,
+               no_figure=frozenset()) -> list[tuple[str, list[str]]]:
     """(representative id, every id in its group) for each figure question still to build:
     one copy per not-live figure_review group (printed key first, then fewest holds, then
     source order), plus open needs_figure lane items outside those groups. Copies that are
-    live, ruled out, or open / parked in the lane for another reason are never picked."""
+    live, ruled out, open / parked in the lane for another reason, or in no-figure.json
+    (`no_figure`) are never picked."""
     from .lane import _is_live, _read_lane, _ruled_out, live_ids, parse_id
     doc = load_json(clusters_path)
     items = _read_lane(lane_path)["items"]
@@ -90,7 +96,8 @@ def candidates(clusters_path: Path, lane_path: Path, ledger: dict) -> list[tuple
 
     def ok(occ):
         e = ledger.get(occ)
-        return e is not None and not _is_live(e) and not _ruled_out(e) and occ not in live and occ not in other_hold
+        return (e is not None and not _is_live(e) and not _ruled_out(e) and occ not in live and occ not in other_hold
+                and fg.is_figure_question(occ, True, no_figure))
 
     out, seen = [], set()
     for c in doc.get("clusters", []):
@@ -127,7 +134,7 @@ def next_slice(figures_dir: Path, clusters_path: Path, lane_path: Path, ledger_p
     picked = []
     with FileLock(figures_dir / "queue"):
         taken = {d.name for d in _folders(figures_dir)}
-        for occ, group in candidates(clusters_path, lane_path, ledger):
+        for occ, group in candidates(clusters_path, lane_path, ledger, fg.no_figure_ids(figures_dir)):
             if len(picked) >= size:
                 break
             if not fg.ID.fullmatch(occ) or taken.intersection(group):
@@ -164,6 +171,8 @@ def submit(figures_dir: Path, occ_id: str, by: str, now: str) -> dict:
         state = status.get("status")
         if state == "approved":
             raise ValueError(f"{occ_id} is already approved; an approved figure is not changed")
+        if state == fg.NO_FIGURE:
+            raise ValueError(f"{occ_id} was marked no_figure (no figure in original.png); it is in the text lane")
         if state not in ("drafting", "rejected", "ready_for_founder"):
             raise ValueError(f"{occ_id} has an unknown status {state!r}")
         if not (folder / fg.ORIGINAL_FILE).is_file():
@@ -183,6 +192,41 @@ def submit(figures_dir: Path, occ_id: str, by: str, now: str) -> dict:
             _event(now, "submitted", by, str(doc.get("notes") or ""))]
         _write_status(folder, status)
         return status
+
+
+def no_figure(figures_dir: Path, occ_id: str, reviewer: str, note: str, now: str) -> dict:
+    """The reviewer found no figure in original.png: status no_figure (with a history entry),
+    the claim released, and the id plus the copies of its figure group appended to
+    no-figure.json. An approved figure is never changed. Returns the no-figure.json entry."""
+    folder = Path(figures_dir) / fg.check_id(occ_id)
+    status_path = folder / fg.STATUS_FILE
+    if not reviewer or not fg.ID.fullmatch(reviewer):
+        raise ValueError("--reviewer must be a short name (letters, digits, dashes, underscores)")
+    if not isinstance(note, str) or not note.strip():
+        raise ValueError("--note must say what original.png shows (e.g. 'text, an equation and four choices')")
+    if not status_path.is_file():
+        raise ValueError(f"{occ_id} is not in the figure queue (no {status_path})")
+    with FileLock(status_path):
+        status = load_json(status_path)
+        state = status.get("status")
+        if state == fg.NO_FIGURE:
+            raise ValueError(f"{occ_id} is already marked no_figure")
+        if state == "approved":
+            raise ValueError(f"{occ_id} has an approved figure; the founder approved it, so it is not changed here")
+        if state not in fg.STATUSES:
+            raise ValueError(f"{occ_id} has an unknown status {state!r}")
+        entry = {"id": occ_id, "covers": sorted(set(status.get("group") or ()) - {occ_id}), "by": reviewer,
+                 "at": now, "note": note.strip()}
+        nf_path = fg.no_figure_path(figures_dir)
+        with FileLock(nf_path):
+            doc = fg.read_no_figure(figures_dir)
+            doc["items"] = [it for it in doc["items"] if it.get("id") != occ_id] + [entry]
+            atomic_write_json(nf_path, doc)
+        status.update({"status": fg.NO_FIGURE, "claimed_by": None, "released_by": status.get("claimed_by"),
+                       "submitted_file_sha256": None, "approved_file_sha256": None})
+        status["history"] = list(status.get("history", [])) + [_event(now, fg.NO_FIGURE, reviewer, note.strip())]
+        _write_status(folder, status)
+        return entry
 
 
 def last_note(status: dict, decision: str = "rejected") -> str:

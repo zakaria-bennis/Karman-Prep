@@ -12,6 +12,14 @@ and checked by the founder in /dev/figure-review, which writes his decision to
 
 `gate_reasons` is the one check stage, bulk stage and publish all call.
 Questions without a figure pass untouched. Nothing here edits a file.
+
+A reviewer who finds no figure in original.png runs `k figures no-figure`; the
+id (with the copies of its figure group) goes into `pipeline/figures/no-figure.json`,
+the single record of those findings. `is_figure_question` is the one rule every
+consumer (corpus, lint, this gate) applies: a flagged occurrence is a figure
+question unless that file lists it. Such an id goes back to the text lane: it
+clusters by text, is sliced to reviewers and needs no figure approval (a row
+that still carries figure fields is refused).
 """
 
 import hashlib
@@ -23,9 +31,12 @@ from pathlib import Path
 from .jsonio import load_json
 
 SCHEMA = "karman-figure-v1"
-STATUSES = ("drafting", "ready_for_founder", "approved", "rejected")
+NO_FIGURE = "no_figure"  # status.json status: the reviewer found no figure in original.png
+STATUSES = ("drafting", "ready_for_founder", "approved", "rejected", NO_FIGURE)
 KINDS = ("table", "chart", "geometric", "image")
 FIGURE_FILE, STATUS_FILE, ORIGINAL_FILE = "figure.json", "status.json", "original.png"
+NO_FIGURE_FILE = "no-figure.json"  # in pipeline/figures: every id found to have no figure
+NO_FIGURE_SCHEMA = "kimport-no-figure-v1"
 # The figure columns compared by the gate, as the quiz engine reads them.
 FIELDS = ("figure_kind", "figure_table_data", "figure_chart_data", "figure_geometry_data", "figure_svg", "image_alt")
 GATE = "figure gate: "  # prefix of every gate refusal (autopilot buckets them as figure_gate)
@@ -44,6 +55,41 @@ def figures_dir_for_batch(batch_dir: Path) -> Path:
     """<pipeline>/figures for a batch at <pipeline>/batches/<name>; figures/ beside a folder elsewhere."""
     parent = Path(batch_dir).resolve().parent
     return figures_dir_for(parent.parent if parent.name == "batches" else parent)
+
+
+def no_figure_path(figures_dir: Path) -> Path:
+    return Path(figures_dir) / NO_FIGURE_FILE
+
+
+def read_no_figure(figures_dir: Path | None) -> dict:
+    """no-figure.json ({schema, items: [{id, covers, by, at, note}]}); a missing file is empty,
+    an unreadable one refuses (a figure question must never pass silently)."""
+    path = no_figure_path(figures_dir) if figures_dir is not None else None
+    if path is None or not path.exists():
+        return {"schema": NO_FIGURE_SCHEMA, "items": []}
+    try:
+        doc = load_json(path)
+        if doc.get("schema") != NO_FIGURE_SCHEMA or not isinstance(doc.get("items"), list):
+            raise TypeError
+    except (ValueError, TypeError, AttributeError) as e:
+        raise ValueError(f"{path} is not readable no-figure JSON") from e
+    return doc
+
+
+def no_figure_ids(figures_dir: Path | None) -> frozenset[str]:
+    """Every id a reviewer found to have no figure, with the copies of its figure group."""
+    out = set()
+    for it in read_no_figure(figures_dir)["items"]:
+        out.add(it["id"])
+        out.update(it.get("covers") or ())
+    return frozenset(out)
+
+
+def is_figure_question(occ_id: str, flag, no_figure) -> bool:
+    """The one rule for "is this occurrence a figure question": something flags it (a visual
+    word or phrase in its text, a CF or ledger visual hold, a re-read, figure fields) and no
+    reviewer has recorded in no-figure.json that its original.png shows no figure."""
+    return bool(flag) and occ_id not in no_figure
 
 
 def check_id(occ_id: str) -> str:
@@ -290,13 +336,20 @@ def read_status(folder: Path) -> dict | None:
         return None
 
 
-def gate_reasons(figures_dir: Path, occ_id: str, rows: dict) -> list[str]:
+def gate_reasons(figures_dir: Path, occ_id: str, rows: dict, no_figure=None) -> list[str]:
     """Why `occ_id` may not be staged or published yet ([] = it may). `rows` maps a label
     ("the reviewed batch row", "the row the importer builds", "the private readback row") to
     that shape of the row about to be written; each must carry exactly figure.json's figure
-    fields. A question with no figure in any row and no figure folder passes."""
+    fields. A question with no figure in any row and no figure folder passes, and so does one
+    in no-figure.json (`no_figure`: those ids, read from figures_dir when None) whose rows
+    carry no figure."""
     folder = Path(figures_dir) / occ_id if ID.fullmatch(str(occ_id or "")) else None
     present = {k: r for k, r in rows.items() if r}
+    no_figure = no_figure_ids(figures_dir) if no_figure is None else no_figure
+    if not is_figure_question(occ_id, True, no_figure):
+        carrying = sorted(k for k, r in present.items() if has_figure(r))
+        return [GATE + f"{occ_id} is in {NO_FIGURE_FILE} (no figure in original.png) but {', '.join(carrying)} "
+                       "carries figure fields"] if carrying else []
     if not any(has_figure(r) for r in present.values()) and not (folder and (folder / FIGURE_FILE).exists()):
         return []
     if folder is None:
@@ -340,10 +393,11 @@ def mark_batch(batch_dir: Path, reviewed_file, items: list[dict]) -> None:
     a batch at <pipeline>/batches/<name> (a folder elsewhere: figures/ beside it)."""
     fdir = figures_dir_for_batch(batch_dir)
     reviewed = reviewed_rows(reviewed_file)
+    no_figure = no_figure_ids(fdir)
     for it in items:
         row = it["row"]
         rows = {"the reviewed batch row": reviewed.get(it["id"]), "the row the importer builds": row}
-        reasons = gate_reasons(fdir, it["id"], rows)
+        reasons = gate_reasons(fdir, it["id"], rows, no_figure)
         if reasons and it["id"] not in reviewed:
             reasons.append(GATE + f"{it['id']} is not in the reviewed batch file {reviewed_file}")
         it["figure_gate"] = reasons
