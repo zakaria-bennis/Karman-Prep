@@ -33,6 +33,12 @@ export { parseDifficulty, parseReviewedDifficulty } from "./import-difficulty";
 import type { QuestionTableData } from "@/types/question-table";
 import { isValidChoiceTableData } from "./choice-table";
 import {
+  figureHashSuffix,
+  figureImportErrors,
+  figureInsertColumns,
+  type ImportFigureFields,
+} from "./import-figure";
+import {
   writeImportAnswerProvenance,
   importAnswerEvidence,
   canonicalEvidence,
@@ -68,7 +74,7 @@ import {
  *
  * Optional fields default to null. Required fields throw at validation.
  */
-export interface ImportQuestionInput {
+export interface ImportQuestionInput extends ImportFigureFields {
   // ── Required ──
   question_text: string;
   raw_question_text?: string;
@@ -84,8 +90,7 @@ export interface ImportQuestionInput {
   choice_d?: string;
 
   choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
-  figure_kind?: "table" | null;
-  figure_table_data?: QuestionTableData | null;
+  // figure_kind, figure_table_data / chart / geometry / svg, image_url, image_alt: ImportFigureFields
 
   // ── Difficulty + format ──
   difficulty?: string | number; // 1-7 or legacy label; defaults to 4 / "intermediate"
@@ -132,10 +137,8 @@ export interface ImportQuestionInput {
   import_flag_type?: ImportFlagType;
   import_flag_reason?: string;
 
-  // ── Figure (admin path materializes data URLs upstream; orchestrator path passes the R2 URL) ──
-  image_url?: string | null;
+  // ── Raster figure (admin path materializes data URLs upstream; orchestrator passes the R2 URL) ──
   image_storage_path?: string | null;
-  image_alt?: string;
 }
 
 export interface ImportQuestionResult {
@@ -182,22 +185,24 @@ export function subjectFromDomain(domain: SATDomain): "reading" | "math" {
  * Stable as long as the same canonical fields are passed; both callers
  * must compute it identically — that's what this helper ensures.
  */
-export function computeContentHashV2(fields: {
-  subject: string;
-  domain: string;
-  answer_format: string;
-  passage_intro?: string;
-  passage?: string;
-  passage_a?: string;
-  passage_b?: string;
-  question_text: string;
-  choice_a?: string;
-  choice_b?: string;
-  choice_c?: string;
-  choice_d?: string;
-  choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
-  figure_table_data?: QuestionTableData | null;
-}): string {
+export function computeContentHashV2(
+  fields: Pick<ImportFigureFields, "figure_chart_data" | "figure_geometry_data" | "figure_svg"> & {
+    subject: string;
+    domain: string;
+    answer_format: string;
+    passage_intro?: string;
+    passage?: string;
+    passage_a?: string;
+    passage_b?: string;
+    question_text: string;
+    choice_a?: string;
+    choice_b?: string;
+    choice_c?: string;
+    choice_d?: string;
+    choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
+    figure_table_data?: QuestionTableData | null;
+  }
+): string {
   const normalized = [
     fields.subject,
     fields.domain,
@@ -233,9 +238,10 @@ export function computeContentHashV2(fields: {
       canonicalTable(fields.choice_tables?.[letter])
     ),
   ];
-  const payload = tables.some((table) => table !== null)
-    ? normalized + "|native-tables:" + JSON.stringify(tables)
-    : normalized;
+  const payload =
+    (tables.some((table) => table !== null)
+      ? normalized + "|native-tables:" + JSON.stringify(tables)
+      : normalized) + figureHashSuffix(fields);
   return createHash("sha256").update(payload, "utf-8").digest("hex");
 }
 
@@ -309,12 +315,7 @@ export function validateImportRow(
     }
   }
 
-  if (row.figure_table_data != null && !isValidChoiceTableData(row.figure_table_data))
-    errors.push("invalid figure_table_data");
-  if (row.figure_kind === "table" && row.figure_table_data == null)
-    errors.push("table figure requires figure_table_data");
-  if (row.figure_table_data != null && row.figure_kind !== "table")
-    errors.push("figure_table_data requires figure_kind=table");
+  errors.push(...figureImportErrors(row));
   if (row.choice_tables != null) {
     if (typeof row.choice_tables !== "object" || Array.isArray(row.choice_tables))
       errors.push("invalid choice_tables");
@@ -441,6 +442,9 @@ export async function importQuestion(
     choice_d: row.choice_d,
     choice_tables: row.choice_tables,
     figure_table_data: row.figure_table_data,
+    figure_chart_data: row.figure_chart_data,
+    figure_geometry_data: row.figure_geometry_data,
+    figure_svg: row.figure_svg,
   });
 
   // ── 1. Insert quiz_questions ──
@@ -494,8 +498,7 @@ export async function importQuestion(
       row.import_flag_reason ||
       (options.privateDraft ? "private_draft_not_for_student_selection" : null),
     publish_status,
-    figure_kind: row.figure_kind ?? null,
-    figure_table_data: (row.figure_table_data as unknown as Json) ?? null,
+    ...(figureInsertColumns(row) as Record<string, Json>),
     image_url: row.image_url ?? null,
     image_storage_path: row.image_storage_path ?? null,
     image_alt: row.image_alt?.trim() || null,

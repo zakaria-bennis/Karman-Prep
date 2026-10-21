@@ -115,6 +115,29 @@ export function shapeWrites(writes: RecordedWrite[], format: string, where: stri
   };
 }
 
+/** The rows the reviewed importer would write for already-verified reviewed rows. */
+export async function recordReviewedRows(
+  rows: Array<Record<string, unknown>>,
+  sourcePdf: string,
+  sourceVersion: string
+) {
+  const out = [];
+  for (const [index, row] of rows.entries()) {
+    const where = `row ${index + 1} (${String(row.stable_question_id)})`;
+    const reviewed = rowToReviewedImportInput(row, sourcePdf, { sourceVersion });
+    if ("error" in reviewed) throw new Error(`${where}: ${reviewed.error}`);
+    const writes: RecordedWrite[] = [];
+    const result = await importQuestion(recordingClient(writes), reviewed.input, {
+      difficultyPolicy: "reviewed",
+    });
+    if (!result.inserted || result.errors.length)
+      throw new Error(`${where}: importer refused: ${result.errors.join("; ") || "not inserted"}`);
+    const format = reviewed.input.question_format ?? "multiple_choice";
+    out.push({ stable_question_id: row.stable_question_id, ...shapeWrites(writes, format, where) });
+  }
+  return out;
+}
+
 async function main() {
   const [jsonArg, pdfArg, manifestArg, manifestSha] = process.argv.slice(2);
   if (!jsonArg || !pdfArg || !manifestArg || !manifestSha)
@@ -145,20 +168,7 @@ async function main() {
     rows,
   });
   if (!frozen.ok) throw new Error(`frozen inputs: ${frozen.error}`);
-  const out = [];
-  for (const [index, row] of rows.entries()) {
-    const where = `row ${index + 1} (${String(row.stable_question_id)})`;
-    const reviewed = rowToReviewedImportInput(row, sourcePdf, { sourceVersion });
-    if ("error" in reviewed) throw new Error(`${where}: ${reviewed.error}`);
-    const writes: RecordedWrite[] = [];
-    const result = await importQuestion(recordingClient(writes), reviewed.input, {
-      difficultyPolicy: "reviewed",
-    });
-    if (!result.inserted || result.errors.length)
-      throw new Error(`${where}: importer refused: ${result.errors.join("; ") || "not inserted"}`);
-    const format = reviewed.input.question_format ?? "multiple_choice";
-    out.push({ stable_question_id: row.stable_question_id, ...shapeWrites(writes, format, where) });
-  }
+  const out = await recordReviewedRows(rows, sourcePdf, sourceVersion);
   process.stdout.write(
     JSON.stringify({
       reviewed_json_sha256: sha256Hex(jsonBytes),

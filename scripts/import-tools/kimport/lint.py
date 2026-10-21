@@ -73,13 +73,19 @@ def _has_asset(row: dict) -> bool:
     return False
 
 
+# Each figure kind the quiz renders and the column that carries it (import-figure.ts);
+# the figure gate checks that column against the founder-approved figure.json.
+FIGURE_DATA = {"table": "figure_table_data", "chart": "figure_chart_data",
+               "geometric": "figure_geometry_data", "image": "figure_svg"}
+
+
 def _check_figure(row: dict, no_figure=frozenset()) -> list[str]:
     kind = row.get("figure_kind")
-    if kind not in (None, "table"):
-        return [f"figure_kind {kind!r} is not null or table"]
-    if kind == "table":
-        if row.get("figure_table_data") in (None, "", [], {}):
-            return ["figure_kind is table but figure_table_data is empty"]
+    if kind is not None and kind not in FIGURE_DATA:
+        return [f"figure_kind {kind!r} is not null or one of {', '.join(FIGURE_DATA)}"]
+    if kind is not None:
+        if row.get(FIGURE_DATA[kind]) in (None, "", [], {}):
+            return [f"figure_kind is {kind} but {FIGURE_DATA[kind]} is empty"]
         return []
     if row.get("figure_table_data") not in (None, "", [], {}) or _has_asset(row):
         return []

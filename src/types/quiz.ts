@@ -199,6 +199,10 @@ export interface QuizQuestion {
    *  (GeometryFigure) only when figure_kind='geometric', i.e. after the
    *  Stage-6.6 gate confirmed the SVG render matches the screenshot. */
   figure_geometry_data: import("@/lib/figures/geometry-svg").GeometryFigureData | null;
+  /** A founder-approved, hand-drawn figure SVG (figure_kind='image', no image_url),
+   *  inlined through sanitizeThemedSvg. Checked by src/lib/figures/svg-figure-check.ts
+   *  at import. Optional so rows and fixtures without it stay valid. */
+  figure_svg?: string | null;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.
@@ -235,6 +239,7 @@ export type StudentQuizQuestion = Pick<
   | "figure_table_data"
   | "figure_chart_data"
   | "figure_geometry_data"
+  | "figure_svg"
 > & {
   reviewed_passage?: import("@/lib/question-bank/reviewed-passage").ReviewedPassageDisplay;
   answer_choices: Pick<

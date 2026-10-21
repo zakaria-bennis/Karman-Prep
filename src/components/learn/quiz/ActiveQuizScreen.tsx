@@ -409,7 +409,8 @@ export function ActiveQuizScreen({
         const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
         const isNativeChart = q.figure_kind === "chart" && q.figure_chart_data;
         const isNativeGeometry = nativeGeometryRenderable;
-        const hasFigure = !!q.image_url || isNativeTable || isNativeChart || isNativeGeometry;
+        const hasFigure =
+          !!q.image_url || !!q.figure_svg || isNativeTable || isNativeChart || isNativeGeometry;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">
             <QuestionTable
@@ -430,9 +431,10 @@ export function ActiveQuizScreen({
           <div className="mb-6 flex justify-center">
             <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
           </div>
-        ) : q.image_url ? (
+        ) : q.image_url || q.figure_svg ? (
           <FigureFrame
             src={q.image_url}
+            svg={q.figure_svg}
             alt={q.image_alt ?? ""}
             className="mb-6"
             maxHeightClass="max-h-[28rem]"

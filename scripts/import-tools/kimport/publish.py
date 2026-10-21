@@ -54,6 +54,9 @@ from kimport.writer import OpenIntent, require_no_open_intents
 MAX_ROWS = 27  # one module
 STAGED_STATUS, STAGED_IMPORT = "needs_human_review", "needs_review"
 FIGURE_NO_KEY = "figure: checked by people, no database key"
+# Figure columns beyond figure_kind / figure_table_data that a staged row may carry (import-figure.ts).
+FIGURE_COLUMNS = ("figure_chart_data", "figure_geometry_data", "figure_svg", "image_url", "image_storage_path",
+                  "image_alt")
 KEYED = "keyed"
 NOT_COMPARABLE_ANSWER = "not comparable (bad answer letter)"
 NOT_COMPARABLE_FORMAT = "not comparable (format mismatch)"
@@ -164,6 +167,11 @@ def _check_row(snap: dict, seal: dict) -> tuple[str, str]:
     for field in ("content_hash_v2", "source_version", "question_text", "correct_answer", "answer_format",
                   "figure_kind", "figure_table_data", "source_section", "source_module", "source_question_number"):
         if q.get(field) != seal.get(field):
+            raise RefuseToBuild(f"{where}: {field} differs between the private readback and the sealed preview")
+    # A stage preview carries every figure column the importer wrote (a legacy sealed preview has
+    # none of them); the figure gate and the seal hash cover them too.
+    for field in FIGURE_COLUMNS:
+        if field in seal and q.get(field) != seal[field]:
             raise RefuseToBuild(f"{where}: {field} differs between the private readback and the sealed preview")
     if not (q.get("is_live") is False and q.get("archived_at") is None and q.get("publish_status") == STAGED_STATUS
             and q.get("import_status") == STAGED_IMPORT):

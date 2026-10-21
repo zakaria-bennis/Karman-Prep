@@ -96,8 +96,12 @@ export default function CatalogQuestion({
           />
         ) : geometry ? (
           <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
-        ) : q.image_url ? (
-          <FigureFrame src={q.image_url} alt={q.image_alt ?? "Question figure"} />
+        ) : q.image_url || q.figure_svg ? (
+          <FigureFrame
+            src={q.image_url}
+            svg={q.figure_svg}
+            alt={q.image_alt ?? "Question figure"}
+          />
         ) : null}
       </div>
       <div className="min-w-0 space-y-6">

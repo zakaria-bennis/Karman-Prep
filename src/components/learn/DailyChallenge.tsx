@@ -307,8 +307,8 @@ function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
         />
       ) : geometryReady ? (
         <GeometryFigure data={q.figure_geometry_data!} className="max-w-full" />
-      ) : q.image_url ? (
-        <FigureFrame src={q.image_url} alt={q.image_alt ?? "Question figure"} />
+      ) : q.image_url || q.figure_svg ? (
+        <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
       ) : null}
       <div className="font-atkinson text-base leading-relaxed">
         <MathText

@@ -20,6 +20,7 @@ import {
   catalogQuestionPayloadHash,
   readCatalogQuestionScope,
 } from "@/lib/question-bank/catalog-question-scope";
+import { figureImportErrors, type ImportFigureFields } from "@/lib/question-bank/import-figure";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 
 type Obj = Record<string, unknown>;
@@ -37,6 +38,11 @@ export function sealSnapshot(snapshot: { question: Obj; choices: Obj[] | null; k
   const multipleChoice = snapshot.question.answer_format === "multiple_choice";
   if (multipleChoice ? choices.length !== 4 : choices.length !== 0)
     throw new Error(`${String(snapshot.question.id)}: choice count does not fit the answer format`);
+  // The stored figure must still be one the importer accepts (kind, data, sanitized SVG);
+  // its columns are sealed below exactly as the student payload carries them.
+  const figure = figureImportErrors(snapshot.question as unknown as ImportFigureFields);
+  if (figure.length)
+    throw new Error(`${String(snapshot.question.id)}: stored figure: ${figure.join("; ")}`);
   const raw = keys[0].raw_model_response as Obj;
   const scope = readCatalogQuestionScope(raw);
   if (scope.tags.stable_question_id !== evidenceRoot(raw).question_id)

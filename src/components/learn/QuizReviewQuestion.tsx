@@ -45,8 +45,8 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
         />
       ) : nativeGeometry ? (
         <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
-      ) : q.image_url ? (
-        <FigureFrame src={q.image_url} alt={q.image_alt ?? "Question figure"} />
+      ) : q.image_url || q.figure_svg ? (
+        <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
       ) : null}
       <MathText text={q.question_text} serializedFunctionLines={q.subject === "math"} />
       {q.answer_format !== "numeric_entry" && (

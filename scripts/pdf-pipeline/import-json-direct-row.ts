@@ -107,6 +107,10 @@ export function rowToImportInput(
     choice_tables: row.choice_tables,
     figure_kind: row.figure_kind,
     figure_table_data: row.figure_table_data,
+    // Founder-approved chart / geometry / hand-drawn SVG figures (validated in import-figure.ts).
+    figure_chart_data: row.figure_chart_data,
+    figure_geometry_data: row.figure_geometry_data,
+    figure_svg: row.figure_svg,
     difficulty: row.difficulty,
     question_format: row.question_format,
     numeric_tolerance: row.numeric_tolerance,

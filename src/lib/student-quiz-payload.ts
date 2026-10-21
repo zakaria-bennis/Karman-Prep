@@ -1,6 +1,16 @@
 import { reviewedPassageForQuestion } from "@/lib/question-bank/reviewed-passage";
 import type { QuizQuestionWithChoices, StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 
+/** The hand-drawn SVG a student sees: figure_kind 'image' with no raster image_url. */
+export function studentFigureSvg(question: QuizQuestionWithChoices): string | null {
+  return question.figure_kind === "image" &&
+    !question.image_url &&
+    typeof question.figure_svg === "string" &&
+    question.figure_svg
+    ? question.figure_svg
+    : null;
+}
+
 export function toStudentQuizQuestion(question: QuizQuestionWithChoices): StudentQuizQuestion {
   return {
     id: question.id,
@@ -25,6 +35,9 @@ export function toStudentQuizQuestion(question: QuizQuestionWithChoices): Studen
     figure_table_data: question.figure_table_data,
     figure_chart_data: question.figure_chart_data,
     figure_geometry_data: question.figure_geometry_data,
+    // Only an SVG figure carries the key, so every other question's payload (and its
+    // catalogQuestionPayloadHash seal) is unchanged.
+    ...(studentFigureSvg(question) ? { figure_svg: studentFigureSvg(question) } : {}),
     answer_choices: question.answer_choices.map((choice) => ({
       id: choice.id,
       question_id: choice.question_id,
