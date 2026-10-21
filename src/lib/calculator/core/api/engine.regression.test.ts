@@ -68,6 +68,6 @@ it("D-24 a failed fit is the row's error in place of results", async () => {
   ]);
   await m.settled();
   expect(m.engine.getSnapshot().rows.find((r) => r.id === "r")!.error?.message).toBe(
-    "We couldn't find any region where this model is defined."
+    "This model isn't defined for this data."
   );
 });

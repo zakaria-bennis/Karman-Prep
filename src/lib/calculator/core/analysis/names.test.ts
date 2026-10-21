@@ -39,77 +39,37 @@ it("RC-3 name uses come in source order with call and point flags", () => {
 
 it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact spec copy", () => {
   const table: [RowErrorCode, string[], string][] = [
-    ["syntax", [], "Sorry, I don't understand this."],
-    ["point-arity", [], "Points may only have 2 coordinates."],
-    ["unsupported", ["t"], "This calculator doesn't support that notation."],
-    ["unsupported", ["r"], "r is for polar graphs, which aren't available yet."],
-    ["unsupported", ["θ"], "θ is for polar graphs, which aren't available yet."],
-    ["relation-chain", [], "Cannot mix inequalities and equations in a chain of comparisons."],
-    ["relation-side", [">"], "You need something on both sides of the '>' symbol."],
-    ["too-many-nodes", [], "This row is too long to evaluate. Split it into smaller definitions."],
+    ["syntax", [], "Can't read this expression."],
+    ["point-arity", [], "Points can have only 2 coordinates."],
+    ["unsupported", ["t"], "This notation isn't supported."],
+    ["unsupported", ["r"], "Polar graphs (r) aren't available yet."],
+    ["unsupported", ["θ"], "Polar graphs (θ) aren't available yet."],
+    ["relation-chain", [], "Can't mix equations and inequalities in a chain."],
+    ["relation-side", [">"], "'>' needs something on both sides."],
+    ["too-many-nodes", [], "This row is too long. Split it up."],
     ["too-deep", [], "This row is nested too deeply."],
-    ["too-many-params", [], "Functions can have at most 8 parameters."],
-    [
-      "duplicate-definition",
-      ["a"],
-      "You've defined 'a' in more than one place. Try deleting some of the definitions of 'a'.",
-    ],
-    [
-      "duplicate-definition",
-      ["θ_1"],
-      "You've defined 'θ_1' in more than one place. Try deleting some of the definitions of 'θ_1'.",
-    ],
-    ["cycle", ["a", "b"], "'a' and 'b' can't be defined in terms of each other."],
-    ["cycle", ["a", "b", "c"], "'a', 'b' and 'c' can't be defined in terms of each other."],
-    ["function-cycle", ["f"], "The definition of function 'f' depends on itself."],
-    [
-      "recursive-cycle",
-      ["f"],
-      "The definition of function 'f' depends on itself. If 'f' is meant to be a recursive function, try adding a valid base case.",
-    ],
-    [
-      "function-cycle",
-      ["g", "f"],
-      "The definitions of functions 'g' and 'f' depend on each other.",
-    ],
-    [
-      "recursive-cycle",
-      ["g", "f"],
-      "The definitions of functions 'g' and 'f' depend on each other. If they are meant to be mutually recursive functions, try adding a valid base case.",
-    ],
-    ["implicit-variables", [], "We only support implicit equations of x and y."],
-    ["equation-required", ["x="], "Try adding 'x=' to the beginning of this equation."],
-    ["equation-required", [], "Try adding an equals sign to turn this into an equation."],
-    ["reserved-name", ["e"], "e is reserved and can't be redefined."],
-    [
-      "arity",
-      ["g", "2", "1"],
-      "Function 'g' requires 2 arguments. For example, try typing: g(1, 2).",
-    ],
-    [
-      "arity",
-      ["f", "1", "2"],
-      "Function 'f' requires only 1 argument. For example, try typing: f(x).",
-    ],
-    [
-      "arity",
-      ["sin", "1", "2"],
-      "Function 'sin' requires only 1 argument. For example, try typing: sin(x).",
-    ],
-    [
-      "arity",
-      ["arctan", "1 or 2", "3"],
-      "Function 'arctan' requires 2 arguments. For example, try typing: arctan(1, 2).",
-    ],
-    [
-      "arity",
-      ["nCr", "2", "1"],
-      "Function 'nCr' requires 2 arguments. For example, try typing: nCr(1, 2).",
-    ],
-    ["point-coordinates", [], "Too many variables, I don't know what to do with this."],
-    ["mixed-variables", [], "Try adding an equals sign to turn this into an equation."],
-    ["polar-variable", ["r"], "r only has a meaning in a polar equation."],
-    ["timeout", [], "This is taking too long. Try a smaller range or fewer terms."],
+    ["too-many-params", [], "Functions can have at most 8 inputs."],
+    ["duplicate-definition", ["a"], "a is defined more than once."],
+    ["duplicate-definition", ["θ_1"], "θ_1 is defined more than once."],
+    ["cycle", ["a", "b"], "a and b are defined using each other."],
+    ["cycle", ["a", "b", "c"], "a, b and c are defined using each other."],
+    ["function-cycle", ["f"], "f depends on itself."],
+    ["recursive-cycle", ["f"], "f depends on itself. Add a base case."],
+    ["function-cycle", ["g", "f"], "Functions g and f depend on each other."],
+    ["recursive-cycle", ["g", "f"], "Functions g and f depend on each other. Add a base case."],
+    ["implicit-variables", [], "Implicit equations can use only x and y."],
+    ["equation-required", ["x="], "Add x= at the start."],
+    ["equation-required", [], "Add an equals sign to make an equation."],
+    ["reserved-name", ["e"], "e is built in and can't be redefined."],
+    ["arity", ["g", "2", "1"], "g needs 2 inputs, like g(1, 2)."],
+    ["arity", ["f", "1", "2"], "f takes only 1 input, like f(x)."],
+    ["arity", ["sin", "1", "2"], "sin takes only 1 input, like sin(x)."],
+    ["arity", ["arctan", "1 or 2", "3"], "arctan needs 2 inputs, like arctan(1, 2)."],
+    ["arity", ["nCr", "2", "1"], "nCr needs 2 inputs, like nCr(1, 2)."],
+    ["point-coordinates", [], "Too many unknown variables."],
+    ["mixed-variables", [], "Add an equals sign to make an equation."],
+    ["polar-variable", ["r"], "r only works in polar equations."],
+    ["timeout", [], "This took too long. Try a smaller range."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
   const shown = [
@@ -126,12 +86,8 @@ it("RC-2, RC-7, RC-8, RC-19, RC-20 row errors and the complex hint use the exact
 
 it("PR-30, NM-37 a half-typed regression and a comprehension of a number have Desmos's copy", () => {
   const table: [RowErrorCode, string[], string][] = [
-    ["sim-side", ["∼"], "You need something on both sides of the '∼' symbol."],
-    [
-      "for-list",
-      ["n", "1"],
-      "A definition on the right-hand side of 'for' must be a list, but n is a number. Try n=[1].",
-    ],
+    ["sim-side", ["∼"], "'∼' needs something on both sides."],
+    ["for-list", ["n", "1"], "After 'for', n must be a list, like n=[1]."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
   const rows = ["[n^{2}\\operatorname{for}n=1]", "y_{1}\\sim"].map((latex, k) => ({
@@ -140,27 +96,27 @@ it("PR-30, NM-37 a half-typed regression and a comprehension of a number have De
     hidden: false,
   }));
   expect(analyzeRows(rows, REAL).rows.map((r) => r.error?.message)).toEqual([
-    "A definition on the right-hand side of 'for' must be a list, but n is a number. Try n=[1].",
-    "You need something on both sides of the '∼' symbol.",
+    "After 'for', n must be a list, like n=[1].",
+    "'∼' needs something on both sides.",
   ]);
 });
 
 it("NM-34, NM-35, NM-36, NM-32 list errors use their exact copy", () => {
   const table: [RowErrorCode, string[], string][] = [
-    ["nested-list", [], "Cannot store a list of numbers in a list."],
-    ["list-too-long", [], "Lists may not have more than 10,000 elements."],
-    ["range-step", [], "Ranges must be arithmetic sequences."],
-    ["list-mixed", [], "All elements of a list must have the same type."],
+    ["nested-list", [], "A list can't hold lists."],
+    ["list-too-long", [], "A list can hold at most 10,000 items."],
+    ["range-step", [], "A range must go up in equal steps."],
+    ["list-mixed", [], "A list's items must all be the same type."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
 });
 
 it("R-6, EL-35 undefined names read as the reference's Too many variables warning", () => {
   const table: [RowErrorCode, string[], string][] = [
-    ["too-many-variables", ["k"], "Too many variables. Try defining 'k'."],
-    ["too-many-variables", ["m", "b"], "Too many variables. Try defining 'm' or 'b'."],
-    ["too-many-variables", ["a", "b", "c"], "Too many variables. Try defining 'a', 'b' or 'c'."],
-    ["too-many-variables", [], "Too many variables, I don't know what to do with this."],
+    ["too-many-variables", ["k"], "k is not defined."],
+    ["too-many-variables", ["m", "b"], "m and b are not defined."],
+    ["too-many-variables", ["a", "b", "c"], "a, b and c are not defined."],
+    ["too-many-variables", [], "Too many unknown variables."],
   ];
   for (const [code, names, text] of table) expect(rowErrorMessage(code, names)).toBe(text);
 });

@@ -1,7 +1,8 @@
 // Karman-drawn glyphs for slider rows: the play triangle and pause bars inside the gutter's circle,
-// the four loop-mode arrows (SLIDERS-31) and the speed chevrons (SLIDERS-33). Plain geometry on a
-// 24-unit box in currentColor, sized to the reference's measurements (VIS-37); none is traced from
-// the reference's icon font. Each is aria-hidden: the control around it carries the name.
+// the four loop-mode arrows (SLIDERS-31), the speed chevrons (SLIDERS-33) and the add-sliders icon.
+// Plain geometry on a 24-unit box in currentColor, sized to the reference's measurements (VIS-37);
+// none is traced from the reference's icon font. Each is aria-hidden: the control around it
+// carries the name.
 
 import type { JSX } from "react";
 import type { LoopMode } from "@/lib/calculator/sliders/model";
@@ -105,5 +106,31 @@ export function SpeedGlyph(props: { faster: boolean; size?: number }): JSX.Eleme
         strokeLinejoin="round"
       />
     </Svg>
+  );
+}
+
+/**
+ * The add-sliders icon (owner decision, 2026-10-21): a horizontal track with a short upright bar at
+ * each end and a filled thumb a quarter of the way along, on a 24 by 12 box.
+ */
+export function AddSliderGlyph(): JSX.Element {
+  return (
+    <svg
+      className="kc-glyph"
+      width={22}
+      height={11}
+      viewBox="0 0 24 12"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M2 6H22M2 2.5V9.5M22 2.5V9.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <circle cx={7} cy={6} r={3} fill="currentColor" />
+    </svg>
   );
 }

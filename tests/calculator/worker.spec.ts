@@ -122,7 +122,7 @@ test("AR-49 a worker silent for 1,500 ms is replaced, the busy row shows the tim
     .poll(async () => (await snap(page)).rows.find((r) => r.id === "slow")?.error, {
       timeout: 5000,
     })
-    .toBe("This is taking too long. Try a smaller range or fewer terms.");
+    .toBe("This took too long. Try a smaller range.");
   const log = await page.evaluate(() => window.__workerHarness!.log());
   const o = log.findIndex((m) => m.type === "overrun" && m.rowId === "slow");
   const first = log.slice(o + 1).find((m) => ["analysis", "value", "plot"].includes(m.type))!;

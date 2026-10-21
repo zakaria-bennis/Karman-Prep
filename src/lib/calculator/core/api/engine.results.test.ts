@@ -65,7 +65,7 @@ it("API-9 expressionAnalysis reports graphable, error and displayed number, poin
     c: {
       isGraphable: false,
       isError: true,
-      errorMessage: "Sorry, I don't understand this.",
+      errorMessage: "Can't read this expression.",
       evaluationDisplayed: false,
     },
     d: { evaluationDisplayed: true, evaluation: { type: "undefined" } },
@@ -184,7 +184,7 @@ it("AR-46 geometry is kept until replaced, dropped for edited rows and for regio
 it("AR-48 an overrun row shows the timeout message until it is edited or a later value arrives", () => {
   const timeout = {
     code: "timeout",
-    message: "This is taking too long. Try a smaller range or fewer terms.",
+    message: "This took too long. Try a smaller range.",
     names: [],
     span: null,
   };
@@ -216,7 +216,7 @@ it("AR-49 a watchdog-quarantined row keeps the timeout message after delete and 
   try {
     const timeout = {
       code: "timeout",
-      message: "This is taking too long. Try a smaller range or fewer terms.",
+      message: "This took too long. Try a smaller range.",
     };
     const workers: { onmessage: ((e: { data: unknown }) => void) | null }[] = [];
     const backend = createWorkerBackend({
@@ -311,9 +311,9 @@ it("AR-54 parse, analysis and evaluation errors are row values and never throw",
   // error and its value is undefined
   expect(rows.map((r) => r.error?.code ?? null)).toEqual([
     "syntax", // b0, edited to \frac{1} (PR-38 case 45)
-    "empty-superscript", // x^{}: Desmos's "Superscripts cannot be empty."
-    "empty-root", // \sqrt{}: Desmos's "Radical cannot be empty."
-    "operator-side", // 2+: "You need something on both sides of the '+' symbol."
+    "empty-superscript", // x^{}: Desmos's "The exponent is empty."
+    "empty-root", // \sqrt{}: Desmos's "The root is empty."
+    "operator-side", // 2+: "'+' needs something on both sides."
     "syntax", // \left(
     "syntax", // \operatorname{}
     "operator-side", // =

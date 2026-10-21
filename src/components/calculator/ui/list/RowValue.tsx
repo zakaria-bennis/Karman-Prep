@@ -4,8 +4,9 @@
 // kc-visually-hidden text carries the value, "equals 1, 2, 3, …", for the textbox's description
 // (A11Y-3). A row switched to its fraction (R-5) shows one box with the stacked fraction typeset
 // by MathQuill, `-\frac{1}{8}` with the sign before the bar, spoken "equals negative 1 eighth".
+// A trig row's DEG/RAD badge follows the value (AngleBadge).
 
-import { useLayoutEffect, useRef, type JSX } from "react";
+import { useLayoutEffect, useRef, type JSX, type ReactNode } from "react";
 import type { Value } from "@/lib/calculator/core/eval/values";
 import { formatValue } from "@/lib/calculator/core/eval/format";
 import { fractionLatex, type DisplayFraction } from "@/lib/calculator/core/eval/fraction";
@@ -54,6 +55,7 @@ export function RowValue(props: {
   value: Value | null;
   valueText: string;
   fraction?: DisplayFraction | null; // R-5: shown as this fraction
+  badge?: ReactNode; // the DEG/RAD badge of a trig row, after the value
 }): JSX.Element {
   const fraction = props.fraction ?? null;
   if (fraction !== null) {
@@ -63,6 +65,7 @@ export function RowValue(props: {
         <span className="kc-row-value-line" aria-hidden="true">
           <span className="kc-row-equals">=</span>
           <FractionBox fraction={fraction} />
+          {props.badge}
         </span>
         <span className="kc-visually-hidden">{`equals ${spoken}`}</span>
       </div>
@@ -78,6 +81,7 @@ export function RowValue(props: {
             {groupIntegerDigits(text)}
           </span>
         ))}
+        {props.badge}
       </span>
       <span className="kc-visually-hidden">{spoken}</span>
     </div>

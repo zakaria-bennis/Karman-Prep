@@ -45,12 +45,10 @@ it("D-22 no parameter is allowed, a scalar left side and x or y as predictor are
   );
   expect(a.byId.get("r")).toMatchObject({ kind: "regression", error: null });
   expect(a.byId.get("r")!.regression!.params).toEqual([]);
-  expect(a.byId.get("p")!.error?.message).toBe(
-    "'x' may not be used as a regression parameter. Try using a different variable name."
-  );
+  expect(a.byId.get("p")!.error?.message).toBe("x can't be a regression parameter.");
   // the first of x and y the model reads is named, as on the reference
   expect(analyse(row("s", "y_{1}\\sim ny+mx")).byId.get("s")!.error?.message).toBe(
-    "'y' may not be used as a regression parameter. Try using a different variable name."
+    "y can't be a regression parameter."
   );
   // A scalar left side is found when the values pass reads it (evaluate.regression.test.ts).
   expect(a.byId.get("q")).toMatchObject({ kind: "regression", error: null, graph: null });
@@ -79,9 +77,7 @@ it("D-44 a shared parameter name errors only in rows that reference it", () => {
   );
   expect(a.byId.get("r")!.error).toBeNull();
   expect(a.byId.get("s")!.error).toBeNull();
-  expect(a.byId.get("u")!.error?.message).toBe(
-    "You've defined 'm' in more than one place. Try deleting some of the definitions of 'm'."
-  );
+  expect(a.byId.get("u")!.error?.message).toBe("m is defined more than once.");
   expect(a.byId.get("v")!.error).toBeNull();
 });
 

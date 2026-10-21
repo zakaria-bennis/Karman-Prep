@@ -42,7 +42,7 @@ test("AR-56 a runaway row leaves the diagnostic timer and Skip responsive and sh
     timeout: 2000,
   });
   await expect(host.locator('[role="tooltip"]#kc-row-2-error')).toHaveText(
-    /^(This row is too long to evaluate\. Split it into smaller definitions\.|This is taking too long\. Try a smaller range or fewer terms\.)$/
+    /^(This row is too long\. Split it up\.|This took too long\. Try a smaller range\.)$/
   );
   const timer = page.getByText(/^\d{1,2}:\d{2}$/).first();
   const ticks = new Set<string>();

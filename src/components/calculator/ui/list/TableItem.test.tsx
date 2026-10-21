@@ -256,7 +256,7 @@ it("D-6 a cell with a cell error shows the marker and its tooltip; the header er
   );
   const grid = screen.getByRole("grid", { name: "Table 2, 3 columns, 2 rows" });
   const analysis = tableOf(kit, "t").table!.analysis.columns;
-  expect(analysis[1].cellErrors[0]!.message).toBe("Points are written like this: (1, 2).");
+  expect(analysis[1].cellErrors[0]!.message).toBe("Write points like (1, 2).");
   expect(analysis[2].error).not.toBeNull();
 
   // One marker for the bad cell and one for each bad header (x₁ is defined twice); no others.
@@ -265,7 +265,7 @@ it("D-6 a cell with a cell error shows the marker and its tooltip; the header er
   const cell = box("y₁, row 1");
   expect(cell).toHaveAttribute("aria-invalid", "true");
   const tipId = cell.getAttribute("aria-describedby")!;
-  expect(document.getElementById(tipId)).toHaveTextContent("Points are written like this: (1, 2).");
+  expect(document.getElementById(tipId)).toHaveTextContent("Write points like (1, 2).");
   expect(box("y₁, row 2")).not.toHaveAttribute("aria-invalid");
   expect(box("y₁, row 2")).not.toHaveAttribute("aria-describedby");
 
@@ -275,7 +275,7 @@ it("D-6 a cell with a cell error shows the marker and its tooltip; the header er
   expect(cellMarker.closest('[role="gridcell"]')).toContainElement(cell);
   expect(screen.queryByRole("tooltip")).toBeNull();
   act(() => cellMarker.focus());
-  expect(screen.getByRole("tooltip")).toHaveTextContent("Points are written like this: (1, 2).");
+  expect(screen.getByRole("tooltip")).toHaveTextContent("Write points like (1, 2).");
   act(() => cellMarker.blur());
   expect(screen.queryByRole("tooltip")).toBeNull();
 

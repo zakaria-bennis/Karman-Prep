@@ -121,13 +121,14 @@ test("SLIDERS-27, SLIDERS-34 a key on the thumb and Escape from the popover paus
   await page.keyboard.press("Escape");
   await expect.poll(playing).toBe(false);
   await expect(row(page, "1").getByRole("button", { name: "Play a Animation" })).toBeFocused();
-  // SLIDERS-8: a chip pressed from the keyboard returns to the source row's math.
-  await row(page, "2").getByRole("button", { name: "Add slider for b" }).focus();
+  // SLIDERS-8: a slider picked from the keyboard returns to the source row's math.
+  await row(page, "2").getByRole("button", { name: "Add sliders" }).focus();
   await page.keyboard.press("Enter");
+  await page.getByRole("menuitem", { name: "Add slider for b" }).press("Enter");
   await expect.poll(() => focused(page)).toBe("2:Expression 2");
 });
 
-test("SLIDERS-14, SLIDERS-10 min = max fades the track to 0.3; a limit's chips sit below the editor", async ({
+test("SLIDERS-14, SLIDERS-10 min = max fades the track to 0.3; a limit's undefined name gets the add-sliders icon", async ({
   page,
 }) => {
   await openShell(page, "?w=900&h=600");
@@ -140,7 +141,7 @@ test("SLIDERS-14, SLIDERS-10 min = max fades the track to 0.3; a limit's chips s
   const interior = row(page, "1").locator(".kc-slider-interior");
   await expect(interior).toHaveCSS("opacity", "0.3");
   await expect(row(page, "1").getByRole("slider")).toBeVisible();
-  // The reference's row is 113.9 px tall: the limits editor, then the add-slider line 8 px lower.
-  const height = await row(page, "2").evaluate((el) => el.getBoundingClientRect().height);
-  expect(height).toBeCloseTo(113.9, 0);
+  // The icon sits in the gutter, so the row keeps the height it has without it.
+  await expect(row(page, "2").getByRole("button", { name: "Add sliders" })).toBeVisible();
+  await expect(row(page, "2").getByRole("group", { name: "Add slider" })).toHaveCount(0);
 });

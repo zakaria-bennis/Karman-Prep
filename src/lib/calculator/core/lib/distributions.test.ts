@@ -53,12 +53,10 @@ it("PR-45 a dot reads a method with its arguments, a property or a coordinate, a
 it("PR-45 a dot after anything but a distribution stays unsupported, but for an inference member after a list and a one-letter member, which read Desmos's texts", () => {
   expect(rowOf("L.\\operatorname{mean}", ["L=[1,2]"]).error?.code).toBe("unsupported");
   expect(rowOf("L.\\operatorname{pright}", ["L=[1,2]"]).error?.message).toBe(
-    "Function '.pright' cannot be applied to a list of numbers."
+    ".pright can't take a list of numbers."
   );
   for (const latex of ["L.\\operatorname{p}", "\\operatorname{normaldist}().\\operatorname{p}"]) {
-    expect(rowOf(latex, ["L=[1,2]"]).error?.message, latex).toBe(
-      "Sorry, I don't understand the way that '.' is used here."
-    );
+    expect(rowOf(latex, ["L=[1,2]"]).error?.message, latex).toBe("'.' can't be used here.");
   }
   expect(rowOf("P.x", ["P=(1,2)"]).error).toBe(null); // PR-45: a coordinate (points.ts)
   expect(rowOf("\\operatorname{normaldist}().\\operatorname{random}(2)").error?.code).toBe(
@@ -78,17 +76,17 @@ it("FN-45 Desmos's bundle words arithmetic on a distribution by its operator", (
       "2\\cdot[\\operatorname{normaldist}(),\\operatorname{tdist}(3)]",
     ].map((latex) => rowOf(latex).error?.message)
   ).toEqual([
-    "Cannot subtract a number from a distribution.",
-    "Cannot divide a distribution by a number.",
-    "Cannot raise a distribution to a number.",
-    "Cannot negate a distribution.",
-    "Function 'sin' cannot be applied to a distribution.",
-    "Function 'normaldist' cannot be applied to a point.",
-    "Cannot multiply a number by a list of distributions.",
+    "Can't subtract a number from a distribution.",
+    "Can't divide a distribution by a number.",
+    "Can't raise a distribution to a number.",
+    "Can't negate a distribution.",
+    "sin can't take a distribution.",
+    "normaldist can't take a point.",
+    "Can't multiply a number by a list of distributions.",
   ]);
   // only a name directly before parentheses is a call; `N\cdot 2` multiplies
   expect(rowOf("N\\cdot 2", ["N=\\operatorname{normaldist}()"]).error?.message).toBe(
-    "Cannot multiply a distribution by a number."
+    "Can't multiply a distribution by a number."
   );
 });
 
@@ -265,9 +263,9 @@ it("FN-45 FN-51 parameters at their edges follow Desmos's formulas", () => {
 it("FN-45 a user function that returns a distribution reads, errors and graphs as one", () => {
   const f = "f(x)=\\operatorname{normaldist}(x,1)";
   expect(rowOf("\\operatorname{stdevp}(f(2))", [f]).error?.message).toBe(
-    "Function 'stdevp' cannot be applied to a distribution."
+    "stdevp can't take a distribution."
   );
-  expect(rowOf("f(2)+1", [f]).error?.message).toBe("Cannot add a distribution and a number.");
+  expect(rowOf("f(2)+1", [f]).error?.message).toBe("Can't add a distribution and a number.");
   expect(evaluateLatex("\\operatorname{mean}(f(2))", { rows: [f] })).toEqual({
     type: "number",
     value: 2,

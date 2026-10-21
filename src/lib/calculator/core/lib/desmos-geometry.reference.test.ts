@@ -18,6 +18,7 @@ import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
 import geometry from "./desmos-geometry.fixture.json";
 import { withinTolerance } from "./tolerance";
+import { karmanCopy } from "../analysis/__fixtures__/desmos-copy";
 
 type Coordinate = number | null;
 type Captured = Coordinate | Coordinate[] | Coordinate[][];
@@ -128,7 +129,7 @@ function shownError(rows: readonly string[], latex: string): string | undefined 
 for (const [key, message] of ERRORS) {
   const check = () => {
     const { latex, rows } = caseOf(key);
-    expect(shownError(rows, latex)).toBe(message);
+    expect(shownError(rows, latex)).toBe(karmanCopy(message));
   };
   if (isGap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`FN-70 FN-71 NM-32 PR-45 ${key} reads "${message}", as in Desmos`, check);

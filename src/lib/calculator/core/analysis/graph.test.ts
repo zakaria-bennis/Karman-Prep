@@ -78,16 +78,16 @@ it("RC-14, RC-15 graph is non-null exactly when the row is graphable, and hidden
 
 it("RC-17 a bare expression in r or θ asks for an equation, as in Desmos (2026-10-20)", () => {
   expect(["2\\pi r", "\\sin\\theta"].map((l) => analyze([l]).rows[0].error)).toMatchObject([
-    { code: "equation-required", message: "Try adding 'y=' to the beginning of this equation." },
-    { code: "equation-required", message: "Try adding 'r=' to the beginning of this equation." },
+    { code: "equation-required", message: "Add y= at the start." },
+    { code: "equation-required", message: "Add r= at the start." },
   ]);
 });
 
 it("RC-2, RC-19 r, θ and unbound t errors name the variable", () => {
   const rows: [string, string[], string][] = [
-    ["r=2", ["r"], "r is for polar graphs, which aren't available yet."],
-    ["\\theta=1", ["θ"], "θ is for polar graphs, which aren't available yet."],
-    ["(t,t^{2})", ["t"], "This calculator doesn't support that notation."],
+    ["r=2", ["r"], "Polar graphs (r) aren't available yet."],
+    ["\\theta=1", ["θ"], "Polar graphs (θ) aren't available yet."],
+    ["(t,t^{2})", ["t"], "This notation isn't supported."],
   ];
   for (const [l, names, message] of rows)
     expect(analyze([l]).rows[0].error, l).toMatchObject({ code: "unsupported", names, message });

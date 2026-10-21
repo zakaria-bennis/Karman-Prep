@@ -295,9 +295,7 @@ test("K-7 double-tapping the keypad = gives one ~ in one undo step, announces ti
   const marker = page.locator('li[data-row-id="1"] .kc-row-warning');
   if (isMobile) await marker.tap();
   else await marker.hover();
-  await expect(page.getByRole("tooltip")).toHaveText(
-    "You need something on both sides of the '∼' symbol."
-  );
+  await expect(page.getByRole("tooltip")).toHaveText("'∼' needs something on both sides.");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect.poll(() => latexes(page)).toEqual(["y="]);
   await field(page, 1).focus();
@@ -313,7 +311,7 @@ test("R-2 the error tooltip opens on hover and focus, closes on Escape, and togg
   await open(page, ["y=2+", "y=x"]);
   const marker = page.locator('li[data-row-id="1"] .kc-row-warning');
   const tip = page.getByRole("tooltip");
-  const message = "You need something on both sides of the '+' symbol.";
+  const message = "'+' needs something on both sides.";
   await expect(marker).toHaveAccessibleName("Error");
   await expect(page.locator('li[data-row-id="1"] .kc-row-tab')).toHaveCount(0);
   await expect(tip).toHaveCount(0);

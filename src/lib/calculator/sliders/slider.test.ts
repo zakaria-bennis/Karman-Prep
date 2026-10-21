@@ -81,22 +81,22 @@ describe("describeSlider", () => {
   it("evaluates limits and reports errors in order (SLIDERS-16 to SLIDERS-19)", () => {
     expect(view("a=1", { hardMin: true, min: "\\pi" }).range.min).toBeCloseTo(Math.PI);
     expect(view("a=1", { hardMin: true, min: "b" })).toMatchObject({
-      error: "Invalid slider min. Try using any number.",
+      error: "The slider min must be a number.",
       limitNames: ["b"],
       invalid: { min: true, max: false, step: false },
     });
     expect(view("a=1", { hardMax: true, max: "\\frac{1}{0}" }).error).toBe(
-      "Invalid slider max. Try using any number."
+      "The slider max must be a number."
     );
-    expect(view("a=1", { step: "q" }).error).toBe("Invalid slider step. Try using any number.");
+    expect(view("a=1", { step: "q" }).error).toBe("The slider step must be a number.");
     expect(view("a=1", { hardMin: true, min: "5", hardMax: true, max: "2" })).toMatchObject({
-      error: "Invalid slider limits. Min should be less than max.",
+      error: "The slider min must be less than the max.",
       invalid: { min: true, max: true },
       value: 5, // break-ui S01: the reference reads the value as the min
     });
     expect(view("a=3", { hardMin: true, min: "10", hardMax: true, max: "0" }).value).toBe(10);
     expect(view("a=1", { hardMin: true, min: "a" }).error).toBe(
-      "Slider limits cannot depend on the slider variable 'a'."
+      "Slider limits can't use a itself."
     );
     expect(view("a=1", { step: "0" }).range.step).toBe(0);
     expect(view("a=1", { step: "-2" }).range.step).toBe(2);
@@ -106,12 +106,10 @@ describe("describeSlider", () => {
   it("reads a limit on the slider's own name beside an undefined name as Too many variables (Desmos)", () => {
     // Live reference 2026-10-19: min a, max b+c names b then c, in source order, with chips.
     expect(view("a=1", { hardMin: true, min: "a", hardMax: true, max: "b+c" })).toMatchObject({
-      error: "Too many variables. Try defining 'b' or 'c'.",
+      error: "b and c are not defined.",
       limitNames: ["b", "c"],
     });
-    expect(view("a=1", { hardMin: true, min: "a+b" }).error).toBe(
-      "Too many variables. Try defining 'b'."
-    );
+    expect(view("a=1", { hardMin: true, min: "a+b" }).error).toBe("b is not defined.");
     expect(view("a=1", { hardMin: true, min: "b", step: "a" }).limitNames).toEqual(["b"]);
   });
 

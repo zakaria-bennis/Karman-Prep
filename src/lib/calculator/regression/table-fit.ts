@@ -6,15 +6,16 @@
 // Pure TypeScript: no DOM.
 
 import { displayPrecision, equationLatex, formatStatisticValue } from "./display";
+import { FIT_ERROR } from "./fit";
 import { solveColumnOrder } from "./linear-fit";
 import { regressionStatistics, type RegressionStatistics } from "./statistics";
 import { TABLE_MODEL_SPECS, type LogForm, type TableModel } from "./table-models";
 import { fitNonlinearTable, snapTinyParameters } from "./table-nonlinear";
 
 export const TABLE_REGRESSION_MESSAGES = {
-  data: "There's an error in the provided data.",
-  logarithmicX: "Logarithmic regressions only work if the first column is all positive numbers.",
-  fit: "We couldn't find any region where this model is defined.",
+  data: "Some of the data has errors.",
+  logarithmicX: "A log fit needs a positive first column.",
+  fit: FIT_ERROR,
 } as const;
 
 /**
@@ -54,7 +55,7 @@ function trimmed(values: readonly TableFitCell[]): TableFitCell[] {
 
 const fail = (message: string): TableFitFailure => ({ ok: false, message });
 
-/** RT-30: "Cannot regress a list of numbers against an empty list.", y's column then x's. */
+/** RT-30: "Can't regress a list of numbers against an empty list.", y's column then x's. */
 const listPhrase = (cells: readonly TableFitCell[]) =>
   cells.length === 0 ? "an empty list" : "a list of numbers";
 
@@ -89,7 +90,7 @@ export function fitTableRegression(input: TableFitInput): TableFitResult {
   const xColumn = trimmed(input.xs),
     yColumn = trimmed(input.ys);
   if (xColumn.length === 0 || yColumn.length === 0) {
-    return fail(`Cannot regress ${listPhrase(yColumn)} against ${listPhrase(xColumn)}.`);
+    return fail(`Can't regress ${listPhrase(yColumn)} against ${listPhrase(xColumn)}.`);
   }
   const n = Math.min(xColumn.length, yColumn.length);
   const xs: number[] = [],

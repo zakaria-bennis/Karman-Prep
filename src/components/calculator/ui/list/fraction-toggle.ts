@@ -22,3 +22,19 @@ export function spokenValue(row: Pick<RowView, "valueText" | "fraction" | "asFra
   if (row.asFraction && row.fraction !== null) return latexToSpeech(fractionLatex(row.fraction));
   return row.valueText ?? "";
 }
+
+/**
+ * R-5 (owner decision, 2026-10-21): whether a row is a bare reference to a fitted regression
+ * parameter (`m` after `y_1~mx_1+b`), which never offers the decimal/fraction toggle.
+ */
+export function isRegressionParameter(
+  row: Pick<RowView, "latex">,
+  rows: readonly Pick<RowView, "regression">[]
+): boolean {
+  const name = row.latex.trim();
+  if (name === "") return false;
+  return rows.some((r) => {
+    const fit = r.regression?.result;
+    return fit?.ok === true && fit.params.some((p) => p.name === name);
+  });
+}

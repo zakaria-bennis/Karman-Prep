@@ -9,6 +9,7 @@ import { analyzeRows } from "../analysis";
 import { evaluateRows } from "../eval/compile";
 import { NO_DEADLINE } from "../deadline";
 import relations from "./desmos-relations.fixture.json";
+import { karmanCopy } from "../analysis/__fixtures__/desmos-copy";
 
 const SETTINGS = { angleMode: "radians", complex: false } as const;
 const GAPS: readonly RegExp[] = [/bmatrix/, /^\\left\(t,/, /\\theta/];
@@ -30,7 +31,7 @@ it("PR-29 RC-14 all 7 relation errors, 5 relation values and 16 graphable rows a
   expect([ERRORS.length, VALUES.length, GRAPHABLE.length]).toEqual([7, 5, 16]));
 
 for (const [key, message] of ERRORS) {
-  const check = () => expect(lastRow(key).row.error?.message).toBe(message);
+  const check = () => expect(lastRow(key).row.error?.message).toBe(karmanCopy(message));
   if (isGap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`PR-29 PR-31 ${key} reads "${message}", as in Desmos`, check);
 }

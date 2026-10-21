@@ -8,7 +8,7 @@ import { fitNonlinear } from "./levenberg";
 import { solveColumnOrder } from "./linear-fit";
 import { regressionStatistics, type RegressionStatistics } from "./statistics";
 
-export const FIT_ERROR = "We couldn't find any region where this model is defined.";
+export const FIT_ERROR = "This model isn't defined for this data.";
 
 /** D-27: a model log mode can linearise, with the indices of its parameters in `params`. */
 export type LogFormMatch =
