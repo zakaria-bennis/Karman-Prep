@@ -8,9 +8,12 @@
 // the reviewed file. The answer key evidence must still parse as approved,
 // unpublished catalog evidence for the same stable question id.
 //
-// Usage: npx tsx scripts/import-tools/ts/seal-readback.ts <private-readback.json>
+// Usage: npx tsx scripts/import-tools/ts/seal-readback.ts <private-readback.json> [--per-row]
 // Prints {"rows": [{question_id, stable_question_id, source_version,
 // content_hash_v2, question_payload_sha256, publication_allowed_in_snapshot}]}.
+// With --per-row a row that cannot be sealed does not stop the run: it is
+// listed under "failed": [{question_id, stable_question_id, error}] and left
+// out of "rows" (`k seal --hold-failing`).
 
 import { readFileSync } from "node:fs";
 import {
@@ -47,13 +50,40 @@ export function sealSnapshot(snapshot: { question: Obj; choices: Obj[] | null; k
   };
 }
 
+function stableIdOf(snapshot: { keys?: Obj[] }): unknown {
+  const raw = (snapshot.keys?.[0]?.raw_model_response ?? {}) as Obj;
+  const tags = (raw.approved_tags ?? {}) as Obj;
+  return tags.stable_question_id ?? raw.question_id ?? null;
+}
+
 function main() {
-  const [inputPath] = process.argv.slice(2);
-  if (!inputPath) throw new Error("usage: seal-readback.ts <private-readback.json>");
-  const doc = JSON.parse(readFileSync(inputPath, "utf8")) as { rows?: Array<{ snapshot: never }> };
+  const args = process.argv.slice(2);
+  const perRow = args.includes("--per-row");
+  const [inputPath] = args.filter((a) => a !== "--per-row");
+  if (!inputPath) throw new Error("usage: seal-readback.ts <private-readback.json> [--per-row]");
+  const doc = JSON.parse(readFileSync(inputPath, "utf8")) as {
+    rows?: Array<{ snapshot: { question: Obj; choices: Obj[] | null; keys: Obj[] } }>;
+  };
   if (!Array.isArray(doc.rows) || doc.rows.length === 0) throw new Error("readback has no rows");
-  const rows = doc.rows.map((item) => sealSnapshot(item.snapshot));
-  process.stdout.write(JSON.stringify({ rows }) + "\n");
+  if (!perRow) {
+    const rows = doc.rows.map((item) => sealSnapshot(item.snapshot));
+    process.stdout.write(JSON.stringify({ rows }) + "\n");
+    return;
+  }
+  const rows: ReturnType<typeof sealSnapshot>[] = [];
+  const failed: Array<{ question_id: unknown; stable_question_id: unknown; error: string }> = [];
+  for (const item of doc.rows) {
+    try {
+      rows.push(sealSnapshot(item.snapshot));
+    } catch (error) {
+      failed.push({
+        question_id: item.snapshot?.question?.id ?? null,
+        stable_question_id: stableIdOf(item.snapshot ?? {}),
+        error: (error as Error).message,
+      });
+    }
+  }
+  process.stdout.write(JSON.stringify({ rows, failed }) + "\n");
 }
 
 if (process.argv[1] && /seal-readback\.ts$/.test(process.argv[1])) {

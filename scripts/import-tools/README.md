@@ -23,7 +23,22 @@ Tests: `python3 -I -m unittest discover -s scripts/import-tools/tests -t scripts
 
 Times are ISO-8601, for example `--now 2026-10-21T09:00:00Z`.
 
-## The sequence
+## Autopilot (the usual way now)
+
+```
+k autopilot --pipe $PIPE            # stage, seal and publish every new READY batch, no prompts
+k autopilot --pipe $PIPE --dry      # read-only: export, build, run every dry run; writes nothing
+k autopilot --pipe $PIPE --max-rows 300
+```
+
+The founder gave a standing OK to publish rows that pass every automatic check. `k autopilot` runs the bulk sequence (pipeline/bulk-1/RUN.md) by itself: writer lock for the whole run, export, `k stage --batches --skip-refused`, every `.dryrun.sql`, stage intent, stage files, readback, `k seal --hold-failing`, fresh export, `k publish --bulk`, publish intent, every publish dry run, publish files, visible count, intent closed, claims of published rows released. Each run's files are in `$PIPE/auto-<timestamp>/` with `run.log`. A passing connection error is retried (a write only after its dry-run twin shows it did not land). Any other error stops the run: a publish stopped part-way is rolled back (dry run first) and its intent closed as `rolled_back`; a write that never ran is closed as `not_applied`; a stage stopped part-way or a readback that differs leaves its intent open, so nothing runs again until a person has looked. With no new READY batch it returns at once.
+
+- `$PIPE/autopilot-state.json`: every batch folder already handled (published, held, refused, stopped) with its run, plus the rows held at seal. Batches listed there are never staged again. `k autopilot-record` enters a run done by hand (bulk-1 is recorded).
+- `$PIPE/autopilot-status.json`: the factory view after every run: last run and result, a plain-English message, published per run, visible count, rows held, refusals by reason, batches waiting, last error.
+- **Held at seal.** `k seal --hold-failing --lane $PIPE/lane.json --now <time>` seals the rows the app's catalog scope check accepts and writes the others to `held.json` with the reason; they go into the lane as `classification_review` and are not published.
+- **Corrected batches.** A batch whose rows are all rows held earlier (same stable ids) is an evidence update, not a new stage: the drafts are read back, every question, choice and answer key column must equal what the corrected row would insert (only `raw_model_response` may differ), the corrected evidence must pass the seal check, and `evidence-NN.sql` replaces only that column under the same locks and snapshot guards. The rows then go through readback, seal and publish with the rest; their lane items are resolved when they go live.
+
+## The sequence (by hand)
 
 **O1. Lock and export (no OK needed).**
 

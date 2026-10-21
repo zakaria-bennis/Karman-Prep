@@ -227,7 +227,10 @@ def build_bulk_stage(batch_dirs, export: Path, name: str, exams_dir: Path = EXAM
     batches, refused_batches = load_batches(dirs, exams_dir, rows_docs, rows_runner)
     items = [it for b in batches for it in b["items"]]
     if not items:
-        raise RefuseToBuild("no batch could be loaded: " + "; ".join(f"{k}: {v}" for k, v in refused_batches.items()))
+        err = RefuseToBuild("no batch could be loaded: " + "; ".join(f"{k}: {v}" for k, v in refused_batches.items()))
+        err.precheck = {"batch": name, "bulk": True, "batches": {}, "refused": [],
+                        "refused_batches": [{"folder": k, "reason": v} for k, v in sorted(refused_batches.items())]}
+        raise err
 
     report, _ = duplicate_check(items, doc.rows)
     index = st.export_index(doc.rows)
@@ -257,7 +260,9 @@ def build_bulk_stage(batch_dirs, export: Path, name: str, exams_dir: Path = EXAM
     if (refused or refused_batches) and not skip_refused:
         return {**res, "files": {"precheck.json": st._dump(precheck)}}
     if not staged:
-        raise RefuseToBuild("every row was refused; nothing to stage")
+        err = RefuseToBuild("every row was refused; nothing to stage")
+        err.precheck = precheck  # the autopilot records the reasons
+        raise err
 
     exclude = _source_exclude([it["source"] for it in staged])
     parts = _chunks(staged, chunk_size)

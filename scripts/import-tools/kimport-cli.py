@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, bulk, corpus, fetch, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
+from kimport import autopilot, autopilot_state, backfill, bulk, corpus, fetch, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -27,6 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_corpus(sub)
     _register_pairs(sub)
     _register_lane(sub)
+    _register_autopilot(sub)
     return parser
 
 
@@ -154,13 +155,21 @@ def _register_stage(sub) -> None:
     se.add_argument("--batch", help="batch folder with READY and stage/stage-preview.json")
     se.add_argument("--preview", help="bulk: the run's stage-preview.json (instead of --batch)")
     se.add_argument("--out", required=True, help="sealed preview to write, e.g. <batch>/stage/sealed-preview.json")
+    se.add_argument("--hold-failing", action="store_true",
+                    help="hold rows the catalog scope check rejects (held.json, lane classification_review); "
+                         "seal the rest")
+    se.add_argument("--lane", help="with --hold-failing: pipeline/lane.json to add held rows to")
+    se.add_argument("--now", help="with --lane: ISO-8601 time stamped on new lane entries")
 
     def seal(a):
         if bool(a.batch) == bool(a.preview):
             raise ValueError("seal needs exactly one of --batch or --preview")
-        print("seal {batch}: {rows} rows sealed; wrote {readback} and {sealed}".format(**stage.run_seal(
-            [Path(r) for r in a.readback], Path(a.batch) if a.batch else None, Path(a.out),
-            Path(a.preview) if a.preview else None)))
+        if (a.lane or a.now) and not a.hold_failing:
+            raise ValueError("--lane and --now go with --hold-failing")
+        res = stage.run_seal([Path(r) for r in a.readback], Path(a.batch) if a.batch else None, Path(a.out),
+                             Path(a.preview) if a.preview else None, hold_failing=a.hold_failing,
+                             lane_path=Path(a.lane) if a.lane else None, now=a.now)
+        print("seal {batch}: {rows} rows sealed, {held} held; wrote {readback} and {sealed}".format(**res))
 
     se.set_defaults(func=lambda a: _guard(lambda: seal(a)))
 
@@ -339,6 +348,45 @@ def _register_lane(sub) -> None:
                 print(i)
 
     sl.set_defaults(func=lambda a: _guard(lambda: slice_cmd(a)))
+
+
+def _register_autopilot(sub) -> None:
+    ap = sub.add_parser("autopilot", help="stage, seal and publish every new READY batch end to end, unattended")
+    ap.add_argument("--pipe", required=True, help="the pipeline folder (batches/, intents.jsonl, lane.json)")
+    ap.add_argument("--max-rows", type=int, help="stage at most this many reviewed rows (whole batches)")
+    ap.add_argument("--dry", action="store_true", help="read-only: export, build, run every dry run; write nothing")
+    ap.add_argument("--chunk-size", type=int, default=autopilot.CHUNK, help="rows per SQL file")
+
+    def run(a):
+        res = autopilot.run_autopilot(Path(a.pipe), a.dry, a.max_rows,
+                                      autopilot.Deps(chunk_size=a.chunk_size,
+                                                     log=lambda m: print(m, file=sys.stderr, flush=True)))
+        print(json.dumps(res))
+        if res["result"] in ("stopped", "lock_held"):
+            raise ValueError(res["message"])
+
+    ap.set_defaults(func=lambda a: _guard(lambda: run(a)))
+
+    rc = sub.add_parser("autopilot-record", help="enter a run done by hand (e.g. bulk-1) into autopilot-state.json")
+    rc.add_argument("--pipe", required=True)
+    rc.add_argument("--run", required=True, help="run folder name inside --pipe, e.g. bulk-1")
+    rc.add_argument("--published", type=int, required=True)
+    rc.add_argument("--visible-after", type=int)
+    rc.add_argument("--held", help="JSON list of stable ids held at seal")
+    rc.add_argument("--now", required=True)
+
+    def record(a):
+        res = autopilot_state.record_manual_run(Path(a.pipe), a.run, a.published, a.visible_after, a.now,
+                                                Path(a.held) if a.held else None)
+        state = autopilot_state.read_state(Path(a.pipe))
+        autopilot_state.write_status(Path(a.pipe), state, {"id": a.run, "at": a.now, "result": "published",
+                                                           **state["runs"][a.run]},
+                                     f"{a.run} (done by hand) recorded: {a.published} published, "
+                                     f"{res['held']} held.")
+        print("autopilot-record {}: {batches} batches, {published} published, {held} held, {released} claims "
+              "released".format(a.run, **res))
+
+    rc.set_defaults(func=lambda a: _guard(lambda: record(a)))
 
 
 def _promote(clusters: str, occ_id: str, lane_path: str) -> None:

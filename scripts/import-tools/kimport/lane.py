@@ -305,3 +305,38 @@ def release_done(claims_path: Path, lane_path: Path, ledger_path: Path) -> list[
             entry["claimed"] = keep
         atomic_write_json(claims_path, claims)
     return dropped
+
+
+def release_ids(claims_path: Path, ids) -> list[str]:
+    """Drop the given ids (for example questions just published) from every reviewer's claims."""
+    gone_set = set(ids)
+    claims_path = Path(claims_path)
+    if not claims_path.exists():
+        return []
+    dropped = []
+    with FileLock(claims_path):
+        claims = _read_claims(claims_path)
+        for entry in claims.values():
+            dropped += [i for i in entry.get("claimed", []) if i in gone_set]
+            entry["claimed"] = [i for i in entry.get("claimed", []) if i not in gone_set]
+        atomic_write_json(claims_path, claims)
+    return dropped
+
+
+def resolve_ids(lane_path: Path, ids, method: str, now: str, detail: str = "") -> list[str]:
+    """Mark lane items resolved (for example held rows that were corrected and published)."""
+    lane_path = Path(lane_path)
+    done = []
+    with FileLock(lane_path):
+        data = _read_lane(lane_path)
+        for i in ids:
+            item = data["items"].get(i)
+            if item is None or item.get("status") == "resolved":
+                continue
+            item["attempts"] = list(item.get("attempts", [])) + [{"method": method, "ok": True, "at": now,
+                                                                  "detail": detail}]
+            item["status"] = "resolved"
+            done.append(i)
+        if done:
+            atomic_write_json(lane_path, data)
+    return done

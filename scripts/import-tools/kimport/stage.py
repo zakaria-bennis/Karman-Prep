@@ -460,16 +460,71 @@ def check_readback(readback: dict, preview: dict) -> list[dict]:
     return ordered
 
 
+def seal_rows_per_row(readback_file: Path) -> tuple[list[dict], list[dict]]:
+    """ts/seal-readback.ts --per-row: (seals for the rows that pass, [{question_id,
+    stable_question_id, error}] for the rows the app's scope check rejects)."""
+    cmd = ["npx", "--no-install", "tsx", str(SEAL_TS), str(readback_file), "--per-row"]
+    try:
+        done = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True, timeout=300)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise RefuseToBuild(f"cannot run {SEAL_TS.name}: {e}") from None
+    if done.returncode != 0:
+        raise RefuseToBuild(f"{SEAL_TS.name}: {done.stderr.strip() or done.stdout.strip()}")
+    doc = json.loads(done.stdout)
+    return doc["rows"], doc.get("failed", [])
+
+
+HELD_REASON = "classification_review"
+
+
+def _seal_fits(p: dict, q: dict, seal: dict) -> bool:
+    return (seal.get("question_id") == q["id"] and seal.get("stable_question_id") == p["stable_question_id"]
+            and seal.get("content_hash_v2") == q.get("content_hash_v2")
+            and seal.get("publication_allowed_in_snapshot") is False
+            and bool(_HEX64.fullmatch(str(seal.get("question_payload_sha256")))))
+
+
+def _hold(prev_rows, snaps, row_sealer, tmp: Path):
+    """Seal row by row; returns (kept preview rows, kept snaps, seals, held entries)."""
+    seals, failed = row_sealer(tmp)
+    by_qid = {s.get("question_id"): s for s in seals}
+    why = {f.get("question_id"): str(f.get("error") or "cannot be sealed") for f in failed}
+    if len(seals) + len(failed) != len(snaps) or set(by_qid) & set(why):
+        raise RefuseToBuild(f"{len(seals)} seals and {len(failed)} held rows for {len(snaps)} rows")
+    kept_p, kept_s, kept_seals, held = [], [], [], []
+    for p, snap in zip(prev_rows, snaps):
+        qid = snap["question"]["id"]
+        if qid in why:
+            held.append({"stable_question_id": p["stable_question_id"], "question_id": qid,
+                         "batch": p.get("kimport_batch"), "reason": why[qid]})
+        elif qid in by_qid:
+            kept_p.append(p)
+            kept_s.append(snap)
+            kept_seals.append(by_qid[qid])
+        else:
+            raise RefuseToBuild(f"{p['stable_question_id']}: neither sealed nor held")
+    return kept_p, kept_s, kept_seals, held
+
+
 def run_seal(readback, batch_dir: Path | None, out: Path, preview: Path | None = None,
-             sealer=seal_rows) -> dict:
+             sealer=seal_rows, hold_failing: bool = False, row_sealer=None, lane_path: Path | None = None,
+             now: str | None = None) -> dict:
     """Check a saved stage readback, seal it, and write private-readback.json,
     private-scope.json and sealed-preview.json (the last at `out`).
 
     `readback` is one saved file or a list of them (a bulk run reads back in
     chunks); their rows are joined. Without `batch_dir`, `preview` is required
-    and the run name comes from its "batch" field (kimport.bulk)."""
+    and the run name comes from its "batch" field (kimport.bulk).
+
+    hold_failing: a row the app's catalog scope check rejects (for example
+    evidence without the skill review record) is held instead of stopping the
+    seal: it is listed with the reason in held.json beside `out`, added to the
+    lane (`lane_path`) as classification_review, and left out of every file
+    publish reads. Every other check still refuses the whole seal."""
     if batch_dir is None and preview is None:
         raise RefuseToBuild("seal needs a batch folder or a stage preview")
+    if hold_failing and lane_path is not None and not now:
+        raise RefuseToBuild("--hold-failing with a lane needs --now")
     preview = Path(preview) if preview else Path(batch_dir) / "stage" / "stage-preview.json"
     files = [Path(readback)] if isinstance(readback, (str, Path)) else [Path(f) for f in readback]
     try:
@@ -488,25 +543,39 @@ def run_seal(readback, batch_dir: Path | None, out: Path, preview: Path | None =
     out.parent.mkdir(parents=True, exist_ok=True)
     private = out.parent / "private-readback.json"
     tmp = out.parent / ".private-readback.json.tmp"
-    tmp.write_text(json.dumps({"rows": [{"snapshot": s} for s in snaps]}, ensure_ascii=False, indent=1) + "\n",
-                   encoding="utf-8")
-    seals = sealer(tmp)
-    if len(seals) != len(snaps):
+
+    def write_tmp(rows):
+        tmp.write_text(json.dumps({"rows": [{"snapshot": s} for s in rows]}, ensure_ascii=False, indent=1) + "\n",
+                       encoding="utf-8")
+
+    write_tmp(snaps)
+    prows, held = list(prev["rows"]), []
+    try:
+        if hold_failing:
+            prows, snaps, seals, held = _hold(prows, snaps, row_sealer or seal_rows_per_row, tmp)
+            write_tmp(snaps)
+        else:
+            seals = sealer(tmp)
+        if len(seals) != len(snaps):
+            raise RefuseToBuild(f"{len(seals)} seals for {len(snaps)} rows")
+        sealed_rows = []
+        for p, snap, seal in zip(prows, snaps, seals):
+            if not _seal_fits(p, snap["question"], seal):
+                raise RefuseToBuild(f"{p['stable_question_id']}: seal does not fit the row (or the row is publishable)")
+            row = {k: v for k, v in p.items() if k != "stage_payload"}
+            sealed_rows.append({**row, "question_payload_sha256": seal["question_payload_sha256"]})
+    except BaseException:
         tmp.unlink(missing_ok=True)
-        raise RefuseToBuild(f"{len(seals)} seals for {len(snaps)} rows")
-    sealed_rows = []
-    for p, snap, seal in zip(prev["rows"], snaps, seals):
-        q = snap["question"]
-        if (seal.get("question_id") != q["id"] or seal.get("stable_question_id") != p["stable_question_id"]
-                or seal.get("content_hash_v2") != q.get("content_hash_v2")
-                or seal.get("publication_allowed_in_snapshot") is not False
-                or not _HEX64.fullmatch(str(seal.get("question_payload_sha256")))):
-            tmp.unlink(missing_ok=True)
-            raise RefuseToBuild(f"{p['stable_question_id']}: seal does not fit the row (or the row is publishable)")
-        row = {k: v for k, v in p.items() if k != "stage_payload"}
-        sealed_rows.append({**row, "question_payload_sha256": seal["question_payload_sha256"]})
+        raise
+    if hold_failing:
+        _write_all(out.parent, {"held.json": _dump({"batch": batch, "held": held})})
+        if held and lane_path is not None:
+            from kimport.lane import add_open
+            add_open(Path(lane_path), {h["stable_question_id"]: (HELD_REASON, f"held at seal in {batch}: {h['reason']}")
+                                       for h in held}, now, "seal")
     os.replace(tmp, private)
     _write_all(out.parent, {"private-scope.json": _dump({"batch": batch, "rows": seals})})
     _write_all(out.parent, {out.name: _dump({"source_pdf_sha256": prev.get("source_pdf_sha256"),
                                              "rows": sealed_rows})})
-    return {"batch": batch, "rows": len(sealed_rows), "readback": str(private), "sealed": str(out)}
+    return {"batch": batch, "rows": len(sealed_rows), "held": len(held), "readback": str(private),
+            "sealed": str(out)}
