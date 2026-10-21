@@ -111,7 +111,7 @@ If it returns rows, a live duplicate is left: run the sweep again and finish O4 
 k corpus --c-index <final-current-plus-partial-question-records-*.json> --ledger <current-readiness-ledger.json> --export $PIPE/live-<date>-2.json --out $PIPE/corpus/ --lane $PIPE/lane.json
 ```
 
-Produces `clusters.json`, `founder_pairs.json`, `report.md`. A question that is open or parked in the problem lane is never picked as the canonical copy, so promotions made by `lane` survive a re-run (`--lane` defaults to `lane.json` in `--out` or one folder up). `--decision-log` names the saved answer log if it is not `founder_decisions.json` in `--out`. The summary line gives the unique count to compare against 10,000.
+Produces `clusters.json`, `founder_pairs.json`, `report.md`. Occurrences the C index cannot give text for (none, a text for an older B version with no newer C text on disk, or a text that does not parse) can be filled from hand re-read texts with `--extra-c-records <file>` (default: `reread-records.json` in `--out`, if present, so the autopilot's re-runs keep them). Each record names the B package and page image it was read from; it is used only when those match the ledger, and `clusters.json` `inputs.load` says how many were used or refused. A question that is open or parked in the problem lane is never picked as the canonical copy, so promotions made by `lane` survive a re-run (`--lane` defaults to `lane.json` in `--out` or one folder up). `--decision-log` names the saved answer log if it is not `founder_decisions.json` in `--out`. The summary line gives the unique count to compare against 10,000.
 
 **O8. Close matches (you answer).**
 

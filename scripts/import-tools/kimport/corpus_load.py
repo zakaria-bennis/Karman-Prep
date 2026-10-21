@@ -34,8 +34,8 @@ CHOICE = re.compile(r'^\s*([A-H])\s*[).:]\s*(.+?)\s*$')
 IMAGE = re.compile(r'(?i)(<svg|<img|!\[|\b(?:figure|graph|diagram|image|shown below|pictured|scatterplot)\b)')
 VISUAL_REASON = "essential_visual_material_unreviewed"
 GENERATED_BASIS = "two_independent_question_only_reviews_without_original_key"
-_STUDENT_KEYS = ("b_final_student_text", "b_student_final_text", "B_student_final_text", "B_student_json")
-_C_HASH_KEYS = ("c_corrected_text_sha256", "C_corrected_text_sha256")
+_STUDENT_KEYS = ("b_final_student_text", "b_student_final_text", "B_student_final_text", "B_student_json", "student_json")
+_C_HASH_KEYS = ("c_corrected_text_sha256", "C_corrected_text_sha256", "corrected_text_sha256")
 _CF_VISUAL = ("complete", "hold")  # CF rendered (or is holding) an essential visual for this version
 # Rule 1 (ruling R18): capture labels that are not part of the question.
 # A leading question label ("Question 7", "15.", "3)", "12 SAT Math") at the very
@@ -51,12 +51,78 @@ def _lines(text: str) -> list[str]:
     return [" ".join(line.split()) for line in str(text).splitlines() if line.strip()]
 
 
+# Rule 2: capture notes C sometimes appended after the choices. Only notes that say there is
+# no figure, describe page chrome (footer codes, choice-letter colours, answer bars) or link the
+# whole source page are dropped. A note that mentions underlining, italics or bold is never
+# dropped, and neither is a note describing an actual figure or table (the question stays unread).
+KEEP_NOTE = re.compile(r'(?i)underlin|italic|bold|highlight')
+_NOTE_LABEL = r'(?:figures?|tables?|figures?/tables?|figure or table|visuals?|diagrams?|images?)'
+CAPTURE_NOTES = (
+    re.compile(r'(?i)^\[?\s*(?:printed\s+)?footer\s*:?\s*DI\d{6}\b[^\]]*\]?\.?$'),
+    re.compile(r'(?i)^\[?\s*DI\d{6}\s*\]?\.?$'),
+    re.compile(r'(?i)^\[?\s*(?:there\s+(?:is|are)\s+)?no\s+(?:substantive\s+)?' + _NOTE_LABEL + r'\b[^\]]*\]?\.?$'),
+    re.compile(r'(?i)^\[?\s*' + _NOTE_LABEL + r'(?:\s+(?:description|information|note))?\s*:\s*'
+               r'(?:none\b|no\s+(?:substantive\s+)?' + _NOTE_LABEL + r'\b|n/?a\b|blue choice)[^\]]*\]?\.?$'),
+    re.compile(r'(?i)^\[?\s*visual information\s*:\s*(?:blue choice|a small multicolou?red|small multicolou?red|'
+               r'colou?red)[^\]]*\]?\.?$'),
+    re.compile(r'(?i)^\[?\s*(?:small\s+)?(?:multicolou?red|colou?red)\s+(?:segmented\s+|horizontal\s+)*'
+               r'(?:bars|marks)\s+appear\s+beneath\s+each\s+choice[^\]]*\]?\.?$'),
+    re.compile(r'^!\[Whole literal source PNG\]\([^)]*\)$'),
+)
+
+
+def _is_capture_note(line: str) -> bool:
+    if KEEP_NOTE.search(line):
+        return False
+    return (bool(re.fullmatch(r'\[Page number at bottom: \d+\.\]', line))
+            or bool(re.fullmatch(r'Printed page number: \d+\.', line)) or line == 'Figures/tables: none.'
+            or bool(RESPONSE_NOTE.match(line)) or any(p.match(line) for p in CAPTURE_NOTES))
+
+
+def _strip_tail(lines: list[str]) -> list[str]:
+    while lines:
+        if _is_capture_note(lines[-1]):
+            lines.pop()
+        elif (re.fullmatch(r'\d{1,3}', lines[-1]) and len(lines) > 1 and CHOICE.fullmatch(lines[-2])):
+            lines.pop()  # a bare page number printed after the last choice
+        else:
+            break
+    return lines
+
+
+_CONT_BLOCK = re.compile(r'[|=<>≤≥]|^[•◦\-*]\s|^\s*$')  # table cells, equations, bullets
+# A wrapped choice line continues a sentence: it starts in lower case or with a digit, and
+# says nothing about the page (a note such as "Source formatting: ... is underlined" never joins).
+_CONT_START = re.compile(r'^[a-z0-9(,;:’\'"“”\-–—.]')
+_NOTE_WORDS = re.compile(r'(?i)underlin|italic|bold|highlight|\bfigure|\bfooter|\bpng\b|\bimage\b|\bprinted\b|'
+                         r'source formatting|\bvisible\b|\bappears?\b|struck')
+
+
+def _wrapped_choices(lines: list[str]):
+    """Choices whose text wraps onto following lines (hard line breaks in the capture).
+    Accepted only for one block A), B), ... in order, starting at the only A) line and
+    running to the end, where every extra line is plain prose (no table cells or bullets).
+    Returns (body lines, [(letter, text)]) or None."""
+    starts = [i for i, line in enumerate(lines) if (m := CHOICE.fullmatch(line)) and m.group(1) == 'A']
+    if len(starts) != 1:
+        return None
+    opts: list[list[str]] = []
+    for line in lines[starts[0]:]:
+        m = CHOICE.fullmatch(line)
+        if m and m.group(1) == 'ABCDEFGH'[len(opts)]:
+            opts.append([m.group(1), m.group(2)])
+        elif (m or _CONT_BLOCK.search(line) or _is_capture_note(line) or not _CONT_START.match(line)
+              or _NOTE_WORDS.search(line)):
+            return None
+        else:
+            opts[-1][1] += ' ' + line
+    if len(opts) < 2:
+        return None
+    return lines[:starts[0]], [(k, v) for k, v in opts]
+
+
 def parse_text(text):
-    lines = _lines(text)
-    while lines and (re.fullmatch(r'\[Page number at bottom: \d+\.\]', lines[-1])
-                     or re.fullmatch(r'Printed page number: \d+\.', lines[-1]) or lines[-1] == 'Figures/tables: none.'
-                     or RESPONSE_NOTE.match(lines[-1])):
-        lines.pop()
+    lines = _strip_tail(_lines(text))
     if lines and re.fullmatch(r'\d{1,3}', lines[0]):
         lines = lines[1:]
     if lines:
@@ -74,7 +140,10 @@ def parse_text(text):
     if opts and (len(opts) < 2 or len({k for k, _ in opts}) != len(opts)):
         return None
     if any(CHOICE.fullmatch(line) for line in lines):
-        return None
+        wrapped = _wrapped_choices(lines + [f'{k}) {v}' for k, v in opts])
+        if wrapped is None:
+            return None
+        lines, opts = wrapped
     return {'body': '\n'.join(lines), 'choices': opts}
 
 
@@ -200,7 +269,7 @@ def read_occurrence(x: dict) -> dict:
         raise ValueError("B pointer changed: " + qid)
     key, kind = _answer_key(_read_json(bdir / "teacher.json"))
     return {"text": raw.decode("utf-8"), "key": key, "kind": kind, "b_version": expected,
-            "c_hash_recorded": bool(recorded), "c_text_sha256": _sha(raw)}
+            "c_hash_recorded": bool(recorded), "c_text_sha256": _sha(raw), "b_dir": str(bdir)}
 
 
 def _index_rows(data) -> list[dict]:
@@ -242,15 +311,115 @@ def _ledger_meta(item: dict) -> dict:
             "figure_reason": f"ledger hold {visual_hold}" if visual_hold else None}
 
 
-def load_corpus(c_index: Path, ledger: Path) -> list[QuestionRecord]:
+RETAINED = "_retained"
+REREAD_SCHEMA = "kimport-reread-records-v1"
+
+
+def _c_root(c_output_path: str) -> Path | None:
+    """The C output root above an index path (<root>/exams/... or <root>/questions/...)."""
+    parts = Path(c_output_path).parts
+    for i in range(1, len(parts)):
+        if parts[i] in ("exams", "questions"):
+            return Path(*parts[:i])
+    return None
+
+
+def _newer_c(roots: list[Path], item: dict) -> dict | None:
+    """A C text written for the ledger's current B version of this question, when the index
+    still points at an older one. Looked for at the C output layout
+    <root>/exams/<exam>/<B output>/questions/<id>/<B version>/ (the ledger's B output first)
+    and <root>/questions/<id>/<B version>/; the first folder whose text and B package pass the
+    same version checks as an index entry wins."""
+    oid, bver, exam = item["id"], item.get("B_package_sha256"), item.get("exam")
+    if not bver:
+        return None
+    for root in roots:
+        cands = []
+        if exam and item.get("B_output_version"):
+            cands.append(root / "exams" / exam / item["B_output_version"] / "questions" / oid / bver)
+        if exam:
+            cands += sorted((root / "exams" / exam).glob(f"*/questions/{oid}/{bver}"))
+        cands.append(root / "questions" / oid / bver)
+        for folder in dict.fromkeys(cands):
+            if not (folder / "corrected.txt").is_file() or not (folder / "provenance.json").is_file():
+                continue
+            try:
+                occ = read_occurrence({"question_id": oid, "C_output_path": str(folder), "B_final_version": bver})
+            except (OSError, ValueError):
+                continue
+            occ["c_output_path"] = str(folder)
+            return occ
+    return None
+
+
+def _png_sha(bdir: Path) -> str | None:
+    try:
+        src = _read_json(Path(bdir) / "source.json")
+    except (OSError, ValueError):
+        return None
+    return src.get("png_sha256") if isinstance(src, dict) else None
+
+
+def load_reread(path: Path) -> dict[str, dict]:
+    """Supplementary corrected texts (re-read from the source page by hand), keyed by occurrence id.
+    {"schema": "kimport-reread-records-v1", "records": [{"question_id", "B_final_version",
+    "B_package_path", "source_png_sha256", "text"} | {"question_id", "not_readable": reason}]}"""
+    data = _read_json(Path(path))
+    if not isinstance(data, dict) or data.get("schema") != REREAD_SCHEMA or not isinstance(data.get("records"), list):
+        raise ValueError(f"{path}: expected {{'schema': '{REREAD_SCHEMA}', 'records': [...]}}")
+    out: dict[str, dict] = {}
+    for r in data["records"]:
+        qid = r.get("question_id") if isinstance(r, dict) else None
+        if not qid:
+            raise ValueError(f"{path}: record without question_id")
+        if qid in out:
+            raise ValueError(f"{path}: repeated question id {qid}")
+        if not r.get("not_readable") and not (r.get("text") and r.get("B_package_path") and r.get("B_final_version")):
+            raise ValueError(f"{path}: {qid} needs text, B_package_path and B_final_version (or not_readable)")
+        out[qid] = r
+    return out
+
+
+def read_reread(r: dict, item: dict) -> dict:
+    """Version checks for a re-read record: the B package is the version the record names, which
+    is the ledger's current version (when the ledger names one), and the page image the reader
+    used is the one A captured and B packaged. Raises ValueError("reread ...") otherwise."""
+    qid = r["question_id"]
+    bdir = Path(r["B_package_path"])
+    bver = r["B_final_version"]
+    if item.get("B_package_sha256") and item["B_package_sha256"] != bver:
+        raise ValueError("reread_for_other_b_version")
+    if _read_json(bdir / "version.json").get("final_version_sha256") != bver:
+        raise ValueError("reread_b_pointer_changed")
+    png = r.get("source_png_sha256")
+    for want in (_png_sha(bdir), item.get("A_png_sha256")):
+        if want and png != want:
+            raise ValueError("reread_source_image_differs")
+    key, kind = _answer_key(_read_json(bdir / "teacher.json"))
+    text = str(r["text"])
+    return {"text": text, "key": key, "kind": kind, "b_version": bver, "c_hash_recorded": False,
+            "c_text_sha256": _sha(text.encode("utf-8")), "b_dir": str(bdir)}
+
+
+def load_corpus(c_index: Path, ledger: Path, extra: Path | None = None, stats: dict | None = None) -> list[QuestionRecord]:
+    """extra: optional re-read records file (load_reread). An occurrence uses its re-read text only
+    when the C index gives no usable text (none, older B version, or a text that does not parse).
+    stats, when given, is filled with how each fallback was used."""
     index: dict[str, dict] = {}
     for x in _index_rows(_read_json(c_index)):
         if x["question_id"] in index:
             raise ValueError("repeated question id in C index: " + x["question_id"])
         index[x["question_id"]] = x
+    roots = list(dict.fromkeys(r for r in (_c_root(x.get("C_output_path") or "") for x in index.values()) if r))
+    reread = load_reread(extra) if extra else {}
     items = _read_json(ledger).get("items")
     if not isinstance(items, list):
         raise ValueError(f"{ledger}: no 'items' list (expected current-readiness-ledger.json)")
+    ids = {item["id"] for item in items}
+    st = stats if stats is not None else {}
+    for k in ("newer_c_text", "retained_alias", "reread_used", "reread_unused", "reread_failed"):
+        st.setdefault(k, 0)
+    st.setdefault("reread_failures", {})
     seen: set[str] = set()
     cf = _CfVisual()
     out = []
@@ -261,18 +430,68 @@ def load_corpus(c_index: Path, ledger: Path) -> list[QuestionRecord]:
         seen.add(oid)
         meta = _ledger_meta(item)
         live = bool(meta["live_rows"])
+        rec, reason, occ = None, None, None
         x = index.get(oid)
+        if x is None and oid.endswith(RETAINED) and oid[:-len(RETAINED)] not in ids:
+            # A capture kept under "<id>_retained" whose C text and B package carry the plain id;
+            # used only when the B package was made from the same page image.
+            base = index.get(oid[:-len(RETAINED)])
+            if base is not None:
+                cand = read_occurrence(base)
+                png = _png_sha(Path(cand["b_dir"]))
+                if png and png == item.get("A_png_sha256"):
+                    x, occ = base, cand
+                    st["retained_alias"] += 1
         if x is None:
-            out.append(unparsed_record(oid, "no_corrected_text", is_live=live, meta=meta))
-            continue
-        occ = read_occurrence(x)
-        meta.update(c_hash_recorded=occ["c_hash_recorded"], c_text_sha256=occ["c_text_sha256"],
-                    b_version=occ["b_version"], reviewed_answer={"kind": occ["kind"]})
-        if item.get("B_package_sha256") and item["B_package_sha256"] != occ["b_version"]:
-            out.append(unparsed_record(oid, "corrected_text_for_older_b_version", is_live=live, meta=meta))
-            continue
-        status = cf.status(item)
-        if status in _CF_VISUAL and not meta["figure_reason"]:
-            meta["figure_reason"] = f"CF essential visual ({status})"
-        out.append(record_from_question({"text": occ["text"], "key": occ["key"]}, oid, is_live=live, meta=meta))
+            reason = "no_corrected_text"
+        else:
+            occ = occ or read_occurrence(x)
+            if item.get("B_package_sha256") and item["B_package_sha256"] != occ["b_version"]:
+                newer = _newer_c(roots, item)
+                if newer is None:
+                    reason = "corrected_text_for_older_b_version"
+                else:
+                    occ = newer
+                    meta["c_newer_text"] = newer["c_output_path"]
+                    st["newer_c_text"] += 1
+        if reason is None:
+            rec = _record(item, occ, meta, live, cf)
+            if rec.meta["status"] == "unparsed":
+                reason = rec.meta["reason"]
+        r = reread.get(oid)
+        if r is not None:
+            if reason is None:
+                st["reread_unused"] += 1
+            elif r.get("not_readable"):
+                reason = "not_readable: " + str(r["not_readable"])
+                rec = None
+            else:
+                try:
+                    rocc = read_reread(r, item)
+                except ValueError as e:
+                    st["reread_failed"] += 1
+                    st["reread_failures"][oid] = str(e)
+                else:
+                    meta.update(text_source="reread", reread_replaces=reason)
+                    rec = _record(item, rocc, meta, live, cf)
+                    if rec.meta["status"] == "unparsed":
+                        st["reread_failed"] += 1
+                        st["reread_failures"][oid] = "reread_" + rec.meta["reason"]
+                        reason = "reread_" + rec.meta["reason"]
+                    else:
+                        st["reread_used"] += 1
+                        reason = None
+        if reason is not None and (rec is None or rec.meta["status"] != "unparsed" or rec.meta["reason"] != reason):
+            rec = unparsed_record(oid, reason, is_live=live, meta=meta)
+        out.append(rec)
     return out
+
+
+def _record(item: dict, occ: dict, meta: dict, live: bool, cf: "_CfVisual") -> QuestionRecord:
+    m = dict(meta)
+    m.update(c_hash_recorded=occ["c_hash_recorded"], c_text_sha256=occ["c_text_sha256"],
+             b_version=occ["b_version"], reviewed_answer={"kind": occ["kind"]})
+    status = cf.status(item)
+    if status in _CF_VISUAL and not m["figure_reason"]:
+        m["figure_reason"] = f"CF essential visual ({status})"
+    return record_from_question({"text": occ["text"], "key": occ["key"]}, item["id"], is_live=live, meta=m)

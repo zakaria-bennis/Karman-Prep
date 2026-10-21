@@ -586,11 +586,24 @@ def _mark_blocked(recs, blocked: set[str]):
     return [replace(r, meta={**r.meta, "lane_blocked": True}) if r.ref in blocked else r for r in recs]
 
 
+REREAD_FILE = "reread-records.json"
+
+
+def default_reread(out_dir: Path) -> Path | None:
+    p = Path(out_dir) / REREAD_FILE
+    return p if p.exists() else None
+
+
 def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
-               decision_log: Path | None = None, lane_path: Path | None = None) -> dict:
+               decision_log: Path | None = None, lane_path: Path | None = None,
+               extra_c_records: Path | None = None) -> dict:
+    """extra_c_records: re-read corrected texts (corpus_load.load_reread); default
+    reread-records.json in out_dir when present, so every re-run (the autopilot's too) keeps them."""
     from kimport.lane import blocked_ids  # lane imports this module
 
-    corpus = load_corpus(Path(c_index), Path(ledger))
+    extra = Path(extra_c_records) if extra_c_records else default_reread(out_dir)
+    load_stats: dict = {}
+    corpus = load_corpus(Path(c_index), Path(ledger), extra, load_stats)
     live = None
     if export is not None:
         live = [record_from_row(row) for row in read_export_doc(Path(export)).rows]
@@ -603,7 +616,10 @@ def run_corpus(c_index: Path, ledger: Path, export: Path | None, out_dir: Path,
     result.export_sha256 = _file_sha(export) if export is not None else None
     result.inputs = {"c_index": str(c_index), "c_index_sha256": _file_sha(c_index), "ledger": str(ledger),
                      "ledger_sha256": _file_sha(ledger), "export": str(export) if export is not None else None,
-                     "lane": str(lane_path) if lane_path else None, "lane_blocked": len(blocked)}
+                     "lane": str(lane_path) if lane_path else None, "lane_blocked": len(blocked),
+                     "extra_c_records": str(extra) if extra else None,
+                     "extra_c_records_sha256": _file_sha(extra) if extra else None,
+                     "load": load_stats}
     log = Path(decision_log) if decision_log else Path(out_dir) / "founder_decisions.json"
     write_outputs(result, Path(out_dir), log)
     return result.counts
