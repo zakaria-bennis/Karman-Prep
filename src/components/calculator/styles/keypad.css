@@ -11,7 +11,7 @@
 .kc-keypad {
   position: relative;
   box-sizing: border-box;
-  height: 169px;
+  height: var(--kc-keypad-tray, 169px);
   border-top: 1px solid var(--kc-kp-edge);
   background-color: var(--kc-chrome);
   box-shadow: 0 -1px 3px var(--kc-kp-edge);
@@ -410,16 +410,20 @@
     visibility 0s linear var(--kc-dur-300);
 }
 
+/* The height eases too, so the phone's thin bar (data-minimized) grows and shrinks smoothly. */
 .kc-keypad[data-open="true"] {
   transition:
     transform var(--kc-dur-300) var(--kc-ease),
     opacity var(--kc-dur-300) var(--kc-ease),
+    height var(--kc-dur-300) var(--kc-ease),
     visibility 0s linear 0s;
 }
 
 /* VIS-KEYPAD-40: the narrow layout does not slide; it fades in and leaves at once. */
 .kc-keypad[data-narrow="true"] {
-  transition: opacity var(--kc-dur-300) var(--kc-ease);
+  transition:
+    opacity var(--kc-dur-300) var(--kc-ease),
+    height var(--kc-dur-300) var(--kc-ease);
 }
 
 .kc-keypad[data-narrow="true"][data-open="false"] {

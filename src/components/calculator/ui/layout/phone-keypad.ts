@@ -3,7 +3,10 @@
 // - the graph's view is centred above the part of the graph the open keypad covers (keypadInset,
 //   measured from the full keypad and held while it stays open; GraphPanel moves the view);
 // - a touch on the graph while the keypad is open shrinks it to a thin Show keypad bar and goes on
-//   to pan, trace or open a label; the bar, a focused row or the keypad closing brings it back.
+//   to pan, trace or open a label; the bar, a focused row or the keypad closing brings it back;
+// - upright (the stacked layout), the list keeps the height it has above the full keypad, so the
+//   graph grows into the space the bar frees and shrinks back with the keys (phoneKeypadState and
+//   base.css; the tray's height change is the animation, and the view keeps its centre and scale).
 // Desktop and tablet layouts keep the reference behaviour (a graph touch puts the keypad away).
 
 import { useEffect, useLayoutEffect, useState, type RefObject } from "react";
@@ -25,6 +28,21 @@ export interface PhoneKeypad {
   /** A pointer went down on the graph. */
   onGraphPointerDown(event: { pointerType: string }): void;
   restore(): void;
+}
+
+/**
+ * The calculator root's data-phone-keypad: set only upright on a phone with the keypad open,
+ * "open" with the keys and "bar" while the keypad is a thin bar. Undefined elsewhere (the side by
+ * side layout of a phone on its side keeps its keypadInset behaviour).
+ */
+export function phoneKeypadState(o: {
+  phone: boolean;
+  layout: "desktop" | "stacked";
+  keypadOpen: boolean;
+  minimized: boolean;
+}): "open" | "bar" | undefined {
+  if (!o.phone || o.layout !== "stacked" || !o.keypadOpen) return undefined;
+  return o.minimized ? "bar" : "open";
 }
 
 /** CSS px of `graph`'s height that `cover` overlaps. */

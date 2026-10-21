@@ -69,6 +69,7 @@ textarea {
    lies across the bottom over both, so the graph never resizes for it. Stacked (RS-3) the graph
    keeps the top 42% and the keypad takes its height from the list. */
 .kc-app {
+  --kc-keypad-tray: 169px; /* VIS-KEYPAD-1: the open keypad's height */
   position: relative;
   display: grid;
   width: 100%;
@@ -96,6 +97,13 @@ textarea {
 }
 .kc-app[data-kc-layout="stacked"][data-collapsed="true"] {
   grid-template-rows: minmax(0, 1fr) 0 auto;
+}
+/* Owner decision 2026-10-21: upright on a phone with the keypad open, the list keeps the height
+   it has above the full tray (58% less the tray) and the graph takes the rest: 42% with the keys,
+   and the space the thin bar frees while the keypad is a bar. The tray's height transition
+   (keypad.css) animates it; reduced motion makes it instant. */
+.kc-app[data-kc-layout="stacked"][data-phone-keypad]:not([data-collapsed="true"]) {
+  grid-template-rows: minmax(0, 1fr) max(0px, calc(58% - var(--kc-keypad-tray))) auto;
 }
 /* The list paints over the graph's edge for its shadow strip and the Expand list button. */
 .kc-list-region {

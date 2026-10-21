@@ -73,6 +73,8 @@ test.describe("phone keypad and the graph", () => {
     await finger.move([x + 22, y - 30]);
     await finger.up();
     await expect(keypad(page)).toHaveAttribute("data-minimized", "true");
+    // upright the graph grows as the tray shrinks; points are found once it has settled
+    await expect.poll(async () => (await keypad(page).boundingBox())!.height).toBe(37);
     // The traced row is selected, so its points of interest show; the vertex is (0, −4).
     await expect
       .poll(() =>
@@ -82,6 +84,69 @@ test.describe("phone keypad and the graph", () => {
     const vertex = await at(page, 0, -4);
     await finger.tap([vertex[0] + 8, vertex[1] + 8]);
     await expect(page.locator("#calc [data-poi-label]")).toHaveCount(1);
+  });
+
+  test("upright, the graph grows into the space the bar frees, at the same centre and scale; the keys bring it back (owner, 2026-10-21)", async ({
+    page,
+    browserName,
+  }) => {
+    const sizes = () =>
+      page.evaluate(() => {
+        const root = document.querySelector("#calc")!.shadowRoot!;
+        const h = (s: string) => root.querySelector(s)!.getBoundingClientRect().height;
+        const v = globalThis.__calculatorHarness!.engine.getSnapshot().viewport;
+        return {
+          graph: h(".kc-graph-region"),
+          list: h(".kc-list-region"),
+          centre: [(v.left + v.right) / 2, (v.top + v.bottom) / 2],
+          perPx: (v.right - v.left) / root.querySelector(".kc-graph-region")!.clientWidth,
+        };
+      });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openShell(page, `?rows=${enc(["y=x^2-4"])}`);
+    await plotted(page, "1");
+    await tapRow(page, "1");
+    await expect(page.locator("#calc .kc-app")).toHaveAttribute("data-phone-keypad", "open");
+    await expect.poll(async () => (await keypad(page).boundingBox())!.height).toBe(169);
+    const open = await sizes();
+    await new Finger(page, true, browserName).tap(await at(page, -7, 6));
+    await expect(page.locator("#calc .kc-app")).toHaveAttribute("data-phone-keypad", "bar");
+    // mid-way the list already keeps its height: the graph alone takes the freed space
+    await page.waitForTimeout(100);
+    expect((await sizes()).list).toBeCloseTo(open.list, 0);
+    await expect.poll(async () => (await sizes()).graph).toBeCloseTo(open.graph + 169 - 37, 0);
+    const bar = await sizes();
+    expect(bar.list).toBeCloseTo(open.list, 0);
+    expect(bar.centre[0]).toBeCloseTo(open.centre[0], 6);
+    expect(bar.centre[1]).toBeCloseTo(open.centre[1], 6);
+    expect(bar.perPx).toBeCloseTo(open.perPx, 9);
+    await keypad(page).getByRole("button", { name: "Show keypad" }).tap();
+    await expect.poll(async () => (await sizes()).graph).toBeCloseTo(open.graph, 0);
+    const back = await sizes();
+    expect(back.list).toBeCloseTo(open.list, 0);
+    expect(back.centre[1]).toBeCloseTo(open.centre[1], 6);
+  });
+
+  test("upright with reduced motion the graph takes the bar's space at once", async ({
+    page,
+    browserName,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openShell(page, `?rows=${enc(["y=x^2-4"])}&reducedMotion=1`);
+    await plotted(page, "1");
+    await tapRow(page, "1");
+    const graph = () =>
+      page.evaluate(
+        () =>
+          document
+            .querySelector("#calc")!
+            .shadowRoot!.querySelector(".kc-graph-region")!
+            .getBoundingClientRect().height
+      );
+    const before = await graph();
+    await new Finger(page, true, browserName).tap(await at(page, -7, 6));
+    await expect(page.locator("#calc .kc-app")).toHaveAttribute("data-phone-keypad", "bar");
+    expect(await graph()).toBeCloseTo(before + 169 - 37, 0);
   });
 
   test("a keypad lying over the graph (a phone on its side) centres the view above it; closing restores it", async ({
@@ -99,6 +164,8 @@ test.describe("phone keypad and the graph", () => {
       return Math.round(g.bottom - k.top);
     });
     expect(covered).toBeGreaterThan(100);
+    // on its side the grid is unchanged: no upright keypad state
+    await expect(page.locator("#calc .kc-app")).not.toHaveAttribute("data-phone-keypad", /.*/);
     // The world point at the old centre now sits mid-way in the visible part above the keypad
     // (to a px: the cover is measured in whole px).
     const height = await page.evaluate(

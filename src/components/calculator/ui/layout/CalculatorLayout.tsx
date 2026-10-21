@@ -5,7 +5,8 @@
 // on the list region keeps the focused or active row in view (L-14), and focus
 // entering the list closes the settings popover. A mousedown in the keypad region
 // while a row has focus is cancelled, so focus and caret stay in the row (K-12). On a phone the
-// open keypad keeps the graph in view (phone-keypad.ts).
+// open keypad keeps the graph in view, and upright the graph grows while the keypad is a bar
+// (phone-keypad.ts).
 
 import { useEffect, useRef, type JSX, type Ref } from "react";
 import { GraphPanel } from "../graph/GraphPanel";
@@ -14,7 +15,7 @@ import { Keypad } from "../keypad/Keypad";
 import { ExpressionPanel } from "../list/ExpressionPanel";
 import { SettingsPopover } from "../settings/SettingsPopover";
 import { ListResizer, useListWidth } from "./ListResizer";
-import { usePhoneKeypad } from "./phone-keypad";
+import { phoneKeypadState, usePhoneKeypad } from "./phone-keypad";
 import { revealRow } from "./reveal-row";
 
 export interface CalculatorLayoutProps {
@@ -83,6 +84,12 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
       data-collapsed={String(props.collapsed)}
       data-keypad={String(props.keypadOpen)}
       data-compact-touch={phone ? "true" : undefined}
+      data-phone-keypad={phoneKeypadState({
+        phone,
+        layout: props.layout,
+        keypadOpen: props.keypadOpen,
+        minimized: phoneKeypad.minimized,
+      })}
       style={props.layout === "desktop" ? listWidth.style : undefined}
     >
       <div
