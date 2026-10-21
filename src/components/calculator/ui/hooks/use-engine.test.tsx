@@ -29,6 +29,6 @@ it("AR-54 a syntax error reaches React as a row message through useEngineSnapsho
   act(() => {
     engine.editRow("1", "\\frac{", "typing");
   });
-  expect(screen.getByRole("status")).toHaveTextContent("plum|Sorry, I don't understand this.");
+  expect(screen.getByRole("status")).toHaveTextContent("plum|Can't read this expression.");
   restore();
 });

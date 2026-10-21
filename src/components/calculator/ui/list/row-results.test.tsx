@@ -32,7 +32,7 @@ it("R-5 a numeric row shows its value below the math with NM-1, NM-2 and T-10 di
     expect(within(rowItem(id)).queryByRole("button", { name: /fraction|decimal/i })).toBeNull();
 });
 
-const SYNTAX_MESSAGE = "You need something on both sides of the '+' symbol.";
+const SYNTAX_MESSAGE = "'+' needs something on both sides.";
 
 it("R-2 an error row shows the warning marker in place of the tab, with a tooltip that opens on hover and focus, closes on leave, blur and Escape, and is pinned by a click or tap until a second one or a press outside; the message is the textbox's description", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=2+"] });
@@ -196,10 +196,8 @@ it("A11Y-3 the value element and the error element are linked from the textbox b
 it("FN-16 in real mode i is an ordinary undefined name, as in Desmos: 2i offers its slider and a lone i none (owner decision, 2026-10-21)", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["2i", "i"] });
   expect(kit.engine.getSnapshot().rows.map((r) => r.chips)).toEqual([["i"], ["i"]]);
-  expect(
-    within(rowItem("1")).getByRole("button", { name: "Add slider for i" })
-  ).toBeInTheDocument();
-  expect(within(rowItem("2")).queryByRole("button", { name: "Add slider for i" })).toBeNull();
+  expect(within(rowItem("1")).getByRole("button", { name: "Add sliders" })).toBeInTheDocument();
+  expect(within(rowItem("2")).queryByRole("button", { name: "Add sliders" })).toBeNull();
   expect(textbox(1)).toHaveAttribute("aria-invalid", "true");
   expect(textbox(2)).toHaveAttribute("aria-invalid", "true");
   expect(screen.queryByText(/complex mode/i)).toBeNull();

@@ -208,13 +208,10 @@ export function exportBlock(row: Pick<StoredRow, "columns" | "regression">): Exp
 }
 
 export const EXPORT_BLOCK_TEXT = {
-  coordinates:
-    "These columns can't be referenced outside of the table. To export the regression model, first try renaming the columns.",
-  column: (name: string) =>
-    `Column ${name} can't be referenced outside of the table. To create a standalone regression, first try renaming that column.`,
-  computedBefore:
-    "The headers need to be simple identifiers to export as a custom regression. Try assigning ",
-  computedAfter: " to a variable and then referencing it in the table header.",
+  coordinates: "Rename these columns to export the model.",
+  column: (name: string) => `Rename column ${name} to export the model.`,
+  computedBefore: "To export, name ",
+  computedAfter: " and use that name as the header.",
 } as const;
 
 /** The names ordinary rows define (`m=2`, `f(x)=…`), from their latex. */

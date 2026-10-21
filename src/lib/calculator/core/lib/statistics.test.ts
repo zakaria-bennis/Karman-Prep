@@ -148,11 +148,9 @@ it("FN-23 mean and total broadcasting points are typed as a list of points, as t
     "\\operatorname{length}(\\operatorname{total}(P,P),1)",
     "\\operatorname{length}(\\operatorname{mean}(P,(1,1)),1)",
   ]) {
-    expect(message(latex)).toBe(
-      "Function 'length' cannot be applied to a list of points and a number."
-    );
+    expect(message(latex)).toBe("length can't take a list of points and a number.");
   }
   expect(message("\\operatorname{length}(\\operatorname{count}(P,P),1)")).toBe(
-    "Function 'length' cannot be applied to a list of numbers and a number."
+    "length can't take a list of numbers and a number."
   );
 });

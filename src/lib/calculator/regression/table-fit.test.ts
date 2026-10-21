@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import cases from "./__fixtures__/table-models.json";
 import { fitTableRegression, tableStatisticsLines } from "./table-fit";
 import { isTableModel } from "./table-models";
+import { karmanCopy } from "../core/analysis/__fixtures__/desmos-copy";
 
 interface Case {
   key: string;
@@ -65,7 +66,7 @@ describe("RT-29 table regressions match the reference's displayed results", () =
   for (const c of all) {
     it(`${c.key}`, () => {
       const got = run(c);
-      expect(got.error).toBe(c.error);
+      expect(got.error).toBe(c.error === null ? null : karmanCopy(c.error));
       expect(got.logModeShown).toBe(c.logModeShown);
       if (!DEGENERATE.has(c.key)) {
         expect(got.equation).toBe(c.equation);
@@ -106,24 +107,22 @@ it("RT-19 yearly data: Exponential fits as written and warns, Power fits without
   );
 });
 
-describe("RT-30 a table regression's error text, as the reference words it (2026-10-20)", () => {
+describe("RT-30 a table regression's error text", () => {
   const fit = (xs: (number | null | "error")[], ys: (number | null | "error")[]) => {
     const r = fitTableRegression({ type: "linear", xs, ys, logMode: false });
     return r.ok ? null : r.message;
   };
   it("names the empty columns: y against x", () => {
-    expect(fit([], [])).toBe("Cannot regress an empty list against an empty list.");
-    expect(fit([null, null], [])).toBe("Cannot regress an empty list against an empty list.");
-    expect(fit([], [2, 4, 7])).toBe("Cannot regress a list of numbers against an empty list.");
-    expect(fit([1, 2, 3], [])).toBe("Cannot regress an empty list against a list of numbers.");
+    expect(fit([], [])).toBe("Can't regress an empty list against an empty list.");
+    expect(fit([null, null], [])).toBe("Can't regress an empty list against an empty list.");
+    expect(fit([], [2, 4, 7])).toBe("Can't regress a list of numbers against an empty list.");
+    expect(fit([1, 2, 3], [])).toBe("Can't regress an empty list against a list of numbers.");
   });
   it("a blank or a cell in error inside the used rows is a data error, even in the last row", () => {
-    expect(fit([1, 2, 3], [2, null, 7])).toBe("There's an error in the provided data.");
-    expect(fit([1, 2, "error"], [2, 4, 7])).toBe("There's an error in the provided data.");
+    expect(fit([1, 2, 3], [2, null, 7])).toBe("Some of the data has errors.");
+    expect(fit([1, 2, "error"], [2, 4, 7])).toBe("Some of the data has errors.");
   });
   it("an undefined value finds no region where the model is defined", () => {
-    expect(fit([1, 2, 3], [2, Number.NaN, 7])).toBe(
-      "We couldn't find any region where this model is defined."
-    );
+    expect(fit([1, 2, 3], [2, Number.NaN, 7])).toBe("This model isn't defined for this data.");
   });
 });

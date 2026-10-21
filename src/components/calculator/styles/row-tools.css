@@ -1,0 +1,173 @@
+/* Small row tools (owner decisions, 2026-10-21): the add-sliders icon under a row's warning
+   marker and its menu, the DEG/RAD badge of a trig row, and the portalled tooltip both use. */
+
+/* The add-sliders icon: a 29 by 14 button in the gutter, its top 1.2 px under the 26 px warning
+   marker, inside the 56 px row so the row keeps its height. Quiet ink at 0.55, 0.8 hovered. */
+.kc-add-sliders {
+  position: absolute;
+  top: 38.5px;
+  left: 4px;
+  display: grid;
+  place-items: center;
+  width: var(--kc-colour-icon);
+  height: 14px;
+  padding: 0;
+  border: none;
+  border-radius: var(--kc-radius-small);
+  background: transparent;
+  color: var(--kc-text);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.kc-add-sliders > svg {
+  display: block;
+}
+
+@media (hover: hover) {
+  .kc-add-sliders:hover {
+    opacity: 0.8;
+  }
+}
+
+.kc-add-sliders[aria-expanded="true"],
+.kc-add-sliders:active {
+  opacity: 0.9;
+}
+
+.kc-add-sliders:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
+  .kc-add-sliders {
+  color: var(--kc-focus-bar-label);
+  opacity: 0.9;
+}
+
+/* On a touch screen the icon takes taps across the gutter's width and down to the row's foot. */
+@media (pointer: coarse) {
+  .kc-add-sliders::before {
+    content: "";
+    position: absolute;
+    inset: -2px -4px -6px;
+  }
+}
+
+/* The menu: "all", then each name, in a small box under the icon, over the rows below. */
+.kc-add-sliders-menu {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 72px;
+  padding: 4px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--kc-text) 16%, transparent);
+  animation: kc-tooltip-in var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-add-sliders-item {
+  min-height: 30px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--kc-text);
+  font-family: var(--kc-font-math);
+  font-size: var(--kc-size-slider-word);
+  font-style: italic;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kc-add-sliders-item[data-word="true"] {
+  font-family: var(--kc-font-ui);
+  font-style: normal;
+}
+
+.kc-add-sliders-item:hover,
+.kc-add-sliders-item:focus-visible {
+  background: color-mix(in srgb, var(--kc-text) 8%, transparent);
+  outline: none;
+}
+
+@media (pointer: coarse) {
+  .kc-add-sliders-item {
+    min-height: 40px;
+  }
+}
+
+/* The DEG/RAD badge: 10 px capitals in muted ink inside a hairline box. At the end of the value
+   line it follows the value; on a row with no value it sits at the row's bottom right. */
+.kc-angle-badge {
+  display: inline-block;
+  padding: 0 3px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 3px;
+  color: var(--kc-text-muted);
+  font-family: var(--kc-font-ui);
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  line-height: 13px;
+  cursor: default;
+  user-select: none;
+}
+
+.kc-angle-badge[data-placement="value"] {
+  margin-left: 4px;
+}
+
+.kc-angle-badge[data-placement="row"] {
+  position: absolute;
+  right: 8px;
+  bottom: 5px;
+  z-index: 1;
+}
+
+/* The portalled tooltip: the toolbar tooltip's black box and arrow, placed by RowTip.tsx. */
+.kc-row-tip {
+  --kc-tip-arrow: 50%;
+  position: fixed;
+  z-index: 30;
+  width: max-content;
+  max-width: 220px;
+  padding: 5px 8px;
+  border-radius: var(--kc-radius-chip);
+  background: var(--kc-tooltip);
+  color: var(--kc-tooltip-label);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-tooltip);
+  line-height: var(--kc-line-tooltip);
+  text-align: center;
+  pointer-events: none;
+  animation: kc-tooltip-in var(--kc-dur-300) var(--kc-ease);
+}
+
+.kc-row-tip::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: var(--kc-tip-arrow);
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-width: 0;
+  border-bottom-color: var(--kc-tooltip);
+}
+
+.kc-row-tip[data-side="above"]::before {
+  top: auto;
+  bottom: -5px;
+  border-top-width: 5px;
+  border-bottom-width: 0;
+  border-top-color: var(--kc-tooltip);
+  border-bottom-color: transparent;
+}

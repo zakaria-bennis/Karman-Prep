@@ -11,6 +11,7 @@ import { evaluateLatex } from "../eval/compile";
 import type { Value } from "../eval/values";
 import distributions from "./desmos-distributions.fixture.json";
 import { withinTolerance } from "./tolerance";
+import { karmanCopy } from "../analysis/__fixtures__/desmos-copy";
 
 type Expected = number | null | (number | null)[] | { length: number; sample: number[] };
 
@@ -89,7 +90,7 @@ for (const [key, expected] of VALUES) {
 }
 
 for (const [key, message] of ERRORS) {
-  const check = () => expect(errorMessage(key)).toBe(message);
+  const check = () => expect(errorMessage(key)).toBe(karmanCopy(message));
   if (gap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`FN-45 FN-51 ${key} reads "${message}", as in Desmos`, check);
 }

@@ -82,7 +82,7 @@ export function evaluateRegression(
   const leftType = sideType(left);
   const rightType = sideType(modelValue(r, scope, deadline));
   if (leftType !== null && rightType !== null && (leftType.bad || rightType.bad)) {
-    return failed(r, `Cannot regress ${leftType.phrase} against ${rightType.phrase}.`);
+    return failed(r, `Can't regress ${leftType.phrase} against ${rightType.phrase}.`);
   }
   // RT-15: a scalar left side is legal, fitted against every predictor value.
   const scalar = left.type === "number" || left.type === "undefined";

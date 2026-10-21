@@ -38,17 +38,17 @@ it("NM-42, NM-35, NM-36 a list error found while evaluating is the row's error a
   ]);
   expect(row("a").error).toEqual({
     code: "list-too-long",
-    message: "Lists may not have more than 10,000 elements.",
+    message: "A list can hold at most 10,000 items.",
     names: [],
     span: null,
   });
   expect(row("a").valueText).toBeNull();
-  expect(row("b").error?.message).toBe("Ranges must be arithmetic sequences.");
+  expect(row("b").error?.message).toBe("A range must go up in equal steps.");
   expect(row("c").error).toBeNull();
   expect(row("c").valueText).toBe("undefined");
   expect(m.engine.expressionAnalysis.a).toMatchObject({
     isError: true,
-    errorMessage: "Lists may not have more than 10,000 elements.",
+    errorMessage: "A list can hold at most 10,000 items.",
     evaluationDisplayed: false,
   });
 });
@@ -77,7 +77,7 @@ it("NM-34, G-22 the founder's nested-list row shows its error and a list-valued 
     { id: "s", latex: "[x_{1},x_{1}]\\sim[y_{1},y_{1}]" },
     { id: "c", latex: "y=[1,2]x" },
   ]);
-  expect(row("s").error?.message).toBe("Cannot store a list of numbers in a list.");
+  expect(row("s").error?.message).toBe("A list can't hold lists.");
   expect([row("c").kind, row("c").error]).toEqual(["curve-y", null]);
   const curve = m.engine.getSnapshot().geometry.get("c");
   const runs = curve?.kind === "curve" ? runsOf(curve.polylines) : [];

@@ -23,7 +23,7 @@ const table: RowSource = {
 };
 
 describe("list errors found by analysis", () => {
-  it("NM-34 [x_1,x_1]~[y_1,y_1] with list columns is Cannot store a list of numbers in a list.", () => {
+  it("NM-34 [x_1,x_1]~[y_1,y_1] with list columns is a nested-list error", () => {
     for (const context of [rows("x_{1}=[1...10]", "y_{1}=[1...10]"), [table]]) {
       const a = analyzeRows(
         [...context, { id: "s", latex: "[x_{1},x_{1}]\\sim[y_{1},y_{1}]", hidden: false }],
@@ -33,7 +33,7 @@ describe("list errors found by analysis", () => {
       expect([s.kind, s.error?.code, s.error?.message]).toEqual([
         "error",
         "nested-list",
-        "Cannot store a list of numbers in a list.",
+        "A list can't hold lists.",
       ]);
       expect(s.regression).toBeUndefined();
     }
@@ -65,7 +65,7 @@ describe("list errors found by analysis", () => {
     expect(last("[1,1,...,5]").error?.code).toBe("range-step");
     expect(last("[1...0/0]").error?.code).toBe("range-step");
     expect(last("[1,3,...,1]").error?.code).toBe("range-step");
-    expect(last("[-2,-2,...,5]").error?.message).toBe("Ranges must be arithmetic sequences.");
+    expect(last("[-2,-2,...,5]").error?.message).toBe("A range must go up in equal steps.");
     expect(last("[1...(-8)^{1/3}]").error).toBeNull(); // evaluation's power, not JavaScript's
   });
 });
@@ -74,30 +74,30 @@ describe("index errors found by analysis", () => {
   const message = (...latex: string[]) => last(...latex).error?.message ?? null;
   const LISTS = ["L=[5,3,8,1]", "P=[(1,2),(3,4)]", "a=5", "A=(1,2)"];
 
-  it("NM-30 indexing a number or a point reads Cannot index … with …, as the ListAccess signature does", () => {
+  it("NM-30 indexing a number or a point reads Can't index … with …, as the ListAccess signature does", () => {
     expect(
       ["a[1]", "a[1...2]", "a[[1,2]]", "L[1][1]", "x[1]", "\\pi[1,2]", "(L+1)[2][1]"].map((l) =>
         message(...LISTS, l)
       )
     ).toEqual([
-      "Cannot index a number with a number.",
-      "Cannot index a number with a list of numbers.",
-      "Cannot index a number with a list of numbers.",
-      "Cannot index a number with a number.",
-      "Cannot index a number with a number.",
-      "Cannot index a number with a list of numbers.",
-      "Cannot index a number with a number.",
+      "Can't index a number with a number.",
+      "Can't index a number with a list of numbers.",
+      "Can't index a number with a list of numbers.",
+      "Can't index a number with a number.",
+      "Can't index a number with a number.",
+      "Can't index a number with a list of numbers.",
+      "Can't index a number with a number.",
     ]);
     expect(["P[1][1]", "(1,2)[1]", "A[1]"].map((l) => message(...LISTS, l))).toEqual(
-      Array(3).fill("Cannot index a point with a number.")
+      Array(3).fill("Can't index a point with a number.")
     );
   });
 
   it("NM-30 indexing by a point or a list of points is an error; by numbers it is not", () => {
     expect(["L[(1,2)]", "L[P]", "P[A]"].map((l) => message(...LISTS, l))).toEqual([
-      "Cannot index a list of numbers with a point.",
-      "Cannot index a list of numbers with a list of points.",
-      "Cannot index a list of points with a point.",
+      "Can't index a list of numbers with a point.",
+      "Can't index a list of numbers with a list of points.",
+      "Can't index a list of points with a point.",
     ]);
     expect(
       ["L[a]", "P[[1,2]]", "L[L>a]", "f(L)[1]", "q[1]"].map((l) => message(...LISTS, l))
@@ -106,10 +106,10 @@ describe("index errors found by analysis", () => {
 
   it("NM-31, NM-36 a range or filter that uses a name no row defines depends on a free variable", () => {
     expect(["L[i>2]", "[i...5]", "L[1...b]", "[x...5]"].map((l) => message(...LISTS, l))).toEqual([
-      "Can't plot a list whose length depends on free variable 'i'.",
-      "Can't plot a list whose length depends on free variable 'i'.",
-      "Can't plot a list whose length depends on free variable 'b'.",
-      "Can't plot a list whose length depends on free variable 'x'.",
+      "Can't plot a list whose length uses i.",
+      "Can't plot a list whose length uses i.",
+      "Can't plot a list whose length uses b.",
+      "Can't plot a list whose length uses x.",
     ]);
     expect(message(...LISTS, "f(k,m)=L[k...m]")).toBe(null);
     expect(message(...LISTS, "L[1...a]")).toBe(null);
@@ -120,12 +120,12 @@ describe("index errors found by analysis", () => {
     expect(
       ["L[2].x", "[1,2].x", "(1,2).x", "P[2].y", "P.x", "A.z"].map((l) => message(...LISTS, l))
     ).toEqual([
-      "Cannot access coordinate '.x' of a number.",
-      "Cannot access coordinate '.x' of a list of numbers.",
+      "Can't get .x from a number.",
+      "Can't get .x from a list of numbers.",
       null,
       null,
       null,
-      "Cannot access coordinate '.z' of a 2d point.",
+      "Can't get .z from a 2d point.",
     ]);
   });
 });
@@ -268,12 +268,12 @@ it("FN-4 a user function called with a point, and an nth root of a point, read D
     message("\\sqrt[3]{(1,2)}"),
     message("\\sqrt[(1,2)]{8}"),
   ]).toEqual([
-    "Function 'sin' cannot be applied to a point.",
-    "Function 'sin' cannot be applied to a point.",
-    "Function 'mod' cannot be applied to a point and a number.",
+    "sin can't take a point.",
+    "sin can't take a point.",
+    "mod can't take a point and a number.",
     undefined,
     undefined,
-    "Function 'nthroot' cannot be applied to a point and a number.",
-    "Function 'nthroot' cannot be applied to a number and a point.",
+    "nthroot can't take a point and a number.",
+    "nthroot can't take a number and a point.",
   ]);
 });

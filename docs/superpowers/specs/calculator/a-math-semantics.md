@@ -113,6 +113,8 @@ The MathQuill settings belong to T-1 to T-4. This file fixes the LaTeX and trees
 
 ### 2.8 Syntax tree and errors
 
+- _Error copy (owner decision, 2026-10-21):_ every user-facing error and warning, in rows, table cells and headers, slider limits and regressions, uses Karman's own short plain-English text (`src/lib/calculator/core/analysis/messages.ts`, about eight words at most, an example only where it helps, no "Error:" or "please"). Where this spec quotes Desmos's text, the quote identifies which error occurs; the shown text is its Karman translation (the test fixture `core/analysis/__fixtures__/desmos-copy.ts` maps one to the other, and the reference parity tests compare through it). For example `\operatorname{nCr}(5)` reads "nCr needs 2 inputs, like nCr(1, 2)." and `y=mx+b` "m and b are not defined." (verified by unit test)
+
 The corpus writes trees as S-expressions. The heads are `num`, `id`, `const`, `add`, `sub`, `neg`, `mul`, `div`, `pow`, `fact`, `pct`, `deg`, `abs`, `root`, `call`, `member`, `point`, `list`, `matrix`, `range`, `index`, `for`, `with`, `piecewise` (each part `(if C V)` or `(if C)`, then the otherwise value), `restrict` (never produced, PR-32), `rel`, `and`, `or`, `sim`, `prime`, `deriv`, `int`, `sum` and `prod`. `\frac` and `/` both give `div`. For example, `y=mx+b` is `(rel = (id y) (add (mul (id m) (id x)) (id b)))`. Classification (section 3) is a separate field.
 
 - **PR-38** Parsing never throws. It returns a tree or an error with a code and the source span, and R-2 turns the code into a plain-language message. (Phase 1; verified by unit test)

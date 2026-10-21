@@ -65,7 +65,7 @@ it("FN-34 a bad count in a list of counts has Desmos's own wording", () => {
     ].map(error)
   ).toEqual(["repeat-counts", "repeat-counts", "repeat-counts", "repeat-lengths", "repeat-count"]);
   expect(rowErrorMessage("repeat-counts", [])).toBe(
-    "Each 'repeat' count must be a finite, non-negative integer."
+    "Each repeat count must be a whole number ≥ 0."
   );
 });
 
@@ -141,8 +141,8 @@ it("FN-34 FN-38 count and length read x when repeat's counts or unique's values 
     (latex) => analyse(latex).rows[0].error?.message
   );
   expect(errors).toEqual([
-    "Can't plot a list whose length depends on free variable 'x'.",
-    "Can't plot a list whose length depends on free variable 'x'.",
+    "Can't plot a list whose length uses x.",
+    "Can't plot a list whose length uses x.",
   ]);
 });
 

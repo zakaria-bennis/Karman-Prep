@@ -120,8 +120,7 @@ describe("PR-31 branch types", () => {
   };
 
   it("points and numbers cannot share a piecewise, in either order or through a name", () => {
-    const text = (a: string, b: string) =>
-      `Cannot use ${a} and ${b} as the branches in a piecewise. Every branch must have the same type.`;
+    const text = (a: string, b: string) => `Piecewise parts can't mix ${a} and ${b}.`;
     expect(error(["\\{1>0:3,(1,2)\\}"])).toBe(text("a number", "a point"));
     expect(error(["\\{1>0,(1,2)\\}"])).toBe(text("a number", "a point"));
     expect(error(["P=[(1,2),(3,4)]", "\\{1>0:P,3\\}"])).toBe(text("a list of points", "a number"));
@@ -158,10 +157,10 @@ describe("PR-31 PR-32 point rows, broadcasting and conditions", () => {
   });
 
   it("RC-2 a point piecewise using x or y, or a restricted (t, …), keeps the point errors", () => {
-    const coordinates = "Too many variables, I don't know what to do with this.";
+    const coordinates = "Too many unknown variables.";
     expect(row(["\\{x>0:(1,2)\\}"])).toEqual(["error", false, coordinates]);
     expect(row(["\\{x>0:(x,1),(0,0)\\}"])).toEqual(["error", false, coordinates]);
-    const notation = "This calculator doesn't support that notation.";
+    const notation = "This notation isn't supported.";
     expect(row(["(t,t^{2})\\{t>0.5\\}"])).toEqual(["error", false, notation]);
   });
 
@@ -173,14 +172,14 @@ describe("PR-31 PR-32 point rows, broadcasting and conditions", () => {
   });
 
   it("NM-31 a condition comparing points is Desmos's comparator error", () => {
-    const text = "Cannot compare a point to a point.";
+    const text = "Can't compare a point to a point.";
     expect(row(["\\{(1,2)>(0,0):1,0\\}"])).toEqual(["error", false, text]);
     expect(row(["\\{(1,2)=(1,2):1,0\\}"])).toEqual(["error", false, text]);
   });
 
   it("PR-29 a condition chain may point both ways, but never mixes = with an inequality", () => {
     expect(row(["a=1", "\\{1<a=2:5\\}"])[2]).toBe(
-      "Cannot mix inequalities and equations in a chain of comparisons."
+      "Can't mix equations and inequalities in a chain."
     );
     expect(evaluateLatex("\\{1<a>0:5\\}", { rows: ["a=1"] })).toEqual(UNDEFINED);
     expect(evaluateLatex("\\{0<a>0:5\\}", { rows: ["a=1"] })).toEqual(n(5));

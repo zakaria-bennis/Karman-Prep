@@ -5,11 +5,13 @@
 // speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
 // replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
 // ErrorMarker), the decimal/fraction toggle of a value with a fraction form (R-5,
-// FractionToggle), and the Delete control. The
+// FractionToggle; never on a regression parameter, owner 2026-10-21), the add-sliders icon under
+// the marker of a row with undefined names (R-6, AddSliders), the DEG/RAD badge of a trig row
+// (AngleBadge), and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
-// past the T-13 limit is refused, restored and announced. Under the math it shows the add-slider
-// line of a row with undefined names (R-6) and a point row's Label line (EL-15); in Edit list mode
+// past the T-13 limit is refused, restored and announced. Under the math it shows a point row's
+// Label line (EL-15); in Edit list mode
 // its actions replace the delete cross (EL-45). AN-5: the row carries its presence
 // motion; an exiting row leaves the focus controller, is aria-hidden and inert with no number, and
 // reports onExitDone once its own exit transition-duration has passed.
@@ -59,7 +61,10 @@ import { EditRowActions } from "./EditRowActions";
 import { ToastContext } from "./Toast";
 import { RowValue } from "./RowValue";
 import { FractionToggle } from "./FractionToggle";
-import { AddSliderLine, addSliders, PointLabelLine } from "./RowUnderMath";
+import { AddSlidersButton, addSliders } from "./AddSliders";
+import { AngleBadge, usesTrig } from "./AngleBadge";
+import { isRegressionParameter } from "./fraction-toggle";
+import { PointLabelLine } from "./RowUnderMath";
 import { SliderGutter } from "./SliderGutter";
 import { SliderLine, type SliderLineHandle } from "./SliderLine";
 import { tabPastRow } from "./slider-focus";
@@ -113,7 +118,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
   const engine = useEngine();
-  const { focusedRowId, activeRowId, selectedRowId } = useEngineSnapshot(engine);
+  const { focusedRowId, activeRowId, selectedRowId, rows, settings } = useEngineSnapshot(engine);
   const focus = useFocusController();
   const announcer = useAnnouncer();
   const createField = useContext(MathFieldFactoryContext);
@@ -133,6 +138,10 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const shown =
     slider !== null && slider.error === null ? withSliderValue(row.latex, slider.value) : row.latex;
   const valueText = error === null ? row.valueText : null; // R-5: an error row shows no value
+  // R-5 (owner, 2026-10-21): a regression parameter row offers no decimal/fraction toggle.
+  const fraction = isRegressionParameter(row, rows) ? null : row.fraction;
+  const trig = usesTrig(row.latex) ? settings.angleMode : null; // owner, 2026-10-21
+  const chips = (error?.code === "too-many-variables" || slider !== null) && row.chips.length > 0;
   // A11Y-3: the textbox's description lists the parts that render, in this order.
   const describedBy = [
     ids.speech,
@@ -388,7 +397,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               {!row.hidden && <ColourKindGlyph kind={editing ? null : kindGlyph(row, tab)} />}
             </button>
           )}
-          {row.fraction !== null && slider === null && error === null && (
+          {fraction !== null && slider === null && error === null && (
             <FractionToggle rowId={row.id} asFraction={row.asFraction} />
           )}
           {slider !== null && error === null && (
@@ -428,6 +437,16 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             />
           )}
           {error !== null && <ErrorMarker id={ids.error} message={error.message} variant="row" />}
+          {chips && (
+            <AddSlidersButton
+              names={row.chips}
+              onAdd={(names, keyboard) => {
+                addSliders(engine, announcer, row.id, names);
+                // SLIDERS-8: a keyboard pick returns to the row's math; a click leaves focus.
+                if (keyboard) focus.focusRow(row.id, "end");
+              }}
+            />
+          )}
         </div>
         <div className="kc-row-main">
           <div
@@ -458,7 +477,8 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               id={ids.value}
               value={row.value}
               valueText={valueText}
-              fraction={row.asFraction ? row.fraction : null}
+              fraction={row.asFraction ? fraction : null}
+              badge={trig === null ? null : <AngleBadge mode={trig} placement="value" />}
             />
           )}
           {slider !== null && (
@@ -479,19 +499,10 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               onEnter={() => insertRowBelow(engine, focus, announcer, row.id, "focus")}
             />
           )}
-          {(error?.code === "too-many-variables" || slider !== null) && row.chips.length > 0 && (
-            <AddSliderLine
-              names={row.chips}
-              onAdd={(names, keyboard) => {
-                addSliders(engine, announcer, row.id, names);
-                // SLIDERS-8: a keyboard press returns to the row's math; a click leaves focus.
-                if (keyboard) focus.focusRow(row.id, "end");
-              }}
-            />
-          )}
           {tab === "point" && <PointLabelLine rowNumber={number} />}
           {error === null && <RegressionPanel row={row} />}
         </div>
+        {trig !== null && valueText === null && <AngleBadge mode={trig} placement="row" />}
         {editing ? (
           <EditRowActions
             engine={engine}

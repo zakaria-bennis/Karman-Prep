@@ -11,6 +11,7 @@ import type { Value } from "../eval/values";
 import hyperbolic from "./desmos-hyperbolic.fixture.json";
 import trig from "./desmos-trig.fixture.json";
 import { withinTolerance } from "./tolerance";
+import { karmanCopy } from "../analysis/__fixtures__/desmos-copy";
 
 type Expected = number | null | (number | null)[];
 
@@ -104,7 +105,7 @@ it("RC-20 PR-26 all 63 catalogue trig, exp and user-function error texts are che
   expect(ERRORS.length).toBe(63));
 
 for (const [key, message] of ERRORS) {
-  const check = () => expect(errorMessage(caseOf(key))).toBe(message);
+  const check = () => expect(errorMessage(caseOf(key))).toBe(karmanCopy(message));
   if (gap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`RC-20 PR-26 ${key} reads "${message}", as in Desmos`, check);
 }
@@ -159,7 +160,7 @@ for (const [key, expected] of HYPERBOLIC_VALUES) {
 
 for (const [key, message] of HYPERBOLIC_ERRORS) {
   it(`RC-20 FN-68 ${key} reads "${message}", as in Desmos`, () =>
-    expect(errorMessage(caseOf(key))).toBe(message));
+    expect(errorMessage(caseOf(key))).toBe(karmanCopy(message)));
 }
 
 function exactOf(v: Value): number | null {

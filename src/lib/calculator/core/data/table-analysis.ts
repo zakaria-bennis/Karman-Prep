@@ -10,7 +10,7 @@ import type { Node, SourceSpan } from "../latex/ast";
 import { normalizeLatex, parseLatex } from "../latex/index";
 import type { ParsedRow } from "../analysis/definitions";
 import type { RowError, RowSource } from "../analysis/index";
-import { displayName, rowErrorMessage } from "../analysis/messages";
+import { displayName, rowErrorMessage, tooManyVariables } from "../analysis/messages";
 import { arityError } from "../analysis/classify";
 import { collectNameUses, COORDINATE_NAMES } from "../analysis/names";
 import type { TableRegressionSpec } from "./table-regression";
@@ -46,31 +46,29 @@ export interface ParsedTable {
 const ZERO_SPAN: SourceSpan = { start: 0, end: 0 };
 const NAN: Node = { kind: "num", value: NaN, span: ZERO_SPAN };
 export const TABLE_MESSAGES = {
-  firstHeader: "The first column needs a name, such as x₁.",
-  firstHeaderCoordinate: "First column may not be 'y', 'r', or 'θ'.", // TABLES-16
-  comma: "Points are written like this: (1, 2).",
+  firstHeader: "The first column needs a name, like x₁.",
+  firstHeaderCoordinate: "The first column can't be y, r or θ.", // TABLES-16
+  comma: "Write points like (1, 2).",
   // TABLES-13: what a cell may not hold
-  point: "Table entry cannot be a point.",
-  equation: "Table entries must be simple expressions. Equations are not allowed.",
-  inequality: "Table entries must be simple expressions. Inequalities are not allowed.",
-  list: "Table entries must be simple expressions. Lists are not allowed.",
-  regression: "Table entries must be simple expressions. Regressions are not allowed.",
-  functionDefinition:
-    "Table entries must be simple expressions. Function definitions are not allowed.",
+  point: "A table cell can't be a point.",
+  equation: "A table cell can't be an equation.",
+  inequality: "A table cell can't be an inequality.",
+  list: "A table cell can't be a list.",
+  regression: "A table cell can't be a regression.",
+  functionDefinition: "A table cell can't define a function.",
   // anything that cannot be read (2+, \sqrt{}, x_{1^{2}}, a=), live 2026-10-20
-  unreadable: "Table entries must be simple expressions. This type of expression is not allowed.",
-  undefinedName: (name: string) => `Too many variables. Try defining '${name}'.`,
+  unreadable: "A table cell must be a simple expression.",
+  undefinedName: (name: string) => tooManyVariables([name]),
 } as const;
 /** TABLES-13: the same rules for a later column's header, in the reference's header wording. */
 export const HEADER_MESSAGES = {
-  point: "Table header cannot be a point.",
-  equation: "Table headers must be simple expressions. Equations are not allowed.",
-  inequality: "Table headers must be simple expressions. Inequalities are not allowed.",
-  list: "Table headers must be simple expressions. Lists are not allowed.",
-  regression: "Table headers must be simple expressions. Regressions are not allowed.",
-  functionDefinition:
-    "Table headers must be simple expressions. Function definitions are not allowed.",
-  unreadable: "Table headers must be simple expressions. This type of expression is not allowed.",
+  point: "A column header can't be a point.",
+  equation: "A column header can't be an equation.",
+  inequality: "A column header can't be an inequality.",
+  list: "A column header can't be a list.",
+  regression: "A column header can't be a regression.",
+  functionDefinition: "A column header can't define a function.",
+  unreadable: "A column header must be a simple expression.",
 } as const;
 type ShapeMessages = Record<
   "point" | "equation" | "inequality" | "list" | "regression" | "functionDefinition" | "unreadable",

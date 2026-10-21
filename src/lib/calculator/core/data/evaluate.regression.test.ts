@@ -59,24 +59,24 @@ it("D-22 a point, a list of points or an empty list on either side is the refere
   };
   const data = table(["1", "2"], ["3", "4"]);
   expect(error(data, row("r", "(1,2)\\sim mx_{1}"))).toBe(
-    "Cannot regress a point against a list of numbers."
+    "Can't regress a point against a list of numbers."
   );
   expect(error(data, row("r", "y_{1}\\sim(m,x_{1})"))).toBe(
-    "Cannot regress a list of numbers against a list of points."
+    "Can't regress a list of numbers against a list of points."
   );
-  expect(error(row("r", "(1,2)\\sim m"))).toBe("Cannot regress a point against a number.");
+  expect(error(row("r", "(1,2)\\sim m"))).toBe("Can't regress a point against a number.");
   expect(error(row("r", "[(1,2),(3,4)]\\sim m"))).toBe(
-    "Cannot regress a list of points against a number."
+    "Can't regress a list of points against a number."
   );
-  expect(error(row("r", "[]\\sim m"))).toBe("Cannot regress an empty list against a number.");
+  expect(error(row("r", "[]\\sim m"))).toBe("Can't regress an empty list against a number.");
   expect(error(row("E", "E=[]"), row("L", "L=[1,2,3]"), row("r", "L\\sim mE"))).toBe(
-    "Cannot regress a list of numbers against an empty list."
+    "Can't regress a list of numbers against an empty list."
   );
   expect(error(table([], []), row("r", "y_{1}\\sim mx_{1}+b"))).toBe(
-    "Cannot regress an empty list against an empty list."
+    "Can't regress an empty list against an empty list."
   );
   expect(error(table(["1", "2", "3"], []), row("r", "y_{1}\\sim mx_{1}+b"))).toBe(
-    "Cannot regress an empty list against a list of numbers."
+    "Can't regress an empty list against a list of numbers."
   );
 });
 
@@ -88,7 +88,7 @@ it("D-24 a blank cell in a used list fails the whole fit and leaves its names un
   );
   expect(fits.get("r")).toMatchObject({
     ok: false,
-    error: "We couldn't find any region where this model is defined.",
+    error: "This model isn't defined for this data.",
   });
   expect(values.get("v")).toEqual({ type: "undefined" });
 });

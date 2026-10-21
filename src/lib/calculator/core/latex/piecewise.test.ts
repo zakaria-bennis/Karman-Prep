@@ -36,7 +36,7 @@ describe("PR-31 piecewise braces", () => {
       ["colon-condition", 2, 3],
       ["piecewise-condition", 0, 7],
       ["piecewise-part", 8, 9],
-      ["unmatched", 0, 2], // Desmos: "Expected '{' to match '}'."
+      ["unmatched", 0, 2], // Desmos: "Missing '{' or '}'."
     ]);
   });
 

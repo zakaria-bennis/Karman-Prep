@@ -11,6 +11,7 @@ import { evaluateLatex, type EvalSettings } from "../eval/compile";
 import type { Value } from "../eval/values";
 import piecewise from "./desmos-piecewise.fixture.json";
 import { withinTolerance } from "./tolerance";
+import { karmanCopy } from "../analysis/__fixtures__/desmos-copy";
 
 type Captured = number | number[] | null | string;
 
@@ -84,7 +85,7 @@ it("PR-31 all 9 catalogue piecewise error messages are checked, 6 matched", () =
 for (const [key, message] of ERRORS) {
   const check = () => {
     const { latex, rows } = caseOf(key);
-    expect(lastRow(rows, latex).error?.message).toBe(message);
+    expect(lastRow(rows, latex).error?.message).toBe(karmanCopy(message));
   };
   if (isGap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`PR-31 ${key} reads "${message}", as in Desmos`, check);

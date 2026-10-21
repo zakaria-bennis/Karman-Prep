@@ -15,6 +15,7 @@ import listOperations from "./desmos-list-operations.fixture.json";
 import roots from "./desmos-root.fixture.json";
 import statistics from "./desmos-statistics.fixture.json";
 import { withinTolerance } from "./tolerance";
+import { karmanCopy } from "../analysis/__fixtures__/desmos-copy";
 
 type Captured = number | number[] | null;
 const VALUES: [string, Captured][] = Object.entries(captured.values);
@@ -100,7 +101,7 @@ it("RC-20 PR-24 PR-34 all 41 captured Desmos error messages are checked", () => 
 
 for (const [latex, message] of ERRORS) {
   it(`RC-20 PR-24 PR-34 PR-31 ${latex} reads "${message}", as in Desmos`, () =>
-    expect(errorMessage([], latex)).toBe(message));
+    expect(errorMessage([], latex)).toBe(karmanCopy(message)));
 }
 
 it("RC-20 all 4 captured user-function arity messages are checked", () =>
@@ -108,7 +109,7 @@ it("RC-20 all 4 captured user-function arity messages are checked", () =>
 
 for (const [latex, message] of Object.entries(USER_ERRORS)) {
   it(`RC-20 with ${DEFINITIONS.join(" and ")}, ${latex} reads "${message}", as in Desmos`, () =>
-    expect(errorMessage(DEFINITIONS, latex)).toBe(message));
+    expect(errorMessage(DEFINITIONS, latex)).toBe(karmanCopy(message)));
 }
 
 // The function catalogue's live Desmos values (desmos-catalogue.fixture.json, copied from the
@@ -204,7 +205,7 @@ it("NM-36 RC-20 all 31 catalogue error messages for ranges, log and ln are check
   expect(CATALOGUE_ERRORS.length).toBe(31));
 
 for (const [latex, message] of CATALOGUE_ERRORS) {
-  const check = () => expect(errorMessage(CATALOGUE_ROWS, latex)).toBe(message);
+  const check = () => expect(errorMessage(CATALOGUE_ROWS, latex)).toBe(karmanCopy(message));
   if (CATALOGUE_ERROR_GAP.has(latex))
     it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
   else it(`NM-36 RC-20 ${latex} reads "${message}", as in Desmos`, check);
@@ -264,7 +265,7 @@ it("NM-30 NM-31 all 8 catalogue error messages for indexing are checked", () =>
   expect(INDEX_ERRORS.length).toBe(8));
 
 for (const [latex, message] of INDEX_ERRORS) {
-  const check = () => expect(errorMessage(INDEX_ROWS, latex)).toBe(message);
+  const check = () => expect(errorMessage(INDEX_ROWS, latex)).toBe(karmanCopy(message));
   if (INDEX_ERROR_GAP.has(latex))
     it.fails(`not yet matched: ${latex} reads "${message}" in Desmos`, check);
   else it(`NM-30 NM-31 ${latex} reads "${message}", as in Desmos`, check);
@@ -325,7 +326,8 @@ for (const [key, expected] of Object.entries(RELATED.values) as [string, Capture
 
 for (const [key, message] of Object.entries(RELATED.errors)) {
   const rows = rowsOf(key);
-  const check = () => expect(errorMessage(rows.slice(0, -1), rows[rows.length - 1])).toBe(message);
+  const check = () =>
+    expect(errorMessage(rows.slice(0, -1), rows[rows.length - 1])).toBe(karmanCopy(message));
   if (RELATED_ERROR_GAP.has(key))
     it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`NM-30 ${key} reads "${message}", as in Desmos`, check);
@@ -367,7 +369,7 @@ for (const [key, expected] of ROOT_VALUES) {
 for (const [key, message] of ROOT_ERRORS) {
   const check = () => {
     const { latex, settings } = catalogueCase(key);
-    expect(errorMessage([], latex, settings.complex === true)).toBe(message);
+    expect(errorMessage([], latex, settings.complex === true)).toBe(karmanCopy(message));
   };
   if (ROOT_ERROR_GAP.has(key))
     it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
@@ -461,7 +463,7 @@ for (const [key, message] of STATISTICS_ERRORS) {
     const v = evaluateLatex(latex, { rows, settings: { complex } });
     const carried = v.type === "undefined" && v.error !== undefined ? v.error : null;
     const shown = errorMessage(rows, latex, complex) ?? (carried && rowErrorMessage(carried, []));
-    expect(shown).toBe(message);
+    expect(shown).toBe(karmanCopy(message));
   };
   if (statisticsGap(key)) it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);
   else it(`FN-2 FN-23 FN-29 FN-75 ${key} reads "${message}", as in Desmos`, check);
@@ -542,7 +544,7 @@ it("FN-30 FN-38 all 157 catalogue list operation errors are checked, 152 matched
 for (const [key, message] of LIST_OPERATION_ERRORS) {
   const check = () => {
     const { latex, rows } = statisticsCase(key);
-    expect(shownError(rows, latex)).toBe(message);
+    expect(shownError(rows, latex)).toBe(karmanCopy(message));
   };
   if (listOperationGap(key))
     it.fails(`not yet matched: ${key} reads "${message}" in Desmos`, check);

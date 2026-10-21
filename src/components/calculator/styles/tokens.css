@@ -17,7 +17,6 @@
   --kc-line-tooltip: 15.4px;
   --kc-size-eval: 15.2px;
   --kc-size-eval-math: 17.48px;
-  --kc-size-slider-letter: 15.64px;
   --kc-size-slider-word: 13.6px;
 
   /* Geometry; the list width is set inline on .kc-app by useListWidth (EL-1 default, square snap) */

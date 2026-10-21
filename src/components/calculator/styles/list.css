@@ -483,8 +483,8 @@
   vertical-align: middle;
 }
 
-/* EL-36: the lines under the math (add slider, Label), 53 px in, in small muted text, fading in
-   like the value line. */
+/* EL-15: the line under a point row's math, 53 px in, in small muted text, fading in like the
+   value line. */
 .kc-row-under {
   display: flex;
   flex-wrap: wrap;
@@ -495,64 +495,6 @@
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-small);
   animation: kc-warning-in var(--kc-dur-800) var(--kc-ease);
-}
-
-.kc-add-slider {
-  margin-top: -1px;
-  margin-bottom: 2px;
-}
-
-/* EL-36: 5 px from "add slider:" to the first button (with the 3 px gap); error-1440: the label's
-   baseline sits a pixel below the buttons' line. */
-.kc-add-slider-label {
-  position: relative;
-  top: 1px;
-  margin-right: 2px;
-}
-
-/* EL-36: 35 by 26 letter buttons on a light gradient that cools toward the bottom (#f6f6f6 to
-   #eff2f3) behind a lighter border; one undefined letter, and "all", are blue. */
-.kc-letter-button {
-  min-width: 35px;
-  height: 26px;
-  padding: 0 4px;
-  border: 1px solid var(--kc-letter-border);
-  border-radius: var(--kc-radius-small);
-  background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
-  box-shadow:
-    inset 0 1px color-mix(in srgb, var(--kc-list) 25%, transparent),
-    inset 0 -1px color-mix(in srgb, var(--kc-text) 2%, transparent);
-  color: var(--kc-text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.kc-letter-button {
-  padding-bottom: 2px;
-  font-family: var(--kc-font-math);
-  font-size: var(--kc-size-slider-letter);
-  font-style: italic;
-}
-
-/* "all" is upright, 13.6 px, centred without the letters' lift. */
-.kc-letter-button[data-word="true"] {
-  padding-bottom: 0;
-  font-size: var(--kc-size-slider-word);
-  font-style: normal;
-}
-
-.kc-letter-button:not([data-tone="accent"]):hover {
-  border-color: var(--kc-boundary);
-  background: var(--kc-letter-bottom);
-}
-
-.kc-letter-button[data-tone="accent"] {
-  border-color: var(--kc-accent);
-  background: var(--kc-accent);
-  box-shadow:
-    inset 0 1px color-mix(in srgb, var(--kc-list) 10%, transparent),
-    inset 0 -1px color-mix(in srgb, var(--kc-text) 4%, transparent);
-  color: var(--kc-accent-label);
 }
 
 /* EL-15: a point row's Label line: a 14 px white box with a 1 px grey edge and 3 px corners, then

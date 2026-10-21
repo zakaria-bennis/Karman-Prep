@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-// The reference calculator's row additions (rea-targets visual MASTER.md): the add-slider line and
-// its "Too many variables" warning (R-6, EL-34 to EL-36), the point row's Label line (EL-15), the
+// The reference calculator's row additions (rea-targets visual MASTER.md): the add-sliders icon and
+// its menu under the undefined-name warning (R-6; owner, 2026-10-21), the DEG/RAD badge, no fraction
+// toggle on a regression parameter, the point row's Label line (EL-15), the
 // Edit list mode rows (EL-44, EL-45), the hover tooltips (PM-29) and the list resizer (EL-4).
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -17,33 +18,108 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("R-6 y=mx+b shows the reference's warning and an add-slider line with m, b and all", async () => {
+it("R-6 y=mx+b shows the warning and, under it, the add-sliders icon whose menu lists all, m and b", async () => {
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=mx+b"] });
   const row = rowItem("1");
   const gutter = within(row.querySelector<HTMLElement>(".kc-row-gutter")!);
   expect(gutter.getByRole("button", { name: "Error" })).toBeInTheDocument();
   expect(gutter.queryByRole("button", { name: /expression 1/ })).toBeNull(); // no colour icon
-  expect(screen.getByText("Too many variables. Try defining 'm' or 'b'.")).toBeInTheDocument();
-  const line = within(screen.getByRole("group", { name: "Add slider" }));
-  expect(line.getAllByRole("button").map((b) => b.textContent)).toEqual(["m", "b", "all"]);
-  expect(line.getByRole("button", { name: "Add sliders for all" })).toHaveAttribute(
-    "data-tone",
-    "accent"
-  );
-  expect(line.getByRole("button", { name: "Add slider for m" })).not.toHaveAttribute("data-tone");
+  expect(screen.getByText("m and b are not defined.")).toBeInTheDocument();
+  const icon = gutter.getByRole("button", { name: "Add sliders" });
+  expect(icon).toHaveTextContent("");
+  expect(icon).toHaveAttribute("aria-expanded", "false");
+  expect(row.querySelector(".kc-row-under")).toBeNull(); // no words under the math
+  await userEvent.setup().click(icon);
+  expect(icon).toHaveAttribute("aria-expanded", "true");
+  const menu = within(screen.getByRole("menu", { name: "Add sliders" }));
+  expect(menu.getAllByRole("menuitem").map((b) => b.textContent)).toEqual(["all", "m", "b"]);
+  expect(menu.getAllByRole("menuitem").map((b) => b.getAttribute("aria-label"))).toEqual([
+    "Add sliders for all",
+    "Add slider for m",
+    "Add slider for b",
+  ]);
 });
 
-it("R-6 one undefined name gets a single blue button, which adds name=1 below the row in one undo step", async () => {
+it("R-6 one undefined name lists only itself, which adds name=1 below the row in one undo step", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=kx", "y=2"] });
-  expect(screen.getByText("Too many variables. Try defining 'k'.")).toBeInTheDocument();
-  const line = within(screen.getByRole("group", { name: "Add slider" }));
-  const k = line.getByRole("button", { name: "Add slider for k" });
-  expect(line.getAllByRole("button")).toHaveLength(1);
-  expect(k).toHaveAttribute("data-tone", "accent");
-  await userEvent.setup().click(k);
+  expect(screen.getByText("k is not defined.")).toBeInTheDocument();
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "Add sliders" }));
+  const menu = within(screen.getByRole("menu", { name: "Add sliders" }));
+  expect(menu.getAllByRole("menuitem")).toHaveLength(1);
+  await user.click(menu.getByRole("menuitem", { name: "Add slider for k" }));
   expect(latexes(kit)).toEqual(["y=kx", "k=1", "y=2"]);
+  expect(screen.queryByRole("menu")).toBeNull();
   act(() => kit.engine.undo());
   expect(latexes(kit)).toEqual(["y=kx", "y=2"]);
+});
+
+it("R-6 Escape closes the add-sliders menu and returns to the icon it was opened from by keyboard", async () => {
+  renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=mx+b"] });
+  const user = userEvent.setup();
+  const icon = screen.getByRole("button", { name: "Add sliders" });
+  act(() => icon.focus());
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("menuitem", { name: "Add sliders for all" })).toHaveFocus();
+  await user.keyboard("{ArrowUp}");
+  expect(screen.getByRole("menuitem", { name: "Add slider for b" })).toHaveFocus();
+  await user.keyboard("{Escape}");
+  expect(screen.queryByRole("menu")).toBeNull();
+  expect(icon).toHaveFocus();
+});
+
+it("R-6 the add-sliders icon's hover tooltip reads Add sliders, and a touch never opens it", () => {
+  vi.useFakeTimers();
+  renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=kx"] });
+  const icon = screen.getByRole("button", { name: "Add sliders" });
+  fireEvent.pointerEnter(icon, { pointerType: "touch" });
+  act(() => vi.advanceTimersByTime(TOOLTIP_DELAY_MS));
+  expect(document.querySelector(".kc-row-tip")).toBeNull();
+  fireEvent.pointerEnter(icon, { pointerType: "mouse" });
+  act(() => vi.advanceTimersByTime(TOOLTIP_DELAY_MS));
+  expect(document.querySelector(".kc-row-tip")).toHaveTextContent("Add sliders");
+  fireEvent.pointerLeave(icon);
+  act(() => vi.advanceTimersByTime(TOOLTIP_HIDE_MS));
+  expect(document.querySelector(".kc-row-tip")).toBeNull();
+});
+
+it("R-11 a trig row shows a RAD badge that turns to DEG with the setting; a polynomial row shows none", () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
+    rows: ["\\sin(2)", "y=\\tan(x)", "y=x^2"],
+  });
+  const badge = (id: string) => rowItem(id).querySelector(".kc-angle-badge");
+  expect(badge("1")).toHaveTextContent("RAD");
+  expect(badge("1")).toHaveAttribute("aria-hidden", "true");
+  expect(badge("2")).toHaveAttribute("data-placement", "row");
+  expect(badge("3")).toBeNull();
+  act(() => kit.engine.updateSettings({ angleMode: "degrees" }));
+  expect(badge("1")).toHaveTextContent("DEG");
+  expect(badge("2")).toHaveTextContent("DEG");
+});
+
+it("R-5 a regression parameter row offers no decimal/fraction toggle", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
+    rows: ["\\frac{1}{2}", "y=2"],
+  });
+  act(() =>
+    kit.engine.setExpressions([
+      {
+        id: "t",
+        type: "table",
+        columns: [
+          { latex: "x_{1}", values: ["1", "2", "3"] },
+          { latex: "y_{1}", values: ["2", "4", "6.5"] },
+        ],
+      },
+      { id: "r", latex: "y_{1}\\sim mx_{1}+b" },
+      { id: "m", latex: "m" },
+      { id: "h", latex: "\\frac{1}{2}" },
+    ])
+  );
+  await screen.findByText("2.25");
+  expect(kit.engine.getSnapshot().rows.find((r) => r.id === "m")?.fraction).not.toBeNull();
+  expect(rowItem("m").querySelector(".kc-row-fraction")).toBeNull();
+  expect(rowItem("h").querySelector(".kc-row-fraction")).not.toBeNull();
 });
 
 it("EL-15 a point row shows a Label checkbox under the math; other rows do not", () => {

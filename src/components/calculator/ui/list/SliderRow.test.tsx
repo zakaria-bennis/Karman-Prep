@@ -153,11 +153,13 @@ it("SLIDERS-34 Escape from the options popover pauses a playing slider", async (
   expect(kit.engine.getSnapshot().rows[0].slider?.settings.isPlaying).toBe(false);
 });
 
-it("SLIDERS-8 a chip pressed from the keyboard returns focus to the row's math", async () => {
+it("SLIDERS-8 a slider picked from the keyboard returns focus to the row's math", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=ax+b"] });
   const user = userEvent.setup();
-  act(() => screen.getByRole("button", { name: "Add slider for a" }).focus());
+  act(() => screen.getByRole("button", { name: "Add sliders" }).focus());
   await user.keyboard("{Enter}");
+  expect(screen.getByRole("menuitem", { name: "Add sliders for all" })).toHaveFocus();
+  await user.keyboard("{ArrowDown}{Enter}");
   expect(kit.engine.getSnapshot().rows.map((r) => r.latex)).toEqual(["y=ax+b", "a=1"]);
   expect(active()?.getAttribute("aria-label")).toBe("Expression 1");
 });

@@ -3,7 +3,7 @@
 // snapped value (SLIDERS-22). Pure TypeScript: no DOM (AR-44).
 
 import type { RowAnalysis } from "../core/analysis";
-import { displayName } from "../core/analysis/messages";
+import { displayName, tooManyVariables } from "../core/analysis/messages";
 import { NO_DEADLINE } from "../core/deadline";
 import { compileExpression, type CompileScope } from "../core/eval/compile";
 import { numberValue, type Value } from "../core/eval/values";
@@ -104,18 +104,11 @@ export interface SliderView {
 }
 
 const MESSAGES: Record<LimitField, string> = {
-  min: "Invalid slider min. Try using any number.",
-  max: "Invalid slider max. Try using any number.",
-  step: "Invalid slider step. Try using any number.",
+  min: "The slider min must be a number.",
+  max: "The slider max must be a number.",
+  step: "The slider step must be a number.",
 };
-const ORDER_MESSAGE = "Invalid slider limits. Min should be less than max.";
-
-/** The analysis's wording for names nothing defines: 'a', 'b' or 'c'. */
-function tooManyVariables(names: string[]): string {
-  if (names.length === 1) return `Too many variables. Try defining '${names[0]}'.`;
-  const last = names[names.length - 1];
-  return `Too many variables. Try defining '${names.slice(0, -1).join("', '")}' or '${last}'.`;
-}
+const ORDER_MESSAGE = "The slider min must be less than the max.";
 
 /**
  * SLIDERS-25, SLIDERS-29: a slider's name as its controls speak it: `\alpha` is alpha and
@@ -155,10 +148,9 @@ export function describeSlider(
     (n, i, all) => all.indexOf(n) === i
   );
   // A limit on the slider's own name next to a name nothing defines reads as the analysis's
-  // "Too many variables" for the undefined names (Desmos, 2026-10-19: min b, max a).
+  // "is not defined" for the undefined names (Desmos, 2026-10-19: min b, max a).
   if (self && limitNames.length > 0) error = tooManyVariables(limitNames.map(displayName));
-  else if (self)
-    error = `Slider limits cannot depend on the slider variable '${displayName(name)}'.`;
+  else if (self) error = `Slider limits can't use ${displayName(name)} itself.`;
   else if (min.invalid) error = MESSAGES.min;
   else if (max.invalid) error = MESSAGES.max;
   else if (stepLimit.invalid) error = MESSAGES.step;

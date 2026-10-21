@@ -65,7 +65,7 @@ it("SLIDERS-18 a limit error is the row's error and its names are chips", () => 
   e.setExpression({ id: "a", latex: "a=1", slider: { hardMax: true, max: "b" } });
   expect(row("a").error).toMatchObject({
     code: "slider-limits",
-    message: "Invalid slider max. Try using any number.",
+    message: "The slider max must be a number.",
   });
   expect(row("a").chips).toEqual(["b"]);
 });

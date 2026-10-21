@@ -17,7 +17,7 @@ const near = (a: number | null, b: number, digits = 9) => expect(a).toBeCloseTo(
 it("D-24 a blank or non-numeric value in a used list fails the whole fit with Desmos's message", () => {
   const r = fitRegression(linear([1, 2, NaN, 4], [2, 4, 6, 8]));
   expect(r).toMatchObject({ ok: false, error: FIT_ERROR, params: [] });
-  expect(FIT_ERROR).toBe("We couldn't find any region where this model is defined.");
+  expect(FIT_ERROR).toBe("This model isn't defined for this data.");
   // Lists pair over the shorter length, so a trailing extra value is ignored.
   expect(fitRegression(linear([1, 2, 3], [2, 4, 6, NaN])).ok).toBe(true);
 });

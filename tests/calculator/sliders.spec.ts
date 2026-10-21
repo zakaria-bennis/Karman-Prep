@@ -1,4 +1,4 @@
-// Sliders in a real calculator (SLIDERS-4 to SLIDERS-35) on the harness page: add-slider chips,
+// Sliders in a real calculator (SLIDERS-4 to SLIDERS-35) on the harness page: the add-sliders menu,
 // the track (press, drag, keys), the limits editor, play and pause, and the options popover.
 
 import { expect, test, type Page } from "@playwright/test";
@@ -20,20 +20,24 @@ const sliderOf = (page: Page, id: string) =>
   );
 const row = (page: Page, id: string) => page.locator(`#calc [data-row-id="${id}"]`);
 
-test("SLIDERS-4, SLIDERS-8 chips add name=1 rows after the source row; all adds every name", async ({
+test("SLIDERS-4, SLIDERS-8 the add-sliders menu adds name=1 rows after the source row; all adds every name", async ({
   page,
 }) => {
   await openShell(page, `?w=900&h=600&rows=${enc(["y=ax^2+bx+c", "y=2"])}`);
-  const chips = row(page, "1").getByRole("group", { name: "Add slider" });
-  await expect(chips.getByRole("button")).toHaveText(["a", "b", "c", "all"]);
-  await chips.getByRole("button", { name: "Add slider for b" }).click();
-  await expect(chips.getByRole("button")).toHaveText(["a", "c", "all"]);
-  await chips.getByRole("button", { name: "Add sliders for all" }).click();
+  const icon = row(page, "1").getByRole("button", { name: "Add sliders" });
+  await icon.click();
+  const menu = page.getByRole("menu", { name: "Add sliders" });
+  await expect(menu.getByRole("menuitem")).toHaveText(["all", "a", "b", "c"]);
+  await menu.getByRole("menuitem", { name: "Add slider for b" }).click();
+  await expect(menu).toHaveCount(0);
+  await icon.click();
+  await expect(menu.getByRole("menuitem")).toHaveText(["all", "a", "c"]);
+  await menu.getByRole("menuitem", { name: "Add sliders for all" }).click();
   const latex = await page.evaluate(() =>
     globalThis.__calculatorHarness!.engine.getExpressions().map((r) => r.latex)
   );
   expect(latex).toEqual(["y=ax^2+bx+c", "a=1", "c=1", "b=1", "y=2"]);
-  await expect(row(page, "1").getByRole("group", { name: "Add slider" })).toHaveCount(0);
+  await expect(icon).toHaveCount(0);
 });
 
 test("SLIDERS-24 to SLIDERS-26 the track takes presses, drags and keys", async ({ page }) => {
@@ -90,7 +94,7 @@ test("SLIDERS-15 to SLIDERS-18 the limits editor types hard limits and shows the
         () => globalThis.__calculatorHarness!.engine.getSnapshot().rows[1].error?.message
       )
     )
-    .toBe("Invalid slider limits. Min should be less than max.");
+    .toBe("The slider min must be less than the max.");
   await expect(row(page, "2").getByRole("button", { name: "Error" })).toBeVisible();
   // The editor stays open while a limit is invalid.
   await expect(row(page, "2").locator('.kc-slider-limit[data-field="max"]')).toHaveAttribute(

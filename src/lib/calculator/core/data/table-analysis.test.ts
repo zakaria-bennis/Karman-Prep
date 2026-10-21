@@ -39,7 +39,7 @@ it("D-10 the first header must be a name; a later name header is a data column a
     SETTINGS
   ).byId.get("t")!;
   expect(bad.table!.columns[0]).toMatchObject({ role: "error" });
-  expect(bad.table!.columns[0].error?.message).toBe("The first column needs a name, such as x₁.");
+  expect(bad.table!.columns[0].error?.message).toBe("The first column needs a name, like x₁.");
 });
 
 it("D-10 a later header naming a list another row defines is a computed column", () => {
@@ -73,9 +73,7 @@ it("D-10 a header name another table also defines marks only the rows that use i
     SETTINGS
   );
   for (const id of ["t", "u"]) expect(a.byId.get(id)!.table!.columns[1].error).toBeNull();
-  expect(a.byId.get("w")!.error?.message).toBe(
-    "You've defined 'y_1' in more than one place. Try deleting some of the definitions of 'y_1'."
-  );
+  expect(a.byId.get("w")!.error?.message).toBe("y_1 is defined more than once.");
 });
 
 it("D-11 column names are defined for every other row, so y_1 alone is a value row with no chip", () => {
@@ -111,9 +109,9 @@ it("D-6 a cell using its own table's columns, an undefined name or a comma has a
   expect(errors).toEqual([
     null,
     null,
-    "Too many variables. Try defining 'x_1'.", // its own column, as the reference words it
-    "Too many variables. Try defining 'q'.",
-    "Points are written like this: (1, 2).",
+    "x_1 is not defined.", // its own column, as the reference words it
+    "q is not defined.",
+    "Write points like (1, 2).",
     null,
   ]);
   expect(a.byId.get("t")!.table!.columns[1].cellErrors.every((e) => e === null)).toBe(true);
@@ -132,7 +130,7 @@ it("TABLES-16 a first column headed y, r or θ errors as on the reference; x, t 
     );
     const first = a.byId.get("t")!.table!.columns[0];
     expect(first.role).toBe("error");
-    expect(first.error?.message).toBe("First column may not be 'y', 'r', or 'θ'.");
+    expect(first.error?.message).toBe("The first column can't be y, r or θ.");
   }
   for (const name of ["x", "t", "a"]) {
     const a = analyzeRows(
@@ -159,10 +157,10 @@ it("TABLES-13 a cell holding a point, list, equation or inequality has the refer
     SETTINGS
   );
   expect(a.byId.get("t")!.table!.columns[0].cellErrors.map((e) => e?.message ?? null)).toEqual([
-    "Table entry cannot be a point.",
-    "Table entries must be simple expressions. Lists are not allowed.",
-    "Table entries must be simple expressions. Equations are not allowed.",
-    "Table entries must be simple expressions. Inequalities are not allowed.",
+    "A table cell can't be a point.",
+    "A table cell can't be a list.",
+    "A table cell can't be an equation.",
+    "A table cell can't be an inequality.",
     null,
   ]);
 });
@@ -178,14 +176,11 @@ it("TABLES-13 a cell or header that cannot be read, or is a point, list, relatio
       ],
       SETTINGS
     ).byId.get("t")!.table!.columns[0].cellErrors[1]?.message;
-  const NOT_ALLOWED =
-    "Table entries must be simple expressions. This type of expression is not allowed.";
+  const NOT_ALLOWED = "A table cell must be a simple expression.";
   for (const latex of ["2+", "\\sqrt{}", "\\left|\\right|", "\\sin", "x_{1^{2}}", "a=", "2^{}"])
     expect(cellError(latex), latex).toBe(NOT_ALLOWED);
-  expect(cellError("1,2")).toBe("Points are written like this: (1, 2).");
-  expect(cellError("1\\sim2")).toBe(
-    "Table entries must be simple expressions. Regressions are not allowed."
-  );
+  expect(cellError("1,2")).toBe("Write points like (1, 2).");
+  expect(cellError("1\\sim2")).toBe("A table cell can't be a regression.");
   const headerError = (latex: string) =>
     analyzeRows(
       [
@@ -196,21 +191,14 @@ it("TABLES-13 a cell or header that cannot be read, or is a point, list, relatio
       ],
       SETTINGS
     ).byId.get("t")!.table!.columns[1].error?.message;
-  const HEAD_NOT_ALLOWED =
-    "Table headers must be simple expressions. This type of expression is not allowed.";
+  const HEAD_NOT_ALLOWED = "A column header must be a simple expression.";
   for (const latex of ["y_{1}+", "\\sqrt{}", "y_{1^{2}}", "2^{}", "\\frac{1}{}"])
     expect(headerError(latex), latex).toBe(HEAD_NOT_ALLOWED);
-  expect(headerError("(1,2)")).toBe("Table header cannot be a point.");
-  expect(headerError("[1,2]")).toBe(
-    "Table headers must be simple expressions. Lists are not allowed."
-  );
-  expect(headerError("y_{1}=2")).toBe(
-    "Table headers must be simple expressions. Equations are not allowed."
-  );
-  expect(headerError("y_{1}<2")).toBe(
-    "Table headers must be simple expressions. Inequalities are not allowed."
-  );
-  expect(headerError("1,2")).toBe("Points are written like this: (1, 2).");
+  expect(headerError("(1,2)")).toBe("A column header can't be a point.");
+  expect(headerError("[1,2]")).toBe("A column header can't be a list.");
+  expect(headerError("y_{1}=2")).toBe("A column header can't be an equation.");
+  expect(headerError("y_{1}<2")).toBe("A column header can't be an inequality.");
+  expect(headerError("1,2")).toBe("Write points like (1, 2).");
 });
 
 it("RC-20 a call with the wrong argument count marks its cell or header, as in Desmos (2026-10-20)", () => {
@@ -231,9 +219,9 @@ it("RC-20 a call with the wrong argument count marks its cell or header, as in D
     header.error?.message,
     y.cellErrors[0]?.message,
   ]).toEqual([
-    "Function 'sin' requires an argument. For example, try typing: sin(x).",
+    "sin needs an input, like sin(x).",
     "error",
-    "Function 'sin' requires an argument. For example, try typing: sin(x).",
-    "Function 'sin' requires only 1 argument. For example, try typing: sin(x).",
+    "sin needs an input, like sin(x).",
+    "sin takes only 1 input, like sin(x).",
   ]);
 });

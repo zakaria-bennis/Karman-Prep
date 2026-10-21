@@ -139,7 +139,7 @@ test("RT-30 an empty table regression's triangle opens 'Cannot regress an empty 
   const marker = page.locator("#calc .kc-tr-warning");
   await expect(marker).toBeVisible();
   await settled(marker);
-  const text = "Cannot regress an empty list against an empty list.";
+  const text = "Can't regress an empty list against an empty list.";
   await marker.hover();
   await expect.poll(() => openTips(page)).toEqual([{ text, pinned: false }]);
   await page.mouse.move(900, 700);
@@ -171,7 +171,7 @@ const CASES: { name: string; expressions: object[]; marker: string; text: string
       },
     ],
     marker: ".kc-tr-warning",
-    text: "Cannot regress a list of numbers against an empty list.",
+    text: "Can't regress a list of numbers against an empty list.",
   },
   {
     name: "a regression over an undefined value",
@@ -187,7 +187,7 @@ const CASES: { name: string; expressions: object[]; marker: string; text: string
       },
     ],
     marker: ".kc-tr-warning",
-    text: "We couldn't find any region where this model is defined.",
+    text: "This model isn't defined for this data.",
   },
   {
     name: "a cell that cannot be read",
@@ -202,7 +202,7 @@ const CASES: { name: string; expressions: object[]; marker: string; text: string
       },
     ],
     marker: ".kc-cell-warning:not(.kc-header-warning)",
-    text: "Table entries must be simple expressions. This type of expression is not allowed.",
+    text: "A table cell must be a simple expression.",
   },
   {
     name: "a point header",
@@ -217,19 +217,19 @@ const CASES: { name: string; expressions: object[]; marker: string; text: string
       },
     ],
     marker: ".kc-header-warning",
-    text: "Table header cannot be a point.",
+    text: "A column header can't be a point.",
   },
   {
     name: "a typed regression of a point",
     expressions: [{ id: "r", latex: "(1,2)\\sim m" }],
     marker: ".kc-row-warning",
-    text: "Cannot regress a point against a number.",
+    text: "Can't regress a point against a number.",
   },
   {
     name: "a slider whose limits cross",
     expressions: [{ id: "a", latex: "a=1", sliderBounds: { min: "5", max: "1", step: "" } }],
     marker: ".kc-row-warning",
-    text: "Invalid slider limits. Min should be less than max.",
+    text: "The slider min must be less than the max.",
   },
 ];
 

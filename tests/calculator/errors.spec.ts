@@ -26,10 +26,9 @@ const markerTexts = (page: Page, selector: string) =>
     });
   }, selector);
 
-const SIN_NONE = "Function 'sin' requires an argument. For example, try typing: sin(x).";
-const SIN_ONE = "Function 'sin' requires only 1 argument. For example, try typing: sin(x).";
-const DUPLICATE_X =
-  "You've defined 'x_1' in more than one place. Try deleting some of the definitions of 'x_1'.";
+const SIN_NONE = "sin needs an input, like sin(x).";
+const SIN_ONE = "sin takes only 1 input, like sin(x).";
+const DUPLICATE_X = "x_1 is defined more than once.";
 
 test("D-6, D-10 a header in error greys its column and hides its values; cells and headers with the wrong argument count are marked", async ({
   page,
@@ -93,7 +92,7 @@ test("RC-7 a name defined twice marks only the rows that use it; its definitions
   await expect(row("1").locator(".kc-row-warning")).toHaveCount(0);
   await expect(row("2").locator(".kc-row-warning")).toHaveCount(0);
   expect(await markerTexts(page, '[data-row-id="3"] .kc-row-warning')).toEqual([
-    "You've defined 'a' in more than one place. Try deleting some of the definitions of 'a'.",
+    "a is defined more than once.",
   ]);
   const values = () =>
     page.evaluate(() => {
@@ -123,7 +122,7 @@ test("R-2 a row's triangle reads Desmos's text for a half-typed operator", async
   await openShell(page, `?w=1200&h=800&rows=${enc(["1+", "\\left|\\right|"])}&reducedMotion=1`);
   await expect(page.locator("#calc .kc-row-warning")).toHaveCount(2);
   expect(await markerTexts(page, ".kc-row-warning")).toEqual([
-    "You need something on both sides of the '+' symbol.",
-    "Absolute value symbol cannot be empty.",
+    "'+' needs something on both sides.",
+    "The absolute value bars are empty.",
   ]);
 });
