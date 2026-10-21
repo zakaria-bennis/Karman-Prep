@@ -124,6 +124,24 @@ def export_like(stable_id: str, row: dict) -> dict:
     }
 
 
+def make_items(rows: list[dict]) -> list[dict]:
+    """One precheck item per staged row; sets the row's comparison_key (None when unkeyable)."""
+    items = []
+    for row in rows:
+        try:
+            record = record_from_row(export_like(row["stable_question_id"], row))
+        except ValueError as e:
+            raise RefuseToBuild(str(e)) from None
+        if record.meta.get("answer_problem") or record.meta.get("format_problem"):
+            raise RefuseToBuild(f"{row['stable_question_id']}: answer letter or format does not fit the choices")
+        full_key = comparison_key(record)
+        key = None if is_unkeyable(record) else full_key
+        row["question"]["comparison_key"] = key
+        items.append({"id": row["stable_question_id"], "source": _source(row["question"]), "row": row,
+                      "record": record, "full_key": full_key, "key": key})
+    return items
+
+
 def _check_payload(rows: list[dict], binding_sha: str) -> None:
     if not rows:
         raise RefuseToBuild("the reviewed batch has no rows")
@@ -155,17 +173,26 @@ def _check_payload(rows: list[dict], binding_sha: str) -> None:
             raise RefuseToBuild(f"{sid}: unexpected column name {bad[0]!r}")
 
 
-def _export_conflicts(it: dict, export_rows: list[dict]) -> list[str]:
+def export_index(export_rows: list[dict]) -> dict:
+    """Export rows by source tuple, content hash and normalized text, for _export_conflicts."""
+    idx = {"source": {}, "hash": {}, "text": {}}
+    for r in export_rows:
+        idx["source"].setdefault(_source(r), []).append(r["id"])
+        idx["hash"].setdefault(r.get("content_hash_v2"), []).append(r["id"])
+        idx["text"].setdefault(_norm_text(r.get("question_text")), []).append(r["id"])
+    return idx
+
+
+def _export_conflicts(it: dict, index: dict) -> list[str]:
     """Python twins of the stage.sql guards, so a refusal shows up before the SQL runs."""
     q, out = it["row"]["question"], []
-    src = [r["id"] for r in export_rows if _source(r) == it["source"]]
+    src = index["source"].get(it["source"], [])
     if src:
         out.append(f"source question already in the bank as {', '.join(src)}")
-    same_hash = [r["id"] for r in export_rows if r.get("content_hash_v2") == q.get("content_hash_v2")]
+    same_hash = index["hash"].get(q.get("content_hash_v2"), [])
     if same_hash:
         out.append(f"content_hash_v2 already in the bank on {', '.join(same_hash)}")
-    text = _norm_text(q.get("question_text"))
-    same_text = [r["id"] for r in export_rows if _norm_text(r.get("question_text")) == text]
+    same_text = index["text"].get(_norm_text(q.get("question_text")), [])
     if same_text:
         out.append(f"normalized question_text already in the bank on {', '.join(same_text)}")
     return out
@@ -315,27 +342,15 @@ def build_stage(batch_dir: Path, export: Path, pdf: Path, rows_doc: dict | None 
     rows = rows_doc["rows"]
     _check_payload(rows, binding_sha)
 
-    items = []
-    for row in rows:
-        try:
-            record = record_from_row(export_like(row["stable_question_id"], row))
-        except ValueError as e:
-            raise RefuseToBuild(str(e)) from None
-        if record.meta.get("answer_problem") or record.meta.get("format_problem"):
-            raise RefuseToBuild(f"{row['stable_question_id']}: answer letter or format does not fit the choices")
-        full_key = comparison_key(record)
-        key = None if is_unkeyable(record) else full_key
-        row["question"]["comparison_key"] = key
-        items.append({"id": row["stable_question_id"], "source": _source(row["question"]), "row": row,
-                      "record": record, "full_key": full_key, "key": key})
-
+    items = make_items(rows)
     report, _ = duplicate_check(items, doc.rows)
+    index = export_index(doc.rows)
     reasons: dict[str, list[str]] = {}
     for it, rep in zip(items, report["rows"]):
         reasons[it["id"]] = (
             ([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
             + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
-            + _export_conflicts(it, doc.rows))
+            + _export_conflicts(it, index))
     refused = {k: v for k, v in reasons.items() if v}
     staged = [it for it in items if it["id"] not in refused]
     precheck = {"batch": batch, **report, "passed": not refused,
@@ -445,19 +460,29 @@ def check_readback(readback: dict, preview: dict) -> list[dict]:
     return ordered
 
 
-def run_seal(readback: Path, batch_dir: Path, out: Path, preview: Path | None = None,
+def run_seal(readback, batch_dir: Path | None, out: Path, preview: Path | None = None,
              sealer=seal_rows) -> dict:
     """Check a saved stage readback, seal it, and write private-readback.json,
-    private-scope.json and sealed-preview.json (the last at `out`)."""
-    batch = read_ready(batch_dir)["batch"]
+    private-scope.json and sealed-preview.json (the last at `out`).
+
+    `readback` is one saved file or a list of them (a bulk run reads back in
+    chunks); their rows are joined. Without `batch_dir`, `preview` is required
+    and the run name comes from its "batch" field (kimport.bulk)."""
+    if batch_dir is None and preview is None:
+        raise RefuseToBuild("seal needs a batch folder or a stage preview")
     preview = Path(preview) if preview else Path(batch_dir) / "stage" / "stage-preview.json"
+    files = [Path(readback)] if isinstance(readback, (str, Path)) else [Path(f) for f in readback]
     try:
         prev = json.loads(preview.read_text(encoding="utf-8"))
-        raw = _unwrap(json.loads(Path(readback).read_text(encoding="utf-8")))
+        parts = [_unwrap(json.loads(f.read_text(encoding="utf-8"))) for f in files]
     except (OSError, ValueError) as e:
         raise RefuseToBuild(f"cannot read the readback or stage preview: {e}") from None
-    if not isinstance(raw, dict):
+    if not files or not all(isinstance(x, dict) and isinstance(x.get("rows"), list) for x in parts):
         raise RefuseToBuild("the readback is not one {\"rows\": [...]} object")
+    batch = read_ready(batch_dir)["batch"] if batch_dir is not None else prev.get("batch")
+    if not isinstance(batch, str) or not _BATCH.fullmatch(batch):
+        raise RefuseToBuild(f"stage preview {preview} has no usable batch name")
+    raw = {"rows": [r for x in parts for r in x["rows"]]}
     snaps = check_readback(raw, prev)
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)

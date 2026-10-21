@@ -11,13 +11,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, corpus, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
+from kimport import backfill, bulk, corpus, fetch, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="kimport-cli", description="kimport: question import tools")
     sub = parser.add_subparsers(dest="command", metavar="<command>")
     _register_writer(sub)
+    _register_export(sub)
     _register_sweep(sub)
     _register_backfill(sub)
     _register_stage(sub)
@@ -69,6 +70,17 @@ def _register_writer(sub) -> None:
     ls.set_defaults(func=lambda a: _guard(lambda: [print(json.dumps(i)) for i in writer.open_intents(Path(a.log))]))
 
 
+def _register_export(sub) -> None:
+    ex = sub.add_parser("export", help="fetch the live export in pages (read-only) and save it")
+    ex.add_argument("--out", required=True, help="file to write, e.g. pipeline/live-latest.json")
+    ex.add_argument("--page-size", type=int, default=fetch.PAGE)
+    ex.add_argument("--fallback-size", type=int, default=fetch.FALLBACK)
+    ex.set_defaults(func=lambda a: _guard(lambda: print(
+        "export: {rows} rows, fingerprint {fingerprint}, exported_at {exported_at} -> {out}".format(
+            **fetch.run_export(Path(a.out), page=a.page_size, fallback=a.fallback_size,
+                               log=lambda m: print(m, file=sys.stderr, flush=True))))))
+
+
 def _register_sweep(sub) -> None:
     sw = sub.add_parser("sweep", help="find live duplicates; write groups, report and un-publish SQL")
     sw.add_argument("--export", help="saved result of sql/live_export.sql")
@@ -104,40 +116,80 @@ def _register_backfill(sub) -> None:
 
 
 def _register_stage(sub) -> None:
-    st = sub.add_parser("stage", help="write guarded stage SQL (private drafts) + readback SQL for one reviewed batch")
-    st.add_argument("--batch", required=True, help="batch folder with READY, e.g. pipeline/batches/<name>/")
-    st.add_argument("--export", required=True, help="fresh result of sql/live_export.sql")
-    st.add_argument("--pdf", required=True, help="the source exam PDF the frozen manifest pins")
+    st = sub.add_parser("stage", help="write guarded stage SQL (private drafts) + readback SQL for reviewed batches")
+    st.add_argument("--batch", help="one batch folder with READY, e.g. pipeline/batches/<name>/")
+    st.add_argument("--batches", nargs="+", help="bulk: many batch folders (folders without READY are skipped)")
+    st.add_argument("--name", help="bulk: run name, e.g. bulk-1")
+    st.add_argument("--exams-dir", default=str(bulk.EXAMS),
+                    help="bulk: folder of <exam>/original_exam.pdf; each batch's exam comes from its reviewed rows")
+    st.add_argument("--chunk-size", type=int, default=0, help="bulk: rows per stage file (0: one file)")
+    st.add_argument("--export", required=True, help="fresh live export (k export)")
+    st.add_argument("--pdf", help="single batch: the source exam PDF the frozen manifest pins")
     st.add_argument("--out", required=True, help="output folder, e.g. pipeline/batches/<name>/stage/")
     st.add_argument("--intents", help="intent log, e.g. pipeline/intents.jsonl (refuses while an intent is open)")
     st.add_argument("--skip-refused", action="store_true",
                     help="stage the rows that pass and leave refused rows out (listed in precheck.json)")
-    st.set_defaults(func=lambda a: _guard(lambda: print(
-        "stage {batch}: {staged} rows staged ({keyed} keyed), {refused} refused".format(**stage.run_stage(
-            Path(a.batch), Path(a.export), Path(a.pdf), Path(a.out), a.skip_refused,
-            Path(a.intents) if a.intents else None)))))
+
+    def run(a):
+        intents = Path(a.intents) if a.intents else None
+        if bool(a.batch) == bool(a.batches):
+            raise ValueError("stage needs exactly one of --batch or --batches")
+        if a.batches:
+            if not a.name:
+                raise ValueError("--batches needs --name")
+            print("stage {batch}: {staged} rows staged ({keyed} keyed) in {chunks} file(s), {refused} rows and "
+                  "{refused_batches} batches refused".format(**bulk.run_bulk_stage(
+                      [Path(b) for b in a.batches], Path(a.export), a.name, Path(a.out), Path(a.exams_dir),
+                      a.skip_refused, intents, a.chunk_size)))
+            return
+        if not a.pdf:
+            raise ValueError("--batch needs --pdf")
+        print("stage {batch}: {staged} rows staged ({keyed} keyed), {refused} refused".format(**stage.run_stage(
+            Path(a.batch), Path(a.export), Path(a.pdf), Path(a.out), a.skip_refused, intents)))
+
+    st.set_defaults(func=lambda a: _guard(lambda: run(a)))
 
     se = sub.add_parser("seal", help="check a saved stage readback and write sealed-preview.json for publish")
-    se.add_argument("--readback", required=True, help="saved result of the batch's stage/readback.sql")
-    se.add_argument("--batch", required=True, help="batch folder with READY and stage/stage-preview.json")
+    se.add_argument("--readback", required=True, nargs="+", help="saved result(s) of the stage readback SQL")
+    se.add_argument("--batch", help="batch folder with READY and stage/stage-preview.json")
+    se.add_argument("--preview", help="bulk: the run's stage-preview.json (instead of --batch)")
     se.add_argument("--out", required=True, help="sealed preview to write, e.g. <batch>/stage/sealed-preview.json")
-    se.set_defaults(func=lambda a: _guard(lambda: print(
-        "seal {batch}: {rows} rows sealed; wrote {readback} and {sealed}".format(**stage.run_seal(
-            Path(a.readback), Path(a.batch), Path(a.out))))))
+
+    def seal(a):
+        if bool(a.batch) == bool(a.preview):
+            raise ValueError("seal needs exactly one of --batch or --preview")
+        print("seal {batch}: {rows} rows sealed; wrote {readback} and {sealed}".format(**stage.run_seal(
+            [Path(r) for r in a.readback], Path(a.batch) if a.batch else None, Path(a.out),
+            Path(a.preview) if a.preview else None)))
+
+    se.set_defaults(func=lambda a: _guard(lambda: seal(a)))
 
 
 def _register_publish(sub) -> None:
-    pb = sub.add_parser("publish", help="write guarded publish + rollback SQL for one staged batch (one module)")
-    pb.add_argument("--batch", required=True, help="batch name: lowercase letters, digits and dashes")
-    pb.add_argument("--readback", required=True, help="<batch>-private-readback.json")
-    pb.add_argument("--sealed", required=True, help="<batch>-sealed-preview.json")
-    pb.add_argument("--export", required=True, help="fresh result of sql/live_export.sql, saved after the readback")
+    pb = sub.add_parser("publish", help="write guarded publish + rollback SQL for a staged batch or bulk run")
+    pb.add_argument("--batch", required=True, help="batch or run name: lowercase letters, digits and dashes")
+    pb.add_argument("--readback", required=True, help="private-readback.json from k seal")
+    pb.add_argument("--sealed", required=True, help="sealed-preview.json from k seal")
+    pb.add_argument("--export", required=True, help="fresh live export (k export), saved after the readback")
     pb.add_argument("--intents", required=True, help="intent log, e.g. pipeline/intents.jsonl")
     pb.add_argument("--out", required=True, help="output folder, e.g. pipeline/batches/<name>/")
-    pb.set_defaults(func=lambda a: _guard(lambda: print(
-        "publish: {rows} rows, {keyed} keyed, {figure_no_key} figure rows without a database key".format(
+    pb.add_argument("--bulk", action="store_true", help="a bulk run: no 27-row / one-module limit")
+    pb.add_argument("--chunk-size", type=int, default=0, help="bulk: rows per publish file (0: one file)")
+
+    def run(a):
+        if a.bulk:
+            print("publish: {rows} rows, {keyed} keyed, {figure_no_key} figure rows without a database key, "
+                  "{chunks} file(s)".format(**bulk.run_bulk_publish(
+                      a.batch, Path(a.readback), Path(a.sealed), Path(a.export), Path(a.intents), Path(a.out),
+                      a.chunk_size)))
+            return
+        if a.chunk_size:
+            raise ValueError("--chunk-size needs --bulk")
+        print("publish: {rows} rows, {keyed} keyed, {figure_no_key} figure rows without a database key".format(
             **publish.run_publish(a.batch, Path(a.readback), Path(a.sealed), Path(a.export), Path(a.intents),
-                                  Path(a.out))))))
+                                  Path(a.out))))
+
+    pb.set_defaults(func=lambda a: _guard(lambda: run(a)))
 
 
 def _register_lint(sub) -> None:
@@ -304,7 +356,7 @@ def _guard(fn) -> int:
         print(f"error: a file is missing the field {e}; it may be from an older run or the wrong file", file=sys.stderr)
         return 1
     except (writer.LockHeld, writer.WrongHolder, writer.NoLock, writer.OpenIntent,
-            writer.CorruptLock, ValueError, OSError) as e:
+            writer.CorruptLock, fetch.ExportFailed, ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     return 0

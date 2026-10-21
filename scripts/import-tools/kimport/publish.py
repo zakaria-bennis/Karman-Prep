@@ -190,22 +190,28 @@ def _check_row(snap: dict, seal: dict) -> tuple[str, str]:
     return _hex(seal.get("question_payload_sha256"), f"{where}: question_payload_sha256"), manifest
 
 
-def _pair_rows(saved: list[dict], seals: list[dict]) -> list[tuple[dict, dict]]:
+def _pair_key(q: dict) -> tuple:
+    return (q.get("source_version"),) + _source(q)
+
+
+def _pair_rows(saved: list[dict], seals: list[dict], bulk: bool = False) -> list[tuple[dict, dict]]:
+    """Pair readback and sealed rows by source question. A batch is one module of
+    at most MAX_ROWS rows; a bulk run (kimport.bulk) may span many exams and modules."""
     if not saved:
         raise RefuseToBuild("the private readback has no rows")
     if not all(isinstance(x, dict) and isinstance(x.get("question"), dict) for x in saved):
         raise RefuseToBuild("a private readback row has no question snapshot")
-    if len(saved) > MAX_ROWS:
+    if len(saved) > MAX_ROWS and not bulk:
         raise RefuseToBuild(f"{len(saved)} rows; a publish batch is at most {MAX_ROWS} rows (one module)")
     if len(saved) != len(seals):
         raise RefuseToBuild(f"{len(saved)} readback rows but {len(seals)} sealed preview rows")
-    lookup = {_source(s): s for s in seals}
-    sources = [_source(x.get("question") or {}) for x in saved]
+    lookup = {_pair_key(s): s for s in seals}
+    sources = [_pair_key(x.get("question") or {}) for x in saved]
     if len(lookup) != len(seals) or len(set(sources)) != len(sources) or set(sources) != set(lookup):
-        raise RefuseToBuild("readback and sealed preview rows do not pair one to one by (section, module, number)")
-    modules = {(x["question"].get("source_version"), x["question"].get("source_section"),
-                x["question"].get("source_module")) for x in saved}
-    if len(modules) != 1:
+        raise RefuseToBuild("readback and sealed preview rows do not pair one to one by "
+                            "(source version, section, module, number)")
+    modules = {s[:3] for s in sources}
+    if len(modules) != 1 and not bulk:
         raise RefuseToBuild(f"rows span {len(modules)} source modules; a publish batch is one module")
     return [(x, lookup[s]) for x, s in zip(saved, sources)]
 
@@ -439,8 +445,9 @@ def _sql(batch: str, items: list[dict], kind: str, doc: ExportDoc) -> str:
 # ---------------------------------------------------------------- entry points
 
 
-def build_publish(private_readback: Path, sealed_preview: Path, export: Path, intents: Path,
-                  batch: str) -> PublishBundle:
+def prepare_publish(private_readback: Path, sealed_preview: Path, export: Path, intents: Path,
+                    batch: str, bulk: bool = False) -> tuple[list[dict], ExportDoc, dict]:
+    """Every input check and the precheck; returns (items, export doc, precheck)."""
     if not isinstance(batch, str) or not _BATCH.fullmatch(batch):
         raise RefuseToBuild(f"batch name {batch!r} must be lowercase letters, digits and dashes")
     try:
@@ -454,7 +461,7 @@ def build_publish(private_readback: Path, sealed_preview: Path, export: Path, in
         seals = list(sealed_doc["rows"])
     except (KeyError, TypeError):
         raise RefuseToBuild("private readback or sealed preview is not in the task-3 shape ({\"rows\": [...]})") from None
-    pairs = _pair_rows(saved, seals)
+    pairs = _pair_rows(saved, seals, bulk)
     doc = _read_export(export)
     _check_fresh(private_readback, export, saved, doc)
     export_rows = doc.rows
@@ -484,6 +491,12 @@ def build_publish(private_readback: Path, sealed_preview: Path, export: Path, in
                       "items": _items_literal(snap, seal)})
 
     precheck = {"batch": batch, **_precheck(items, export_rows)}
+    return items, doc, precheck
+
+
+def build_publish(private_readback: Path, sealed_preview: Path, export: Path, intents: Path,
+                  batch: str) -> PublishBundle:
+    items, doc, precheck = prepare_publish(private_readback, sealed_preview, export, intents, batch)
     try:
         publish_sql, rollback_sql = _sql(batch, items, "publish", doc), _sql(batch, items, "rollback", doc)
     except ValueError as e:  # dollar tag inside its own block

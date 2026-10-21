@@ -31,7 +31,7 @@ Times are ISO-8601, for example `--now 2026-10-21T09:00:00Z`.
 k lock acquire --path $PIPE/writer.lock --holder <your-name> --now <time>
 ```
 
-Run `sql/live_export.sql` through the database connector. Save the result exactly as returned to `$PIPE/live-<date>.json`. It is one JSON object with `exported_at`, `row_count`, `fingerprint` and `rows`. Every tool reads it. There are no ledger counts to refresh by hand: `corpus` (O7) takes live status from this export.
+Export with `k export --out $PIPE/live-<date>.json` (read-only). It runs the `sql/live_export.sql` row query in 100-row pages through the supabase CLI (10-row pages for a page that keeps failing, retries on a dropped connection), reads the bank's count and fingerprint before and after, and keeps the file only when both agree with the rows; otherwise it starts over. Each row's `raw_model_response` is cut down to its `student_publication_allowed` flag, the only part any export reader uses, so the file is about 6 MB instead of 26. Running `sql/live_export.sql` whole through the connector still works but often fails on the large result. It is one JSON object with `exported_at`, `row_count`, `fingerprint` and `rows`. Every tool reads it. There are no ledger counts to refresh by hand: `corpus` (O7) takes live status from this export.
 
 **O2. Read back US V2 RW M2 Q11 (no OK needed).** Read the row through the connector and record the outcome:
 
@@ -133,7 +133,7 @@ per-batch command list, with every database write marked, is in
 
    It checks every stored row equals what was inserted, seals each row with the app's `catalogQuestionPayloadHash` (`ts/seal-readback.ts`) and writes `private-readback.json`, `private-scope.json` and `sealed-preview.json`. Close the intent.
 
-2. **Export**: run `sql/live_export.sql`, save `$PIPE/live-<date>-3.json`.
+2. **Export**: `k export --out $PIPE/live-<date>-3.json`.
 3. **Backfill, if needed**: `k publish` refuses when some other keyable row has no key (rows staged or added since the last backfill, for example other batches). The batch's own rows never need it: `publish.sql` sets their key. If it refuses, run `k backfill` on that export, apply it (dry run first), and go on.
 4. **Private readback**: the `stage/private-readback.json` that `k seal` wrote.
 5. **Fresh export** after the readback (the builder refuses an export older than the readback): `$PIPE/live-<date>-4.json`.
@@ -158,6 +158,16 @@ per-batch command list, with every database write marked, is in
 12. `k intent close --log $PIPE/intents.jsonl --intent-id <id> --outcome verified --readback-sha256 <sha> --now <time>` (`rolled_back` or `not_applied` if it did not go through).
 
 **Needs your OK for each batch.**
+
+**Many batches at once (bulk run).** The same steps for every batch folder with a READY file, as one run:
+
+```
+k stage --batches $PIPE/batches/*/ --name <run> --export <export> --out $PIPE/<run>/stage/ --intents $PIPE/intents.jsonl --skip-refused --chunk-size 200
+k seal --readback <saved readback-NN results ...> --preview $PIPE/<run>/stage/stage-preview.json --out $PIPE/<run>/stage/sealed-preview.json
+k publish --bulk --batch <run> --readback $PIPE/<run>/stage/private-readback.json --sealed $PIPE/<run>/stage/sealed-preview.json --export <fresh export> --intents $PIPE/intents.jsonl --out $PIPE/<run>/publish/ --chunk-size 200
+```
+
+Each batch is checked as `--batch` checks it, with its own exam PDF (`<exams>/<source_document_id>/original_exam.pdf` from the reviewed rows, checked against the frozen manifest). The precheck also compares every row with every other row of the run. With `--skip-refused`, refused rows and whole refused batches are listed in `precheck.json` and left out. The Management API refuses a request over a few MB, so `--chunk-size` splits the SQL into `stage-01.sql`, `stage-02.sql`, ... (and `publish-NN.sql`, `rollback-NN.sql`), each one transaction. Each chunk checks that the bank, leaving out this run's own rows, is still the exported bank, so the chunks can run in any order, each chunk's dry run works on its own, and any other change to the bank stops the chunks not yet run. Readback is split into `readback-NN.sql` of 100 rows. `precheck.json` lists the chunks; its `stage_sql_sha256` / `publish_sql_sha256` is the sha256 of all chunk files joined in order (use it for the run's one intent).
 
 Problem questions. `--reason` is one of: needs_figure, asset_hold, no_answer_key, answer_dispute, extraction_repair, skill_unclear, difficulty_unclear, classification_review, variant_review, broken_or_excluded (this last one also needs `--clusters`, so the next copy becomes the canonical). When a new campaign starts, `k lane requeue --lane $PIPE/lane.json --reason <reason>` moves parked and open items of that reason back to open.
 
