@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karman Photography</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #0e141b; --ink: #eef1f3; --ink2: #a9b4bf; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 16px/1.5 "Hanken Grotesk", system-ui, sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; padding: 48px 16px 96px; }
+  h1 { font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 40px; }
+  h2 { font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: 28px; margin: 64px 0 18px; }
+  .lead { color: var(--ink2); max-width: 70ch; margin-top: 8px; }
+  .cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); gap: 14px; }
+  .cast figure img { aspect-ratio: 3 / 4; object-fit: cover; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 24px; }
+  figure { margin: 0; }
+  img { width: 100%; height: auto; display: block; border-radius: 6px; }
+  figcaption { margin-top: 8px; font-size: 15px; color: var(--ink2); }
+  figcaption b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Karman photography</h1>
+  <p class="lead">One weekday across six students, then test morning. Every phone and laptop shows a real Karman screen, placed after the photo was made.</p>
+
+  <h2>The cast</h2>
+  <div class="cast">
+    <figure><img src="web/cast-b1-ava.jpg" alt="Ava"><figcaption><b>Ava</b>, the commuter</figcaption></figure>
+    <figure><img src="web/cast-b2-clara.jpg" alt="Clara"><figcaption><b>Clara</b>, the musician</figcaption></figure>
+    <figure><img src="web/cast-b3-mateo.jpg" alt="Mateo"><figcaption><b>Mateo</b>, the athlete</figcaption></figure>
+    <figure><img src="web/cast-b4-julian.jpg" alt="Julian"><figcaption><b>Julian</b>, the intern</figcaption></figure>
+    <figure><img src="web/cast-b5-priya.jpg" alt="Priya"><figcaption><b>Priya</b>, the live class</figcaption></figure>
+    <figure><img src="web/cast-b6-ethan.jpg" alt="Ethan"><figcaption><b>Ethan</b>, private 1:1</figcaption></figure>
+    <figure><img src="web/cast-b7-parent1.jpg" alt="Parent"><figcaption><b>Parent</b>, pickup line</figcaption></figure>
+    <figure><img src="web/cast-b8-parent2.jpg" alt="Parent"><figcaption><b>Parent</b>, lunch break</figcaption></figure>
+    <figure><img src="web/cast-b9-david.jpg" alt="David"><figcaption><b>David</b>, tutor</figcaption></figure>
+  </div>
+
+  <h2>One weekday</h2>
+  <div class="grid">
+    <figure><img src="web/c1-bus.jpg" alt="Ava on the school bus doing her Daily 10"><figcaption><b>Ava, 6:50 a.m.</b> Your Daily 10</figcaption></figure>
+    <figure><img src="web/c2-music.jpg" alt="Clara in the music wing answering the Challenge question"><figcaption><b>Clara, 12:40 p.m.</b> Challenge question</figcaption></figure>
+    <figure><img src="web/c3-bench.jpg" alt="Mateo on the bench playing Wordline"><figcaption><b>Mateo, 4:30 p.m.</b> Wordline</figcaption></figure>
+    <figure><img src="web/c4-studio.jpg" alt="Julian at the architecture studio in the question bank"><figcaption><b>Julian, 5:45 p.m.</b> Question bank</figcaption></figure>
+    <figure><img src="web/c5-dusk.jpg" alt="Priya in the live class on Zoom"><figcaption><b>Priya, 8:00 p.m.</b> Live class</figcaption></figure>
+    <figure><img src="web/c6-oneonone.jpg" alt="Ethan in his one-on-one on Zoom"><figcaption><b>Ethan, 9:00 p.m.</b> Full-length review session</figcaption></figure>
+  </div>
+
+  <h2>Private tutoring and the cohort</h2>
+  <div class="grid">
+    <figure><img src="web/c8-tutor.jpg" alt="David teaching a one-on-one on Zoom"><figcaption><b>David</b>, the review session from his side</figcaption></figure>
+    <figure><img src="web/c7-zoomtiles.jpg" alt="Six students in the live class"><figcaption><b>The cohort</b>, the tiles inside the live class</figcaption></figure>
+  </div>
+
+  <h2>Parents</h2>
+  <div class="grid">
+    <figure><img src="web/c9-pickup.jpg" alt="A parent reading the weekly update in the pickup line"><figcaption><b>Pickup line</b>, the weekly update</figcaption></figure>
+    <figure><img src="web/c10-lunch.jpg" alt="A parent reading the weekly update on a lunch break"><figcaption><b>Lunch break</b>, the weekly update</figcaption></figure>
+  </div>
+
+  <h2>Test morning</h2>
+  <div class="grid">
+    <figure><img src="web/c11-walkin.jpg" alt="Ava and Clara walking into school on test morning"><figcaption><b>Walking in</b></figcaption></figure>
+    <figure><img src="web/c12-walkout.jpg" alt="Ava texting her mom after the test"><figcaption><b>Walking out</b>, "That was the easiest test of my life."</figcaption></figure>
+  </div>
+</main>
+</body>
+</html>
