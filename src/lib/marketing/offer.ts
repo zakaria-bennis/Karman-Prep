@@ -96,7 +96,7 @@ export const MARCH_PROGRAM = {
     {
       title: "A weekly live session",
       detail:
-        "Test mechanics — pacing, Desmos, how the adaptive second module works — alternating with workshops on the skills students miss most.",
+        "Test mechanics (pacing, Desmos, how the adaptive second module works), alternating with workshops on the skills students miss most.",
     },
     {
       title: "Daily 10",
@@ -104,7 +104,7 @@ export const MARCH_PROGRAM = {
     },
     {
       title: "10,000+ original practice questions",
-      detail: "Across all 39 SAT skills at seven difficulty levels.",
+      detail: "Across all 39 SAT skills.",
     },
     {
       title: "Your cohort, between classes",
@@ -183,7 +183,7 @@ export const FREE_PRACTICE_TEST = {
   timeLabel: "10:00 a.m. ET",
   durationLabel: "About 75 minutes",
   questionCount: 49,
-  format: "One Reading & Writing module and one Math module — about 49 questions.",
+  format: "One Reading and Writing module and one Math module, about 49 questions.",
   delivery: "Live on Zoom, with a live proctor.",
   cadence: "Every month.",
   includes: [
