@@ -230,7 +230,7 @@ function valueError(value: Value | null): RowError | null {
  * value from its latest accepted result. An overrun row shows the AR-48 timeout error, and a value
  * carrying a list error shows that error (NM-34 to NM-36).
  */
-export function buildRowView(
+function buildRowView(
   row: StoredRow,
   analysis: RowAnalysis,
   result: RowResult,
@@ -284,11 +284,20 @@ export function buildRowView(
 }
 
 /**
- * R-5 (owner decision, 2026-10-21): a row that is a bare reference to a fitted regression
- * parameter (`m` after `y_1~mx_1+b`) offers no decimal/fraction toggle, so its view carries no
- * fraction and never shows one; Alt+Shift+A leaves it alone, as on any row without the toggle.
+ * Every row's view, in order. R-5 (owner decision, 2026-10-21): a row that is a bare reference to
+ * a fitted regression parameter (`m` after `y_1~mx_1+b`) offers no decimal/fraction toggle, so its
+ * view carries no fraction and never shows one; Alt+Shift+A leaves it alone, as on any row
+ * without the toggle.
  */
-export function withoutRegressionParameterFractions(views: RowView[]): RowView[] {
+export function buildRowViews(
+  rows: readonly StoredRow[],
+  analysis: ReadonlyMap<string, RowAnalysis>,
+  result: (id: string) => RowResult,
+  sliders?: ReadonlyMap<string, SliderView>
+): RowView[] {
+  const views = rows.map((row) =>
+    buildRowView(row, analysis.get(row.id)!, result(row.id), sliders)
+  );
   const fitted = new Set<string>();
   for (const v of views) {
     const fit = v.regression?.result;
