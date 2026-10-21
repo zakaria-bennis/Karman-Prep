@@ -53,7 +53,7 @@ Success means:
 | Transfer to Calculator (owner digest item 3)                                     | D7; appendix C; owner interpretations in section 10.3 items 1 to 5 and 7 to 9                                                                                         |
 | Pop-up or toggle calculator in Math only, hidden in Reading and Writing          | L-4, AR-20, TR-4                                                                                                                                                      |
 | Keyboard-first desktop input, Clear all, Backspace                               | KB-1 to KB-14 (Clear all is KB-5); K-1, K-11                                                                                                                          |
-| Per-question reset; display size and reverse contrast kept for the page session  | AR-58, RC-21, S-9, SC-13, TR-70; section 10.3 item 6                                                                                                                  |
+| Per-question reset; the student's settings carry for the page session            | AR-58, RC-21, S-9, SC-13, TR-70; section 10.3 item 6                                                                                                                  |
 | Reliable graphing, tables, regressions and all exam functions                    | G-, POI- (A); FN-, D- (B); CB-2                                                                                                                                       |
 | Easier mobile regression; double-tap `=` for `~`                                 | D-3, K-8; K-7                                                                                                                                                         |
 | Functions categories in the owner's order, Complex before Advanced               | K-4, FN-84; the shipped order is checked at the end of Phase 3 (section 8.2 item 1)                                                                                   |
@@ -69,7 +69,7 @@ Success means:
 | D2  | Behaviour target   | SAT testing configuration, College Board sheet SY2026-2027: images, folders and notes disabled; automatic log mode for applicable exponential, logarithmic and power regressions; Scientific and Graphing calculators with a toggle (CB-1 to CB-3)                                                                                                                                                                              |
 | D3  | Math editor        | MathQuill (github.com/mathquill/mathquill), vendored at jQuery-free master commit `1cbc1c4128` behind a `MathField` adapter and styled with KaTeX fonts                                                                                                                                                                                                                                                                         |
 | D4  | UI stack           | Framework-free TypeScript core plus React UI rendered in a shadow root                                                                                                                                                                                                                                                                                                                                                          |
-| D5  | Default angle unit | Radians; degrees in settings; reset per question                                                                                                                                                                                                                                                                                                                                                                                |
+| D5  | Default angle unit | Radians; degrees in settings; carries between questions                                                                                                                                                                                                                                                                                                                                                                         |
 | D6  | API                | Desmos-style programmatic API implemented by Karman's own engine, not Desmos's hosted API                                                                                                                                                                                                                                                                                                                                       |
 | D7  | Transfer           | Transfer to Calculator exactly as the owner specified (owner digest item 3, quoted in `c-transfer.md` section 1), with the confirmed details: the third option puts `f(2)` in a row so the calculator evaluates it; desktop docking applies when the viewport is at least 1024 px wide and more than 500 px tall, and otherwise the calculator opens full screen; and the owner-confirmed interpretations in section 10.3 apply |
 | D9  | Contrast           | UI text, axis numbers and point labels at least 7:1; axes at least 7:1; curves at least 4.5:1 in every skin, with each skin's six curve colours generated to meet that while staying distinguishable, including for colour-blind students; major gridlines at least 3:1 and minor gridlines lighter; inequality shading never drops a curve below 4.5:1; Reverse contrast raises everything to at least 7:1                     |
@@ -113,9 +113,9 @@ Notes on the decisions:
   theme (12 skins). Calculator UI uses system Arial; math uses KaTeX fonts. Motion respects
   `prefers-reduced-motion`.
 - **Existing contracts kept:** math-only availability, hidden in Reading and Writing, fresh state per
-  question, question transfer entry points, scoring and persistence untouched. Display size and
-  reverse contrast persist for the page session across questions (section 10.3 item 6);
-  everything else is fresh per question.
+  question, question transfer entry points, scoring and persistence untouched. The student's
+  calculator settings carry across questions for the page session (section 10.3 item 6);
+  rows, tables, sliders, the view and the other content are fresh per question.
 
 The existing contracts are Phase 1 entry conditions: math-only availability is TR-4 and L-4, fresh
 state per question is AR-58 and RC-21, and the transfer entry points are AR-11. No phase changes
@@ -370,12 +370,18 @@ force and tested (TR-10).
 5. Owner-confirmed. "Click the thing, then export, then click the button on top of it" means: tap
    the item, tap the control that appears on top of it, then pick a format only when there is a
    choice (TR-55, TR-56).
-6. Owner-confirmed. Display size and reverse contrast persist for the page session across
-   questions; all math, rows, sliders, tables, the viewport and every other setting still reset on
-   each new question (AR-58, RC-21, S-9). This is lead resolution R10 as amended, and every R10
-   reference in the appendices means this wording: hosts key `CalculatorScope` per question, the
-   calculator remounts and calls `setBlank()`, and only the open state, the window geometry
-   (AR-25), display size and reverse contrast outlive a question.
+6. Owner decision, 2026-10-21 (replacing the 2026-10-16 rule that kept only display size and
+   reverse contrast). Each question's calculator starts clean: all math, rows, sliders, tables,
+   the viewport, labels, undo history and the keypad page reset on each new question, including
+   on going back to one. The student's settings carry to the next question for the page session:
+   angle mode, complex mode, grid, polar grid, minor gridlines, arrows, axis numbers, axes shown
+   or hidden, display size, reverse contrast, keypad shown or hidden, trace, points of interest,
+   braille mode and six-key input. The settings that describe one question's graph view (lock
+   viewport, axis bounds, axis labels, axis steps, π axis labels) reset with it (AR-58, RC-21,
+   S-9). This is lead resolution R10 as amended, and every R10 reference in the appendices means
+   this wording: hosts key `CalculatorScope` per question, the calculator remounts and calls
+   `setBlank()`, and only the open state, the window geometry (kept across reloads, AR-25) and
+   those settings outlive a question.
 7. Owner-confirmed. Desktop docking and the floating window apply when the viewport is at least
    1024 px wide and more than 500 px tall; otherwise the calculator opens full screen, so phones in
    landscape and desktop windows 500 px tall or less (for example 1280×480) open full screen
@@ -416,9 +422,8 @@ when it stays at or under 400 ms with no overshoot.
 - `public/calculator-notices.txt` lists MathQuill (commit `1cbc1c4128`) and every other
   third-party package in the lazy calculator chunk (react, react-dom, scheduler, lucide-react and
   zod), as AR-5 and AR-62 require. The calculator serves no font files (`--kc-font-math`).
-- `docs/enhanced-quiz-engine.md` section 8 describes the calculator; the Phase 4 PR that ships S-3
-  and S-4 adds that display size and reverse contrast persist for the page session (section 10.3
-  item 6).
+- `docs/enhanced-quiz-engine.md` section 8 describes the calculator, including that the student's
+  settings carry between questions for the page session (section 10.3 item 6).
 
 ### 10.6 Lead resolutions
 
@@ -427,9 +432,9 @@ when it stays at or under 400 ms with no overshoot.
 - R5 The screen-reader essentials A11Y-1 to A11Y-11, T-5, TR-50, TR-59, TR-67 and SC-15 are
   required by the end of Phase 3 (section 8.2).
 - R10 Each new question gets a fresh calculator: hosts key `CalculatorScope` per question and the
-  constructor calls `setBlank()`; as amended by the owner on 2026-10-16 (section 10.3 item 6),
-  display size and reverse contrast persist for the page session, while all math, rows, sliders,
-  tables, the viewport and every other setting reset (AR-58, RC-21, S-9).
+  constructor calls `setBlank()`; as amended by the owner on 2026-10-21 (section 10.3 item 6),
+  the student's settings carry for the page session, while all math, rows, sliders, tables, the
+  viewport and the per-question view settings reset (AR-58, RC-21, S-9).
 
 ## 11. Appendices
 

@@ -54,7 +54,7 @@ Choice Transfer controls sit outside the answer button; a transfer never selects
 
 ## 8. Calculator integration
 
-Calculator is available only when both the section and question are math and the quiz is active. Reading & Writing exposes no calculator or Transfer controls. Each question owns a fresh calculator scope; navigation destroys expressions, tables, undo history, settings, and pending clipboard operations.
+Calculator is available only when both the section and question are math and the quiz is active. Reading & Writing exposes no calculator or Transfer controls. Each question owns a fresh calculator scope; navigation destroys expressions, tables, sliders, the graph view, undo history and pending clipboard operations, while the student's calculator settings (angle mode, grid, display size, contrast and the like) carry to the next question for the page session, and the window's mode, place and size are remembered across reloads (calculator spec S-9, AR-25, AR-58).
 
 The calculator opens in a window. On a viewport at least 1024 px wide and more than 500 px tall it docks on the left on first open (and on every transfer) and shifts the question workspace to the right; the student can undock it into a floating window, maximize, minimize or close it. Any other viewport opens it full screen. A mobile side button opens it; closing restores focus. The main toolbar also has a Calculator button. The calculator code loads lazily, on first open or when a Transfer control is hovered, focused or used.
 

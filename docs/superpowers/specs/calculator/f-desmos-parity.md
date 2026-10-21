@@ -58,12 +58,14 @@ www.desmos.com/calculator on 2026-10-21), and Karman's extras for them are remov
 4. **Escape leaves point labels open.** Open coordinate labels stay until the next press (POI-13).
    The quiz window's rule stands: Escape leaves the row, and a second Escape closes the window.
 5. **The degree sign is a name.** `\degree` (what a typed ° becomes) is the name degree and
-   `^{\circ}` is a power of the name circ: `\sin(30\degree)` asks "Try adding 'y=' to the
-   beginning of this equation." with an add-slider chip shown as °, `y=\sin(x\degree)` reads "Too
-   many variables. Try defining 'degree'.", and with `\degree=3`, `\sin(30\degree)` is sin 90. A
-   raw ° in API LaTeX is "Sorry, I don't understand the '°' symbol." (PR-8, NM-27).
-6. **A lone i in real mode is an ordinary name.** `2i` and `1+i` ask "Try adding 'y=' …" and offer
-   an add-slider chip for i; a lone `i` offers none, like any lone name. The "Turn on complex mode
+   `^{\circ}` is a power of the name circ: `\sin(30\degree)` is the error Desmos words "Try adding
+   'y=' to the beginning of this equation." (shown as Karman's "Add y= at the start.") with an
+   add-slider chip shown as °, `y=\sin(x\degree)` is Desmos's "Too many variables. Try defining
+   'degree'." (shown as "degree is not defined."), and with `\degree=3`, `\sin(30\degree)` is
+   sin 90. A raw ° in API LaTeX is Desmos's "Sorry, I don't understand the '°' symbol.", shown as
+   "Unknown symbol '°'." (PR-8, NM-27; error copy, `a-math-semantics.md` section 2.8).
+6. **A lone i in real mode is an ordinary name.** `2i` and `1+i` give the "Add y= at the start." error
+   (Desmos: "Try adding 'y=' …") and offer an add-slider chip for i; a lone `i` offers none, like any lone name. The "Turn on complex mode
    to use i." hint and its button are removed (NM-17, FN-16). Complex mode is unchanged.
 
 The adversarial break corpus (`break-corpus.json`) records these as matching Desmos, with 14 cases
@@ -111,7 +113,14 @@ are both gone.
   The column colour picker shows the green swatch (c3) as selected for a column in the new-row
   green, so a column always has one swatch checked.
 - **Dark skins** show every curve colour inverted, as Desmos's Reverse contrast (`invert(100%)`)
-  does. For example, black becomes white, red becomes `#38bbbf` and the new-row green `#c773b9`.
+  does, for example red becomes `#38bbbf` and the new-row green `#c773b9`, with one exception
+  (owner decision, 2026-10-21): black's inverse, white, vanished into the near-white axis, so on
+  the dark skins black (c6) is the light grey `#c4c4c4`.
+- **Checked on every skin** (owner decision, 2026-10-21): the five colours new rows take (red,
+  blue, new-row green, purple, black) are each at least 3:1 on the graph paper and at least
+  OKLab ΔE 0.12 from each other and from the axis and gridline colours, on all 13 skins (classic
+  and the 12 site skins). The bar is Desmos's own closest pair, blue and purple (about 0.125 on
+  white). `src/lib/calculator/theme/curve-colours.test.ts` enforces it.
 - **Shading.** Every inequality fill is 40% of its curve colour. Overlapping fills stack in row
   order with no cap.
 - **Explicit colours.** An explicit `#rrggbb` row colour is used as given, inverted on dark skins,
@@ -413,7 +422,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 15. Backspace in an empty expression row directly below a table deletes that row and puts focus in the table's blank row.
 16. Clearing every cell of an interior row leaves an empty row in place until it is deleted explicitly.
 17. A cell accepts numbers, negatives, decimals, typed fractions (rendered stacked) and simple expressions such as 2·3 and √2, plotted by their value.
-18. A cell that cannot be evaluated shows a warning icon at its left and exposes the message (for example "Too many variables. Try defining 'a'." or "Points are written like this: (1, 2).") to assistive technology, in a hover, focus and tap tooltip on the marker, with `aria-invalid` and `aria-describedby` on the cell. **Matched** (D-6; component test).
+18. A cell that cannot be evaluated shows a warning icon at its left and exposes the message (Karman's short text, `a-math-semantics.md` section 2.8: for example "a is not defined." or "Write points like (1, 2).", where Desmos says "Too many variables. Try defining 'a'." and "Points are written like this: (1, 2).") to assistive technology, in a hover, focus and tap tooltip on the marker, with `aria-invalid` and `aria-describedby` on the cell. **Matched** (D-6; component test).
 19. Rows with a blank or invalid value in a pair are skipped when plotting, and the other rows still plot.
 20. Data columns plot as filled circles of size 8 in the column colour, not joined, by default; the second and later data columns take the next palette colours.
 21. Activating the column icon toggles that column's points on and off, and the icon shows an empty outline when hidden.
@@ -488,7 +497,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 14. Exponential, power and logarithmic fits show a "Log mode" checkbox (with help) under the math, and toggling it refits and adds or removes r.
 15. When any y ≤ 0 for an exponential fit, the Log mode control is not offered and the original-unit fit is shown.
 16. A model that is undefined for the data (blank or non-numeric cell in the used columns, or a model like `log(−a²−1)`) shows the row error "We couldn't find any region where this model is defined." in place of results.
-17. A non-numeric table cell shows its own in-cell warning ("Too many variables. Try defining 'q'."). **Matched** (D-6; component test).
+17. A non-numeric table cell shows its own in-cell warning ("q is not defined.", Karman's text for Desmos's "Too many variables. Try defining 'q'."). **Matched** (D-6; component test).
 18. A name defined by another row (e.g. `m = 3`) is treated as a constant, not a parameter, and the remaining parameters refit.
 19. Referencing a parameter name that two regressions both fit is the error "You've defined 'm' in more than one place. Try deleting some of the definitions of 'm'." (Karman uses this text on every row that defines a duplicated name, RC-7; a row that references it reads "m has more than one definition.", D-44.)
 20. Each value in the results is a focusable read-only field whose accessible name reads "name equals value", and the row's accessible name ends with "Has graph and regression. To access statistics, press Tab."
