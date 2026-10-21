@@ -220,5 +220,6 @@ test("RT-9, RT-10 Convert to Table replaces a point list with a table of its coo
       ["x_{1}", "1", "3"],
       ["y_{1}", "2", "4"],
     ]);
-  await expect(page.getByText("Table created.")).toBeVisible();
+  // exact: the live region also says "Table created. Undo is available." once it announces
+  await expect(page.getByText("Table created.", { exact: true })).toBeVisible();
 });
