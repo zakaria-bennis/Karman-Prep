@@ -92,7 +92,9 @@ describe("describeSlider", () => {
     expect(view("a=1", { hardMin: true, min: "5", hardMax: true, max: "2" })).toMatchObject({
       error: "Invalid slider limits. Min should be less than max.",
       invalid: { min: true, max: true },
+      value: 5, // break-ui S01: the reference reads the value as the min
     });
+    expect(view("a=3", { hardMin: true, min: "10", hardMax: true, max: "0" }).value).toBe(10);
     expect(view("a=1", { hardMin: true, min: "a" }).error).toBe(
       "Slider limits cannot depend on the slider variable 'a'."
     );
