@@ -24,6 +24,11 @@ import type { QuizQuestionWithChoices } from "@/types/quiz";
 
 type Obj = Record<string, unknown>;
 
+/** The importer stores a generated key's whole reviewed answer; its evidence sits under "evidence". */
+function evidenceRoot(raw: Obj): Obj {
+  return raw?.kind === "independently_confirmed_generated" ? ((raw.evidence ?? {}) as Obj) : raw;
+}
+
 export function sealSnapshot(snapshot: { question: Obj; choices: Obj[] | null; keys: Obj[] }) {
   const keys = snapshot.keys ?? [];
   if (!snapshot.question || keys.length !== 1)
@@ -34,7 +39,7 @@ export function sealSnapshot(snapshot: { question: Obj; choices: Obj[] | null; k
     throw new Error(`${String(snapshot.question.id)}: choice count does not fit the answer format`);
   const raw = keys[0].raw_model_response as Obj;
   const scope = readCatalogQuestionScope(raw);
-  if (scope.tags.stable_question_id !== raw.question_id)
+  if (scope.tags.stable_question_id !== evidenceRoot(raw).question_id)
     throw new Error(`${String(snapshot.question.id)}: answer key evidence names another question`);
   const question = {
     ...snapshot.question,
@@ -51,9 +56,9 @@ export function sealSnapshot(snapshot: { question: Obj; choices: Obj[] | null; k
 }
 
 function stableIdOf(snapshot: { keys?: Obj[] }): unknown {
-  const raw = (snapshot.keys?.[0]?.raw_model_response ?? {}) as Obj;
-  const tags = (raw.approved_tags ?? {}) as Obj;
-  return tags.stable_question_id ?? raw.question_id ?? null;
+  const root = evidenceRoot((snapshot.keys?.[0]?.raw_model_response ?? {}) as Obj);
+  const tags = (root.approved_tags ?? {}) as Obj;
+  return tags.stable_question_id ?? root.question_id ?? null;
 }
 
 function main() {

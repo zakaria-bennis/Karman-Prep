@@ -19,7 +19,9 @@ whether it is an object and its student_publication_allowed flag, and stage
 and publish read the batch's own evidence from the readback, never from the
 export. So each row carries raw_model_response cut down to
 {"student_publication_allowed": <value>} (or {} when the key is absent; a
-non-object value is kept as it is). Every other field is exactly what
+non-object value is kept as it is). An independently confirmed generated key keeps its
+evidence nesting: {"kind": "independently_confirmed_generated", "evidence":
+{"student_publication_allowed": <value>}} (kimport.answer_evidence). Every other field is exactly what
 sql/live_export.sql returns.
 
 Only read-only SELECTs are sent. The runner is injectable for tests.
@@ -77,11 +79,16 @@ ROW_COLUMNS = """    q.id,
        FROM public.answer_choices c
       WHERE c.question_id = q.id) AS choices,"""
 
-_SLIM_KEY = """    (SELECT CASE WHEN jsonb_typeof(k.raw_model_response) = 'object' THEN
-              CASE WHEN k.raw_model_response -> 'student_publication_allowed' IS NOT NULL
+_SLIM_KEY = """    (SELECT CASE WHEN jsonb_typeof(k.raw_model_response) <> 'object' THEN k.raw_model_response
+              WHEN k.raw_model_response ->> 'kind' = 'independently_confirmed_generated' THEN
+                   jsonb_build_object('kind', 'independently_confirmed_generated', 'evidence',
+                     CASE WHEN k.raw_model_response -> 'evidence' -> 'student_publication_allowed' IS NOT NULL
+                          THEN jsonb_build_object('student_publication_allowed',
+                                                  k.raw_model_response -> 'evidence' -> 'student_publication_allowed')
+                          ELSE '{}'::jsonb END)
+              WHEN k.raw_model_response -> 'student_publication_allowed' IS NOT NULL
                    THEN jsonb_build_object('student_publication_allowed', k.raw_model_response -> 'student_publication_allowed')
-                   ELSE '{}'::jsonb END
-            ELSE k.raw_model_response END
+              ELSE '{}'::jsonb END
        FROM public.answer_key_entries k
       WHERE k.question_id = q.id
       ORDER BY k.created_at, k.id

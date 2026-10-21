@@ -42,6 +42,7 @@ from kimport.keys import (
     sorted_choices,
     table_values,
 )
+from kimport.answer_evidence import evidence_root, json_path, sql_get, sql_remove
 from kimport.export import export_by_id, read_export
 from kimport.evidence import WORD, OutsideEvidence
 from kimport.normalize import NORMALIZER_VERSION, math_tokens, strip_markup
@@ -299,9 +300,9 @@ _MISSING = object()  # flag key absent (or no key object): `->` gives SQL NULL
 
 
 def _flag(row: dict):
-    raw = row.get("raw_model_response")
-    if isinstance(raw, dict) and "student_publication_allowed" in raw:
-        return raw["student_publication_allowed"]
+    root = evidence_root(row.get("raw_model_response"))  # raw, or raw["evidence"] for a generated key
+    if isinstance(root, dict) and "student_publication_allowed" in root:
+        return root["student_publication_allowed"]
     return _MISSING
 
 
@@ -336,8 +337,8 @@ def _key_guard(row: dict, flag) -> list[str]:
     count = row.get("answer_key_count", 1 if row.get("raw_model_response") is not None else 0)
     return [
         f"   OR (SELECT count(*) FROM public.answer_key_entries WHERE question_id = q.id) <> {int(count)}",
-        "   OR (SELECT raw_model_response->'student_publication_allowed' FROM public.answer_key_entries"
-        f" WHERE question_id = q.id) IS DISTINCT FROM {_jsonb(flag)}",
+        f"   OR (SELECT {sql_get('raw_model_response', row.get('raw_model_response'), 'student_publication_allowed')}"
+        f" FROM public.answer_key_entries WHERE question_id = q.id) IS DISTINCT FROM {_jsonb(flag)}",
     ]
 
 
@@ -380,8 +381,9 @@ def unpublish_sql(groups, export_by_id: dict[str, dict]) -> str:
             f" publish_status = {lit(UNPUBLISHED_STATUS)}, import_flag_reason = {lit(_reason(keep))} WHERE id = q.id;",
         ]
         if isinstance(row.get("raw_model_response"), dict):
+            path = json_path(row["raw_model_response"], "student_publication_allowed")
             body.append(" UPDATE public.answer_key_entries SET raw_model_response = jsonb_set(raw_model_response,"
-                        " '{student_publication_allowed}', 'false'::jsonb) WHERE question_id = q.id;")
+                        f" {path}, 'false'::jsonb) WHERE question_id = q.id;")
         out += do_block(tag, body)
     return "\n".join(out + ["COMMIT;", ""])
 
@@ -411,8 +413,10 @@ def republish_sql(groups, export_by_id: dict[str, dict]) -> str:
             f" import_flag_reason = {lit(row.get('import_flag_reason'))} WHERE id = q.id;",
         ]
         if has_key:
-            restore = ("raw_model_response - 'student_publication_allowed'" if flag is _MISSING else
-                       f"jsonb_set(raw_model_response, '{{student_publication_allowed}}', {_jsonb(flag)})")
+            path = json_path(row["raw_model_response"], "student_publication_allowed")
+            restore = (sql_remove("raw_model_response", row["raw_model_response"], "student_publication_allowed")
+                       if flag is _MISSING else
+                       f"jsonb_set(raw_model_response, {path}, {_jsonb(flag)})")
             body.append(f" UPDATE public.answer_key_entries SET raw_model_response = {restore} WHERE question_id = q.id;")
         out += do_block(tag, body)
     return "\n".join(out + ["COMMIT;", ""])

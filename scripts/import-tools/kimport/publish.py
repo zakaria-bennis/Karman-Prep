@@ -41,6 +41,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
 
+from kimport.answer_evidence import ambiguous, evidence_root, json_path, sql_get
 from kimport.export import FINGERPRINT_SQL, ExportDoc, read_export_doc
 from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, QuestionRecord, comparison_key, is_unkeyable
 from kimport.normalize import NORMALIZER_VERSION
@@ -178,12 +179,15 @@ def _check_row(snap: dict, seal: dict) -> tuple[str, str]:
     if len(keys) != 1:
         raise RefuseToBuild(f"{where}: {len(keys)} answer key rows; publish needs exactly one")
     raw = keys[0].get("raw_model_response")
-    tags = raw.get("approved_tags") if isinstance(raw, dict) else None
-    if not isinstance(tags, dict) or raw.get("student_publication_allowed") is not False:
+    root = evidence_root(raw)  # raw, or raw["evidence"] for an independently confirmed generated key
+    tags = root.get("approved_tags") if isinstance(root, dict) else None
+    if ambiguous(raw):
+        raise RefuseToBuild(f"{where}: generated-key evidence carries approved_tags at the top as well (ambiguous)")
+    if not isinstance(tags, dict) or root.get("student_publication_allowed") is not False:
         raise RefuseToBuild(f"{where}: answer key student_publication_allowed is not false (already published?)")
     if "question_payload_sha256" in tags:
         raise RefuseToBuild(f"{where}: answer key already carries a question_payload_sha256 seal")
-    seal_tags = (seal.get("answer_evidence") or {}).get("approved_tags") or {}
+    seal_tags = (evidence_root(seal.get("answer_evidence")) or {}).get("approved_tags") or {}
     manifest = _hex(seal_tags.get("tag_binding_manifest_sha256"), f"{where}: sealed tag manifest")
     if tags.get("tag_binding_manifest_sha256") != manifest:
         raise RefuseToBuild(f"{where}: tag_binding_manifest_sha256 differs between readback and sealed preview")
@@ -338,12 +342,21 @@ _LOOP = [
     " FOR v IN SELECT value FROM jsonb_array_elements(items) LOOP",
     "  SELECT * INTO STRICT q FROM public.quiz_questions WHERE id=(v->'question'->>'id')::uuid FOR UPDATE;",
 ]
-_FLAG_ON = "'{student_publication_allowed}','true'::jsonb),"
-_SEAL = "'{approved_tags,question_payload_sha256}',to_jsonb(v->>'seal'))"
+def _raw(it: dict):
+    return ((it.get("snap") or {}).get("keys") or [{}])[0].get("raw_model_response")
+
+
+def _flag_on(raw) -> str:
+    return f"{json_path(raw, 'student_publication_allowed')},'true'::jsonb),"
+
+
+def _seal(raw) -> str:
+    return f"{json_path(raw, 'approved_tags', 'question_payload_sha256')},to_jsonb(v->>'seal'))"
 
 
 def _publish_block(tag: str, it: dict) -> list[str]:
-    key = it["key"]
+    key, raw = it["key"], _raw(it)
+    col = "k.raw_model_response"
     body = [
         _DECLARE.format(it["items"]), *_LOOP,
         "  IF to_jsonb(q) IS DISTINCT FROM v->'question'",
@@ -358,9 +371,9 @@ def _publish_block(tag: str, it: dict) -> list[str]:
         "  IF to_jsonb(k) IS DISTINCT FROM v->'keys'->0",
         f"   OR q.publish_status<>'{STAGED_STATUS}' OR q.import_status<>'{STAGED_IMPORT}'"
         " OR q.is_live IS DISTINCT FROM false OR q.archived_at IS NOT NULL",
-        "   OR k.raw_model_response->>'student_publication_allowed'<>'false'",
-        f"   OR k.raw_model_response->'approved_tags'->>'tag_binding_manifest_sha256'<>{lit(it['manifest'])}",
-        "   OR k.raw_model_response->'approved_tags' ? 'question_payload_sha256'",
+        f"   OR {sql_get(col, raw, 'student_publication_allowed', text=True)}<>'false'",
+        f"   OR {sql_get(col, raw, 'approved_tags', 'tag_binding_manifest_sha256', text=True)}<>{lit(it['manifest'])}",
+        f"   OR {sql_get(col, raw, 'approved_tags')} ? 'question_payload_sha256'",
         "  THEN RAISE EXCEPTION 'private answer changed: %',q.id; END IF;",
     ]
     if key:
@@ -368,8 +381,8 @@ def _publish_block(tag: str, it: dict) -> list[str]:
                     " AND o.id <> q.id AND o.archived_at IS NULL) THEN RAISE EXCEPTION 'duplicate comparison key: %', q.id; END IF;")
     body += [
         "  UPDATE public.answer_key_entries SET raw_model_response=jsonb_set(",
-        f"   jsonb_set(raw_model_response,{_FLAG_ON}",
-        f"   {_SEAL} WHERE id=k.id;",
+        f"   jsonb_set(raw_model_response,{_flag_on(raw)}",
+        f"   {_seal(raw)} WHERE id=k.id;",
         "  UPDATE public.quiz_questions SET import_status='ok',import_flag_reason=NULL,publish_status='publish_ready'"
         + (f",comparison_key={lit(key)}" if key else "") + " WHERE id=q.id;",
         " END LOOP;",
@@ -378,6 +391,7 @@ def _publish_block(tag: str, it: dict) -> list[str]:
 
 
 def _rollback_block(tag: str, it: dict) -> list[str]:
+    raw = _raw(it)
     key_guard = f"q.comparison_key IS DISTINCT FROM {lit(it['key'])}" if it["key"] else "q.comparison_key IS NOT NULL"
     body = [
         _DECLARE.format(it["items"]), *_LOOP,
@@ -387,8 +401,8 @@ def _rollback_block(tag: str, it: dict) -> list[str]:
         "   OR q.publish_status<>'publish_ready' OR q.import_status<>'ok' OR q.is_live IS DISTINCT FROM true",
         f"   OR q.import_flag_reason IS NOT NULL OR {key_guard}",
         "   OR k.raw_model_response IS DISTINCT FROM jsonb_set(",
-        f"     jsonb_set(v->'keys'->0->'raw_model_response',{_FLAG_ON}",
-        f"     {_SEAL}",
+        f"     jsonb_set(v->'keys'->0->'raw_model_response',{_flag_on(raw)}",
+        f"     {_seal(raw)}",
         "  THEN RAISE EXCEPTION 'published state changed: %',q.id; END IF;",
         f"  UPDATE public.quiz_questions SET import_status='{STAGED_IMPORT}',"
         "import_flag_reason=v->'question'->>'import_flag_reason',"

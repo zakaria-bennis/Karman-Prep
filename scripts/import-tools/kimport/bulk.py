@@ -33,6 +33,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from kimport.answer_evidence import evidence_root
 from kimport import stage as st
 from kimport.export import FINGERPRINT_SQL, fingerprint, read_export_doc
 from kimport.publish import (FINGERPRINT_FAILED, RefuseToBuild, _BATCH, _publish_block, _rollback_block,
@@ -381,7 +382,7 @@ def build_bulk_publish(name: str, readback: Path, sealed: Path, export: Path, in
     except (OSError, ValueError, KeyError, TypeError):
         batch_of = {}
     for it in items:
-        ev = it["snap"]["keys"][0].get("raw_model_response") or {}
+        ev = evidence_root(it["snap"]["keys"][0].get("raw_model_response")) or {}
         it["batch"] = batch_of.get((ev.get("approved_tags") or {}).get("stable_question_id"))
     ids = {it["id"] for it in items}
     rest = [r for r in doc.rows if r["id"] not in ids]

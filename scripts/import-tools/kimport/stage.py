@@ -36,6 +36,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from kimport.answer_evidence import ambiguous, evidence_root
 from kimport.export import _unwrap, read_export_doc
 from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, comparison_key, is_unkeyable
 from kimport.publish import (MAX_ROWS, STAGED_IMPORT, STAGED_STATUS, RefuseToBuild, _BATCH,
@@ -159,8 +160,11 @@ def _check_payload(rows: list[dict], binding_sha: str) -> None:
             raise RefuseToBuild(f"{sid}: the importer would not write a private draft "
                                 f"({q.get('import_status')}, {q.get('publish_status')})")
         raw = key.get("raw_model_response")
-        tags = raw.get("approved_tags") if isinstance(raw, dict) else None
-        if not isinstance(tags, dict) or raw.get("student_publication_allowed") is not False:
+        root = evidence_root(raw)  # raw, or raw["evidence"] for an independently confirmed generated key
+        tags = root.get("approved_tags") if isinstance(root, dict) else None
+        if ambiguous(raw):
+            raise RefuseToBuild(f"{sid}: generated-key evidence carries approved_tags at the top as well (ambiguous)")
+        if not isinstance(tags, dict) or root.get("student_publication_allowed") is not False:
             raise RefuseToBuild(f"{sid}: answer key evidence must carry approved_tags and "
                                 "student_publication_allowed false")
         if "question_payload_sha256" in tags:
