@@ -30,7 +30,7 @@ from pathlib import Path
 from kimport.keys import QuestionRecord
 from kimport.evidence import needs_visual
 
-CHOICE = re.compile(r'^\s*([A-H])\s*[).:]\s*(.+?)\s*$')
+CHOICE = re.compile(r'^\s*([A-H])\s*(?:[):]|\.(?![A-Z]\.))\s*(.+?)\s*$')  # "A.J. Noss" (initials) is not a choice
 IMAGE = re.compile(r'(?i)(<svg|<img|!\[|\b(?:figure|graph|diagram|image|shown below|pictured|scatterplot)\b)')
 VISUAL_REASON = "essential_visual_material_unreviewed"
 GENERATED_BASIS = "two_independent_question_only_reviews_without_original_key"

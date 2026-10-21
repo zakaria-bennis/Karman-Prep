@@ -137,6 +137,11 @@ class WrappedChoices(unittest.TestCase):
             with self.subTest(d=d_lines):
                 self.assertIsNone(parse_text(STEM + "\nA) alpha\nB) beta\nC) gamma\n" + d_lines))
 
+    def test_initials_in_a_table_row_are_not_a_choice(self):
+        p = parse_text("Study | Place\nA.J. Noss et al. | Bolivia\n" + mc(STEM))
+        self.assertEqual((p["body"].splitlines()[1], len(p["choices"])), ("A.J. Noss et al. | Bolivia", 4))
+        self.assertEqual(parse_text(STEM + "\nA.alpha\nB.beta")["choices"], [("A", "alpha"), ("B", "beta")])
+
     def test_out_of_order_or_repeated_letters_stay_unread(self):
         self.assertIsNone(parse_text(STEM + "\nA) alpha\nC) gamma\nmore words\nB) beta"))
         self.assertIsNone(parse_text(STEM + "\nA) alpha\nwrapped\nA) again\nB) beta"))
