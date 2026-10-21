@@ -55,6 +55,7 @@ import {
 import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { comprehensionValue } from "./comprehension";
+import { exactConstant } from "./exact";
 import { lineConstantSide } from "./line-value";
 import { piecewiseValue } from "./piecewise";
 import { exponentRational } from "./real-pow";
@@ -143,6 +144,8 @@ function constant(v: Value): Compiled {
 }
 
 function compileNode(node: Node, ctx: Context): Compiled {
+  const exact = exactConstant(node); // MATHS-CORE-1: `0.1+0.2-0.3` is 0 (exact.ts)
+  if (exact !== null) return constant(Object.freeze(numberValue(exact)));
   const { angleMode, complex } = ctx.scope.settings;
   switch (node.kind) {
     case "num":

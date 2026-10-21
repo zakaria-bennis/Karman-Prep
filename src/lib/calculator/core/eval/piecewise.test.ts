@@ -72,7 +72,9 @@ describe("PR-31 piecewiseValue", () => {
 
 describe("PR-31 PR-32 evaluation", () => {
   it("NM-41 `=` compares the full doubles; ±∞ compares and undefined holds no condition", () => {
-    expect(evaluateLatex("\\{0.1+0.2=0.3:1,0\\}")).toEqual(n(0));
+    // literals fold exactly, so 0.1+0.2 is 0.3 (Desmos, 2026-10-20); computed doubles compare whole
+    expect(evaluateLatex("\\{0.1+0.2=0.3:1,0\\}")).toEqual(n(1));
+    expect(evaluateLatex("\\{\\sqrt{2}^{2}=2:1,0\\}")).toEqual(n(0));
     // Desmos, captured 2026-10-20: 1/0 is +∞, which is greater than 0
     expect(evaluateLatex("\\{\\frac{1}{0}>0:1,0\\}")).toEqual(n(1));
     expect(evaluateLatex("\\{\\frac{0}{0}>0:1,0\\}")).toEqual(n(0));

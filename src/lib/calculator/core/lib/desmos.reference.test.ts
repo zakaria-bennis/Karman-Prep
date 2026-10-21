@@ -503,7 +503,6 @@ const LIST_OPERATION_GAPS: readonly RegExp[] = [
   /\\frac\{d\}/,
   /\\operatorname\{(rgb|tone|shuffle|frequency)\}/,
   /\.\\operatorname|\\to/,
-  /0\.1\+0\.2/,
 ];
 const LIST_OPERATION_GRAPH_GAPS: ReadonlySet<string> = new Set(["\\operatorname{shuffle}(E)"]);
 const listOperationGap = (key: string) =>
@@ -518,11 +517,11 @@ function shownError(rows: readonly string[], latex: string): string | undefined 
   return errorMessage(rows, latex) ?? (carried === null ? undefined : rowErrorMessage(carried, []));
 }
 
-it("FN-30 FN-38 all 136 catalogue list operation values are checked, 123 matched", () =>
+it("FN-30 FN-38 all 136 catalogue list operation values are checked, 124 matched", () =>
   expect([
     LIST_OPERATION_VALUES.length,
     LIST_OPERATION_VALUES.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([136, 123]));
+  ]).toEqual([136, 124]));
 
 for (const [key, expected] of LIST_OPERATION_VALUES) {
   const check = () => {

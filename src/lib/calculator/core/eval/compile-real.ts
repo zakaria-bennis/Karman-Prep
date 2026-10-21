@@ -16,6 +16,7 @@ import { circular, type CircularName } from "../lib/trig";
 import type { Compiled, CompileScope } from "./compile";
 import { holdsDistribution } from "./distributions";
 import { linkHolds, toPlotNumber } from "./ops";
+import { exactConstant } from "./exact";
 import { exponentRational, realPow, realRoot } from "./real-pow";
 import {
   RECURSION_BUDGET,
@@ -135,6 +136,8 @@ export function compileReal(
 }
 
 function compile(node: Node, ctx: Context): Fn {
+  const exact = exactConstant(node); // MATHS-CORE-1, as compileExpression folds it (exact.ts)
+  if (exact !== null) return () => exact;
   // NM-32: arithmetic and |…| on points give points or numbers the plain-number rules cannot
   // carry, so `y=\left|A-(x,0)\right|` and `y=(x,1)\cdot(1,1)` go to the general evaluator.
   if (POINT_OPERATIONS.has(node.kind) && sourceChildren(node).some((n) => mayBePoint(n, ctx))) {

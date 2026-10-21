@@ -85,10 +85,11 @@ it("RC-9 evaluateRows follows dependency order and skips a row whose deadline ex
   expect([late.has("r1"), late.get("r0"), late.get("r2")]).toEqual([false, UNDEFINED, n(1)]);
 });
 it("NM-9 later rows and conditions use the full double, not the displayed value", () =>
-  expect([evaluateLatex("a-0.3", { rows: ["a=0.1+0.2"] }), value("0.1+0.2>0.3")]).toEqual([
-    n(5.551115123125783e-17),
-    n(1),
-  ]));
+  // constants of literals fold exactly first (MATHS-CORE-1): a is exactly 0.3, as in Desmos
+  expect([
+    evaluateLatex("a-0.3", { rows: ["a=0.1+0.2"] }),
+    evaluateLatex("a-2", { rows: ["a=\\sqrt{2}^{2}"] }),
+  ]).toEqual([n(0), n(2 ** 0.5 * 2 ** 0.5 - 2)]));
 it("NM-12 division by zero, bad logs, even roots, inverse-trig domains and poles are undefined", () => {
   for (const l of [
     "\\frac{1}{0}",
