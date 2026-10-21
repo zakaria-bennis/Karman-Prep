@@ -133,6 +133,9 @@ class WindowBoundary extends Component<
   }
 }
 
+/** The modes an open brings back as they were left. */
+const RESTORABLE_MODES: ReadonlySet<string> = new Set(["floating", "docked", "maximized"]);
+
 /** The pointer type of the press that leads to a click; a keyboard activation has none (OI-7). */
 function useOpenTriggerHandlers(toggle: (trigger?: OpenTrigger) => void) {
   const recorded = useRef<OpenTrigger | null>(null);
@@ -321,14 +324,17 @@ export function CalculatorScope({
       return;
     }
     remembered.current = trigger ?? "keyboard";
-    // L-4: the first open of a page session docks on a wide viewport; later opens restore the
-    // floating or docked mode the student last chose.
+    // L-4: the first open on a wide viewport docks; every later open, after a close, a question
+    // change or a reload, comes back in the stored mode, place and size: floating, docked or
+    // maximized (owner decision, 2026-10-21). A full-screen open writes nothing, since full screen
+    // follows the viewport (AR-26). After a window render error, an open goes back to floating or
+    // docked, so a later open always recovers (AR-53).
     const stored = calculatorWindowStore.get();
     if (stored.mode === null && !fullScreen) {
       calculatorWindowStore.set({ mode: "docked", restoreMode: "docked" });
-    } else {
-      // Only floating or docked is restored, so a later open always recovers (AR-53).
-      calculatorWindowStore.set({ mode: stored.restoreMode === "docked" ? "docked" : "floating" });
+    } else if (windowFailed || (stored.mode !== null && !RESTORABLE_MODES.has(stored.mode))) {
+      const mode = stored.restoreMode === "docked" ? "docked" : "floating";
+      calculatorWindowStore.set({ mode, restoreMode: mode });
     }
     onOpenChange(true);
   };
@@ -486,7 +492,8 @@ export function CalculatorScope({
   );
 }
 
-/** A11Y-7: names the shadow host it controls; hover and focus prefetch the module (AR-30). */
+/** A11Y-7: names the shadow host it controls; hover and focus prefetch the module (AR-30). A
+ * toggle button: aria-pressed and its pressed look say whether the calculator is open. */
 export function CalculatorTrigger(): JSX.Element | null {
   const bridge = useCalculator();
   const hostId = useContext(CalculatorHostIdContext);
@@ -497,7 +504,7 @@ export function CalculatorTrigger(): JSX.Element | null {
       type="button"
       className={styles.trigger}
       aria-label="Toggle Karman calculator"
-      aria-expanded={bridge.open}
+      aria-pressed={bridge.open}
       aria-controls={hostId}
       data-calculator-trigger=""
       onPointerEnter={bridge.prefetch}

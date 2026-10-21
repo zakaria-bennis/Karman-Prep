@@ -8,8 +8,10 @@
   color: var(--text-primary);
   font-size: 13px;
 }
-.trigger[aria-expanded="true"] {
-  outline: 2px solid var(--accent-gold);
+.trigger[aria-pressed="true"] {
+  border-color: var(--accent-gold);
+  background: color-mix(in srgb, var(--accent-gold) 18%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent-gold);
 }
 .sideToggle {
   position: fixed;

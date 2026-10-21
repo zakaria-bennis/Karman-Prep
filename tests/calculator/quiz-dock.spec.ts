@@ -105,7 +105,7 @@ test("AR-24 catalog and daily docks start below the learn header; the page conte
     }
 });
 
-test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and Previous with fresh content and without taking focus; Undock returns to the last floating place; a toolbar open restores the last mode; a reload forgets", async ({
+test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and Previous with fresh content and without taking focus; Undock returns to the last floating place; a toolbar open restores the last mode; a reload keeps the mode and place (owner decision, 2026-10-21)", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -141,10 +141,9 @@ test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and
   expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
   await page.reload();
   await trigger(page).click();
-  await expect(frame(page)).toHaveAttribute("data-mode", "docked"); // L-4: a new page session docks
-  await page.getByRole("button", { name: "Undock calculator" }).click();
+  await expect(frame(page)).toHaveAttribute("data-mode", "floating"); // the mode last chosen
   await expect(frame(page)).not.toHaveAttribute("data-entering"); // AN-10 translateY has ended
-  expect(await frame(page).boundingBox()).toMatchObject({ x: 16, y: 64 });
+  expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
 });
 
 test("AR-26 crossing 1024 px wide or 500 px tall switches between docked or floating and full screen, keeping rows, history, the focused row and the dock width", async ({

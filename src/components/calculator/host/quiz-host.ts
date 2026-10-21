@@ -6,6 +6,7 @@
 import { reportCalculatorError } from "@/components/calculator/report-error";
 import type { TransferResult, TransferTrigger } from "@/lib/calculator-transfer/payload";
 import { KarmanCalculator, lastFocusedRow } from "../KarmanCalculator";
+import { preferencesOf, type CalculatorPreferences } from "../calculator-window-store";
 import { CALCULATOR_BUILD } from "../styles/generated";
 import { applyTransfer as applyTransferPayload } from "../transfer/apply";
 import { exposeEngineForTests } from "../ui/hooks/dev-hooks";
@@ -18,6 +19,10 @@ export interface QuizMountOptions {
   chromeSlot: HTMLElement;
   reducedMotion: boolean; // !useQuizAnimations() (AN-13)
   announceReset: boolean; // OI-3: true only when the window stayed open across the question change
+  // The student's settings from the previous question's calculator (owner decision, 2026-10-21);
+  // absent or null on the page's first calculator, which keeps the defaults.
+  preferences?: CalculatorPreferences | null;
+  onPreferences?(preferences: CalculatorPreferences): void; // after each settings change and on destroy
 }
 
 export interface QuizCalculatorHandle {
@@ -39,6 +44,16 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
     },
     { chromeSlot: options.chromeSlot, announceResetOnMount: options.announceReset }
   );
+  // Everything else starts blank (AR-58); the carried settings are applied before the first frame.
+  if (options.preferences) {
+    try {
+      calculator.updateSettings(options.preferences);
+    } catch (error) {
+      reportCalculatorError(error, CALCULATOR_BUILD); // a malformed carry keeps the defaults
+    }
+  }
+  const report = () => options.onPreferences?.(preferencesOf(calculator.settings));
+  const unobserve = calculator.observe("settings", report);
   const unexpose = exposeEngineForTests(calculator.engine);
   let destroyed = false;
 
@@ -70,6 +85,14 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
     destroy() {
       if (destroyed) return;
       destroyed = true;
+      // The settings observer runs once a frame, so a change in the frame of a question change is
+      // reported here, before the next question's calculator reads it.
+      try {
+        report();
+      } catch (error) {
+        reportCalculatorError(error, CALCULATOR_BUILD);
+      }
+      unobserve();
       unexpose();
       calculator.destroy();
     },

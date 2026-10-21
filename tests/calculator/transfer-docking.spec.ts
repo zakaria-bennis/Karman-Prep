@@ -36,6 +36,8 @@ test("AR-21, TR-64, L-7 a transfer docks at 1024 px and wider over 500 px tall a
     [1024, 500, "fullscreen"],
     [1024, 501, "docked"],
   ] as const) {
+    // Each size is a first visit: the dock width the previous size left is kept in localStorage.
+    if (page.url().startsWith("http")) await page.evaluate(() => localStorage.clear());
     await open(page, { width, height });
     await transferByMouse(page, "y>2x+1");
     await expect(frame(page), `${width}x${height}`).toHaveAttribute("data-mode", mode);
