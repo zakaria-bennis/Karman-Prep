@@ -23,6 +23,7 @@ import FigureFrame from "../FigureFrame";
 import { TableChoiceOption } from "./TableChoiceOption";
 import PassageAnnotations from "./PassageAnnotations";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
+import { figureLeadsText } from "@/lib/figures/figure-order";
 
 export function ActiveQuizScreen({
   node,
@@ -475,11 +476,13 @@ export function ActiveQuizScreen({
 
         // ── Layout selection ──────────────────────────────────────
         // Anything with a passage OR a figure uses the split view.
-        // Left column stacks [figure?, passage?] in that order; right
-        // column has question/choices (default) or explanations.
+        // Left column stacks the figure and passage: Reading and Writing
+        // puts the figure first (founder, 2026-10-21), Math keeps passage
+        // first. Right column has question/choices (default) or explanations.
         // In explanation mode the question slides under the left
         // column, mirroring College Board Bluebook behavior.
         if (hasPassage || hasFigure) {
+          const figureFirst = figureLeadsText(q.subject);
           return (
             <div
               data-question-content
@@ -498,6 +501,7 @@ export function ActiveQuizScreen({
                     isNativeTable && "min-w-0"
                   )}
                 >
+                  {figureFirst && figureCard}
                   {hasPassage &&
                     (readOnly ? (
                       passageBlock
@@ -515,7 +519,7 @@ export function ActiveQuizScreen({
                         {passageBlock}
                       </PassageAnnotations>
                     ))}
-                  {figureCard}
+                  {!figureFirst && figureCard}
                   {inExplanationMode && (
                     <div className="mt-10 border-t border-bronze/50 pt-6">{questionPanel}</div>
                   )}

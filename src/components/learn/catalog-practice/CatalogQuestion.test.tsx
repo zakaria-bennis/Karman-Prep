@@ -81,7 +81,7 @@ describe("canonical immutable question rendering", () => {
   });
 });
 
-it("keeps the source passage before the figure, prompt and answer choices", () => {
+it("shows a Reading and Writing figure before the source passage, prompt and answer choices", () => {
   const q = {
     ...base,
     subject: "reading" as const,
@@ -95,8 +95,8 @@ it("keeps the source passage before the figure, prompt and answer choices", () =
   const passage = screen.getByText(q.passage);
   const table = screen.getByRole("table");
   const prompt = screen.getByText(q.question_text);
-  expect(passage.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  expect(table.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(table.compareDocumentPosition(passage) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(passage.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(
     prompt.compareDocumentPosition(screen.getAllByRole("radio")[0]) &
       Node.DOCUMENT_POSITION_FOLLOWING
