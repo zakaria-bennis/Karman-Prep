@@ -196,6 +196,48 @@ it("POI-TRACE-18 the export button closes the label and appends the point as a n
   expect(t.engine.getSnapshot().selectedRowId).toBe("1");
 });
 
+it("a clean rational label gets the decimal/fraction toggle; on, it shows and exports fractions", async () => {
+  await setup();
+  const HALF: PoiPoint = { x: -0.5000000002, y: -1.75, kinds: ["intersection"], withRowId: "2" };
+  t.emit({
+    v: 1,
+    type: "poi",
+    generation: t.latestGeneration(),
+    rowId: "1",
+    points: [...POINTS, HALF],
+  });
+  await flush();
+  await tap(px(0), py(-2)); // integers only: no toggle
+  await tap(px(ROOT2), py(0)); // irrational: no toggle
+  expect(document.querySelector(".kc-poi-fraction")).toBeNull();
+  await tap(px(-0.5), py(-1.75));
+  expect(labels()).toEqual(["(0, −2)", "(1.41421, 0)", "(−0.5, −1.75)"]);
+  const toggle = screen.getByRole("button", {
+    name: "Displaying as decimal. Press Enter to display as Fraction",
+  });
+  expect(toggle.closest("[data-poi-label]")?.getAttribute("aria-label")).toBe("(−0.5, −1.75)");
+  await act(async () => {
+    fireEvent.pointerDown(toggle, { pointerId: 1, button: 0, pointerType: "mouse" });
+    fireEvent.click(toggle);
+  });
+  await flush();
+  expect(labels()).toEqual(["(0, −2)", "(1.41421, 0)", "(−1/2, −7/4)"]); // the others stay open
+  expect(toggle.getAttribute("data-on")).toBe("true");
+  expect(toggle.getAttribute("aria-label")).toBe(
+    "Displaying as fraction. Press Enter to display as Decimal"
+  );
+  expect(toggle.closest("[data-poi-label]")?.querySelectorAll(".mq-fraction")).toHaveLength(2);
+  const exportButtons = screen.getAllByRole("button", { name: "Export point to expression list" });
+  await act(async () => fireEvent.click(exportButtons[2]));
+  await flush();
+  expect(t.engine.getSnapshot().rows.at(-1)?.latex).toBe(
+    "\\left(-\\frac{1}{2},\\ -\\frac{7}{4}\\right)"
+  );
+  // Reopened, the label starts as decimals again.
+  await tap(px(-0.5), py(-1.75));
+  expect(labels()).toContain("(−0.5, −1.75)");
+});
+
 it("POI-TRACE-17 an open label is a note named by its coordinates, its math hidden", async () => {
   await setup();
   await tap(px(0), py(-2));

@@ -1,13 +1,19 @@
 // Coordinate labels over the graph (POI-TRACE-12 to POI-TRACE-18, POI-TRACE-24): white boxes placed
 // around their dots by placeLabels (each keeps its side while it can), the coordinates typeset as
 // math, and on a point of
-// interest's label the "Export point to expression list" button. Each label is a note named by its
-// coordinates. The overlay takes no pointer input except on the labels themselves, so presses
+// interest's label the "Export point to expression list" button. A label with a clean rational
+// coordinate also gets the rows' decimal/fraction toggle (owner decision, 2026-10-21); switched on,
+// those coordinates show as fractions and export as shown. Each label is a note named by the
+// coordinates it shows. The overlay takes no pointer input except on the labels themselves, so presses
 // elsewhere reach the panel underneath.
 
-import { useLayoutEffect, useReducer, useRef } from "react";
+import { useLayoutEffect, useReducer, useRef, useState } from "react";
+import { fractionLabel, hasLabelFraction } from "@/lib/calculator/poi/format";
+import { FractionGlyph } from "../../icons/list";
+import { FRACTION_LABELS } from "../list/fraction-toggle";
 import { labelBoxSize, placeLabels, type InkSampler, type Orientation } from "./label-placement";
 import { PoiMath } from "./poi-math";
+import { samePoint, type LabelPoint } from "./poi-labels";
 import type { OpenLabel } from "./use-poi-labels";
 import type { TraceState } from "./use-trace";
 
@@ -58,6 +64,8 @@ export function PoiOverlay({
   const measured = useRef(new Map<string, { width: number; height: number }>());
   const overlay = useRef<HTMLDivElement>(null);
   const [, remeasured] = useReducer((n: number) => n + 1, 0);
+  // The labels switched to fractions, by point; a label that closes forgets it.
+  const [fractions, setFractions] = useState<readonly LabelPoint[]>([]);
   useLayoutEffect(() => {
     let changed = false;
     for (const el of overlay.current?.querySelectorAll<HTMLElement>("[data-label-key]") ?? []) {
@@ -82,24 +90,32 @@ export function PoiOverlay({
   const relayout = trace !== null || traced.current;
   traced.current = trace !== null;
   const all: OpenLabel[] = trace === null ? [...labels] : [...labels, trace];
+  const isTrace = (i: number) => trace !== null && i === labels.length;
+  const stale = fractions.filter((p) => !labels.some((l) => samePoint(l.point, p)));
+  if (stale.length > 0) setFractions(fractions.filter((p) => !stale.includes(p)));
   if (all.length === 0) {
     prior.current.clear();
     measured.current.clear();
     return null;
   }
-  const withButton = (i: number) =>
-    onExport !== undefined && !(trace !== null && i === labels.length) && !all[i].plotted;
+  const withExport = (i: number) => onExport !== undefined && !isTrace(i) && !all[i].plotted;
+  const withFraction = all.map((l, i) => !isTrace(i) && hasLabelFraction(l.label, l.point));
+  const asFraction = all.map(
+    (l, i) => withFraction[i] && fractions.some((p) => samePoint(p, l.point))
+  );
+  const shown = all.map((l, i) => (asFraction[i] ? fractionLabel(l.label, l.point) : l.label));
   const keyOf = (label: OpenLabel, i: number) =>
-    trace !== null && i === labels.length
-      ? "trace"
-      : `${label.label.text}@${Math.round(label.x)},${Math.round(label.y)}`;
+    isTrace(i) ? "trace" : `${label.label.text}@${Math.round(label.x)},${Math.round(label.y)}`;
   const keys = all.map(keyOf);
+  // A label is measured again when it switches form; it keeps its spot while it can.
+  const sizeKeys = keys.map((k, i) => (asFraction[i] ? `${k}/fraction` : k));
   const placed = placeLabels(
     all.map((l, i) => ({
       x: l.x,
       y: l.y,
       prior: prior.current.get(keys[i]),
-      ...(measured.current.get(keys[i]) ?? labelBoxSize(l.label, withButton(i))),
+      ...(measured.current.get(sizeKeys[i]) ??
+        labelBoxSize(shown[i], { export: withExport(i), fraction: withFraction[i] })),
     })),
     size,
     readInk?.() ?? undefined,
@@ -107,35 +123,56 @@ export function PoiOverlay({
   );
   // A spot counts as the label's own once it was chosen for the label's measured size.
   prior.current = new Map(
-    keys.flatMap((k, i) => (measured.current.has(k) ? [[k, placed[i].orientation] as const] : []))
+    keys.flatMap((k, i) =>
+      measured.current.has(sizeKeys[i]) || prior.current.has(k)
+        ? [[k, placed[i].orientation] as const]
+        : []
+    )
   );
+  const toggle = (point: LabelPoint) =>
+    setFractions((now) =>
+      now.some((p) => samePoint(p, point))
+        ? now.filter((p) => !samePoint(p, point))
+        : [...now, point]
+    );
   return (
     <div ref={overlay} className="kc-poi-overlay" data-poi-overlay="">
       {all.map((label, i) => {
-        const isTrace = trace !== null && i === labels.length;
+        const traced = isTrace(i);
         return (
           <div
             key={keys[i]}
-            data-label-key={keys[i]}
+            data-label-key={sizeKeys[i]}
             className="kc-poi-label"
             role="note"
-            aria-label={label.label.text}
-            data-poi-label={isTrace ? undefined : ""}
-            data-trace-label={isTrace ? "" : undefined}
+            aria-label={shown[i].text}
+            data-poi-label={traced ? undefined : ""}
+            data-trace-label={traced ? "" : undefined}
             data-opened={label.opened ? "" : undefined}
             data-plotted={label.plotted ? "" : undefined}
-            data-hole={isTrace && trace.hole ? "" : undefined}
+            data-hole={traced && trace?.hole ? "" : undefined}
             data-orientation={placed[i].orientation}
             style={{ left: placed[i].left, top: placed[i].top }}
           >
-            <PoiMath label={label.label} />
-            {withButton(i) && (
+            <PoiMath label={shown[i]} />
+            {withFraction[i] && (
+              <button
+                type="button"
+                className="kc-poi-fraction"
+                data-on={asFraction[i] ? "true" : undefined}
+                aria-label={FRACTION_LABELS[asFraction[i] ? "fraction" : "decimal"]}
+                onClick={() => toggle(label.point)}
+              >
+                <FractionGlyph />
+              </button>
+            )}
+            {withExport(i) && (
               <button
                 type="button"
                 className="kc-poi-export"
                 aria-label={EXPORT_LABEL}
                 title={EXPORT_LABEL}
-                onClick={() => onExport?.(label)}
+                onClick={() => onExport?.({ ...label, label: shown[i] })}
               >
                 <ExportGlyph />
               </button>

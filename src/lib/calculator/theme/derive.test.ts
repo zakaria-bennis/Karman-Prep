@@ -55,11 +55,11 @@ it("TH-4 Clean paper's Enter fill derives to #0f5b96", () => {
   expect(deriveRoles(t("paper")).accent).toBe("#0f5b96");
 });
 
-it("F-A1 light skins use Desmos's six colours and dark skins their inverses, all with a 40% fill", () => {
+it("F-A1 light skins use Desmos's six colours and dark skins their inverses (black a light grey), all with a 40% fill", () => {
   for (const theme of SITE_THEMES) {
     const palette = buildSkinPalette(theme);
     const expected = theme.dark
-      ? ["#38bbbf", "#d28f4c", "#cb7abc", "#9fbd59", "#0581e6", "#ffffff"]
+      ? ["#38bbbf", "#d28f4c", "#cb7abc", "#9fbd59", "#0581e6", "#c4c4c4"]
       : ["#c74440", "#2d70b3", "#348543", "#6042a6", "#fa7e19", "#000000"];
     expect(
       CURVE_SLOTS.map((k) => palette.curves[k]),

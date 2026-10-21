@@ -100,7 +100,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         c3: "#cb7abc",
         c4: "#9fbd59",
         c5: "#0581e6",
-        c6: "#ffffff",
+        c6: "#c4c4c4",
       },
       fillAlpha: {
         c1: 0.4,
@@ -155,7 +155,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         c3: "#cb7abc",
         c4: "#9fbd59",
         c5: "#0581e6",
-        c6: "#ffffff",
+        c6: "#c4c4c4",
       },
       fillAlpha: {
         c1: 0.4,
@@ -210,7 +210,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         c3: "#cb7abc",
         c4: "#9fbd59",
         c5: "#0581e6",
-        c6: "#ffffff",
+        c6: "#c4c4c4",
       },
       fillAlpha: {
         c1: 0.4,
@@ -705,7 +705,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
         c3: "#cb7abc",
         c4: "#9fbd59",
         c5: "#0581e6",
-        c6: "#ffffff",
+        c6: "#c4c4c4",
       },
       fillAlpha: {
         c1: 0.4,

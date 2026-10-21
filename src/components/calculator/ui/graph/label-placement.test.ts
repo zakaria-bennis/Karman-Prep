@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { formatPoiLabel } from "@/lib/calculator/poi/format";
+import { formatPoiLabel, fractionLabel } from "@/lib/calculator/poi/format";
 import type { ViewSpec } from "@/lib/calculator/plot/viewport";
 import { labelBoxSize, placeLabels, type Box } from "./label-placement";
 
@@ -9,7 +9,8 @@ const VIEW: ViewSpec = {
   size: SIZE,
   dpr: 1,
 };
-const box = (x: number, y: number) => labelBoxSize(formatPoiLabel({ x, y }, VIEW), true);
+const EXPORT_ONLY = { export: true, fraction: false };
+const box = (x: number, y: number) => labelBoxSize(formatPoiLabel({ x, y }, VIEW), EXPORT_ONLY);
 
 it("GP-37 a label box fits its math and the export button; a fraction makes it taller", () => {
   const two = box(2, 0);
@@ -17,10 +18,21 @@ it("GP-37 a label box fits its math and the export button; a fraction makes it t
   expect(two.width).toBeLessThan(95);
   expect(two.height).toBeCloseTo(42.27, 2);
   expect(box(Math.PI / 2, 1).height).toBeGreaterThan(55);
-  expect(labelBoxSize(formatPoiLabel({ x: 2, y: 0 }, VIEW), false).width).toBeCloseTo(
-    two.width - 21.6,
-    6
-  );
+  expect(
+    labelBoxSize(formatPoiLabel({ x: 2, y: 0 }, VIEW), { export: false, fraction: false }).width
+  ).toBeCloseTo(two.width - 21.6, 6);
+});
+
+it("the decimal/fraction toggle widens the box; fractions shown make it taller", () => {
+  const p = { x: 0.5, y: -1 / 3 };
+  const decimal = formatPoiLabel(p, VIEW);
+  const off = labelBoxSize(decimal, EXPORT_ONLY);
+  const withToggle = labelBoxSize(decimal, { export: true, fraction: true });
+  expect(withToggle.width).toBeCloseTo(off.width + 28, 6);
+  expect(withToggle.height).toBeCloseTo(42.27, 2);
+  const on = labelBoxSize(fractionLabel(decimal, p), { export: true, fraction: true });
+  expect(on.height).toBeGreaterThan(55);
+  expect(on.width).toBeLessThan(withToggle.width); // 1/2 is narrower than 0.5, −1/3 than −0.33333
 });
 
 it("GP-38 on clear paper a label sits right of its dot, 10 px off, vertically centred", () => {
