@@ -3,7 +3,7 @@
 // hover rules; the dots and labels a frame draws; and exporting a point as a new row. Escape leaves
 // open labels alone, as Desmos's does: the next press closes them (owner decision, 2026-10-21).
 
-import { startTransition, useCallback, useContext, useEffect, useReducer, useRef } from "react";
+import { useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
 import { worldToPx, type ViewSpec } from "@/lib/calculator/plot/viewport";
 import { formatPoiLabel, type FormattedLabel } from "@/lib/calculator/poi/format";
@@ -14,7 +14,14 @@ import type { Pointer } from "../controller/media";
 import { AnnouncerContext } from "../a11y/announcer";
 import { poiAnnouncement } from "./keyboard-trace";
 import { hitPoi } from "./hit-test";
-import { NO_LABELS, reduceLabels, samePoint, type LabelPoint, type LabelState } from "./poi-labels";
+import {
+  liveLabels,
+  NO_LABELS,
+  reduceLabels,
+  samePoint,
+  type LabelPoint,
+  type LabelState,
+} from "./poi-labels";
 
 export interface OpenLabel {
   x: number; // CSS px of the dot
@@ -65,29 +72,16 @@ export function shownLabels(s: EngineSnapshot, labels: LabelState, view: ViewSpe
 }
 
 export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine) {
-  const [labels, dispatch] = useReducer(reduceLabels, NO_LABELS);
+  const [state, dispatch] = useReducer(reduceLabels, NO_LABELS);
   const announcer = useContext(AnnouncerContext);
   const stepIndex = useRef(-1);
-
-  // The three syncs below run after every snapshot. They are transitions so that a burst of
-  // snapshots (key spam) does not chain urgent effect updates into React's update-depth limit.
-  useEffect(
-    () => startTransition(() => dispatch({ type: "selection", rowId: snapshot.selectedRowId })),
-    [snapshot.selectedRowId]
-  );
-  const revision = useRef(snapshot.revision);
-  useEffect(() => {
-    if (revision.current === snapshot.revision) return;
-    revision.current = snapshot.revision;
-    startTransition(() => dispatch({ type: "close" })); // POI-TRACE-15: a row edit or a view change
-  }, [snapshot.revision]);
+  // POI-TRACE-15: labels belong to the selection and revision they opened at, read here at render
+  // rather than synced by effects, so a burst of snapshots (key spam) schedules no updates.
   const points = selectedPoints(snapshot);
-  useEffect(() => {
-    if (snapshot.selectedRowId !== null) {
-      const rowId = snapshot.selectedRowId;
-      startTransition(() => dispatch({ type: "poi-updated", rowId, points }));
-    }
-  }, [points, snapshot.selectedRowId]);
+  const labels = useMemo(
+    () => liveLabels(state, snapshot.selectedRowId, snapshot.revision, points),
+    [state, snapshot.selectedRowId, snapshot.revision, points]
+  );
   const anyOpen = labels.open.length > 0;
   // POI-TRACE-14: any press in the page that is not on a dot, a curve or a label closes them.
   useEffect(() => {
@@ -110,7 +104,7 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
       const own = selectedPoints(s);
       const index = hitPoi(own, view, at, pointer);
       if (index === null || s.selectedRowId === null) return false;
-      dispatch({ type: "toggle", rowId: s.selectedRowId, point: own[index] });
+      dispatch({ type: "toggle", rowId: s.selectedRowId, revision: s.revision, point: own[index] });
       return true;
     },
     [engine]
@@ -119,13 +113,16 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
   /** POI-TRACE-12: the mouse at `at` (null when it leaves or a press starts). */
   const hover = useCallback(
     (at: readonly [number, number] | null, view: ViewSpec | null): void => {
+      const s = engine.getSnapshot();
+      if (s.selectedRowId === null) return;
+      const ctx = { rowId: s.selectedRowId, revision: s.revision };
       if (at === null || view === null) {
-        dispatch({ type: "hover", point: null });
+        dispatch({ type: "hover", ...ctx, point: null });
         return;
       }
-      const own = selectedPoints(engine.getSnapshot());
+      const own = selectedPoints(s);
       const index = hitPoi(own, view, at, "fine");
-      dispatch({ type: "hover", point: index === null ? null : own[index] });
+      dispatch({ type: "hover", ...ctx, point: index === null ? null : own[index] });
     },
     [engine]
   );
@@ -136,7 +133,9 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
   const exportPoint = useCallback(
     (label: FormattedLabel, point: LabelPoint): void => {
       const s = engine.getSnapshot();
-      if (s.selectedRowId !== null) dispatch({ type: "toggle", rowId: s.selectedRowId, point });
+      if (s.selectedRowId !== null) {
+        dispatch({ type: "toggle", rowId: s.selectedRowId, revision: s.revision, point });
+      }
       engine.editRows((rows, ctx) => [
         ...rows,
         { id: ctx.nextId(), latex: label.latex, color: nextSlot(rows.length), hidden: false },
@@ -154,7 +153,7 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
       const next = stepIndex.current + direction;
       stepIndex.current = next < 0 ? own.length - 1 : next >= own.length ? 0 : next;
       const point = own[stepIndex.current];
-      dispatch({ type: "show", rowId: s.selectedRowId, point });
+      dispatch({ type: "show", rowId: s.selectedRowId, revision: s.revision, point });
       const numbers = new Map(s.rows.map((r, i) => [r.id, i + 1]));
       announcer?.announce(poiAnnouncement(point, numbers, view));
       return true;

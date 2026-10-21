@@ -44,7 +44,7 @@ function layers(page: Page): Promise<Layers> {
     return {
       settings: flag("Graph settings", "aria-expanded"),
       functions: flag("Functions", "aria-expanded"),
-      abc: flag("ABC", "aria-pressed"),
+      abc: flag("Toggle Numbers", "aria-pressed"), // the 1 2 3 key, named as in Desmos
       keypad: globalThis.__calculatorHarness!.engine.getSnapshot().settings.keypad,
       closed: document.querySelector("#frame")!.hasAttribute("data-closed"),
     };
@@ -346,7 +346,7 @@ test("K-12 opening the keypad, ABC page or Functions panel keeps the focused row
   for (const key of ["End", "ArrowLeft", "ArrowLeft"]) await page.keyboard.press(key);
   if (!isMobile) await tap(isMobile, page.getByRole("button", { name: "Show keypad" }));
   await expect.poll(() => keypadOpen(page)).toBe(true);
-  for (const name of ["ABC", "ABC", "Functions"]) {
+  for (const name of ["ABC", "Toggle Numbers", "Functions"]) {
     await tap(isMobile, page.getByRole("button", { name, exact: true }));
     expect(await focusedRow(page)).toBe("2");
   }
