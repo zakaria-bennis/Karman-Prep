@@ -168,6 +168,43 @@ it("the preference keys leave out mode, reduced motion and the collapsed list", 
   expect(PREFERENCE_KEYS).not.toContain("expressionsCollapsed");
   const settings = { ...DEFAULT_SETTINGS, xAxis: { show: true, label: "t", step: null } };
   const copy = preferencesOf(settings);
-  expect(copy.xAxis).toEqual(settings.xAxis);
   expect(copy.xAxis).not.toBe(settings.xAxis);
+});
+
+it("the graph-view settings reset with each question; the student's toggles carry (owner, 2026-10-21)", () => {
+  // the view settings never carry
+  for (const key of ["lockViewport", "piAxisLabels"] as const)
+    expect(PREFERENCE_KEYS).not.toContain(key);
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    lockViewport: true,
+    xAxis: { show: false, label: "time", step: 2 },
+    yAxis: { show: true, label: "h", step: 0.5 },
+    angleMode: "degrees" as const,
+    complex: true,
+    showGrid: false,
+    axisNumbers: false,
+    arrows: true,
+    minorGridlines: false,
+    displaySize: "large" as const,
+    reverseContrast: true,
+    keypad: true,
+    brailleMode: "nemeth" as const,
+  };
+  const carried = preferencesOf(settings);
+  expect(carried).not.toHaveProperty("lockViewport");
+  expect(carried.xAxis).toEqual({ show: false, label: "", step: null });
+  expect(carried.yAxis).toEqual(DEFAULT_SETTINGS.yAxis);
+  expect(carried).toMatchObject({
+    angleMode: "degrees",
+    complex: true,
+    showGrid: false,
+    axisNumbers: false,
+    arrows: true,
+    minorGridlines: false,
+    displaySize: "large",
+    reverseContrast: true,
+    keypad: true,
+    brailleMode: "nemeth",
+  });
 });

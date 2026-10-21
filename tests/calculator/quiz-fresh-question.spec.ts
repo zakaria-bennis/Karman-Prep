@@ -1,7 +1,8 @@
 // Owner decision, 2026-10-21: each new question gets a clean calculator (no rows, sliders or
 // tables, the default view, closed labels, an empty undo history, the keypad on its main page),
-// while the student's settings, the window's place and size and the open state carry over. Going
-// back to a question also starts clean. Runs on desktop and phone projects.
+// while the student's settings, the window's place and size and the open state carry over; the
+// settings that describe a question's graph view (locked viewport, axis labels and steps) reset.
+// Going back to a question also starts clean. Runs on desktop and phone projects.
 
 import { expect, test, type Page } from "@playwright/test";
 import { frame, openCalculator, phoneSized, press, row, rowItem, side } from "./quiz-helpers";
@@ -21,6 +22,10 @@ const snapshot = (page: Page) =>
       viewport: [s.viewport.left, s.viewport.right],
       angleMode: s.settings.angleMode,
       keypad: s.settings.keypad,
+      showGrid: s.settings.showGrid,
+      arrows: s.settings.arrows,
+      lockViewport: s.settings.lockViewport,
+      axes: [s.settings.xAxis, s.settings.yAxis],
     };
   });
 
@@ -79,6 +84,16 @@ async function dirty(page: Page, isMobile: boolean) {
   );
   await keypad(page).getByRole("button", { name: "ABC", exact: true }).click();
   await expect(keypad(page).getByRole("button", { name: "Toggle Numbers" })).toBeVisible();
+  // Graph settings: two toggles that carry and the view settings that do not.
+  await page.evaluate(() =>
+    globalThis.__calculatorHarness!.engine.updateSettings({
+      showGrid: false,
+      arrows: true,
+      lockViewport: true,
+      xAxis: { show: false, label: "time", step: 2 },
+      yAxis: { show: true, label: "h", step: 0.5 },
+    })
+  );
 }
 
 /**
@@ -103,6 +118,13 @@ async function expectClean(page: Page) {
       viewport: [-10, 10],
       angleMode: "degrees", // a setting: kept
       keypad: true, // a setting: kept, and back on its main page
+      showGrid: false, // kept
+      arrows: true, // kept
+      lockViewport: false, // the view's: reset
+      axes: [
+        { show: false, label: "", step: null }, // shown or hidden kept; label and step reset
+        { show: true, label: "", step: null },
+      ],
     });
   await expect(host(page).getByRole("slider")).toHaveCount(0);
   await expect(labels(page)).toHaveCount(0);

@@ -3,7 +3,7 @@
 // scope and the page: they are kept in localStorage, so after Next, Previous, a close or a reload
 // the window reopens where it was while its content is fresh. The student's calculator settings
 // (angle mode and the rest, PREFERENCE_KEYS) carry from one question's calculator to the next for
-// the page session. Every storage access is in try/catch, so the store also works without
+// the page session; the settings that describe one question's graph view do not. Every storage access is in try/catch, so the store also works without
 // storage. Eager module: no browser global at module scope (AR-2); geometry helpers take the
 // viewport as an argument.
 
@@ -27,9 +27,13 @@ export interface WindowStoreState {
 }
 
 /**
- * The settings a student keeps from question to question. The rest of a calculator's settings
- * reset with its content: `mode` (graphing only), `reducedMotion` (set by the host) and
- * `expressionsCollapsed` (a collapsed list would hide the fresh question's empty row).
+ * The settings a student keeps from question to question (owner decisions, 2026-10-21): angle and
+ * complex mode, the grid, axis-number, arrow and minor-gridline toggles, the axes shown or
+ * hidden, display size, contrast, the keypad shown or hidden, trace and braille. The rest reset
+ * with the calculator's content: the settings that describe one question's graph view (the
+ * locked viewport, the axis labels and step sizes, pi axis labels; the axis bounds are the view
+ * itself), `mode` (graphing only), `reducedMotion` (set by the host) and `expressionsCollapsed`
+ * (a collapsed list would hide the fresh question's empty row).
  */
 export const PREFERENCE_KEYS = [
   "angleMode",
@@ -40,9 +44,7 @@ export const PREFERENCE_KEYS = [
   "arrows",
   "axisNumbers",
   "xAxis",
-  "yAxis",
-  "lockViewport",
-  "piAxisLabels",
+  "yAxis", // only `show` carries: the label and step reset (preferencesOf)
   "displaySize",
   "reverseContrast",
   "keypad",
@@ -54,13 +56,15 @@ export const PREFERENCE_KEYS = [
 
 export type CalculatorPreferences = Pick<CalculatorSettings, (typeof PREFERENCE_KEYS)[number]>;
 
-/** The preference subset of `settings`, copied so later changes to `settings` never leak in. */
+/**
+ * The preference subset of `settings`, copied so later changes to `settings` never leak in. An
+ * axis keeps whether it shows; its label and step go back to the S-9 defaults (none, automatic).
+ */
 export function preferencesOf(settings: CalculatorSettings): CalculatorPreferences {
   const out: Record<string, unknown> = {};
-  for (const key of PREFERENCE_KEYS) {
-    const value = settings[key];
-    out[key] = typeof value === "object" && value !== null ? { ...value } : value;
-  }
+  for (const key of PREFERENCE_KEYS) out[key] = settings[key];
+  out.xAxis = { show: settings.xAxis.show, label: "", step: null };
+  out.yAxis = { show: settings.yAxis.show, label: "", step: null };
   return out as CalculatorPreferences;
 }
 
