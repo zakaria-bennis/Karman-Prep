@@ -132,3 +132,24 @@ export function plotResiduals(engine: CalculatorEngine, rowId: string): string |
   });
   return source.id;
 }
+
+/**
+ * R-5: switches an expression row between its decimal and fraction display as one undo step, as
+ * Desmos's toggle and its Alt+Shift+A (Cmd+Shift+A) shortcut do; the choice stays with the row
+ * through edits, a whole-number value and an emptied row. The row's new choice, or null for a
+ * table or an unknown row.
+ */
+export function toggleRowFraction(engine: CalculatorEngine, rowId: string): boolean | null {
+  let shown: boolean | null = null;
+  engine.editRows((rows) => {
+    const i = at(rows, rowId);
+    if (i < 0 || rows[i].type === "table") return null;
+    const on = rows[i].fraction !== true;
+    const next: { -readonly [K in keyof StoredRow]: StoredRow[K] } = { ...rows[i] };
+    if (on) next.fraction = true;
+    else delete next.fraction;
+    shown = on;
+    return rows.map((r, k) => (k === i ? next : r));
+  });
+  return shown;
+}

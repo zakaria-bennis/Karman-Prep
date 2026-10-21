@@ -23,6 +23,8 @@ const row = (id: string, kind: RowKind, extra: Partial<RowView> = {}): RowView =
   chips: [],
   value: null,
   valueText: null,
+  fraction: null,
+  asFraction: false,
   overrun: false,
   type: "expression",
   columns: null,

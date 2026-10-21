@@ -34,7 +34,9 @@ it("AR-57 reportCalculatorError sends only the error name, its code and the calc
   const [err, hint] = sent();
   expect(err.message).toBe("KarmanCalculatorError: unsupported");
   expect(hint).toEqual({ tags: { calculator: "quiz", build: "abc123" } });
-  expect(JSON.stringify([err.message, err.stack, hint])).not.toMatch(/frac|row 3/);
+  // the frames' file paths are the checkout's own, which may hold "frac" (a calc-fractions worktree)
+  const sentText = JSON.stringify([err.message, err.stack, hint]).split(process.cwd()).join("");
+  expect(sentText).not.toMatch(/frac|row 3/);
 });
 
 it("AR-57 the stack keeps only frame lines, so a multi-line message cannot leak", async () => {

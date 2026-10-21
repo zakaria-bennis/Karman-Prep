@@ -337,3 +337,28 @@ export function ZoomGlyph(props: { out?: boolean }): JSX.Element {
     </svg>
   );
 }
+
+/**
+ * R-5: the decimal/fraction toggle's glyph, a fraction of two empty boxes: two 6 px outlined
+ * squares with softly rounded corners stacked over and under an 8.5 px bar, centred in the 29 px
+ * circle. Sizes and centres were measured on the reference at device pixel ratio 8 (2026-10-21);
+ * the drawing is plain geometry of our own.
+ */
+export function FractionGlyph(): JSX.Element {
+  return (
+    <svg
+      className="kc-glyph"
+      width={29}
+      height={29}
+      viewBox="0 0 29 29"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <g fill="none" stroke="currentColor" strokeWidth={1.2}>
+        <rect x={12.1} y={7.4} width={4.8} height={4.8} rx={0.9} />
+        <rect x={12.1} y={17} width={4.8} height={4.8} rx={0.9} />
+      </g>
+      <rect x={10.25} y={14} width={8.5} height={1.2} rx={0.6} fill="currentColor" />
+    </svg>
+  );
+}

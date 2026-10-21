@@ -16,11 +16,12 @@ import type { ChangeEvent } from "@/lib/calculator/core/api/types";
 import type { Announcer } from "../a11y/announcer";
 import { EDITOR_MESSAGES } from "./messages";
 import { regressionSummary } from "./regression-text";
+import { spokenValue } from "./fraction-toggle";
 
 /** What a row says once its result is in: its value (A11Y-2), or a regression's summary (A11Y-10). */
 function spoken(row: RowView, number: number): string | null {
   if (row.kind === "regression") return regressionSummary(row);
-  return row.valueText === null ? null : EDITOR_MESSAGES.value(number, row.valueText);
+  return row.valueText === null ? null : EDITOR_MESSAGES.value(number, spokenValue(row));
 }
 
 export const VALUE_ANNOUNCE_DELAY_MS = 750;

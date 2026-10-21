@@ -62,3 +62,19 @@ it("SETTINGS-31 the platform is Mac for Mac, iPhone and iPad platform strings", 
     false,
   ]);
 });
+
+it("R-5 Alt+Shift+A (Cmd+Shift+A on a Mac) switches the row between decimal and fraction", () => {
+  expect(matchHelpKey(key("KeyA", { altKey: true, shiftKey: true }), false)).toBe(
+    "toggle-fraction"
+  );
+  expect(matchHelpKey(key("KeyA", { metaKey: true, shiftKey: true }), true)).toBe(
+    "toggle-fraction"
+  );
+  for (const [k, mac] of [
+    [key("KeyA", { altKey: true }), false],
+    [key("KeyA", { ctrlKey: true, shiftKey: true }), false],
+    [key("KeyA", { altKey: true, shiftKey: true }), true],
+    [key("KeyA", { metaKey: true }), true],
+  ] as const)
+    expect(matchHelpKey(k, mac)).toBeNull();
+});

@@ -89,6 +89,7 @@ export interface ExpressionState {
   sliderBounds?: { min: string; max: string; step: string }; // input only: non-empty bounds are hard
   columns?: { latex: string; values: string[]; color?: string; hidden?: boolean }[];
   regression?: TableRegressionState; // RT-28: tables only
+  displayEvaluationAsFraction?: boolean; // R-5: Desmos's per-row decimal/fraction choice
 }
 /** RT-28: a table's regression; `columns.x` is always 0. */
 export interface TableRegressionState {

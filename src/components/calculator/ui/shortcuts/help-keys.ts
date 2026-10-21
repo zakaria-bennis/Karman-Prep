@@ -1,6 +1,7 @@
 // The keyboard shortcuts this folder owns (SETTINGS-31 to SETTINGS-33): open the Keyboard
 // Shortcuts dialog, open or close Graph settings, switch between degrees and radians, and zoom in,
-// zoom out or restore the default viewport (= or numpad +, - or numpad -, 0). The
+// zoom out or restore the default viewport (= or numpad +, - or numpad -, 0), and switch the
+// focused row between decimal and fraction (R-5: Alt+Shift+A, Cmd+Shift+A on a Mac). The
 // modifiers follow the platform as the reference's do: "Mod" is Ctrl on Windows and ChromeOS and
 // Cmd on a Mac, "Mod+Alt" is Ctrl+Alt or Ctrl+Cmd, and the single-modifier group is Alt or Ctrl.
 // Keys match on `event.code`, so Option- or Alt-modified letters still match.
@@ -11,7 +12,8 @@ export type HelpAction =
   | "toggle-degrees"
   | "zoom-in"
   | "zoom-out"
-  | "zoom-default";
+  | "zoom-default"
+  | "toggle-fraction";
 export type HelpKey = Pick<
   KeyboardEvent,
   "code" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "isComposing"
@@ -36,6 +38,9 @@ export function matchHelpKey(event: HelpKey, mac: boolean): HelpAction | null {
   if (code === "Slash" && mod && !altKey && !shiftKey) return "shortcuts-dialog";
   if (code === "KeyG" && modAlt && !shiftKey) return "toggle-settings";
   if (code === "KeyD" && single && !shiftKey) return "toggle-degrees";
+  // R-5: the reference's own chord, Cmd+Shift+A on a Mac and Alt+Shift+A elsewhere
+  const fractionChord = mac ? metaKey && !ctrlKey && !altKey : altKey && !ctrlKey && !metaKey;
+  if (code === "KeyA" && fractionChord && shiftKey) return "toggle-fraction";
   // SETTINGS-32: Shift+= ("+" on the main keyboard) does not zoom in the reference.
   if (single && !shiftKey && (code === "Equal" || code === "NumpadAdd")) return "zoom-in";
   if (single && !shiftKey && (code === "Minus" || code === "NumpadSubtract")) return "zoom-out";

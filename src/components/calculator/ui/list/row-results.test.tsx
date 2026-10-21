@@ -19,7 +19,7 @@ import { rowDomIds } from "./row-model";
 // with whitespace collapsing off.
 const keepSpaces = { normalizer: getDefaultNormalizer({ collapseWhitespace: false }) };
 
-it("R-5 a numeric row shows its value below the math with NM-1, NM-2 and T-10 display and no fraction toggle", async () => {
+it("R-5 a numeric row shows its value below the math with NM-1, NM-2 and T-10 display, and only a value with a fraction form offers the R-5 toggle", async () => {
   renderEditor(<ExpressionPanel {...panelProps()} />, {
     rows: ["\\frac{1}{3}", "12340+5", "2^{40}"],
   });
@@ -27,7 +27,9 @@ it("R-5 a numeric row shows its value below the math with NM-1, NM-2 and T-10 di
   expect(await screen.findByText("12 345", keepSpaces)).toBeInTheDocument(); // U+2009 (T-10)
   expect(await screen.findByText("1.09951162778×10^12")).toBeInTheDocument();
   expect(textbox(2)).toHaveAccessibleDescription(/ equals 12345$/);
-  expect(screen.queryByRole("button", { name: /fraction|decimal/i })).toBeNull();
+  expect(within(rowItem("1")).getByRole("button", { name: /^Displaying as decimal/ })).toBeTruthy();
+  for (const id of ["2", "3"])
+    expect(within(rowItem(id)).queryByRole("button", { name: /fraction|decimal/i })).toBeNull();
 });
 
 const SYNTAX_MESSAGE = "You need something on both sides of the '+' symbol.";

@@ -16,6 +16,7 @@ import {
 import type { RowKind } from "../corpus/types";
 import type { Node } from "../latex/ast";
 import { formatValue } from "../eval/format";
+import { displayFraction, type DisplayFraction } from "../eval/fraction";
 import { lineConstantSide } from "../eval/line-value";
 import type { Value } from "../eval/values";
 import type { TableResult } from "../data/evaluate";
@@ -37,6 +38,8 @@ export interface RowView {
   chips: string[]; // RC-10 names, or a slider's undefined limit names (SLIDERS-10)
   value: Value | null; // null until the worker reports
   valueText: string | null; // formatValue, only when the row shows a value (R-5)
+  fraction: DisplayFraction | null; // NM-7: the value's fraction form, when the row offers the toggle
+  asFraction: boolean; // R-5: the row's value shows as `fraction` (the toggle is on and applies)
   overrun: boolean; // AR-48/AR-49 message showing
   type: "expression" | "table"; // D-1
   columns: readonly StoredColumn[] | null; // a table's stored columns
@@ -198,6 +201,23 @@ function literalRow(tree: Node | null, numberLists: boolean): boolean {
   return tree !== null && (point(tree) || numeral(tree));
 }
 
+/**
+ * NM-7: the toggle's fraction for an expression row, or null when it offers none. As in Desmos it
+ * is offered for a row that does not graph and whose value is one real number with a fraction
+ * form: a computed value, a definition, a literal (`0.75`, whose value is otherwise unshown) and a
+ * slider (whose gutter has no room for the icon; Alt+Shift+A still switches it). Lists, points,
+ * complex numbers, graphed rows, tables and regressions offer none (captured 2026-10-21).
+ */
+function rowFraction(
+  row: RowAnalysis,
+  value: Value | null,
+  overrun: boolean
+): DisplayFraction | null {
+  if (row.kind !== "value" && row.kind !== "definition") return null;
+  if (value?.type !== "number" || !rowHasValue(row, value, overrun)) return null;
+  return displayFraction(value.value);
+}
+
 /** NM-34 to NM-36, NM-42: the list error a row's value carries, as its row error (R-2). */
 function valueError(value: Value | null): RowError | null {
   if (value === null || value.type !== "undefined" || value.error === undefined) return null;
@@ -222,6 +242,10 @@ export function buildRowView(
     slider?.error == null
       ? null
       : { code: "slider-limits", message: slider.error, names: [], span: null };
+  const fraction =
+    row.type === "table" || limitError !== null ? null : rowFraction(analysis, value, overrun);
+  // R-5: a toggled literal or slider shows its value too, as the fraction (as in Desmos)
+  const asFraction = fraction !== null && row.fraction === true;
   return {
     id: row.id,
     latex: row.latex,
@@ -239,9 +263,11 @@ export function buildRowView(
     value,
     // SLIDERS-12: a slider row has no value readout
     valueText:
-      slider === null && value !== null && rowShowsValue(analysis, value, overrun)
-        ? formatValue(value)
+      asFraction || (slider === null && value !== null && rowShowsValue(analysis, value, overrun))
+        ? formatValue(value!)
         : null,
+    fraction,
+    asFraction,
     overrun,
     type: row.type === "table" ? "table" : "expression",
     columns: row.type === "table" ? (row.columns ?? []) : null,
@@ -298,8 +324,13 @@ export function buildExpressionAnalysis(
     const row = analysis.byId.get(view.id)!;
     const evaluated =
       view.error === null && view.value !== null && rowHasValue(row, view.value, view.overrun);
-    // a slider shows no value (SLIDERS-12), nor does a list of numerals (literalRow)
-    const shown = evaluated && view.valueText !== null && !literalRow(row.tree, true);
+    // a slider shows no value (SLIDERS-12), nor does a list of numerals (literalRow); a toggled
+    // literal's fraction does not count either, as in Desmos (R-5)
+    const shown =
+      evaluated &&
+      view.slider == null &&
+      rowShowsValue(row, view.value, view.overrun) &&
+      !literalRow(row.tree, true);
     return [
       view.id,
       {

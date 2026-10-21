@@ -256,6 +256,7 @@ const EXPRESSION_KEYS = [
   "sliderBounds",
   "columns",
   "regression",
+  "displayEvaluationAsFraction",
 ] as const;
 // API-2 and OI-23: other item types are rejected as unsupported; tables ship with D-1 (parity)
 const UNSUPPORTED_TYPES: readonly string[] = ["note", "folder", "image", "text"];
@@ -444,6 +445,8 @@ function expressionFields(
   if (value("latex") !== undefined) out.latex = check("latex", latex);
   if (value("color") !== undefined) out.color = check("color", colour);
   if (value("hidden") !== undefined) out.hidden = check("hidden", bool);
+  if (value("displayEvaluationAsFraction") !== undefined)
+    out.displayEvaluationAsFraction = check("displayEvaluationAsFraction", bool);
   if (value("lineStyle") !== undefined) {
     out.lineStyle = check("lineStyle", oneOf(["solid", "dashed", "dotted"] as const));
   }

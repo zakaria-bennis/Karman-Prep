@@ -5,17 +5,21 @@
 // complex mode, changes nothing and announces "Complex mode uses radians" (SETTINGS-32). The
 // single-modifier =, - and 0 press the graph's Zoom in, Zoom out and Home buttons and announce
 // "Graph zoom in", "Graph zoom out" or "Graph viewport default"; with that button absent (a locked
-// view, Home at the default view) they do nothing and announce nothing. The listener is in the
+// view, Home at the default view) they do nothing and announce nothing. Alt+Shift+A (Cmd+Shift+A)
+// switches the focused expression row between decimal and fraction and announces "Show as
+// Fraction" or "Show as Decimal" (R-5); with no expression row focused it is left alone. The listener is in the
 // capture phase, so a math field never types the key.
 
 import { useEffect, useRef, useState, type JSX, type RefObject } from "react";
 import { createPortal } from "react-dom";
+import { toggleRowFraction } from "@/lib/calculator/core/api/row-commands";
 import { useAnnouncer } from "../a11y/announcer";
 import { useEngine } from "../hooks/use-engine";
 import { GRAPH_CONTROL_LABELS } from "../graph/labels";
 import { COMPLEX_USES_RADIANS } from "../settings/SettingsPopover";
 import { currentPlatform, isMacPlatform, matchHelpKey } from "./help-keys";
 import { ShortcutsDialog } from "./ShortcutsDialog";
+import { fractionAnnouncement } from "../list/fraction-toggle";
 
 /** SETTINGS-3, -32: the zoom shortcuts' buttons and announcements. */
 const ZOOMS = {
@@ -41,6 +45,15 @@ export function ShortcutsHost(props: {
     const onKeyDown = (event: KeyboardEvent) => {
       const action = matchHelpKey(event, mac);
       if (action === null) return;
+      if (action === "toggle-fraction") {
+        const rowId = engine.getSnapshot().focusedRowId;
+        const shown = rowId === null ? null : toggleRowFraction(engine, rowId);
+        if (shown === null) return;
+        event.preventDefault();
+        event.stopPropagation();
+        announcer.announce(fractionAnnouncement(shown));
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       if (action === "shortcuts-dialog") setOpen((was) => !was);

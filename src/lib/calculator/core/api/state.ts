@@ -89,6 +89,9 @@ function mergeRow(base: StoredRow, state: ExpressionState, take: TakeColour): St
   if (state.latex !== undefined) merged.latex = state.latex;
   if (state.color !== undefined) merged.color = state.color;
   if (state.hidden !== undefined) merged.hidden = state.hidden;
+  if (state.displayEvaluationAsFraction === true)
+    merged.fraction = true; // R-5
+  else if (state.displayEvaluationAsFraction === false) delete merged.fraction;
   if (state.lineStyle !== undefined) merged.lineStyle = state.lineStyle;
   if (state.pointStyle !== undefined) merged.pointStyle = state.pointStyle;
   // SLIDERS-11: `slider` replaces the settings; the older `sliderBounds` sets hard limits on top.
@@ -190,7 +193,8 @@ export function rowsFromState(
 
 /**
  * API-4: a deep copy of one row as an expression state, with the keys id, type, latex, color and
- * hidden, then lineStyle, pointStyle and slider (SLIDERS-11) where set.
+ * hidden, then lineStyle, pointStyle, displayEvaluationAsFraction (R-5) and slider (SLIDERS-11)
+ * where set.
  */
 export function toExpressionState(row: StoredRow): ExpressionState {
   const state: ExpressionState = {
@@ -222,6 +226,7 @@ export function toExpressionState(row: StoredRow): ExpressionState {
   }
   if (row.lineStyle !== undefined) state.lineStyle = row.lineStyle;
   if (row.pointStyle !== undefined) state.pointStyle = row.pointStyle;
+  if (row.fraction === true) state.displayEvaluationAsFraction = true; // R-5, as Desmos saves it
   const slider = row.slider === undefined ? undefined : savedSlider(row.slider);
   if (slider !== undefined) state.slider = slider;
   return state;

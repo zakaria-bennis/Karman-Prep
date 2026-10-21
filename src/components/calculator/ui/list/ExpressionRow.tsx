@@ -4,7 +4,8 @@
 // (A11Y-3) and described by the row's T-5
 // speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
 // replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
-// ErrorMarker), and the Delete control. The
+// ErrorMarker), the decimal/fraction toggle of a value with a fraction form (R-5,
+// FractionToggle), and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
 // past the T-13 limit is refused, restored and announced. Under the math it shows the add-slider
@@ -57,6 +58,7 @@ import { convertsInPlace, createTableBelow, offersCreateTable, RowMenu } from ".
 import { EditRowActions } from "./EditRowActions";
 import { ToastContext } from "./Toast";
 import { RowValue } from "./RowValue";
+import { FractionToggle } from "./FractionToggle";
 import { AddSliderLine, addSliders, PointLabelLine } from "./RowUnderMath";
 import { SliderGutter } from "./SliderGutter";
 import { SliderLine, type SliderLineHandle } from "./SliderLine";
@@ -386,6 +388,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               {!row.hidden && <ColourKindGlyph kind={editing ? null : kindGlyph(row, tab)} />}
             </button>
           )}
+          {row.fraction !== null && slider === null && error === null && (
+            <FractionToggle rowId={row.id} asFraction={row.asFraction} />
+          )}
           {slider !== null && error === null && (
             <SliderGutter
               rowId={row.id}
@@ -449,7 +454,12 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             {speech}
           </span>
           {valueText !== null && (
-            <RowValue id={ids.value} value={row.value} valueText={valueText} />
+            <RowValue
+              id={ids.value}
+              value={row.value}
+              valueText={valueText}
+              fraction={row.asFraction ? row.fraction : null}
+            />
           )}
           {slider !== null && (
             <SliderLine

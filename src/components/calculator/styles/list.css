@@ -226,6 +226,75 @@
   opacity: 0.3125;
 }
 
+/* R-5 (VIS-EXPRESSION-LIST-33): the decimal/fraction toggle stands where the colour icon
+   would: a 29 px circle with a 2 px ink ring and the fraction glyph, at 0.5 opacity (0.7 hovered,
+   0.9 pressed). On, the circle fills with the ink and the glyph takes the list colour. On a focused
+   or selected row the ring and glyph turn to the tab label colour at 0.9, and on, the circle fills
+   with it and the glyph takes the blue of the tab. */
+.kc-row-fraction {
+  position: absolute;
+  top: 13.5px;
+  left: 4px;
+  box-sizing: border-box;
+  width: var(--kc-colour-icon);
+  height: var(--kc-colour-icon);
+  padding: 0;
+  border: 2px solid var(--kc-text);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--kc-text);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.kc-row-fraction > svg {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  display: block;
+}
+
+@media (hover: hover) {
+  .kc-row-fraction:hover {
+    opacity: 0.7;
+  }
+}
+
+.kc-row-fraction:active {
+  opacity: 0.9;
+}
+
+.kc-row-fraction[data-on="true"] {
+  background: var(--kc-text);
+  color: var(--kc-list);
+}
+
+.kc-row-fraction:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}
+
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
+  .kc-row-fraction {
+  border-color: var(--kc-focus-bar-label);
+  color: var(--kc-focus-bar-label);
+  opacity: 0.9;
+}
+
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
+  .kc-row-fraction[data-on="true"] {
+  background: var(--kc-focus-bar-label);
+  color: var(--kc-focus-bar);
+}
+
 /* VIS-34: the warning triangle stands where the colour icon would, fading in after 0.8 s. */
 .kc-row-warning {
   position: absolute;
@@ -394,6 +463,24 @@
   font-size: var(--kc-size-eval-math);
   line-height: 21.5px;
   overflow-wrap: anywhere;
+}
+
+/* R-5 (VIS-EXPRESSION-LIST-33): a value shown as a fraction is MathQuill's stacked fraction in
+   the same box, the math at 17.48 px with 2 px around it and centred on the "=", so 7/12 makes a
+   42 by 45.6 box. */
+.kc-row-value-fraction {
+  line-height: normal;
+}
+
+.kc-row-value-fraction .mq-math-mode {
+  font-size: var(--kc-size-eval-math);
+}
+
+.kc-row-value-fraction .mq-root-block {
+  display: inline-block;
+  padding: 2px;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 /* EL-36: the lines under the math (add slider, Label), 53 px in, in small muted text, fading in

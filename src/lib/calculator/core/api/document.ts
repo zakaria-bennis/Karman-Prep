@@ -30,6 +30,7 @@ export interface StoredRow {
   readonly columns?: readonly StoredColumn[]; // tables only
   readonly logMode?: boolean; // D-30: a regression row's Log mode checkbox
   readonly regression?: StoredTableRegression; // RT-28: a table's one regression
+  readonly fraction?: true; // R-5: the value shows as a fraction; absent shows it as a decimal
   /**
    * RT-2: the colour a table's blank header slot already took from the counter; a column typed
    * into that slot keeps it and the new blank slot takes the next one. Never in the public state.
@@ -130,6 +131,7 @@ function sameRow(a: StoredRow, b: StoredRow): boolean {
     a.latex === b.latex &&
     a.color === b.color &&
     a.hidden === b.hidden &&
+    a.fraction === b.fraction &&
     a.lineStyle === b.lineStyle &&
     a.pointStyle === b.pointStyle &&
     sameSlider(a.slider, b.slider)
