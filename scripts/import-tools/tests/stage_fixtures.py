@@ -99,3 +99,20 @@ def fake_sealer(path: Path) -> list[dict]:
                     "question_payload_sha256": hashlib.sha256(q["question_text"].encode()).hexdigest(),
                     "publication_allowed_in_snapshot": ev.get("student_publication_allowed") is True})
     return out
+
+
+def approve_figure_rows(batch_dir: Path, rows: list[dict], name: str = "syn-1") -> None:
+    """Write the batch's reviewed file (rows flattened as a reviewer writes them) and approve every
+    figure row in the pipeline's figures/ folder, so the founder's figure gate lets them through."""
+    from kimport.figure_gate import figures_dir_for_batch, has_figure
+    from tests.figure_fixtures import approve_like
+    batch_dir = Path(batch_dir)
+    flat = []
+    for r in rows:
+        tables = {c["letter"]: c["choice_table_data"] for c in r["choices"] if c.get("choice_table_data")}
+        flat.append({"stable_question_id": r["stable_question_id"], **r["question"],
+                     **({"choice_tables": tables} if tables else {})})
+    (batch_dir / f"{name}-reviewed-import-ready.json").write_text(json.dumps({"questions": flat}), encoding="utf-8")
+    for r, f in zip(rows, flat):
+        if has_figure(r):
+            approve_like(figures_dir_for_batch(batch_dir), r["stable_question_id"], f)

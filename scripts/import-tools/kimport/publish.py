@@ -41,6 +41,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
 
+from kimport import figure_gate
 from kimport.answer_evidence import ambiguous, evidence_root, json_path, sql_get
 from kimport.export import FINGERPRINT_SQL, ExportDoc, read_export_doc
 from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, QuestionRecord, comparison_key, is_unkeyable
@@ -480,9 +481,12 @@ def prepare_publish(private_readback: Path, sealed_preview: Path, export: Path, 
     _check_fresh(private_readback, export, saved, doc)
     export_rows = doc.rows
 
-    items = []
+    items, figure_problems = [], []
     for snap, seal_row in pairs:
         seal, manifest = _check_row(snap, seal_row)
+        tags = (evidence_root(snap["keys"][0].get("raw_model_response")) or {}).get("approved_tags") or {}
+        figure_problems += [f"{snap['question'].get('id')}: {r}" for r in
+                            figure_gate.publish_reasons(intents, tags.get("stable_question_id"), snap)]
         try:
             record = readback_record(snap)
         except ValueError as e:
@@ -504,6 +508,8 @@ def prepare_publish(private_readback: Path, sealed_preview: Path, export: Path, 
                       "key": None if unkeyed else full_key, "seal": seal, "manifest": manifest,
                       "items": _items_literal(snap, seal)})
 
+    if figure_problems:
+        raise RefuseToBuild("; ".join(figure_problems))
     precheck = {"batch": batch, **_precheck(items, export_rows)}
     return items, doc, precheck
 

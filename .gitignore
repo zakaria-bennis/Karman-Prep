@@ -85,3 +85,6 @@ audit-out/
 # Dev-only figure pilot data (/dev/figure-pilot): source images and question text
 # are College Board material and must never be committed.
 /.figure-pilot/
+# Founder figure review queue (/dev/figure-review): a link to the import pipeline's figures/
+# folder (source crops and transcribed questions), never committed.
+/.figure-review

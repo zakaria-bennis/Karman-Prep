@@ -36,6 +36,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from kimport import figure_gate
 from kimport.answer_evidence import ambiguous, evidence_root
 from kimport.export import _unwrap, read_export_doc
 from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, comparison_key, is_unkeyable
@@ -347,6 +348,7 @@ def build_stage(batch_dir: Path, export: Path, pdf: Path, rows_doc: dict | None 
     _check_payload(rows, binding_sha)
 
     items = make_items(rows)
+    figure_gate.mark_batch(batch_dir, ready["reviewed_file"], items)
     report, _ = duplicate_check(items, doc.rows)
     index = export_index(doc.rows)
     reasons: dict[str, list[str]] = {}
@@ -354,7 +356,7 @@ def build_stage(batch_dir: Path, export: Path, pdf: Path, rows_doc: dict | None 
         reasons[it["id"]] = (
             ([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
             + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
-            + _export_conflicts(it, index))
+            + _export_conflicts(it, index) + it["figure_gate"])
     refused = {k: v for k, v in reasons.items() if v}
     staged = [it for it in items if it["id"] not in refused]
     precheck = {"batch": batch, **report, "passed": not refused,

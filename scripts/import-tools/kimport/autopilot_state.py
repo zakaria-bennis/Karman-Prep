@@ -49,6 +49,8 @@ def reason_kind(reason: str) -> str:
     r = reason or ""
     if r.startswith("live correction: "):
         return "live_fix_refused"
+    if r.startswith("figure gate: "):
+        return "figure_gate"
     for test, kind in (("in this run", "duplicate_in_run"), ("same comparison key", "same_key_in_bank"),
                        ("typo-level", "typo_match"), ("source question already", "source_in_bank"),
                        ("content_hash_v2 already", "same_hash_in_bank"),

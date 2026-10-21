@@ -186,10 +186,17 @@ def keyed(row: dict) -> str:
 
 
 def write_batch(d: Path, snaps: list[dict], export_rows: list[dict], seals: list[dict] | None = None,
-                export_age: int = 10, exported_at: str = EXPORTED_AT) -> dict:
+                export_age: int = 10, exported_at: str = EXPORTED_AT, approve_figures: bool = True) -> dict:
     """Write readback, sealed preview, export and an empty intent log; the export
-    is `export_age` seconds newer than the readback (negative: older)."""
+    is `export_age` seconds newer than the readback (negative: older). Figure rows are
+    approved in <d>/figures (the founder's figure gate) unless approve_figures is False."""
     d = Path(d)
+    if approve_figures:
+        from tests.figure_fixtures import approve_like
+        from kimport.figure_gate import has_figure
+        for s in snaps:
+            if has_figure(s):
+                approve_like(d / "figures", s["keys"][0]["raw_model_response"]["approved_tags"]["stable_question_id"], s)
     paths = {name: d / f"syn-{name}.json" for name in ("readback", "sealed", "export")}
     paths["intents"] = d / "intents.jsonl"
     paths["readback"].write_text(json.dumps({"rows": [{"snapshot": s} for s in snaps]}), encoding="utf-8")

@@ -190,6 +190,17 @@ k publish --bulk --batch <run> --readback $PIPE/<run>/stage/private-readback.jso
 
 Each batch is checked as `--batch` checks it, with its own exam PDF, found by the reviewed rows' `source_document_id` and `source_pdf` file name: first `<pipeline>/new-exams/<source_document_id>/source/<source_pdf>` (new-exam forms), then `<exams>/<source_document_id>/<source_pdf>` (ledger exams, `original_exam.pdf`), checked against the frozen manifest and the rows' `sourceVersion.sha256`. The precheck also compares every row with every other row of the run. With `--skip-refused`, refused rows and whole refused batches are listed in `precheck.json` and left out. The Management API refuses a request over a few MB, so `--chunk-size` splits the SQL into `stage-01.sql`, `stage-02.sql`, ... (and `publish-NN.sql`, `rollback-NN.sql`), each one transaction. Each chunk checks that the bank, leaving out this run's own rows, is still the exported bank, so the chunks can run in any order, each chunk's dry run works on its own, and any other change to the bank stops the chunks not yet run. Readback is split into `readback-NN.sql` of 100 rows. `precheck.json` lists the chunks; its `stage_sql_sha256` / `publish_sql_sha256` is the sha256 of all chunk files joined in order (use it for the run's one intent).
 
+**Figure lane (the founder checks every figure).** Figure questions are rebuilt in `$PIPE/figures/<occurrence id>/` (`original.png` source crop, `figure.json` with the figure fields as the quiz reads them plus stem, choices and answer, `status.json` with `drafting`, `ready_for_founder`, `approved` or `rejected`, a round and a history). The founder decides at `/dev/figure-review` (dev server only, localhost only; J approve, F reject with a note, U undo), which writes `status.json` at once.
+
+```
+k figures slice --reviewer <name> --clusters $PIPE/corpus/clusters.json --lane $PIPE/lane.json --ledger <ledger> --now <time>
+k figures submit --figures $PIPE/figures --id <id> --by <name> --now <time>   # checks figure.json, then ready_for_founder
+k figures rework --figures $PIPE/figures [--reviewer <name>]                 # rejected, with his notes
+k figures status --figures $PIPE/figures
+```
+
+`slice` takes one copy per not-live figure_review group plus open `needs_figure` lane items, and never hands out an id (or another copy in its group) that already has a folder. **Figure gate** (`kimport/figure_gate.py`, one check for stage, bulk stage and publish, so the autopilot too): a row with a figure, or with a figure folder, is refused (`figure gate: ...`, counted as `figure_gate`) unless its `status.json` is `approved`, `figure.json` is byte for byte the file he approved (`approved_file_sha256`), and the reviewed batch row, the importer's row and (at publish) the private readback row carry exactly figure.json's figure fields (`figure_kind`, table, chart, geometry, SVG, alt text, table choices; null and absent are equal). Rows without a figure are not affected. The importer carries only tables and table choices today, so chart, geometry and SVG figures are refused at stage until it carries them.
+
 Problem questions. `--reason` is one of: needs_figure, asset_hold, no_answer_key, answer_dispute, extraction_repair, skill_unclear, difficulty_unclear, classification_review, variant_review, broken_or_excluded (this last one also needs `--clusters`, so the next copy becomes the canonical). When a new campaign starts, `k lane requeue --lane $PIPE/lane.json --reason <reason>` moves parked and open items of that reason back to open.
 
 ```

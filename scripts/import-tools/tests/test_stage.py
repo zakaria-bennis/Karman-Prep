@@ -29,7 +29,9 @@ class StageCase(unittest.TestCase):
     def export(self, rows, name="export.json"):
         return write_export(self.d / name, rows)
 
-    def build(self, rows, export_rows=(), **kw):
+    def build(self, rows, export_rows=(), approve_figures=True, **kw):
+        if approve_figures:
+            fx.approve_figure_rows(self.batch, rows)
         return stage.build_stage(self.batch, self.export(list(export_rows)), self.d / "x.pdf",
                                  rows_doc=fx.rows_doc(rows), **kw)
 

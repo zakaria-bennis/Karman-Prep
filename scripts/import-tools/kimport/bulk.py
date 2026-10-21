@@ -33,6 +33,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from kimport import figure_gate
 from kimport.answer_evidence import evidence_root
 from kimport import stage as st
 from kimport.export import FINGERPRINT_SQL, fingerprint, read_export_doc
@@ -117,6 +118,7 @@ def _load_batch(d: Path, exams_dir: Path, rows_doc, rows_runner) -> dict:
     rows = rows_doc["rows"]
     st._check_payload(rows, binding_sha)
     items = st.make_items(rows)
+    figure_gate.mark_batch(d, ready["reviewed_file"], items)
     for it in items:
         it["batch"] = ready["batch"]
     return {"batch": ready["batch"], "dir": str(d), "items": items, "binding_sha": binding_sha,
@@ -265,7 +267,7 @@ def build_bulk_stage(batch_dirs, export: Path, name: str, exams_dir: Path = EXAM
     for n, (it, rep) in enumerate(zip(items, report["rows"])):
         reasons = (([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
                    + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
-                   + st._export_conflicts(it, index) + inside.get(n, []))
+                   + st._export_conflicts(it, index) + inside.get(n, []) + it.get("figure_gate", []))
         rep["batch"] = it["batch"]
         if reasons:
             refused[n] = reasons

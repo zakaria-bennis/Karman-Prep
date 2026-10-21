@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
+from kimport import autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -28,6 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_pairs(sub)
     _register_lane(sub)
     _register_autopilot(sub)
+    _register_figures(sub)
     return parser
 
 
@@ -410,6 +411,66 @@ def _register_autopilot(sub) -> None:
               "released".format(a.run, **res))
 
     rc.set_defaults(func=lambda a: _guard(lambda: record(a)))
+
+
+def _register_figures(sub) -> None:
+    fp = sub.add_parser("figures", help="figure lane: hand out figure questions, submit them to the founder, rework")
+    fp.set_defaults(func=lambda a: fp.print_help(sys.stderr) or 2)
+    fsub = fp.add_subparsers(dest="figures_action", metavar="<action>")
+
+    sl = fsub.add_parser("slice", help="give a reviewer the next figure questions (one copy per figure group)")
+    sl.add_argument("--reviewer", required=True)
+    sl.add_argument("--clusters", required=True, help="corpus/clusters.json")
+    sl.add_argument("--lane", required=True, help="pipeline/lane.json")
+    sl.add_argument("--ledger", required=True, help="current-readiness-ledger.json")
+    sl.add_argument("--figures", help="pipeline/figures (default: figures/ next to --lane)")
+    sl.add_argument("--size", type=int, default=figures.SLICE_SIZE)
+    sl.add_argument("--now", required=True)
+    sl.add_argument("--extra-ledger", action="append",
+                    help="supplementary new-exam ledger (default: new-exam-ledger.json next to --clusters)")
+    sl.add_argument("--b-root", default=str(figures.B_ROOT), help="agent-b-output/revisions (source crops)")
+
+    def slice_cmd(a):
+        fdir = Path(a.figures) if a.figures else Path(a.lane).parent / "figures"
+        got = figures.next_slice(fdir, Path(a.clusters), Path(a.lane), Path(a.ledger), a.reviewer, a.now,
+                                 a.size, a.extra_ledger, Path(a.b_root))
+        for g in got:
+            print(g["id"] + ("" if g["original"] else "  (no source crop found: add original.png)"))
+        print(f"figures slice: {len(got)} for {a.reviewer} in {fdir}", file=sys.stderr)
+
+    sl.set_defaults(func=lambda a: _guard(lambda: slice_cmd(a)))
+
+    sm = fsub.add_parser("submit", help="check figure.json and send it to the founder (ready_for_founder)")
+    sm.add_argument("--figures", required=True, help="pipeline/figures")
+    sm.add_argument("--id", required=True, help="occurrence id")
+    sm.add_argument("--by", required=True, help="your reviewer name")
+    sm.add_argument("--now", required=True)
+    sm.set_defaults(func=lambda a: _guard(lambda: print(
+        "figures submit: {occurrence_id} ready for the founder (round {round})".format(
+            **figures.submit(Path(a.figures), a.id, a.by, a.now)))))
+
+    rw = fsub.add_parser("rework", help="figures the founder rejected, with his notes (do these first)")
+    rw.add_argument("--figures", required=True)
+    rw.add_argument("--reviewer", help="only this reviewer's items")
+
+    def rework(a):
+        items = figures.rework(Path(a.figures), a.reviewer)
+        for i in items:
+            print(f"{i['id']} (round {i['round']}, {i['claimed_by']}): {i['note'] or '(no note)'}")
+        print(f"figures rework: {len(items)} rejected", file=sys.stderr)
+
+    rw.set_defaults(func=lambda a: _guard(lambda: rework(a)))
+
+    st = fsub.add_parser("status", help="counts by status, and drafting items per reviewer")
+    st.add_argument("--figures", required=True)
+
+    def status(a):
+        s = figures.summary(Path(a.figures))
+        print("figures: " + ", ".join(f"{n} {k}" for k, n in s["counts"].items()) + f" ({s['total']} in all)")
+        for who, n in sorted(s["drafting_by_reviewer"].items()):
+            print(f"  drafting {who}: {n}")
+
+    st.set_defaults(func=lambda a: _guard(lambda: status(a)))
 
 
 def _promote(clusters: str, occ_id: str, lane_path: str) -> None:
