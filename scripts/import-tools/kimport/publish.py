@@ -213,12 +213,16 @@ def _pair_rows(saved: list[dict], seals: list[dict]) -> list[tuple[dict, dict]]:
 # ---------------------------------------------------------------- precheck
 
 
-def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
+def require_key_column(export_rows: list[dict]) -> None:
     missing = [r["id"] for r in export_rows if "comparison_key" not in r]
     if missing:
         raise RefuseToBuild(f"the export has no comparison_key field on {len(missing)} rows: migration "
                             "20261021000000 and the key backfill are not applied (or the export predates them); "
                             "apply them, then run sql/live_export.sql again")
+
+
+def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
+    require_key_column(export_rows)
     by_id = {r["id"]: r for r in export_rows}
     for it in items:
         q, row = it["snap"]["question"], by_id.get(it["id"])
@@ -228,6 +232,22 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
             if row.get(field) != q.get(field):
                 raise RefuseToBuild(f"{it['id']}: export {field} {row.get(field)!r} differs from the private "
                                     f"readback {q.get(field)!r}; take a fresh readback and export")
+    report, problems = duplicate_check(items, export_rows)
+    if problems:
+        raise RefuseToBuild("duplicate check failed: " + "; ".join(problems))
+    return report
+
+
+def duplicate_check(items: list[dict], export_rows: list[dict]) -> tuple[dict, list[str]]:
+    """The duplicate precheck shared by publish and stage (kimport.stage).
+
+    items: {"id", "source", "record", "full_key", "key"} per batch row; an id
+    that is also an export row (publish) is compared with every other row only.
+    Every non-archived export row and every other batch row is compared on the
+    comparison key (computed, and as stored) and at typo level. Returns the
+    report and one problem line per duplicate; the caller decides to refuse.
+    Raises RefuseToBuild when the export's stored keys are missing or drifted."""
+    by_id = {r["id"]: r for r in export_rows}
     try:
         exported = [record_from_row(r) for r in export_rows if r.get("archived_at") is None]
     except ValueError as e:
@@ -253,22 +273,21 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
         exact = sorted(by_key.get(it["full_key"], set()) - {it["id"]})
         typo = sorted({c.ref for c in by_block.get(blocking_key(rec), ())
                        if c.ref != it["id"] and c.ref not in exact and typo_match(rec, c).same})
-        rows.append({"id": it["id"], "source": list(_source(it["snap"]["question"])),
+        rows.append({"id": it["id"], "source": list(it["source"]),
                      "key": it["key"], "key_status": KEYED if it["key"] else FIGURE_NO_KEY,
                      "exact_matches": exact, "typo_matches": typo})
         if exact:
             problems.append(f"{it['id']} duplicate: same comparison key as {', '.join(exact)}")
         if typo:
             problems.append(f"{it['id']} duplicate: typo-level match with {', '.join(typo)}")
-    if problems:
-        raise RefuseToBuild("duplicate check failed: " + "; ".join(problems))
     others = [r for r in exported if r.ref not in batch_ids]
-    return {"normalizer_version": NORMALIZER_VERSION, "export_rows": len(export_rows),
-            "archived_rows_ignored": len(export_rows) - len(exported), "passed": True,
-            "rows": rows,
-            NOT_COMPARABLE_ANSWER: sorted(r.ref for r in others if r.meta.get("answer_problem")
-                                          and not r.meta.get("format_problem")),
-            NOT_COMPARABLE_FORMAT: sorted(r.ref for r in others if r.meta.get("format_problem"))}
+    report = {"normalizer_version": NORMALIZER_VERSION, "export_rows": len(export_rows),
+              "archived_rows_ignored": len(export_rows) - len(exported), "passed": not problems,
+              "rows": rows,
+              NOT_COMPARABLE_ANSWER: sorted(r.ref for r in others if r.meta.get("answer_problem")
+                                            and not r.meta.get("format_problem")),
+              NOT_COMPARABLE_FORMAT: sorted(r.ref for r in others if r.meta.get("format_problem"))}
+    return report, problems
 
 
 def _check_backfill(exported, key_of: dict, by_id: dict, batch_ids: set) -> None:
@@ -459,7 +478,8 @@ def build_publish(private_readback: Path, sealed_preview: Path, export: Path, in
             raise RefuseToBuild(f"{qid}: stored comparison_key {stored} differs from the computed {full_key}")
         if not _KEY.fullmatch(full_key):
             raise RefuseToBuild(f"{qid}: unexpected key format {full_key!r}")
-        items.append({"id": qid, "snap": snap, "record": record, "full_key": full_key,
+        items.append({"id": qid, "snap": snap, "source": _source(snap["question"]), "record": record,
+                      "full_key": full_key,
                       "key": None if unkeyed else full_key, "seal": seal, "manifest": manifest,
                       "items": _items_literal(snap, seal)})
 

@@ -115,17 +115,32 @@ k slice --reviewer <name> --clusters $PIPE/corpus/clusters.json --lane $PIPE/lan
 k lint --reviewed <batch>-reviewed-import-ready.json --frozen <batch>-frozen-inputs-import-ready.json --clusters $PIPE/corpus/clusters.json --lane $PIPE/lane.json --now <time>
 ```
 
-Then the existing stage path. Publishing one batch goes in this exact order:
+Then stage and publish. Publishing one batch goes in this exact order (the full
+per-batch command list, with every database write marked, is in
+`$PIPE/STAGE_HOWTO.md`):
 
-1. **Stage** the batch (existing stage path).
+1. **Stage** the batch: on a fresh export,
+
+   ```
+   k stage --batch $PIPE/batches/<batch>/ --export <export> --pdf <source exam pdf> --out $PIPE/batches/<batch>/stage/ --intents $PIPE/intents.jsonl
+   ```
+
+   writes `stage.sql` (+ `stage.dryrun.sql`), `readback.sql`, `stage-preview.json` and `precheck.json`. The rows are built by the app's own `importQuestion()` (`ts/stage-rows.ts` runs it against a recording client, after the same frozen-manifest gates as `import-json-direct.ts`), inserted as private drafts with `comparison_key` set. The precheck is publish's duplicate check (key and typo level, archived rows ignored) plus the source tuple, content hash and normalized text already in the export; refused rows are listed in `precheck.json` and nothing else is written unless `--skip-refused`. `stage.sql` opens with the export fingerprint guard. Open a `stage` intent, dry run, **your OK**, run `stage.sql`, then run `readback.sql` and seal it:
+
+   ```
+   k seal --readback <saved readback.sql result> --batch $PIPE/batches/<batch>/ --out $PIPE/batches/<batch>/stage/sealed-preview.json
+   ```
+
+   It checks every stored row equals what was inserted, seals each row with the app's `catalogQuestionPayloadHash` (`ts/seal-readback.ts`) and writes `private-readback.json`, `private-scope.json` and `sealed-preview.json`. Close the intent.
+
 2. **Export**: run `sql/live_export.sql`, save `$PIPE/live-<date>-3.json`.
 3. **Backfill, if needed**: `k publish` refuses when some other keyable row has no key (rows staged or added since the last backfill, for example other batches). The batch's own rows never need it: `publish.sql` sets their key. If it refuses, run `k backfill` on that export, apply it (dry run first), and go on.
-4. **Private readback** of the batch rows, saved as `<batch>-private-readback.json`.
+4. **Private readback**: the `stage/private-readback.json` that `k seal` wrote.
 5. **Fresh export** after the readback (the builder refuses an export older than the readback): `$PIPE/live-<date>-4.json`.
 6. **Build**:
 
    ```
-   k publish --batch <batch> --readback <batch>-private-readback.json --sealed <batch>-sealed-preview.json --export $PIPE/live-<date>-4.json --intents $PIPE/intents.jsonl --out $PIPE/batches/<batch>/
+   k publish --batch <batch> --readback $PIPE/batches/<batch>/stage/private-readback.json --sealed $PIPE/batches/<batch>/stage/sealed-preview.json --export $PIPE/live-<date>-4.json --intents $PIPE/intents.jsonl --out $PIPE/batches/<batch>/
    ```
 
    Produces `publish.sql`, `rollback.sql`, their `.dryrun.sql` twins, `keys.json`, `precheck.json`. `precheck.json` holds `publish_sql_sha256` (the sha256 of `publish.sql`) and `question_ids`. The builder refuses while any intent is open, so the intent is opened after it.

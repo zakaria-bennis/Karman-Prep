@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import backfill, corpus, lane, lint, pairs_page, publish, sweep, writer  # noqa: E402
+from kimport import backfill, corpus, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -20,6 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_writer(sub)
     _register_sweep(sub)
     _register_backfill(sub)
+    _register_stage(sub)
     _register_publish(sub)
     _register_lint(sub)
     _register_corpus(sub)
@@ -100,6 +101,29 @@ def _register_backfill(sub) -> None:
     bf.add_argument("--out", required=True, help="output file, e.g. pipeline/backfill.sql")
     bf.set_defaults(func=lambda a: _guard(lambda: print(
         "backfill: {in_sql} rows in SQL, {skipped} skipped ({skipped_live} of them live)".format(**backfill.run_backfill(Path(a.export), Path(a.out))))))
+
+
+def _register_stage(sub) -> None:
+    st = sub.add_parser("stage", help="write guarded stage SQL (private drafts) + readback SQL for one reviewed batch")
+    st.add_argument("--batch", required=True, help="batch folder with READY, e.g. pipeline/batches/<name>/")
+    st.add_argument("--export", required=True, help="fresh result of sql/live_export.sql")
+    st.add_argument("--pdf", required=True, help="the source exam PDF the frozen manifest pins")
+    st.add_argument("--out", required=True, help="output folder, e.g. pipeline/batches/<name>/stage/")
+    st.add_argument("--intents", help="intent log, e.g. pipeline/intents.jsonl (refuses while an intent is open)")
+    st.add_argument("--skip-refused", action="store_true",
+                    help="stage the rows that pass and leave refused rows out (listed in precheck.json)")
+    st.set_defaults(func=lambda a: _guard(lambda: print(
+        "stage {batch}: {staged} rows staged ({keyed} keyed), {refused} refused".format(**stage.run_stage(
+            Path(a.batch), Path(a.export), Path(a.pdf), Path(a.out), a.skip_refused,
+            Path(a.intents) if a.intents else None)))))
+
+    se = sub.add_parser("seal", help="check a saved stage readback and write sealed-preview.json for publish")
+    se.add_argument("--readback", required=True, help="saved result of the batch's stage/readback.sql")
+    se.add_argument("--batch", required=True, help="batch folder with READY and stage/stage-preview.json")
+    se.add_argument("--out", required=True, help="sealed preview to write, e.g. <batch>/stage/sealed-preview.json")
+    se.set_defaults(func=lambda a: _guard(lambda: print(
+        "seal {batch}: {rows} rows sealed; wrote {readback} and {sealed}".format(**stage.run_seal(
+            Path(a.readback), Path(a.batch), Path(a.out))))))
 
 
 def _register_publish(sub) -> None:
