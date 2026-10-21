@@ -52,6 +52,7 @@ it("KB-7 shortcuts match event.code, accept Option-modified keys and ignore comp
     [{ code: "KeyZ", key: "z", metaKey: true }, "undo"],
     [{ code: "KeyZ", key: "Z", metaKey: true, shiftKey: true }, "redo"],
     [{ code: "KeyY", key: "y", ctrlKey: true }, "redo"],
+    [{ code: "KeyY", key: "y", metaKey: true }, "redo"], // break-ui: Cmd+Y, as the reference
     [{ code: "KeyW", key: "z", ctrlKey: true }, null],
     [{ code: "Enter", key: "Enter", altKey: true }, "add-row-end"],
     [{ code: "KeyZ", key: "z", ctrlKey: true, isComposing: true }, null],

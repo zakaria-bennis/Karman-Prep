@@ -17,6 +17,7 @@ export const NATIVE_HISTORY_CHORDS: readonly string[] = Object.freeze([
   "Ctrl-Shift-Z",
   "Meta-Shift-Z",
   "Ctrl-Y",
+  "Meta-Y",
 ]);
 
 export function isNativeHistoryChord(key: string): boolean {

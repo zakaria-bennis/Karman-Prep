@@ -23,3 +23,9 @@ it("break-ui a line over 2,048 characters (spaces not counted) is refused before
   expect(overRowLimit("x".repeat(2049))).toBe(true);
   expect(overRowLimit("x+".repeat(50000))).toBe(true);
 });
+
+it("break-ui pasted spaces are dropped except between letters, which may end a command", () => {
+  expect(pastedLatex("  a = 5 ")).toBe("a=5");
+  expect(pastedLatex("\\sin x + 1")).toBe(pastedLatex("\\sin x+1"));
+  expect(pastedLatex("\\sin x")).toContain(" ");
+});

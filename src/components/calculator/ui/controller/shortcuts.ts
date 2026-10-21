@@ -19,7 +19,7 @@ export function matchShortcut(event: ShortcutKey): ShortcutAction | null {
   const { code, ctrlKey, metaKey, altKey, shiftKey } = event;
   const command = (ctrlKey || metaKey) && !altKey;
   if (command && code === "KeyZ") return shiftKey ? "redo" : "undo";
-  if (ctrlKey && !altKey && code === "KeyY") return "redo";
+  if ((ctrlKey || metaKey) && !altKey && code === "KeyY") return "redo"; // Cmd+Y on a Mac, as the reference
   if ((ctrlKey || altKey) && !metaKey && code === "KeyK") return "toggle-keypad";
   if (altKey && (code === "Enter" || code === "NumpadEnter")) return "add-row-end";
   if (altKey && !ctrlKey && !metaKey && code === "KeyT") return "audio-trace"; // POI-20

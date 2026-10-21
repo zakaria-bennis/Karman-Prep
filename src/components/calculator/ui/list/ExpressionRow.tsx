@@ -206,7 +206,9 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       onEnter: () => insertRowBelow(engine, focus, announcer, rowId, "focus"),
       onArrowOut: (direction) => leaveRow(engine, focus, rowId, direction),
       onDeleteOutOf(direction) {
-        if (fieldRef.current?.latex() === "") deleteFromEmptyRow(engine, focus, rowId, direction);
+        // R-9: Backspace deletes an empty row; Delete does nothing there, as on the reference.
+        if (direction === "left" && fieldRef.current?.latex() === "")
+          deleteFromEmptyRow(engine, focus, rowId);
       },
       onFocus() {
         setFieldFocused(true);

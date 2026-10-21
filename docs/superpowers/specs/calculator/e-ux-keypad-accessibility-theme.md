@@ -85,7 +85,7 @@ viewports, and narrow viewports open full screen (owner-confirmed).
 - **R-6** A row whose only problem is undefined names shows the warning marker with "Too many variables. Try defining 'k'." (one name) or "Too many variables. Try defining 'm' or 'b'." (more) and, under the math, an `add slider:` line: one blue button for a single name, else a grey button per name in order of first appearance and a blue `all`; a button adds `name=1` rows right below the row in one undo step (sliders themselves come in Phase 2). (amended 2026-10-19 for the reference look, rea-targets visual MASTER.md) (Phase 1; verified by component test)
 - **R-7** Sliders show min, max and step fields, the value, and a Play/Pause control; play options are speed (0.25x, 0.5x, 1x, 2x, 4x) and loop mode (back and forth, forward loop, play once), defaulting to 1x and back and forth (confirm by REA behaviour capture in Phase 2). (Phase 2; verified by browser test)
 - **R-8** Edit list mode shows, for every row, Delete, Duplicate, Move up, Move down and the style picker, plus a Clear all button at the top of the list (KB-5) and a Done button that leaves the mode. (Phase 2; verified by component test)
-- **R-9** Backspace in an empty row deletes it and focuses the end of the previous row; Delete in an empty row deletes it and focuses the start of the next row; the last remaining row is never deleted, only emptied. (Phase 1; verified by browser test)
+- **R-9** Backspace in an empty row deletes it and focuses the end of the previous row; Delete in an empty row does nothing, as on the reference (amended 2026-10-20, break-ui scout delete-spam-10-empty); the last remaining row is never deleted, only emptied. (Phase 1; verified by browser test)
 - **R-10** A new question, Clear all and `setBlank()` all leave exactly one empty row, numbered 1; after Clear all that row has focus (KB-5), and after a new question or `setBlank()` it receives focus when the calculator is next opened (KB-4). (Phase 1; verified by component test)
 
 ## 3. Typing and MathQuill configuration
@@ -199,20 +199,20 @@ Phone letters page (7 columns, alphabetical so every key keeps 44 px; owner-conf
 
 ## 6. Keyboard-first operation
 
-| Keys                     | Where                            | Action                                                       |
-| ------------------------ | -------------------------------- | ------------------------------------------------------------ |
-| Enter                    | expression row                   | new row below (Scientific: evaluate, then new row)           |
-| Alt+Enter                | anywhere in the calculator       | new expression row at the end, focused                       |
-| Up, Down                 | row, caret at top or bottom edge | previous or next row                                         |
-| Ctrl/Cmd+Z               | anywhere in the calculator       | undo                                                         |
-| Ctrl/Cmd+Shift+Z, Ctrl+Y | anywhere in the calculator       | redo                                                         |
-| Ctrl+K or Alt/Option+K   | graphing calculator              | show or hide the keypad                                      |
-| Escape                   | anywhere in the calculator       | close the top layer (KB-3)                                   |
-| Arrow keys               | graph focused                    | pan by 10% of the visible range                              |
-| + or =, −                | graph focused                    | zoom in (range x 0.8) or out (range x 1.25) about the centre |
-| Home                     | graph focused                    | default view                                                 |
-| Alt/Option+Shift+C       | docked or floating calculator    | move focus between calculator and question                   |
-| Alt/Option+T             | row or graph focused             | start or stop audio trace (Phase 4)                          |
+| Keys                         | Where                            | Action                                                       |
+| ---------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| Enter                        | expression row                   | new row below (Scientific: evaluate, then new row)           |
+| Alt+Enter                    | anywhere in the calculator       | new expression row at the end, focused                       |
+| Up, Down                     | row, caret at top or bottom edge | previous or next row                                         |
+| Ctrl/Cmd+Z                   | anywhere in the calculator       | undo                                                         |
+| Ctrl/Cmd+Shift+Z, Ctrl/Cmd+Y | anywhere in the calculator       | redo                                                         |
+| Ctrl+K or Alt/Option+K       | graphing calculator              | show or hide the keypad                                      |
+| Escape                       | anywhere in the calculator       | close the top layer (KB-3)                                   |
+| Arrow keys                   | graph focused                    | pan by 10% of the visible range                              |
+| + or =, −                    | graph focused                    | zoom in (range x 0.8) or out (range x 1.25) about the centre |
+| Home                         | graph focused                    | default view                                                 |
+| Alt/Option+Shift+C           | docked or floating calculator    | move focus between calculator and question                   |
+| Alt/Option+T                 | row or graph focused             | start or stop audio trace (Phase 4)                          |
 
 - **KB-1** Every shortcut in the table above works in Chromium, Firefox and WebKit from the phase of the item that defines it (Alt/Option+Shift+C in Phase 2 per KB-11, Alt/Option+T in Phase 4 per A11Y-13, all others in Phase 1), and is listed in a "Keyboard shortcuts and help" popover opened from the title bar, which also shows short usage text: example rows (y=x^2, f(x)=2x+1, x=3, (2,3)), how to add a table and a regression, the Paste button, and the documented limits of `a-math-semantics.md` section 5.6. (Phase 1; verified by browser test)
 - **KB-2** Undo and redo use one history stack owned by the calculator: MathQuill's own undo is never used, typing in one row coalesces into one step until 1,000 ms without edits or a focus change, and Undo and Redo are disabled at the ends of the stack. (Phase 1; verified by component test)

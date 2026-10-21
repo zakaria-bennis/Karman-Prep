@@ -24,9 +24,16 @@ export function pastedLines(text: string): string[] {
     .filter((line) => line !== "");
 }
 
-/** One pasted line as LaTeX for a row (PR-3, PR-4). */
+/**
+ * One pasted line as LaTeX for a row (PR-3, PR-4), its spaces dropped as MathQuill drops them
+ * ("a = 5" is stored as a=5), except one between two letters, which may end a command (\sin x).
+ */
 export function pastedLatex(line: string): string {
-  return normalizeLatex(line);
+  return normalizeLatex(
+    line.replace(/\s+/g, (_, at: number, all: string) =>
+      /[A-Za-z]/.test(all[at - 1] ?? "") && /[A-Za-z]/.test(all[at + _.length] ?? "") ? " " : ""
+    )
+  );
 }
 
 /**
