@@ -111,7 +111,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
   const engine = useEngine();
-  const { focusedRowId, activeRowId } = useEngineSnapshot(engine);
+  const { focusedRowId, activeRowId, selectedRowId } = useEngineSnapshot(engine);
   const focus = useFocusController();
   const announcer = useAnnouncer();
   const createField = useContext(MathFieldFactoryContext);
@@ -336,6 +336,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
       data-row-id={row.id}
       data-focused={focusedRowId === row.id ? "true" : undefined}
       data-active={activeRowId === row.id ? "true" : undefined}
+      data-selected={selectedRowId === row.id ? "true" : undefined}
       data-motion={motion}
       aria-hidden={exiting ? "true" : undefined}
       onTransitionEnd={onRowTransitionEnd}

@@ -202,7 +202,11 @@
   height: 20px;
 }
 
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-table-actions
   .kc-table-add-row {
   color: var(--kc-focus-bar-label);
@@ -283,7 +287,11 @@
 }
 
 /* RT-28: white on the focus bar while the table is selected, as the reference draws it. */
-.kc-row:is([data-focused="true"], .kc-app:has(.kc-keypad:focus-within) [data-active="true"])
+.kc-row:is(
+    [data-focused="true"],
+    [data-selected="true"],
+    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
+  )
   .kc-table-add-regression {
   color: var(--kc-focus-bar-label);
 }

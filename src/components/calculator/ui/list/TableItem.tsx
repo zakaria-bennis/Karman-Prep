@@ -94,7 +94,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
   const { row, number, keypadOpen, motion } = props;
   const exiting = motion === "exit";
   const engine = useEngine();
-  const { focusedRowId, activeRowId, geometry } = useEngineSnapshot(engine);
+  const { focusedRowId, activeRowId, selectedRowId, geometry } = useEngineSnapshot(engine);
   const focus = useContext(FocusContext)!;
   const announcer = useAnnouncer();
   const keyContext: TableKeyContext = { engine, focus, announcer, tableId: row.id };
@@ -194,6 +194,7 @@ export function TableItem(props: TableItemProps): JSX.Element {
       data-row-id={row.id}
       data-focused={focusedRowId === row.id ? "true" : undefined}
       data-active={activeRowId === row.id ? "true" : undefined}
+      data-selected={selectedRowId === row.id ? "true" : undefined}
       data-motion={motion}
       aria-hidden={exiting ? "true" : undefined}
       onFocus={(e) => {
