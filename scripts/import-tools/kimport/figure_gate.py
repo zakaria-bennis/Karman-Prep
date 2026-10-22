@@ -85,6 +85,20 @@ def no_figure_ids(figures_dir: Path | None) -> frozenset[str]:
     return frozenset(out)
 
 
+def approved_ids(figures_dir: Path | None) -> frozenset[str]:
+    """Ids whose status.json says approved (the founder approved the figure; the gate still checks the bytes)."""
+    if figures_dir is None or not Path(figures_dir).is_dir():
+        return frozenset()
+    out = set()
+    for st in Path(figures_dir).glob(f"*/{STATUS_FILE}"):
+        try:
+            if json.loads(st.read_text(encoding="utf-8")).get("status") == "approved":
+                out.add(st.parent.name)
+        except (OSError, ValueError):
+            continue
+    return frozenset(out)
+
+
 def is_figure_question(occ_id: str, flag, no_figure) -> bool:
     """The one rule for "is this occurrence a figure question": something flags it (a visual
     word or phrase in its text, a CF or ledger visual hold, a re-read, figure fields) and no

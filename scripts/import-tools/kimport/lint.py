@@ -161,11 +161,15 @@ def _check_difficulty(row: dict) -> list[str]:
     return problems
 
 
-def _check_dedup(row: dict, clusters: dict) -> list[str]:
+def _check_dedup(row: dict, clusters: dict, approved_figures=frozenset()) -> list[str]:
     sid = row.get("stable_question_id")
     roles = _object(clusters.get("roles")) or {}
     if sid not in roles:
         return ["row has no cluster entry"]
+    # A figure group's copy whose figure the founder approved is the copy that group publishes; the stage
+    # guards (same text / source / hash in the bank or the run) still stop any second copy.
+    if roles[sid] == "figure_review" and sid in approved_figures:
+        return []
     if roles[sid] != "canonical":
         return [f"cluster role is {roles[sid]!r}, not canonical"]
     return []
@@ -179,7 +183,8 @@ class LintError(ValueError):
     pass
 
 
-def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=frozenset()) -> dict:
+def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=frozenset(),
+               approved_figures=frozenset()) -> dict:
     """Return {"passed": [ids], "pulled": [{id, code, detail}]}. A row with several
     problems gets one pulled entry per code and is not in `passed`. no_figure: ids a
     reviewer found to have no figure (figure_gate.no_figure_ids); their text may mention
@@ -218,7 +223,7 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=fr
             "PF_ENVELOPE": _check_envelope(row),
             "PF_BINDING": binding,
             "PF_DIFFICULTY": _check_difficulty(row),
-            "PF_DEDUP_STALE": _check_dedup(row, cluster_data),
+            "PF_DEDUP_STALE": _check_dedup(row, cluster_data, approved_figures),
         }
         hit = False
         for code in _CODE_ORDER:
@@ -245,7 +250,9 @@ def write_lane(lane_path: Path, pulled: list, now: str) -> int:
 
 def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str) -> dict:
     """lint_batch, with no-figure.json read from figures/ beside the lane file."""
-    result = lint_batch(reviewed, frozen, clusters, figure_gate.no_figure_ids(Path(lane).parent / "figures"))
+    figures = Path(lane).parent / "figures"
+    result = lint_batch(reviewed, frozen, clusters, figure_gate.no_figure_ids(figures),
+                        figure_gate.approved_ids(figures))
     if result["pulled"]:
         write_lane(lane, result["pulled"], now)
     return {"passed": len(result["passed"]), "pulled_rows": len({p["id"] for p in result["pulled"]}),

@@ -347,3 +347,16 @@ class LintCliTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ApprovedFigureRoleTest(unittest.TestCase):
+    def test_figure_review_copy_with_approved_figure_passes_dedup(self):
+        from kimport.lint import _check_dedup
+        clusters = {"roles": {"syn-q1": "figure_review", "syn-q2": "figure_review"}}
+        self.assertEqual(_check_dedup({"stable_question_id": "syn-q1"}, clusters, frozenset({"syn-q1"})), [])
+        self.assertTrue(_check_dedup({"stable_question_id": "syn-q2"}, clusters, frozenset({"syn-q1"})))
+
+    def test_member_with_approved_figure_still_pulled(self):
+        from kimport.lint import _check_dedup
+        clusters = {"roles": {"syn-q3": "member"}}
+        self.assertTrue(_check_dedup({"stable_question_id": "syn-q3"}, clusters, frozenset({"syn-q3"})))
