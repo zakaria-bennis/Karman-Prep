@@ -1,108 +1,130 @@
-/* Small row tools (owner decisions, 2026-10-21): the add-sliders icon under a row's warning
-   marker and its menu, the DEG/RAD badge of a trig row, and the portalled tooltip both use. */
+/* Small row tools: Desmos's add-slider line under a row with undefined names (R-6, owner
+   2026-10-22), the click-to-copy value and its "Copied" note (R-5, owner 2026-10-22), and the
+   DEG/RAD badge of a trig row with the portalled tooltip it uses (owner, 2026-10-21). */
 
-/* The add-sliders icon: a 29 by 14 button in the gutter, its top 1.2 px under the 26 px warning
-   marker, inside the 56 px row so the row keeps its height. Quiet ink at 0.55, 0.8 hovered. */
-.kc-add-sliders {
-  position: absolute;
-  top: 38.5px;
-  left: 4px;
-  display: grid;
-  place-items: center;
-  width: var(--kc-colour-icon);
-  height: 14px;
-  padding: 0;
-  border: none;
+/* R-6 (live Desmos, 2026-10-22): the add-slider line is 29 px tall, 2 px up into the math's
+   padding; "add slider:" in 12.8 px muted text, 5 px from the first 35 by 26 button (with the 3 px
+   gap), its baseline a pixel below the buttons' line. */
+.kc-add-slider {
+  margin-top: -1px;
+  margin-bottom: 2px;
+}
+
+.kc-add-slider-label {
+  position: relative;
+  top: 1px;
+  margin-right: 2px;
+}
+
+/* R-6: 35 by 26 buttons, 3 px corners, on a light gradient that cools toward the bottom (#f6f6f6
+   to #eff2f3 on Desmos) behind a lighter border; the name in 15.64 px italic math. A single name,
+   and "all", are accent-filled with the accent label colour. */
+.kc-letter-button {
+  min-width: 35px;
+  height: 26px;
+  padding: 0 4px 2px;
+  border: 1px solid var(--kc-letter-border);
   border-radius: var(--kc-radius-small);
-  background: transparent;
+  background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
+  box-shadow:
+    inset 0 1px color-mix(in srgb, var(--kc-list) 25%, transparent),
+    inset 0 -1px color-mix(in srgb, var(--kc-text) 2%, transparent);
   color: var(--kc-text);
-  opacity: 0.55;
+  font-family: var(--kc-font-math);
+  font-size: 15.64px;
+  font-style: italic;
   cursor: pointer;
 }
 
-.kc-add-sliders > svg {
-  display: block;
+/* "all" is upright, 13.6 px, centred without the letters' lift. */
+.kc-letter-button[data-word="true"] {
+  padding-bottom: 0;
+  font-size: var(--kc-size-slider-word);
+  font-style: normal;
+}
+
+/* Hovered or keyboard-focused, a grey button turns flat #eff2f3 with a #bbb edge on Desmos. */
+.kc-letter-button:not([data-tone="accent"]):is(:hover, :focus-visible) {
+  border-color: var(--kc-boundary);
+  background: var(--kc-letter-bottom);
+}
+
+.kc-letter-button[data-tone="accent"] {
+  border-color: transparent;
+  background: var(--kc-accent);
+  box-shadow:
+    inset 0 1px color-mix(in srgb, var(--kc-list) 10%, transparent),
+    inset 0 -1px color-mix(in srgb, var(--kc-text) 4%, transparent);
+  color: var(--kc-accent-label);
+}
+
+/* Desmos takes the accent 10 % toward the ink hovered or focused and 18 % pressed (its black ink:
+   rgb(42, 103, 198) and rgb(39, 93, 180)), dropping the shadow when pressed. */
+.kc-letter-button[data-tone="accent"]:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--kc-text) 10%, var(--kc-accent));
+}
+
+.kc-letter-button[data-tone="accent"]:active {
+  background: color-mix(in srgb, var(--kc-text) 18%, var(--kc-accent));
+  box-shadow: none;
+}
+
+/* The keyboard ring: 2 px solid as on Desmos, in the calculator-wide focus colour (TH-14), 1 px
+   out so it shows around an accent button. */
+.kc-letter-button:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 1px;
+}
+
+/* R-5 click to copy (owner, 2026-10-22): the "=" and the boxes are one quiet button laid out as
+   the line was; hovered, its boxes take the boundary edge; the keyboard ring is the usual one. */
+.kc-row-value-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--kc-radius-chip);
+  background: transparent;
+  text-align: inherit;
+  cursor: pointer;
 }
 
 @media (hover: hover) {
-  .kc-add-sliders:hover {
-    opacity: 0.8;
+  .kc-row-value-copy:hover > .kc-row-value-box {
+    border-color: var(--kc-boundary);
   }
 }
 
-.kc-add-sliders[aria-expanded="true"],
-.kc-add-sliders:active {
-  opacity: 0.9;
-}
-
-.kc-add-sliders:focus-visible {
+.kc-row-value-copy:focus-visible {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: 2px;
 }
 
-.kc-row:is(
-    [data-focused="true"],
-    [data-selected="true"],
-    .kc-app:has(.kc-keypad:focus-within) [data-active="true"]
-  )
-  .kc-add-sliders {
-  color: var(--kc-focus-bar-label);
-  opacity: 0.9;
-}
-
-/* On a touch screen the icon takes taps across the gutter's width and down to the row's foot. */
-@media (pointer: coarse) {
-  .kc-add-sliders::before {
-    content: "";
-    position: absolute;
-    inset: -2px -4px -6px;
-  }
-}
-
-/* The menu: "all", then each name, in a small box under the icon, over the rows below. */
-.kc-add-sliders-menu {
-  position: fixed;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  min-width: 72px;
-  padding: 4px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
-  background: var(--kc-list);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--kc-text) 16%, transparent);
-  animation: kc-tooltip-in var(--kc-dur-200) var(--kc-ease);
-}
-
-.kc-add-sliders-item {
-  min-height: 30px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--kc-text);
-  font-family: var(--kc-font-math);
-  font-size: var(--kc-size-slider-word);
-  font-style: italic;
-  text-align: left;
-  cursor: pointer;
-}
-
-.kc-add-sliders-item[data-word="true"] {
+/* The copy confirmation just right of the value: a 10 px check and "Copied" in the row's small
+   muted caption type. It fades in, stays 1.2 s, then fades out (instant under reduced motion). */
+.kc-row-copied {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 3px;
+  color: var(--kc-text-muted);
   font-family: var(--kc-font-ui);
-  font-style: normal;
+  font-size: var(--kc-size-small);
+  line-height: 1;
+  white-space: nowrap;
+  transition: opacity var(--kc-dur-300) var(--kc-ease);
+  animation: kc-tooltip-in var(--kc-dur-200) var(--kc-ease);
+  pointer-events: none;
+  user-select: none;
 }
 
-.kc-add-sliders-item:hover,
-.kc-add-sliders-item:focus-visible {
-  background: color-mix(in srgb, var(--kc-text) 8%, transparent);
-  outline: none;
-}
-
-@media (pointer: coarse) {
-  .kc-add-sliders-item {
-    min-height: 40px;
-  }
+.kc-row-copied[data-phase="leaving"] {
+  opacity: 0;
 }
 
 /* The DEG/RAD badge: 10 px capitals in muted ink inside a hairline box. At the end of the value

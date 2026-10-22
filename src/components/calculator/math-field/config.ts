@@ -65,9 +65,9 @@ export function mathQuillOptions(): MathQuillOptions {
     enableDigitGrouping: true,
     // AR-42, AR-14: the clipboard bridge and the adapter's own listeners own copy and paste
     disableCopyPaste: true,
-    // T-7: * types \cdot and % types \%
+    // T-7: * types \cdot; % types Desmos's "% of", \%\operatorname{of}, one unit (owner, 2026-10-22)
     typingAsteriskWritesTimesSymbol: false,
-    typingPercentWritesPercentOf: false,
+    typingPercentWritesPercentOf: true,
     // T-2: / makes a fraction with the preceding term as its numerator
     typingSlashWritesDivisionSymbol: false,
     typingSlashCreatesNewFraction: false,

@@ -5,13 +5,13 @@
 // speech text (A11Y-4), its value in a box (R-5, RowValue), its error as a warning marker that
 // replaces the tab, with the message in its tooltip and aria-invalid on the textbox (R-2,
 // ErrorMarker), the decimal/fraction toggle of a value with a fraction form (R-5,
-// FractionToggle; the engine offers none on a regression parameter), the add-sliders icon under
-// the marker of a row with undefined names (R-6, AddSliders), the DEG/RAD badge of a trig row
-// (AngleBadge), and the Delete control. The
+// FractionToggle; the engine offers none on a regression parameter), the DEG/RAD badge of a trig
+// row (AngleBadge), and the Delete control. The
 // field's inputmode follows the on-screen keypad (T-11). Enter, the arrow edges, Backspace or
 // Delete in an empty row and the Delete control go through row-actions (R-3, R-9); a typed edit
 // past the T-13 limit is refused, restored and announced. Under the math it shows a point row's
-// Label line (EL-15); in Edit list mode
+// Label line (EL-15) and, after the Delete control so Tab reaches it after the cross as on Desmos,
+// the add-slider line of a row with undefined names (R-6, RowUnderMath); in Edit list mode
 // its actions replace the delete cross (EL-45). AN-5: the row carries its presence
 // motion; an exiting row leaves the focus controller, is aria-hidden and inert with no number, and
 // reports onExitDone once its own exit transition-duration has passed.
@@ -61,9 +61,8 @@ import { EditRowActions } from "./EditRowActions";
 import { ToastContext } from "./Toast";
 import { RowValue } from "./RowValue";
 import { FractionToggle } from "./FractionToggle";
-import { AddSlidersButton, addSliders } from "./AddSliders";
 import { AngleBadge, usesTrig } from "./AngleBadge";
-import { PointLabelLine } from "./RowUnderMath";
+import { AddSliderLine, addSliders, PointLabelLine } from "./RowUnderMath";
 import { SliderGutter } from "./SliderGutter";
 import { SliderLine, type SliderLineHandle } from "./SliderLine";
 import { tabPastRow } from "./slider-focus";
@@ -434,16 +433,6 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
             />
           )}
           {error !== null && <ErrorMarker id={ids.error} message={error.message} variant="row" />}
-          {chips && (
-            <AddSlidersButton
-              names={row.chips}
-              onAdd={(names, keyboard) => {
-                addSliders(engine, announcer, row.id, names);
-                // SLIDERS-8: a keyboard pick returns to the row's math; a click leaves focus.
-                if (keyboard) focus.focusRow(row.id, "end");
-              }}
-            />
-          )}
         </div>
         <div className="kc-row-main">
           <div
@@ -543,6 +532,17 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           >
             <RemoveGlyph />
           </button>
+        )}
+        {chips && (
+          <AddSliderLine
+            names={row.chips}
+            afterSlider={slider !== null}
+            onAdd={(names, keyboard) => {
+              addSliders(engine, announcer, row.id, names);
+              // SLIDERS-8: a keyboard press returns to the row's math; a click leaves focus.
+              if (keyboard) focus.focusRow(row.id, "end");
+            }}
+          />
         )}
       </div>
     </li>

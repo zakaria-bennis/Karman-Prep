@@ -52,7 +52,7 @@ export interface AppProps {
  * calculator. A click that leaves focus on an ancestor of the host (or on nothing) focuses the
  * clicked control, as Chromium and Firefox do on mousedown. Focus kept elsewhere is left alone.
  * The focus is a pointer's, so it draws no keyboard ring (focusVisible: false; owner decision,
- * 2026-10-21: the slider icon and the fraction toggles ring only for the keyboard).
+ * 2026-10-21: the add-slider buttons and the fraction toggles ring only for the keyboard).
  */
 function focusClickedControl(event: MouseEvent): void {
   const root = event.currentTarget as HTMLElement;

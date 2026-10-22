@@ -16,4 +16,6 @@ export const EDITOR_MESSAGES = {
   boundNotNumber: "Enter an expression with a finite value.", // S-7
   boundOrder: "The minimum must be less than the maximum.", // S-7
   stepInvalid: "Enter a positive number, or leave blank for automatic.", // S-7
+  copyValue: "Copy value", // R-5 click to copy (owner, 2026-10-22): the value's name
+  copied: "Copied", // R-5 click to copy: announced, and shown beside the value
 } as const;

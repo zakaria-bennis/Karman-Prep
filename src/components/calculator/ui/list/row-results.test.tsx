@@ -196,8 +196,10 @@ it("A11Y-3 the value element and the error element are linked from the textbox b
 it("FN-16 in real mode i is an ordinary undefined name, as in Desmos: 2i offers its slider and a lone i none (owner decision, 2026-10-21)", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["2i", "i"] });
   expect(kit.engine.getSnapshot().rows.map((r) => r.chips)).toEqual([["i"], ["i"]]);
-  expect(within(rowItem("1")).getByRole("button", { name: "Add sliders" })).toBeInTheDocument();
-  expect(within(rowItem("2")).queryByRole("button", { name: "Add sliders" })).toBeNull();
+  expect(
+    within(rowItem("1")).getByRole("button", { name: "Add slider for i" })
+  ).toBeInTheDocument();
+  expect(within(rowItem("2")).queryByRole("group", { name: "add slider:" })).toBeNull();
   expect(textbox(1)).toHaveAttribute("aria-invalid", "true");
   expect(textbox(2)).toHaveAttribute("aria-invalid", "true");
   expect(screen.queryByText(/complex mode/i)).toBeNull();

@@ -57,9 +57,9 @@ it("CHARS_THAT_BREAK_OUT_OF_SUPSUB is exactly + - = < > ~ , and mathQuillOptions
   expect(CHARS_THAT_BREAK_OUT_OF_SUPSUB).toBe("+-=<>~,");
   expect(config.charsThatBreakOutOfSupSub).toBe("+-=<>~,");
 });
-it("mathQuillOptions turns off typingAsteriskWritesTimesSymbol and typingPercentWritesPercentOf", () => {
+it("mathQuillOptions turns off typingAsteriskWritesTimesSymbol and on typingPercentWritesPercentOf (T-7)", () => {
   expect(config.typingAsteriskWritesTimesSymbol).toBe(false);
-  expect(config.typingPercentWritesPercentOf).toBe(false);
+  expect(config.typingPercentWritesPercentOf).toBe(true);
 });
 it("mathQuillOptions turns on restrictMismatchedBrackets", () =>
   expect(config.restrictMismatchedBrackets).toBe(true));
