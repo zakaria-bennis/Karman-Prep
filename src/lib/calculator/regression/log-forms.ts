@@ -1,7 +1,8 @@
 // D-27: the model forms log mode linearises, matched structurally on the syntax tree after
-// flattening products and sums, so factor and term order do not matter: a·b^x, a·e^(bx), a·exp(bx),
-// a·c^(bx) and c^(mx+k) with a numeric base c > 0, c ≠ 1, a·x^b and a + b·ln x, where x is the
-// predictor list and a, b, m, k are distinct parameters. Pure TypeScript: no DOM.
+// flattening products and sums, so factor and term order do not matter: a·b^x, a·(1+r)^x,
+// a·e^(bx), a·exp(bx), a·c^(bx) and c^(mx+k) with a numeric base c > 0, c ≠ 1, a·x^b and
+// a + b·ln x, where x is the predictor list and a, b, r, m, k are distinct parameters. Pure
+// TypeScript: no DOM.
 
 import type { Node } from "../core/latex/ast";
 import type { LogFormMatch } from "./fit";
@@ -26,6 +27,13 @@ export function matchLogForm(
     const [p, q] = isX(f[0]) ? [f[1], f[0]] : [f[0], f[1]];
     return isX(q) ? param(p) : -1;
   };
+  /** 1 + r in either order: the index of r, else -1 (live Desmos offers log mode for a(1+r)^x). */
+  const onePlus = (n: Node): number => {
+    const t = terms(n);
+    if (t.length !== 2) return -1;
+    const [one, r] = t[0].kind === "num" ? [t[0], t[1]] : [t[1], t[0]];
+    return one.kind === "num" && one.value === 1 ? param(r) : -1;
+  };
   const distinct = (...ix: number[]) =>
     ix.every((i) => i >= 0) && new Set(ix).size === ix.length && ix.length === params.length;
 
@@ -42,6 +50,8 @@ export function matchLogForm(
         if (param(left) >= 0 && isX(right) && distinct(a, param(left))) {
           return { kind: "exponential-base", a, b: param(left) };
         }
+        const r = onePlus(left);
+        if (isX(right) && distinct(a, r)) return { kind: "exponential-growth", a, r };
         if (isX(left) && param(right) >= 0 && distinct(a, param(right))) {
           return { kind: "power", a, b: param(right) };
         }

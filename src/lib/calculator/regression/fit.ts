@@ -14,6 +14,7 @@ export const FIT_ERROR = "This model isn't defined for this data.";
 /** D-27: a model log mode can linearise, with the indices of its parameters in `params`. */
 export type LogFormMatch =
   | { kind: "exponential-base"; a: number; b: number } // a·b^x
+  | { kind: "exponential-growth"; a: number; r: number } // a·(1+r)^x
   | { kind: "exponential-e"; a: number; b: number } // a·e^(bx), a·exp(bx)
   | { kind: "exponential-ac"; c: number; a: number; b: number } // a·c^(bx), c a number
   | { kind: "exponential-c"; c: number; m: number; k: number } // c^(mx+k)
@@ -104,6 +105,10 @@ function logParams(form: LogFormMatch, k: number, fit: { slope: number; intercep
     case "exponential-base":
       p[form.a] = Math.exp(intercept);
       p[form.b] = Math.exp(slope);
+      break;
+    case "exponential-growth":
+      p[form.a] = Math.exp(intercept);
+      p[form.r] = Math.expm1(slope);
       break;
     case "exponential-e":
     case "power":

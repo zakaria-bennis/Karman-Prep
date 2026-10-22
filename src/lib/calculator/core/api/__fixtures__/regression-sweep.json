@@ -1686,30 +1686,53 @@
           "residual": "e_{1}"
         }
       }
-    ],
-    "known": {
-      "reason": "log mode is not offered for a base that is an expression of a parameter, (1+r)",
-      "ours": [
-        {
-          "graph": true
-        },
-        {
-          "graph": true,
-          "reg": {
-            "params": {
-              "a": 1.4289415888894188,
-              "r": 1.0257959824232596
-            },
-            "stats": {
-              "Rsquared": 0.9995241023067151
-            },
-            "isLinear": false,
-            "logSuggested": false,
-            "residual": "e_{1}"
+    ]
+  },
+  {
+    "group": "table",
+    "name": "growth a(1+r)^x_1, log mode",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3.1", "5.8", "12.4", "23.5", "48.9"]
           }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim a\\left(1+r\\right)^{x_{1}}",
+        "logMode": true
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.5158539473542514,
+            "r": 0.9968866793047412
+          },
+          "stats": {
+            "r": 0.9995932639093899,
+            "rsquared": 0.9991866932530271
+          },
+          "isLinear": false,
+          "logSuggested": true,
+          "residual": "e_{1}"
         }
-      ]
-    }
+      }
+    ]
   },
   {
     "group": "table",

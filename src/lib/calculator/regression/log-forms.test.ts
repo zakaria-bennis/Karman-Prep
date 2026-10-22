@@ -12,6 +12,16 @@ it("D-27 each log form is matched structurally, in any factor order", () => {
   expect(match("ab^{x_{1}}", ["a", "b"])).toEqual({ kind: "exponential-base", a: 0, b: 1 });
   expect(match("a\\cdot b^{x_{1}}", ["a", "b"])).toEqual({ kind: "exponential-base", a: 0, b: 1 });
   expect(match("b^{x_{1}}a", ["b", "a"])).toEqual({ kind: "exponential-base", a: 1, b: 0 });
+  expect(match("a\\left(1+r\\right)^{x_{1}}", ["a", "r"])).toEqual({
+    kind: "exponential-growth",
+    a: 0,
+    r: 1,
+  });
+  expect(match("\\left(r+1\\right)^{x_{1}}a", ["r", "a"])).toEqual({
+    kind: "exponential-growth",
+    a: 1,
+    r: 0,
+  });
   expect(match("ae^{bx_{1}}", ["a", "b"])).toEqual({ kind: "exponential-e", a: 0, b: 1 });
   expect(match("a\\exp\\left(bx_{1}\\right)", ["a", "b"])).toEqual({
     kind: "exponential-e",
@@ -40,4 +50,6 @@ it("D-27 other models have no log form", () => {
   expect(match("ab^{x_{2}}", ["a", "b"])).toBeNull(); // not the predictor
   expect(match("a\\cdot1^{bx_{1}}", ["a", "b"])).toBeNull(); // base 1
   expect(match("aa^{x_{1}}", ["a"])).toBeNull();
+  expect(match("a\\left(2+r\\right)^{x_{1}}", ["a", "r"])).toBeNull(); // not 1 + r
+  expect(match("a\\left(1+a\\right)^{x_{1}}", ["a"])).toBeNull();
 });

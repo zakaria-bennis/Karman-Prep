@@ -42,3 +42,30 @@ test("the owner's [5% of a,b] ~ [b,2c] with a = 2 typed on the phone keypad fits
   await expect.poll(() => shown(page)).toEqual(["b=0.1", "c=0.05", "RMSE=0"]);
   await expect(page.locator("#calc [data-row-id='1'] .kc-row-warning")).toHaveCount(0);
 });
+
+test("D-27 y_1 ~ a(1+r)^{x_1} offers Log Mode, and it fits as live Desmos does", async ({
+  page,
+}) => {
+  const rowsShown = ["y_{1}\\sim a\\left(1+r\\right)^{x_{1}}"];
+  await openShell(page, `?w=1100&h=760&rows=${encodeURIComponent(JSON.stringify(rowsShown))}`);
+  await page.evaluate(() =>
+    globalThis.__calculatorHarness!.engine.setExpression({
+      id: "t",
+      type: "table",
+      columns: [
+        { latex: "x_{1}", values: ["1", "2", "3", "4", "5"] },
+        { latex: "y_{1}", values: ["3.1", "5.8", "12.4", "23.5", "48.9"] },
+      ],
+    })
+  );
+  await expect.poll(() => shown(page)).toEqual(["a=1.42894", "r=1.0258", "R^{2}=0.9995"]);
+  const logMode = page.locator("#calc [data-row-id='1']").getByRole("checkbox", {
+    name: "Log Mode",
+  });
+  await expect(logMode).toBeVisible();
+  await logMode.check();
+  // live Desmos, 2026-10-22: a = 1.51585, r = 0.996887, R² = 0.9992, r = 0.9996
+  await expect
+    .poll(() => shown(page))
+    .toEqual(["a=1.51585", "r=0.996887", "R^{2}=0.9992", "r=0.9996"]);
+});
