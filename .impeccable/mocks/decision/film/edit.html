@@ -55,7 +55,8 @@
 <script>
 (function () {
   const NAMES = ["The kitchen before dawn", "Ava on the shuttle", "The pickup line", "Mateo at tennis", "Priya in the live class", "David's 1:1 review",
-    "The night", "Test day, phones away", "Mateo, next fall", "Priya, next fall", "Ava, next fall", "Orbit and the line"];
+    "The night", "Test day, phones away", "Mateo, next fall (held, not on the page)", "Priya, next fall (held, not on the page)", "Ava, next fall (held, not on the page)", "Orbit and the line"];
+  const HELD = [9, 10, 11]; // the college chapters are off the page until the founder approves unbranded footage
   const form = document.getElementById("form"), frame = document.getElementById("frame"), status = document.getElementById("status");
   const save = document.getElementById("save"), discard = document.getElementById("discard");
   let saved = "", chapters = [], current = 1, timer = 0;
@@ -83,14 +84,15 @@
     form.innerHTML = "";
     chapters.forEach(c => {
       const box = document.createElement("div"); box.className = "ch" + (c.n === current ? " on" : ""); box.dataset.n = c.n;
-      box.innerHTML = `<h2><span>${c.n}. ${NAMES[c.n - 1] || ""}</span><button type="button">Show</button></h2>`;
-      box.querySelector("button").onclick = () => { current = c.n; mark(); reload(true); };
+      const held = HELD.includes(c.n);
+      box.innerHTML = `<h2><span>${c.n}. ${NAMES[c.n - 1] || ""}</span>${held ? "" : '<button type="button">Show</button>'}</h2>`;
+      if (!held) box.querySelector("button").onclick = () => { current = c.n; mark(); reload(true); };
       c.rows.forEach((row, j) => {
         const id = `f-${c.n}-${j}`, lab = document.createElement("label"); lab.htmlFor = id; lab.textContent = row[0];
         const ta = document.createElement("textarea"); ta.id = id; ta.rows = 1; ta.value = row[1];
         const msgs = document.createElement("div");
         const paint = () => { msgs.innerHTML = check(row[0], ta.value, c).map(([t, m]) => `<p class="msg ${t}">${m}</p>`).join(""); };
-        ta.addEventListener("focus", () => { if (current !== c.n) { current = c.n; mark(); reload(true); } });
+        ta.addEventListener("focus", () => { if (current !== c.n && !held) { current = c.n; mark(); reload(true); } });
         ta.addEventListener("input", () => { row[1] = ta.value; paint(); changed(); });
         paint(); lab.append(ta, msgs); box.append(lab);
       });

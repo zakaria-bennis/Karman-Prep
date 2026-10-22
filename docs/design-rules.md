@@ -83,7 +83,8 @@ The calculator is excluded until the founder has reviewed it.
 43. Study happens anywhere: at a desk, on the go, on the bench during a
     practice break. The product is digital, so pictures centre on phones and
     laptops, not paper. AirPods Pro or AirPods Max are fine; no visible
-    brand logos.
+    brand logos (university clothing in the "next fall" chapters is the one exception;
+    see rule 47).
 44. Screens are readable and show real Karman product screens with logical
     content. The founder approves each screen's content before anything is
     generated. Screen text is placed from our own rendered screens, never left
@@ -98,6 +99,12 @@ The calculator is excluded until the founder has reviewed it.
     or its still (for example "Ava, 6:50 a.m., Daily 10"), but never a score,
     a quote, a result or a claim that they are enrolled Karman students, and
     no screen in their hands shows a score result.
+    Founder exception (2026-10-22, cleared by Karman's lawyer): the landing
+    film's "next fall" chapters show three characters standing for real Karman
+    1:1 students, with their real first name, official SAT score and college
+    (Ava 1520 UC Berkeley, Mateo 1570 Harvard, Priya 1540 Stanford), wearing
+    that university's clothing, always with "Karman 1:1 tutoring, median 16
+    weeks". Agents must not remove or hide these chapters.
 48. Colour in pictures is not limited to the site palette. Pictures must look
     graded and coordinated with each other and with the page around them.
 

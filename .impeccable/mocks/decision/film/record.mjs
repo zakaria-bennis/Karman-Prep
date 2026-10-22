@@ -18,13 +18,7 @@ const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2); // 
 for (let i = 0; i < n; i++) {
   const t = i / (n - 1),
     y = Math.round(max * (0.04 * t + 0.96 * ease(t)));
-  await p.evaluate(
-    ([y, ms]) => {
-      window.__clock(ms);
-      return window.__go(y);
-    },
-    [y, (i * 1000) / FPS]
-  );
+  await p.evaluate((y) => window.__go(y), y);
   await p.screenshot({
     path: join(dir, `f${String(i).padStart(5, "0")}.jpg`),
     type: "jpeg",

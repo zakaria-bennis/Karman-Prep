@@ -13,7 +13,8 @@ for (let i = 0; i <= n; i++) {
   const y = Math.round((max * i) / n);
   await p.evaluate((y) => window.__go(y), y);
   const r = await p.evaluate(() => {
-    const SEL = ".lede, .act, figcaption, .note, .card, .time, .stamp, .nightnote, .kline";
+    const SEL =
+      ".lede, .act, figcaption, .note, .card, .shot, .time, .stamp, .kline, .tip, .dock, .playctl";
     const vis = (el) => {
       let e = el,
         o = 1;
