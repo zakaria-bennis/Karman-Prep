@@ -24,6 +24,7 @@ import { IMPERSONATE_COOKIE, IMPERSONATE_USER_COOKIE } from "@/lib/supabase/quer
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveConsentState } from "@/lib/consent/server";
 import "./globals.css";
+import "./figure-font.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,6 +35,22 @@ const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+});
+
+// Question figures (SVG figures, geometry, charts, tables) use STIX Two Text, an
+// open-license (OFL, see fonts/stix-two-text/OFL.txt) Times-style serif that matches
+// the look of printed SAT figures. Bundled locally; not preloaded because only
+// figure pages use it. Applied through one shared rule in globals.css.
+const figureSerif = localFont({
+  src: [
+    { path: "./fonts/stix-two-text/stix-two-text-latin-400-normal.woff2", style: "normal" },
+    { path: "./fonts/stix-two-text/stix-two-text-latin-400-italic.woff2", style: "italic" },
+  ],
+  weight: "400",
+  variable: "--font-figure",
+  display: "swap",
+  preload: false,
+  fallback: ["Times New Roman", "Times", "serif"],
 });
 
 // ─── Karman type stack (docs/brand.md) ────────────────────────
@@ -160,7 +177,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript() }} />
         </head>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} ${plexSerif.variable} ${plexSans.variable} ${plexMono.variable} ${atkinson.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} ${plexSerif.variable} ${plexSans.variable} ${plexMono.variable} ${atkinson.variable} ${figureSerif.variable} antialiased`}
         >
           <ThemeProvider>
             <ConfirmProvider>

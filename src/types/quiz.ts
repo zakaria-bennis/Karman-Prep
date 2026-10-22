@@ -191,12 +191,7 @@ export interface QuizQuestion {
     | null;
   /** Phase 4a — structured table data when figure_kind='table'.
    *  See src/components/learn/QuestionTable.tsx for the shape. */
-  figure_table_data: {
-    caption?: string | null;
-    header_row?: string[] | null;
-    rows: string[][];
-    footer_note?: string | null;
-  } | null;
+  figure_table_data: import("./question-table").QuestionTableData | null;
   /** Phase 4d — structured chart data when figure_kind='chart'.
    *  See src/types/chart.ts ChartFigure for the full shape. */
   figure_chart_data: import("./chart").ChartFigure | null;
@@ -204,6 +199,9 @@ export interface QuizQuestion {
    *  (GeometryFigure) only when figure_kind='geometric', i.e. after the
    *  Stage-6.6 gate confirmed the SVG render matches the screenshot. */
   figure_geometry_data: import("@/lib/figures/geometry-svg").GeometryFigureData | null;
+  /** A founder-approved, hand-drawn figure SVG (figure_kind='image', no image_url),
+   *  inlined through sanitizeThemedSvg and checked by the importer. Optional so rows and fixtures without it stay valid. */
+  figure_svg?: string | null;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.
@@ -240,6 +238,7 @@ export type StudentQuizQuestion = Pick<
   | "figure_table_data"
   | "figure_chart_data"
   | "figure_geometry_data"
+  | "figure_svg"
 > & {
   reviewed_passage?: import("@/lib/question-bank/reviewed-passage").ReviewedPassageDisplay;
   answer_choices: Pick<

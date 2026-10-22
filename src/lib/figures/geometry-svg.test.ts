@@ -204,3 +204,38 @@ describe("katexToUnicode", () => {
     expect(katexToUnicode(undefined)).toBe("");
   });
 });
+
+describe("buildGeometrySvg — labels clear of a side passing through the vertex", () => {
+  it("keeps X off line RS when X sits on RS", () => {
+    const { svg } = buildGeometrySvg({
+      layout_version: "balanced-v1",
+      shapes: [
+        {
+          kind: "triangle",
+          vertices_or_points: [
+            { id: "R", label: "R", x: 100, y: 0 },
+            { id: "S", label: "S", x: 300, y: 300 },
+            { id: "T", label: "T", x: 100, y: 300 },
+          ],
+        },
+        {
+          kind: "triangle",
+          vertices_or_points: [
+            { id: "X", label: "X", x: 140, y: 60 },
+            { id: "Y", label: "Y", x: 260, y: 60 },
+            { id: "Z", label: "Z", x: 260, y: 240 },
+          ],
+        },
+      ],
+      angle_markings: [],
+      length_markings: [],
+    });
+    const m = svg!.match(/<text x="([\d.-]+)" y="([\d.-]+)"[^>]*>X<\/text>/)!;
+    const [x, y] = [Number(m[1]), Number(m[2])];
+    // Distance from the label centre to line RS (through (100,0) and (300,300)).
+    const distance = Math.abs(300 * (x - 100) - 200 * y) / Math.hypot(200, 300);
+    expect(distance).toBeGreaterThan(8);
+    // And outside triangle XYZ's corner (left of X, i.e. not between XY and XZ).
+    expect(x).toBeLessThan(140);
+  });
+});

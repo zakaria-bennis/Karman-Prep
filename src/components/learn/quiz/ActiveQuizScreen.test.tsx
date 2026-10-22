@@ -138,7 +138,7 @@ describe("practice identity and reading order", () => {
     mockQuizState.currentIndex = 0;
     mockQuizState.targetLength = 1;
   });
-  it("renders passage, source table, prompt and choices in that order", () => {
+  it("renders a Reading and Writing figure first, then passage, prompt and choices", () => {
     showQuestion({
       ...base,
       subject: "reading",
@@ -160,9 +160,22 @@ describe("practice identity and reading order", () => {
     const table = screen.getByRole("table");
     const prompt = screen.getByText("Which choice most logically completes the text?");
     const choice = screen.getByRole("button", { name: /A\s*The population/ });
-    expect(passage.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(table.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(table.compareDocumentPosition(passage) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(passage.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(prompt.compareDocumentPosition(choice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it("keeps a Math passage ahead of its figure", () => {
+    showQuestion({
+      ...base,
+      subject: "math",
+      answer_format: "numeric_entry",
+      passage: "The table shows bird counts.",
+      figure_kind: "table",
+      figure_table_data: { header_row: ["Year", "Birds"], rows: [["2025", "17"]] },
+    } as StudentQuizQuestion);
+    const passage = screen.getByText("The table shows bird counts.");
+    const table = screen.getByRole("table");
+    expect(passage.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
   it("preserves a lone second source passage rather than silently dropping it", () => {
     showQuestion({

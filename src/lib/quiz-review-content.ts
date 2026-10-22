@@ -1,4 +1,5 @@
 import { reviewedPassageForQuestion } from "@/lib/question-bank/reviewed-passage";
+import { studentFigureSvg } from "@/lib/student-quiz-payload";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 
 /** Only student display fields cross the completed-review client boundary. */
@@ -18,6 +19,7 @@ export function toQuizReviewContent(q: QuizQuestionWithChoices) {
     figure_geometry_data: q.figure_geometry_data,
     image_url: q.image_url,
     image_alt: q.image_alt,
+    figure_svg: studentFigureSvg(q),
     answer_choices: q.answer_choices.map(({ id, letter, choice_text, choice_table_data }) => ({
       id,
       letter,

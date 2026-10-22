@@ -21,14 +21,9 @@ import { cn } from "@/lib/utils";
 interface Props {
   data: GeometryFigureData;
   className?: string;
-  maxHeightClass?: string;
 }
 
-export default function GeometryFigure({
-  data,
-  className,
-  maxHeightClass = "max-h-[28rem]",
-}: Props) {
+export default function GeometryFigure({ data, className }: Props) {
   const { svg, renderable } = buildGeometrySvg(data, {
     stroke: "var(--figure-math, #2fa8ff)",
     label: "var(--figure-text, #f3ecdd)",
@@ -47,22 +42,21 @@ export default function GeometryFigure({
         className
       )}
     >
+      {/* The SVG fills the width and stops at the height cap; its viewBox (meet) then
+          scales the whole drawing, labels included, into that box. A tall, narrow figure
+          letterboxes instead of spilling out of the frame. */}
       <div
         className={cn(
-          balanced
-            ? "mx-auto block w-full [&>svg]:mx-auto [&>svg]:h-auto [&>svg]:w-full"
-            : "mx-auto block w-auto [&>svg]:mx-auto [&>svg]:h-auto [&>svg]:w-auto",
-          `[&>svg]:${maxHeightClass}`,
-          maxHeightClass
+          "mx-auto block w-full [&>svg]:mx-auto [&>svg]:block [&>svg]:h-auto [&>svg]:w-full",
+          "[&>svg]:max-h-[28rem]",
+          !balanced && "[&>svg]:max-w-xl"
         )}
         // Safe: buildGeometrySvg emits deterministic, XML-escaped SVG from
         // our own structured data — never user/LLM HTML.
         dangerouslySetInnerHTML={{ __html: svg }}
       />
       {data.notes ? (
-        <figcaption className="mt-2 text-center text-[11px] italic text-taupe">
-          {data.notes}
-        </figcaption>
+        <figcaption className="mt-2 text-center text-[13px] text-taupe">{data.notes}</figcaption>
       ) : null}
     </figure>
   );
