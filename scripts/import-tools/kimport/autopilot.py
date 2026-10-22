@@ -56,7 +56,7 @@ from kimport.publish import RefuseToBuild
 from kimport.sqlutil import uuid_literal
 
 REPO = Path(__file__).resolve().parents[3]
-CHUNK = 200
+CHUNK = 50  # each staged row scans the bank for normalized text; 200 rows hit the 100 s gateway limit (524)
 RETRYABLE = ("refused", "published")  # --retry never takes a stopped batch: a person must look at it first
 TRIES = 4
 VISIBLE = "('publish_ready','publish_ready_with_verified_repair')"
