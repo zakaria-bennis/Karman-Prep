@@ -54,6 +54,75 @@ export function insertRowBelow(
   return inserted.id;
 }
 
+/**
+ * R-7, SLIDERS-36: one new row per name right after `rowId`, as one undo step: `name=1` for a
+ * name, an empty row for "". Colours go in that order (RT-2). Returns the last new row's id; past
+ * the row limit nothing is added and NM-42 is announced.
+ */
+export function addRowsAfter(
+  engine: CalculatorEngine,
+  announcer: Announcer | null,
+  rowId: string,
+  names: readonly string[]
+): string | null {
+  let lastId: string | null = null;
+  const refused = engine.editRows((rows, ctx) => {
+    const at = rows.findIndex((r) => r.id === rowId);
+    if (at < 0 || names.length === 0) return null;
+    const added = names.map((name) => ({
+      id: ctx.nextId(),
+      latex: name === "" ? "" : `${name}=1`,
+      color: ctx.nextColour(),
+      hidden: false,
+    }));
+    lastId = added[added.length - 1]!.id;
+    return [...rows.slice(0, at + 1), ...added, ...rows.slice(at + 1)];
+  });
+  if (refused === "row-limit") {
+    announcer?.announce(EDITOR_MESSAGES.rowLimit);
+    return null;
+  }
+  return lastId;
+}
+
+/** SLIDERS-4: Desmos auto-adds sliders on Enter for at most this many undefined names. */
+export const MAX_AUTO_SLIDERS = 4;
+
+/**
+ * The names Enter defines as sliders (SLIDERS-36): an expression row whose only problem is 1 to 4
+ * undefined names, in order of first appearance. A lone name (`a`, `x_1`), a slider row and a row
+ * with five or more names get none, as on Desmos (observed live and in its shipped code,
+ * 2026-10-22).
+ */
+export function autoSliderNames(engine: CalculatorEngine, rowId: string): readonly string[] {
+  const row = engine.getSnapshot().rows.find((r) => r.id === rowId);
+  if (row === undefined || row.type === "table" || row.slider != null) return [];
+  if (row.error?.code !== "too-many-variables") return [];
+  return row.chips.length <= MAX_AUTO_SLIDERS ? row.chips : [];
+}
+
+/**
+ * R-3, SLIDERS-36: Enter in an expression row (typed or the keypad's key). With undefined names
+ * (autoSliderNames) it adds `name=1` rows right after the row and then an empty row, focused, as
+ * one undo step, as Desmos does; otherwise a plain new row below (insertRowBelow). Blur, Tab and
+ * the arrow keys add nothing.
+ */
+export function enterFromRow(
+  engine: CalculatorEngine,
+  focus: FocusController,
+  announcer: Announcer | null,
+  rowId: string,
+  mode: "focus" | "activate"
+): string | null {
+  const names = autoSliderNames(engine, rowId);
+  if (names.length === 0) return insertRowBelow(engine, focus, announcer, rowId, mode);
+  const emptyId = addRowsAfter(engine, announcer, rowId, [...names, ""]);
+  if (emptyId === null) return null;
+  if (mode === "focus") focus.focusRow(emptyId, "start");
+  else focus.activateRow(emptyId);
+  return emptyId;
+}
+
 /** S-12, S-13: Add expression; a new empty row after `anchor` (the end for null), focused, announced. */
 export function insertExpressionItem(
   engine: CalculatorEngine,

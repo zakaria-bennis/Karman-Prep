@@ -7,30 +7,16 @@ import { useId, type JSX } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import { displayName } from "@/lib/calculator/core/analysis";
 import type { Announcer } from "../a11y/announcer";
-import { EDITOR_MESSAGES } from "./messages";
+import { addRowsAfter } from "./row-actions";
 
-/**
- * R-7: defines each name as `name=1` in new rows right after `rowId`, as one undo step. A name a
- * row already defines meanwhile is skipped; past the row limit nothing is added.
- */
+/** R-7: defines each name as `name=1` in new rows right after `rowId`, as one undo step. */
 export function addSliders(
   engine: CalculatorEngine,
   announcer: Announcer | null,
   rowId: string,
   names: readonly string[]
 ): void {
-  const refused = engine.editRows((rows, ctx) => {
-    const at = rows.findIndex((r) => r.id === rowId);
-    if (at < 0 || names.length === 0) return null;
-    const added = names.map((name) => ({
-      id: ctx.nextId(),
-      latex: `${name}=1`,
-      color: ctx.nextColour(), // RT-2
-      hidden: false,
-    }));
-    return [...rows.slice(0, at + 1), ...added, ...rows.slice(at + 1)];
-  });
-  if (refused === "row-limit") announcer?.announce(EDITOR_MESSAGES.rowLimit);
+  addRowsAfter(engine, announcer, rowId, names);
 }
 
 /** SLIDERS-4: at most this many name buttons, as on Desmos; "all" still adds every name. */

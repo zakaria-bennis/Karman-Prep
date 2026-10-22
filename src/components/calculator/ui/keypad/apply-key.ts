@@ -9,7 +9,7 @@ import type { MathField } from "../../math-field/MathField";
 import type { Announcer } from "../a11y/announcer";
 import type { FocusController } from "../focus/focus-controller";
 import { EDITOR_MESSAGES } from "../list/messages";
-import { editThroughKeypad, insertRowBelow } from "../list/row-actions";
+import { editThroughKeypad, enterFromRow } from "../list/row-actions";
 import { cellTarget, type CellTarget } from "../list/cell-target";
 import { fieldTextbox } from "../list/row-model";
 import type { DoubleTapTracker } from "./double-tap";
@@ -81,7 +81,7 @@ export function pressKey(ctx: KeyContext, key: KeyDef): void {
   if (behaviour.type === "enter") {
     doubleTap.clear();
     if (cell !== undefined) return cell.keys.onEnter(); // D-41: down the column
-    insertRowBelow(engine, focus, announcer, rowId, textboxFocused(field) ? "focus" : "activate");
+    enterFromRow(engine, focus, announcer, rowId, textboxFocused(field) ? "focus" : "activate");
     return;
   }
 

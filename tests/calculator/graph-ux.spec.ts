@@ -323,13 +323,14 @@ test.describe("curve hint", () => {
     isMobile,
   }) => {
     // Owner report, 2026-10-22: row 1 an error (y=mx+b, no sliders), row 2 a number; the bare
-    // `y` typed on the way to y=mx+b draws for a moment, and that must not count.
+    // `y` typed on the way to y=mx+b draws for a moment, and that must not count. Down leaves
+    // the row without adding sliders (Enter would add m and b, as on Desmos: SLIDERS-36).
     await openShell(page);
     const field = page.locator('#calc [data-row-id="1"] .mq-editable-field');
     if (isMobile) await field.tap();
     else await field.click();
     await page.keyboard.type("y=mx+b", { delay: 60 });
-    await page.keyboard.press("Enter");
+    await page.keyboard.press("ArrowDown");
     await page.keyboard.type("5%40");
     await expect
       .poll(() =>

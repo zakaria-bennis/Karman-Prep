@@ -49,6 +49,7 @@ import {
   deleteFromEmptyRow,
   convertToTable,
   deleteRowByControl,
+  enterFromRow,
   insertRowBelow,
   isKeypadBatch,
   leaveRow,
@@ -210,7 +211,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           announcer.announce(EDITOR_MESSAGES.charLimit);
         }
       },
-      onEnter: () => insertRowBelow(engine, focus, announcer, rowId, "focus"),
+      onEnter: () => enterFromRow(engine, focus, announcer, rowId, "focus"), // SLIDERS-36
       onArrowOut: (direction) => leaveRow(engine, focus, rowId, direction),
       onDeleteOutOf(direction) {
         // R-9: Backspace deletes an empty row; Delete does nothing there, as on the reference.
