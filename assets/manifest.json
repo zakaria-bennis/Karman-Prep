@@ -260,6 +260,30 @@
       "ratio": "16:9",
       "refs": ["ava"],
       "prompt": "Late August morning at UC Berkeley. The girl from Image 1, now 18, with a backpack on one shoulder, walks up wide granite steps through tall eucalyptus trees; ahead, Sather Tower, the tall white granite campanile, rises above the trees against a clear blue sky; dry golden hills in the distance. Seen from behind at three-quarters, her face slightly turned toward the tower. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k1-kitchen-fix",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [".impeccable/mocks/decision/film/raw/stills/k1-kitchen-pro-2026-10-22T03-51-21.png"],
+      "prompt": "Edit this photograph. Keep everything else exactly the same: the same person, face, pose, framing, camera angle, light and colours. Only change this: in the window glass reflection on the left half, the blurry lit shapes on the reflected building look like letters; replace them with plain dark building windows and soft out-of-focus porch lights, so nothing in the reflection could be read as text."
+    },
+    {
+      "id": "k8-harvard-fix",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [".impeccable/mocks/decision/film/raw/stills/k8-harvard-nb-2026-10-22T03-56-47.png"],
+      "prompt": "Edit this photograph. Keep everything else exactly the same: the same person, face, pose, framing, camera angle, light and colours. Only change this: the two tennis racquet handle butt caps sticking out of his bag must be plain white with no emblem, and the bag must have no logo or brand mark anywhere."
+    },
+    {
+      "id": "k6-david-fix",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [".impeccable/mocks/decision/film/raw/stills/k6-david-pro-2026-10-22T03-55-02.png"],
+      "prompt": "Edit this photograph. Keep everything else exactly the same: the same person, face, pose, framing, camera angle, light and colours. Only change this: replace the brass dome desk lamp with a ribbed white ceramic table lamp with a natural linen drum shade, standing on the desk, giving the same warm glow; the lamp reflected in the dark window becomes the same white linen-shaded lamp. No brass lamp anywhere."
     }
   ]
 }

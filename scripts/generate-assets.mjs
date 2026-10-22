@@ -17,6 +17,8 @@
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { execFileSync } from "node:child_process";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = join(ROOT, "assets/manifest.json");
@@ -59,6 +61,7 @@ const key = (name) => {
 const ROUTES = {
   "seedance-2.5": { provider: "atlas", kind: "video", model: "bytedance/seedance-2.5" },
   "seedance-2.0-mini": { provider: "atlas", kind: "video", model: "bytedance/seedance-2.0-mini" },
+  "seedream-5-edit": { provider: "atlas-image", model: "bytedance/seedream-v5.0-pro/edit" },
   "wan-3.0": { provider: "atlas", kind: "video", model: "alibaba/wan-3.0" },
   "wan-3.0-prime": { provider: "atlas", kind: "video", model: "alibaba/wan-3.0-prime" },
   "veo-3.1-fast": { provider: "veo", model: "veo-3.1-fast-generate-preview", perSecond: 0.1 },
@@ -86,6 +89,7 @@ const ROUTES = {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const money = (n) => `$${Number(n).toFixed(2)}`;
 const stamp = () => new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+const saveState = (state) => writeFileSync(STATE, JSON.stringify(state, null, 2) + "\n");
 const readJson = (f, fallback) => (existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : fallback);
 
 async function http(url, init = {}, label = url) {
@@ -102,11 +106,26 @@ async function http(url, init = {}, label = url) {
 }
 
 async function download(url, file, headers = {}) {
-  const res = await fetch(url, { headers, redirect: "follow" });
-  if (!res.ok) throw new Error(`download failed: HTTP ${res.status}`);
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, Buffer.from(await res.arrayBuffer()));
-  return file;
+  // The result URL stays valid after a job ends, so retry slow or dropped downloads.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers,
+        redirect: "follow",
+        signal: AbortSignal.timeout(180000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+      return file;
+    } catch (e) {
+      if (attempt >= 5)
+        throw new Error(
+          `download failed after 5 tries (${e.cause?.code ?? e.message}); result URL: ${url}`
+        );
+      await sleep(5000 * attempt);
+    }
+  }
 }
 
 function logSpend(row) {
@@ -164,6 +183,20 @@ function atlasBody(shot, route, defaults, refUrls = []) {
   return body;
 }
 
+function atlasImageBody(shot, route, defaults, refUrls) {
+  const size =
+    { "16:9": "2816*1584", "9:16": "1584*2816", "3:4": "1776*2368" }[
+      shot.ratio ?? defaults.ratio
+    ] ?? "2048*2048";
+  return {
+    model: route.model,
+    prompt: fullPrompt(shot, defaults),
+    images: refUrls,
+    size,
+    output_format: "png",
+  };
+}
+
 async function atlasQuote(body) {
   const r = await http(
     `${ATLAS}/api/v1/model/calculate`,
@@ -179,7 +212,17 @@ async function atlasBalance() {
   return Number(r.available.value);
 }
 
-async function atlasUpload(file) {
+async function atlasUpload(original) {
+  // Big PNG stills time out; send a high-quality JPEG copy instead.
+  let file = original;
+  if (original.endsWith(".png")) {
+    file = join(tmpdir(), `${basename(original, ".png")}.jpg`);
+    execFileSync(
+      "sips",
+      ["-s", "format", "jpeg", "-s", "formatOptions", "92", original, "--out", file],
+      { stdio: "ignore" }
+    );
+  }
   const form = new FormData();
   form.append("file", new Blob([readFileSync(file)]), basename(file));
   const r = await http(
@@ -192,9 +235,9 @@ async function atlasUpload(file) {
   return url;
 }
 
-async function atlasRun(body) {
+async function atlasRun(body, kind = "Video") {
   const r = await http(
-    `${ATLAS}/api/v1/model/generateVideo`,
+    `${ATLAS}/api/v1/model/generate${kind}`,
     { method: "POST", headers: atlasHeaders(), body: JSON.stringify(body) },
     "Atlas submit"
   );
@@ -354,6 +397,13 @@ async function plan(item, defaults) {
     const body = atlasBody(item, route, defaults, fakeRefs);
     return { item, route, body, quote: await atlasQuote(body) };
   }
+  if (route.provider === "atlas-image") {
+    return {
+      item,
+      route,
+      quote: await atlasQuote(atlasImageBody(item, route, defaults, ["https://example.com/a.png"])),
+    };
+  }
   if (route.provider === "veo")
     return {
       item,
@@ -385,6 +435,13 @@ async function execute(p, defaults, manifest, state) {
       refUrls.push(await atlasUpload(join(ROOT, manifest.cast[who])));
     const before = await atlasBalance();
     const r = await atlasRun(atlasBody(item, route, defaults, refUrls));
+    state[item.id] = {
+      ...(state[item.id] ?? {}),
+      lastJob: r.id,
+      lastUrl: r.url,
+      ...(r.draftId ? { draftId: r.draftId } : {}),
+    };
+    saveState(state);
     await download(r.url, file);
     await sleep(3000);
     charged = before - (await atlasBalance());
@@ -395,6 +452,18 @@ async function execute(p, defaults, manifest, state) {
       lastFile: file,
       ...(r.draftId ? { draftId: r.draftId } : {}),
     };
+  } else if (route.provider === "atlas-image") {
+    const refUrls = [];
+    for (const r of item.refs ?? []) refUrls.push(await atlasUpload(refPath(manifest, r)));
+    const before = await atlasBalance();
+    const r = await atlasRun(atlasImageBody(item, route, defaults, refUrls), "Image");
+    state[item.id] = { ...(state[item.id] ?? {}), lastJob: r.id, lastUrl: r.url };
+    saveState(state);
+    await download(r.url, file);
+    await sleep(3000);
+    charged = before - (await atlasBalance());
+    source = "balance";
+    state[item.id] = { ...(state[item.id] ?? {}), lastFile: file };
   } else if (route.provider === "fal") {
     const before = await falBalance();
     const r = await falRun(route, { prompt: fullPrompt(item, defaults) });
@@ -539,6 +608,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error(`Stopped: ${e.message}`);
+  console.error(`Stopped: ${e.message}${e.cause ? ` (${e.cause.code ?? e.cause.message})` : ""}`);
   process.exit(1);
 });

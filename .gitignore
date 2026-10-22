@@ -82,3 +82,6 @@ audit-out/
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Generation job state: holds signed result URLs, never commit
+assets/generation-state.json
