@@ -25,7 +25,8 @@ pipeline/auto-<timestamp>/, with run.log in plain English.
 A corrected batch for rows that are already LIVE (kimport.live_fix) is an
 evidence-only correction of those live rows, run before any stage file
 (kimport.autopilot_live.live_phase). At the end, rows refused as duplicates of
-a live row go in the lane as already_live, and after a run that published
+a live row go in the lane as already_live, every other refused row (and each
+row of a batch refused whole) goes in as extraction_repair, and after a run that published
 anything the corpus duplicate map is rebuilt from a fresh export
 (kimport.autopilot_live.after_run).
 

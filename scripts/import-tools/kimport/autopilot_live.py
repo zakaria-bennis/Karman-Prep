@@ -19,6 +19,11 @@ after_run: rows refused because they duplicate a LIVE row (same comparison
   become members and are not sliced; a published occurrence that still comes
   out canonical (its reviewed text differs from the C text) is recorded as
   already_live too. A failed refresh is logged and does not fail the run.
+  Every other refusal is put in the lane too (refusals_to_lane): each row of a
+  batch refused whole, and each refused row that is not a duplicate, goes in as
+  extraction_repair, "stage refused (<batch>): <first reason>", so a reviewer
+  sees it. Duplicate refusals, live rows and published lane items are left alone;
+  ids already open stay as they are; parked ones stay parked (add_open).
 """
 
 import hashlib
@@ -27,6 +32,8 @@ import re
 from pathlib import Path
 
 from kimport import lane, live_fix
+from kimport.answer_evidence import evidence_root
+from kimport.autopilot_state import reason_kind
 from kimport import stage as st
 from kimport.export import _unwrap
 
@@ -187,6 +194,79 @@ def mark_duplicates(lane_path: Path, refused: list[dict], export_rows: list[dict
     return {"duplicates_of_live": len(dups), "marked": len(marked), "released": len(released)}
 
 
+DUPLICATE_KINDS = ("duplicate_in_run", "same_key_in_bank", "typo_match", "source_in_bank", "same_hash_in_bank",
+                   "same_text_in_bank")
+REFUSED_LANE_REASON = "extraction_repair"
+
+
+def _one_line(text) -> str:
+    return " ".join(str(text or "no reason given").split())[:300]
+
+
+def _live_stable_ids(export_rows: list[dict]) -> set:
+    out = set()
+    for r in export_rows:
+        if r.get("is_live") is True and r.get("archived_at") is None:
+            sid = ((evidence_root(r.get("raw_model_response")) or {}).get("approved_tags") or {}).get(
+                "stable_question_id")
+            if sid:
+                out.add(sid)
+    return out
+
+
+def _published_item(item: dict) -> bool:
+    """A lane item recorded as live, or resolved because it was published."""
+    if item.get("reason") == lane.ALREADY_LIVE:
+        return True
+    return item.get("status") == "resolved" and any(
+        a.get("ok") and str(a.get("detail") or "").startswith("published") for a in item.get("attempts", []))
+
+
+def refusals_to_lane(lane_path: Path, refused: list[dict], refused_batches: list[dict], export_rows: list[dict],
+                     now: str, batch_dirs=()) -> dict:
+    """Every row of a refused batch and every non-duplicate refused row, into the lane as extraction_repair.
+    Left alone: rows refused as duplicates, live corrections, rows live in the export, lane items that are
+    already live or were published, and items already open. Returns counts and the batches whose rows
+    could not be read."""
+    entries: dict = {}
+    unreadable = []
+    by_name = {Path(d).name: Path(d) for d in batch_dirs}
+    for rb in refused_batches:
+        folder = by_name.get(rb["folder"]) or Path(lane_path).parent / "batches" / rb["folder"]
+        reviewed = lane._ready_reviewed_file(folder)
+        try:
+            qs = json.loads(reviewed.read_text(encoding="utf-8")).get("questions", []) if reviewed else None
+        except (OSError, ValueError, AttributeError):
+            qs = None
+        if not isinstance(qs, list):
+            unreadable.append(folder.name)
+            continue
+        detail = f"stage refused ({folder.name}): {_one_line(rb.get('reason'))}"
+        for q in qs:
+            sid = q.get("stable_question_id") if isinstance(q, dict) else None
+            if sid:
+                entries.setdefault(sid, detail)
+    for r in refused:
+        reasons = r.get("reasons") or []
+        if any(x.startswith(REASON_PREFIX) for x in reasons):
+            continue   # a live row's correction: the row is already published
+        if any(reason_kind(x) in DUPLICATE_KINDS for x in reasons):
+            continue
+        entries.setdefault(r["id"], f"stage refused ({r.get('batch')}): {_one_line(reasons[0] if reasons else '')}")
+    live = _live_stable_ids(export_rows)
+    items = lane._read_lane(lane_path)["items"]
+    skipped = 0
+    for sid in list(entries):
+        it = items.get(sid)
+        if sid in live or (it is not None and (_published_item(it) or it.get("status") == "open")):
+            del entries[sid]
+            skipped += 1
+    if entries:
+        lane.add_open(lane_path, {sid: (REFUSED_LANE_REASON, d) for sid, d in sorted(entries.items())}, now,
+                      "autopilot_stage")
+    return {"added": len(entries), "skipped": skipped, "unreadable_batches": unreadable}
+
+
 def refresh_corpus(export: Path, pipe: Path, published_ids: list[str], run_id: str, now: str,
                    runner=run_corpus) -> dict:
     """Re-run `k corpus` with `export`; published ids still canonical afterwards go in the lane as already_live."""
@@ -211,6 +291,18 @@ def after_run(ap, published: bool, published_ids: list[str], export_rows: list[d
                    f"already live, {res['released']} claims released.")
     except Exception as e:  # noqa: BLE001
         ap.say(f"  could not record the duplicates of live rows: {type(e).__name__}: {e}")
+    try:
+        res = refusals_to_lane(ap.lane, ap.all_refused, getattr(ap, "rbatches", []), export_rows, ap.now(),
+                               ap.dirs)
+        ap.run["refused_to_lane"] = res["added"]
+        if res["added"]:
+            ap.say(f"{res['added']} refused rows (whole refused batches and non-duplicate refusals) put in the "
+                   "lane as extraction_repair for a reviewer.")
+        if res["unreadable_batches"]:
+            ap.say(f"  could not read the rows of refused batches {', '.join(res['unreadable_batches'])}: "
+                   "not in the lane, look at them by hand.")
+    except Exception as e:  # noqa: BLE001
+        ap.say(f"  could not put the refused rows in the lane: {type(e).__name__}: {e}")
     if not published:
         return
     try:
