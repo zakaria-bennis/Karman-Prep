@@ -11,6 +11,7 @@ import { setSliderLimit, type LimitField } from "@/lib/calculator/core/api/slide
 import type { MathField, MathFieldOptions } from "../../math-field/MathField";
 import { useEngine } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "./math-field-factory";
+import { NameText } from "./RowUnderMath";
 
 const LABELS: Record<LimitField, string> = {
   min: "Slider Minimum:",
@@ -21,7 +22,7 @@ const MAX_LIMIT_CHARACTERS = 256;
 
 export interface SliderLimitsProps {
   rowId: string;
-  name: string; // display name, between the two ≤
+  name: string; // the slider's name as the engine keeps it (`y_{1}`), typeset between the two ≤
   stepOnly: boolean; // Play indefinitely
   latex: Readonly<Record<LimitField, string>>; // "" for a soft min or max
   invalid: Readonly<Record<LimitField, boolean>>;
@@ -153,7 +154,9 @@ export function SliderLimits(props: SliderLimitsProps): JSX.Element {
           {field("min")}
           <span className="kc-slider-relation" aria-hidden="true">
             <span className="kc-slider-le">≤</span>
-            <var>{props.name}</var>
+            <var>
+              <NameText name={props.name} />
+            </var>
             <span className="kc-slider-le">≤</span>
           </span>
           {field("max")}

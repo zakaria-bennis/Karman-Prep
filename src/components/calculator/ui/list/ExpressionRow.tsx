@@ -28,7 +28,6 @@ import {
   type PointerEvent,
   type TransitionEvent,
 } from "react";
-import { displayName } from "@/lib/calculator/core/analysis";
 import { pauseSlider } from "@/lib/calculator/core/api/sliders";
 import { spokenName, withSliderValue } from "@/lib/calculator/sliders/slider";
 import type { RowView } from "@/lib/calculator/core/api/engine";
@@ -472,7 +471,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               engine={engine}
               rowId={row.id}
               name={sliderName}
-              glyph={displayName(slider.name)}
+              glyph={slider.name}
               slider={slider}
               rowFocused={focusedRowId === row.id}
               handle={sliderLine}

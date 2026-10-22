@@ -161,3 +161,18 @@ it("SLIDERS-8 a slider picked from the keyboard returns focus to the row's math"
   expect(kit.engine.getSnapshot().rows.map((r) => r.latex)).toEqual(["y=ax+b", "a=1"]);
   expect(active()?.getAttribute("aria-label")).toBe("Expression 1");
 });
+
+it("SLIDERS-15 the limits editor typesets a subscripted name (a₁, not a_1), as Desmos does", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
+    rows: ["a_{1}=2", "\\alpha=1"],
+  });
+  const user = userEvent.setup();
+  const nameIn = (row: string) => rowItem(row).querySelector(".kc-slider-relation > var");
+  act(() => kit.fields.forRow("1").focus());
+  await user.keyboard("{Tab}{Tab}"); // delete, then the minimum: the editor opens
+  expect(nameIn("1")?.textContent).toBe("a1");
+  expect(nameIn("1")?.querySelector("sub")?.textContent).toBe("1");
+  act(() => kit.fields.forRow("2").focus());
+  await user.keyboard("{Tab}{Tab}");
+  expect(nameIn("2")?.textContent).toBe("α");
+});

@@ -41,7 +41,7 @@ const DEGREE = "\\degree";
 const spokenName = (name: string) => (name === DEGREE ? "degrees" : displayName(name));
 
 /** A name typeset as the row shows it: an italic letter and an upright subscript. */
-function NameText(props: { name: string }): JSX.Element {
+export function NameText(props: { name: string }): JSX.Element {
   const shown = props.name === DEGREE ? "°" : displayName(props.name);
   const at = shown.indexOf("_");
   if (at < 0) return <>{shown}</>;

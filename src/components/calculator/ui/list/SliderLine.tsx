@@ -35,7 +35,7 @@ export function SliderLine(props: {
   engine: CalculatorEngine;
   rowId: string;
   name: string; // spoken name, for the controls' labels (SLIDERS-25)
-  glyph: string; // display name between the limits editor's two ≤ ("α", "a_1")
+  glyph: string; // the slider's raw name (`\alpha`, `a_{1}`), typeset between the limits editor's two ≤
   slider: SliderView;
   rowFocused: boolean; // the row's math field has focus
   handle: MutableRefObject<SliderLineHandle | null>;
