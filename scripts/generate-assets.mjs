@@ -5,6 +5,7 @@
 //   node scripts/generate-assets.mjs --only c2        dry run for one shot
 //   node scripts/generate-assets.mjs --only c2 --run  generate it (spends money)
 //   node scripts/generate-assets.mjs --finish c2 --run  finish an approved Seedance 2.5 draft at 1080p
+//   node scripts/generate-assets.mjs --upscale c2,c3 --run  sharpen drafts 2x on fal FlashVSR (about $0.025 a second)
 //   node scripts/generate-assets.mjs --balance        show prepaid balances
 //   node scripts/generate-assets.mjs --all            include shots not yet approved in the dry run
 //
@@ -37,6 +38,7 @@ const RUN = flag("run");
 const BUDGET = Number(opt("budget", "10"));
 const ONLY = opt("only", null)?.split(",");
 const FINISH = opt("finish", null);
+const UPSCALE = opt("upscale", null)?.split(",");
 const OVERRUN = 1.25;
 
 // ---------- keys ----------
@@ -167,7 +169,11 @@ const atlasHeaders = () => ({
 });
 
 function atlasBody(shot, route, defaults, refUrls = []) {
-  const variant = refUrls.length ? "reference-to-video" : "text-to-video";
+  const variant = shot.firstFrame
+    ? "image-to-video"
+    : refUrls.length
+      ? "reference-to-video"
+      : "text-to-video";
   const isSeedance = route.model.startsWith("bytedance/");
   const body = {
     model: `${route.model}/${variant}`,
@@ -184,7 +190,8 @@ function atlasBody(shot, route, defaults, refUrls = []) {
   } else {
     body.audio = false;
     body.resolution = shot.resolution ?? "720p";
-    if (refUrls.length) body.reference_images = refUrls;
+    if (shot.firstFrame) body.image = refUrls[0];
+    else if (refUrls.length) body.reference_images = refUrls;
   }
   return body;
 }
@@ -286,6 +293,74 @@ const falHeaders = () => ({
   Authorization: `Key ${key("FAL_KEY")}`,
   "Content-Type": "application/json",
 });
+
+async function falUpload(file) {
+  const init = await http(
+    "https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3",
+    {
+      method: "POST",
+      headers: falHeaders(),
+      body: JSON.stringify({ file_name: basename(file), content_type: "video/mp4" }),
+    },
+    "fal upload"
+  );
+  const put = await fetch(init.upload_url, {
+    method: "PUT",
+    headers: { "Content-Type": "video/mp4" },
+    body: readFileSync(file),
+  });
+  if (!put.ok) throw new Error(`fal upload PUT failed: HTTP ${put.status}`);
+  return init.file_url;
+}
+
+// Sharpens a draft 2x with FlashVSR; far cheaper than a Seedance 1080p finish.
+async function upscale(ids, state) {
+  const PER_SECOND = 0.0005 * 1.64 * 24; // $ per output megapixel x 1708x960 x 24 fps
+  const jobs = ids.map((id) => {
+    const src = state[id]?.lastFile;
+    if (!src || !existsSync(src)) throw new Error(`${id} has no draft to upscale`);
+    const secs = Number(
+      execFileSync("ffprobe", [
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "csv=p=0",
+        src,
+      ]).toString()
+    );
+    return { id, src, quote: secs * PER_SECOND };
+  });
+  const total = jobs.reduce((a, j) => a + j.quote, 0);
+  jobs.forEach((j) => console.log(`${j.id.padEnd(8)} upscale ${money(j.quote)}`));
+  console.log(`Total ${money(total)}, budget ${money(BUDGET)}`);
+  if (!RUN) return console.log("Dry run. Add --run to spend.");
+  if (total > BUDGET) throw new Error("Over budget.");
+  for (const j of jobs) {
+    const before = await falBalance();
+    const url = await falUpload(j.src);
+    const r = await falRun(
+      { model: "fal-ai/flashvsr/upscale/video" },
+      { video_url: url, upscale_factor: 2, output_quality: "high", acceleration: "regular" }
+    );
+    const file = j.src.replace(/-(draft|final)-.*\.mp4$/, "-up.mp4");
+    await download(r.url, file);
+    const charged = before - (await falBalance());
+    logSpend({
+      shot: j.id,
+      route: "flashvsr",
+      model: "fal-ai/flashvsr/upscale/video",
+      quoted: j.quote.toFixed(4),
+      charged: charged.toFixed(4),
+      source: "balance",
+      file: file.replace(ROOT + "/", ""),
+    });
+    state[j.id] = { ...state[j.id], upscaledFile: file };
+    saveState(state);
+    console.log(`  ${j.id}: saved ${basename(file)}  charged ${money(charged)}`);
+  }
+}
 
 async function falBalance() {
   const r = await http(
@@ -411,7 +486,9 @@ async function plan(item, defaults) {
   if (route.provider === "none")
     return { item, route, quote: 0, note: "free source, downloaded by hand" };
   if (route.provider === "atlas") {
-    const fakeRefs = (item.refs ?? item.cast ?? []).map(() => "https://example.com/ref.png");
+    const fakeRefs = (item.firstFrame ? [item.firstFrame] : (item.refs ?? item.cast ?? [])).map(
+      () => "https://example.com/ref.png"
+    );
     const body = atlasBody(item, route, defaults, fakeRefs);
     return { item, route, body, quote: await atlasQuote(body) };
   }
@@ -449,8 +526,9 @@ async function execute(p, defaults, manifest, state) {
 
   if (route.provider === "atlas") {
     const refUrls = [];
-    for (const r of item.refs ?? item.cast ?? [])
+    for (const r of item.firstFrame ? [item.firstFrame] : (item.refs ?? item.cast ?? []))
       refUrls.push(await atlasUpload(refPath(manifest, r)));
+    if (item.firstFrame && !refUrls[0]) throw new Error(`${item.id}: first frame did not upload`);
     const before = await atlasBalance();
     const r = await atlasRun(atlasBody(item, route, defaults, refUrls), "Video", (id) => {
       state[item.id] = { ...(state[item.id] ?? {}), pendingJob: id };
@@ -588,6 +666,7 @@ async function main() {
   const save = () => writeFileSync(STATE, JSON.stringify(state, null, 2) + "\n");
 
   if (flag("balance")) return showBalances();
+  if (UPSCALE) return upscale(UPSCALE, state);
   if (FINISH) {
     await finishDraft(FINISH, state);
     return save();

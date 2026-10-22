@@ -17,11 +17,12 @@
   "shots": [
     {
       "id": "c1",
-      "status": "proposed",
+      "status": "approved",
       "route": "wan-3.0",
-      "resolution": "1080p",
-      "prompt": "Before dawn, 6 a.m., a quiet tree-lined suburban street of large family homes, one warm kitchen window lit. The camera starts outside that window and rises slowly and steadily straight up over the rooftops and treetops toward a low layer of cloud, deep blue pre-dawn sky, and stops just beneath the cloud.",
-      "duration": 12
+      "resolution": "720p",
+      "prompt": "6:10 a.m., before dawn in Palo Alto. One continuous 12-second shot that starts exactly on this image. Seconds 0 to 4: the camera holds still outside the kitchen window; inside, the girl finishes pouring coffee into her travel mug and screws on the lid; the reflection of the oak branches drifts slightly on the glass. Seconds 4 to 12: the camera pulls back from the window and rises slowly and steadily, a smooth crane move straight up: past the red tile roof of the Spanish-revival house, past bare oak branches, above a quiet street of large homes with a few warm windows, up toward a low layer of soft cloud in the deep blue pre-dawn sky, ending just beneath the cloud.",
+      "duration": 12,
+      "firstFrame": ".impeccable/mocks/decision/film/raw/stills/k1-kitchen-fix-2026-10-22T14-31-42.png"
     },
     {
       "id": "c2",
@@ -320,14 +321,6 @@
       "prompt": "Late August morning at UC Berkeley. The girl from Image 1, now 18, with a backpack on one shoulder, walks up wide granite steps through tall eucalyptus trees; ahead, Sather Tower, the tall white granite campanile, rises above the trees against a clear blue sky; dry golden hills in the distance. Seen from behind at three-quarters, her face slightly turned toward the tower. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
     },
     {
-      "id": "k1-kitchen-fix",
-      "status": "approved",
-      "route": "nano-banana-pro",
-      "ratio": "16:9",
-      "refs": [".impeccable/mocks/decision/film/raw/stills/k1-kitchen-pro-2026-10-22T03-51-21.png"],
-      "prompt": "Edit this photograph. Keep everything else exactly the same: the same girl, face, hair, pose, framing, kitchen and light. Only change the reflection in the left-centre of the window glass, just left of the girl's head: the reflected building there has a blurry lit sign that looks like letters. Replace that reflected building with dark leafy oak branches against the deep blue sky, so the reflection there is only sky, branches and one or two faint stars."
-    },
-    {
       "id": "k8-harvard-fix",
       "status": "approved",
       "route": "nano-banana-pro",
@@ -387,6 +380,14 @@
         ".impeccable/mocks/decision/film/raw/stills/k7-test-nb-2026-10-22T03-56-04.png"
       ],
       "prompt": "7:40 a.m. on a Saturday in early March, SAT test day, inside the bright entrance lobby of the cream stucco private school from the third image, flat grey morning daylight from tall windows. A check-in table with a calm adult proctor wearing a plain lanyard, and a clear plastic bin already holding several switched-off phones. The girl from the first image (cream cable-knit sweater, light-brown ponytail) stands at the table, about to drop her switched-off phone into the bin, holding a plain card in her other hand. The girl from the second image (grey quarter-zip, straight black hair) waits just behind her. Two or three other high school students aged 16 to 18 wait in a short line with their own phones, a glass door to a classroom beyond. Quiet, focused, ordinary. 35mm lens, natural light, the girl at the table near the centre of the frame. Phone screens are dark and face away. No text, signs, letters or logos anywhere."
+    },
+    {
+      "id": "k1-kitchen-fix",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [".impeccable/mocks/decision/film/raw/stills/k1-kitchen-pro-2026-10-22T03-51-21.png"],
+      "prompt": "Edit this photograph. Keep everything exactly the same: the same girl, face, hair, pose, framing, kitchen and light. Only change one thing: in the window reflection just left of the girl's head there is a blurry reflected building with lit shapes that look like letters. Remove that building entirely and replace it with dark oak leaves against the deep blue pre-dawn sky. No letters, signs or lit shapes anywhere in the reflection."
     }
   ]
 }

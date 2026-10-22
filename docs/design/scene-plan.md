@@ -1,7 +1,13 @@
 # Landing page film: script and production plan
 
-Status: in discussion with the founder. Nothing has been generated. The script
-in `scripts/generate-assets.mjs` refuses to run a shot until it is marked
+Status (2026-10-22): built. The landing mock at
+`.impeccable/mocks/decision/film/index.html` plays all twelve chapters from
+480p Seedance drafts sharpened 2x on fal (FlashVSR), an opening on Wan 3.0,
+and NASA's "ISS Airglow" footage for the orbit. Seedance 1080p finishes were
+skipped: Atlas quoted $5.94 for a 10-second scene. Clips are graded and
+encoded by `film/encode.mjs`; `film/overlap-scan.mjs` checks text overlap and
+`film/record.mjs` records walkthroughs. The script in
+`scripts/generate-assets.mjs` refuses to run a shot until it is marked
 approved in `assets/manifest.json`.
 
 ## Decisions so far (2026-10-21)

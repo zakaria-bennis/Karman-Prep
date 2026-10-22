@@ -9,16 +9,21 @@ All the words on the landing page live in one file: `copy.js`, in this folder.
    `headline: Ten minutes before first period.`
 3. Save, then refresh the landing page in your browser.
 
+The top of `copy.js` lists the twelve chapters and which labels show where
+(for example `result:` and `school:` in chapters 9 to 11, and `line note:`,
+the sentence shown when someone taps the line at the end).
+
 Things to know:
 
 - Keep the labels (`headline:`, `time:`, `feature text:` and so on) and the
-  `## 1` to `## 8` chapter lines exactly as they are.
+  `## 1` to `## 12` chapter lines exactly as they are.
 - Delete a line, or leave it empty after the colon, to hide that piece of text.
 - Keep the two backtick marks ( ` ) at the top and bottom of the copy.
 - Headlines read best at eight words or fewer, because each one is set very
   large and animated word by word.
 - The house copy rules still apply: no em dashes, no invented claims, and
-  prices and dates must match the offer.
+  prices and dates must match the offer. Every score is shown with
+  "Karman 1:1 tutoring, median 16 weeks".
 
 Send me a message when you've changed it and I'll check every line against the
 copy rules and the overlap scan before it goes on the real site.

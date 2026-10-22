@@ -28,15 +28,18 @@
   .hd nav a:hover, .hd nav a:focus-visible { opacity: 1; text-decoration: underline; text-underline-offset: 5px; }
   @media (max-width: 760px) { .hd nav a:not(.keep) { display: none; } }
 
+  /* one fine, static film grain over everything (style bible: 2 to 3%) */
+  body::after { content: ""; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: .09; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
   main { position: relative; z-index: 1; }
   /* a chapter: its film is a window that rises through the sky; its words hold while the window passes */
-  .sc { position: relative; height: 210vh; }
-  .sc.first { height: 190vh; }
+  .sc { position: relative; height: 175vh; }
+  .sc.first { height: 160vh; }
   .sc.last { height: 170vh; }
-  .frame { position: absolute; left: 0; right: 0; top: 18vh; height: 150vh; overflow: hidden;
+  .frame { position: absolute; left: 0; right: 0; top: 14vh; height: 150vh; overflow: hidden;
     -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
             mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%); }
-  .sc.first .frame { top: 0; height: 170vh; -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%); }
+  .sc.first .frame { top: 0; height: 135vh; -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%); }
   .frame .cam { position: absolute; left: -6%; right: -6%; top: 0; height: 100%; will-change: transform; }
   .frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .frame .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,18,26,.66) 0%, rgba(11,18,26,.18) 55%, rgba(11,18,26,0) 100%); }
@@ -97,6 +100,34 @@
     .time .meta { font-size: 13px; padding-bottom: 1px; }
     .frame .scrim { background: linear-gradient(180deg, rgba(11,18,26,.7) 0%, rgba(11,18,26,.1) 42%, rgba(11,18,26,.78) 100%); }
   }
+  /* a plain card beside a screen (chat, workshops) */
+  .feat .note { margin-top: 14px; background: #101923; border-radius: 22px; padding: 18px 20px; font-size: 15px; color: var(--ink2); }
+  .feat .note b { display: block; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
+  /* the night: no film, only the drawn sky */
+  .sc.night { height: 220vh; }
+  .sc.night .frame { display: none; }
+  .nightnote { position: absolute; left: clamp(16px, 5vw, 80px); top: calc(50% + min(16vh, 140px)); max-width: 40ch; font-size: 17px; color: var(--ink2); }
+  .nightnote b { color: var(--ink); font-weight: 600; }
+  .stamp { position: absolute; left: 50%; bottom: 12vh; transform: translateX(-50%); font-family: "Source Serif 4", Georgia, serif; font-size: clamp(28px, 3.4vw, 54px); letter-spacing: -.02em; white-space: nowrap; }
+  /* next fall: name, score and school */
+  .sc.result { height: 150vh; }
+  .res { position: absolute; left: clamp(16px, 5vw, 80px); bottom: clamp(40px, 9vh, 96px); }
+  .res .r { font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: clamp(44px, min(7vw, 11vh), 120px); line-height: 1; letter-spacing: -.03em; }
+  .res .s { margin-top: 10px; font-size: clamp(18px, 1.6vw, 24px); font-weight: 600; letter-spacing: .02em; }
+  .res small { display: block; margin-top: 14px; font-size: 14px; color: var(--ink2); }
+  .proof { font-size: 14px; color: var(--ink2); max-width: 60ch; }
+  /* orbit: the line, drawn just above the airglow; tap it to learn what it is */
+  .kline { position: absolute; left: 0; right: 0; top: 24%; height: 28px; margin-top: -14px; background: none; border: 0; padding: 0; cursor: pointer; pointer-events: auto; }
+  .kline::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(241,241,238,.85); transform-origin: 0 50%; transform: scaleX(var(--draw, 0)); }
+  .kline:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  .kline .tip { position: absolute; right: clamp(16px, 5vw, 80px); bottom: 22px; font: 14px/1.4 "Hanken Grotesk", sans-serif; color: var(--ink); background: rgba(4,7,13,.82); padding: 8px 12px; border-radius: 10px; opacity: 0; transform: translateY(4px); transition: opacity .25s var(--ease), transform .25s var(--ease); pointer-events: none; white-space: nowrap; }
+  .kline:hover .tip, .kline:focus-visible .tip, .kline.open .tip { opacity: 1; transform: none; }
+  .sc.orbit .stack { justify-content: flex-end; padding-bottom: 12vh; }
+  @media (max-width: 760px) {
+    .res { bottom: 40px; } .stamp { bottom: 9vh; }
+    .feat .note { font-size: 13px; padding: 12px 14px; margin-top: 18px; }
+    .kline .tip { right: 16px; white-space: normal; max-width: 70vw; }
+  }
   .still .sc { height: auto; }
   .still .frame { position: relative; top: 0; height: 100vh; -webkit-mask-image: none; mask-image: none; }
   .still .copy { position: absolute; inset: 0; }
@@ -122,14 +153,18 @@
 (function () {
   /* ---------- chapters: film, layout, motion (the words come from copy.js) ---------- */
   const SCENES = [
-    { film: "c1", layout: "center", kin: "letters" },
+    { film: "c1", layout: "center", kin: "letters", autoplay: 4 },
     { film: "c2", kin: "scale", feat: ["../screens/v2-daily10-dark.png", "phone", "Your Daily 10 on Karman"] },
-    { film: "c6", kin: "mask", feat: ["../screens/v2-parent-update-dark.png", "phone", "The weekly parent update on Karman"] },
-    { film: "c3", kin: "scatter", feat: ["../screens/v2-word-game-dark.png", "phone", "Wordline on Karman"] },
-    { film: "c4", kin: "flicker", feat: ["../screens/v2-schedule-dark.png", "lap", "The cohort schedule on Karman"] },
-    { film: "c5", kin: "flip", feat: ["../screens/v2-review-dark.png", "lap", "A full-length review on Karman"] },
+    { film: "c3", kin: "mask", feat: ["../screens/v2-parent-update-dark.png", "phone", "The weekly parent update on Karman"] },
+    { film: "c4", kin: "scatter", feat: ["../screens/v2-word-game-dark.png", "phone", "Wordline on Karman"] },
+    { film: "c5", kin: "flicker", feat: ["../screens/v2-schedule-dark.png", "lap", "The class calendar on Karman"] },
+    { film: "c6", kin: "flip", feat: ["../screens/v2-review-dark.png", "lap", "A full-length review on Karman"] },
+    { night: true, kin: "letters" },
     { film: "c7", kin: "collide", card: true },
-    { film: "c8", layout: "center", kin: "letters" },
+    { film: "c8a", result: true },
+    { film: "c8b", result: true },
+    { film: "c8c", result: true },
+    { film: "c9", layout: "center", kin: "letters", orbit: true },
   ];
   const COPY = {}; let cur = null;
   (window.KARMAN_COPY || "").split("\n").forEach(line => {
@@ -143,16 +178,26 @@
     const c = COPY[i + 1] || {}, el = document.createElement("section");
     el.className = "sc" + (i === 0 ? " first" : "") + (i === last ? " last" : "") + (sc.layout === "center" ? " center" : "");
     const H = i === 0 ? "h1" : "h2";
+    if (sc.night) el.classList.add("night");
+    if (sc.result) el.classList.add("result");
+    if (sc.orbit) el.classList.add("orbit");
     let copy = "";
     if (sc.layout === "center") {
-      copy = `<div class="stack">${c.headline ? `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>` : ""}${c.text ? `<p class="lede">${esc(c.text)}</p>` : ""}${c.button ? `<div class="act"><a class="btn" href="/free-practice-test">${esc(c.button)}</a>${c["button note"] ? `<small>${esc(c["button note"])}</small>` : ""}</div>` : ""}</div>`;
+      copy = `<div class="stack">${c.headline ? `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>` : ""}${c.text ? `<p class="lede">${esc(c.text)}</p>` : ""}${c.proof ? `<p class="proof lede">${esc(c.proof)}</p>` : ""}${c.button ? `<div class="act"><a class="btn" href="/free-practice-test">${esc(c.button)}</a>${c["button note"] ? `<small>${esc(c["button note"])}</small>` : ""}</div>` : ""}</div>`;
+      if (sc.orbit) copy = `<button class="kline" type="button" aria-label="${esc(c["line note"] || "The line")}"><span class="tip" aria-hidden="true">${esc(c["line note"])}</span></button>` + copy;
+    } else if (sc.result) {
+      copy = `<div class="res"><p class="r">${esc(c.result)}</p><p class="s">${esc(c.school)}</p>${c.proof ? `<small>${esc(c.proof)}</small>` : ""}</div>`;
     } else {
       if (c.headline) copy += `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>`;
-      if (sc.feat) copy += `<figure class="feat ${sc.feat[1] === "lap" ? "lap" : ""}"><img src="${sc.feat[0]}" alt="${sc.feat[2]}">${c["feature title"] || c["feature text"] ? `<figcaption><b>${esc(c["feature title"])}</b> ${esc(c["feature text"])}</figcaption>` : ""}</figure>`;
+      const note = c["card title"] || c["card text"] ? `<div class="note"><b>${esc(c["card title"])}</b>${esc(c["card text"])}</div>` : "";
+      if (sc.feat) copy += `<figure class="feat ${sc.feat[1] === "lap" ? "lap" : ""}"><img src="${sc.feat[0]}" alt="${sc.feat[2]}">${c["feature title"] || c["feature text"] ? `<figcaption><b>${esc(c["feature title"])}</b> ${esc(c["feature text"])}</figcaption>` : ""}${note}</figure>`;
       if (sc.card) copy += `<div class="feat card">${c["card intro"] ? `<p>${esc(c["card intro"])}</p>` : ""}${c["card date"] ? `<p class="date">${esc(c["card date"])}</p>` : ""}${c["card later"] ? `<p class="later">${esc(c["card later"])}</p>` : ""}${c["card text"] ? `<p>${esc(c["card text"])}${c["card link"] ? ` <a href="/guarantee">${esc(c["card link"])}</a>` : ""}</p>` : ""}</div>`;
-      if (c.time) { const [d, ...rest] = c.time.split(" "); copy += `<p class="time"><span class="digits" aria-hidden="true">${[...d].map(ch => `<span class="c"><span>${esc(ch)}</span></span>`).join("")}</span><span class="vh">${esc(c.time)}</span><span class="meta"><span>${esc(rest.join(" "))}</span><b>${esc(c.name)}</b></span></p>`; }
+      if (sc.night && (c["feature title"] || c["feature text"])) copy += `<p class="nightnote"><b>${esc(c["feature title"])}</b> ${esc(c["feature text"])}</p>`;
+      if (sc.night && c.time) copy += `<p class="stamp">${esc(c.time)}</p>`;
+      else if (c.time) { const [d, ...rest] = c.time.split(" "); copy += `<p class="time"><span class="digits" aria-hidden="true">${[...d].map(ch => `<span class="c"><span>${esc(ch)}</span></span>`).join("")}</span><span class="vh">${esc(c.time)}</span><span class="meta"><span>${esc(rest.join(" "))}</span><b>${esc(c.name)}</b></span></p>`; }
     }
-    el.innerHTML = `<div class="frame"><div class="cam"><video src="${sc.film}.mp4" poster="${sc.film}.jpg" muted playsinline preload="${i < 2 ? "auto" : "metadata"}" aria-hidden="true"></video><div class="scrim"></div></div></div><div class="copy">${copy}</div>`;
+    const film = sc.film ? `<video src="${sc.film}.mp4" poster="${sc.film}.jpg" muted playsinline preload="${i < 2 ? "auto" : "metadata"}" aria-hidden="true"></video>` : "";
+    el.innerHTML = `<div class="frame"><div class="cam">${film}<div class="scrim"></div></div></div><div class="copy">${copy}</div>`;
     climb.appendChild(el);
   });
 
@@ -179,17 +224,18 @@
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const STARS = Array.from({ length: 220 }, () => ({ x: rnd(), y: rnd(), r: 0.35 + rnd() * 1.1, tw: rnd() * 6.28, born: 0.25 + rnd() * 0.5 }));
   // low-poly constellations from the app: Reading is a heart, Math is a brain (straight lines only)
-  const HEART = { at: [0.75, 0.26], s: 0.16, pts: [[0, .35], [-.22, .1], [-.42, -.02], [-.5, -.22], [-.38, -.42], [-.18, -.42], [0, -.25], [.18, -.42], [.38, -.42], [.5, -.22], [.42, -.02], [.22, .1]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,0],[1,6],[6,11],[2,5],[10,7]], span: [0.5, 0.62] };
-  const BRAIN = { at: [0.25, 0.24], s: 0.17, pts: [[-.5, .05], [-.42, -.22], [-.2, -.38], [.05, -.42], [.3, -.34], [.48, -.15], [.5, .1], [.32, .22], [.08, .2], [-.16, .24], [-.36, .2], [-.12, -.12], [.16, -.08], [.02, .26], [.06, .42]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,0],[1,11],[11,12],[12,4],[11,9],[12,7],[8,13],[13,14]], span: [0.7, 0.84] };
+  const HEART = { at: [0.7, 0.36], ph: [0.7, 0.44], s: 0.17, pts: [[0, .35], [-.22, .1], [-.42, -.02], [-.5, -.22], [-.38, -.42], [-.18, -.42], [0, -.25], [.18, -.42], [.38, -.42], [.5, -.22], [.42, -.02], [.22, .1]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,0],[1,6],[6,11],[2,5],[10,7]], span: [0.22, 0.5] };
+  const BRAIN = { at: [0.48, 0.24], ph: [0.3, 0.3], s: 0.15, pts: [[-.5, .05], [-.42, -.22], [-.2, -.38], [.05, -.42], [.3, -.34], [.48, -.15], [.5, .1], [.32, .22], [.08, .2], [-.16, .24], [-.36, .2], [-.12, -.12], [.16, -.08], [.02, .26], [.06, .42]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,0],[1,11],[11,12],[12,4],[11,9],[12,7],[8,13],[13,14]], span: [0.38, 0.66] };
   function drawShape(sh, prog, W, H, a) {
     const k = Math.max(0, Math.min(1, (prog - sh.span[0]) / (sh.span[1] - sh.span[0]))); if (k <= 0) return;
-    const S = Math.min(W, H) * sh.s * 2, cx = sh.at[0] * W, cy = sh.at[1] * H, P = sh.pts.map(([x, y]) => [cx + x * S, cy + y * S]);
+    const tall = H > W; // on phones the shapes sit lower, clear of the headline
+    const at = tall ? sh.ph : sh.at, S = Math.min(W, H) * sh.s * (tall ? 2.4 : 2), cx = at[0] * W, cy = at[1] * H, P = sh.pts.map(([x, y]) => [cx + x * S, cy + y * S]);
     const n = sh.edges.length * k;
     g.strokeStyle = `rgba(200,220,235,${0.38 * a})`; g.lineWidth = 1.1 * devicePixelRatio;
     sh.edges.forEach(([u, v], e) => { if (e >= n) return; const f = Math.min(1, n - e); g.beginPath(); g.moveTo(P[u][0], P[u][1]); g.lineTo(P[u][0] + (P[v][0] - P[u][0]) * f, P[u][1] + (P[v][1] - P[u][1]) * f); g.stroke(); });
     P.forEach(([x, y], j) => { const lit = sh.edges.some(([u, v], e) => e < n && (u === j || v === j)); if (!lit) return; g.fillStyle = `rgba(241,241,238,${0.9 * a})`; g.beginPath(); g.arc(x, y, 1.9 * devicePixelRatio, 0, 6.29); g.fill(); });
   }
-  let prog = 0, clock = 0;
+  let prog = 0, clock = 0; const nightSec = document.querySelector(".sc.night");
   function drawSky() {
     const W = sky.width = innerWidth * devicePixelRatio, H = sky.height = innerHeight * devicePixelRatio;
     let i = 0; while (i < LAYERS.length - 2 && prog > LAYERS[i + 1][0]) i++;
@@ -201,16 +247,16 @@
     STARS.forEach(s => { const a = Math.max(0, Math.min(1, (prog - s.born) / 0.2)); if (!a) return;
       const y = ((s.y + prog * 0.35) % 1) * H, tw = 0.7 + 0.3 * Math.sin(s.tw + clock * 0.0012);
       g.fillStyle = `rgba(232,240,250,${a * tw * 0.9})`; g.beginPath(); g.arc(s.x * W, y, s.r * devicePixelRatio * (0.6 + a * 0.4), 0, 6.29); g.fill(); });
-    drawShape(HEART, prog, W, H, 1); drawShape(BRAIN, prog, W, H, 1);
-    // the Kármán line: a thin band of airglow as you reach the top
-    const kl = Math.max(0, Math.min(1, (prog - 0.88) / 0.08));
-    if (kl > 0) { const y = H * (0.58 - kl * 0.12); const ag = g.createLinearGradient(0, y - 18 * devicePixelRatio, 0, y + 18 * devicePixelRatio);
-      ag.addColorStop(0, "rgba(124,196,165,0)"); ag.addColorStop(.5, `rgba(124,196,165,${0.11 * kl})`); ag.addColorStop(1, "rgba(79,143,184,0)"); g.fillStyle = ag; g.fillRect(0, y - 18 * devicePixelRatio, W, 36 * devicePixelRatio); }
+    // the student's skills as constellations: they draw themselves through the night chapter
+    const nr = nightSec ? nightSec.getBoundingClientRect() : null;
+    const np = nr ? Math.max(0, Math.min(1, (innerHeight - nr.top) / (nr.height + innerHeight))) : 0;
+    const fade = np > 0.9 ? Math.max(0, 1 - (np - 0.9) / 0.1) : 1;
+    drawShape(HEART, np, W, H, fade); drawShape(BRAIN, np, W, H, fade);
   }
   const pageProg = () => Math.max(0, Math.min(1, scrollY / (document.documentElement.scrollHeight - innerHeight)));
   function skyTick(ms) { clock = ms || 0; prog = pageProg(); drawSky(); if (!REC && !still) requestAnimationFrame(skyTick); }
 
-  if (still) { document.documentElement.classList.add("still"); skyTick(0); secs.forEach(s => s.querySelector("video").play().catch(() => {})); return; }
+  if (still) { document.documentElement.classList.add("still"); skyTick(0); secs.forEach(s => s.querySelector("video")?.play().catch(() => {})); return; }
 
   /* ---------- kinetic words, scrubbed by scroll ---------- */
   const rn = (i, s) => { const x = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453; return x - Math.floor(x); };
@@ -224,36 +270,51 @@
     collide: (tl, p, at, d) => { const half = Math.ceil(p.length / 2); p.forEach((s, j) => tl.from(s, { xPercent: j < half ? -260 : 260, opacity: 0, duration: d * 0.6, ease: "expo.out" }, at + (j < half ? j : j - half) * d * 0.06)); },
   };
 
+  // load each film fully once it is about a screen and a half away, so scrubbing shows real frames, not the poster
+  const warm = v => { if (v.preload !== "auto") { v.preload = "auto"; if (v.readyState < 3) v.load(); } };
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { warm(e.target); io.unobserve(e.target); } }), { rootMargin: "150% 0px" });
+  secs.forEach(s => { const v = s.querySelector("video"); if (v) REC ? warm(v) : io.observe(v); });
   const hd = document.querySelector(".hd");
   const away = () => hd.classList.toggle("away", climb.getBoundingClientRect().bottom < innerHeight + 160);
   gsap.registerPlugin(ScrollTrigger);
 
   secs.forEach((sec, i) => {
     const sc = SCENES[i], video = sec.querySelector("video"), cam = sec.querySelector(".cam");
+    const lead = sc.autoplay || 0; // seconds of the opening film that play on their own before scroll takes over
     const kin = sec.querySelector(".kin"), parts = kin ? [...kin.querySelectorAll(".w > span, .w .l")] : [];
     const feat = sec.querySelector(".feat"), time = sec.querySelector(".time"), digits = time ? time.querySelectorAll(".c > span") : [], meta = time ? time.querySelector(".meta") : null;
-    const extra = sec.querySelectorAll(".lede, .act");
+    const extra = sec.querySelectorAll(".lede, .act, .nightnote");
+    const res = sec.querySelectorAll(".res > *"), stamp = sec.querySelector(".stamp"), kline = sec.querySelector(".kline");
     const first = i === 0, end = i === last;
     // one timeline per chapter, 0 to 1 over the whole time it is on screen
     const tl = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: sec, start: "top bottom", end: "bottom top", scrub: true,
       onUpdate: self => { // the film plays forward only as you scroll
-        if (!video.duration) return; const k = Math.max(0, Math.min(1, (self.progress - 0.04) / 0.92)); const t = k * (video.duration - 0.05);
+        if (!video || !video.duration || video.dataset.auto === "1") return;
+        // result chapters run their short clip faster, so the student is on screen when the name arrives
+        const span = sc.result ? 0.5 : 0.92;
+        // the opening follows the scroll from the very top of the page; the others follow their own chapter
+        const k = first ? Math.max(0, Math.min(1, scrollY / (sec.offsetHeight * 0.75))) : Math.max(0, Math.min(1, (self.progress - 0.04) / span)); const t = lead + k * (video.duration - lead - 0.05);
         if (Math.abs(video.currentTime - t) > 1 / 60) video.currentTime = t; } } });
     // the camera cranes up and eases in while the window rises through the sky
-    tl.fromTo(cam, { yPercent: -9, scale: 1.24, rotate: first ? 0 : -0.8 }, { yPercent: 9, scale: 1.04, rotate: first ? 0 : 0.6, duration: 1 }, 0);
+    if (video) tl.fromTo(cam, { yPercent: -6, scale: 1.14, rotate: first ? 0 : -0.6 }, { yPercent: 6, scale: 1.02, rotate: first ? 0 : 0.6, duration: 1 }, 0);
     const len = sec.offsetHeight, vh = innerHeight, pass = len + vh, pinA = vh / pass, pinB = len / pass; // when the words hold
     const inAt = first ? 0 : pinA - 0.1, outAt = end ? 2 : pinB - 0.11;
     if (parts.length && !first) KIN[sc.kin](tl, parts, inAt, 0.13);
     if (digits.length) { tl.from(digits, { yPercent: 105, stagger: 0.012, duration: 0.05, ease: "power3.out" }, inAt + 0.03); tl.from(meta, { opacity: 0, x: -12, duration: 0.05 }, inAt + 0.06); }
     if (feat) tl.fromTo(feat, { opacity: 0, rotateY: -32, rotateX: 10, z: -260, xPercent: 18 }, { opacity: 1, rotateY: -8, rotateX: 3, z: 0, xPercent: 0, duration: 0.12, ease: "expo.out" }, inAt + 0.05)
                  .to(feat, { rotateY: 6, rotateX: -2, yPercent: -4, duration: (outAt - inAt) - 0.14, ease: "sine.inOut" }, inAt + 0.17);
-    if (extra.length && end) tl.from(extra, { opacity: 0, y: 26, stagger: 0.03, duration: 0.08, ease: "power3.out" }, inAt + 0.08);
+    if (res.length) tl.from(res, { yPercent: 60, opacity: 0, stagger: 0.03, duration: 0.08, ease: "expo.out" }, 0.45);
+    if (stamp) tl.from(stamp, { opacity: 0, y: 30, duration: 0.06, ease: "power3.out" }, 0.7).to(stamp, { opacity: 0, duration: 0.04 }, 0.86);
+    if (kline) { tl.fromTo(kline, { "--draw": 0 }, { "--draw": 1, duration: 0.18, ease: "power2.inOut" }, pinA - 0.12); tl.fromTo(kline, { yPercent: -700 }, { yPercent: 0, duration: 0.22, ease: "power2.out" }, pinA - 0.12);
+      kline.addEventListener("click", () => kline.classList.toggle("open")); }
+    if (extra.length && (end || sc.night)) tl.from(extra, { opacity: 0, y: 26, stagger: 0.03, duration: 0.08, ease: "power3.out" }, inAt + 0.08);
     if (!end) {
       if (parts.length) kin.classList.contains("free")
         ? tl.to(parts, { y: 40, scale: .92, opacity: 0, stagger: 0.004, duration: 0.06, ease: "power2.in" }, outAt)
         : tl.to(parts, { yPercent: -120, opacity: 0, stagger: 0.004, duration: 0.06, ease: "power2.in" }, outAt);
       if (extra.length) tl.to(extra, { opacity: 0, y: -24, duration: 0.06, ease: "power2.in" }, outAt - 0.01);
       if (feat) tl.to(feat, { opacity: 0, rotateY: 24, z: -200, xPercent: -8, duration: 0.07, ease: "power2.in" }, outAt);
+      if (res.length) tl.to(res, { opacity: 0, y: -30, stagger: 0.01, duration: 0.05, ease: "power2.in" }, 0.76);
       if (digits.length) { tl.to(digits, { yPercent: -105, stagger: 0.008, duration: 0.05, ease: "power2.in" }, outAt + 0.02); tl.to(meta, { opacity: 0, duration: 0.04 }, outAt + 0.02); tl.set(time, { autoAlpha: 0 }, outAt + 0.09); }
     }
     tl.to({}, { duration: 0.001 }, 1);
@@ -261,7 +322,7 @@
 
   if (REC) {
     window.__go = async y => { scrollTo(0, y); ScrollTrigger.update(); away(); prog = pageProg(); drawSky();
-      await Promise.all(secs.map(s => s.querySelector("video")).filter(v => v.seeking).map(v => new Promise(r => { v.addEventListener("seeked", r, { once: true }); setTimeout(r, 900); }))); };
+      await Promise.all(secs.map(s => s.querySelector("video")).filter(v => v && v.seeking).map(v => new Promise(r => { v.addEventListener("seeked", r, { once: true }); setTimeout(r, 900); }))); };
     window.__max = () => document.documentElement.scrollHeight - innerHeight;
     window.__clock = ms => { clock = ms; drawSky(); };
     skyTick(0); away();
@@ -274,6 +335,11 @@
   gsap.ticker.lagSmoothing(0);
   addEventListener("scroll", away, { passive: true }); away();
   requestAnimationFrame(skyTick);
+  // the opening film plays its first few seconds by itself, then hands over to the scroll
+  const v0 = secs[0].querySelector("video"), lead0 = SCENES[0].autoplay || 0;
+  if (v0 && lead0) { v0.dataset.auto = "1"; const stop = () => { if (v0.dataset.auto !== "1") return; v0.dataset.auto = "0"; v0.pause(); ScrollTrigger.update(); };
+    v0.play().catch(stop); v0.addEventListener("timeupdate", () => { if (v0.currentTime >= lead0) stop(); });
+    addEventListener("wheel", stop, { once: true, passive: true }); addEventListener("touchmove", stop, { once: true, passive: true }); addEventListener("keydown", stop, { once: true }); }
   // the opening line arrives on its own, before any scroll
   gsap.from(secs[0].querySelectorAll(".kin .l"), { yPercent: 115, rotateX: -70, opacity: 0, transformOrigin: "50% 100%", stagger: 0.035, duration: 1.4, ease: "expo.out", delay: .2 });
   gsap.from(secs[0].querySelectorAll(".lede, .act"), { opacity: 0, y: 24, stagger: .15, duration: 1, ease: "power3.out", delay: .9 });
