@@ -63,8 +63,19 @@ const ROUTES = {
   "wan-3.0-prime": { provider: "atlas", kind: "video", model: "alibaba/wan-3.0-prime" },
   "veo-3.1-fast": { provider: "veo", model: "veo-3.1-fast-generate-preview", perSecond: 0.1 },
   "veo-3.1-lite": { provider: "veo", model: "veo-3.1-lite-generate-preview", perSecond: 0.05 },
-  "nano-banana-2.1": { provider: "gemini-image", model: "gemini-3.1-flash-image", estimate: 0.05 },
-  "nano-banana-pro": { provider: "gemini-image", model: "gemini-3-pro-image", estimate: 0.24 },
+  // Google image prices: dollars per 1M output tokens (a 2K image is 1,120 to 1,680 tokens).
+  "nano-banana-2.1": {
+    provider: "gemini-image",
+    model: "gemini-nano-banana-2.1",
+    estimate: 0.0504,
+    perMillionOut: 30,
+  },
+  "nano-banana-pro": {
+    provider: "gemini-image",
+    model: "gemini-3-pro-image",
+    estimate: 0.134,
+    perMillionOut: 120,
+  },
   "gpt-image-2.5": { provider: "openai", model: "gpt-image-2.5-flare", estimate: 0.05 },
   "ideogram-4.5": { provider: "fal", model: "ideogram/v4.5", estimate: 0.06 },
   "flux-3": { provider: "fal", model: "blackforestlabs/flux-3/text-to-image", estimate: 0.1 },
@@ -119,7 +130,8 @@ function logSpend(row) {
 
 // ---------- prompt ----------
 function fullPrompt(shot, defaults) {
-  return `${shot.prompt.trim()} ${defaults.suffix}`.trim();
+  const suffix = shot.still ? defaults.stillSuffix : defaults.suffix;
+  return `${shot.prompt.trim()} ${suffix ?? ""}`.trim();
 }
 
 // ---------- Atlas Cloud (Seedance, Wan) ----------
@@ -247,12 +259,19 @@ const googleHeaders = () => ({
   "Content-Type": "application/json",
 });
 
-async function geminiImage(route, shot, defaults, file) {
+async function geminiImage(route, shot, defaults, file, refFiles = []) {
+  const parts = refFiles.map((f) => ({
+    inlineData: {
+      mimeType: f.endsWith(".png") ? "image/png" : "image/jpeg",
+      data: readFileSync(f).toString("base64"),
+    },
+  }));
+  parts.push({ text: fullPrompt(shot, defaults) });
   const body = {
-    contents: [{ parts: [{ text: fullPrompt(shot, defaults) }] }],
+    contents: [{ parts }],
     generationConfig: {
       responseModalities: ["IMAGE"],
-      imageConfig: { aspectRatio: shot.ratio ?? defaults.ratio, imageSize: "2K" },
+      imageConfig: { aspectRatio: shot.ratio ?? defaults.ratio, imageSize: shot.size ?? "2K" },
     },
   };
   const r = await http(
@@ -264,7 +283,11 @@ async function geminiImage(route, shot, defaults, file) {
   if (!part) throw new Error(`Gemini returned no image: ${JSON.stringify(r).slice(0, 300)}`);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, Buffer.from(part.inlineData.data, "base64"));
-  return file;
+  const u = r.usageMetadata ?? {};
+  const outTokens = (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0);
+  return outTokens
+    ? (outTokens / 1e6) * route.perMillionOut + ((u.promptTokenCount ?? 0) / 1e6) * 2
+    : null;
 }
 
 async function veoRun(route, shot, defaults, file) {
@@ -341,13 +364,18 @@ async function plan(item, defaults) {
   return { item, route, quote: route.estimate, estimated: true };
 }
 
+// A reference is a cast name from the manifest, or a path relative to the repo.
+const refPath = (manifest, ref) => join(ROOT, manifest.cast[ref] ?? ref);
+
 async function execute(p, defaults, manifest, state) {
   const { item, route } = p;
   const ext = route.kind === "video" || route.provider === "veo" ? "mp4" : "png";
-  const file = join(
-    OUT,
-    `${item.id}-${(item.ratio ?? defaults.ratio).replace(":", "x")}-${item.draft ? "draft" : "final"}-${stamp()}.${ext}`
-  );
+  const file = item.still
+    ? join(OUT, "stills", `${item.id}-${stamp()}.${ext}`)
+    : join(
+        OUT,
+        `${item.id}-${(item.ratio ?? defaults.ratio).replace(":", "x")}-${item.draft ? "draft" : "final"}-${stamp()}.${ext}`
+      );
   let charged = p.quote;
   let source = "estimate";
 
@@ -373,8 +401,20 @@ async function execute(p, defaults, manifest, state) {
     await download(r.url, file);
     charged = before - (await falBalance());
     source = "balance";
-  } else if (route.provider === "gemini-image") await geminiImage(route, item, defaults, file);
-  else if (route.provider === "veo") await veoRun(route, item, defaults, file);
+  } else if (route.provider === "gemini-image") {
+    const cost = await geminiImage(
+      route,
+      item,
+      defaults,
+      file,
+      (item.refs ?? []).map((r) => refPath(manifest, r))
+    );
+    if (cost != null) {
+      charged = cost;
+      source = "usage tokens";
+    }
+    state[item.id] = { ...(state[item.id] ?? {}), lastFile: file };
+  } else if (route.provider === "veo") await veoRun(route, item, defaults, file);
   else if (route.provider === "openai") await openaiImage(route, item, defaults, file);
 
   logSpend({
@@ -460,9 +500,11 @@ async function main() {
     return save();
   }
 
-  const items = [...manifest.shots, ...(manifest.plates ?? [])].filter(
-    (s) => !ONLY || ONLY.includes(s.id)
-  );
+  const items = [
+    ...(manifest.stills ?? []).map((s) => ({ ...s, still: true })),
+    ...manifest.shots,
+    ...(manifest.plates ?? []),
+  ].filter((s) => !ONLY || ONLY.includes(s.id));
   const chosen = items.filter((s) => s.status === "approved" || (!RUN && flag("all")));
   const skipped = items.filter((s) => !chosen.includes(s));
   if (skipped.length)

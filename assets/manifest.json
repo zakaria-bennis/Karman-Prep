@@ -3,15 +3,16 @@
   "defaults": {
     "duration": 8,
     "ratio": "16:9",
-    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. One continuous shot, slow and physical camera move, no cuts. No text, letters, numbers, logos, watermarks, neon, lens flare, purple, glowing orbs or rockets. Phone and laptop screens are never visible to the camera."
+    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. One continuous shot, slow and physical camera move, no cuts. No text, letters, numbers, logos, watermarks, neon, lens flare, purple, glowing orbs or rockets. Phone and laptop screens are never visible to the camera.",
+    "stillSuffix": "Shot on a full-frame camera, natural light, soft contrast, true skin texture with pores and fine detail, true colour, subtle fine film grain, editorial documentary photograph. No text, letters, numbers, logos, crests, brand marks or watermarks anywhere, including on clothing, signs and devices. Phone and laptop screens are never visible to the camera. No purple, neon or lens flare."
   },
   "cast": {
-    "ava": ".impeccable/mocks/decision/hf-shots/cast/b1-ava.png",
-    "clara": ".impeccable/mocks/decision/hf-shots/cast/b2-clara.png",
-    "mateo": ".impeccable/mocks/decision/hf-shots/cast/b3-mateo.png",
+    "ava": ".impeccable/mocks/decision/hf-shots/cast/ava.jpg",
+    "clara": ".impeccable/mocks/decision/hf-shots/cast/clara.jpg",
+    "mateo": ".impeccable/mocks/decision/hf-shots/cast/mateo.jpg",
     "priya": ".impeccable/mocks/decision/hf-shots/cast/b5-priya.png",
     "parent1": ".impeccable/mocks/decision/hf-shots/cast/b7-parent1.png",
-    "david": ".impeccable/mocks/decision/hf-shots/cast/b9-david.png"
+    "david": ".impeccable/mocks/decision/hf-shots/cast/david.jpg"
   },
   "shots": [
     {
@@ -97,6 +98,168 @@
       "route": "nano-banana-2.1",
       "ratio": "16:9",
       "prompt": "High, wispy cirrus cloud seen from above at dusk, sparse, natural colour, plain dark background for compositing."
+    }
+  ],
+  "stills": [
+    {
+      "id": "k1-kitchen-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:10 a.m., before dawn, a Spanish-revival house on an oak-lined street in Palo Alto. Seen from outside through a large kitchen window: the glass reflects a deep blue pre-dawn sky with a few faint stars and the dark silhouette of a live oak; through that reflection we see the warm lit kitchen, white plaster walls, a marble counter, and the girl from Image 1 in an oversized grey hoodie, half asleep, pouring coffee from a pour-over into a steel travel mug. Her phone lies face down on the counter. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k1-kitchen-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:10 a.m., before dawn, a Spanish-revival house on an oak-lined street in Palo Alto. Seen from outside through a large kitchen window: the glass reflects a deep blue pre-dawn sky with a few faint stars and the dark silhouette of a live oak; through that reflection we see the warm lit kitchen, white plaster walls, a marble counter, and the girl from Image 1 in an oversized grey hoodie, half asleep, pouring coffee from a pour-over into a steel travel mug. Her phone lies face down on the counter. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k2-bus-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:52 a.m., inside a quiet private school shuttle bus with dark seats. The girl from Image 1 sits by the window in a cream sweater, one white earbud in, holding her phone low in her lap with its back to the camera, its soft glow on her face, focused, a tiny frown of concentration. Low sunrise light strobes gold through the windows; green winter hills and oaks blur past outside; a faint reflection of the peach dawn sky lies across the window glass. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k2-bus-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:52 a.m., inside a quiet private school shuttle bus with dark seats. The girl from Image 1 sits by the window in a cream sweater, one white earbud in, holding her phone low in her lap with its back to the camera, its soft glow on her face, focused, a tiny frown of concentration. Low sunrise light strobes gold through the windows; green winter hills and oaks blur past outside; a faint reflection of the peach dawn sky lies across the window glass. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k3-pickup-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["parent1"],
+      "prompt": "3:15 p.m., bright clear winter afternoon. Exterior three-quarter view through the windshield of a glossy black full-size luxury SUV of the Range Rover kind, no badge or emblem visible. The windshield reflects blue sky and live-oak branches; behind the glass the woman from Image 1, in a camel coat and small gold earrings, sits in the driver's seat reading her phone held up facing her, a quiet relieved half-smile. Soft-focus background: a private prep school of cream stucco walls, red clay tile roofs and an arched loggia, clipped boxwood hedges, a circular drive, and high school students aged 15 to 18 in quarter-zips and fleece vests with backpacks and one lacrosse stick walking past. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k3-pickup-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["parent1"],
+      "prompt": "3:15 p.m., bright clear winter afternoon. Exterior three-quarter view through the windshield of a glossy black full-size luxury SUV of the Range Rover kind, no badge or emblem visible. The windshield reflects blue sky and live-oak branches; behind the glass the woman from Image 1, in a camel coat and small gold earrings, sits in the driver's seat reading her phone held up facing her, a quiet relieved half-smile. Soft-focus background: a private prep school of cream stucco walls, red clay tile roofs and an arched loggia, clipped boxwood hedges, a circular drive, and high school students aged 15 to 18 in quarter-zips and fleece vests with backpacks and one lacrosse stick walking past. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k4-tennis-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "4:35 p.m., golden hour at outdoor hard tennis courts of a private school in the foothills, dark green windscreens on the fence, long shadows across the court. The boy from Image 1 in plain tennis whites sits on the courtside bench at a changeover, a white towel around his neck, racquet bag beside him, thumb-typing on his phone held facing him, a steel water bottle at his feet. His opponent towels off on the far bench, out of focus. Green winter hills and oaks beyond the fence glow amber. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k4-tennis-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "4:35 p.m., golden hour at outdoor hard tennis courts of a private school in the foothills, dark green windscreens on the fence, long shadows across the court. The boy from Image 1 in plain tennis whites sits on the courtside bench at a changeover, a white towel around his neck, racquet bag beside him, thumb-typing on his phone held facing him, a steel water bottle at his feet. His opponent towels off on the far bench, out of focus. Green winter hills and oaks beyond the fence glow amber. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k5-priya-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "8:05 p.m., a bedroom at night. The camera is behind and slightly beside an open laptop, so only the back edge of the silver lid shows at the left of frame. The girl with glasses from Image 1 is speaking mid-sentence on a video call, one hand raised, explaining her answer with quiet confidence; her face is lit cool by the screen and warm by a brass desk lamp. Behind her a window shows deep navy night with the first stars above dark hills; a bookshelf, a plant. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k5-priya-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "8:05 p.m., a bedroom at night. The camera is behind and slightly beside an open laptop, so only the back edge of the silver lid shows at the left of frame. The girl with glasses from Image 1 is speaking mid-sentence on a video call, one hand raised, explaining her answer with quiet confidence; her face is lit cool by the screen and warm by a brass desk lamp. Behind her a window shows deep navy night with the first stars above dark hills; a bookshelf, a plant. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k6-david-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["david"],
+      "prompt": "9:00 p.m., a warm home office at night. The man from Image 1 sits at a walnut desk speaking into a broadcast microphone on a black boom arm, explaining with one open hand, a slight smile, looking at a monitor that faces him at the edge of frame with its screen not visible. Warm brass lamp, oak bookshelves of books with plain spines, a fiddle-leaf fig. The dark window beside him shows a few stars and reflects the lamp. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k6-david-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["david"],
+      "prompt": "9:00 p.m., a warm home office at night. The man from Image 1 sits at a walnut desk speaking into a broadcast microphone on a black boom arm, explaining with one open hand, a slight smile, looking at a monitor that faces him at the edge of frame with its screen not visible. Warm brass lamp, oak bookshelves of books with plain spines, a fiddle-leaf fig. The dark window beside him shows a few stars and reflects the lamp. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k7-test-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava", "clara"],
+      "prompt": "7:40 a.m. on a Saturday in early March under flat grey marine-layer light. Seen from behind and slightly to one side, the girl from Image 1 (cream sweater) and the girl from Image 2 (grey quarter-zip) walk side by side and in step toward tall glass doors of a cream stucco school building with a red tile roof. No headphones. Calm, quiet. The glass doors reflect the pale grey sky and their approaching figures; warm light glows inside the building. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k7-test-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava", "clara"],
+      "prompt": "7:40 a.m. on a Saturday in early March under flat grey marine-layer light. Seen from behind and slightly to one side, the girl from Image 1 (cream sweater) and the girl from Image 2 (grey quarter-zip) walk side by side and in step toward tall glass doors of a cream stucco school building with a red tile roof. No headphones. Calm, quiet. The glass doors reflect the pale grey sky and their approaching figures; warm light glows inside the building. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k8-harvard-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "Early September afternoon in Harvard Yard, Cambridge, Massachusetts. The boy from Image 1, now 18, in a navy quarter-zip with a tennis bag over his shoulder, walks through an old red-brick and wrought-iron gate onto a path under tall elms toward red-brick Georgian dormitories with white trim and ivy; a few first orange leaves; warm side light. Seen from behind at three-quarters, his face half turned. No signs, plaques or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k8-harvard-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "Early September afternoon in Harvard Yard, Cambridge, Massachusetts. The boy from Image 1, now 18, in a navy quarter-zip with a tennis bag over his shoulder, walks through an old red-brick and wrought-iron gate onto a path under tall elms toward red-brick Georgian dormitories with white trim and ivy; a few first orange leaves; warm side light. Seen from behind at three-quarters, his face half turned. No signs, plaques or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k9-stanford-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "Late September golden afternoon at Stanford University's Main Quad. The girl from Image 1, now 18, with sunglasses pushed up into her hair and a canvas tote, stands under the sandstone arcade and looks up at the arches and red clay tile roofs with a small private smile; palms and a long arcade receding behind her; warm light. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k9-stanford-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "Late September golden afternoon at Stanford University's Main Quad. The girl from Image 1, now 18, with sunglasses pushed up into her hair and a canvas tote, stands under the sandstone arcade and looks up at the arches and red clay tile roofs with a small private smile; palms and a long arcade receding behind her; warm light. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k10-berkeley-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "Late August morning at UC Berkeley. The girl from Image 1, now 18, with a backpack on one shoulder, walks up wide granite steps through tall eucalyptus trees; ahead, Sather Tower, the tall white granite campanile, rises above the trees against a clear blue sky; dry golden hills in the distance. Seen from behind at three-quarters, her face slightly turned toward the tower. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k10-berkeley-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "Late August morning at UC Berkeley. The girl from Image 1, now 18, with a backpack on one shoulder, walks up wide granite steps through tall eucalyptus trees; ahead, Sather Tower, the tall white granite campanile, rises above the trees against a clear blue sky; dry golden hills in the distance. Seen from behind at three-quarters, her face slightly turned toward the tower. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
     }
   ]
 }

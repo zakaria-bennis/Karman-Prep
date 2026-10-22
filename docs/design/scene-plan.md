@@ -25,6 +25,15 @@ approved in `assets/manifest.json`.
 - Real results: Ava 1520 UC Berkeley, Mateo 1570 Harvard, Priya 1540 Stanford,
   shown with "Karman 1:1 tutoring, median 16 weeks." Cleared by the founder's
   lawyer.
+- Proof: the numbers at the top, the people at the end. Early copy uses
+  aggregate 1:1 results (always labelled 1:1 tutoring, median 16 weeks); the
+  three names, scores and colleges appear only in the closing sequence. The
+  button stays reachable the whole way down.
+- Cast portraits (2026-10-22): Ava recast to read as her mother's daughter;
+  Clara recast as Chinese-American; Mateo in plain tennis whites; David
+  recast as Korean-American. References live in
+  `.impeccable/mocks/decision/hf-shots/cast/` (ava, clara, mateo, david .jpg;
+  priya and parent1 unchanged).
 - Chat and workshops stay as the offer describes them (cohort group chat
   answered daily by a tutor; weekly live session with skill workshops).
 
