@@ -10,6 +10,7 @@ import { numberValue, type Value } from "../eval/values";
 import { fitRegression, type RegressionResult } from "../../regression/fit";
 import { rowErrorMessage } from "../analysis/messages";
 import type { RegressionAnalysis } from "./regression-analysis";
+import { fitWholeValues, needsListFit } from "./list-fit";
 
 export interface RegressionOutcome extends RegressionResult {
   residualName: string; // e_k
@@ -84,14 +85,17 @@ export function evaluateRegression(
   if (leftType !== null && rightType !== null && (leftType.bad || rightType.bad)) {
     return failed(r, `Can't regress ${leftType.phrase} against ${rightType.phrase}.`);
   }
+  if (needsListFit(r, scope, deadline)) {
+    return { ...fitWholeValues(r, scope, deadline), residualName: r.residual };
+  }
   // RT-15: a scalar left side is legal, fitted against every predictor value.
   const scalar = left.type === "number" || left.type === "undefined";
   const pairs = lists.length === 0 ? 1 : Math.min(...lists.map((l) => l.length));
   const observed = scalar ? new Array<number>(pairs).fill(real(left)) : listOf(left);
   if (observed === null) return failed(r, rowErrorMessage("regression-data", []));
-  // Desmos fits nothing and shows no error when there is nothing to fit: no parameter
-  // (`[1,2]\sim[3,4]`) or no defined observation (`y_{5}\sim mx_{5}+b`, captured 2026-10-20)
-  if (r.params.length === 0 || !observed.some(Number.isFinite)) return failed(r, null);
+  // Desmos fits nothing and shows no error when no observation is defined. With no parameter it
+  // still shows the statistic and residuals (`y_1\sim2` R², `[1,2]\sim[3,4]` RMSE 2, 2026-10-22).
+  if (!observed.some(Number.isFinite)) return failed(r, null);
   const compiled = compileExpression(r.model, scope);
   const vars: Record<string, Value> = {};
   const model = (p: Float64Array, i: number): number => {

@@ -37,7 +37,7 @@ it("D-22 a name another row defines is a constant and the rest still fit", () =>
   expect(a.byId.get("k")!.error).toBeNull();
 });
 
-it("D-22 no parameter is allowed, a scalar left side and x or y as predictor are errors", () => {
+it("D-22 no parameter is allowed, and x or y on either side is an error, the left side's first", () => {
   const a = analyse(
     row("r", "y_{1}\\sim 2x_{1}"),
     row("p", "y_{1}\\sim mx+b"),
@@ -50,8 +50,8 @@ it("D-22 no parameter is allowed, a scalar left side and x or y as predictor are
   expect(analyse(row("s", "y_{1}\\sim ny+mx")).byId.get("s")!.error?.message).toBe(
     "y can't be a regression parameter."
   );
-  // A scalar left side is found when the values pass reads it (evaluate.regression.test.ts).
-  expect(a.byId.get("q")).toMatchObject({ kind: "regression", error: null, graph: null });
+  // the left side is read first: `y\sim m` names y (live 2026-10-22, `[x,1]\sim[a,2]` names x)
+  expect(a.byId.get("q")!.error?.message).toBe("y can't be a regression parameter.");
 });
 
 it("D-33 each regression takes the lowest free e_k in row order and a computed column may read it", () => {

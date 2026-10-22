@@ -5288,15 +5288,7 @@
       {
         "error": "y can't be a regression parameter."
       }
-    ],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [
-        {
-          "error": "x can't be a regression parameter."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "equations",
@@ -6123,15 +6115,7 @@
       {
         "error": "y can't be a regression parameter."
       }
-    ],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [
-        {
-          "error": "x can't be a regression parameter."
-        }
-      ]
-    }
+    ]
   },
   {
     "cat": "regression",
@@ -6145,15 +6129,7 @@
       {
         "error": "x can't be a regression parameter."
       }
-    ],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [
-        {
-          "error": "y can't be a regression parameter."
-        }
-      ]
-    }
+    ]
   },
   { "cat": "regression", "rows": ["1\\sim1"], "desmos": [{ "graph": false, "shown": false }] },
   { "cat": "regression", "rows": ["a\\sim1"], "desmos": [{ "graph": false, "shown": false }] },
@@ -6170,38 +6146,22 @@
   {
     "cat": "regression",
     "rows": ["[1,2]\\sim m[3,4]"],
-    "desmos": [{ "error": "Can't index a number with a list of numbers." }],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [{ "error": "This model isn't defined for this data." }]
-    }
+    "desmos": [{ "error": "Can't index a number with a list of numbers." }]
   },
   {
     "cat": "regression",
     "rows": ["[1,2]\\sim m[3,4,5]"],
-    "desmos": [{ "error": "Can't index a number with a list of numbers." }],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [{ "error": "This model isn't defined for this data." }]
-    }
+    "desmos": [{ "error": "Can't index a number with a list of numbers." }]
   },
   {
     "cat": "regression",
     "rows": ["[1,2,3]\\sim m[1,2,3]+b"],
-    "desmos": [{ "error": "Can't index a number with a list of numbers." }],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [{ "error": "This model isn't defined for this data." }]
-    }
+    "desmos": [{ "error": "Can't index a number with a list of numbers." }]
   },
   {
     "cat": "regression",
     "rows": ["[1,2,3]\\sim[1,2,3]m"],
-    "desmos": [{ "graph": false, "shown": false }],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [{ "error": "This model isn't defined for this data." }]
-    }
+    "desmos": [{ "graph": false, "shown": false }]
   },
   {
     "cat": "regression",
@@ -6216,11 +6176,7 @@
   {
     "cat": "regression",
     "rows": ["[1]\\sim m[1]+b"],
-    "desmos": [{ "error": "Can't index a number with a number." }],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [{ "error": "This model isn't defined for this data." }]
-    }
+    "desmos": [{ "error": "Can't index a number with a number." }]
   },
   {
     "cat": "regression",
@@ -17690,11 +17646,7 @@
   {
     "cat": "scout",
     "rows": ["\\left[1,2,3\\right]\\sim m\\left[2,4,6\\right]"],
-    "desmos": [{ "error": "Can't index a number with a list of numbers." }],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [{ "error": "This model isn't defined for this data." }]
-    }
+    "desmos": [{ "error": "Can't index a number with a list of numbers." }]
   },
   {
     "cat": "scout",
@@ -17707,15 +17659,7 @@
       { "graph": false, "shown": false },
       { "graph": false, "shown": false },
       { "graph": false, "shown": false }
-    ],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [
-        { "graph": false, "shown": false },
-        { "graph": false, "shown": false },
-        { "graph": true, "shown": false }
-      ]
-    }
+    ]
   },
   {
     "cat": "scout",
@@ -17726,14 +17670,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": false }
-    ],
-    "known": {
-      "reason": "regression differs: parameter placement and point data not built yet",
-      "ours": [
-        { "graph": true, "shown": false },
-        { "error": "This model isn't defined for this data." }
-      ]
-    }
+    ]
   },
   {
     "cat": "scout",

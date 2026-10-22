@@ -1,0 +1,2951 @@
+[
+  {
+    "group": "solver",
+    "name": "linear 3a+2~17",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "3a+2\\sim17"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 5
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "a^2~9 (which root)",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "a^{2}\\sim9"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 3
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "0~a^2-5a+6",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "0\\sim a^{2}-5a+6"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 2
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "a^2-5a+6~0",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "a^{2}-5a+6\\sim0"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 2
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "2^a~32",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "2^{a}\\sim32"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 5
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "a/(a+1)~0.75",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\frac{a}{a+1}\\sim0.75"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 2.9999999999999996
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "3a+2~17 with slider a=1",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "3a+2\\sim17"
+      },
+      {
+        "id": "r1",
+        "latex": "a=1"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {},
+          "stats": {
+            "RMSE": 12
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      },
+      {
+        "graph": false,
+        "value": 1
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "a^2~9 with slider a=-2",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "a^{2}\\sim9"
+      },
+      {
+        "id": "r1",
+        "latex": "a=-2"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {},
+          "stats": {
+            "RMSE": 5
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      },
+      {
+        "graph": false,
+        "value": -2
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "3x_1+2~17",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "3x_{1}+2\\sim17"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "x_{1}": 5
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "sqrt(a)~3",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\sqrt{a}\\sim3"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 9
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "a^3~-8",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "a^{3}\\sim-8"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": -2
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "1/a~4",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\frac{1}{a}\\sim4"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 0.25
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "a^2~-1 (no real root)",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "a^{2}\\sim-1"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 0
+          },
+          "stats": {
+            "RMSE": 1
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "|a-3|~2",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left|a-3\\right|\\sim2"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "a~3 (scalar both)",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "a\\sim3"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 3
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "1~1 (no parameter)",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "1\\sim1"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {},
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "5a-3~2a+9",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "5a-3\\sim2a+9"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 4
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "ln(a)~2",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\ln\\left(a\\right)\\sim2"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 7.3890560989306495
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "20% of a~15",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "20\\%\\operatorname{of}a\\sim15"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 75
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "solver",
+    "name": "(a-5)^2~0",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left(a-5\\right)^{2}\\sim0"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 5
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "owner [5% of a,b]~[b,2c], a=2",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[5\\%\\operatorname{of}a,b\\right]\\sim\\left[b,2c\\right]"
+      },
+      {
+        "id": "r1",
+        "latex": "a=2"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "b": 0.1,
+            "c": 0.05
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      },
+      {
+        "graph": false,
+        "value": 2
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "owner without the slider",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[5\\%\\operatorname{of}a,b\\right]\\sim\\left[b,2c\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 0,
+            "b": 0,
+            "c": 0
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[2a+3b,a-b]~[12,1]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[2a+3b,a-b\\right]\\sim\\left[12,1\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 3,
+            "b": 2
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "3 equations",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[a+b+c,a-b+c,2a+b-c\\right]\\sim\\left[6,2,1\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1,
+            "b": 2,
+            "c": 3
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "nonlinear [a^2+b^2,a-b]~[25,1]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[a^{2}+b^{2},a-b\\right]\\sim\\left[25,1\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 4,
+            "b": 3
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "nonlinear [ab,a+b]~[6,5]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[ab,a+b\\right]\\sim\\left[6,5\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 3,
+            "b": 2
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[x_1+y_1,2x_1-y_1]~[5,1]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[x_{1}+y_{1},2x_{1}-y_{1}\\right]\\sim\\left[5,1\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "x_{1}": 2,
+            "y_{1}": 3
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[a% of 200,b]~[30,a+b]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[a\\%\\operatorname{of}200,b\\right]\\sim\\left[30,a+b\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 12,
+            "b": 0
+          },
+          "stats": {
+            "RMSE": 9.486832980505138
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[1,2]~[5% of a,b]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2\\right]\\sim\\left[5\\%\\operatorname{of}a,b\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 20,
+            "b": 2
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[1,2,3]~a% of [10,20,30]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,3\\right]\\sim a\\%\\operatorname{of}\\left[10,20,30\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 10
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "5% of [10,20,30]~[a,2a,3a]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "5\\%\\operatorname{of}\\left[10,20,30\\right]\\sim\\left[a,2a,3a\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 0.5
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "inconsistent [a,a]~[1,3]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[a,a\\right]\\sim\\left[1,3\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 2
+          },
+          "stats": {
+            "RMSE": 1
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "dependent [a+b,2a+2b]~[1,2]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[a+b,2a+2b\\right]\\sim\\left[1,2\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1,
+            "b": 0
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "f(x)=ax+b, [f(2),f(5)]~[7,16]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "f\\left(x\\right)=ax+b"
+      },
+      {
+        "id": "r1",
+        "latex": "\\left[f\\left(2\\right),f\\left(5\\right)\\right]\\sim\\left[7,16\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 3,
+            "b": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[1,2,3]~[a,2a,3a]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,3\\right]\\sim\\left[a,2a,3a\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[1,2,4]~[a,2a,3a] least squares",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,4\\right]\\sim\\left[a,2a,3a\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1.2142857142857142
+          },
+          "stats": {
+            "RMSE": 0.34503277967117707
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "3~[a,2a]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "3\\sim\\left[a,2a\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1.8
+          },
+          "stats": {
+            "RMSE": 0.9486832980505138
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[1,2,3]~a",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,3\\right]\\sim a"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 2
+          },
+          "stats": {
+            "RMSE": 0.816496580927726
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "system",
+    "name": "[1,4,9]~[a^2,(2a)^2,(3a)^2]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,4,9\\right]\\sim\\left[a^{2},\\left(2a\\right)^{2},\\left(3a\\right)^{2}\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "y_1~mx_1+b exact",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3", "5", "7", "9", "11"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim mx_{1}+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "m": 2,
+            "b": 1
+          },
+          "stats": {
+            "r": 1,
+            "rsquared": 1
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "y_1~mx_1+b noisy, with e_1 and m",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim mx_{1}+b"
+      },
+      {
+        "id": "r2",
+        "latex": "e_{1}"
+      },
+      {
+        "id": "r3",
+        "latex": "m"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "m": 1.99,
+            "b": 0.05
+          },
+          "stats": {
+            "r": 0.9986517555689657,
+            "rsquared": 0.9973053289009772
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      },
+      {
+        "graph": false,
+        "value": [0.06, -0.13, 0.18, -0.21, 0.1]
+      },
+      {
+        "graph": false,
+        "value": 1.99
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "y_1~mx_1 (no intercept)",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim mx_{1}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "m": 2.0036363636363634
+          },
+          "stats": {
+            "Rsquared": 0.997248092896325
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "quadratic",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.2", "4.8", "10.3", "16.9", "26.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ax_{1}^{2}+bx_{1}+c"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.0214285714285714,
+            "b": -0.13857142857142857,
+            "c": 1.24
+          },
+          "stats": {
+            "Rsquared": 0.9995594653010091
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "quadratic exact",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2", "5", "10", "17", "26"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ax_{1}^{2}+bx_{1}+c"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1,
+            "b": 0,
+            "c": 1
+          },
+          "stats": {
+            "Rsquared": 1
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "vertex form a(x_1-h)^2+k",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.2", "4.8", "10.3", "16.9", "26.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim a\\left(x_{1}-h\\right)^{2}+k"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.021428571428572,
+            "h": 0.06783216783216929,
+            "k": 1.235300199800203
+          },
+          "stats": {
+            "Rsquared": 0.9995594653010091
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "y_1~ax_1^2 (no constant)",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.2", "4.8", "10.3", "16.9", "26.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ax_{1}^{2}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.059244126659857
+          },
+          "stats": {
+            "Rsquared": 0.9936990977543063
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "exponential ab^x_1",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3.1", "5.8", "12.4", "23.5", "48.9"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ab^{x_{1}}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.428941588889405,
+            "b": 2.0257959824232636
+          },
+          "stats": {
+            "Rsquared": 0.9995241023067151
+          },
+          "isLinear": false,
+          "logSuggested": true,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "exponential ab^x_1, log mode",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3.1", "5.8", "12.4", "23.5", "48.9"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ab^{x_{1}}",
+        "logMode": true
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.515853947317969,
+            "b": 1.9968866793180888
+          },
+          "stats": {
+            "r": 0.9995932639093899,
+            "rsquared": 0.9991866932530271
+          },
+          "isLinear": false,
+          "logSuggested": true,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "exponential exact",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3", "6", "12", "24", "48"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ab^{x_{1}}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.5000000000000007,
+            "b": 1.9999999999999998
+          },
+          "stats": {
+            "Rsquared": 1
+          },
+          "isLinear": false,
+          "logSuggested": true,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "ae^{bx_1}",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3.1", "5.8", "12.4", "23.5", "48.9"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ae^{bx_{1}}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.4289415888894055,
+            "b": 0.7059627010635697
+          },
+          "stats": {
+            "Rsquared": 0.9995241023067151
+          },
+          "isLinear": false,
+          "logSuggested": true,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "power ax_1^b",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.2", "4.8", "10.3", "16.9", "26.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ax_{1}^{b}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.4024686707557994,
+            "b": 1.811426020986713
+          },
+          "stats": {
+            "Rsquared": 0.9977462745302789
+          },
+          "isLinear": false,
+          "logSuggested": true,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "log a+b ln x_1",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim a+b\\ln x_{1}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.419241622722377,
+            "b": 4.8049778719869805
+          },
+          "stats": {
+            "Rsquared": 0.9393096248736098
+          },
+          "isLinear": true,
+          "logSuggested": true,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "growth a(1+r)^x_1",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3.1", "5.8", "12.4", "23.5", "48.9"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim a\\left(1+r\\right)^{x_{1}}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.4289415888894188,
+            "r": 1.0257959824232596
+          },
+          "stats": {
+            "Rsquared": 0.9995241023067151
+          },
+          "isLinear": false,
+          "logSuggested": true,
+          "residual": "e_{1}"
+        }
+      }
+    ],
+    "known": {
+      "reason": "log mode is not offered for a base that is an expression of a parameter, (1+r)",
+      "ours": [
+        {
+          "graph": true
+        },
+        {
+          "graph": true,
+          "reg": {
+            "params": {
+              "a": 1.4289415888894188,
+              "r": 1.0257959824232596
+            },
+            "stats": {
+              "Rsquared": 0.9995241023067151
+            },
+            "isLinear": false,
+            "logSuggested": false,
+            "residual": "e_{1}"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "group": "table",
+    "name": "lists not a table",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "x_{1}=\\left[1,2,3,4,5\\right]"
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}=\\left[2.1,3.9,6.2,7.8,10.1\\right]"
+      },
+      {
+        "id": "r2",
+        "latex": "y_{1}\\sim mx_{1}+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "value": [1, 2, 3, 4, 5]
+      },
+      {
+        "graph": false,
+        "value": [2.1, 3.9, 6.2, 7.8, 10.1]
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "m": 1.99,
+            "b": 0.05
+          },
+          "stats": {
+            "r": 0.9986517555689657,
+            "rsquared": 0.9973053289009772
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "two points: line through (2,5),(4,9)",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["2", "4"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["5", "9"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim mx_{1}+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "m": 2,
+            "b": 1
+          },
+          "stats": {
+            "r": 1,
+            "rsquared": 1
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "three points: parabola",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["0", "1", "2"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["1", "2", "5"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim ax_{1}^{2}+bx_{1}+c"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1,
+            "b": 0,
+            "c": 1
+          },
+          "stats": {
+            "Rsquared": 1
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "table",
+    "name": "mean by [1,2,3,4]~a",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,3,4\\right]\\sim a"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 2.5
+          },
+          "stats": {
+            "RMSE": 1.118033988749895
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "braces",
+    "name": "restriction y_1~mx_1+b{x_1>2}",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim mx_{1}+b\\left\\{x_{1}>2\\right\\}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "error": "This model isn't defined for this data.",
+        "graph": false,
+        "desmosText": "We couldn't find any region where this model is defined."
+      }
+    ]
+  },
+  {
+    "group": "braces",
+    "name": "piecewise model {x_1<3:a,b}",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim\\left\\{x_{1}<3:a,b\\right\\}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 3,
+            "b": 8.033333333333333
+          },
+          "stats": {
+            "Rsquared": 0.76562237668312
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "braces",
+    "name": "piecewise model {x_1>2:mx_1+b}",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim\\left\\{x_{1}>2:mx_{1}+b\\right\\}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "error": "This model isn't defined for this data.",
+        "graph": false,
+        "desmosText": "We couldn't find any region where this model is defined."
+      }
+    ]
+  },
+  {
+    "group": "braces",
+    "name": "list filter y_1[x_1>2]~mx_1[x_1>2]+b",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\left[x_{1}>2\\right]\\sim mx_{1}\\left[x_{1}>2\\right]+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "m": 1.95,
+            "b": 0.23333333333333334
+          },
+          "stats": {
+            "RMSE": 0.16499158227686112
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "braces",
+    "name": "piecewise with two lines",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim\\left\\{x_{1}<3:mx_{1},mx_{1}+b\\right\\}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "m": 1.9714285714285715,
+            "b": 0.14761904761904762
+          },
+          "stats": {
+            "Rsquared": 0.9974576311838325
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "subscripted a_1x_1+b_1",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim a_{1}x_{1}+b_{1}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a_{1}": 1.99,
+            "b_{1}": 0.05
+          },
+          "stats": {
+            "r": 0.9986517555689657,
+            "rsquared": 0.9973053289009772
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "slider m=1 and y_1~mx_1+b",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "m=1"
+      },
+      {
+        "id": "r2",
+        "latex": "y_{1}\\sim mx_{1}+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": false,
+        "value": 1
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "b": 3.02
+          },
+          "stats": {
+            "Rsquared": 0.7504784929988919
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "[1,2,3]~[a,2a,3a] with a=2",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,3\\right]\\sim\\left[a,2a,3a\\right]"
+      },
+      {
+        "id": "r1",
+        "latex": "a=2"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {},
+          "stats": {
+            "RMSE": 2.160246899469287
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      },
+      {
+        "graph": false,
+        "value": 2
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "both sides [b,2]~[1,b]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[b,2\\right]\\sim\\left[1,b\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "b": 1.5
+          },
+          "stats": {
+            "RMSE": 0.5
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "left only [a,2a]~[1,2]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[a,2a\\right]\\sim\\left[1,2\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "left and right ky_1~mx_1+1",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["3", "5", "7", "9", "11"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "ky_{1}\\sim mx_{1}+1"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "k": 1,
+            "m": 2
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "order [d,c]~[b,a]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[d,c\\right]\\sim\\left[b,a\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "d": 0,
+            "c": 0,
+            "b": 0,
+            "a": 0
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "none [1,2]~[3,4]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2\\right]\\sim\\left[3,4\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {},
+          "stats": {
+            "RMSE": 2
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "none y_1~x_1",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim x_{1}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {},
+          "stats": {
+            "Rsquared": -0.3979550720257885
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "none y_1~2",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["2.1", "3.9", "6.2", "7.8", "10.1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim2"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": false,
+        "reg": {
+          "params": {},
+          "stats": {
+            "Rsquared": -2.034904805077063
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "unequal [1,2,3]~[a,2a]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,3\\right]\\sim\\left[a,2a\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "unequal [1,2]~[a,2a,3a]",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2\\right]\\sim\\left[a,2a,3a\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "unequal columns",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "x_{1}=\\left[1,2,3\\right]"
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}=\\left[2,4\\right]"
+      },
+      {
+        "id": "r2",
+        "latex": "y_{1}\\sim mx_{1}+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "value": [1, 2, 3]
+      },
+      {
+        "graph": false,
+        "value": [2, 4]
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "m": 2,
+            "b": 0
+          },
+          "stats": {
+            "r": 1,
+            "rsquared": 1
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "empty list on the right",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2\\right]\\sim\\left[\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "error": "Can't regress a list of numbers against an empty list.",
+        "graph": false,
+        "desmosText": "Cannot regress a list of numbers against an empty list."
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "empty data list",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "x_{1}=\\left[\\right]"
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}=\\left[\\right]"
+      },
+      {
+        "id": "r2",
+        "latex": "y_{1}\\sim mx_{1}+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false
+      },
+      {
+        "graph": false
+      },
+      {
+        "error": "Can't regress an empty list against an empty list.",
+        "graph": false,
+        "desmosText": "Cannot regress an empty list against an empty list."
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "x on the left",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[x,1\\right]\\sim\\left[a,2\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "error": "x can't be a regression parameter.",
+        "graph": false,
+        "desmosText": "'x' may not be used as a regression parameter. Try using a different variable name."
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "y~mx+b names y",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "y\\sim mx+b"
+      }
+    ],
+    "desmos": [
+      {
+        "error": "y can't be a regression parameter.",
+        "graph": false,
+        "desmosText": "'y' may not be used as a regression parameter. Try using a different variable name."
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "[x_1]~[mx_1+b] nested",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "x_{1}=\\left[1,2,3\\right]"
+      },
+      {
+        "id": "r1",
+        "latex": "\\left[x_{1}\\right]\\sim\\left[mx_{1}+b\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "value": [1, 2, 3]
+      },
+      {
+        "error": "A list can't hold lists.",
+        "graph": false,
+        "desmosText": "Cannot store a list of numbers in a list."
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "undefined y_5~mx_5+b",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "x_{5}=\\left[1,2,3\\right]"
+      },
+      {
+        "id": "r1",
+        "latex": "y_{5}\\sim mx_{5}+b"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "value": [1, 2, 3]
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "y_{5}": 0,
+            "m": 0,
+            "b": 0
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{5}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "m[3,4] indexes",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2\\right]\\sim m\\left[3,4\\right]"
+      }
+    ],
+    "desmos": [
+      {
+        "error": "Can't index a number with a list of numbers.",
+        "graph": false,
+        "desmosText": "Cannot index a number with a list of numbers."
+      }
+    ]
+  },
+  {
+    "group": "params",
+    "name": "[1,2,3]~[1,2,3]m",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left[1,2,3\\right]\\sim\\left[1,2,3\\right]m"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "m": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": true,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "guess",
+    "name": "a sin(bx_1)",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["0.8", "0.9", "0.1", "-0.8", "-1"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim a\\sin\\left(bx_{1}\\right)"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.0082115988022147,
+            "b": 1.0081406179757466
+          },
+          "stats": {
+            "Rsquared": 0.9982133362311086
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "guess",
+    "name": "cos(ax_1)",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["0.5", "-0.4", "-1", "-0.6", "0.3"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim\\cos\\left(ax_{1}\\right)"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "a": 1.0069599084263765
+          },
+          "stats": {
+            "Rsquared": 0.9978404667287238
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "guess",
+    "name": "a^4-10a^2+9~0",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "a^{4}-10a^{2}+9\\sim0"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 1
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "guess",
+    "name": "e^a~10",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "e^{a}\\sim10"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 2.3025850929940455
+          },
+          "stats": {
+            "RMSE": 1.7763568394002505e-15
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "guess",
+    "name": "a^2~16 with a=-1 slider removed: (a-1)^2~16",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\left(a-1\\right)^{2}\\sim16"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 5
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "guess",
+    "name": "logistic c/(1+ae^{-bx_1})",
+    "rows": [
+      {
+        "id": "r0",
+        "type": "table",
+        "columns": [
+          {
+            "latex": "x_{1}",
+            "values": ["1", "2", "3", "4", "5"]
+          },
+          {
+            "latex": "y_{1}",
+            "values": ["1", "2.4", "4.6", "6.9", "8.4"]
+          }
+        ]
+      },
+      {
+        "id": "r1",
+        "latex": "y_{1}\\sim\\frac{c}{1+ae^{-bx_{1}}}"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": true
+      },
+      {
+        "graph": true,
+        "reg": {
+          "params": {
+            "c": 9.549888916343853,
+            "a": 23.529521449276494,
+            "b": 1.02903492956922
+          },
+          "stats": {
+            "Rsquared": 0.9999868313213331
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  },
+  {
+    "group": "guess",
+    "name": "10/a~a-3",
+    "rows": [
+      {
+        "id": "r0",
+        "latex": "\\frac{10}{a}\\sim a-3"
+      }
+    ],
+    "desmos": [
+      {
+        "graph": false,
+        "reg": {
+          "params": {
+            "a": 5
+          },
+          "stats": {
+            "RMSE": 0
+          },
+          "isLinear": false,
+          "logSuggested": false,
+          "residual": "e_{1}"
+        }
+      }
+    ]
+  }
+]
