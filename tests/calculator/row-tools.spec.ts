@@ -1,6 +1,6 @@
-// The row tools the owner chose on 2026-10-21, in a real calculator on the harness page: the
-// add-sliders icon under a row's warning marker and its menu (pointer, tap, keyboard, Escape,
-// tooltip, row height, themes), the DEG/RAD badge of trig rows, short error copy in the marker's
+// The row tools in a real calculator on the harness page: Desmos's add-slider line under a row
+// with undefined names (owner, 2026-10-22; pointer, tap, keyboard, sizes, hover, themes), and the
+// owner's choices of 2026-10-21: the DEG/RAD badge of trig rows, short error copy in the marker's
 // tooltip, and no decimal/fraction toggle on a regression parameter.
 
 import { expect, test, type Page } from "@playwright/test";
@@ -9,6 +9,7 @@ import {
   announced,
   enc,
   frames,
+  onBackground,
   openShell,
   rowField,
   shortcutKeys,
@@ -25,127 +26,149 @@ const latexes = (page: Page) =>
 const height = (page: Page, id: string) =>
   row(page, id).evaluate((el) => el.getBoundingClientRect().height);
 
-test("R-6 the add-sliders icon sits under the warning marker, has no words, and keeps the row's height", async ({
+const line = (page: Page, id: string) => row(page, id).getByRole("group", { name: "add slider:" });
+
+test("R-6 y=mx+b shows add slider: m, b, all under the math at Desmos's sizes, all in the accent", async ({
   page,
 }) => {
   await openShell(page, `?w=900&h=600&rows=${enc(["y=mx+b", "y=2x"])}&reducedMotion=1`);
-  const icon = row(page, "1").getByRole("button", { name: "Add sliders" });
-  await expect(icon).toBeVisible();
-  await expect(icon).toHaveText("");
-  await expect(icon).toHaveAttribute("aria-haspopup", "menu");
-  const marker = (await row(page, "1").getByRole("button", { name: "Error" }).boundingBox())!;
-  const box = (await icon.boundingBox())!;
-  expect(box.y).toBeGreaterThanOrEqual(marker.y + marker.height - 1);
-  expect(Math.abs(box.x + box.width / 2 - (marker.x + marker.width / 2))).toBeLessThan(3);
-  const gutter = (await row(page, "1").locator(".kc-row-gutter").boundingBox())!;
-  expect(box.y + box.height).toBeLessThanOrEqual(gutter.y + gutter.height);
-  expect(await height(page, "1")).toBeCloseTo(await height(page, "2"), 1);
-  await expect(row(page, "1").getByText("add slider")).toHaveCount(0);
-  await expect(row(page, "2").getByRole("button", { name: "Add sliders" })).toHaveCount(0);
+  await expect(
+    row(page, "1").getByRole("button", { name: "Add sliders", exact: true })
+  ).toHaveCount(0);
+  const buttons = line(page, "1").getByRole("button");
+  await expect(buttons).toHaveText(["m", "b", "all"]);
+  const rowBox = (await row(page, "1").boundingBox())!;
+  const boxes = await Promise.all(
+    [0, 1, 2].map(async (i) => (await buttons.nth(i).boundingBox())!)
+  );
+  // live Desmos 2026-10-22: 35 by 26 buttons, 3 px apart, the first 64.1 px past the math's edge
+  for (const b of boxes) {
+    expect(b.width).toBeCloseTo(35, 0);
+    expect(b.height).toBeCloseTo(26, 0);
+  }
+  expect(boxes[1].x - boxes[0].x).toBeCloseTo(38, 0);
+  expect(boxes[2].x - boxes[1].x).toBeCloseTo(38, 0);
+  expect(boxes[0].x - rowBox.x).toBeCloseTo(117.1, 0);
+  expect(boxes[0].y - rowBox.y).toBeGreaterThan(47);
+  expect(boxes[0].y - rowBox.y).toBeLessThan(50);
+  // the line makes the row 27 px taller than a one-line row, as on Desmos (83.2 against 56.2)
+  expect(await height(page, "1")).toBeCloseTo(83.2, 0);
+  const label = line(page, "1").getByText("add slider:");
+  await expect(label).toHaveCSS("font-size", "12.8px");
+  await expect(buttons.nth(0)).toHaveCSS("font-style", "italic");
+  await expect(buttons.nth(2)).toHaveCSS("font-style", "normal");
+  await expect(buttons.nth(2)).toHaveCSS("background-color", "rgb(47, 114, 220)");
+  await expect(buttons.nth(2)).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(buttons.nth(0)).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(line(page, "2")).toHaveCount(0);
 });
 
-test("R-6 typing a name in and out never changes the row's height", async ({ page }) => {
+test("R-6 typing a name in shows one accent button and no all; taking it out removes the line", async ({
+  page,
+}) => {
   await openShell(page, `?w=900&h=600&rows=${enc(["y=2x"])}&reducedMotion=1`);
-  const before = await height(page, "1");
   await rowField(page, "1").click();
   await page.keyboard.press("End");
   await page.keyboard.type("+k");
-  await expect(row(page, "1").getByRole("button", { name: "Add sliders" })).toBeVisible();
-  expect(await height(page, "1")).toBeCloseTo(before, 1);
+  const k = line(page, "1").getByRole("button");
+  await expect(k).toHaveText(["k"]);
+  await expect(k).toHaveAttribute("data-tone", "accent");
   await page.keyboard.press("Backspace");
   await page.keyboard.press("Backspace");
-  await expect(row(page, "1").getByRole("button", { name: "Add sliders" })).toHaveCount(0);
-  expect(await height(page, "1")).toBeCloseTo(before, 1);
+  await expect(line(page, "1")).toHaveCount(0);
 });
 
-test("R-6 a desktop hover shows the Add sliders tooltip; a click opens the menu, Escape closes it", async ({
+test("R-6 a desktop hover darkens the buttons as Desmos does; a click adds and leaves no focus ring", async ({
   page,
 }, info) => {
-  test.skip(info.project.name !== "calculator-chrome", "hover tooltips are desktop-only");
+  test.skip(info.project.name !== "calculator-chrome", "hover is desktop-only");
   await openShell(page, `?w=900&h=600&rows=${enc(["y=mx+b"])}&reducedMotion=1`);
-  const icon = row(page, "1").getByRole("button", { name: "Add sliders" });
-  await icon.hover();
-  await expect(page.locator("#calc .kc-row-tip")).toHaveText("Add sliders");
-  await icon.click();
-  await expect(page.locator("#calc .kc-row-tip")).toHaveCount(0);
-  const menu = page.getByRole("menu", { name: "Add sliders" });
-  await expect(menu.getByRole("menuitem")).toHaveText(["all", "m", "b"]);
-  await expect(icon).toHaveAttribute("aria-expanded", "true");
-  await page.keyboard.press("Escape");
-  await expect(menu).toHaveCount(0);
-  await expect(icon).toHaveAttribute("aria-expanded", "false");
+  const m = line(page, "1").getByRole("button", { name: "Add slider for m" });
+  const all = line(page, "1").getByRole("button", { name: "Add sliders for all" });
+  await m.hover();
+  await expect(m).toHaveCSS("background-image", "none");
+  await all.hover();
+  // Desmos: rgb(42, 103, 198), the accent 10 % toward the ink
+  await expect
+    .poll(async () => toHex(await all.evaluate((el) => getComputedStyle(el).backgroundColor)).hex)
+    .toBe("#2a67c6");
+  await m.click();
+  expect(await latexes(page)).toEqual(["y=mx+b", "m=1"]);
+  const b = line(page, "1").getByRole("button");
+  await expect(b).toHaveText(["b"]); // one name left: one accent button
+  await expect(b).toHaveAttribute("data-tone", "accent");
+  const ring = await b.evaluate((el) => el.matches(":focus-visible"));
+  expect(ring).toBe(false);
 });
 
-test("R-6 the keyboard reaches the icon, opens the menu, moves with arrows and picks with Enter", async ({
+test("R-6, SLIDERS-8 Tab goes math, delete, m, b, all; Enter on all adds both and returns to the math", async ({
   page,
-}) => {
+}, info) => {
   await openShell(page, `?w=900&h=600&rows=${enc(["y=mx+b"])}&reducedMotion=1`);
-  const icon = row(page, "1").getByRole("button", { name: "Add sliders" });
-  await icon.focus();
+  const all = line(page, "1").getByRole("button", { name: "Add sliders for all" });
+  if (info.project.name === "calculator-chrome") {
+    await rowField(page, "1").click();
+    const names: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      await page.keyboard.press("Tab");
+      names.push(
+        await page.evaluate(
+          () =>
+            document.querySelector("#calc")!.shadowRoot!.activeElement!.getAttribute("aria-label")!
+        )
+      );
+    }
+    expect(names).toEqual([
+      "Delete expression 1",
+      "Add slider for m",
+      "Add slider for b",
+      "Add sliders for all",
+    ]);
+    await expect(all).toHaveCSS("outline-style", "solid");
+    await expect(all).toHaveCSS("outline-width", "2px");
+  } else await all.focus();
   await page.keyboard.press("Enter");
-  const all = page.getByRole("menuitem", { name: "Add sliders for all" });
-  await expect(all).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(icon).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await expect(all).toBeFocused();
-  await page.keyboard.press("End");
-  await expect(page.getByRole("menuitem", { name: "Add slider for b" })).toBeFocused();
-  await page.keyboard.press("Enter");
-  expect(await latexes(page)).toEqual(["y=mx+b", "b=1"]);
+  expect(await latexes(page)).toEqual(["y=mx+b", "m=1", "b=1"]);
+  await expect(rowField(page, "1").locator("textarea")).toBeFocused();
+  await expect(line(page, "1")).toHaveCount(0);
 });
 
-test("R-6 on a phone a tap opens the menu and a tap on a name adds its slider", async ({
-  page,
-  isMobile,
-}) => {
+test("R-6 on a phone a tap on a name adds its slider", async ({ page, isMobile }) => {
   test.skip(!isMobile, "touch runs on the phone projects");
-  await openShell(page, `?w=390&h=844&rows=${enc(["y=kx"])}&reducedMotion=1`);
-  await row(page, "1").getByRole("button", { name: "Add sliders" }).tap();
-  const k = page.getByRole("menuitem", { name: "Add slider for k" });
-  await expect(page.getByRole("menuitem")).toHaveCount(1);
-  await expect(page.locator("#calc .kc-row-tip")).toHaveCount(0);
-  await k.tap();
-  expect(await latexes(page)).toEqual(["y=kx", "k=1"]);
-  await expect(row(page, "1").getByRole("button", { name: "Add sliders" })).toHaveCount(0);
+  await openShell(page, `?w=390&h=844&rows=${enc(["y=mx+b"])}&reducedMotion=1`);
+  const buttons = line(page, "1").getByRole("button");
+  await expect(buttons).toHaveText(["m", "b", "all"]);
+  expect((await buttons.nth(0).boundingBox())!.width).toBeCloseTo(35, 0);
+  await line(page, "1").getByRole("button", { name: "Add slider for b" }).tap();
+  expect(await latexes(page)).toEqual(["y=mx+b", "b=1"]);
+  await line(page, "1").getByRole("button", { name: "Add slider for m" }).tap();
+  expect(await latexes(page)).toEqual(["y=mx+b", "m=1", "b=1"]);
+  await expect(line(page, "1")).toHaveCount(0);
 });
 
 for (const skin of ["classic", "charcoal"]) {
-  test(`R-6 the menu reads at 4.5:1 or more and the icon at 3:1 or more in ${skin}`, async ({
-    page,
-  }, info) => {
+  test(`R-6 the add-slider line reads at 4.5:1 or more in ${skin}`, async ({ page }, info) => {
     test.skip(info.project.name !== "calculator-chrome", "computed colours are engine-independent");
     await openShell(page, `?skin=${skin}&w=900&h=600&rows=${enc(["y=mx+b"])}&reducedMotion=1`);
-    const icon = row(page, "1").getByRole("button", { name: "Add sliders" });
-    const [ink, opacity, tab] = await icon.evaluate((el) => {
-      const gutter = el.closest(".kc-row-gutter")!;
-      return [
-        getComputedStyle(el).color,
-        Number(getComputedStyle(el).opacity),
-        getComputedStyle(gutter).backgroundColor,
-      ];
-    });
-    const blended = (await page.evaluate(
-      ([c, a, b]) => {
-        const canvas = new OffscreenCanvas(1, 1).getContext("2d")!;
-        canvas.fillStyle = b as string;
-        canvas.fillRect(0, 0, 1, 1);
-        canvas.globalAlpha = a as number;
-        canvas.fillStyle = c as string;
-        canvas.fillRect(0, 0, 1, 1);
-        const [r, g, bl] = canvas.getImageData(0, 0, 1, 1).data;
-        return `rgb(${r}, ${g}, ${bl})`;
-      },
-      [ink, opacity, tab]
-    )) as string;
-    expect(contrastRatio(toHex(blended).hex, toHex(tab).hex)).toBeGreaterThanOrEqual(3);
-    await icon.click();
-    const item = page.getByRole("menuitem", { name: "Add sliders for all" });
-    const [text, paper] = await item.evaluate((el) => [
-      getComputedStyle(el).color,
-      getComputedStyle(el.closest(".kc-add-sliders-menu")!).backgroundColor,
-    ]);
-    expect(contrastRatio(toHex(text).hex, toHex(paper).hex)).toBeGreaterThanOrEqual(4.5);
+    const paper = await row(page, "1").evaluate((el) => getComputedStyle(el).backgroundColor);
+    const label = await line(page, "1")
+      .getByText("add slider:")
+      .evaluate((el) => getComputedStyle(el).color);
+    const shown = onBackground(label, toHex(label).alpha, paper);
+    expect(contrastRatio(shown, toHex(paper).hex)).toBeGreaterThanOrEqual(4.5);
+    for (const name of ["Add slider for m", "Add sliders for all"]) {
+      const [ink, fill] = await line(page, "1")
+        .getByRole("button", { name })
+        .evaluate((el) => {
+          const s = getComputedStyle(el);
+          const solid = s.backgroundColor !== "rgba(0, 0, 0, 0)";
+          return [
+            s.color,
+            solid ? s.backgroundColor : getComputedStyle(el.closest(".kc-row")!).backgroundColor,
+          ];
+        });
+      expect(contrastRatio(toHex(ink).hex, toHex(fill).hex)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 }
 
@@ -265,30 +288,22 @@ test("R-5 Alt+Shift+A (Cmd+Shift+A) on a regression parameter row does nothing a
   expect(m).not.toHaveProperty("displayEvaluationAsFraction");
 });
 
-test("R-6, R-5 a click or tap on the slider icon or the fraction toggle draws no focus ring; the keyboard does", async ({
+test("R-5 a click or tap on the fraction toggle draws no focus ring; the keyboard does", async ({
   page,
   isMobile,
 }) => {
-  await openShell(page, `?w=900&h=600&rows=${enc(["y=mx+b", "\\frac{1}{2}"])}&reducedMotion=1`);
-  const icon = row(page, "1").getByRole("button", { name: "Add sliders" });
-  const toggle = row(page, "2").locator(".kc-row-fraction");
-  const ring = (el: typeof icon) =>
+  await openShell(page, `?w=900&h=600&rows=${enc(["\\frac{1}{2}"])}&reducedMotion=1`);
+  const toggle = row(page, "1").locator(".kc-row-fraction");
+  const ring = (el: typeof toggle) =>
     el.evaluate((e) => ({
       style: getComputedStyle(e).outlineStyle,
       visible: e.matches(":focus-visible"),
     }));
-  const press = (el: typeof icon) => (isMobile ? el.tap() : el.click());
-  await press(toggle);
+  await (isMobile ? toggle.tap() : toggle.click());
   expect(await ring(toggle)).toEqual({ style: "none", visible: false });
-  await press(icon);
-  await expect(page.getByRole("menu")).toBeVisible();
-  expect(await ring(icon)).toEqual({ style: "none", visible: false });
-  await press(icon);
-  await expect(page.getByRole("menu")).toHaveCount(0);
-  expect(await ring(icon)).toEqual({ style: "none", visible: false });
   if (isMobile) return;
   // a keyboard user arriving on the toggle (WebKit does not Tab to buttons by default)
-  await rowField(page, "2").click();
+  await rowField(page, "1").click();
   await page.keyboard.press("Shift");
   await toggle.focus();
   await expect(toggle).toBeFocused();

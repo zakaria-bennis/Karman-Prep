@@ -212,3 +212,30 @@ it("createMathField: reflow bumps the reflows counter and destroy is idempotent"
   expect(field.latex()).toBe("");
   expect(options.onEdit).not.toHaveBeenCalled();
 });
+it("T-7 typing % writes Desmos's % of, the caret after it, whatever comes before (live Desmos, 2026-10-22)", () => {
+  const { field } = mount();
+  field.typedText("5%40");
+  expect(field.latex()).toBe("5\\%\\operatorname{of}40");
+  for (const [before, after] of [
+    ["", "\\%\\operatorname{of}Z"],
+    ["a", "a\\%\\operatorname{of}Z"],
+    ["x+", "x+\\%\\operatorname{of}Z"],
+    ["5%", "5\\%\\operatorname{of}\\%\\operatorname{of}Z"],
+  ]) {
+    field.latex("");
+    field.typedText(`${before}%Z`);
+    expect(field.latex()).toBe(after);
+  }
+});
+it("T-7 Backspace deletes % of as one unit, and loaded \\%\\operatorname{of} is one unit too", () => {
+  const { field } = mount();
+  field.typedText("5%4");
+  field.keystroke("Backspace");
+  expect(field.latex()).toBe("5\\%\\operatorname{of}");
+  field.keystroke("Backspace");
+  expect(field.latex()).toBe("5");
+  field.latex("7\\%\\operatorname{of}");
+  field.keystroke("End");
+  field.keystroke("Backspace");
+  expect(field.latex()).toBe("7");
+});

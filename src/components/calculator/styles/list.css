@@ -483,8 +483,8 @@
   vertical-align: middle;
 }
 
-/* EL-15: the line under a point row's math, 53 px in, in small muted text, fading in like the
-   value line. */
+/* EL-36, EL-15: the lines under the math (add slider, Label), 53 px in, in small muted text,
+   fading in like the value line. */
 .kc-row-under {
   display: flex;
   flex-wrap: wrap;

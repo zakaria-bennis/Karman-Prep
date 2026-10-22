@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-// The reference calculator's row additions (rea-targets visual MASTER.md): the add-sliders icon and
-// its menu under the undefined-name warning (R-6; owner, 2026-10-21), the DEG/RAD badge, no fraction
-// toggle on a regression parameter, the point row's Label line (EL-15), the
+// The reference calculator's row additions (rea-targets visual MASTER.md): the add-slider line
+// under the math of a row with undefined names (R-6; owner, 2026-10-22, Desmos's own), the DEG/RAD
+// badge, no fraction toggle on a regression parameter, the point row's Label line (EL-15), the
 // Edit list mode rows (EL-44, EL-45), the hover tooltips (PM-29) and the list resizer (EL-4).
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -18,69 +18,67 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("R-6 y=mx+b shows the warning and, under it, the add-sliders icon whose menu lists all, m and b", async () => {
+it("R-6 y=mx+b shows the warning and, under the math, add slider: m, b and an accent all (live Desmos)", () => {
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=mx+b"] });
   const row = rowItem("1");
   const gutter = within(row.querySelector<HTMLElement>(".kc-row-gutter")!);
   expect(gutter.getByRole("button", { name: "Error" })).toBeInTheDocument();
   expect(gutter.queryByRole("button", { name: /expression 1/ })).toBeNull(); // no colour icon
+  expect(gutter.queryByRole("button", { name: "Add sliders" })).toBeNull(); // the old icon is gone
   expect(screen.getByText("m and b are not defined.")).toBeInTheDocument();
-  const icon = gutter.getByRole("button", { name: "Add sliders" });
-  expect(icon).toHaveTextContent("");
-  expect(icon).toHaveAttribute("aria-expanded", "false");
-  expect(row.querySelector(".kc-row-under")).toBeNull(); // no words under the math
-  await userEvent.setup().click(icon);
-  expect(icon).toHaveAttribute("aria-expanded", "true");
-  const menu = within(screen.getByRole("menu", { name: "Add sliders" }));
-  expect(menu.getAllByRole("menuitem").map((b) => b.textContent)).toEqual(["all", "m", "b"]);
-  expect(menu.getAllByRole("menuitem").map((b) => b.getAttribute("aria-label"))).toEqual([
-    "Add sliders for all",
+  const line = within(row).getByRole("group", { name: "add slider:" });
+  const buttons = within(line).getAllByRole("button");
+  expect(buttons.map((b) => b.textContent)).toEqual(["m", "b", "all"]);
+  expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual([
     "Add slider for m",
     "Add slider for b",
+    "Add sliders for all",
   ]);
+  expect(buttons.map((b) => b.getAttribute("data-tone"))).toEqual([null, null, "accent"]);
 });
 
-it("R-6 one undefined name lists only itself, which adds name=1 below the row in one undo step", async () => {
+it("R-6 one undefined name is one accent button and no all; it adds name=1 below the row in one undo step", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=kx", "y=2"] });
   expect(screen.getByText("k is not defined.")).toBeInTheDocument();
-  const user = userEvent.setup();
-  await user.click(screen.getByRole("button", { name: "Add sliders" }));
-  const menu = within(screen.getByRole("menu", { name: "Add sliders" }));
-  expect(menu.getAllByRole("menuitem")).toHaveLength(1);
-  await user.click(menu.getByRole("menuitem", { name: "Add slider for k" }));
+  const line = within(screen.getByRole("group", { name: "add slider:" }));
+  expect(line.getAllByRole("button")).toHaveLength(1);
+  const k = line.getByRole("button", { name: "Add slider for k" });
+  expect(k).toHaveAttribute("data-tone", "accent");
+  await userEvent.setup().click(k);
   expect(latexes(kit)).toEqual(["y=kx", "k=1", "y=2"]);
-  expect(screen.queryByRole("menu")).toBeNull();
+  expect(screen.queryByRole("group", { name: "add slider:" })).toBeNull();
   act(() => kit.engine.undo());
   expect(latexes(kit)).toEqual(["y=kx", "y=2"]);
 });
 
-it("R-6 Escape closes the add-sliders menu and returns to the icon it was opened from by keyboard", async () => {
-  renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=mx+b"] });
-  const user = userEvent.setup();
-  const icon = screen.getByRole("button", { name: "Add sliders" });
-  act(() => icon.focus());
-  await user.keyboard("{Enter}");
-  expect(screen.getByRole("menuitem", { name: "Add sliders for all" })).toHaveFocus();
-  await user.keyboard("{ArrowUp}");
-  expect(screen.getByRole("menuitem", { name: "Add slider for b" })).toHaveFocus();
-  await user.keyboard("{Escape}");
-  expect(screen.queryByRole("menu")).toBeNull();
-  expect(icon).toHaveFocus();
+it("R-6 at most four name buttons, as on Desmos; all still adds every name", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
+    rows: ["y=ax^2+bx+c+d+f_1"],
+  });
+  const line = within(screen.getByRole("group", { name: "add slider:" }));
+  expect(line.getAllByRole("button").map((b) => b.textContent)).toEqual([
+    "a",
+    "b",
+    "c",
+    "d",
+    "all",
+  ]);
+  await userEvent.setup().click(line.getByRole("button", { name: "Add sliders for all" }));
+  expect(latexes(kit)).toEqual(["y=ax^2+bx+c+d+f_1", "a=1", "b=1", "c=1", "d=1", "f_{1}=1"]);
 });
 
-it("R-6 the add-sliders icon's hover tooltip reads Add sliders, and a touch never opens it", () => {
-  vi.useFakeTimers();
-  renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=kx"] });
-  const icon = screen.getByRole("button", { name: "Add sliders" });
-  fireEvent.pointerEnter(icon, { pointerType: "touch" });
-  act(() => vi.advanceTimersByTime(TOOLTIP_DELAY_MS));
-  expect(document.querySelector(".kc-row-tip")).toBeNull();
-  fireEvent.pointerEnter(icon, { pointerType: "mouse" });
-  act(() => vi.advanceTimersByTime(TOOLTIP_DELAY_MS));
-  expect(document.querySelector(".kc-row-tip")).toHaveTextContent("Add sliders");
-  fireEvent.pointerLeave(icon);
-  act(() => vi.advanceTimersByTime(TOOLTIP_HIDE_MS));
-  expect(document.querySelector(".kc-row-tip")).toBeNull();
+it("R-6 Tab goes from the math to the delete cross, then m, b and all, as on Desmos", async () => {
+  renderEditor(<ExpressionPanel {...panelProps()} />, { rows: ["y=mx+b"] });
+  const row = rowItem("1");
+  const order = [...row.querySelectorAll<HTMLElement>("textarea, button")]
+    .filter((el) => el.closest(".kc-row-gutter") === null)
+    .map((el) => el.getAttribute("aria-label") ?? el.tagName);
+  expect(order.slice(-4)).toEqual([
+    "Delete expression 1",
+    "Add slider for m",
+    "Add slider for b",
+    "Add sliders for all",
+  ]);
 });
 
 it("R-11 a trig row shows a RAD badge that turns to DEG with the setting; a polynomial row shows none", () => {

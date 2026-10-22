@@ -1,5 +1,5 @@
-// The hover tooltip of a small control inside a row: the add-sliders icon and the DEG/RAD badge
-// (owner decision, 2026-10-21). It looks like the toolbar's tooltip (PM-29: a black box with white
+// The hover tooltip of a small control inside a row: the DEG/RAD badge (owner decision,
+// 2026-10-21). It looks like the toolbar's tooltip (PM-29: a black box with white
 // text that appears 500 ms after the pointer rests, and at once on keyboard focus, and leaves
 // 170 ms after the pointer does), but a row clips its overflow, so the box is portalled into the
 // calculator root and placed with position: fixed below the anchor (above it when there is no room
