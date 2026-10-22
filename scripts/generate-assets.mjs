@@ -149,7 +149,13 @@ function logSpend(row) {
 
 // ---------- prompt ----------
 function fullPrompt(shot, defaults) {
-  const suffix = shot.still ? defaults.stillSuffix : defaults.suffix;
+  let suffix = shot.still ? defaults.stillSuffix : defaults.suffix;
+  // University clothing is the one place words are allowed (founder, 2026-10-22).
+  if (shot.textAllowed && suffix)
+    suffix = suffix.replace(
+      "No text, letters, numbers, logos,",
+      "No text except the sweatshirt lettering, which stays crisp, correctly spelled and stable; no logos,"
+    );
   return `${shot.prompt.trim()} ${suffix ?? ""}`.trim();
 }
 
@@ -235,7 +241,7 @@ async function atlasUpload(original) {
   return url;
 }
 
-async function atlasRun(body, kind = "Video") {
+async function atlasRun(body, kind = "Video", onId = () => {}) {
   const r = await http(
     `${ATLAS}/api/v1/model/generate${kind}`,
     { method: "POST", headers: atlasHeaders(), body: JSON.stringify(body) },
@@ -243,14 +249,26 @@ async function atlasRun(body, kind = "Video") {
   );
   const id = r?.data?.id || r?.id;
   if (!id) throw new Error(`Atlas submit returned no id: ${JSON.stringify(r).slice(0, 300)}`);
+  onId(id); // saved at once, so a dropped connection never loses a paid job
   process.stdout.write(`  Atlas job ${id} `);
+  let networkErrors = 0;
   for (let i = 0; i < 240; i++) {
     await sleep(10000);
-    const p = await http(
-      `${ATLAS}/api/v1/model/prediction/${id}`,
-      { headers: atlasHeaders() },
-      "Atlas poll"
-    );
+    let p;
+    try {
+      p = await http(
+        `${ATLAS}/api/v1/model/prediction/${id}`,
+        { headers: atlasHeaders() },
+        "Atlas poll"
+      );
+      networkErrors = 0;
+    } catch (e) {
+      if (++networkErrors > 12)
+        throw new Error(
+          `Atlas job ${id}: polling failed (${e.cause?.code ?? e.message}); its ID is saved in assets/generation-state.json`
+        );
+      continue;
+    }
     const d = p.data || p;
     if (d.status === "completed" || d.status === "succeeded") {
       process.stdout.write("done\n");
@@ -260,7 +278,7 @@ async function atlasRun(body, kind = "Video") {
       throw new Error(`Atlas job failed: ${d.error || JSON.stringify(d).slice(0, 300)}`);
     process.stdout.write(".");
   }
-  throw new Error("Atlas job timed out after 40 minutes");
+  throw new Error(`Atlas job ${id} timed out after 40 minutes`);
 }
 
 // ---------- fal (Ideogram, FLUX) ----------
@@ -393,7 +411,7 @@ async function plan(item, defaults) {
   if (route.provider === "none")
     return { item, route, quote: 0, note: "free source, downloaded by hand" };
   if (route.provider === "atlas") {
-    const fakeRefs = (item.cast ?? []).map(() => "https://example.com/ref.png");
+    const fakeRefs = (item.refs ?? item.cast ?? []).map(() => "https://example.com/ref.png");
     const body = atlasBody(item, route, defaults, fakeRefs);
     return { item, route, body, quote: await atlasQuote(body) };
   }
@@ -431,10 +449,13 @@ async function execute(p, defaults, manifest, state) {
 
   if (route.provider === "atlas") {
     const refUrls = [];
-    for (const who of item.cast ?? [])
-      refUrls.push(await atlasUpload(join(ROOT, manifest.cast[who])));
+    for (const r of item.refs ?? item.cast ?? [])
+      refUrls.push(await atlasUpload(refPath(manifest, r)));
     const before = await atlasBalance();
-    const r = await atlasRun(atlasBody(item, route, defaults, refUrls));
+    const r = await atlasRun(atlasBody(item, route, defaults, refUrls), "Video", (id) => {
+      state[item.id] = { ...(state[item.id] ?? {}), pendingJob: id };
+      saveState(state);
+    });
     state[item.id] = {
       ...(state[item.id] ?? {}),
       lastJob: r.id,
@@ -456,7 +477,10 @@ async function execute(p, defaults, manifest, state) {
     const refUrls = [];
     for (const r of item.refs ?? []) refUrls.push(await atlasUpload(refPath(manifest, r)));
     const before = await atlasBalance();
-    const r = await atlasRun(atlasImageBody(item, route, defaults, refUrls), "Image");
+    const r = await atlasRun(atlasImageBody(item, route, defaults, refUrls), "Image", (id) => {
+      state[item.id] = { ...(state[item.id] ?? {}), pendingJob: id };
+      saveState(state);
+    });
     state[item.id] = { ...(state[item.id] ?? {}), lastJob: r.id, lastUrl: r.url };
     saveState(state);
     await download(r.url, file);

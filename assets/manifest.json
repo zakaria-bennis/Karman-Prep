@@ -28,8 +28,7 @@
       "status": "approved",
       "route": "seedance-2.5",
       "draft": true,
-      "cast": ["ava"],
-      "prompt": "@Image1 is Ava, a 16 year old girl. @Image2 shows the exact shuttle interior, her seat, clothes and light. One continuous 10-second shot at 6:52 a.m. Seconds 0 to 3: the shot opens on the outside of the moving shuttle's side window; the glass is filled with a reflection of a peach and gold sunrise sky and dark oak branches sliding past. The camera slowly pushes forward through the reflection, which fades away to reveal Ava inside, seated by the window exactly as in @Image2. Seconds 3 to 7: she works on her phone held low in her lap, screen never visible to the camera, one white earbud in; a tiny frown, a tap, then a small satisfied nod. Low sun strobes gold across her face as trees pass. Seconds 7 to 10: she looks up and out of the window; the camera drifts past her shoulder to the glass and tilts up into the open dawn sky, ending on almost pure pale peach sky.",
+      "prompt": "@Image1 is Ava, a 16 year old girl. @Image2 shows the exact shuttle interior, her seat, clothes and light. One continuous 10-second shot at 6:52 a.m. Seconds 0 to 3: a tracking shot alongside the moving shuttle on a country road at sunrise, the camera keeping pace just outside its side windows; thick oak trunks pass between the camera and the shuttle in the foreground, sweeping across the frame, and between them we glimpse Ava through the window, the glass bright with the reflected sunrise. As one wide oak trunk passes close to the lens and fills the frame for an instant, the camera is now inside the shuttle, seated beside her, exactly as in @Image2. Seconds 3 to 7: she works on her phone held low in her lap, screen never visible to the camera, one white earbud in; a tiny frown, a tap, a small nod. Low sun strobes across her face as trees pass. Seconds 7 to 10: she looks up and out of the window; the camera drifts past her shoulder to the glass and tilts up into the open dawn sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
       "duration": 10,
       "refs": [
         "ava",
@@ -41,7 +40,7 @@
       "status": "approved",
       "route": "seedance-2.5",
       "draft": true,
-      "prompt": "@Image1 is Ava's mother. @Image2 shows the exact car, school, clothes and light. One continuous 8-second shot at 3:15 p.m. on a bright winter afternoon in California. Seconds 0 to 2: the shot opens close on the glossy black windshield of the SUV, filled with a reflection of blue sky and live-oak branches sliding across it; the camera pushes forward and the reflection thins to reveal her in the driver's seat exactly as in @Image2. Seconds 2 to 5.5: she reads the weekly update on her phone held facing her, screen never visible to the camera; her shoulders drop a little, a small relieved smile; she sets the phone face down on her knee and looks out at the school. High school students aged 15 to 18 walk past in soft focus. Seconds 5.5 to 8: the camera rises up and over the SUV roof; the circular drive and red tile roofs fall away beneath; it ends on clear blue afternoon sky. The final second is only sky: no land, no buildings, no person in frame.",
+      "prompt": "@Image1 is Ava's mother. @Image2 shows the exact car, school, clothes and light. One continuous 8-second shot at 3:15 p.m. on a bright winter afternoon in California. Seconds 0 to 2: locked close on the SUV's windshield; in sharp focus, the reflection of blue sky and live-oak branches on the glass; behind it, soft and out of focus, the driver. The focus slowly pulls through the glass: the reflection melts into blur and she comes into sharp focus in the driver's seat exactly as in @Image2. This is a real lens focus pull, not a dissolve or cross-fade. Seconds 2 to 5.5: she reads the weekly update on her phone held facing her, screen never visible to the camera; her shoulders drop a little, a small relieved smile; she sets the phone face down on her knee and looks out at the school. High school students aged 15 to 18 walk past in soft focus. Seconds 5.5 to 8: the camera rises up and over the SUV roof; the circular drive and red tile roofs fall away beneath; it ends on clear blue afternoon sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
       "duration": 8,
       "refs": [
         "parent1",
@@ -53,7 +52,7 @@
       "status": "approved",
       "route": "seedance-2.5",
       "draft": true,
-      "prompt": "@Image1 is Mateo, a 17 year old tennis player. @Image2 shows the exact courts, bench, clothes and golden-hour light. One continuous 8-second shot at 4:35 p.m. Seconds 0 to 2: the shot opens extremely close on his dark sunglasses, the lenses reflecting the golden sky and a court light pole; he lifts the sunglasses off and the camera pulls back to reveal him on the courtside bench exactly as in @Image2. Seconds 2 to 5: towel round his neck, he thumb-types a short message on his phone, screen never visible to the camera; he drinks from the steel bottle; the phone buzzes, he reads it with a half-smile, stands and picks up his racquet. Seconds 5 to 8: the camera tilts up past the court light pole into a warm amber sky. The final second is only sky: no land, no buildings, no person in frame.",
+      "prompt": "@Image1 is Mateo, a 17 year old tennis player. @Image2 shows the exact courts, bench, clothes and golden-hour light. One continuous 8-second shot at 4:35 p.m. Seconds 0 to 2: extremely close on his dark sunglasses, the lenses reflecting the golden sky; he lifts them off slowly and the camera eases back to reveal him on the courtside bench exactly as in @Image2. Seconds 2 to 5.5: he types one short message on his phone with his thumb, screen never visible to the camera, then slips the phone into his bag. That is all he does. Seconds 5.5 to 8: the camera tilts slowly up past the court light pole into a warm amber sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
       "duration": 8,
       "refs": [
         "mateo",
@@ -65,7 +64,7 @@
       "status": "approved",
       "route": "seedance-2.5",
       "draft": true,
-      "prompt": "@Image1 is Priya, a 16 year old girl with glasses. @Image2 shows the exact bedroom, laptop position, lamp and light. One continuous 8-second shot at 8:05 p.m. Seconds 0 to 2: the shot opens outside the house at night on her bedroom window, the glass reflecting a deep navy sky with the first stars; the camera pushes through the glass and comes around to her behind the open laptop exactly as in @Image2, the back of the lid at the frame edge, screen never visible to the camera. Seconds 2 to 5.5: she unmutes and speaks to her class with quiet confidence, explaining her answer with one hand; her face is lit cool by the screen and warm by the lamp. Seconds 5.5 to 8: the camera drifts back to the window and up into the night sky with the first stars. The final second is only sky: no land, no buildings, no person in frame.",
+      "prompt": "@Image1 is Priya, a 16 year old girl with glasses. @Image2 shows the exact bedroom, lamp and light. One continuous 8-second shot at 8:05 p.m. Seconds 0 to 2: close on her bedroom window from outside at night; in sharp focus, the reflection of the navy sky and the first stars on the glass; behind it, soft, the warm room. The focus pulls through the glass and she comes into focus at her desk, seen from a three-quarter angle, the plain back of her laptop lid at the frame edge with no logo. This is a real lens focus pull, not a dissolve or cross-fade. Seconds 2 to 6: she is in a live online class. She listens with a calm, still face, then answers in one short, calm sentence: small, natural mouth movements at a slow speaking pace, restrained expression, no exaggerated face or chin movement. Seconds 6 to 8: the camera drifts back and up away from the window into the night sky with the first stars. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
       "duration": 8,
       "refs": [
         "priya",
@@ -74,25 +73,41 @@
     },
     {
       "id": "c6",
-      "status": "proposed",
+      "status": "approved",
       "route": "seedance-2.5",
       "draft": true,
-      "cast": ["david"],
-      "prompt": "9 p.m. in a warm home office. @Image1 is a tutor speaking into a microphone on a boom arm, explaining something with calm hand gestures, looking toward a monitor that faces him just out of frame. Bookshelf and a plant behind him in soft focus, warm lamp. For the last four seconds the camera arcs slowly to the dark window and the night sky full of stars, ending on almost pure sky.",
-      "duration": 8
+      "prompt": "@Image1 is David, a Korean-American tutor in his thirties. @Image2 shows the exact home office, white linen-shaded lamp, microphone and light. One continuous 8-second shot at 9:00 p.m. Seconds 0 to 2: close on his office window from outside at night; in sharp focus, stars reflected on the dark glass; behind it, soft, the warm room. The focus pulls through the glass and he comes into focus at his desk exactly as in @Image2. This is a real lens focus pull, not a dissolve or cross-fade. Seconds 2 to 6: he explains something into the microphone at a calm, natural pace, one easy open-hand gesture, a slight smile; small natural mouth movements; the monitor faces him, screen never visible. Seconds 6 to 8: the camera arcs slowly to the window and up into the starry night sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 8,
+      "refs": [
+        "david",
+        ".impeccable/mocks/decision/film/raw/stills/k6-david-fix-2026-10-22T04-58-16.png"
+      ]
     },
     {
       "id": "c7",
       "status": "approved",
       "route": "seedance-2.5",
       "draft": true,
-      "prompt": "@Image1 is Ava (cream cable-knit sweater, light-brown ponytail). @Image2 is Clara, a Chinese-American girl (grey quarter-zip, straight black hair). @Image3 shows the exact school entrance and flat grey morning light. One continuous 8-second shot at 7:40 a.m. on a Saturday in early March. Seconds 0 to 2: the shot opens on the tall glass doors of the school, reflecting the flat grey sky and two small approaching figures; the camera drifts back to reveal Ava and Clara from behind, walking side by side toward the doors exactly as in @Image3. Seconds 2 to 6: they walk in step, calm and quiet, not touching each other, no headphones; at the doors Ava breathes in slowly. Seconds 6 to 8: the doors open and warm white-gold light floods out over them until it fills the entire frame with soft white light.",
-      "duration": 8,
+      "prompt": "@Image1 is Ava (cream cable-knit sweater). @Image2 is Clara, a Chinese-American girl (grey quarter-zip). @Image3 shows the exact SAT check-in lobby, proctor, phone bin and steady flat grey morning light. One continuous 10-second shot at 7:40 a.m. on a Saturday in early March. The light stays exactly the same flat grey daylight for the whole shot, no change in brightness or colour. Seconds 0 to 3: close on Ava's hand holding her phone; she holds the side button and the dark screen stays dark; she lowers it into the clear bin beside the other phones and lets go. Seconds 3 to 6: the camera rises to her face: she shows a plain card to the proctor, who nods; Ava breathes out once, and walks with Clara toward the glass door of the testing room. Seconds 6 to 10: they go in; the glass door swings closed toward the camera, and the closing glass fills with the reflection of the pale grey sky from the tall lobby windows; the camera rises with the reflection until the frame is only pale grey sky. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 10,
       "refs": [
         "ava",
         "clara",
-        ".impeccable/mocks/decision/film/raw/stills/k7-test-nb-2026-10-22T03-56-04.png"
+        ".impeccable/mocks/decision/film/raw/stills/k7-phones-2026-10-22T05-11-31.png"
       ]
+    },
+    {
+      "id": "c8a",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "duration": 6,
+      "refs": [
+        "mateo",
+        ".impeccable/mocks/decision/film/raw/stills/k8-harvard-merch-2026-10-22T05-00-33.png"
+      ],
+      "prompt": "@Image1 is Mateo, now 18. @Image2 shows the exact Harvard Yard gate, his crimson HARVARD sweatshirt, tennis bag and early-September light. One continuous 6-second shot. Seconds 0 to 1.5: close on an old wavy pane of a brick dormitory window, in focus, reflecting elms and sky; the camera slides off the window and the focus moves to him walking through the brick and iron gate exactly as in @Image2. Seconds 1.5 to 6: he walks into the Yard at a natural pace, looks around once with a quiet half-smile, and keeps walking under the elms. The HARVARD lettering stays crisp and readable. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "textAllowed": true
     },
     {
       "id": "c8b",
@@ -102,9 +117,10 @@
       "duration": 6,
       "refs": [
         "priya",
-        ".impeccable/mocks/decision/film/raw/stills/k9-stanford-pro-2026-10-22T03-57-08.png"
+        ".impeccable/mocks/decision/film/raw/stills/k9-stanford-merch-2026-10-22T05-01-46.png"
       ],
-      "prompt": "@Image1 is Priya, now 18. @Image2 shows the exact Stanford Main Quad arcade, clothes and golden light. One continuous 6-second shot on a late-September afternoon. Seconds 0 to 1.5: the shot opens extremely close on the sunglasses on her head, the lenses reflecting palm trees and sandstone arches; she pushes them up into her hair and the camera pulls back to reveal her under the arcade exactly as in @Image2. Seconds 1.5 to 6: she looks up at the arches and red tile roofs with a small private smile, then turns and walks forward out into the sunlit quad, away from the camera."
+      "prompt": "@Image1 is Priya, now 18. @Image2 shows the exact Stanford Main Quad arcade, her cardinal STANFORD sweatshirt and golden light. One continuous 6-second shot on a late-September afternoon. Seconds 0 to 1.5: close on the plain dark sunglasses pushed up in her hair, the lenses reflecting palm trees and sandstone arches; the camera eases back to reveal her under the arcade exactly as in @Image2. Seconds 1.5 to 6: she looks up at the arches with a calm, quiet face, lips closed, barely a smile, then turns and walks out into the sunlit quad. The STANFORD lettering stays crisp and readable. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "textAllowed": true
     },
     {
       "id": "c8c",
@@ -114,9 +130,10 @@
       "duration": 6,
       "refs": [
         "ava",
-        ".impeccable/mocks/decision/film/raw/stills/k10-berkeley-nb-2026-10-22T03-58-11.png"
+        ".impeccable/mocks/decision/film/raw/stills/k10-berkeley-merch-2026-10-22T05-06-09.png"
       ],
-      "prompt": "@Image1 is Ava, now 18. @Image2 shows the exact UC Berkeley steps, eucalyptus trees, Sather Tower and morning light. One continuous 6-second shot on a late-August morning. Seconds 0 to 1.5: the shot opens on a shallow puddle on the granite steps reflecting blue sky and the white tower; her sneaker steps into it and the ripples break the reflection; the camera tilts up to her climbing the steps exactly as in @Image2. Seconds 1.5 to 4: she climbs, looking up at Sather Tower. Seconds 4 to 6: the camera tilts up the tall white tower to its spire and keeps rising into deep blue sky. The final second is only sky: no land, no buildings, no person in frame."
+      "prompt": "@Image1 is Ava, now 18. @Image2 shows the exact UC Berkeley steps, her navy BERKELEY hoodie, Sather Tower behind her and morning light. One continuous 6-second shot on a late-August morning. Seconds 0 to 1.5: close on a shallow puddle on the granite steps, in focus, reflecting the blue sky and the white tower; her sneaker steps into it and the ripples break the reflection; the camera tilts up to her walking up the steps toward the camera exactly as in @Image2. Seconds 1.5 to 4: she climbs at a natural pace, calm, the BERKELEY lettering crisp and readable. Seconds 4 to 6: the camera rises over her head and tilts up the tall white tower to its spire and on into deep blue sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "textAllowed": true
     },
     {
       "id": "c8",
@@ -358,6 +375,18 @@
         ".impeccable/mocks/decision/film/raw/stills/k10-berkeley-nb-2026-10-22T03-58-11.png"
       ],
       "prompt": "The young woman from the first image, now 18, at UC Berkeley on a clear late-August morning, using the place and light of the second image. The camera is a few steps above her, looking back down the wide granite steps: she walks up the steps toward the camera, body square to the camera, and behind her the tall white Sather Tower rises over eucalyptus trees against a clear blue sky, with dry golden hills in the distance. She wears a navy blue hoodie with BERKELEY in gold varsity letters straight across the chest, the whole word fully visible and uncovered; both backpack straps sit on her shoulders outside the lettering. Calm, natural expression, lips closed. Framed from the knees up, 35mm lens. The lettering is crisp and correctly spelled. No other text or logos anywhere."
+    },
+    {
+      "id": "k7-phones",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        "ava",
+        "clara",
+        ".impeccable/mocks/decision/film/raw/stills/k7-test-nb-2026-10-22T03-56-04.png"
+      ],
+      "prompt": "7:40 a.m. on a Saturday in early March, SAT test day, inside the bright entrance lobby of the cream stucco private school from the third image, flat grey morning daylight from tall windows. A check-in table with a calm adult proctor wearing a plain lanyard, and a clear plastic bin already holding several switched-off phones. The girl from the first image (cream cable-knit sweater, light-brown ponytail) stands at the table, about to drop her switched-off phone into the bin, holding a plain card in her other hand. The girl from the second image (grey quarter-zip, straight black hair) waits just behind her. Two or three other high school students aged 16 to 18 wait in a short line with their own phones, a glass door to a classroom beyond. Quiet, focused, ordinary. 35mm lens, natural light, the girl at the table near the centre of the frame. Phone screens are dark and face away. No text, signs, letters or logos anywhere."
     }
   ]
 }
