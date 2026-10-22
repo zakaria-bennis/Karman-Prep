@@ -161,11 +161,16 @@ def _run_conflicts(items: list[dict]) -> dict[int, list[str]]:
         groups: dict = {}
         for n, it in enumerate(items):
             groups.setdefault(fn(it), []).append(n)
+        # Identical content (same hash or same normalized text): keep the first copy and refuse the rest,
+        # otherwise no copy is ever published. Conflicting claims to one question (same stable id or
+        # same source question with different content) stay refused on every side: we can't tell which is right.
+        keep_first = what in ("content_hash_v2", "normalized question_text")
         for members in groups.values():
             if len(members) > 1:
-                for n in members:
-                    others = [f"{items[m]['id']} ({items[m]['batch']})" for m in members if m != n]
-                    out.setdefault(n, []).append(f"same {what} as {', '.join(others)} in this run")
+                for n in (members[1:] if keep_first else members):
+                    others = [m for m in members if m != n] if not keep_first else [members[0]]
+                    names = ", ".join(f"{items[m]['id']} ({items[m]['batch']})" for m in others)
+                    out.setdefault(n, []).append(f"same {what} as {names} in this run")
     return out
 
 

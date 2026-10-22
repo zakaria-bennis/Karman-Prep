@@ -335,3 +335,21 @@ class TestBulkSealAndPublish(BulkCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RunConflictKeepFirstTest(unittest.TestCase):
+    def test_identical_text_keeps_first_copy(self):
+        from kimport import bulk
+        items = [{"id": f"q{i}", "batch": f"b{i}", "source": ("x", "S", "M1", i),
+                  "row": {"question": {"content_hash_v2": f"h{i}", "question_text": "Same words here."}}}
+                 for i in range(3)]
+        out = bulk._run_conflicts(items)
+        self.assertNotIn(0, out)
+        self.assertEqual(sorted(out), [1, 2])
+
+    def test_same_source_question_refuses_both(self):
+        from kimport import bulk
+        items = [{"id": f"q{i}", "batch": f"b{i}", "source": ("x", "S", "M1", 1),
+                  "row": {"question": {"content_hash_v2": f"h{i}", "question_text": f"Text {i}"}}}
+                 for i in range(2)]
+        self.assertEqual(sorted(bulk._run_conflicts(items)), [0, 1])
