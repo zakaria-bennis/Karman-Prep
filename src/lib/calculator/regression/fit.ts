@@ -5,6 +5,7 @@
 // undefined), and r for a linear model with a free intercept or a log-mode fit. Pure TypeScript.
 
 import { fitNonlinear } from "./levenberg";
+import { fitMultiStart } from "./multi-start-fit";
 import { solveColumnOrder } from "./linear-fit";
 import { regressionStatistics, type RegressionStatistics } from "./statistics";
 
@@ -29,6 +30,7 @@ export interface FitInput {
   logMode: boolean; // the row's checkbox (D-30: unchecked by default)
   plainLeft?: boolean; // REG-STATISTICS-8: L is a bare name (default true)
   uniquePredictor?: boolean; // REG-STATISTICS-7: M reads exactly one list (default true)
+  multiStart?: boolean; // a fit of both sides whole: REGRESSION-10's multi-start search too
 }
 export interface RegressionResult {
   ok: boolean;
@@ -124,7 +126,7 @@ function logParams(form: LogFormMatch, k: number, fit: { slope: number; intercep
   return p;
 }
 
-/** The model's columns when it is affine in its parameters (two random checks), else null. */
+/** The model's columns when it is affine in its parameters (three checks: a far one finds a kink such as |a−3|), else null. */
 function affineColumns(model: FitInput["model"], n: number, k: number) {
   const zero = new Float64Array(k);
   const f0 = Float64Array.from({ length: n }, (_, i) => model(zero, i));
@@ -134,7 +136,7 @@ function affineColumns(model: FitInput["model"], n: number, k: number) {
     return Float64Array.from({ length: n }, (_, i) => model(e, i) - f0[i]);
   });
   if (![...f0, ...cols.flatMap((c) => [...c])].every(Number.isFinite)) return null;
-  for (const seed of [0.37, -1.91]) {
+  for (const seed of [0.37, -1.91, 5.83]) {
     const p = Float64Array.from({ length: k }, (_, j) => seed * (j + 1.3));
     for (let i = 0; i < n; i++) {
       let lin = f0[i];
@@ -187,9 +189,21 @@ export function fitRegression(input: FitInput): RegressionResult {
         const fit = fitNonlinear(model, y, start);
         if (Number.isFinite(fit.sse) && (best === null || fit.sse < best.sse)) best = fit;
       }
-      if (best === null) return failure(available, on);
-      p = best.params;
-      approximate = !best.converged;
+      // A system or equation fitted whole (list-fit.ts): the multi-start search wins unless it is
+      // worse, so `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 as in Desmos.
+      const wide = input.multiStart === true ? fitMultiStart(model, y, k) : null;
+      if (
+        wide !== null &&
+        Number.isFinite(wide.sse) &&
+        wide.params.every(Number.isFinite) &&
+        (best === null || wide.sse <= best.sse * (1 + 1e-8) + 1e-24)
+      ) {
+        p = wide.params;
+      } else {
+        if (best === null) return failure(available, on);
+        p = best.params;
+        approximate = !best.converged;
+      }
     }
   }
   const predicted = Float64Array.from({ length: n }, (_, i) => model(p, i));
