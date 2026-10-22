@@ -718,3 +718,20 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
     },
   },
 };
+
+/** The theme picker's name for each skin (the site theme's name; "Classic"). */
+export const SKIN_NAMES: Readonly<Record<SkinId, string>> = {
+  classic: "Classic",
+  observatory: "Observatory",
+  charcoal: "Charcoal",
+  forest: "Forest",
+  ivory: "Warm ivory",
+  paper: "Clean paper",
+  sand: "Sand",
+  sage: "Sage",
+  lavender: "Lavender",
+  peach: "Peach",
+  rose: "Rose",
+  blush: "Blush",
+  plum: "Plum",
+};

@@ -1,0 +1,104 @@
+/* The settings popover's Theme section (ui/settings/ThemeSection.tsx, owner decision 2026-10-22),
+   in the popover's own vocabulary: the section rule, a title set like Complex Mode, then two
+   columns of options at the small checkbox size (13.6 px). Each option is a 20 px swatch of our
+   own drawing, the skin's paper with its accent dot inside a 1 px edge, and the theme's name. The
+   chosen one takes the colour picker's ring (a 2 px accent ring outside a gap of the list
+   colour) and full-strength text; hover tints like the mini segments; keyboard focus draws the
+   popover's 2 px accent outline. The swatch colours are the skins' own, set inline per option. */
+
+.kc-settings-theme-title {
+  display: flex;
+  align-items: center;
+  height: 18px;
+}
+
+.kc-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 6px;
+  margin-top: 8px;
+}
+
+.kc-theme-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 30px;
+  padding: 0 5px;
+  border-radius: 4px;
+  color: var(--kc-pop-ink-strong);
+  font-size: 13.6px;
+  cursor: pointer;
+}
+
+.kc-theme-option:hover {
+  background: var(--kc-pop-mini-hover);
+  color: var(--kc-text);
+}
+
+.kc-theme-option > input {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border-radius: inherit;
+  cursor: pointer;
+}
+
+.kc-theme-swatch {
+  --kc-swatch-paper: var(--kc-paper);
+  --kc-swatch-accent: var(--kc-accent);
+  --kc-swatch-edge: var(--kc-boundary);
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--kc-swatch-edge);
+  border-radius: 4px;
+  background: var(--kc-swatch-paper);
+  pointer-events: none;
+}
+
+.kc-theme-swatch::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kc-swatch-accent);
+}
+
+.kc-theme-name {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.kc-theme-option:has(> input:checked) {
+  color: var(--kc-text);
+}
+
+.kc-theme-option:has(> input:checked) > .kc-theme-swatch {
+  box-shadow:
+    0 0 0 2px var(--kc-list),
+    0 0 0 4px var(--kc-accent);
+}
+
+.kc-theme-option:has(> input:focus-visible) {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 0;
+}
+
+@media (pointer: coarse) {
+  .kc-theme-option {
+    height: 36px;
+  }
+}

@@ -5,6 +5,7 @@ const SHELL0: ShellState = {
   size: { width: 0, height: 0 },
   layout: "stacked",
   skin: "ivory",
+  themeChoice: "auto",
   themeRevision: 0,
   reducedMotionMedia: false,
   pointer: "fine",

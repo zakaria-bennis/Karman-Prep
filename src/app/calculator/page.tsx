@@ -1,7 +1,7 @@
 // The public graphing calculator at /calculator: the quiz calculator full window below a slim bar,
 // blank on every visit, with no sign-in. The calculator itself loads lazily in PublicCalculator.
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import { PublicCalculator } from "./PublicCalculator";
 import { CALCULATOR_PAGE_DESCRIPTION, CALCULATOR_PAGE_TITLE } from "./copy";
@@ -25,6 +25,12 @@ export const metadata: Metadata = {
     description: CALCULATOR_PAGE_DESCRIPTION,
   },
 };
+
+// The page is dark around the calculator (the site's night bar), and the calculator declares its
+// own skin's colour scheme inside. Saying so stops a phone that darkens undeclared light pages by
+// itself (owner report, 2026-10-22: a black calculator on his phone) from recolouring the Classic
+// calculator; the student's theme picker decides its colours.
+export const viewport: Viewport = { colorScheme: "dark" };
 
 export default function CalculatorPage() {
   return (

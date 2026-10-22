@@ -1,10 +1,11 @@
 // The shell store: the browser-fed state the facade
-// shares with React (size and layout, AR-29; skin and theme revision, TH-15; reduced-motion media,
+// shares with React (size and layout, AR-29; skin, theme choice and theme revision, TH-15; reduced-motion media,
 // AR-38; pointer, K-2). `set` compares each patched key with the current value (`size` by width
 // and height) and notifies subscribers only when one differs, so an unchanged patch keeps the same
 // state object for useSyncExternalStore.
 
 import type { PixelSize } from "@/lib/calculator/plot/viewport";
+import type { ThemeChoice } from "@/lib/calculator/theme/choice";
 import type { SkinId } from "@/lib/calculator/theme/skins";
 import type { Pointer } from "./media";
 
@@ -12,6 +13,7 @@ export interface ShellState {
   size: PixelSize;
   layout: "desktop" | "stacked";
   skin: SkinId;
+  themeChoice: ThemeChoice; // the theme picker's selection ("auto" follows the site theme)
   themeRevision: number;
   reducedMotionMedia: boolean;
   pointer: Pointer;

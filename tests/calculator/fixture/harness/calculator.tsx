@@ -1,15 +1,17 @@
-// Shell harness page, /harness/calculator.html?skin=&w=&h=&rows=&reducedMotion=1&announceReset=1:
+// Shell harness page, /harness/calculator.html?skin=&theme=&w=&h=&rows=&reducedMotion=1&announceReset=1:
 // mounts the assembled calculator through the quiz host's mountQuizCalculator in #calc, inside a
 // fixed #frame that stands in for the CalculatorWindow. The frame is w×h px (default the whole
 // viewport), clamped to the viewport so phones hold a phone-sized calculator. skin sets
 // html[data-theme], the site theme the calculator follows (TH-5; default and "classic": the
-// reference colours); rows (URL-encoded JSON string[]) become rows "1"…"n" at every mount. The shell specs drive it through globalThis.__shell; the engine is on
+// reference colours); theme is the host's default theme choice (the /calculator page passes
+// "classic"; absent: the quiz's "auto"); rows (URL-encoded JSON string[]) become rows "1"…"n" at every mount. The shell specs drive it through globalThis.__shell; the engine is on
 // globalThis.__calculatorHarness.
 
 import {
   mountQuizCalculator,
   type QuizCalculatorHandle,
 } from "@/components/calculator/host/quiz-host";
+import { isThemeChoice } from "@/lib/calculator/theme/choice";
 import { SKIN_COLORS } from "@/lib/calculator/theme/skin-colors.generated";
 import type { SkinId } from "@/lib/calculator/theme/skins";
 
@@ -37,6 +39,8 @@ const rows = rowsParam === null ? null : (JSON.parse(rowsParam) as string[]);
 const width = params.get("w");
 const height = params.get("h");
 const reducedMotion = params.get("reducedMotion") === "1";
+const themeParam = params.get("theme");
+const defaultTheme = isThemeChoice(themeParam) ? themeParam : undefined;
 
 // The site theme, as applyTheme sets it: the calculator and its light-DOM chrome follow it.
 const skin = params.get("skin") || "classic";
@@ -92,6 +96,7 @@ function mount(o: { announceReset: boolean; reducedMotion: boolean }): QuizCalcu
     chromeSlot: slot,
     reducedMotion: o.reducedMotion,
     announceReset: o.announceReset,
+    defaultTheme,
   });
   observeStatus();
   if (rows) {

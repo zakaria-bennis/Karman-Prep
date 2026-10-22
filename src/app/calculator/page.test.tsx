@@ -12,7 +12,7 @@ vi.mock("@/components/calculator/CalculatorLoader", () => ({
   },
 }));
 
-import CalculatorPage, { metadata } from "./page";
+import CalculatorPage, { metadata, viewport } from "./page";
 import { PublicCalculator } from "./PublicCalculator";
 import sitemap from "../sitemap";
 import robots from "../robots";
@@ -36,6 +36,10 @@ describe("/calculator", () => {
     expect(copy).not.toMatch(/desmos|official|—/i);
   });
 
+  it("declares a dark page, so a phone that darkens light pages leaves the calculator's own theme alone", () => {
+    expect(viewport.colorScheme).toBe("dark");
+  });
+
   it("shows one heading, the logo home link, one quiet practice link and the calculator", () => {
     render(<CalculatorPage />);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
@@ -51,11 +55,11 @@ describe("/calculator", () => {
     expect(document.body.textContent).not.toMatch(/desmos|sign in|log in/i);
   });
 
-  it("loads the calculator at once in the classic skin and focuses row 1 for a mouse", () => {
+  it("loads the calculator at once with Classic as its default theme and focuses row 1 for a mouse", () => {
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query }));
     render(<PublicCalculator />);
     const last = loader.props.at(-1)!;
-    expect(last).toMatchObject({ active: true, skin: "classic" });
+    expect(last).toMatchObject({ active: true, defaultTheme: "classic" });
     expect(last.frame).toBe(screen.getByRole("region", { name: "Graphing calculator" }));
     expect(last.chromeSlot).not.toBeNull();
     const focusOnOpen = vi.fn();

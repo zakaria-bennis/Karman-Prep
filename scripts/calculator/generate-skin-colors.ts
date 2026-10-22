@@ -50,16 +50,34 @@ function paletteLiteral(palette: SkinPalette): string {
   ]);
 }
 
-/** The TypeScript table of every skin's palette, keyed in `SKIN_IDS` order (unformatted). */
-export function skinColorsModule(colors: SkinTable): string {
+/** The name the theme picker shows for each skin: "Classic", then each site theme's own name. */
+export function skinNames(themes: readonly { id: string; name: string }[]): Record<SkinId, string> {
+  const names = { classic: "Classic" } as Record<SkinId, string>;
+  for (const id of SITE_SKIN_IDS) {
+    const theme = themes.find((t) => t.id === id);
+    if (theme === undefined) throw new Error(`No site theme ${id}`);
+    names[id] = theme.name;
+  }
+  return names;
+}
+
+/**
+ * The TypeScript table of every skin's palette, keyed in `SKIN_IDS` order, and the skins' names
+ * (unformatted).
+ */
+export function skinColorsModule(colors: SkinTable, names: Record<SkinId, string>): string {
   const table = objectLiteral(
     SKIN_IDS.map((id) => [id, objectLiteral([["normal", paletteLiteral(colors[id].normal)]])])
   );
+  const nameTable = objectLiteral(SKIN_IDS.map((id) => [id, JSON.stringify(names[id])]));
   return [
     `// ${HEADER}`,
     `import type { SkinId, SkinPalette } from "./skins";`,
     ``,
     `export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = ${table};`,
+    ``,
+    `/** The theme picker's name for each skin (the site theme's name; "Classic"). */`,
+    `export const SKIN_NAMES: Readonly<Record<SkinId, string>> = ${nameTable};`,
     ``,
   ].join("\n");
 }
@@ -89,7 +107,7 @@ export function chromeStylesheet(colors: SkinTable): string {
 export async function generateSkinColorFiles(): Promise<Record<string, string>> {
   const colors = buildSkinColors(SITE_THEMES);
   const texts: Record<string, string> = {
-    [GENERATED_FILES.skinColors]: skinColorsModule(colors),
+    [GENERATED_FILES.skinColors]: skinColorsModule(colors, skinNames(SITE_THEMES)),
     [GENERATED_FILES.chromeCss]: chromeStylesheet(colors),
   };
   const out: Record<string, string> = {};

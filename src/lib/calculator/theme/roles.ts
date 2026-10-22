@@ -28,12 +28,16 @@ export function resolveSkinId(siteTheme: string | null | undefined): SkinId {
 }
 
 /**
- * TH-3: the skin's declarations for the shadow root, `:host{name:value;…}` with every role in
- * `COLOR_ROLES` order, then the tones, then the six curves, then the six fill alphas.
+ * TH-3: the skin's declarations for the shadow root, `:host{name:value;…}`: its colour scheme,
+ * then every role in `COLOR_ROLES` order, the tones, the six curves and the six fill alphas. The
+ * colour scheme (owner report, 2026-10-22) tells the browser which way the skin runs, so native
+ * parts (a phone keyboard, scrollbars) match it, and a light skin says `only light`, which asks a
+ * browser that darkens light pages by itself to leave the calculator as drawn.
  */
 export function hostThemeCss(skin: SkinId): string {
-  const { roles, tones, curves, fillAlpha } = SKIN_COLORS[skin].normal;
+  const { dark, roles, tones, curves, fillAlpha } = SKIN_COLORS[skin].normal;
   const decls = [
+    `color-scheme:${dark ? "dark" : "only light"}`,
     ...COLOR_ROLES.map((role) => `${ROLE_VARS[role]}:${roles[role]}`),
     ...TONES.map((tone) => `${TONE_VARS[tone]}:${Math.round(tones[tone] * 100)}%`),
     ...CURVE_SLOTS.map((slot) => `${CURVE_VARS[slot]}:${curves[slot]}`),
