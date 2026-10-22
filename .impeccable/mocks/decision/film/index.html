@@ -128,6 +128,13 @@
     .feat .note { font-size: 13px; padding: 12px 14px; margin-top: 18px; }
     .kline .tip { right: 16px; white-space: normal; max-width: 70vw; }
   }
+  /* talking scenes: framed wide, no zoom, so the room and the person read, not a close-up face */
+  .sc.wide .frame { top: 32vh; height: 100vh; }
+  .sc.wide .frame video { object-position: 50% 40%; }
+  @media (max-width: 760px) {
+    .sc.wide .frame { top: 38vh; height: 70vh; }
+    .sc.wide .frame video { object-fit: contain; object-position: 50% 30%; }
+  }
   .still .sc { height: auto; }
   .still .frame { position: relative; top: 0; height: 100vh; -webkit-mask-image: none; mask-image: none; }
   .still .copy { position: absolute; inset: 0; }
@@ -157,8 +164,8 @@
     { film: "c2", kin: "scale", feat: ["../screens/v2-daily10-dark.png", "phone", "Your Daily 10 on Karman"] },
     { film: "c3", kin: "mask", feat: ["../screens/v2-parent-update-dark.png", "phone", "The weekly parent update on Karman"] },
     { film: "c4", kin: "scatter", feat: ["../screens/v2-word-game-dark.png", "phone", "Wordline on Karman"] },
-    { film: "c5", kin: "flicker", feat: ["../screens/v2-schedule-dark.png", "lap", "The class calendar on Karman"] },
-    { film: "c6", kin: "flip", feat: ["../screens/v2-review-dark.png", "lap", "A full-length review on Karman"] },
+    { film: "c5", wide: true, kin: "flicker", feat: ["../screens/v2-schedule-dark.png", "lap", "The class calendar on Karman"] },
+    { film: "c6", wide: true, kin: "flip", feat: ["../screens/v2-review-dark.png", "lap", "A full-length review on Karman"] },
     { night: true, kin: "letters" },
     { film: "c7", kin: "collide", card: true },
     { film: "c8a", result: true },
@@ -167,7 +174,10 @@
     { film: "c9", layout: "center", kin: "letters", orbit: true },
   ];
   const COPY = {}; let cur = null;
-  (window.KARMAN_COPY || "").split("\n").forEach(line => {
+  // ?draft=1 previews unsaved words from the copy editor (film/edit.html) instead of copy.js
+  const Q = new URLSearchParams(location.search);
+  let draft = null; try { draft = Q.has("draft") ? localStorage.getItem("karman-copy-draft") : null; } catch (e) {}
+  (draft ?? window.KARMAN_COPY ?? "").split("\n").forEach(line => {
     const h = line.match(/^##\s*(\d+)/); if (h) { cur = COPY[+h[1]] = {}; return; }
     const m = line.match(/^\s*([a-z ]+):\s*(.*)$/i); if (m && cur) cur[m[1].trim().toLowerCase()] = m[2].trim();
   });
@@ -177,10 +187,12 @@
   SCENES.forEach((sc, i) => {
     const c = COPY[i + 1] || {}, el = document.createElement("section");
     el.className = "sc" + (i === 0 ? " first" : "") + (i === last ? " last" : "") + (sc.layout === "center" ? " center" : "");
+    el.id = `ch-${i + 1}`;
     const H = i === 0 ? "h1" : "h2";
     if (sc.night) el.classList.add("night");
     if (sc.result) el.classList.add("result");
     if (sc.orbit) el.classList.add("orbit");
+    if (sc.wide) el.classList.add("wide");
     let copy = "";
     if (sc.layout === "center") {
       copy = `<div class="stack">${c.headline ? `<${H} class="kin" data-kin="${sc.kin}">${esc(c.headline)}</${H}>` : ""}${c.text ? `<p class="lede">${esc(c.text)}</p>` : ""}${c.proof ? `<p class="proof lede">${esc(c.proof)}</p>` : ""}${c.button ? `<div class="act"><a class="btn" href="/free-practice-test">${esc(c.button)}</a>${c["button note"] ? `<small>${esc(c["button note"])}</small>` : ""}</div>` : ""}</div>`;
@@ -296,7 +308,8 @@
         const k = first ? Math.max(0, Math.min(1, scrollY / (sec.offsetHeight * 0.75))) : Math.max(0, Math.min(1, (self.progress - 0.04) / span)); const t = lead + k * (video.duration - lead - 0.05);
         if (Math.abs(video.currentTime - t) > 1 / 60) video.currentTime = t; } } });
     // the camera cranes up and eases in while the window rises through the sky
-    if (video) tl.fromTo(cam, { yPercent: -6, scale: 1.14, rotate: first ? 0 : -0.6 }, { yPercent: 6, scale: 1.02, rotate: first ? 0 : 0.6, duration: 1 }, 0);
+    if (video && sc.wide) tl.fromTo(cam, { yPercent: -3, scale: 1 }, { yPercent: 3, scale: 1, duration: 1 }, 0);
+    else if (video) tl.fromTo(cam, { yPercent: -6, scale: 1.14, rotate: first ? 0 : -0.6 }, { yPercent: 6, scale: 1.02, rotate: first ? 0 : 0.6, duration: 1 }, 0);
     const len = sec.offsetHeight, vh = innerHeight, pass = len + vh, pinA = vh / pass, pinB = len / pass; // when the words hold
     const inAt = first ? 0 : pinA - 0.1, outAt = end ? 2 : pinB - 0.11;
     if (parts.length && !first) KIN[sc.kin](tl, parts, inAt, 0.13);
@@ -335,9 +348,12 @@
   gsap.ticker.lagSmoothing(0);
   addEventListener("scroll", away, { passive: true }); away();
   requestAnimationFrame(skyTick);
+  // ?ch=N opens the page at chapter N (used by the copy editor's preview)
+  const jump = +Q.get("ch") || 0;
+  if (jump > 1 && secs[jump - 1]) { const s = secs[jump - 1]; lenis.scrollTo(s.offsetTop - innerHeight + (s.offsetHeight + innerHeight) * 0.5, { immediate: true }); }
   // the opening film plays its first few seconds by itself, then hands over to the scroll
   const v0 = secs[0].querySelector("video"), lead0 = SCENES[0].autoplay || 0;
-  if (v0 && lead0) { v0.dataset.auto = "1"; const stop = () => { if (v0.dataset.auto !== "1") return; v0.dataset.auto = "0"; v0.pause(); ScrollTrigger.update(); };
+  if (v0 && lead0 && jump <= 1) { v0.dataset.auto = "1"; const stop = () => { if (v0.dataset.auto !== "1") return; v0.dataset.auto = "0"; v0.pause(); ScrollTrigger.update(); };
     v0.play().catch(stop); v0.addEventListener("timeupdate", () => { if (v0.currentTime >= lead0) stop(); });
     addEventListener("wheel", stop, { once: true, passive: true }); addEventListener("touchmove", stop, { once: true, passive: true }); addEventListener("keydown", stop, { once: true }); }
   // the opening line arrives on its own, before any scroll

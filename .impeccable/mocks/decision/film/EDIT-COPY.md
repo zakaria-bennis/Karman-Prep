@@ -1,5 +1,19 @@
 # Writing your own landing page copy
 
+## The easy way: the copy editor
+
+1. In the Terminal panel, run `npm run copy`. Your browser opens the editor.
+2. Change any words on the left. The real landing page on the right updates
+   as you type; click "Show" on a chapter to jump the preview there, and use
+   "Phone" to see it on a phone.
+3. Red notes (like an em dash) must be fixed before you can save; amber notes
+   are reminders of the house rules.
+4. Click "Save to the page". That writes `copy.js` on your computer only.
+   Nothing goes live until you tell Claude to check it and publish it.
+5. Press Ctrl+C in the Terminal panel to stop the editor.
+
+## By hand
+
 All the words on the landing page live in one file: `copy.js`, in this folder.
 
 1. Open `copy.js` in any text editor (TextEdit works; choose Format, then Make

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karman copy editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #0b121a; --panel: #101923; --line: #22303e; --ink: #f1f1ee; --ink2: #9fabb7; --acc: #7cc4a5; --warn: #e2b867; --bad: #e8959c; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.45 "Hanken Grotesk", system-ui, sans-serif; height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  header h1 { font: 500 22px "Source Serif 4", Georgia, serif; letter-spacing: -.01em; margin-right: auto; }
+  .status { color: var(--ink2); font-size: 14px; }
+  .status.dirty { color: var(--warn); }
+  button { font: 600 14px "Hanken Grotesk", sans-serif; border-radius: 999px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+  button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  button:disabled { opacity: .4; cursor: default; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; }
+  .seg button { border: 0; padding: 7px 12px; }
+  .seg button[aria-pressed="true"] { background: var(--panel); }
+  main { display: grid; grid-template-columns: minmax(380px, 460px) 1fr; min-height: 0; }
+  .form { overflow-y: auto; padding: 16px 18px 80px; border-right: 1px solid var(--line); }
+  .ch { background: var(--panel); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; border: 1px solid transparent; }
+  .ch.on { border-color: var(--acc); }
+  .ch h2 { font: 600 13px "Hanken Grotesk", sans-serif; color: var(--ink2); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; }
+  .ch h2 button { padding: 3px 10px; font-size: 12px; text-transform: none; letter-spacing: 0; }
+  label { display: block; margin-top: 10px; font-size: 13px; color: var(--ink2); }
+  textarea { display: block; width: 100%; margin-top: 4px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: 15px/1.4 "Hanken Grotesk", sans-serif; resize: vertical; min-height: 38px; field-sizing: content; }
+  .msg { font-size: 12.5px; margin-top: 4px; }
+  .msg.warn { color: var(--warn); } .msg.bad { color: var(--bad); }
+  .preview { position: relative; display: grid; place-items: center; background: #05080d; min-height: 0; }
+  iframe { border: 0; width: 100%; height: 100%; background: var(--bg); }
+  .preview.phone iframe { width: 390px; height: min(844px, calc(100% - 24px)); border-radius: 28px; border: 1px solid var(--line); }
+  .note { position: absolute; left: 12px; bottom: 10px; font-size: 12.5px; color: var(--ink2); background: rgba(5,8,13,.8); padding: 6px 10px; border-radius: 8px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; grid-template-rows: 55% 45%; } .form { border-right: 0; border-bottom: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Karman copy</h1>
+  <span class="status" id="status" role="status">Loading…</span>
+  <div class="seg" role="group" aria-label="Preview size"><button type="button" id="desk" aria-pressed="true">Desktop</button><button type="button" id="phone" aria-pressed="false">Phone</button></div>
+  <button type="button" id="discard" disabled>Discard changes</button>
+  <button type="button" class="primary" id="save" disabled>Save to the page</button>
+</header>
+<main>
+  <section class="form" id="form" aria-label="The words, chapter by chapter"></section>
+  <section class="preview" id="preview" aria-label="Preview">
+    <iframe id="frame" title="Landing page preview"></iframe>
+    <p class="note">Preview of your unsaved words. Nothing goes live from here.</p>
+  </section>
+</main>
+<script>
+(function () {
+  const NAMES = ["The kitchen before dawn", "Ava on the shuttle", "The pickup line", "Mateo at tennis", "Priya in the live class", "David's 1:1 review",
+    "The night", "Test day, phones away", "Mateo, next fall", "Priya, next fall", "Ava, next fall", "Orbit and the line"];
+  const form = document.getElementById("form"), frame = document.getElementById("frame"), status = document.getElementById("status");
+  const save = document.getElementById("save"), discard = document.getElementById("discard");
+  let saved = "", chapters = [], current = 1, timer = 0;
+
+  // copy.js format: "## 2" starts a chapter, then "label: words" lines
+  const parse = text => { const out = []; let ch = null;
+    text.split("\n").forEach(line => { const h = line.match(/^##\s*(\d+)/); if (h) { ch = { n: +h[1], rows: [] }; out.push(ch); return; }
+      const m = line.match(/^\s*([a-z ]+):\s*(.*)$/i); if (m && ch) ch.rows.push([m[1].trim().toLowerCase(), m[2].trim()]); });
+    return out; };
+  const serialize = () => "\n" + chapters.map(c => `## ${c.n}\n` + c.rows.map(([k, v]) => `${k}: ${v.replace(/\s*\n\s*/g, " ").trim()}`).join("\n")).join("\n\n") + "\n";
+
+  // the house copy rules, checked as you type
+  function check(key, value, ch) {
+    const out = [];
+    if (/[—–]/.test(value)) out.push(["bad", "No em or en dashes. Use a comma, a colon or a full stop."]);
+    if (/[`]|\$\{/.test(value)) out.push(["bad", "Backticks and ${ can't be used."]);
+    if (key === "headline" && value.length > 40) out.push(["warn", `${value.length} characters. Headlines read best under about 40, because they're set very large.`]);
+    if ((key === "proof" || (key === "result" && ch.n === 11)) && /\d/.test(value) && ch.n !== 11 && !/1:1 tutoring/i.test(value)) out.push(["warn", "Results need \"Karman 1:1 tutoring, median 16 weeks\" next to them."]);
+    if (ch.n === 11 && key === "proof" && !/1:1 tutoring/i.test(value)) out.push(["warn", "Keep \"Karman 1:1 tutoring, median 16 weeks\" under the three results."]);
+    if (/\b(guaranteed|best|#1|only \d+ (seats|spots) left|hurry)\b/i.test(value)) out.push(["warn", "Check this claim against the offer: no fake urgency or unprovable claims."]);
+    return out;
+  }
+
+  function render() {
+    form.innerHTML = "";
+    chapters.forEach(c => {
+      const box = document.createElement("div"); box.className = "ch" + (c.n === current ? " on" : ""); box.dataset.n = c.n;
+      box.innerHTML = `<h2><span>${c.n}. ${NAMES[c.n - 1] || ""}</span><button type="button">Show</button></h2>`;
+      box.querySelector("button").onclick = () => { current = c.n; mark(); reload(true); };
+      c.rows.forEach((row, j) => {
+        const id = `f-${c.n}-${j}`, lab = document.createElement("label"); lab.htmlFor = id; lab.textContent = row[0];
+        const ta = document.createElement("textarea"); ta.id = id; ta.rows = 1; ta.value = row[1];
+        const msgs = document.createElement("div");
+        const paint = () => { msgs.innerHTML = check(row[0], ta.value, c).map(([t, m]) => `<p class="msg ${t}">${m}</p>`).join(""); };
+        ta.addEventListener("focus", () => { if (current !== c.n) { current = c.n; mark(); reload(true); } });
+        ta.addEventListener("input", () => { row[1] = ta.value; paint(); changed(); });
+        paint(); lab.append(ta, msgs); box.append(lab);
+      });
+      form.append(box);
+    });
+  }
+  const mark = () => form.querySelectorAll(".ch").forEach(b => b.classList.toggle("on", +b.dataset.n === current));
+  const hasErrors = () => chapters.some(c => c.rows.some(([k, v]) => check(k, v, c).some(([t]) => t === "bad")));
+
+  function changed() {
+    const dirty = serialize() !== saved;
+    status.textContent = hasErrors() ? "Fix the red notes before saving" : dirty ? "Unsaved changes, shown in the preview" : "Saved";
+    status.classList.toggle("dirty", dirty);
+    save.disabled = !dirty || hasErrors(); discard.disabled = !dirty;
+    clearTimeout(timer); timer = setTimeout(() => reload(false), 500);
+  }
+  function reload(jumpNow) {
+    try { localStorage.setItem("karman-copy-draft", serialize()); } catch (e) {}
+    const url = `index.html?draft=1&ch=${current}`;
+    if (jumpNow || !frame.src.endsWith(url)) frame.src = url; else frame.contentWindow.location.reload();
+  }
+
+  save.onclick = async () => {
+    save.disabled = true; status.textContent = "Saving…";
+    const text = serialize(), r = await fetch("/api/copy", { method: "POST", body: text });
+    if (r.ok) { saved = text; changed(); status.textContent = "Saved to copy.js. Tell Claude when you want it checked and put live."; }
+    else { status.textContent = "Couldn't save: " + await r.text(); save.disabled = false; }
+  };
+  discard.onclick = () => { if (!confirm("Discard your unsaved changes?")) return; chapters = parse(saved); render(); changed(); reload(true); };
+  addEventListener("beforeunload", e => { if (serialize() !== saved) { e.preventDefault(); e.returnValue = ""; } });
+
+  const size = phone => { document.getElementById("preview").classList.toggle("phone", phone);
+    document.getElementById("phone").setAttribute("aria-pressed", phone); document.getElementById("desk").setAttribute("aria-pressed", !phone); reload(true); };
+  document.getElementById("phone").onclick = () => size(true); document.getElementById("desk").onclick = () => size(false);
+
+  fetch("/api/copy").then(r => r.text()).then(text => { chapters = parse(text); saved = serialize(); render(); changed(); reload(true); })
+    .catch(() => { status.textContent = "Start the preview server first (see EDIT-COPY.md)."; });
+})();
+</script>
+</body>
+</html>
