@@ -12,7 +12,13 @@ import type { Viewport } from "@/lib/calculator/plot/viewport";
 import { installDomStubs, triggerResize } from "../../__fixtures__/dom-stubs";
 import { SkinContext } from "../hooks/skin";
 import { EngineContext } from "../hooks/use-engine";
-import { HINT_MS, HINT_STORAGE_KEY, HINT_TEXT, resetCurveHintForTests } from "./curve-hint";
+import {
+  HINT_MS,
+  HINT_SETTLE_MS,
+  HINT_STORAGE_KEY,
+  HINT_TEXT,
+  resetCurveHintForTests,
+} from "./curve-hint";
 import { GraphPanel, type GraphPanelProps } from "./GraphPanel";
 
 let restoreDom: () => void;
@@ -183,16 +189,21 @@ it("the wheel zooms on deltaX when deltaY is 0, and a zoom in near the origin an
   expect(viewport().top).toBeCloseTo(7.5 * (16 / 17), 9);
 });
 
-/** A student types y=x+1 into row c; it plots. */
+/** The student's own edit of row c to `latex`; the worker draws a line for it when `draws`. */
+async function studentTypes(latex: string, draws: boolean): Promise<void> {
+  act(() => void t.engine.editRow("c", latex, "typing"));
+  await flush();
+  const generation = t.latestGeneration();
+  if (draws) t.emit({ v: 1, type: "plot", generation, rowId: "c", geometry: line("c") });
+  t.emit({ v: 1, type: "done", generation });
+  await flush();
+}
+/** A student types y=x+1 into row c; it plots and stays drawn. */
 async function studentGraphs(): Promise<void> {
   t.engine.setExpressions([{ id: "c", latex: "" }]);
   await flush();
-  act(() => void t.engine.editRow("c", "y=x+1", "typing"));
-  await flush();
-  const generation = t.latestGeneration();
-  t.emit({ v: 1, type: "plot", generation, rowId: "c", geometry: line("c") });
-  t.emit({ v: 1, type: "done", generation });
-  await flush();
+  await studentTypes("y=x+1", true);
+  await act(async () => vi.advanceTimersByTime(HINT_SETTLE_MS));
 }
 const hint = () => document.querySelector("[data-curve-hint]")?.textContent ?? null;
 
@@ -204,6 +215,25 @@ it("the curve hint shows once, the first time a student graphs a curve, and leav
   expect(localStorage.getItem(HINT_STORAGE_KEY)).toBe("1");
   await act(async () => vi.advanceTimersByTime(HINT_MS));
   expect(hint()).toBeNull();
+});
+
+it("the curve hint waits for a curve that stays drawn: y on the way to y=mx+b never shows it", async () => {
+  // the owner's report (2026-10-22): y=mx+b (an error, no sliders) then 5% of 40 showed it
+  await mount({ pointer: "coarse" });
+  t.engine.setExpressions([{ id: "c", latex: "" }]);
+  await flush();
+  await studentTypes("y", true); // drawn for a moment, mid-typing
+  await act(async () => vi.advanceTimersByTime(HINT_SETTLE_MS / 2));
+  await studentTypes("y=mx+b", false);
+  await act(async () => vi.advanceTimersByTime(HINT_SETTLE_MS * 3));
+  expect(hint()).toBeNull();
+  expect(localStorage.getItem(HINT_STORAGE_KEY)).toBeNull();
+  // a curve that stays shows it, after the settle time and not before
+  await studentTypes("y=x+1", true);
+  await act(async () => vi.advanceTimersByTime(HINT_SETTLE_MS - 100)); // flush() itself moves frames
+  expect(hint()).toBeNull();
+  await act(async () => vi.advanceTimersByTime(100));
+  expect(hint()).toBe(HINT_TEXT.coarse);
 });
 
 it("the curve hint never shows for a preset graph, nor again once seen", async () => {

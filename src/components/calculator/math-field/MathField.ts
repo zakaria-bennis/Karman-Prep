@@ -334,10 +334,15 @@ export function renderStaticMath(host: HTMLElement, latex: string): void {
   }
 }
 
-/** Types `text`, a typed ° being Desmos's `\degree` (owner decision, 2026-10-21). */
+/**
+ * Types `text`, a typed ° being Desmos's `\degree` (owner decision, 2026-10-21) and a typed
+ * backslash Desmos's `\backslash` symbol, never MathQuill's LaTeX command input (live Desmos,
+ * 2026-10-22: `x_\` gives `x_{\backslash}`).
+ */
 function typeInto(mq: EditableMathQuill, text: string): void {
-  text.split("°").forEach((part, k) => {
-    if (k > 0) mq.cmd("\\degree");
-    if (part !== "") mq.typedText(part);
-  });
+  for (const part of text.split(/([°\\])/)) {
+    if (part === "°") mq.cmd("\\degree");
+    else if (part === "\\") mq.cmd("\\backslash");
+    else if (part !== "") mq.typedText(part);
+  }
 }

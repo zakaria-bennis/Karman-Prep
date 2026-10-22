@@ -11,7 +11,7 @@ describe("operator-name allowlist", () => {
     for (const e of O.panelCategories().flatMap((c) => c.entries))
       expect(O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name)).toBe(true);
     expect([O.AUTO_COMMANDS.join(" "), O.mathQuillAutoCommands()]).toEqual(
-      Array(2).fill("sqrt cbrt nthroot pi theta tau phi infinity infty sum prod int")
+      Array(2).fill("alpha beta rho sqrt cbrt nthroot pi theta tau phi infinity infty sum prod int")
     );
     expect(O.MEMBER_NAMES.join(" ")).toBe(
       "null pleft pright score dof stderr conf lower upper estimate"

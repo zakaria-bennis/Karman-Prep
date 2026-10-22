@@ -314,8 +314,35 @@ test.describe("curve hint", () => {
     else await field.click();
     await page.keyboard.type("y=2x");
     await plotted(page, "1");
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(1500); // past the 1 s settle time (HINT_SETTLE_MS)
     await expect(hint(page)).toHaveCount(0);
+  });
+
+  test("never shows when nothing stays drawn: the owner's y=mx+b (an error) then 5% of 40", async ({
+    page,
+    isMobile,
+  }) => {
+    // Owner report, 2026-10-22: row 1 an error (y=mx+b, no sliders), row 2 a number; the bare
+    // `y` typed on the way to y=mx+b draws for a moment, and that must not count.
+    await openShell(page);
+    const field = page.locator('#calc [data-row-id="1"] .mq-editable-field');
+    if (isMobile) await field.tap();
+    else await field.click();
+    await page.keyboard.type("y=mx+b", { delay: 60 });
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("5%40");
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          globalThis.__calculatorHarness!.engine.getSnapshot().rows.map((r) => r.latex)
+        )
+      )
+      .toEqual(["y=mx+b", "5\\%\\operatorname{of}40"]);
+    await page.waitForTimeout(2000);
+    await expect(hint(page)).toHaveCount(0);
+    expect(
+      await page.evaluate(() => localStorage.getItem("karman-calculator:curve-hint-seen"))
+    ).toBeNull();
   });
 
   test("a preset graph never shows it", async ({ page }) => {

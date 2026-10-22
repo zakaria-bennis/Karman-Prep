@@ -3,7 +3,9 @@
 // pointer). It goes on the student's first press anywhere in the calculator except a keypad key
 // or the math being typed, or after HINT_MS, and never shows again: localStorage remembers it,
 // and when storage fails it shows at most once per page load. Only a student's own edit of the
-// rows arms it, so a question's preset graph never shows it.
+// rows arms it, so a question's preset graph never shows it. A curve must stay drawn for
+// HINT_SETTLE_MS before the hint shows: one drawn for a moment mid-typing (`y` on the way to
+// `y=mx+b`, which ends as an error) is not "something drawn" (owner report, 2026-10-22).
 
 import { useEffect, useState, type JSX } from "react";
 import type { CalculatorEngine, EngineSnapshot } from "@/lib/calculator/core/api/engine";
@@ -11,6 +13,8 @@ import type { Geometry } from "@/lib/calculator/plot/geometry";
 
 export const HINT_STORAGE_KEY = "karman-calculator:curve-hint-seen";
 export const HINT_MS = 6000;
+/** How long a student's curve must stay on the graph before the hint shows. */
+export const HINT_SETTLE_MS = 1000;
 export const HINT_TEXT = {
   coarse: "Tap a curve to see key points",
   fine: "Click a curve to see key points",
@@ -86,8 +90,13 @@ export function useCurveHint(
   const graphed = armed && [...snapshot.geometry.values()].some(isCurve);
   useEffect(() => {
     if (!graphed || text !== null || seen()) return;
-    remember();
-    setText(finePointer(!coarse) ? HINT_TEXT.fine : HINT_TEXT.coarse);
+    // cancelled if the curve leaves the graph first (graphed turns false)
+    const timer = setTimeout(() => {
+      if (seen()) return;
+      remember();
+      setText(finePointer(!coarse) ? HINT_TEXT.fine : HINT_TEXT.coarse);
+    }, HINT_SETTLE_MS);
+    return () => clearTimeout(timer);
   }, [graphed, text, coarse]);
 
   const showing = text !== null && text !== "";

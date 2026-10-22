@@ -16,6 +16,7 @@ export interface MathQuillConfig {
   autoCommands: string;
   charsThatBreakOutOfSupSub: string;
   autoSubscriptNumerals: boolean;
+  supSubsRequireOperand: boolean;
   disableAutoSubstitutionInSubscripts: boolean;
   restrictMismatchedBrackets: boolean;
   enableDigitGrouping: boolean;

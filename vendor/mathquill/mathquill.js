@@ -7804,30 +7804,14 @@ var MathQuillModule = (function () {
         SupSub.prototype.finalizeTree = function () {
             var endsL = this.getEnd(L);
             endsL.write = function (cursor, ch) {
-                // An operator typed at the end of a non-empty block leaves it, even a
-                // subscript under autoSubscriptNumerals (`a_2+1` gives a_{2}+1); an empty
-                // subscript still keeps its first character.
-                var breaksOut = cursor[L] &&
+                // A subscript keeps whatever is typed in it, as an exponent does, even
+                // under autoSubscriptNumerals: brackets, `^`, `_` and `/` build inside it
+                // (`x_1^2` gives x_{1^{2}}, `y_{` gives y_{\left\{\right\}}). Only an
+                // operator typed at the end of a non-empty block leaves it (`a_2+1`).
+                if (cursor[L] &&
                     !cursor[R] &&
                     !cursor.selection &&
-                    cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1;
-                if (!breaksOut &&
-                    cursor.options.autoSubscriptNumerals &&
-                    this === this.parent.sub) {
-                    if (ch === '_')
-                        return;
-                    var cmd = this.chToCmd(ch, cursor.options);
-                    if (cmd instanceof MQSymbol)
-                        cursor.deleteSelection();
-                    else
-                        cursor.clearSelection().insRightOf(this.parent);
-                    cmd.createLeftOf(cursor.show());
-                    cursor.controller.aria
-                        .queue('Baseline')
-                        .alert(cmd.mathspeak({ createdLeftOf: cursor }));
-                    return;
-                }
-                if (breaksOut) {
+                    cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1) {
                     cursor.insRightOf(this.parent);
                     cursor.controller.aria.queue('Baseline');
                 }

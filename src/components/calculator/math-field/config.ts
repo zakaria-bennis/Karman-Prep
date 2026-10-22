@@ -7,8 +7,11 @@ import {
 // vendor/mathquill/: MathField.ts is its only importer, and it adds the four hooks
 // (substituteTextarea, overrideTypedText, overrideKeystroke, handlers) to these options.
 
-/** Typed in a non-empty superscript or subscript, these leave it first (T-6, T-1). */
-export const CHARS_THAT_BREAK_OUT_OF_SUPSUB = "+-=<>~,";
+/**
+ * Typed at the end of a non-empty superscript or subscript, these leave it first (T-6, T-1).
+ * Live Desmos, 2026-10-22: `~`, `,`, `:` and every bracket stay inside (`x_1,` gives `x_{1,}`).
+ */
+export const CHARS_THAT_BREAK_OUT_OF_SUPSUB = "+-=<>*";
 
 /** MathQuill key names of the undo and redo chords that never reach MathQuill. */
 export const NATIVE_HISTORY_CHORDS: readonly string[] = Object.freeze([
@@ -35,6 +38,7 @@ export interface MathQuillOptions {
   autoCommands: string;
   charsThatBreakOutOfSupSub: string;
   autoSubscriptNumerals: boolean;
+  supSubsRequireOperand: boolean;
   disableAutoSubstitutionInSubscripts: boolean;
   restrictMismatchedBrackets: boolean;
   enableDigitGrouping: boolean;
@@ -58,6 +62,8 @@ export function mathQuillOptions(): MathQuillOptions {
     charsThatBreakOutOfSupSub: CHARS_THAT_BREAK_OUT_OF_SUPSUB,
     // T-4: typed a1 becomes a_{1}, and v_max stays v_{max}
     autoSubscriptNumerals: true,
+    // T-4: `_` or `^` with nothing before it is ignored, so `x__1` gives x_{1} and `^2` gives 2
+    supSubsRequireOperand: true,
     disableAutoSubstitutionInSubscripts: true,
     // T-8, with patch 0006
     restrictMismatchedBrackets: true,

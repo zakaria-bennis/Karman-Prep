@@ -53,9 +53,12 @@ it("mathQuillOptions turns on autoSubscriptNumerals and disableAutoSubstitutionI
   expect(config.autoSubscriptNumerals).toBe(true);
   expect(config.disableAutoSubstitutionInSubscripts).toBe(true);
 });
-it("CHARS_THAT_BREAK_OUT_OF_SUPSUB is exactly + - = < > ~ , and mathQuillOptions uses it", () => {
-  expect(CHARS_THAT_BREAK_OUT_OF_SUPSUB).toBe("+-=<>~,");
-  expect(config.charsThatBreakOutOfSupSub).toBe("+-=<>~,");
+it("CHARS_THAT_BREAK_OUT_OF_SUPSUB is exactly + - = < > * (live Desmos) and mathQuillOptions uses it", () => {
+  expect(CHARS_THAT_BREAK_OUT_OF_SUPSUB).toBe("+-=<>*");
+  expect(config.charsThatBreakOutOfSupSub).toBe("+-=<>*");
+});
+it("mathQuillOptions turns on supSubsRequireOperand, so a lone _ or ^ is ignored as on Desmos", () => {
+  expect(config.supSubsRequireOperand).toBe(true);
 });
 it("mathQuillOptions turns off typingAsteriskWritesTimesSymbol and on typingPercentWritesPercentOf (T-7)", () => {
   expect(config.typingAsteriskWritesTimesSymbol).toBe(false);
@@ -88,6 +91,7 @@ it("mathQuillOptions turns on disableCopyPaste, NATIVE_HISTORY_CHORDS lists the 
     "disableCopyPaste",
     "enableDigitGrouping",
     "restrictMismatchedBrackets",
+    "supSubsRequireOperand",
     "typingAsteriskWritesTimesSymbol",
     "typingPercentWritesPercentOf",
     "typingSlashCreatesNewFraction",

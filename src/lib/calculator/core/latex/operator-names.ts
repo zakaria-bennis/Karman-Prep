@@ -392,8 +392,15 @@ export const MEMBER_NAMES: readonly string[] = Object.freeze([
   "estimate",
 ]);
 
-/** Typed letter sequences MathQuill turns into commands (T-3). */
+/**
+ * Typed letter sequences MathQuill turns into commands (T-3). Of the Greek letters, Desmos
+ * auto-converts only alpha, beta, rho, theta, phi, pi and tau (live Desmos, 2026-10-22: typed
+ * `alpha_1` gives `\\alpha_{1}`, typed `gamma` stays four letters).
+ */
 export const AUTO_COMMANDS: readonly string[] = Object.freeze([
+  "alpha",
+  "beta",
+  "rho",
   "sqrt",
   "cbrt",
   "nthroot",
