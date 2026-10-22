@@ -1,5 +1,9 @@
 // Renders figure review snapshots: LEFT original.png, RIGHT the real student quiz render
 // (/dev/figure-review/render, dark, 1280 wide), as one JPEG per figure.
+// The quiz screen is a fixed 1280x800 laptop frame whose passage and question panes scroll
+// on their own. Before the screenshot the frame is grown until no pane scrolls, so the image
+// shows the whole passage, figure, question and choices. `clipped` in the result says whether
+// the plain 800px frame would have cut something off.
 // Called by `k figures snapshot` with a jobs JSON file; prints one JSON line per result.
 // usage: node figure-snapshot.mjs <jobs.json> <base-url>
 import { readFileSync } from "node:fs";
@@ -14,10 +18,47 @@ const sharp = require("sharp");
 
 const [jobsFile, base] = process.argv.slice(2);
 const jobs = JSON.parse(readFileSync(jobsFile, "utf8"));
-const MAX_H = 900;
+const MAX_H = 2400;
 const MAX_W = 2000;
 const GAP = 6;
-const TARGET = 400 * 1024;
+const TARGET = 600 * 1024;
+
+// In the page: the scroll containers inside #figure-render that hide content vertically.
+function clippedPanes() {
+  const root = document.querySelector("#figure-render");
+  return [root, ...root.querySelectorAll("*")]
+    .filter((el) => {
+      const oy = getComputedStyle(el).overflowY;
+      return oy !== "visible" && el.scrollHeight > el.clientHeight + 4;
+    })
+    .map((el) => ({ el, extra: el.scrollHeight - el.clientHeight }));
+}
+
+/** Grows the laptop frame (every fixed pixel height inside #figure-render) until no pane scrolls,
+ *  then turns any remaining scroll container into plain visible content. Returns
+ *  {clipped: was anything cut off at 800px, rest: containers still clipped afterwards}. */
+async function unclip(page) {
+  return page.evaluate((src) => {
+    const clippedPanes = new Function(`return (${src})`)();
+    const root = document.querySelector("#figure-render");
+    const clipped = clippedPanes().length > 0;
+    for (let i = 0; i < 6; i++) {
+      const panes = clippedPanes();
+      if (!panes.length) break;
+      const extra = Math.max(...panes.map((p) => p.extra));
+      for (const el of root.querySelectorAll("[style]")) {
+        const h = el.style.height;
+        if (h && h.endsWith("px")) el.style.height = `${parseFloat(h) + extra}px`;
+      }
+    }
+    for (const { el } of clippedPanes()) {
+      el.style.overflow = "visible";
+      el.style.maxHeight = "none";
+      el.style.height = "auto";
+    }
+    return { clipped, rest: clippedPanes().length };
+  }, clippedPanes.toString());
+}
 
 async function compose(leftPath, shot) {
   const left = sharp(leftPath).flatten({ background: "#ffffff" });
@@ -99,10 +140,17 @@ for (const job of jobs) {
     );
     if (broken) throw new Error(`${broken} image(s) failed to load`);
     await page.waitForTimeout(300);
+    const { clipped, rest } = await unclip(page);
+    const box = await page.locator("#figure-render").boundingBox();
+    await page.setViewportSize({ width: 1280, height: Math.max(800, Math.ceil(box.height) + 16) });
+    await page.waitForTimeout(150);
     const shot = await page.locator("#figure-render").screenshot({ type: "png" });
+    await page.setViewportSize({ width: 1280, height: 800 });
     const jpg = await compose(job.original, shot);
     writeFileSync(job.out, jpg);
-    console.log(JSON.stringify({ id: job.id, ok: true, bytes: jpg.length }));
+    console.log(
+      JSON.stringify({ id: job.id, ok: true, bytes: jpg.length, clipped, still_clipped: rest })
+    );
   } catch (e) {
     await freshPage();
     console.log(

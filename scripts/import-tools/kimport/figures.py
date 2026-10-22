@@ -347,6 +347,7 @@ def snapshot(figures_dir: Path, out_dir: Path, status: str = "ready_for_founder"
         elif not (out_dir / entry["file"]).is_file():
             jobs.append({"id": d.name, "original": str(d / "original.png"), "out": str(out_dir / entry["file"])})
     failed = list(skipped)
+    clipped: dict[str, bool] = {}
     if jobs:
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
             json.dump(jobs, f)
@@ -362,11 +363,21 @@ def snapshot(figures_dir: Path, out_dir: Path, status: str = "ready_for_founder"
             done += 1
             if not r.get("ok"):
                 failed.append({"id": r["id"], "error": r.get("error")})
+            else:
+                clipped[r["id"]] = bool(r.get("clipped"))
             if done % 50 == 0:
                 print(f"figures snapshot: {done}/{len(jobs)}", file=sys.stderr, flush=True)
         proc.wait()
     bad = {x["id"] for x in failed}
     kept = [e for e in items if e["id"] not in bad and (out_dir / e["file"]).is_file()]
+    # clipped: the plain 800px quiz frame would have cut part of this render off (kept from an earlier
+    # run's manifest for files that were not re-rendered now).
+    try:
+        before = {e["file"]: e.get("clipped") for e in json.loads((out_dir / "manifest.json").read_text("utf-8"))}
+    except (OSError, ValueError, TypeError, KeyError):
+        before = {}
+    for e in kept:
+        e["clipped"] = clipped.get(e["id"], before.get(e["file"]))
     atomic_write_json(out_dir / "manifest.json", kept)
     return {"produced": len(kept), "rendered_now": len(jobs) - len([f for f in failed if f not in skipped]),
-            "failed": failed}
+            "clipped": sorted(i for i, c in clipped.items() if c), "failed": failed}

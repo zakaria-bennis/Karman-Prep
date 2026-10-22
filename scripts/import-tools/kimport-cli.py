@@ -476,7 +476,8 @@ def _register_figures(sub) -> None:
         r = figures.snapshot(Path(a.figures), Path(a.out), a.status, a.limit, a.base_url)
         for f in r["failed"]:
             print(f"FAILED {f['id']}: {f['error']}")
-        print(f"figures snapshot: {r['produced']} in manifest, {len(r['failed'])} failed, to {a.out}", file=sys.stderr)
+        print(f"figures snapshot: {r['produced']} in manifest ({len(r['clipped'])} rendered now were clipped at 800px), "
+              f"{len(r['failed'])} failed, to {a.out}", file=sys.stderr)
 
     sn.set_defaults(func=lambda a: _guard(lambda: snapshot(a)))
 
