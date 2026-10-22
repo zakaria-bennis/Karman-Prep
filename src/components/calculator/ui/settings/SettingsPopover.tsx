@@ -4,7 +4,8 @@
 // Size, Reverse contrast and Braille Mode (DisplaySection), Grid with the pressed Cartesian Grid and
 // Polar Grid buttons, Arrows, the small Axis Numbers and Minor Gridlines, each axis (AxisSection),
 // More Options (MoreOptions), Complex Mode (S-5) with its hint, and the Angle Settings choice
-// (S-6, announced per A11Y-2; greyed while complex, SETTINGS-23). Visibility follows SETTINGS-14
+// (S-6, announced per A11Y-2; greyed while complex, SETTINGS-23), then Karman's own Theme picker
+// (ThemeSection, owner decision 2026-10-22). Visibility follows SETTINGS-14
 // and -15: no grid type or Minor Gridlines with the grid off, no Minor Gridlines in polar. It
 // appears and leaves at once (VIS-5). Escape (rank "popover", KB-3) or a pointerdown outside closes it.
 
@@ -25,6 +26,7 @@ import {
 } from "./controls";
 import { DisplaySection } from "./DisplaySection";
 import { MoreOptions } from "./MoreOptions";
+import { ThemeSection } from "./ThemeSection";
 
 export interface SettingsPopoverProps {
   anchor: HTMLElement | null;
@@ -228,6 +230,7 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
             title={settings.complex ? COMPLEX_USES_RADIANS : undefined}
           />
         </div>
+        <ThemeSection />
       </div>
     </div>
   );

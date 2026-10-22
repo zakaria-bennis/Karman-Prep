@@ -142,7 +142,7 @@ it("F-A1 an explicit colour is used as is with a 40% fill on light skins and inv
   expect(resolveRowColor("#c74440", "observatory").hex).toBe("#38bbbf");
 });
 
-it("TH-3 hostThemeCss declares every role, tone, curve and fill alpha of the skin on :host and nothing else", () => {
+it("TH-3 hostThemeCss declares the colour scheme, then every role, tone, curve and fill alpha of the skin on :host and nothing else", () => {
   const { roles, tones, curves, fillAlpha } = pal("sage");
   const css = hostThemeCss("sage");
   expect(css.startsWith(":host{")).toBe(true);
@@ -151,11 +151,14 @@ it("TH-3 hostThemeCss declares every role, tone, curve and fill alpha of the ski
     .slice(6, -1)
     .split(";")
     .map((decl) => decl.split(":"));
-  expect(entries).toHaveLength(42);
+  expect(entries).toHaveLength(43);
   expect(entries).toEqual([
+    ["color-scheme", "only light"],
     ...COLOR_ROLES.map((r) => [ROLE_VARS[r], roles[r]]),
     ...TONES.map((t) => [TONE_VARS[t], `${Math.round(tones[t] * 100)}%`]),
     ...CURVE_SLOTS.map((k) => [CURVE_VARS[k], curves[k]]),
     ...CURVE_SLOTS.map((k) => [FILL_ALPHA_VARS[k], String(fillAlpha[k])]),
   ]);
+  expect(hostThemeCss("observatory").startsWith(":host{color-scheme:dark;")).toBe(true);
+  expect(hostThemeCss("classic").startsWith(":host{color-scheme:only light;")).toBe(true);
 });

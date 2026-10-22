@@ -24,7 +24,7 @@ as types (AR-1, AR-2).
 - `breakpoints.ts`, `font-warmup.ts`, `question-key.ts`, `report-error*.ts`.
 
 The public page `src/app/calculator/` (`/calculator`) reuses `CalculatorLoader` full window, with
-the skin pinned to `classic` through the loader's `skin` prop.
+`defaultTheme="classic"`: Classic until the student picks another theme in Settings (TH-20).
 
 ## Lazy calculator (loaded on first open)
 

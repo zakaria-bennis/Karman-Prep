@@ -230,3 +230,32 @@ it("A11Y-2 announceResetOnMount announces the reset once with a 500 ms delay; wi
   new KarmanCalculator(mount(), undefined, { announceResetOnMount: true });
   expect(s.announced).toEqual([[RESET_ANNOUNCEMENT, { delayMs: 500, key: "reset" }]]);
 });
+it("theme choice: the host's default applies until the student picks; the pick applies at once, is remembered, survives a new calculator, and keeps the expressions and view", async () => {
+  localStorage.removeItem("karman.calculator.theme");
+  document.documentElement.dataset.theme = "observatory";
+  const el = mount();
+  const calc = new KarmanCalculator(el, undefined, { defaultTheme: "classic" });
+  await vi.waitFor(() => expect(s.props).not.toBeNull());
+  expect(s.props!.store.get()).toMatchObject({ skin: "classic", themeChoice: "classic" });
+  const sheet = () =>
+    [...el.shadowRoot!.querySelectorAll("style")].map((n) => n.textContent).join("");
+  calc.setExpression({ id: "a", latex: "y=x^2" });
+  calc.setMathBounds({ left: -3, right: 7, bottom: -2, top: 4 });
+  const before = { rows: calc.getExpressions(), bounds: calc.graphpaperBounds.mathCoordinates };
+  s.props!.onThemeChoice("plum");
+  expect(s.props!.store.get()).toMatchObject({ skin: "plum", themeChoice: "plum" });
+  expect(localStorage.getItem("karman.calculator.theme")).toBe("plum");
+  expect(calc.getExpressions()).toEqual(before.rows);
+  expect(calc.graphpaperBounds.mathCoordinates).toEqual(before.bounds);
+  s.props!.onThemeChoice("auto");
+  expect(s.props!.store.get()).toMatchObject({ skin: "observatory", themeChoice: "auto" });
+  calc.destroy();
+  s.props = null;
+  const next = new KarmanCalculator(mount(), undefined, { defaultTheme: "classic" });
+  await vi.waitFor(() => expect(s.props).not.toBeNull());
+  expect(s.props!.store.get()).toMatchObject({ skin: "observatory", themeChoice: "auto" });
+  next.destroy();
+  expect(sheet()).toBe(""); // destroy() emptied the first shadow root
+  localStorage.removeItem("karman.calculator.theme");
+  delete document.documentElement.dataset.theme;
+});

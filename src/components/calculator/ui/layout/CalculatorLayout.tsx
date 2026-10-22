@@ -6,9 +6,10 @@
 // entering the list closes the settings popover. A mousedown in the keypad region
 // while a row has focus is cancelled, so focus and caret stay in the row (K-12). On a phone the
 // open keypad keeps the graph in view, and upright the graph grows while the keypad is a bar
-// (phone-keypad.ts).
+// (phone-keypad.ts). A touch that is about to focus a row's field turns that field's system
+// keyboard off first (calmTouchKeyboard), since the touch opens the keypad (K-2).
 
-import { useEffect, useRef, type JSX, type Ref } from "react";
+import { useEffect, useRef, type JSX, type PointerEvent, type Ref } from "react";
 import { GraphPanel } from "../graph/GraphPanel";
 import { useEngine } from "../hooks/use-engine";
 import { Keypad } from "../keypad/Keypad";
@@ -36,6 +37,30 @@ export interface CalculatorLayoutProps {
   onToggleKeypad(): void;
   onKeypadChange(open: boolean, by: "student" | "system"): void;
   onTouchFocusRow(rowId: string): void;
+}
+
+/**
+ * K-2, T-11, owner report 2026-10-22 (a white flash where the keypad covers the rows on a phone): a
+ * touch focus of a row opens the keypad, but the field's textarea only switches to
+ * `inputmode="none"` once the keypad state has committed. Focused while still "text", a phone
+ * starts to raise its own keyboard (white in a light system appearance) and drops it a frame
+ * later when the keypad arrives. A touch pointerdown on a row whose field does not hold focus
+ * therefore sets "none" before the focus happens; the row's own effect keeps it in step with the
+ * keypad from then on. A field that already has focus is left alone, so a tap there never hides a
+ * keyboard the student is using, and so is a touch on one of the row's buttons, which focuses no
+ * field.
+ */
+function calmTouchKeyboard(event: PointerEvent<HTMLElement>): void {
+  if (event.pointerType !== "touch" || !(event.target instanceof Element)) return;
+  const row = event.target.closest("[data-row-id]");
+  if (row === null || event.target.closest("button, input, [role='button']") !== null) return;
+  const field =
+    event.target.closest(".mq-editable-field") ?? row.querySelector(".mq-editable-field");
+  const textarea = field?.querySelector("textarea");
+  if (textarea === null || textarea === undefined) return;
+  const root = textarea.getRootNode() as Document | ShadowRoot;
+  if (root.activeElement === textarea) return;
+  textarea.setAttribute("inputmode", "none");
 }
 
 export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
@@ -95,6 +120,7 @@ export function CalculatorLayout(props: CalculatorLayoutProps): JSX.Element {
       <div
         ref={listRegion}
         className="kc-list-region"
+        onPointerDownCapture={calmTouchKeyboard}
         onFocus={() => {
           if (props.settingsAnchor !== null) props.onCloseSettings();
         }}

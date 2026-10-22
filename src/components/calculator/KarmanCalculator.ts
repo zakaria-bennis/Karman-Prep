@@ -18,8 +18,12 @@ import type {
   GraphpaperBounds,
 } from "@/lib/calculator/core/api/types";
 import { bumpDevCounter } from "@/lib/calculator/dev-counters";
+import {
+  readStoredThemeChoice,
+  storeThemeChoice,
+  type ThemeChoice,
+} from "@/lib/calculator/theme/choice";
 import { hostThemeCss } from "@/lib/calculator/theme/roles";
-import type { SkinId } from "@/lib/calculator/theme/skins";
 import { CALCULATOR_BUILD, CALCULATOR_CSS } from "./styles/generated";
 import { App } from "./ui/App";
 import { ErrorBoundary, type ErrorBoundaryProps } from "./ui/ErrorBoundary";
@@ -43,7 +47,9 @@ export const RESET_ANNOUNCEMENT = "Calculator cleared for this question.";
 export interface HostHooks {
   chromeSlot?: HTMLElement; // light-DOM title-bar slot (L-12);
   announceResetOnMount?: boolean; // OI-3
-  skin?: SkinId; // pins the skin instead of following html[data-theme] (the public /calculator page)
+  // The theme while the student has chosen none on this device: "auto" (the default, the quiz)
+  // follows html[data-theme]; the public /calculator page starts on "classic".
+  defaultTheme?: ThemeChoice;
 }
 
 type Method = {
@@ -81,6 +87,7 @@ export class KarmanCalculator {
   readonly #chromeSlot: HTMLElement | null;
   readonly #report: (error: Error) => void;
   readonly #measure: () => void;
+  readonly #setThemeChoice: (choice: ThemeChoice) => void;
   readonly #disposers: (() => void)[] = [];
   #reducedMotion: boolean;
   #reflows = 0;
@@ -108,15 +115,25 @@ export class KarmanCalculator {
 
     // 3–5. Shadow root, styles, React container and the one polite status region. TH-15: the
     // theme watcher re-resolves the skin live; Watch.initial never reaches onTheme, and later
-    // changes arrive in a microtask or a media change task, after #styles and #store are assigned.
+    // changes arrive in a microtask, a media change task or the student's theme picker, all after
+    // #styles and #store are assigned. The stored choice wins over the host's default.
     const shadow = element.shadowRoot ?? element.attachShadow({ mode: "open" });
     shadow.replaceChildren();
     this.#shadow = shadow;
     const onTheme = (t: ThemeState) => {
       this.#styles.setSkinCss(hostThemeCss(t.skin));
-      this.#store.set({ skin: t.skin, themeRevision: t.revision + this.#reflows });
+      this.#store.set({
+        skin: t.skin,
+        themeChoice: t.choice,
+        themeRevision: t.revision + this.#reflows,
+      });
     };
-    const theme = watchTheme(document.documentElement, window, onTheme, hooks?.skin);
+    const choice = readStoredThemeChoice() ?? hooks?.defaultTheme ?? "auto";
+    const theme = watchTheme(document.documentElement, window, onTheme, choice);
+    this.#setThemeChoice = (next) => {
+      storeThemeChoice(next);
+      theme.setChoice(next);
+    };
     this.#styles = installStyles(shadow, CALCULATOR_CSS);
     this.#styles.setSkinCss(hostThemeCss(theme.initial.skin));
     const container = document.createElement("div");
@@ -135,6 +152,7 @@ export class KarmanCalculator {
       size: { width: 0, height: 0 },
       layout: "stacked",
       skin: theme.initial.skin,
+      themeChoice: theme.initial.choice,
       themeRevision: theme.initial.revision,
       reducedMotionMedia: false,
       pointer: "fine",
@@ -182,6 +200,9 @@ export class KarmanCalculator {
       escape: this.#escape,
       announcer: this.#announcer,
       chromeSlot: this.#chromeSlot,
+      onThemeChoice: (choice: ThemeChoice) => {
+        if (!this.#destroyed) this.#setThemeChoice(choice);
+      },
     });
     const boundary: Omit<ErrorBoundaryProps, "children"> = {
       host: this.#element,

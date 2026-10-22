@@ -2,7 +2,8 @@
 
 // The calculator area of /calculator. It reuses the quiz's CalculatorLoader (the one lazy import of
 // the calculator, with its loading and Retry panels) inside a plain frame that fills the space
-// below the bar. The skin is pinned to "classic" and nothing is saved, so every visit starts blank.
+// below the bar. It starts in the Classic theme until the student picks another in Settings (the
+// choice is remembered on the device); the content is never saved, so every visit starts blank.
 
 import { useEffect, useRef, useState } from "react";
 import type { QuizCalculatorHandle } from "@/components/calculator/host/quiz-host"; // type-only
@@ -59,7 +60,7 @@ export function PublicCalculator() {
         chromeSlot={chromeSlot}
         reducedMotion={false}
         announceReset={false}
-        skin="classic"
+        defaultTheme="classic"
         onStatus={() => {}}
         onHandle={setHandle}
       />

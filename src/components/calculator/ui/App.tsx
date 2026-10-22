@@ -1,6 +1,6 @@
 // The calculator's React root inside the shadow root.
-// App provides the five contexts every calculator component reads (engine, focus, Escape layers,
-// announcer, skin) and renders the calculator region. The skin and the layout come from the shell
+// App provides the contexts every calculator component reads (engine, focus, Escape layers,
+// announcer, skin, and the theme choice the Settings picker shows and sets) and renders the calculator region. The skin and the layout come from the shell
 // store, so a TH-15 or AR-29 change re-renders without touching the engine. App holds the
 // settings popover's anchor and composes CalculatorLayout from the engine snapshot and the shell
 // store; 13 wraps it in CalculatorChrome, which portals into chromeSlot. App installs the shell
@@ -20,6 +20,7 @@ import {
   type JSX,
 } from "react";
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
+import type { ThemeChoice } from "@/lib/calculator/theme/choice";
 import { AnnouncerContext, type Announcer } from "./a11y/announcer";
 import { reduceKeypad, type KeypadEvent } from "./controller/keypad-policy";
 import type { ShellStore } from "./controller/shell-store";
@@ -31,6 +32,7 @@ import { KeyboardTrace, KeyboardTraceContext } from "./graph/keyboard-trace";
 import { EngineContext, useEngineSnapshot } from "./hooks/use-engine";
 import { CalculatorLayout } from "./layout/CalculatorLayout";
 import { performRedo, performUndo } from "./list/row-actions";
+import { ThemeChoiceContext } from "./settings/ThemeSection";
 import { ShortcutsHost } from "./shortcuts/ShortcutsHost";
 
 export interface AppProps {
@@ -41,6 +43,7 @@ export interface AppProps {
   escape: EscapeStack;
   announcer: Announcer;
   chromeSlot: HTMLElement | null; // HostHooks.chromeSlot; read by the portal
+  onThemeChoice(choice: ThemeChoice): void; // the Settings theme picker; applies and remembers it
 }
 
 /**
@@ -88,6 +91,11 @@ export function App(props: AppProps): JSX.Element {
   const [settingsAnchor, setSettingsAnchor] = useState<HTMLElement | null>(null);
   const rootRef = useRef<HTMLElement>(null);
   const { settings } = snapshot;
+  const { onThemeChoice } = props;
+  const themeChoice = useMemo(
+    () => ({ choice: shell.themeChoice, choose: onThemeChoice }),
+    [shell.themeChoice, onThemeChoice]
+  );
   // POI-20: one keyboard trace per calculator; it speaks through the live region (A11Y-2).
   const trace = useMemo(
     () =>
@@ -205,26 +213,28 @@ export function App(props: AppProps): JSX.Element {
           <AnnouncerContext.Provider value={announcer}>
             <KeyboardTraceContext.Provider value={trace}>
               <SkinContext.Provider value={shell.skin}>
-                <CalculatorLayout
-                  layout={shell.layout}
-                  containerWidth={shell.size.width}
-                  containerHeight={shell.size.height}
-                  pointer={shell.pointer}
-                  collapsed={settings.expressionsCollapsed}
-                  keypadOpen={settings.keypad}
-                  host={host}
-                  themeRevision={shell.themeRevision}
-                  reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
-                  settingsAnchor={settingsAnchor}
-                  revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
-                  rootRef={rootRef}
-                  onOpenSettings={toggleSettings}
-                  onCloseSettings={closeSettings}
-                  onToggleKeypad={toggleKeypad}
-                  onKeypadChange={changeKeypad}
-                  onTouchFocusRow={touchFocusRow}
-                />
-                <ShortcutsHost rootRef={rootRef} />
+                <ThemeChoiceContext.Provider value={themeChoice}>
+                  <CalculatorLayout
+                    layout={shell.layout}
+                    containerWidth={shell.size.width}
+                    containerHeight={shell.size.height}
+                    pointer={shell.pointer}
+                    collapsed={settings.expressionsCollapsed}
+                    keypadOpen={settings.keypad}
+                    host={host}
+                    themeRevision={shell.themeRevision}
+                    reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
+                    settingsAnchor={settingsAnchor}
+                    revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
+                    rootRef={rootRef}
+                    onOpenSettings={toggleSettings}
+                    onCloseSettings={closeSettings}
+                    onToggleKeypad={toggleKeypad}
+                    onKeypadChange={changeKeypad}
+                    onTouchFocusRow={touchFocusRow}
+                  />
+                  <ShortcutsHost rootRef={rootRef} />
+                </ThemeChoiceContext.Provider>
               </SkinContext.Provider>
             </KeyboardTraceContext.Provider>
           </AnnouncerContext.Provider>
