@@ -432,11 +432,12 @@ def _register_figures(sub) -> None:
     sl.add_argument("--extra-ledger", action="append",
                     help="supplementary new-exam ledger (default: new-exam-ledger.json next to --clusters)")
     sl.add_argument("--b-root", default=str(figures.B_ROOT), help="agent-b-output/revisions (source crops)")
+    sl.add_argument("--prefix", help="only ids starting with this, e.g. 2026-10_US_V1 (one exam form)")
 
     def slice_cmd(a):
         fdir = Path(a.figures) if a.figures else Path(a.lane).parent / "figures"
         got = figures.next_slice(fdir, Path(a.clusters), Path(a.lane), Path(a.ledger), a.reviewer, a.now,
-                                 a.size, a.extra_ledger, Path(a.b_root))
+                                 a.size, a.extra_ledger, Path(a.b_root), a.prefix)
         for g in got:
             print(g["id"] + ("" if g["original"] else "  (no source crop found: add original.png)"))
         print(f"figures slice: {len(got)} for {a.reviewer} in {fdir}", file=sys.stderr)

@@ -140,7 +140,8 @@ def candidates(clusters_path: Path, lane_path: Path, ledger: dict,
 
 
 def next_slice(figures_dir: Path, clusters_path: Path, lane_path: Path, ledger_path: Path, reviewer: str,
-               now: str, size: int = SLICE_SIZE, extra_ledgers=None, b_root: Path = B_ROOT) -> list[dict]:
+               now: str, size: int = SLICE_SIZE, extra_ledgers=None, b_root: Path = B_ROOT,
+               prefix: str | None = None) -> list[dict]:
     """Hand `reviewer` up to `size` figure questions: make each folder with original.png, a
     figure.json skeleton and status drafting. Returns [{id, folder, original}] (original None
     when no source crop with the ledger's hash was found)."""
@@ -161,6 +162,8 @@ def next_slice(figures_dir: Path, clusters_path: Path, lane_path: Path, ledger_p
             if len(picked) >= size:
                 break
             if not fg.ID.fullmatch(occ) or taken.intersection(group):
+                continue
+            if prefix and not occ.startswith(prefix):  # e.g. one exam form: --prefix 2026-10_US_V1
                 continue
             folder = figures_dir / occ
             folder.mkdir()
