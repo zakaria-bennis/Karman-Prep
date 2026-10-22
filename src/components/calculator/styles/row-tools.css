@@ -105,13 +105,25 @@
   outline-offset: 2px;
 }
 
-/* The copy confirmation just right of the value: a 10 px check and "Copied" in the row's small
-   muted caption type. It fades in, stays 1.2 s, then fades out (instant under reduced motion). */
+/* The copy confirmation: a 10 px check and "Copied" in the row's small muted caption type. It
+   floats out of flow at the value's top-right corner, over the delete-button column, so the value
+   never moves: the value line ends 5 px from the panel edge, which leaves no room beside it. It
+   carries the list's own fill so it reads over anything under it, takes no pointer, fades in,
+   stays 1.2 s, then fades out (instant under reduced motion). */
+.kc-row-value-line {
+  position: relative;
+}
+
 .kc-row-copied {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 1px);
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  margin-left: 3px;
+  padding: 1px 3px;
+  border-radius: var(--kc-radius-chip);
+  background: var(--kc-list);
   color: var(--kc-text-muted);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-small);

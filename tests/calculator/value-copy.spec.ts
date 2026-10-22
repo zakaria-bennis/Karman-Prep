@@ -44,31 +44,70 @@ async function recordClipboard(page: Page, fail = false): Promise<void> {
 const writes = (page: Page) =>
   page.evaluate(() => (globalThis as unknown as { __writes: string[] }).__writes);
 
-test("R-5 a click or tap on the value copies it and shows Copied just right of the number", async ({
+test("R-5 a click or tap on the value copies it and shows Copied at its corner, inside the panel", async ({
   page,
   isMobile,
 }) => {
   await recordClipboard(page);
   await openShell(page, `?w=900&h=600&rows=${enc(["12340+5", "y=x"])}`);
   const button = copyButton(page, "1");
+  const valueBox = row(page, "1").locator(".kc-row-value-box");
+  const before = (await valueBox.boundingBox())!;
   await (isMobile ? button.tap() : button.click());
   await expect.poll(() => writes(page)).toEqual(["12345"]);
   await expect(note(page, "1")).toHaveText("Copied");
   await expect(note(page, "1").locator("svg")).toHaveCount(1);
   await expect.poll(() => announced(page)).toContain("Copied");
-  const value = (await row(page, "1").locator(".kc-row-value-box").boundingBox())!;
-  const shown = (await note(page, "1").boundingBox())!;
-  expect(shown.x).toBeGreaterThanOrEqual(value.x + value.width);
-  expect(shown.x - (value.x + value.width)).toBeLessThan(10);
-  expect(Math.abs(shown.y + shown.height / 2 - (value.y + value.height / 2))).toBeLessThan(3);
+  // the note floats over the row: the number does not move while it shows
+  const value = (await valueBox.boundingBox())!;
+  expect(value).toEqual(before);
+  // at the value's top-right corner, over the delete-button column, not over the number
+  const n = (await note(page, "1").boundingBox())!;
+  expect(Math.abs(n.x + n.width - (value.x + value.width))).toBeLessThan(2);
+  expect(n.y + n.height).toBeLessThanOrEqual(value.y);
+  expect(value.y - (n.y + n.height)).toBeLessThan(4);
+  const del = (await row(page, "1").locator(".kc-row-delete").boundingBox())!;
+  expect(n.x + n.width).toBeGreaterThan(del.x);
+  // fully inside the panel and the row
   const panel = (await page.locator("#calc .kc-list").boundingBox())!;
-  expect(shown.x + shown.width).toBeLessThanOrEqual(panel.x + panel.width);
+  const rowBox = (await row(page, "1").boundingBox())!;
+  expect(n.x).toBeGreaterThanOrEqual(panel.x);
+  expect(n.x + n.width).toBeLessThanOrEqual(panel.x + panel.width);
+  expect(n.y).toBeGreaterThanOrEqual(rowBox.y);
   // a pointer press does not focus the row or draw a ring
   await expect(rowField(page, "1").locator("textarea")).not.toBeFocused();
   expect(await button.evaluate((el) => el.matches(":focus-visible"))).toBe(false);
   // it fades after about 1.2 s and then goes
   await expect(note(page, "1")).toHaveAttribute("data-phase", "leaving", { timeout: 2000 });
   await expect(note(page, "1")).toHaveCount(0);
+});
+
+test("R-5 Copied never moves a list value or a fraction value", async ({ page, isMobile }) => {
+  await recordClipboard(page);
+  const rowsShown = ["[1,2,3]", "\\frac{7}{12}"];
+  await openShell(page, `?w=900&h=600&rows=${enc(rowsShown)}&reducedMotion=1`);
+  const press = (id: string) =>
+    isMobile ? copyButton(page, id).tap() : copyButton(page, id).click();
+  await (isMobile
+    ? row(page, "2").locator(".kc-row-fraction").tap()
+    : row(page, "2").locator(".kc-row-fraction").click());
+  await expect(row(page, "2").locator(".kc-row-value-fraction")).toBeVisible();
+  for (const id of ["1", "2"]) {
+    const boxes = row(page, id).locator(".kc-row-value-box");
+    const before = await boxes.evaluateAll((els) =>
+      els.map((el) => JSON.stringify(el.getBoundingClientRect()))
+    );
+    await press(id);
+    await expect(note(page, id)).toBeVisible();
+    const during = await boxes.evaluateAll((els) =>
+      els.map((el) => JSON.stringify(el.getBoundingClientRect()))
+    );
+    expect(during).toEqual(before);
+    const n = (await note(page, id).boundingBox())!;
+    const panel = (await page.locator("#calc .kc-list").boundingBox())!;
+    expect(n.x).toBeGreaterThanOrEqual(panel.x);
+    expect(n.x + n.width).toBeLessThanOrEqual(panel.x + panel.width);
+  }
 });
 
 test("R-5 Enter and Space on the focused value copy it, with the keyboard ring", async ({

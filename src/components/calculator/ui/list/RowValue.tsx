@@ -8,8 +8,9 @@
 //
 // Click to copy (owner, 2026-10-22): the "=" and the boxes are one button named "Copy value". A
 // click, a tap, Enter or Space copies the value as shown (copiedValueText) and, once it is on the
-// clipboard, shows a small check and "Copied" just right of the value for 1.2 s, then fades it
-// (instantly under reduced motion), and announces "Copied". A failed copy shows and says nothing.
+// clipboard, shows a small check and "Copied" for 1.2 s, then fades it (instantly under reduced
+// motion), and announces "Copied". The note floats out of flow at the value's top-right corner, over
+// the delete-button column, so the value never moves. A failed copy shows and says nothing.
 // A pointer press leaves focus where it was, as the gutter controls do.
 
 import { useEffect, useLayoutEffect, useRef, useState, type JSX, type ReactNode } from "react";
