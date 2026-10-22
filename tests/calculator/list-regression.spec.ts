@@ -31,9 +31,9 @@ test("the owner's [5% of a,b] ~ [b,2c] with a = 2 typed on the phone keypad fits
   await openShell(page);
   await rowField(page, "1").tap();
   await taps(page, ["ABC", "[", "Toggle Numbers", "5"]);
-  // The keypad has no % key yet (another change adds it); the field's own % is typed.
-  await page.keyboard.type("%");
-  await taps(page, ["ABC", "o", "f", "a", "Toggle Numbers", "Comma", "ABC", "b"]);
+  // T-7: the keypad's % (Shift on the letters page) types "% of" as one unit; Shift stays on
+  // until tapped again (VIS-KEYPAD-23).
+  await taps(page, ["ABC", "Shift", "%", "Shift", "a", "Toggle Numbers", "Comma", "ABC", "b"]);
   await taps(page, ["Toggle Numbers", "Right arrow", "ABC", "~", "[", "b", "Toggle Numbers"]);
   await taps(page, ["Comma", "2", "ABC", "c", "Enter", "a", "Toggle Numbers", "Equals", "2"]);
   await expect
