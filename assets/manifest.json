@@ -321,10 +321,43 @@
     {
       "id": "k6-david-fix",
       "status": "approved",
-      "route": "nano-banana-pro",
+      "route": "seedream-5-edit",
       "ratio": "16:9",
       "refs": [".impeccable/mocks/decision/film/raw/stills/k6-david-pro-2026-10-22T03-55-02.png"],
       "prompt": "Edit this photograph. Keep everything else exactly the same: the same person, face, pose, framing, camera angle, light and colours. Only change this: replace the brass dome desk lamp with a ribbed white ceramic table lamp with a natural linen drum shade, standing on the desk, giving the same warm glow; the lamp reflected in the dark window becomes the same white linen-shaded lamp. No brass lamp anywhere."
+    },
+    {
+      "id": "k8-harvard-merch",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        ".impeccable/mocks/decision/film/raw/stills/k8-harvard-nb-2026-10-22T03-56-47.png",
+        "mateo"
+      ],
+      "prompt": "Keep the same person, face, place, camera angle and natural light as the reference photo. The young man from the second image, age 18, walks through the old red-brick and wrought-iron gate into Harvard Yard under tall elms, seen from three-quarters behind with his face turned back over his shoulder, as in the first image. He now wears a crimson crewneck sweatshirt with HARVARD in large white varsity block letters across the chest, clearly readable because his body is turned three-quarters toward the camera. The tennis bag on his shoulder is plain with no brand marks, and the racquet handles are plain white. The lettering is crisp, correctly spelled, and printed the way real university merchandise is printed. No other text or logos anywhere in the image."
+    },
+    {
+      "id": "k9-stanford-merch",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        ".impeccable/mocks/decision/film/raw/stills/k9-stanford-pro-2026-10-22T03-57-08.png",
+        "priya"
+      ],
+      "prompt": "Keep the same person, face, place, camera angle and natural light as the reference photo. The young woman from the second image, now 18, stands under the sandstone arcade of Stanford's Main Quad as in the first image, with plain dark sunglasses pushed up into her hair. She now wears a cardinal-red crewneck sweatshirt with STANFORD in white varsity letters across the chest. Calm, quiet, natural expression, lips closed, looking up at the arches. The lettering is crisp, correctly spelled, and printed the way real university merchandise is printed. No other text or logos anywhere in the image."
+    },
+    {
+      "id": "k10-berkeley-merch",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        "ava",
+        ".impeccable/mocks/decision/film/raw/stills/k10-berkeley-nb-2026-10-22T03-58-11.png"
+      ],
+      "prompt": "The young woman from the first image, now 18, at UC Berkeley on a clear late-August morning, using the place and light of the second image. The camera is a few steps above her, looking back down the wide granite steps: she walks up the steps toward the camera, body square to the camera, and behind her the tall white Sather Tower rises over eucalyptus trees against a clear blue sky, with dry golden hills in the distance. She wears a navy blue hoodie with BERKELEY in gold varsity letters straight across the chest, the whole word fully visible and uncovered; both backpack straps sit on her shoulders outside the lettering. Calm, natural expression, lips closed. Framed from the knees up, 35mm lens. The lettering is crisp and correctly spelled. No other text or logos anywhere."
     }
   ]
 }
