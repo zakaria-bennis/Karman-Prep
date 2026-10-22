@@ -334,7 +334,14 @@ export function validateImportRow(
     // NONE of them being set is an extraction error.
     const choices = [row.choice_a, row.choice_b, row.choice_c, row.choice_d];
     const haveAny = choices.some((c) => c != null && c !== "");
-    if (!haveAny) {
+    // A question whose four choices are tables carries no choice text: the table is the choice.
+    const tables = row.choice_tables;
+    const allTables =
+      tables != null &&
+      typeof tables === "object" &&
+      !Array.isArray(tables) &&
+      ["A", "B", "C", "D"].every((l) => (tables as Record<string, unknown>)[l] != null);
+    if (!haveAny && !allTables) {
       errors.push("multiple_choice row has no choice_a/b/c/d text");
     }
     // The correct_answer letter must be a valid A-D.

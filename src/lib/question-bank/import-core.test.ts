@@ -601,3 +601,34 @@ describe("importQuestions — batch summary", () => {
     expect(summary.errors[0].row).toBe(3); // 1 (header) + 2 (0-indexed second row) = 3
   });
 });
+
+describe("validateImportRow — table answer choices", () => {
+  const table = {
+    header_row: ["x", "y"],
+    rows: [
+      ["1", "2"],
+      ["3", "4"],
+    ],
+  };
+  it("accepts empty choice text when all four choices are tables", () => {
+    const r = validateImportRow({
+      ...validRow(),
+      choice_a: "",
+      choice_b: "",
+      choice_c: "",
+      choice_d: "",
+      choice_tables: { A: table, B: table, C: table, D: table },
+    });
+    expect(r.errors).not.toContain("multiple_choice row has no choice_a/b/c/d text");
+  });
+  it("still refuses empty choice text with no tables", () => {
+    const r = validateImportRow({
+      ...validRow(),
+      choice_a: "",
+      choice_b: "",
+      choice_c: "",
+      choice_d: "",
+    });
+    expect(r.errors).toContain("multiple_choice row has no choice_a/b/c/d text");
+  });
+});
