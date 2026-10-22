@@ -7,6 +7,7 @@ import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
+import { figureLeadsText } from "@/lib/figures/figure-order";
 import type { QuizReviewContent } from "@/lib/quiz-review-content";
 
 /** Reuse the same math, native figure and table renderers as active practice. */
@@ -15,8 +16,20 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
     q.figure_kind === "geometric" &&
     q.figure_geometry_data &&
     buildGeometrySvg(q.figure_geometry_data).renderable;
+  const figureFirst = figureLeadsText(q.subject);
+  const figure =
+    q.figure_kind === "table" && q.figure_table_data ? (
+      <QuestionTable data={q.figure_table_data} />
+    ) : q.figure_kind === "chart" && q.figure_chart_data ? (
+      <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />
+    ) : nativeGeometry ? (
+      <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
+    ) : q.image_url || q.figure_svg ? (
+      <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
+    ) : null;
   return (
     <div className="mt-4 min-w-0 space-y-4 text-ivory">
+      {figureFirst && figure}
       <ReviewedSinglePassage
         intro={q.passage_intro}
         passage={q.passage}
@@ -35,19 +48,7 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
           <MathText text={q.passage_b} treatBlankWord />
         </div>
       )}
-      {q.figure_kind === "table" && q.figure_table_data ? (
-        <QuestionTable data={q.figure_table_data} />
-      ) : q.figure_kind === "chart" && q.figure_chart_data ? (
-        <ChartFigure
-          data={q.figure_chart_data}
-          subject={q.subject}
-          alt={q.image_alt ?? undefined}
-        />
-      ) : nativeGeometry ? (
-        <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
-      ) : q.image_url ? (
-        <FigureFrame src={q.image_url} alt={q.image_alt ?? "Question figure"} />
-      ) : null}
+      {!figureFirst && figure}
       <MathText text={q.question_text} serializedFunctionLines={q.subject === "math"} />
       {q.answer_format !== "numeric_entry" && (
         <ul className="space-y-2">

@@ -18,13 +18,18 @@
 // solids.
 // ============================================================
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { sanitizeThemedSvg } from "@/lib/figures/inline-svg";
+import { fitViewBoxToContent } from "@/lib/figures/svg-figure-polish";
 import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  src: string;
+  /** Raster or .svg figure URL. Empty when the figure is an inline `svg`. */
+  src?: string | null;
+  /** A hand-drawn figure SVG stored on the question (figure_svg); used only without `src`.
+   *  Inlined through the same sanitizer as fetched SVGs, else shown as an inert <img>. */
+  svg?: string | null;
   alt: string;
   /** Optional max-height cap. Defaults to the conservative 28rem
    *  used in the quiz engine; tweak for tighter inspector cards. */
@@ -34,12 +39,22 @@ interface Props {
 
 export default function FigureFrame({
   src,
+  svg,
   alt,
   maxHeightClass = "max-h-[28rem]",
   className,
 }: Props) {
   const [inline, setInline] = useState<{ src: string; alt: string; svg: string } | null>(null);
+  const markup = src ? null : (svg ?? null);
+  const url =
+    src || (markup ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}` : "");
   useEffect(() => {
+    if (markup) {
+      const themedSvg = sanitizeThemedSvg(markup, alt);
+      if (themedSvg) setInline({ src: url, alt, svg: themedSvg });
+      return;
+    }
+    if (!src) return;
     const controller = new AbortController();
     const policy = figureFetchPolicy(src, window.location.origin);
     if (!policy.inlineSvg) return;
@@ -54,8 +69,22 @@ export default function FigureFrame({
         /* Image fallback keeps the figure accessible when inline fetch is unavailable. */
       });
     return () => controller.abort();
-  }, [src, alt]);
-  const themed = inline?.src === src && inline.alt === alt ? inline.svg : null;
+  }, [src, alt, markup, url]);
+  const themed = inline?.src === url && inline.alt === alt ? inline.svg : null;
+  // A label drawn past the authored viewBox (an axis title on the bottom edge) would be
+  // cut off; once the SVG is on the page, grow its box to everything drawn.
+  const holder = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const svg = holder.current?.querySelector("svg");
+    if (!themed || !svg) return;
+    let live = true;
+    fitViewBoxToContent(svg);
+    // The figure serif can arrive after first paint and change text extents.
+    document.fonts?.ready.then(() => live && fitViewBoxToContent(svg));
+    return () => {
+      live = false;
+    };
+  }, [themed]);
   return (
     <figure
       className={cn(
@@ -66,6 +95,7 @@ export default function FigureFrame({
     >
       {themed ? (
         <div
+          ref={holder}
           className={cn(
             "mx-auto max-w-full [&>svg]:mx-auto [&>svg]:block [&>svg]:max-h-[32dvh] [&>svg]:w-auto sm:[&>svg]:max-h-[28rem]",
             maxHeightClass
@@ -76,7 +106,7 @@ export default function FigureFrame({
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={src}
+            src={url}
             alt={alt}
             className={cn("mx-auto block h-auto max-w-full rounded object-contain", maxHeightClass)}
           />

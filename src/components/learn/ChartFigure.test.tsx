@@ -10,6 +10,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import ChartFigure from "./ChartFigure";
+import { makeLayout, textWidth } from "./chart-figure-axes";
 import type { ChartFigure as ChartFigureType } from "@/types/chart";
 
 function baseAxis(partial: Partial<ChartFigureType["x_axis"]> = {}) {
@@ -120,6 +121,36 @@ describe("ChartFigure", () => {
     expect(container.textContent).toContain("C");
   });
 
+  it("draws gridlines first and bars opaque, so no line shows through a bar", () => {
+    const fig = baseFigure({
+      kind: "bar_chart",
+      x_axis: { ...baseAxis(), min: null, max: null, tick_step: null, categories: ["A", "B"] },
+      series: [
+        {
+          kind: "bar",
+          label: null,
+          bars: [
+            { category: "A", value: 5 },
+            { category: "B", value: 8 },
+          ],
+        },
+      ],
+    });
+    const { container } = render(<ChartFigure data={fig} />);
+    const drawn = [...container.querySelectorAll("line, rect")];
+    const lastGrid = Math.max(
+      ...drawn.map((el, i) => (el.closest("g[opacity]") ? i : -1)).filter((i) => i >= 0)
+    );
+    const firstBar = drawn.findIndex((el) => el.localName === "rect");
+    expect(lastGrid).toBeGreaterThanOrEqual(0);
+    expect(firstBar).toBeGreaterThan(lastGrid);
+    for (const bar of container.querySelectorAll("rect")) {
+      expect(bar.getAttribute("fill-opacity")).toBeNull();
+      expect(bar.getAttribute("opacity")).toBeNull();
+      expect(bar.closest("[opacity],[fill-opacity]")).toBeNull();
+    }
+  });
+
   it("renders a function plot as a smooth path", () => {
     const fig = baseFigure({
       kind: "function_plot",
@@ -218,7 +249,7 @@ describe("ChartFigure", () => {
     });
     const { container } = render(<ChartFigure data={fig} />);
     // Exactly one box rect (q1–q3).
-    expect(container.querySelectorAll("rect").length).toBe(1);
+    expect(container.querySelectorAll("rect:not([data-box-backing])").length).toBe(1);
     // whisker + 2 caps + median + axis line + ticks → several <line>s.
     expect(container.querySelectorAll("line").length).toBeGreaterThanOrEqual(5);
     expect(container.textContent).toContain("Score");
@@ -241,8 +272,148 @@ describe("ChartFigure", () => {
       ],
     });
     const { container } = render(<ChartFigure data={fig} />);
-    expect(container.querySelectorAll("rect").length).toBe(2);
+    expect(container.querySelectorAll("rect:not([data-box-backing])").length).toBe(2);
+    // Each box sits on an opaque backing so gridlines stay behind it.
+    expect(container.querySelectorAll("rect[data-box-backing]").length).toBe(2);
     expect(container.textContent).toContain("Class A");
     expect(container.textContent).toContain("Class B");
+  });
+});
+
+describe("ChartFigure — printed-figure options", () => {
+  const tickTexts = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll("text")).map((t) => t.textContent);
+
+  it("labels every label_step while keeping a grid line at every tick", () => {
+    const { container } = render(
+      <ChartFigure
+        data={baseFigure({ y_axis: baseAxis({ label: "Y", max: 4, tick_step: 1, label_step: 2 }) })}
+      />
+    );
+    const texts = tickTexts(container);
+    expect(texts).toContain("2");
+    expect(texts).toContain("4");
+    expect(texts.filter((t) => t === "3")).toHaveLength(0);
+  });
+
+  it("hides the 0 labels at the origin and uses a square frame when asked", () => {
+    const { container } = render(
+      <ChartFigure data={baseFigure({ hide_origin_label: true, frame: "square" })} />
+    );
+    expect(tickTexts(container)).not.toContain("0");
+    expect(container.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 500 500");
+  });
+
+  it("prints one-letter axis labels in italic at the axis ends", () => {
+    const { container } = render(
+      <ChartFigure data={baseFigure({ x_axis: baseAxis({ label: "x" }) })} />
+    );
+    const x = Array.from(container.querySelectorAll("text")).find((t) => t.textContent === "x")!;
+    expect(x.getAttribute("font-style")).toBe("italic");
+  });
+});
+
+describe("ChartFigure — grouped bars, legend and titles (founder review 2026-10-22)", () => {
+  const grouped = () =>
+    baseFigure({
+      kind: "bar_chart",
+      title:
+        "Average Total Agricultural Export Growth Rate, Five Years Pre- and Post-FTA with the United States",
+      x_axis: {
+        ...baseAxis(),
+        label: "Export growth",
+        min: null,
+        max: null,
+        tick_step: null,
+        categories: ["Pre-FTA", "Post-FTA"],
+      },
+      series: ["Costa Rica (CAFTA-DR)", "Jordan (JOFTA)", "Morocco (MAFTA)"].map((label, s) => ({
+        kind: "bar" as const,
+        label,
+        bars: [
+          { category: "Pre-FTA", value: 2 + s },
+          { category: "Post-FTA", value: 5 + s },
+        ],
+      })),
+    });
+
+  it("stands each category's bars side by side, never on top of each other", () => {
+    const { container } = render(<ChartFigure data={grouped()} />);
+    const bars = [...container.querySelectorAll("rect[data-series]")];
+    expect(bars).toHaveLength(6);
+    for (const category of [0, 1]) {
+      const inSlot = [0, 1, 2].map((s) => bars[s * 2 + category]);
+      const spans = inSlot.map((b) => {
+        const x = Number(b.getAttribute("x"));
+        return [x, x + Number(b.getAttribute("width"))];
+      });
+      for (let i = 1; i < spans.length; i++)
+        expect(spans[i][0]).toBeGreaterThanOrEqual(spans[i - 1][1] - 1e-6);
+      expect(new Set(inSlot.map((b) => b.closest("g")?.getAttribute("fill"))).size).toBe(3);
+    }
+  });
+
+  it("puts the legend below the plot and axis title, clear of the plot and title", () => {
+    const data = grouped();
+    const { container } = render(<ChartFigure data={data} />);
+    const L = makeLayout(data);
+    const legend = container.querySelector("[data-chart-legend] rect")!;
+    const plotBottom = L.pad.top + L.plotH;
+    expect(Number(legend.getAttribute("y"))).toBeGreaterThan(L.xTitleY);
+    expect(Number(legend.getAttribute("y"))).toBeGreaterThan(plotBottom);
+    expect(
+      Number(legend.getAttribute("y")) + Number(legend.getAttribute("height"))
+    ).toBeLessThanOrEqual(L.viewH);
+    expect(container.textContent).toContain("Jordan (JOFTA)");
+  });
+
+  it("wraps a long title inside the figure instead of clipping it", () => {
+    const L = makeLayout(grouped());
+    expect(L.titleLines.length).toBeGreaterThan(1);
+    for (const line of L.titleLines) expect(textWidth(line, 16)).toBeLessThanOrEqual(L.viewW - 24);
+    expect(L.pad.top).toBeGreaterThan(20 * L.titleLines.length);
+  });
+
+  it("wraps long category labels within their own slot", () => {
+    const data = baseFigure({
+      kind: "bar_chart",
+      x_axis: {
+        ...baseAxis(),
+        min: null,
+        max: null,
+        tick_step: null,
+        categories: [
+          "A Dark Brown Dog",
+          "Owl Creek Bridge",
+          "Blitzed",
+          "A Chess Problem",
+          "The Calm",
+          "Plumbing",
+        ],
+      },
+      series: [{ kind: "bar", label: null, bars: [{ category: "Blitzed", value: 3 }] }],
+    });
+    const L = makeLayout(data);
+    const slot = L.plotW / 6;
+    for (const lines of L.categoryLines)
+      for (const line of lines) expect(textWidth(line, 15)).toBeLessThanOrEqual(slot);
+    expect(L.categoryLines[0].length).toBeGreaterThan(1);
+  });
+
+  it("keeps a single-series bar chart at its old width and adds no legend", () => {
+    const { container } = render(
+      <ChartFigure
+        data={baseFigure({
+          kind: "bar_chart",
+          x_axis: { ...baseAxis(), min: null, max: null, tick_step: null, categories: ["A", "B"] },
+          series: [{ kind: "bar", label: "only", bars: [{ category: "A", value: 1 }] }],
+        })}
+      />
+    );
+    expect(container.querySelector("[data-chart-legend]")).toBeNull();
+    const bar = container.querySelector("rect[data-series]")!;
+    expect(Number(bar.getAttribute("width"))).toBeCloseTo(
+      (makeLayout(baseFigure()).plotW / 2) * 0.6
+    );
   });
 });

@@ -14,6 +14,7 @@ import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
+import { figureLeadsText } from "@/lib/figures/figure-order";
 
 /** The immutable answer-free question, rendered with the existing source-aware components. */
 export default function CatalogQuestion({
@@ -39,6 +40,17 @@ export default function CatalogQuestion({
     q.figure_geometry_data &&
     buildGeometrySvg(q.figure_geometry_data).renderable;
   const hasPassage = q.passage || q.passage_intro || q.passage_a || q.passage_b;
+  const figureFirst = figureLeadsText(q.subject);
+  const figure =
+    q.figure_kind === "table" && q.figure_table_data ? (
+      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
+    ) : q.figure_kind === "chart" && q.figure_chart_data ? (
+      <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />
+    ) : geometry ? (
+      <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
+    ) : q.image_url || q.figure_svg ? (
+      <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
+    ) : null;
   return (
     <div
       data-catalog-question-id={q.id}
@@ -50,6 +62,7 @@ export default function CatalogQuestion({
       }
     >
       <div className="min-w-0 space-y-6" hidden={!hasPassage && !q.image_url && !q.figure_kind}>
+        {figureFirst && figure}
         {hasPassage && (
           <PassageAnnotations
             questionId={q.id}
@@ -86,19 +99,7 @@ export default function CatalogQuestion({
             </article>
           </PassageAnnotations>
         )}
-        {q.figure_kind === "table" && q.figure_table_data ? (
-          <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
-        ) : q.figure_kind === "chart" && q.figure_chart_data ? (
-          <ChartFigure
-            data={q.figure_chart_data}
-            subject={q.subject}
-            alt={q.image_alt ?? undefined}
-          />
-        ) : geometry ? (
-          <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
-        ) : q.image_url ? (
-          <FigureFrame src={q.image_url} alt={q.image_alt ?? "Question figure"} />
-        ) : null}
+        {!figureFirst && figure}
       </div>
       <div className="min-w-0 space-y-6">
         <MathText
