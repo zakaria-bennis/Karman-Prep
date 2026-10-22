@@ -93,9 +93,10 @@ export function placeClearAngleMark(
 }
 
 /**
- * Vertex letter just outside the vertex along the outward bisector of the sides that
- * meet there. A point in the middle of a straight side goes to the side away from the
- * figure's center; an isolated point goes directly away from the center.
+ * Vertex letter just outside the vertex, in the widest empty sector between the lines
+ * that meet there (founder review 2026-10-22: labels clear of every line). For a corner
+ * that is the outward bisector; a point in the middle of a straight side goes to the side
+ * away from the figure's center; an isolated point goes directly away from the center.
  */
 export function placeVertexLabel(
   vertex: LayoutPoint,
@@ -104,18 +105,27 @@ export function placeVertexLabel(
   gap: number,
   half: LayoutPoint
 ) {
-  const units = neighbors
+  const angles = neighbors
     .map((n) => unitVector(vertex, n))
-    .filter((u): u is NonNullable<typeof u> => !!u);
-  let dir = { x: -units.reduce((s, u) => s + u.x, 0), y: -units.reduce((s, u) => s + u.y, 0) };
+    .filter((u): u is NonNullable<typeof u> => !!u)
+    .map((u) => Math.atan2(u.y, u.x))
+    .sort((a, b) => a - b);
   const away = unitVector(center, vertex) ?? { x: 0, y: -1 };
-  if (Math.hypot(dir.x, dir.y) < 0.25) {
-    if (units.length >= 2) {
-      dir = { x: -units[0].y, y: units[0].x };
-      if (dir.x * away.x + dir.y * away.y < 0) dir = { x: -dir.x, y: -dir.y };
-    } else {
-      dir = away;
-    }
+  let dir = away;
+  if (angles.length >= 1) {
+    // Each empty sector runs from one ray to the next (wrapping around).
+    let best: { width: number; mid: LayoutPoint; score: number } | null = null;
+    angles.forEach((start, i) => {
+      const end = i + 1 < angles.length ? angles[i + 1] : angles[0] + 2 * Math.PI;
+      const width = end - start;
+      const midAngle = start + width / 2;
+      const mid = { x: Math.cos(midAngle), y: Math.sin(midAngle) };
+      const score = mid.x * away.x + mid.y * away.y;
+      // Prefer the widest sector; between equal ones, the one facing away from the center.
+      if (!best || width > best.width + 1e-3 || (width > best.width - 1e-3 && score > best.score))
+        best = { width, mid, score };
+    });
+    dir = best!.mid;
   }
   const length = Math.hypot(dir.x, dir.y);
   const unit = { x: dir.x / length, y: dir.y / length };

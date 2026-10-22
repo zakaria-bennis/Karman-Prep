@@ -241,7 +241,7 @@ export function QuestionCard({
                           <QuestionTable
                             data={c.choice_table_data}
                             ariaLabel={`Choice ${c.letter} data table`}
-                            className="my-1 max-w-full p-2"
+                            className="my-1 max-w-full"
                           />
                         ) : (
                           <MathText text={c.choice_text} />

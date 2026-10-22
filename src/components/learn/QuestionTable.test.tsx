@@ -16,6 +16,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import QuestionTable from "./QuestionTable";
+import { TableChoiceOption } from "./quiz/TableChoiceOption";
 
 const withHeaderAndRowLabels = {
   caption: "State data",
@@ -117,11 +118,11 @@ describe("QuestionTable — wide-table density", () => {
     header_row: Array.from({ length: n }, (_, i) => `Column heading ${i + 1}`),
     rows: [Array.from({ length: n }, (_, i) => `v${i}`)],
   });
-  it("uses roomy, compact, then dense cells as columns grow", () => {
+  it("uses large, roomy, compact, then dense cells as columns grow", () => {
     const tier = (n: number) =>
       render(<QuestionTable data={wide(n)} renderMath={false} />).container.querySelector("figure")
         ?.dataset.tableDensity;
-    expect([tier(4), tier(6), tier(7), tier(8)]).toEqual(["roomy", "compact", "compact", "dense"]);
+    expect([tier(4), tier(5), tier(6), tier(8)]).toEqual(["large", "roomy", "compact", "dense"]);
   });
   it("shrinks padding and type but keeps legible size and wrapping headers", () => {
     const { container } = render(<QuestionTable data={wide(8)} renderMath={false} />);
@@ -172,5 +173,69 @@ describe("QuestionTable — words never break", () => {
     );
     expect(words).toEqual(expect.arrayContaining(["1980-81", "Lake", "Neusiedl"]));
     expect(container.querySelector("tbody th")?.textContent).toBe("Lake Neusiedl");
+  });
+});
+
+describe("QuestionTable — founder review 2026-10-22", () => {
+  it("centres numeric row labels and keeps word labels left", () => {
+    const { getByText } = render(
+      <QuestionTable
+        data={{
+          header_row: ["UV index", "Days"],
+          rows: [
+            ["1", "9"],
+            ["Cloudy", "4"],
+          ],
+        }}
+        renderMath={false}
+      />
+    );
+    expect(getByText("1").closest("th")?.className).toContain("text-center");
+    expect(getByText("Cloudy").closest("th")?.className).toContain("text-left");
+    expect(getByText("9").closest("td")?.className).toContain("text-center");
+  });
+  it("keeps currency and percent symbols tight to the number", () => {
+    const { container } = render(
+      <QuestionTable
+        data={{
+          header_row: ["Item", "Cost"],
+          rows: [
+            ["Pen", "$ 4"],
+            ["Tax", "8 %"],
+          ],
+        }}
+        renderMath={false}
+      />
+    );
+    expect(container.textContent).toContain("$4");
+    expect(container.textContent).toContain("8%");
+  });
+  it("starts with 18px type and gives the frame no padding, so row rules reach the border", () => {
+    const { container } = render(
+      <QuestionTable data={{ header_row: ["x", "y"], rows: [["0", "1"]] }} renderMath={false} />
+    );
+    const figure = container.querySelector("figure")!;
+    expect(figure.className).not.toMatch(/(^|\s)p[xy]?-\d/);
+    expect(container.querySelector("td")?.className).toContain("text-lg");
+  });
+});
+
+describe("TableChoiceOption — answer-choice tables", () => {
+  it("adds no padding inside the table frame, so row rules touch its border", () => {
+    const { container } = render(
+      <TableChoiceOption
+        id="c-a"
+        groupName="g"
+        letter="A"
+        table={{ header_row: ["x", "y"], rows: [["0", "43"]] }}
+        selected={false}
+        submitted={false}
+        correct={false}
+        onSelect={() => undefined}
+        readOnly
+      />
+    );
+    const figure = container.querySelector("figure")!;
+    expect(figure.className).not.toMatch(/(^|\s)p[xy]?-\d/);
   });
 });

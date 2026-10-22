@@ -40,6 +40,8 @@ import {
   CHART_COLOR,
   TICK_FONT,
   TITLE_FONT,
+  TITLE_LINE_HEIGHT,
+  LEGEND_FONT,
   makeLayout,
   makeXMap,
   makeYMap,
@@ -87,16 +89,20 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
       >
         <desc id={describedBy}>{accessibleSummary}</desc>
 
-        {data.title && (
+        {L.titleLines.length > 0 && (
           <text
             x={L.viewW / 2}
-            y={16}
+            y={20}
             textAnchor="middle"
             fontSize={TITLE_FONT}
             fill={COLOR.ivory}
             fontWeight={600}
           >
-            {data.title}
+            {L.titleLines.map((line, i) => (
+              <tspan key={i} x={L.viewW / 2} dy={i === 0 ? 0 : TITLE_LINE_HEIGHT}>
+                {line}
+              </tspan>
+            ))}
           </text>
         )}
 
@@ -126,11 +132,12 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
                 color={colors[i]}
                 xAxis={data.x_axis}
                 yAxis={data.y_axis}
+                group={barGroup(data.series, i)}
               />
             ))}
 
-            {/* ── Legend (only when multi-series) ─── */}
-            {data.series.length > 1 && <Legend L={L} series={data.series} colors={colors} />}
+            {/* ── Legend (multi-series): below the plot, clear of it and the title ─── */}
+            <Legend L={L} colors={colors} />
           </>
         )}
       </svg>
@@ -140,25 +147,35 @@ export default function ChartFigure({ data, subject, className, alt }: Props) {
 
 // ── Per-series rendering ─────────────────────────────────────
 
+/** Where a bar series sits among the bar series sharing each category slot. */
+function barGroup(series: ChartSeries[], index: number) {
+  const bars = series.flatMap((s, i) => (s.kind === "bar" ? [i] : []));
+  return { index: Math.max(0, bars.indexOf(index)), count: Math.max(1, bars.length) };
+}
+
 function SeriesGlyph({
   L,
   series,
   color,
   xAxis,
   yAxis,
+  group,
 }: {
   L: ChartLayout;
   series: ChartSeries;
   color: string;
   xAxis: ChartAxis;
   yAxis: ChartAxis;
+  group: { index: number; count: number };
 }) {
   if (series.kind === "scatter")
     return <ScatterDots L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
   if (series.kind === "line")
     return <LinePath L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
   if (series.kind === "bar")
-    return <BarRects L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
+    return (
+      <BarRects L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} group={group} />
+    );
   if (series.kind === "function")
     return <FunctionCurve L={L} series={series} color={color} xAxis={xAxis} yAxis={yAxis} />;
   // boxplot / pie render via their own dedicated layouts, never here.
@@ -220,23 +237,32 @@ function LinePath({
   );
 }
 
+/** Bars of several series stand side by side in each category slot, never on top of each other. */
+export function barSlot(slotW: number, group: { index: number; count: number }) {
+  const groupW = slotW * (group.count > 1 ? 0.8 : 0.6);
+  const barW = groupW / group.count;
+  return { barW, offset: -groupW / 2 + barW * group.index };
+}
+
 function BarRects({
   L,
   series,
   color,
   xAxis,
   yAxis,
+  group,
 }: {
   L: ChartLayout;
   series: BarSeries;
   color: string;
   xAxis: ChartAxis;
   yAxis: ChartAxis;
+  group: { index: number; count: number };
 }) {
   const categories = xAxis.categories ?? series.bars.map((b) => b.category);
   const n = categories.length;
   const slotW = L.plotW / n;
-  const barW = slotW * 0.6;
+  const { barW, offset } = barSlot(slotW, group);
   const yMap = makeYMap(L, yAxis);
   const yBaseline = yMap(0); // bars rise from y=0
   return (
@@ -248,7 +274,19 @@ function BarRects({
         const yTop = yMap(b.value);
         const h = Math.abs(yBaseline - yTop);
         const yRect = Math.min(yBaseline, yTop);
-        return <rect key={i} x={cx - barW / 2} y={yRect} width={barW} height={h} rx={1} />;
+        return (
+          <rect
+            key={i}
+            data-series={group.index}
+            x={cx + offset}
+            y={yRect}
+            width={barW}
+            height={h}
+            rx={1}
+            stroke={group.count > 1 ? COLOR.bgNight : undefined}
+            strokeWidth={group.count > 1 ? 1 : undefined}
+          />
+        );
       })}
     </g>
   );
@@ -303,37 +341,34 @@ function evaluator(expr: FunctionSeries["expression"]): (x: number) => number {
 
 // ── Legend (multi-series only) ───────────────────────────────
 
-function Legend({
-  L,
-  series,
-  colors,
-}: {
-  L: ChartLayout;
-  series: ChartSeries[];
-  colors: string[];
-}) {
-  const itemsWithLabel = series
-    .map((s, i) => ({ label: s.label ?? `Series ${i + 1}`, color: colors[i] }))
-    .filter((s) => s.label && s.label.length > 0);
-  if (itemsWithLabel.length === 0) return null;
-  const x0 = L.pad.left + 8;
-  const y0 = L.pad.top + 8;
+function Legend({ L, colors }: { L: ChartLayout; colors: string[] }) {
+  if (!L.legendBox || L.legend.length === 0) return null;
+  const box = L.legendBox;
   return (
-    <g fontSize={13} fill={COLOR.ivory}>
+    <g fontSize={LEGEND_FONT} fill={COLOR.ivory} data-chart-legend="">
       <rect
-        x={x0 - 6}
-        y={y0 - 12}
-        width={Math.max(...itemsWithLabel.map((i) => i.label.length)) * 6 + 32}
-        height={itemsWithLabel.length * 14 + 8}
-        fill={COLOR.surface}
+        x={box.x}
+        y={box.y}
+        width={box.width}
+        height={box.height}
+        fill="none"
         stroke={COLOR.bronze}
+        strokeWidth={1}
         rx={3}
-        opacity={0.85}
       />
-      {itemsWithLabel.map((item, i) => (
-        <g key={i}>
-          <rect x={x0} y={y0 + i * 14 - 6} width={8} height={8} fill={item.color} rx={1} />
-          <text x={x0 + 14} y={y0 + i * 14}>
+      {L.legend.map((item) => (
+        <g key={item.series}>
+          <rect
+            x={item.x}
+            y={item.y - 6}
+            width={12}
+            height={12}
+            fill={colors[item.series]}
+            stroke={COLOR.bronze}
+            strokeWidth={0.75}
+            rx={1}
+          />
+          <text x={item.x + 20} y={item.y} dominantBaseline="central">
             {item.label}
           </text>
         </g>
@@ -466,7 +501,7 @@ function BoxplotGlyph({
       </g>
       <text
         x={L.pad.left + L.plotW / 2}
-        y={L.viewH - 16}
+        y={L.xTitleY}
         textAnchor="middle"
         fontSize={TITLE_FONT}
         fill={COLOR.ivory}
@@ -481,6 +516,16 @@ function BoxplotGlyph({
             <line x1={xMap(b.min)} x2={xMap(b.max)} y1={yc} y2={yc} />
             <line x1={xMap(b.min)} x2={xMap(b.min)} y1={yc - cap} y2={yc + cap} />
             <line x1={xMap(b.max)} x2={xMap(b.max)} y1={yc - cap} y2={yc + cap} />
+            {/* Opaque backing: gridlines stay behind the box, never through it. */}
+            <rect
+              data-box-backing=""
+              x={xMap(b.q1)}
+              y={yc - boxH / 2}
+              width={Math.max(1, xMap(b.q3) - xMap(b.q1))}
+              height={boxH}
+              fill={COLOR.bgNight}
+              stroke="none"
+            />
             <rect
               x={xMap(b.q1)}
               y={yc - boxH / 2}

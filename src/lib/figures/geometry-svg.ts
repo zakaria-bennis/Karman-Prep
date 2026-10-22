@@ -131,7 +131,8 @@ export const DISPLAY_THEME: GeometryRenderTheme = { stroke: "#2FA8FF", label: "#
 // comparison colors are deliberately decoupled.
 export const MONO_THEME: GeometryRenderTheme = { stroke: "#171611", label: "#171611" };
 
-const FONT = 'font-family="ui-serif, Georgia, serif"';
+// The printed-SAT figure serif (bundled STIX Two Text; figure-font.css applies it on the page).
+const FONT = 'font-family="STIX Two Text, Times New Roman, serif"';
 
 /** Collect every usable point, deduped by label (a vertex shared across
  *  shapes appears once), plus keep per-shape point lists for drawing. */
@@ -188,8 +189,28 @@ function neighborsOf(shapes: Shape[], x: number, y: number) {
       const next = i < pts.length - 1 ? pts[i + 1] : closed ? pts[0] : null;
       for (const n of [prev, next]) if (n && (n.x !== x || n.y !== y)) result.push(n);
     });
+    // A side that passes through the point (it is not one of the side's ends) also
+    // blocks two directions, so the label keeps clear of it too.
+    pts.forEach((a, i) => {
+      const b = i < pts.length - 1 ? pts[i + 1] : closed ? pts[0] : null;
+      if (b && passesThrough(a, b, x, y)) result.push(a, b);
+    });
   }
   return result;
+}
+
+function passesThrough(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  x: number,
+  y: number
+) {
+  if ((a.x === x && a.y === y) || (b.x === x && b.y === y)) return false;
+  const length = Math.hypot(b.x - a.x, b.y - a.y);
+  if (length === 0) return false;
+  const t = ((x - a.x) * (b.x - a.x) + (y - a.y) * (b.y - a.y)) / (length * length);
+  const distance = Math.abs((b.x - a.x) * (a.y - y) - (a.x - x) * (b.y - a.y)) / length;
+  return t > 0 && t < 1 && distance <= Math.max(1.5, length * 0.01);
 }
 
 /**
@@ -231,9 +252,11 @@ export function buildGeometrySvg(
   const fs = Math.max(9, unit * (balanced ? 0.055 : 0.04));
   const dot = sw * 2.2;
   // Balanced layout: printed-figure proportions. Side lengths at full size, vertex
-  // letters and angle measures slightly smaller, one gap and arc radius throughout.
-  const vertexFs = fs * 0.9;
-  const angleFs = fs * 0.85;
+  // letters and angle measures smaller (founder review 2026-10-22: slightly smaller
+  // labels, clear of the lines), one gap and arc radius throughout.
+  const vertexFs = fs * 0.8;
+  const angleFs = fs * 0.76;
+  const lengthFs = fs * 0.9;
   const gap = fs * 0.35;
   const arcRadius = fs * 1.5;
   const sourceCenter = {
@@ -316,10 +339,16 @@ export function buildGeometrySvg(
     if (!a || !b) continue;
     if (balanced) {
       const text = katexToUnicode(lm.value);
-      const position = placeClearLengthLabel(a, b, sourceCenter, gap, labelHalfExtent(text, fs));
+      const position = placeClearLengthLabel(
+        a,
+        b,
+        sourceCenter,
+        gap,
+        labelHalfExtent(text, lengthFs)
+      );
       if (!position) return { svg: null, renderable: false, reason: "zero_length_segment" };
       parts.push(
-        `<text data-length-mark="${esc(seg.join("-"))}" x="${position.x}" y="${position.y}" ${FONT} font-size="${fs}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`
+        `<text data-length-mark="${esc(seg.join("-"))}" x="${position.x}" y="${position.y}" ${FONT} font-size="${lengthFs}" fill="${LABEL_FILL}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`
       );
       continue;
     }

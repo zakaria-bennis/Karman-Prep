@@ -143,3 +143,24 @@ describe("balanced source geometry markings", () => {
     ).toBe(false);
   });
 });
+
+describe("placeVertexLabel — widest empty sector (founder review 2026-10-22)", () => {
+  it("puts a label where four lines meet into the widest gap between them", () => {
+    // Rays at 0°, 90°, 135° and 180° (y down): the empty sector is 180°–360° (above).
+    const v = { x: 0, y: 0 };
+    const p = placeVertexLabel(
+      v,
+      [
+        { x: 10, y: 0 },
+        { x: 0, y: 10 },
+        { x: -10, y: 10 },
+        { x: -10, y: 0 },
+      ],
+      { x: 0, y: 50 },
+      4,
+      { x: 3, y: 3 }
+    );
+    expect(p.y).toBeLessThan(0);
+    expect(Math.abs(p.x)).toBeLessThan(1e-6);
+  });
+});

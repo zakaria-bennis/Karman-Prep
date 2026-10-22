@@ -7,14 +7,6 @@
 import type { ChartAxis, ChartFigure } from "@/types/chart";
 import { numericTicks, formatTickLabel } from "./chart-figure-helpers";
 
-export interface ChartLayout {
-  viewW: number;
-  viewH: number;
-  pad: { top: number; right: number; bottom: number; left: number };
-  plotW: number;
-  plotH: number;
-}
-
 export const CHART_COLOR = {
   bgNight: "var(--figure-background)", // app background (warm night) — figure sits flush
   surface: "var(--figure-background)", // card surface (legend inset)
@@ -31,25 +23,142 @@ export const TITLE_FONT = 16;
 /** A one-letter axis label (x, y) is printed in italic at the end of its axis, as in print. */
 export const isVariableLabel = (label: string) => /^[a-zA-Z]$/.test(label.trim());
 
-/** 600x400 by default; "square" for figures whose source plot is square. */
+/** Approximate width of a line of figure-serif text (≈ 0.52em per character). */
+export const textWidth = (text: string, fontSize: number) => text.length * fontSize * 0.52;
+
+/** Splits text into lines of at most `maxWidth` (words never break; a long word gets its own line). */
+export function wrapWords(text: string, fontSize: number, maxWidth: number): string[] {
+  const lines: string[] = [];
+  for (const word of text.trim().split(/\s+/).filter(Boolean)) {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && textWidth(`${last} ${word}`, fontSize) <= maxWidth)
+      lines[lines.length - 1] = `${last} ${word}`;
+    else lines.push(word);
+  }
+  return lines;
+}
+
+export const LEGEND_FONT = 14;
+const LEGEND_ROW = 22;
+const TITLE_LINE = 20;
+export const CATEGORY_LINE = 17;
+export const Y_TITLE_LINE = 18;
+export const TITLE_LINE_HEIGHT = TITLE_LINE;
+
+export interface LegendItem {
+  label: string;
+  series: number;
+  x: number;
+  y: number;
+}
+
+export interface ChartLayout {
+  viewW: number;
+  viewH: number;
+  pad: { top: number; right: number; bottom: number; left: number };
+  plotW: number;
+  plotH: number;
+  /** Title, wrapped to the figure width (never clipped at the sides). */
+  titleLines: string[];
+  /** Category tick labels, each wrapped to its own slot. */
+  categoryLines: string[][];
+  /** Legend swatches below the plot and its axis title, clear of both. */
+  legend: LegendItem[];
+  legendBox: { x: number; y: number; width: number; height: number } | null;
+  /** Baseline of the x-axis title. */
+  xTitleY: number;
+  /** The rotated y-axis title, wrapped to the plot height. */
+  yTitleLines: string[];
+}
+
+/** Labelled series get a legend whenever there is more than one series. */
+export function legendLabels(data: ChartFigure): { label: string; series: number }[] {
+  if (data.series.length < 2 || data.kind === "pie" || data.kind === "boxplot") return [];
+  return data.series
+    .map((s, i) => ({ label: (s.label ?? "").trim(), series: i }))
+    .filter((item) => item.label.length > 0);
+}
+
+/**
+ * 600x400 by default; "square" for figures whose source plot is square. The plot keeps
+ * that size; the figure grows to fit a wrapped title above it and wrapped category labels,
+ * the axis title and the legend below it, so none of them overlap the plot or each other.
+ */
 export function makeLayout(data: ChartFigure): ChartLayout {
   const square = data.frame === "square";
   const viewW = square ? 500 : 600;
-  const viewH = square ? 500 : 400;
+  const baseH = square ? 500 : 400;
   const variableX = isVariableLabel(data.x_axis.label);
   const variableY = isVariableLabel(data.y_axis.label);
   const pad = {
     top: variableY ? 34 : 28,
     right: variableX ? 34 : 24,
-    bottom: variableX ? 34 : 60,
+    // Tick labels plus the x-axis title; without a title, only the tick labels.
+    bottom: variableX ? 34 : data.x_axis.label.trim() ? 60 : 36,
     left: variableY ? 46 : 68,
   };
+  const plotH = baseH - pad.top - pad.bottom;
+  // A long y-axis title wraps onto a second line beside the first, widening the margin.
+  const yTitleLines = variableY ? [] : wrapWords(data.y_axis.label, TITLE_FONT, plotH - 8);
+  pad.left += Math.max(0, yTitleLines.length - 1) * Y_TITLE_LINE;
+  const plotW = viewW - pad.left - pad.right;
+
+  // Titles print at weight 600, a little wider than the estimate, so wrap early.
+  const titleLines = data.title ? wrapWords(data.title, TITLE_FONT, viewW - 64) : [];
+  if (titleLines.length) pad.top += titleLines.length * TITLE_LINE;
+
+  const categories = data.kind === "pie" ? null : data.x_axis.categories;
+  const slot = categories?.length ? plotW / categories.length : 0;
+  const categoryLines = (categories ?? []).map((c) => wrapWords(String(c), TICK_FONT, slot - 6));
+  const extraCategoryLines = Math.max(0, ...categoryLines.map((l) => l.length - 1));
+  pad.bottom += extraCategoryLines * CATEGORY_LINE;
+  // Legend rows, packed left to right within the plot width, centred under the plot.
+  const items = legendLabels(data).map((item) => ({
+    ...item,
+    width: 22 + textWidth(item.label, LEGEND_FONT) + 18,
+  }));
+  const rows: (typeof items)[] = [];
+  for (const item of items) {
+    const row = rows[rows.length - 1];
+    const used = row?.reduce((sum, i) => sum + i.width, 0) ?? 0;
+    if (row && used + item.width <= viewW - 32) row.push(item);
+    else rows.push([item]);
+  }
+  const plotBottom = pad.top + plotH;
+  // Below the plot: tick or category labels, then the x-axis title, then the legend.
+  const legendTop = plotBottom + pad.bottom + 2;
+  const legend: LegendItem[] = [];
+  let legendBox: ChartLayout["legendBox"] = null;
+  if (rows.length) {
+    const width = Math.max(...rows.map((r) => r.reduce((sum, i) => sum + i.width, 0))) + 16;
+    const x0 = (viewW - width) / 2;
+    rows.forEach((row, r) => {
+      let x = x0 + 8;
+      for (const item of row) {
+        legend.push({
+          label: item.label,
+          series: item.series,
+          x,
+          y: legendTop + 8 + r * LEGEND_ROW + LEGEND_ROW / 2,
+        });
+        x += item.width;
+      }
+    });
+    legendBox = { x: x0, y: legendTop, width, height: rows.length * LEGEND_ROW + 16 };
+  }
+  const viewH = legendBox ? legendBox.y + legendBox.height + 10 : plotBottom + pad.bottom;
   return {
     viewW,
     viewH,
     pad,
-    plotW: viewW - pad.left - pad.right,
-    plotH: viewH - pad.top - pad.bottom,
+    plotW,
+    plotH,
+    titleLines,
+    categoryLines,
+    legend,
+    legendBox,
+    xTitleY: plotBottom + pad.bottom - 14,
+    yTitleLines,
   };
 }
 
@@ -132,7 +241,11 @@ export function Axes({
         {xAxis.categories
           ? xAxis.categories.map((cat, i) => (
               <text key={`xc-${i}`} x={xMap(i)} y={bottom + 20} textAnchor="middle">
-                {cat}
+                {(L.categoryLines[i] ?? [String(cat)]).map((line, k) => (
+                  <tspan key={k} x={xMap(i)} dy={k === 0 ? 0 : CATEGORY_LINE}>
+                    {line}
+                  </tspan>
+                ))}
               </text>
             ))
           : xTicks?.map((v, i) => (
@@ -173,7 +286,7 @@ export function AxisTitles({
           {xLabel.trim()}
         </text>
       ) : (
-        <text x={left + L.plotW / 2} y={L.viewH - 14} textAnchor="middle">
+        <text x={left + L.plotW / 2} y={L.xTitleY} textAnchor="middle">
           {xLabel}
         </text>
       )}
@@ -183,7 +296,11 @@ export function AxisTitles({
         </text>
       ) : (
         <text x={20} y={midY} textAnchor="middle" transform={`rotate(-90, 20, ${midY})`}>
-          {yLabel}
+          {(L.yTitleLines.length ? L.yTitleLines : [yLabel]).map((line, k) => (
+            <tspan key={k} x={20} dy={k === 0 ? 0 : Y_TITLE_LINE}>
+              {line}
+            </tspan>
+          ))}
         </text>
       )}
     </g>

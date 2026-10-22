@@ -24,6 +24,7 @@ import { TableChoiceOption } from "./TableChoiceOption";
 import PassageAnnotations from "./PassageAnnotations";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 import { figureLeadsText } from "@/lib/figures/figure-order";
+import { useFigureStemAlign } from "./use-figure-stem-align";
 
 export function ActiveQuizScreen({
   node,
@@ -56,6 +57,10 @@ export function ActiveQuizScreen({
   >;
 }) {
   const headerRef = useRef<HTMLDivElement>(null);
+  // A figure alone beside the question text ends on the text's last line (laptop+).
+  const figureAlignRef = useRef<HTMLDivElement>(null);
+  const stemRef = useRef<HTMLHeadingElement>(null);
+
   useEffect(() => {
     const header = headerRef.current;
     if (!header || typeof ResizeObserver === "undefined") return;
@@ -95,6 +100,13 @@ export function ActiveQuizScreen({
   const allChoicesAreTables =
     sortedChoices.length > 0 && sortedChoices.every((choice) => choice.choice_table_data);
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
+  useFigureStemAlign(
+    figureAlignRef,
+    stemRef,
+    !(q.passage_intro || q.passage || q.passage_a || q.passage_b) &&
+      !(isSubmitted && showExplanations),
+    q.id
+  );
   const review = isSubmitted ? state.reviews[q.id] : undefined;
   const correctLetter = review?.correct_answer;
 
@@ -283,7 +295,10 @@ export function ActiveQuizScreen({
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
               {q.topic_cluster}
             </p>
-            <h2 className="whitespace-pre-line text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]">
+            <h2
+              ref={stemRef}
+              className="whitespace-pre-line text-[19px] font-medium leading-[1.5] text-ivory md:text-[20px]"
+            >
               <MathText
                 text={q.question_text}
                 serializedFunctionLines={q.subject === "math"}
@@ -483,6 +498,14 @@ export function ActiveQuizScreen({
         // column, mirroring College Board Bluebook behavior.
         if (hasPassage || hasFigure) {
           const figureFirst = figureLeadsText(q.subject);
+          // Alone in its column, the figure lines up with the question text beside it.
+          const figureSlot = hasPassage ? (
+            figureCard
+          ) : (
+            <div ref={figureAlignRef} className="flow-root">
+              {figureCard}
+            </div>
+          );
           return (
             <div
               data-question-content
@@ -501,7 +524,7 @@ export function ActiveQuizScreen({
                     isNativeTable && "min-w-0"
                   )}
                 >
-                  {figureFirst && figureCard}
+                  {figureFirst && figureSlot}
                   {hasPassage &&
                     (readOnly ? (
                       passageBlock
@@ -519,7 +542,7 @@ export function ActiveQuizScreen({
                         {passageBlock}
                       </PassageAnnotations>
                     ))}
-                  {!figureFirst && figureCard}
+                  {!figureFirst && figureSlot}
                   {inExplanationMode && (
                     <div className="mt-10 border-t border-bronze/50 pt-6">{questionPanel}</div>
                   )}

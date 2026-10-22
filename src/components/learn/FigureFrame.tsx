@@ -18,8 +18,9 @@
 // solids.
 // ============================================================
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { sanitizeThemedSvg } from "@/lib/figures/inline-svg";
+import { fitViewBoxToContent } from "@/lib/figures/svg-figure-polish";
 import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +71,20 @@ export default function FigureFrame({
     return () => controller.abort();
   }, [src, alt, markup, url]);
   const themed = inline?.src === url && inline.alt === alt ? inline.svg : null;
+  // A label drawn past the authored viewBox (an axis title on the bottom edge) would be
+  // cut off; once the SVG is on the page, grow its box to everything drawn.
+  const holder = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const svg = holder.current?.querySelector("svg");
+    if (!themed || !svg) return;
+    let live = true;
+    fitViewBoxToContent(svg);
+    // The figure serif can arrive after first paint and change text extents.
+    document.fonts?.ready.then(() => live && fitViewBoxToContent(svg));
+    return () => {
+      live = false;
+    };
+  }, [themed]);
   return (
     <figure
       className={cn(
@@ -80,6 +95,7 @@ export default function FigureFrame({
     >
       {themed ? (
         <div
+          ref={holder}
           className={cn(
             "mx-auto max-w-full [&>svg]:mx-auto [&>svg]:block [&>svg]:max-h-[32dvh] [&>svg]:w-auto sm:[&>svg]:max-h-[28rem]",
             maxHeightClass

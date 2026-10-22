@@ -101,7 +101,7 @@ export function TableChoiceOption({
         <QuestionTable
           data={table}
           ariaLabel={`Choice ${letter} data table`}
-          className="my-2 w-auto max-w-full p-2 shadow-none"
+          className="my-2 w-auto max-w-full shadow-none"
         />
       </div>
     </div>

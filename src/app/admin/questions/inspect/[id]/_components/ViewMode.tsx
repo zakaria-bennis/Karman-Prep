@@ -102,7 +102,7 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
                     <QuestionTable
                       data={c.choice_table_data}
                       ariaLabel={`Choice ${c.letter} data table`}
-                      className="my-0 max-w-full p-2"
+                      className="my-0 max-w-full"
                     />
                   ) : (
                     <MathText text={c.choice_text} />

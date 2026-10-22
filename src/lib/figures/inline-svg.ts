@@ -1,3 +1,5 @@
+import { polishFigureSvg } from "./svg-figure-polish";
+
 /** Strict inert SVG subset for reviewed exam diagrams. No HTML, scripts, CSS, references or URLs. */
 const TAGS = new Set([
   "svg",
@@ -217,6 +219,8 @@ export function sanitizeThemedSvg(source: string, alt: string): string | null {
   const bounds = root.getAttribute("viewBox")!.trim().split(/[ ,]+/).map(Number);
   if (bounds.length !== 4 || !bounds.every(Number.isFinite) || bounds[2] <= 0 || bounds[3] <= 0)
     return null;
+  // Display-only fixes (grid behind bars, joined degree signs, label size, proportions).
+  if (reviewed) polishFigureSvg(root);
   root.removeAttribute("width");
   root.removeAttribute("height");
   root.setAttribute("role", "img");

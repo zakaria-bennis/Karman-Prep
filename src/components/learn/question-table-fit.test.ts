@@ -3,17 +3,20 @@ import {
   DENSITY_CELL,
   WORD_WRAP,
   fitDensity,
+  fitTable,
   isNumericCell,
   plainWords,
   scrollEdges,
   startingDensity,
+  tightenUnits,
   type TableDensity,
 } from "./question-table-fit";
 
 describe("startingDensity", () => {
   it("guesses tighter tiers for wider tables", () => {
-    expect([1, 5, 6, 7, 8, 12].map(startingDensity)).toEqual([
-      "roomy",
+    expect([1, 4, 5, 6, 7, 8, 12].map(startingDensity)).toEqual([
+      "large",
+      "large",
       "roomy",
       "compact",
       "compact",
@@ -41,6 +44,11 @@ describe("fitDensity", () => {
     const result = fitDensity("roomy", (t) => (tried.push(t), false));
     expect(result).toEqual({ tier: "dense", overflow: true });
     expect(tried).toEqual(["roomy", "compact", "dense"]);
+  });
+  it("starts large, so small tables get bigger type", () => {
+    const tried: TableDensity[] = [];
+    fitDensity("large", (t) => (tried.push(t), false));
+    expect(tried).toEqual(["large", "roomy", "compact", "dense"]);
   });
   it("never tries a roomier tier than the start", () => {
     const tried: TableDensity[] = [];
@@ -106,5 +114,41 @@ describe("plainWords", () => {
     expect(plainWords("\\frac{1}{2}")).toBeNull();
     expect(plainWords("<b>bold</b>")).toBeNull();
     expect(plainWords("___")).toBeNull();
+  });
+});
+
+describe("fitTable", () => {
+  it("keeps the roomiest tier that is both narrow and short enough", () => {
+    const measure = (t: TableDensity) => ({
+      width: t !== "large",
+      height: t === "compact" || t === "dense",
+    });
+    expect(fitTable("large", measure)).toEqual({ tier: "compact", overflow: false });
+  });
+  it("takes dense without sideways scroll when only the height never fits", () => {
+    expect(fitTable("large", () => ({ width: true, height: false }))).toEqual({
+      tier: "dense",
+      overflow: false,
+    });
+  });
+  it("scrolls sideways only when even dense is too wide", () => {
+    expect(fitTable("large", () => ({ width: false, height: true }))).toEqual({
+      tier: "dense",
+      overflow: true,
+    });
+  });
+});
+
+describe("tightenUnits", () => {
+  it("keeps currency and unit symbols against the number", () => {
+    expect(tightenUnits("$ 4.99")).toBe("$4.99");
+    expect(tightenUnits("€ 1,250")).toBe("€1,250");
+    expect(tightenUnits("12 %")).toBe("12%");
+    expect(tightenUnits("(−$ 3)")).toBe("(−$3)");
+    expect(tightenUnits("45 ¢")).toBe("45¢");
+  });
+  it("leaves tight values and words alone", () => {
+    for (const v of ["$4.99", "12.5%", "12 countries", "Year 2", "$x$"])
+      expect(tightenUnits(v)).toBe(v);
   });
 });

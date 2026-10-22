@@ -15,9 +15,11 @@
 //   · Inherits the design tokens (no JPEG-on-page-bg vibe)
 //   · No raster artifacts on retina
 //
-// Words never break (question-table-fit.ts): cells wrap only at spaces. A table too
-// wide for its column steps its padding and type down to 13px, then scrolls sideways
-// inside its frame with the first column pinned and fades on the hidden edges.
+// Words never break (question-table-fit.ts): cells wrap only at spaces. Tables start at
+// 18px type; one too wide for its column (or, on a laptop, too tall for its pane) steps
+// its padding and type down to 13px, then scrolls sideways inside its frame with the
+// first column pinned and fades on the hidden edges. Row rules run edge to edge: the
+// frame never has padding of its own, so callers must not add any.
 //
 // Cell values may contain inline math; we pass through MathText
 // so KaTeX renders correctly in headers + body.
@@ -31,11 +33,12 @@ import type { QuestionTableData } from "@/types/question-table";
 import {
   DENSITY_CELL,
   WORD_WRAP,
-  fitDensity,
+  fitTable,
   isNumericCell,
   plainWords,
   scrollEdges,
   startingDensity,
+  tightenUnits,
   type TableDensity,
 } from "./question-table-fit";
 export type { QuestionTableData } from "@/types/question-table";
@@ -65,6 +68,21 @@ const PINNED = cn(
 
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
+/** On a laptop or wider, the height of the scrolling pane the table sits in (inside its padding). */
+function paneHeight(fig: HTMLElement): number | null {
+  if (!window.matchMedia?.("(min-width: 768px)").matches) return null;
+  for (let el = fig.parentElement; el; el = el.parentElement) {
+    const style = getComputedStyle(el);
+    if (!/(auto|scroll)/.test(style.overflowY)) continue;
+    const inner =
+      el.clientHeight -
+      parseFloat(style.paddingTop || "0") -
+      parseFloat(style.paddingBottom || "0");
+    return inner > 0 ? inner : null;
+  }
+  return null;
+}
+
 /** Fits the table to its column, measuring the rendered widths at each density. */
 function useTableFit(columns: number) {
   const figureRef = useRef<HTMLElement>(null);
@@ -87,11 +105,15 @@ function useTableFit(columns: number) {
     // Not laid out yet (hidden or unmounted parent): keep the guess until it has a width.
     if (!fig || !sc || sc.clientWidth === 0) return;
     fig.style.setProperty("--table-view", "auto");
+    const maxHeight = paneHeight(fig);
     const fits = (t: TableDensity) => {
       fig.dataset.tableDensity = t;
-      return sc.scrollWidth <= sc.clientWidth + 1;
+      return {
+        width: sc.scrollWidth <= sc.clientWidth + 1,
+        height: maxHeight === null || fig.getBoundingClientRect().height <= maxHeight + 1,
+      };
     };
-    const result = fitDensity("roomy", fits);
+    const result = fitTable("large", fits);
     fig.dataset.tableDensity = result.tier;
     fig.style.setProperty("--table-view", result.overflow ? `${sc.clientWidth}px` : "auto");
     setTier(result.tier);
@@ -136,7 +158,8 @@ export default function QuestionTable({
   const { figureRef, scrollerRef, tier, overflow, edges, updateEdges } = useTableFit(columns);
 
   // WORD_WRAP keeps words whole; nowrap words also stop breaks at hyphens ("1980-81").
-  const renderCell = (text: string, key: string) => {
+  const renderCell = (source: string, key: string) => {
+    const text = tightenUnits(source);
     const words = plainWords(text);
     if (!words) return <span key={key}>{renderMath ? <MathText text={text} /> : text}</span>;
     return (
@@ -162,13 +185,16 @@ export default function QuestionTable({
   // pinned, that rule moves onto the pinned column so it stays put during the scroll.
   const columnRule = (ci: number) =>
     ci === 0 ? (overflow ? PINNED : undefined) : ci === 1 && overflow ? undefined : "border-l";
+  // Numbers sit centered in their column, row labels included; word labels align left.
   const cellClass = (text: string, ci: number, rowLabel: boolean) =>
     cn(
       `border-b ${RULE} text-ivory`,
       WORD_WRAP,
       DENSITY_CELL,
-      rowLabel ? "text-left font-normal" : "text-center tabular-nums",
-      isNumericCell(text) && "whitespace-nowrap",
+      rowLabel && !isNumericCell(tightenUnits(text))
+        ? "text-left font-normal"
+        : "text-center tabular-nums font-normal",
+      isNumericCell(tightenUnits(text)) && "whitespace-nowrap",
       columnRule(ci)
     );
   // Caption and footer span the whole (possibly scrolled) table; their text stays in view.
