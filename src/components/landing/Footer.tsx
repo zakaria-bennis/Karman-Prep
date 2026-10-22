@@ -6,6 +6,7 @@ const LINKS = [
   { label: "Plans", href: "/plans" },
   { label: "About", href: "/about" },
   { label: "Questions", href: "/questions" },
+  { label: "Calculator", href: "/calculator" },
   { label: "Help & FAQ", href: "/faq" },
 ];
 

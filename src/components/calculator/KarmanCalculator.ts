@@ -19,6 +19,7 @@ import type {
 } from "@/lib/calculator/core/api/types";
 import { bumpDevCounter } from "@/lib/calculator/dev-counters";
 import { hostThemeCss } from "@/lib/calculator/theme/roles";
+import type { SkinId } from "@/lib/calculator/theme/skins";
 import { CALCULATOR_BUILD, CALCULATOR_CSS } from "./styles/generated";
 import { App } from "./ui/App";
 import { ErrorBoundary, type ErrorBoundaryProps } from "./ui/ErrorBoundary";
@@ -42,6 +43,7 @@ export const RESET_ANNOUNCEMENT = "Calculator cleared for this question.";
 export interface HostHooks {
   chromeSlot?: HTMLElement; // light-DOM title-bar slot (L-12);
   announceResetOnMount?: boolean; // OI-3
+  skin?: SkinId; // pins the skin instead of following html[data-theme] (the public /calculator page)
 }
 
 type Method = {
@@ -114,7 +116,7 @@ export class KarmanCalculator {
       this.#styles.setSkinCss(hostThemeCss(t.skin));
       this.#store.set({ skin: t.skin, themeRevision: t.revision + this.#reflows });
     };
-    const theme = watchTheme(document.documentElement, window, onTheme);
+    const theme = watchTheme(document.documentElement, window, onTheme, hooks?.skin);
     this.#styles = installStyles(shadow, CALCULATOR_CSS);
     this.#styles.setSkinCss(hostThemeCss(theme.initial.skin));
     const container = document.createElement("div");

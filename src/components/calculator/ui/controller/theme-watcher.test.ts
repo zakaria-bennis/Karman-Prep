@@ -44,3 +44,18 @@ it("TH-15 watchTheme follows the site theme in data-theme, light and dark, is cl
   w.dispose();
   expect(media.listeners()).toBe(0);
 });
+
+it("TH-15 a pinned skin stays put through site theme changes and still bumps revision on contrast", async () => {
+  const html = document.documentElement;
+  html.dataset.theme = "observatory";
+  const media = fakeMedia();
+  const seen: ThemeState[] = [];
+  const w = watchTheme(html, media, (s) => seen.push(s), "classic");
+  expect(w.initial).toEqual({ skin: "classic", revision: 0 });
+  html.dataset.theme = "ivory";
+  await tick();
+  expect(seen).toEqual([]);
+  media.set("(prefers-contrast: more)", true);
+  expect(seen.at(-1)).toEqual({ skin: "classic", revision: 1 });
+  w.dispose();
+});

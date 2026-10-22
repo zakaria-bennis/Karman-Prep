@@ -23,6 +23,9 @@ as types (AR-1, AR-2).
   (`use-transfer-bridge.ts`, `bridge-context.ts`).
 - `breakpoints.ts`, `font-warmup.ts`, `question-key.ts`, `report-error*.ts`.
 
+The public page `src/app/calculator/` (`/calculator`) reuses `CalculatorLoader` full window, with
+the skin pinned to `classic` through the loader's `skin` prop.
+
 ## Lazy calculator (loaded on first open)
 
 `KarmanCalculator.ts` and the subfolders `host/`, `icons/`, `math-field/`, `styles/`,

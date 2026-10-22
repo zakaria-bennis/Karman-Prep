@@ -5,6 +5,7 @@
 
 import { reportCalculatorError } from "@/components/calculator/report-error";
 import type { TransferResult, TransferTrigger } from "@/lib/calculator-transfer/payload";
+import type { SkinId } from "@/lib/calculator/theme/skins";
 import { KarmanCalculator, lastFocusedRow } from "../KarmanCalculator";
 import { preferencesOf, type CalculatorPreferences } from "../calculator-window-store";
 import { CALCULATOR_BUILD } from "../styles/generated";
@@ -23,6 +24,7 @@ export interface QuizMountOptions {
   // absent or null on the page's first calculator, which keeps the defaults.
   preferences?: CalculatorPreferences | null;
   onPreferences?(preferences: CalculatorPreferences): void; // after each settings change and on destroy
+  skin?: SkinId; // absent in the quiz, which follows the site theme; the /calculator page pins "classic"
 }
 
 export interface QuizCalculatorHandle {
@@ -42,7 +44,11 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
       reducedMotion: options.reducedMotion,
       onError: (error) => reportCalculatorError(error, CALCULATOR_BUILD),
     },
-    { chromeSlot: options.chromeSlot, announceResetOnMount: options.announceReset }
+    {
+      chromeSlot: options.chromeSlot,
+      announceResetOnMount: options.announceReset,
+      skin: options.skin,
+    }
   );
   // Everything else starts blank (AR-58); the carried settings are applied before the first frame.
   if (options.preferences) {

@@ -71,6 +71,7 @@ describe("floating theme control", () => {
       "/free-diagnostic",
       "/plans",
       "/questions",
+      "/calculator",
     ]) {
       pathname = route;
       const view = render(<ThemeToggle floating />);

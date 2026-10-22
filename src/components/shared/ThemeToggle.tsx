@@ -12,7 +12,8 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   // Server-rendered buttons must not accept clicks before React attaches the handler.
   // This waits for this control to hydrate, independently of Clerk loading.
   useEffect(() => setReady(true), []);
-  // Shells and public navigation provide an in-flow control, clear of content.
+  // Shells and public navigation provide an in-flow control, clear of content. /calculator has
+  // none: its bar stays quiet and the calculator keeps the classic skin in either theme.
   const portalHasThemeControl =
     ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn"].some(
       (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
@@ -24,6 +25,7 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
       "/questions",
       "/about",
       "/faq",
+      "/calculator",
       "/blog",
       "/privacy",
       "/terms",

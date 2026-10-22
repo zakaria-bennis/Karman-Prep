@@ -10,6 +10,7 @@ import type {
   QuizCalculatorHandle,
   QuizMountOptions,
 } from "@/components/calculator/host/quiz-host";
+import type { SkinId } from "@/lib/calculator/theme/skins";
 import type { CalculatorLoadFailure, CalculatorLoadStatus } from "./CalculatorScope";
 import { calculatorWindowStore } from "./calculator-window-store";
 import { onCalculatorFontsLoaded, warmCalculatorFonts } from "./font-warmup";
@@ -96,6 +97,7 @@ export interface CalculatorLoaderProps {
   onStatus(status: CalculatorLoadStatus, failure: CalculatorLoadFailure | null): void;
   onHandle(handle: QuizCalculatorHandle | null): void;
   reloadPage?: () => void; // default () => window.location.reload(); tests inject a spy
+  skin?: SkinId; // pins the calculator's skin; the quiz leaves it out and follows the site theme
 }
 
 type Phase = "loading" | "ready" | "load-failed" | "mount-failed";
@@ -163,6 +165,7 @@ export function CalculatorLoader(props: CalculatorLoaderProps) {
       announceReset: latest.current.announceReset,
       preferences: calculatorWindowStore.get().preferences,
       onPreferences: (preferences) => calculatorWindowStore.set({ preferences }),
+      skin: latest.current.skin,
     };
     let handle: QuizCalculatorHandle;
     try {

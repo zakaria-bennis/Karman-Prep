@@ -1,0 +1,91 @@
+/* /calculator: a 46 px bar, then the calculator over the rest of the viewport. The page itself
+   never scrolls, at any width. */
+
+.page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: none;
+  height: calc(46px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0
+    max(16px, env(safe-area-inset-left));
+  box-sizing: border-box;
+}
+
+.home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  flex: none;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.practice {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  flex: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Below 480 px the bar keeps the logo and the link; the heading stays for screen readers. */
+@media (max-width: 479px) {
+  .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .practice {
+    margin-left: auto;
+  }
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* The calculator's own frame. The loading panel takes the classic skin's light surface, so the
+   calculator does not flash dark before it appears. */
+.frame {
+  --kcc-chrome: #ffffff;
+  --kcc-text: #333333;
+  --kcc-boundary: #bbbbbb;
+  --kcc-focus: #2f72dc;
+  --kcc-accent: #2f72dc;
+  --kcc-accent-label: #ffffff;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #ffffff;
+  outline: none;
+}
+
+.slot {
+  display: none;
+}
