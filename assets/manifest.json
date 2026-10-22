@@ -1,7 +1,7 @@
 {
   "about": "Clips and plates for the landing-page climb. Scenes are described in docs/design/scene-plan.md. A shot runs only when its status is \"approved\". Routes and prices are in scripts/generate-assets.mjs and docs/design/generation-models.md.",
   "defaults": {
-    "duration": 15,
+    "duration": 8,
     "ratio": "16:9",
     "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. One continuous shot, slow and physical camera move, no cuts. No text, letters, numbers, logos, watermarks, neon, lens flare, purple, glowing orbs or rockets. Phone and laptop screens are never visible to the camera."
   },
@@ -19,7 +19,8 @@
       "status": "proposed",
       "route": "wan-3.0",
       "resolution": "1080p",
-      "prompt": "Before dawn, 6 a.m., a quiet tree-lined suburban street of large family homes, one warm kitchen window lit. The camera starts outside that window and rises slowly and steadily straight up over the rooftops and treetops toward a low layer of cloud, deep blue pre-dawn sky, and stops just beneath the cloud."
+      "prompt": "Before dawn, 6 a.m., a quiet tree-lined suburban street of large family homes, one warm kitchen window lit. The camera starts outside that window and rises slowly and steadily straight up over the rooftops and treetops toward a low layer of cloud, deep blue pre-dawn sky, and stops just beneath the cloud.",
+      "duration": 12
     },
     {
       "id": "c2",
@@ -27,7 +28,8 @@
       "route": "seedance-2.5",
       "draft": true,
       "cast": ["ava"],
-      "prompt": "6:50 a.m. on a school bus. @Image1 is a 16 year old girl who sits by the window with one white earbud in, working on her phone held low and side-on so its screen is never visible, its glow on her face. Low sunrise light strobes through the windows as the bus rolls and trees blur past. She finishes, breathes out, looks up. For the last four seconds the camera drifts past her to the window and tilts up to the pale dawn sky above the trees, ending on almost pure sky."
+      "prompt": "6:50 a.m. on a school bus. @Image1 is a 16 year old girl who sits by the window with one white earbud in, working on her phone held low and side-on so its screen is never visible, its glow on her face. Low sunrise light strobes through the windows as the bus rolls and trees blur past. She finishes, breathes out, looks up. For the last four seconds the camera drifts past her to the window and tilts up to the pale dawn sky above the trees, ending on almost pure sky.",
+      "duration": 10
     },
     {
       "id": "c3",
@@ -35,7 +37,8 @@
       "route": "seedance-2.5",
       "draft": true,
       "cast": ["parent1"],
-      "prompt": "3:15 p.m., a high school pickup line. @Image1 is a mother in the driver's seat, seen from outside through the windshield, reading her phone held facing her so its screen is never visible. Reflections of trees slide across the glass. She smiles slightly and sits back. Teenage students with backpacks pass in soft focus. For the last four seconds the camera rises up over the car roof into a bright clear afternoon sky, ending on almost pure sky."
+      "prompt": "3:15 p.m., a high school pickup line. @Image1 is a mother in the driver's seat, seen from outside through the windshield, reading her phone held facing her so its screen is never visible. Reflections of trees slide across the glass. She smiles slightly and sits back. Teenage students with backpacks pass in soft focus. For the last four seconds the camera rises up over the car roof into a bright clear afternoon sky, ending on almost pure sky.",
+      "duration": 8
     },
     {
       "id": "c4",
@@ -43,7 +46,8 @@
       "route": "seedance-2.5",
       "draft": true,
       "cast": ["mateo"],
-      "prompt": "4:30 p.m., golden hour at a high school soccer field. @Image1 is a 17 year old player sitting on the team bench at a water break, towel on his shoulder, reading his phone held side-on so its screen is never visible. Two teammates sit further along the bench, talking. He drinks from a water bottle, stands and jogs back onto the pitch. For the last four seconds the camera tilts up past a floodlight mast into a warm golden sky, ending on almost pure sky."
+      "prompt": "4:30 p.m., golden hour at a high school soccer field. @Image1 is a 17 year old player sitting on the team bench at a water break, towel on his shoulder, reading his phone held side-on so its screen is never visible. Two teammates sit further along the bench, talking. He drinks from a water bottle, stands and jogs back onto the pitch. For the last four seconds the camera tilts up past a floodlight mast into a warm golden sky, ending on almost pure sky.",
+      "duration": 8
     },
     {
       "id": "c5",
@@ -51,7 +55,8 @@
       "route": "seedance-2.5",
       "draft": true,
       "cast": ["priya"],
-      "prompt": "8 p.m. in a bedroom at dusk. @Image1 is a girl with glasses in a live online class on her laptop. The camera is behind the laptop lid, so only the back of the lid shows at the frame edge and the screen faces her, its glow on her face. She listens, nods, then types an answer. Warm desk lamp on. For the last four seconds the camera slides past her to the window: deep blue dusk sky with the first two stars, ending on almost pure sky."
+      "prompt": "8 p.m. in a bedroom at dusk. @Image1 is a girl with glasses in a live online class on her laptop. The camera is behind the laptop lid, so only the back of the lid shows at the frame edge and the screen faces her, its glow on her face. She listens, nods, then types an answer. Warm desk lamp on. For the last four seconds the camera slides past her to the window: deep blue dusk sky with the first two stars, ending on almost pure sky.",
+      "duration": 8
     },
     {
       "id": "c6",
@@ -59,7 +64,8 @@
       "route": "seedance-2.5",
       "draft": true,
       "cast": ["david"],
-      "prompt": "9 p.m. in a warm home office. @Image1 is a tutor speaking into a microphone on a boom arm, explaining something with calm hand gestures, looking toward a monitor that faces him just out of frame. Bookshelf and a plant behind him in soft focus, warm lamp. For the last four seconds the camera arcs slowly to the dark window and the night sky full of stars, ending on almost pure sky."
+      "prompt": "9 p.m. in a warm home office. @Image1 is a tutor speaking into a microphone on a boom arm, explaining something with calm hand gestures, looking toward a monitor that faces him just out of frame. Bookshelf and a plant behind him in soft focus, warm lamp. For the last four seconds the camera arcs slowly to the dark window and the night sky full of stars, ending on almost pure sky.",
+      "duration": 8
     },
     {
       "id": "c7",
@@ -67,7 +73,8 @@
       "route": "seedance-2.5",
       "draft": true,
       "cast": ["ava", "clara"],
-      "prompt": "7:40 a.m. on a Saturday in flat grey early light. @Image1 and @Image2 are two 16 year old girls who walk side by side toward the glass doors of a brick high school, no headphones, calm and quiet. The camera follows steadily from behind. As they reach the doors, the doors open and bright warm white-gold light spills out over them; the camera rises slightly and the light fills the whole frame."
+      "prompt": "7:40 a.m. on a Saturday in flat grey early light. @Image1 and @Image2 are two 16 year old girls who walk side by side toward the glass doors of a brick high school, no headphones, calm and quiet. The camera follows steadily from behind. As they reach the doors, the doors open and bright warm white-gold light spills out over them; the camera rises slightly and the light fills the whole frame.",
+      "duration": 8
     },
     {
       "id": "c8",

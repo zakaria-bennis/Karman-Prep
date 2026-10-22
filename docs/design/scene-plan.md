@@ -1,101 +1,120 @@
-# Landing page scenes and ideas (for approval before any spend)
+# Landing page film: script and production plan
 
-Nothing in this file has been generated. The script that makes the clips
-refuses to run a scene until it is marked approved in `assets/manifest.json`.
+Status: in discussion with the founder. Nothing has been generated. The script
+in `scripts/generate-assets.mjs` refuses to run a shot until it is marked
+approved in `assets/manifest.json`.
 
-## The through-line
+## Decisions so far (2026-10-21)
 
-**One weekday, from the ground to the Kármán line.** The reader's scroll is
-the climb. Each scene is one hour of a real school day, filmed as a single
-15-second shot that the scroll plays forward and backward. The sky between
-scenes is drawn in code and gets darker and starrier as the day gets later, so
-the time of day and the altitude rise together.
+- One weekday in California winter (the cohort runs January to March), rising
+  from the ground to the edge of space. Ava is the thread: kitchen, bus, test
+  morning, college.
+- Each scene opens on the sky reflected in glass, the camera passes through
+  the reflection to the person, and ends by lifting off into a higher, darker
+  sky. The reflection opening is tested on one scene first; if the models
+  can't do it cleanly, the reflection becomes a code transition.
+- Cast: Ava, Clara (the only Chinese-American student), Mateo (tennis), Priya,
+  Ava's mother, David the tutor (Korean-American).
+- No text is generated in any video. Every word on the page is HTML, and every
+  word is editable by the founder in plain-text copy files. The founder writes
+  the Daily 10, guarantee and test-date copy himself; the card text below is
+  placeholder.
+- The ending is in orbit. The words "Kármán line" do not appear on the landing
+  page; tapping the line shows "100 km up, where the sky ends and space
+  begins." No sky-layer names anywhere.
+- Real results: Ava 1520 UC Berkeley, Mateo 1570 Harvard, Priya 1540 Stanford,
+  shown with "Karman 1:1 tutoring, median 16 weeks." Cleared by the founder's
+  lawyer.
+- Chat and workshops stay as the offer describes them (cohort group chat
+  answered daily by a tutor; weekly live session with skill workshops).
 
-**Every shot ends by lifting off.** The last 4 to 5 seconds of each clip leave
-the person and crane up into that hour's sky: through a bus window, over a car
-roof, past the floodlights. The final frame is almost all sky, in the colour
-the drawn sky has at that point on the page, so the clip melts into the page
-instead of cutting. This is what removes the "slides" feeling: the reader
-never sees a cut, they keep rising out of one moment and into the next.
+## California winter, applied
 
-## The eight scenes
+- Houses: Spanish revival and modern craftsman on oak-lined streets, as in Palo
+  Alto or Los Altos. Green winter hills behind.
+- The prep school: stucco and red-tile roofs, an oak-shaded quad, a circular
+  drive, clipped hedges. Students 15 to 18 in quarter-zips, fleece vests and
+  polos (California prep wears fewer blazers). No crests or names.
+- Light: sunrise about 6:55 a.m. and sunset about 5:45 p.m. in February, so the
+  clock times match real light: dawn on the bus, golden hour at tennis, full
+  dark for Priya and David. Test morning is flat grey marine layer.
+- Tennis is outdoors on hard courts.
 
-| #   | Time                    | Scene                                                                                                                                                                                                                                                         | Lift-off at the end                                                                         | Shown beside it, in code            |
-| --- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------- |
-| 1   | 6:12 a.m.               | A quiet town before light. One kitchen window is lit. The camera starts outside that window and rises slowly over the rooftops to the underside of the clouds, and stops there. (The current opener flies all the way to space, which gives away the ending.) | Into low cloud, deep blue                                                                   | Headline and the one button         |
-| 2   | 6:50 a.m.               | Ava on the school bus, one AirPod in, working on her phone held low so the screen is never seen. Low sun strobes through the windows. She finishes, breathes out, looks up.                                                                                   | Camera drifts to the window and tilts up to the dawn sky over the trees                     | Your Daily 10                       |
-| 3   | 3:15 p.m.               | The pickup line. Ava's mother reads the weekly update on her phone in the driver's seat, seen through the windshield with trees sliding across the glass. A small smile, she sits back.                                                                       | Rises over the car roof into a bright afternoon sky                                         | The weekly update                   |
-| 4   | 4:30 p.m.               | Mateo on the team bench at a water break, towel on his shoulder, phone in hand; two teammates sit further along, talking. He drinks, then gets up and jogs back out.                                                                                          | Tilts up past the floodlight mast into golden-hour sky                                      | Wordline and the Challenge question |
-| 5   | 8:00 p.m.               | Priya in her bedroom in a live class. The camera stays behind the laptop lid so we see her face lit by the screen, never the screen. She listens, then types an answer.                                                                                       | Slides past her to the window: blue hour, first two stars                                   | The class calendar                  |
-| 6   | 9:00 p.m.               | David, the tutor, at a desk mic on a boom arm, explaining with his hands to a student we never see. Warm lamp, bookshelf.                                                                                                                                     | Arcs to the dark window, stars                                                              | The 1:1 review after each test      |
-| —   | 32 days                 | No footage. The drawn stars wheel into star trails to show weeks passing, and the two constellations draw themselves: a heart for Reading, a brain for Math.                                                                                                  | —                                                                                           | A plain counter: 32 days, then 0    |
-| 7   | 7:40 a.m., Sat. March 6 | Test morning. Ava and Clara walk side by side toward the doors of a brick high school in flat grey light, no headphones. The doors open and bright light spills over them.                                                                                    | The light from the doors fills the frame (white-gold), which becomes the sunrise in scene 8 | The test-date card and guarantee    |
-| 8   | Sunrise at the line     | Real footage from the International Space Station: the edge of the Earth, the thin green band of airglow, the sun coming up. The Kármán line draws across as one hairline and the closing button sits on it.                                                  | —                                                                                           | The free practice test              |
+## What the research says about timing
 
-### Why scene 8 should be real footage
+1. **The first 10 seconds decide the visit.** People are most likely to leave
+   in the first 10 seconds, still at risk for the next 20, and only settle after
+   about 30 seconds (Nielsen Norman Group, from Microsoft Research's study of
+   2 billion page visits).
+2. **Most attention stays near the top.** In NN/g's 2018 eyetracking study,
+   57% of viewing time was above the fold and 74% in the first two screens.
+   Chartbeat found about half of readers see 1,500 pixels down a page, and
+   that close to half leave within 15 seconds.
+3. **Brand first.** Google and Kantar's study of 11,000 video ads (the ABCDs)
+   found that showing the brand in the first 5 seconds is linked to stronger
+   results; Google's bumper research shows 6-second spots can lift recall,
+   best as reinforcement rather than introduction.
+4. **Reading pace.** Adults read silently at about 238 words a minute
+   (Brysbaert, 2019), so a headline plus a 20-word card needs about 6 seconds.
 
-NASA publishes its own footage from the space station for free, and it is
-not covered by copyright (it can't suggest NASA endorses Karman, and the NASA
-logo can't appear). Two candidates in NASA's library:
-"ISS Airglow" (Goddard, 2018) and the "4K Earth Views Extended Cut" (Johnson,
-2021). Real orbit footage looks better than any generator and costs nothing.
-It is also the one shot where "real" matters most, because it is the promise.
+What that means for the page:
 
-## Ideas for the rest of the page
+- The first screen does all the selling on its own: what Karman is, the test
+  date, the button, and something moving within a second. The opening clip
+  plays its first 4 seconds by itself (the kitchen light comes on, Ava pours
+  coffee), then scroll takes over.
+- The opening and the bus scene are seen by the most people, so they get the
+  most care and the most seconds.
+- Visitors who pass 30 seconds are the committed ones; they get the full story,
+  and the ending is their payoff.
+- Each scene gets at least enough scroll to read its words (about 6 seconds of
+  reading), never less.
+- Because scroll drives each clip, a clip's length sets how smooth it feels,
+  not how long anyone watches. About 8 seconds of footage stays smooth over a
+  screen and a half of scrolling.
 
-1. **One live thing: pick your SAT date.** Three buttons (March 6, May 1,
-   June 5). Choosing one redraws a strip calendar: first class, the five
-   full-length tests with the one-on-one review after each, the last class, the
-   test day. All from `src/lib/marketing/offer.ts`, nothing invented. Needs the
-   May and June cohort dates, which are still open.
-2. **An altitude rail.** A hairline down the right edge with the sky layers
-   marked (Ground, Troposphere, Stratosphere, Mesosphere, Kármán line) and a
-   small marker that rises as you scroll. It names layers of the sky, never a
-   student's level (rule 39).
-3. **Each kinetic headline does one thing tied to its scene**, not a generic
-   effect:
-   - Scene 2: the clock "6:50" ticks forward a minute as the shot plays.
-   - Scene 3: the words arrive like a notification sliding in, once.
-   - Scene 4: "Wordline" letters flip in like tiles.
-   - Scene 5: words appear as if typed, matching her typing.
-   - Scene 6: "every missed question" breaks apart, then reassembles in order.
-   - Scene 7: the date stamps in place.
-4. **Star trails for the passing weeks**, drawn in code, as in the table.
-5. **The closing button sits on the Kármán line.** Hovering it draws the line
-   the rest of the way across the screen.
-6. **Subpages continue the climb.** The program page opens in stratosphere
-   colours, the private page in the mesosphere, About at the line. Same sky
-   code, different starting height, so the whole site feels like one place.
-7. **Phones get the same story.** Clips are cropped to a vertical frame
-   first; only scenes that crop badly get a separate vertical version.
-   A still frame shows within a second; the video loads after.
-8. **No sound.** Muted throughout; nothing autoplays audio.
+## Scenes, lengths and priority
 
-## What it costs (checked live on Atlas Cloud, 2026-10-21)
+| #   | Scene                                          | Clip length | Priority | Card beside it (placeholder text)                     |
+| --- | ---------------------------------------------- | ----------- | -------- | ----------------------------------------------------- |
+| 1   | 6:10 a.m. kitchen, rise to the clouds          | 12 s (Wan)  | Highest  | Headline, what Karman is, the button                  |
+| 2   | 6:50 a.m. Ava on the bus                       | 10 s        | High     | Your Daily 10 (founder's copy)                        |
+| 3   | 3:15 p.m. pickup line, Ava's mother in the SUV | 8 s         | High     | The weekly update                                     |
+| 4   | 4:30 p.m. Mateo at tennis                      | 8 s         | Medium   | Cohort chat with a tutor; Wordline                    |
+| 5   | 8:00 p.m. Priya speaking on Zoom               | 8 s         | Medium   | Two live classes a week; weekly session and workshops |
+| 6   | 9:00 p.m. David                                | 8 s         | Medium   | 1:1 after every full-length; five full-length tests   |
+| —   | Night stretch, drawn in code                   | free        | —        | Every SAT skill tracked as stars; 10,000+ questions   |
+| 7   | 7:40 a.m. Saturday, March 6, test morning      | 8 s         | Medium   | Test date and guarantee (founder's copy)              |
+| 8   | Next fall: Mateo, Priya, then Ava              | 6 s each    | High     | Name, score, college; the 1:1 label                   |
+| 9   | Orbit and the line, NASA footage               | free        | High     | The free practice test                                |
 
-Prices from Atlas's own quote endpoint, which charges nothing. Seedance 2.5
-is cheapest when each scene is drafted at 480p, judged, and only the approved
-draft is finished at 1080p.
+## How credits are kept low
 
-| Scene             | Model and route                      | Cost                                                    |
-| ----------------- | ------------------------------------ | ------------------------------------------------------- |
-| 1 Town            | Wan 3.0 on Atlas, 1080p, 15 s        | $2.40                                                   |
-| 2 to 7 People     | Seedance 2.5 on Atlas, 480p draft    | $2.10 each, $12.61 for all six                          |
-| Retakes           | About three more drafts              | about $6.30                                             |
-| 2 to 7 finished   | Seedance 2.5 draft finished at 1080p | about $3.95 each, about $23.70 (confirmed on the first) |
-| 8 Orbit           | NASA footage                         | $0                                                      |
-| **Desktop total** |                                      | **about $45**                                           |
-| Phone versions    | Only where cropping fails            | about $6 per scene                                      |
+1. Key frames as stills first (2 to 5 cents each), approved by the founder.
+2. 480p video drafts from approved stills, judged for motion only.
+3. Approved drafts finished at 1080p from the same take.
+4. Sky, stars, constellations, the line, grading and grain done in code or
+   locally for free; orbit from NASA.
+5. One change per retake; failed prompts recorded so nothing is paid twice.
 
-For comparison: Seedance 2.5 at 720p straight away is $4.52 per scene, at
-1080p $8.90. Seedance 2.0 Mini, which made the current film, is $1.46 per
-15 seconds at 720p if the budget needs to come down.
+Estimate: stills about $2; 68 seconds of Seedance 2.5 drafts about $9.50;
+retakes about $4; 1080p finishes about $18 (rate confirmed on the first);
+opening on Wan 3.0 about $2. **About $35 for desktop.**
 
-Your Atlas balance is $25.00, enough for every draft and the first finishes.
+## Sources
 
-## Decisions for you
-
-1. Approve, change or drop each scene (1 to 8).
-2. Scene 8: real NASA footage, or generated?
-3. Phones: crop first (recommended), or buy vertical versions of every scene?
-4. Which ideas from the list above to build.
+- Nielsen Norman Group, "How Long Do Users Stay on Web Pages?":
+  https://www.nngroup.com/articles/how-long-do-users-stay-on-web-pages/
+- Liu, White and Dumais, Microsoft Research, dwell-time Weibull analysis:
+  https://www.microsoft.com/en-us/research/wp-content/uploads/2010/10/dwelltime.pdf
+- Nielsen Norman Group, "Scrolling and Attention" (2018), as summarized by
+  UXmatters: https://uxmatters.com/mt/archives/2020/11/debunking-the-myth-of-the-fold.php
+- Chartbeat, scroll behavior research:
+  https://chartbeat.com/resources/research/scroll-behavior-across-the-web/
+- Nieman Lab on Chartbeat's 15-second exits:
+  https://niemanlab.org/reading/engagement-isnt-keeping-pace-with-pageviews-a-new-report-says-thats-bad-news-for-publishers-trying-to-turn-visitors-into-loyal-readers
+- Google, the ABCDs of effective video ads:
+  https://business.google.com/us/resources/articles/abcds-of-effective-video-ads/
+- Brysbaert (2019), "How many words do we read per minute?":
+  https://doi.org/10.1016/j.jml.2019.104047
+- Google, bumper ads: https://thinkwithgoogle.com/intl/en-gb/marketing-strategies/video/youtube-bumper-ads-making-big-impact-small-stories
