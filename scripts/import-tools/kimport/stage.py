@@ -106,9 +106,15 @@ def _source(q: dict) -> tuple:
             q.get("source_question_number"))
 
 
+_SUPSUB_FROM = "⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉"
+_SUPSUB_TO = "01234567890123456789"
+_SUPSUB = str.maketrans(_SUPSUB_FROM, _SUPSUB_TO)
+
+
 def _norm_text(s) -> str:
-    """Python twin of regexp_replace(lower(t),'[^[:alnum:]]+','','g')."""
-    return "".join(ch for ch in str(s or "").lower() if ch.isalnum())
+    """Python twin of the stage.sql text guard: superscript/subscript digits become digits, then
+    everything but a-z and 0-9 is dropped. (Dropping exponents made x⁶(x³) and x²⁰(x⁴) look equal.)"""
+    return re.sub(r"[^a-z0-9]+", "", str(s or "").lower().translate(_SUPSUB))
 
 
 def export_like(stable_id: str, row: dict) -> dict:
@@ -232,8 +238,9 @@ def _stage_block(tag: str, it: dict) -> list[str]:
                     " AND o.archived_at IS NULL) THEN RAISE EXCEPTION 'duplicate comparison key: %',"
                     "v->>'stable_question_id'; END IF;")
     body += [
-        "  IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE regexp_replace(lower(o.question_text),'[^[:alnum:]]+','','g')"
-        "=regexp_replace(lower(v->'question'->>'question_text'),'[^[:alnum:]]+','','g'))"
+        "  IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE "
+        f"regexp_replace(translate(lower(o.question_text),'{_SUPSUB_FROM}','{_SUPSUB_TO}'),'[^a-z0-9]+','','g')"
+        f"=regexp_replace(translate(lower(v->'question'->>'question_text'),'{_SUPSUB_FROM}','{_SUPSUB_TO}'),'[^a-z0-9]+','','g'))"
         " THEN RAISE EXCEPTION 'normalized question text already in the bank: %',v->>'stable_question_id'; END IF;",
         f"  INSERT INTO public.quiz_questions({_cols(qcols)})",
         f"   SELECT {_cols(qcols)} FROM jsonb_populate_record(NULL::public.quiz_questions,v->'question') RETURNING id INTO qid;",

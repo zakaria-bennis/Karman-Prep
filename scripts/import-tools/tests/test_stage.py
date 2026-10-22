@@ -262,3 +262,12 @@ class TestSealAndPublish(StageCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NormTextTest(unittest.TestCase):
+    def test_exponents_are_kept(self):
+        from kimport.stage import _norm_text
+        self.assertNotEqual(_norm_text("Which expression is equivalent to x⁶(x³)?"),
+                            _norm_text("Which expression is equivalent to x²⁰(x⁴)"))
+        self.assertEqual(_norm_text("x²⁰(x⁴)"), _norm_text("X20 (x4)"))
+        self.assertEqual(_norm_text("H₂O, café!"), "h2ocaf")
