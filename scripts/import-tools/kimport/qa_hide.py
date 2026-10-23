@@ -185,7 +185,8 @@ def plan_hide(want: dict[str, tuple[str, str]], rows: dict[str, dict],
         row = rows.get(qid)
         if row is None:
             skipped[qid] = "not in the export"
-        elif is_corrected(qid, row, corrected):
+        elif label != "audit" and is_corrected(qid, row, corrected):
+            # A results line judged the OLD text; an audit id is a finding on the live text, so it still hides.
             skipped[qid] = CORRECTED_SKIP
         elif not _is_live(row):
             skipped[qid] = (f"already hidden by QA ({row.get('import_flag_reason')})"

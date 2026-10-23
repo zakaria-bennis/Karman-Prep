@@ -237,6 +237,13 @@ class HideTest(QaCase):
         plan = json.loads(Path(res["run"], "plan.json").read_text())
         self.assertEqual(plan["skipped_rows"][uid(1)], qh.CORRECTED_SKIP)
 
+    def test_audit_finding_hides_a_corrected_row(self):
+        """An automated-audit id is about the live (corrected) text, so it still hides the row."""
+        qh.append_log(self.pipe / "qa" / "corrections.jsonl", [
+            {"question_id": uid(5), "after_content_hash_v2": "h5", "at": "2026-10-23T09:00:00Z"}])
+        self.hide()
+        self.assertFalse(self.bank.rows[uid(5)]["is_live"])
+
 
 class RestoreTest(QaCase):
     def test_restore_corrected_row_hidden_again(self):
