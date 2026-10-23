@@ -224,8 +224,35 @@ class HideTest(QaCase):
         with self.assertRaises(writer.LockHeld):
             self.hide()
 
+    def test_corrected_rows_are_not_hidden_again(self):
+        """A row whose text is its reviewed QA correction is not hidden again by the results line about the
+        old text; a row whose text changed after the correction is (2026-10-23: 128 corrections re-hidden)."""
+        self.bank.rows[uid(3)]["content_hash_v2"] = "h3-later-edit"
+        qh.append_log(self.pipe / "qa" / "corrections.jsonl", [
+            {"question_id": uid(1), "after_content_hash_v2": "h1", "at": "2026-10-23T09:00:00Z"},
+            {"question_id": uid(3), "after_content_hash_v2": "h3", "at": "2026-10-23T09:00:00Z"}])
+        res = self.hide()
+        self.assertTrue(self.bank.rows[uid(1)]["is_live"])
+        self.assertFalse(self.bank.rows[uid(3)]["is_live"])
+        plan = json.loads(Path(res["run"], "plan.json").read_text())
+        self.assertEqual(plan["skipped_rows"][uid(1)], qh.CORRECTED_SKIP)
+
 
 class RestoreTest(QaCase):
+    def test_restore_corrected_row_hidden_again(self):
+        """A correction re-hidden by a later hide run can be restored although the results still flag the
+        old text, as long as the row's text is still the correction."""
+        self.hide()  # hides uid(1) (key_wrong), uid(3), uid(5)
+        qh.append_log(self.pipe / "qa" / "corrections.jsonl", [
+            {"question_id": uid(1), "after_content_hash_v2": "h1", "at": "2026-10-23T09:00:00Z"},
+            {"question_id": uid(3), "after_content_hash_v2": "h3-other", "at": "2026-10-23T09:00:00Z"}])
+        ids = self.pipe / "ids.txt"
+        ids.write_text(f"{uid(1)}\n{uid(3)}\n")
+        res = qa_run.run_restore(self.pipe, ids, [self.results], [], LATER, skip_refused=True, deps=self.deps())
+        self.assertEqual(res["to_restore"], 1)
+        self.assertIn("still unresolved", res["refused"][uid(3)])
+        self.assertTrue(self.bank.rows[uid(1)]["is_live"])
+
     def test_restore_only_resolved(self):
         self.hide()
         self.bank.rows[uid(1)]["content_hash_v2"] = "h1-fixed"  # the fix changed the question

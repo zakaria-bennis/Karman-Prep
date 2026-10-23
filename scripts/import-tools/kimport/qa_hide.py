@@ -157,14 +157,36 @@ def _is_live(row: dict) -> bool:
     return row.get("is_live") is True and row.get("publish_status") in PUBLISH_READY and row.get("archived_at") is None
 
 
-def plan_hide(want: dict[str, tuple[str, str]], rows: dict[str, dict]) -> tuple[list[dict], dict]:
-    """(items to hide, skipped {id: why}). Only rows still live in the export are hidden."""
+CORRECTED_SKIP = "corrected in place (the live text is the reviewed correction)"
+
+
+def corrected_hashes(qa_dir: Path) -> dict[str, str]:
+    """{question id: content_hash_v2 of its reviewed correction} from qa/corrections.jsonl (last line wins)."""
+    out: dict[str, str] = {}
+    for e in read_log(Path(qa_dir) / "corrections.jsonl"):  # kimport.qa_correct.CORRECTIONS
+        if e.get("question_id") and e.get("after_content_hash_v2"):
+            out[e["question_id"]] = e["after_content_hash_v2"]
+    return out
+
+
+def is_corrected(qid: str, row: dict | None, corrected: dict[str, str] | None) -> bool:
+    """True when the row's text is exactly the reviewed correction, so the QA results line about the old
+    text no longer applies. A row whose text changed again since the correction is not covered."""
+    return bool(corrected and row and corrected.get(qid) and row.get("content_hash_v2") == corrected[qid])
+
+
+def plan_hide(want: dict[str, tuple[str, str]], rows: dict[str, dict],
+              corrected: dict[str, str] | None = None) -> tuple[list[dict], dict]:
+    """(items to hide, skipped {id: why}). Only rows still live in the export are hidden, and never a row
+    whose text is its reviewed QA correction (`corrected`, from corrected_hashes)."""
     items, skipped = [], {}
     for qid in sorted(want):
         label, reason = want[qid]
         row = rows.get(qid)
         if row is None:
             skipped[qid] = "not in the export"
+        elif is_corrected(qid, row, corrected):
+            skipped[qid] = CORRECTED_SKIP
         elif not _is_live(row):
             skipped[qid] = (f"already hidden by QA ({row.get('import_flag_reason')})"
                             if str(row.get("import_flag_reason") or "").startswith(REASON_PREFIX) else "not live")

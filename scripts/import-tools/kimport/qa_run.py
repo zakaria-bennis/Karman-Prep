@@ -134,7 +134,7 @@ def run_hide(pipe: Path, results: list, ids_files: list, now: str, dry: bool = F
         run_dir = qa_dir / f"hide-{_stamp(now)}{'-dry' if dry else ''}"
         run_dir.mkdir(parents=True, exist_ok=True)
         doc, rows = _export(deps, run_dir, export)
-        items, skipped = qh.plan_hide(want, rows)
+        items, skipped = qh.plan_hide(want, rows, qh.corrected_hashes(qa_dir))
         summary = {"run": str(run_dir), "export": doc.exported_at, "wanted": len(want), "to_hide": len(items),
                    "by_reason": qh.counts(items), "skipped": dict(sorted(_count(skipped.values()).items())),
                    "unknown_verdicts_not_hidden": unknown, "dry": dry}
@@ -170,8 +170,10 @@ def _count(values) -> dict:
     return out
 
 
-def restore_checks(ids: list[str], hidden: dict, results: dict, audit: set, rows: dict) -> dict[str, str]:
-    """{id: why it cannot be republished}."""
+def restore_checks(ids: list[str], hidden: dict, results: dict, audit: set, rows: dict,
+                   corrected: dict | None = None) -> dict[str, str]:
+    """{id: why it cannot be republished}. A results line about a question's old text does not block it
+    once the row's text is its reviewed correction (qh.is_corrected)."""
     bad = {}
     live_keys: dict = {}
     for r in rows.values():
@@ -181,7 +183,7 @@ def restore_checks(ids: list[str], hidden: dict, results: dict, audit: set, rows
         rec, row = hidden.get(qid), rows.get(qid)
         if rec is None:
             bad[qid] = "not hidden by QA (not in hidden.jsonl, or already restored)"
-        elif qid in results and qh.classify(results[qid])[0]:
+        elif qid in results and qh.classify(results[qid])[0] and not qh.is_corrected(qid, row, corrected):
             bad[qid] = f"still unresolved in the results ({qh.classify(results[qid])[1]})"
         elif qid in audit:
             bad[qid] = "still listed by the automated audit"
@@ -208,7 +210,7 @@ def run_restore(pipe: Path, ids_file: str, results: list, audit_files: list, now
         run_dir = qa_dir / f"restore-{_stamp(now)}{'-dry' if dry else ''}"
         run_dir.mkdir(parents=True, exist_ok=True)
         doc, rows = _export(deps, run_dir, export)
-        bad = restore_checks(ids, hidden, res, audit, rows)
+        bad = restore_checks(ids, hidden, res, audit, rows, qh.corrected_hashes(qa_dir))
         ok = [hidden[i] for i in ids if i not in bad]
         summary = {"run": str(run_dir), "asked": len(ids), "to_restore": len(ok), "refused": bad, "dry": dry}
         (run_dir / "plan.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
