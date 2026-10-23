@@ -34,6 +34,7 @@ way is a tie (keeper_tie) and that step is skipped.
 
 import difflib
 import hashlib
+import json
 from collections import Counter
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -542,16 +543,35 @@ def write_outputs(result: ClusterResult, out_dir: Path, decision_log: Path | Non
     with FileLock(out_dir / "clusters.json"):
         if decision_log is not None and Path(decision_log).exists():
             apply_saved_decisions(result, Path(decision_log))
+        aliases = apply_id_aliases(result.roles, out_dir / ID_ALIASES)
         doc = {"normalizer_version": NORMALIZER_VERSION, "export_sha256": result.export_sha256,
                "inputs": result.inputs, "counts": result.counts, "roles": dict(sorted(result.roles.items())),
                "founder_decisions": result.decisions, "stale_answers": result.stale_answers,
                "clusters": result.clusters, "unparsed": result.unparsed,
-               "certified_duplicates": check_certified(result)}
+               "certified_duplicates": check_certified(result), "aliases": aliases}
         pairs = {"normalizer_version": NORMALIZER_VERSION, "ratio_threshold": FOUNDER_RATIO,
                  "pair_count": len(result.founder_pairs), "pairs": result.founder_pairs}
         atomic_write_json(out_dir / "founder_pairs.json", pairs)
         write_text_atomic(out_dir / "report.md", report_md(result))
         atomic_write_json(out_dir / "clusters.json", doc)
+
+
+ID_ALIASES = "id-aliases.json"
+
+
+def apply_id_aliases(roles: dict[str, str], path: Path) -> dict[str, str]:
+    """corpus/id-aliases.json maps a new stable id to the captured id it renames, e.g. a module
+    inferred from position (founder 2026-10-23: ..._Reading_M2_Q15 -> ..._Reading_MUNSPECIFIED_Q15).
+    The new id gets the captured id's role, so every corpus re-run keeps it. Returns the aliases used."""
+    if not Path(path).exists():
+        return {}
+    aliases = json.loads(Path(path).read_text(encoding="utf-8"))
+    used = {}
+    for new, old in sorted(aliases.items()):
+        if old in roles and new not in roles:
+            roles[new] = roles[old]
+            used[new] = old
+    return used
 
 
 def _file_sha(path: Path) -> str:
