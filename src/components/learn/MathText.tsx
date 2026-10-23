@@ -164,10 +164,11 @@ export default function MathText({
           </Fragment>
         );
       }
+      // A display equation wider than its column scrolls inside itself, never the page.
       return (
         <Fragment key={i}>
           <span
-            className={`my-3 block text-center ${blockClassName}`}
+            className={`my-3 block max-w-full overflow-x-auto overflow-y-hidden text-center ${blockClassName}`}
             dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
           />
           {calculator && sourceAction(s.latex)}
@@ -188,8 +189,10 @@ export default function MathText({
     );
   }
 
+  // overflow-wrap: anywhere lets an unbroken run (a long URL, "transportation/warehousing",
+  // "9(4n)+8n+3(15)=100") wrap inside a narrow choice or column instead of running past it.
   return (
-    <span className={className} style={{ whiteSpace: "pre-wrap" }}>
+    <span className={className} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
       {runs.map((run, index) =>
         run.underlined ? (
           <Fragment key={index}>

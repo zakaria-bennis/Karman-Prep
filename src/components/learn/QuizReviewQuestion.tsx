@@ -6,25 +6,22 @@ import QuestionTable from "./QuestionTable";
 import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
-import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
+import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import type { QuizReviewContent } from "@/lib/quiz-review-content";
 
 /** Reuse the same math, native figure and table renderers as active practice. */
 export default function QuizReviewQuestion({ question: q }: { question: QuizReviewContent }) {
-  const nativeGeometry =
-    q.figure_kind === "geometric" &&
-    q.figure_geometry_data &&
-    buildGeometrySvg(q.figure_geometry_data).renderable;
+  const drawn = drawnFigure(q);
   const figureFirst = figureLeadsText(q.subject);
   const figure =
-    q.figure_kind === "table" && q.figure_table_data ? (
-      <QuestionTable data={q.figure_table_data} />
-    ) : q.figure_kind === "chart" && q.figure_chart_data ? (
-      <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />
-    ) : nativeGeometry ? (
+    drawn === "table" ? (
+      <QuestionTable data={q.figure_table_data!} />
+    ) : drawn === "chart" ? (
+      <ChartFigure data={q.figure_chart_data!} subject={q.subject} alt={q.image_alt ?? undefined} />
+    ) : drawn === "geometric" ? (
       <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
-    ) : q.image_url || q.figure_svg ? (
+    ) : drawn === "image" ? (
       <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
     ) : null;
   return (

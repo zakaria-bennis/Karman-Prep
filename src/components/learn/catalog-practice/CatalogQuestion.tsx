@@ -13,7 +13,7 @@ import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
-import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
+import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 
 /** The immutable answer-free question, rendered with the existing source-aware components. */
@@ -35,33 +35,28 @@ export default function CatalogQuestion({
     () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
     [q.question_text, q.subject]
   );
-  const geometry =
-    q.figure_kind === "geometric" &&
-    q.figure_geometry_data &&
-    buildGeometrySvg(q.figure_geometry_data).renderable;
+  const drawn = drawnFigure(q);
   const hasPassage = q.passage || q.passage_intro || q.passage_a || q.passage_b;
   const figureFirst = figureLeadsText(q.subject);
   const figure =
-    q.figure_kind === "table" && q.figure_table_data ? (
-      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
-    ) : q.figure_kind === "chart" && q.figure_chart_data ? (
-      <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />
-    ) : geometry ? (
+    drawn === "table" ? (
+      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data!} />
+    ) : drawn === "chart" ? (
+      <ChartFigure data={q.figure_chart_data!} subject={q.subject} alt={q.image_alt ?? undefined} />
+    ) : drawn === "geometric" ? (
       <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
-    ) : q.image_url || q.figure_svg ? (
+    ) : drawn === "image" ? (
       <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
     ) : null;
+  // Only a passage or a figure that is actually drawn earns the left column.
+  const split = !!hasPassage || drawn !== null;
   return (
     <div
       data-catalog-question-id={q.id}
       data-question-layout
-      className={
-        hasPassage || q.image_url || q.figure_kind
-          ? "grid min-w-0 gap-6 md:grid-cols-2"
-          : "min-w-0 space-y-6"
-      }
+      className={split ? "grid min-w-0 gap-6 md:grid-cols-2" : "min-w-0 space-y-6"}
     >
-      <div className="min-w-0 space-y-6" hidden={!hasPassage && !q.image_url && !q.figure_kind}>
+      <div className="min-w-0 space-y-6" hidden={!split}>
         {figureFirst && figure}
         {hasPassage && (
           <PassageAnnotations

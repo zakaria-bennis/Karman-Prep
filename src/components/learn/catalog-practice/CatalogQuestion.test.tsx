@@ -103,3 +103,33 @@ it("shows a Reading and Writing figure before the source passage, prompt and ans
   ).toBeTruthy();
   expect(JSON.stringify(q)).toBe(original);
 });
+
+it("lays out a figure kind with nothing to draw exactly like a question without a figure", () => {
+  const empty = {
+    ...base,
+    passage: null,
+    passage_intro: null,
+    passage_a: null,
+    passage_b: null,
+    image_url: null,
+    figure_svg: null,
+  };
+  const plain = render(
+    <CatalogQuestion
+      question={{ ...empty, figure_kind: null }}
+      answer=""
+      disabled={false}
+      onAnswer={vi.fn()}
+    />
+  ).container.innerHTML;
+  const { container } = render(
+    <CatalogQuestion
+      question={{ ...empty, figure_kind: "image" as const }}
+      answer=""
+      disabled={false}
+      onAnswer={vi.fn()}
+    />
+  );
+  expect(container.innerHTML).toBe(plain);
+  expect(container.querySelector("[data-question-layout]")?.className).not.toMatch(/grid-cols-2/);
+});
