@@ -20,7 +20,7 @@ import {
 } from "@/components/calculator/CalculatorSourceAction";
 import { makeQuestionKey } from "@/components/calculator/question-key";
 import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
-import { drawnFigure } from "@/lib/figures/question-figure";
+import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 
 const subjectName: Record<DailySubject, string> = {
@@ -274,16 +274,19 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
 }
 
 function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
-  const drawn = drawnFigure(q);
+  const geometryReady =
+    q.figure_kind === "geometric" &&
+    q.figure_geometry_data &&
+    buildGeometrySvg(q.figure_geometry_data).renderable;
   const figureFirst = figureLeadsText(q.subject);
   const figure =
-    drawn === "table" ? (
-      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data!} />
-    ) : drawn === "chart" ? (
-      <ChartFigure data={q.figure_chart_data!} subject={q.subject} alt={q.image_alt ?? undefined} />
-    ) : drawn === "geometric" ? (
+    q.figure_kind === "table" && q.figure_table_data ? (
+      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
+    ) : q.figure_kind === "chart" && q.figure_chart_data ? (
+      <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />
+    ) : geometryReady ? (
       <GeometryFigure data={q.figure_geometry_data!} className="max-w-full" />
-    ) : drawn === "image" ? (
+    ) : q.image_url || q.figure_svg ? (
       <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
     ) : null;
   return (

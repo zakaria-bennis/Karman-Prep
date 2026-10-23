@@ -164,11 +164,10 @@ export default function MathText({
           </Fragment>
         );
       }
-      // A display equation wider than its column scrolls inside itself, never the page.
       return (
         <Fragment key={i}>
           <span
-            className={`my-3 block max-w-full overflow-x-auto overflow-y-hidden text-center ${blockClassName}`}
+            className={`my-3 block text-center ${blockClassName}`}
             dangerouslySetInnerHTML={{ __html: renderKaTeX(s.latex, true) }}
           />
           {calculator && sourceAction(s.latex)}
