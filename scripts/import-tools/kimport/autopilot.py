@@ -55,7 +55,7 @@ from pathlib import Path
 
 from kimport import autopilot_live as apl
 from kimport import autopilot_state as aps
-from kimport import bulk, fix, lane, live_fix, qa_correct, writer
+from kimport import bulk, fix, lane, live_fix, qa_correct, qa_hide, writer
 from kimport import stage as st
 from kimport.export import _unwrap, read_export_doc
 from kimport.fetch import ExportFailed, run_export
@@ -319,7 +319,9 @@ class Autopilot:
         cache: dict = {}
         # QA corrections may keep a QA-hidden row's stored identity (kimport.qa_correct.kept_identities);
         # a new row naming one is still refused (split: mixed batch; stage: source question in the bank).
-        keep = {"keep_identities": kept} if (kept := qa_correct.kept_identities(doc.rows)) else {}
+        # A QA correction held at seal left a private draft on the same row; its fix batch keeps that identity too.
+        kept = qa_correct.kept_identities(doc.rows, frozenset(qa_hide.currently_hidden(self.pipe / "qa")))
+        keep = {"keep_identities": kept} if kept else {}
 
         def rows_runner(reviewed, pdf, frozen, sha):
             key = str(reviewed)

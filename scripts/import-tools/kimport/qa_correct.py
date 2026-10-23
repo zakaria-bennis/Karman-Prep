@@ -74,8 +74,21 @@ def hidden_sources(export_rows: list[dict]) -> set:
     return {st._source(r) for r in export_rows if is_qa_hidden(r)}
 
 
-def kept_identities(export_rows: list[dict]) -> list[dict]:
-    """The stored source tuples of the QA-hidden rows, for ts/stage-rows.ts <keep-identities.json>.
+def _held_qa_draft(q: dict, hidden_ids: frozenset) -> bool:
+    """A QA correction held at seal: the QA-hidden row (still in qa/hidden.jsonl, never published
+    as corrected) was rewritten in place as a private draft (archived_at cleared, the stage flag
+    reason), so it no longer looks QA-hidden, but it is the same row and identity; its next
+    correction comes back as an evidence fix batch. The export's evidence is cut down, so the
+    row is matched by its id."""
+    return (q.get("id") in hidden_ids and q.get("publish_status") == STAGED_STATUS
+            and q.get("import_status") == STAGED_IMPORT and q.get("is_live") is not True
+            and q.get("archived_at") is None)
+
+
+def kept_identities(export_rows: list[dict], hidden_ids: frozenset = frozenset()) -> list[dict]:
+    """The stored source tuples of the QA-hidden rows, and of the private drafts a QA correction
+    left when it was held at seal (rows of `hidden_ids`, qa_hide.currently_hidden), for
+    ts/stage-rows.ts <keep-identities.json>.
 
     A correction rewrites the hidden row in place, so it never creates an identity: a row
     whose identity the strict rule (math/reading, M1/M2) cannot read, such as the 2023-03 and
@@ -83,7 +96,9 @@ def kept_identities(export_rows: list[dict]) -> list[dict]:
     it names it exactly (src/lib/question-bank/kept-source-identity.ts). The stable id is then
     checked against the hidden row's evidence by check_row; new rows stay strict."""
     names = ("source_version", "source_section", "source_module", "source_question_number")
-    tuples = {s for s in hidden_sources(export_rows) if all(v not in (None, "") for v in s)}
+    rows = [r for r in export_rows if is_qa_hidden(r) or _held_qa_draft(r, hidden_ids)]
+    tuples = {st._source(r) for r in rows}
+    tuples = {s for s in tuples if all(v not in (None, "") for v in s)}
     return [dict(zip(names, s)) for s in sorted(tuples, key=lambda s: tuple(map(str, s)))]
 
 

@@ -44,6 +44,22 @@ class TestKeptIdentities(unittest.TestCase):
         self.assertEqual(qc.kept_identities([export_row("reading", "M1", 1, hidden=False)]), [])
 
 
+    def test_a_qa_correction_held_at_seal_keeps_its_identity(self):
+        # r3-qa-88 rewrote the hidden row as a private draft and was held at seal; its fix batch (r3-qa-90)
+        # must keep the identity, though the row no longer looks QA-hidden.
+        draft = export_row("writing", "UNSPECIFIED", 21, hidden=False)
+        draft.update(publish_status="needs_human_review", import_status="needs_review", is_live=False,
+                     import_flag_reason="Private preview")
+        other = {**copy.deepcopy(draft), "id": "q-new-draft", "source_question_number": 22}  # never QA-hidden
+        hidden = frozenset({draft["id"]})
+        self.assertEqual(qc.kept_identities([draft, other]), [])  # without the hidden list: strict
+        self.assertEqual(qc.kept_identities([draft, other], hidden), [
+            {"source_version": V, "source_section": "writing", "source_module": "UNSPECIFIED",
+             "source_question_number": 21}])
+        published = {**copy.deepcopy(draft), "is_live": True, "publish_status": "publish_ready", "import_status": "ok"}
+        self.assertEqual(qc.kept_identities([published], hidden), [])
+
+
 class TestStageRowsKeepFile(unittest.TestCase):
     def run_with(self, **kw):
         seen = {}
