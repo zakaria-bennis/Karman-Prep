@@ -107,17 +107,24 @@ class DecisionTest(unittest.TestCase):
         self.assertEqual([(x["id"], x["field"]) for x in res["dropped"]], [(UUID.format(2), "difficulty")])
         md = qa_retag.plan_md(res, {"decisions": "d.jsonl", "decision_lines": 5, "run": "r", "dry_passed": True},
                               "2099-01-05T00:00:00Z")
-        self.assertIn("**2 label changes on 2 live questions**", md)
+        self.assertIn("**2 live questions** would get a corrected label: **0 skill changes** and **2 difficulty changes**", md)
+        self.assertIn("Difficulty: 2 go up, 0 go down", md)
         self.assertIn("| difficulty | 2 |", md)
         self.assertIn("| r2 | 1 |", md)
         self.assertIn(f"| {SID.format(3)} | difficulty | 3 → 6 | r2 |", md)
         self.assertIn(f"- {SID.format(2)} (difficulty): latest line by r1", md)
+        self.assertIn("trial run against the live bank passed", md)
 
     def test_plan_md_lists_skill_moves(self):
         res = plan([line(1, "skill", "Transitions", "Lists and series"), line(2, "skill", "Transitions", "Lists and series"),
                     line(3, "skill", "Transitions", "Rhetorical Synthesis")], [row(1), row(2), row(3)])
         md = qa_retag.plan_md(res, {"decisions": "d", "decision_lines": 3, "run": "r"}, "2099-01-05T00:00:00Z")
         self.assertIn("| Transitions | Lists and series | 2 |\n| Transitions | Rhetorical Synthesis | 1 |", md)
+        self.assertIn("- Transitions → Lists and series: 2", md)
+        res["refused"] = {"x": "line 3: X resolves to 0 live rows (expected one)", "y": "difficulty: live is 4, the decision says 3"}
+        md = qa_retag.plan_md(res, {"decisions": "d", "decision_lines": 3, "run": "r"}, "2099-01-05T00:00:00Z")
+        self.assertIn("**Not changed: 2 questions refused**", md)
+        self.assertIn("- 1: not on the site right now", md)
 
     def test_skill_change_writes_tags_review_record_domain_and_history(self):
         res = plan([line(1, "skill", "Transitions", "Lists and series"), line(1, "difficulty", 3, 2)], [row(1)])

@@ -378,8 +378,23 @@ def _cell(v) -> str:
     return str(v).replace("|", "/").replace("\n", " ")
 
 
+REFUSAL_PLAIN = (  # (substring of the reason, how the summary says it)
+    ("resolves to", "not on the site right now (hidden or never published), so there is no live label to change"),
+    ("the decision says", "the label on the site is no longer the one the reviewer saw; they need to look again"),
+    ("more than one reviewer", "two reviewers wrote different decisions for the same question"),
+    ("not an independent D review", "its skill comes from the original source classification, which this tool does not overwrite"),
+    ("not in the site taxonomy", "the new skill is not one of the site's skills"),
+    ("integer 1 to 7", "the difficulty is not a whole number from 1 to 7"),
+    ("app check", "the site's own check refused the changed question"),
+)
+
+
+def _plain(reason: str) -> str:
+    return next((text for key, text in REFUSAL_PLAIN if key in reason), "other: " + reason)
+
+
 def plan_md(plan: dict, summary: dict, now: str) -> str:
-    """retag-plan.md: what the label change would do, for the founder to approve."""
+    """retag-plan.md: what the label change would do, for the founder to approve. Plain summary first."""
     items, refused, dropped = plan["items"], plan["refused"], plan["dropped"]
     changes = [(it, f, d) for it in items for f, d in sorted(it["decisions"].items())]
     by_field: dict[str, int] = {}
@@ -390,25 +405,44 @@ def plan_md(plan: dict, summary: dict, now: str) -> str:
         by_reviewer[d["by"]] = by_reviewer.get(d["by"], 0) + 1
         if f == "skill":
             moves[(d["live"], d["new"])] = moves.get((d["live"], d["new"]), 0) + 1
-    lines = [f"# Label changes waiting for your OK ({now[:10]})", "",
-             f"`k qa retag --dry` on `{summary['decisions']}`: {summary['decision_lines']} reviewer lines.",
-             f"**{len(changes)} label changes on {len(items)} live questions** would be made. Only the skill or difficulty "
-             "label changes (and the tags the site reads for them); question text, choices and answers do not.",
-             "The dry run " + ("passed: every guard held and the change rolled back." if summary.get("dry_passed")
-                               else "was not run against the database.")
-             + f" {len(refused)} questions refused, {len(dropped)} lines dropped as no change (below).", "",
-             "| | changes |", "|---|---|"]
+    ups = sum(1 for _, f, d in changes if f == "difficulty" and d["new"] > d["live"])
+    downs = by_field.get("difficulty", 0) - ups
+    both = sum(1 for it in items if len(it["decisions"]) == 2)
+    top = sorted(moves.items(), key=lambda x: (-x[1], x[0]))
+    refusal_groups: dict[str, int] = {}
+    for why in refused.values():
+        refusal_groups[_plain(why)] = refusal_groups.get(_plain(why), 0) + 1
+    ran = ("The trial run against the live bank passed: every safety check held, and it was rolled back, so nothing "
+           "has changed yet." if summary.get("dry_passed") else "No trial run against the live bank yet.")
+    lines = [f"# Label changes waiting for your OK ({now[:10]})", "", "## In short", "",
+             f"- **{len(items)} live questions** would get a corrected label: **{by_field.get('skill', 0)} skill changes** "
+             f"and **{by_field.get('difficulty', 0)} difficulty changes** ({both} questions get both).",
+             f"- Difficulty: {ups} go up, {downs} go down (scale 1 to 7).",
+             "- Only labels change. The question text, choices, answers and explanations stay exactly as they are.",
+             "- Reviewers: " + ", ".join(f"{r} {n}" for r, n in sorted(by_reviewer.items())) + " changes.",
+             f"- {ran} An exact undo file is ready.", ""]
+    if top:
+        lines += ["**Main skill moves** (from → to, questions):", ""]
+        lines += [f"- {a} → {b}: {n}" for (a, b), n in top[:8]]
+        if len(top) > 8:
+            lines.append(f"- and {len(top) - 8} smaller patterns (full list below)")
+        lines.append("")
+    lines += [f"**Not changed: {len(refused)} questions refused** (nothing is written for them):", ""]
+    lines += [f"- {n}: {text}" for text, n in sorted(refusal_groups.items(), key=lambda x: -x[1])] or ["- none"]
+    lines += ["", f"Also skipped: {len(dropped)} lines where the reviewer's last word kept the current label.", "",
+              f"Source: `{summary['decisions']}` ({summary['decision_lines']} reviewer lines); live export "
+              f"{summary.get('export')}.", "", "---", "", "## Counts", "", "| | changes |", "|---|---|"]
     lines += [f"| {f} | {n} |" for f, n in sorted(by_field.items())]
     lines += ["", "| reviewer | changes |", "|---|---|"] + [f"| {r} | {n} |" for r, n in sorted(by_reviewer.items())]
     if moves:
         lines += ["", "## Skill moves", "", "| from | to | questions |", "|---|---|---|"]
-        lines += [f"| {_cell(a)} | {_cell(b)} | {n} |" for (a, b), n in sorted(moves.items(), key=lambda x: (-x[1], x[0]))]
+        lines += [f"| {_cell(a)} | {_cell(b)} | {n} |" for (a, b), n in top]
     lines += ["", "## Every change", "", "| stable id | field | live → new | reviewer | reason |", "|---|---|---|---|---|"]
     lines += [f"| {it['stable_question_id']} | {f} | {_cell(d['live'])} → {_cell(d['new'])} | {d['by']} | {_cell(d['reason'])} |"
               for it, f, d in sorted(changes, key=lambda x: (x[1], x[0]["stable_question_id"]))]
     lines += ["", "## Refused (nothing written for these)", ""]
     lines += [f"- `{k}`: {_cell(v)}" for k, v in refused.items()] or ["None."]
-    lines += ["", "## Dropped: the reviewer's latest line keeps the live value", ""]
+    lines += ["", "## Skipped: the reviewer's latest line keeps the live value", ""]
     lines += [f"- {x['stable_question_id']} ({x['field']}): {x['why']}" for x in dropped] or ["None."]
-    lines += ["", f"Run folder: `{summary['run']}` (plan.json, retag.sql, retag.dryrun.sql, restore.sql)."]
+    lines += ["", f"Run folder: `{summary['run']}` (plan.json, retag SQL files and their .dryrun.sql twins, restore SQL)."]
     return "\n".join(lines) + "\n"
