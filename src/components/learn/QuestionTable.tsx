@@ -28,6 +28,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CalculatorTableAction } from "@/components/calculator/CalculatorSourceAction";
 import MathText from "@/components/learn/MathText";
+import { displayEmDashes } from "@/components/learn/em-dash-display";
 import { cn } from "@/lib/utils";
 import type { QuestionTableData } from "@/types/question-table";
 import {
@@ -160,8 +161,9 @@ export default function QuestionTable({
   // WORD_WRAP keeps words whole; nowrap words also stop breaks at hyphens ("1980-81").
   const renderCell = (source: string, key: string) => {
     const text = tightenUnits(source);
-    const words = plainWords(text);
-    if (!words) return <span key={key}>{renderMath ? <MathText text={text} /> : text}</span>;
+    const words = plainWords(text) && plainWords(displayEmDashes(text));
+    if (!words)
+      return <span key={key}>{renderMath ? <MathText text={text} /> : displayEmDashes(text)}</span>;
     return (
       <span key={key}>
         {words.map((w, i) =>

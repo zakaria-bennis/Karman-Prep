@@ -87,3 +87,11 @@ f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
   fraction leaves the following sum outside it. Source bytes, ordinary prose,
   explicit math and unsupported forms stay intact. Require source-pixel review
   for affected questions on the exact renderer before accepting display.
+- Em dashes stored as hyphen runs (founder, 2026-10-22): in prose, `MathText`
+  and plain table cells show a lone run of exactly 3 or 4 hyphens (`---`,
+  `----`) as one em dash `—`, dropping spaces or tabs beside it, so
+  `evolution --- a` reads `evolution—a`. Passages, stems, answer choices and
+  table cells all follow this. Math (`$...$`, `$$...$$`, `\(...\)`), single
+  and double hyphens, runs of 5 or more, underscore blanks, and runs touching
+  `|` or `:` (Markdown table rules like `|---|`) stay as they are. Display
+  only; approved source bytes keep the hyphens. Code: `em-dash-display.ts`.
