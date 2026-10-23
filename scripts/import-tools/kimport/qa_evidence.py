@@ -234,6 +234,8 @@ class RepairRecords:
 # ---------------------------------------------------------------- blind re-solve records
 
 RESOLVE_INPUTS = ("student-view text", "source page image")
+ADJUDICATIONS = "adjudications.jsonl"
+DECISIONS = ("key_confirmed", "key_wrong", "unclear")
 
 
 class BlindResolves:
@@ -241,12 +243,16 @@ class BlindResolves:
     {"id", "stable_question_id", "answer", "solver": "blind-subagent", "solver_run",
      "key_exposed_to_solver": false, "inputs": "student-view text" | "source page image", "at"}.
     Each distinct solver_run is one blind solver; a line that breaks the format is not a solve and
-    is listed in `rejected` with the reason."""
+    is listed in `rejected` with the reason. adjudications.jsonl in the same folder holds
+    {id, stable_question_id, decision: key_confirmed | key_wrong | unclear, note, by, at,
+    confirming_runs: [solver_run, ...]} for rows a re-solve disagreed with (later lines win)."""
 
     def __init__(self, folder: Path):
         self.by_id: dict[str, dict[str, tuple]] = {}
         self.rejected: list[dict] = []
+        self.adjudications: dict[str, dict] = {}
         for f in sorted(Path(folder).glob("*.jsonl")) if Path(folder).is_dir() else []:
+            adj = f.name == ADJUDICATIONS
             for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
                 if not line.strip():
                     continue
@@ -256,12 +262,32 @@ class BlindResolves:
                 except ValueError:
                     why = "not JSON"
                 if why is None:
-                    why = self._problem(r)
+                    why = self._adjudication_problem(r) if adj else self._problem(r)
                 if why:
-                    self.rejected.append({"file": f.name, "line": n, "reason": why})
+                    self.rejected.append({"file": f.name, "line": n, "id": r.get("id") if isinstance(r, dict) else None,
+                                          "reason": why})
+                    continue
+                if adj:
+                    self.adjudications[r["id"]] = r  # later lines win
                     continue
                 runs = self.by_id.setdefault(r["id"], {})
                 runs.setdefault(str(r["solver_run"]), (str(r["answer"]), r.get("stable_question_id"), f"{f.name}:{n}"))
+
+    @staticmethod
+    def _adjudication_problem(r) -> str | None:
+        if not isinstance(r, dict):
+            return "not an object"
+        for k in ("id", "stable_question_id", "by", "at"):
+            if not isinstance(r.get(k), str) or not r[k].strip():
+                return f"{k} missing"
+        if r.get("decision") not in DECISIONS:
+            return f"decision is not one of {', '.join(DECISIONS)}"
+        if not isinstance(r.get("note"), str):
+            return "note missing"
+        runs = r.get("confirming_runs")
+        if not isinstance(runs, list) or not all(isinstance(x, str) and x for x in runs):
+            return "confirming_runs is not a list of solver_run ids"
+        return None
 
     @staticmethod
     def _problem(r) -> str | None:
@@ -279,6 +305,11 @@ class BlindResolves:
         if r.get("inputs") not in RESOLVE_INPUTS:
             return f"inputs is not one of {', '.join(RESOLVE_INPUTS)}"
         return None
+
+    def adjudication(self, live_id: str, sid: str | None) -> dict | None:
+        """The latest adjudication of this question (adjudications.jsonl, later lines win)."""
+        a = self.adjudications.get(live_id)
+        return a if a and (sid is None or a.get("stable_question_id") == sid) else None
 
     def for_row(self, live_id: str, sid: str | None) -> list[tuple[str, str, str]]:
         """(solver_run, answer, where) of this question's re-solves; a line naming another stable id is left out."""

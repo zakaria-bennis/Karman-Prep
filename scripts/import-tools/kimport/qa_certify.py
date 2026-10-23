@@ -201,6 +201,14 @@ def certificate_md(cert: dict) -> str:
         x for x in (_detail(f["static"]), _detail(f["render"]),
                     f"answer: {f['answer']['reason']} ({f['answer']['detail']})" if f.get("answer") else "") if x)
         for f in cert["failing"]] or ["None."])
+    rejected = cert.get("blind_resolve_rejected") or []
+    lines += ["", "## Blind re-solve lines not counted", ""]
+    if not rejected:
+        lines.append("None.")
+    for f in sorted({r["file"] for r in rejected}):
+        lines.append(f"- `qa/blind-resolve/{f}`:")
+        lines += [f"  - line {r['line']}" + (f" (`{r['id']}`)" if r.get("id") else "") + f": {r['reason']}"
+                  for r in rejected if r["file"] == f]
     lines += ["", "## Answer uncertified", ""] + ([f"- `{u['id']}`: {u['reason']}" + (
         f" ({str(u.get('detail'))[:200]})" if u.get("detail") else "")
         + (f" [agreeing: {', '.join(u['agreeing']) or 'none'}]" if "agreeing" in u else "")

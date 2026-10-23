@@ -63,15 +63,51 @@ def same_answer(a, key, numeric: bool) -> bool:
     return places is not None and places >= 3 and abs(float(x) - float(y)) <= 10 ** -places
 
 
-def judge(ev: qa_evidence.Evidence, key: str, numeric: bool) -> dict:
+def accepted_answers(row: dict) -> list[str]:
+    """What the site accepts, as quiz-session.ts grades it: the reviewed numeric answer set
+    (numeric_answer_set.answers in the answer key evidence, read as numericAnswerSetFromEvidence
+    does) for a numeric question that has one, else the key."""
+    key = str(row.get("correct_answer") or "")
+    if row.get("answer_format") != "numeric_entry":
+        return [key]
+    for k in row.get("answer_key_entries") or []:
+        raw = k.get("raw_model_response")
+        root = raw.get("evidence") if isinstance(raw, dict) and isinstance(raw.get("evidence"), dict) else raw
+        answers = ((root or {}).get("numeric_answer_set") or {}).get("answers") if isinstance(root, dict) else None
+        if isinstance(answers, list) and answers:
+            return [str(a) for a in answers]
+    return [key]
+
+
+def key_matcher(row: dict):
+    """answer -> True when the site would grade it correct: equal to an accepted answer (numbers by
+    value, gridded decimals as elsewhere) or within numeric_tolerance of one."""
+    numeric = row.get("answer_format") == "numeric_entry"
+    accepted = accepted_answers(row)
+    try:
+        tol = float(row.get("numeric_tolerance") or 0)
+    except (TypeError, ValueError):
+        tol = 0.0
+
+    def match(answer) -> bool:
+        if any(same_answer(answer, a, numeric) for a in accepted):
+            return True
+        x = _num(answer) if numeric and tol > 0 else None
+        return x is not None and any(_num(a) is not None and abs(float(x) - float(_num(a))) <= tol + 1e-9
+                                     for a in accepted)
+    return match
+
+
+def judge(ev: qa_evidence.Evidence, match) -> dict:
     """The evidence rule: the official printed key plus one agreeing BLIND solver, or two agreeing
-    BLIND solvers (qa_evidence.is_blind). Every solver on record is listed; only blind ones count."""
+    BLIND solvers (qa_evidence.is_blind). Every solver on record is listed; only blind ones count.
+    `match` is key_matcher(row): agreeing means the site would accept the answer."""
     agree, other = set(), set()
     for solver, got, _ in ev.solves:
-        (agree if any(same_answer(a, key, numeric) for a in got) else other).add(solver)
+        (agree if any(match(a) for a in got) else other).add(solver)
     other -= agree
     blind = sorted(s for s in agree if qa_evidence.is_blind(s))
-    printed = ev.printed is not None and same_answer(ev.printed, key, numeric)
+    printed = ev.printed is not None and match(ev.printed)
     need = 1 if printed else 2
     return {"printed_key": ev.printed, "printed_key_agrees": printed, "agreeing": sorted(agree),
             "agreeing_blind": blind, "disagreeing": sorted(other),
@@ -187,12 +223,27 @@ def certify_row(row: dict, rec: QaRecords) -> dict:
     rid, key = str(row["id"]), str(row.get("correct_answer") or "")
     numeric = row.get("answer_format") == "numeric_entry"
     sid, binding = _key_tags(row)
-    # A blind re-solve (qa/blind-resolve) that disagrees with the live key fails the row, whatever else holds.
-    against = [run for run, answer, _ in rec.resolves.for_row(rid, sid) if not same_answer(answer, key, numeric)]
+    # A blind re-solve (qa/blind-resolve) the site would grade wrong fails the row, whatever else holds,
+    # until an adjudication confirms the key with two further agreeing blind re-solves.
+    match = key_matcher(row)
+    resolves = rec.resolves.for_row(rid, sid)
+    against = [run for run, answer, _ in resolves if not match(answer)]
+    adjudicated = None
     if against:
-        return {"status": "failed", "reason": "blind_solve_disagrees", "stable_question_id": sid,
-                "disagreeing_runs": against, "detail": f"{len(against)} blind re-solve(s) differ from the live key"}
+        adj = rec.resolves.adjudication(rid, sid)
+        agreeing_runs = {run for run, answer, _ in resolves if match(answer)}
+        confirming = sorted(set((adj or {}).get("confirming_runs") or []) & agreeing_runs)
+        if not adj or adj["decision"] != "key_confirmed" or len(confirming) < 2:
+            why = ("no adjudication" if not adj else f"adjudicated {adj['decision']}" if adj["decision"] != "key_confirmed"
+                   else f"key_confirmed with {len(confirming)} of 2 confirming blind re-solves that agree")
+            return {"status": "failed", "reason": "blind_solve_disagrees", "stable_question_id": sid,
+                    "disagreeing_runs": against, "adjudication": adj["decision"] if adj else None,
+                    "detail": f"{len(against)} blind re-solve(s) the site would grade wrong; {why}"}
+        adjudicated = {"decision": "key_confirmed", "by": adj.get("by"), "confirming_runs": confirming,
+                       "disagreeing_runs": against}
     out = _certify(row, rec, rid, key, numeric, sid, binding)
+    if adjudicated:
+        out = {**out, "adjudication": adjudicated}
     runs = [run for run, _, _ in rec.resolves.for_row(rid, sid)]
     return {**out, "blind_resolve_runs": runs} if runs else out
 
@@ -215,7 +266,7 @@ def _certify(row: dict, rec: QaRecords, rid: str, key: str, numeric: bool, sid, 
             ev.add("qa-fix-audit", fx.get("audit_own_answer"), "qa/fixes-*.jsonl")
         for b in rec.blind_corrections.get(csid, []):
             ev.add("blind-subagent", b, "qa/blind-corrections-*.json")
-        j = judge(ev, key, numeric)
+        j = judge(ev, key_matcher(row))
         base = {"basis": "qa_correction", "batch": corr.get("batch"), "stable_question_id": csid,
                 **{k: v for k, v in j.items() if k != "ok"}}
         if j["ok"]:
@@ -237,7 +288,7 @@ def _certify(row: dict, rec: QaRecords, rid: str, key: str, numeric: bool, sid, 
     if not folders or not sid:
         return {"status": "uncertified", "reason": "post_qa_no_batch_folder", "stable_question_id": sid,
                 "detail": f"stable id {sid}, tag binding {binding}"}
-    j = judge(rec.evidence(folders, sid, rid), key, numeric)
+    j = judge(rec.evidence(folders, sid, rid), key_matcher(row))
     base = {"basis": "post_qa_publish", "batch": ", ".join(f.name for f in folders), "stable_question_id": sid,
             **{k: v for k, v in j.items() if k != "ok"}}
     if j["ok"]:
