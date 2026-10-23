@@ -346,7 +346,8 @@ export async function loadExam(
         const figureDoc = await readJson<Record<string, unknown>>(
           path.join(dir, "figures", questionId, "figure.json")
         );
-        if (figureDoc) {
+        // A figure still being drafted (no figure_kind yet) falls back to the source image.
+        if (figureDoc?.figure_kind) {
           const rebuilt = toQuestion(questionId, figureDoc, "");
           question = {
             ...question,

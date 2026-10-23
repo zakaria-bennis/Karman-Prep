@@ -94,6 +94,22 @@ describe("loadExam", () => {
     expect(gridIn.question.answer_choices).toEqual([]);
   });
 
+  it("uses a rebuilt figure.json only once it holds a figure", async () => {
+    const folder = path.join(dir, "figures", `${EXAM}_MATH_M1_Q01`);
+    mkdirSync(folder, { recursive: true });
+    writeFileSync(path.join(folder, "figure.json"), JSON.stringify({ figure_kind: null }));
+    let exam = (await loadExam(EXAM, dir))!;
+    expect(exam.modules[2].questions[0].question.image_url).toContain("original.png");
+    const table = { header_row: ["x", "y"], rows: [["1", "2"]] };
+    writeFileSync(
+      path.join(folder, "figure.json"),
+      JSON.stringify({ figure_kind: "table", figure_table_data: table })
+    );
+    exam = (await loadExam(EXAM, dir))!;
+    expect(exam.modules[2].questions[0].question.image_url).toBeNull();
+    expect(exam.modules[2].questions[0].question.figure_table_data).toEqual(table);
+  });
+
   it("keeps broken problems, flagged as capture incomplete", async () => {
     const exam = (await loadExam(EXAM, dir))!;
     const broken = exam.modules[1].questions[0];
