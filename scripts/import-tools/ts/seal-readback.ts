@@ -30,6 +30,15 @@ function evidenceRoot(raw: Obj): Obj {
   return raw?.kind === "independently_confirmed_generated" ? ((raw.evidence ?? {}) as Obj) : raw;
 }
 
+/** The evidence names this question: its question_id and/or stable_question_id (later reviewed
+ *  batches carry only the latter) are present and every one equals the tags' stable id, the rule
+ *  readCatalogQuestionScope applies (evidenceQuestionId). Evidence naming no question, or another
+ *  one, is refused. */
+export function namesQuestion(evidence: Obj, stableId: unknown): boolean {
+  const names = [evidence.question_id, evidence.stable_question_id].filter((v) => v !== undefined);
+  return names.length > 0 && names.every((v) => v === stableId);
+}
+
 export function sealSnapshot(snapshot: { question: Obj; choices: Obj[] | null; keys: Obj[] }) {
   const keys = snapshot.keys ?? [];
   if (!snapshot.question || keys.length !== 1)
@@ -45,7 +54,7 @@ export function sealSnapshot(snapshot: { question: Obj; choices: Obj[] | null; k
     throw new Error(`${String(snapshot.question.id)}: stored figure: ${figure.join("; ")}`);
   const raw = keys[0].raw_model_response as Obj;
   const scope = readCatalogQuestionScope(raw);
-  if (scope.tags.stable_question_id !== evidenceRoot(raw).question_id)
+  if (!namesQuestion(evidenceRoot(raw), scope.tags.stable_question_id))
     throw new Error(`${String(snapshot.question.id)}: answer key evidence names another question`);
   const question = {
     ...snapshot.question,
