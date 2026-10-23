@@ -388,12 +388,15 @@ def _register_autopilot(sub) -> None:
     ap.add_argument("--chunk-size", type=int, default=autopilot.CHUNK, help="rows per SQL file")
     ap.add_argument("--retry", nargs="+", default=[], metavar="PATTERN",
                     help="also take batch folders the ledger lists as refused or published, by name pattern (e.g. 'r2-fix-*')")
+    ap.add_argument("--resume", metavar="RUN",
+                    help="finish a run that stopped after readback and seal but before publish (e.g. auto-20261023-021443): "
+                         "every check runs again against the current bank (kimport/autopilot_resume.py)")
 
     def run(a):
         res = autopilot.run_autopilot(Path(a.pipe), a.dry, a.max_rows,
                                       autopilot.Deps(chunk_size=a.chunk_size,
                                                      log=lambda m: print(m, file=sys.stderr, flush=True)),
-                                      a.retry)
+                                      a.retry, a.resume)
         print(json.dumps(res))
         if res["result"] in ("stopped", "lock_held"):
             raise ValueError(res["message"])

@@ -160,8 +160,10 @@ def visible_sql(ids: list[str]) -> str:
 
 
 class Autopilot:
-    def __init__(self, pipe: Path, deps: Deps, dry: bool = False, max_rows: int | None = None, retry=()):
+    def __init__(self, pipe: Path, deps: Deps, dry: bool = False, max_rows: int | None = None, retry=(),
+                 resume: str | None = None):
         self.pipe, self.d, self.dry, self.max_rows, self.retry = Path(pipe), deps, dry, max_rows, tuple(retry)
+        self.resume_of = resume   # a stopped run to finish (kimport.autopilot_resume)
         self.intents = self.pipe / "intents.jsonl"
         self.lane = self.pipe / "lane.json"
         self.lock = self.pipe / "writer.lock"
@@ -233,22 +235,26 @@ class Autopilot:
 
     def start(self) -> dict:
         state = aps.read_state(self.pipe)
-        new = [d for d in aps.ready_folders(self.pipe) if d.name not in state["batches"]
-               or (state["batches"][d.name].get("status") in RETRYABLE
-                   and any(fnmatch.fnmatchcase(d.name, pat) for pat in self.retry))]
+        if self.resume_of:
+            from kimport import autopilot_resume
+            new = autopilot_resume.batch_dirs(self.pipe, state, self.resume_of)
+        else:
+            new = [d for d in aps.ready_folders(self.pipe) if d.name not in state["batches"]
+                   or (state["batches"][d.name].get("status") in RETRYABLE
+                       and any(fnmatch.fnmatchcase(d.name, pat) for pat in self.retry))]
         if not new:
             msg = "Nothing new: every reviewed batch has already been handled."
             if not self.dry:
                 aps.write_status(self.pipe, state, {"id": None, "at": self.now(), "result": "no_new_batches"}, msg)
             self.d.log(msg)
             return {"result": "no_new_batches", "message": msg, "batches": [], "run": None}
-        dirs = _cap(new, self.max_rows)
+        dirs = new if self.resume_of else _cap(new, self.max_rows)
         if not dirs:
             msg = f"{len(new)} batches wait, but the first one is larger than --max-rows {self.max_rows}."
             self.d.log(msg)
             return {"result": "nothing_fits", "message": msg, "batches": [], "run": None}
         stamp = self.d.clock().strftime("%Y%m%d-%H%M%S")
-        self.run_id = f"auto-{stamp}" + ("-dry" if self.dry else "")
+        self.run_id = f"auto-{stamp}" + ("-resume" if self.resume_of else "") + ("-dry" if self.dry else "")
         self.run_dir = self.pipe / self.run_id
         self.run = {"id": self.run_id, "at": self.now(), "result": None, "published": 0, "held": 0, "fixed": 0,
                     "evidence_corrected": 0, "qa_corrected": 0, "refused": {}, "visible_after": None, "batches": [d.name for d in dirs], "dry": self.dry}
@@ -263,7 +269,11 @@ class Autopilot:
                 return {"result": "lock_held", "message": msg, "batches": [], "run": None}
         try:
             self.say(f"{self.run_id}: {len(dirs)} new batches ({', '.join(d.name for d in dirs)})")
-            message = self.go()
+            if self.resume_of:
+                from kimport import autopilot_resume
+                message = autopilot_resume.go(self, self.resume_of)
+            else:
+                message = self.go()
             error = None
         except Exception as e:  # noqa: BLE001 - every failure must still release the lock and write the status
             error = str(getattr(e, "reason", "") or e) if isinstance(e, (Stop, RefuseToBuild)) else f"{type(e).__name__}: {e}"
@@ -403,6 +413,13 @@ class Autopilot:
         rb = [stage_dir / f for f in spre.get("readback_files", [])] if staged else []
         rb += [fix_dir / f for f in (fres["precheck"]["readback_files"] if fres else [])]
         rb += [self.run_dir / "qa" / f for f in (qres["precheck"]["readback_files"] if qres else [])]
+        expected = doc.row_count + len(staged)
+        return self.seal_and_publish(rb, preview, preview_rows, qres, doc, expected, live_note)
+
+    def seal_and_publish(self, rb: list[Path], preview: Path, preview_rows: list[dict], qres: dict | None, doc,
+                         expected_rows: int | None, live_note: str = "") -> str:
+        """Readback, seal (holding rows that fail), fresh export, publish, visible count, ledger.
+        Shared by a normal run and `--resume` (kimport.autopilot_resume), which passes no expected row count."""
         raws = []
         for f in rb:
             out = f.with_name(f.name.replace(".sql", "") + "-raw.json")
@@ -414,7 +431,8 @@ class Autopilot:
                               lane_path=self.lane, now=self.now())
         except RefuseToBuild as e:
             raise Stop(f"the readback does not match what was written: {e.reason}") from None
-        self.close("verified", _sha_files(raws))
+        if self.open_intent:
+            self.close("verified", _sha_files(raws))
         held = json.loads((sealed.parent / "held.json").read_text())["held"]
         self.run["held"] = len(held)
         for h in held:
@@ -428,8 +446,8 @@ class Autopilot:
             return f"Every staged row ({len(held)}) was held at seal; nothing was published.{live_note}"
 
         doc2, export2 = self.export("live-after-stage.json")
-        if doc2.row_count != doc.row_count + len(staged):
-            raise Stop(f"the bank has {doc2.row_count} rows after staging; expected {doc.row_count + len(staged)}")
+        if expected_rows is not None and doc2.row_count != expected_rows:
+            raise Stop(f"the bank has {doc2.row_count} rows after staging; expected {expected_rows}")
         pub = self.run_dir / "publish"
         bulk.run_bulk_publish(self.run_id, sealed.parent / "private-readback.json", sealed, export2, self.intents,
                               pub, self.d.chunk_size)
@@ -590,5 +608,5 @@ class Autopilot:
 
 
 def run_autopilot(pipe: Path, dry: bool = False, max_rows: int | None = None, deps: Deps | None = None,
-                  retry=()) -> dict:
-    return Autopilot(Path(pipe), deps or Deps(), dry, max_rows, retry).start()
+                  retry=(), resume: str | None = None) -> dict:
+    return Autopilot(Path(pipe), deps or Deps(), dry, max_rows, retry, resume).start()

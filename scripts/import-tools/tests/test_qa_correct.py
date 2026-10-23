@@ -273,3 +273,97 @@ class TestQaHidden(AutopilotCase):
         restore = (qa_dir / "restore.sql").read_text()
         self.assertIn(pfx.uid(2), restore)
         self.assertNotIn(pfx.uid(1), restore)
+
+
+GATE_STOP = "figure gate: figure not approved by the founder: no figures/x/status.json"
+
+
+class TestResumeStopped(AutopilotCase):
+    """A QA-correction run stopped by the figure gate at publish, finished with --resume."""
+
+    def setUp(self):
+        super().setUp()
+        self.bank = QaBank(None)
+
+    def stopped_run(self):
+        from unittest import mock
+        self.batch("syn-1", [row(1), row(2)])
+        self.run_ap()
+        qid = self.bank.by_stable(row(1)["stable_question_id"])
+        hide(self.bank, qid)
+        self.batch("syn-1-qa-1", [row(1, answer="B")])
+        with mock.patch("kimport.figure_gate.publish_reasons", return_value=[GATE_STOP]):
+            res = self.run_ap()
+        self.assertEqual(res["result"], "stopped", res)
+        self.assertIn("figure gate", res["error"])
+        self.assertEqual(self.state()["batches"]["syn-1-qa-1"]["status"], "stopped")
+        q = self.bank.rows[qid]["question"]
+        self.assertEqual((q["correct_answer"], q["is_live"], q["archived_at"]), ("B", False, None))
+        return res["run"], qid
+
+    def resume(self, run, dry=False):
+        from kimport import autopilot as ap
+        return ap.run_autopilot(self.pipe, dry, None, self.deps(), (), run)
+
+    def test_resume_publishes_the_written_rows_after_every_check(self):
+        run, qid = self.stopped_run()
+        self.assertEqual(self.run_ap()["result"], "no_new_batches")  # never retried by itself
+        dry = self.resume(run, dry=True)
+        self.assertEqual(dry["result"], "dry_run_ok", dry)
+        self.assertFalse(self.bank.rows[qid]["question"]["is_live"])
+        self.bank.ran.clear()
+        res = self.resume(run)
+        self.assertEqual(res["result"], "published", res)
+        self.assertTrue(res["run"].endswith("-resume"))
+        self.assertTrue(self.bank.rows[qid]["question"]["is_live"])
+        self.assertEqual(self.live(), 2)
+        self.assertFalse(any(f.startswith(("stage", "qa.sql", "qa-0")) for f in self.bank.ran))  # nothing re-written
+        self.assertIn("qa-readback.sql", self.bank.ran)
+        state = self.state()
+        self.assertEqual(state["batches"]["syn-1-qa-1"]["status"], "published")
+        self.assertEqual(state["batches"]["syn-1-qa-1"]["run"], res["run"])
+        self.assertEqual(state["runs"][res["run"]]["qa_corrected"], 1)
+        lines = (self.pipe / "qa" / qc.CORRECTIONS).read_text().splitlines()
+        self.assertEqual(json.loads(lines[0])["question_id"], qid)
+        with self.assertRaisesRegex(ValueError, "no longer 'stopped'"):
+            self.resume(run)
+
+    def test_resume_refuses_when_the_row_changed_since_it_was_written(self):
+        run, qid = self.stopped_run()
+        self.bank.rows[qid]["question"]["question_text"] = "Changed by someone else?"
+        res = self.resume(run)
+        self.assertEqual(res["result"], "stopped", res)
+        self.assertIn("readback does not match", res["error"])
+        self.assertFalse(self.bank.rows[qid]["question"]["is_live"])
+
+    def test_resume_refuses_a_gate_that_still_fails_before_any_write(self):
+        from unittest import mock
+        run, qid = self.stopped_run()
+        self.bank.ran.clear()
+        with mock.patch("kimport.figure_gate.publish_reasons", return_value=[GATE_STOP]):
+            res = self.resume(run)
+        self.assertEqual(res["result"], "stopped", res)
+        self.assertFalse(any(f.startswith("publish") for f in self.bank.ran))
+        self.assertFalse(self.bank.rows[qid]["question"]["is_live"])
+
+    def test_resume_refuses_a_run_that_did_not_stop_after_seal(self):
+        self.batch("syn-1", [row(1)])
+        res = self.run_ap()
+        with self.assertRaisesRegex(ValueError, "not a stopped"):
+            self.resume(res["run"])
+
+
+class TestQaFigureGatePrecheck(AutopilotCase):
+    def test_a_row_failing_the_figure_gate_is_refused_before_any_write(self):
+        from unittest import mock
+        self.bank = QaBank(None)
+        self.batch("syn-1", [row(1), row(2)])
+        self.run_ap()
+        hide(self.bank, self.bank.by_stable(row(1)["stable_question_id"]))
+        self.batch("syn-1-qa-1", [row(1, answer="B")])
+        with mock.patch("kimport.figure_gate.gate_reasons", return_value=[GATE_STOP]):
+            res = self.run_ap()
+        self.assertEqual(res["result"], "nothing_to_stage", res)
+        pre = json.loads((self.pipe / res["run"] / "qa" / "qa-precheck.json").read_text())
+        self.assertIn(GATE_STOP, pre["refused"][0]["reasons"])
+        self.assertNotIn("qa.sql", self.bank.ran)

@@ -24,7 +24,9 @@ exactly one export row and one snapshot for its source question, the same id,
 still QA-hidden, one answer key row naming the same stable id (read through
 answer_evidence.stable_question_id, so a generated-key envelope counts), the same
 source_occurrence, no source assets in the corrected payload (the row keeps
-its own), and the correction changes something (otherwise `k qa restore` is
+its own), the founder's figure gate passes (kimport.figure_gate, as stage and
+publish apply it: a row that went live before the figure lane needs an
+approved figure folder first), and the correction changes something (otherwise `k qa restore` is
 the tool). Then the same duplicate checks as stage, against the bank without
 this row and against every other row of the run.
 
@@ -284,6 +286,7 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
     refused: dict[str, list[str]] = {}
     for it in items:
         it["snap"], why = check_row(it, by_export.get(it["source"], []), by_snap.get(it["source"], []))
+        why = why + it.get("figure_gate", [])  # the founder's figure gate, as stage and publish apply it
         if why:
             refused[it["id"]] = why
     ok = [it for it in items if it["id"] not in refused]
