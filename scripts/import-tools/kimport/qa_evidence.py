@@ -64,6 +64,7 @@ def answers(v) -> list[str]:
 
 def is_blind(solver: str) -> bool:
     return solver.startswith("blind-") or solver in ("qa-blind", "recertify-blind", "transcriber")
+    # (a re-solve record's solver is "blind-resolve:<solver_run>")
 
 
 def solver_of(by) -> str:
@@ -228,3 +229,58 @@ class RepairRecords:
     def add_to(self, ev: Evidence, sid: str) -> None:
         for solver, value, f in self.by_sid.get(sid, []):
             ev.add(solver, value, f)
+
+
+# ---------------------------------------------------------------- blind re-solve records
+
+RESOLVE_INPUTS = ("student-view text", "source page image")
+
+
+class BlindResolves:
+    """pipeline/qa/blind-resolve/<reviewer>-<n>.jsonl: one line per blind re-solve,
+    {"id", "stable_question_id", "answer", "solver": "blind-subagent", "solver_run",
+     "key_exposed_to_solver": false, "inputs": "student-view text" | "source page image", "at"}.
+    Each distinct solver_run is one blind solver; a line that breaks the format is not a solve and
+    is listed in `rejected` with the reason."""
+
+    def __init__(self, folder: Path):
+        self.by_id: dict[str, dict[str, tuple]] = {}
+        self.rejected: list[dict] = []
+        for f in sorted(Path(folder).glob("*.jsonl")) if Path(folder).is_dir() else []:
+            for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+                if not line.strip():
+                    continue
+                why, r = None, None
+                try:
+                    r = json.loads(line)
+                except ValueError:
+                    why = "not JSON"
+                if why is None:
+                    why = self._problem(r)
+                if why:
+                    self.rejected.append({"file": f.name, "line": n, "reason": why})
+                    continue
+                runs = self.by_id.setdefault(r["id"], {})
+                runs.setdefault(str(r["solver_run"]), (str(r["answer"]), r.get("stable_question_id"), f"{f.name}:{n}"))
+
+    @staticmethod
+    def _problem(r) -> str | None:
+        if not isinstance(r, dict):
+            return "not an object"
+        for k in ("id", "stable_question_id", "solver_run", "at"):
+            if not isinstance(r.get(k), str) or not r[k].strip():
+                return f"{k} missing"
+        if not isinstance(r.get("answer"), (str, int, float)) or isinstance(r.get("answer"), bool) or str(r["answer"]).strip() == "":
+            return "answer missing"
+        if r.get("solver") != "blind-subagent":
+            return "solver is not blind-subagent"
+        if r.get("key_exposed_to_solver") is not False:
+            return "key_exposed_to_solver is not false"
+        if r.get("inputs") not in RESOLVE_INPUTS:
+            return f"inputs is not one of {', '.join(RESOLVE_INPUTS)}"
+        return None
+
+    def for_row(self, live_id: str, sid: str | None) -> list[tuple[str, str, str]]:
+        """(solver_run, answer, where) of this question's re-solves; a line naming another stable id is left out."""
+        return [(run, ans, where) for run, (ans, rsid, where) in sorted(self.by_id.get(live_id, {}).items())
+                if sid is None or rsid == sid]

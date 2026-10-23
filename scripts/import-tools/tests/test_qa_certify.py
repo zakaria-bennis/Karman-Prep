@@ -154,6 +154,35 @@ class AnswerTest(unittest.TestCase):
             self.assertEqual(res["status"] == "certified", ok, record)
             self.assertEqual("transcriber" in res["agreeing_blind"], ok)
 
+    def resolve(self, name, lines):
+        (self.p.qa / "blind-resolve").mkdir(exist_ok=True)
+        base = {"solver": "blind-subagent", "key_exposed_to_solver": False, "inputs": "student-view text",
+                "at": "2099-01-01T00:00:00Z"}
+        (self.p.qa / "blind-resolve" / name).write_text("".join(json.dumps({**base, **x}) + "\n" for x in lines))
+
+    def test_blind_resolve_records(self):
+        binding = self.p.batch("r2-7", {"reviewed-import-ready.json": self.reviewed(11, kind="independently_confirmed_generated")})
+        r = row(11, binding=binding, answer_format="numeric_entry", correct_answer="5/9", answer_choices=[])
+        one = {"id": r["id"], "stable_question_id": SID.format(11)}
+        self.resolve("r2-1.jsonl", [{**one, "answer": ".5555", "solver_run": "a"},
+                                    {**one, "answer": "5/9", "solver_run": "a"}])  # same run: one solver
+        res = self.cert(r)
+        self.assertEqual((res["status"], res["agreeing_blind"]), ("uncertified", ["blind-resolve:a"]))
+        self.resolve("r2-2.jsonl", [{**one, "answer": "0.5556", "solver_run": "b"},
+                                    {**one, "answer": "5/9", "solver_run": "c", "key_exposed_to_solver": True},
+                                    {**one, "answer": "5/9", "solver_run": "d", "inputs": "the key"},
+                                    {"id": r["id"], "stable_question_id": "OTHER", "answer": "1", "solver_run": "e"}])
+        rec = qa_answers.QaRecords(self.p.d)
+        res = qa_answers.certify_row(r, rec)
+        self.assertEqual((res["status"], res["agreeing_blind"], res["blind_resolve_runs"]),
+                         ("certified", ["blind-resolve:a", "blind-resolve:b"], ["a", "b"]))
+        self.assertEqual([x["reason"] for x in rec.resolves.rejected],
+                         ["key_exposed_to_solver is not false", "inputs is not one of student-view text, source page image"])
+        # a disagreeing blind re-solve fails the row, even one the QA verdict certified
+        self.resolve("r2-3.jsonl", [{**one, "answer": "4/9", "solver_run": "f"}])
+        res = self.cert(r)
+        self.assertEqual((res["status"], res["reason"], res["disagreeing_runs"]), ("failed", "blind_solve_disagrees", ["f"]))
+
     def test_reviewer_split(self):
         self.assertEqual([qa_certify.reviewer_of(b) for b in ("r1-200", "oct-r2-3", "r3-qa-42", "r2-9, r2-10", "bulk-1", None)],
                          ["r1", "r2", "r3", "r2", "r3", "r3"])
@@ -216,6 +245,28 @@ class CertifyRunTest(unittest.TestCase):
             self.assertNotIn('"B"', json.dumps(listed))  # no key: the re-solve stays blind
             self.assertEqual([json.loads((p.qa / f"uncertified-{w}.json").read_text())["count"] for w in ("r1", "r2", "r3")],
                              [0, 0, 1])  # no batch folder: r3
+
+    def test_disagreeing_resolve_is_a_failing_row_in_the_certificate(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Pipe(Path(d))
+            r = row(1)
+            p.jsonl("results-r1.jsonl", [{"id": r["id"], "verdict": "clean", "stored_answer": "B"}])
+            p.json("qa/blind-live-r1.json", [snap(r)])
+            (p.qa / "blind-resolve").mkdir()
+            (p.qa / "blind-resolve" / "r1-1.jsonl").write_text(json.dumps({
+                "id": r["id"], "stable_question_id": SID.format(1), "answer": "C", "solver": "blind-subagent",
+                "solver_run": "x1", "key_exposed_to_solver": False, "inputs": "source page image", "at": "t"}) + "\n")
+            p.json("qa/certify-1/visible.json", {"rows": [r]})
+            p.json("qa/certify-1/static-report.json", {"questions": {}})
+            p.json("qa/certify-1/render-report.json", {"totals": {}, "questions": {}})
+            (p.qa / "certify-1" / "render-results.jsonl").write_text(json.dumps({"id": r["id"]}) + "\n")
+            p.json("qa/certify-1/render-meta.json", {"main_commit": "c" * 40})
+            res = qa_certify.run_certify(p.d, "2099-01-04T00:00:00Z", reuse=p.qa / "certify-1", render=None,
+                                         exporter=None, log=lambda m: None)
+            self.assertEqual((res["certified"], res["failing"], res["failing_answer"], res["uncertified"]), (0, 1, 1, 0))
+            listed = json.loads((p.qa / "uncertified-r3.json").read_text())
+            self.assertEqual([x["reason"] for x in listed["rows"]], ["blind_solve_disagrees"])
+            self.assertIn("blind re-solve(s) differ", (p.qa / "certificate-2099-01-04.md").read_text())
 
     def test_refuses_an_export_with_rows_students_cannot_see(self):
         with tempfile.TemporaryDirectory() as d:

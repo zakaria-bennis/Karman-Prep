@@ -148,22 +148,26 @@ def build_certificate(rows: list[dict], static: dict, render: dict, rec: qa_answ
         if rid not in rendered:
             renders = {**renders, "render_missing": ["no render result"]}
         answer = qa_answers.certify_row(row, rec)
-        if fails or renders:
-            failing.append({"id": rid, "static": fails, "render": renders})
-        if answer["status"] != "certified":
+        failed_answer = answer if answer["status"] == "failed" else None
+        if fails or renders or failed_answer:
+            failing.append({"id": rid, "static": fails, "render": renders,
+                            **({"answer": failed_answer} if failed_answer else {})})
+        if answer["status"] == "uncertified":
             uncertified.append({"id": rid, **answer})
             per_reason[answer["reason"]] = per_reason.get(answer["reason"], 0) + 1
-        else:
+        elif answer["status"] == "certified":
             bases[answer["basis"]] = bases.get(answer["basis"], 0) + 1
     bad = {f["id"] for f in failing} | {u["id"] for u in uncertified}
     return {**meta,
             "totals": {"visible": len(rows), "certified": len(rows) - len(bad), "failing": len(failing),
                        "failing_static": sum(1 for f in failing if f["static"]),
                        "failing_render": sum(1 for f in failing if f["render"]),
+                       "failing_answer": sum(1 for f in failing if f.get("answer")),
+                       "blind_resolve_lines_rejected": len(rec.resolves.rejected),
                        "uncertified": len(uncertified), "uncertified_by_reason": dict(sorted(per_reason.items())),
                        "answer_basis": dict(sorted(bases.items())), "review_only_static": review_only},
             "rendered": {k: render.get("totals", {}).get(k) for k in ("expected", "rendered", "render_failed")},
-            "failing": failing, "uncertified": uncertified}
+            "failing": failing, "uncertified": uncertified, "blind_resolve_rejected": rec.resolves.rejected}
 
 
 def _detail(d: dict) -> str:
@@ -182,6 +186,7 @@ def certificate_md(cert: dict) -> str:
              f"| visible | {t['visible']} |", f"| certified (no failing check, answer certified) | {t['certified']} |",
              f"| failing a check (static fail level or render) | {t['failing']} |",
              f"| ... static | {t['failing_static']} |", f"| ... render | {t['failing_render']} |",
+             f"| ... a blind re-solve disagrees with the key | {t['failing_answer']} |",
              f"| answer uncertified | {t['uncertified']} |"]
     lines += [f"| ... {k} | {v} |" for k, v in t["uncertified_by_reason"].items()]
     lines += ["", "Answers certified by: " + ", ".join(f"{k} {v}" for k, v in t["answer_basis"].items()) + ".",
@@ -193,7 +198,9 @@ def certificate_md(cert: dict) -> str:
               "agreeing BLIND solvers; a reviewer's own solve never counts. Anything else is uncertified "
               "(listed for a blind re-solve in uncertified-<date>.json).", ""]
     lines += ["## Failing a check", ""] + ([f"- `{f['id']}`: " + "; ".join(
-        x for x in (_detail(f["static"]), _detail(f["render"])) if x) for f in cert["failing"]] or ["None."])
+        x for x in (_detail(f["static"]), _detail(f["render"]),
+                    f"answer: {f['answer']['reason']} ({f['answer']['detail']})" if f.get("answer") else "") if x)
+        for f in cert["failing"]] or ["None."])
     lines += ["", "## Answer uncertified", ""] + ([f"- `{u['id']}`: {u['reason']}" + (
         f" ({str(u.get('detail'))[:200]})" if u.get("detail") else "")
         + (f" [agreeing: {', '.join(u['agreeing']) or 'none'}]" if "agreeing" in u else "")
@@ -213,7 +220,8 @@ def reviewer_of(batch: str | None) -> str:
 def uncertified_list(cert: dict) -> dict:
     """The uncertified rows for reviewers to re-solve blind: ids, batch, reason and which solvers are on
     record, but no key or answer (so the re-solve stays blind)."""
-    return {"date": cert["date"], "certificate": cert["work_dir"], "count": len(cert["uncertified"]),
+    todo = [f["answer"] | {"id": f["id"]} for f in cert["failing"] if f.get("answer")] + cert["uncertified"]
+    return {"date": cert["date"], "certificate": cert["work_dir"], "count": len(todo),
             "rows": [{"id": u["id"], "stable_question_id": u.get("stable_question_id"), "batch": u.get("batch"),
                       "reason": u["reason"], "basis": u.get("basis"), "printed_key_on_record": u.get("printed_key") is not None,
                       "reviewer": reviewer_of(u.get("batch")),
@@ -222,7 +230,7 @@ def uncertified_list(cert: dict) -> dict:
                       "blind_solvers_needed": u.get("needed_blind_solvers"),
                       # a QA verdict's note can name the key ("key B->A"): only the folder lookup detail is kept
                       "detail": u.get("detail") if u["reason"] == "post_qa_no_batch_folder" else None}
-                     for u in cert["uncertified"]]}
+                     for u in todo]}
 
 
 def run_certify(pipe: Path, now: str, export: Path | None = None, env_file: Path = REPO / ".env.local",

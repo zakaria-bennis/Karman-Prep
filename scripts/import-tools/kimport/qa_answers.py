@@ -14,8 +14,9 @@ A student-visible question's answer is certified by exactly one of:
 Answer evidence holds when the key is the OFFICIAL printed key and at least one separate
 BLIND solver agrees, or (a generated or overridden key) at least two BLIND solvers agree
 (qa_evidence.is_blind: a reviewer's own solve may have seen the printed key and never counts). Solvers and every file format they are read from: kimport.qa_evidence; one
-solver counts once however many files repeat its solve. Anything else is uncertified,
-with the reason.
+solver counts once however many files repeat its solve; a blind re-solve record
+(qa/blind-resolve/*.jsonl) counts once per solver_run. A blind re-solve that disagrees with the
+live key FAILS the row (blind_solve_disagrees). Anything else is uncertified, with the reason.
 """
 
 import glob
@@ -128,6 +129,7 @@ class QaRecords:
                 for sid, v in d.items():
                     self.blind_corrections.setdefault(sid, []).extend(v if isinstance(v, list) else [v])
         self.repair = qa_evidence.RepairRecords(pipe / "repair")
+        self.resolves = qa_evidence.BlindResolves(self.qa / "blind-resolve")
         self._by_binding = None
 
     def folders_for_binding(self, sha: str | None) -> list[Path]:
@@ -145,6 +147,8 @@ class QaRecords:
         for folder in folders:
             qa_evidence.read_folder(ev, folder, sid, live_id)
         self.repair.add_to(ev, sid)
+        for run, answer, where in self.resolves.for_row(live_id, sid):
+            ev.add(f"blind-resolve:{run}", answer, where)
         return ev
 
 
@@ -183,6 +187,17 @@ def certify_row(row: dict, rec: QaRecords) -> dict:
     rid, key = str(row["id"]), str(row.get("correct_answer") or "")
     numeric = row.get("answer_format") == "numeric_entry"
     sid, binding = _key_tags(row)
+    # A blind re-solve (qa/blind-resolve) that disagrees with the live key fails the row, whatever else holds.
+    against = [run for run, answer, _ in rec.resolves.for_row(rid, sid) if not same_answer(answer, key, numeric)]
+    if against:
+        return {"status": "failed", "reason": "blind_solve_disagrees", "stable_question_id": sid,
+                "disagreeing_runs": against, "detail": f"{len(against)} blind re-solve(s) differ from the live key"}
+    out = _certify(row, rec, rid, key, numeric, sid, binding)
+    runs = [run for run, _, _ in rec.resolves.for_row(rid, sid)]
+    return {**out, "blind_resolve_runs": runs} if runs else out
+
+
+def _certify(row: dict, rec: QaRecords, rid: str, key: str, numeric: bool, sid, binding) -> dict:
     corr = rec.corrections.get(rid)
     if corr:
         if corr.get("after_content_hash_v2") != row.get("content_hash_v2"):
