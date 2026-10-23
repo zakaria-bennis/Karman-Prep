@@ -115,4 +115,22 @@ f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
   - The bare word "blank" counts as a blank only in passages (`treatBlankWord`).
     Stems and choices keep it as a word ("blank sheets of paper",
     "[Blank response field]").
+- Single hyphens left with stray spaces (founder, 2026-10-22: "no misformatted
+  text"). Display only, prose only. Code: `hyphen-spacing-display.ts`.
+  - Lists: when 2 or more lines of a text start with `- `, those lines show a
+    `• ` bullet (student notes, timelines). Lines holding `=`, `≤` or `≥` keep
+    the hyphen.
+  - Spaced minus signs: a text that is only `- 5`, `- 1/6` or `- (5/12)π`, and
+    an equation line starting `- 6x + 48px = 96`, show the minus against its
+    number (`-5`).
+  - Split compounds: `cost- effective`, `three- striped`, `x- intercept` and a
+    compound broken at a line end (`xy-` then `plane`, first part 5 letters or
+    fewer) show joined with the hyphen (`cost-effective`, `xy-plane`). Kept:
+    suspended hyphens before `and`/`or`/`to` (`plant- and animal-inspired`,
+    `over- or underrepresented`), a following function word (`metals- among`,
+    where the source meant an em dash; fix the source), and a one-letter second
+    part (`(t- x)`).
+  - After inline math, `\(xy\) -plane` shows as `xy-plane`.
+  - Left as typed: suffix notation (`-ly`, `-ti`, `-s`), minus signs in
+    equations (`x - y`, `y -x`), and the hyphen as a word joiner (`well-known`).
 

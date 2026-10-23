@@ -11,7 +11,8 @@
 // produce. SAT R&W and Conventions questions rely on this.
 //
 // Prose (never math) shows hyphen runs as one em dash and blank-position
-// hyphen runs as blanks; see dash-blank-display.ts.
+// hyphen runs as blanks (dash-blank-display.ts), "- " list lines as bullets
+// and space-split compounds joined (hyphen-spacing-display.ts).
 // ============================================================
 
 import { Fragment, useMemo, type ReactNode } from "react";
@@ -22,6 +23,7 @@ import { parseSourceUnderlining } from "./source-underlining";
 import { parseSourceItalics } from "./source-italics";
 import { splitMathText, type MathSegment } from "./math-segments";
 import { blankSegments } from "./dash-blank-display";
+import { displayLineHyphens, joinAfterMath } from "./hyphen-spacing-display";
 
 interface Props {
   text: string;
@@ -104,7 +106,7 @@ export default function MathText({
 }: Props) {
   const runs = useMemo(
     () =>
-      parseSourceUnderlining(text).map((run, index, sourceRuns) => ({
+      parseSourceUnderlining(displayLineHyphens(text)).map((run, index, sourceRuns) => ({
         ...run,
         italicRuns: parseSourceItalics(run.text).map((italicRun, italicIndex, italicRuns) => ({
           ...italicRun,
@@ -142,8 +144,10 @@ export default function MathText({
 
   function renderSegments(segs: MathSegment[]) {
     return segs.map((s, i) => {
-      if (s.kind === "text")
-        return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
+      if (s.kind === "text") {
+        const value = segs[i - 1]?.kind === "inline" ? joinAfterMath(s.value) : s.value;
+        return <span key={i}>{renderTextWithBlanks(value, i, treatBlankWord)}</span>;
+      }
       if (s.kind === "inline") {
         // Baseline alignment + inheriting color/size keeps the
         // math inline with prose. The CSS override on .katex in
