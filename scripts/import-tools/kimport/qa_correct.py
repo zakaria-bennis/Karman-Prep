@@ -74,6 +74,19 @@ def hidden_sources(export_rows: list[dict]) -> set:
     return {st._source(r) for r in export_rows if is_qa_hidden(r)}
 
 
+def kept_identities(export_rows: list[dict]) -> list[dict]:
+    """The stored source tuples of the QA-hidden rows, for ts/stage-rows.ts <keep-identities.json>.
+
+    A correction rewrites the hidden row in place, so it never creates an identity: a row
+    whose identity the strict rule (math/reading, M1/M2) cannot read, such as the 2023-03 and
+    2023-05 imports (module UNSPECIFIED, section writing), may keep one of these verbatim when
+    it names it exactly (src/lib/question-bank/kept-source-identity.ts). The stable id is then
+    checked against the hidden row's evidence by check_row; new rows stay strict."""
+    names = ("source_version", "source_section", "source_module", "source_question_number")
+    tuples = {s for s in hidden_sources(export_rows) if all(v not in (None, "") for v in s)}
+    return [dict(zip(names, s)) for s in sorted(tuples, key=lambda s: tuple(map(str, s)))]
+
+
 def split(dirs: list[Path], export_rows: list[dict], exams_dir: Path, rows_runner) -> tuple[list, list, dict]:
     """(QA correction batch folders, every other folder, {folder: reason} for batches that mix both)."""
     hidden = hidden_sources(export_rows)

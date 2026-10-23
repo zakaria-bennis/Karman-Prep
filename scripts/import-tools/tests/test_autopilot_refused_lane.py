@@ -28,7 +28,7 @@ class TestRunPutsRefusalsInTheLane(AutopilotCase):
     def deps(self, chunk_size=200):
         d = super().deps(chunk_size)
 
-        def runner(reviewed, pdf, frozen, sha):
+        def runner(reviewed, pdf, frozen, sha, **kw):
             if str(reviewed) in self.failing:
                 raise RefuseToBuild(self.failing[str(reviewed)])
             return copy.deepcopy(self.docs[str(reviewed)])

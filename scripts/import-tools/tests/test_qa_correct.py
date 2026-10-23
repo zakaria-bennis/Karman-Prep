@@ -164,7 +164,7 @@ class TestQaCorrectSql(AutopilotCase):
         doc = read_export_doc(export)
         snaps = [copy.deepcopy(s) for s in self.bank.rows.values()]
         res = qc.build_correct([d], doc, "auto-syn", snaps, self.d / "exams",
-                               rows_runner=lambda reviewed, pdf, frozen, sha: copy.deepcopy(self.docs[str(reviewed)]))
+                               rows_runner=lambda reviewed, pdf, frozen, sha, **kw: copy.deepcopy(self.docs[str(reviewed)]))
         return res, qid
 
     def test_sql_guards_every_other_row_and_resets_unlisted_columns(self):
@@ -235,7 +235,7 @@ class TestQaCorrectSql(AutopilotCase):
         self.bank.export(export)
         res = qc.build_correct([d], read_export_doc(export), "auto-syn",
                                [copy.deepcopy(s) for s in self.bank.rows.values()], self.d / "exams",
-                               rows_runner=lambda r, p, f, s: copy.deepcopy(self.docs[str(r)]))
+                               rows_runner=lambda r, p, f, s, **kw: copy.deepcopy(self.docs[str(r)]))
         self.assertTrue(res["refused"][dup["stable_question_id"]])
         self.assertNotIn("qa.sql", res["files"])
 

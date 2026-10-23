@@ -36,6 +36,7 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 
 from kimport import figure_gate, qa_gate
@@ -87,11 +88,20 @@ def read_ready(batch_dir: Path) -> dict:
     return ready
 
 
-def stage_rows(reviewed: Path, pdf: Path, frozen: Path, frozen_sha: str) -> dict:
-    """Run ts/stage-rows.ts (the app's importer, recording only) and return its JSON."""
+def stage_rows(reviewed: Path, pdf: Path, frozen: Path, frozen_sha: str,
+               keep_identities: list[dict] | None = None) -> dict:
+    """Run ts/stage-rows.ts (the app's importer, recording only) and return its JSON.
+
+    keep_identities (kimport.qa_correct.kept_identities): stored source tuples of QA-hidden
+    rows a QA correction may keep verbatim; without them every identity is strict."""
     cmd = ["npx", "--no-install", "tsx", str(STAGE_ROWS_TS), str(reviewed), str(pdf), str(frozen), frozen_sha]
     try:
-        done = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True, timeout=300)
+        with tempfile.TemporaryDirectory(prefix="kimport-keep-") as tmp:
+            if keep_identities:
+                keep = Path(tmp) / "keep-identities.json"
+                keep.write_text(json.dumps(keep_identities), encoding="utf-8")
+                cmd.append(str(keep))
+            done = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True, timeout=300)
     except (OSError, subprocess.TimeoutExpired) as e:
         raise RefuseToBuild(f"cannot run {STAGE_ROWS_TS.name}: {e}") from None
     if done.returncode != 0:
@@ -157,7 +167,11 @@ def _check_payload(rows: list[dict], binding_sha: str) -> None:
         raise RefuseToBuild("the reviewed batch has no rows")
     if len(rows) > MAX_ROWS:
         raise RefuseToBuild(f"{len(rows)} rows; a batch is at most {MAX_ROWS} rows (one module)")
-    modules = {_source(r["question"])[:3] for r in rows}
+    # A QA correction keeping a legacy identity (ts/stage-rows.ts kept_source_identity) names the
+    # form's module as stored; those imports split one Reading and Writing module into "reading"
+    # and "writing" sections, so for them the module is the source version and module only.
+    modules = {(_source(r["question"])[0], "kept", _source(r["question"])[2]) if r.get("kept_source_identity")
+               else _source(r["question"])[:3] for r in rows}
     if len(modules) != 1:
         raise RefuseToBuild(f"rows span {len(modules)} source modules; a batch is one module")
     sources = [_source(r["question"]) for r in rows]

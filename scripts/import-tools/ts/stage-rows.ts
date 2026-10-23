@@ -9,8 +9,14 @@
 // payload, content_hash_v2 and answer key evidence are the app's own.
 //
 // Usage: npx tsx scripts/import-tools/ts/stage-rows.ts <reviewed.json> <source.pdf>
-//          <frozen-manifest.json> <frozen-manifest-sha256>
+//          <frozen-manifest.json> <frozen-manifest-sha256> [<keep-identities.json>]
 // Prints {"reviewed_json_sha256", "source_pdf_sha256", "rows": [...]} on stdout.
+//
+// <keep-identities.json> (optional, from kimport.qa_correct.kept_identities): the
+// stored source tuples of QA-hidden live rows. A QA correction rewrites such a row
+// in place, so a row whose identity the strict rule (math/reading, M1/M2) cannot
+// read may keep one of these verbatim (src/lib/question-bank/kept-source-identity.ts);
+// its output row then says "kept_source_identity": true. Every other row is strict.
 
 import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
@@ -23,6 +29,10 @@ import {
   rowToReviewedImportInput,
 } from "../../pdf-pipeline/import-json-direct-row";
 import { sha256Hex, verifyFrozenReviewedInput } from "../../pdf-pipeline/frozen-reviewed-input";
+import {
+  parseKeptIdentities,
+  type KeptSourceIdentity,
+} from "@/lib/question-bank/kept-source-identity";
 
 /** Stand-in id the recorder hands back for the inserted question. */
 export const PLACEHOLDER_ID = "00000000-0000-4000-8000-000000000000";
@@ -119,12 +129,13 @@ export function shapeWrites(writes: RecordedWrite[], format: string, where: stri
 export async function recordReviewedRows(
   rows: Array<Record<string, unknown>>,
   sourcePdf: string,
-  sourceVersion: string
+  sourceVersion: string,
+  kept?: readonly KeptSourceIdentity[]
 ) {
   const out = [];
   for (const [index, row] of rows.entries()) {
     const where = `row ${index + 1} (${String(row.stable_question_id)})`;
-    const reviewed = rowToReviewedImportInput(row, sourcePdf, { sourceVersion });
+    const reviewed = rowToReviewedImportInput(row, sourcePdf, { sourceVersion, kept });
     if ("error" in reviewed) throw new Error(`${where}: ${reviewed.error}`);
     const writes: RecordedWrite[] = [];
     const result = await importQuestion(recordingClient(writes), reviewed.input, {
@@ -133,17 +144,24 @@ export async function recordReviewedRows(
     if (!result.inserted || result.errors.length)
       throw new Error(`${where}: importer refused: ${result.errors.join("; ") || "not inserted"}`);
     const format = reviewed.input.question_format ?? "multiple_choice";
-    out.push({ stable_question_id: row.stable_question_id, ...shapeWrites(writes, format, where) });
+    out.push({
+      stable_question_id: row.stable_question_id,
+      ...(reviewed.input.source_identity_kept ? { kept_source_identity: true } : {}),
+      ...shapeWrites(writes, format, where),
+    });
   }
   return out;
 }
 
 async function main() {
-  const [jsonArg, pdfArg, manifestArg, manifestSha] = process.argv.slice(2);
-  if (!jsonArg || !pdfArg || !manifestArg || !manifestSha)
+  const [jsonArg, pdfArg, manifestArg, manifestSha, keepArg, ...extra] = process.argv.slice(2);
+  if (!jsonArg || !pdfArg || !manifestArg || !manifestSha || extra.length)
     throw new Error(
-      "usage: stage-rows.ts <reviewed.json> <source.pdf> <frozen-manifest.json> <manifest-sha256>"
+      "usage: stage-rows.ts <reviewed.json> <source.pdf> <frozen-manifest.json> <manifest-sha256> [<keep-identities.json>]"
     );
+  const kept = keepArg
+    ? parseKeptIdentities(JSON.parse(readFileSync(resolve(keepArg), "utf-8")))
+    : undefined;
   const jsonBytes = readFileSync(resolve(jsonArg));
   const pdfBytes = readFileSync(resolve(pdfArg));
   const sourceVersion = sha256Hex(pdfBytes);
@@ -158,7 +176,7 @@ async function main() {
     throw new Error("not a reviewed export (import_policy reviewed-difficulty with questions[])");
   const rows = parsed.questions as Array<Record<string, unknown>>;
   const sourcePdf = basename(pdfArg);
-  const preflight = preflightImportRows(rows, sourcePdf, sourceVersion, true);
+  const preflight = preflightImportRows(rows, sourcePdf, sourceVersion, true, kept);
   if (preflight.errors.length) throw new Error(`preflight: ${preflight.errors.join("; ")}`);
   const frozen = verifyFrozenReviewedInput({
     manifestBytes: readFileSync(resolve(manifestArg)),
@@ -168,7 +186,7 @@ async function main() {
     rows,
   });
   if (!frozen.ok) throw new Error(`frozen inputs: ${frozen.error}`);
-  const out = await recordReviewedRows(rows, sourcePdf, sourceVersion);
+  const out = await recordReviewedRows(rows, sourcePdf, sourceVersion, kept);
   process.stdout.write(
     JSON.stringify({
       reviewed_json_sha256: sha256Hex(jsonBytes),

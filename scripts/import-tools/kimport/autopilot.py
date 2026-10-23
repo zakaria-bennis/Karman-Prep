@@ -317,11 +317,14 @@ class Autopilot:
         held_ids = set(self.state["held"])
         fix_dirs, normal_dirs, mixed = fix.classify(self.dirs, held_ids)
         cache: dict = {}
+        # QA corrections may keep a QA-hidden row's stored identity (kimport.qa_correct.kept_identities);
+        # a new row naming one is still refused (split: mixed batch; stage: source question in the bank).
+        keep = {"keep_identities": kept} if (kept := qa_correct.kept_identities(doc.rows)) else {}
 
         def rows_runner(reviewed, pdf, frozen, sha):
             key = str(reviewed)
             if key not in cache:
-                cache[key] = self.d.rows_runner(reviewed, pdf, frozen, sha)
+                cache[key] = self.d.rows_runner(reviewed, pdf, frozen, sha, **keep)
             return cache[key]
 
         qa_dirs, normal_dirs, qa_mixed = qa_correct.split(normal_dirs, doc.rows, self.d.exams_dir, rows_runner)

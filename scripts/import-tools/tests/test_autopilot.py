@@ -164,7 +164,7 @@ class AutopilotCase(unittest.TestCase):
 
     def deps(self, chunk_size=200):
         return ap.Deps(db=self.bank, exporter=self.bank.export,
-                       rows_runner=lambda reviewed, pdf, frozen, sha: copy.deepcopy(self.docs[str(reviewed)]),
+                       rows_runner=lambda reviewed, pdf, frozen, sha, **kw: copy.deepcopy(self.docs[str(reviewed)]),
                        row_sealer=self.sealer, clock=self.clock, sleep=lambda s: None, log=self.logs.append,
                        exams_dir=self.d / "exams", chunk_size=chunk_size, corpus_runner=self.fake_corpus)
 

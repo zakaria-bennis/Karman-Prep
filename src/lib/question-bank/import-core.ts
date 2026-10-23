@@ -47,6 +47,7 @@ import {
 import { validateReviewedAnswer } from "./reviewed-answer";
 import { validatePrivateDraftInput } from "./private-draft";
 import { validateNumericImport } from "./numeric-answer-set";
+import type { KeptSourceValue } from "./kept-source-identity";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import {
@@ -106,8 +107,9 @@ export interface ImportQuestionInput extends ImportFigureFields {
   source_document_id?: string;
   source_provider_version_id?: string;
   source_version?: string;
-  source_section?: "reading" | "math";
-  source_module?: "M1" | "M2";
+  source_section?: "reading" | "math" | KeptSourceValue;
+  source_module?: "M1" | "M2" | KeptSourceValue;
+  source_identity_kept?: boolean; // a QA correction keeps a live row's stored identity
   source_question_number?: number;
   source_occurrence?: number;
   source_regions?: Json;
@@ -311,7 +313,8 @@ export function validateImportRow(
     ) {
       errors.push("incomplete source question identity");
     } else if (isValidDomain(row.domain) && row.source_section !== subjectFromDomain(row.domain)) {
-      errors.push(`source_section "${row.source_section}" does not match domain "${row.domain}"`);
+      if (!row.source_identity_kept)
+        errors.push(`source_section "${row.source_section}" does not match domain "${row.domain}"`);
     }
   }
 
