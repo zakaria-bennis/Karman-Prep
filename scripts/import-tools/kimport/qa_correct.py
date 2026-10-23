@@ -21,7 +21,8 @@ and other rows is refused whole.
 
 Per row, at build time (from a fresh read-only readback of the hidden row):
 exactly one export row and one snapshot for its source question, the same id,
-still QA-hidden, one answer key row naming the same stable id, the same
+still QA-hidden, one answer key row naming the same stable id (read through
+answer_evidence.stable_question_id, so a generated-key envelope counts), the same
 source_occurrence, no source assets in the corrected payload (the row keeps
 its own), and the correction changes something (otherwise `k qa restore` is
 the tool). Then the same duplicate checks as stage, against the bank without
@@ -49,7 +50,7 @@ from pathlib import Path
 
 from kimport import bulk, qa_hide
 from kimport import stage as st
-from kimport.answer_evidence import evidence_root
+from kimport.answer_evidence import GENERATED, stable_question_id
 from kimport.export import fingerprint
 from kimport.fix import _blob
 from kimport.publish import STAGED_IMPORT, STAGED_STATUS, RefuseToBuild, duplicate_check
@@ -90,11 +91,6 @@ def split(dirs: list[Path], export_rows: list[dict], exams_dir: Path, rows_runne
             [d for d in dirs if d.name not in qa and d.name not in mixed], mixed)
 
 
-def _stable_id(key: dict):
-    root = evidence_root((key or {}).get("raw_model_response"))
-    return ((root or {}).get("approved_tags") or {}).get("stable_question_id") if isinstance(root, dict) else None
-
-
 def check_row(it: dict, export_rows: list[dict], snaps: list[dict]) -> tuple[dict | None, list[str]]:
     """(the hidden row's snapshot, reasons to refuse)."""
     if len(export_rows) != 1 or len(snaps) != 1:
@@ -109,8 +105,9 @@ def check_row(it: dict, export_rows: list[dict], snaps: list[dict]) -> tuple[dic
     keys = snap.get("keys") or []
     if len(keys) != 1:
         out.append(f"{len(keys)} answer key rows on the hidden row; expected one")
-    elif _stable_id(keys[0]) != it["id"]:
-        out.append("the hidden row's evidence names another stable question id")
+    elif stable_question_id(keys[0].get("raw_model_response")) != it["id"]:
+        out.append("the hidden row's evidence names another stable question id (or none: a legacy row is "
+                   "fixed with k qa fix-legacy)")
     if row["question"].get("source_occurrence") != q.get("source_occurrence"):
         out.append("source_occurrence differs from the hidden row")
     if row.get("source_assets"):
@@ -219,8 +216,12 @@ def rollback_block(tag: str, it: dict) -> list[str]:
          "q.correct_answer IS NOT DISTINCT FROM v->'new'->>'correct_answer'",
          "(SELECT count(*) FROM public.answer_choices c WHERE c.question_id=q.id)=(v->>'new_choices')::int",
          "(SELECT count(*) FROM public.answer_key_entries k WHERE k.question_id=q.id)=1",
-         "NOT (SELECT k.raw_model_response->'approved_tags' ? 'question_payload_sha256'"
-         " FROM public.answer_key_entries k WHERE k.question_id=q.id)"])
+         # sealed = published: either envelope (a generated key keeps approved_tags under "evidence");
+         # coalesce so an envelope without approved_tags reads as unsealed, never as NULL (which IF NOT skips)
+         "NOT coalesce((SELECT CASE WHEN k.raw_model_response->>'kind'="
+         f"'{GENERATED}' THEN k.raw_model_response->'evidence'->'approved_tags' ELSE"
+         " k.raw_model_response->'approved_tags' END ? 'question_payload_sha256'"
+         " FROM public.answer_key_entries k WHERE k.question_id=q.id),false)"])
     old_cols = sorted(old_q)
     body = [f"DECLARE v jsonb:={_blob(v)}; q public.quiz_questions%rowtype; n int;", "BEGIN",
             " SELECT * INTO q FROM public.quiz_questions WHERE id=(v->'old'->'question'->>'id')::uuid FOR UPDATE;",

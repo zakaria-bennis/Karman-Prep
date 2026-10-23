@@ -1,4 +1,5 @@
-"""`k qa hide` and `k qa restore`: run the QA hide / restore SQL end to end.
+"""`k qa hide`, `k qa restore` and `k qa fix-legacy`: run the QA SQL end to end; `k qa ids`
+builds the hidden id map (read-only).
 
 Sequence (README "The sequence", same as the autopilot): writer lock, no open
 intent, fresh export (or --export), build the SQL and its .dryrun.sql twin,
@@ -19,8 +20,9 @@ import time
 from pathlib import Path
 
 from kimport import qa_hide as qh
-from kimport import writer
+from kimport import qa_ids, qa_legacy, writer
 from kimport.autopilot import DbError, supabase_file_runner
+from kimport.autopilot_live import LEDGER
 from kimport.export import export_by_id, read_export_doc
 from kimport.fetch import run_export
 from kimport.sqlutil import dryrun_variant
@@ -69,11 +71,13 @@ def _write_sql(run_dir: Path, name: str, sql: str) -> tuple[Path, Path]:
     return real, dry
 
 
-def _apply(deps: Deps, pipe: Path, run_dir: Path, name: str, sql: str, after: dict, before: dict, now: str) -> str:
-    """Intent, dry run, real file, readback, close. Returns the readback sha256."""
+def _apply(deps: Deps, pipe: Path, run_dir: Path, name: str, sql: str, after: dict, before: dict, now: str,
+           readback: str | None = None) -> str:
+    """Intent, dry run, real file, readback, close. Returns the readback sha256.
+    `readback`: the read-only SQL whose rows `after` / `before` describe (default qa_hide.readback_sql)."""
     real, dry = _write_sql(run_dir, name, sql)
     rb = run_dir / "readback.sql"
-    rb.write_text(qh.readback_sql(sorted(after)), encoding="utf-8")
+    rb.write_text(readback or qh.readback_sql(sorted(after)), encoding="utf-8")
     log = pipe / "intents.jsonl"
     iid = writer.write_intent(log, run_dir.name, f"qa_{name}", sorted(after),
                               qh.sha(real.read_text(encoding="utf-8")), now)
@@ -226,3 +230,76 @@ def run_restore(pipe: Path, ids_file: str, results: list, audit_files: list, now
         return {**summary, "result": "restored", "readback_sha256": digest, "undo_rows": undo}
 
     return _locked(pipe, now, dry, go)
+
+
+def run_fix_legacy(pipe: Path, fixes_files: list, now: str, ids_file: str | None = None, dry: bool = False,
+                   plan: bool = False, export: str | None = None, snapshot: str | None = None,
+                   deps: Deps | None = None) -> dict:
+    """Apply reviewers' fixes to legacy rows in place (kimport.qa_legacy). --plan builds the files only
+    (with --export and --snapshot: no database at all); --dry also runs the .dryrun.sql."""
+    pipe, deps = Path(pipe), deps or Deps()
+    fixes, conflicts = qa_legacy.read_fixes(fixes_files)
+    if ids_file:
+        keep = set(qh.read_ids(ids_file))
+        fixes = {k: v for k, v in fixes.items() if k in keep}
+        conflicts = {k: v for k, v in conflicts.items() if k in keep}
+
+    def go():
+        qa_dir = pipe / "qa"
+        run_dir = qa_dir / f"fix-legacy-{_stamp(now)}{'-plan' if plan else '-dry' if dry else ''}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+        doc, _ = _export(deps, run_dir, export)
+        if snapshot:
+            raw = json.loads(Path(snapshot).read_text(encoding="utf-8"))
+        else:
+            (run_dir / "snapshot.sql").write_text(qa_legacy.snapshot_sql(sorted(fixes)), encoding="utf-8")
+            raw = _read(deps, run_dir / "snapshot.sql")
+            (run_dir / "snapshot.json").write_text(json.dumps(raw) + "\n", encoding="utf-8")
+        res = qa_legacy.build(fixes, conflicts, doc, qa_legacy.read_snapshots(raw))
+        for fname, text in res["files"].items():
+            (run_dir / fname).write_text(text, encoding="utf-8")
+        summary = {"run": str(run_dir), "export": doc.exported_at, "fix_lines": len(fixes), "to_fix": len(res["items"]),
+                   "refused": res["refused"], "dry": dry, "plan": plan}
+        (run_dir / "plan.json").write_text(json.dumps({**summary, "rows": res["plan"]["rows"]}, indent=2,
+                                                      ensure_ascii=False) + "\n", encoding="utf-8")
+        if not res["items"]:
+            return {**summary, "result": "nothing to fix"}
+        if plan:
+            return {**summary, "result": "planned (nothing ran)"}
+        if dry:
+            _read(deps, run_dir / "fix-legacy.dryrun.sql")
+            return {**summary, "result": "dry run passed (rolled back)"}
+        after, before = qa_legacy.expected(res["items"])
+        digest = _apply(deps, pipe, run_dir, "fix-legacy", res["files"]["fix-legacy.sql"], after, before, now,
+                        readback=res["files"]["readback.sql"])
+        qh.append_log(qa_dir / qa_legacy.LOG, qa_legacy.log_entries(res["items"], now, run_dir.name))
+        return {**summary, "result": "fixed (still hidden)", "readback_sha256": digest}
+
+    return _locked(pipe, now, dry or plan, go)
+
+
+def run_ids(pipe: Path, ids_files: list, now: str, rows: str | None = None, ledgers: list | None = None,
+            clusters: str | None = None, write_approved: bool = False, deps: Deps | None = None) -> dict:
+    """The candidate hidden id map (kimport.qa_ids) for every id QA hid plus --ids; read-only."""
+    pipe, deps = Path(pipe), deps or Deps()
+    qa_dir = pipe / "qa"
+    if write_approved:
+        return qa_ids.write_approved(qa_dir)
+    ids = {e["id"] for e in qh.read_log(qa_dir / "hidden.jsonl")}
+    for f in ids_files:
+        ids |= set(qh.read_ids(f))
+    if rows:
+        raw = json.loads(Path(rows).read_text(encoding="utf-8"))
+    else:
+        path = qa_dir / f"ids-{_stamp(now)}.sql"
+        path.write_text(qa_ids.ids_sql(), encoding="utf-8")
+        raw = _read(deps, path)
+    ledgers = ledgers or [str(LEDGER), str(pipe / "corpus" / "new-exam-ledger.json")]
+    clusters = clusters or str(pipe / "corpus" / "clusters.json")
+    res = qa_ids.derive(ids, qa_ids.read_rows(raw), qa_ids.ledger_items(ledgers),
+                        json.loads(Path(clusters).read_text(encoding="utf-8")))
+    out = qa_ids.write_candidate(qa_dir, res, {"rows": rows or "ids_sql (read-only)", "ledgers": ledgers,
+                                               "clusters": clusters, "at": now})
+    return {"candidate": str(out), "ids": len(ids), "counts": res["counts"],
+            "ambiguous": {k: v["why"] for k, v in res["rows"].items() if v["status"] == "ambiguous"},
+            "legacy": sorted(k for k, v in res["rows"].items() if v["status"] == "legacy")}

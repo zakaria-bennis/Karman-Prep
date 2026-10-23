@@ -12,6 +12,7 @@ from pathlib import Path
 
 from kimport import qa_correct as qc
 from kimport import qa_hide as qh
+from kimport.answer_evidence import GENERATED
 from kimport import stage as st
 from kimport.export import fingerprint, read_export_doc
 from kimport.sqlutil import dryrun_variant
@@ -208,8 +209,18 @@ class TestQaCorrectSql(AutopilotCase):
         def other(s):
             s["keys"][0]["raw_model_response"]["approved_tags"]["stable_question_id"] = "someone-else"
         res, _ = self.build(row(1, answer="B"), other)
-        self.assertIn("the hidden row's evidence names another stable question id",
-                      res["refused"][row(1)["stable_question_id"]])
+        self.assertTrue(any(w.startswith("the hidden row's evidence names another stable question id")
+                            for w in res["refused"][row(1)["stable_question_id"]]))
+
+    def test_generated_key_envelope_names_the_stable_id(self):
+        """A generated key keeps approved_tags under "evidence"; that row is not a legacy row."""
+        def wrap(s):
+            s["keys"][0]["raw_model_response"] = {"kind": GENERATED, "evidence": s["keys"][0]["raw_model_response"]}
+        res, _ = self.build(row(1, answer="B"), wrap)
+        self.assertEqual(res["refused"], {})
+        rb = res["files"]["qa-rollback.sql"]
+        self.assertIn("NOT coalesce((SELECT CASE WHEN k.raw_model_response->>'kind'=", rb)
+        self.assertIn("->'evidence'->'approved_tags' ELSE", rb)
 
     def test_duplicate_of_another_bank_row_is_refused(self):
         # the corrected text is another bank row's text

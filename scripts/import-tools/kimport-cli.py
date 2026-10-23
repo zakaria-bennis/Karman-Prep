@@ -562,6 +562,28 @@ def _register_qa(sub) -> None:
     rs.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
     rs.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_restore(
         Path(a.pipe), a.ids, a.results, a.audit, a.now, a.dry, a.export, a.skip_refused, _qa_deps()))))
+    fl = qsub.add_parser("fix-legacy", help="apply reviewers' fixes in place to rows whose evidence names no stable id")
+    fl.add_argument("--fixes", nargs="+", required=True, help="pipeline/qa/fixes-*.jsonl (decision \"fix\" lines)")
+    fl.add_argument("--ids", help="only these ids (JSON list or one per line)")
+    fl.add_argument("--pipe", required=True)
+    fl.add_argument("--now", required=True)
+    fl.add_argument("--export", help="use this saved export instead of taking a fresh one")
+    fl.add_argument("--snapshot", help="use this saved legacy snapshot (qa_legacy.snapshot_sql result); with --plan")
+    fl.add_argument("--plan", action="store_true", help="build the SQL and plan.json only; run nothing")
+    fl.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
+    fl.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_fix_legacy(
+        Path(a.pipe), a.fixes, a.now, a.ids, a.dry, a.plan, a.export, a.snapshot, _qa_deps()))))
+    ids = qsub.add_parser("ids", help="candidate live id -> stable id map for the questions QA hid (read-only)")
+    ids.add_argument("--pipe", required=True)
+    ids.add_argument("--now", required=True)
+    ids.add_argument("--ids", action="append", default=[], help="more ids beyond qa/hidden.jsonl (repeatable)")
+    ids.add_argument("--rows", help="saved qa_ids.ids_sql result (or a full dump with answer_key_entries)")
+    ids.add_argument("--ledger", action="append", help="ledger files (default: readiness + new-exam ledger)")
+    ids.add_argument("--clusters", help="corpus clusters.json (default: <pipe>/corpus/clusters.json)")
+    ids.add_argument("--write-approved", action="store_true",
+                     help="write hidden-id-map.json and hidden-stable-ids.json from the reviewed candidate")
+    ids.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_ids(
+        Path(a.pipe), a.ids, a.now, a.rows, a.ledger, a.clusters, a.write_approved, _qa_deps()))))
 
 
 def _qa_deps():

@@ -22,6 +22,22 @@ def evidence_root(raw):
     return raw if isinstance(raw, dict) else None
 
 
+def stable_question_id(raw):
+    """approved_tags.stable_question_id from the evidence root (None if the evidence names none).
+    A generated envelope keeps it under "evidence": a reader that looks only at the top
+    level sees None for every generated-key row."""
+    root = evidence_root(raw)
+    tags = root.get("approved_tags") if isinstance(root, dict) else None
+    sid = tags.get("stable_question_id") if isinstance(tags, dict) else None
+    return sid if isinstance(sid, str) and sid else None
+
+
+def sql_stable_question_id(col: str) -> str:
+    """SQL twin of stable_question_id over a raw_model_response column (either envelope)."""
+    return (f"CASE WHEN {col}->>'kind'='{GENERATED}' THEN {col}->'evidence'->'approved_tags'->>'stable_question_id'"
+            f" ELSE {col}->'approved_tags'->>'stable_question_id' END")
+
+
 def ambiguous(raw) -> bool:
     """A generated envelope that also carries approved_tags at the top (the app refuses it)."""
     return is_generated(raw) and raw.get("approved_tags") is not None
