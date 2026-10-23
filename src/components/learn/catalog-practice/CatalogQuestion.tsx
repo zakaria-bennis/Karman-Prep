@@ -107,7 +107,6 @@ export default function CatalogQuestion({
           text={q.question_text}
           className="block whitespace-pre-wrap text-lg leading-relaxed"
           serializedFunctionLines={q.subject === "math"}
-          treatBlankWord
         />
         {q.answer_format === "numeric_entry" ? (
           <label className="block text-sm font-semibold">

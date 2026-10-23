@@ -87,11 +87,32 @@ f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
   fraction leaves the following sum outside it. Source bytes, ordinary prose,
   explicit math and unsupported forms stay intact. Require source-pixel review
   for affected questions on the exact renderer before accepting display.
-- Em dashes stored as hyphen runs (founder, 2026-10-22): in prose, `MathText`
-  and plain table cells show a lone run of exactly 3 or 4 hyphens (`---`,
-  `----`) as one em dash `—`, dropping spaces or tabs beside it, so
-  `evolution --- a` reads `evolution—a`. Passages, stems, answer choices and
-  table cells all follow this. Math (`$...$`, `$$...$$`, `\(...\)`), single
-  and double hyphens, runs of 5 or more, underscore blanks, and runs touching
-  `|` or `:` (Markdown table rules like `|---|`) stay as they are. Display
-  only; approved source bytes keep the hyphens. Code: `em-dash-display.ts`.
+- Dashes and blanks stored as hyphen and underscore runs (founder, 2026-10-22:
+  "any stringing of hyphens together is an em dash, any stringing of
+  underscores together is a blank"; "no question should have more than one
+  blank"). Display only, in prose (passages, stems, answer choices, table
+  cells); approved source bytes keep the original characters. Code:
+  `dash-blank-display.ts`.
+  - Em dash: any run of 2+ hyphens (`--`, `---`, `-------`), a spaced run of
+    3+ (`- - -`), a run split by one line break (`--` then `-` on the next
+    line) and a hyphen touching an em dash (`-—`, `—--`) show as one `—`,
+    dropping spaces or tabs beside it, so `evolution --- a` reads
+    `evolution—a`.
+  - Hyphen blank: a run of 5+ hyphens with a space or text edge on both sides
+    (`suggests that ------`) sits where SAT prints a blank, so it shows as the
+    blank. 5+ hyphens touching a word are an em dash.
+  - Left literal: math (`$...$`, `$$...$$`, `\(...\)`), single hyphens and
+    `- -` (minus signs such as `5 - -3`; also the OCR break `mid- - twentieth`),
+    `--` before a digit (`x--1`), runs touching `|` or `:` (Markdown table rules
+    `|---|`, `:---:`), a line of only hyphens in multi-line text (a horizontal
+    rule), and anything inside a URL or `` `code` ``.
+  - Blank: every run of 2+ underscores, glued to words or not, and spaced runs
+    (`_ _ _`) show as the same fixed-width blank line. An underscore run
+    followed by the word "blank" (screen-reader text captured with the source:
+    `______blank`, `______ blank`, `______ [blank]`) is one blank and the word
+    is hidden. Underscores in math, single underscores (`snake_case`), URLs and
+    code stay literal.
+  - The bare word "blank" counts as a blank only in passages (`treatBlankWord`).
+    Stems and choices keep it as a word ("blank sheets of paper",
+    "[Blank response field]").
+

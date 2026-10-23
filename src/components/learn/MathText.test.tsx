@@ -73,9 +73,10 @@ describe("source composite blank markers", () => {
     expect(container.textContent).toBe("Before  after");
   });
   it("preserves ordinary blank prose and words after an underscore marker", () => {
+    // "_____ blank" is source screen-reader text for one blank (founder, 2026-10-22).
     const text = "Leave the blank page beside a blanket. _____blanket _____ blank.";
     const { container } = render(<MathText text={text} />);
-    expect(container.textContent).toBe("Leave the blank page beside a blanket. blanket  blank.");
+    expect(container.textContent).toBe("Leave the blank page beside a blanket. blanket .");
     expect(container.querySelectorAll('[aria-label="blank"]')).toHaveLength(2);
   });
 });
