@@ -1,5 +1,7 @@
 // Scroll the landing page in steps and report any visible text that overlaps
-// other text or the header, and any moment with more than one button on screen.
+// other text or the header, and any moment with more than one button on screen. On phones (film above, words below)
+// it also checks the face: the eye line of the film on screen (each clip's eye, film.js) must sit below the header row
+// and above the film's soft bottom edge, so no face is covered by the header or cut by the band.
 // Needs the preview server on :8765. Usage: node overlap-scan.mjs [width] [height] [steps]
 import { chromium } from "/Users/zakariabennis/Karman-Prep/node_modules/playwright/index.mjs";
 const [w = 1440, h = 900, n = 120] = process.argv.slice(2).map(Number);
@@ -14,7 +16,7 @@ for (let i = 0; i <= n; i++) {
   await p.evaluate((y) => window.__go(y), y);
   const r = await p.evaluate(() => {
     const SEL =
-      ".lede, .act, figcaption, .note, .card, .shot, .time, .stamp, .kline, .tip, .dock, .playctl";
+      ".lede, .act, figcaption, .note, .pnote, .card, .shot, .time, .mproof, .kline, .tip, .dock";
     const vis = (el) => {
       let e = el,
         o = 1;
@@ -58,7 +60,8 @@ for (let i = 0; i <= n; i++) {
         if (A.el.contains(B.el) || B.el.contains(A.el)) continue;
         if (hit(A.r, B.r)) out.push(`${name(A.el)} x ${name(B.el)}`);
       }
-    const hd = document.querySelector(".hd");
+    const hd = document.querySelector(".hd"),
+      H_BOTTOM = hd.getBoundingClientRect().bottom;
     if (!hd.classList.contains("away")) {
       const H = hd.getBoundingClientRect();
       boxes.forEach(({ el, r }) => {
@@ -70,6 +73,28 @@ for (let i = 0; i <= n; i++) {
       return vis(el) > 0.5 && q.bottom > 0 && q.top < innerHeight;
     });
     if (btns.length > 1) out.push(`${btns.length} buttons`);
+    const films = document.querySelector(".films").getBoundingClientRect();
+    if (films.height < innerHeight - 1) {
+      const clips = window.__clips();
+      document.querySelectorAll(".films .frame").forEach((f, i) => {
+        const c = clips[i],
+          v = f.querySelector("video");
+        if (
+          c.eye == null ||
+          getComputedStyle(f).visibility === "hidden" ||
+          +getComputedStyle(f).opacity < 0.5 ||
+          !v.videoHeight
+        )
+          return;
+        const r = v.getBoundingClientRect(),
+          sc = Math.max(r.width / v.videoWidth, r.height / v.videoHeight);
+        const py = parseFloat(getComputedStyle(v).objectPosition.split(" ")[1]) / 100;
+        const eyeY = r.top + (r.height - v.videoHeight * sc) * py + c.eye * v.videoHeight * sc;
+        if (eyeY < H_BOTTOM + 8) out.push(`${c.film} eyes under header (${Math.round(eyeY)}px)`);
+        if (eyeY > films.bottom - 64)
+          out.push(`${c.film} eyes in the band fade (${Math.round(eyeY)}px)`);
+      });
+    }
     return out;
   });
   if (r.length) problems.push(`step ${i} (y=${y}): ${[...new Set(r)].join("; ")}`);

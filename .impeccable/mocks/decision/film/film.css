@@ -1,0 +1,301 @@
+/* Karman landing film: styles. Markup in index.html, behaviour in film.js, words in copy.js. */
+:root { --night: #0b121a; --ink: #f1f1ee; --ink2: #b9c2cb; --acc: #7cc4a5; --ease: cubic-bezier(.22, 1, .36, 1);
+  --gutter: clamp(16px, 5vw, 80px); --card: #101923; --card-ink: #f1f1ee; --card-ink2: #b9c2cb; --foot: #04070d; --foot-ink: #f1f1ee; --foot-ink2: #b9c2cb;
+  /* the type scale: headlines, numerals (clock and results), titles, body and small, plus the logo */
+  --t-display: clamp(40px, min(5.6vw, 9vh), 96px); --t-num: clamp(40px, min(4.6vw, 8.4vh), 80px); --t-title: 26px; --t-body: 17px; --t-small: 15px; }
+/* light mode: the film stays film, and so do the captions and cards that sit on it (dark, like the product screens beside them);
+   the surfaces off the film (menu and footer) turn bone */
+:root { --sheet: #101923; --sheet-ink: #f1f1ee; }
+:root[data-theme="light"] { --sheet: #f1f1ee; --sheet-ink: #15202e; --foot: #f1f1ee; --foot-ink: #15202e; --foot-ink2: #3d4a58; }
+* { box-sizing: border-box; margin: 0; }
+html { background: var(--night); overflow-x: clip; }
+/* the open menu holds the page still underneath it */
+html.lock { overflow: hidden; }
+body { background: transparent; color: var(--ink); font: var(--t-body)/1.5 "Hanken Grotesk", system-ui, sans-serif; overflow-x: clip; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+p { max-width: 70ch; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); margin: -1px; border: 0; padding: 0; white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; }
+
+/* the header stays on screen, so the film's pause control in it is always one tap away while a film moves */
+.hd { position: fixed; inset: 0 0 auto 0; z-index: 50; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter); }
+.hd::before { content: ""; position: absolute; inset: 0 0 -40px 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgba(4,7,13,.8) 0%, rgba(4,7,13,.72) 48%, rgba(4,7,13,0) 100%); }
+/* over the footer the header turns solid, so nothing in the footer passes under the logo row. Pause stays in its place
+   (it is the reader's setting for the whole page), so the row never reflows or leaves a gap */
+.hd::before { transition: background-color .2s linear; }
+.hd.solid { color: var(--foot-ink); }
+.hd.solid::before { inset: 0; background: var(--foot); border-bottom: 1px solid rgba(127,140,153,.28); }
+.hd .mark { font-family: "Source Serif 4", Georgia, serif; font-size: var(--t-title); font-weight: 500; text-decoration: none; letter-spacing: -.01em; min-height: 44px; display: inline-flex; align-items: center; }
+.hd nav { display: flex; align-items: center; gap: clamp(10px, 2vw, 28px); font-size: var(--t-small); font-weight: 500; }
+.hd nav a, .hd .menu, .hd .play { white-space: nowrap; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; }
+.hd .menu, .hd .play { background: none; border: 0; font-weight: 500; cursor: pointer; }
+/* the pause control: plain text like the links, kept a fixed width so Pause and Play don't shift the row */
+.hd .play { min-width: 44px; justify-content: center; padding: 0 6px; }
+.hd .play .lbl { display: inline-block; min-width: 2.6em; text-align: center; }
+.hd .play[hidden] { display: none; }
+/* at the page end the footer's Pause is on screen, so the header's steps aside without moving the row */
+.hd.footmotion .play { visibility: hidden; }
+/* the route to the free test never moves: a plain text link in the header, next to Pause (rule 35: one highlighted button at a time) */
+.hd .cta { font-weight: 700; }
+.hd .menu { display: none; }
+@media (max-width: 1023px) { .hd nav > a:not(.cta) { display: none; } .hd .menu { display: inline-flex; } }
+@media (max-width: 760px) { .hd nav { gap: 8px; } }
+/* small iPhones: the free test stays one tap away in the menu and on the page, so the header keeps only Pause and Menu */
+@media (max-width: 359px) { .hd nav a.cta { display: none; } }
+
+/* the menu on narrow screens: a solid sheet, no blur, that settles in from just above */
+.sheet { position: fixed; inset: 0; z-index: 60; background: var(--sheet); color: var(--sheet-ink); padding: 0 var(--gutter) 40px; overflow-y: auto;
+  opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .28s var(--ease), transform .28s var(--ease), visibility 0s linear .28s; }
+.sheet.open { opacity: 1; visibility: visible; transform: none; transition: opacity .28s var(--ease), transform .28s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .sheet, .sheet.open { transition: none; transform: none; } }
+.sheet .top { height: 72px; display: flex; align-items: center; justify-content: space-between; }
+.sheet .mark { font-family: "Source Serif 4", Georgia, serif; font-size: var(--t-title); font-weight: 500; }
+.sheet .close { background: none; border: 0; font-weight: 600; font-size: var(--t-small); min-height: 44px; min-width: 44px; padding: 0 4px; cursor: pointer; }
+.sheet nav { display: grid; margin-top: 16px; }
+.sheet nav a { font-size: var(--t-title); text-decoration: none; min-height: 56px; display: flex; align-items: center; border-top: 1px solid rgba(127,140,153,.25); }
+.sheet .btn { margin-top: 28px; width: 100%; text-align: center; background: var(--sheet-ink); color: var(--sheet); }
+
+/* the films: one fixed layer; each clip's film replaces the one before through a short dip to black */
+.films { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+.films::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.frame { position: absolute; inset: 0; overflow: hidden; opacity: 0; visibility: hidden; }
+/* between two films the picture dips to black for a moment and the cut happens inside the dark, never a double exposure */
+.dip { position: absolute; inset: 0; background: #020408; opacity: 0; pointer-events: none; }
+.frame:first-child { opacity: 1; visibility: visible; }
+/* just enough overscan for the slow crane; every extra percent of scale softens the faces */
+.frame .cam { position: absolute; inset: -3%; will-change: transform; transition: scale 1.2s var(--ease), translate 1.2s var(--ease); }
+/* a reader at rest on a clip whose film has played out: the camera keeps moving, a slow push in and out (real frames, never a freeze) */
+.frame.rest .cam { scale: 1.06; translate: 0 -1.2%; transition: scale 12s cubic-bezier(.45, 0, .55, 1), translate 12s cubic-bezier(.45, 0, .55, 1); }
+.frame.rest.back .cam { scale: 1.01; translate: 0 0; }
+.frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: drift 30s ease-in-out infinite alternate; }
+.frame.wide video { object-position: 50% 40%; }
+@keyframes drift { from { transform: scale(1); } to { transform: scale(1.04) translate3d(0, -0.6%, 0); } }
+.still .frame video, .held .frame video { animation-play-state: paused; }
+.still .frame video { animation: none; }
+/* reduced motion: a clip shown closer on wide screens (zoom in film.js) keeps that framing as a still */
+.still .frame .cam { scale: var(--z, 1); }
+/* scrims: dark where words sit, the film left clear elsewhere */
+.frame .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.3) 48%, rgba(11,18,26,.08) 72%, rgba(11,18,26,0) 100%); }
+.frame.has-feat .scrim { background: linear-gradient(90deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.28) 45%, rgba(11,18,26,.5) 100%); }
+/* the bottom: dark enough under the clock, the results and the floating button (its edge at 4.5:1 on the brightest frame) */
+.frame .scrim::after { content: ""; position: absolute; inset: auto 0 0 0; height: 32%; background: linear-gradient(0deg, rgba(4,7,13,.8), rgba(4,7,13,.5) 40%, rgba(4,7,13,0)); }
+.frame.center .scrim { background: linear-gradient(180deg, rgba(8,10,12,.4) 0%, rgba(8,10,12,.62) 32%, rgba(8,10,12,.62) 82%, rgba(8,10,12,.5) 100%); }
+.frame.center .scrim::after { display: none; }
+.frame.orbit .scrim { background: linear-gradient(180deg, rgba(4,7,13,.15) 0%, rgba(4,7,13,.1) 35%, rgba(4,7,13,.72) 60%, rgba(4,7,13,.86) 100%); }
+
+main { position: relative; z-index: 1; }
+/* a message: one headline, its clips playing back to back under it.
+   --len: the message's share of the scroll (the sum of its clips, set by film.js; .mk marks where each clip starts).
+   Each message also reaches --ov into the next one (and gives it back with a negative margin), so its words stay pinned
+   right up to the cut into the next film, which comes --pin before the next message's top; the next message's words pin
+   at that same cut (.copy margin-top). Inside a message the headline holds through the dips; what belongs to one clip
+   (a screen, a clock, a result) leaves with that clip's film. */
+:root { --pin: 80vh; --ov: 20vh; }
+.sc { --len: var(--ld); position: relative; height: calc(var(--len) + var(--ov)); margin-bottom: calc(-1 * var(--ov)); }
+.sc.last { height: var(--len); margin-bottom: 0; }
+.sc .mk { position: absolute; left: 0; top: var(--ad); width: 1px; height: 0; pointer-events: none; }
+.sc:not(.first) { display: flow-root; } .sc:not(.first) .copy { margin-top: calc(-1 * var(--pin)); }
+.sc:focus { outline: none; }
+.rec *, .rec *::before { transition: none !important; }
+.copy { position: sticky; top: 0; height: 100vh; height: 100svh; pointer-events: none; }
+.copy a, .copy button { pointer-events: auto; }
+
+.kin { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); font-family: "Source Serif 4", Georgia, serif; font-weight: 500; font-size: var(--t-display); line-height: 1; letter-spacing: clamp(-0.03em, calc(-0.005em - 0.2vw), -0.012em); max-width: 11ch; text-wrap: balance; font-kerning: normal; }
+/* low (wide screens): where a face sits left of centre at headline height, the headline drops to the lower left,
+   just above the clock, over the shoulders and hands, so it never crosses a face */
+.sc.low .kin { top: auto; bottom: calc(30px + var(--t-num) + clamp(18px, 3vh, 32px)); transform: none; }
+.kin .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+.kin .w > span { display: inline-block; }
+.stack { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: clamp(14px, 2.2vh, 28px); padding: 96px 16px 56px; text-align: center; }
+.stack .more { align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: inherit; }
+.stack .kin { position: static; transform: none; max-width: 14ch; }
+.lede { width: min(620px, 100%); max-width: 66ch; text-wrap: pretty; }
+.proof { font-size: var(--t-small); color: var(--ink); opacity: .9; max-width: 60ch; }
+.act { display: grid; justify-items: center; gap: 8px; }
+.act small { font-size: var(--t-small); color: var(--ink); opacity: .9; }
+/* the one highlighted button. Its dark hairline keeps its edge readable over the brightest frame behind it */
+.btn { display: inline-block; background: var(--ink); color: var(--night); font-weight: 700; font-size: var(--t-body); line-height: 1.2; text-decoration: none; padding: 16px 30px; min-height: 44px; border-radius: 999px; border: 1px solid rgba(4,7,13,.55);
+  transition: transform .18s var(--ease), background-color .18s var(--ease); -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) and (pointer: fine) { .btn:hover { background: #fff; transform: translateY(-1px); } }
+.btn:focus-visible { outline-color: var(--acc); }
+.btn:active { transform: scale(.97); background: #dfe3e6; }
+.btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+.btn[aria-busy="true"] { cursor: progress; }
+/* "Skip the film": a plain text link on the first screen, straight to the offer at the end */
+.skipfilm { font-size: var(--t-small); font-weight: 600; min-height: 44px; display: inline-flex; align-items: center; padding: 0; text-decoration: underline; text-underline-offset: 4px; }
+/* the keyboard's copy of "Skip the film": the first tab stop, out of sight until it has focus, then over the logo */
+.skiptop { position: fixed; z-index: 70; left: var(--gutter); top: 14px; padding: 10px 16px; border-radius: 999px; background: var(--night); color: var(--ink); font-size: var(--t-small); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; transform: translateY(-200%); }
+.skiptop:focus, .skiptop:focus-visible { transform: none; }
+/* phones: while "Skip the film" has focus it covers the header's free-test link, so that link steps aside for the moment */
+@media (max-width: 760px) { body:has(.skiptop:focus) .hd nav a.cta { visibility: hidden; } }
+/* the headline "Skip the film" brings focus to is a place to read from, not a control */
+.kin[tabindex="-1"]:focus { outline: none; }
+@media (hover: hover) and (pointer: fine) { .skipfilm:hover { text-decoration-thickness: 2px; } .hd nav a:hover, .hd .play:hover { text-decoration: underline; text-underline-offset: 5px; } }
+
+/* a product screen beside the film, shown as a cropped detail near its real size so its text reads; captions sit flat on solid cards.
+   The screen, then its caption (and any card) stacked under it, edge to edge with it, so a caption never floats on its own
+   over the person. A phone screen's width (--dw) is set by the script so screen and captions fit, 104px clear of the
+   header and of the floating button. A caption may run wider than a narrow screen (to 280px, right-aligned with it),
+   so it never wraps into a tall, cramped column */
+.feat { position: absolute; right: var(--gutter); top: 104px; bottom: 104px; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 12px;
+  width: var(--dw, min(calc(var(--w) * 1px), 30vw)); will-change: transform, opacity; }
+.feat .shot { width: 100%; flex: none; }
+.feat figcaption, .feat .note { width: 100%; min-width: min(280px, 30vw); }
+/* laptop screens: a panel of the screen, the caption and card under it */
+.feat.lap { width: min(calc(var(--w) * 1px), var(--fw, 46vw), calc((100vh - 380px) * var(--r))); }
+/* short laptop screens (720 to 760 tall): the panel may grow so the screen's smallest text stays near 12px */
+@media (min-width: 761px) and (max-height: 760px) { .feat.lap { width: min(calc(var(--w) * 1px), var(--fw, 46vw), calc((100vh - 300px) * var(--r))); } }
+.shot { position: relative; overflow: hidden; aspect-ratio: var(--ar); border-radius: 34px; background: #0b121a; }
+/* until its picture arrives, a screen holds a quiet skeleton: a slightly lighter fill that breathes, never an empty box */
+.shot.ld { background: #16212c; animation: sk 1.6s ease-in-out infinite alternate; }
+.shot.ld img { opacity: 0; }
+.shot img { transition: opacity .3s linear; }
+@keyframes sk { from { background-color: #131d27; } to { background-color: #1b2733; } }
+@media (prefers-reduced-motion: reduce) { .shot.ld { animation: none; } .shot img { transition: none; } }
+.shot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); pointer-events: none; }
+.shot img { position: absolute; max-width: none; height: auto; width: var(--iw); left: var(--il); top: var(--it); display: block; }
+.feat.lap .shot { border-radius: 14px; }
+.feat figcaption, .feat .note { background: var(--card); color: var(--card-ink2); border-radius: 22px; padding: 14px 18px; font-size: var(--t-small); text-wrap: pretty; }
+.feat figcaption b, .feat .note b { color: var(--card-ink); font-weight: 600; }
+/* a screen's own title (the clip's idea inside its message), first line of its caption card */
+.feat .ttl { font-size: var(--t-body); font-weight: 600; line-height: 1.3; color: var(--card-ink); margin-bottom: 4px; text-wrap: balance; }
+.feat .note b { display: block; margin-bottom: 2px; }
+.feat.card { width: min(420px, 38vw); top: 0; bottom: 0; height: fit-content; margin: auto 0; display: block; background: var(--card); color: var(--card-ink2); border-radius: 22px; padding: 26px 28px; }
+.card .date { font-family: "Source Serif 4", Georgia, serif; font-size: var(--t-title); line-height: 1.1; white-space: nowrap; margin-top: 4px; letter-spacing: -.015em; }
+.card .later { margin: 12px 0 16px; font-weight: 600; }
+.card p { text-wrap: pretty; }
+.card .later, .card .date, .card a { color: var(--card-ink); }
+.card a { text-underline-offset: 4px; padding-block: 11px; } /* a 44px tap target, the line spacing unchanged */
+
+.time { position: absolute; left: var(--gutter); bottom: 30px; display: flex; align-items: flex-end; gap: 14px; }
+.time .digits { font-family: "Source Serif 4", Georgia, serif; font-weight: 400; font-size: var(--t-num); line-height: .9; letter-spacing: -0.02em; display: inline-flex; }
+.time .c { display: inline-block; overflow: hidden; padding-bottom: .06em; }
+.time .c > span { display: inline-block; }
+.time .meta { display: grid; font-size: var(--t-small); line-height: 1.3; padding-bottom: 4px; }
+.time .meta b { font-weight: 600; }
+/* next fall: the result where the clock sits in the other messages, kept left of the student, the format line under it */
+.res { position: absolute; left: var(--gutter); bottom: calc(clamp(32px, 7vh, 72px) + 30px); max-width: min(40vw, 560px); }
+.res .kin { position: static; transform: none; max-width: none; white-space: nowrap; font-size: var(--t-num); }
+.res .s { margin-top: 12px; font-weight: 600; letter-spacing: .01em; }
+.mproof { position: absolute; left: var(--gutter); bottom: clamp(32px, 7vh, 72px); font-size: var(--t-small); opacity: .9; }
+
+/* orbit: the line sits just above the airglow; tap it to learn what it is */
+.kline { position: absolute; left: 0; right: 0; top: var(--ky, 26%); height: 44px; margin-top: -22px; background: none; border: 0; padding: 0; cursor: pointer; }
+.kline::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(241,241,238,.62); transform-origin: 0 50%; transform: scaleX(var(--draw, 0));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+.kline .kl { position: absolute; right: 18%; bottom: 50%; margin-bottom: 9px; font-size: var(--t-small); font-weight: 600; letter-spacing: .02em; line-height: 1; color: var(--ink); opacity: var(--draw, 0); white-space: nowrap; padding: 6px 0; }
+/* its focus ring goes around the label, never across it (an inset ring on the band when there is no short label) */
+.kline:focus-visible { outline: none; }
+.kline:focus-visible .kl { opacity: 1; outline: 3px solid var(--acc); outline-offset: 4px; border-radius: 4px; }
+.kline:not(:has(.kl)):focus-visible { outline: 3px solid var(--acc); outline-offset: -3px; }
+@media (hover: hover) and (pointer: fine) { .kline:hover .kl { opacity: 1; text-decoration: underline; text-underline-offset: 4px; } }
+.tip { position: absolute; right: var(--gutter); top: calc(var(--ky, 26%) - 104px); font-size: var(--t-small); line-height: 1.4; color: var(--ink); background: #04070d; padding: 8px 12px; border-radius: 10px; opacity: 0; transform: translateY(4px); transition: opacity .25s var(--ease), transform .25s var(--ease); pointer-events: none; max-width: min(70vw, 420px); }
+.tip.open { opacity: 1; transform: none; }
+/* while the note is open it says what the short label says, so the label steps aside */
+.copy:has(.tip.open) .kline .kl { opacity: 0 !important; transition: opacity .2s linear; }
+/* a focused line keeps a visible ring while its note is open: an inset ring on the band, clear of the note */
+.copy:has(.tip.open) .kline:focus-visible { outline: 3px solid var(--acc); outline-offset: -3px; }
+.sc.orbit .stack { justify-content: flex-end; padding-bottom: 12vh; }
+/* the opening on wide screens: the words in a left column over a dark side, the girl at the counter (centre frame) left clear */
+@media (min-width: 761px) {
+  .sc.side .stack { right: auto; width: min(42vw, 640px); align-items: flex-start; text-align: left; padding: 96px 0 56px var(--gutter); }
+  .sc.side .stack .more { align-items: flex-start; }
+  .sc.side .stack .kin { max-width: 11ch; }
+  .sc.side .act { justify-items: start; }
+  .frame.side .scrim { background: linear-gradient(90deg, rgba(8,10,12,.82) 0%, rgba(8,10,12,.62) 34%, rgba(8,10,12,.18) 52%, rgba(8,10,12,0) 68%), linear-gradient(180deg, rgba(8,10,12,.3), rgba(8,10,12,0) 30%); }
+}
+
+/* the floating button: the page's one highlighted action between the opening and the close (rule 35), bottom right,
+   clear of the clock and the results on the left and of the screens, which stay at least 104px off the bottom edge */
+.dock { position: fixed; right: var(--gutter); bottom: 24px; z-index: 45; opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s linear .3s; }
+.dock.on { opacity: 1; visibility: visible; transform: none; transition: opacity .3s var(--ease), transform .3s var(--ease); }
+@media (hover: hover) and (pointer: fine) { .dock.on:hover { transform: translateY(-1px); } }
+.dock.on:active { transform: scale(.97); }
+/* phones: a full-width bar at the bottom, in thumb reach; the band keeps --dockr clear for it */
+@media (max-width: 760px) { .dock { left: 16px; right: 16px; bottom: 12px; text-align: center; padding: 13px 20px; } }
+@media (prefers-reduced-motion: reduce) { .dock, .dock.on { transition: opacity .2s linear, visibility 0s linear; transform: none; } }
+
+.ft { position: relative; z-index: 2; background: var(--foot); color: var(--foot-ink2); padding: 64px var(--gutter) 40px; font-size: var(--t-small); }
+.ft .cols { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 32px 48px; }
+.ft .mark { font-family: "Source Serif 4", Georgia, serif; font-size: var(--t-title); color: var(--foot-ink); flex-basis: 200px; }
+.ft nav { display: flex; flex-wrap: wrap; gap: 32px clamp(32px, 6vw, 96px); }
+.ft .col { display: grid; align-content: start; row-gap: 8px; }
+.ft .h { color: var(--foot-ink); font-weight: 600; margin-bottom: 4px; }
+.ft .col a { text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+@media (hover: hover) and (pointer: fine) { .ft .col a:hover { color: var(--foot-ink); text-decoration: underline; text-underline-offset: 4px; } }
+.ft .bar { margin-top: 48px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px 32px; }
+.ft .prefs { display: flex; gap: 8px 24px; flex-wrap: wrap; }
+.ft .pref { background: none; border: 0; padding: 0 2px; min-height: 44px; color: var(--foot-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.ft .pref[hidden] { display: none; }
+
+/* phones held upright: the film fills the top of the screen (--fh, set per message by the script) and every word, clock,
+   product screen and caption sits on the solid night band under it, so nothing is ever drawn across a face.
+   The film's bottom edge fades into the band; only the night and the orbit, with no face to cover, stay full-bleed. */
+.pnote { display: none; }
+/* the film's height on phones eases when a clip's hold gives way to its screen (film.js setFilmHeight) */
+@property --fh { syntax: "<length>"; inherits: true; initial-value: 400px; }
+@media (max-width: 760px) {
+  :root.fhease { transition: --fh .6s var(--ease); }
+  /* the opening headline sits left, like every other message, once the hero has handed over to the bus clip */
+  .sc.first.band .stack { align-items: flex-start; text-align: left; }
+  :root { --fh: 56svh; --dockr: 72px; --t-num: 30px; --t-display: clamp(30px, min(9.6vw, 5.4vh), 44px); }
+  .sc { --len: var(--lp); } .sc .mk { top: var(--ap); }
+  /* the film sits above the words here, so a message's words scrolling in or out pass under its soft bottom edge, never over it */
+  .films { bottom: auto; height: var(--fh); z-index: 2; background: var(--night); }
+  .films.full { z-index: 0; }
+  .films .frame { -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 64px), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - 64px), transparent); }
+  .films.full .frame { -webkit-mask-image: none; mask-image: none; }
+  .frame video, .frame.wide video { object-position: var(--pop, 50% 35%); }
+  /* only the header needs a scrim now: the words never sit on the film */
+  .frame .scrim, .frame.has-feat .scrim, .frame.center .scrim { background: linear-gradient(180deg, rgba(4,7,13,.5) 0, rgba(4,7,13,0) 120px); }
+  .frame .scrim::after { display: none; }
+  /* the night: full-bleed stars, a dark ground under the clock at the bottom */
+  .frame.night .scrim { background: linear-gradient(180deg, rgba(4,7,13,.5) 0, rgba(4,7,13,0) 120px, rgba(4,7,13,0) 70%, rgba(4,7,13,.6) 100%); }
+  /* the orbit stays full-bleed: a dark ground rises under its words, so the night side's city lights never sit behind a letter */
+  .frame.orbit .scrim { background: linear-gradient(180deg, rgba(4,7,13,.5) 0, rgba(4,7,13,0) 120px, rgba(4,7,13,0) 36%, rgba(4,7,13,.8) 54%, rgba(4,7,13,.9) 100%); }
+  /* the words pin as their film cuts in (FADE_AT on phones), so the band is never left empty between messages */
+  :root { --pin: 90vh; --ov: 10vh; }
+  .kin, .sc.low .kin { top: calc(var(--fh) + 2px); bottom: auto; transform: none; max-width: none; right: 16px; }
+  .stack { top: var(--fh); bottom: auto; justify-content: flex-start; gap: 12px; padding: 0 16px; }
+  .stack .act { order: 3; gap: 4px; } .stack .proof { order: 4; opacity: .85; }
+  .lede { line-height: 1.45; }
+  .btn { padding: 14px 26px; }
+  .sc.orbit .stack { top: 0; bottom: 0; justify-content: flex-end; padding: 96px 16px max(5vh, 40px); }
+  /* the band reads top down: headline, clock, then any second card, each right under the one before (--kh: the headline's
+     height plus its gap, --ch: the clock's, set by the script); a screen that arrives later rises into the clock's place */
+  .pnote { display: block; position: absolute; left: 16px; right: 16px; top: calc(var(--fh) + var(--kh, 0px) + var(--ch, 40px) + 14px); background: var(--card); color: var(--card-ink2); border-radius: 16px; padding: 10px 14px; font-size: var(--t-small); text-wrap: pretty; }
+  .pnote b { display: block; color: var(--card-ink); font-weight: 600; margin-bottom: 2px; }
+  .feat .note { display: none; }
+  /* the product screen follows the words in the band: sized by the script to the height left beside its caption */
+  .feat, .feat.lap, .feat.card { left: 16px; right: 16px; top: calc(var(--fh) + var(--kh, 0px)); bottom: var(--dockr); width: auto; height: auto; margin: 0; }
+  .feat, .feat.lap { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
+  .feat .shot, .feat.lap .shot { width: var(--fitw, 100%); max-width: 100%; flex: none; aspect-ratio: var(--par); border-radius: 22px; }
+  .feat.lap .shot { border-radius: 12px; }
+  .shot img { width: var(--piw); left: var(--pil); top: var(--pit); }
+  .feat figcaption { width: 100%; padding: 10px 14px; border-radius: 16px; }
+  .feat.card { top: auto; padding: 18px 20px; }
+  /* small phones: the screens take a little more of the width, so their smallest text stays near 0.85 of its size */
+  @media (max-width: 359px) { .feat, .feat.lap { left: 8px; right: 8px; } }
+  /* under the headline; with no headline over a full-screen film (the night) it sits at the foot, clear of the button */
+  .time { left: 16px; top: min(calc(var(--fh) + var(--kh, 0px)), calc(100% - var(--dockr) - var(--ch, 40px) - 4px)); bottom: auto; gap: 10px; }
+  .time .meta { padding-bottom: 1px; line-height: 1.2; }
+  /* a result and the format line under it are one group, centred in the band above the button (--rh, --ph: their heights) */
+  .sc.result { --rg: max(12px, calc((100% - var(--fh) - var(--dockr) - var(--rh, 90px) - 16px - var(--ph, 24px)) / 2)); }
+  .res { left: 16px; right: 16px; top: calc(var(--fh) + var(--rg)); bottom: auto; max-width: none; }
+  .res .kin { font-size: var(--t-display); }
+  .res .s { margin-top: 8px; }
+  .mproof { left: 16px; right: 16px; top: calc(var(--fh) + var(--rg) + var(--rh, 90px) + 16px); bottom: auto; }
+  /* the header's logo is on screen over the footer, so the footer drops its own */
+  .ft .mark { display: none; }
+  .ft nav { gap: 28px 40px; }
+}
+
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  .films::after { display: none; }
+  .frame .scrim, .frame.has-feat .scrim, .frame.center .scrim, .frame.orbit .scrim { background: rgba(11,18,26,.74) !important; }
+  .tip, .feat figcaption, .feat .note { background: #04070d; color: var(--ink); }
+  :root { --ink2: #dfe4e9; --card-ink2: #dfe4e9; }
+}
+@media (forced-colors: active) { .kline::before { background: CanvasText; } .frame { display: none; } }

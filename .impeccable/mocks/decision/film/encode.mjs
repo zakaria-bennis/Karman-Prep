@@ -10,7 +10,11 @@ import { join } from "node:path";
 
 const DIR = ".impeccable/mocks/decision/film";
 const state = JSON.parse(readFileSync("assets/generation-state.json", "utf8"));
-const src = (id) => state[id]?.upscaledFile ?? state[id]?.lastFile;
+// the upscaled copy where there is one; c8c (Ava at Berkeley) is the 2026-10-23 retake, sharp at 1280 x 720 as shot,
+// so it uses the take itself (its upscaledFile is the old take)
+const ORIGINAL = new Set(["c8c"]);
+const src = (id) =>
+  ORIGINAL.has(id) ? state[id]?.lastFile : (state[id]?.upscaledFile ?? state[id]?.lastFile);
 
 // id on the page -> source file, optional trim [start, end] in seconds, extra filter, crf
 const CLIPS = [
@@ -23,9 +27,8 @@ const CLIPS = [
   ["c7", src("c7")],
   ["c8a", src("c8a")],
   ["c8b", src("c8b")],
-  // the last 1.6 s swing into a blur; the next chapter takes over instead. A low crf: the source is soft already
-  // (854 x 480, upscaled), so the encoder must not smear her face and the lettering any further
-  ["c8c", src("c8c"), [0, 4.4], "", 20],
+  // a slightly lower crf keeps the BERKELEY lettering crisp as she walks down the steps
+  ["c8c", src("c8c"), null, "", 24],
   // NOIRLab, "Star Trails Over Mauna Kea" (International Gemini Observatory/NOIRLab/NSF/AURA, CC BY 4.0): dusk to full night
   [
     "night",
@@ -63,7 +66,7 @@ const POSTER_AT = {
   c7: 4.6,
   c8a: 4,
   c8b: 5.3,
-  c8c: 3.6,
+  c8c: 4.4,
   night: 40,
 };
 

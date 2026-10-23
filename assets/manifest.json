@@ -127,14 +127,15 @@
       "id": "c8c",
       "status": "approved",
       "route": "seedance-2.5",
-      "draft": true,
+      "draft": false,
       "duration": 6,
       "refs": [
         "ava",
         ".impeccable/mocks/decision/film/raw/stills/k10-berkeley-merch-2026-10-22T05-06-09.png"
       ],
-      "prompt": "@Image1 is Ava, now 18. @Image2 shows the exact UC Berkeley steps, her navy BERKELEY hoodie, Sather Tower behind her and morning light. One continuous 6-second shot on a late-August morning. Seconds 0 to 1.5: close on a shallow puddle on the granite steps, in focus, reflecting the blue sky and the white tower; her sneaker steps into it and the ripples break the reflection; the camera tilts up to her walking up the steps toward the camera exactly as in @Image2. Seconds 1.5 to 4: she climbs at a natural pace, calm, the BERKELEY lettering crisp and readable. Seconds 4 to 6: the camera rises over her head and tilts up the tall white tower to its spire and on into deep blue sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
-      "textAllowed": true
+      "prompt": "@Image1 is Ava, now 18. @Image2 shows the exact UC Berkeley steps, her navy BERKELEY hoodie, Sather Tower behind her and the clear late-August morning light. One continuous 6-second shot. Seconds 0 to 1.5: close on a shallow puddle on the granite steps, in focus, reflecting the blue sky and the white tower; her sneaker steps into it and the ripples break the reflection; the camera tilts smoothly up to her walking up the steps toward the camera exactly as in @Image2. Seconds 1.5 to 6: she climbs slowly at a calm natural pace toward the camera, body square to the camera, arms relaxed at her sides so nothing covers the lettering; the camera eases back steadily at her walking speed, no tilt, no swing. Her face stays sharp, natural and exactly like @Image1, with real skin texture; the gold BERKELEY lettering across her chest stays crisp, correctly spelled and perfectly stable the whole time. Sather Tower stays behind her, in soft focus.",
+      "textAllowed": true,
+      "resolution": "720p"
     },
     {
       "id": "c8",
