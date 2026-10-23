@@ -237,11 +237,23 @@ function LinePath({
   );
 }
 
-/** Bars of several series stand side by side in each category slot, never on top of each other. */
-export function barSlot(slotW: number, group: { index: number; count: number }) {
-  const groupW = slotW * (group.count > 1 ? 0.8 : 0.6);
-  const barW = groupW / group.count;
-  return { barW, offset: -groupW / 2 + barW * group.index };
+/** Printed SAT bar charts draw narrow bars with clear gaps: a bar fills under half of its
+ *  category band, and never grows wider than an eighth of the plot (one category, several
+ *  series). Bars of several series stand side by side in each band with a thin gap between
+ *  them, never on top of each other (founder review, 2026-10-22). */
+export const BAR_BAND_SHARE = 0.45;
+export const GROUP_BAND_SHARE = 0.72;
+export const MAX_BAR_SHARE = 0.125;
+export const BAR_GAP_SHARE = 0.15;
+
+export function barSlot(slotW: number, group: { index: number; count: number }, plotW: number) {
+  const { count, index } = group;
+  const gaps = BAR_GAP_SHARE * (count - 1);
+  const fit = count > 1 ? (slotW * GROUP_BAND_SHARE) / (count + gaps) : slotW * BAR_BAND_SHARE;
+  const barW = Math.min(fit, plotW * MAX_BAR_SHARE);
+  const gap = barW * BAR_GAP_SHARE;
+  const groupW = barW * count + gap * (count - 1);
+  return { barW, offset: -groupW / 2 + (barW + gap) * index };
 }
 
 function BarRects({
@@ -262,7 +274,7 @@ function BarRects({
   const categories = xAxis.categories ?? series.bars.map((b) => b.category);
   const n = categories.length;
   const slotW = L.plotW / n;
-  const { barW, offset } = barSlot(slotW, group);
+  const { barW, offset } = barSlot(slotW, group, L.plotW);
   const yMap = makeYMap(L, yAxis);
   const yBaseline = yMap(0); // bars rise from y=0
   return (
@@ -283,8 +295,6 @@ function BarRects({
             width={barW}
             height={h}
             rx={1}
-            stroke={group.count > 1 ? COLOR.bgNight : undefined}
-            strokeWidth={group.count > 1 ? 1 : undefined}
           />
         );
       })}
@@ -443,7 +453,7 @@ function PieGlyph({ L, series }: { L: ChartLayout; series: ChartSeries[] }) {
 }
 
 // ── Boxplot (horizontal box-and-whisker on a value x-axis) ───
-// One row per box; whiskers min→max, box q1→q3, median line. Reuses the
+// One row per box; whiskers min→Q1 and Q3→max, box Q1→Q3, median line. Reuses the
 // numeric-axis helpers for the value axis along the bottom.
 
 function BoxplotGlyph({
@@ -513,7 +523,10 @@ function BoxplotGlyph({
         const cap = boxH * 0.35;
         return (
           <g key={`b-${i}`} stroke={COLOR.bronze} strokeWidth={1.5}>
-            <line x1={xMap(b.min)} x2={xMap(b.max)} y1={yc} y2={yc} />
+            {/* Whiskers run min→Q1 and Q3→max only; inside the box there are just its
+                edges and the median (founder review, 2026-10-22). */}
+            <line data-whisker="" x1={xMap(b.min)} x2={xMap(b.q1)} y1={yc} y2={yc} />
+            <line data-whisker="" x1={xMap(b.q3)} x2={xMap(b.max)} y1={yc} y2={yc} />
             <line x1={xMap(b.min)} x2={xMap(b.min)} y1={yc - cap} y2={yc + cap} />
             <line x1={xMap(b.max)} x2={xMap(b.max)} y1={yc - cap} y2={yc + cap} />
             {/* Opaque backing: gridlines stay behind the box, never through it. */}

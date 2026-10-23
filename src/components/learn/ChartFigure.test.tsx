@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import ChartFigure from "./ChartFigure";
+import ChartFigure, { BAR_BAND_SHARE, MAX_BAR_SHARE } from "./ChartFigure";
 import { makeLayout, textWidth } from "./chart-figure-axes";
 import type { ChartFigure as ChartFigureType } from "@/types/chart";
 
@@ -256,6 +256,52 @@ describe("ChartFigure", () => {
     expect(container.querySelector("desc")?.textContent ?? "").toContain("Box-and-whisker");
   });
 
+  it("draws whiskers only outside the box: min to Q1 and Q3 to max", () => {
+    const fig = baseFigure({
+      kind: "boxplot",
+      x_axis: baseAxis({ label: "Units", min: 80, max: 140, tick_step: 10 }),
+      series: [
+        {
+          kind: "boxplot",
+          label: null,
+          boxes: [{ category: null, min: 85, q1: 97, median: 114, q3: 124, max: 138 }],
+        },
+      ],
+    });
+    const { container } = render(<ChartFigure data={fig} />);
+    const box = container.querySelector("rect:not([data-box-backing])")!;
+    const left = Number(box.getAttribute("x"));
+    const right = left + Number(box.getAttribute("width"));
+    const whiskers = [...container.querySelectorAll("line[data-whisker]")].map((l) =>
+      [Number(l.getAttribute("x1")), Number(l.getAttribute("x2"))].sort((a, b) => a - b)
+    );
+    expect(whiskers).toHaveLength(2);
+    expect(whiskers[0][1]).toBeCloseTo(left);
+    expect(whiskers[1][0]).toBeCloseTo(right);
+    for (const [a, b] of whiskers) expect(b <= left + 1e-6 || a >= right - 1e-6).toBe(true);
+  });
+
+  it("gives every series in a one-category chart its own colour and a legend", () => {
+    const fig = baseFigure({
+      kind: "bar_chart",
+      x_axis: { ...baseAxis(), min: null, max: null, tick_step: null, categories: ["Charge"] },
+      series: ["Anna's hummingbirds", "common wasps", "wintering honeybees"].map((label, i) => ({
+        kind: "bar" as const,
+        label,
+        bars: [{ category: "Charge", value: [800, 50, 340][i] }],
+      })),
+    });
+    const { container } = render(<ChartFigure data={fig} subject="reading" />);
+    const fills = [...container.querySelectorAll("rect[data-series]")].map((r) =>
+      r.closest("g")?.getAttribute("fill")
+    );
+    expect(new Set(fills).size).toBe(3);
+    expect(container.querySelector("[data-chart-legend]")?.textContent).toContain("common wasps");
+    const plotW = makeLayout(fig).plotW;
+    for (const r of container.querySelectorAll("rect[data-series]"))
+      expect(Number(r.getAttribute("width"))).toBeLessThanOrEqual(plotW * MAX_BAR_SHARE + 1e-6);
+  });
+
   it("renders one box rect per group for a multi-box boxplot", () => {
     const fig = baseFigure({
       kind: "boxplot",
@@ -347,8 +393,8 @@ describe("ChartFigure — grouped bars, legend and titles (founder review 2026-1
         const x = Number(b.getAttribute("x"));
         return [x, x + Number(b.getAttribute("width"))];
       });
-      for (let i = 1; i < spans.length; i++)
-        expect(spans[i][0]).toBeGreaterThanOrEqual(spans[i - 1][1] - 1e-6);
+      // A clear gap separates neighbouring bars.
+      for (let i = 1; i < spans.length; i++) expect(spans[i][0]).toBeGreaterThan(spans[i - 1][1]);
       expect(new Set(inSlot.map((b) => b.closest("g")?.getAttribute("fill"))).size).toBe(3);
     }
   });
@@ -400,7 +446,7 @@ describe("ChartFigure — grouped bars, legend and titles (founder review 2026-1
     expect(L.categoryLines[0].length).toBeGreaterThan(1);
   });
 
-  it("keeps a single-series bar chart at its old width and adds no legend", () => {
+  it("draws a single-series bar narrower than half its band, as printed SAT charts do", () => {
     const { container } = render(
       <ChartFigure
         data={baseFigure({
@@ -412,8 +458,10 @@ describe("ChartFigure — grouped bars, legend and titles (founder review 2026-1
     );
     expect(container.querySelector("[data-chart-legend]")).toBeNull();
     const bar = container.querySelector("rect[data-series]")!;
+    const plotW = makeLayout(baseFigure()).plotW;
     expect(Number(bar.getAttribute("width"))).toBeCloseTo(
-      (makeLayout(baseFigure()).plotW / 2) * 0.6
+      Math.min((plotW / 2) * BAR_BAND_SHARE, plotW * MAX_BAR_SHARE)
     );
+    expect(Number(bar.getAttribute("width"))).toBeLessThan(plotW / 4);
   });
 });

@@ -21,11 +21,27 @@ function lastLineBottom(el: HTMLElement): number {
   return columnY(el, el.getBoundingClientRect().bottom) - Math.max(0, halfLeading);
 }
 
-/** A viewport y converted to the coordinates of the element's scrolling column. */
+/** A viewport y converted to the coordinates of the element's scrolling column, in CSS
+ *  pixels. A screen drawn scaled down (the founder's review pane shows a 1280px laptop
+ *  screen at a smaller size) measures in scaled pixels, so undo that scale; otherwise the
+ *  margin is off by the scale factor and the figure misses the text's last line. */
 function columnY(el: HTMLElement, viewportY: number): number {
   const column = el.closest<HTMLElement>("[data-question-layout] > *");
   if (!column) return viewportY;
-  return viewportY - column.getBoundingClientRect().top + column.scrollTop;
+  const box = column.getBoundingClientRect();
+  return toColumnY(viewportY, box.top, box.height, column.offsetHeight, column.scrollTop);
+}
+
+/** Viewport y → column y in CSS pixels, given the column's drawn and layout heights. */
+export function toColumnY(
+  viewportY: number,
+  columnTop: number,
+  drawnHeight: number,
+  layoutHeight: number,
+  scrollTop: number
+): number {
+  const scale = layoutHeight > 0 && drawnHeight > 0 ? drawnHeight / layoutHeight : 1;
+  return (viewportY - columnTop) / scale + scrollTop;
 }
 
 /** The margin that puts the figure's bottom on the text's last line (0 if it is taller). */
