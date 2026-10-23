@@ -13,8 +13,10 @@
 <style>
   :root { --night: #0b121a; --ink: #f1f1ee; --ink2: #b9c2cb; --acc: #7cc4a5; --ease: cubic-bezier(.22, 1, .36, 1);
     --gutter: clamp(16px, 5vw, 80px); --card: #101923; --card-ink: #f1f1ee; --card-ink2: #b9c2cb; --foot: #04070d; --foot-ink: #f1f1ee; --foot-ink2: #b9c2cb; }
-  /* light mode: the film stays film; the surfaces around it (cards, footer, menu) turn bone */
-  :root[data-theme="light"] { --card: #f1f1ee; --card-ink: #15202e; --card-ink2: #3d4a58; --foot: #f1f1ee; --foot-ink: #15202e; --foot-ink2: #3d4a58; }
+  /* light mode: the film stays film, and so do the captions and cards that sit on it (dark, like the product screens beside them);
+     the surfaces off the film (menu and footer) turn bone */
+  :root { --sheet: #101923; --sheet-ink: #f1f1ee; }
+  :root[data-theme="light"] { --sheet: #f1f1ee; --sheet-ink: #15202e; --foot: #f1f1ee; --foot-ink: #15202e; --foot-ink2: #3d4a58; }
   * { box-sizing: border-box; margin: 0; }
   html { background: var(--night); overflow-x: clip; }
   html.lenis, html.lenis body { height: auto; }
@@ -28,38 +30,37 @@
   .skip { position: fixed; left: 16px; top: -80px; z-index: 70; background: var(--ink); color: var(--night); padding: 12px 16px; border-radius: 10px; border: 0; font-weight: 600; text-decoration: none; cursor: pointer; }
   .skip:focus { top: 12px; }
 
-  /* the film's pause control: always on screen while a film can move, quiet (never a second highlighted button), bottom right */
-  .playctl { position: fixed; right: var(--gutter); bottom: 24px; z-index: 46; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; min-width: 44px; padding: 0 16px 0 13px;
-    background: rgba(4,7,13,.78); color: var(--ink); border: 1px solid rgba(241,241,238,.28); border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer;
-    transition: opacity .3s var(--ease), visibility 0s linear 0s, border-color .18s var(--ease); }
-  .playctl:hover { border-color: rgba(241,241,238,.6); }
-  .playctl:active { transform: scale(.97); }
-  .playctl svg { width: 14px; height: 14px; flex: none; }
-  .playctl .i-play { display: none; }
-  .held .playctl .i-play { display: block; }
-  .held .playctl .i-pause { display: none; }
-  .playctl.off { opacity: 0; visibility: hidden; transition: opacity .3s var(--ease), visibility 0s linear .3s; }
-  .playctl[hidden] { display: none; }
-
-  .hd { position: fixed; inset: 0 0 auto 0; z-index: 50; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter); transition: transform .35s var(--ease); }
+  /* the header stays on screen, so the film's pause control in it is always one tap away while a film moves */
+  .hd { position: fixed; inset: 0 0 auto 0; z-index: 50; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter); }
   .hd::before { content: ""; position: absolute; inset: 0 0 -40px 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgba(4,7,13,.8) 0%, rgba(4,7,13,.72) 48%, rgba(4,7,13,0) 100%); }
-  .hd.away { transform: translateY(-100%); }
   .hd .mark { font-family: "Source Serif 4", Georgia, serif; font-size: 24px; font-weight: 500; text-decoration: none; letter-spacing: -.01em; min-height: 44px; display: inline-flex; align-items: center; }
-  .hd nav { display: flex; align-items: center; gap: clamp(10px, 2vw, 28px); font-size: 15px; font-weight: 600; }
-  .hd nav a, .hd .menu { text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; }
-  .hd nav a:hover { text-decoration: underline; text-underline-offset: 5px; }
-  .hd .menu { background: none; border: 0; font-weight: 600; cursor: pointer; }
-  .hd .ph { display: none; }
-  @media (max-width: 760px) { .hd nav > :not(.ph) { display: none; } .hd .ph { display: inline-flex; } }
+  .hd nav { display: flex; align-items: center; gap: clamp(10px, 2vw, 28px); font-size: 15px; font-weight: 500; }
+  .hd nav a, .hd .menu, .hd .play { white-space: nowrap; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; }
+  .hd nav a:hover, .hd .play:hover { text-decoration: underline; text-underline-offset: 5px; }
+  .hd .menu, .hd .play { background: none; border: 0; font-weight: 500; cursor: pointer; }
+  /* the pause control: plain text like the links, kept a fixed width so Pause and Play don't shift the row */
+  .hd .play { min-width: 44px; justify-content: center; padding: 0 6px; }
+  .hd .play .lbl { display: inline-block; min-width: 2.6em; text-align: center; }
+  .hd .play[hidden] { display: none; }
+  /* the route to the free test never moves: a plain text link in the header, next to Pause (rule 35: one highlighted button at a time) */
+  .hd .cta { font-weight: 700; }
+  .hd .menu { display: none; }
+  @media (max-width: 1023px) { .hd nav > a:not(.cta) { display: none; } .hd .menu { display: inline-flex; } }
+  @media (max-width: 760px) { .hd nav { gap: 6px; } }
+  /* small iPhones: the free test stays one tap away in the menu and on the page, so the header keeps only Pause and Menu */
+  @media (max-width: 359px) { .hd nav a.cta { display: none; } }
 
-  /* the menu on phones: a solid sheet, no blur */
-  .sheet { position: fixed; inset: 0; z-index: 60; background: var(--card); color: var(--card-ink); padding: 0 var(--gutter) 40px; overflow-y: auto; }
-  .sheet[hidden] { display: none; }
+  /* the menu on narrow screens: a solid sheet, no blur, that settles in from just above */
+  .sheet { position: fixed; inset: 0; z-index: 60; background: var(--sheet); color: var(--sheet-ink); padding: 0 var(--gutter) 40px; overflow-y: auto;
+    opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .28s var(--ease), transform .28s var(--ease), visibility 0s linear .28s; }
+  .sheet.open { opacity: 1; visibility: visible; transform: none; transition: opacity .28s var(--ease), transform .28s var(--ease); }
+  @media (prefers-reduced-motion: reduce) { .sheet, .sheet.open { transition: none; transform: none; } }
   .sheet .top { height: 72px; display: flex; align-items: center; justify-content: space-between; }
   .sheet .mark { font-family: "Source Serif 4", Georgia, serif; font-size: 24px; font-weight: 500; }
   .sheet .close { background: none; border: 0; font-weight: 600; font-size: 15px; min-height: 44px; padding: 0 4px; cursor: pointer; }
   .sheet nav { display: grid; margin-top: 16px; }
   .sheet nav a { font-size: 22px; text-decoration: none; min-height: 56px; display: flex; align-items: center; border-top: 1px solid rgba(127,140,153,.25); }
+  .sheet .btn { margin-top: 28px; width: 100%; text-align: center; background: var(--sheet-ink); color: var(--sheet); }
 
   /* the films: one fixed layer; each chapter's film replaces the one before through a short dip to black */
   .films { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
@@ -69,10 +70,11 @@
   /* between two films the picture dips to black for a moment and the cut happens inside the dark, never a double exposure */
   .dip { position: absolute; inset: 0; background: #020408; opacity: 0; pointer-events: none; }
   .frame:first-child { opacity: 1; visibility: visible; }
-  .frame .cam { position: absolute; inset: -4%; will-change: transform; }
+  /* just enough overscan for the slow crane; every extra percent of scale softens the faces */
+  .frame .cam { position: absolute; inset: -3%; will-change: transform; }
   .frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: drift 30s ease-in-out infinite alternate; }
   .frame.wide video { object-position: 50% 40%; }
-  .frame.test video { object-position: 50% 8%; } /* her face sits high in the frame */
+  /* her face sits high in the frame; on phones the film starts below the heading and rises out of the dark, so her face clears the header */
   @keyframes drift { from { transform: scale(1); } to { transform: scale(1.04) translate3d(0, -0.6%, 0); } }
   .still .frame video, .held .frame video { animation-play-state: paused; }
   .still .frame video { animation: none; }
@@ -89,8 +91,11 @@
   .sc { position: relative; height: 150vh; }
   .sc.first { height: 160vh; }
   .sc.last { height: 170vh; }
-  .sc.night { height: 180vh; }
-  .sc.test { height: 170vh; }
+  .sc.night { height: 150vh; display: flow-root; }
+  /* the night has no person to look at first, so its words and screen pin 60% of a screen early and arrive as the film cuts in:
+     never a screen of empty sky, never a heading clipped at the bottom edge */
+  .sc.night .copy { margin-top: -60vh; }
+  .sc.test { height: 150vh; }
   .sc:focus { outline: none; }
   .rec *, .rec *::before { transition: none !important; }
   .copy { position: sticky; top: 0; height: 100vh; height: 100svh; pointer-events: none; }
@@ -118,6 +123,8 @@
   /* laptop screens: a panel of the screen, the caption and card under it */
   .feat.lap { width: min(calc(var(--w) * 1px), 46vw, calc((100vh - 380px) * var(--r))); display: flex; flex-direction: column; justify-content: center; gap: 12px; }
   .feat.lap .shot { width: 100%; }
+  /* short laptop screens (720 to 760 tall): the panel may grow so the screen's smallest text stays near 12px */
+  @media (min-width: 761px) and (max-height: 760px) { .feat.lap { width: min(calc(var(--w) * 1px), 46vw, calc((100vh - 300px) * var(--r))); } }
   .shot { position: relative; overflow: hidden; aspect-ratio: var(--ar); border-radius: 34px; background: #0b121a; }
   .shot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); pointer-events: none; }
   .shot img { position: absolute; max-width: none; height: auto; width: var(--iw); left: var(--il); top: var(--it); display: block; }
@@ -138,22 +145,23 @@
   .time .c > span { display: inline-block; }
   .time .meta { display: grid; font-size: 15px; line-height: 1.3; padding-bottom: 4px; }
   .time .meta b { font-weight: 600; }
-  .stamp { position: absolute; left: 50%; bottom: 14vh; transform: translateX(-50%); font-family: "Source Serif 4", Georgia, serif; font-size: clamp(28px, 3.4vw, 54px); letter-spacing: -.02em; white-space: nowrap; }
+  /* next fall: the result where the clock sits in the other chapters, kept left of the student */
+  .sc.result { height: 150vh; }
+  .res { position: absolute; left: var(--gutter); bottom: clamp(32px, 7vh, 72px); max-width: min(40vw, 560px); }
+  .res .kin { position: static; transform: none; max-width: none; white-space: nowrap; font-size: clamp(40px, min(4.6vw, 8.4vh), 80px); }
+  .res .s { margin-top: 12px; font-size: clamp(18px, 1.5vw, 22px); font-weight: 600; letter-spacing: .01em; }
+  .res .pf { margin-top: 6px; font-size: 15px; opacity: .9; }
+  .stamp { position: absolute; left: 0; right: 0; bottom: 14vh; text-align: center; font-family: "Source Serif 4", Georgia, serif; font-size: clamp(28px, 3.4vw, 54px); letter-spacing: -.02em; white-space: nowrap; }
 
   /* orbit: the line sits just above the airglow; tap it to learn what it is */
   .kline { position: absolute; left: 0; right: 0; top: var(--ky, 26%); height: 44px; margin-top: -22px; background: none; border: 0; padding: 0; cursor: pointer; }
   .kline::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(241,241,238,.62); transform-origin: 0 50%; transform: scaleX(var(--draw, 0));
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
-  .kline .kl { position: absolute; right: 18%; bottom: 50%; margin-bottom: 9px; font-size: 13px; font-weight: 600; letter-spacing: .02em; line-height: 1; color: var(--ink); opacity: calc(var(--draw, 0) * .85); white-space: nowrap; padding: 6px 0; }
+  .kline .kl { position: absolute; right: 18%; bottom: 50%; margin-bottom: 9px; font-size: 15px; font-weight: 600; letter-spacing: .02em; line-height: 1; color: var(--ink); opacity: var(--draw, 0); text-shadow: 0 0 8px rgba(4,7,13,.8); white-space: nowrap; padding: 6px 0; }
   .kline:hover .kl { opacity: 1; text-decoration: underline; text-underline-offset: 4px; }
   .tip { position: absolute; right: var(--gutter); top: calc(var(--ky, 26%) - 104px); font-size: 15px; line-height: 1.4; color: var(--ink); background: #04070d; padding: 8px 12px; border-radius: 10px; opacity: 0; transform: translateY(4px); transition: opacity .25s var(--ease), transform .25s var(--ease); pointer-events: none; max-width: min(70vw, 420px); }
   .tip.open { opacity: 1; transform: none; }
   .sc.orbit .stack { justify-content: flex-end; padding-bottom: 12vh; }
-
-  .dock { position: fixed; left: 50%; bottom: 24px; z-index: 45; transform: translate(-50%, 12px); opacity: 0; visibility: hidden; transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s linear .3s; }
-  .dock.on { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .3s var(--ease), transform .3s var(--ease); }
-  .dock.on:hover { transform: translate(-50%, -1px); }
-  @media (max-width: 760px) { .dock { display: none; } }
 
   .ft { position: relative; z-index: 2; background: var(--foot); color: var(--foot-ink2); padding: 64px var(--gutter) 40px; font-size: 15px; }
   .ft .cols { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 32px 48px; }
@@ -177,11 +185,9 @@
     .feat, .feat.lap, .feat.card { left: 16px; right: 16px; top: auto; bottom: 76px; width: auto; height: auto; margin: 0; }
     /* on phones the screen is a full-width crop of the part that matters, its caption under it */
     .feat, .feat.lap { display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
-    .feat .shot, .feat.lap .shot { width: min(100%, calc((100svh - 420px) * var(--pr))); align-self: flex-end; aspect-ratio: var(--par); border-radius: 24px; }
+    .feat .shot, .feat.lap .shot { width: min(100%, calc((100svh - var(--pmax, 420px)) * var(--pr))); align-self: flex-end; aspect-ratio: var(--par); border-radius: 24px; }
     .feat.lap .shot { border-radius: 12px; }
     .shot img { width: var(--piw); left: var(--pil); top: var(--pit); }
-    /* a crop wider than the phone: the lines run out into a deliberate fade, not a hard cut */
-    .shot.fade img { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 76px), transparent calc(100% - 4px)); mask-image: linear-gradient(90deg, #000 calc(100% - 76px), transparent calc(100% - 4px)); }
     .feat figcaption, .feat .note { padding: 10px 14px; border-radius: 16px; }
     .feat.card { padding: 18px 20px; }
     .time { bottom: 16px; gap: 10px; }
@@ -190,9 +196,17 @@
     .frame .scrim, .frame.has-feat .scrim { background: linear-gradient(180deg, rgba(11,18,26,.72) 0%, rgba(11,18,26,.12) 40%, rgba(11,18,26,.3) 62%, rgba(11,18,26,.8) 100%); }
     .frame .scrim::after { display: none; }
     .frame.wide video { object-position: 50% 25%; }
+    .frame.test .cam { top: 17vh; -webkit-mask-image: linear-gradient(180deg, transparent, #000 7%); mask-image: linear-gradient(180deg, transparent, #000 7%); }
+    .frame.result .scrim { background: linear-gradient(180deg, rgba(11,18,26,.8) 0%, rgba(11,18,26,.62) 24%, rgba(11,18,26,.08) 46%, rgba(11,18,26,0) 70%, rgba(11,18,26,.3) 100%); }
     .stamp { bottom: 11vh; }
+    /* on phones the sweatshirt fills the lower half of the frame, so the result sits up top, under the header */
+    .res { left: 16px; right: 16px; top: 92px; bottom: auto; max-width: none; }
+    /* the result sits under the header here, so it must leave before its chapter scrolls on: a longer chapter gives it its full hold */
+    .sc.result { height: 170vh; }
+    .res .kin { font-size: clamp(34px, min(10.5vw, 5.6vh), 52px); }
+    .res .s { margin-top: 8px; font-size: 17px; }
+    .res .pf { font-size: 14px; }
     .sc.orbit .stack { padding-bottom: max(7vh, 76px); }
-    .playctl { right: 16px; bottom: 16px; }
     .ft .mark { flex-basis: 100%; }
     .ft nav { gap: 28px 40px; }
     .ft .col a { min-height: 44px; }
@@ -203,24 +217,23 @@
     .frame .scrim, .frame.has-feat .scrim, .frame.center .scrim, .frame.orbit .scrim { background: rgba(11,18,26,.74) !important; }
     .tip, .feat figcaption, .feat .note { background: #04070d; color: var(--ink); }
     :root { --ink2: #dfe4e9; --card-ink2: #dfe4e9; }
-    :root[data-theme="light"] { --card-ink2: #15202e; }
   }
   @media (forced-colors: active) { .kline::before { background: CanvasText; } .frame { display: none; } }
 </style>
 </head>
 <body>
 <a class="skip" href="#ch-12">Skip to the free practice test</a>
-<button class="playctl" type="button" data-motion aria-pressed="false"><svg class="i-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="1" width="3.5" height="12" rx="1" fill="currentColor"/><rect x="8.5" y="1" width="3.5" height="12" rx="1" fill="currentColor"/></svg><svg class="i-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.6v10.8a.8.8 0 0 0 1.2.7l8.6-5.4a.8.8 0 0 0 0-1.4L4.2.9A.8.8 0 0 0 3 1.6z" fill="currentColor"/></svg><span class="lbl">Pause</span><span class="vh"> the film</span></button>
 <header class="hd">
   <a class="mark" href="/">Karman</a>
   <nav aria-label="Main">
     <a data-route="program">The SAT Program</a><a data-route="private">Private tutoring</a><a data-route="pricing">Pricing</a><a data-route="signIn">Sign in</a>
-    <a class="ph" data-route="test">Free practice test</a><button class="menu ph" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
+    <a class="cta" data-route="test">Free practice test</a><button class="play" type="button" data-motion><span class="lbl">Pause</span><span class="vh"> the film</span></button><button class="menu" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
   </nav>
 </header>
-<div class="sheet" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+<div class="sheet" id="menu" role="dialog" aria-modal="true" aria-label="Menu">
   <div class="top"><span class="mark">Karman</span><button class="close" type="button">Close</button></div>
-  <nav aria-label="Menu links"><a data-route="program">The SAT Program</a><a data-route="private">Private tutoring</a><a data-route="pricing">Pricing</a><a data-route="guarantee">How the guarantee works</a><a data-route="test">Free practice test</a><a data-route="signIn">Sign in</a></nav>
+  <nav aria-label="Menu links"><a data-route="program">The SAT Program</a><a data-route="private">Private tutoring</a><a data-route="pricing">Pricing</a><a data-route="guarantee">How the guarantee works</a><a data-route="signIn">Sign in</a></nav>
+  <a class="btn" data-route="test" data-cta>Free practice test</a>
 </div>
 <div class="films"></div>
 <main id="climb"></main>
@@ -235,7 +248,7 @@
   </div>
   <div class="bar">
     <p class="credit">Night sky: International Gemini Observatory/NOIRLab/NSF/AURA (CC BY 4.0). Earth from orbit: NASA.</p>
-    <div class="prefs"><button class="pref" type="button" data-theme-toggle aria-pressed="false">Light mode</button><button class="pref" type="button" data-motion>Pause the film</button></div>
+    <div class="prefs"><button class="pref" type="button" data-theme-toggle aria-pressed="false">Light mode</button></div>
   </div>
 </footer>
 
@@ -257,27 +270,39 @@
   document.querySelectorAll("[data-route]").forEach(a => { a.href = ROUTES[a.dataset.route]; });
 
   /* ---------- chapters: film and layout (the words come from copy.js; n is the chapter number there) ---------- */
-  // span: the part of each clip the scroll plays, in seconds, kept to the moments with a person in focus.
+  // span: the part of each clip the scroll plays, in seconds, kept to the moments with a person in focus;
+  // pspan: the same for the portrait crop phones get, where it differs (the person leaves the narrow crop sooner).
   // feat: a product screen shown as a cropped detail, crop = [x, y, width, height] in screen points
-  // (phone screens are 440 x 956, laptop screens 1440 x 900); pcrop is the crop for phones held upright.
+  // (phone screens are 440 x 956, laptop screens 1440 x 900); psrc is the phone-width layout of the same screen shown on
+  // phones held upright, [file, width, height] in points (film/screens-phone.mjs), so every line and card is whole.
   const SCENES = [
     { n: 1, film: "c1", layout: "center", autoplay: 4, span: [0, 6.5] },
-    { n: 2, film: "c2", span: [2.6, 10], feat: { src: "img/daily10.webp", kind: "phone", crop: [0, 52, 440, 740], pcrop: [0, 268, 440, 452] } },
-    { n: 3, film: "c3", span: [0, 5.2], feat: { src: "img/parent-update.webp", kind: "phone", crop: [0, 56, 440, 292] } },
+    // ends at 6.6 s: after that a reflection in the bus window grows into a ghostly sweater, and on phones she turns out of the crop
+    { n: 2, film: "c2", span: [2.6, 6.6], feat: { src: "img/daily10.webp", kind: "phone", crop: [0, 52, 440, 740], psrc: ["img/daily10-p.webp", 360, 492] } },
+    { n: 3, film: "c3", span: [0, 5.2], feat: { src: "img/parent-update.webp", kind: "phone", crop: [0, 56, 440, 292], psrc: ["img/parent-update-p.webp", 360, 343] } },
     // Wordline: five whole rows of tiles, ending on a row boundary
-    { n: 4, film: "c4", span: [0, 6], feat: { src: "img/word-game.webp", kind: "phone", crop: [0, 56, 440, 358] } },
-    // the calendar: Monday to Wednesday at full size so event labels read; the legend sits above the crop
-    { n: 5, film: "c5", wide: true, span: [1.1, 7], feat: { src: "img/schedule.webp", kind: "lap", crop: [102, 110, 562, 200], pcrop: [292, 120, 370, 194] } },
-    { n: 6, film: "c6", wide: true, span: [1.4, 6.6], feat: { src: "img/review.webp", kind: "lap", crop: [755, 26, 665, 512], pcrop: [760, 82, 480, 456], fade: true } },
+    // from his face to the bench, ending before the wide shot (its far-off face doesn't match the close-ups)
+    { n: 4, film: "c4", span: [1.4, 5], feat: { src: "img/word-game.webp", kind: "phone", crop: [0, 56, 440, 358] } },
+    // the calendar: Monday to Wednesday at full size so event labels read; the legend sits above the crop.
+  // on phones, Tuesday and Thursday only: the two live-class days the caption names
+    { n: 5, film: "c5", wide: true, span: [1.1, 7], feat: { src: "img/schedule.webp", kind: "lap", crop: [102, 110, 562, 200], psrc: ["img/schedule-p.webp", 360, 164] } },
+    // on phones the portrait crop loses David from about 5.5 s, so the phone span ends before he leaves it
+    { n: 6, film: "c6", wide: true, span: [1.4, 6.6], pspan: [1.4, 5.4], feat: { src: "img/review.webp", kind: "lap", crop: [755, 26, 665, 512], psrc: ["img/review-p.webp", 380, 440], pmax: 470 } },
     // rule 39: no skill map on the marketing page, so the night shows one practice question instead:
     // the question and its four answers, with the panel's edges, no Check button (rule 35) and no empty sky above.
-    // span: the clear night only; the clip's dusk-to-dark middle (about 3 to 8 s) reads as a black screen
-    { n: 7, film: "night", night: true, span: [8.5, 19.2], feat: { src: "img/quiz.webp", kind: "lap", crop: [326, 282, 852, 364] } },
-    // test day: from the hand-off of the ticket into her face; the words wait until her face is in frame
-    { n: 8, film: "c7", card: true, test: true, span: [2.4, 5.85], start: "top -8%" },
-    // Chapters 9 to 11 (c8a, c8b, c8c: the three college scenes) are held. Their sweatshirts carry real
-    // university names, and with or without words they imply admission results Karman can't show
-    // (CLAUDE.md marketing honesty, rules 43 and 47). They return only with unbranded clothes and the founder's go-ahead.
+    // span: the clear night only, from 10 s where the stars are bright; before that the dusk reads as a black screen
+    { n: 7, film: "night", night: true, span: [10, 19.2], feat: { src: "img/quiz.webp", kind: "lap", crop: [326, 282, 852, 364], psrc: ["img/quiz-p.webp", 380, 386] } },
+    // test day: from the first frame with her whole face in a 16:9 crop (before 4.5 s, as browsers seek, it reads as a headless torso)
+    { n: 8, film: "c7", card: true, test: true, span: [4.5, 5.85] },
+    // next fall: three Karman 1:1 students, each in their university's clothing (rule 47, founder exception
+    // cleared by Karman's lawyer, 2026-10-22). Each span starts after the clip's opening reflection, and
+    // words: [desktop, phone] is the film time when the student and the lettering on the sweatshirt are
+    // both on screen; the result waits for it. The dip to black between chapters keeps two people from sharing a frame.
+    { n: 9, film: "c8a", result: true, span: [1.6, 6], words: [2.4, 2.6] },
+    // Priya: STANFORD is fully in frame from about 4.5 s
+    { n: 10, film: "c8b", result: true, span: [3.3, 6], words: [4.8, 4.6] },
+    // Ava: from the camera's tilt up off the puddle; on phones only while her face and BERKELEY are sharp (from 3.9 s the lettering warps)
+    { n: 11, film: "c8c", result: true, span: [2.6, 4.4], pspan: [2.7, 3.85], words: [3.3, 3.1] },
     { n: 12, film: "c9", layout: "center", orbit: true },
   ];
   const SCREEN = { phone: [440, 956, 880, 1912], lap: [1440, 900, 2160, 1350] }; // points, then image pixels
@@ -305,6 +330,7 @@
   // phones held upright get a portrait crop of each film; everything else gets the 1440px version
   const portrait = innerWidth <= 900 && innerWidth / innerHeight < 0.8;
   const sfx = portrait ? "-p" : "";
+  const spanFor = i => (portrait && SCENES[i].pspan) || SCENES[i].span;
 
   const climb = document.getElementById("climb"), films = document.querySelector(".films"), last = SCENES.length - 1;
   SCENES.forEach((sc, i) => {
@@ -320,21 +346,26 @@
       copy += kin();
       const note = c["card title"] || c["card text"] ? `<div class="note"><b>${esc(c["card title"])}</b>${esc(c["card text"])}</div>` : "";
       const cap = c["feature title"] || c["feature text"] ? `<figcaption><b>${esc(c["feature title"])}</b> ${esc(c["feature text"])}</figcaption>` : "";
-      if (sc.feat) { const f = sc.feat, S = SCREEN[f.kind];
-        copy += `<figure class="feat${f.kind === "lap" ? " lap" : ""}" style="${cropVars(f.crop, S, "")};${cropVars(f.pcrop || f.crop, S, "p")}"><div class="shot${f.fade ? " fade" : ""}"><img src="${f.src}" width="${S[2]}" height="${S[3]}" alt="${cap ? "" : esc(c["feature title"] || "A Karman screen")}" loading="lazy" decoding="async"></div>${cap}${note}</figure>`; }
+      if (sc.feat) { const f = sc.feat, S = SCREEN[f.kind], P = f.psrc, pv = P ? cropVars([0, 0, P[1], P[2]], [P[1]], "p") : cropVars(f.crop, S, "p");
+        const img = `<img src="${f.src}" width="${S[2]}" height="${S[3]}" alt="${cap ? "" : esc(c["feature title"] || "A Karman screen")}" loading="lazy" decoding="async">`;
+        const pic = P ? `<picture><source media="(max-width: 760px)" srcset="${P[0]}" width="${P[1] * 2}" height="${P[2] * 2}">${img}</picture>` : img;
+        copy += `<figure class="feat${f.kind === "lap" ? " lap" : ""}" style="${cropVars(f.crop, S, "")};${pv}${f.pmax ? `;--pmax:${f.pmax}px` : ""}"><div class="shot">${pic}</div>${cap}${note}</figure>`; }
       if (sc.card) copy += `<div class="feat card">${c["card intro"] ? `<p>${esc(c["card intro"])}</p>` : ""}${c["card date"] ? `<p class="date">${esc(c["card date"])}</p>` : ""}${c["card later"] ? `<p class="later">${esc(c["card later"])}</p>` : ""}${c["card text"] ? `<p>${esc(c["card text"])}${c["card link"] ? ` <a href="${ROUTES.guarantee}">${esc(c["card link"])}</a>` : ""}</p>` : ""}</div>`;
+      // a result always carries its format (rule 47): chapter 11's proof line stands for all three when 9 and 10 have none
+      if (sc.result && c.result) { const pf = c.proof || (COPY[11] || {}).proof;
+        copy += `<div class="res"><h2 class="kin" id="h-${n}">${esc(c.result)}</h2>${c.school ? `<p class="s">${esc(c.school)}</p>` : ""}${pf ? `<p class="pf">${esc(pf)}</p>` : ""}</div>`; }
       if (sc.night && c.time) copy += `<p class="stamp">${esc(c.time)}</p>`;
       else if (c.time) { const [d, ...rest] = c.time.split(" "); copy += `<p class="time"><span class="digits" aria-hidden="true">${[...d].map(ch => `<span class="c"><span>${esc(ch)}</span></span>`).join("")}</span><span class="vh">${esc(c.time)}${c.name ? ", " + esc(c.name) : ""}</span><span class="meta" aria-hidden="true"><span>${esc(rest.join(" "))}</span><b>${esc(c.name)}</b></span></p>`; }
     }
     const el = document.createElement(copy ? "section" : "div");
-    el.className = "sc" + (i === 0 ? " first" : "") + (i === last ? " last" : "") + ["night", "orbit", "wide", "test"].filter(k => sc[k]).map(k => " " + k).join("");
+    el.className = "sc" + (i === 0 ? " first" : "") + (i === last ? " last" : "") + ["night", "orbit", "wide", "test", "result"].filter(k => sc[k]).map(k => " " + k).join("");
     el.id = `ch-${n}`;
     if (i === last) el.tabIndex = -1;
     if (copy.includes(`id="h-${n}"`)) el.setAttribute("aria-labelledby", `h-${n}`);
     el.innerHTML = `<div class="copy">${copy}</div>`;
     climb.appendChild(el);
     const fr = document.createElement("div");
-    fr.className = "frame" + (sc.layout === "center" ? " center" : "") + (sc.feat ? " has-feat" : "") + (sc.wide ? " wide" : "") + (sc.orbit ? " orbit" : "") + (sc.test ? " test" : "");
+    fr.className = "frame" + (sc.layout === "center" ? " center" : "") + (sc.feat ? " has-feat" : "") + (sc.wide ? " wide" : "") + (sc.orbit ? " orbit" : "") + (sc.test ? " test" : "") + (sc.result ? " result" : "");
     fr.innerHTML = `<div class="cam"><video poster="${sc.film}${sfx}.jpg" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video><div class="scrim"></div></div>`;
     films.appendChild(fr);
   });
@@ -348,18 +379,17 @@
   const secs = [...climb.querySelectorAll(".sc")], frames = [...films.children];
   const dip = document.createElement("div"); dip.className = "dip"; films.appendChild(dip);
   const vids = frames.map(f => f.querySelector("video"));
-  const hd = document.querySelector(".hd"), dock = document.createElement("a");
+  // the menu's one button carries the page's own call to action
   const ctaText = (COPY[12] || COPY[1] || {}).button;
-  if (ctaText) { dock.className = "btn dock"; dock.href = ROUTES.test; dock.textContent = ctaText; document.body.appendChild(dock); }
+  if (ctaText) document.querySelectorAll("[data-cta]").forEach(a => { a.textContent = ctaText; });
   const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
 
-  /* ---------- motion preference: a quiet pause control in the corner while a film can move, and a text control in the footer ---------- */
+  /* ---------- motion preference: a plain-text Pause / Play control in the header, on screen whenever a film can move ---------- */
   let held = false; try { held = localStorage.getItem("karman-pause") === "1"; } catch (e) {}
-  const motionBtns = document.querySelectorAll("[data-motion]"), playctl = document.querySelector(".playctl");
+  const motionBtns = document.querySelectorAll("[data-motion]");
   function setHeld(on, save) {
     held = on; root.classList.toggle("held", on);
-    motionBtns.forEach(b => { const l = b.querySelector(".lbl"); if (l) l.textContent = on ? "Play" : "Pause"; else b.textContent = on ? "Play the film" : "Pause the film";
-      b.setAttribute("aria-pressed", on); b.hidden = still; });
+    motionBtns.forEach(b => { b.querySelector(".lbl").textContent = on ? "Play" : "Pause"; b.hidden = still; });
     if (on) { stopOpening(); vids.forEach(v => v.pause()); idle = false; }
     if (save) try { localStorage.setItem("karman-pause", on ? "1" : "0"); } catch (e) {}
   }
@@ -373,58 +403,98 @@
   /* ---------- menu sheet (phones) ---------- */
   const sheet = document.getElementById("menu"), menuBtn = document.querySelector(".menu");
   let lenis = null;
-  function menu(open) { sheet.hidden = !open; menuBtn.setAttribute("aria-expanded", open); open ? lenis?.stop() : lenis?.start();
+  let menuOpen = false;
+  function menu(open) { menuOpen = open; sheet.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", open); open ? lenis?.stop() : lenis?.start();
     (open ? sheet.querySelector(".close") : menuBtn).focus(); }
-  menuBtn.addEventListener("click", () => menu(sheet.hidden));
+  menuBtn.addEventListener("click", () => menu(!menuOpen));
   sheet.querySelector(".close").addEventListener("click", () => menu(false));
   sheet.querySelectorAll("a").forEach(a => a.addEventListener("click", () => menu(false)));
 
   /* ---------- geometry ---------- */
-  let vh = innerHeight, geo = [], footTop = 0;
-  function measure() { vh = innerHeight; geo = secs.map(s => ({ top: s.offsetTop, h: s.offsetHeight })); footTop = document.querySelector(".ft").offsetTop; placeLine(); }
-  // the orbit film's horizon (top of the airglow) sits 27.8% down the frame; the line goes 12px above it
+  let vh = innerHeight, geo = [];
+  function measure() { vh = innerHeight; geo = secs.map(s => ({ top: s.offsetTop, h: s.offsetHeight })); placeLine(); }
+  // the orbit film's airglow band starts 26.5% down the frame (measured on c9, NASA master); the line sits on its upper edge
   const kline = document.querySelector(".kline"), tip = document.getElementById("kline-tip");
+  const OVER = 0.03; // the camera box's overscan on each side (.frame .cam inset)
   function placeLine() {
     if (!kline) return;
-    const W = innerWidth * 1.08, Hc = vh * 1.08, ar = portrait ? 0.6 : 16 / 9;
+    const W = innerWidth * (1 + 2 * OVER), Hc = vh * (1 + 2 * OVER), ar = portrait ? 0.6 : 16 / 9;
     const s = Math.max(W / (Hc * ar), 1), Hd = Hc * s; // cover: the film's drawn height inside the camera box
-    const y = -0.04 * vh + (Hc - Hd) / 2 + 0.278 * Hd - 12;
-    kline.parentElement.style.setProperty("--ky", `${Math.round(y)}px`);
+    let y = -OVER * vh + (Hc - Hd) / 2 + 0.265 * Hd - 3;
+    kline._y = y; // where the line sits on screen, for the moment it leaves
+    // as the footer arrives the closing words scroll up with their chapter; the line stays on the band, which does not
+    y -= kline.parentElement.getBoundingClientRect().top;
+    // follow the film's slow drift (a CSS scale and lift about the frame's centre), so the line stays on the band
+    const m = getComputedStyle(vids[last]).transform.match(/matrix\(([^)]+)\)/);
+    if (m) { const [, , , d, , ty] = m[1].split(",").map(Number); y = vh / 2 + (y - vh / 2) * d + ty; }
+    const ky = `${Math.round(y)}px`;
+    if (kline._ky !== ky) { kline._ky = ky; kline.parentElement.style.setProperty("--ky", ky); }
   }
+  // while the orbit is on screen, re-place the line every frame as the film drifts
+  (function follow() { if (kline && frames[last]._show && !still) placeLine(); requestAnimationFrame(follow); })();
 
   /* ---------- the films: crossfade by scroll, scrub by scroll, keep playing when the reader stops ---------- */
   // film i takes over when its chapter is 0.85 screens away: over 14% of a screen the picture dips to black,
   // the films swap at the darkest point, and the new one rises out of the dark
   const FADE_AT = 0.85, FADE = 0.1;
-  const spanOf = (v, i) => { const s = SCENES[i].span || [0, v.duration]; return [Math.max(s[0], SCENES[i].lead || 0), Math.min(s[1], v.duration)]; };
-  const warm = v => { if (v._warm || still) return; v._warm = true; const i = vids.indexOf(v); v.preload = "auto"; v.src = `${SCENES[i].film}${sfx}.mp4`; };
+  const spanOf = (v, i) => { const s = spanFor(i) || [0, v.duration]; return [Math.max(s[0], SCENES[i].lead || 0), Math.min(s[1], v.duration)]; };
+  // load a film ahead of time and park it on the first frame of its span, so the cut never shows the clip's opening frame
+  const warm = v => { if (v._warm || still) return; v._warm = true; const i = vids.indexOf(v); v.preload = "auto"; v.src = `${SCENES[i].film}${sfx}.mp4`;
+    v.addEventListener("loadedmetadata", () => { const t = spanOf(v, i)[0]; if (v.paused && !v._auto && v.currentTime < t) v.currentTime = t; }, { once: true }); };
   vids.forEach((v, i) => {
     v.addEventListener("seeked", () => { if (v._target != null && Math.abs(v.currentTime - v._target) > 1 / 30 && v.paused) v.currentTime = v._target; });
     v.addEventListener("timeupdate", () => { // idle playback slows into its last frame instead of stopping dead
       if (v.paused || v._auto) return;
-      const left = spanOf(v, i)[1] - v.currentTime;
-      if (left < 1.4 && !v._slow && HAS_GSAP) { v._slow = true; gsap.to(v, { playbackRate: 0.3, duration: 1.2, ease: "power1.out" }); }
+      const [from, to] = spanOf(v, i), left = to - v.currentTime;
+      if (left < Math.min(1.4, 0.4 * (to - from)) && !v._slow && HAS_GSAP) { v._slow = true; gsap.to(v, { playbackRate: 0.3, duration: 1.2, ease: "power1.out" }); }
       if (left < 0.08) v.pause();
     });
     v.addEventListener("pause", () => { if (HAS_GSAP) gsap.killTweensOf(v); v._slow = false; v.playbackRate = 1; });
   });
-  let lastY = -1, velocity = 0;
+  /* the dip: the half before the cut follows the scroll; at the cut the screen holds dark only until the new film's
+     frame is ready, then rises out of it on a short timer. A reader who stops inside the dip is never left on black:
+     after a short rest the dip clears back to the film on screen. */
+  const DIP = { cur: 0, goal: 0, mode: "follow", t0: 0, from: 0, wait: null };
+  const RISE = 350, HOLD_MAX = 600;
+  function paintDip(o) { const d = o.toFixed(3); DIP.cur = o; if (dip._d !== d) { dip.style.opacity = d; dip._d = d; } }
+  function dipCut(v) { // the films swap now: hold dark until the new frame is drawn, then rise out of it
+    if (REC) return paintDip(0);
+    DIP.mode = "cut"; DIP.t0 = performance.now(); DIP.from = Math.max(DIP.cur, 0.85); DIP.wait = v; paintDip(DIP.from); dipLoop(); }
+  function dipRest() { if (DIP.mode !== "follow" || DIP.cur < 0.05) return; DIP.mode = "rest"; DIP.t0 = performance.now(); DIP.from = DIP.cur; dipLoop(); }
+  let dipRaf = 0;
+  function dipLoop() { if (!dipRaf) dipRaf = requestAnimationFrame(dipTick); }
+  function dipTick(now) { dipRaf = 0;
+    if (DIP.mode === "follow") { // trail the scroll by a few frames so a sudden change never flashes
+      const o = DIP.cur + (DIP.goal - DIP.cur) * 0.35; paintDip(Math.abs(o - DIP.goal) < 0.01 ? DIP.goal : o);
+      if (DIP.cur !== DIP.goal) dipLoop(); return; }
+    if (DIP.mode === "cut" && DIP.wait) { const v = DIP.wait, ready = still || !v.src || (v.readyState >= 2 && !v.seeking);
+      if (!ready && now - DIP.t0 < HOLD_MAX) return dipLoop();
+      DIP.wait = null; DIP.t0 = now; }
+    const k = clamp((now - DIP.t0) / RISE), o = DIP.from * (1 - k) * (1 - k); // ease out of the dark
+    if (DIP.mode === "cut" && DIP.goal > o) { DIP.mode = "follow"; return dipLoop(); } // already heading into the next cut
+    paintDip(o); if (k < 1) dipLoop(); else DIP.mode = DIP.mode === "rest" ? "rested" : "follow";
+  }
+  let lastY = -1, velocity = 0, dir = 1;
   function update(y = scrollY) {
-    velocity = Math.abs(y - (lastY < 0 ? y : lastY)); lastY = y;
+    const dy = y - (lastY < 0 ? y : lastY); velocity = Math.abs(dy); if (dy) dir = Math.sign(dy); lastY = y;
     const alpha = geo.map((g, i) => i === 0 ? 1 : clamp((y - (g.top - FADE_AT * vh)) / (FADE * vh)));
-    const d = Math.max(0, ...alpha.slice(1).map(a => Math.sin(Math.PI * a))).toFixed(3);
-    if (dip._d !== d) { dip.style.opacity = d; dip._d = d; }
+    // only the half of the dip on the reader's side of the cut follows the scroll
+    DIP.goal = Math.max(0, ...alpha.slice(1).map(a => (dir > 0 ? a < 0.5 : a >= 0.5) ? Math.sin(Math.PI * a) : 0));
+    if (REC) paintDip(DIP.goal); else if (DIP.mode === "follow" || (DIP.mode === "rest" || DIP.mode === "rested") && velocity > 1) { DIP.mode = "follow"; dipLoop(); }
+    let cutTo = null;
     frames.forEach((f, i) => {
       const a = alpha[i] >= 0.5 ? 1 : 0, covered = i < last && alpha[i + 1] >= 0.5, show = a > 0 && !covered, v = vids[i];
       if (f._a !== a) { f.style.opacity = a; f._a = a; }
-      if (f._show !== show) { f.style.visibility = show ? "visible" : "hidden"; f._show = show; if (!show) { v.pause(); v._ahead = 0; } }
+      if (f._show !== show) { if (show && f._show === false) cutTo = v; f.style.visibility = show ? "visible" : "hidden"; f._show = show; if (!show) { v.pause(); v._ahead = 0; } }
       if (geo[i].top - y < 2.5 * vh) warm(v); // load a film about a screen and a half before it is needed
       if (!show) return;
       const A = i === 0 ? 0 : geo[i].top - FADE_AT * vh, B = i === last ? document.documentElement.scrollHeight - vh : geo[i + 1].top - (FADE_AT - FADE) * vh;
       const k = clamp((y - A) / Math.max(1, B - A));
       const cam = f.firstChild, sc = SCENES[i];
       if (!still && !sc.orbit) { // the camera cranes up slowly as the chapter passes
-        const t = sc.wide ? `translate3d(0, ${(-1.5 + 3 * k).toFixed(2)}%, 0) scale(1.03)` : `translate3d(0, ${(-3 + 6 * k).toFixed(2)}%, 0) scale(${(1.1 - 0.08 * k).toFixed(4)})`;
+        // test day starts lower and closer to the frame, since her face sits near the top of the clip
+        const t = sc.wide ? `translate3d(0, ${(-1 + 2 * k).toFixed(2)}%, 0) scale(1.01)` : sc.test ? `translate3d(0, ${(1 + 1.5 * k).toFixed(2)}%, 0) scale(1.02)`
+          : `translate3d(0, ${(-2 + 4 * k).toFixed(2)}%, 0) scale(${(1.05 - 0.04 * k).toFixed(4)})`;
         if (cam._t !== t) { cam.style.transform = t; cam._t = t; }
       }
       if (still || v._auto || !v.duration) return;
@@ -432,29 +502,11 @@
       if (!v.paused) { v.pause(); v._ahead = Math.max(0, v.currentTime - base); } // scrolling again: carry on from the frame it reached
       seek(v, Math.min(to - 0.05, base + (v._ahead || 0)));
     });
+    if (cutTo) dipCut(cutTo);
     if (HAS_GSAP && !still) feats.forEach(([f, i]) => { // a slight parallax while a screen holds
       const g = geo[i], p = Math.round(clamp((y - g.top) / Math.max(1, g.h - vh)) * 400) / 100;
       if (f._p !== p) { f._p = p; gsap.set(f, { yPercent: -p }); }
     });
-    // the floating button shows only when no other button is on screen, never over words, never over the footer
-    // the pause control keeps its corner, and steps aside only while words or a screen pass through it
-    playctl.classList.toggle("off", footTop - y < vh - 8 || !ctlClear(y));
-    if (ctaText) dock.classList.toggle("on", !portraitUI() && y > 0.8 * vh && !shown[0] && !shown[last] && footTop - y > vh && dockClear(y));
-  }
-  // anything showing in the strip at the bottom centre where the floating button sits?
-  const busy = secs.map(s => [...s.querySelectorAll(".kin, .feat, .time, .stamp")].map(e => [e, e.matches(".kin") ? e.querySelector(".w > span") : e]));
-  function dockClear(y) {
-    const dw = dock.offsetWidth, L = (innerWidth - dw) / 2 - 16, R = L + dw + 32, top = vh - 24 - dock.offsetHeight - 16;
-    return !secs.some((s, i) => geo[i].top < y + vh && geo[i].top + geo[i].h > y && busy[i].some(([e, o]) => {
-      if (!o || +gsap.getProperty(o, "opacity") < 0.05) return false;
-      const r = e.getBoundingClientRect(); return r.bottom > top && r.top < vh && r.right > L && r.left < R; }));
-  }
-  const ctlBusy = secs.map(s => [...s.querySelectorAll(".kin .w > span, .feat, .time, .stamp, .lede, .act")]);
-  function ctlClear(y) {
-    const c = playctl.getBoundingClientRect(), L = c.left - 8, R = c.right + 8, Tp = c.top - 8, Bt = c.bottom + 8;
-    return !secs.some((s, i) => geo[i].top < y + vh && geo[i].top + geo[i].h > y && ctlBusy[i].some(e => {
-      if (HAS_GSAP && +gsap.getProperty(e, "opacity") < 0.05) return false;
-      const r = e.getBoundingClientRect(); return r.bottom > Tp && r.top < Bt && r.right > L && r.left < R; }));
   }
   const portraitUI = () => innerWidth <= 760;
   function seek(v, t) { v._target = t; if (v.seeking || Math.abs(v.currentTime - t) <= 1 / 30) return;
@@ -462,7 +514,6 @@
   const feats = secs.map((s, i) => [s.querySelector(".feat:not(.card)"), i]).filter(([f]) => f);
 
   /* ---------- the words: time-based reveals, triggered by position, so they always settle and never freeze half-drawn ---------- */
-  const shown = secs.map(() => false);
   const T = s => (REC ? 0 : still ? Math.min(s, 0.3) : s);
   const Y = v => (still ? 0 : v);
   function group(sec, sel) { return [...sec.querySelectorAll(sel)]; }
@@ -484,38 +535,50 @@
     };
   }
   // start and end of the hold, as ScrollTrigger positions
-  function when(sec, groups, { start, end, track }) {
+  function when(sec, groups, { start, end }) {
     groups = groups.filter(([g]) => g); if (!groups.length) return;
     const go = () => groups.forEach(([g, delay]) => g.show(delay)), stop = d => groups.forEach(([g]) => g.hide(d));
-    ScrollTrigger.create({ trigger: sec, start, end, onEnter: go, onEnterBack: go, onLeave: () => stop(1), onLeaveBack: () => stop(-1),
-      onToggle: self => { if (track) shown[secs.indexOf(sec)] = self.isActive; } });
+    ScrollTrigger.create({ trigger: sec, start, end, onEnter: go, onEnterBack: go, onLeave: () => stop(1), onLeaveBack: () => stop(-1) });
   }
   const START = "top 60%";
+  // the scroll position at which chapter i's film reaches time t (the inverse of the scrub in update())
+  function scrollAtTime(i, t) {
+    const s = secs[i], [from, to] = spanFor(i), A = s.offsetTop - FADE_AT * vh, B = secs[i + 1].offsetTop - (FADE_AT - FADE) * vh;
+    return Math.round(A + clamp((t - from) / (to - from - 0.05)) * (B - A));
+  }
 
   if (HAS_GSAP) {
     gsap.registerPlugin(ScrollTrigger);
     secs.forEach((sec, i) => {
       const first = i === 0, end = i === last, night = SCENES[i].night;
       const words = reveal(group(sec, ".kin .w > span"), "words");
-      const rest = reveal(group(sec, ".lede, .act, .time"), "rest");
+      const rest = reveal(group(sec, ".lede, .act, .time, .res .s, .res .pf"), "rest");
       const digits = reveal(group(sec, ".time .c > span"), "digits");
       const feat = reveal(group(sec, ".feat"), "feat");
       const stamp = reveal(group(sec, ".stamp"), "rest");
       const s0 = first ? "top bottom" : START;
-      // the close stays until it nears the header on desktop; on phones it leaves as the footer arrives
-      // the night has no person to see first, so its words rise as soon as the film cuts in, and hold until the date
-      const e0 = end ? () => portraitUI() ? "bottom bottom" : "bottom 80%" : night ? "bottom 112%" : "bottom bottom";
-      const s1 = night ? "top 82%" : SCENES[i].start || s0;
-      when(sec, [[words, first ? 0.2 : 0], [digits, 0.1], [rest, first ? 0.7 : 0.25]], { start: s1, end: e0, track: true });
+      // a result rises in place once its chapter holds (never slides up over the student) and the lettering is in frame
+      const s1 = night ? `top ${Math.round(FADE_AT * 100 - FADE * 50)}%` : SCENES[i].words ? () => Math.max(sec.offsetTop, scrollAtTime(i, SCENES[i].words[portrait ? 1 : 0])) : SCENES[i].start || s0;
+      // the close stays as the footer rises and its words scroll up with the chapter; they leave only as the headline nears the header.
+      // a result holds for about two thirds of a screen from the moment it appears, and is gone before the dip into the next film.
+      // the night has no person to see first: its words and practice screen (pinned early, see .sc.night .copy) rise
+      // as the film cuts in, and the date holds until the next cut
+      const kinTop = () => { const k = sec.querySelector(".stack .kin"); return k ? k.offsetTop : 0.3 * vh; };
+      const e0 = end ? () => sec.offsetTop + sec.offsetHeight - vh + kinTop() - 84
+        : SCENES[i].result ? () => Math.min(s1() + 0.65 * vh, secs[i + 1].offsetTop - 0.82 * vh, portraitUI() ? sec.offsetTop + sec.offsetHeight - vh + 16 : Infinity)
+        : night ? "bottom 112%" : "bottom bottom";
+      when(sec, [[words, first ? 0.2 : 0], [digits, 0.1], [rest, first ? 0.7 : 0.25]], { start: s1, end: e0 });
       // product screens arrive with the words (just after them); on phones a little later, so the person is seen first
       when(sec, [[feat, 0.2]], { start: () => SCENES[i].start || (night ? s1 : portraitUI() ? "top 25%" : START), end: e0 });
       // the date rises while the words still hold; on phones the screen fills the bottom, so it follows them
-      if (night) when(sec, [[stamp, 0]], { start: () => portraitUI() ? "bottom 111%" : "bottom 132%", end: "bottom bottom" });
+      if (night) when(sec, [[stamp, 0]], { start: () => portraitUI() ? "bottom 111%" : "bottom 132%", end: `bottom ${Math.round(FADE_AT * 100 - FADE * 50)}%` });
       if (end && kline) { // the line draws itself once the closing words hold, says what it is once, then waits for a tap
         gsap.set(kline, { "--draw": 0, visibility: "hidden" });
         let told = false;
         const close = () => { tip.classList.remove("open"); kline.setAttribute("aria-expanded", "false"); };
-        ScrollTrigger.create({ trigger: sec, start: "top 10%", end: "bottom bottom",
+        // it leaves just before the rising headline would reach it; the words carry on up to the header
+        const lineEnd = () => Math.min(e0(), sec.offsetTop + sec.offsetHeight - vh + kinTop() - (kline._y || 0.26 * vh) - 34);
+        ScrollTrigger.create({ trigger: sec, start: "top 10%", end: lineEnd,
           onEnter: draw, onEnterBack: draw, onLeave: undraw, onLeaveBack: undraw });
         function draw() { kline.style.visibility = "visible"; if (REC) return gsap.set(kline, { "--draw": 1 }); gsap.to(kline, { "--draw": 1, duration: T(1.2), ease: "power2.inOut", overwrite: true, onComplete: () => {
           if (told || REC || still) return; told = true; tip.classList.add("open"); setTimeout(() => { if (kline.getAttribute("aria-expanded") !== "true") close(); }, 2500); } }); }
@@ -548,14 +611,9 @@
     gsap.ticker.add(t => lenis.raf(t * 1000));
     gsap.ticker.lagSmoothing(0);
   }
-  // the header steps aside while reading down, and returns on the way up and for the close
-  let prevY = scrollY, ticking = false;
-  function onScroll() {
-    const y = scrollY, nearEnd = geo[last] && y > geo[last].top - 0.5 * vh;
-    if (Math.abs(y - prevY) > 4) { hd.classList.toggle("away", y > prevY && y > 200 && !nearEnd && sheet.hidden); prevY = y; }
-    if (nearEnd) hd.classList.remove("away");
-    update(y); ticking = false;
-  }
+  // the header (with the pause control) stays put; scrolling only moves the film and the words
+  let ticking = false;
+  function onScroll() { update(scrollY); ticking = false; }
   addEventListener("scroll", () => { activity(); if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   update();
 
@@ -565,10 +623,13 @@
     if (idle) { idle = false; vids.forEach(v => { if (!v.paused && !v._auto) { v.pause(); v._ahead = Math.max(0, v.currentTime - (v._base ?? v.currentTime)); } }); } }
   const topFilm = () => { for (let i = last; i >= 0; i--) if (frames[i]._show && frames[i]._a >= 0.5) return vids[i]; return null; };
   setInterval(() => {
+    if (!document.hidden && performance.now() - lastScroll >= 450) dipRest(); // stopped inside a dip: clear it to the film on screen
     if (held || still || document.hidden || idle || performance.now() - lastScroll < 450) return;
     idle = true;
     const v = topFilm(); if (!v || v._auto || !v.duration || v.currentTime >= spanOf(v, vids.indexOf(v))[1] - 0.2) return;
-    const go = () => { if (idle && !held) { v.playbackRate = 1; v.play().catch(() => {}); } };
+    // a short span (test day, the results) plays at half speed, so a reader at rest still sees it move for a few seconds
+    const [from, to] = spanOf(v, vids.indexOf(v));
+    const go = () => { if (idle && !held) { v.playbackRate = to - from < 2.5 ? 0.5 : 1; v.play().catch(() => {}); } };
     v.readyState >= 3 ? go() : v.addEventListener("canplay", go, { once: true });
   }, 150);
   document.addEventListener("visibilitychange", () => { if (document.hidden) { vids.forEach(v => v.pause()); idle = false; } });
@@ -583,8 +644,9 @@
 
   // the opening film plays its first seconds by itself (under five), then hands over to the scroll from the frame it reached
   const v0 = vids[0], lead0 = SCENES[0].autoplay || 0;
-  function stopOpening() { if (!v0._auto) return; v0._auto = false; v0.pause(); SCENES[0].lead = v0.currentTime; update(); }
-  addEventListener("keydown", e => { if (sheet.hidden) return;
+  // after it, the usual rest playback carries the film on to the end of its span if the reader still hasn't scrolled
+  function stopOpening() { if (!v0._auto) return; v0._auto = false; v0.pause(); SCENES[0].lead = v0.currentTime; idle = false; update(); }
+  addEventListener("keydown", e => { if (!menuOpen) return;
     if (e.key === "Escape") menu(false);
     if (e.key === "Tab") { const f = [...sheet.querySelectorAll("a, button")], a = f[0], z = f[f.length - 1]; // keep focus inside the open menu
       if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } } });

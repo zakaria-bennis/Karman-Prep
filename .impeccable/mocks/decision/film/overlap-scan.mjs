@@ -31,9 +31,10 @@ for (let i = 0; i <= n; i++) {
       .map((el) => ({ el, r: el.getBoundingClientRect() }))
       .filter(({ r }) => r.width && r.bottom > 0 && r.top < innerHeight);
     // headlines and results animate word by word: measure only the words that are showing
+    // (a result's own headline is a .kin, measured by its words; its other lines are measured here)
     document.querySelectorAll(".kin, .res").forEach((el) => {
       const parts = [
-        ...el.querySelectorAll(el.matches(".kin") ? ".w > span, .w .l" : ":scope > *"),
+        ...el.querySelectorAll(el.matches(".kin") ? ".w > span, .w .l" : ":scope > :not(.kin)"),
       ].filter((q) => vis(q) > 0.5);
       if (!parts.length) return;
       const rs = parts.map((q) => q.getBoundingClientRect());
