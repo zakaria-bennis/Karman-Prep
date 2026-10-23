@@ -277,6 +277,15 @@ k qa fix-legacy --fixes ... --pipe $PIPE --now <time> [--ids <ids>]   # live wri
 
 Sequence, as for `k qa hide`: writer lock, no open intent, fresh export, a read-only snapshot of the rows (`snapshot.sql`), then `qa/fix-legacy-<time>/fix-legacy.sql` (+ `.dryrun.sql`): the export fingerprint guard, then per row a lock and a guard that the row, its choices and its one answer key equal the snapshot exactly and the row is still not visible with no stable id, the update, and a check that the key is the one correct choice. Intent `qa_fix-legacy`, dry run, real file, readback (`readback.sql`), intent closed; one line per row in `$PIPE/qa/legacy-fixes.jsonl` (before and after). `fix-legacy-rollback.sql` puts the old values back, only while the fixed values are still in place. `--plan` builds the files and `plan.json` only (with `--export` and `--snapshot` it reads no database); `--dry` also runs the dry run.
 
+## QA: change the skill or difficulty label of live questions
+
+```
+k qa retag --decisions $PIPE/qa/skill-recheck/decisions.jsonl --pipe $PIPE --now <time> --dry   # read-only plan + dry run
+k qa retag --decisions $PIPE/qa/skill-recheck/decisions.jsonl --pipe $PIPE --now <time>         # live write, founder's OK first
+```
+
+`kimport/qa_retag.py` (run by `qa_run.run_retag`, the `k qa hide` sequence: writer lock, no open intent, fresh export for the fingerprint guard plus a full read-only REST export of the live rows, `plan.json`, `retag.sql` + `.dryrun.sql`, intent, dry run, real file, readback, intent closed, `qa/retags.jsonl`). Input lines `{id, stable_question_id, field: "skill" | "difficulty", live, new, reason, by, at, [domain]}`; `id` may be the live uuid or the stable id, and must resolve to exactly one live row. It changes only labels: difficulty sets `difficulty_level` and its band `difficulty`; a skill sets the evidence `approved_tags` (catalog_skill_id, skill_label, catalog_domain_id, domain_label), a new skill review record (`independent_D_record`, the decision's sha256 as `independent_D_review_sha256`; the old record kept under `label_retags`), and `domain` / `topic_cluster` when the domain changes. The payload seal covers those columns, so `ts/retag-check.ts` recomputes it with the app's `catalogQuestionPayloadHash` and checks the result with the app's scope reader and the catalog lane's filters. Each row block stops the whole file unless the row, its one answer key entry and the live value are exactly what the export and the decision say. Refused (listed in `plan.json` and the summary): skills not in `approved-skill-taxonomy.json`, difficulty outside 1 to 7, a domain that is not the skill's, the other subject, rows not live or not served now, an original-D-record skill lane, and lines for one row and field from two reviewers. One reviewer's latest line wins; a latest line with new == live is dropped as no change. `restore.sql` puts the old labels and evidence back exactly. `retag-plan.md` beside the decisions file is the founder's summary (counts by field and reviewer, skill moves, every change, refusals).
+
 ## QA certificate: every question students can see
 
 ```

@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 from kimport import qa_hide as qh
-from kimport import qa_ids, qa_legacy, writer
+from kimport import qa_export, qa_ids, qa_legacy, qa_retag, writer
 from kimport.autopilot import DbError, supabase_file_runner
 from kimport.autopilot_live import LEDGER
 from kimport.export import export_by_id, read_export_doc
@@ -33,9 +33,14 @@ HOLDER = "kimport-qa"
 
 
 class Deps:
-    def __init__(self, db=supabase_file_runner, exporter=None, sleep=time.sleep, log=print):
+    def __init__(self, db=supabase_file_runner, exporter=None, sleep=time.sleep, log=print, full_exporter=None,
+                 retag_checker=None):
         self.db = db
         self.exporter = exporter or (lambda out: run_export(out, log=lambda m: None))
+        # Every live row in full (REST, read-only) for `k qa retag`, which needs the evidence and the payload.
+        self.full_exporter = full_exporter or (lambda out: qa_export.run_qa_export(
+            out, Path(__file__).resolve().parents[3] / ".env.local", log=lambda m: None))
+        self.retag_checker = retag_checker or qa_retag_check
         self.sleep = sleep
         self.log = log
 
@@ -64,6 +69,13 @@ def _export(deps: Deps, run_dir: Path, given: str | None):
     return doc, export_by_id(doc.rows)
 
 
+def _write_chunks(run_dir: Path, name: str, files: list[str]) -> list[tuple[Path, Path]]:
+    """name.sql (one file) or name-01.sql, name-02.sql ... with their .dryrun.sql twins."""
+    if len(files) == 1:
+        return [_write_sql(run_dir, name, files[0])]
+    return [_write_sql(run_dir, f"{name}-{k:02d}", f) for k, f in enumerate(files, 1)]
+
+
 def _write_sql(run_dir: Path, name: str, sql: str) -> tuple[Path, Path]:
     real, dry = run_dir / f"{name}.sql", run_dir / f"{name}.dryrun.sql"
     real.write_text(sql, encoding="utf-8")
@@ -75,23 +87,27 @@ def _apply(deps: Deps, pipe: Path, run_dir: Path, name: str, sql: str, after: di
            readback: str | None = None) -> str:
     """Intent, dry run, real file, readback, close. Returns the readback sha256.
     `readback`: the read-only SQL whose rows `after` / `before` describe (default qa_hide.readback_sql)."""
-    real, dry = _write_sql(run_dir, name, sql)
+    pairs = _write_chunks(run_dir, name, sql if isinstance(sql, list) else [sql])
     rb = run_dir / "readback.sql"
     rb.write_text(readback or qh.readback_sql(sorted(after)), encoding="utf-8")
     log = pipe / "intents.jsonl"
     iid = writer.write_intent(log, run_dir.name, f"qa_{name}", sorted(after),
-                              qh.sha(real.read_text(encoding="utf-8")), now)
+                              qh.sha("".join(real.read_text(encoding="utf-8") for real, _ in pairs)), now)
     try:
-        _read(deps, dry)
+        for _, dry in pairs:
+            _read(deps, dry)
     except ValueError as e:
         writer.close_intent(log, iid, "not_applied", "", now)
         raise ValueError(f"the dry run failed, nothing was written: {e}") from None
+    real = pairs[0][0] if len(pairs) == 1 else run_dir / f"{name}-*.sql"
     deps.log(f"qa {name}: dry run passed; running {real.name}")
     error = None
-    try:
-        deps.db(real)
-    except DbError as e:
-        error = str(e)
+    for path, _ in pairs:
+        try:
+            deps.db(path)
+        except DbError as e:
+            error = f"{path.name}: {e}"
+            break
     back = qh.parse_readback(_read(deps, rb))
     (run_dir / "readback.json").write_text(json.dumps(back, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     digest = qh.sha(back)
@@ -305,3 +321,76 @@ def run_ids(pipe: Path, ids_files: list, now: str, rows: str | None = None, ledg
     return {"candidate": str(out), "ids": len(ids), "counts": res["counts"],
             "ambiguous": {k: v["why"] for k, v in res["rows"].items() if v["status"] == "ambiguous"},
             "legacy": sorted(k for k, v in res["rows"].items() if v["status"] == "legacy")}
+
+
+def qa_retag_check(items: list[dict], work: Path) -> dict:
+    """ts/retag-check.ts on the planned changes (the app's catalog scope reader and payload seal)."""
+    import subprocess
+    src = Path(work) / "retag-check-input.json"
+    src.write_text(json.dumps({"rows": [{"row": it["row"], "question_after": it["question_after"],
+                                         "raw_after": it["raw_after"]} for it in items]}, ensure_ascii=False),
+                   encoding="utf-8")
+    done = subprocess.run(["npx", "--no-install", "tsx", "scripts/import-tools/ts/retag-check.ts", str(src)],
+                          cwd=qa_retag.REPO, capture_output=True, text=True, timeout=600)
+    if done.returncode != 0:
+        raise ValueError(f"retag-check.ts: {(done.stderr or done.stdout).strip()[-400:]}")
+    return json.loads(done.stdout)
+
+
+def run_retag(pipe: Path, decisions: str, now: str, dry: bool = False, export: str | None = None,
+              live_rows: str | None = None, deps: Deps | None = None) -> dict:
+    """`k qa retag`: change only skill / difficulty labels of live rows (kimport.qa_retag), in the
+    qa hide sequence. --dry builds everything and runs only the .dryrun.sql (rolled back)."""
+    pipe, deps = Path(pipe), deps or Deps()
+    skills = qa_retag.catalog()
+    lines = qa_retag.read_decisions(Path(decisions))
+
+    def go():
+        qa_dir = pipe / "qa"
+        run_dir = qa_dir / f"retag-{_stamp(now)}{'-dry' if dry else ''}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+        doc, _ = _export(deps, run_dir, export)
+        full = Path(live_rows) if live_rows else run_dir / "live-full.json"
+        if not live_rows:
+            deps.full_exporter(full)
+        rows = {r["id"]: r for r in json.loads(full.read_text(encoding="utf-8"))["rows"]}
+        plan = qa_retag.build_plan(lines, rows, skills, lambda items: deps.retag_checker(items, run_dir))
+        items = plan["items"]
+        summary = {"run": str(run_dir), "export": doc.exported_at, "decisions": str(decisions),
+                   "decision_lines": len(lines), "to_change": len(items), "refused": len(plan["refused"]),
+                   "dropped": len(plan["dropped"]), "dry": dry,
+                   "by_field": dict(sorted({f: sum(1 for it in items if f in it["decisions"])
+                                            for f in qa_retag.FIELDS}.items()))}
+        (run_dir / "plan.json").write_text(json.dumps({**summary, "rows": [
+            {"id": it["id"], "stable_question_id": it["stable_question_id"],
+             "changes": {f: {k: d[k] for k in ("live", "new", "reason", "by", "at")} for f, d in it["decisions"].items()},
+             "columns": it["question_after"], "seal_before": it["seal_before"], "seal_after": it["seal_after"]}
+            for it in items], "refused_rows": plan["refused"], "dropped_lines": plan["dropped"]},
+            indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        md = Path(decisions).parent / "retag-plan.md"
+
+        def write_md(**extra):
+            md.write_text(qa_retag.plan_md(plan, {**summary, **extra}, now), encoding="utf-8")
+
+        write_md()
+        if not items:
+            return {**summary, "result": "nothing to change", "plan_md": str(md)}
+        sql = qa_retag.retag_sql(items, doc)
+        _write_chunks(run_dir, "restore", qa_retag.restore_sql(items))
+        summary["sql_files"] = len(sql)
+        if dry:
+            for _, drypath in _write_chunks(run_dir, "retag", sql):
+                _read(deps, drypath)
+            write_md(dry_passed=True)
+            return {**summary, "result": "dry run passed (rolled back)", "plan_md": str(md)}
+        digest = _apply(deps, pipe, run_dir, "retag", sql, qa_retag.expected(items, True),
+                        qa_retag.expected(items, False), now, readback=qa_retag.readback_sql([it["id"] for it in items]))
+        qh.append_log(qa_dir / "retags.jsonl", [
+            {"id": it["id"], "stable_question_id": it["stable_question_id"], "at": now, "run": run_dir.name,
+             "changes": {f: {k: d[k] for k in ("live", "new", "reason", "by")} for f, d in it["decisions"].items()},
+             "columns_before": {c: it["row"].get(c) for c in it["question_after"]}, "columns_after": it["question_after"]}
+            for it in items])
+        return {**summary, "result": "changed", "readback_sha256": digest,
+                "undo": str(run_dir / "restore.sql")}
+
+    return _locked(pipe, now, dry, go)

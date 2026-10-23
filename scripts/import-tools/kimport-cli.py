@@ -589,6 +589,15 @@ def _register_qa(sub) -> None:
                      help="write hidden-id-map.json and hidden-stable-ids.json from the reviewed candidate")
     ids.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_ids(
         Path(a.pipe), a.ids, a.now, a.rows, a.ledger, a.clusters, a.write_approved, _qa_deps()))))
+    rt = qsub.add_parser("retag", help="change skill / difficulty labels of live questions from reviewed decisions")
+    rt.add_argument("--decisions", required=True, help="pipeline/qa/skill-recheck/decisions.jsonl")
+    rt.add_argument("--pipe", required=True, help="the pipeline folder (writer.lock, intents.jsonl, qa/)")
+    rt.add_argument("--now", required=True, help="ISO-8601 time")
+    rt.add_argument("--export", help="use this saved export (for the fingerprint guard) instead of a fresh one")
+    rt.add_argument("--live-rows", help="use this saved full live export (qa export) instead of a fresh one")
+    rt.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
+    rt.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_retag(
+        Path(a.pipe), a.decisions, a.now, a.dry, a.export, a.live_rows, _qa_deps()))))
     ce = qsub.add_parser("certify", help="certify every student-visible question (read-only): static checks, render on "
                                          "main, answer evidence -> qa/certificate-<date>.md and .json")
     ce.add_argument("--pipe", required=True, help="the pipeline folder (qa/, batches/)")
