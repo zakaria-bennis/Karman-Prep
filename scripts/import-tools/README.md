@@ -128,6 +128,14 @@ Send you the HTML page. You answer same or different and copy back the result in
 k pairs apply --pairs $PIPE/corpus/founder_pairs.json --decisions $PIPE/corpus/decisions.json --clusters $PIPE/corpus/clusters.json --now <time>
 ```
 
+A first pass can sort the pairs for you, so you only look at the unclear ones (writes files, applies nothing):
+
+```
+k pairs auto --pairs $PIPE/corpus/founder_pairs.json --clusters $PIPE/corpus/clusters.json --out $PIPE/corpus/auto-pairs
+```
+
+It skips pairs already in `founder_decisions.json` and writes `same.json`, `different.json`, `unclear.json`, `sample.md` (counts and random examples with the differing words side by side) and `decisions-proposed.json` (same and different only, keyed by pair id: the `--decisions` file for `pairs apply`, once you have OKed the sample). Same: identical after formatting-only changes (quotes, italics, dash spellings, spacing, LaTeX vs unicode math, `[Underlined portion: ...]` vs an underline, question-number and Section lines, a prompt printed before instead of after the passage) or only scanning typos within the typo rule. Different: a number, name, word, variable or correct answer differs. Unclear: everything else (a blank, sentence or choice on one side only, punctuation, a lost sign or exponent, two real words a letter apart, a text that relies on a table). Rules: `kimport/autopairs.py`.
+
 Your answers are appended to `founder_decisions.json` next to `clusters.json`. Re-running `corpus` applies them again; answers that no longer match are reported, not fatal.
 
 **O9. Review, publish (live write per batch). Needs your OK for each batch.**

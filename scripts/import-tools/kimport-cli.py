@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
+from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -250,6 +250,11 @@ def _register_corpus(sub) -> None:
                                 Path(a.figures) if a.figures else None)))))
 
 
+def _log_beside(pairs: Path) -> Path | None:
+    log = pairs.parent / "founder_decisions.json"
+    return log if log.exists() else None
+
+
 def _register_pairs(sub) -> None:
     pr = sub.add_parser("pairs", help="founder close-match page: render it, then apply his answers")
     pr.set_defaults(func=lambda a: pr.print_help(sys.stderr) or 2)
@@ -268,6 +273,14 @@ def _register_pairs(sub) -> None:
     ap.set_defaults(func=lambda a: _guard(lambda: pairs_page.apply_decisions(
         Path(a.pairs), Path(a.decisions), Path(a.clusters),
         Path(a.decisions_file) if a.decisions_file else None, a.now) or print("pairs: decisions applied")))
+    au = psub.add_parser("auto", help="propose same/different/unclear for undecided pairs (writes files only, applies nothing)")
+    au.add_argument("--pairs", required=True, help="corpus/founder_pairs.json")
+    au.add_argument("--out", required=True, help="output folder, e.g. pipeline/corpus/auto-pairs")
+    au.add_argument("--clusters", help="corpus/clusters.json, read only: counts the held questions each group settles")
+    au.add_argument("--decisions-file", help="answer log whose pairs are skipped (default: founder_decisions.json next to --pairs)")
+    au.set_defaults(func=lambda a: _guard(lambda: print("pairs auto: " + json.dumps(autopairs.write_outputs(
+        Path(a.pairs), Path(a.out), Path(a.clusters) if a.clusters else None,
+        Path(a.decisions_file) if a.decisions_file else _log_beside(Path(a.pairs)))))))
 
 
 def _register_lane(sub) -> None:
