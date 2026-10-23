@@ -9,6 +9,9 @@
 // the source text become a single continuous underline at the baseline
 // instead of the dashed-looking sequence of `_` glyphs most fonts
 // produce. SAT R&W and Conventions questions rely on this.
+//
+// Prose (never math) shows a lone "---" or "----" run as one em dash;
+// see em-dash-display.ts.
 // ============================================================
 
 import { Fragment, useMemo, type ReactNode } from "react";
@@ -18,6 +21,7 @@ import "katex/dist/katex.min.css";
 import { parseSourceUnderlining } from "./source-underlining";
 import { parseSourceItalics } from "./source-italics";
 import { splitMathText, type MathSegment } from "./math-segments";
+import { displayEmDashes } from "./em-dash-display";
 
 interface Props {
   text: string;
@@ -61,7 +65,7 @@ function renderTextWithBlanks(text: string, segKey: number, treatBlankWord: bool
     segments.push({ value: m[0], isBlank: true });
     cursor = m.index + m[0].length;
   }
-  if (segments.length === 0) return text; // hot path — most segments
+  if (segments.length === 0) return displayEmDashes(text); // hot path — most segments
   if (cursor < text.length) {
     segments.push({ value: text.slice(cursor), isBlank: false });
   }
@@ -85,7 +89,7 @@ function renderTextWithBlanks(text: string, segKey: number, treatBlankWord: bool
             />
           );
         }
-        return s.value ? <Fragment key={key}>{s.value}</Fragment> : null;
+        return s.value ? <Fragment key={key}>{displayEmDashes(s.value)}</Fragment> : null;
       })}
     </>
   );
