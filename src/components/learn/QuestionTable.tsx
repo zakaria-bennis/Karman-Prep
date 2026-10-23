@@ -259,20 +259,23 @@ export default function QuestionTable({
                 )}
                 {header_row && header_row.length > 0 && (
                   <tr>
-                    {header_row.map((h, i) => (
-                      <th
-                        key={`h-${i}`}
-                        scope="col"
-                        className={cn(
-                          `border-b ${RULE} text-center font-semibold text-ivory`,
-                          WORD_WRAP,
-                          DENSITY_CELL,
-                          columnRule(i)
-                        )}
-                      >
-                        {renderCell(h, `head-${i}`)}
-                      </th>
-                    ))}
+                    {header_row.map((h, i) => {
+                      const headClass = cn(
+                        `border-b ${RULE} text-center font-semibold text-ivory`,
+                        WORD_WRAP,
+                        DENSITY_CELL,
+                        columnRule(i)
+                      );
+                      // A two-way table's blank top-left corner keeps its rules but
+                      // is not a column heading, so it is a plain cell.
+                      if (i === 0 && h.trim() === "")
+                        return <td key="h-corner" data-table-corner="" className={headClass} />;
+                      return (
+                        <th key={`h-${i}`} scope="col" className={headClass}>
+                          {renderCell(h, `head-${i}`)}
+                        </th>
+                      );
+                    })}
                   </tr>
                 )}
               </thead>

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { sanitizeThemedSvg } from "./inline-svg";
-import { LABEL_SCALE, fitViewBoxToContent } from "./svg-figure-polish";
+import { LABEL_SCALE, fitViewBoxToContent, isDotPlotSvg } from "./svg-figure-polish";
 
 const FONT = 'font-family="STIX Two Text, Times New Roman, serif"';
 const reviewed = (body: string, box = "0 0 200 100") =>
@@ -95,5 +95,51 @@ describe("fitViewBoxToContent", () => {
     const svg = svgWith({ x: 30, y: 40, width: 500, height: 80 });
     fitViewBoxToContent(svg);
     expect(svg.getAttribute("viewBox")).toBe("0 0 640 150");
+  });
+});
+
+describe("dot plots sit on the bottom of their box", () => {
+  const dot = (x: number, y: number) => `<circle cx="${x}" cy="${y}" r="5.5" fill="#f3ecdd"/>`;
+  const tick = (x: number) => `<line x1="${x}" y1="91" x2="${x}" y2="101" stroke="#b8b0a1"/>`;
+  const dotPlot =
+    '<line x1="40" y1="96" x2="620" y2="96" stroke="#b8b0a1"/>' +
+    [70, 205, 250].map(tick).join("") +
+    [dot(70, 82), dot(70, 66), dot(205, 82), dot(205, 66), dot(205, 50), dot(250, 82)].join("") +
+    `<text x="320" y="146" ${FONT} font-size="18">Orbital period (days)</text>`;
+
+  it("recognises a dot plot, but not a scatterplot with a vertical axis", () => {
+    expect(isDotPlotSvg(parse(reviewed(dotPlot, "0 0 640 150")))).toBe(true);
+    const scatter = dotPlot + '<line x1="40" y1="0" x2="40" y2="96" stroke="#b8b0a1"/>';
+    expect(isDotPlotSvg(parse(reviewed(scatter, "0 0 640 150")))).toBe(false);
+    const loose = [dot(70, 82), dot(205, 66), dot(250, 50)].join("");
+    expect(isDotPlotSvg(parse(reviewed(loose + '<line x1="40" y1="96" x2="620" y2="96"/>')))).toBe(
+      false
+    );
+  });
+
+  it("anchors a dot plot to the bottom of the frame and keeps other figures centred", () => {
+    const plot = parse(sanitizeThemedSvg(reviewed(dotPlot, "0 0 640 150"), "dot plot"));
+    expect(plot.getAttribute("preserveAspectRatio")).toBe("xMidYMax meet");
+    const bars = parse(
+      sanitizeThemedSvg(
+        reviewed('<rect x="20" y="20" width="40" height="80" fill="#2fa8ff"/>'),
+        "b"
+      )
+    );
+    expect(bars.getAttribute("preserveAspectRatio")).toBe("xMidYMid meet");
+  });
+
+  it("fits a dot plot's box tightly to what is drawn, with no empty band", () => {
+    const svg = parse(reviewed(dotPlot, "0 0 640 150")) as unknown as SVGSVGElement;
+    (svg as unknown as { getBBox: () => object }).getBBox = () => ({
+      x: 40,
+      y: 44.5,
+      width: 582,
+      height: 110,
+    });
+    fitViewBoxToContent(svg);
+    expect(svg.getAttribute("viewBox")).toBe("36 40.5 590 118");
+    fitViewBoxToContent(svg); // idempotent
+    expect(svg.getAttribute("viewBox")).toBe("36 40.5 590 118");
   });
 });

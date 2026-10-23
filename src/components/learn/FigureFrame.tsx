@@ -19,10 +19,30 @@
 // ============================================================
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { sanitizeThemedSvg } from "@/lib/figures/inline-svg";
-import { fitViewBoxToContent } from "@/lib/figures/svg-figure-polish";
 import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
 import { cn } from "@/lib/utils";
+
+// The SVG sanitizer and display fixes load only when a figure is drawn as inline SVG, so
+// quiz pages without one never download them (page bundle budget, AR-33).
+type SvgDisplay = {
+  sanitizeThemedSvg: typeof import("@/lib/figures/inline-svg").sanitizeThemedSvg;
+  fitViewBoxToContent: typeof import("@/lib/figures/svg-figure-polish").fitViewBoxToContent;
+};
+let svgDisplay: SvgDisplay | null = null;
+let svgDisplayLoad: Promise<SvgDisplay> | null = null;
+function loadSvgDisplay(): Promise<SvgDisplay> {
+  svgDisplayLoad ??= Promise.all([
+    import("@/lib/figures/inline-svg"),
+    import("@/lib/figures/svg-figure-polish"),
+  ]).then(([inline, polish]) => {
+    svgDisplay = {
+      sanitizeThemedSvg: inline.sanitizeThemedSvg,
+      fitViewBoxToContent: polish.fitViewBoxToContent,
+    };
+    return svgDisplay;
+  });
+  return svgDisplayLoad;
+}
 
 interface Props {
   /** Raster or .svg figure URL. Empty when the figure is an inline `svg`. */
@@ -50,9 +70,18 @@ export default function FigureFrame({
     src || (markup ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}` : "");
   useEffect(() => {
     if (markup) {
-      const themedSvg = sanitizeThemedSvg(markup, alt);
-      if (themedSvg) setInline({ src: url, alt, svg: themedSvg });
-      return;
+      let live = true;
+      void loadSvgDisplay()
+        .then(({ sanitizeThemedSvg }) => {
+          const themedSvg = live ? sanitizeThemedSvg(markup, alt) : null;
+          if (themedSvg) setInline({ src: url, alt, svg: themedSvg });
+        })
+        .catch(() => {
+          /* Image fallback keeps the figure visible when the sanitizer cannot load. */
+        });
+      return () => {
+        live = false;
+      };
     }
     if (!src) return;
     const controller = new AbortController();
@@ -62,6 +91,7 @@ export default function FigureFrame({
       .then(async (response) => {
         if (!response.ok || Number(response.headers.get("content-length") ?? 0) > 400_000) return;
         const source = await response.text();
+        const { sanitizeThemedSvg } = await loadSvgDisplay();
         const svg = sanitizeThemedSvg(source, alt);
         if (svg && !controller.signal.aborted) setInline({ src, alt, svg });
       })
@@ -76,7 +106,9 @@ export default function FigureFrame({
   const holder = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const svg = holder.current?.querySelector("svg");
-    if (!themed || !svg) return;
+    // `themed` only exists once the display module has loaded, so it is always set here.
+    const fitViewBoxToContent = svgDisplay?.fitViewBoxToContent;
+    if (!themed || !svg || !fitViewBoxToContent) return;
     let live = true;
     fitViewBoxToContent(svg);
     // The figure serif can arrive after first paint and change text extents.

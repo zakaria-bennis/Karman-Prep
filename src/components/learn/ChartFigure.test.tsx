@@ -9,7 +9,12 @@
 
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import ChartFigure, { BAR_BAND_SHARE, MAX_BAR_SHARE } from "./ChartFigure";
+import ChartFigure, {
+  BAR_BAND_SHARE,
+  GROUP_BAND_SHARE,
+  MAX_BAR_SHARE,
+  barSlot,
+} from "./ChartFigure";
 import { makeLayout, textWidth } from "./chart-figure-axes";
 import type { ChartFigure as ChartFigureType } from "@/types/chart";
 
@@ -463,5 +468,34 @@ describe("ChartFigure — grouped bars, legend and titles (founder review 2026-1
       Math.min((plotW / 2) * BAR_BAND_SHARE, plotW * MAX_BAR_SHARE)
     );
     expect(Number(bar.getAttribute("width"))).toBeLessThan(plotW / 4);
+  });
+
+  it("fills 40% of each category band with a single-series bar", () => {
+    const categories = ["A", "B", "C", "D", "E"];
+    const data = baseFigure({
+      kind: "bar_chart",
+      x_axis: { ...baseAxis(), min: null, max: null, tick_step: null, categories },
+      series: [
+        { kind: "bar", label: null, bars: categories.map((category) => ({ category, value: 1 })) },
+      ],
+    });
+    const { container } = render(<ChartFigure data={data} />);
+    const slot = makeLayout(data).plotW / categories.length;
+    expect(BAR_BAND_SHARE).toBe(0.4);
+    for (const bar of container.querySelectorAll("rect[data-series]"))
+      expect(Number(bar.getAttribute("width")) / slot).toBeCloseTo(0.4);
+  });
+
+  it("keeps grouped bars side by side, the group filling 60% of its band", () => {
+    expect(GROUP_BAND_SHARE).toBe(0.6);
+    const slotW = 100;
+    const plotW = 1000;
+    const slots = [0, 1, 2].map((index) => barSlot(slotW, { index, count: 3 }, plotW));
+    const left = slots[0].offset;
+    const right = slots[2].offset + slots[2].barW;
+    expect((right - left) / slotW).toBeCloseTo(0.6);
+    expect(left).toBeCloseTo(-right);
+    for (let i = 1; i < slots.length; i++)
+      expect(slots[i].offset).toBeGreaterThan(slots[i - 1].offset + slots[i - 1].barW);
   });
 });
