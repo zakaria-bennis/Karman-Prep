@@ -12,7 +12,10 @@
 
 Writes the run's files to pipeline/qa/certify-<time>/ and the certificate to
 pipeline/qa/certificate-<date>.md and .json: counts, and every visible id that fails a
-fail-level static check or any render check, or whose answer is uncertified, with the reason.
+fail-level static check or any render check, or whose answer is uncertified, with the reason;
+and pipeline/qa/uncertified-<date>.json, the uncertified rows for a blind re-solve (no keys).
+--reuse <certify folder> certifies the answers again on an earlier run's export, static
+report and render.
 """
 
 import json
@@ -98,6 +101,12 @@ def render_on_main(export: Path, out: Path, first_id: str, log=print) -> dict:
         subprocess.run(["git", "worktree", "remove", "--force", str(tree)], cwd=REPO, capture_output=True)
         shutil.rmtree(tree, ignore_errors=True)
         subprocess.run(["git", "worktree", "prune"], cwd=REPO, capture_output=True)
+    write_text_atomic(out / "render-meta.json", json.dumps({"main_commit": commit}))
+    return read_render(out, commit)
+
+
+def read_render(out: Path, commit: str) -> dict:
+    """render-report.json of a render run, with the ids that have a result and the main commit."""
     report = json.loads((out / "render-report.json").read_text())
     done = set()
     for line in (out / "render-results.jsonl").read_text().splitlines():
@@ -106,6 +115,21 @@ def render_on_main(export: Path, out: Path, first_id: str, log=print) -> dict:
         except (ValueError, KeyError):
             pass  # a line cut off by a stopped run
     return {**report, "main_commit": commit, "rendered_ids": sorted(done)}
+
+
+def _reused_commit(pipe: Path, work: Path) -> str:
+    """The main commit an earlier run in `work` rendered on (render-meta.json, else its certificate)."""
+    meta = work / "render-meta.json"
+    if meta.exists():
+        return json.loads(meta.read_text())["main_commit"]
+    for c in sorted((pipe / "qa").glob("certificate-*.json")):
+        try:
+            d = json.loads(c.read_text())
+        except ValueError:
+            continue
+        if d.get("work_dir") == str(work) and d.get("main_commit"):
+            return d["main_commit"]
+    raise ValueError(f"{work} has no render-meta.json and no certificate names it; cannot reuse its render")
 
 
 def build_certificate(rows: list[dict], static: dict, render: dict, rec: qa_answers.QaRecords, meta: dict) -> dict:
@@ -162,8 +186,10 @@ def certificate_md(cert: dict) -> str:
     lines += ["", "Answers certified by: " + ", ".join(f"{k} {v}" for k, v in t["answer_basis"].items()) + ".",
               f"Review-level static findings only (not counted as failing): {t['review_only_static']}.", "",
               "Answer rule: a QA verdict clean or key_ok on the text and key still live; or a QA correction (still as "
-              "corrected) with two agreeing independent solves; or, published after the QA snapshot, two agreeing "
-              "independent solves in its own batch folder. Anything else is uncertified.", ""]
+              "corrected), or a question published after the QA snapshot (evidence in its own batch folders), whose "
+              "evidence holds: the official printed key plus at least one other agreeing independent solver, or (a "
+              "generated or overridden key) at least two agreeing independent solvers. Anything else is uncertified "
+              "(listed for a blind re-solve in uncertified-<date>.json).", ""]
     lines += ["## Failing a check", ""] + ([f"- `{f['id']}`: " + "; ".join(
         x for x in (_detail(f["static"]), _detail(f["render"])) if x) for f in cert["failing"]] or ["None."])
     lines += ["", "## Answer uncertified", ""] + ([f"- `{u['id']}`: {u['reason']}" + (
@@ -173,11 +199,29 @@ def certificate_md(cert: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def uncertified_list(cert: dict) -> dict:
+    """The uncertified rows for reviewers to re-solve blind: ids, batch, reason and which solvers are on
+    record, but no key or answer (so the re-solve stays blind)."""
+    return {"date": cert["date"], "certificate": cert["work_dir"], "count": len(cert["uncertified"]),
+            "rows": [{"id": u["id"], "stable_question_id": u.get("stable_question_id"), "batch": u.get("batch"),
+                      "reason": u["reason"], "basis": u.get("basis"), "printed_key_on_record": u.get("printed_key") is not None,
+                      "agreeing_solvers": u.get("agreeing", []), "disagreeing_solvers": u.get("disagreeing", []),
+                      "solvers_needed": u.get("needed_solvers"),
+                      # a QA verdict's note can name the key ("key B->A"): only the folder lookup detail is kept
+                      "detail": u.get("detail") if u["reason"] == "post_qa_no_batch_folder" else None}
+                     for u in cert["uncertified"]]}
+
+
 def run_certify(pipe: Path, now: str, export: Path | None = None, env_file: Path = REPO / ".env.local",
-                log=print, render=render_on_main, exporter=qa_export.run_qa_export) -> dict:
+                log=print, render=render_on_main, exporter=qa_export.run_qa_export, reuse: Path | None = None) -> dict:
+    """reuse: an earlier run's certify-<time> folder; its export, static report and render are used
+    as they are and only the answers are certified again."""
     pipe = Path(pipe)
-    stamp = now.replace("-", "").replace(":", "")[:15] + "Z"
-    work = pipe / "qa" / f"certify-{stamp}"
+    if reuse is not None:
+        work, export = Path(reuse), Path(reuse) / "visible.json"
+    else:
+        stamp = now.replace("-", "").replace(":", "")[:15] + "Z"
+        work = pipe / "qa" / f"certify-{stamp}"
     work.mkdir(parents=True, exist_ok=True)
     if export is None:
         export = work / "visible.json"
@@ -188,10 +232,15 @@ def run_certify(pipe: Path, now: str, export: Path | None = None, env_file: Path
             and r.get("publish_status") in qa_export.VISIBLE_STATUSES]
     if len(rows) != len(doc["rows"]):
         raise ValueError(f"{export} holds rows students cannot see; use a visible export")
-    log(f"static checks: {len(rows)} rows")
-    static = qa_static.run_static(Path(export), work)
-    log("render on main")
-    rend = render(Path(export), work, str(rows[0]["id"]), log)
+    if reuse is not None:
+        log(f"reusing the static report and render of {work}")
+        static = json.loads((work / "static-report.json").read_text())
+        rend = read_render(work, _reused_commit(pipe, work))
+    else:
+        log(f"static checks: {len(rows)} rows")
+        static = qa_static.run_static(Path(export), work)
+        log("render on main")
+        rend = render(Path(export), work, str(rows[0]["id"]), log)
     rec = qa_answers.QaRecords(pipe)
     cert = build_certificate(rows, static, rend, rec, {
         "date": now[:10], "now": now, "export": str(export), "exported_at": doc.get("exported_at"),
@@ -199,4 +248,6 @@ def run_certify(pipe: Path, now: str, export: Path | None = None, env_file: Path
     date = now[:10]
     write_text_atomic(pipe / "qa" / f"certificate-{date}.json", json.dumps(cert, indent=1, ensure_ascii=False))
     write_text_atomic(pipe / "qa" / f"certificate-{date}.md", certificate_md(cert))
-    return {"certificate": str(pipe / "qa" / f"certificate-{date}.md"), **cert["totals"]}
+    write_text_atomic(pipe / "qa" / f"uncertified-{date}.json", json.dumps(uncertified_list(cert), indent=1, ensure_ascii=False))
+    return {"certificate": str(pipe / "qa" / f"certificate-{date}.md"),
+            "uncertified_list": str(pipe / "qa" / f"uncertified-{date}.json"), **cert["totals"]}

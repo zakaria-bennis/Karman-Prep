@@ -85,7 +85,7 @@ class AnswerTest(unittest.TestCase):
         self.assertEqual(self.cert(changed)["reason"], "text_changed_since_qa")
         self.assertEqual(self.cert(key_moved)["reason"], "key_changed_since_qa")
 
-    def test_qa_correction_needs_two_agreeing_solves(self):
+    def test_qa_correction_needs_two_agreeing_solvers_without_a_printed_key(self):
         r = row(5, key="C", chash="after")
         self.p.jsonl("results-r1.jsonl", [{"id": r["id"], "verdict": "key_wrong", "stored_answer": "B", "blind_answer": "C"}])
         self.p.jsonl("corrections.jsonl", [{"question_id": r["id"], "stable_question_id": SID.format(5), "batch": "r1-qa-1",
@@ -93,26 +93,51 @@ class AnswerTest(unittest.TestCase):
         self.p.batch("r1-qa-1", {})
         res = self.cert(r)  # the QA round's blind solve only
         self.assertEqual((res["status"], res["reason"], res["agreeing"]),
-                         ("uncertified", "qa_correction_fewer_than_two_solves", ["qa-round-blind"]))
+                         ("uncertified", "qa_correction_evidence_short", ["qa-blind"]))
         self.p.batch("r1-qa-1", {"blind-answers.json": [{"id": SID.format(5), "answer": "C"}]})
         res = self.cert(r)
-        self.assertEqual((res["status"], res["agreeing"]), ("certified", ["batch-blind", "qa-round-blind"]))
+        self.assertEqual((res["status"], res["agreeing"]), ("certified", ["blind-subagent", "qa-blind"]))
         self.assertEqual(self.cert(row(5, key="C", chash="other"))["reason"], "qa_correction_changed_since")
 
-    def test_post_qa_publish_reads_its_own_batch(self):
-        binding = self.p.batch("r9-1", {
-            f"reviews/{SID.format(6)}.generated-key.json": {"reviews": [{"by": "transcriber", "answer": "B"},
-                                                                       {"by": "r3", "answer": "B"}]},
-            f"reviews/{SID.format(7)}.second-solve.json": {"answer": "B"},
-            "blind-answers.json": [{"id": SID.format(7), "answer": "B"}, {"id": SID.format(8), "answer": "D"}],
-            f"reviews/{SID.format(8)}.blind-solve.json": {"answer": "D"}})
+    def reviewed(self, n, kind="official", printed="B"):
+        return {"questions": [{"stable_question_id": SID.format(n), "reviewed_answer": {
+            "kind": kind, "printed_answer": printed if kind == "official" else None}}]}
+
+    def test_official_printed_key_needs_one_other_solver(self):
+        # the tag binding under its batch-prefixed name, as most r2 batches have it
+        binding = self.p.batch("r2-9", {"r2-9-reviewed-import-ready.json": self.reviewed(6)})
+        (self.p.batches / "r2-9" / "tag-binding.json").rename(self.p.batches / "r2-9" / "r2-9-tag-binding.json")
         res = self.cert(row(6, binding=binding))
-        self.assertEqual((res["status"], res["basis"], res["batch"]), ("certified", "post_qa_publish", "r9-1"))
-        self.assertEqual(self.cert(row(7, binding=binding))["status"], "certified")
-        # blind-answers.json and the per-question blind solve are one solver, and it disagrees
-        res = self.cert(row(8, binding=binding))
-        self.assertEqual((res["reason"], res["agreeing"], res["disagreeing"]),
-                         ("post_qa_fewer_than_two_solves", [], ["batch-blind"]))
+        self.assertEqual((res["reason"], res["printed_key"], res["agreeing"], res["needed_solvers"]),
+                         ("post_qa_evidence_short", "B", [], 1))
+        self.p.json("batches/r2-9/r2-9-independent-d-review.json",
+                    {"records": [{"stable_question_id": SID.format(6), "reviewer_solve": "B", "printed_key": "B"}]})
+        res = self.cert(row(6, binding=binding))
+        self.assertEqual((res["status"], res["basis"], res["batch"], res["agreeing"]),
+                         ("certified", "post_qa_publish", "r2-9", ["reviewer"]))
+        # a key that is not the printed one (overridden) needs two solvers
+        res = self.cert(row(6, key="C", binding=binding))
+        self.assertEqual((res["status"], res["printed_key_agrees"], res["disagreeing"]), ("uncertified", False, ["reviewer"]))
+
+    def test_generated_key_needs_two_solvers_each_counted_once(self):
+        binding = self.p.batch("r9-1", {
+            "reviewed-import-ready.json": self.reviewed(7, kind="independently_confirmed_generated"),
+            "config.json": {"calls": {SID.format(7): ["Skill", 3, "note", "B"]}},
+            f"reviews/{SID.format(7)}.second-solve.json": {"answer": "B"},
+            f"reviews/{SID.format(7)}.generated-key.json": {"reviews": [
+                {"by": "transcriber", "answer": "B", "key_exposed_to_solver": True}, {"by": "r1", "answer": "B"}]}})
+        res = self.cert(row(7, binding=binding))  # one reviewer in three files; the transcriber saw the key
+        self.assertEqual((res["status"], res["agreeing"], res["needed_solvers"]), ("uncertified", ["reviewer"], 2))
+        self.p.json("batches/r9-1/blind-answers.json", {SID.format(7): {
+            "solver_A": {"answer": "B"}, "solver_B": {"answer": "B"}, "text_only": "D"}})
+        res = self.cert(row(7, binding=binding))
+        self.assertEqual((res["status"], res["agreeing"], res["disagreeing"]),
+                         ("certified", ["blind-subagent", "blind-subagent-2", "reviewer"], ["blind-text-only"]))
+
+    def test_repair_records_and_unknown_binding(self):
+        binding = self.p.batch("r9-2", {"reviewed-import-ready.json": self.reviewed(8)})
+        self.p.json("repair/recertify-r3.json", [{"id": SID.format(8), "your_solve": "B", "printed_key": "B"}])
+        self.assertEqual(self.cert(row(8, binding=binding))["status"], "certified")
         self.assertEqual(self.cert(row(9, binding="0" * 64))["reason"], "post_qa_no_batch_folder")
 
 
@@ -137,6 +162,7 @@ class CertifyRunTest(unittest.TestCase):
             res = qa_certify.run_certify(p.d, "2099-01-02T03:04:05Z", render=render, exporter=exporter, log=lambda m: None)
             self.assertEqual((res["visible"], res["certified"], res["failing"], res["uncertified"]), (3, 0, 3, 1))
             self.assertEqual(res["uncertified_by_reason"], {"post_qa_no_batch_folder": 1})
+            self.assertTrue((p.qa / "uncertified-2099-01-02.json").exists())
             cert = json.loads((p.qa / "certificate-2099-01-02.json").read_text())
             by_id = {f["id"]: f for f in cert["failing"]}
             self.assertIn("page_overflow", by_id[good["id"]]["render"])
@@ -145,6 +171,24 @@ class CertifyRunTest(unittest.TestCase):
             md = (p.qa / "certificate-2099-01-02.md").read_text()
             self.assertIn(f"`{unrendered['id']}`: post_qa_no_batch_folder", md)
             self.assertTrue((p.qa / "certify-20990102T030405Z" / "static-report.json").exists())
+
+    def test_reuse_certifies_answers_again_and_lists_uncertified_rows_without_keys(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Pipe(Path(d))
+            work = p.qa / "certify-1"
+            r = row(1)
+            p.json("qa/certify-1/visible.json", {"exported_at": "x", "rows": [r]})
+            p.json("qa/certify-1/static-report.json", {"questions": {}})
+            p.json("qa/certify-1/render-report.json", {"totals": {"expected": 1, "rendered": 1, "render_failed": 0},
+                                                       "questions": {}})
+            (work / "render-results.jsonl").write_text(json.dumps({"id": r["id"]}) + "\n")
+            p.json("qa/certify-1/render-meta.json", {"main_commit": "c" * 40})
+            res = qa_certify.run_certify(p.d, "2099-01-03T00:00:00Z", reuse=work, render=None, exporter=None,
+                                         log=lambda m: None)
+            self.assertEqual((res["visible"], res["failing"], res["uncertified"]), (1, 0, 1))
+            listed = json.loads((p.qa / "uncertified-2099-01-03.json").read_text())
+            self.assertEqual([(x["id"], x["reason"]) for x in listed["rows"]], [(r["id"], "post_qa_no_batch_folder")])
+            self.assertNotIn('"B"', json.dumps(listed))  # no key: the re-solve stays blind
 
     def test_refuses_an_export_with_rows_students_cannot_see(self):
         with tempfile.TemporaryDirectory() as d:

@@ -6,15 +6,16 @@ A student-visible question's answer is certified by exactly one of:
    `k qa hide` reads them) is clean or key_ok, the key is still the key the QA pass checked
    and the stem, passage and choices are still the text it solved (blind-live*.json);
 2. qa_correction: it is a QA-corrected row (qa/corrections.jsonl, the latest line) whose
-   content hash and key are still the corrected ones, and at least two independent solves
-   on record agree with the corrected key;
+   content hash and key are still the corrected ones, and its answer evidence holds (below);
 3. post_qa_publish: it went live after the QA snapshot (no QA verdict, no correction), and
-   at least two independent solves in its own batch folder (found by the answer key's
-   tag_binding_manifest_sha256) agree with its key.
+   the answer evidence in its own batch folder(s) holds (folders found by the answer key's
+   tag_binding_manifest_sha256, whatever the tag-binding file is called).
 
-Anything else is uncertified, with the reason. Solves are counted once per solver: two
-records of the same solver (for example a blind subagent's answer written to both
-blind-answers.json and a per-question file) count once.
+Answer evidence holds when the key is the OFFICIAL printed key and at least one other
+independent solver agrees, or (a generated or overridden key) at least two independent
+solvers agree. Solvers and every file format they are read from: kimport.qa_evidence; one
+solver counts once however many files repeat its solve. Anything else is uncertified,
+with the reason.
 """
 
 import glob
@@ -24,6 +25,7 @@ import re
 from fractions import Fraction
 from pathlib import Path
 
+from kimport import qa_evidence
 from kimport.answer_evidence import evidence_root, stable_question_id
 
 GOOD = frozenset({"clean", "key_ok"})
@@ -60,116 +62,16 @@ def same_answer(a, key, numeric: bool) -> bool:
     return places is not None and places >= 3 and abs(float(x) - float(y)) <= 10 ** -places
 
 
-def _answers(v) -> list[str]:
-    if v is None:
-        return []
-    if isinstance(v, (str, int, float)):
-        return [str(v)]
-    if isinstance(v, list):
-        return [str(x) for x in v if isinstance(x, (str, int, float))]
-    if isinstance(v, dict):
-        for k in ("answers", "all_accepted", "all_valid_answers", "values"):
-            if v.get(k):
-                got = _answers(v[k])
-                if got:
-                    return got
-        for k in ("answer", "own_answer", "key"):
-            if v.get(k) is not None:
-                return _answers(v[k])
-    return []
-
-
-# ---------------------------------------------------------------- solve records
-
-
-def _load(path: Path):
-    try:
-        return json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
-
-
-def _match_key(k: str, sid: str, live_id: str) -> bool:
-    k = str(k or "")
-    return bool(k) and (k == sid or k == live_id or (len(k) >= 8 and live_id.startswith(k)))
-
-
-def _blind_file(path: Path, sid: str, live_id: str, kind: str) -> list[tuple[str, list[str], str]]:
-    d, out = _load(path), []
-    if isinstance(d, list):
-        for e in d:
-            if isinstance(e, dict) and _match_key(e.get("id") or e.get("sid") or e.get("stable_question_id"), sid, live_id):
-                out.append((kind, _answers(e), str(path)))
-    elif isinstance(d, dict):
-        for k, e in d.items():
-            if _match_key(k, sid, live_id):
-                for one in (e if isinstance(e, list) else [e]):
-                    out.append((kind, _answers(one), str(path)))
-    return out
-
-
-_REVIEW_KIND = (("blind-solve", "batch-blind"), ("second-solve", "second-solve"), ("my-solve", "reviewer-solve"),
-                ("solve-1", "solve-1"), ("solve-2", "solve-2"))
-
-
-def _review_files(folder: Path, sid: str, live_id: str) -> list[tuple[str, list[str], str]]:
-    out = []
-    rdir = folder / "reviews"
-    if not rdir.is_dir():
-        return out
-    for f in sorted(rdir.glob("*.json")):
-        name = f.name
-        if name == "blind-answers.json":
-            out += _blind_file(f, sid, live_id, "batch-blind")
-            continue
-        if name == "qa-correction-solves.json":
-            entry = (_load(f) or {}).get(sid)
-            if isinstance(entry, dict):
-                for i, b in enumerate(entry.get("blind_from_source_crop") or []):
-                    out.append(("batch-blind-crop" if i == 0 else f"batch-blind-crop-{i}", _answers(b), str(f)))
-                if entry.get("first_pass_solve_from_crop"):
-                    out.append(("qa-fix-reviewer", _answers(entry["first_pass_solve_from_crop"]), str(f)))
-                if entry.get("audit_solve_from_crops"):
-                    out.append(("qa-fix-audit", _answers(entry["audit_solve_from_crops"]), str(f)))
-            continue
-        if not name.startswith(sid + "."):
-            continue
-        d = _load(f)
-        if not isinstance(d, dict):
-            continue
-        if isinstance(d.get("reviews"), list):  # generated key: the transcriber's and the reviewer's solves
-            for r in d["reviews"]:
-                if isinstance(r, dict):
-                    out.append((f"generated-key:{r.get('by') or '?'}", _answers(r), str(f)))
-            continue
-        if d.get("reviewed_accepted_answers"):  # a reviewer's numeric answer-set review with its own solve
-            out.append(("answer-set-review", _answers(d["reviewed_accepted_answers"]), str(f)))
-            continue
-        kind = next((k for tag, k in _REVIEW_KIND if tag in name), "review:" + name[len(sid) + 1:])
-        out.append((kind, _answers(d), str(f)))
-    return out
-
-
-def batch_solves(folder: Path, sid: str, live_id: str) -> list[tuple[str, list[str], str]]:
-    """(solver kind, answers, file) for every solve of this question in its batch folder."""
-    folder = Path(folder)
-    out = _blind_file(folder / "blind-answers.json", sid, live_id, "batch-blind") if (folder / "blind-answers.json").exists() else []
-    out += _review_files(folder, sid, live_id)
-    cfg = _load(folder / "config.json")
-    call = ((cfg or {}).get("calls") or {}).get(sid) if isinstance(cfg, dict) else None
-    if isinstance(call, list) and len(call) > 3:  # [skill, difficulty, note, the reviewer's answer, rationale]
-        out.append(("qa-fix-reviewer", _answers(call[3]), str(folder / "config.json")))
-    return out
-
-
-def agreeing(solves, key, numeric: bool) -> tuple[list[str], list[str]]:
-    """(solver kinds agreeing with the key, solver kinds disagreeing), each solver once."""
+def judge(ev: qa_evidence.Evidence, key: str, numeric: bool) -> dict:
+    """The evidence rule: printed official key + one agreeing solver, or two agreeing solvers."""
     agree, other = set(), set()
-    for kind, answers, _ in solves:
-        if not answers:
-            continue
-        (agree if any(same_answer(a, key, numeric) for a in answers) else other).add(kind)
-    return sorted(agree), sorted(other - agree)
+    for solver, got, _ in ev.solves:
+        (agree if any(same_answer(a, key, numeric) for a in got) else other).add(solver)
+    printed = ev.printed is not None and same_answer(ev.printed, key, numeric)
+    need = 1 if printed else 2
+    out = {"printed_key": ev.printed, "printed_key_agrees": printed, "agreeing": sorted(agree),
+           "disagreeing": sorted(other - agree), "needed_solvers": need, "ok": len(agree) >= need}
+    return out
 
 
 # ---------------------------------------------------------------- QA files
@@ -206,7 +108,7 @@ class QaRecords:
                         self.blind_answers.setdefault(r["id"], []).append(str(r["blind_answer"]))
         self.snapshots: dict[str, list[dict]] = {}
         for f in sorted(glob.glob(str(self.qa / "blind-live*.json"))):
-            for r in _load(Path(f)) or []:
+            for r in qa_evidence.load(f) or []:
                 if isinstance(r, dict) and r.get("id"):
                     self.snapshots.setdefault(r["id"], []).append(r)
         self.corrections = {c["question_id"]: c for c in _jsonl(self.qa / "corrections.jsonl") if c.get("question_id")}
@@ -215,22 +117,31 @@ class QaRecords:
             for r in _jsonl(Path(f)):
                 if r.get("id") and r.get("decision") == "fix":
                     self.fixes.setdefault(r["id"], []).append(r)
-        self.blind_corrections = {}
+        self.blind_corrections: dict[str, list] = {}
         for f in sorted(glob.glob(str(self.qa / "blind-corrections-*.json"))):
-            d = _load(Path(f))
+            d = qa_evidence.load(f)
             if isinstance(d, dict):
                 for sid, v in d.items():
                     self.blind_corrections.setdefault(sid, []).extend(v if isinstance(v, list) else [v])
+        self.repair = qa_evidence.RepairRecords(pipe / "repair")
         self._by_binding = None
 
-    def folder_for_binding(self, sha: str | None) -> Path | None:
+    def folders_for_binding(self, sha: str | None) -> list[Path]:
+        """Every batch folder whose tag binding file (tag-binding.json or <batch>-tag-binding.json,
+        superseded and module-split copies too) has this sha256."""
         if self._by_binding is None:
             self._by_binding = {}
-            for tb in self.batches.glob("*/tag-binding.json"):
+            for tb in self.batches.glob("*/*tag-binding*.json"):
                 h = hashlib.sha256(tb.read_bytes()).hexdigest()
-                self._by_binding.setdefault(h, []).append(tb.parent)
-        found = self._by_binding.get(sha or "", [])
-        return sorted(found)[-1] if found else None
+                self._by_binding.setdefault(h, set()).add(tb.parent)
+        return sorted(self._by_binding.get(sha or "", ()))
+
+    def evidence(self, folders: list[Path], sid: str, live_id: str) -> qa_evidence.Evidence:
+        ev = qa_evidence.Evidence()
+        for folder in folders:
+            qa_evidence.read_folder(ev, folder, sid, live_id)
+        self.repair.add_to(ev, sid)
+        return ev
 
 
 # ---------------------------------------------------------------- one row
@@ -276,22 +187,21 @@ def certify_row(row: dict, rec: QaRecords) -> dict:
         if not same_answer(corr.get("after_correct_answer"), key, numeric):
             return {"status": "uncertified", "reason": "qa_correction_changed_since",
                     "detail": f"key {key} is not the corrected key {corr.get('after_correct_answer')}"}
-        folder = rec.batches / str(corr.get("batch"))
         csid = corr.get("stable_question_id") or sid
-        solves = batch_solves(folder, csid, rid)
-        solves += [("qa-round-blind", [a], "results-r*.jsonl") for a in rec.blind_answers.get(rid, [])]
+        ev = rec.evidence([rec.batches / str(corr.get("batch"))], csid, rid)
+        for a in rec.blind_answers.get(rid, []):
+            ev.add("qa-blind", a, "qa/results-r*.jsonl")
         for fx in rec.fixes.get(rid, []):
-            if fx.get("corrected_key") not in (None, ""):
-                solves.append(("qa-fix-reviewer", _answers(fx["corrected_key"]), "fixes-*.jsonl"))
-            if fx.get("audit_own_answer") not in (None, ""):
-                solves.append(("qa-fix-audit", _answers(fx["audit_own_answer"]), "fixes-*.jsonl"))
+            ev.add("qa-fix-reviewer", fx.get("corrected_key"), "qa/fixes-*.jsonl")
+            ev.add("qa-fix-audit", fx.get("audit_own_answer"), "qa/fixes-*.jsonl")
         for b in rec.blind_corrections.get(csid, []):
-            solves.append(("batch-blind-crop", _answers(b), "blind-corrections-*.json"))
-        agree, other = agreeing(solves, key, numeric)
-        base = {"basis": "qa_correction", "batch": corr.get("batch"), "agreeing": agree, "disagreeing": other}
-        if len(agree) >= 2:
+            ev.add("blind-subagent", b, "qa/blind-corrections-*.json")
+        j = judge(ev, key, numeric)
+        base = {"basis": "qa_correction", "batch": corr.get("batch"), "stable_question_id": csid,
+                **{k: v for k, v in j.items() if k != "ok"}}
+        if j["ok"]:
             return {"status": "certified", **base}
-        return {"status": "uncertified", "reason": "qa_correction_fewer_than_two_solves", **base}
+        return {"status": "uncertified", "reason": "qa_correction_evidence_short", **base}
     verdict = rec.verdicts.get(rid)
     if verdict:
         v = verdict.get("verdict")
@@ -304,12 +214,13 @@ def certify_row(row: dict, rec: QaRecords) -> dict:
             return {"status": "uncertified", "reason": "text_changed_since_qa",
                     "detail": "stem, passage or choices differ from the text the QA pass solved"}
         return {"status": "certified", "basis": "qa_verdict", "verdict": v}
-    folder = rec.folder_for_binding(binding)
-    if folder is None or not sid:
-        return {"status": "uncertified", "reason": "post_qa_no_batch_folder",
+    folders = rec.folders_for_binding(binding)
+    if not folders or not sid:
+        return {"status": "uncertified", "reason": "post_qa_no_batch_folder", "stable_question_id": sid,
                 "detail": f"stable id {sid}, tag binding {binding}"}
-    agree, other = agreeing(batch_solves(folder, sid, rid), key, numeric)
-    base = {"basis": "post_qa_publish", "batch": folder.name, "agreeing": agree, "disagreeing": other}
-    if len(agree) >= 2:
+    j = judge(rec.evidence(folders, sid, rid), key, numeric)
+    base = {"basis": "post_qa_publish", "batch": ", ".join(f.name for f in folders), "stable_question_id": sid,
+            **{k: v for k, v in j.items() if k != "ok"}}
+    if j["ok"]:
         return {"status": "certified", **base}
-    return {"status": "uncertified", "reason": "post_qa_fewer_than_two_solves", **base}
+    return {"status": "uncertified", "reason": "post_qa_evidence_short", **base}

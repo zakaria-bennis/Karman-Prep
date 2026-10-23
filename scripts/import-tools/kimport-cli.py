@@ -594,9 +594,11 @@ def _register_qa(sub) -> None:
     ce.add_argument("--pipe", required=True, help="the pipeline folder (qa/, batches/)")
     ce.add_argument("--now", required=True, help="ISO-8601 time (names the certificate)")
     ce.add_argument("--export", help="use this saved visible export (qa_export visible=True) instead of a fresh one")
+    ce.add_argument("--reuse", help="an earlier qa/certify-<time> folder: reuse its export, static report and render; "
+                                    "certify the answers again")
     ce.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_certify.run_certify(
         Path(a.pipe), a.now, Path(a.export) if a.export else None,
-        log=lambda m: print(m, file=sys.stderr, flush=True)))))
+        log=lambda m: print(m, file=sys.stderr, flush=True), reuse=Path(a.reuse) if a.reuse else None))))
 
 
 def _qa_deps():
