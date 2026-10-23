@@ -34,6 +34,8 @@ describe("currency prose stays outside math", () => {
     "A bakery buys bags for $ 0.06 each and boxes for $ 0.38 each. The total cost is $ 524.72.",
     "The combined original price for a mirror and a vase is $60. After a 25% discount to the mirror and a 45% discount to the vase are applied, the combined sale price for the two items is $39.",
     "For a selling price of $120.00, zero products would be sold. For each $2.50 decrease in the selling price, revenue is exactly $1,437.50.",
+    "The price ranges from $6 to $24 per ticket.",
+    "Each ticket costs $5 or $10, and parking is $3 through $8.",
     "A carpenter charges a flat rate of $306 for the first 3 hours of work and $85 for each additional hour of work. Which equation gives the total amount y, in dollars, that the carpenter charges for x hours of work, where x >3?",
   ])("keeps currency amount pairs literal: %s", (text) => {
     const { container } = render(<MathText text={text} />);
@@ -48,6 +50,7 @@ describe("currency prose stays outside math", () => {
     ["$3 xy^2 $4", "3 xy^2"],
     ["$3 sin x\t$4", "3 sin x"],
     ["$3 for x $4", "3 for x"],
+    ["$3 to x $4", "3 to x"],
     ["$3 for the + x $4", "3 for the + x"],
     ["$3 for the - x $4", "3 for the - x"],
     ["$3 for the − x $4", "3 for the − x"],
