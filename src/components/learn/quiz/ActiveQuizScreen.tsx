@@ -22,7 +22,7 @@ import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
 import { TableChoiceOption } from "./TableChoiceOption";
 import PassageAnnotations from "./PassageAnnotations";
-import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
+import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { useFigureStemAlign } from "./use-figure-stem-align";
 
@@ -86,13 +86,7 @@ export function ActiveQuizScreen({
     [q.question_text, q.subject]
   );
   if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
-  const nativeGeometryRenderable = useMemo(
-    () =>
-      q.figure_kind === "geometric" &&
-      !!q.figure_geometry_data &&
-      buildGeometrySvg(q.figure_geometry_data).renderable,
-    [q.figure_kind, q.figure_geometry_data]
-  );
+  const drawn = useMemo(() => drawnFigure(q), [q]);
   const sortedChoices = useMemo(
     () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
     [q]
@@ -422,11 +416,10 @@ export function ActiveQuizScreen({
         //   Default — raster image_url crop via FigureFrame.
         // ChartFigure/GeometryFigure render inside their own styled boxes
         // so we skip the white-bg FigureFrame card for them.
-        const isNativeTable = q.figure_kind === "table" && q.figure_table_data;
-        const isNativeChart = q.figure_kind === "chart" && q.figure_chart_data;
-        const isNativeGeometry = nativeGeometryRenderable;
-        const hasFigure =
-          !!q.image_url || !!q.figure_svg || isNativeTable || isNativeChart || isNativeGeometry;
+        const isNativeTable = drawn === "table";
+        const isNativeChart = drawn === "chart";
+        const isNativeGeometry = drawn === "geometric";
+        const hasFigure = drawn !== null;
         const figureCard = isNativeTable ? (
           <div className="mb-6 flex justify-center">
             <QuestionTable
@@ -447,7 +440,7 @@ export function ActiveQuizScreen({
           <div className="mb-6 flex justify-center">
             <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
           </div>
-        ) : q.image_url || q.figure_svg ? (
+        ) : drawn === "image" ? (
           <FigureFrame
             src={q.image_url}
             svg={q.figure_svg}

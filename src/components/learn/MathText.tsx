@@ -188,8 +188,10 @@ export default function MathText({
     );
   }
 
+  // overflow-wrap: anywhere lets an unbroken run (a long URL, "transportation/warehousing",
+  // "9(4n)+8n+3(15)=100") wrap inside a narrow choice or column instead of running past it.
   return (
-    <span className={className} style={{ whiteSpace: "pre-wrap" }}>
+    <span className={className} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
       {runs.map((run, index) =>
         run.underlined ? (
           <Fragment key={index}>
