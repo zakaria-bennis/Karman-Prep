@@ -85,6 +85,29 @@ _FIG_REF = re.compile(
     rf"|\bthis\s+figure\b",
     re.I)
 _ON_THE_TABLE = re.compile(r"\bon\s+the\s+table\b", re.I)
+# Wording that names a figure the text itself describes, not one the student must see:
+# "A figure has an area of ... What is the area of this figure?", "the area of a figure on the
+# screen"; and the graph of a function the text defines ("If f is graphed in the xy-plane, ...
+# the point (1, 495.95) on the graph").
+_A_FIGURE = re.compile(r"\ba\s+figure\b(?!\s+(?:shows|below|above|gives|lists|displays|presents)\b)", re.I)
+_THE_FIGURE = re.compile(r"\b(?:the|this)\s+figure\b", re.I)
+_GRAPHED = re.compile(r"\bis\s+graphed\b|\bgraphed\s+in\s+the\b", re.I)
+_ON_THE_GRAPH = re.compile(r"\bon\s+the\s+graph\b(?!\s+(?:shown|above|below)\b)", re.I)
+
+
+def _blank_out(pattern, v: str) -> str:
+    return pattern.sub(lambda m: " " * len(m.group(0)), v)
+
+
+def figure_reference(v: str, question: str = ""):
+    """The first words of v that need a drawn figure (None if none), keeping offsets. `question` is
+    the rest of the question (passages, stem): a choice repeats the figure the stem described."""
+    t = _blank_out(_ON_THE_TABLE, v)
+    if _A_FIGURE.search(t) or _A_FIGURE.search(question):
+        t = _blank_out(_THE_FIGURE, t)
+    if _GRAPHED.search(t) or _GRAPHED.search(question):
+        t = _blank_out(_ON_THE_GRAPH, t)
+    return _FIG_REF.search(t)
 _TOKENS = re.compile(r"\[\[/?[a-z]\]\]|</?[a-z]>")
 _PROMPT_WORDS = re.compile(
     r"\b(?:which|what|how|why|who|where|when|complete|completes|select|choose|find|solve|enter|determine|identify)\b", re.I)
@@ -186,10 +209,13 @@ def formatting(row: dict, f: dict, display: dict | None = None) -> None:
             _add(f, "triple_newline", f"{name}: three or more line breaks in a row")
         for m in _FIG_DESC.finditer(v):
             _add(f, "figure_description_as_text", f"{name}: {_excerpt(v, m.start(), m.end(), 0)}")
-        for m in _HEADER.finditer(v):
+        # A one-line choice is the choice itself ("153", "continue"); only a line that comes in
+        # addition to it is judged as a header, footer or page number.
+        lines = v if not name.startswith("choice ") or "\n" in v.strip() else ""
+        for m in _HEADER.finditer(lines):
             _add(f, "header_footer_line", f"{name}: {m.group(0).strip()[:60]!r}")
         if reading and name != "passage_intro":
-            for m in _PAGE_NUMBER.finditer(v):
+            for m in _PAGE_NUMBER.finditer(lines):
                 _add(f, "header_footer_line", f"{name}: page-number line {m.group(0).strip()!r}")
         if name in ("question_text", "passage", "passage_a") and _LEADING_NUMBER.match(v) and not (row.get("subject") == "math" and name == "question_text" and re.match(r"^\s*\d+[.)]\s*\d", v)):
             _add(f, "leading_question_number", f"{name}: starts {v.strip()[:20]!r}")
@@ -237,10 +263,11 @@ def completeness(row: dict, f: dict, figure_drawn: bool, display: dict | None = 
     if stem.strip() and "?" not in stem and not _PROMPT_WORDS.search(stem) and not _BLANK_MARK.search(stem):
         _add(f, "stem_no_prompt", f"no question mark or prompt: {stem.strip()[-60:]!r}")
     if not figure_drawn:
+        whole = "\n".join(v for n, v in _fields(row, display) if n in TEXT_FIELDS)
         for name, v in _fields(row, display):
             if name in TEXT_FIELDS and name != "question_text":
                 continue
-            m = _FIG_REF.search(_ON_THE_TABLE.sub("", v))
+            m = figure_reference(v, whole)
             if m:
                 _add(f, "figure_referenced_missing", f"{name}: {_excerpt(v, m.start(), m.end())}")
                 break

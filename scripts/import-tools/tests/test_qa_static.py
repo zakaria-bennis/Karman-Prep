@@ -66,6 +66,13 @@ class FormattingTest(unittest.TestCase):
         self.assertIn("header_footer_line", run(mc(passage="A quiet harbor.\n\n7\n", stem="Which choice?")))
         self.assertIn("leading_question_number", run(mc(stem="12. Which choice best fits?")))
 
+    def test_one_line_choices_are_not_page_numbers_or_footers(self):
+        self.assertNotIn("header_footer_line", run(mc(choices=["153", "977", "55", "103"])))
+        self.assertNotIn("header_footer_line", run(mc(choices=["continue", "has continued", "continues", "to continue"])))
+        # a line that comes in addition to the choice is still caught
+        self.assertIn("header_footer_line", run(mc(choices=["imposing\n12", "b", "c", "d"])))
+        self.assertIn("header_footer_line", run(mc(choices=["a calm bay\nCONTINUE", "b", "c", "d"])))
+
     def test_text_is_judged_as_displayed(self):
         # qa-check.ts returns each field as main's MathText displays it; the Python checks read that.
         row = mc(stem="The harbor --- quiet at dawn --- woke. Which choice?")
@@ -95,6 +102,22 @@ class CompletenessTest(unittest.TestCase):
 
     def test_roman_numeral_list_ends_a_stem(self):
         self.assertNotIn("stem_truncated", run(mc(stem="Which must be true?\nI. a > 0\nII. b < 0", subject="math")))
+
+    def test_figures_the_text_describes_need_no_drawing(self):
+        for stem in ("A figure has an area of 4,608 square inches. What is the area, in square feet, of this figure?",
+                     "In an application, the area of a figure on the screen increases. Which statement interprets "
+                     "the area of the figure?",
+                     "If f is graphed in the xy-plane, where y = f(x), what is the best interpretation of the point "
+                     "(1, 495.95) on the graph?"):
+            self.assertNotIn("figure_referenced_missing", run(mc(stem=stem, subject="math")), stem)
+        choices = ["7 seconds after the area of the figure begins increasing", "b", "c", "d"]
+        self.assertNotIn("figure_referenced_missing", run(mc(
+            stem="The area of a figure on the screen increases. Which statement is best?", choices=choices)))
+        self.assertIn("figure_referenced_missing", run(mc(stem="Which statement is best?", choices=choices)))
+        for stem in ("A figure shows a triangle. What is the area of this figure?",
+                     "If f is graphed in the xy-plane, which point is on the graph shown?",
+                     "What is the area of the figure?", "Which point lies on the graph?"):
+            self.assertIn("figure_referenced_missing", run(mc(stem=stem, subject="math")), stem)
 
     def test_figure_reference_without_a_figure(self):
         row = mc(stem="Which choice uses data from the table?")
