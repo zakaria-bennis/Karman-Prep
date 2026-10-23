@@ -240,9 +240,12 @@ class HideTest(QaCase):
     def test_audit_finding_hides_a_corrected_row(self):
         """An automated-audit id is about the live (corrected) text, so it still hides the row."""
         qh.append_log(self.pipe / "qa" / "corrections.jsonl", [
-            {"question_id": uid(5), "after_content_hash_v2": "h5", "at": "2026-10-23T09:00:00Z"}])
-        self.hide()
+            {"question_id": uid(5), "after_content_hash_v2": "h5", "at": "2026-10-23T09:00:00Z"},
+            {"question_id": uid(1), "after_content_hash_v2": "h1", "at": "2026-10-23T09:00:00Z"}])
+        self.audit.write_text(json.dumps([{"id": uid(5), "reason": "raw LaTeX"}, {"id": uid(1), "reason": "raw LaTeX"}]))
+        self.hide()  # uid(1) also has a results line (key_wrong) about its old text
         self.assertFalse(self.bank.rows[uid(5)]["is_live"])
+        self.assertFalse(self.bank.rows[uid(1)]["is_live"])
 
 
 class RestoreTest(QaCase):

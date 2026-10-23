@@ -148,8 +148,8 @@ def wanted(results: dict[str, dict], audit: dict[str, str]) -> dict[str, tuple[s
         if hide:
             out[qid] = (label, reason_for(label, line))
     for qid, detail in audit.items():
-        if qid not in out:
-            out[qid] = ("audit", short(f"{REASON_PREFIX}audit: {short(detail)}" if detail else f"{REASON_PREFIX}audit"))
+        # The audit judged the live text, so it wins over a results line about an older text.
+        out[qid] = ("audit", short(f"{REASON_PREFIX}audit: {short(detail)}" if detail else f"{REASON_PREFIX}audit"))
     return out
 
 
