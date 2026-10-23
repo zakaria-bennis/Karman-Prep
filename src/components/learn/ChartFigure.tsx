@@ -237,12 +237,13 @@ function LinePath({
   );
 }
 
-/** Printed SAT bar charts draw narrow bars with clear gaps: a bar fills under half of its
- *  category band, and never grows wider than an eighth of the plot (one category, several
- *  series). Bars of several series stand side by side in each band with a thin gap between
- *  them, never on top of each other (founder review, 2026-10-22). */
-export const BAR_BAND_SHARE = 0.45;
-export const GROUP_BAND_SHARE = 0.72;
+/** Printed SAT bar charts draw narrow bars with clear gaps: a bar fills 40% of its category
+ *  band, and never grows wider than an eighth of the plot (one category, several series).
+ *  Bars of several series stand side by side in each band with a thin gap between them,
+ *  never on top of each other, the whole group filling 60% of the band (founder review,
+ *  2026-10-23). */
+export const BAR_BAND_SHARE = 0.4;
+export const GROUP_BAND_SHARE = 0.6;
 export const MAX_BAR_SHARE = 0.125;
 export const BAR_GAP_SHARE = 0.15;
 

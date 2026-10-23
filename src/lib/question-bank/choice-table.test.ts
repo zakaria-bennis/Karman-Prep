@@ -21,4 +21,28 @@ describe("answer-choice table validation", () => {
     expect(isValidChoiceTableData({ ...sourceTable, rows: [["1"]] })).toBe(false);
     expect(isValidChoiceTableData({ ...sourceTable, rows: [] })).toBe(false);
   });
+
+  it("accepts a blank top-left corner on a two-way table, and no other blank header", () => {
+    const twoWay = {
+      header_row: ["", "Black", "Brown", "Total"],
+      rows: [
+        ["Male", "4", "6", "10"],
+        ["Female", "5", "5", "10"],
+      ],
+    };
+    expect(isValidChoiceTableData(twoWay)).toBe(true);
+    expect(describeChoiceTable(twoWay)).toBe(
+      "Male, Black 4, Brown 6, Total 10; Female, Black 5, Brown 5, Total 10"
+    );
+    expect(isValidChoiceTableData({ ...twoWay, header_row: ["", "", "Brown", "Total"] })).toBe(
+      false
+    );
+    expect(isValidChoiceTableData({ ...twoWay, header_row: ["Eye", "Black", "", "Total"] })).toBe(
+      false
+    );
+    expect(
+      isValidChoiceTableData({ ...twoWay, header_row: [" ", "Black", "Brown", "Total"] })
+    ).toBe(false);
+    expect(isValidChoiceTableData({ header_row: [""], rows: [["4"]] })).toBe(false);
+  });
 });

@@ -28,6 +28,32 @@ const withHeaderAndRowLabels = {
   footer_note: "Source: 2020 Census",
 };
 
+describe("QuestionTable — two-way table with a blank corner", () => {
+  const twoWay = {
+    header_row: ["", "Black", "Brown", "Total"],
+    rows: [
+      ["Male", "4", "6", "10"],
+      ["Female", "5", "5", "10"],
+    ],
+  };
+
+  it("draws the blank corner as a ruled cell, not a column heading", () => {
+    const { container, getAllByRole } = render(<QuestionTable data={twoWay} renderMath={false} />);
+    const headRow = container.querySelector("thead tr");
+    expect(headRow?.children).toHaveLength(4);
+    const corner = headRow?.children[0] as HTMLElement;
+    expect(corner.tagName).toBe("TD");
+    expect(corner.hasAttribute("data-table-corner")).toBe(true);
+    expect(corner.className).toContain("border-b");
+    expect(getAllByRole("columnheader").map((th) => th.textContent)).toEqual([
+      "Black",
+      "Brown",
+      "Total",
+    ]);
+    expect(getAllByRole("rowheader").map((th) => th.textContent)).toEqual(["Male", "Female"]);
+  });
+});
+
 describe("QuestionTable — accessibility semantics", () => {
   it("marks header cells with scope=col", () => {
     const { getAllByRole } = render(

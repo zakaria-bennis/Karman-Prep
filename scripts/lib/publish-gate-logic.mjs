@@ -55,7 +55,10 @@ function validChoiceTable(value) {
     value.header_row != null &&
     (!Array.isArray(value.header_row) ||
       value.header_row.length !== width ||
-      !value.header_row.every(validCell))
+      // Only the top-left corner of a two-way table may be blank.
+      !value.header_row.every(
+        (cell, i) => validCell(cell) || (i === 0 && cell === "" && width > 1)
+      ))
   )
     return false;
   return ["caption", "footer_note"].every(

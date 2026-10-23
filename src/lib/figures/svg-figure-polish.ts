@@ -128,9 +128,46 @@ function shrinkLetterLabels(root: Element) {
   }
 }
 
+function lineEnds(line: Element) {
+  const [x1, y1, x2, y2] = ["x1", "y1", "x2", "y2"].map((name) => textNumber(line, name));
+  return { x1, y1, x2, y2 };
+}
+
+/**
+ * A dot plot: equal dots stacked in columns above one horizontal number line, and no long
+ * vertical axis (tick marks only). Founder review, 2026-10-23: a dot plot sits on the bottom
+ * of its box, its number line low and the dots stacking up from it, with no empty band.
+ */
+export function isDotPlotSvg(root: Element): boolean {
+  const dots = [...root.querySelectorAll("circle")].map((c) => ({
+    x: textNumber(c, "cx"),
+    y: textNumber(c, "cy"),
+    r: textNumber(c, "r"),
+  }));
+  if (dots.length < 3 || new Set(dots.map((d) => d.r)).size !== 1 || !(dots[0].r > 0)) return false;
+  const columns = new Map<number, number>();
+  for (const d of dots) columns.set(d.x, (columns.get(d.x) ?? 0) + 1);
+  if (![...columns.values()].some((n) => n >= 2)) return false;
+  const lowest = Math.max(...dots.map((d) => d.y));
+  const left = Math.min(...dots.map((d) => d.x));
+  const right = Math.max(...dots.map((d) => d.x));
+  const lines = [...root.querySelectorAll("line")].map(lineEnds);
+  const numberLine = lines.some(
+    (l) =>
+      l.y1 === l.y2 &&
+      l.y1 > lowest &&
+      Math.min(l.x1, l.x2) <= left &&
+      Math.max(l.x1, l.x2) >= right
+  );
+  const tall = dots[0].r * 6;
+  const verticalAxis = lines.some((l) => l.x1 === l.x2 && Math.abs(l.y2 - l.y1) > tall);
+  return numberLine && !verticalAxis;
+}
+
 /** Applies every display fix to a parsed, reviewed figure SVG root, in place. */
 export function polishFigureSvg(root: Element) {
-  root.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  // A dot plot sits on the bottom of its box; everything else stays centred.
+  root.setAttribute("preserveAspectRatio", isDotPlotSvg(root) ? "xMidYMax meet" : "xMidYMid meet");
   gridToBack(root);
   backBars(root);
   joinDegreeSigns(root);
@@ -140,8 +177,10 @@ export function polishFigureSvg(root: Element) {
 /**
  * Grows a rendered figure's viewBox to take in everything drawn, so a label that runs
  * past the authored box (e.g. an axis title on the bottom edge) is never cut off.
+ * A dot plot's box is instead fitted tightly to what is drawn, so no empty band sits above
+ * the dots or below the axis title and the number line ends near the bottom of the frame.
  * Needs layout (getBBox), so it runs in the browser after the SVG is on the page.
- * Idempotent: always measured against the authored viewBox. Never shrinks the box.
+ * Idempotent: always measured against the authored viewBox. Otherwise never shrinks the box.
  */
 export function fitViewBoxToContent(svg: SVGSVGElement, margin = 4) {
   const authored = svg.dataset.authoredViewBox ?? svg.getAttribute("viewBox") ?? "";
@@ -156,6 +195,14 @@ export function fitViewBoxToContent(svg: SVGSVGElement, margin = 4) {
   }
   if (!drawn.width && !drawn.height) return;
   const [x, y, w, h] = box;
+  if (isDotPlotSvg(svg)) {
+    const tight = [drawn.x - margin, drawn.y - margin, drawn.width + 2 * margin]
+      .concat(drawn.height + 2 * margin)
+      .map((n) => Math.round(n * 100) / 100)
+      .join(" ");
+    if (svg.getAttribute("viewBox") !== tight) svg.setAttribute("viewBox", tight);
+    return;
+  }
   const left = Math.min(x, drawn.x - margin);
   const top = Math.min(y, drawn.y - margin);
   const right = Math.max(x + w, drawn.x + drawn.width + margin);

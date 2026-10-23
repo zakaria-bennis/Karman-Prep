@@ -141,6 +141,27 @@ describe("computePublishStatus — blocking gates", () => {
   });
 });
 
+describe("computePublishStatus — two-way choice tables", () => {
+  const withChoiceTable = (header_row: string[]) => ({
+    ...baseRow,
+    answer_choices: baseRow.answer_choices.map((choice) =>
+      choice.letter === "B"
+        ? { ...choice, choice_table_data: { header_row, rows: [["Male", "4"]] } }
+        : choice
+    ),
+  });
+
+  it("allows a blank top-left header cell", () => {
+    const r = computePublishStatus(withChoiceTable(["", "Black"]), slugs);
+    expect(r.reason).toBe("all_gates_pass");
+  });
+
+  it("still blocks a blank header cell anywhere else", () => {
+    const r = computePublishStatus(withChoiceTable(["Eye", ""]), slugs);
+    expect(r).toEqual({ reason: "choice_B_invalid_table", suggestedStatus: "corrupt_question" });
+  });
+});
+
 describe("computePublishStatus — soft (needs_human_review) gates", () => {
   it("needs_human_review when import_status=needs_review", () => {
     const r = computePublishStatus({ ...baseRow, import_status: "needs_review" }, slugs);

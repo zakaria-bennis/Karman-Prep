@@ -15,10 +15,13 @@ export function isValidChoiceTableData(value: unknown): value is QuestionTableDa
   )
     return false;
   if (table.header_row != null) {
+    // Printed two-way tables often leave the top-left corner blank, so only
+    // header_row[0] may be "" — and only when a later header cell has text.
+    const header = table.header_row;
     if (
-      !Array.isArray(table.header_row) ||
-      table.header_row.length !== width ||
-      !table.header_row.every(validText)
+      !Array.isArray(header) ||
+      header.length !== width ||
+      !header.every((cell, i) => validText(cell) || (i === 0 && cell === "" && width > 1))
     )
       return false;
   }
