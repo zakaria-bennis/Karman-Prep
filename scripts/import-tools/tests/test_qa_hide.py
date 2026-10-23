@@ -201,6 +201,24 @@ class HideTest(QaCase):
             self.hide()
         self.assertTrue(self.bank.rows[uid(1)]["is_live"])
 
+    def test_live_means_student_visible(self):
+        """Live = is_live, a VISIBLE publish_status and not archived (quiz_questions_live and
+        the student queries); verified_repair rows are hidden and get that status back on undo."""
+        rows = {r["id"]: r for r in current_shape([
+            row(1, publish_status="publish_ready_with_verified_repair"),
+            row(2, publish_status="needs_human_review"),       # is_live true (import ok) but not served
+            row(3, publish_status="blocked_answer_dispute")])}
+        items, skipped = qh.plan_hide({uid(n): ("broken", "qa:broken: x") for n in (1, 2, 3)}, rows)
+        self.assertEqual([it["id"] for it in items], [uid(1)])
+        self.assertEqual(skipped, {uid(2): "not live", uid(3): "not live"})
+        self.bank.rows[uid(1)]["publish_status"] = "publish_ready_with_verified_repair"
+        before = copy.deepcopy(self.bank.rows)
+        self.hide()
+        rec = {e["id"]: e for e in qh.read_log(self.pipe / "qa" / "hidden.jsonl")}[uid(1)]
+        self.assertEqual(rec["previous_publish_status"], "publish_ready_with_verified_repair")
+        self.bank.db(self.pipe / "qa" / "restore.sql")
+        self.assertEqual(self.bank.rows, before)
+
     def test_lock_held(self):
         writer.acquire_lock(self.pipe / "writer.lock", "someone", NOW)
         with self.assertRaises(writer.LockHeld):
