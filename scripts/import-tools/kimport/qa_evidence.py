@@ -21,7 +21,16 @@ several files counts once:
   qa-fix-reviewer / qa-fix-audit  a QA correction's reviewer and audit solves
 
 A record marked key_exposed_to_solver: true is not a solve and is skipped.
+
+BLIND solvers (the only ones that certify an answer, founder's zero-doubt bar 2026-10-23):
+blind-subagent*, blind-text-only, qa-blind (the QA round's blind solve), recertify-blind
+(repair/recertify-*.json your_solve), and the transcriber only where its record says
+key_exposed_to_solver: false and it is not the reviewer's pass (its record_sha256 is not one
+of the batch's reviewer files). The reviewer, the QA fix reviewer and audit, and B's solve are
+recorded but do not count: they may have seen the printed key.
 """
+
+import hashlib
 
 import glob
 import json
@@ -51,6 +60,10 @@ def answers(v) -> list[str]:
             if v.get(k) is not None:
                 return answers(v[k])
     return []
+
+
+def is_blind(solver: str) -> bool:
+    return solver.startswith("blind-") or solver in ("qa-blind", "recertify-blind", "transcriber")
 
 
 def solver_of(by) -> str:
@@ -120,6 +133,15 @@ def _reviewed_row(folder: Path, sid: str):
     return None, None
 
 
+def _reviewer_hashes(folder: Path, sid: str) -> set[str]:
+    """sha256 of the reviewer's own files for this question (second-solve, my-solve, <sid>.json)."""
+    out = set()
+    for f in (folder / "reviews").glob(f"{sid}.*json"):
+        if not any(t in f.name for t in ("generated-key", "blind-solve")):
+            out.add(hashlib.sha256(f.read_bytes()).hexdigest())
+    return out
+
+
 def _reviews(ev: Evidence, folder: Path, sid: str, live_id: str) -> None:
     rdir = folder / "reviews"
     for f in sorted(rdir.glob("*.json")) if rdir.is_dir() else []:
@@ -139,8 +161,13 @@ def _reviews(ev: Evidence, folder: Path, sid: str, live_id: str) -> None:
                 continue
             if isinstance(d.get("reviews"), list):  # generated key: who solved it, blind
                 for r in d["reviews"]:
-                    if isinstance(r, dict):
-                        ev.add(solver_of(r.get("by")), r, f)
+                    if not isinstance(r, dict):
+                        continue
+                    who = solver_of(r.get("by"))
+                    if who == "transcriber" and (r.get("key_exposed_to_solver") is not False
+                                                 or r.get("record_sha256") in _reviewer_hashes(folder, sid)):
+                        who = "transcriber-unproven"  # not proven blind, or the reviewer's own pass
+                    ev.add(who, r, f)
             elif d.get("reviewed_accepted_answers"):  # the reviewer's numeric answer-set review
                 ev.add("reviewer", d["reviewed_accepted_answers"], f)
             elif "blind-solve" in name:
@@ -184,14 +211,14 @@ def read_folder(ev: Evidence, folder: Path, sid: str, live_id: str) -> None:
 
 
 class RepairRecords:
-    """repair/recertify-*.json (your_solve) and repair/key-audit.json, by stable id."""
+    """repair/recertify-*.json (your_solve, a blind re-solve) and repair/key-audit.json, by stable id."""
 
     def __init__(self, repair: Path):
         self.by_sid: dict[str, list[tuple[str, object, str]]] = {}
         for f in sorted(glob.glob(str(Path(repair) / "recertify-*.json"))):
             for r in load(f) or []:
                 if isinstance(r, dict) and r.get("id"):
-                    self.by_sid.setdefault(r["id"], []).append(("reviewer", r.get("your_solve"), f))
+                    self.by_sid.setdefault(r["id"], []).append(("recertify-blind", r.get("your_solve"), f))
         audit = Path(repair) / "key-audit.json"
         for r in load(audit) or []:
             if isinstance(r, dict) and r.get("id"):

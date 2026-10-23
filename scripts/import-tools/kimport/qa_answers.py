@@ -11,9 +11,9 @@ A student-visible question's answer is certified by exactly one of:
    the answer evidence in its own batch folder(s) holds (folders found by the answer key's
    tag_binding_manifest_sha256, whatever the tag-binding file is called).
 
-Answer evidence holds when the key is the OFFICIAL printed key and at least one other
-independent solver agrees, or (a generated or overridden key) at least two independent
-solvers agree. Solvers and every file format they are read from: kimport.qa_evidence; one
+Answer evidence holds when the key is the OFFICIAL printed key and at least one separate
+BLIND solver agrees, or (a generated or overridden key) at least two BLIND solvers agree
+(qa_evidence.is_blind: a reviewer's own solve may have seen the printed key and never counts). Solvers and every file format they are read from: kimport.qa_evidence; one
 solver counts once however many files repeat its solve. Anything else is uncertified,
 with the reason.
 """
@@ -63,15 +63,19 @@ def same_answer(a, key, numeric: bool) -> bool:
 
 
 def judge(ev: qa_evidence.Evidence, key: str, numeric: bool) -> dict:
-    """The evidence rule: printed official key + one agreeing solver, or two agreeing solvers."""
+    """The evidence rule: the official printed key plus one agreeing BLIND solver, or two agreeing
+    BLIND solvers (qa_evidence.is_blind). Every solver on record is listed; only blind ones count."""
     agree, other = set(), set()
     for solver, got, _ in ev.solves:
         (agree if any(same_answer(a, key, numeric) for a in got) else other).add(solver)
+    other -= agree
+    blind = sorted(s for s in agree if qa_evidence.is_blind(s))
     printed = ev.printed is not None and same_answer(ev.printed, key, numeric)
     need = 1 if printed else 2
-    out = {"printed_key": ev.printed, "printed_key_agrees": printed, "agreeing": sorted(agree),
-           "disagreeing": sorted(other - agree), "needed_solvers": need, "ok": len(agree) >= need}
-    return out
+    return {"printed_key": ev.printed, "printed_key_agrees": printed, "agreeing": sorted(agree),
+            "agreeing_blind": blind, "disagreeing": sorted(other),
+            "disagreeing_blind": sorted(s for s in other if qa_evidence.is_blind(s)),
+            "needed_blind_solvers": need, "ok": len(blind) >= need}
 
 
 # ---------------------------------------------------------------- QA files

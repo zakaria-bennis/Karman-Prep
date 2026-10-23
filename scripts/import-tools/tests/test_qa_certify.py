@@ -108,16 +108,21 @@ class AnswerTest(unittest.TestCase):
         binding = self.p.batch("r2-9", {"r2-9-reviewed-import-ready.json": self.reviewed(6)})
         (self.p.batches / "r2-9" / "tag-binding.json").rename(self.p.batches / "r2-9" / "r2-9-tag-binding.json")
         res = self.cert(row(6, binding=binding))
-        self.assertEqual((res["reason"], res["printed_key"], res["agreeing"], res["needed_solvers"]),
+        self.assertEqual((res["reason"], res["printed_key"], res["agreeing"], res["needed_blind_solvers"]),
                          ("post_qa_evidence_short", "B", [], 1))
+        # the reviewer's own solve may have seen the printed key: on record, but it does not count
         self.p.json("batches/r2-9/r2-9-independent-d-review.json",
                     {"records": [{"stable_question_id": SID.format(6), "reviewer_solve": "B", "printed_key": "B"}]})
         res = self.cert(row(6, binding=binding))
-        self.assertEqual((res["status"], res["basis"], res["batch"], res["agreeing"]),
-                         ("certified", "post_qa_publish", "r2-9", ["reviewer"]))
-        # a key that is not the printed one (overridden) needs two solvers
+        self.assertEqual((res["status"], res["agreeing"], res["agreeing_blind"]), ("uncertified", ["reviewer"], []))
+        self.p.json("batches/r2-9/blind-answers.json", [{"id": SID.format(6), "answer": "B"}])
+        res = self.cert(row(6, binding=binding))
+        self.assertEqual((res["status"], res["basis"], res["batch"], res["agreeing_blind"]),
+                         ("certified", "post_qa_publish", "r2-9", ["blind-subagent"]))
+        # a key that is not the printed one (overridden) needs two blind solvers
         res = self.cert(row(6, key="C", binding=binding))
-        self.assertEqual((res["status"], res["printed_key_agrees"], res["disagreeing"]), ("uncertified", False, ["reviewer"]))
+        self.assertEqual((res["status"], res["printed_key_agrees"], res["disagreeing_blind"]),
+                         ("uncertified", False, ["blind-subagent"]))
 
     def test_generated_key_needs_two_solvers_each_counted_once(self):
         binding = self.p.batch("r9-1", {
@@ -127,17 +132,37 @@ class AnswerTest(unittest.TestCase):
             f"reviews/{SID.format(7)}.generated-key.json": {"reviews": [
                 {"by": "transcriber", "answer": "B", "key_exposed_to_solver": True}, {"by": "r1", "answer": "B"}]}})
         res = self.cert(row(7, binding=binding))  # one reviewer in three files; the transcriber saw the key
-        self.assertEqual((res["status"], res["agreeing"], res["needed_solvers"]), ("uncertified", ["reviewer"], 2))
+        self.assertEqual((res["status"], res["agreeing"], res["needed_blind_solvers"]), ("uncertified", ["reviewer"], 2))
         self.p.json("batches/r9-1/blind-answers.json", {SID.format(7): {
             "solver_A": {"answer": "B"}, "solver_B": {"answer": "B"}, "text_only": "D"}})
         res = self.cert(row(7, binding=binding))
         self.assertEqual((res["status"], res["agreeing"], res["disagreeing"]),
                          ("certified", ["blind-subagent", "blind-subagent-2", "reviewer"], ["blind-text-only"]))
 
+    def test_transcriber_counts_only_when_proven_blind_and_not_the_reviewers_pass(self):
+        second = {"answer": "B", "rationale": "r1"}
+        files = {"reviewed-import-ready.json": self.reviewed(10, kind="independently_confirmed_generated"),
+                 f"reviews/{SID.format(10)}.second-solve.json": second,
+                 "blind-answers.json": [{"id": SID.format(10), "answer": "B"}]}
+        gk = f"reviews/{SID.format(10)}.generated-key.json"
+        sha = hashlib.sha256(json.dumps(second).encode()).hexdigest()  # Pipe.json writes json.dumps
+        for record, ok in (({"by": "transcriber", "answer": "B", "key_exposed_to_solver": False, "record_sha256": "x"}, True),
+                           ({"by": "transcriber", "answer": "B"}, False),  # nothing proves the key was hidden
+                           ({"by": "transcriber", "answer": "B", "key_exposed_to_solver": False, "record_sha256": sha}, False)):
+            binding = self.p.batch("r1-5", {**files, gk: {"reviews": [record, {"by": "r1", "answer": "B"}]}})
+            res = self.cert(row(10, binding=binding))
+            self.assertEqual(res["status"] == "certified", ok, record)
+            self.assertEqual("transcriber" in res["agreeing_blind"], ok)
+
+    def test_reviewer_split(self):
+        self.assertEqual([qa_certify.reviewer_of(b) for b in ("r1-200", "oct-r2-3", "r3-qa-42", "r2-9, r2-10", "bulk-1", None)],
+                         ["r1", "r2", "r3", "r2", "r3", "r3"])
+
     def test_repair_records_and_unknown_binding(self):
         binding = self.p.batch("r9-2", {"reviewed-import-ready.json": self.reviewed(8)})
         self.p.json("repair/recertify-r3.json", [{"id": SID.format(8), "your_solve": "B", "printed_key": "B"}])
-        self.assertEqual(self.cert(row(8, binding=binding))["status"], "certified")
+        res = self.cert(row(8, binding=binding))
+        self.assertEqual((res["status"], res["agreeing_blind"]), ("certified", ["recertify-blind"]))
         self.assertEqual(self.cert(row(9, binding="0" * 64))["reason"], "post_qa_no_batch_folder")
 
 
@@ -189,6 +214,8 @@ class CertifyRunTest(unittest.TestCase):
             listed = json.loads((p.qa / "uncertified-2099-01-03.json").read_text())
             self.assertEqual([(x["id"], x["reason"]) for x in listed["rows"]], [(r["id"], "post_qa_no_batch_folder")])
             self.assertNotIn('"B"', json.dumps(listed))  # no key: the re-solve stays blind
+            self.assertEqual([json.loads((p.qa / f"uncertified-{w}.json").read_text())["count"] for w in ("r1", "r2", "r3")],
+                             [0, 0, 1])  # no batch folder: r3
 
     def test_refuses_an_export_with_rows_students_cannot_see(self):
         with tempfile.TemporaryDirectory() as d:

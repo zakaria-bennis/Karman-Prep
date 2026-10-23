@@ -20,6 +20,7 @@ report and render.
 
 import json
 import os
+import re
 import shutil
 import signal
 import socket
@@ -187,8 +188,9 @@ def certificate_md(cert: dict) -> str:
               f"Review-level static findings only (not counted as failing): {t['review_only_static']}.", "",
               "Answer rule: a QA verdict clean or key_ok on the text and key still live; or a QA correction (still as "
               "corrected), or a question published after the QA snapshot (evidence in its own batch folders), whose "
-              "evidence holds: the official printed key plus at least one other agreeing independent solver, or (a "
-              "generated or overridden key) at least two agreeing independent solvers. Anything else is uncertified "
+              "evidence holds: the official printed key plus at least one agreeing BLIND solver (a blind subagent, the "
+              "QA round's blind solve, a recertify blind solve), or (a generated or overridden key) at least two "
+              "agreeing BLIND solvers; a reviewer's own solve never counts. Anything else is uncertified "
               "(listed for a blind re-solve in uncertified-<date>.json).", ""]
     lines += ["## Failing a check", ""] + ([f"- `{f['id']}`: " + "; ".join(
         x for x in (_detail(f["static"]), _detail(f["render"])) if x) for f in cert["failing"]] or ["None."])
@@ -199,14 +201,25 @@ def certificate_md(cert: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+REVIEWER_OF_BATCH = re.compile(r"^(?:oct-)?(r[123])-")
+
+
+def reviewer_of(batch: str | None) -> str:
+    """r1, r2 or r3 from the batch folder that reviewer built (r1-*, oct-r2-*, r3-qa-*); r3 otherwise."""
+    m = REVIEWER_OF_BATCH.match((batch or "").split(",")[0].strip())
+    return m.group(1) if m else "r3"
+
+
 def uncertified_list(cert: dict) -> dict:
     """The uncertified rows for reviewers to re-solve blind: ids, batch, reason and which solvers are on
     record, but no key or answer (so the re-solve stays blind)."""
     return {"date": cert["date"], "certificate": cert["work_dir"], "count": len(cert["uncertified"]),
             "rows": [{"id": u["id"], "stable_question_id": u.get("stable_question_id"), "batch": u.get("batch"),
                       "reason": u["reason"], "basis": u.get("basis"), "printed_key_on_record": u.get("printed_key") is not None,
-                      "agreeing_solvers": u.get("agreeing", []), "disagreeing_solvers": u.get("disagreeing", []),
-                      "solvers_needed": u.get("needed_solvers"),
+                      "reviewer": reviewer_of(u.get("batch")),
+                      "agreeing_solvers": u.get("agreeing", []), "agreeing_blind_solvers": u.get("agreeing_blind", []),
+                      "disagreeing_solvers": u.get("disagreeing", []),
+                      "blind_solvers_needed": u.get("needed_blind_solvers"),
                       # a QA verdict's note can name the key ("key B->A"): only the folder lookup detail is kept
                       "detail": u.get("detail") if u["reason"] == "post_qa_no_batch_folder" else None}
                      for u in cert["uncertified"]]}
@@ -248,6 +261,11 @@ def run_certify(pipe: Path, now: str, export: Path | None = None, env_file: Path
     date = now[:10]
     write_text_atomic(pipe / "qa" / f"certificate-{date}.json", json.dumps(cert, indent=1, ensure_ascii=False))
     write_text_atomic(pipe / "qa" / f"certificate-{date}.md", certificate_md(cert))
-    write_text_atomic(pipe / "qa" / f"uncertified-{date}.json", json.dumps(uncertified_list(cert), indent=1, ensure_ascii=False))
+    listed = uncertified_list(cert)
+    write_text_atomic(pipe / "qa" / f"uncertified-{date}.json", json.dumps(listed, indent=1, ensure_ascii=False))
+    for who in ("r1", "r2", "r3"):  # one re-solve list per reviewer, by the batch folders each built
+        mine = [r for r in listed["rows"] if r["reviewer"] == who]
+        write_text_atomic(pipe / "qa" / f"uncertified-{who}.json",
+                          json.dumps({**listed, "reviewer": who, "count": len(mine), "rows": mine}, indent=1, ensure_ascii=False))
     return {"certificate": str(pipe / "qa" / f"certificate-{date}.md"),
             "uncertified_list": str(pipe / "qa" / f"uncertified-{date}.json"), **cert["totals"]}
