@@ -4,8 +4,11 @@ back once they are fixed (`k qa hide`, `k qa restore`).
 Hiding uses the sweep's un-publish shape: publish_status 'needs_human_review',
 import_status 'needs_review' (which turns the generated is_live off), and
 import_flag_reason 'qa:<label>: <fix or note>', and also archives the row
-(archived_at = now()), so the duplicate checks and the stage guards, which
-ignore archived rows, let a corrected replacement be published as a new row.
+(archived_at = now()). A reviewer's corrected version goes back on the site
+IN PLACE, on the same row (kimport.qa_correct, run by the autopilot): the
+unique source-question index covers archived rows too, so a second row for
+the same source question cannot be inserted. A corrected row counts as no
+longer hidden once it is in qa/corrections.jsonl.
 Nothing is deleted and the answer key is not touched, so putting back the four
 columns restores the row exactly.
 
@@ -295,13 +298,16 @@ def append_log(path: Path, entries: list[dict]) -> None:
 
 
 def currently_hidden(qa_dir: Path) -> dict[str, dict]:
-    """{id: hide record} for rows hidden by QA and not restored since."""
+    """{id: hide record} for rows hidden by QA and not restored or corrected in place since."""
     out: dict[str, dict] = {}
     for e in read_log(Path(qa_dir) / "hidden.jsonl"):
         out[e["id"]] = e
     for e in read_log(Path(qa_dir) / "restored.jsonl"):
         if e["id"] in out and e["at"] >= out[e["id"]]["at"]:
             del out[e["id"]]
+    for e in read_log(Path(qa_dir) / "corrections.jsonl"):  # kimport.qa_correct.CORRECTIONS
+        if e["question_id"] in out and e["at"] >= out[e["question_id"]]["at"]:
+            del out[e["question_id"]]
     return out
 
 

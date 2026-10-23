@@ -22,6 +22,12 @@ open, so the next run refuses to start until someone has looked. The writer
 lock is released at the end, on error too. Every run's files are in
 pipeline/auto-<timestamp>/, with run.log in plain English.
 
+A corrected batch for questions `k qa hide` took off the site (kimport.qa_correct)
+turns each hidden row back into a private draft with the corrected content, in
+place (same id), with the stage files; the rows are then read back, sealed and
+published like staged rows, and each published one is appended to
+pipeline/qa/corrections.jsonl.
+
 A corrected batch for rows that are already LIVE (kimport.live_fix) is an
 evidence-only correction of those live rows, run before any stage file
 (kimport.autopilot_live.live_phase). At the end, rows refused as duplicates of
@@ -49,7 +55,7 @@ from pathlib import Path
 
 from kimport import autopilot_live as apl
 from kimport import autopilot_state as aps
-from kimport import bulk, fix, lane, live_fix, writer
+from kimport import bulk, fix, lane, live_fix, qa_correct, writer
 from kimport import stage as st
 from kimport.export import _unwrap, read_export_doc
 from kimport.fetch import ExportFailed, run_export
@@ -245,7 +251,7 @@ class Autopilot:
         self.run_id = f"auto-{stamp}" + ("-dry" if self.dry else "")
         self.run_dir = self.pipe / self.run_id
         self.run = {"id": self.run_id, "at": self.now(), "result": None, "published": 0, "held": 0, "fixed": 0,
-                    "evidence_corrected": 0, "refused": {}, "visible_after": None, "batches": [d.name for d in dirs], "dry": self.dry}
+                    "evidence_corrected": 0, "qa_corrected": 0, "refused": {}, "visible_after": None, "batches": [d.name for d in dirs], "dry": self.dry}
         self.state, self.dirs = state, dirs
         if not self.dry:
             try:
@@ -308,6 +314,8 @@ class Autopilot:
                 cache[key] = self.d.rows_runner(reviewed, pdf, frozen, sha)
             return cache[key]
 
+        qa_dirs, normal_dirs, qa_mixed = qa_correct.split(normal_dirs, doc.rows, self.d.exams_dir, rows_runner)
+        mixed = {**mixed, **qa_mixed}
         live_dirs, normal_dirs = live_fix.split(normal_dirs, doc.rows, self.d.exams_dir, rows_runner)
         if live_dirs:
             apl.live_phase(self, live_dirs, doc, rows_runner)
@@ -345,9 +353,11 @@ class Autopilot:
                                  rows_runner=rows_runner, predict_sealer=self.d.row_sealer)
             st._write_all(fix_dir, fres["files"])
         fixed = fres["items"] if fres else []
-        self.batch_info(spre, fres, mixed)
+        qres = self.qa_build(qa_dirs, doc, staged, rows_runner) if qa_dirs else None
+        corrected = qres["items"] if qres else []
+        self.batch_info(spre, fres, mixed, qres)
         live_note = f" {n_live} live rows {'would get' if self.dry else 'got'} corrected evidence." if live_dirs else ""
-        if not staged and not fixed:
+        if not staged and not fixed and not corrected:
             self.finish_batches({}, set(), set())
             if self.dry:
                 self.run["result"] = "dry_run_ok" if n_live else "nothing_to_stage"
@@ -355,22 +365,26 @@ class Autopilot:
             self.run["result"] = "evidence_corrected" if n_live else "nothing_to_stage"
             apl.after_run(self, False, [], doc.rows)
             return (f"No row of the {len(self.dirs)} new batches could be staged; the reasons are in "
-                    f"{self.run_id}/stage/precheck.json, fix/fix-precheck.json and live/live-precheck.json."
+                    f"{self.run_id}/stage/precheck.json, fix/fix-precheck.json, qa/qa-precheck.json and "
+                    "live/live-precheck.json."
                     + live_note)
 
         chunks = [stage_dir / c["file"] for c in spre.get("chunks", [])]
         chunks += [fix_dir / c["file"] for c in (fres["precheck"]["chunks"] if fres else [])]
-        self.say(f"Built {len(staged)} new rows and {len(fixed)} corrected rows in {len(chunks)} file(s). "
-                 "Running every dry run (each rolls back).")
+        chunks += [self.run_dir / "qa" / c["file"] for c in (qres["precheck"]["chunks"] if qres else [])]
+        self.say(f"Built {len(staged)} new rows, {len(fixed)} corrected rows and {len(corrected)} QA corrections "
+                 f"in {len(chunks)} file(s). Running every dry run (each rolls back).")
         for c in chunks:
             self.read(c.with_name(c.name.replace(".sql", ".dryrun.sql")))
         if self.dry:
             self.run["result"] = "dry_run_ok"
-            return (f"Dry run passed: {len(staged)} new rows and {len(fixed)} corrected rows would be staged, "
+            return (f"Dry run passed: {len(staged)} new rows, {len(fixed)} corrected rows and {len(corrected)} "
+                    "QA corrections would be staged, "
                     f"{self.refused_total()} refused.{live_note} Nothing was written.")
 
         preview_rows = json.loads((stage_dir / "stage-preview.json").read_text())["rows"] if staged else []
         preview_rows += fres["preview_rows"] if fres else []
+        preview_rows += qres["preview_rows"] if qres else []
         preview = self.run_dir / "seal" / "run-preview.json"
         preview.parent.mkdir(parents=True, exist_ok=True)
         preview.write_text(st._dump({"batch": self.run_id, "source_pdf_sha256": None, "rows": preview_rows}))
@@ -388,6 +402,7 @@ class Autopilot:
 
         rb = [stage_dir / f for f in spre.get("readback_files", [])] if staged else []
         rb += [fix_dir / f for f in (fres["precheck"]["readback_files"] if fres else [])]
+        rb += [self.run_dir / "qa" / f for f in (qres["precheck"]["readback_files"] if qres else [])]
         raws = []
         for f in rb:
             out = f.with_name(f.name.replace(".sql", "") + "-raw.json")
@@ -455,15 +470,37 @@ class Autopilot:
         for i in fixed_ids:
             self.state["held"].pop(i, None)
         lane.resolve_ids(self.lane, sorted(fixed_ids), "autopilot_fix", self.now(), f"published in {self.run_id}")
+        if qres:
+            qa_ids = {p["stable_question_id"] for p in preview_rows if p.get("kimport_qa")} & set(sealed_ids)
+            self.run["qa_corrected"] = qa_correct.record_corrections(
+                self.pipe / "qa", qres["precheck"]["corrections"], qa_ids, self.run_id, self.now())
         released = lane.release_ids(lane.claims_path_for(self.lane), sealed_ids)
         self.finish_batches({i: True for i in sealed_ids}, {h["stable_question_id"] for h in held}, fixed_ids)
         self.say(f"Visible now: {counts['bank_visible']}. {len(released)} finished claims released.")
         apl.after_run(self, True, sealed_ids, doc2.rows)
-        return (f"Published {len(qids)} questions ({len(fixed_ids)} of them corrected rows held earlier); "
+        return (f"Published {len(qids)} questions ({len(fixed_ids)} of them corrected rows held earlier, "
+                f"{self.run['qa_corrected']} QA corrections back on the site); "
                 f"{counts['bank_visible']} visible to students now. {len(held)} held for review, "
                 f"{self.refused_total()} refused (reasons in the run folder).{live_note}")
 
     # ------------------------------------------------------------ steps
+
+    def qa_build(self, qa_dirs: list[Path], doc, staged: list[dict], rows_runner) -> dict:
+        """Read the hidden rows back (read-only) and build the in-place QA corrections (kimport.qa_correct)."""
+        qa_dir = self.run_dir / "qa"
+        loaded, _ = bulk.load_batches(qa_dirs, self.d.exams_dir, None, rows_runner)
+        sources = [it["source"] for b in loaded for it in b["items"]]
+        snaps = []
+        if sources:
+            qa_dir.mkdir(parents=True, exist_ok=True)
+            (qa_dir / "hidden-readback.sql").write_text(st.readback_sql(f"{self.run_id} QA-hidden rows", sources))
+            raw = self.read(qa_dir / "hidden-readback.sql")
+            (qa_dir / "hidden-readback.json").write_text(json.dumps(raw))
+            snaps = [r["snapshot"] for r in _unwrap(raw)["rows"]]
+        qres = qa_correct.build_correct(qa_dirs, doc, self.run_id, snaps, self.d.exams_dir, staged,
+                                        self.d.chunk_size, rows_runner=rows_runner)
+        st._write_all(qa_dir, qres["files"])
+        return qres
 
     def live(self, ids: list[str]) -> bool:
         f = self.run_dir / "publish" / "landed-check.sql"
@@ -503,13 +540,14 @@ class Autopilot:
     def refused_total(self) -> int:
         return sum(self.run["refused"].values())
 
-    def batch_info(self, spre: dict, fres: dict | None, mixed: dict) -> None:
+    def batch_info(self, spre: dict, fres: dict | None, mixed: dict, qres: dict | None = None) -> None:
         """Per-batch counts and refusal reasons, kept for the ledger."""
         live = self.live_res or {}
         refused = (list(spre.get("refused", [])) + (fres["precheck"]["refused"] if fres else [])
-                   + live.get("refused", []))
+                   + (qres["precheck"]["refused"] if qres else []) + live.get("refused", []))
         self.all_refused = refused
         rbatches = list(spre.get("refused_batches", [])) + (fres["precheck"]["refused_batches"] if fres else [])
+        rbatches += qres["precheck"]["refused_batches"] if qres else []
         rbatches += [{"folder": k, "reason": v} for k, v in mixed.items()]
         self.run["refused"] = aps.refused_by_reason(refused, rbatches)
         info = {}
@@ -517,6 +555,8 @@ class Autopilot:
             info[b["folder"]] = {"batch": name, "rows": b["rows"], "staged": b["staged"]}
         for name, b in (fres["precheck"]["batches"] if fres else {}).items():
             info[b["folder"]] = {"batch": name, "rows": b["rows"], "staged": b["fixed"], "fix": True}
+        for name, b in (qres["precheck"]["batches"] if qres else {}).items():
+            info[b["folder"]] = {"batch": name, "rows": b["rows"], "staged": b["corrected"], "qa": True}
         by_batch: dict = {}
         for r in refused:
             by_batch[r.get("batch")] = by_batch.get(r.get("batch"), 0) + 1
@@ -529,7 +569,7 @@ class Autopilot:
             if p.exists():
                 self.batch_of.update({r["stable_question_id"]: r.get("kimport_batch")
                                       for r in json.loads(p.read_text())["rows"]})
-        for p in (fres["preview_rows"] if fres else []):
+        for p in (fres["preview_rows"] if fres else []) + (qres["preview_rows"] if qres else []):
             self.batch_of[p["stable_question_id"]] = p.get("kimport_batch")
 
     def finish_batches(self, published: dict, held: set, fixed: set) -> None:
@@ -541,7 +581,8 @@ class Autopilot:
             status = "published" if n_pub else ("held" if n_held else "refused")
             self.state["batches"][folder] = {"run": self.run_id, "status": status, "rows": i["rows"],
                                              "staged": i["staged"], "published": n_pub, "held": n_held,
-                                             "refused": i["refused"], "at": at, **({"fix": True} if i.get("fix") else {})}
+                                             "refused": i["refused"], "at": at, **({"fix": True} if i.get("fix") else {}),
+                                             **({"qa": True} if i.get("qa") else {})}
         for rb in self.rbatches:
             self.state["batches"][rb["folder"]] = {"run": self.run_id, "status": "refused", "rows": None,
                                                    "staged": 0, "published": 0, "held": 0, "refused": None,
