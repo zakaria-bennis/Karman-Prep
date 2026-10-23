@@ -39,6 +39,7 @@ export function ActiveQuizScreen({
   menu,
   readOnly = false,
   stateOverride,
+  submitLabel = "Submit Answer",
 }: {
   node: MappedNode;
   q: StudentQuizQuestion;
@@ -51,6 +52,8 @@ export function ActiveQuizScreen({
   onNext: () => void;
   menu?: ReactNode;
   readOnly?: boolean;
+  /** The button under a chosen answer; a timed module says "Next" (no per-question check). */
+  submitLabel?: string;
   stateOverride?: Pick<
     QuizState,
     "phase" | "reviews" | "records" | "targetLength" | "currentIndex" | "selectedAnswer"
@@ -155,7 +158,7 @@ export function ActiveQuizScreen({
                 onClick={onSubmit}
                 className="rounded-xl bg-ivory px-8 py-3 text-sm font-bold text-night transition-colors hover:bg-ivory/90"
               >
-                Submit Answer
+                {submitLabel}
               </button>
             </motion.div>
           ) : null
