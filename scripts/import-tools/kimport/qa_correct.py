@@ -381,6 +381,42 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
             "refused_batches": refused_batches, "precheck": precheck}
 
 
+def fix_path_corrections(seal_dir: Path, hidden: dict[str, dict]) -> list[dict]:
+    """Correction lines for QA corrections published through the fix path: a QA correction held at
+    seal left a private draft on the QA-hidden row, and its evidence fix batch published that row
+    (sealed-preview rows marked kimport_fix whose row is still in qa/hidden.jsonl, `hidden` =
+    qa_hide.currently_hidden). Same shape as build_correct's lines; "before" is the row as it was
+    when QA hid it (hidden.jsonl keeps no key), "after" the published row; "via": "fix"."""
+    seal_dir = Path(seal_dir)
+    sealed = json.loads((seal_dir / "sealed-preview.json").read_text(encoding="utf-8"))["rows"]
+    snaps = [r["snapshot"] for r in json.loads((seal_dir / "private-readback.json").read_text(encoding="utf-8"))["rows"]]
+    by_source = {st._source(s["question"]): s["question"] for s in snaps}
+    out = []
+    for p in sealed:
+        q = by_source.get(st._source(p))
+        if not p.get("kimport_fix") or q is None or q.get("id") not in hidden:
+            continue
+        h = hidden[q["id"]]
+        out.append({"question_id": q["id"], "stable_question_id": p["stable_question_id"], "batch": p.get("kimport_batch"),
+                    "qa_reason": h.get("reason"), "before_content_hash_v2": h.get("content_hash_v2"),
+                    "after_content_hash_v2": q.get("content_hash_v2"), "before_correct_answer": None,
+                    "after_correct_answer": q.get("correct_answer"), "via": "fix"})
+    return out
+
+
+def backfill_fix_corrections(pipe: Path, run: str, now: str) -> dict:
+    """`k qa record-fix-corrections`: record the QA corrections an earlier autopilot run published through
+    the fix path (before the autopilot recorded them itself). Idempotent: a row already recorded is no
+    longer currently hidden, so it is not written again."""
+    pipe = Path(pipe)
+    result = json.loads((pipe / run / "result.json").read_text(encoding="utf-8"))
+    if result.get("result") != "published":
+        raise ValueError(f"{run} did not publish (result {result.get('result')!r}); nothing to record")
+    lines = fix_path_corrections(pipe / run / "seal", qa_hide.currently_hidden(pipe / "qa"))
+    n = record_corrections(pipe / "qa", lines, {c["stable_question_id"] for c in lines}, run, now)
+    return {"run": run, "recorded": n, "ids": [c["question_id"] for c in lines]}
+
+
 def record_corrections(qa_dir: Path, corrections: list[dict], published_ids: set, run: str, at: str) -> int:
     """Append one line per published correction to pipeline/qa/corrections.jsonl (the row keeps its id),
     then rewrite qa/restore.sql, which no longer lists the corrected rows (kimport.qa_hide.currently_hidden)."""

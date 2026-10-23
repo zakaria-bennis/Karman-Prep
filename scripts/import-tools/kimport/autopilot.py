@@ -497,6 +497,10 @@ class Autopilot:
             qa_ids = {p["stable_question_id"] for p in preview_rows if p.get("kimport_qa")} & set(sealed_ids)
             self.run["qa_corrected"] = qa_correct.record_corrections(
                 self.pipe / "qa", qres["precheck"]["corrections"], qa_ids, self.run_id, self.now())
+        if fixed_ids:  # a QA correction held at seal comes back through the fix path: record it the same way
+            self.run["qa_corrected"] += qa_correct.record_corrections(
+                self.pipe / "qa", qa_correct.fix_path_corrections(sealed.parent, qa_hide.currently_hidden(self.pipe / "qa")),
+                fixed_ids, self.run_id, self.now())
         released = lane.release_ids(lane.claims_path_for(self.lane), sealed_ids)
         self.finish_batches({i: True for i in sealed_ids}, {h["stable_question_id"] for h in held}, fixed_ids)
         self.say(f"Visible now: {counts['bank_visible']}. {len(released)} finished claims released.")

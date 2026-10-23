@@ -133,3 +133,45 @@ class TestAutopilotPassesKeptIdentities(AutopilotCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFixPathCorrections(unittest.TestCase):
+    """A QA correction held at seal comes back through the fix path; once published it is recorded in
+    qa/corrections.jsonl like any QA correction (so certify counts it and restore.sql drops it)."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = tempfile.TemporaryDirectory()
+        self.pipe = Path(self.tmp.name)
+        (self.pipe / "qa").mkdir()
+        (self.pipe / "qa" / "hidden.jsonl").write_text(json.dumps({
+            "id": "qid-1", "at": "2026-10-23T07:44:22Z", "reason": "qa:audit: certify: header_footer_line",
+            "content_hash_v2": "before", "label": "audit", "run": "hide-x",
+            **{f"previous_{c}": v for c, v in (("publish_status", "publish_ready"), ("import_status", "ok"),
+                                               ("import_flag_reason", None), ("archived_at", None))}}) + "\n")
+        seal = self.pipe / "auto-1" / "seal"
+        seal.mkdir(parents=True)
+        src = {"source_version": V, "source_section": "writing", "source_module": "UNSPECIFIED", "source_question_number": 21}
+        other = {**src, "source_question_number": 22}
+        (seal / "sealed-preview.json").write_text(json.dumps({"rows": [
+            {**src, "stable_question_id": "SYN_Q21", "kimport_batch": "r3-qa-90", "kimport_fix": True},
+            {**other, "stable_question_id": "SYN_Q22", "kimport_batch": "r1-9", "kimport_fix": True}]}))
+        (seal / "private-readback.json").write_text(json.dumps({"rows": [
+            {"snapshot": {"question": {**src, "id": "qid-1", "content_hash_v2": "after", "correct_answer": "B"}}},
+            {"snapshot": {"question": {**other, "id": "qid-2", "content_hash_v2": "h2", "correct_answer": "A"}}}]}))
+        (self.pipe / "auto-1" / "result.json").write_text(json.dumps({"result": "published"}))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_only_qa_hidden_rows_are_recorded_once(self):
+        res = qc.backfill_fix_corrections(self.pipe, "auto-1", "2026-10-23T12:00:00Z")
+        self.assertEqual((res["recorded"], res["ids"]), (1, ["qid-1"]))  # qid-2 was a plain held row
+        line, = [json.loads(x) for x in (self.pipe / "qa" / "corrections.jsonl").read_text().splitlines()]
+        self.assertEqual({k: line[k] for k in ("question_id", "stable_question_id", "batch", "before_content_hash_v2",
+                                               "after_content_hash_v2", "after_correct_answer", "via", "run")},
+                         {"question_id": "qid-1", "stable_question_id": "SYN_Q21", "batch": "r3-qa-90",
+                          "before_content_hash_v2": "before", "after_content_hash_v2": "after",
+                          "after_correct_answer": "B", "via": "fix", "run": "auto-1"})
+        self.assertEqual(qc.backfill_fix_corrections(self.pipe, "auto-1", "2026-10-23T12:01:00Z")["recorded"], 0)
+        self.assertNotIn("qid-1", (self.pipe / "qa" / "restore.sql").read_text())

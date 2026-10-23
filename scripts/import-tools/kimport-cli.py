@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, qa_certify, qa_run, stage, sweep, writer  # noqa: E402
+from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, qa_certify, qa_correct, qa_run, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -598,6 +598,13 @@ def _register_qa(sub) -> None:
     rt.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
     rt.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_retag(
         Path(a.pipe), a.decisions, a.now, a.dry, a.export, a.live_rows, _qa_deps()))))
+    fc = qsub.add_parser("record-fix-corrections",
+                         help="record in qa/corrections.jsonl the QA corrections a run published through the fix path")
+    fc.add_argument("--pipe", required=True, help="the pipeline folder")
+    fc.add_argument("--run", required=True, help="the autopilot run folder name (auto-<time>)")
+    fc.add_argument("--now", required=True, help="ISO-8601 time")
+    fc.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_correct.backfill_fix_corrections(
+        Path(a.pipe), a.run, a.now))))
     ce = qsub.add_parser("certify", help="certify every student-visible question (read-only): static checks, render on "
                                          "main, answer evidence -> qa/certificate-<date>.md and .json")
     ce.add_argument("--pipe", required=True, help="the pipeline folder (qa/, batches/)")
