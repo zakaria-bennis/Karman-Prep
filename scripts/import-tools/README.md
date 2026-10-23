@@ -231,6 +231,20 @@ k lock release --path $PIPE/writer.lock --holder <your-name>
 
 `--holder` is always required. A readable lock from a session that died is released by passing that session's name (the `error: writer lock held by <name>` message from `lock acquire` shows it). `--force` only removes a lock file that cannot be read.
 
+## Live-bank QA: hide problem questions, restore them after a fix
+
+```
+k qa hide --results $PIPE/qa/results-r1.jsonl $PIPE/qa/results-r2.jsonl $PIPE/qa/results-r3.jsonl [--ids $PIPE/qa/static-ids.json] --pipe $PIPE --now <time> --dry
+k qa hide --results ... [--ids ...] --pipe $PIPE --now <time>          # live write
+k qa restore --ids <ids file> --results ... [--audit <current audit ids>] --pipe $PIPE --now <time> [--dry] [--skip-refused]
+```
+
+Hidden: verdict key_wrong, broken, unsure, minor_typo or minor; a line with flags or a mismatch and no verdict yet (still being reviewed); every id in an `--ids` file (a JSON list of ids or of objects with an id, or one id per line). Stays live: clean, key_ok, a line with `clean: true`, and pending (not checked yet). Any other verdict is listed under `unknown_verdicts_not_hidden`; a real run refuses until `kimport/qa_hide.py` names it. A later line for the same id wins.
+
+`k qa hide` takes the writer lock, exports, and writes `$PIPE/qa/hide-<time>/hide.sql` (+ `.dryrun.sql`): the export fingerprint guard, then per row a guard that it is still live and unchanged, then publish_status `needs_human_review`, import_status `needs_review`, import_flag_reason `qa:<verdict>: <fix>` and archived_at `now()` (archived rows are ignored by the duplicate checks, so a corrected replacement can be published as a new row). Intent `qa_hide`, dry run, real file, readback, intent closed. The rows go in `$PIPE/qa/hidden.jsonl` with their previous values, and `$PIPE/qa/restore.sql` (+ `.dryrun.sql`) is rewritten: it puts back exactly every row QA still hides. `--dry` writes no lock, intent or log and runs only the dry run. Archived rows drop out of `/admin/questions/review`, the default admin preview and the private student view.
+
+`k qa restore` republishes listed rows only when QA hid them, the results no longer call them unresolved, the audit list (`--audit`) no longer names them, their state is still what the hide left, and no other live row has the same comparison key. The guard is a fresh export, so the fix may have changed the content. It appends to `$PIPE/qa/restored.jsonl`.
+
 ## If something goes wrong
 
 Messages are quoted from the tool. A `refused:` line means the SQL builder wrote nothing; an `error:` line means that command did not finish.

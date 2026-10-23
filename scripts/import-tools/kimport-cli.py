@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, stage, sweep, writer  # noqa: E402
+from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, qa_run, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -29,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     _register_lane(sub)
     _register_autopilot(sub)
     _register_figures(sub)
+    _register_qa(sub)
     return parser
 
 
@@ -535,6 +536,40 @@ def _register_figures(sub) -> None:
             print(f"  drafting {who}: {n}")
 
     st.set_defaults(func=lambda a: _guard(lambda: status(a)))
+
+
+def _register_qa(sub) -> None:
+    qa = sub.add_parser("qa", help="live-bank QA: hide questions with problems, republish them once fixed")
+    qa.set_defaults(func=lambda a: (qa.print_help(sys.stderr), 2)[1])
+    qsub = qa.add_subparsers(dest="qa_action", metavar="<action>")
+    hd = qsub.add_parser("hide", help="hide (un-publish) live questions the QA results or the audit list say to hide")
+    hd.add_argument("--results", nargs="+", required=True, help="pipeline/qa/results-*.jsonl (later lines win)")
+    hd.add_argument("--ids", action="append", default=[], help="extra id list from the automated audit (repeatable)")
+    hd.add_argument("--pipe", required=True, help="the pipeline folder (writer.lock, intents.jsonl, qa/)")
+    hd.add_argument("--now", required=True, help="ISO-8601 time")
+    hd.add_argument("--export", help="use this saved export instead of taking a fresh one")
+    hd.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
+    hd.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_hide(
+        Path(a.pipe), a.results, a.ids, a.now, a.dry, a.export, _qa_deps()))))
+    rs = qsub.add_parser("restore", help="republish QA-hidden questions whose fix is in (no longer unresolved)")
+    rs.add_argument("--ids", required=True, help="ids to republish (JSON list or one per line)")
+    rs.add_argument("--results", nargs="+", required=True, help="the current results files")
+    rs.add_argument("--audit", action="append", default=[], help="current audit id list; listed ids are refused")
+    rs.add_argument("--pipe", required=True)
+    rs.add_argument("--now", required=True)
+    rs.add_argument("--export", help="use this saved export instead of taking a fresh one")
+    rs.add_argument("--skip-refused", action="store_true", help="republish the eligible rows, list the rest")
+    rs.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
+    rs.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_restore(
+        Path(a.pipe), a.ids, a.results, a.audit, a.now, a.dry, a.export, a.skip_refused, _qa_deps()))))
+
+
+def _qa_deps():
+    return qa_run.Deps(log=lambda m: print(m, file=sys.stderr, flush=True))
+
+
+def _qa_print(res: dict) -> None:
+    print(json.dumps(res, indent=2, ensure_ascii=False))
 
 
 def _promote(clusters: str, occ_id: str, lane_path: str) -> None:
