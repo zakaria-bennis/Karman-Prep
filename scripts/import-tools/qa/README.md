@@ -31,6 +31,14 @@ python3 -I scripts/import-tools/qa-audit.py summary --out $PIPE/qa
   missing (`--redo` renders again, `--ids a,b` picks questions).
 - **summary** writes `summary.md`: counts per check and the ids.
 
+Text is judged the way main's MathText displays it (`ts/qa-check.ts` `displaySegments`, using main's
+`dash-blank-display.ts` and `hyphen-spacing-display.ts`): a hyphen run that shows as an em dash, `______ blank`
+that shows as one blank, `- ` lines that show as bullets or currency that shows as prose are not counted. A
+`figure_kind` with no figure data at all draws nothing and no empty column on main: `figure_kind_without_figure`
+(review); `figure_referenced_missing` still fails a text that needs the figure. The fail-level checks are also the
+import publish gate (`kimport/qa_gate.py`; README "Publish gate"), and `k qa certify` (README "QA certificate")
+runs this audit plus the render on current main and the answer evidence for every student-visible question.
+
 Next 16 refuses a second dev server in a folder that already runs one: start this one from a
 separate checkout of the branch.
 

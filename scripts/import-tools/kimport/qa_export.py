@@ -6,7 +6,9 @@ question. This export keeps, for each row with is_live = true, every
 quiz_questions column the student screen and the catalog lane read (all but
 grader_votes, question_bbox, source_regions and figure_quality), its
 answer_choices rows in full (letter order), and its answer_key_entries (id and
-raw_model_response, in created_at, id order).
+raw_model_response, in created_at, id order). With visible=True (`k qa certify`) it keeps
+only the rows students can see: is_live and a publish_status quiz_questions_live serves
+(publish_ready, publish_ready_with_verified_repair).
 
 It reads through the REST API with GET requests only, using the service key in
 .env.local (the Management API path `k export` uses takes minutes per page when
@@ -73,17 +75,25 @@ def rest_getter(env_file: Path):
     return get
 
 
-def rest_page_query(after: str, limit: int) -> str:
+# The rows quiz_questions_live serves to students (is_live and one of these publish statuses).
+VISIBLE_STATUSES = ("publish_ready", "publish_ready_with_verified_repair")
+
+
+def _where(visible: bool) -> str:
+    return "&is_live=eq.true" + (f"&publish_status=in.({','.join(VISIBLE_STATUSES)})" if visible else "")
+
+
+def rest_page_query(after: str, limit: int, visible: bool = False) -> str:
     after, limit = uuid_literal(after), int(limit)
     return ("quiz_questions?select=*,answer_choices(*),answer_key_entries(id,raw_model_response,created_at)"
-            f"&is_live=eq.true&id=gt.{after}&order=id.asc&limit={limit}"
+            f"{_where(visible)}&id=gt.{after}&order=id.asc&limit={limit}"
             "&answer_choices.order=letter.asc&answer_key_entries.order=created_at.asc,id.asc")
 
 
-def _rest_state(get, sleep, log) -> dict:
+def _rest_state(get, sleep, log, visible: bool = False) -> dict:
     rows, after = [], _ZERO
     while True:
-        got = _retry(lambda: get(f"quiz_questions?select=id,content_hash_v2,publish_status&is_live=eq.true"
+        got = _retry(lambda: get(f"quiz_questions?select=id,content_hash_v2,publish_status{_where(visible)}"
                                  f"&id=gt.{after}&order=id.asc&limit=1000"), sleep, log)
         rows += got
         if len(got) < 1000:
@@ -99,25 +109,27 @@ def _shape(row: dict) -> dict:
     return row
 
 
-def run_qa_export(out: Path, env_file: Path, get=None, page: int = 200, sleep=time.sleep, log=print) -> dict:
+def run_qa_export(out: Path, env_file: Path, get=None, page: int = 200, sleep=time.sleep, log=print,
+                  visible: bool = False) -> dict:
     get = get or rest_getter(env_file)
     out = Path(out)
     for attempt in range(1, 4):
         started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        before = _rest_state(get, sleep, log)
+        before = _rest_state(get, sleep, log, visible)
         rows, after = [], _ZERO
         while True:
-            got = _retry(lambda: get(rest_page_query(after, page)), sleep, log)
+            got = _retry(lambda: get(rest_page_query(after, page, visible)), sleep, log)
             rows += [_shape(r) for r in got]
             if len(rows) % 1000 < page:
                 log(f"  {len(rows)} rows")
             if len(got) < page:
                 break
             after = got[-1]["id"]
-        end = _rest_state(get, sleep, log)
+        end = _rest_state(get, sleep, log, visible)
         mine = live_fingerprint(rows)
         if before["fingerprint"] == end["fingerprint"] == mine and before["row_count"] == end["row_count"] == len(rows):
-            doc = {"exported_at": started, "row_count": len(rows), "fingerprint": mine, "rows": rows}
+            doc = {"exported_at": started, "row_count": len(rows), "fingerprint": mine,
+                   "scope": "visible" if visible else "live", "rows": rows}
             write_text_atomic(out, json.dumps(doc, ensure_ascii=False) + "\n")
             return {"rows": len(rows), "fingerprint": mine, "out": str(out)}
         log(f"  attempt {attempt}: live bank changed during the export; starting over")

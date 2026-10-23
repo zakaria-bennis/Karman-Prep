@@ -9,6 +9,10 @@
 // the source text become a single continuous underline at the baseline
 // instead of the dashed-looking sequence of `_` glyphs most fonts
 // produce. SAT R&W and Conventions questions rely on this.
+//
+// Prose (never math) shows hyphen runs as one em dash and blank-position
+// hyphen runs as blanks (dash-blank-display.ts), "- " list lines as bullets
+// and space-split compounds joined (hyphen-spacing-display.ts).
 // ============================================================
 
 import { Fragment, useMemo, type ReactNode } from "react";
@@ -18,6 +22,8 @@ import "katex/dist/katex.min.css";
 import { parseSourceUnderlining } from "./source-underlining";
 import { parseSourceItalics } from "./source-italics";
 import { splitMathText, type MathSegment } from "./math-segments";
+import { blankSegments } from "./dash-blank-display";
+import { displayLineHyphens, joinAfterMath } from "./hyphen-spacing-display";
 
 interface Props {
   text: string;
@@ -34,37 +40,23 @@ interface Props {
   treatBlankWord?: boolean;
 }
 
-/** Patterns for fill-in-the-blank markers:
- *    Underscores-only:  `__`, `_____`           (universal — always replaced)
- *    Composite marker: `_____blank`, `__blank__` (one blank, not visible prose)
+/** Fill-in-the-blank markers (patterns in dash-blank-display.ts):
+ *    Underscores:       `__`, `_____`, `_ _ _`   (universal — always replaced)
+ *    Composite marker:  `_____blank`, `______ blank` (one blank, not visible prose)
+ *    Hyphen blank:      ` ------ ` (5+ hyphens with space or edge on both sides)
  *    Word "blank":      `blank`, `_blank_`,
  *                       `-blank-`, `__blank__`  (passage-only — opt-in)
  *
- *  The lookarounds `(?<!\w) / (?!\w)` prevent matching inside larger
- *  words: "blanket", "unblanked", "var_name" stay untouched. */
-const UNDERSCORE_PATTERN = /(?<!\w)_{2,}blank_*(?!\w)|_{2,}/gi;
-const BLANK_OR_UNDERSCORE_PATTERN = /(?<!\w)[_-]*blank[_-]*(?!\w)|_{2,}/gi;
-
-/** Replace each blank marker with one fixed-width continuous underline
- *  at the baseline. Width is uniform — what matters is that the blank
- *  reads as one clean line, not a string of dashes or the literal word. */
+ *  Lookarounds keep "blanket", "unblanked" and "var_name" untouched; URLs and
+ *  `code` keep their underscores.
+ *
+ *  Each marker becomes one fixed-width continuous underline at the baseline.
+ *  Width is uniform — what matters is that the blank reads as one clean line,
+ *  not a string of dashes or the literal word. Text between blanks gets the
+ *  dash display (hyphen runs as "—"). */
 function renderTextWithBlanks(text: string, segKey: number, treatBlankWord: boolean): ReactNode {
-  const pattern = treatBlankWord ? BLANK_OR_UNDERSCORE_PATTERN : UNDERSCORE_PATTERN;
-  // Walk via matchAll so we get both the matches and the in-between text.
-  const segments: { value: string; isBlank: boolean }[] = [];
-  let cursor = 0;
-  for (const m of text.matchAll(pattern)) {
-    if (m.index === undefined) continue;
-    if (m.index > cursor) {
-      segments.push({ value: text.slice(cursor, m.index), isBlank: false });
-    }
-    segments.push({ value: m[0], isBlank: true });
-    cursor = m.index + m[0].length;
-  }
-  if (segments.length === 0) return text; // hot path — most segments
-  if (cursor < text.length) {
-    segments.push({ value: text.slice(cursor), isBlank: false });
-  }
+  const segments = blankSegments(text, treatBlankWord);
+  if (segments.length === 1 && !segments[0].isBlank) return segments[0].value; // hot path
   return (
     <>
       {segments.map((s, i) => {
@@ -114,7 +106,7 @@ export default function MathText({
 }: Props) {
   const runs = useMemo(
     () =>
-      parseSourceUnderlining(text).map((run, index, sourceRuns) => ({
+      parseSourceUnderlining(displayLineHyphens(text)).map((run, index, sourceRuns) => ({
         ...run,
         italicRuns: parseSourceItalics(run.text).map((italicRun, italicIndex, italicRuns) => ({
           ...italicRun,
@@ -152,8 +144,10 @@ export default function MathText({
 
   function renderSegments(segs: MathSegment[]) {
     return segs.map((s, i) => {
-      if (s.kind === "text")
-        return <span key={i}>{renderTextWithBlanks(s.value, i, treatBlankWord)}</span>;
+      if (s.kind === "text") {
+        const value = segs[i - 1]?.kind === "inline" ? joinAfterMath(s.value) : s.value;
+        return <span key={i}>{renderTextWithBlanks(value, i, treatBlankWord)}</span>;
+      }
       if (s.kind === "inline") {
         // Baseline alignment + inheriting color/size keeps the
         // math inline with prose. The CSS override on .katex in
@@ -194,8 +188,10 @@ export default function MathText({
     );
   }
 
+  // overflow-wrap: anywhere lets an unbroken run (a long URL, "transportation/warehousing",
+  // "9(4n)+8n+3(15)=100") wrap inside a narrow choice or column instead of running past it.
   return (
-    <span className={className} style={{ whiteSpace: "pre-wrap" }}>
+    <span className={className} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
       {runs.map((run, index) =>
         run.underlined ? (
           <Fragment key={index}>

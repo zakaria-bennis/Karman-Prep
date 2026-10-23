@@ -2,6 +2,9 @@
 // Student QA audit, the checks that need the app's own code (`qa-audit.py static` runs this).
 // For each live row of the full QA export it runs the functions the student screen and the
 // catalog lane run, and reports what would break or show wrongly:
+// Text is judged as main's MathText DISPLAYS it (hyphen runs as em dashes, underscore runs and
+// "______ blank" as one blank, list bullets, joined compounds, currency kept as prose): see
+// displaySegments. Each field's display text goes to the Python checks (qa_static.py).
 //   markup    source underline/italic tokens the parsers refuse (shown as literal text), and any
 //             other HTML-looking tag or [[x]] token left in a text segment
 //   math      every math span MathText would hand to KaTeX, parsed with throwOnError; LaTeX
@@ -9,15 +12,18 @@
 //   figure    figureImportErrors (table, chart, geometry, SVG checks) and isValidChoiceTableData,
 //             plus what CatalogQuestion would actually draw for the row's figure columns
 //   delivery  the catalog lane (fetchCatalogQuestionPool): scope evidence, payload seal,
-//             reviewed numeric answer set; numeric keys parseNumericAnswer accepts
-// Usage: npx tsx scripts/import-tools/ts/qa-check.ts <live-full.json> <out.json>
-// Writes {"<id>": {"checks": {"<check>": ["detail", ...]}, "figure": {...}}}.
+//             reviewed numeric answer set (skipped with --gate: the import publish gate checks
+//             rows before they are sealed); numeric keys parseNumericAnswer accepts
+// Usage: npx tsx scripts/import-tools/ts/qa-check.ts [--gate] <rows.json> <out.json>
+// Writes {"<id>": {"checks": {"<check>": ["detail", ...]}, "figure", "display": {field: text}}}.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import katex from "katex";
 import { splitMathText } from "@/components/learn/math-segments";
 import { parseSourceUnderlining } from "@/components/learn/source-underlining";
 import { parseSourceItalics } from "@/components/learn/source-italics";
+import { blankSegments } from "@/components/learn/dash-blank-display";
+import { displayLineHyphens, joinAfterMath } from "@/components/learn/hyphen-spacing-display";
 import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
 import { figureImportErrors, type ImportFigureFields } from "@/lib/question-bank/import-figure";
 import { buildGeometrySvg, type GeometryFigureData } from "@/lib/figures/geometry-svg";
@@ -46,12 +52,24 @@ function add(f: Findings, check: string, detail: string) {
   (f[check] ??= []).push(detail);
 }
 
-/** The text runs MathText shows for one field, exactly as it splits them. */
-export function displaySegments(text: string, serializedFunctionLines: boolean) {
-  const underline = parseSourceUnderlining(text);
-  const out: { kind: "text" | "inline" | "block"; value: string }[] = [];
+/** The blank a display text carries where MathText draws an answer blank. */
+export const DISPLAY_BLANK = "_____";
+
+/** The runs MathText shows for one field, exactly as main's MathText splits and displays them:
+ *  line-start hyphens (bullets, spaced minus signs), underline and italic tokens, math, then in
+ *  each text run the text after inline math joined, blanks found and the prose shown with
+ *  em dashes and joined compounds (dash-blank-display.ts, hyphen-spacing-display.ts).
+ *  `treatBlankWord` is what the catalog screen passes: true for passage, passage_a, passage_b. */
+export function displaySegments(
+  text: string,
+  serializedFunctionLines: boolean,
+  treatBlankWord = false
+) {
+  const source = displayLineHyphens(text);
+  const underline = parseSourceUnderlining(source);
+  const out: Segment[] = [];
   const problems: string[] = [];
-  const hasU = /\[\[\/?u\]\]|<\/?u>/.test(text);
+  const hasU = /\[\[\/?u\]\]|<\/?u>/.test(source);
   if (hasU && underline.length === 1 && !underline[0].underlined)
     problems.push("underline tokens are unmatched, so they show as text");
   underline.forEach((run, index) => {
@@ -69,26 +87,59 @@ export function displaySegments(text: string, serializedFunctionLines: boolean) 
           ? index === underline.length - 1 || underline[index + 1].text.startsWith("\n")
           : italics[italicIndex + 1].text.startsWith("\n")
       );
-      for (const s of segs) {
-        const last = out.at(-1);
-        // Neighbouring text pieces read as one run (a currency $ is split off on its own).
-        if (s.kind === "text" && last?.kind === "text") last.value += s.value;
-        else
-          out.push(
-            s.kind === "text" ? { kind: "text", value: s.value } : { kind: s.kind, value: s.latex }
-          );
-      }
+      segs.forEach((s, i) => {
+        if (s.kind !== "text") {
+          out.push({ kind: s.kind, value: s.latex });
+          return;
+        }
+        const value = segs[i - 1]?.kind === "inline" ? joinAfterMath(s.value) : s.value;
+        for (const b of blankSegments(value, treatBlankWord)) {
+          const last = out.at(-1);
+          if (b.isBlank) out.push({ kind: "blank", value: b.value });
+          // Neighbouring text pieces read as one run (a currency $ is split off on its own).
+          else if (last?.kind === "text") last.value += b.value;
+          else out.push({ kind: "text", value: b.value });
+        }
+      });
     });
   });
   return { segments: out, problems };
 }
 
-export function checkText(f: Findings, field: string, text: string, serialized: boolean) {
-  if (!text) return;
-  const { segments, problems } = displaySegments(text, serialized);
+type Segment = { kind: "text" | "inline" | "block" | "blank"; value: string };
+
+/** One field as the student reads it: math as $…$ / $$…$$, each blank as DISPLAY_BLANK. */
+export function displayText(segments: Segment[]): string {
+  return segments
+    .map((s) =>
+      s.kind === "text"
+        ? s.value
+        : s.kind === "blank"
+          ? DISPLAY_BLANK
+          : s.kind === "inline"
+            ? `$${s.value}$`
+            : `$$${s.value}$$`
+    )
+    .join("");
+}
+
+export function checkText(
+  f: Findings,
+  field: string,
+  text: string,
+  serialized: boolean,
+  treatBlankWord = false
+): { display: string; blanks: number } {
+  if (!text) return { display: "", blanks: 0 };
+  const { segments, problems } = displaySegments(text, serialized, treatBlankWord);
   for (const p of problems) add(f, "markup_unmatched", `${field}: ${p}`);
   for (const s of segments) {
-    if (s.kind === "text") {
+    if (s.kind === "blank") {
+      // Passages draw the bare word "blank" as an answer line (treatBlankWord); prose that
+      // means the word ("a blank page") then reads wrongly.
+      if (/^blank$/i.test(s.value))
+        add(f, "word_blank_drawn_as_line", `${field}: the word 'blank' is drawn as a blank line`);
+    } else if (s.kind === "text") {
       for (const m of s.value.matchAll(MARKUP_TOKEN)) add(f, "markup_as_text", `${field}: ${m[0]}`);
       const latex = s.value.match(LATEX_IN_TEXT);
       if (latex)
@@ -127,6 +178,10 @@ export function checkText(f: Findings, field: string, text: string, serialized: 
       }
     }
   }
+  return {
+    display: displayText(segments),
+    blanks: segments.filter((x) => x.kind === "blank").length,
+  };
 }
 
 /** What CatalogQuestion draws for this row's figure columns (null = nothing). */
@@ -148,10 +203,24 @@ export function renderedFigure(q: Obj): string | null {
   return null;
 }
 
+const FIGURE_DATA = [
+  "figure_table_data",
+  "figure_chart_data",
+  "figure_geometry_data",
+  "figure_svg",
+  "image_url",
+  "figure_graph_data",
+];
+
 export function checkFigure(f: Findings, q: Obj) {
   const kind = (q.figure_kind ?? null) as string | null;
   const known = kind === null || ["table", "chart", "geometric", "image"].includes(kind);
+  // A figure_kind with no figure data at all: the screen draws no figure and (main, #228) no
+  // empty figure column, so the student meets a text question. figure_referenced_missing
+  // catches a text that needs the figure.
+  const bare = kind !== null && FIGURE_DATA.every((c) => q[c] == null || q[c] === "");
   if (!known) add(f, "figure_invalid", `figure_kind ${kind} is not one the quiz draws`);
+  else if (bare) add(f, "figure_kind_without_figure", `figure_kind ${kind} with no figure data`);
   else {
     for (const e of figureImportErrors({
       figure_kind: kind as ImportFigureFields["figure_kind"],
@@ -171,7 +240,8 @@ export function checkFigure(f: Findings, q: Obj) {
   const drawn = renderedFigure(q);
   if (q.figure_graph_data != null)
     add(f, "figure_not_drawn", "figure_graph_data is set; no student screen draws it");
-  if (kind && !drawn) add(f, "figure_not_drawn", `figure_kind ${kind} but nothing is drawn`);
+  if (kind && !drawn && !bare)
+    add(f, "figure_not_drawn", `figure_kind ${kind} but nothing is drawn`);
   if (q.figure_svg && q.image_url) add(f, "figure_not_drawn", "figure_svg is hidden by image_url");
   return drawn;
 }
@@ -184,11 +254,6 @@ export function checkDelivery(f: Findings, q: Obj): string {
     const tag = (r: Obj | null) => (r?.approved_tags as Obj | undefined)?.catalog_skill_id;
     return Boolean(tag(raw) ?? tag(ev));
   });
-  if (
-    q.answer_format === "numeric_entry" &&
-    parseNumericAnswer(String(q.correct_answer ?? "")) === null
-  )
-    add(f, "numeric_key_unparseable", `correct_answer ${clip(String(q.correct_answer), 40)}`);
   if (!entries.length) return "no_catalog_tag";
   if (entries.length > 1) {
     add(
@@ -230,39 +295,60 @@ export function checkDelivery(f: Findings, q: Obj): string {
   return "served";
 }
 
-export function checkRow(q: Obj) {
+/** Passages draw the word "blank" as an answer line (CatalogQuestion passes treatBlankWord). */
+const BLANK_WORD_FIELDS = new Set(["passage", "passage_a", "passage_b"]);
+
+/** Every check of one row. `gate`: a row not yet sealed (the import publish gate), so the
+ *  catalog-lane delivery checks that need a seal are skipped; the numeric key is still checked. */
+export function checkRow(q: Obj, gate = false) {
   const f: Findings = {};
   const math = q.subject === "math";
-  for (const field of ["passage_intro", "passage", "passage_a", "passage_b"])
-    checkText(f, field, String(q[field] ?? ""), false);
-  checkText(f, "question_text", String(q.question_text ?? ""), math);
+  const display: Record<string, string> = {};
+  let blanks = 0;
+  const field = (name: string, text: unknown, serialized: boolean) => {
+    const r = checkText(f, name, String(text ?? ""), serialized, BLANK_WORD_FIELDS.has(name));
+    if (text) display[name] = r.display;
+    if (name !== "passage_intro" && !name.startsWith("choice ")) blanks += r.blanks;
+  };
+  for (const name of ["passage_intro", "passage", "passage_a", "passage_b"])
+    field(name, q[name], false);
+  field("question_text", q.question_text, math);
   for (const c of (q.answer_choices ?? []) as Obj[])
-    checkText(f, `choice ${String(c.letter)}`, String(c.choice_text ?? ""), math);
+    field(`choice ${String(c.letter)}`, c.choice_text, math);
+  if (blanks > 1) add(f, "multiple_blanks", `${blanks} blanks across passage and stem`);
   const figure = checkFigure(f, q);
-  const delivery = checkDelivery(f, q);
+  if (
+    q.answer_format === "numeric_entry" &&
+    parseNumericAnswer(String(q.correct_answer ?? "")) === null
+  )
+    add(f, "numeric_key_unparseable", `correct_answer ${clip(String(q.correct_answer), 40)}`);
+  const delivery = gate ? "not_checked" : checkDelivery(f, q);
   const choiceTables = ((q.answer_choices ?? []) as Obj[]).filter(
     (c) => c.choice_table_data != null
   ).length;
-  return { checks: f, figure, choice_tables: choiceTables, delivery };
+  return { checks: f, figure, choice_tables: choiceTables, delivery, display };
 }
 
 if (/qa-check\.ts$/.test(process.argv[1] ?? "")) {
-  const [input, output] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const gate = args[0] === "--gate";
+  const [input, output] = gate ? args.slice(1) : args;
   if (!input || !output) {
-    console.error("usage: qa-check.ts <live-full.json> <out.json>");
+    console.error("usage: qa-check.ts [--gate] <live-full.json> <out.json>");
     process.exit(2);
   }
   const doc = JSON.parse(readFileSync(input, "utf8")) as { rows: Obj[] };
   const result: Record<string, ReturnType<typeof checkRow>> = {};
   for (const row of doc.rows) {
     try {
-      result[String(row.id)] = checkRow(row);
+      result[String(row.id)] = checkRow(row, gate);
     } catch (e) {
       result[String(row.id)] = {
         checks: { checker_crashed: [String((e as Error).message)] },
         figure: null,
         choice_tables: 0,
         delivery: "unknown",
+        display: {},
       };
     }
   }

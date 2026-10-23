@@ -94,3 +94,9 @@ Duplicate sweeps, the comparison key backfill, the corpus count and guarded
 publish SQL come from `scripts/import-tools/`. Follow the runbook in
 [`scripts/import-tools/README.md`](../../scripts/import-tools/README.md). Every
 live write in it still needs the founder's go-ahead per batch.
+
+Publish gate: a reviewed row that fails any fail-level check of the live QA audit
+(broken structure, text that would show wrongly on main's question screen, a
+figure that cannot be drawn) is pulled at lint (`PF_QA`, with the check name)
+and refused at stage (`qa gate: <check>`), before any write. Fix the row and
+hand it in again. `k qa certify` re-checks every student-visible question.

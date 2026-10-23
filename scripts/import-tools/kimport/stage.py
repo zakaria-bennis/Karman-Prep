@@ -16,8 +16,10 @@ the export the precheck read.
 Before writing SQL, the precheck (kimport.publish.duplicate_check, the same
 check publish runs) refuses rows whose key or typo-level text matches a
 non-archived export row or another row of the batch, and rows whose source
-tuple, content hash or normalized text is already in the export. Refused rows
-are listed in precheck.json; nothing else is written unless --skip-refused.
+tuple, content hash or normalized text is already in the export, and rows that
+fail the import publish gate (kimport.qa_gate: the live QA audit's fail-level
+checks, "qa gate: <check>: ..."). Refused rows are listed in precheck.json;
+nothing else is written unless --skip-refused.
 
 readback.sql reads the staged rows back in the private-readback shape
 kimport.publish needs. `k seal` then checks that readback against the stage
@@ -36,7 +38,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from kimport import figure_gate
+from kimport import figure_gate, qa_gate
 from kimport.answer_evidence import ambiguous, evidence_root
 from kimport.export import _unwrap, read_export_doc
 from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, comparison_key, is_unkeyable
@@ -356,6 +358,7 @@ def build_stage(batch_dir: Path, export: Path, pdf: Path, rows_doc: dict | None 
 
     items = make_items(rows)
     figure_gate.mark_batch(batch_dir, ready["reviewed_file"], items)
+    qa_gate.mark_items(items)
     report, _ = duplicate_check(items, doc.rows)
     index = export_index(doc.rows)
     reasons: dict[str, list[str]] = {}
@@ -363,7 +366,7 @@ def build_stage(batch_dir: Path, export: Path, pdf: Path, rows_doc: dict | None 
         reasons[it["id"]] = (
             ([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
             + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
-            + _export_conflicts(it, index) + it["figure_gate"])
+            + _export_conflicts(it, index) + it["figure_gate"] + it["qa_gate"])
     refused = {k: v for k, v in reasons.items() if v}
     staged = [it for it in items if it["id"] not in refused]
     precheck = {"batch": batch, **report, "passed": not refused,

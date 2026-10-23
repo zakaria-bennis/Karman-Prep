@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, qa_run, stage, sweep, writer  # noqa: E402
+from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, qa_certify, qa_run, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -217,7 +217,9 @@ def _register_lint(sub) -> None:
                             Path(a.clusters), Path(a.lane), a.now)
         for p in res["pulled"]:
             print(f"pulled {p['id']} {p['code']}: {p['detail']}")
-        print("lint: {passed} passed, {pulled_rows} rows pulled".format(**res))
+        for w in res["warnings"]:
+            print(f"warning {w['id']} {w['check']}: {w['detail']}")
+        print("lint: {passed} passed, {pulled_rows} rows pulled, {n} QA warnings".format(n=len(res["warnings"]), **res))
 
     ln.set_defaults(func=lambda a: _guard(lambda: run(a)))
 
@@ -587,6 +589,14 @@ def _register_qa(sub) -> None:
                      help="write hidden-id-map.json and hidden-stable-ids.json from the reviewed candidate")
     ids.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_ids(
         Path(a.pipe), a.ids, a.now, a.rows, a.ledger, a.clusters, a.write_approved, _qa_deps()))))
+    ce = qsub.add_parser("certify", help="certify every student-visible question (read-only): static checks, render on "
+                                         "main, answer evidence -> qa/certificate-<date>.md and .json")
+    ce.add_argument("--pipe", required=True, help="the pipeline folder (qa/, batches/)")
+    ce.add_argument("--now", required=True, help="ISO-8601 time (names the certificate)")
+    ce.add_argument("--export", help="use this saved visible export (qa_export visible=True) instead of a fresh one")
+    ce.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_certify.run_certify(
+        Path(a.pipe), a.now, Path(a.export) if a.export else None,
+        log=lambda m: print(m, file=sys.stderr, flush=True)))))
 
 
 def _qa_deps():

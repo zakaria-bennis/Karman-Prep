@@ -1,6 +1,8 @@
-"""Batch-start lint: pull reviewed rows with one of five known mistakes.
+"""Batch-start lint: pull reviewed rows with one of six known mistakes.
 
-Pulled rows go to the problem lane; the rest of the batch continues. Nothing
+Pulled rows go to the problem lane; the rest of the batch continues. PF_QA is the
+import publish gate (kimport.qa_gate): every fail-level check of the live QA audit, under
+main's display rules; its review-level findings come back as warnings and pull nothing. Nothing
 here reads the clock (callers pass `now`) and nothing edits question text.
 """
 
@@ -9,7 +11,7 @@ import json
 import re
 from pathlib import Path
 
-from . import figure_gate, lane
+from . import figure_gate, lane, qa_gate
 from .evidence import needs_visual
 from .keys import UNKEYED_FIGURE_FIELDS, is_unkeyable
 from .normalize import NORMALIZER_VERSION
@@ -21,12 +23,13 @@ _ASSET_KEY = re.compile(r"asset|image|figure", re.IGNORECASE)
 
 LANE_REASON = {
     "PF_FIGURE": "extraction_repair",
+    "PF_QA": "extraction_repair",
     "PF_BINDING": "extraction_repair",
     "PF_DIFFICULTY": "classification_review",
     "PF_ENVELOPE": "classification_review",
     "PF_DEDUP_STALE": "variant_review",
 }
-_CODE_ORDER = ("PF_FIGURE", "PF_BINDING", "PF_ENVELOPE", "PF_DIFFICULTY", "PF_DEDUP_STALE")
+_CODE_ORDER = ("PF_FIGURE", "PF_QA", "PF_BINDING", "PF_ENVELOPE", "PF_DIFFICULTY", "PF_DEDUP_STALE")
 
 
 def canonical_json(value) -> str:
@@ -188,9 +191,10 @@ class LintError(ValueError):
 
 
 def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=frozenset(),
-               approved_figures=frozenset(), qa_hidden=frozenset()) -> dict:
-    """Return {"passed": [ids], "pulled": [{id, code, detail}]}. A row with several
-    problems gets one pulled entry per code and is not in `passed`. no_figure: ids a
+               approved_figures=frozenset(), qa_hidden=frozenset(), qa_checker=None) -> dict:
+    """Return {"passed": [ids], "pulled": [{id, code, detail}], "warnings": [{id, check, detail}]}.
+    A row with several problems gets one pulled entry per code and is not in `passed`.
+    qa_checker: stands in for ts/qa-check.ts (tests). no_figure: ids a
     reviewer found to have no figure (figure_gate.no_figure_ids); their text may mention
     a graph without a reviewed asset."""
     data = _load(reviewed)
@@ -216,14 +220,21 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=fr
     if cluster_data.get("normalizer_version") != NORMALIZER_VERSION:
         raise LintError(f"clusters were built with normalizer {cluster_data.get('normalizer_version')!r}, "
                         f"not {NORMALIZER_VERSION!r}: rebuild clusters")
-    passed, pulled = [], []
+    qa = qa_gate.check_rows([qa_gate.row_from_reviewed(r) for r in rows], qa_checker)
+    passed, pulled, warnings = [], [], []
     for row in rows:
         sid = row["stable_question_id"]
+        qa_found = qa.get(sid, {"fail": {}, "review": {}})
+        warnings += [{"id": sid, "check": c, "detail": "; ".join(d)[:300]} for c, d in sorted(qa_found["review"].items())]
         binding = _check_binding(row, pins) if pins is not None else []
         if sid in dupes:
             binding.append("stable_question_id repeats within the batch")
         found = {
             "PF_FIGURE": _check_figure(row, no_figure),
+            # A text that names a missing figure is PF_FIGURE's rule here (it knows reviewed assets and
+            # no-figure.json); the stage gate checks it again on the row the importer builds.
+            "PF_QA": [f"{c}: {'; '.join(d)[:300]}" for c, d in sorted(qa_found["fail"].items())
+                      if c != "figure_referenced_missing"],
             "PF_ENVELOPE": _check_envelope(row),
             "PF_BINDING": binding,
             "PF_DIFFICULTY": _check_difficulty(row),
@@ -236,7 +247,7 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=fr
                 pulled.append({"id": sid, "code": code, "detail": "; ".join(found[code])})
         if not hit:
             passed.append(sid)
-    return {"passed": passed, "pulled": pulled}
+    return {"passed": passed, "pulled": pulled, "warnings": warnings}
 
 
 def write_lane(lane_path: Path, pulled: list, now: str) -> int:
@@ -261,12 +272,12 @@ def qa_hidden_ids(qa_dir: Path) -> frozenset[str]:
         return frozenset()
 
 
-def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str) -> dict:
+def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str, qa_checker=None) -> dict:
     """lint_batch, with no-figure.json read from figures/ beside the lane file."""
     figures = Path(lane).parent / "figures"
     result = lint_batch(reviewed, frozen, clusters, figure_gate.no_figure_ids(figures),
-                        figure_gate.approved_ids(figures), qa_hidden_ids(Path(lane).parent / "qa"))
+                        figure_gate.approved_ids(figures), qa_hidden_ids(Path(lane).parent / "qa"), qa_checker)
     if result["pulled"]:
         write_lane(lane, result["pulled"], now)
     return {"passed": len(result["passed"]), "pulled_rows": len({p["id"] for p in result["pulled"]}),
-            "pulled": result["pulled"]}
+            "pulled": result["pulled"], "warnings": result["warnings"]}

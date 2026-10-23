@@ -33,7 +33,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from kimport import figure_gate
+from kimport import figure_gate, qa_gate
 from kimport.answer_evidence import evidence_root
 from kimport import stage as st
 from kimport.export import FINGERPRINT_SQL, fingerprint, read_export_doc
@@ -138,6 +138,7 @@ def load_batches(dirs: list[Path], exams_dir: Path, rows_docs: dict | None = Non
         results = list(pool.map(one, dirs))
     loaded = [r for r in results if "refused" not in r]
     refused = {r["dir"].name: r["refused"] for r in results if "refused" in r}
+    qa_gate.mark_items([it for b in loaded for it in b["items"]])  # the import publish gate, one run for all
     names = [b["batch"] for b in loaded]
     for b in loaded:
         if names.count(b["batch"]) > 1:
@@ -272,7 +273,8 @@ def build_bulk_stage(batch_dirs, export: Path, name: str, exams_dir: Path = EXAM
     for n, (it, rep) in enumerate(zip(items, report["rows"])):
         reasons = (([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
                    + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
-                   + st._export_conflicts(it, index) + inside.get(n, []) + it.get("figure_gate", []))
+                   + st._export_conflicts(it, index) + inside.get(n, []) + it.get("figure_gate", [])
+                   + it.get("qa_gate", []))
         rep["batch"] = it["batch"]
         if reasons:
             refused[n] = reasons

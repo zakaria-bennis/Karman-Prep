@@ -287,6 +287,7 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
     for it in items:
         it["snap"], why = check_row(it, by_export.get(it["source"], []), by_snap.get(it["source"], []))
         why = why + it.get("figure_gate", [])  # the founder's figure gate, as stage and publish apply it
+        why = why + it.get("qa_gate", [])  # the import publish gate (QA audit fail-level checks), as stage applies it
         if why:
             refused[it["id"]] = why
     ok = [it for it in items if it["id"] not in refused]

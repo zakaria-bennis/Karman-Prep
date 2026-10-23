@@ -66,12 +66,13 @@ class FormattingTest(unittest.TestCase):
         self.assertIn("header_footer_line", run(mc(passage="A quiet harbor.\n\n7\n", stem="Which choice?")))
         self.assertIn("leading_question_number", run(mc(stem="12. Which choice best fits?")))
 
-    def test_blank_rules(self):
-        self.assertIn("blank_then_word_blank", run(mc(stem="The harbor was a ______ blank place. Which choice?")))
-        self.assertNotIn("blank_then_word_blank", run(mc(stem="The harbor was a ______blank place. Which choice?")))
-        self.assertIn("word_blank_drawn_as_line", run(mc(stem="How many blank pages remain?")))
-        self.assertNotIn("word_blank_drawn_as_line", run(mc(choices=["A blank page.", "b", "c", "d"])))
-        self.assertIn("multiple_blanks", run(mc(passage="It was ______ and ______.", stem="Which choice?")))
+    def test_text_is_judged_as_displayed(self):
+        # qa-check.ts returns each field as main's MathText displays it; the Python checks read that.
+        row = mc(stem="The harbor --- quiet at dawn --- woke. Which choice?")
+        self.assertIn("ascii_dash", run(row))
+        ts = {row["id"]: {"checks": {}, "figure": None, "choice_tables": 0, "delivery": "served",
+                          "display": {"question_text": "The harbor—quiet at dawn—woke. Which choice?"}}}
+        self.assertNotIn("ascii_dash", qa_static.audit_rows([row], ts, None)[row["id"]]["checks"])
 
     def test_encoding_problems_and_dashes(self):
         self.assertIn("replacement_char", run(mc(stem="The harbor � was quiet. Which?")))

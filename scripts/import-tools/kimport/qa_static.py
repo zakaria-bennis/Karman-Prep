@@ -5,6 +5,16 @@ Python; the checks that need the app's own code (markup tokens the parsers
 refuse, KaTeX on every math span, the figure validators, the catalog lane) run
 in ts/qa-check.ts, which this module calls once and merges.
 
+Text is judged as main's MathText displays it: ts/qa-check.ts returns each field's display
+text (hyphen runs as em dashes, underscore runs and "______ blank" as one blank, list bullets,
+joined compounds, currency as prose; each blank as five underscores) and the text checks here
+read that, so a source artifact the screen already draws correctly is not counted. The blank
+checks (the word "blank" drawn as a line, several blanks) are in qa-check.ts, which sees the
+blanks the screen draws.
+
+The fail-level checks are also the import publish gate (kimport.qa_gate): lint pulls a
+reviewed row that fails one, and the stage prechecks refuse it before any write.
+
 Each check has a level: "fail" means a student would meet something broken,
 misformatted or unanswerable; "review" means likely wrong and worth a look;
 "info" is a count only (for example a live row the catalog lane does not
@@ -37,7 +47,7 @@ LEVELS = {
     # formatting
     "markdown_as_text": "fail", "markdown_table": "fail", "triple_newline": "review",
     "figure_description_as_text": "fail", "header_footer_line": "fail", "leading_question_number": "fail",
-    "blank_then_word_blank": "fail", "word_blank_drawn_as_line": "fail", "multiple_blanks": "review",
+    "word_blank_drawn_as_line": "fail", "multiple_blanks": "review",
     "ascii_dash": "fail", "replacement_char": "fail", "mojibake": "fail", "control_char": "fail",
     "markup_unmatched": "fail", "markup_as_text": "fail", "latex_as_text": "fail",
     "math_delimiter_unbalanced": "fail", "braces_unbalanced": "fail", "katex_error": "fail", "prose_in_math": "fail",
@@ -46,6 +56,7 @@ LEVELS = {
     "figure_referenced_missing": "fail",
     # figures
     "figure_invalid": "fail", "choice_table_invalid": "fail", "figure_not_drawn": "fail",
+    "figure_kind_without_figure": "review",
     "image_unreachable": "fail",
     # delivery
     "delivery_breaks_skill": "fail", "checker_crashed": "fail",
@@ -61,10 +72,8 @@ _HEADER = re.compile(
     re.I | re.M)
 _PAGE_NUMBER = re.compile(r"^\s*\d{1,3}\s*$", re.M)
 _LEADING_NUMBER = re.compile(r"^\s*(?:\d{1,2}[.)]\s+\S|Q\s*\d{1,2}\b)")
-_BLANK_SPACED_WORD = re.compile(r"_{2,}\s+blank\b", re.I)
-# MathText's blank rules: stems, choices and passages on the catalog screen use treatBlankWord.
-_BLANK_MARK = re.compile(r"(?<!\w)[_-]*blank[_-]*(?!\w)|_{2,}", re.I)
-_LONE_BLANK_WORD = re.compile(r"(?<![\w_-])blank(?![\w_-])", re.I)
+# A blank in display text (qa-check.ts draws each one as five underscores).
+_BLANK_MARK = re.compile(r"_{2,}")
 _FIGS = r"(?:table|graph|figure|chart|diagram|scatterplot|histogram|dot plot|box plot|bar graph|line graph)"
 _FIG_REF = re.compile(
     rf"\b{_FIGS}\s+(?:shown|above|below)\b"
@@ -147,23 +156,26 @@ def structure(row: dict, f: dict) -> None:
         _add(f, "mc_key_not_letter", f"correct_answer {key} has no choice")
 
 
-def _fields(row: dict):
+def _fields(row: dict, display: dict | None = None):
+    """(field, text as displayed): the display text qa-check.ts returned, else the stored text."""
+    display = display or {}
     for name in TEXT_FIELDS:
         v = row.get(name)
         if v:
-            yield name, v
+            yield name, display.get(name, v)
     for c in row.get("answer_choices") or []:
         if c.get("choice_text"):
-            yield f"choice {c.get('letter')}", c["choice_text"]
+            name = f"choice {c.get('letter')}"
+            yield name, display.get(name, c["choice_text"])
 
 
 def _is_math(row: dict) -> bool:
     return row.get("subject") == "math"
 
 
-def formatting(row: dict, f: dict) -> None:
+def formatting(row: dict, f: dict, display: dict | None = None) -> None:
     reading = row.get("subject") != "math"
-    for name, v in _fields(row):
+    for name, v in _fields(row, display):
         for pat, check in ((r"\*\*|(?<![\w\\$])\*(?=\S)[^*\n$]+(?<=\S)\*(?!\w)", "markdown_as_text"),
                            (r"!\[", "markdown_as_text"), (r"^\s*#{1,6}\s", "markdown_as_text")):
             for m in re.finditer(pat, v, re.M):
@@ -181,10 +193,6 @@ def formatting(row: dict, f: dict) -> None:
                 _add(f, "header_footer_line", f"{name}: page-number line {m.group(0).strip()!r}")
         if name in ("question_text", "passage", "passage_a") and _LEADING_NUMBER.match(v) and not (row.get("subject") == "math" and name == "question_text" and re.match(r"^\s*\d+[.)]\s*\d", v)):
             _add(f, "leading_question_number", f"{name}: starts {v.strip()[:20]!r}")
-        for m in _BLANK_SPACED_WORD.finditer(v):
-            _add(f, "blank_then_word_blank", f"{name}: {_excerpt(v, m.start(), m.end())}")
-        for m in (_LONE_BLANK_WORD.finditer(v) if name in PASSAGES + ("question_text",) else ()):
-            _add(f, "word_blank_drawn_as_line", f"{name}: the word 'blank' is drawn as a blank line: {_excerpt(v, m.start(), m.end())}")
         if not _is_math(row):
             for m in re.finditer(r"(?<!-)-{3}(?!-)|\s--\s|\w--\w", v):
                 _add(f, "ascii_dash", f"{name}: {_excerpt(v, m.start(), m.end(), 20)}")
@@ -195,9 +203,6 @@ def formatting(row: dict, f: dict) -> None:
         if _CONTROL.search(v):
             _add(f, "control_char", f"{name}: control character {hex(ord(_CONTROL.search(v).group(0)))}")
         _braces(v, name, f)
-    blanks = sum(len(_BLANK_MARK.findall(row.get(n) or "")) for n in PASSAGES + ("question_text",))
-    if blanks > 1:
-        _add(f, "multiple_blanks", f"{blanks} blank markers across passage and stem")
 
 
 def _braces(v: str, name: str, f: dict) -> None:
@@ -214,15 +219,16 @@ def _braces(v: str, name: str, f: dict) -> None:
             _add(f, "braces_unbalanced", f"{name}: {span[:60]}")
 
 
-def completeness(row: dict, f: dict, figure_drawn: bool) -> None:
+def completeness(row: dict, f: dict, figure_drawn: bool, display: dict | None = None) -> None:
+    shown = dict(_fields(row, display))
     for name in PASSAGES:
-        v = row.get(name)
+        v = shown.get(name)
         if not v or not v.strip():
             continue
         end = _strip_end(v)
         if end and not re.search(r"[.!?…:;—–)\]\-]$|_{2,}$|\$$|\d{4}$|©.*$", end):
             _add(f, "passage_truncated", f"{name}: ends {end[-40:]!r}")
-    stem = row.get("question_text") or ""
+    stem = shown.get("question_text") or ""
     end = _strip_end(stem)
     if re.search(r"\n\s*(?:I{1,3}|IV|V)\.\s[^\n]*$", end):
         end = ""  # the stem ends with a Roman-numeral statement list
@@ -231,7 +237,7 @@ def completeness(row: dict, f: dict, figure_drawn: bool) -> None:
     if stem.strip() and "?" not in stem and not _PROMPT_WORDS.search(stem) and not _BLANK_MARK.search(stem):
         _add(f, "stem_no_prompt", f"no question mark or prompt: {stem.strip()[-60:]!r}")
     if not figure_drawn:
-        for name, v in _fields(row):
+        for name, v in _fields(row, display):
             if name in TEXT_FIELDS and name != "question_text":
                 continue
             m = _FIG_REF.search(_ON_THE_TABLE.sub("", v))
@@ -273,8 +279,10 @@ def reach_urls(rows: list[dict], cache_path: Path) -> dict:
     return cache
 
 
-def run_ts(export: Path, out: Path) -> dict:
-    done = subprocess.run(["npx", "tsx", "scripts/import-tools/ts/qa-check.ts", str(export), str(out)],
+def run_ts(export: Path, out: Path, gate: bool = False) -> dict:
+    """ts/qa-check.ts over a file of export-shaped rows ({"rows": [...]}); gate skips the seal checks."""
+    done = subprocess.run(["npx", "tsx", "scripts/import-tools/ts/qa-check.ts", *(["--gate"] if gate else []),
+                           str(export), str(out)],
                           cwd=REPO, capture_output=True, text=True, timeout=3600)
     if done.returncode != 0:
         raise RuntimeError(f"qa-check.ts failed: {(done.stderr or done.stdout)[-800:]}")
@@ -287,9 +295,10 @@ def audit_rows(rows: list[dict], ts: dict, urls: dict | None) -> dict:
         rid = str(row["id"])
         t = ts.get(rid) or {"checks": {"checker_crashed": ["no qa-check.ts result"]}, "figure": None, "choice_tables": 0, "delivery": "unknown"}
         f = {k: list(v) for k, v in (t.get("checks") or {}).items()}
+        display = t.get("display") or {}
         structure(row, f)
-        formatting(row, f)
-        completeness(row, f, bool(t.get("figure")) or bool(t.get("choice_tables")))
+        formatting(row, f, display)
+        completeness(row, f, bool(t.get("figure")) or bool(t.get("choice_tables")), display)
         if urls is not None and isinstance(row.get("image_url"), str) and row["image_url"]:
             why = urls.get(row["image_url"])
             if why:
