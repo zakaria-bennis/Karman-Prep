@@ -13,6 +13,10 @@
 //
 // Underscores: every run of 2+ underscores, and spaced runs ("_ _ _"), is one answer blank,
 // except inside a URL or `code`. MathText draws each blank as the same fixed-width line.
+//
+// displayProse also joins compounds split by a stray space; see hyphen-spacing-display.ts.
+
+import { joinSplitCompounds } from "./hyphen-spacing-display";
 
 /** Hyphen/em dash clusters, with the spaces or tabs around them. */
 const DASH_CLUSTER = /[ \t]*[-—]+(?: [-—]+)*[ \t]*/g;
@@ -86,6 +90,11 @@ export function displayDashes(text: string): string {
   );
 }
 
+/** Prose display text: split compounds joined, then dashes and hyphen blanks drawn. */
+export function displayProse(text: string): string {
+  return displayDashes(joinSplitCompounds(text));
+}
+
 export interface BlankSegment {
   value: string;
   isBlank: boolean;
@@ -109,6 +118,6 @@ function splitBlanks(text: string, pattern: RegExp): BlankSegment[] {
 export function blankSegments(text: string, treatBlankWord = false): BlankSegment[] {
   const pattern = treatBlankWord ? UNDERSCORE_OR_WORD_BLANK : UNDERSCORE_BLANK;
   return splitBlanks(text, pattern).flatMap((s) =>
-    s.isBlank ? [s] : splitBlanks(displayDashes(s.value), UNDERSCORE_BLANK)
+    s.isBlank ? [s] : splitBlanks(displayProse(s.value), UNDERSCORE_BLANK)
   );
 }
