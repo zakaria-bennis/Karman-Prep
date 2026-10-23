@@ -360,3 +360,11 @@ class ApprovedFigureRoleTest(unittest.TestCase):
         from kimport.lint import _check_dedup
         clusters = {"roles": {"syn-q3": "member"}}
         self.assertTrue(_check_dedup({"stable_question_id": "syn-q3"}, clusters, frozenset({"syn-q3"})))
+
+
+class QaHiddenRoleTest(unittest.TestCase):
+    def test_qa_hidden_member_passes_dedup(self):
+        from kimport.lint import _check_dedup
+        clusters = {"roles": {"syn-q9": "member"}}
+        self.assertEqual(_check_dedup({"stable_question_id": "syn-q9"}, clusters, frozenset(), frozenset({"syn-q9"})), [])
+        self.assertTrue(_check_dedup({"stable_question_id": "syn-q9"}, clusters))

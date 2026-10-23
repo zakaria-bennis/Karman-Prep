@@ -161,9 +161,13 @@ def _check_difficulty(row: dict) -> list[str]:
     return problems
 
 
-def _check_dedup(row: dict, clusters: dict, approved_figures=frozenset()) -> list[str]:
+def _check_dedup(row: dict, clusters: dict, approved_figures=frozenset(), qa_hidden=frozenset()) -> list[str]:
     sid = row.get("stable_question_id")
     roles = _object(clusters.get("roles")) or {}
+    # A QA correction rebuilds a live question the QA pass hid, under its own stable id; that row is the
+    # copy the bank already holds, whatever role the corpus now gives it (often 'member' of its live cluster).
+    if sid in qa_hidden:
+        return []
     if sid not in roles:
         return ["row has no cluster entry"]
     # A figure group's copy whose figure the founder approved is the copy that group publishes; the stage
@@ -184,7 +188,7 @@ class LintError(ValueError):
 
 
 def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=frozenset(),
-               approved_figures=frozenset()) -> dict:
+               approved_figures=frozenset(), qa_hidden=frozenset()) -> dict:
     """Return {"passed": [ids], "pulled": [{id, code, detail}]}. A row with several
     problems gets one pulled entry per code and is not in `passed`. no_figure: ids a
     reviewer found to have no figure (figure_gate.no_figure_ids); their text may mention
@@ -223,7 +227,7 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=fr
             "PF_ENVELOPE": _check_envelope(row),
             "PF_BINDING": binding,
             "PF_DIFFICULTY": _check_difficulty(row),
-            "PF_DEDUP_STALE": _check_dedup(row, cluster_data, approved_figures),
+            "PF_DEDUP_STALE": _check_dedup(row, cluster_data, approved_figures, qa_hidden),
         }
         hit = False
         for code in _CODE_ORDER:
@@ -248,11 +252,20 @@ def write_lane(lane_path: Path, pulled: list, now: str) -> int:
     return lane.add_open(lane_path, entries, now, "lint")
 
 
+def qa_hidden_ids(qa_dir: Path) -> frozenset[str]:
+    """Stable ids of live questions the QA pass hid (qa/hidden-stable-ids.json), so their corrections lint."""
+    p = Path(qa_dir) / "hidden-stable-ids.json"
+    try:
+        return frozenset(json.loads(p.read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return frozenset()
+
+
 def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str) -> dict:
     """lint_batch, with no-figure.json read from figures/ beside the lane file."""
     figures = Path(lane).parent / "figures"
     result = lint_batch(reviewed, frozen, clusters, figure_gate.no_figure_ids(figures),
-                        figure_gate.approved_ids(figures))
+                        figure_gate.approved_ids(figures), qa_hidden_ids(Path(lane).parent / "qa"))
     if result["pulled"]:
         write_lane(lane, result["pulled"], now)
     return {"passed": len(result["passed"]), "pulled_rows": len({p["id"] for p in result["pulled"]}),
