@@ -23,7 +23,9 @@ const CLIPS = [
   ["c7", src("c7")],
   ["c8a", src("c8a")],
   ["c8b", src("c8b")],
-  ["c8c", src("c8c"), [0, 4.4]], // the last 1.6 s swing into a blur; the next chapter takes over instead
+  // the last 1.6 s swing into a blur; the next chapter takes over instead. A low crf: the source is soft already
+  // (854 x 480, upscaled), so the encoder must not smear her face and the lettering any further
+  ["c8c", src("c8c"), [0, 4.4], "", 20],
   // NOIRLab, "Star Trails Over Mauna Kea" (International Gemini Observatory/NOIRLab/NSF/AURA, CC BY 4.0): dusk to full night
   [
     "night",

@@ -129,3 +129,67 @@ rounds of independent expert critique of the landing mock.
 5. Five-second test with someone who has never seen it: what is it, who is it
    for, what would you do next?
 6. A fresh critic who has not seen the page reviews it against this file.
+
+## 11. Juxtopposed and "Build for Good UX" checklist
+
+From 16 of Juxtopposed's YouTube transcripts (youtube.com/@juxtopposed) and
+the "Build for Good UX" series by @synsation\_, researched 2026-10-22. Each
+item is a check a reviewer applies to a page. Where one conflicts with a
+founder rule, the rule wins and the conflict is noted.
+
+1. Headline, one-line offer and the primary button are all on the first
+   screen at 390x844, without scrolling.
+2. Exactly one primary button style; no second primary button beside it.
+3. Button words name the action ("Take the free practice test"), never
+   "Learn more".
+4. The button passes 4.5:1 contrast against the brightest frame behind it.
+5. The button stays reachable while scrolling (a dock within thumb reach on
+   phones); nothing else is pinned.
+6. Native scrolling is not hijacked: the film follows the scroll, but the
+   scroll is never slowed, smoothed past the reader's input, or used as
+   navigation. (Juxtopposed: scroll-driven storytelling suits short sequences
+   of 5 to 7 chunks; as the main navigation it is "0 out of 10".)
+7. A scroll story has about 7 chapters or fewer, each with one message.
+   (The landing film has 12: the founder decides whether to merge.)
+8. A "Skip the film" control lets returning visitors jump straight to the
+   offer.
+9. With reduced motion, stills replace the film with the same words and
+   buttons.
+10. Huge type only for one-line headlines; body text never moves while it is
+    read.
+11. Body lines are 80 characters or fewer; the type scale uses about four
+    sizes.
+12. No pure black behind pure white (halation): night `#0b121a` and ink
+    `#f1f1ee`. Text over video sits on a scrim and passes AA on every frame.
+13. Colours are named by role in the tokens; accents are muted on dark; one
+    colour, one meaning.
+14. Depth on dark comes from lighter surfaces or borders, never shadows.
+15. One icon set, one size and stroke.
+16. Key facts (test date, length, price, format) sit next to the offer, not
+    at the bottom.
+17. Prices are the full cost, with nothing revealed later.
+18. No loader for loads under 1 second; the first screen works before the
+    whole film arrives.
+19. Each section works and fails on its own: if a film fails, its poster,
+    words and button still show.
+20. Every button has default, hover (pointer only), focus-visible, pressed,
+    loading and disabled states.
+21. Tap targets at least 44px with 8px between them; swiping through the film
+    never fires a tap.
+22. Forms are short (steps beyond 7 fields), validate when a field is left,
+    accept forgiving formats and pre-fill what is known.
+23. Submit stays enabled; errors sit next to the field and say what happened,
+    why and what to do; focus jumps to the first problem.
+24. Every submit shows a visible confirmation; nothing fails silently.
+25. Every section and the page end offer a next step: no dead ends.
+26. Familiar navigation: logo left, menu right, button top right on desktop
+    and at the bottom on phones; few choices.
+27. Secondary detail (FAQ, policies) is collapsed until opened; the main
+    offer is always visible.
+28. One animation style, one easing and one duration set across everything.
+29. Effects appear only where they show the product; check the script cost
+    with Lighthouse.
+30. Click through the whole page on a real phone before it ships.
+
+Conflict noted: Juxtopposed recommends a reading-progress indicator on long
+pages; rule 37 bans scroll-driven indicators, so there is none.

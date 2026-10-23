@@ -11,11 +11,12 @@ const OUT = fileURLToPath(new URL("img/", import.meta.url));
 const W = 380; // points: about the width of a phone screen minus its margins
 const N = 360; // points: the width the phone screens are shown at on a 390-point phone (its width minus 16-point margins)
 const JOBS = [
-  // the Daily 10: the skill, the question and its four answers (no progress row, tools or Check button)
+  // the Daily 10: the skill, the question and its four answers in two columns, short enough to sit in the band under the film
+  // (no progress row, tools or Check button)
   {
     s: "daily10",
     el: ".ph",
-    css: `.ph { width: ${N}px; padding: 14px 16px 18px; gap: 14px; } .ph > .topbar, .ph > :nth-child(2), .ph > .tools, .ph > .q2, .ph > .btn { display: none !important; } .q { font-size: 21px; }`,
+    css: `.ph { width: ${N}px; padding: 14px 16px 18px; gap: 14px; } .ph > .topbar, .ph > :nth-child(2), .ph > .tools, .ph > .q2, .ph > .btn { display: none !important; } .q { font-size: 19px; } .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .choices .ch { min-height: 48px; padding: 10px 12px; gap: 10px; font-size: 17px; white-space: nowrap; }`,
     out: "daily10-p",
   },
   // the weekly update: its title, the dates and the four cards, ending whole
@@ -32,18 +33,19 @@ const JOBS = [
     css: `.cal { width: ${N}px; flex: none; grid-template-columns: 1fr 1fr; padding: 4px; } .cal > .dc:not(:nth-child(2)):not(:nth-child(4)) { display: none; } .ev { font-size: 14px; } .ev small { font-size: 12.5px; } .dc .dh { font-size: 14px; }`,
     out: "schedule-p",
   },
-  // the review: the wrong answer, the right one and David's note (the question and the two other answers left out, to fit)
+  // the review: the wrong answer and the right one (the question, the two other answers and David's note left out, so it fits the band
+  // under the film; on the phone the film of David explaining stands for his note)
   {
     s: "review",
     el: ".qs",
-    css: `.rv { align-items: start; } .qs { width: ${W}px; padding: 16px; } .qs > p, .qs .ch.dim { display: none; }`,
+    css: `.rv { align-items: start; } .qs { width: ${W}px; padding: 16px; } .qs > p, .qs .ch.dim, .qs .tnote { display: none; }`,
     out: "review-p",
   },
-  // the night's question: the question and its four answers, no Check button
+  // the night's question: the question and its four answers in two columns, no Check button
   {
     s: "quiz",
     el: ".qwrap",
-    css: `.qwrap { width: ${W}px !important; padding: 16px 16px 20px !important; margin: 0 !important; gap: 18px !important; } .qbig { font-size: 24px !important; } .choices .ch { font-size: 18px !important; } .qfoot { display: none !important; }`,
+    css: `.qwrap { width: ${W}px !important; padding: 16px 16px 20px !important; margin: 0 !important; gap: 18px !important; } .qbig { font-size: 23px !important; } .choices { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px !important; } .choices .ch { font-size: 18px !important; min-height: 52px !important; padding: 12px 14px !important; } .qfoot { display: none !important; }`,
     out: "quiz-p",
   },
 ];
