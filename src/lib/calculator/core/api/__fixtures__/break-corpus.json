@@ -1495,11 +1495,7 @@
   {
     "cat": "redefine",
     "rows": ["r=2"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [{ "error": "Polar graphs (r) aren't available yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "redefine",
@@ -1690,14 +1686,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 1 }
-    ],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [
-        { "error": "Polar graphs (r) aren't available yet." },
-        { "error": "Add y= at the start." }
-      ]
-    }
+    ]
   },
   {
     "cat": "redefine-ctx",
@@ -5229,11 +5218,7 @@
   {
     "cat": "equations",
     "rows": ["r=1"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [{ "error": "Polar graphs (r) aren't available yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "equations",
@@ -5247,20 +5232,12 @@
   {
     "cat": "equations",
     "rows": ["r=-1"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [{ "error": "Polar graphs (r) aren't available yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "equations",
     "rows": ["r=1/0"],
-    "desmos": [{ "graph": true, "shown": true, "value": "undef" }],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [{ "error": "Polar graphs (r) aren't available yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": true, "value": "undef" }]
   },
   {
     "cat": "equations",
@@ -16814,11 +16791,7 @@
   {
     "cat": "scout",
     "rows": ["r=3"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [{ "error": "Polar graphs (r) aren't available yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "scout",
@@ -16826,14 +16799,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 4 }
-    ],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [
-        { "error": "Polar graphs (r) aren't available yet." },
-        { "error": "Add y= at the start." }
-      ]
-    }
+    ]
   },
   {
     "cat": "scout",
@@ -16868,7 +16834,7 @@
     "known": {
       "reason": "not built yet: polar graphs",
       "ours": [
-        { "error": "Polar graphs (r) aren't available yet." },
+        { "graph": true, "shown": false },
         { "error": "Polar graphs (r) aren't available yet." }
       ]
     }
@@ -17405,11 +17371,7 @@
   {
     "cat": "scout",
     "rows": ["r=-2"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: polar graphs",
-      "ours": [{ "error": "Polar graphs (r) aren't available yet." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "scout",

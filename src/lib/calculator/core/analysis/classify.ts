@@ -10,7 +10,7 @@ import { POINT_FUNCTIONS } from "../lib/geometry";
 import { listFunction } from "../lib/statistics";
 import { declaredHead, rowFunctionName, type DefinitionHead, type ParsedRow } from "./definitions";
 import { functionGraph, isPointShaped, POLAR_NAMES, shapeOf, type RowShape } from "./graph";
-import type { AnalysisSettings, RowAnalysis, RowError } from "./index";
+import type { AnalysisSettings, RowAnalysis, RowError, RowGraph } from "./index";
 import type { ListTyping } from "./lists";
 import { displayName, rowErrorMessage } from "./messages";
 import { collectNameUses, isReservedName } from "./names";
@@ -228,6 +228,18 @@ function pointValued(tree: Node, typing: ListTyping): boolean {
 }
 
 /**
+ * Desmos draws a constant `r=c` as the polar curve r = c, the circle x²+y² = c² (live 2026-10-25),
+ * while other rows read r as the defined number.
+ */
+function polarCircle(body: Node, span: SourceSpan): RowGraph {
+  const two: Node = { kind: "num", value: 2, span },
+    sq = (left: Node): Node => ({ kind: "pow", left, right: two, span }),
+    id = (name: string): Node => ({ kind: "id", name, span });
+  const sum: Node = { kind: "add", left: sq(id("x")), right: sq(id("y")), span };
+  return { kind: "implicit", expr: { kind: "sub", left: sum, right: sq(body), span } };
+}
+
+/**
  * A definition row's shape: a value head is a definition, or a dependent definition when its body
  * reaches a coordinate (RC-6), and a definition whose body plots as points graphs them, as Desmos
  * draws `A=(1,2)` and `P=[(1,2),(3,4)]` (M5, captured 2026-10-19); a function head is a function definition with RC-5's graph, and,
@@ -244,6 +256,9 @@ function headShape(
     shape: RowShape = { kind: "definition", graph: null, error: null, relation: null };
   if (head.type === "value") {
     if (coordinates.size > 0) return { ...shape, kind: "dependent-definition" };
+    if (head.name === "r" && typing.shape(head.body, []) === "number") {
+      return { ...shape, graph: polarCircle(head.body, span) };
+    }
     return pointValued(head.body, typing) ? { ...shape, graph: { kind: "point" } } : shape;
   }
   const polar = [...coordinates].find((name) => POLAR_NAMES.includes(name));

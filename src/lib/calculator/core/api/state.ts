@@ -171,7 +171,12 @@ export function upsertRows(
   list: readonly ExpressionState[],
   take: TakeColour = slotTaker(rows.length)
 ): StoredRow[] {
-  const out = [...rows];
+  // Desmos's API has no rows once every row is removed, so rows set next start the list: the empty
+  // row standing in for it gives way (live 2026-10-25: removing all, then setting ids 1, 2 and 3,
+  // lists 1, 2, 3; here the stand-in took id 2 and kept the top).
+  const lone = rows.length === 1 ? rows[0] : null;
+  const standIn = lone?.placeholder === true && lone.latex === "" && lone.type === undefined;
+  const out = standIn && list.length > 0 ? [] : [...rows];
   for (const state of list) {
     const at = out.findIndex((row) => row.id === state.id);
     if (at >= 0) out[at] = mergeRow(out[at], state, take);

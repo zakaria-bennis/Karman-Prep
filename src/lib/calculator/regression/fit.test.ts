@@ -156,3 +156,16 @@ it("D-25 a nonlinear model fits from the standard starts in original units", () 
   expect(Math.abs(grad(1e-6, 0) - grad(-1e-6, 0)) / 2e-6).toBeLessThan(1e-4);
   expect(r.approximate).toBe(false);
 });
+
+it("REGRESSION-10 both exact: the standard starts' root, not the multi-start one (b36B)", () => {
+  const fit = fitRegression({
+    observed: [0],
+    predictor: [0],
+    params: ["a"],
+    model: (p) => Math.abs(5 * p[0] - 19) - Math.abs(p[0] + 2),
+    logForm: null,
+    logMode: false,
+    multiStart: true,
+  });
+  expect(fit.params[0].value).toBeCloseTo(17 / 6, 12);
+});

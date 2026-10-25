@@ -47,7 +47,7 @@ const cases: CorpusCase[] = [
   k(17, ["RC-3", "RC-19"], "t+1", "value", ["t"]),
   x(18, ["RC-3", "RC-19"], "i=2", "reserved-name", { settings: CX }),
   k(19, ["RC-2", "RC-19"], "t=2", "definition"),
-  x(20, ["RC-2", "RC-19"], "r=2", "unsupported"),
+  x(20, ["RC-2", "RC-19"], "r=2\\theta", "unsupported"),
   x(21, ["RC-2", "RC-19"], "\\theta=1", "unsupported"),
   k(22, ["RC-15"], "(1,2)", "point"),
   k(23, ["RC-15"], "(a,2)", "point", [], { rows: ["a=3"] }),

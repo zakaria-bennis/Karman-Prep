@@ -65,7 +65,14 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
         : []
     )
   );
-  const reached = reachedCoordinates(heads.map(({ head }) => head));
+  // Desmos reads a row `r=…` without θ as defining r, which every other row then uses as an
+  // ordinary name (`r=2`, `6+qr`; `r(x)=53x-2x^2`, `r(x)+1`; captured live 2026-10-25).
+  const isCoordinate = (name: string) =>
+    COORDINATE_NAMES.includes(name) && !(name === "r" && defined.has("r"));
+  const reached = reachedCoordinates(
+    heads.map(({ head }) => head),
+    isCoordinate
+  );
   return {
     isDefined: (name) => defined.has(name),
     isFunction: (name) => functionNames.has(name),
@@ -74,7 +81,7 @@ export function resolveDefinitions(rows: readonly ParsedRow[]): Resolution {
       const found = new Set<string>();
       for (const { name, counted } of collectNameUses(tree)) {
         if (locals.includes(name) || counted) continue;
-        if (COORDINATE_NAMES.includes(name)) found.add(name);
+        if (isCoordinate(name)) found.add(name);
         else for (const coordinate of reached.get(name) ?? []) found.add(coordinate);
       }
       return found;
@@ -328,7 +335,10 @@ function postOrder({ rows, edges }: DependencyGraph): string[] {
  * The coordinates each defined name reaches through its bodies and the names they use, memoised
  * per name. Computed to a fixed point, so a cycle (RC-8) neither recurses nor loses coordinates.
  */
-function reachedCoordinates(heads: readonly DefinitionHead[]): Map<string, Set<string>> {
+function reachedCoordinates(
+  heads: readonly DefinitionHead[],
+  isCoordinate: (name: string) => boolean
+): Map<string, Set<string>> {
   const reached = new Map<string, Set<string>>(),
     refs = new Map<string, Set<string>>();
   for (const head of heads) {
@@ -336,7 +346,7 @@ function reachedCoordinates(heads: readonly DefinitionHead[]): Map<string, Set<s
       used = refs.get(head.name) ?? new Set<string>();
     for (const { name, counted } of collectNameUses(head.body)) {
       if (head.params.includes(name) || counted) continue;
-      if (COORDINATE_NAMES.includes(name)) own.add(name);
+      if (isCoordinate(name)) own.add(name);
       else used.add(name);
     }
     reached.set(head.name, own);

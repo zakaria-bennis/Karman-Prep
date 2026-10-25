@@ -48,6 +48,8 @@ export interface RegressionResult {
 
 const STARTS = [1, 0.1, -1, 0, 10]; // D-25
 const AFFINE_TOLERANCE = 1e-9;
+const EXACT_SSE = 1e-20; // sums of squares this close, relative to 1 + Σy², are equal
+const TIE = 1e-9; // and so are sums of squares within this fraction of each other
 
 const failure = (available: boolean, on: boolean): RegressionResult => ({
   ok: false,
@@ -189,19 +191,23 @@ export function fitRegression(input: FitInput): RegressionResult {
     } else {
       const starts = STARTS.map((v) => new Float64Array(k).fill(v));
       if (logFit !== null) starts.push(logParams(logForm!, k, logFit));
+      const exact = EXACT_SSE * (1 + y.reduce((acc, v) => acc + v * v, 0));
       let best: ReturnType<typeof fitNonlinear> | null = null;
       for (const start of starts) {
         const fit = fitNonlinear(model, y, start);
         if (Number.isFinite(fit.sse) && (best === null || fit.sse < best.sse)) best = fit;
       }
-      // A system or equation fitted whole (list-fit.ts): the multi-start search wins unless it is
-      // worse, so `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 as in Desmos.
+      // A system or equation fitted whole (list-fit.ts): the multi-start search wins when it fits
+      // better by more than rounding, so `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 as in Desmos,
+      // while the standard starts keep a root as good: 17/6 for `\left|a+2\right|+2\sim
+      // \left|5a-19\right|+2` (not 21/4), and b > 0 for `y_1\sim ab^{x_1}` on x = 0, 2, 4, where
+      // b and -b fit alike (live 2026-10-25).
       const wide = input.multiStart === true ? fitMultiStart(model, y, k) : null;
       if (
         wide !== null &&
         Number.isFinite(wide.sse) &&
         wide.params.every(Number.isFinite) &&
-        (best === null || wide.sse <= best.sse * (1 + 1e-8) + 1e-24)
+        (best === null || wide.sse < best.sse * (1 - TIE) - exact)
       ) {
         p = wide.params;
       } else {

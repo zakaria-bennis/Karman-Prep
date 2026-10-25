@@ -60,9 +60,14 @@ export function userFunctionSet(
   return new Set(
     rows.flatMap((row) => {
       const head = functionDefinitionHead(row.latex);
-      return head !== null && !isReservedName(head.name, settings) ? [head.name] : [];
+      return head !== null && !reservedFunctionName(head.name, settings) ? [head.name] : [];
     })
   );
+}
+
+/** Desmos lets `r` name a function (`r(x)=53x-2x^2`, `s(x)=r(x)+1`; live 2026-10-25). */
+function reservedFunctionName(name: string, settings: AnalysisSettings): boolean {
+  return name !== "r" && isReservedName(name, settings);
 }
 
 /**
@@ -102,7 +107,7 @@ function parseRow(
     return { ...row, error: rowError(code, shown, span) };
   }
   const tree = parsed.tree;
-  if (scanned !== null && isReservedName(scanned.name, settings)) {
+  if (scanned !== null && reservedFunctionName(scanned.name, settings)) {
     return { ...row, tree, ...anonymousHead(tree, scanned) };
   }
   return { ...row, tree, ...readHead(tree, scanned, settings) };
@@ -174,6 +179,12 @@ function readHead(
   if (left.kind === "const") return { head: null, error: null };
   if (left.kind !== "id" || left.name === "x" || left.name === "y")
     return { head: null, error: null };
+  // Desmos reads `r=…` as a definition of r unless the body uses θ, when it is a polar curve
+  // (`r=2`, `r=\\sqrt{169}`, `r=x` define r; `r=2\\theta` keeps r a coordinate; live 2026-10-25).
+  // Desmos also draws a constant `r=c` as a polar circle, which Phase 1 does not.
+  const polar =
+    left.name === "\\theta" || collectNameUses(body).some(({ name }) => name === "\\theta");
+  if (left.name === "r" && !polar) return { head: valueHead("r", body, left.span), error: null };
   if (left.name === "r" || left.name === "\\theta") {
     return { head: null, error: rowError("unsupported", [displayName(left.name)], left.span) };
   }

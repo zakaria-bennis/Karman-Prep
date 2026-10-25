@@ -31,6 +31,8 @@ export interface StoredRow {
   readonly logMode?: boolean; // D-30: a regression row's Log mode checkbox
   readonly regression?: StoredTableRegression; // RT-28: a table's one regression
   readonly fraction?: true; // R-5: the value shows as a fraction; absent shows it as a decimal
+  /** The empty row that stands in for an emptied list, where Desmos's API has no rows at all. */
+  readonly placeholder?: true;
   /**
    * RT-2: the colour a table's blank header slot already took from the counter; a column typed
    * into that slot keeps it and the new blank slot takes the next one. Never in the public state.
@@ -198,7 +200,17 @@ export class RowDocument {
    */
   commit(rows: readonly StoredRow[], step: HistoryStep): void {
     const next =
-      rows.length > 0 ? rows : [{ id: this.nextId(), latex: "", color: "c1", hidden: false }];
+      rows.length > 0
+        ? rows
+        : [
+            {
+              id: this.nextId(),
+              latex: "",
+              color: "c1",
+              hidden: false,
+              placeholder: true as const,
+            },
+          ];
     if (step.kind === "group") {
       const open = this.group;
       const joins = open !== null && open.rowId === step.rowId && step.at - open.at < GROUP_IDLE_MS;

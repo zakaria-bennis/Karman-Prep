@@ -85,7 +85,7 @@ it("RC-17 a bare expression in r or θ asks for an equation, as in Desmos (2026-
 
 it("RC-2, RC-19 r, θ and unbound t errors name the variable", () => {
   const rows: [string, string[], string][] = [
-    ["r=2", ["r"], "Polar graphs (r) aren't available yet."],
+    ["r=2\\theta", ["r"], "Polar graphs (r) aren't available yet."],
     ["\\theta=1", ["θ"], "Polar graphs (θ) aren't available yet."],
     ["(t,t^{2})", ["t"], "This notation isn't supported."],
   ];
