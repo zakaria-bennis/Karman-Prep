@@ -117,7 +117,6 @@ main { position: relative; z-index: 1; }
 .statement { min-height: 92svh; display: flex; align-items: center; padding-top: 120px; padding-bottom: 120px; text-align: center; }
 .statement .in { display: grid; gap: 26px; justify-items: center; }
 .datecard { margin-top: 10px; width: min(460px, 100%); display: grid; gap: 6px; justify-items: start; text-align: left; padding: 30px 30px 24px; border-radius: 30px; background: var(--paper); color: var(--ink); box-shadow: 0 30px 80px -30px rgba(0,0,0,.6); position: relative; overflow: hidden; }
-.datecard::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 6px; background: var(--marigold); }
 .datecard .i { font-size: 15px; font-weight: 600; color: var(--ink2); }
 .datecard .d { font-size: clamp(32px, 3.2vw, 44px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; margin-top: 4px; }
 .datecard .l { font-weight: 700; color: var(--marigold-ink); }
