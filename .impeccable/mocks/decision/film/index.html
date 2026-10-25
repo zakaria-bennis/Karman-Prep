@@ -2,36 +2,49 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <title>Karman Prep: SAT programs that end on your test date</title>
 <meta name="description" content="Live SAT classes in groups of up to six, daily practice, and a one-on-one review after every full-length test, all planned back from your student's SAT date.">
 <link rel="canonical" href="https://karmanprep.com/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="day.jpg">
 <link rel="stylesheet" href="film.css">
+<link rel="icon" href="data:,">
 </head>
 <body>
-<!-- Every word comes from copy.js (film.js fills each data-t and builds the sections). -->
+<!-- Every word comes from copy.js; film.js builds the sections from it. -->
 <a class="skip" href="#main">Skip to content</a>
+
+<!-- the film: one continuous day behind the whole page, never tied to the scroll -->
+<div class="stage" aria-hidden="true">
+  <video class="day" muted playsinline loop preload="auto" poster="day.jpg"></video>
+  <video class="edge" muted playsinline preload="none" poster="c9.jpg"></video>
+  <div class="scrim"></div>
+  <canvas class="orb" width="64" height="64"></canvas>
+</div>
+
 <header class="hd">
-  <a class="mark" href="/" aria-label="Karman Prep home" data-logo></a>
+  <a class="mark" href="/" data-t="logo"></a>
   <nav aria-label="Main">
-    <a data-route="program" data-t="program link"></a><a data-route="private" data-t="private link"></a><a data-route="pricing" data-t="pricing link"></a><a data-route="signIn" data-t="sign in link"></a>
+    <a class="nl" data-route="program" data-t="program link"></a><a class="nl" data-route="private" data-t="private link"></a><a class="nl" data-route="pricing" data-t="pricing link"></a><a class="nl" data-route="signIn" data-t="sign in link"></a>
     <button class="play" type="button" data-motion></button>
     <a class="cta" data-route="test" data-t="free test link"></a>
     <button class="menu" type="button" aria-expanded="false" aria-controls="menu" data-t="menu"></button>
   </nav>
 </header>
 <div class="sheet" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
-  <div class="top"><span class="mark" data-logo></span><button class="close" type="button" data-t="close"></button></div>
+  <div class="top"><span class="mark" data-t="logo"></span><button class="close" type="button" data-t="close"></button></div>
   <nav aria-label="Menu links"><a data-route="program" data-t="program link"></a><a data-route="private" data-t="private link"></a><a data-route="pricing" data-t="pricing link"></a><a data-route="guarantee" data-t="guarantee link"></a><a data-route="signIn" data-t="sign in link"></a></nav>
   <a class="btn" data-route="test" data-t="free test link"></a>
 </div>
+
 <main id="main"></main>
+
 <footer class="ft">
   <div class="cols">
-    <span class="mark" data-logo></span>
+    <span class="mark" data-t="logo"></span>
     <nav aria-label="Footer">
       <div class="col"><p class="h" data-t="footer programs"></p><a data-route="program" data-t="program link"></a><a data-route="private" data-t="private link"></a><a data-route="pricing" data-t="pricing link"></a><a data-route="test" data-t="free test link"></a></div>
       <div class="col"><p class="h" data-t="footer company"></p><a data-route="guarantee" data-t="guarantee link"></a><a data-route="faq" data-t="faq link"></a><a data-route="about" data-t="about link"></a><a data-route="signIn" data-t="sign in link"></a></div>
@@ -40,7 +53,10 @@
   </div>
   <p class="credit" data-t="credits"></p>
 </footer>
+
 <script src="copy.js"></script>
+<script src="vendor/hairline/kernel.js"></script>
 <script src="film.js"></script>
+<script type="module" src="orb.js"></script>
 </body>
 </html>

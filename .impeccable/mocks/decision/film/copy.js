@@ -125,6 +125,9 @@ button note: Saturday, December 12, 10:00 a.m. ET
 line note: 100 km up, where the sky ends and space begins.
 
 ## Site
+day eyebrow: A school day with Karman
+day heading: Where it fits in a day.
+results eyebrow: Next fall
 logo: Karman
 free test link: Free practice test
 program link: The SAT Program

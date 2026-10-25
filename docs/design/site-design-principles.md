@@ -13,15 +13,36 @@ Interface Guidelines (motion, typography, accessibility, layout, colour), how
 apple.com product pages load and play video (checked 2026-10-22), and two
 rounds of independent expert critique of the landing mock.
 
-> **Theme change (founder, 2026-10-25), overrides the colour, type and film
+> **Theme and film (founder, 2026-10-25), overrides the colour, type and film
 > sections below where they conflict:** the site is white, with black and
 > marigold (`#EBA21F`) as the accents. Headlines are Hanken Grotesk 800 with
 > tight tracking (no serif). The one highlighted button is marigold with black
-> text. Films no longer drive the page: each sits in a rounded frame inside its
-> section, plays once when half of it is on screen, and rests on its last frame;
-> scrolling is always normal. The only dark areas are the closing band and the
-> footer. Temporary logo: the winged KP (`film/logo.svg`), black and marigold on
-> white, white and marigold on black.
+> text. One continuous film (the whole day, joined by slow dissolves) plays in
+> real time behind the page, like jeskojets.com: the reader scrolls normally,
+> and the film never speeds up, stops or jumps with the scroll. White rounded
+> panels carry the reading and slide over it; between them, "windows" show the
+> film still running. At the close the day dissolves into orbit. Small marigold
+> text on white uses `#94600A` (5.3:1). Logo: a plain "Karman" wordmark until
+> the founder supplies his SVG; never redraw it.
+>
+> **How the page holds attention** (applied in the 2026-10-25 build):
+>
+> - Doherty threshold and Apple's "respond on press": buttons shrink on press
+>   within one frame and spring back; a 20px thinking orb appears inside the
+>   button only if the next page takes over 400 ms, and a 64px orb over the
+>   film only if the film is late by 400 ms.
+> - Motion that never stops (the film) beside words that hold still: the eye
+>   is drawn in by movement and rests on type (aesthetic-usability effect).
+> - Von Restorff: one marigold button per screen; everything else is black,
+>   white or outline.
+> - Serial position and peak-end: the strongest moments are first (the
+>   kitchen before dawn) and last (orbit, the line, the button).
+> - Goal gradient and wayfinding: the day's clock and its five hours show
+>   where the reader is in the day; each hour is a button that jumps there.
+> - Curiosity gap: the Daily 10 drawing (a Hairline figure) answers the
+>   pointer, and on phones it walks itself while on screen.
+> - Reduced motion: no films (posters only), no rising text; the orb slows.
+>   A visible Pause control stops every film and is remembered.
 
 ## 1. Purpose and simplicity
 
