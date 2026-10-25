@@ -1,97 +1,16 @@
-/* Karman landing page (2026-10-25).
-   One continuous film plays behind the whole page in real time; the page scrolls normally over it. White panels
-   carry the reading and leave "windows" where the film keeps running. Nothing is tied to the scroll position.
-   Markup in index.html, styles in film.css, every word in copy.js (edited with edit.html). */
+/* Karman home page (2026-10-25, second pass).
+   One continuous film plays behind the page in real time; the page scrolls normally over it. White panels carry
+   the reading; windows between them show the film still running. Main features come first, each with its
+   product screen at the side of the page, then the test date, the guarantee, the campus films, the wall of
+   student phones and the close. Shared pieces (copy, header, menu, pause, reveal) are in site.js. */
 (function () {
-  const ROUTES = {
-    test: "/free-practice-test",
-    program: "/program",
-    private: "/private-tutoring",
-    pricing: "/pricing",
-    cookies: "/cookies",
-    signIn: "/auth/sign-in",
-    guarantee: "/guarantee",
-    faq: "/faq",
-    about: "/about",
-    terms: "/terms",
-    privacy: "/privacy",
-  };
-  // the product screen shown with each moment of the day, in the order the moments appear
-  const SCREENS = [
-    ["img/daily10.webp", "phone"],
-    ["img/parent-update.webp", "phone"],
-    ["img/word-game.webp", "phone"],
-    ["img/schedule.webp", "wide"],
-    ["img/review.webp", "wide"],
-  ];
-  // the three results clips, in the order message 6 lists the students
-  const RESULTS = ["c8a", "c8b", "c8c"];
+  const K = window.KARMAN;
+  const { M, esc, list, btn, phone, ROUTES, reduce, Q } = K;
 
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* ---------- words: copy.js, or the copy editor's unsaved draft with ?draft=1 ---------- */
-  const Q = new URLSearchParams(location.search);
-  let draft = null;
-  try {
-    draft = Q.has("draft") ? localStorage.getItem("karman-copy-draft") : null;
-  } catch (e) {}
-  const msgs = [];
-  const site = {};
-  let m = null,
-    beat = null;
-  (draft ?? window.KARMAN_COPY ?? "").split("\n").forEach((line) => {
-    const h2 = line.match(/^##\s+(\d+|Site)\s*(.*)$/);
-    const h3 = line.match(/^###\s+(.*)$/);
-    if (h2) {
-      m = h2[1] === "Site" ? null : { n: +h2[1], name: h2[2].trim(), top: {}, beats: [] };
-      if (m) msgs.push(m);
-      beat = null;
-      return;
-    }
-    if (h3 && m) {
-      beat = { name: h3[1].trim(), f: {} };
-      m.beats.push(beat);
-      return;
-    }
-    const kv = line.match(/^\s*([a-z ]+):\s*(.*)$/i);
-    if (!kv) return;
-    const k = kv[1].trim().toLowerCase(),
-      v = kv[2].trim();
-    if (!m) site[k] = v;
-    else (beat ? beat.f : m.top)[k] = v;
-  });
-  msgs.forEach((x) => {
-    if (!x.beats.length) x.beats.push({ name: "", f: x.top });
-  });
-  const M = (n) => msgs.find((x) => x.n === n) || { beats: [{ f: {} }], top: {}, name: "" };
-  const pick = (x, k) => x.top[k] ?? x.beats.map((b) => b.f[k]).find(Boolean);
-  const esc = (s) =>
-    (s || "").replace(
-      /[&<>"]/g,
-      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]
-    );
-
-  /* ---------- site words and links ---------- */
-  document.querySelectorAll("[data-t]").forEach((el) => {
-    const v = site[el.dataset.t];
-    if (v != null) el.textContent = v;
-  });
-  document.querySelectorAll("[data-route]").forEach((a) => (a.href = ROUTES[a.dataset.route]));
-  document.querySelectorAll("[data-mail]").forEach((a) => (a.href = `mailto:${site.email || ""}`));
-
-  /* ---------- building blocks ---------- */
-  const ARROW =
-    '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9.5M8.5 4 12.5 8l-4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const btn = (label, href) =>
-    `<a class="btn" href="${href}"><span class="lb">${esc(label)}</span><span class="go">${ARROW}</span></a>`;
   const action = (f) =>
     f.button
       ? `<div class="act">${btn(f.button, ROUTES.test)}${f["button note"] ? `<small>${esc(f["button note"])}</small>` : ""}</div>`
       : "";
-  const split = (t) => {
-    const [d, ...rest] = (t || "").split(" ");
-    return [d, rest.join(" ")];
-  };
   // the hero line, word by word, so it can rise in on arrival
   const kinetic = (s) =>
     esc(s)
@@ -99,46 +18,74 @@
       .map((w, i) => `<span class="w"><span style="--i:${i}">${w}</span></span>`)
       .join(" ");
 
-  /* the moments of the day: the bus, pickup, tennis, the live class, the review */
-  const moments = [];
-  const m1 = M(1),
-    m4 = M(4);
-  if (m1.beats[1]) moments.push({ id: "m-1-b", f: m1.beats[1].f, figure: "ten" });
-  [2, 3].forEach((n) => moments.push({ id: `m-${n}`, f: { ...M(n).top, ...M(n).beats[0].f } }));
-  m4.beats.forEach((b, k) => moments.push({ id: k ? "m-4-b" : "m-4", f: b.f }));
-
-  function moment(x, k) {
-    const f = x.f;
-    const [d, ap] = split(f.time);
-    const head = f.headline || f["screen title"] || "";
-    const [src, kind] = SCREENS[k] || [];
+  /* ---------- the features, most important first; each screen sits at the outer edge of the page ---------- */
+  const FEATURES = [
+    { n: 2, media: "wide", src: "img/schedule.webp", side: "right" },
+    { n: 3, media: "wide", src: "img/review.webp", side: "left" },
+    { n: 4, media: "phone", src: "img/daily10.webp", side: "right", figure: "ten" },
+    { n: 5, media: "phone", src: "img/parent-update.webp", side: "left" },
+    { n: 6, media: "phone", src: "img/word-game.webp", side: "right", minor: true },
+  ];
+  function feature(x) {
+    const f = M(x.n);
+    const media =
+      x.media === "phone"
+        ? `<div class="turn">${phone(`<img src="${x.src}" alt="" loading="lazy" decoding="async">`, x.side === "left" ? "left" : "")}</div>`
+        : `<figure class="wide"><img src="${x.src}" alt="" decoding="async"></figure>`;
     const note = f["card title"]
       ? `<p class="note"><b>${esc(f["card title"])}</b>${esc(f["card text"])}</p>`
       : "";
     const fig = x.figure
       ? `<div class="fig" data-fig="${x.figure}"><div class="hl"></div><span class="read" aria-live="polite"></span></div>`
       : "";
-    return `<article class="moment rv" id="${x.id}" data-k="${k}">
-      <div class="words">
-        ${f.time ? `<p class="tag"><b>${esc(d)} ${esc(ap)}</b>${f.name ? ` · ${esc(f.name)}` : ""}</p>` : ""}
-        ${head ? `<h3>${esc(head)}</h3>` : ""}
-        ${f["feature title"] || f["feature text"] ? `<p>${f["feature title"] ? `<b>${esc(f["feature title"])}</b> ` : ""}${esc(f["feature text"])}</p>` : ""}
+    return `<article class="feat ${x.side}${x.minor ? " minor" : ""} ${x.media}" id="m-${x.n}">
+      <div class="media rv">${media}</div>
+      <div class="words rv" style="--d:.1s">
+        ${f.headline ? `<h2>${esc(f.headline)}</h2>` : ""}
+        ${f["feature title"] || f["feature text"] ? `<p class="lede">${f["feature title"] ? `<b>${esc(f["feature title"])}</b> ` : ""}${esc(f["feature text"])}</p>` : ""}
         ${note}${fig}
       </div>
-      ${src ? `<figure class="shot ${kind}"><img src="${src}" alt="" loading="lazy" decoding="async"></figure>` : ""}
     </article>`;
   }
 
-  /* ---------- the page ---------- */
-  const main = document.getElementById("main");
-  const hero = m1.beats[0].f;
-  const m5 = M(5),
-    night = m5.beats.find((b) => b.f.time)?.f || {},
-    plan = m5.beats.find((b) => b.f["card date"] || b.f.headline)?.f || {};
-  const m6 = M(6);
-  const end = M(7).beats[0].f;
+  /* ---------- the wall: 6 columns of 15 phones (3 of 10 on a phone), each column repeated once for a seamless loop ---------- */
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  function chat() {
+    const bubbles = [];
+    const n = 6 + Math.floor(rnd() * 3);
+    for (let i = 0; i < n; i++) {
+      const out = rnd() > 0.45;
+      const lines = 1 + Math.floor(rnd() * 3);
+      const ws = Array.from(
+        { length: lines },
+        (_, j) => `<i style="width:${j === lines - 1 ? 40 + rnd() * 50 : 100}%"></i>`
+      ).join("");
+      bubbles.push(
+        `<span class="b ${out ? "out" : "in"}${out && rnd() > 0.82 ? " k" : ""}" style="width:${46 + rnd() * 28}%">${ws}</span>`
+      );
+    }
+    const t = (16 + rnd() * 14).toFixed(1),
+      dl = (-rnd() * 30).toFixed(1);
+    return `<div class="screen chat"><div class="top"><span class="av"></span><span class="nm"></span></div><div class="feed"><div class="thread" style="--t:${t}s;--dl:${dl}s">${bubbles.join("")}${bubbles.join("")}</div></div></div>`;
+  }
+  const narrow = matchMedia("(max-width: 760px)").matches;
+  const COLS = narrow ? 3 : 6,
+    PER = narrow ? 10 : 15;
+  const wall = Array.from({ length: COLS }, (_, c) => {
+    const phones = Array.from({ length: PER }, () => phone(chat())).join("");
+    return `<div class="col" style="--t:${(narrow ? 70 : 110) + c * 9}s">${phones}${phones}</div>`;
+  }).join("");
 
-  main.innerHTML = `
+  /* ---------- the page ---------- */
+  const hero = M(1),
+    date = M(7),
+    g = M(8),
+    campus = M(9),
+    msgs = M(10),
+    end = M(11);
+  const CAMPUS = ["c8a", "c8b", "c8c"];
+  document.getElementById("main").innerHTML = `
   <section class="window hero" id="m-1">
     <div class="in">
       <h1>${kinetic(hero.headline)}</h1>
@@ -149,63 +96,64 @@
     <span class="cue" aria-hidden="true"></span>
   </section>
 
-  <section class="panel day" id="day" aria-labelledby="day-h">
-    <div class="in">
-      ${site["day eyebrow"] ? `<p class="eyebrow rv">${esc(site["day eyebrow"])}</p>` : ""}
-      <h2 class="rv" id="day-h">${esc(site["day heading"] || "")}</h2>
-      <div class="day-grid">
-        <aside class="clock" aria-label="${esc(site["day eyebrow"] || "")}">
-          <p class="t" aria-hidden="true"></p>
-          <p class="ap" aria-hidden="true"></p>
-          <p class="who" aria-hidden="true"></p>
-          <ol class="hours">${moments
-            .map((x, k) => {
-              const [d, ap] = split(x.f.time);
-              return `<li><button type="button" data-go="${x.id}" data-k="${k}"><span class="dot"></span><b>${esc(d)}</b> ${esc(ap)}</button></li>`;
-            })
-            .join("")}</ol>
-        </aside>
-        <div class="moments">${moments.map(moment).join("")}</div>
-      </div>
-    </div>
+  <section class="panel features" id="features">
+    <div class="in">${FEATURES.map(feature).join("")}</div>
   </section>
 
-  <section class="window statement" id="m-5">
+  <section class="window statement" id="m-7">
     <div class="in">
-      ${night.time ? `<p class="eyebrow rv">${esc(night.time)}${night.name ? ` · ${esc(night.name)}` : ""}</p>` : ""}
-      ${plan.headline ? `<h2 class="rv">${esc(plan.headline)}</h2>` : ""}
+      ${date.headline ? `<h2 class="rv">${esc(date.headline)}</h2>` : ""}
       ${
-        plan["card date"]
+        date["card date"]
           ? `<div class="datecard rv" style="--d:.15s">
-        ${plan["card intro"] ? `<p class="i">${esc(plan["card intro"])}</p>` : ""}
-        <p class="d">${esc(plan["card date"])}</p>
-        ${plan["card later"] ? `<p class="l">${esc(plan["card later"])}</p>` : ""}
-        ${plan["card text"] ? `<p class="x">${esc(plan["card text"])}</p>` : ""}
-        ${plan["card link"] ? `<a class="lk" href="${ROUTES.guarantee}">${esc(plan["card link"])}${ARROW}</a>` : ""}
+        ${date["card intro"] ? `<p class="i">${esc(date["card intro"])}</p>` : ""}
+        <p class="d">${esc(date["card date"])}</p>
+        ${date["card later"] ? `<p class="l">${esc(date["card later"])}</p>` : ""}
+        ${date["card link"] ? `<a class="lk" href="#m-8">${esc(date["card link"])}${K.ARROW}</a>` : ""}
       </div>`
           : ""
       }
     </div>
   </section>
 
-  <section class="panel" id="m-6" aria-labelledby="m6-h">
+  <section class="panel dark guarantee" id="m-8" aria-labelledby="g-h">
     <div class="in">
-      <p class="eyebrow rv" id="m6-h">${esc(site["results eyebrow"] || m6.name)}</p>
-      <div class="results">${m6.beats
-        .map((b, k) => {
-          const id = RESULTS[k];
-          const [who, score] = (b.f.result || "").split("·").map((s) => s.trim());
-          return `<figure class="res rv" style="--d:${k * 0.12}s">
-          <div class="frame">${id ? `<video muted playsinline preload="none" poster="${id}-r${reduce ? "" : "0"}.jpg" data-src="${id}-r.mp4" aria-hidden="true"></video>` : ""}</div>
-          <figcaption><span class="who">${esc(who)}</span>${score ? `<span class="score">${esc(score)}</span>` : ""}<span class="sch">${esc(b.f.school)}</span></figcaption>
-        </figure>`;
-        })
-        .join("")}</div>
-      ${pick(m6, "proof") ? `<p class="label rv">${esc(pick(m6, "proof"))}</p>` : ""}
+      <div class="g-top">
+        <div>
+          ${g.eyebrow ? `<p class="eyebrow rv">${esc(g.eyebrow)}</p>` : ""}
+          <h2 class="rv" id="g-h">${esc(g.headline)}</h2>
+          ${g.text ? `<p class="lede rv" style="--d:.1s">${esc(g.text)}</p>` : ""}
+        </div>
+        ${g.promise ? `<div class="promise rv" style="--d:.2s"><span class="big" aria-hidden="true">+50</span><p>${esc(g.promise)}</p></div>` : ""}
+      </div>
+      <div class="sides">
+        <div class="side-list rv"><h3>${esc(g["we do title"])}</h3><ol>${list(g["we do"])
+          .map((x) => `<li>${esc(x)}</li>`)
+          .join("")}</ol></div>
+        <div class="side-list you rv" style="--d:.1s"><h3>${esc(g["you do title"])}</h3><ol>${list(
+          g["you do"]
+        )
+          .map((x) => `<li>${esc(x)}</li>`)
+          .join("")}</ol></div>
+      </div>
+      ${g.note || g.link ? `<div class="g-foot rv">${g.note ? `<p>${esc(g.note)}</p>` : ""}${g.link ? `<a class="lk" href="${ROUTES.guarantee}">${esc(g.link)}${K.ARROW}</a>` : ""}</div>` : ""}
     </div>
   </section>
 
-  <section class="window end" id="m-7">
+  <section class="panel dark campus" id="m-9"${campus.headline ? ' aria-labelledby="c-h"' : ' aria-hidden="true"'}>
+    ${campus.headline ? `<h2 class="rv" id="c-h">${esc(campus.headline)}</h2>` : ""}
+    <div class="tri">${CAMPUS.map(
+      (id, k) =>
+        `<div class="clip rv" style="--d:${k * 0.12}s"><video muted playsinline preload="none" poster="${id}-r${reduce ? "" : "0"}.jpg" data-src="${id}-r.mp4" aria-hidden="true"></video></div>`
+    ).join("")}</div>
+  </section>
+
+  <section class="panel messages" id="m-10">
+    ${msgs.headline ? `<div class="in"><h2 class="rv">${esc(msgs.headline)}</h2></div>` : ""}
+    <div class="wall" aria-hidden="true"><div class="tilt">${wall}</div></div>
+  </section>
+
+  <section class="window end" id="m-11">
     <div class="in">
       <h2 class="rv">${esc(end.headline)}</h2>
       ${end.text ? `<p class="lede rv" style="--d:.1s">${esc(end.text)}</p>` : ""}
@@ -214,28 +162,17 @@
     ${end["line note"] ? `<div class="kline rv" style="--d:.35s"><span class="bar" aria-hidden="true"></span><p>${esc(end["line note"])}</p></div>` : ""}
   </section>`;
 
-  // the menu's button gets the same arrow as the page's
-  document.querySelectorAll(".sheet .btn").forEach((a) => {
-    a.innerHTML = `<span class="lb">${esc(a.textContent)}</span><span class="go">${ARROW}</span>`;
-  });
-
-  /* ---------- the film ---------- */
-  let paused = false;
-  try {
-    paused = localStorage.getItem("karman-motion") === "off";
-  } catch (e) {}
+  /* ---------- the film behind the page ---------- */
   const stage = document.querySelector(".stage");
   const day = stage.querySelector(".day"),
     edge = stage.querySelector(".edge");
-  const tall = matchMedia("(max-width: 760px) and (orientation: portrait)").matches;
-  const sfx = tall ? "-p" : "";
+  const sfx = matchMedia("(max-width: 760px) and (orientation: portrait)").matches ? "-p" : "";
   day.poster = `day${sfx}.jpg`;
   edge.poster = `c9${sfx}.jpg`;
   if (!reduce) {
     day.src = `day${sfx}.mp4`;
     edge.src = `c9${sfx}.mp4`;
   }
-
   // the orb shows only when the film takes longer than 400 ms to arrive
   let waitT = 0;
   const waitOn = () => {
@@ -246,16 +183,15 @@
     clearTimeout(waitT);
     stage.classList.remove("waiting");
   };
+  const seen = new Set(); // windows on screen
+  let ending = false;
+  const cur = () => (ending ? edge : day);
+  const want = () => !reduce && !K.paused && !document.hidden && seen.size > 0;
   [day, edge].forEach((v) => {
     v.addEventListener("waiting", () => v === cur() && want() && waitOn());
     v.addEventListener("playing", waitOff);
     v.addEventListener("pause", waitOff);
   });
-
-  const seen = new Set(); // windows on screen
-  let ending = false;
-  const cur = () => (ending ? edge : day);
-  const want = () => !reduce && !paused && !document.hidden && seen.size > 0;
   let swapT = 0;
   function sync() {
     if (reduce) return;
@@ -280,15 +216,13 @@
   });
   document.querySelectorAll(".window").forEach((w) => wio.observe(w));
   document.addEventListener("visibilitychange", sync);
-
-  // the close: the day dissolves into orbit while the last window is on screen
-  const close = document.getElementById("m-7");
+  const close = document.getElementById("m-11");
   new IntersectionObserver(
     (es) =>
       es.forEach((e) => {
         if (e.isIntersecting === ending) return;
         ending = e.isIntersecting;
-        if (ending && (edge.ended || edge.currentTime === 0)) edge.currentTime = 0;
+        if (ending && edge.ended) edge.currentTime = 0;
         stage.classList.toggle("ending", ending);
         sync();
       }),
@@ -298,115 +232,54 @@
     rootMargin: "120% 0px",
   }).observe(close);
 
-  /* ---------- the three results: each plays once when it comes on screen, one after another, and rests on
-     its last frame (the school); coming back after it ended plays it again ---------- */
-  const rvids = [...document.querySelectorAll(".res video")];
-  const rio = new IntersectionObserver(
+  /* ---------- campus films: each plays once when it comes on screen, one after another ---------- */
+  const cvids = [...document.querySelectorAll(".campus video")];
+  const cio = new IntersectionObserver(
     (es) =>
       es.forEach((e) => {
         const v = e.target;
         clearTimeout(v._t);
-        if (e.isIntersecting && !reduce && !paused) {
+        if (e.isIntersecting && !reduce && !K.paused) {
           if (!v.src) v.src = v.dataset.src;
           if (v.ended) v.currentTime = 0;
-          v._t = setTimeout(() => v.play().catch(() => {}), rvids.indexOf(v) * 260);
+          v._t = setTimeout(() => v.play().catch(() => {}), cvids.indexOf(v) * 260);
         } else v.pause();
       }),
     { threshold: 0.45 }
   );
-  rvids.forEach((v) => rio.observe(v));
+  cvids.forEach((v) => cio.observe(v));
+  new IntersectionObserver(
+    (es) =>
+      es.forEach(
+        (e) =>
+          e.isIntersecting && !reduce && cvids.forEach((v) => !v.src && (v.src = v.dataset.src))
+      ),
+    { rootMargin: "80% 0px" }
+  ).observe(document.getElementById("m-9"));
+
+  /* ---------- the wall moves only while it is on screen and the films are not paused ---------- */
+  const wallEl = document.querySelector(".wall");
+  let wallSeen = false;
+  const wallSync = () => wallEl.classList.toggle("still", !wallSeen || K.paused);
   new IntersectionObserver(
     (es) =>
       es.forEach((e) => {
-        if (e.isIntersecting && !reduce) rvids.forEach((v) => !v.src && (v.src = v.dataset.src));
+        wallSeen = e.isIntersecting;
+        wallSync();
       }),
-    { rootMargin: "80% 0px" }
-  ).observe(document.getElementById("m-6"));
+    { rootMargin: "10% 0px" }
+  ).observe(wallEl);
+  wallSync();
 
-  /* ---------- pause / play every film (header), remembered ---------- */
-  const motion = document.querySelector("[data-motion]");
-  const label = () => {
-    if (!motion) return;
-    motion.textContent = paused ? site.play || "Play" : site.pause || "Pause";
-    motion.setAttribute("aria-label", `${motion.textContent} ${site["pause words"] || "the film"}`);
-    motion.setAttribute("aria-pressed", String(paused));
-    motion.hidden = reduce;
-  };
-  label();
-  motion?.addEventListener("click", () => {
-    paused = !paused;
-    try {
-      localStorage.setItem("karman-motion", paused ? "off" : "on");
-    } catch (e) {}
+  document.addEventListener("karman:motion", () => {
     sync();
-    rvids.forEach((v) => {
+    wallSync();
+    cvids.forEach((v) => {
       const r = v.getBoundingClientRect();
-      if (paused) v.pause();
-      else if (r.top < innerHeight && r.bottom > 0) v.play().catch(() => {});
+      if (K.paused) v.pause();
+      else if (r.top < innerHeight && r.bottom > 0 && !v.ended) v.play().catch(() => {});
     });
-    label();
   });
-
-  /* ---------- the clock follows the moment in the middle of the screen ---------- */
-  const clock = document.querySelector(".clock");
-  const tEl = clock.querySelector(".t"),
-    apEl = clock.querySelector(".ap"),
-    whoEl = clock.querySelector(".who");
-  const hourBtns = [...clock.querySelectorAll("[data-go]")];
-  const EASE = "cubic-bezier(.22,1,.36,1)";
-  let now = -1;
-  function setNow(k) {
-    if (k === now || !moments[k]) return;
-    const back = k < now;
-    now = k;
-    const [d, ap] = split(moments[k].f.time);
-    const old = tEl.querySelector("span:not(.old)");
-    const nu = document.createElement("span");
-    nu.textContent = d;
-    tEl.append(nu);
-    if (old) {
-      if (reduce) old.remove();
-      else {
-        old.classList.add("old");
-        const dir = back ? 1 : -1;
-        old.animate(
-          [
-            { transform: "none", opacity: 1 },
-            { transform: `translateY(${dir * 55}%)`, opacity: 0 },
-          ],
-          { duration: 450, easing: EASE }
-        ).onfinish = () => old.remove();
-        nu.animate(
-          [
-            { transform: `translateY(${-dir * 55}%)`, opacity: 0 },
-            { transform: "none", opacity: 1 },
-          ],
-          { duration: 650, easing: EASE }
-        );
-      }
-    }
-    apEl.textContent = ap;
-    whoEl.textContent = moments[k].f.name || "";
-    hourBtns.forEach((b, i) => b.toggleAttribute("aria-current", i === k));
-    document.querySelectorAll(".moment").forEach((el, i) => el.classList.toggle("now", i === k));
-  }
-  setNow(0);
-  const mio = new IntersectionObserver(
-    (es) => es.forEach((e) => e.isIntersecting && setNow(+e.target.dataset.k)),
-    { rootMargin: "-45% 0px -45% 0px" }
-  );
-  document.querySelectorAll(".moment").forEach((el) => mio.observe(el));
-  hourBtns.forEach((b) =>
-    b.addEventListener("click", () => {
-      const t = document.getElementById(b.dataset.go);
-      const y =
-        t.getBoundingClientRect().top +
-        scrollY -
-        innerHeight * 0.5 +
-        Math.min(t.offsetHeight, innerHeight * 0.6) / 2;
-      scrollTo({ top: y, behavior: reduce ? "auto" : "smooth" });
-    })
-  );
 
   /* ---------- the Daily 10 figure (Hairline): the tile under your finger lifts, its neighbours follow ---------- */
   window.hairline = (figure) => {
@@ -449,115 +322,13 @@
   hs.src = "hairline/ten.js";
   document.body.append(hs);
 
-  /* ---------- buttons: answer the press at once; a 20 px orb only if the next page takes over 400 ms ---------- */
-  addEventListener("touchstart", () => {}, { passive: true }); // lets :active show on iOS
-  document.addEventListener("click", (e) => {
-    const a = e.target.closest(".btn");
-    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
-    const go = a.querySelector(".go");
-    setTimeout(() => {
-      if (!document.body.contains(a) || !window.karmanOrb || !go) return;
-      a.setAttribute("aria-busy", "true");
-      const c = document.createElement("canvas");
-      go.replaceChildren(c);
-      a._stop = window.karmanOrb(c, {
-        state: "working",
-        size: 20,
-        dark: true,
-        tint: { r: 235, g: 162, b: 31 },
-      });
-    }, 400);
-  });
-  addEventListener("pageshow", () =>
-    document.querySelectorAll('.btn[aria-busy="true"]').forEach((a) => {
-      a._stop?.();
-      a.removeAttribute("aria-busy");
-      a.querySelector(".go").innerHTML = ARROW;
-    })
-  );
+  K.init();
 
-  /* ---------- words rise in once ---------- */
-  const vio = new IntersectionObserver(
-    (es) =>
-      es.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add("on");
-          vio.unobserve(e.target);
-        }
-      }),
-    { threshold: 0.12 }
-  );
-  document.querySelectorAll(".rv").forEach((el) => vio.observe(el));
-  requestAnimationFrame(() => document.documentElement.classList.add("ready"));
-
-  /* ---------- header: white words over the film, black on the white panels ---------- */
-  const hd = document.querySelector(".hd");
-  const panels = [...document.querySelectorAll(".panel, .datecard")];
-  let ticking = false;
-  const onScroll = () => {
-    ticking = false;
-    const y = 36;
-    const light = panels.some((p) => {
-      const r = p.getBoundingClientRect();
-      return r.top <= y && r.bottom >= y;
-    });
-    const down = scrollY > 40;
-    hd.classList.toggle("light", light);
-    hd.classList.toggle("dim", down && !light); // a soft shade so the links never sit on busy footage
-    document.documentElement.classList.toggle("scrolled", down);
-  };
-  addEventListener(
-    "scroll",
-    () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(onScroll);
-      }
-    },
-    { passive: true }
-  );
-  addEventListener("resize", onScroll);
-  onScroll();
-
-  /* ---------- phone menu ---------- */
-  const sheet = document.getElementById("menu"),
-    mbtn = document.querySelector(".hd .menu");
-  const shut = () => {
-    sheet.hidden = true;
-    document.documentElement.classList.remove("lock");
-    mbtn.setAttribute("aria-expanded", "false");
-    mbtn.focus();
-  };
-  mbtn.addEventListener("click", () => {
-    sheet.hidden = false;
-    document.documentElement.classList.add("lock");
-    mbtn.setAttribute("aria-expanded", "true");
-    sheet.querySelector(".close").focus();
-  });
-  sheet.querySelector(".close").addEventListener("click", shut);
-  sheet.addEventListener("click", (e) => {
-    if (e.target.closest("a")) shut();
-  });
-  addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !sheet.hidden) shut();
-  });
-
-  /* ---------- the copy editor's preview opens at a message: ?m=N (&b=K for a later film in it) ---------- */
+  /* the copy editor's preview opens at a section: ?m=N */
   const mq = +Q.get("m");
-  if (mq) {
-    const t =
-      (+Q.get("b") > 0 && document.getElementById(`m-${mq}-b`)) ||
-      document.getElementById(`m-${mq}`);
-    if (t) {
-      t.scrollIntoView({ block: t.classList.contains("moment") ? "center" : "start" });
-      t.querySelectorAll(".rv").forEach((el) => el.classList.add("on"));
-      t.classList.add("on");
-    }
+  const t = mq && document.getElementById(`m-${mq}`);
+  if (t) {
+    t.scrollIntoView({ block: t.classList.contains("feat") ? "center" : "start" });
+    t.querySelectorAll(".rv").forEach((el) => el.classList.add("on"));
   }
-  if (Q.has("rec")) document.querySelectorAll(".rv").forEach((el) => el.classList.add("on"));
-  window.__max = () => document.documentElement.scrollHeight - innerHeight;
-  window.__go = async (y) => {
-    scrollTo(0, y);
-    await new Promise((r) => setTimeout(r, 120));
-  };
 })();

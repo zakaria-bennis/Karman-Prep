@@ -23,14 +23,11 @@ All the words on the landing page live in one file: `copy.js`, in this folder.
    `screen title: Ten minutes before first period.`
 3. Save, then refresh the landing page in your browser.
 
-The page tells seven messages: Morning, Pickup, Tennis, Classes and reviews,
-Test day, Next fall and The edge. Each message has one headline. Some play
-more than one film (Morning: the kitchen, then Ava on the bus); their words
-are split by a `### ` line naming the film, for example `### Ava on the bus`.
-The top of `copy.js` lists the messages, their films and which labels show
-where (for example `screen title:`, the first line of a product screen's
-caption, and `line note:`, the sentence shown when someone taps the line at
-the end).
+The home page has eleven sections, top to bottom: Opening, Live classes, One-on-one
+reviews, Daily 10, Parent updates, Between classes, Test date, Guarantee, Campus film,
+Student messages and The close. Each starts with a line like `## 8 Guarantee`. The
+`## Site` block holds the header, menu and footer words, the pricing page (labels
+starting `pricing`) and the students map (labels starting `map`).
 
 After the seven messages, a `## Site` block holds the words around the film:
 the header and menu links, the footer's column titles, links and footage

@@ -56,10 +56,9 @@
 </main>
 <script>
 (function () {
-  // the seven messages and the films inside each (the page's own order; see copy.js)
-  const NAMES = ["Morning", "Pickup", "Tennis", "Classes and reviews", "Test day", "Next fall", "The edge"];
-  const FILMS = [["The kitchen before dawn", "Ava on the bus"], ["The pickup line"], ["Mateo at tennis"], ["Priya in the live class", "David's 1:1 review"],
-    ["The night", "Test day, phones away"], ["Mateo", "Priya", "Ava"], ["Orbit and the line"]];
+  // the home page sections in order (see copy.js)
+  const NAMES = ["Opening", "Live classes", "One-on-one reviews", "Daily 10", "Parent updates", "Between classes", "Test date", "Guarantee", "Campus film", "Student messages", "The close"];
+  const FILMS = [];
   const form = document.getElementById("form"), frame = document.getElementById("frame"), status = document.getElementById("status");
   const save = document.getElementById("save"), discard = document.getElementById("discard");
   let saved = "", messages = [], current = [1, 1], timer = 0;
