@@ -13,6 +13,16 @@ Interface Guidelines (motion, typography, accessibility, layout, colour), how
 apple.com product pages load and play video (checked 2026-10-22), and two
 rounds of independent expert critique of the landing mock.
 
+> **Theme change (founder, 2026-10-25), overrides the colour, type and film
+> sections below where they conflict:** the site is white, with black and
+> marigold (`#EBA21F`) as the accents. Headlines are Hanken Grotesk 800 with
+> tight tracking (no serif). The one highlighted button is marigold with black
+> text. Films no longer drive the page: each sits in a rounded frame inside its
+> section, plays once when half of it is on screen, and rests on its last frame;
+> scrolling is always normal. The only dark areas are the closing band and the
+> footer. Temporary logo: the winged KP (`film/logo.svg`), black and marigold on
+> white, white and marigold on black.
+
 ## 1. Purpose and simplicity
 
 - Every screen answers: what is this, who is it for, what do I do next. The

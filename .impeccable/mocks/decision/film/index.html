@@ -3,49 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="light">
 <title>Karman Prep: SAT programs that end on your test date</title>
 <meta name="description" content="Live SAT classes in groups of up to six, daily practice, and a one-on-one review after every full-length test, all planned back from your student's SAT date.">
 <link rel="canonical" href="https://karmanprep.com/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
-<script>try { if (localStorage.getItem("karman-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="film.css">
 </head>
 <body>
-<!-- every word in the header, menu and footer comes from the "## Site" block in copy.js (film.js fills each data-t) -->
+<!-- Every word comes from copy.js (film.js fills each data-t and builds the sections). -->
+<a class="skip" href="#main">Skip to content</a>
 <header class="hd">
-  <a class="mark" href="/" data-t="logo"></a>
+  <a class="mark" href="/" aria-label="Karman Prep home" data-logo></a>
   <nav aria-label="Main">
     <a data-route="program" data-t="program link"></a><a data-route="private" data-t="private link"></a><a data-route="pricing" data-t="pricing link"></a><a data-route="signIn" data-t="sign in link"></a>
-    <a class="cta" data-route="test" data-t="free test link"></a><button class="play" type="button" data-motion><span class="lbl"></span><span class="vh" data-t="pause words"></span></button><button class="menu" type="button" aria-expanded="false" aria-controls="menu" data-t="menu"></button>
+    <button class="play" type="button" data-motion></button>
+    <a class="cta" data-route="test" data-t="free test link"></a>
+    <button class="menu" type="button" aria-expanded="false" aria-controls="menu" data-t="menu"></button>
   </nav>
 </header>
-<div class="sheet" id="menu" role="dialog" aria-modal="true">
-  <div class="top"><span class="mark" data-t="logo"></span><button class="close" type="button" data-t="close"></button></div>
+<div class="sheet" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+  <div class="top"><span class="mark" data-logo></span><button class="close" type="button" data-t="close"></button></div>
   <nav aria-label="Menu links"><a data-route="program" data-t="program link"></a><a data-route="private" data-t="private link"></a><a data-route="pricing" data-t="pricing link"></a><a data-route="guarantee" data-t="guarantee link"></a><a data-route="signIn" data-t="sign in link"></a></nav>
-  <a class="btn" data-route="test" data-cta data-t="free test link"></a>
+  <a class="btn" data-route="test" data-t="free test link"></a>
 </div>
-<div class="films"></div>
-<main id="climb"></main>
+<main id="main"></main>
 <footer class="ft">
   <div class="cols">
-    <span class="mark" data-t="logo"></span>
+    <span class="mark" data-logo></span>
     <nav aria-label="Footer">
       <div class="col"><p class="h" data-t="footer programs"></p><a data-route="program" data-t="program link"></a><a data-route="private" data-t="private link"></a><a data-route="pricing" data-t="pricing link"></a><a data-route="test" data-t="free test link"></a></div>
       <div class="col"><p class="h" data-t="footer company"></p><a data-route="guarantee" data-t="guarantee link"></a><a data-route="faq" data-t="faq link"></a><a data-route="about" data-t="about link"></a><a data-route="signIn" data-t="sign in link"></a></div>
       <div class="col"><p class="h" data-t="footer legal"></p><a data-route="terms" data-t="terms link"></a><a data-route="privacy" data-t="privacy link"></a><a data-route="cookies" data-t="cookies link"></a><a data-t="email" data-mail></a></div>
     </nav>
   </div>
-  <div class="bar">
-    <p class="credit" data-t="credits"></p>
-    <div class="prefs"><button class="pref" type="button" data-motion><span class="lbl"></span><span data-t="pause words"></span></button><button class="pref" type="button" data-theme-toggle aria-pressed="false" data-t="light mode"></button></div>
-  </div>
+  <p class="credit" data-t="credits"></p>
 </footer>
-
 <script src="copy.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="film.js"></script>
 </body>
 </html>

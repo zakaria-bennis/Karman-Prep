@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 156" role="img" aria-label="Karman Prep">
+  <!-- Temporary Karman Prep mark (founder, 2026-10-25), redrawn from his reference: a winged KP.
+       Left wing and K use currentColor (black on light pages, white on dark); right wing and P are marigold.
+       The letters carry a stroke in the page colour (--logo-gap) so they sit in front of the wings. -->
+  <g fill="currentColor">
+    <path d="M126 64 L8 8 L62 54 L126 78 Z"/>
+    <path d="M126 84 L22 52 L68 86 L126 98 Z"/>
+    <path d="M126 104 L40 92 L80 112 L126 116 Z"/>
+  </g>
+  <g fill="#EBA21F">
+    <path d="M194 64 L312 8 L258 54 L194 78 Z"/>
+    <path d="M194 84 L298 52 L252 86 L194 98 Z"/>
+    <path d="M194 104 L280 92 L240 112 L194 116 Z"/>
+  </g>
+  <g stroke="var(--logo-gap, #fff)" stroke-width="7" stroke-linejoin="round" paint-order="stroke">
+    <path fill="currentColor" d="M100 58 H128 V96 L158 58 H190 L154 103 L192 152 H158 L128 112 V152 H100 Z"/>
+    <path fill="#EBA21F" d="M196 58 H244 C268 58 282 71 282 90 C282 109 268 122 244 122 H226 V152 H196 Z"/>
+  </g>
+  <path fill="var(--logo-gap, #fff)" d="M226 81 V99 H242 C249 99 253 95 253 90 C253 85 249 81 242 81 Z"/>
+</svg>
