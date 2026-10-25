@@ -92,7 +92,12 @@
     ["Daily 10 and 10,000+ original questions", "", "yes", "yes"],
     ["Cohort group chat, answered by a tutor every day", "", "yes", ""],
     ["Updates for parents", "", "Every week", "After every session"],
-    ["The 50-point guarantee", "", "yes", ""],
+    [
+      "The guarantee: +100 points or a 1450",
+      "",
+      "Money back or the next cohort free",
+      "On 20 hours: free hours, then half back",
+    ],
   ];
   const money = (n) => "$" + n.toLocaleString("en-US");
   const CHECK =
@@ -135,7 +140,7 @@
         </article>
 
         <article class="plan program rv" style="--d:.08s">
-          <a class="badge" href="#guarantee"><b>+50</b><span>${S("guarantee headline")}</span></a>
+          <a class="badge" href="#guarantee"><b>+100</b><span>${S("guarantee headline")}</span></a>
           <h2 class="pname">${esc(DATES[0].name)}</h2>
           <div class="pay" role="radiogroup" aria-label="${S("full")} / ${S("split")}">
             <label><input type="radio" name="pay" value="full" checked><span>${S("full")}</span></label>
@@ -157,6 +162,7 @@
             ${PRIVATE.packs.map(([h], i) => `<label><input type="radio" name="hours" value="${i}"${i ? "" : " checked"}><span>${h} hours</span></label>`).join("")}
           </div>
           <p class="price" aria-live="polite"><b class="amt"></b><span class="per">${money(PRIVATE.rate)} an hour</span></p>
+          <a class="badge g20" href="#guarantee" hidden><b>+100</b><span>On 20 hours: +100 points or a 1450.</span></a>
           <p class="meta">Start any time. Sessions are planned back from your test date.</p>
           <ul>${INCLUDES.private.map((x) => `<li>${CHECK}${esc(x)}</li>`).join("")}</ul>
           <a class="ghost" href="${ROUTES.private}">${S("private button")}${K.ARROW}</a>
@@ -165,27 +171,8 @@
     </div>
   </section>
 
-  <section class="panel dark p-guarantee" id="guarantee" aria-labelledby="pg-h">
-    <div class="in">
-      <div class="pg-head">
-        <span class="big" aria-hidden="true">+50</span>
-        <div>
-          <h2 id="pg-h" class="rv">${S("guarantee headline")}</h2>
-          <p class="lede rv" style="--d:.1s">${S("guarantee text")}</p>
-        </div>
-      </div>
-      <div class="sides">
-        <div class="side-list rv"><h3>${esc(g["we do title"])}</h3><ol>${list(g["we do"])
-          .map((x) => `<li>${esc(x)}</li>`)
-          .join("")}</ol></div>
-        <div class="side-list you rv" style="--d:.1s"><h3>${esc(g["you do title"])}</h3><ol>${list(
-          g["you do"]
-        )
-          .map((x) => `<li>${esc(x)}</li>`)
-          .join("")}</ol></div>
-      </div>
-      <div class="g-foot rv">${g.promise ? `<p>${esc(g.promise)}</p>` : ""}<a class="lk" href="${ROUTES.guarantee}">${S("guarantee link")}${K.ARROW}</a></div>
-    </div>
+  <section class="panel dark guarantee" id="guarantee" aria-labelledby="pg-h">
+    <div class="in">${K.guarantee({ ...g, headline: site["pricing guarantee headline"], text: site["pricing guarantee text"] }, "pg-h")}</div>
   </section>
 
   <section class="compare" data-light aria-labelledby="cmp-h">
@@ -243,6 +230,7 @@
     document.querySelector(".prog-cost").textContent = money(d.price);
     const h = +document.querySelector('input[name="hours"]:checked').value;
     roll(priv.querySelector(".amt"), money(PRIVATE.packs[h][1]));
+    priv.querySelector(".g20").hidden = h !== 1;
   }
   document
     .querySelectorAll('input[type="radio"]')

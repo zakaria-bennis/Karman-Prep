@@ -192,30 +192,35 @@ main { position: relative; z-index: 1; }
 
 /* ---------- the guarantee: black, loud, nothing in small print ---------- */
 .panel.dark { background: var(--ink); color: #fff; }
-.guarantee .in { display: grid; gap: clamp(48px, 6vw, 90px); }
-.g-top { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(32px, 5vw, 80px); align-items: end; }
-.guarantee h2 { font-size: clamp(46px, 6.4vw, 104px); margin-top: 18px; max-width: 11ch; }
-.guarantee .lede { color: #d6d1c7; margin-top: 24px; }
-.promise { border-top: 3px solid var(--marigold); padding-top: 22px; }
-.promise .big { display: block; font-size: clamp(110px, 13vw, 210px); font-weight: 800; letter-spacing: -0.07em; line-height: .82; color: var(--marigold); font-variant-numeric: tabular-nums; }
-.promise p { font-size: clamp(20px, 1.7vw, 26px); font-weight: 700; line-height: 1.3; margin-top: 18px; text-wrap: balance; }
+.guarantee .in { display: grid; gap: clamp(44px, 5vw, 80px); }
+.g-top { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 80px); align-items: end; }
+.g-words { display: grid; gap: 18px; }
+.guarantee h2 { font-size: clamp(40px, 5vw, 80px); max-width: 13ch; }
+.guarantee .lede { color: #d6d1c7; }
+.g-promise { font-size: clamp(56px, 7.4vw, 124px); font-weight: 800; letter-spacing: -0.055em; line-height: .92; color: var(--marigold); text-wrap: balance; }
+.g-note { color: #bdb8ae; font-size: 16px; max-width: 46ch; }
+/* what the family gets, by result: three rows that read like a receipt */
+.outcomes { display: grid; border-radius: 26px; overflow: hidden; background: #1a1a1a; }
+.outcomes > div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; padding: 20px 24px; border-top: 1px solid #2a2a2a; }
+.outcomes > div:first-child { border-top: 0; }
+.outcomes dt { font-weight: 800; font-size: clamp(17px, 1.4vw, 21px); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.outcomes dd { margin: 0; color: #d6d1c7; font-size: 16px; }
+.outcomes > div:last-child dt { color: var(--marigold); }
 .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; border-radius: 30px; overflow: hidden; background: #262626; }
 .side-list { padding: clamp(26px, 3vw, 44px); background: #141414; }
 .side-list.you { background: #1b1a17; }
-.side-list h3 { font-size: clamp(22px, 2vw, 30px); display: flex; align-items: center; gap: 12px; }
-.side-list h3::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: #fff; }
-.side-list.you h3::before { background: var(--marigold); }
-.side-list ol { counter-reset: n; display: grid; margin-top: 18px; }
-.side-list li { counter-increment: n; display: grid; grid-template-columns: 36px 1fr; gap: 8px; padding: 14px 0; border-top: 1px solid #2c2c2c; font-size: 17px; color: #e7e3da; }
-.side-list li::before { content: counter(n, decimal-leading-zero); font-weight: 800; font-size: 14px; color: #8c877e; padding-top: 2px; font-variant-numeric: tabular-nums; }
-.side-list.you li::before { color: var(--marigold); }
-.g-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; }
-.g-foot p { font-size: clamp(18px, 1.5vw, 22px); font-weight: 600; max-width: 46ch; }
+.side-list h3 { font-size: clamp(22px, 2vw, 30px); }
+.side-list ul { list-style: none; display: grid; margin-top: 14px; }
+.side-list li { padding: 14px 0; border-top: 1px solid #2c2c2c; font-size: 17px; color: #e7e3da; }
+.g-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px 40px; }
+.covers { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
+.covers span { padding: 8px 14px; border-radius: 999px; background: #1f1f1f; color: #e7e3da; font-size: 15px; font-weight: 600; }
+.claim { color: #bdb8ae; font-size: 16px; max-width: 64ch; }
 .g-foot .lk, .datecard .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 800; text-decoration: none; }
 .g-foot .lk { color: var(--marigold); font-size: 18px; }
 .g-foot .lk svg, .datecard .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
 @media (hover: hover) and (pointer: fine) { .g-foot .lk:hover svg { transform: translateX(4px); } }
-@media (max-width: 900px) { .g-top, .sides { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .g-top, .sides, .g-foot { grid-template-columns: 1fr; } .outcomes > div { grid-template-columns: 1fr; gap: 4px; } }
 
 /* ---------- the campus films, side by side ---------- */
 .campus { padding: clamp(14px, 1.4vw, 22px); }

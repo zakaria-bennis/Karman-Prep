@@ -57,10 +57,49 @@
   const btn = (label, href, cls = "btn") =>
     `<a class="${cls}" href="${href}"><span class="lb">${esc(label)}</span><span class="go">${ARROW}</span></a>`;
 
-  /* the iPhone 18 Pro Max in Glacier, drawn in CSS (phone.css): front, glass, the narrow Dynamic Island,
+  /* the iPhone 17 Pro Max in Cosmic Orange, drawn in CSS (phone.css): front, glass, the Dynamic Island,
      and its aluminium edge with the buttons when it is turned */
   const phone = (screen, cls = "") =>
     `<div class="iphone ${cls}"><span class="rim" aria-hidden="true"></span><span class="side" aria-hidden="true"></span><div class="glass">${screen}<span class="island" aria-hidden="true"></span></div></div>`;
+
+  /* the guarantee, as one block both the home page and the pricing page use: the promise, what the family
+     gets for each result, both sides' obligations and who it covers, all on the page, nothing in small print */
+  function guarantee(g, headId) {
+    const pairs = list(g.outcomes).map((x) => x.split(" = "));
+    const side = (title, items, cls) =>
+      items.length
+        ? `<div class="side-list ${cls} rv"><h3>${esc(title)}</h3><ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`
+        : "";
+    return `<div class="g-top">
+        <div class="g-words">
+          ${g.eyebrow ? `<p class="eyebrow rv">${esc(g.eyebrow)}</p>` : ""}
+          ${g.headline ? `<h2 class="rv" id="${headId}">${esc(g.headline)}</h2>` : ""}
+          ${g.text ? `<p class="lede rv">${esc(g.text)}</p>` : ""}
+          ${g.promise ? `<p class="g-promise rv"${g.headline ? "" : ` id="${headId}"`}>${esc(g.promise)}</p>` : ""}
+          ${g["promise note"] ? `<p class="g-note rv">${esc(g["promise note"])}</p>` : ""}
+        </div>
+        ${
+          pairs.length
+            ? `<dl class="outcomes rv">${pairs.map(([r, w]) => `<div><dt>${esc(r)}</dt><dd>${esc(w || "")}</dd></div>`).join("")}</dl>`
+            : ""
+        }
+      </div>
+      <div class="sides">
+        ${side(g["we do title"], list(g["we do"]), "")}
+        ${side(g["you do title"], list(g["you do"]), "you")}
+      </div>
+      <div class="g-foot rv">
+        ${
+          list(g.covers).length
+            ? `<p class="covers">${list(g.covers)
+                .map((x) => `<span>${esc(x)}</span>`)
+                .join("")}</p>`
+            : ""
+        }
+        ${g.claim ? `<p class="claim">${esc(g.claim)}</p>` : ""}
+        ${g.link ? `<a class="lk" href="${ROUTES.guarantee}">${esc(g.link)}${ARROW}</a>` : ""}
+      </div>`;
+  }
 
   /* ---------- header, menu and footer words and links ---------- */
   function fill(root = document) {
@@ -229,6 +268,7 @@
     ARROW,
     btn,
     phone,
+    guarantee,
     init,
     get paused() {
       return paused;

@@ -4,7 +4,7 @@
 // Each section of the home page starts with a line like "## 2 Live classes".
 // Keep the label before each colon ("headline:", "text:" and so on) and change
 // only the words after it. Leave a line empty, or delete it, to hide that text.
-// Lists use " | " between items. Save the file and refresh the page.
+// Lists use " | " between items; in "outcomes", " = " splits the result from what the family gets. Save the file and refresh the page.
 //
 // The home page, top to bottom:
 //    1 Opening            the film, the first line and the button
@@ -22,8 +22,9 @@
 // "## Site" holds the words around the pages: header, menu, footer, the pause
 // button, the pricing page ("pricing ...") and the students map ("map ...").
 //
-// DRAFT: section 8 and the pricing and map headlines were drafted by Claude from
-// your own words (2026-10-25). Rewrite them in your voice before launch.
+// EMPTY LABELS ARE YOURS TO WRITE: the guarantee's headline and text, the pricing
+// headline and text, and the map headline and text. An empty label hides that line.
+// The guarantee terms in section 8 come from docs/business/guarantee.md.
 //
 // House rules still apply: no em dashes, nothing the offer doesn't promise,
 // and any tutoring result shown with "Karman 1:1 tutoring, median 16 weeks".
@@ -74,14 +75,17 @@ card link: How the guarantee works
 
 ## 8 Guarantee
 eyebrow: The Karman guarantee
-headline: This is not an easy program.
-text: We do everything in our power to get your student the score they came for, and we ask your student to bring the same energy. Buying the program is where our work starts, not where it ends.
-promise: If your official score isn't at least 50 points above your baseline, your next cohort is free.
+headline:
+text:
+promise: +100 points or a 1450
+promise note: Measured from an official SAT or PSAT from the last 6 months, or from a week-1 Bluebook test we proctor live.
+outcomes: +100 or more, or 1450 and up = Nothing back. The promise was kept. | +50 to +99 = Half the price back, or the next cohort free. You choose. | Under +50 = The full price back, or the next cohort free. You choose.
 we do title: What we do
 we do: Two live classes a week, in a group of up to six | Five full-length practice tests | A 60-minute one-on-one after every full-length | A weekly live session | Daily 10 and 10,000+ original questions | Questions answered by a Karman tutor every day | A weekly update for parents
 you do title: What your student does
-you do: Take the proctored baseline test in the first week | Attend at least 80% of live classes and every one-on-one | Complete all five full-length practice tests | Complete the assigned weekly practice | Sit for the official SAT on the program's test date | Send us the official score report within 30 days
-note: We don't want your money if you aren't sure what you're signing up for. Read the guarantee, ask us anything, then decide.
+you do: Attend at least 15 of the 18 live classes, live | Complete all five one-on-one reviews (rescheduling with 24 hours' notice is fine) | Take all five full-length tests, each in one timed sitting, in its assigned week | Complete at least 90% of the weekly practice, tracked on the dashboard | Sit the official SAT on the program's test date
+covers: A student's first Karman program, once per student | Not for students starting at 1450 or above | Paid in full, or every installment paid on time
+claim: Within 30 days of scores coming out, email us the official College Board score report. One email. Nothing is taken out of a refund.
 link: Read the full guarantee
 
 ## 9 Campus film
@@ -120,12 +124,12 @@ close: Close
 pause: Pause the film
 play: Play the film
 pricing eyebrow: Pricing
-pricing headline: Every price, every promise, on one page.
-pricing text: Pick the SAT date you're aiming for. Everything below changes to match it.
+pricing headline:
+pricing text:
 pricing date question: Which SAT is your student taking?
 pricing other date: Another date
-pricing guarantee headline: 50 points, or your next cohort is free.
-pricing guarantee text: No fine print. These are the whole terms.
+pricing guarantee headline: +100 points or a 1450, or your money back.
+pricing guarantee text:
 pricing compare title: What each option includes
 pricing free button: Book the free test
 pricing program button: Hold a seat
@@ -138,8 +142,8 @@ pricing guarantee link: See how the guarantee works
 pricing honest note: If you're already scoring 1500 or higher, or your test is less than four weeks away, we'll tell you honestly that a program probably isn't the best use of your money.
 pricing scholarship: One seat in every cohort is a scholarship seat, free for a student whose family can't afford the program.
 map eyebrow: Our students
-map headline: From every corner of the country, and well beyond it.
-map text: Most of our students live in the five biggest metro areas. The rest are everywhere else, including India, Pakistan, Dubai, Morocco, Spain, Portugal and France.
+map headline:
+map text:
 map replay: Play again
 credits: Night sky: International Gemini Observatory/NOIRLab/NSF/AURA (CC BY 4.0). Earth from orbit: NASA. Maps: Natural Earth and U.S. Census Bureau via world-atlas and us-atlas.
 `;

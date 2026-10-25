@@ -198,20 +198,49 @@ export const DIAGNOSTIC = {
   durationLabel: "About 35 minutes",
 } as const;
 
+/**
+ * The guarantee (proposed 2026-10-25, see docs/business/guarantee.md).
+ * CONFIRM: lawyer review before launch.
+ */
 export const GUARANTEE = {
-  points: 50,
-  baseline: "an official Bluebook practice test, proctored live in your first week",
-  requirements: [
-    "Take the proctored baseline test in your first week.",
-    "Attend at least 80% of live classes and every 1:1 session.",
-    "Complete all five full-length practice tests.",
-    "Complete your assigned weekly practice.",
-    "Sit for the official SAT on your program's test date.",
-    "Send us your official College Board score report within 30 days of receiving it.",
+  points: 100,
+  orScore: 1450,
+  /** Students starting at or above this are not covered (told before enrolling). */
+  excludedFrom: 1450,
+  baseline:
+    "an official SAT or PSAT from the last 6 months, or the week-1 Bluebook test, proctored live by Karman",
+  /** What the family gets, by official result. The family chooses money or a seat. */
+  outcomes: [
+    { result: "+100 or more, or 1450 and up", remedy: "Nothing back. The promise was kept." },
+    { result: "+50 to +99", remedy: "Half the price back, or the next cohort free. You choose." },
+    { result: "Under +50", remedy: "The full price back, or the next cohort free. You choose." },
   ],
-  remedy:
-    "If your official score isn't at least 50 points above your baseline, your next cohort is free.",
+  requirements: [
+    "Attend at least 15 of the 18 live classes, live.",
+    "Complete all five one-on-one reviews. Rescheduling with 24 hours' notice is fine.",
+    "Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.",
+    "Complete at least 90% of the assigned weekly practice.",
+    "Sit the official SAT on the program's test date, or the next one within 60 days if it's cancelled or with a doctor's note.",
+  ],
+  eligibility: [
+    "A student's first Karman program, once per student.",
+    "Students starting at 1450 or above are not covered.",
+    "Paid in full, or every installment paid on time.",
+  ],
+  claim:
+    "Within 30 days of scores coming out, email the official College Board score report to guarantee@karmanprep.com.",
   claimEmail: "guarantee@karmanprep.com",
+  private20: {
+    points: 100,
+    orScore: 1450,
+    requirements: [
+      "Attend every session. Cancelling with less than 24 hours' notice counts as a missed session.",
+      "Take four full-length practice tests.",
+      "Sit the official SAT within 30 days of the last session.",
+    ],
+    remedy:
+      "Up to 6 more hours free. If the next official SAT still falls short, half the price back.",
+  },
 } as const;
 
 export const INTAKE_NOTE =

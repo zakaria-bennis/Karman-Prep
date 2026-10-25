@@ -74,7 +74,8 @@
     PER = narrow ? 10 : 15;
   const wall = Array.from({ length: COLS }, (_, c) => {
     const phones = Array.from({ length: PER }, () => phone(chat())).join("");
-    return `<div class="col" style="--t:${(narrow ? 70 : 110) + c * 9}s">${phones}${phones}</div>`;
+    const off = [0, -38, -12, -52, -24, -44][c]; // percent of a phone's height: the stagger (margins resolve against width, so x 163.4 / 78)
+    return `<div class="col" style="--t:${(narrow ? 70 : 110) + c * 9}s;--off:${(off * 2.095).toFixed(1)}%">${phones}${phones}</div>`;
   }).join("");
 
   /* ---------- the page ---------- */
@@ -117,27 +118,7 @@
   </section>
 
   <section class="panel dark guarantee" id="m-8" aria-labelledby="g-h">
-    <div class="in">
-      <div class="g-top">
-        <div>
-          ${g.eyebrow ? `<p class="eyebrow rv">${esc(g.eyebrow)}</p>` : ""}
-          <h2 class="rv" id="g-h">${esc(g.headline)}</h2>
-          ${g.text ? `<p class="lede rv" style="--d:.1s">${esc(g.text)}</p>` : ""}
-        </div>
-        ${g.promise ? `<div class="promise rv" style="--d:.2s"><span class="big" aria-hidden="true">+50</span><p>${esc(g.promise)}</p></div>` : ""}
-      </div>
-      <div class="sides">
-        <div class="side-list rv"><h3>${esc(g["we do title"])}</h3><ol>${list(g["we do"])
-          .map((x) => `<li>${esc(x)}</li>`)
-          .join("")}</ol></div>
-        <div class="side-list you rv" style="--d:.1s"><h3>${esc(g["you do title"])}</h3><ol>${list(
-          g["you do"]
-        )
-          .map((x) => `<li>${esc(x)}</li>`)
-          .join("")}</ol></div>
-      </div>
-      ${g.note || g.link ? `<div class="g-foot rv">${g.note ? `<p>${esc(g.note)}</p>` : ""}${g.link ? `<a class="lk" href="${ROUTES.guarantee}">${esc(g.link)}${K.ARROW}</a>` : ""}</div>` : ""}
-    </div>
+    <div class="in">${K.guarantee(g, "g-h")}</div>
   </section>
 
   <section class="panel dark campus" id="m-9"${campus.headline ? ' aria-labelledby="c-h"' : ' aria-hidden="true"'}>

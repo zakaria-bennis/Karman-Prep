@@ -1,5 +1,5 @@
-/* The iPhone 18 Pro Max in Glacier, drawn in CSS (Apple's specs: 78.0 x 163.4 x 8.75 mm, 6.9-inch display,
-   a narrower Dynamic Island). Only the front and, when turned, an edge with its buttons. Size it with --pw.
+/* The iPhone 17 Pro Max in Cosmic Orange, drawn in CSS (Apple's specs: 78.0 x 163.4 x 8.75 mm, 6.9-inch
+   display, aluminium unibody). Only the front and, when turned, an orange edge with its buttons. Size it with --pw.
    Also the wall of phones (the student messages) and its placeholder message screens. */
 .iphone {
   --pw: 300px;
@@ -7,26 +7,26 @@
   --bez: calc(var(--pw) * 0.026);
   --r: calc(var(--pw) * 0.178);
   position: relative; flex: none; width: var(--pw); aspect-ratio: 78 / 163.4; border-radius: var(--r);
-  /* the Glacier aluminium band around the glass */
-  background: linear-gradient(100deg, #93b0c8 0%, #dbe9f5 14%, #b4cbdf 38%, #e8f1f9 62%, #a7c0d6 86%, #8aa7bf 100%);
-  box-shadow: 0 0 0 calc(var(--pw) * 0.002) rgba(60, 85, 110, .35), 0 40px 80px -36px rgba(0, 0, 0, .55), 0 18px 30px -22px rgba(30, 60, 90, .45);
+  /* the Cosmic Orange aluminium band around the glass */
+  background: linear-gradient(100deg, #b9501a 0%, #f7a467 14%, #e0712f 38%, #fbb57e 62%, #d6662a 86%, #a9471a 100%);
+  box-shadow: 0 0 0 calc(var(--pw) * 0.002) rgba(120, 45, 10, .4), 0 40px 80px -36px rgba(0, 0, 0, .55), 0 18px 30px -22px rgba(120, 50, 10, .45);
   transform-style: preserve-3d;
 }
 .iphone .rim { position: absolute; inset: calc(var(--rim) * .45); border-radius: calc(var(--r) - var(--rim) * .45); box-shadow: inset 0 0 0 calc(var(--pw) * .0025) rgba(255, 255, 255, .75); pointer-events: none; }
 .iphone .glass { position: absolute; inset: var(--rim); border-radius: calc(var(--r) - var(--rim)); background: #050506; padding: var(--bez); overflow: hidden; transform: translateZ(.5px); }
 .iphone .glass::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(125deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 32%, rgba(255,255,255,0) 70%, rgba(255,255,255,.06) 100%); }
 .iphone .glass > img, .iphone .screen { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: calc(var(--r) - var(--rim) - var(--bez)); overflow: hidden; }
-.iphone .island { position: absolute; left: 50%; top: calc(var(--bez) + var(--pw) * 0.03); width: calc(var(--pw) * 0.2); height: calc(var(--pw) * 0.066); margin-left: calc(var(--pw) * -0.1); border-radius: 999px; background: #000; z-index: 2; }
-/* the edges: 8.75 mm of Glacier aluminium, seen only when the phone turns */
-.iphone .side { position: absolute; top: calc(var(--pw) * .07); bottom: calc(var(--pw) * .07); width: calc(var(--pw) * .112); border-radius: calc(var(--pw) * .05); backface-visibility: hidden; background: linear-gradient(90deg, #7f9cb5, #d5e5f2 45%, #a3bdd3 70%, #87a4bd); }
+.iphone .island { position: absolute; left: 50%; top: calc(var(--bez) + var(--pw) * 0.028); width: calc(var(--pw) * 0.285); height: calc(var(--pw) * 0.083); margin-left: calc(var(--pw) * -0.1425); border-radius: 999px; background: #000; z-index: 2; }
+/* the edges: 8.75 mm of orange aluminium, seen only when the phone turns */
+.iphone .side { position: absolute; top: calc(var(--pw) * .07); bottom: calc(var(--pw) * .07); width: calc(var(--pw) * .112); border-radius: calc(var(--pw) * .05); backface-visibility: hidden; background: linear-gradient(90deg, #a5441a, #f9a86c 45%, #dc6c2c 70%, #b0491b); }
 .iphone .side { right: 0; transform-origin: right center; transform: rotateY(-90deg); }
 /* side button and Camera Control on the right edge */
-.iphone .side::before, .iphone .side::after { content: ""; position: absolute; left: 22%; right: 22%; border-radius: 99px; background: linear-gradient(90deg, #7593ad, #c7dbeb 50%, #7f9db7); box-shadow: 0 0 0 1px rgba(60,85,110,.25); }
+.iphone .side::before, .iphone .side::after { content: ""; position: absolute; left: 22%; right: 22%; border-radius: 99px; background: linear-gradient(90deg, #9c3f17, #f39a5e 50%, #a8461a); box-shadow: 0 0 0 1px rgba(110,40,10,.3); }
 .iphone .side::before { top: 20%; height: 11%; }
 .iphone .side::after { top: 54%; height: 7%; }
 .iphone.left .side { right: auto; left: 0; transform-origin: left center; transform: rotateY(90deg); }
 /* the left edge: Action button and the two volume buttons */
-.iphone.left .side::before { top: 15%; height: 4.5%; box-shadow: 0 0 0 1px rgba(60,85,110,.25), 0 calc(var(--pw) * .12) 0 0 #a9c3d8, 0 calc(var(--pw) * .25) 0 0 #a9c3d8; }
+.iphone.left .side::before { top: 15%; height: 4.5%; box-shadow: 0 0 0 1px rgba(110,40,10,.3), 0 calc(var(--pw) * .12) 0 0 #e88a4e, 0 calc(var(--pw) * .25) 0 0 #e88a4e; }
 .iphone.left .side::after { display: none; }
 
 /* ---------- placeholder message screens (the founder's real iMessage screens replace these) ---------- */
@@ -43,20 +43,18 @@
 .chat .b.out.k { background: var(--marigold, #eba21f); color: #0b0b0b; }
 @keyframes thread { to { transform: translateY(-50%); } }
 
-/* ---------- the wall: six slow columns of phones, tilted, drifting in turn ---------- */
-.wall { position: relative; height: min(1200px, 135vh); overflow: hidden; perspective: 1800px;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent); }
-.wall .tilt { position: absolute; left: 50%; top: 50%; width: 132%; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2.2%; transform: translate(-50%, -50%) rotateX(22deg) rotateZ(-11deg); transform-style: preserve-3d; }
-.wall .col { display: flex; flex-direction: column; align-items: center; gap: 46px; animation: drift var(--t, 90s) linear infinite; }
+/* ---------- the wall: six straight columns of phones, each offset so the rows stagger, drifting in turn ---------- */
+.wall { position: relative; height: min(1180px, 130vh); overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent); }
+.wall .tilt { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(10px, 1.4vw, 22px); padding: 0 clamp(10px, 1.4vw, 22px); }
+.wall .col { container-type: inline-size; display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 1.4vw, 22px); margin-top: var(--off, 0px); animation: drift var(--t, 90s) linear infinite; }
 .wall .col:nth-child(even) { animation-direction: reverse; }
-.wall .col .iphone { --pw: min(15.5vw, 230px); }
+.wall .col .iphone { --pw: 100cqw; box-shadow: 0 0 0 1px rgba(120, 45, 10, .35), 0 18px 40px -26px rgba(0, 0, 0, .45); }
 @keyframes drift { to { transform: translateY(-50%); } }
 .wall.still .col, .wall.still .thread { animation-play-state: paused; }
 @media (max-width: 760px) {
-  .wall { height: 100vh; }
-  .wall .tilt { grid-template-columns: repeat(3, minmax(0, 1fr)); width: 185%; gap: 4%; }
-  .wall .col { gap: 26px; }
-  .wall .col .iphone { --pw: 36vw; }
+  .wall { height: 110vh; }
+  .wall .tilt { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .wall .col, .chat .thread { animation: none; }
