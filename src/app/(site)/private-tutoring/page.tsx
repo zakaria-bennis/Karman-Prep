@@ -26,7 +26,7 @@ function Pack({ s, hot = false }: { s: string; hot?: boolean }) {
   const [hours = "", price = "", ...more] = rest.split(", ");
   const [amount, ...after] = price.split(".");
   return (
-    <article className={`i-pack rv${hot ? "hot" : ""}`}>
+    <article className={`i-pack rv ${hot ? "hot" : ""}`}>
       <h3>{name}</h3>
       <p className="i-price">
         <b>{amount}</b>

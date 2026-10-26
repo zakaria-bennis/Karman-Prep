@@ -46,7 +46,7 @@ function Feature({ x }: { x: (typeof FEATURES)[number] }) {
   const f = section(x.n);
   return (
     <article
-      className={`feat ${x.side}${"minor" in x ? "minor" : ""} m-${x.media}`}
+      className={`feat ${x.side} ${"minor" in x ? "minor" : ""} m-${x.media}`}
       id={`m-${x.n}`}
     >
       <div className="media rv" aria-hidden="true">

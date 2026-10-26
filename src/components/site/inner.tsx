@@ -24,7 +24,7 @@ function Facts({ f }: { f: CopySection }) {
   if (!items.length) return null;
   return (
     <dl
-      className={`i-facts rv${items.some(([a]) => a.length > 6) ? "words" : ""}`}
+      className={`i-facts rv ${items.some(([a]) => a.length > 6) ? "words" : ""}`}
       style={delay(0.24)}
     >
       {items.map(([a, b]) => (
@@ -51,7 +51,7 @@ export function InnerHero({
 }) {
   const f = section(n);
   return (
-    <section className={`i-hero${faq ? "i-faqhero" : ""}`} data-light id={`s-${n}`}>
+    <section className={`i-hero ${faq ? "i-faqhero" : ""}`} data-light id={`s-${n}`}>
       <div className="in">
         <div className="i-words">
           {f.eyebrow ? <p className="eyebrow rv">{f.eyebrow}</p> : null}
@@ -100,7 +100,7 @@ export function Rows({
       <ol className="i-time">
         {items.map(([a, b], k) => (
           <li
-            className={`rv${k === items.length - 1 ? "last" : ""}`}
+            className={`rv ${k === items.length - 1 ? "last" : ""}`}
             style={delay(k * 0.06)}
             key={a}
           >
@@ -120,7 +120,7 @@ export function Rows({
       </dl>
     );
   return (
-    <section className={`i-sec${style === "steps" ? "" : "rows"}`} data-light id={id ?? `s-${n}`}>
+    <section className={`i-sec ${style === "steps" ? "" : "rows"}`} data-light id={id ?? `s-${n}`}>
       <div className="in">
         <Head f={f} />
         {body}

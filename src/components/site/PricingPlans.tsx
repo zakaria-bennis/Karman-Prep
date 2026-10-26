@@ -221,7 +221,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
             <TextLink label={S("free button")} href={`${ROUTES.test}#seat`} />
           </div>
           <div className="cards">
-            <article className={`plan program rv${other ? "dim" : ""}`}>
+            <article className={`plan program rv ${other ? "dim" : ""}`}>
               <a className="badge" href="#guarantee">
                 <b>+{G.points}</b>
                 <span>{S("badge")}</span>
@@ -286,7 +286,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               </div>
             </article>
 
-            <article className={`plan private rv${other ? "lift" : ""}`} style={delay(0.08)}>
+            <article className={`plan private rv ${other ? "lift" : ""}`} style={delay(0.08)}>
               <h2>{SITE["private link"]}</h2>
               <div className="pay hours" role="radiogroup" aria-label="Hours">
                 {PRIVATE_PACKAGES.map((p, i) => (

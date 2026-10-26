@@ -15,7 +15,7 @@ const hanken = Hanken_Grotesk({
   display: "swap",
 });
 
-/** Light is the default for now (founder, 2026-10-25); the switch remembers the visitor's choice. */
+/** Dark is the default (founder, 2026-10-26; design rule 33); the switch to light remembers the visitor's choice. */
 const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m==="dark"||m==="light")document.getElementById("ks").dataset.mode=m}catch(e){}`;
 
 const SUN = (
@@ -49,7 +49,7 @@ const MOON = (
 function ThemeButton({ labeled = false }: { labeled?: boolean }) {
   return (
     <button
-      className={`theme${labeled ? "labeled" : ""}`}
+      className={`theme ${labeled ? "labeled" : ""}`}
       type="button"
       aria-label={SITE["dark mode"]}
       title={SITE["dark mode"]}
@@ -124,7 +124,7 @@ export default function SitePage({
     <div
       id="ks"
       className={`ks ${hanken.variable}${kind === "home" ? "" : ` page-${kind}`}`}
-      data-mode="light"
+      data-mode="dark"
       suppressHydrationWarning
     >
       <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />

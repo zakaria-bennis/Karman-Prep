@@ -77,7 +77,7 @@ export function Action({
 /** The iPhone 17 Pro Max in Cosmic Orange, drawn in CSS (phone.css). */
 export function Phone({ screen, left = false }: { screen: string; left?: boolean }) {
   return (
-    <div className={`iphone${left ? "left" : ""}`}>
+    <div className={`iphone ${left ? "left" : ""}`}>
       <span className="rim" aria-hidden="true" />
       <span className="side" aria-hidden="true" />
       <div className="glass">
