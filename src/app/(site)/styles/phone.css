@@ -1,0 +1,61 @@
+/* The iPhone 17 Pro Max in Cosmic Orange, drawn in CSS (Apple's specs: 78.0 x 163.4 x 8.75 mm, 6.9-inch
+   display, aluminium unibody). Only the front and, when turned, an orange edge with its buttons. Size it with --pw.
+   Also the wall of phones (the student messages) and its placeholder message screens. */
+.ks .iphone {
+  --pw: 300px;
+  --rim: calc(var(--pw) * 0.017);
+  --bez: calc(var(--pw) * 0.026);
+  --r: calc(var(--pw) * 0.178);
+  position: relative; flex: none; width: var(--pw); aspect-ratio: 78 / 163.4; border-radius: var(--r);
+  /* the Cosmic Orange aluminium band around the glass */
+  background: linear-gradient(100deg, #b9501a 0%, #f7a467 14%, #e0712f 38%, #fbb57e 62%, #d6662a 86%, #a9471a 100%);
+  box-shadow: 0 0 0 calc(var(--pw) * 0.002) rgba(120, 45, 10, .4);
+  transform-style: preserve-3d;
+}
+.ks .iphone .rim { position: absolute; inset: calc(var(--rim) * .45); border-radius: calc(var(--r) - var(--rim) * .45); box-shadow: inset 0 0 0 calc(var(--pw) * .0025) rgba(255, 255, 255, .75); pointer-events: none; }
+.ks .iphone .glass { position: absolute; inset: var(--rim); border-radius: calc(var(--r) - var(--rim)); background: #050506; padding: var(--bez); overflow: hidden; transform: translateZ(.5px); }
+.ks .iphone .glass::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(125deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 32%, rgba(255,255,255,0) 70%, rgba(255,255,255,.06) 100%); }
+.ks .iphone .glass > img, .ks .iphone .screen { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: calc(var(--r) - var(--rim) - var(--bez)); overflow: hidden; }
+.ks .iphone .island { position: absolute; left: 50%; top: calc(var(--bez) + var(--pw) * 0.028); width: calc(var(--pw) * 0.285); height: calc(var(--pw) * 0.083); margin-left: calc(var(--pw) * -0.1425); border-radius: 999px; background: #000; z-index: 2; }
+/* the edges: 8.75 mm of orange aluminium, seen only when the phone turns */
+.ks .iphone .side { position: absolute; top: calc(var(--pw) * .07); bottom: calc(var(--pw) * .07); width: calc(var(--pw) * .112); border-radius: calc(var(--pw) * .05); backface-visibility: hidden; background: linear-gradient(90deg, #a5441a, #f9a86c 45%, #dc6c2c 70%, #b0491b); }
+.ks .iphone .side { right: 0; transform-origin: right center; transform: rotateY(-90deg); }
+/* side button and Camera Control on the right edge */
+.ks .iphone .side::before, .ks .iphone .side::after { content: ""; position: absolute; left: 22%; right: 22%; border-radius: 99px; background: linear-gradient(90deg, #9c3f17, #f39a5e 50%, #a8461a); box-shadow: 0 0 0 1px rgba(110,40,10,.3); }
+.ks .iphone .side::before { top: 20%; height: 11%; }
+.ks .iphone .side::after { top: 54%; height: 7%; }
+.ks .iphone.left .side { right: auto; left: 0; transform-origin: left center; transform: rotateY(90deg); }
+/* the left edge: Action button and the two volume buttons */
+.ks .iphone.left .side::before { top: 15%; height: 4.5%; box-shadow: 0 0 0 1px rgba(110,40,10,.3), 0 calc(var(--pw) * .12) 0 0 #e88a4e, 0 calc(var(--pw) * .25) 0 0 #e88a4e; }
+.ks .iphone.left .side::after { display: none; }
+
+/* ---------- placeholder message screens (the founder's real iMessage screens replace these) ---------- */
+.ks .chat { background: var(--card); display: flex; flex-direction: column; position: relative; }
+.ks .chat .top { flex: none; height: 17%; display: grid; justify-items: center; align-content: end; gap: 5%; padding-bottom: 4%; background: #f6f6f7; border-bottom: 1px solid #e6e6e9; }
+.ks .chat .av { width: 18%; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(160deg, #c9ccd3, #a5a9b2); }
+.ks .chat .nm { width: 30%; height: 3.2%; min-height: 3px; border-radius: 9px; background: #c9ccd3; }
+.ks .chat .feed { flex: 1; overflow: hidden; position: relative; }
+.ks .chat .thread { display: flex; flex-direction: column; gap: 3%; padding: 5% 6%; animation: ks-thread var(--t, 18s) linear infinite; animation-delay: var(--dl, 0s); }
+.ks .chat .b { max-width: 74%; border-radius: 14px; padding: 4% 6%; display: grid; gap: 5px; flex: none; }
+.ks .chat .b i { display: block; height: 4px; border-radius: 4px; background: currentColor; opacity: .55; }
+.ks .chat .b.in { align-self: flex-start; background: #e9e9eb; color: #8e8e93; border-bottom-left-radius: 5px; }
+.ks .chat .b.out { align-self: flex-end; background: #0a84ff; color: #fff; border-bottom-right-radius: 5px; }
+.ks .chat .b.out.k { background: var(--marigold, #eba21f); color: #0b0b0b; }
+@keyframes ks-thread { to { transform: translateY(-50%); } }
+
+/* ---------- the wall: six straight columns of phones, each offset so the rows stagger, drifting in turn ---------- */
+.ks .wall { position: relative; height: min(1180px, 130vh); overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent); }
+.ks .wall .tilt { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(10px, 1.4vw, 22px); padding: 0 clamp(10px, 1.4vw, 22px); }
+.ks .wall .col { container-type: inline-size; display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 1.4vw, 22px); margin-top: var(--off, 0px); animation: ks-drift var(--t, 90s) linear infinite; }
+.ks .wall .col:nth-child(even) { animation-direction: reverse; }
+.ks .wall .col .iphone { --pw: 100cqw; box-shadow: 0 0 0 1px rgba(120, 45, 10, .35); }
+@keyframes ks-drift { to { transform: translateY(-50%); } }
+.ks .wall.still .col, .ks .wall.still .thread { animation-play-state: paused; }
+@media (max-width: 760px) {
+  .ks .wall { height: 110vh; }
+  .ks .wall .tilt { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .wall .col, .ks .chat .thread { animation: none; }
+}

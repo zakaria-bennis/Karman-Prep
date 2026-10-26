@@ -2,6 +2,15 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Marketing pages replaced in the October 2026 rebuild: old links land on the page that replaced them.
+  async redirects() {
+    return [
+      { source: "/plans", destination: "/pricing", permanent: true },
+      { source: "/free-diagnostic", destination: "/free-practice-test", permanent: true },
+      { source: "/blog", destination: "/", permanent: true },
+      { source: "/questions", destination: "/free-practice-test", permanent: true },
+    ];
+  },
   // Cloudflare Workers (via OpenNext) needs the Node.js runtime
   // compatibility flag — set in wrangler.toml.
   // See: https://opennext.js.org/cloudflare/get-started

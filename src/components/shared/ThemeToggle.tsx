@@ -4,6 +4,7 @@ import { Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/shared/ThemeProvider";
+import { SITE_PAGES } from "@/components/site/routes";
 
 export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   const pathname = usePathname();
@@ -12,26 +13,14 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   // Server-rendered buttons must not accept clicks before React attaches the handler.
   // This waits for this control to hydrate, independently of Clerk loading.
   useEffect(() => setReady(true), []);
-  // Shells and public navigation provide an in-flow control, clear of content. /calculator has
+  // Shells and the marketing pages provide an in-flow control, clear of content. /calculator has
   // none: its bar stays quiet and the calculator keeps the classic skin in either theme.
   const portalHasThemeControl =
     ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn"].some(
       (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
     ) ||
-    [
-      "/",
-      "/free-diagnostic",
-      "/plans",
-      "/questions",
-      "/about",
-      "/faq",
-      "/calculator",
-      "/blog",
-      "/privacy",
-      "/terms",
-      "/refunds",
-      "/guarantee",
-    ].includes(pathname ?? "");
+    // the marketing pages draw their own light and dark switch in their header
+    [...SITE_PAGES, "/calculator"].includes((pathname ?? "") as (typeof SITE_PAGES)[number]);
   if (floating && portalHasThemeControl) return null;
   return (
     <button
