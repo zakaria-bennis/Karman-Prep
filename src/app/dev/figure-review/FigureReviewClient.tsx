@@ -188,12 +188,13 @@ export default function FigureReviewClient({ initial }: { initial: QueueState })
             <p className="mb-4 text-sm text-taupe">Reviewer: {current.reviewerNote}</p>
           ) : null}
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <figure className="overflow-auto rounded-xl border border-bronze bg-white p-2">
+            <figure className="overflow-auto rounded-xl border border-bronze bg-black p-2">
+              {/* Shown inverted (white on black) at the founder's request, to match the dark quiz render. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`/dev/figure-review/files/${current.id}/original.png`}
                 alt={`Original source image for ${current.id}`}
-                className="mx-auto h-auto max-w-full"
+                className="mx-auto h-auto max-w-full invert"
               />
             </figure>
             <QuizPane key={`${current.id}:${current.fileSha256}`} q={current.question} />
