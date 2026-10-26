@@ -96,8 +96,12 @@ export async function submitLead(
       .map((k) => [k === "date" ? "satDate" : k, data[k] as string])
   );
 
+  const dbReady = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+  let saved = false;
   try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (dbReady) {
       const { error } = await createAdminClient()
         .from("marketing_leads")
         .upsert(
@@ -111,6 +115,7 @@ export async function submitLead(
           { onConflict: "email,source" }
         );
       if (error) throw error;
+      saved = true;
     } else if (process.env.NODE_ENV === "production") {
       throw new Error("marketing_leads is not configured");
     }
@@ -119,31 +124,49 @@ export async function submitLead(
       "[lead] could not record the lead:",
       (error as { message?: string })?.message ?? "unknown"
     );
-    return { ok: false, error: "server" };
+  }
+
+  if (!saved && (dbReady || process.env.NODE_ENV === "production")) {
+    // Until the live database has its marketing_leads table (founder, 2026-10-26), the admin inbox is the
+    // record: the lead counts as received only if that email goes out.
+    const sent = await notifyAdmin(form, data, details, source, true).catch(() => false);
+    if (!sent) return { ok: false, error: "server" };
+    await Promise.allSettled([addToWaitlist(data.email as string)]);
+    return { ok: true };
   }
 
   // Best effort from here: the lead is already safe in the database.
-  await Promise.allSettled([addToWaitlist(data.email as string), notifyAdmin(form, data, details)]);
+  await Promise.allSettled([
+    addToWaitlist(data.email as string),
+    notifyAdmin(form, data, details, source, false),
+  ]);
   return { ok: true };
 }
 
+/** Sends the lead to the admin inbox. Returns whether it was accepted for delivery. */
 async function notifyAdmin(
   form: LeadForm,
   data: Record<string, string | undefined>,
-  details: Record<string, string>
-) {
+  details: Record<string, string>,
+  source: LeadSource,
+  only: boolean
+): Promise<boolean> {
   const to = process.env.ADMIN_NOTIFICATION_EMAIL;
-  if (!to || !process.env.RESEND_API_KEY) return;
+  if (!to || !process.env.RESEND_API_KEY) return false;
   const lines = [
+    only ? "NOT saved in the database: this email is the only record of this lead. Keep it." : "",
     `Email: ${data.email}`,
+    `Source: ${source}`,
     data.name ? `Student's first name: ${data.name}` : "",
     ...Object.entries(details).map(([k, v]) => `${k}: ${v}`),
   ].filter(Boolean);
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: FROM,
     to,
     replyTo: data.email,
     subject: `New ${LABELS[form]}`,
     text: `${LABELS[form]} from karmanprep.com\n\n${lines.join("\n")}\n`,
   });
+  if (error) console.error("[lead] admin email failed:", error.message ?? "unknown");
+  return !error;
 }

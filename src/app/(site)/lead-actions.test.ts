@@ -20,6 +20,7 @@ import { submitLead } from "./lead-actions";
 beforeEach(() => {
   vi.clearAllMocks();
   db.error = null;
+  mail.send.mockResolvedValue({ data: { id: "1" }, error: null });
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
   process.env.SUPABASE_SERVICE_ROLE_KEY = "test";
   process.env.ADMIN_NOTIFICATION_EMAIL = "admin@example.com";
@@ -82,8 +83,26 @@ describe("submitLead", () => {
     expect(db.upsert).not.toHaveBeenCalled();
   });
 
-  it("says so when the database fails, without sending anything else", async () => {
+  it("sends the whole lead to the admin inbox when the database fails, and says received", async () => {
+    db.error = { message: "table missing" };
+    const r = await submitLead("seat", {
+      email: "a@b.co",
+      name: "Ava",
+      grade: "11th",
+      date: "Not sure yet",
+      company: "",
+    });
+    expect(r).toEqual({ ok: true });
+    const sent = mail.send.mock.calls[0][0] as { to: string; text: string };
+    expect(sent.to).toBe("admin@example.com");
+    expect(sent.text).toContain("only record of this lead");
+    expect(sent.text).toContain("a@b.co");
+    expect(sent.text).toContain("Ava");
+  });
+
+  it("says so when both the database and the admin email fail", async () => {
     db.error = { message: "down" };
+    mail.send.mockResolvedValue({ data: null, error: { message: "resend down" } });
     const r = await submitLead("seat", {
       email: "a@b.co",
       name: "Ava",
@@ -92,7 +111,6 @@ describe("submitLead", () => {
       company: "",
     });
     expect(r).toEqual({ ok: false, error: "server" });
-    expect(mail.send).not.toHaveBeenCalled();
     expect(mail.waitlist).not.toHaveBeenCalled();
   });
 });
