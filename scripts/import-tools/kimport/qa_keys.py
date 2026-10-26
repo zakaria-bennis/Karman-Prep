@@ -5,8 +5,9 @@ answer_key_status missing_answer_key) must key the same choice text as a twin wi
 A twin is a multiple-choice row with the same figure data and the same passage and stem once
 formatting is set aside (the same lines, a typo-level slip, or up to three spelling/suffix
 words, kimport.qa_dupes), or, in Reading and Writing, word-for-word the same choices with a
-passage and stem at least 0.6 alike (the SAT reuses a punctuation or transition item on another
-topic: d65b466f "shade, though most" on Cavendish, its printed twins on Kaihalulu). The check fails when the printed twin's keyed choice text (normalized) is one
+passage and stem at least 0.6 alike and the same words right around the blank (the SAT reuses a
+punctuation or transition item on another topic: d65b466f "strikingly different ______ sand
+gets" on Cavendish, its printed twin on Porto Côvo). The check fails when the printed twin's keyed choice text (normalized) is one
 of this row's choices but not the one this row keys: one of the two keys is wrong, and the
 printed one is the source's (the second audit of 2026-10-26: f7757554 keyed "example, with"
 where its printed twins key "example. With"). A twin whose keyed text is not among this row's
@@ -15,6 +16,7 @@ and QA corrections (kimport.bank_gate). Read-only.
 """
 
 import difflib
+import re
 
 from kimport import qa_dupes as qd
 from kimport.answer_evidence import GENERATED
@@ -34,9 +36,32 @@ def is_generated(row: dict) -> bool:
 
 
 # A Reading and Writing item the SAT reuses with another passage topic keeps its choices word for
-# word (a punctuation or transition item): the same choices and a passage and stem at least this
-# alike (word sequence ratio) is a twin too. Math is left out: its variants change the numbers.
+# word (a punctuation or transition item): the same choices, a passage and stem at least this
+# alike (word sequence ratio), and the same words right around the blank (the word before it and
+# the two after it, spelling variants allowed) is a twin too. The words at the blank decide what
+# fits: 2891303f "conduct their work in ______ the scientific community" (isolation from) is not
+# a twin of "achieved through ______ other experts" (collaboration with), same choices or not.
+# Math is left out: its variants change the numbers.
 SAME_CHOICES_TEXT_RATIO = 0.6
+BEFORE_BLANK, AFTER_BLANK = 1, 2
+
+
+def blank_context(row: dict) -> tuple | None:
+    """(the words just before the blank, the words just after it) in the passage or stem; None
+    when there is no blank or more than one."""
+    text = "\n".join(str(row.get(f) or "") for f in ("passage_intro", "passage", "passage_a", "passage_b",
+                                                      "question_text"))
+    parts = re.split(r"_{2,}(?:\s*blank\b)?", text, flags=re.I)
+    if len(parts) != 2:
+        return None
+    before, after = qd.words(parts[0])[0], qd.words(parts[1])[0]
+    return before[-BEFORE_BLANK:], after[:AFTER_BLANK]
+
+
+def _same_context(a: qd.Info, b: qd.Info) -> bool:
+    ca, cb = blank_context(a.row), blank_context(b.row)
+    return (ca is not None and cb is not None and all(
+        len(x) == len(y) and all(qd.spelling_variant(p, q) for p, q in zip(x, y)) for x, y in zip(ca, cb)))
 
 
 def text_twin(a: qd.Info, b: qd.Info) -> bool:
@@ -46,7 +71,7 @@ def text_twin(a: qd.Info, b: qd.Info) -> bool:
         return False
     if (a.choices == b.choices and a.row.get("subject") != "math" and b.row.get("subject") != "math"
             and difflib.SequenceMatcher(None, a.text_words[0], b.text_words[0], autojunk=False).ratio()
-            >= SAME_CHOICES_TEXT_RATIO):
+            >= SAME_CHOICES_TEXT_RATIO and _same_context(a, b)):
         return True
     if a.lines == b.lines or qd._close(a.lines, b.lines):
         return True

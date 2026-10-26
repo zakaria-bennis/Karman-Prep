@@ -189,7 +189,7 @@ class KeyConsistencyTest(unittest.TestCase):
     def rows(self, gen_key="A", printed_key="B", printed_choices=None, subject="reading"):
         g = generated(live(1, stem="Ballet dancers train hard. For ______ dancers rehearse daily. Which choice conforms?",
                            choices=self.CHOICES, key=gen_key, subject=subject))
-        p = live(2, stem="Ballet dancers train hard. For ______ students rehearse weekly. Which choice conforms?",
+        p = live(2, stem="Ballet students train hard. For ______ dancers rehearse weekly. Which choice conforms?",
                  choices=printed_choices or self.CHOICES, key=printed_key, subject=subject)
         return g, p
 
@@ -199,6 +199,23 @@ class KeyConsistencyTest(unittest.TestCase):
         self.assertEqual(list(found), [g["id"]])
         self.assertIn("printed-key twin", found[g["id"]][0])
         self.assertEqual(qa_static.LEVELS["key_conflicts_printed_twin"], "fail")
+
+    def test_the_same_choices_around_another_blank_are_not_a_twin(self):
+        # 2891303f (source-checked): "work in ______ the scientific community" keys "isolation from";
+        # the printed item with the same four choices has "through ______ other experts"
+        choices = ["isolation from", "collaboration with", "competition against", "indifference to"]
+        g = generated(live(1, stem="Many prizes go to teams. But scientists recognized with a Nobel Prize do not often "
+                                   "conduct their work in ______ the scientific community. Instead, they cooperate. "
+                                   "Which choice completes the text?", choices=choices, key="A"))
+        p = live(2, stem="Many prizes go to teams. Instead, success in fields like chemistry has often been achieved "
+                         "through ______ other experts, as with Ben Feringa. Which choice completes the text?",
+                 choices=choices, key="B")
+        self.assertEqual(qa_keys.bank_findings([g, p]), {})
+        # the same words around the blank, the topic changed: a twin, and the keys disagree
+        p2 = live(3, stem="Many prizes go to labs. But chemists recognized with a Wolf Prize do not often conduct "
+                          "their work in ______ the scientific community. Instead, they cooperate. Which choice "
+                          "completes the text?", choices=choices, key="B")
+        self.assertEqual(list(qa_keys.bank_findings([g, p2])), [g["id"]])
 
     def test_agreeing_keys_two_printed_keys_other_choices_and_math_pass(self):
         self.assertEqual(qa_keys.bank_findings(list(self.rows(gen_key="B"))), {})
@@ -215,7 +232,8 @@ class KeyConsistencyTest(unittest.TestCase):
             row = make_row(1)
             row["reviewed_answer"]["kind"] = GENERATED
             row["domain"] = "conventions"
-            twin = live(906, stem=row["question_text"].replace("number 1", "number one"),
+            row["question_text"] = "The made-up harbor at Alder Bay is a quiet ______ boats rarely dock. Which choice conforms?"
+            twin = live(906, stem="The made-up harbor at Birch Cove is a quiet ______ boats rarely dock. Which choice conforms?",
                         choices=["one", "two", "three", "four"], key="B")
             rp, cp = d / "b-reviewed-import-ready.json", d / "clusters.json"
             rp.write_text(json.dumps({"import_policy": "reviewed-difficulty", "questions": [row]}))
