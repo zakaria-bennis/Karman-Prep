@@ -309,6 +309,32 @@ export type Database = {
           },
         ];
       };
+      calendar_feed_tokens: {
+        Row: {
+          created_at: string;
+          token: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          token: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          token?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_feed_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       channel_mutes: {
         Row: {
           channel_id: string;

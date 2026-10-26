@@ -46,6 +46,7 @@ const isMaintenanceExempt = createRouteMatcher([
   "/api/webhooks(.*)", // Slack/Zoom/etc.
   "/api/cron(.*)", // CF cron triggers (self-auth via CRON_SECRET)
   "/api/email/subscribe", // Coming-soon notify form posts here
+  "/api/calendar/feed/(.*)", // Calendar apps fetch it; the secret token is the credential
 ]);
 
 /** Routes that don't require auth in normal (post-launch) operation.
@@ -75,6 +76,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/email/subscribe",
   "/api/diagnostic/sample",
   "/api/cron(.*)",
+  "/api/calendar/feed/(.*)",
 ]);
 
 const LAUNCHED = process.env.NEXT_PUBLIC_KARMAN_LAUNCHED === "true";
