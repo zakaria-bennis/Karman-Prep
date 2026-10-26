@@ -1,18 +1,11 @@
 import HomeFilm from "@/components/site/home/HomeFilm";
-import Wall from "@/components/site/home/Wall";
+import { SeesLists, Tutors, Ways } from "@/components/site/home/HomeSections";
+import ToolsCarousel from "@/components/site/home/ToolsCarousel";
 import SitePage from "@/components/site/SitePage";
-import TenFigure from "@/components/site/TenFigure";
+import WeekCalendar from "@/components/site/WeekCalendar";
 import { SCREENS } from "@/components/site/live/screens";
 import { jsonLd, pageMeta } from "@/components/site/meta";
-import {
-  Action,
-  Arrow,
-  delay,
-  Drawn,
-  GuaranteeBlock,
-  Kinetic,
-  Phone,
-} from "@/components/site/parts";
+import { Arrow, Btn, delay, Drawn, GuaranteeBlock, Kinetic, Phone } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
@@ -21,7 +14,7 @@ import { section } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.home,
   "Karman Prep: SAT programs that end on your test date",
-  "Live SAT classes in groups of up to six, daily practice, and a one-on-one review after every full-length test, all planned back from your student's SAT date."
+  "Live SAT classes of six and private tutoring, taught by PhD students, quants and university professors, with research-backed daily practice and live progress for parents."
 );
 
 const ORG = {
@@ -33,26 +26,22 @@ const ORG = {
   description: section(1).text,
 };
 
-/** The features, most important first; each screen sits at the outer edge of the page. */
+/** How it works, in the order a week runs: the class, the review, the daily practice, what you see. */
 const FEATURES = [
-  { n: 2, media: "wide", screen: SCREENS.schedule, side: "right" },
+  { n: 2, media: "wide", screen: SCREENS.zoom, side: "right" },
   { n: 3, media: "wide", screen: SCREENS.review, side: "left" },
-  { n: 4, media: "phone", screen: SCREENS.daily10, side: "right", ten: true },
-  { n: 5, media: "phone", screen: SCREENS.parent, side: "left" },
-  { n: 6, media: "phone", screen: SCREENS.wordline, side: "right", minor: true },
+  { n: 4, media: "phone", screen: SCREENS.daily10, side: "right" },
+  { n: 5, media: "phone", screen: SCREENS.parent, side: "left", sees: true },
 ] as const;
 
 function Feature({ x }: { x: (typeof FEATURES)[number] }) {
   const f = section(x.n);
   return (
-    <article
-      className={`feat ${x.side} ${"minor" in x ? "minor" : ""} m-${x.media}`}
-      id={`m-${x.n}`}
-    >
+    <article className={`feat ${x.side} m-${x.media}`} id={`m-${x.n}`}>
       <div className="media rv" aria-hidden="true">
         {x.media === "phone" ? (
           <div className="turn">
-            <Phone screen={x.screen()} left={x.side === "left"} />
+            <Phone screen={x.screen()} />
           </div>
         ) : (
           <Drawn as="figure" className="wide" aria-hidden html={x.screen()} />
@@ -71,8 +60,8 @@ function Feature({ x }: { x: (typeof FEATURES)[number] }) {
             {f["card text"]}
           </p>
         ) : null}
-        {"ten" in x ? <TenFigure /> : null}
       </div>
+      {"sees" in x ? <SeesLists /> : null}
     </article>
   );
 }
@@ -83,7 +72,7 @@ export default function HomePage() {
   const hero = section(1);
   const date = section(7);
   const campus = section(9);
-  const msgs = section(10);
+  const cal = section(14);
   const end = section(11);
   return (
     <SitePage kind="home" stage={<HomeFilm />}>
@@ -110,8 +99,13 @@ export default function HomePage() {
               {hero.text}
             </p>
           ) : null}
-          <div className="rv" style={delay(0.6)}>
-            <Action f={hero} href={ROUTES.test} />
+          <div className="act two rv" style={delay(0.6)}>
+            <Btn label={hero.button} href={ROUTES.test} />
+            <a className="btn2" href={ROUTES.pricing}>
+              {hero["second button"]}
+              <Arrow />
+            </a>
+            {hero["button note"] ? <small>{hero["button note"]}</small> : null}
           </div>
           {hero.proof ? (
             <p className="proof rv" style={delay(0.75)}>
@@ -122,11 +116,32 @@ export default function HomePage() {
         <span className="cue" aria-hidden="true" />
       </section>
 
+      <section className="panel guarantee dark" id="m-8" aria-labelledby="g-h">
+        <div className="in">
+          <GuaranteeBlock g={section(8)} headId="g-h" />
+        </div>
+      </section>
+
+      <div className="panel duo">
+        <Tutors />
+        <Ways />
+      </div>
+
       <section className="panel features" id="features">
         <div className="in">
           {FEATURES.map((x) => (
             <Feature x={x} key={x.n} />
           ))}
+          <article className="feat cal" id="m-14">
+            <div className="words rv">
+              <h2>{cal.headline}</h2>
+              {cal.text ? <p className="lede">{cal.text}</p> : null}
+            </div>
+            <div className="cal-fig rv">
+              <WeekCalendar />
+            </div>
+          </article>
+          <ToolsCarousel />
         </div>
       </section>
 
@@ -146,12 +161,6 @@ export default function HomePage() {
               ) : null}
             </div>
           ) : null}
-        </div>
-      </section>
-
-      <section className="panel guarantee dark" id="m-8" aria-labelledby="g-h">
-        <div className="in">
-          <GuaranteeBlock g={section(8)} headId="g-h" />
         </div>
       </section>
 
@@ -182,15 +191,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="panel messages" id="m-10">
-        {msgs.headline ? (
-          <div className="in">
-            <h2 className="rv">{msgs.headline}</h2>
-          </div>
-        ) : null}
-        <Wall />
-      </section>
-
       <section className="window end" id="m-11">
         <div className="in">
           <h2 className="rv">{end.headline}</h2>
@@ -204,8 +204,9 @@ export default function HomePage() {
               {end.objection}
             </p>
           ) : null}
-          <div className="rv" style={delay(0.2)}>
-            <Action f={end} href={ROUTES.test} />
+          <div className="act rv" style={delay(0.2)}>
+            <Btn label={end.button} href={ROUTES.test} />
+            {end["button note"] ? <small>{end["button note"]}</small> : null}
           </div>
         </div>
         {end["line note"] ? (

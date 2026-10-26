@@ -56,7 +56,7 @@ export function startAlive(root: ParentNode = document): () => void {
   if (fine)
     NEAR.forEach(([sel, reach, kind]) =>
       root.querySelectorAll<HTMLElement>(sel).forEach((el) => {
-        if (el.closest(".sheet") || el.closest(".wall")) return;
+        if (el.closest(".sheet")) return;
         el.classList.add(`near-${kind}`);
         items.push({ el, reach, kind, cur: 0, nx: 0, ny: 0 });
       })

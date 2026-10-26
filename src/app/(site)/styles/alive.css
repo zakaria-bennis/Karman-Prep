@@ -27,16 +27,15 @@
 .ks .glint-on.g-promise, .ks .glint-on.i-big, .ks .glint-on.i-facts dt, .ks .plan.program .price b.glint-on, .ks .badge b.glint-on { animation-play-state: running; }
 @keyframes ks-glint-text { 0% { background-position: 100% 0; } 13%, 100% { background-position: 0 0; } }
 /* the phone's orange edge: a short glint travels along the band */
-.ks .iphone.glint .rim::after {
-  content: ""; position: absolute; inset: calc(var(--rim) * -.6); border-radius: inherit; pointer-events: none;
+.ks .iphone.glint::after {
+  content: ""; position: absolute; inset: calc(var(--band) * -.6); border-radius: inherit; pointer-events: none;
   background: linear-gradient(115deg, transparent 35%, rgba(255,236,214,.95) 48%, rgba(255,255,255,.95) 50%, rgba(255,236,214,.95) 52%, transparent 65%);
   background-size: 300% 300%; background-position: 100% 100%;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; padding: calc(var(--rim) * 1.1);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; padding: calc(var(--band) * 1.1);
   animation: ks-glint-edge var(--gc, 9s) cubic-bezier(.45, 0, .2, 1) var(--gd, 0s) infinite paused;
 }
-.ks .iphone.glint-on .rim::after { animation-play-state: running; }
+.ks .iphone.glint-on::after { animation-play-state: running; }
 @keyframes ks-glint-edge { 0% { background-position: 100% 100%; } 16%, 100% { background-position: 0 0; } }
-.ks .wall .iphone.glint .rim::after { display: none; } /* the wall stays calm: it already moves */
 
 /* ---------- nearness (desktop with a mouse) ---------- */
 /* lean: turns a few degrees toward the cursor and rises slightly as it comes close */

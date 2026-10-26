@@ -1,0 +1,153 @@
+/* The home page's own sections (2026-10-26): the second button in the opening, the tutors, the ways to
+   learn, what tutors and parents see, the week calendar and the study tools. Scoped under .ks. */
+
+/* ---------- the opening's second button: an outline beside the marigold one ---------- */
+.ks .act.two { gap: 12px 14px; }
+.ks .act.two small { flex-basis: 100%; }
+.ks .btn2 { display: inline-flex; align-items: center; gap: 10px; min-height: 58px; padding: 0 24px; border-radius: 999px; color: #fff; font-weight: 800; font-size: 17px; text-decoration: none; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7); background: rgba(10,10,10,.18); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: background-color .2s var(--ease), transform .5s var(--spring); }
+.ks .btn2 svg { width: 15px; height: 15px; }
+@media (hover: hover) and (pointer: fine) { .ks .btn2:hover { background: rgba(255,255,255,.14); } }
+.ks .btn2:active { transform: scale(.96); transition-duration: .08s; }
+
+/* ---------- section heads ---------- */
+.ks .h-head { display: grid; gap: 18px; max-width: 760px; }
+.ks .h-head h2 { margin-top: 0; }
+.ks .h-head .lede { color: var(--ink2); }
+
+/* ---------- the tutors, then the ways to learn, on one panel ---------- */
+.ks .duo .ways { margin-top: clamp(100px, 11vw, 170px); }
+.ks .tutors .in { display: grid; gap: clamp(40px, 5vw, 64px); }
+.ks .creds { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ks .creds li { display: grid; gap: 6px; align-content: start; padding: 26px 24px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+.ks .creds .k-icon-wrap { display: grid; width: 44px; height: 44px; margin-bottom: 10px; place-items: center; border-radius: 12px; background: color-mix(in srgb, var(--marigold) 16%, transparent); color: var(--marigold-ink); }
+.ks .creds .k-ico { width: 24px; height: 24px; }
+.ks .creds b { font-size: clamp(20px, 1.7vw, 24px); font-weight: 800; letter-spacing: -0.025em; }
+.ks .creds span { color: var(--ink2); font-size: 16px; line-height: 1.45; }
+@media (max-width: 900px) { .ks .creds { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .ks .creds { grid-template-columns: 1fr; } .ks .creds li { grid-template-columns: 44px 1fr; column-gap: 16px; padding: 20px; } .ks .creds .k-icon-wrap { grid-row: span 2; margin: 0; } }
+
+/* ---------- the ways to learn ---------- */
+.ks .ways .in { display: grid; gap: clamp(36px, 4vw, 56px); }
+.ks .way-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ks .way { display: flex; flex-direction: column; gap: 14px; padding: 30px 28px 24px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); }
+.ks .way.program { box-shadow: inset 0 0 0 2px var(--marigold); }
+.ks .way h3 { font-size: clamp(24px, 2vw, 30px); }
+.ks .way .wp { display: grid; gap: 2px; }
+.ks .way .wp b { font-size: clamp(34px, 3vw, 44px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.ks .way .wp span { color: var(--ink2); font-weight: 600; font-size: 15px; }
+.ks .way .wt { color: var(--ink2); font-size: 16px; line-height: 1.5; flex: 1; }
+.ks .way .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 800; text-decoration: none; }
+.ks .way .lk svg { width: 15px; height: 15px; color: var(--marigold-ink); transition: transform .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks .way .lk:hover svg { transform: translateX(4px); } }
+.ks .ways-foot { display: flex; }
+@media (max-width: 900px) { .ks .way-cards { grid-template-columns: 1fr; } }
+
+/* ---------- what tutors and parents see ---------- */
+.ks .feat .sees-cols { grid-column: 1 / -1; display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; }
+.ks .sees { padding: 28px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); }
+.ks .sees h3 { font-size: 20px; margin-bottom: 14px; }
+.ks .sees ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px 28px; }
+.ks .sees.tutor ul { grid-template-columns: 1fr 1fr; }
+.ks .sees li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15.5px; line-height: 1.4; }
+.ks .sees .k-icon-wrap { display: grid; color: var(--marigold-ink); padding-top: 1px; }
+.ks .sees .k-ico { width: 18px; height: 18px; }
+@media (max-width: 900px) { .ks .feat .sees-cols, .ks .sees.tutor ul { grid-template-columns: 1fr; } .ks .feat .sees-cols { order: 3; } }
+
+/* ---------- the week calendar ---------- */
+.ks .feat.cal { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); }
+.ks .wk { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.ks .wk-fig { max-width: none; margin: 0; display: grid; align-items: center; }
+.ks .wk-fig .hl { padding: 10px 6px; }
+.ks .wk-ev.class .t-top, .ks .wk-ev.class .t-side { fill: #2a2824; }
+.ks .wk-ev.class .t-top { fill: #3a3732; }
+.ks .wk-ev.review .t-top { fill: #fde0a6; } .ks .wk-ev.review .t-side { fill: #f0b545; }
+.ks .wk-ev.work .t-top { fill: #fff3dc; } .ks .wk-ev.work .t-side { fill: #f6dca8; }
+.ks .wk-ev.hw path { stroke-dasharray: 3 2.4; }
+.ks .wk-ev.d10 .t-top { fill: #f1eee7; }
+.ks .wk-ev.test .t-top { fill: #fff; } .ks .wk-ev.test path { stroke-width: 1.9; }
+.ks .wk-card { padding: 22px 22px 18px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); display: grid; align-content: start; gap: 14px; min-height: 260px; }
+.ks .wk-d { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; color: var(--ink2); font-weight: 600; }
+.ks .wk-d b { color: var(--ink); font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+.ks .wk-today { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--marigold-ink); }
+.ks .wk-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ks .wk-card li { display: grid; grid-template-columns: 14px 1fr; gap: 12px; align-items: start; }
+.ks .wk-card li i { width: 14px; height: 14px; margin-top: 4px; border-radius: 4px; border: 1.5px solid var(--ink); }
+.ks .wk-card li.class i { background: #2a2824; border-color: #2a2824; }
+.ks .wk-card li.review i { background: #f0b545; border-color: #c98a14; }
+.ks .wk-card li.work i { background: #fff3dc; border-color: #d9a54a; }
+.ks .wk-card li.hw i { border-style: dashed; }
+.ks .wk-card li.test i { border-width: 2.5px; }
+.ks .wk-card li span { display: grid; gap: 2px; }
+.ks .wk-card li b { font-size: 16px; line-height: 1.35; }
+.ks .wk-card li small { color: var(--ink2); font-size: 14px; font-weight: 600; }
+.ks[data-mode="dark"] .wk-ev.class .t-top { fill: #f1ede4; } .ks[data-mode="dark"] .wk-ev.class .t-side { fill: #b6b0a4; }
+.ks[data-mode="dark"] .wk-ev.review .t-top { fill: #8a5f12; } .ks[data-mode="dark"] .wk-ev.review .t-side { fill: #5e410c; }
+.ks[data-mode="dark"] .wk-ev.work .t-top { fill: #3a2f1c; } .ks[data-mode="dark"] .wk-ev.work .t-side { fill: #2a2216; }
+.ks[data-mode="dark"] .wk-ev.d10 .t-top, .ks[data-mode="dark"] .wk-ev.test .t-top { fill: #2d2b27; }
+.ks[data-mode="dark"] .wk-card li.class i { background: #f1ede4; border-color: #f1ede4; }
+.ks[data-mode="dark"] .wk-card li.work i { background: #3a2f1c; }
+@media (max-width: 1100px) { .ks .feat.cal { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .ks .wk { grid-template-columns: 1fr; } .ks .wk-card { min-height: 0; } }
+
+/* ---------- the study tools ---------- */
+.ks .tools-wrap { display: grid; gap: 28px; min-width: 0; }
+.ks .tools-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.ks .tools-head > div:first-child { display: grid; gap: 14px; }
+.ks .tools-head h2 { font-size: clamp(32px, 3.6vw, 56px); }
+.ks .tools-head .lede { color: var(--ink2); }
+.ks .tools-nav { display: flex; gap: 10px; flex: none; }
+.ks .tools-nav button { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--card); border: 1px solid var(--line); color: var(--ink); cursor: pointer; transition: transform .45s var(--spring); }
+.ks .tools-nav button:active { transform: scale(.92); transition-duration: .08s; }
+.ks .tools-nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ks .tools-track { list-style: none; margin: 0; padding: 0 0 8px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, calc((100% - 48px) / 4)); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+.ks .tools-track::-webkit-scrollbar { display: none; }
+.ks .tool { scroll-snap-align: start; display: grid; grid-template-rows: auto auto 1fr; gap: 6px; padding: 18px 18px 22px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+.ks .tool b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
+.ks .tool > span:not(.tool-art) { color: var(--ink2); font-size: 15.5px; line-height: 1.45; }
+.ks .tool-art { display: block; height: 170px; border-radius: 12px; background: var(--soft); overflow: hidden; }
+.ks .chat-card { grid-template-rows: auto 1fr; align-content: end; background: var(--night); border-color: var(--night); color: #fff; }
+.ks .chat-card b { font-size: 24px; } .ks .chat-card > span:not(.tool-art) { color: #cfc9be; }
+@media (max-width: 760px) { .ks .tools-head { align-items: start; flex-direction: column; } .ks .tools-nav { display: none; } .ks .tools-track { grid-auto-columns: 78%; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); } }
+
+/* the tools' small working screens */
+.ks .tool-ui { height: 100%; display: grid; place-content: center; gap: 6px; padding: 14px; font-family: var(--font-hanken), system-ui, sans-serif; }
+/* Wordline: right letter in the right place is green, right letter in the wrong place pastel orange */
+.ks .tool-ui.wl .row { display: grid; grid-template-columns: repeat(5, 28px); gap: 5px; }
+.ks .tool-ui.wl i { height: 28px; border-radius: 6px; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 14px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); }
+.ks .tool-ui.wl i.x { background: #d9d6cf; border-color: #d9d6cf; color: #5d5a53; }
+.ks .tool-ui.wl i.p { background: #f8c99a; border-color: #f8c99a; color: #5a3410; }
+.ks .tool-ui.wl i.g { background: #3fa66a; border-color: #3fa66a; color: #fff; }
+.ks .media.on .tool-ui.wl i:not(:empty) { animation: ks-flip .5s var(--ease) both; animation-delay: calc(var(--k) * .07s + .3s); }
+@keyframes ks-flip { from { transform: rotateX(90deg); } }
+.ks[data-mode="dark"] .tool-ui.wl i.x { background: #3a3834; border-color: #3a3834; color: #b6b0a4; }
+/* flashcards: the card turns over and back */
+.ks .tool-ui.fc { perspective: 600px; justify-items: center; }
+.ks .fc .card { position: relative; width: 170px; height: 100px; transform-style: preserve-3d; animation: ks-turn 6s var(--ease) infinite paused; }
+.ks .media.on .fc .card { animation-play-state: running; }
+.ks .fc .f, .ks .fc .b { position: absolute; inset: 0; display: grid; place-content: center; gap: 4px; text-align: center; border-radius: 12px; background: var(--card); border: 1px solid var(--line); backface-visibility: hidden; padding: 8px; }
+.ks .fc .b { transform: rotateY(180deg); background: #fdf0d5; color: #12110f; }
+.ks .fc b { font-size: 22px; margin: 0; }
+.ks .fc span { font-size: 12px; color: var(--ink2); }
+.ks .fc .b span { color: #5d5a53; }
+.ks .fc .due { font-size: 12px; font-weight: 700; color: var(--marigold-ink); }
+@keyframes ks-turn { 0%, 35% { transform: none; } 45%, 80% { transform: rotateY(180deg); } 90%, 100% { transform: none; } }
+/* the Word Lab and the Daily Challenge */
+.ks .tool-ui.lab, .ks .tool-ui.dc { place-content: center stretch; gap: 8px; font-size: 14px; }
+.ks .lab .w b { font-size: 22px; margin: 0; } .ks .lab .w em { margin-left: 8px; color: var(--ink2); font-size: 13px; }
+.ks .lab .m { color: var(--ink2); }
+.ks .lab .you { padding: 10px 12px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); display: grid; gap: 2px; }
+.ks .lab .you span { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--marigold-ink); }
+.ks .lab u { text-decoration-color: var(--marigold); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.ks .dc .t { display: flex; justify-content: space-between; font-weight: 800; }
+.ks .dc .t span { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #fdf0d5; color: #94600a; }
+.ks .dc .s { font-family: Georgia, "Times New Roman", serif; font-size: 16px; }
+.ks .dc .o { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ks .dc .o span { text-align: center; padding: 7px 0; border-radius: 8px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; }
+.ks .media.on .dc .o .ok { animation: ks-right 5s infinite; }
+@keyframes ks-right { 0%, 40% { border-color: var(--line); } 46%, 100% { border-color: #3fa66a; background: color-mix(in srgb, #3fa66a 16%, var(--card)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ks .fc .card, .ks .media.on .tool-ui.wl i, .ks .media.on .dc .o .ok { animation: none; }
+  .ks .dc .o .ok { border-color: #3fa66a; }
+}
+.ks.still-motion .fc .card, .ks.still-motion .tool-ui * { animation-play-state: paused; }

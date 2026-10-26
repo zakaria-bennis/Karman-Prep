@@ -9,7 +9,7 @@
 // Prices, dates and other numbers are ${...} slots filled from offer.ts:
 // change those in src/lib/marketing/offer.ts, never here.
 //
-// Sections: 1 to 11 the home page, 21 to 27 the SAT Program, 31 to 36
+// Sections: 1 to 14 the home page, 21 to 27 the SAT Program, 31 to 36
 // private tutoring, 41 to 45 the free practice test, 51 to 55 the
 // guarantee, 61 to 65 About, 71 the FAQ, 90 the photos' alt text and
 // captions. "## Site" holds the header, menu, footer, pricing page
@@ -93,15 +93,16 @@ const ENROLL_LATER = NEXT_PROGRAMS_ENROLLMENT_LABEL.replace(
 
 export const SITE_COPY = `
 ## 1 Opening
-headline: The fine print, on the front page.
-text: ${W(MP.weeks)}-week SAT programs, ${w(CLASS)} students to a class, ending on your student's test date. The guarantee and every one of its rules are on this page, in type this size.
+headline: Real tutors teach it. Daily practice makes it stick.
+text: Live SAT classes of ${w(CLASS)} and private one-on-one tutoring, taught by PhD students, quants and university professors. Between sessions, ten minutes of research-backed practice a day, and a tutor who sees every answer.
 proof: ${PROOF}
 button: Take the free practice test
 button note: Free. ${TEST_DAY}, live on Zoom.
+second button: See pricing
 
 ## 2 Live classes
 headline: ${W(CLASS)} students, so nobody hides in the back row.
-feature title: ${W(MP.classesPerWeek)} live classes a week.
+feature title: ${W(MP.classesPerWeek)} live classes a week, cameras on.
 feature text: ${W(MP.totalClasses)} classes of ${MP.classMinutes} minutes, ${MP.classDaysLabel} from ${MP.classStart} to ${MP.classEnd}. Small enough that every student answers out loud.
 card title: Plus a weekly live session.
 card text: Pacing, Desmos and how the adaptive second module works, alternating with workshops on the skills students miss most.
@@ -109,24 +110,29 @@ card text: Pacing, Desmos and how the adaptive second module works, alternating 
 ## 3 One-on-one reviews
 headline: After every practice test, an hour on what went wrong.
 feature title: Every mistake, one by one.
-feature text: ${W(MP.fullLengthTests)} full-length tests. After each one, ${MP.reviewMinutes} minutes one-on-one with a Karman tutor, going through every question your student missed and why.
+feature text: ${W(MP.fullLengthTests)} full-length tests. After each one, ${MP.reviewMinutes} minutes one-on-one with a Karman tutor, working through every question your student missed until the method makes sense.
 
-## 4 Daily 10
-headline: Miss it on Monday. See it again on Wednesday.
+## 4 Daily practice
+headline: Spaced repetition, built into ten minutes a day.
 feature title: The Daily 10.
-feature text: Ten questions, about ten minutes. Every missed question comes back after 2, 7 and 21 days. Spaced review is one of the best-supported methods in learning research.
+feature text: Ten questions a day. Every question your student misses comes back after 2, 7 and 21 days, and each one has to be answered again, not reread. Spacing and retrieval practice are two of the most studied techniques in learning science. Your student uses both without having to think about it.
+card title: The research behind it
+card text: Spacing: Cepeda and colleagues, Psychological Science, 2008. Retrieval practice: Roediger and Karpicke, Psychological Science, 2006.
 
-## 5 Parent updates
-headline: You'll know every week if the work got done.
-feature title: The weekly update.
-feature text: Which skills moved, classes attended, practice done and test scores. The same numbers the guarantee is measured on.
+## 5 Progress
+headline: Parents and tutors see every answer, as it happens.
+feature text: Your student's tutor sees each answer the moment it's given, so every class and review starts from what your student actually needs. You see the same picture on your phone, with a summary every week.
+tutor title: What your student's tutor sees
+tutor sees: Every homework set: started, finished, on time or late | The Daily 10, every day it's done or skipped | Every answer, the choice picked and how long it took | The questions your student keeps getting wrong | Mastery of every SAT skill, from struggling to mastered | The skills that just moved up a level | Reading and Math score estimates | Questions your student flagged as confusing | Every full-length test, section by section | A briefing before each session on what changed since the last one
+parent title: What you see
+parent sees: The skills that moved this week | Classes attended and practice done | Homework that's late or unfinished | Test scores as they come in | A note from the tutor every week
 
-## 6 Between classes
-headline: One SAT word, six tries, between sets.
-feature title: Wordline.
-feature text: Today's SAT word in six tries, on the bench or the bus.
-card title: ${W(CLASS - 1)} classmates and a tutor.
-card text: A group chat for the cohort. A Karman tutor answers questions every day.
+## 6 Study tools
+headline: Small games between sets, built to make it stick.
+text: For the five minutes on the bus or between classes. Each one asks your student to recall, not reread.
+tools: Wordline = Today's SAT word in six tries. | Flashcards = Roots, prefixes and suffixes, so a new word can be worked out on test day. | Word Lab = One SAT word a day, used in a sentence of your own. | Daily Challenge = One hard question a day, with the full method after.
+chat title: ${W(CLASS)} students and a tutor.
+chat text: A group chat for every class. A Karman tutor answers questions every day.
 
 ## 7 Test date
 headline: The program ends the day your student sits the SAT.
@@ -137,13 +143,13 @@ card link: How the guarantee works
 
 ## 8 Guarantee
 eyebrow: The Karman guarantee
-headline: The whole guarantee. No other page changes it.
-text: Other SAT guarantees keep their rules on a terms page: a homework quota, a "good faith" clause, a line saying a claim may not be approved. Ours has five rules, and each one is a number on your student's dashboard.
+headline: If the score doesn't move, you get money back.
+text: Every SAT Program family gets the same promise, printed in full right here. No homework quota on a terms page, no "good faith" clause. Five rules, and each one is a number on your student's dashboard.
 promise: ${PROMISE}
 promise note: Measured from an official SAT or PSAT from the last ${G.baselineMonths} months, or from a week-1 Bluebook test we proctor live.
 outcomes: +${G.points} or more, or ${G.orScore} and up = Nothing back. The promise was kept. | +${G.halfBackFrom} to +${HALF_TO} = Half the price back, or the next cohort free. You choose. | Under +${G.halfBackFrom} = The full price back, or the next cohort free. You choose.
 we do title: What we do
-we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A ${MP.reviewMinutes}-minute one-on-one after every full-length | A weekly live session | The Daily 10 and our own practice questions | Questions answered by a Karman tutor every day | A weekly update for parents
+we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A ${MP.reviewMinutes}-minute one-on-one after every full-length | A weekly live session | The Daily 10 and our own practice questions | Questions answered by a Karman tutor every day | Live progress for parents, and a weekly summary
 you do title: What your student does
 you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Complete all ${w(MP.fullLengthTests)} one-on-one reviews (rescheduling with ${G.rescheduleHours} hours' notice is fine) | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting, in its assigned week | Complete at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the official SAT on the program's test date
 covers: A student's first Karman program, once per student | Not for students starting at ${G.excludedFrom} or above | Paid in full, or every installment paid on time
@@ -153,9 +159,6 @@ link: The guarantee, with worked examples
 ## 9 Campus film
 headline: What the ${w(MP.weeks)} weeks are for.
 
-## 10 Student messages
-headline: Texts from Karman 1:1 students, shared with permission.
-
 ## 11 The close
 headline: See their score range before you spend a dollar.
 text: ${FT.dateShort} at ${FT.timeLabel}, live on Zoom with a proctor. About ${FT.minutes} minutes, ${FT.questionCount} of our own questions, then an estimated score range, a breakdown by domain and a ${FT.callMinutes}-minute call to go through it.
@@ -163,6 +166,37 @@ objection: Already scoring ${INTAKE.scoreFrom}, or under ${w(INTAKE.minWeeks)} w
 button: Take the free practice test
 button note: Free. No card needed.
 line note: 100 km up, where the sky ends and space begins.
+
+## 12 Tutors
+eyebrow: Our tutors
+headline: Tutors you would hire for something harder than the SAT.
+text: The people teaching your student do serious math and reading for a living. They teach because they're good at explaining it.
+credentials: PhD students = Doing research at university level | Quants = Building mathematical models for a living | Market analysts = Reading data against a deadline, every day | Published researchers = Peer-reviewed work in their own fields | University professors = Teaching is already their profession | Certified tutors = Certified by the Association of Test Preparation, Admissions, and Private Tutoring
+
+## 13 Ways to learn
+eyebrow: Ways to learn
+headline: A class, a private tutor, or a free test first.
+text: Every option ends on your student's SAT date. Pick the one that fits, or start with the free test and decide after.
+program title: The SAT Program
+program text: ${W(MP.weeks)} weeks in a class of ${w(CLASS)}: live classes, ${w(MP.fullLengthTests)} full-length tests with a one-on-one review after each, and the guarantee.
+program price: ${$(MP.price)}
+program note: Founding price. Next class starts ${START_DAY}.
+program link: About the SAT Program
+private title: Private tutoring
+private text: One tutor, one student, a plan built back from the test date. ${P10.hours} or ${P20.hours} hours, or by the hour.
+private price: From ${$(P10.price)}
+private note: ${P10.hours} hours, or ${$(PRIVATE_HOURLY_RATE)} an hour
+private link: About private tutoring
+free title: The free practice test
+free text: About ${FT.minutes} minutes live on Zoom with a proctor, an estimated score range and a ${FT.callMinutes}-minute call.
+free price: Free
+free note: ${TEST_DAY}
+free link: Save a seat
+pricing link: See all pricing
+
+## 14 Calendar
+headline: Every class, review and deadline, on one calendar.
+text: Your student's week, planned back from the test date. Point at a day to see what's on it.
 
 ## 21 Program: opening
 eyebrow: ${MP.name}

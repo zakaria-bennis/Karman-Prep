@@ -167,7 +167,6 @@ html.ks-lock { overflow: hidden; }
    a tall soft edge, like morning mist, and the words start only once the paper is solid. */
 .ks .panel:not(.dark) { --feather: clamp(110px, 14vw, 220px); border-radius: 0; margin: 0; padding-top: calc(var(--feather) + clamp(20px, 3vw, 50px)); padding-bottom: calc(var(--feather) + clamp(10px, 2vw, 30px));
   background: linear-gradient(180deg, rgba(var(--mist), 0) 0, rgba(var(--mist), .55) calc(var(--feather) * .45), rgb(var(--mist)) var(--feather), rgb(var(--mist)) calc(100% - var(--feather)), rgba(var(--mist), .55) calc(100% - var(--feather) * .45), rgba(var(--mist), 0) 100%); }
-.ks .panel.messages { padding-bottom: var(--feather); }
 /* the film lifts toward the paper's tone while paper fills the screen, over 1.6 s, so nothing jumps */
 .ks .stage .haze { position: absolute; inset: 0; background: rgb(var(--mist)); opacity: 0; transition: opacity 1.6s var(--ease); pointer-events: none; }
 .ks .stage.hazy .haze { opacity: .28; }
@@ -188,7 +187,6 @@ html.ks-lock { overflow: hidden; }
 .ks .feat .lede b { color: var(--ink); font-weight: 700; }
 .ks .feat .note { padding: 18px 20px; border-radius: 14px; background: var(--soft); font-size: 16px; color: var(--ink2); max-width: 460px; }
 .ks .feat .note b { display: block; color: var(--ink); margin-bottom: 2px; }
-.ks .feat.minor .words h2 { font-size: clamp(30px, 3.2vw, 48px); }
 /* a laptop screen runs off the page edge, so the eye reads it as a window into the product */
 .ks .wide { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 16 / 10; width: calc(100% + var(--gutter) + 6vw); transition: transform 1s var(--ease); }
 .ks .wide img { width: 100%; height: 100%; object-fit: cover; object-position: left top; }
@@ -197,15 +195,13 @@ html.ks-lock { overflow: hidden; }
 /* the phone stands at the outer edge, turned toward the words */
 .ks .turn { perspective: 1400px; display: flex; }
 .ks .feat.right .turn { justify-content: flex-end; }
-.ks .turn .iphone { --pw: clamp(240px, 23vw, 330px); transform: rotateY(-30deg) rotateX(4deg) translateX(30px); transition: transform 1.3s var(--ease); }
-.ks .feat.left .turn .iphone { transform: rotateY(30deg) rotateX(4deg) translateX(-30px); }
-.ks .media.on .turn .iphone { transform: rotateY(-15deg) rotateX(2deg); }
-.ks .feat.left .media.on .turn .iphone { transform: rotateY(15deg) rotateX(2deg); }
+.ks .turn .iphone { --pw: clamp(250px, 23vw, 330px); transform: rotateY(-14deg) rotateX(3deg); transition: transform 1.3s var(--ease); }
+.ks .feat.left .turn .iphone { transform: rotateY(14deg) rotateX(3deg); }
+.ks .media.on .turn .iphone { transform: rotateY(-7deg) rotateX(1.5deg); }
+.ks .feat.left .media.on .turn .iphone { transform: rotateY(7deg) rotateX(1.5deg); }
 @media (hover: hover) and (pointer: fine) {
-  .ks .feat:hover .media.on .turn .iphone { transform: rotateY(-7deg) translateY(-6px); }
-  .ks .feat.left:hover .media.on .turn .iphone { transform: rotateY(7deg) translateY(-6px); }
+  .ks .feat:hover .media.on .turn .iphone, .ks .feat.left:hover .media.on .turn .iphone { transform: translateY(-6px); }
 }
-.ks .feat.minor .turn .iphone { --pw: clamp(210px, 18vw, 260px); }
 @media (max-width: 900px) {
   .ks .feat, .ks .feat.left { grid-template-columns: 1fr; }
   .ks .feat .media, .ks .feat.left .media { order: 2; }
@@ -217,7 +213,7 @@ html.ks-lock { overflow: hidden; }
   .ks .feat.left .wide { margin-left: calc(-1 * var(--gutter)); }
 }
 
-/* the Daily 10 drawing (ten.js): isometric line work that answers the pointer */
+/* the line drawings (live/week.ts): isometric line work that answers the pointer */
 .ks .fig { position: relative; margin-top: 4px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; max-width: 380px; }
 .ks .fig .hl { cursor: pointer; padding: 10px 18px 6px; touch-action: pan-y; }
 .ks .fig svg { width: 100%; height: auto; overflow: visible; }
@@ -225,13 +221,8 @@ html.ks-lock { overflow: hidden; }
 .ks .fig .t-shadow { fill: #f1eee7; stroke: none; }
 .ks .fig .t-side { fill: #dcd7cc; stroke: #4a463f; }
 .ks .fig .t-top { fill: #fff; stroke: #4a463f; }
-.ks .fig .t-screen { fill: #f6f4ef; stroke: #a39d91; }
-.ks .fig .t-tile.done .t-top { fill: #fde7bd; }
-.ks .fig .t-tile.done .t-side { fill: #f0c46f; }
 .ks .fig .t-tile.hi .t-top { stroke: #d48c0c; stroke-width: 2.2; }
 .ks .fig .t-tile.hi .t-side { stroke: #d48c0c; }
-.ks .fig .read { position: absolute; right: 14px; top: 12px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--marigold-ink); font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .3s var(--ease); }
-.ks .fig.live .read { opacity: 1; }
 
 /* ---------- the guarantee: black, loud, nothing in small print ---------- */
 .ks .panel.dark { background: var(--night); color: #fff; margin: 0 clamp(0px, 1.1vw, 16px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
@@ -273,9 +264,6 @@ html.ks-lock { overflow: hidden; }
 .ks .clip video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 @media (max-width: 760px) { .ks .tri { grid-template-columns: 1fr 1fr; } .ks .clip:last-child { grid-column: span 2; aspect-ratio: 4 / 3.4; } }
 
-/* ---------- the wall of student phones ---------- */
-.ks .messages { padding: clamp(60px, 7vw, 110px) 0 0; overflow: hidden; }
-.ks .messages .in { padding: 0 var(--gutter); }
 
 /* ---------- the pause button: small, bottom right ---------- */
 .ks .motion { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 60; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: rgba(20,20,20,.42); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); opacity: .72; transition: opacity .25s var(--ease), transform .45s var(--spring); }
@@ -310,16 +298,11 @@ html.ks-lock { overflow: hidden; }
 
 @media (max-width: 380px) { .ks .btn { font-size: 15.5px; gap: 10px; padding-left: 20px; } }
 .ks .end .obj { font-size: 16px; max-width: 56ch; opacity: .82; text-shadow: 0 1px 14px rgba(0,0,0,.4); }
-/* the Daily 10 drawing in dark mode */
+/* the line drawings in dark mode */
 .ks[data-mode="dark"] .fig .t-shadow { fill: rgba(255,255,255,.04); }
 .ks[data-mode="dark"] .fig .t-side { fill: #1d1c19; stroke: #cfc8ba; }
 .ks[data-mode="dark"] .fig .t-top { fill: #262521; stroke: #cfc8ba; }
-.ks[data-mode="dark"] .fig .t-screen { fill: #1a1917; stroke: #6f6a61; }
-.ks[data-mode="dark"] .fig .t-tile.done .t-top { fill: #6b4b12; }
-.ks[data-mode="dark"] .fig .t-tile.done .t-side { fill: #4d360d; }
 .ks[data-mode="dark"] .fig .t-tile.hi .t-top, .ks[data-mode="dark"] .fig .t-tile.hi .t-side { stroke: var(--marigold); }
-.ks[data-mode="dark"] .chat { background: #1c1b18; }
-.ks[data-mode="dark"] .chat .top { background: #22211d; border-color: #2c2a26; }
 
 /* ---------- phones: the dock, one button in thumb reach ---------- */
 .ks .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; padding: 12px 16px max(12px, env(safe-area-inset-bottom));

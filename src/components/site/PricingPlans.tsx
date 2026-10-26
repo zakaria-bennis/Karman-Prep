@@ -66,7 +66,7 @@ const INCLUDES = {
     "A weekly live session",
     "Daily 10 and our own practice questions",
     "Your cohort's group chat, answered daily",
-    "A weekly update for parents",
+    "Live progress for parents, and a weekly summary",
   ],
   private: [
     "Weekly 60-minute sessions with a Karman tutor",

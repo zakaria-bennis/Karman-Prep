@@ -1,29 +1,15 @@
-/* Karman's product screens, drawn in code (2026-10-25). They replace the navy-and-green screenshots, so they
- match the white, black and marigold site and stay sharp at every size. Every word on them is the product's
- own interface text, not marketing copy, so it lives here rather than in site-copy.ts.
- Content follows the founder's app rules: "Your Daily 10", a solid underline blank, highlight, scratch pad and
- a timer you can hide, a tutor named David, due dates on everything, a slim icon rail, and a parent view that
- leads with skill mastery. Only features in the offer appear. The student and the questions are fictional
- Karman originals. SCREENS[name]() returns the screen's markup: constant strings with no visitor input. */
-import { MARCH_PROGRAM } from "@/lib/marketing/offer";
+/* Karman's product screens, drawn in code (2026-10-26). They match the white, black and marigold site and
+ stay sharp at every size. Every word on them is the product's own interface text, not marketing copy, so it
+ lives here rather than in site-copy.ts. The screens move (CSS only, in screens.css): a speaker changes in the
+ class, the worked method writes itself out, the Daily 10 ticks on, the parent's bars fill. Reduced motion
+ shows each one at its settled frame.
+ Only features in the offer appear. The students, the tutor and the questions are fictional Karman originals:
+ the hard question is our own, written in the style of the SAT's advanced math, never copied from a test.
+ SCREENS[name]() returns the screen's markup: constant strings with no visitor input. */
 
 const ic = (d: string) =>
   `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const I = {
-  home: ic('<path d="M4 11 12 4.5 20 11v8.5h-5.5v-5h-5v5H4Z"/>'),
-  ten: ic(
-    '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 9.5 10 8.5v7"/><rect x="12.6" y="8.5" width="3.6" height="7" rx="1.8"/>'
-  ),
-  cal: ic(
-    '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'
-  ),
-  test: ic('<path d="M6 3.5h8.5L19 8v12.5H6Z"/><path d="M9 12h6M9 15.5h4"/>'),
-  chat: ic(
-    '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5Z"/>'
-  ),
-  bell: ic(
-    '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'
-  ),
   x: ic('<path d="M6 6l12 12M18 6 6 18"/>'),
   pen: ic('<path d="m14.5 5 4.5 4.5L9 19.5H4.5V15Z"/>'),
   pad: ic(
@@ -36,68 +22,92 @@ const I = {
   cam: ic(
     '<rect x="3" y="7" width="12.5" height="10" rx="2"/><path d="m15.5 11 5.5-3v8l-5.5-3Z"/>'
   ),
+  people: ic(
+    '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.6a3 3 0 0 1 0 5.8M17.5 14.2a5 5 0 0 1 3 4.8"/>'
+  ),
+  chat: ic(
+    '<path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5Z"/>'
+  ),
+  share: ic(
+    '<rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M12 13.5V8M9.5 10.5 12 8l2.5 2.5M8 20.5h8"/>'
+  ),
+  hand: ic(
+    '<path d="M8 12V6.5a1.5 1.5 0 0 1 3 0V11M11 10.5V5a1.5 1.5 0 0 1 3 0v6M14 11V6.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-.5a6 6 0 0 1-4.9-2.5L3.4 14a1.5 1.5 0 0 1 2.4-1.8L8 15"/>'
+  ),
   back: ic('<path d="M15 5 8 12l7 7"/>'),
+  cal: ic(
+    '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'
+  ),
+  bell: ic(
+    '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'
+  ),
   check: ic('<path d="M5 12.5 10 17.5 19 7"/>'),
 };
-const status =
-  '<div class="sb"><span>9:41</span><span class="sb-r"><i></i><i></i><b></b></span></div>';
 
-/* ---------- the student's calendar (laptop) ---------- */
-function schedule() {
-  const ev = (kind: string, title: string, when: string) =>
-    `<div class="ev ${kind}"><b>${title}</b><span>${when}</span></div>`;
-  const day = (name: string, n: number | string, items: string[], cls = "") =>
-    `<div class="day ${cls}"><div class="dh"><span>${name}</span><b>${n}</b></div>${items.join("")}</div>`;
-  return `<div class="scr app cal-scr">
-    <nav class="rail"><span class="logo">K</span>${I.home}${I.ten}<span class="on">${I.cal}</span>${I.test}${I.chat}<span class="sp"></span>${I.bell}<span class="av">M</span></nav>
-    <div class="body">
-      <div class="top"><h3>February 1 to 7</h3><span class="sat">The SAT, ${MARCH_PROGRAM.testDateLabel.replace(/, \d{4}$/, "")}</span></div>
-      <div class="legend"><span class="k class">Live classes</span><span class="k review">One-on-one reviews</span><span class="k work">Weekly session</span><span class="k hw">Homework from David</span><span class="k test">Tests</span></div>
-      <div class="week">
-        ${day("Mon", 1, [ev("review", "Review of full-length 3 with David", "6:00 p.m.")])}
-        ${day("Tue", 2, [ev("class", "Live class: linear functions", "7:00 p.m."), ev("hw", "From David: timed set of 12", "Due tonight")], "today")}
-        ${day("Wed", 3, [ev("work", "Workshop: pacing module 2", "7:00 p.m."), ev("hw", "Daily 10", "Due today")])}
-        ${day("Thu", 4, [ev("class", "Live class: transitions", "7:00 p.m.")])}
-        ${day("Fri", 5, [ev("hw", "Transitions set", "Due today")])}
-        ${day("Sat", 6, [ev("test", "Full-length test 4", "Due today")])}
-        ${day("Sun", 7, [ev("hw", "Daily 10", "Due today")])}
-      </div>
+/** The iPhone's status bar: time, then (right of the Dynamic Island) signal, Wi-Fi and battery. */
+const status = `<div class="sb"><span class="sb-t">9:41</span><span class="sb-r">
+  <svg class="sig" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+  <svg class="wifi" viewBox="0 0 16 12" aria-hidden="true"><path d="M8 11.6 5.6 9.1a3.4 3.4 0 0 1 4.8 0Z"/><path d="M3.4 6.9a6.5 6.5 0 0 1 9.2 0l-1.4 1.4a4.5 4.5 0 0 0-6.4 0Z"/><path d="M1.1 4.6a9.8 9.8 0 0 1 13.8 0l-1.4 1.4a7.8 7.8 0 0 0-11 0Z"/></svg>
+  <span class="bat"><i></i></span></span></div>`;
+
+/* ---------- the live class on Zoom (laptop): six students and the tutor, cameras on ---------- */
+const PEOPLE = [
+  ["david", "David (tutor)"],
+  ["maya", "Maya"],
+  ["arjun", "Arjun"],
+  ["sofia", "Sofia"],
+  ["leo", "Leo"],
+  ["mei", "Mei"],
+  ["priya", "Priya"],
+] as const;
+function zoom() {
+  const tile = ([id, name]: (typeof PEOPLE)[number], k: number) =>
+    `<div class="zt z-${id}" style="--k:${k}"><img src="/site/zoom/${id}.webp" alt="" loading="lazy" decoding="async"><span class="zn">${id === "david" ? "" : `<i class="zmic">${I.mic}</i>`}${name}</span>${id === "leo" ? `<span class="zhand">${I.hand}</span>` : ""}</div>`;
+  return `<div class="scr zoom">
+    <div class="z-top"><span class="z-dot"></span><b>SAT Program, live class 7: functions</b><span class="z-time">7:24 p.m.</span><span class="z-view">Gallery</span></div>
+    <div class="z-grid">${PEOPLE.map(tile).join("")}</div>
+    <div class="z-bar">
+      <span>${I.mic}<em>Mute</em></span><span>${I.cam}<em>Stop video</em></span><span class="z-ppl">${I.people}<em>Participants</em><i>7</i></span><span>${I.chat}<em>Chat</em></span><span>${I.share}<em>Share</em></span><span>${I.hand}<em>Raise hand</em></span><b class="z-leave">Leave</b>
     </div>
   </div>`;
 }
 
-/* ---------- the one-on-one review (laptop): the call beside the question being reviewed ---------- */
+/* ---------- the one-on-one review (laptop): the call beside a hard question and its method ---------- */
 function review() {
   return `<div class="scr app rev-scr">
-    <nav class="rail"><span class="logo">K</span>${I.home}${I.ten}${I.cal}<span class="on">${I.test}</span>${I.chat}<span class="sp"></span>${I.bell}<span class="av">M</span></nav>
     <div class="body">
       <div class="top"><h3>Review: full-length 3</h3><span class="sat">With David, 60 minutes</span></div>
       <div class="rev">
         <div class="call">
-          <div class="tile t1"><span class="face">D</span><span class="nm">David</span></div>
-          <div class="tile t2"><span class="face">M</span><span class="nm">Maya</span></div>
+          <div class="tile"><img src="/site/zoom/david.webp" alt="" loading="lazy" decoding="async"><span class="nm">David</span></div>
+          <div class="tile"><img src="/site/zoom/maya.webp" alt="" loading="lazy" decoding="async"><span class="nm">Maya</span></div>
           <div class="ctl"><span>${I.mic}</span><span>${I.cam}</span><span class="leave">Leave</span></div>
         </div>
         <div class="q">
-          <p class="tag">Math, module 2, question 14 <em>Missed</em></p>
-          <p class="stem">A line passes through the points (2, 5) and (6, 13). What is the slope of the line?</p>
-          <div class="ch"><span class="ok"><i>A</i>2</span><span><i>B</i>3</span><span class="no"><i>C</i>4</span><span><i>D</i>8</span></div>
-          <div class="tnote"><b>From David</b>You divided by 2, the first x, instead of the change in x. The slope is (13 minus 5) over (6 minus 2): 8 over 4, which is 2.</div>
-          <div class="prog"><span>12 of 19 missed questions reviewed</span><span class="bar"><i style="width:63%"></i></span></div>
+          <p class="tag">Math, module 2, question 19 <span class="hard">Hard</span><em>Missed</em></p>
+          <p class="stem"><span class="eq">y = x² − 6x + c<br>y = 2x − 5</span>In the given system of equations, <i>c</i> is a constant. The graphs of the equations intersect at exactly one point. What is the value of <i>c</i>?</p>
+          <div class="ch"><span><i>A</i>3</span><span><i>B</i>9</span><span class="ok"><i>C</i>11</span><span class="no"><i>D</i>16</span></div>
+          <ol class="work">
+            <li>Set them equal: x² − 6x + c = 2x − 5</li>
+            <li>Gather terms: x² − 8x + (c + 5) = 0</li>
+            <li>One meeting point means the discriminant is 0: 64 − 4(c + 5) = 0</li>
+            <li>So c + 5 = 16, and c = 11</li>
+          </ol>
+          <div class="prog"><span>12 of 19 missed questions reviewed</span><span class="bar"><i></i></span></div>
         </div>
       </div>
     </div>
   </div>`;
 }
 
-/* ---------- the Daily 10 (phone) ---------- */
+/* ---------- the Daily 10 (the student's phone): a missed question coming back on schedule ---------- */
 function daily10() {
   return `<div class="scr ph d10">${status}
     <div class="sh"><span class="x">${I.x}</span><b>Your Daily 10</b><span class="of">4 of 10</span></div>
     <div class="steps">${Array.from({ length: 10 }, (_, i) => `<i class="${i < 3 ? "done" : i === 3 ? "now" : ""}"></i>`).join("")}</div>
-    <div class="tools"><span>${I.pen}Highlight</span><span>${I.pad}Scratch pad</span><span class="tm">4:12 ${I.eye}</span></div>
-    <p class="back">Back from 2 days ago</p>
-    <p class="skill">Sentence boundaries</p>
+    <div class="tools"><span>${I.pen}Highlight</span><span>${I.pad}Scratch pad</span><span class="tm"><b class="tm-a">4:12</b><b class="tm-b">4:13</b> ${I.eye}</span></div>
+    <p class="back"><i></i>Last time: missed</p>
+    <p class="skill">Sentence boundaries, back after 2 days</p>
     <p class="stem">The museum's new wing opened in <u></u> its first exhibit drew more visitors in one week than the old galleries had in a month.</p>
     <p class="ask">Which choice completes the text so that it conforms to the conventions of Standard English?</p>
     <div class="ch"><span><i>A</i>March, and</span><span><i>B</i>March</span><span class="pick"><i>C</i>March; and</span><span><i>D</i>March and</span></div>
@@ -105,52 +115,60 @@ function daily10() {
   </div>`;
 }
 
-/* ---------- the parent's weekly update (phone): skill mastery first ---------- */
+/* ---------- the parent's view (the parent's phone): live, skill mastery first, out of 6 ---------- */
 function parent() {
-  const sk = (name: string, lvl: number, word: string) =>
-    `<div class="sk"><div class="skt"><b>${name}</b><span class="${lvl > 3 ? "up" : ""}">${word}</span></div><div class="dots">${Array.from({ length: 5 }, (_, i) => `<i class="${i < lvl ? "on" : ""}"></i>`).join("")}</div></div>`;
+  const sk = (name: string, lvl: number, word: string, k: number) =>
+    `<div class="sk" style="--k:${k}"><div class="skt"><b>${name}</b><span class="${lvl > 4 ? "up" : ""}">${word}</span></div><div class="dots">${Array.from({ length: 6 }, (_, i) => `<i class="${i < lvl ? "on" : ""}" style="--i:${i}"></i>`).join("")}</div></div>`;
   return `<div class="scr ph par">${status}
-    <div class="sh"><span class="x">${I.back}</span><b>Maya's week</b><span class="bell">${I.bell}</span></div>
-    <p class="wk">February 1 to 7</p>
+    <div class="sh"><span class="x">${I.back}</span><b>Maya's progress</b><span class="bell">${I.bell}</span></div>
+    <p class="live"><i></i>Live. Updated 2 minutes ago</p>
+    <div class="feed"><div class="feed-in">
+      <p><b>${I.check}</b>Daily 10 done: 9 of 10</p>
+      <p><b>${I.check}</b>Transitions set handed in, on time</p>
+      <p><b>${I.check}</b>Attended Thursday's live class</p>
+      <p><b>${I.check}</b>Daily 10 done: 9 of 10</p>
+    </div></div>
+    <div class="est">
+      <div><span>Reading and Writing</span><b>640</b><em>+40 since week 1</em></div>
+      <div><span>Math</span><b>690</b><em>+60 since week 1</em></div>
+    </div>
     <h4>Skills that moved</h4>
-    ${sk("Linear functions", 5, "Mastered")}
-    ${sk("Transitions", 4, "Up one level")}
-    ${sk("Command of evidence", 2, "Next week's focus")}
+    ${sk("Nonlinear functions", 6, "Mastered", 0)}
+    ${sk("Transitions", 5, "Up one level", 1)}
+    ${sk("Command of evidence", 3, "Next week's focus", 2)}
     <div class="nums">
       <div><b>2 of 2</b><span>Live classes</span></div>
       <div><b>96%</b><span>Practice done</span></div>
       <div><b>1 of 1</b><span>Reviews</span></div>
     </div>
-    <div class="tnote"><b>From David</b>Maya fixed every slope question from test 3. Next week: evidence questions, and full-length 4 on Saturday.</div>
-    <div class="inc"><span>Incomplete</span>Transitions set, due Friday</div>
+    <div class="tnote"><b>Note from David</b>Maya fixed every quadratic system from test 3. Next: evidence questions, and full-length 4 on Saturday.</div>
+    <nav class="tabs"><span class="on">${I.check}Progress</span><span>${I.cal}Schedule</span><span>${I.chat}Messages</span></nav>
   </div>`;
 }
 
-/* ---------- Wordline (phone): today's SAT word in six tries ---------- */
+/* ---------- the study tools, small cards for the carousel ---------- */
 function wordline() {
   const rows = [
     ["CRANE", "xpxxg"],
     ["SLOTH", "pxxpx"],
     ["TERSE", "ggggg"],
   ];
-  const cell = (ch: string, s: string) =>
-    `<i class="${s === "g" ? "g" : s === "p" ? "p" : ch ? "x" : ""}">${ch}</i>`;
-  const grid = Array.from({ length: 6 }, (_, r) => {
+  const cell = (ch: string, s: string, k: number) =>
+    `<i class="${s === "g" ? "g" : s === "p" ? "p" : ch ? "x" : ""}" style="--k:${k}">${ch}</i>`;
+  return `<div class="tool-ui wl">${Array.from({ length: 4 }, (_, r) => {
     const [w, s] = rows[r] || ["     ", "     "];
-    return `<div class="row">${[...w].map((ch, k) => cell(ch.trim(), s[k].trim())).join("")}</div>`;
-  }).join("");
-  const keys = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"]
-    .map(
-      (r) =>
-        `<div class="kr">${[...r].map((k) => `<i class="${"TERS".includes(k) ? "g" : "CANLOH".includes(k) ? "x" : ""}">${k}</i>`).join("")}</div>`
-    )
-    .join("");
-  return `<div class="scr ph wl">${status}
-    <div class="sh"><span class="x">${I.back}</span><b>Wordline</b><span class="of">3 of 6</span></div>
-    <div class="grid">${grid}</div>
-    <div class="def"><b>terse</b> <em>adjective</em><p>Using few words; abrupt. "Her terse reply ended the debate."</p></div>
-    <div class="kb">${keys}</div>
-  </div>`;
+    return `<div class="row">${[...w].map((ch, c) => cell(ch.trim(), s[c].trim(), r * 5 + c)).join("")}</div>`;
+  }).join("")}</div>`;
+}
+function flashcards() {
+  return `<div class="tool-ui fc"><div class="card"><div class="f"><b>bene-</b><span>Tap to turn</span></div><div class="b"><b>good, well</b><span>benefit, benevolent, benign</span></div></div><p class="due">Comes back in 3 days</p></div>`;
+}
+function wordlab() {
+  return `<div class="tool-ui lab"><p class="w"><b>candid</b><em>adjective</em></p><p class="m">Truthful and direct.</p><p class="you"><span>Your sentence</span>My coach was <u>candid</u> about my free throws.</p></div>`;
+}
+function challenge() {
+  return `<div class="tool-ui dc"><p class="t">Today's challenge <span>Hard</span></p><p class="s">If f(x) = 3ˣ⁺², what is f(x + 1) ÷ f(x)?</p><div class="o"><span>2</span><span class="ok">3</span><span>9</span></div></div>`;
 }
 
-export const SCREENS = { schedule, review, daily10, parent, wordline };
+export const SCREENS = { zoom, review, daily10, parent };
+export const TOOLS = { wordline, flashcards, wordlab, challenge };

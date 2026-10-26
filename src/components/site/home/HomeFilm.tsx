@@ -4,7 +4,7 @@
 // time and the page scrolls normally over it. Paper panels carry the reading; "windows" between them show the
 // film still running. It plays only while a window is on screen, stops for reduced motion, a hidden tab or the
 // pause button, and crossfades to the orbit film at the close. The campus films each play once when they come
-// on screen; the wall of phones moves only while it is on screen. A late film shows the orb after 400 ms.
+// on screen. A late film shows the orb after 400 ms.
 import { useEffect, useRef } from "react";
 import { SITE } from "@/lib/marketing/site-copy";
 import { opening, orb } from "../live/kit";
@@ -31,8 +31,7 @@ export default function HomeFilm() {
     const orbCanvas = stage.querySelector<HTMLCanvasElement>(".orb");
     const close = document.getElementById("m-11");
     const campus = document.getElementById("m-9");
-    const wallEl = document.querySelector<HTMLElement>(".wall");
-    if (!day || !edge || !orbCanvas || !close || !campus || !wallEl) return;
+    if (!day || !edge || !orbCanvas || !close || !campus) return;
 
     // phones held upright get the portrait cut of each film
     const sfx = matchMedia("(max-width: 760px) and (orientation: portrait)").matches ? "-p" : "";
@@ -79,6 +78,8 @@ export default function HomeFilm() {
     });
     let swapT: ReturnType<typeof setTimeout> | undefined;
     function sync() {
+      // the product screens' small motions follow the same pause button
+      document.getElementById("ks")?.classList.toggle("still-motion", motionPaused());
       if (reduce || !day || !edge) return;
       const on = cur(),
         off = ending ? day : edge;
@@ -169,24 +170,10 @@ export default function HomeFilm() {
       rootMargin: "80% 0px",
     }).observe(campus);
 
-    /* ---------- the wall moves only while it is on screen and the films are not paused ---------- */
-    let wallSeen = false;
-    const wallSync = () => wallEl.classList.toggle("still", !wallSeen || motionPaused());
-    watch(
-      (es) =>
-        es.forEach((e) => {
-          wallSeen = e.isIntersecting;
-          wallSync();
-        }),
-      { rootMargin: "10% 0px" }
-    ).observe(wallEl);
-    wallSync();
-
     document.addEventListener(
       "karman:motion",
       () => {
         sync();
-        wallSync();
         cvids.forEach((v) => {
           const r = v.getBoundingClientRect();
           if (motionPaused()) v.pause();

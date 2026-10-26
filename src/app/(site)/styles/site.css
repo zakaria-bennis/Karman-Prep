@@ -9,11 +9,6 @@ html:has(#ks) { background: #0e0d0c; }
 .ks .theme .sun, .ks[data-mode="dark"] .theme .moon, .ks .theme .to-light, .ks[data-mode="dark"] .theme .to-dark { display: none; }
 .ks[data-mode="dark"] .theme .sun, .ks[data-mode="dark"] .theme .to-light { display: inline; }
 .ks .theme .sun, .ks .theme .moon { width: 20px; height: 20px; }
-/* phones: the wall shows three of its six columns, each drifting at its phone pace */
-@media (max-width: 760px) {
-  .ks .wall .col:nth-child(n + 4) { display: none; }
-  .ks .wall .col { animation-duration: var(--tn); }
-}
 
 /* ---------- the legal pages: plain reading type on paper ---------- */
 .ks .legal { max-width: 780px; margin: 0 auto; padding: clamp(130px, 14vw, 180px) var(--gutter) clamp(70px, 8vw, 120px); display: grid; gap: 28px; color: var(--ink); }

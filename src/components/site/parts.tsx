@@ -74,15 +74,15 @@ export function Action({
   );
 }
 
-/** The iPhone 17 Pro Max in Cosmic Orange, drawn in CSS (phone.css). */
-export function Phone({ screen, left = false }: { screen: string; left?: boolean }) {
+/** The iPhone 17 Pro in Cosmic Orange, drawn in CSS (phone.css). */
+export function Phone({ screen }: { screen: string }) {
   return (
-    <div className={`iphone ${left ? "left" : ""}`}>
-      <span className="rim" aria-hidden="true" />
-      <span className="side" aria-hidden="true" />
+    <div className="iphone">
+      <span className="btns" aria-hidden="true" />
       <div className="glass">
         <Drawn html={screen} className="scr-host" />
         <span className="island" aria-hidden="true" />
+        <span className="home" aria-hidden="true" />
       </div>
     </div>
   );
