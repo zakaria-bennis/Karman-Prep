@@ -26,13 +26,15 @@ answer_evidence.stable_question_id, so a generated-key envelope counts), the sam
 source_occurrence, no source assets in the corrected payload (the row keeps
 its own), the founder's figure gate passes (kimport.figure_gate, as stage and
 publish apply it: a row that went live before the figure lane needs an
-approved figure folder first), and the correction changes something (otherwise `k qa restore` is
-the tool). Then the same duplicate checks as stage, against the bank without
+approved figure folder first), and the correction changes something: the question, the choices,
+or the accepted answers its key evidence lists (otherwise `k qa restore` is the tool). Then the same duplicate checks as stage, against the bank without
 this row and against every other row of the run; except that a QA-hidden row
 (qa_hide.currently_hidden and still QA-hidden in the export) sharing the
-corrected content hash or normalized text is the duplicate twin QA hid on
-purpose and does not block the correction (the SQL guard lets exactly that row
-through, while it is still QA-hidden). `k qa restore` then refuses to bring the
+corrected content hash, normalized text or comparison key is the duplicate
+twin QA hid on purpose and does not block the correction; nor does a row the
+duplicate sweep un-published ("duplicate of <id>; un-published by sweep") when
+no row of that duplicate group is live. The SQL guards let exactly those rows
+through, only while each is still in that state. `k qa restore` then refuses to bring the
 twin back while the corrected copy is live.
 
 qa-NN.sql: one BEGIN ... COMMIT per chunk, the run fingerprint guard first
@@ -53,6 +55,7 @@ after its dry-run twin passed.
 """
 
 import json
+import re
 from pathlib import Path
 
 from kimport import bulk, qa_hide
@@ -62,6 +65,7 @@ from kimport.export import fingerprint
 from kimport.fix import _blob
 from kimport.publish import STAGED_IMPORT, STAGED_STATUS, RefuseToBuild, duplicate_check
 from kimport.sqlutil import do_block, dryrun_variant, lit
+from kimport.sweep import UNPUBLISHED_IMPORT, UNPUBLISHED_STATUS
 
 QA_PREFIX = "qa:"
 KEEP_COLS = ("id", "created_at", "is_live", "comparison_key")  # is_live is generated; comparison_key set apart
@@ -152,9 +156,24 @@ def check_row(it: dict, export_rows: list[dict], snaps: list[dict]) -> tuple[dic
                                                                        "publish_status"))
     have = sorted((c.get("letter"), c.get("choice_text"), c.get("is_correct")) for c in snap.get("choices") or [])
     same_c = have == sorted((c["letter"], c["choice_text"], c.get("is_correct")) for c in row["choices"])
-    if same_q and same_c:
+    same_k = len(keys) != 1 or key_answers(keys[0].get("raw_model_response")) == key_answers(
+        row["key"].get("raw_model_response"))
+    if same_q and same_c and same_k:
         out.append("the corrected row equals the hidden row; nothing was corrected (use k qa restore)")
     return snap, out
+
+
+def key_answers(raw) -> list | None:
+    """The accepted answers an answer key's evidence lists (the reviewed numeric answer set, under
+    either envelope), or None. A correction that changes only this list is a real correction: the
+    site grades against it (k qa restore would put the old list back)."""
+    if not isinstance(raw, dict):
+        return None
+    for root in (raw.get("evidence") if isinstance(raw.get("evidence"), dict) else None, raw):
+        s = (root or {}).get("numeric_answer_set")
+        if isinstance(s, dict):
+            return sorted(map(str, s.get("answers") or []))
+    return None
 
 
 def _set_list(cols: list[str], payload_cols: set, keep: tuple) -> str:
@@ -198,12 +217,7 @@ def correct_block(tag: str, it: dict) -> list[str]:
     src = ("o.id<>q.id AND o.source_version IS NOT DISTINCT FROM q.source_version AND o.source_section IS NOT DISTINCT"
            " FROM q.source_section AND o.source_module IS NOT DISTINCT FROM q.source_module"
            " AND o.source_question_number IS NOT DISTINCT FROM q.source_question_number")
-    # The QA-hidden duplicate twins the precheck let through (hidden_twins) do not block, only while
-    # each is still QA-hidden and not live; any other row with the same hash or text still does.
-    twins = it.get("hidden_twins") or []
-    skip = (" AND NOT (o.id IN (" + ",".join(f"{lit(t)}::uuid" for t in twins) + ") AND o.archived_at IS NOT NULL"
-            f" AND o.import_flag_reason LIKE '{QA_PREFIX}%' AND o.publish_status='{STAGED_STATUS}'"
-            f" AND o.import_status='{STAGED_IMPORT}' AND o.is_live IS NOT TRUE)") if twins else ""
+    skip = _twin_skip(it.get("twin_rows") or {})
     body += [
         f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE {src})"
         " THEN RAISE EXCEPTION 'source question already in the bank on another row: %',v->>'stable_question_id'; END IF;",
@@ -212,7 +226,7 @@ def correct_block(tag: str, it: dict) -> list[str]:
         " THEN RAISE EXCEPTION 'content_hash_v2 already in the bank: %',v->>'stable_question_id'; END IF;",
     ]
     if it["key"]:
-        body.append(f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.id<>q.id AND o.comparison_key="
+        body.append(f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.id<>q.id{skip} AND o.comparison_key="
                     f"{lit(it['key'])} AND o.archived_at IS NULL) THEN RAISE EXCEPTION 'duplicate comparison key: %',"
                     "v->>'stable_question_id'; END IF;")
     body += [
@@ -307,13 +321,63 @@ def _chunk_sql(kind: str, name: str, k: int, total: int, rows_total: int, items:
     return "\n".join(out + ["COMMIT;", ""])
 
 
-def hidden_twins(it: dict, index: dict, ignorable: set) -> list[str]:
-    """The QA-hidden rows whose content hash or normalized text the correction now shares: the
-    duplicate twin QA hid on purpose (a QA-hidden row, `ignorable`, not live). They do not block
-    it, in this precheck and in its SQL; a live or otherwise hidden row still does."""
+SWEEP_REASON = re.compile(r"^duplicate of ([0-9a-f-]{36}); un-published by sweep$")
+
+
+def _twin_skip(twins: dict) -> str:
+    """SQL that leaves the allowed duplicate twins out of a guard, each only while it is still
+    in the state the precheck saw: QA-hidden, or un-published by the sweep with no live row in
+    its duplicate group (the sweep's canonical or another row it un-published for it)."""
+    conds = []
+    for tid, t in sorted(twins.items()):
+        if t["kind"] == "qa":
+            conds.append(f"(o.id={lit(tid)}::uuid AND o.archived_at IS NOT NULL AND o.import_flag_reason LIKE "
+                         f"'{QA_PREFIX}%' AND o.publish_status='{STAGED_STATUS}' AND o.import_status='{STAGED_IMPORT}'"
+                         " AND o.is_live IS NOT TRUE)")
+        else:
+            conds.append(f"(o.id={lit(tid)}::uuid AND o.archived_at IS NULL AND o.import_flag_reason={lit(t['reason'])}"
+                         f" AND o.publish_status='{UNPUBLISHED_STATUS}' AND o.import_status='{UNPUBLISHED_IMPORT}'"
+                         " AND o.is_live IS NOT TRUE AND NOT EXISTS (SELECT 1 FROM public.quiz_questions g"
+                         f" WHERE g.is_live IS TRUE AND (g.id={lit(t['canonical'])}::uuid"
+                         f" OR g.import_flag_reason={lit(t['reason'])})))")
+    return f" AND NOT ({' OR '.join(conds)})" if conds else ""
+
+
+def twin_candidates(rows: list[dict], hidden_ids: frozenset) -> tuple[dict, dict]:
+    """({id: twin} rows that may be a correction's duplicate twin, {id: why not} sweep rows whose
+    duplicate group has a live row). A twin is a row QA still hides (`hidden_ids`) that is
+    QA-hidden in the export, or a row the duplicate sweep un-published ("duplicate of <id>;
+    un-published by sweep", private, not archived) when no row of its group is live."""
+    live = {r["id"] for r in rows if r.get("is_live") is True}
+    swept: dict[str, list[str]] = {}
+    for r in rows:
+        m = SWEEP_REASON.match(str(r.get("import_flag_reason") or ""))
+        if m:
+            swept.setdefault(m.group(1), []).append(r["id"])
+    out, blocked = {}, {}
+    for r in rows:
+        m = SWEEP_REASON.match(str(r.get("import_flag_reason") or ""))
+        if r["id"] in hidden_ids and is_qa_hidden(r):
+            out[r["id"]] = {"kind": "qa"}
+        elif (m and r.get("is_live") is not True and r.get("archived_at") is None
+              and r.get("publish_status") == UNPUBLISHED_STATUS and r.get("import_status") == UNPUBLISHED_IMPORT):
+            group_live = sorted(i for i in [m.group(1), *swept[m.group(1)]] if i in live)
+            if group_live:
+                blocked[r["id"]] = (f"{r['id']} was un-published by the sweep as a duplicate of {m.group(1)}, and "
+                                    f"its group has a live row ({', '.join(group_live)})")
+            else:
+                out[r["id"]] = {"kind": "sweep", "reason": r["import_flag_reason"], "canonical": m.group(1)}
+    return out, blocked
+
+
+def hidden_twins(it: dict, index: dict, rep: dict, candidates: dict) -> dict:
+    """The twins (twin_candidates) the correction now matches on content hash, normalized text,
+    comparison key or at typo level: the duplicate QA or the sweep took off on purpose. They do
+    not block it, in this precheck and in its SQL; a live or otherwise hidden row still does."""
     q = it["row"]["question"]
-    hits = index["hash"].get(q.get("content_hash_v2"), []) + index["text"].get(st._norm_text(q.get("question_text")), [])
-    return sorted({i for i in hits if i in ignorable})
+    hits = (index["hash"].get(q.get("content_hash_v2"), []) + index["text"].get(st._norm_text(q.get("question_text")), [])
+            + list(rep.get("exact_matches") or []) + list(rep.get("typo_matches") or []))
+    return {i: candidates[i] for i in sorted(set(hits)) if i in candidates}
 
 
 def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_dir: Path = bulk.EXAMS,
@@ -345,14 +409,23 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
     others = [r for r in doc.rows if r["id"] not in own]
     report, _ = duplicate_check(ok, others) if ok else ({"rows": []}, None)
     index = st.export_index(others)
-    ignorable = {r["id"] for r in others if r["id"] in hidden_ids and is_qa_hidden(r)}
+    candidates, blocked = twin_candidates(others, hidden_ids)
     run = list(staged) + ok
     inside = bulk._run_conflicts(run)
     for n, (it, rep) in enumerate(zip(ok, report["rows"])):
-        it["hidden_twins"] = hidden_twins(it, index, ignorable)
-        why = (([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
-               + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
-               + st._export_conflicts(it, index, frozenset(it["hidden_twins"])) + inside.get(len(staged) + n, []))
+        it["twin_rows"] = hidden_twins(it, index, rep, candidates)
+        it["hidden_twins"] = sorted(it["twin_rows"])
+        skip = frozenset(it["hidden_twins"])
+        exact = [i for i in rep["exact_matches"] if i not in skip]
+        typo = [i for i in rep["typo_matches"] if i not in skip]
+        why = (([f"same comparison key as {', '.join(exact)}"] if exact else [])
+               + ([f"typo-level match with {', '.join(typo)}"] if typo else [])
+               + st._export_conflicts(it, index, skip) + inside.get(len(staged) + n, []))
+        if why:
+            q = it["row"]["question"]
+            hits = set(rep["exact_matches"]) | set(rep["typo_matches"]) | set(
+                index["hash"].get(q.get("content_hash_v2"), [])) | set(index["text"].get(st._norm_text(q.get("question_text")), []))
+            why += [blocked[i] for i in sorted(hits) if i in blocked]
         if why:
             refused[it["id"]] = why
     ok = [it for it in ok if it["id"] not in refused]
@@ -390,7 +463,8 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
                     "before_correct_answer": it["snap"]["question"].get("correct_answer"),
                     "after_correct_answer": it["row"]["question"].get("correct_answer")} for it in ok]
     precheck = {"batch": name, "qa_correction": True, "chunks": chunks, "readback_files": rb_names,
-                "hidden_twins_allowed": {it["id"]: it["hidden_twins"] for it in ok if it.get("hidden_twins")},
+                "hidden_twins_allowed": {it["id"]: {i: t["kind"] for i, t in it["twin_rows"].items()}
+                                         for it in ok if it.get("twin_rows")},
                 "qa_sql_sha256": bulk._sha("".join(files[c["file"]] for c in chunks)),
                 "corrected_ids": [it["id"] for it in ok], "corrections": corrections,
                 "refused": [{"id": k, "batch": next((i["batch"] for i in items if i["id"] == k), None),

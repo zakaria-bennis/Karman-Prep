@@ -20,17 +20,21 @@ class TestHiddenTwin(AutopilotCase):
     def two(self, twin_state="hidden"):
         """row(1) and row(2) published; row(1) QA-hidden; row(2), its twin, in `twin_state`."""
         self.bank = QaBank(None)
-        self.batch("syn-1", [row(1), row(2)])
+        self.batch("syn-1", [row(1), row(2), row(3)])
         self.assertEqual(self.run_ap()["result"], "published")
         qid = self.bank.by_stable(row(1)["stable_question_id"])
         twin = self.bank.by_stable(row(2)["stable_question_id"])
+        canonical = self.bank.by_stable(row(3)["stable_question_id"])  # the sweep kept this one
         hide(self.bank, qid)
         if twin_state == "hidden":
             hide(self.bank, twin, TWIN_REASON)
-        elif twin_state == "swept":  # un-published by the sweep: not archived, not a qa: reason
-            self.bank.rows[twin]["question"].update(import_flag_reason=f"duplicate of {qid}; un-published by sweep",
+        elif twin_state.startswith("swept"):  # un-published by the sweep: not archived, not a qa: reason
+            self.bank.rows[twin]["question"].update(import_flag_reason=f"duplicate of {canonical}; un-published by sweep",
                                                     publish_status="needs_human_review", import_status="needs_review",
                                                     is_live=False)
+            if twin_state == "swept":  # its group has no live row: the canonical was hidden by QA too
+                hide(self.bank, canonical, TWIN_REASON)
+        self.canonical = canonical
         return qid, twin
 
     def correct(self, hidden_ids=frozenset()):
@@ -48,13 +52,13 @@ class TestHiddenTwin(AutopilotCase):
         qid, twin = self.two()
         res, sid = self.correct({qid, twin})
         self.assertEqual(res["refused"], {})
-        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: [twin]})
+        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: {twin: "qa"}})
         sql = res["files"]["qa.sql"]
         # the guard lets exactly the twin through, and only while it is still QA-hidden and not live
-        self.assertIn(f"AND NOT (o.id IN ('{twin}'::uuid) AND o.archived_at IS NOT NULL AND o.import_flag_reason LIKE"
+        self.assertIn(f"AND NOT ((o.id='{twin}'::uuid AND o.archived_at IS NOT NULL AND o.import_flag_reason LIKE"
                       " 'qa:%' AND o.publish_status='needs_human_review' AND o.import_status='needs_review'"
-                      " AND o.is_live IS NOT TRUE)", sql)
-        self.assertEqual(sql.count(f"'{twin}'::uuid"), 2)  # the hash guard and the text guard
+                      " AND o.is_live IS NOT TRUE))", sql)
+        self.assertEqual(sql.count(f"'{twin}'::uuid"), 3)  # the hash, comparison key and text guards
         self.assertIn("THEN RAISE EXCEPTION 'normalized question text already in the bank", sql)
 
     def test_the_twin_still_blocks_when_qa_does_not_list_it(self):
@@ -72,8 +76,44 @@ class TestHiddenTwin(AutopilotCase):
     def test_a_live_twin_still_blocks(self):
         self.blocked("live")
 
-    def test_a_twin_the_sweep_unpublished_still_blocks(self):
-        self.blocked("swept")
+    def test_a_twin_the_sweep_unpublished_does_not_block_when_its_group_has_no_live_row(self):
+        qid, twin = self.two("swept")
+        res, sid = self.correct({qid, self.canonical})  # the sweep's twin is not in qa/hidden.jsonl
+        self.assertEqual(res["refused"], {})
+        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: {twin: "sweep"}})
+        sql = res["files"]["qa.sql"]
+        reason = f"duplicate of {self.canonical}; un-published by sweep"
+        self.assertIn(f"(o.id='{twin}'::uuid AND o.archived_at IS NULL AND o.import_flag_reason='{reason}'"
+                      " AND o.publish_status='needs_human_review' AND o.import_status='needs_review'"
+                      " AND o.is_live IS NOT TRUE AND NOT EXISTS (SELECT 1 FROM public.quiz_questions g"
+                      f" WHERE g.is_live IS TRUE AND (g.id='{self.canonical}'::uuid OR g.import_flag_reason='{reason}')))",
+                      sql)
+
+    def test_a_sweep_twin_whose_canonical_is_live_still_blocks_and_says_so(self):
+        qid, twin = self.two("swept-live")
+        res, sid = self.correct({qid})
+        why = res["refused"][sid]
+        self.assertTrue(any("already in the bank" in w for w in why), why)
+        self.assertIn(f"its group has a live row ({self.canonical})", why[-1])
+        self.assertNotIn("qa.sql", res["files"])
+
+    def test_a_changed_accepted_answer_list_is_a_correction(self):
+        self.two("live")
+        same = row(1)
+        same["key"]["raw_model_response"] = copy.deepcopy(same["key"]["raw_model_response"])
+        same["key"]["raw_model_response"]["numeric_answer_set"] = {"answers": ["116.82", "116.8"]}
+        d = self.batch("syn-1-qa-1", [same])
+        self.bank.export(self.d / "export.json")
+        snaps = [copy.deepcopy(s) for s in self.bank.rows.values()]
+        build = lambda: qc.build_correct([d], read_export_doc(self.d / "export.json"), "auto-syn", snaps,
+                                         self.d / "exams", rows_runner=lambda r, p, f, s, **kw: copy.deepcopy(self.docs[str(r)]))
+        self.assertEqual(build()["refused"], {})
+        old = next(s for s in snaps if s["question"]["id"] == self.bank.by_stable(row(1)["stable_question_id"]))
+        old["keys"][0]["raw_model_response"]["numeric_answer_set"] = {"answers": ["116.8", "116.82"]}
+        self.assertIn("nothing was corrected", build()["refused"][same["stable_question_id"]][0])
+        self.assertEqual(qc.key_answers({"evidence": {"numeric_answer_set": {"answers": ["2/7", ".2857"]}}}),
+                         [".2857", "2/7"])
+        self.assertIsNone(qc.key_answers({"approved_tags": {}}))
 
     def test_autopilot_reads_the_hidden_log(self):
         qid, twin = self.two()
