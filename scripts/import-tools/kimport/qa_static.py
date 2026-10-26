@@ -49,7 +49,7 @@ LEVELS = {
     "markdown_as_text": "fail", "markdown_table": "fail", "triple_newline": "review",
     "figure_description_as_text": "fail", "header_footer_line": "fail", "leading_question_number": "fail",
     "word_blank_drawn_as_line": "fail", "multiple_blanks": "review",
-    "ascii_dash": "fail", "replacement_char": "fail", "mojibake": "fail", "control_char": "fail",
+    "ascii_dash": "fail", "en_dash": "fail", "replacement_char": "fail", "mojibake": "fail", "control_char": "fail",
     "markup_unmatched": "fail", "markup_as_text": "fail", "latex_as_text": "fail",
     "math_delimiter_unbalanced": "fail", "braces_unbalanced": "fail", "katex_error": "fail", "prose_in_math": "fail",
     # completeness
@@ -240,6 +240,11 @@ def formatting(row: dict, f: dict, display: dict | None = None) -> None:
         if _CONTROL.search(v):
             _add(f, "control_char", f"{name}: control character {hex(ord(_CONTROL.search(v).group(0)))}")
         _braces(v, name, f)
+    # Founder rule (2026-10-26): the SAT prints no en dashes. Ranges and compounds take a
+    # hyphen, a math minus takes U+2212, a sentence dash takes an em dash. Judged on the stored text.
+    for name, v in _fields(row):
+        for m in re.finditer("–", v):
+            _add(f, "en_dash", f"{name}: {_excerpt(v, m.start(), m.end(), 20)}")
 
 
 def _braces(v: str, name: str, f: dict) -> None:

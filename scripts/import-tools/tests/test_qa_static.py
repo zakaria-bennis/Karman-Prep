@@ -237,3 +237,14 @@ class FormattingNoteTests(unittest.TestCase):
         self.assertTrue(qs._LEADING_NUMBER.match("211. Which choice best describes"))
         self.assertFalse(qs._LEADING_NUMBER.match("2110 people live there."))
 
+
+
+class EnDashTests(unittest.TestCase):
+    def test_en_dash_in_text_or_choice_fails_and_other_dashes_pass(self):
+        f = {}
+        qa_static.formatting({"subject": "reading", "passage": "Shanawdithit (1801–1829) drew maps.",
+                              "answer_choices": [{"letter": "A", "choice_text": "Sun–Earth"}]}, f)
+        self.assertEqual(len(f.get("en_dash", [])), 2)
+        g = {}
+        qa_static.formatting({"subject": "math", "question_text": "If x − 3 = 1-2, then—so x is"}, g)
+        self.assertNotIn("en_dash", json.dumps(g))
