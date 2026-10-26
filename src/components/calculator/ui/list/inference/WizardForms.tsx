@@ -52,7 +52,7 @@ function SampleTable(props: {
   title: string;
   headers: readonly string[];
   cells: readonly string[];
-  onChange(cells: string[]): void;
+  onCell(k: number, latex: string): void; // a functional update: edits can outrun renders
   onEnter(): void;
   autoFocus: boolean;
 }): JSX.Element {
@@ -77,7 +77,7 @@ function SampleTable(props: {
                   latex={props.cells[k] ?? ""}
                   placeholder=""
                   label={`${props.title} ${h}`}
-                  onChange={(v) => props.onChange(set(props.cells, k, v))}
+                  onChange={(v) => props.onCell(k, v)}
                   onEnter={props.onEnter}
                   autoFocus={props.autoFocus && k === 0}
                 />
@@ -127,7 +127,7 @@ export function SampleForm(props: FormProps & { kind: "z" | "t" | "zprop" }): JS
           title="Sample 1"
           headers={headers}
           cells={first}
-          onChange={setFirst}
+          onCell={(k, v) => setFirst((c) => set(c, k, v))}
           onEnter={create}
           autoFocus
         />
@@ -149,7 +149,7 @@ export function SampleForm(props: FormProps & { kind: "z" | "t" | "zprop" }): JS
             title="Sample 2"
             headers={headers}
             cells={second}
-            onChange={setSecond}
+            onCell={(k, v) => setSecond((c) => set(c ?? [], k, v))}
             onEnter={create}
             autoFocus={focusSecond}
           />

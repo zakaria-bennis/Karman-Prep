@@ -52,11 +52,21 @@ export function InferenceField(props: {
       ariaLabel: latest.current.label,
       maxLength: MAX_FIELD_CHARACTERS,
       onEdit: (latex) => latest.current.onChange(latex),
-      onEnter: () => (latest.current.onEnter ? latest.current.onEnter() : f.blur()),
+      onEnter: () => {
+        if (latest.current.onEnter === undefined) return f.blur();
+        // the field's last keystroke may not have reached its form yet: hand it over first, and
+        // act once the form has rendered with it
+        latest.current.onChange(f.latex());
+        setTimeout(() => latest.current.onEnter?.(), 0);
+      },
       onArrowOut: () => undefined,
       onDeleteOutOf: () => undefined,
       onFocus: () => setFocused(true),
-      onBlur: () => setFocused(false),
+      onBlur: () => {
+        setFocused(false);
+        // a last keystroke whose edit has not arrived yet must not be lost to the sync below
+        if (f.latex() !== latest.current.latex) latest.current.onChange(f.latex());
+      },
       onRefused: () => undefined,
     });
     f.latex(latest.current.latex);
@@ -70,9 +80,12 @@ export function InferenceField(props: {
 
   // a new stored value (undo, another view) goes into the field unless the student is typing in it
   useLayoutEffect(() => {
-    const f = field.current;
-    if (f !== null && !focused && f.latex() !== props.latex) f.latex(props.latex);
-  }, [props.latex, focused]);
+    const f = field.current,
+      el = host.current;
+    const root = el?.getRootNode() as Document | ShadowRoot | undefined;
+    const editing = el != null && root !== undefined && el.contains(root.activeElement);
+    if (f !== null && !editing && f.latex() !== props.latex) f.latex(props.latex);
+  }, [props.latex]);
 
   const empty = props.latex === "" && !focused;
   return (
