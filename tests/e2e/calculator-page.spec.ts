@@ -104,10 +104,11 @@ test.describe("desktop", () => {
 
   test("the SAT practice link and the footer Calculator link both work", async ({ page }) => {
     await openCalculator(page);
+    // the old /questions page was replaced by the free practice test (site rebuild, 2026-10-26)
     await page.getByRole("link", { name: "SAT practice" }).click();
-    await expect(page).toHaveURL(/\/questions$/);
+    await expect(page).toHaveURL(/\/free-practice-test$/);
     await page
-      .getByRole("navigation", { name: "Footer product links" })
+      .getByRole("navigation", { name: "Footer" })
       .getByRole("link", { name: "Calculator" })
       .click();
     await expect(page).toHaveURL(/\/calculator$/);

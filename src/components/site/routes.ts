@@ -14,6 +14,7 @@ export const ROUTES = {
   privacy: "/privacy",
   refunds: "/refunds",
   signIn: "/auth/sign-in",
+  calculator: "/calculator",
 } as const;
 
 /** Pages drawn with the marketing shell (its own header, theme switch and footer). */

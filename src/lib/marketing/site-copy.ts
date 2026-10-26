@@ -381,6 +381,7 @@ pricing caption: Every price is here, so the talk at home is short.
 ## Site
 logo: Karman
 free test link: Free practice test
+calculator link: Calculator
 program link: The SAT Program
 private link: Private tutoring
 pricing link: Pricing
