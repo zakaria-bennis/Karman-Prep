@@ -427,7 +427,9 @@ export const AUTO_COMMANDS: readonly string[] = Object.freeze([
 const BY_NAME: ReadonlyMap<string, OperatorName> = new Map(
   [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES, ...DESMOS_ONLY_NAMES].map((n) => [n.name, n])
 );
-const AUTO_OPERATOR_NAMES = OPERATOR_NAMES.map((n) => n.name).join(" ");
+// FN-57: the inference members are typed as names too, as on live Desmos (2026-10-26): `T.score`
+// gives `T.\operatorname{score}`, and `pleft` alone `\operatorname{pleft}`.
+const AUTO_OPERATOR_NAMES = [...OPERATOR_NAMES.map((n) => n.name), ...MEMBER_NAMES].join(" ");
 const AUTO_COMMAND_NAMES = AUTO_COMMANDS.join(" ");
 
 export function isBuiltinName(name: string): boolean {
@@ -443,7 +445,7 @@ export function isShippedBuiltin(name: string): boolean {
   return SHIPPED.has(name) && BY_NAME.has(name);
 }
 
-/** Every allowlisted name, space-separated; MEMBER_NAMES are a separate list and never included. */
+/** Every allowlisted name, then the MEMBER_NAMES, space-separated: what typing turns into names. */
 export function mathQuillAutoOperatorNames(): string {
   return AUTO_OPERATOR_NAMES;
 }

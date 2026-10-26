@@ -17,11 +17,11 @@ it("mathQuillOptions makes '/' take the preceding term as a numerator (both slas
   expect(config.typingSlashWritesDivisionSymbol).toBe(false);
   expect(config.typingSlashCreatesNewFraction).toBe(false);
 });
-it("mathQuillOptions takes autoOperatorNames and autoCommands from operator-names.ts, member names excluded", () => {
+it("mathQuillOptions takes autoOperatorNames and autoCommands from operator-names.ts, member names included (FN-57)", () => {
   expect(config.autoOperatorNames).toBe(mathQuillAutoOperatorNames());
   expect(config.autoCommands).toBe(mathQuillAutoCommands());
   const names = config.autoOperatorNames.split(" ");
-  for (const member of MEMBER_NAMES) expect(names).not.toContain(member);
+  for (const member of MEMBER_NAMES) expect(names).toContain(member);
   expect(config.autoCommands.split(" ")).toEqual(
     expect.arrayContaining([
       "sqrt",
