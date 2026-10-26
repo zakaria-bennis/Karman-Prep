@@ -333,7 +333,8 @@ class Autopilot:
                 cache[key] = self.d.rows_runner(reviewed, pdf, frozen, sha, **keep)
             return cache[key]
 
-        qa_dirs, normal_dirs, qa_mixed = qa_correct.split(normal_dirs, doc.rows, self.d.exams_dir, rows_runner)
+        qa_dirs, normal_dirs, qa_mixed = qa_correct.split(normal_dirs, doc.rows, self.d.exams_dir, rows_runner,
+                                                          qa_correct.read_corrections(self.pipe / "qa"))
         mixed = {**mixed, **qa_mixed}
         live_dirs, normal_dirs = live_fix.split(normal_dirs, doc.rows, self.d.exams_dir, rows_runner)
         if live_dirs:
@@ -530,7 +531,8 @@ class Autopilot:
             snaps = [r["snapshot"] for r in _unwrap(raw)["rows"]]
         qres = qa_correct.build_correct(qa_dirs, doc, self.run_id, snaps, self.d.exams_dir, staged,
                                         self.d.chunk_size, rows_runner=rows_runner,
-                                        hidden_ids=frozenset(qa_hide.currently_hidden(self.pipe / "qa")))
+                                        hidden_ids=frozenset(qa_hide.currently_hidden(self.pipe / "qa")),
+                                        done=qa_correct.read_corrections(self.pipe / "qa"))
         st._write_all(qa_dir, qres["files"])
         return qres
 

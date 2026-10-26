@@ -371,11 +371,15 @@ def _check_backfill(exported, key_of: dict, by_id: dict, batch_ids: set) -> None
 def twin_skip(twins: dict, alias: str = "o") -> str:
     """SQL that leaves a QA correction's allowed duplicate twins (kimport.qa_correct
     hidden_twins_allowed) out of a duplicate guard, each only while it is still in the state the
-    correction precheck saw: QA-hidden ("qa"), or un-published by the duplicate sweep with no
-    live row in its duplicate group ("sweep"). Every other row still counts. No twins: ""."""
+    correction precheck saw: QA-hidden ("qa"), un-published by the duplicate sweep with no live
+    row in its duplicate group ("sweep"), or simply not live ("not_live"). A live row always
+    counts. No twins: ""."""
     a, conds = alias, []
     for tid, t in sorted(twins.items()):
-        if t["kind"] == "qa":
+        if t["kind"] == "not_live":
+            conds.append(f"({a}.id={lit(tid)}::uuid AND NOT ({a}.is_live IS TRUE AND {a}.archived_at IS NULL"
+                         f" AND {a}.publish_status IN ('publish_ready','publish_ready_with_verified_repair')))")
+        elif t["kind"] == "qa":
             conds.append(f"({a}.id={lit(tid)}::uuid AND {a}.archived_at IS NOT NULL AND {a}.import_flag_reason LIKE "
                          f"'qa:%' AND {a}.publish_status='{STAGED_STATUS}' AND {a}.import_status='{STAGED_IMPORT}'"
                          f" AND {a}.is_live IS NOT TRUE)")

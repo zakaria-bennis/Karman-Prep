@@ -59,6 +59,7 @@ import re
 from pathlib import Path
 
 from kimport import bank_gate, bulk, qa_hide
+from kimport import qa_dupes as qd
 from kimport import stage as st
 from kimport.answer_evidence import GENERATED, stable_question_id
 from kimport.export import fingerprint
@@ -111,17 +112,49 @@ def kept_identities(export_rows: list[dict], hidden_ids: frozenset = frozenset()
     return [dict(zip(names, s)) for s in sorted(tuples, key=lambda s: tuple(map(str, s)))]
 
 
-def split(dirs: list[Path], export_rows: list[dict], exams_dir: Path, rows_runner) -> tuple[list, list, dict]:
-    """(QA correction batch folders, every other folder, {folder: reason} for batches that mix both)."""
+def read_corrections(qa_dir: Path) -> dict[str, dict]:
+    """{question id: its latest line} from qa/corrections.jsonl (the QA corrections published)."""
+    out: dict[str, dict] = {}
+    for e in qa_hide.read_log(Path(qa_dir) / CORRECTIONS):
+        if e.get("question_id"):
+            out[e["question_id"]] = e
+    return out
+
+
+def already_corrected(it: dict, export_rows: list[dict], done: dict) -> str | None:
+    """The live row id when this batch row was already published as its QA correction (a batch
+    taken again with --retry after some of its rows went through): one live bank row for its
+    source question, recorded in corrections.jsonl under the same stable id, still holding the
+    corrected content (content_hash_v2 as recorded)."""
+    if len(export_rows) != 1:
+        return None
+    r = export_rows[0]
+    line = done.get(r["id"])
+    if (line and r.get("is_live") is True and line.get("stable_question_id") == it["id"]
+            and line.get("after_content_hash_v2") == r.get("content_hash_v2")):
+        return r["id"]
+    return None
+
+
+def split(dirs: list[Path], export_rows: list[dict], exams_dir: Path, rows_runner,
+          done: dict | None = None) -> tuple[list, list, dict]:
+    """(QA correction batch folders, every other folder, {folder: reason} for batches that mix both).
+    `done` (read_corrections): a batch whose other rows were already published as its corrections
+    is still a QA correction batch for the rows QA still hides."""
     hidden = hidden_sources(export_rows)
     if not hidden or not dirs:
         return [], list(dirs), {}
+    by_source: dict = {}
+    for r in export_rows:
+        by_source.setdefault(st._source(r), []).append(r)
     loaded, _ = bulk.load_batches(dirs, exams_dir, None, rows_runner)
     qa, mixed = set(), {}
     for b in loaded:
         hits = sum(1 for it in b["items"] if it["source"] in hidden)
+        done_rows = sum(1 for it in b["items"] if it["source"] not in hidden
+                        and already_corrected(it, by_source.get(it["source"], []), done or {}))
         name = Path(b["dir"]).name
-        if b["items"] and hits == len(b["items"]):
+        if b["items"] and hits and hits + done_rows == len(b["items"]):
             qa.add(name)
         elif hits:
             mixed[name] = (f"{hits} of {len(b['items'])} rows correct questions QA hid; a QA correction batch "
@@ -337,7 +370,7 @@ def allowed_twins(qa_precheck: Path) -> dict[str, dict]:
         if isinstance(twins, list):
             twins = {t: {"kind": "qa"} for t in twins}
         out[sid] = {t: (v if isinstance(v, dict) else {"kind": v}) for t, v in twins.items()}
-        bad = [t for t, v in out[sid].items() if v.get("kind") not in ("qa", "sweep")
+        bad = [t for t, v in out[sid].items() if v.get("kind") not in ("qa", "sweep", "not_live")
                or (v["kind"] == "sweep" and not (v.get("reason") and v.get("canonical")))]
         if bad:
             raise RefuseToBuild(f"{qa_precheck}: hidden_twins_allowed for {sid} is incomplete ({', '.join(bad)})")
@@ -347,8 +380,9 @@ def allowed_twins(qa_precheck: Path) -> dict[str, dict]:
 def twin_candidates(rows: list[dict], hidden_ids: frozenset) -> tuple[dict, dict]:
     """({id: twin} rows that may be a correction's duplicate twin, {id: why not} sweep rows whose
     duplicate group has a live row). A twin is a row QA still hides (`hidden_ids`) that is
-    QA-hidden in the export, or a row the duplicate sweep un-published ("duplicate of <id>;
-    un-published by sweep", private, not archived) when no row of its group is live."""
+    QA-hidden in the export ("qa"); a row the duplicate sweep un-published ("duplicate of <id>;
+    un-published by sweep", private, not archived) when no row of its group is live ("sweep");
+    or any other row that is not live ("not_live"). A live row is never a twin: it still blocks."""
     live = {r["id"] for r in rows if r.get("is_live") is True}
     swept: dict[str, list[str]] = {}
     for r in rows:
@@ -368,6 +402,11 @@ def twin_candidates(rows: list[dict], hidden_ids: frozenset) -> tuple[dict, dict
                                     f"its group has a live row ({', '.join(group_live)})")
             else:
                 out[r["id"]] = {"kind": "sweep", "reason": r["import_flag_reason"], "canonical": m.group(1)}
+        elif not qd.is_live(r):
+            # any other row students cannot see (not is_live, or not publish_ready, or archived) (an old never-published draft, "No answer key entry",
+            # "Certified duplicate of ..."): it cannot become a visible copy, since publish refuses a row
+            # that is the same question as a live one (kimport.publish _live_duplicates)
+            out[r["id"]] = {"kind": "not_live"}
     return out, blocked
 
 
@@ -383,19 +422,31 @@ def hidden_twins(it: dict, index: dict, rep: dict, candidates: dict) -> dict:
 
 def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_dir: Path = bulk.EXAMS,
                   staged: list[dict] = (), chunk_size: int = 0, rows_docs: dict | None = None,
-                  rows_runner=st.stage_rows, hidden_ids: frozenset = frozenset()) -> dict:
+                  rows_runner=st.stage_rows, hidden_ids: frozenset = frozenset(), done: dict | None = None) -> dict:
     """Returns {"files", "preview_rows", "items", "refused", "refused_batches", "precheck"}.
 
     `snaps` is a fresh read-only readback (st.readback_sql over the batches' sources);
     `staged` are the run's newly staged items (checked against these rows and left out
     of the fingerprint, as are these rows). `hidden_ids`: the rows QA still hides
     (qa_hide.currently_hidden); one of them that is QA-hidden in the export and shares the
-    correction's text or hash is its hidden duplicate twin and does not block it."""
+    correction's text or hash is its hidden duplicate twin and does not block it. `done`
+    (read_corrections): batch rows already published as their correction are left out (listed
+    under already_corrected), so a batch can be taken again for its rows still hidden."""
     batches, refused_batches = bulk.load_batches(qa_dirs, exams_dir, rows_docs, rows_runner)
-    items = [it for b in batches for it in b["items"]]
     by_export, by_snap = {}, {}
     for r in doc.rows:
         by_export.setdefault(st._source(r), []).append(r)
+    skipped = {}
+    for b in batches:
+        keep = []
+        for it in b["items"]:
+            live_id = already_corrected(it, by_export.get(it["source"], []), done or {})
+            if live_id:
+                skipped[it["id"]] = live_id
+            else:
+                keep.append(it)
+        b["items"] = keep
+    items = [it for b in batches for it in b["items"]]
     for s in snaps:
         by_snap.setdefault(st._source(s.get("question") or {}), []).append(s)
     refused: dict[str, list[str]] = {}
@@ -470,6 +521,7 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
                 "hidden_twins_allowed": {it["id"]: it["twin_rows"] for it in ok if it.get("twin_rows")},
                 "qa_sql_sha256": bulk._sha("".join(files[c["file"]] for c in chunks)),
                 "corrected_ids": [it["id"] for it in ok], "corrections": corrections,
+                "already_corrected": skipped,
                 "refused": [{"id": k, "batch": next((i["batch"] for i in items if i["id"] == k), None),
                              "reasons": v} for k, v in refused.items()],
                 "refused_batches": [{"folder": k, "reason": v} for k, v in sorted(refused_batches.items())],

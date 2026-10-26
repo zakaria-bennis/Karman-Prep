@@ -79,11 +79,58 @@ class TestHiddenTwin(TwinCase):
         self.assertEqual(sql.count(f"'{twin}'::uuid"), 3)  # the hash, comparison key and text guards
         self.assertIn("THEN RAISE EXCEPTION 'normalized question text already in the bank", sql)
 
-    def test_the_twin_still_blocks_when_qa_does_not_list_it(self):
-        qid, _ = self.two()
-        res, sid = self.correct({qid})  # the twin is archived but not in qa/hidden.jsonl
-        self.assertTrue(any("already in the bank" in w for w in res["refused"][sid]))
-        self.assertNotIn("qa.sql", res["files"])
+    def test_any_twin_that_is_not_live_does_not_block(self):
+        # not in qa/hidden.jsonl (an old draft, "No answer key entry", "Certified duplicate of"): not live is enough
+        qid, twin = self.two()
+        res, sid = self.correct({qid})
+        self.assertEqual(res["refused"], {})
+        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: {twin: {"kind": "not_live"}}})
+        sql = res["files"]["qa.sql"]
+        self.assertIn(f"AND NOT ((o.id='{twin}'::uuid AND NOT (o.is_live IS TRUE AND o.archived_at IS NULL AND "
+                      "o.publish_status IN ('publish_ready','publish_ready_with_verified_repair'))))", sql)
+        # is_live set but not publish_ready (students cannot see it): not live either
+        self.bank.rows[twin]["question"].update(is_live=True, archived_at=None, import_flag_reason=None)
+        res, sid = self.correct({qid})
+        self.assertEqual(res["refused"], {})
+        self.bank.rows[twin]["question"].update(import_flag_reason="Certified duplicate of x", archived_at=None)
+        res, sid = self.correct({qid})
+        self.assertEqual(res["refused"], {})
+
+    def test_a_retried_batch_takes_only_its_rows_still_hidden(self):
+        self.bank = QaBank(None)
+        self.batch("syn-1", [row(1), row(2), row(3)])
+        self.assertEqual(self.run_ap()["result"], "published")
+        q1, q2, q3 = (self.bank.by_stable(row(n)["stable_question_id"]) for n in (1, 2, 3))
+        hide(self.bank, q1)
+        hide(self.bank, q3)
+        self.batch("syn-1-qa-1", [row(1, answer="B"), row(3, question_text=row(2)["question"]["question_text"])])
+        first = self.run_ap()  # row 3's text is live row 2's: refused; row 1 goes through
+        self.assertEqual(first["result"], "published", first)
+        self.assertTrue(self.bank.rows[q1]["question"]["is_live"])
+        self.assertFalse(self.bank.rows[q3]["question"]["is_live"])
+        self.bank.rows[q2]["question"].update(is_live=False, publish_status="needs_human_review")  # row 2 taken off
+        res = self.run_ap(retry=("syn-1-qa-1",))
+        self.assertEqual(res["result"], "published", res)
+        self.assertTrue(self.bank.rows[q3]["question"]["is_live"])
+        pre = json.loads((self.pipe / res["run"] / "qa" / "qa-precheck.json").read_text())
+        self.assertEqual(pre["already_corrected"], {row(1)["stable_question_id"]: q1})
+        self.assertEqual(pre["refused"], [])
+        lines = [json.loads(x) for x in (self.pipe / "qa" / qc.CORRECTIONS).read_text().splitlines()]
+        self.assertEqual([x["question_id"] for x in lines], [q1, q3])
+
+    def test_a_later_publish_of_the_blocking_row_is_refused_while_the_corrected_copy_is_live(self):
+        qid, twin = self.two()
+        self.log_hidden((qid, QA_REASON))  # the twin is not in qa/hidden.jsonl: a "not_live" twin
+        # the corrected row is now the twin's question exactly (its text and its choices)
+        self.batch("syn-1-qa-1", [row(1, question_text=row(2)["question"]["question_text"],
+                                      choices={L: f"{w} 2" for L, w in zip("ABCD", ("first", "second", "third", "fourth"))})])
+        self.assertEqual(self.run_ap()["result"], "published")
+        self.assertTrue(self.bank.rows[qid]["question"]["is_live"])
+        self.bank.export(self.d / "after.json")
+        doc = read_export_doc(self.d / "after.json")
+        snap = copy.deepcopy(self.bank.rows[twin])
+        self.assertEqual(publish._live_duplicates([{"id": twin, "snap": snap}], doc.rows),
+                         [f"{twin} duplicate: same question as live {qid}"])
 
     def blocked(self, state):
         qid, twin = self.two(state)
@@ -193,10 +240,11 @@ class TestResumeAfterPublishDryRun(TwinCase):
 
     def stopped_at_publish(self):
         from kimport import autopilot as ap
-        qid, twin = self.two()
+        qid, twin = self.two("live")
         self.batch("syn-1-qa-1", [row(1, question_text=row(2)["question"]["question_text"])])
-        first = self.run_ap()  # no hidden.jsonl yet: the twin blocks, the batch is refused
+        first = self.run_ap()  # the twin is live: it blocks, the batch is refused
         self.assertEqual(self.state()["batches"]["syn-1-qa-1"]["status"], "refused", first)
+        hide(self.bank, twin, TWIN_REASON)
         self.log_hidden((qid, QA_REASON), (twin, TWIN_REASON))
         self.bank.fail["publish.dryrun.sql"] = [ap.DbError("ERROR: P0001: private question changed: x")]
         res = self.run_ap(retry=("syn-1-qa-1",))
