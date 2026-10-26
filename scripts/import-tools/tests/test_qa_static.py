@@ -220,3 +220,20 @@ class ExportTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FormattingNoteTests(unittest.TestCase):
+    def test_notes_describing_underlines_or_answer_boxes_fail(self):
+        from kimport import qa_static as qs
+        for text in ["The poet writes [The word \u201crecall\u201d is underlined.] here.",
+                     "[Underlined sentence:] The tide rose.", "Enter your answer. [Free-response answer box.]",
+                     "[The phrase 'hew out' is underlined in the passage.]"]:
+            self.assertTrue(qs._FIG_DESC.search(text), text)
+        for text in ["[a British newspaper] reported", "[The] committee", "[that is]"]:
+            self.assertFalse(qs._FIG_DESC.search(text), text)
+
+    def test_three_digit_leading_number_fails(self):
+        from kimport import qa_static as qs
+        self.assertTrue(qs._LEADING_NUMBER.match("211. Which choice best describes"))
+        self.assertFalse(qs._LEADING_NUMBER.match("2110 people live there."))
+

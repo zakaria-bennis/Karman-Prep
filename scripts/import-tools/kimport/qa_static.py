@@ -64,14 +64,15 @@ LEVELS = {
 
 _MOJIBAKE = re.compile(r"â€|Ã[\u0080-¿\s]|Ã(?=[a-zñóòéèíáú])|(?<=[a-z])Ã|Â[ -¿]|ï»¿|Å[\u0080-¿]")
 _CONTROL = re.compile(r"[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]")
-_FIG_DESC = re.compile(r"\[(?:Blank|Answer|Response|Graph|Table|Image|Figure|Chart|Diagram|Map|Photo|Illustration|Scatterplot|Bar graph|Line graph)\b[^\]]*\]", re.I)
+_FIG_DESC = re.compile(r"\[(?:Blank|Answer|Response|Graph|Table|Image|Figure|Chart|Diagram|Map|Photo|Illustration|Scatterplot|Bar graph|Line graph|Underlined|Free[- ]response)\b[^\]]*\]"
+                       r"|\[[^\]\n]{0,80}\b(?:is|are)\s+underlined\b[^\]\n]*\]", re.I)
 _HEADER = re.compile(
     r"^\s*(?:Section\s+\d+(?:\s*,\s*Module\s+\d+)?\b.*|Module\s+\d+\b.*|Mark\s+for\s+Review\b.*|Question\s+\d+(?:\s+of\s+\d+)?\s*:?\s*"
     r"|Page\s+\d+(?:\s+of\s+\d+)?\s*|CONTINUE\s*|STOP\s*|Unauthorized\s+copying.*|Reading\s+and\s+Writing\s*|Math\s*"
     r"|SAT\s+Practice\s+Test.*|Directions\s*:?.*)$",
     re.I | re.M)
 _PAGE_NUMBER = re.compile(r"^\s*\d{1,3}\s*$", re.M)
-_LEADING_NUMBER = re.compile(r"^\s*(?:\d{1,2}[.)]\s+\S|Q\s*\d{1,2}\b)")
+_LEADING_NUMBER = re.compile(r"^\s*(?:\d{1,3}[.)]\s+\S|Q\s*\d{1,3}\b)")
 # A blank in display text (qa-check.ts draws each one as five underscores).
 _BLANK_MARK = re.compile(r"_{2,}")
 _FIGS = r"(?:table|graph|figure|chart|diagram|scatterplot|histogram|dot plot|box plot|bar graph|line graph)"
