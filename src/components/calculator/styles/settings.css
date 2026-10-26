@@ -67,7 +67,7 @@
   /* VIS-1: the positioned wrapper; its body is the white box, 1 px outside it on every side. */
   position: absolute;
   z-index: 6;
-  width: 300px;
+  width: 290px;
   max-width: calc(100% - 10px);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
@@ -79,7 +79,7 @@
   box-sizing: border-box;
   max-height: var(--kc-settings-max-h);
   margin: -1px;
-  padding: 10px;
+  padding: 12px;
   overflow: auto;
   border: 1px solid var(--kc-boundary);
   border-radius: 6px;
@@ -130,10 +130,11 @@
   border-bottom-color: var(--kc-list);
 }
 
-/* VIS-16: sections after the first sit under a 1 px rule with 10 px above and below. */
+/* Sections after the first sit under a 1 px rule with 12 px above and 8 px below it (the rows'
+   own 34 px height gives each label its air). */
 .kc-settings-section {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 12px;
+  padding-top: 8px;
   border-top: 1px solid var(--kc-pop-rule);
 }
 

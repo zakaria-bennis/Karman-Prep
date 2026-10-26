@@ -100,7 +100,11 @@ test("SETTINGS-11 the Text Size slider has seven notches, starts on the marked d
   page,
 }) => {
   await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
-  const size = () => rowField(page, "1").evaluate((el) => getComputedStyle(el).fontSize);
+  // WebKit reports 16.190001px for 16.19px, so sizes are compared to the hundredth.
+  const size = () =>
+    rowField(page, "1").evaluate(
+      (el) => `${Math.round(parseFloat(getComputedStyle(el).fontSize) * 100) / 100}px`
+    );
   expect(await size()).toBe("20.24px");
   await openSettings(page);
   const slider = page.getByRole("slider", { name: "Text Size" });

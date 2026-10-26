@@ -60,6 +60,9 @@ it("a stored retired theme reads as the nearest current one", () => {
   expect(
     ["ivory", "paper", "peach", "rose", "blush", "sand", "plum"].map(migrateThemeChoice)
   ).toEqual(["white", "white", "dreamsicle", "pink", "pink", "sand", "plum"]);
+  // Renamed on 2026-10-26: Karman is now Marigold and Wine is Berry, colours unchanged.
+  expect(["karman", "wine"].map(migrateThemeChoice)).toEqual(["marigold", "berry"]);
+  expect(isThemeChoice("karman")).toBe(false);
   expect(migrateThemeChoice("toString")).toBeNull();
   expect(migrateThemeChoice(null)).toBeNull();
   localStorage.setItem(THEME_STORAGE_KEY, "blush");

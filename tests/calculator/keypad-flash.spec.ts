@@ -99,9 +99,9 @@ for (const skin of DARK_SKINS) {
     test.skip(skin !== "observatory" && !isMobile, "every dark skin runs on the phone projects");
     const rows = enc(["y=x", "", "", ""]);
     if (isMobile) {
-      await openShell(page, `?skin=${skin}&rows=${rows}`);
+      await openShell(page, `?theme=${skin}&rows=${rows}`);
     } else {
-      await openShell(page, `?skin=${skin}&w=900&h=600&rows=${rows}`);
+      await openShell(page, `?theme=${skin}&w=900&h=600&rows=${rows}`);
     }
     const strip = await coveredStrip(page);
     const field = page.locator('#calc [data-row-id="2"] .mq-editable-field');

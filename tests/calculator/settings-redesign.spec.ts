@@ -35,7 +35,7 @@ test("every on/off setting is the same switch: it springs across, fills with the
     });
   expect(looks.property).toContain("transform");
   expect(looks.easing).toMatch(/linear\(|ease/); // the sampled spring, or ease where linear() is missing
-  expect(looks.duration).toMatch(/^0\.5s/);
+  expect(looks.duration).toMatch(/^0\.4s/); // AN-14: within 400 ms, no overshoot
   const arrows = region(page).getByRole("checkbox", { name: "Arrows" });
   await region(page).getByText("Arrows", { exact: true }).click(); // the label flips it too
   await expect(arrows).toBeChecked();

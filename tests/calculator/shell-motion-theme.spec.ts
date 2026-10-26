@@ -128,7 +128,7 @@ for (const skin of SKIN_IDS)
     page,
   }, info) => {
     test.skip(!PROJECTS.includes(info.project.name), "computed colours are engine-independent");
-    await openShell(page, `?skin=${skin}&w=800&h=600&rows=${enc(["y=x"])}`);
+    await openShell(page, `?theme=${skin}&w=800&h=600&rows=${enc(["y=x"])}`);
     await api(page, "c.updateSettings({ keypad: true })");
     const rings = await tabRings(page);
     expect([rings.length > 0, rings.some((r) => r.inset)]).toEqual([true, true]); // never vacuous; the row was reached

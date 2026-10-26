@@ -155,7 +155,13 @@ test("a theme change keeps the expressions, the view, the keypad and the open po
       const c = globalThis.__shell!.handle.calculator;
       return {
         rows: c.getExpressions(),
-        bounds: c.graphpaperBounds.mathCoordinates,
+        // To 3 decimals: WebKit on a phone can move the graph's size by a fraction of a pixel.
+        bounds: Object.fromEntries(
+          Object.entries(c.graphpaperBounds.mathCoordinates).map(([k, v]) => [
+            k,
+            Math.round(v * 1000) / 1000,
+          ])
+        ),
         keypad: c.settings.keypad,
       };
     });

@@ -48,9 +48,13 @@ function storage(): Storage | null {
   }
 }
 
-/** A stored value as a current choice: itself, a retired theme's nearest one, or null. */
+/** Calculator themes renamed after they were offered (founder decision, 2026-10-26). */
+const RENAMED_THEMES: Readonly<Record<string, ThemeChoice>> = { karman: "marigold", wine: "berry" };
+
+/** A stored value as a current choice: itself, a renamed or retired theme's current one, or null. */
 export function migrateThemeChoice(value: string | null): ThemeChoice | null {
   if (isThemeChoice(value)) return value;
+  if (value !== null && Object.hasOwn(RENAMED_THEMES, value)) return RENAMED_THEMES[value];
   if (value === null || !Object.hasOwn(SITE_THEME_SKINS, value)) return null;
   return SITE_THEME_SKINS[value];
 }

@@ -106,8 +106,8 @@ export const CALCULATOR_THEMES: readonly CalculatorTheme[] = [
     error: "#b4232f",
   },
   {
-    id: "karman",
-    name: "Karman",
+    id: "marigold",
+    name: "Marigold",
     dark: false,
     paper: "#ffffff",
     list: "#ffffff",
@@ -301,8 +301,8 @@ export const CALCULATOR_THEMES: readonly CalculatorTheme[] = [
     error: "#ffab9e",
   },
   {
-    id: "wine",
-    name: "Wine",
+    id: "berry",
+    name: "Berry",
     dark: true,
     paper: "#1d0b12",
     list: "#2b111c",

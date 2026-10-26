@@ -1,21 +1,17 @@
-// Key sounds (founder decision, 2026-10-26): a short, quiet sound for each key typed into a math
-// field or pressed on the on-screen keypad, chosen by what the key does. Off by default; the
-// Graph Settings switch turns them on, and the choice is remembered on the device in localStorage
+// Key sounds (founder decisions, 2026-10-26): a short, soft sound for each key typed into a math
+// field or pressed on the on-screen keypad, chosen by what the key does (sound-recipes.ts): a
+// mechanical key's click and thock, warm and low-mid, never piercing. Off by default; the Graph
+// Settings switch turns them on, and the choice is remembered on the device in localStorage
 // (every access in try/catch). Every sound is synthesised here with Web Audio, our own and nothing
-// recorded. No AudioContext exists until the sounds are on and one plays (or the switch turns
-// them on, which also unlocks audio on iOS inside the tap), and none plays while they are off.
-// The audio session is "ambient" where the browser supports it (Safari), so the phone's silent
-// switch mutes it as it does other app sounds.
+// recorded. No AudioContext exists until the sounds are on and one plays (or the switch turns them
+// on, which also unlocks audio on iOS inside the tap), and none plays while they are off. All
+// sounds pass a low master level, a 3.2 kHz low-pass and a gentle limiter, so fast typing never
+// clips. The audio session is "ambient" where the browser supports it (Safari), so the phone's
+// silent switch mutes it as it does other app sounds.
 
-export type KeySound =
-  | "digit" // digits, the point, letters and variables
-  | "operator" // + − × ÷, =, comparisons, brackets, functions
-  | "exponent" // ^ and x², raising to a power
-  | "regression" // ~, which runs a regression
-  | "constant" // π, τ: an app-like, slightly talking blip
-  | "delete" // Backspace and Delete
-  | "enter" // Enter, a new row
-  | "move"; // the arrow keys
+import { RECIPES, type KeySound, type Recipe } from "./sound-recipes";
+
+export type { KeySound } from "./sound-recipes";
 
 export const KEY_SOUNDS_STORAGE_KEY = "karman.calculator.keySounds";
 
@@ -24,6 +20,7 @@ const listeners = new Set<Listener>();
 let enabled: boolean | null = null; // read from storage on first use
 let context: AudioContext | null = null;
 let master: GainNode | null = null;
+let noise: AudioBuffer | null = null;
 let lastAt = 0;
 
 function storage(): Storage | null {
@@ -55,7 +52,7 @@ export function setKeySoundsEnabled(on: boolean): void {
     // Full or blocked storage: the choice lasts for this page only.
   }
   if (on) {
-    // Inside the switch's tap, so iOS lets the context start; a soft tick confirms it.
+    // Inside the switch's tap, so iOS lets the context start; a soft key confirms it.
     playKeySound("digit");
   } else if (context !== null) {
     void context.suspend().catch(() => undefined);
@@ -91,70 +88,104 @@ function audio(): { ctx: AudioContext; out: GainNode } | null {
     } catch {
       return null;
     }
+    // Level, then a warm low-pass, then a gentle limiter before the speakers.
     master = context.createGain();
-    master.gain.value = 0.32;
-    master.connect(context.destination);
+    master.gain.value = 0.22;
+    const warm = context.createBiquadFilter();
+    warm.type = "lowpass";
+    warm.frequency.value = 3200;
+    warm.Q.value = 0.5;
+    const limiter = context.createDynamicsCompressor();
+    limiter.threshold.value = -18;
+    limiter.knee.value = 6;
+    limiter.ratio.value = 12;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.12;
+    master.connect(warm).connect(limiter).connect(context.destination);
   }
   if (context.state === "suspended") void context.resume().catch(() => undefined);
   return { ctx: context, out: master! };
 }
 
-/** A gain envelope: a 4 ms rise to `peak`, then an exponential fall over `length` seconds. */
+/** 60 ms of white noise, made once, for the clicks. */
+function noiseBuffer(ctx: AudioContext): AudioBuffer {
+  if (noise === null) {
+    noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.06), ctx.sampleRate);
+    const data = noise.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+  return noise;
+}
+
+/** A gain envelope: a 3 ms rise to `peak`, then an exponential fall over `length` seconds. */
 function envelope(ctx: AudioContext, at: number, peak: number, length: number): GainNode {
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.0001, at);
-  gain.gain.exponentialRampToValueAtTime(peak, at + 0.004);
+  gain.gain.exponentialRampToValueAtTime(peak, at + 0.003);
   gain.gain.exponentialRampToValueAtTime(0.0001, at + length);
   return gain;
 }
 
-/** One pitched voice: `type` gliding from `from` to `to` Hz. */
-function tone(
+/** The click: the noise through a band-pass at the recipe's centre. */
+function click(ctx: AudioContext, out: AudioNode, at: number, r: Recipe): void {
+  const source = ctx.createBufferSource();
+  source.buffer = noiseBuffer(ctx);
+  const band = ctx.createBiquadFilter();
+  band.type = "bandpass";
+  band.frequency.value = r.click;
+  band.Q.value = r.clickQ;
+  source
+    .connect(band)
+    .connect(envelope(ctx, at, r.clickLevel, r.clickDecay))
+    .connect(out);
+  source.start(at);
+  source.stop(at + r.clickDecay + 0.02);
+}
+
+/** The body: a triangle gliding from `from` Hz by `glide`, fading over `decay` s. */
+function body(
   ctx: AudioContext,
   out: AudioNode,
   at: number,
-  opts: { type: OscillatorType; from: number; to?: number; peak: number; length: number }
+  from: number,
+  glide: number,
+  decay: number,
+  level: number
 ): void {
   const osc = ctx.createOscillator();
-  osc.type = opts.type;
-  osc.frequency.setValueAtTime(opts.from, at);
-  if (opts.to !== undefined) osc.frequency.exponentialRampToValueAtTime(opts.to, at + opts.length);
-  const gain = envelope(ctx, at, opts.peak, opts.length);
-  osc.connect(gain).connect(out);
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(from, at);
+  osc.frequency.exponentialRampToValueAtTime(from * glide, at + decay);
+  osc.connect(envelope(ctx, at, level, decay)).connect(out);
   osc.start(at);
-  osc.stop(at + opts.length + 0.02);
+  osc.stop(at + decay + 0.02);
 }
 
-/**
- * The constant's blip: a buzzy voice through two vowel formants that glide from "ah" toward "ee",
- * with the pitch falling a little as speech does. Short and quiet, so it reads as an app sound
- * with a voice in it rather than a word.
- */
-function vowel(ctx: AudioContext, out: AudioNode, at: number): void {
-  const length = 0.13;
+/** The constant's voice: a soft buzz through two formants gliding from "ah" toward "ee". */
+function vowel(ctx: AudioContext, out: AudioNode, at: number, r: Recipe, pitch: number): void {
   const source = ctx.createOscillator();
   source.type = "sawtooth";
-  source.frequency.setValueAtTime(240, at);
-  source.frequency.exponentialRampToValueAtTime(190, at + length);
-  const mix = envelope(ctx, at, 0.5, length);
-  for (const [from, to, q] of [
-    [760, 380, 9],
-    [1150, 2100, 11],
-  ]) {
+  source.frequency.setValueAtTime(pitch, at);
+  source.frequency.exponentialRampToValueAtTime(pitch * r.glide, at + r.decay);
+  const mix = envelope(ctx, at, 0.28, r.decay);
+  for (const [from, to] of r.vowel ?? []) {
     const formant = ctx.createBiquadFilter();
     formant.type = "bandpass";
-    formant.Q.value = q;
+    formant.Q.value = 7;
     formant.frequency.setValueAtTime(from, at);
-    formant.frequency.exponentialRampToValueAtTime(to, at + length);
+    formant.frequency.exponentialRampToValueAtTime(to, at + r.decay);
     source.connect(formant).connect(mix);
   }
   mix.connect(out);
   source.start(at);
-  source.stop(at + length + 0.02);
+  source.stop(at + r.decay + 0.02);
 }
 
-/** Plays `sound` if key sounds are on; a no-op (and no audio created) while they are off. */
-export function playKeySound(sound: KeySound): void {
+/**
+ * Plays `sound` if key sounds are on; a no-op (and no audio created) while they are off.
+ * `variant` (0 to 6) moves the body up that many semitones, so functions of one family differ.
+ */
+export function playKeySound(sound: KeySound, variant = 0): void {
   if (!keySoundsEnabled()) return;
   if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
   const now = typeof performance === "undefined" ? Date.now() : performance.now();
@@ -164,36 +195,13 @@ export function playKeySound(sound: KeySound): void {
   if (a === null) return;
   const { ctx, out } = a;
   const at = ctx.currentTime + 0.002;
-  switch (sound) {
-    case "digit":
-      tone(ctx, out, at, { type: "triangle", from: 1550, to: 1250, peak: 0.22, length: 0.035 });
-      return;
-    case "move":
-      tone(ctx, out, at, { type: "sine", from: 1300, peak: 0.1, length: 0.025 });
-      return;
-    case "operator":
-      tone(ctx, out, at, { type: "triangle", from: 880, to: 760, peak: 0.24, length: 0.05 });
-      tone(ctx, out, at, { type: "sine", from: 1760, peak: 0.06, length: 0.03 });
-      return;
-    case "exponent":
-      tone(ctx, out, at, { type: "sine", from: 660, to: 1320, peak: 0.24, length: 0.08 });
-      return;
-    case "regression":
-      tone(ctx, out, at, { type: "sine", from: 660, peak: 0.18, length: 0.07 });
-      tone(ctx, out, at + 0.055, { type: "sine", from: 880, peak: 0.16, length: 0.07 });
-      tone(ctx, out, at + 0.11, { type: "sine", from: 1320, peak: 0.14, length: 0.1 });
-      return;
-    case "constant":
-      vowel(ctx, out, at);
-      return;
-    case "delete":
-      tone(ctx, out, at, { type: "sine", from: 420, to: 240, peak: 0.3, length: 0.06 });
-      return;
-    case "enter":
-      tone(ctx, out, at, { type: "sine", from: 620, peak: 0.2, length: 0.06 });
-      tone(ctx, out, at + 0.05, { type: "sine", from: 930, peak: 0.18, length: 0.09 });
-      return;
-  }
+  const r = RECIPES[sound];
+  const shift = 2 ** (Math.max(0, Math.min(6, variant)) / 12);
+  click(ctx, out, at, r);
+  if (r.vowel !== undefined) vowel(ctx, out, at, r, r.body * shift);
+  body(ctx, out, at, r.body * shift, r.glide, r.decay, r.bodyLevel);
+  for (const tap of r.taps ?? [])
+    body(ctx, out, at + tap.delay, tap.body * shift, r.glide, r.decay * 0.8, tap.level);
 }
 
 /** Forgets the audio context and the stored choice's cache (tests only). */
@@ -201,6 +209,7 @@ export function resetKeySoundsForTest(): void {
   enabled = null;
   context = null;
   master = null;
+  noise = null;
   lastAt = 0;
   listeners.clear();
 }

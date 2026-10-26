@@ -430,7 +430,7 @@
 /* VIS-31, VIS-32: the value line under the math, right-aligned 5 px from the edge: a faint "=" and
    the value in a light chip; a list result shows one chip per element (NM-38). It fades in. */
 .kc-row-value {
-  margin-top: -4px;
+  margin-top: 0;
   padding: 0 5px 0 53px;
   font-size: var(--kc-size-eval);
   text-align: end;
@@ -443,7 +443,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 3px;
+  gap: 4px;
 }
 
 .kc-row-equals {
@@ -455,7 +455,7 @@
 }
 
 .kc-row-value-box {
-  padding: 3px 5px 1px;
+  padding: 3px 6px 1px;
   border: 1px solid var(--kc-row-rule);
   border-radius: var(--kc-radius-chip);
   background: var(--kc-chip-fill);
@@ -489,7 +489,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   padding: 0 35px 0 53px;
   color: var(--kc-text-muted);
   font-family: var(--kc-font-ui);

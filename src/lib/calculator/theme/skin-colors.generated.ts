@@ -277,7 +277,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
       },
     },
   },
-  karman: {
+  marigold: {
     normal: {
       dark: false,
       roles: {
@@ -937,7 +937,7 @@ export const SKIN_COLORS: Readonly<Record<SkinId, { normal: SkinPalette }>> = {
       },
     },
   },
-  wine: {
+  berry: {
     normal: {
       dark: true,
       roles: {
@@ -1166,7 +1166,7 @@ export const SKIN_NAMES: Readonly<Record<SkinId, string>> = {
   map: "Map",
   sage: "Sage",
   dreamsicle: "Dreamsicle",
-  karman: "Karman",
+  marigold: "Marigold",
   pink: "Pastel Pink",
   sky: "Sky",
   mint: "Mint",
@@ -1178,7 +1178,7 @@ export const SKIN_NAMES: Readonly<Record<SkinId, string>> = {
   plum: "Plum",
   navy: "Midnight Navy",
   ocean: "Ocean",
-  wine: "Wine",
+  berry: "Berry",
   slate: "Slate",
   neon: "Neon Night",
   ember: "Ember",

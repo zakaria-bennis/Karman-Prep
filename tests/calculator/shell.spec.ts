@@ -296,7 +296,7 @@ for (const skin of SKIN_IDS)
     page,
   }, info) => {
     test.skip(!PROJECTS.includes(info.project.name), "computed colours are engine-independent");
-    await openShell(page, `?skin=${skin}&w=800&h=600&rows=${enc(["y=x", "\\frac{", "2+3"])}`);
+    await openShell(page, `?theme=${skin}&w=800&h=600&rows=${enc(["y=x", "\\frac{", "2+3"])}`);
     await rowField(page, "3").click();
     await api(page, "c.updateSettings({ keypad: true })");
     await page.getByRole("button", { name: "Graph settings" }).click();

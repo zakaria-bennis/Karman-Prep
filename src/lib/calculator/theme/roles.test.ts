@@ -140,7 +140,7 @@ it("TH-10 a slot id resolves from the active skin and re-maps when the skin chan
 
 it("F-A1 an explicit colour is used as is with a 40% fill on light skins and inverted on dark skins", () => {
   expect(resolveRowColor("#757575", "sky")).toEqual({ hex: "#757575", fillAlpha: 0.4 });
-  expect(resolveRowColor("#FFD400", "karman")).toEqual({ hex: "#ffd400", fillAlpha: 0.4 });
+  expect(resolveRowColor("#FFD400", "marigold")).toEqual({ hex: "#ffd400", fillAlpha: 0.4 });
   expect(resolveRowColor("#000000", "observatory")).toEqual({ hex: "#ffffff", fillAlpha: 0.4 });
   expect(resolveRowColor("#c74440", "observatory").hex).toBe("#38bbbf");
 });

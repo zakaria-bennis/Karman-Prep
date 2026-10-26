@@ -63,8 +63,8 @@
     0 0 0 0.5px color-mix(in srgb, var(--kc-text) 12%, transparent);
   pointer-events: none;
   transition:
-    transform var(--kc-dur-spring) var(--kc-spring),
-    width var(--kc-dur-spring) var(--kc-spring);
+    transform var(--kc-dur-400) var(--kc-spring),
+    width var(--kc-dur-400) var(--kc-spring);
 }
 
 .kc-toggle > input:checked ~ .kc-toggle-knob {
@@ -205,7 +205,7 @@
   width: calc(var(--kc-size-progress) * 100%);
   border-radius: 2px;
   background: var(--kc-accent);
-  transition: width var(--kc-dur-spring) var(--kc-spring);
+  transition: width var(--kc-dur-400) var(--kc-spring);
 }
 
 .kc-size-notch {

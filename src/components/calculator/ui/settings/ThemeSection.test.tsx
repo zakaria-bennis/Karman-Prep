@@ -48,7 +48,7 @@ it("is one combobox named by Theme and the current theme; its list holds Auto an
     "Map",
     "Sage",
     "Dreamsicle",
-    "Karman",
+    "Marigold",
     "Pastel Pink",
     "Sky",
     "Mint",
@@ -60,7 +60,7 @@ it("is one combobox named by Theme and the current theme; its list holds Auto an
     "Plum",
     "Midnight Navy",
     "Ocean",
-    "Wine",
+    "Berry",
     "Slate",
     "Neon Night",
     "Ember",
@@ -112,9 +112,9 @@ it("a click on an option picks it and closes the list; the keyboard opens, moves
   const active = () => document.getElementById(button().getAttribute("aria-activedescendant")!);
   expect(active()).toHaveTextContent("Sage");
   await user.keyboard("{ArrowDown}{ArrowDown}");
-  expect(active()).toHaveTextContent("Karman");
+  expect(active()).toHaveTextContent("Marigold");
   await user.keyboard("{Enter}");
-  expect(onChoose).toHaveBeenLastCalledWith("karman");
+  expect(onChoose).toHaveBeenLastCalledWith("marigold");
   // Space opens; End goes to the last theme; typing "o" finds Observatory, then Ocean.
   await user.keyboard(" ");
   await user.keyboard("{End}");
