@@ -303,7 +303,11 @@ class Autopilot:
                      "has checked the bank and closed it.")
         if self.wrote and not self.dry:
             for name in self.run["batches"]:
-                self.state["batches"].setdefault(name, {"run": self.run_id, "status": "stopped", "at": self.run["at"]})
+                # A batch this run took (new, or a --retry of an earlier run's refusal) is now stopped by
+                # this run; one this run already settled keeps that.
+                if (self.state["batches"].get(name) or {}).get("run") != self.run_id:
+                    self.state["batches"][name] = {**(self.state["batches"].get(name) or {}), "run": self.run_id,
+                                                   "status": "stopped", "at": self.run["at"]}
             extra += " Rows already written stay hidden private drafts; these batches will not be retried by themselves."
         else:
             extra += " Nothing was written to the bank; the batches will be tried again next run."
@@ -455,7 +459,7 @@ class Autopilot:
             raise Stop(f"the bank has {doc2.row_count} rows after staging; expected {expected_rows}")
         pub = self.run_dir / "publish"
         bulk.run_bulk_publish(self.run_id, sealed.parent / "private-readback.json", sealed, export2, self.intents,
-                              pub, self.d.chunk_size)
+                              pub, self.d.chunk_size, qa_correct.allowed_twins(self.run_dir / "qa" / "qa-precheck.json"))
         ppre = json.loads((pub / "precheck.json").read_text())
         qids = ppre["question_ids"]
         files = [pub / c["file"] for c in ppre["chunks"]]

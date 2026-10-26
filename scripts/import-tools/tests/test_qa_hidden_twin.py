@@ -6,7 +6,7 @@ import copy
 import json
 
 from kimport import qa_correct as qc
-from kimport import qa_run
+from kimport import publish, qa_run
 from kimport.export import read_export_doc
 from kimport.sweep import UNPUBLISHED_IMPORT, UNPUBLISHED_STATUS
 from tests.test_autopilot import AutopilotCase
@@ -16,7 +16,7 @@ from tests.test_qa_correct import QA_REASON, QaBank, hide
 TWIN_REASON = "qa:audit: Same text and choices, both key A; b flagged"
 
 
-class TestHiddenTwin(AutopilotCase):
+class TwinCase(AutopilotCase):
     def two(self, twin_state="hidden"):
         """row(1) and row(2) published; row(1) QA-hidden; row(2), its twin, in `twin_state`."""
         self.bank = QaBank(None)
@@ -48,11 +48,29 @@ class TestHiddenTwin(AutopilotCase):
                                hidden_ids=frozenset(hidden_ids))
         return res, dup["stable_question_id"]
 
+    def log_hidden(self, *pairs):
+        (self.pipe / "qa").mkdir(parents=True, exist_ok=True)
+        (self.pipe / "qa" / "hidden.jsonl").write_text("".join(  # what k qa hide records
+            json.dumps({"id": i, "reason": r, "at": "2026-10-22T21:00:00Z", "label": "audit", "run": "hide-1",
+                        "content_hash_v2": self.bank.rows[i]["question"]["content_hash_v2"],
+                        "previous_publish_status": "publish_ready", "previous_import_status": "imported",
+                        "previous_import_flag_reason": None, "previous_archived_at": None}) + "\n"
+            for i, r in pairs))
+
+    def run_correction(self):
+        self.batch("syn-1-qa-1", [row(1, question_text=row(2)["question"]["question_text"])])
+        res = self.run_ap()
+        self.assertEqual(res["result"], "published", res)
+        return (self.pipe / res["run"] / "publish" / "publish.sql").read_text(), json.loads(
+            (self.pipe / res["run"] / "publish" / "precheck.json").read_text())
+
+
+class TestHiddenTwin(TwinCase):
     def test_a_qa_hidden_twin_does_not_block_the_correction(self):
         qid, twin = self.two()
         res, sid = self.correct({qid, twin})
         self.assertEqual(res["refused"], {})
-        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: {twin: "qa"}})
+        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: {twin: {"kind": "qa"}}})
         sql = res["files"]["qa.sql"]
         # the guard lets exactly the twin through, and only while it is still QA-hidden and not live
         self.assertIn(f"AND NOT ((o.id='{twin}'::uuid AND o.archived_at IS NOT NULL AND o.import_flag_reason LIKE"
@@ -80,7 +98,8 @@ class TestHiddenTwin(AutopilotCase):
         qid, twin = self.two("swept")
         res, sid = self.correct({qid, self.canonical})  # the sweep's twin is not in qa/hidden.jsonl
         self.assertEqual(res["refused"], {})
-        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: {twin: "sweep"}})
+        self.assertEqual(res["precheck"]["hidden_twins_allowed"], {sid: {twin: {"kind": "sweep", "canonical": self.canonical,
+                                                                       "reason": f"duplicate of {self.canonical}; un-published by sweep"}}})
         sql = res["files"]["qa.sql"]
         reason = f"duplicate of {self.canonical}; un-published by sweep"
         self.assertIn(f"(o.id='{twin}'::uuid AND o.archived_at IS NULL AND o.import_flag_reason='{reason}'"
@@ -115,20 +134,114 @@ class TestHiddenTwin(AutopilotCase):
                          [".2857", "2/7"])
         self.assertIsNone(qc.key_answers({"approved_tags": {}}))
 
-    def test_autopilot_reads_the_hidden_log(self):
+    def test_autopilot_corrects_and_publishes_past_a_qa_hidden_twin(self):
         qid, twin = self.two()
-        (self.pipe / "qa").mkdir(parents=True, exist_ok=True)
-        (self.pipe / "qa" / "hidden.jsonl").write_text("".join(  # what k qa hide records
-            json.dumps({"id": i, "reason": r, "at": "2026-10-22T21:00:00Z", "label": "audit", "run": "hide-1",
-                        "content_hash_v2": self.bank.rows[i]["question"]["content_hash_v2"],
-                        "previous_publish_status": "publish_ready", "previous_import_status": "imported",
-                        "previous_import_flag_reason": None, "previous_archived_at": None}) + "\n"
-            for i, r in ((qid, QA_REASON), (twin, TWIN_REASON))))
-        self.batch("syn-1-qa-1", [row(1, question_text=row(2)["question"]["question_text"])])
-        res = self.run_ap()
-        self.assertEqual(res["result"], "published", res)
+        self.log_hidden((qid, QA_REASON), (twin, TWIN_REASON))
+        sql, pre = self.run_correction()
         self.assertEqual(self.bank.rows[qid]["question"]["is_live"], True)
         self.assertEqual(self.bank.rows[twin]["question"]["is_live"], False)
+        # the publish guards leave the twin out of the content-hash count and the comparison-key check,
+        # only while it is still QA-hidden; the row's own source and hash counts still guard the rest
+        self.assertIn("WHERE qq.content_hash_v2=q.content_hash_v2 AND NOT ((qq.id="
+                      f"'{twin}'::uuid AND qq.archived_at IS NOT NULL AND qq.import_flag_reason LIKE 'qa:%'", sql)
+        self.assertIn(f"AND o.archived_at IS NULL AND NOT ((o.id='{twin}'::uuid", sql)
+        self.assertIn("THEN RAISE EXCEPTION 'private question changed: %'", sql)
+        self.assertEqual(pre["hidden_twins_allowed"], {qid: [twin]})
+
+    def test_autopilot_publishes_past_a_sweep_twin(self):
+        qid, twin = self.two("swept")
+        self.log_hidden((qid, QA_REASON), (self.canonical, TWIN_REASON))
+        sql, pre = self.run_correction()
+        self.assertEqual(pre["hidden_twins_allowed"], {qid: [twin]})
+        self.assertIn(f"(qq.id='{twin}'::uuid AND qq.archived_at IS NULL AND qq.import_flag_reason='duplicate of", sql)
+        self.assertIn(f"WHERE g.is_live IS TRUE AND (g.id='{self.canonical}'::uuid", sql)
+
+    def test_publish_without_twins_is_unchanged(self):
+        self.assertEqual(publish.twin_skip({}), "")
+        self.two("live")
+        sql, pre = self.run_correction_plain()
+        self.assertIn("WHERE qq.content_hash_v2=q.content_hash_v2)<>1", sql)
+        self.assertEqual(pre["hidden_twins_allowed"], {})
+
+    def run_correction_plain(self):
+        self.batch("syn-1-qa-1", [row(1, answer="B")])
+        res = self.run_ap()
+        self.assertEqual(res["result"], "published", res)
+        return (self.pipe / res["run"] / "publish" / "publish.sql").read_text(), json.loads(
+            (self.pipe / res["run"] / "publish" / "precheck.json").read_text())
+
+    def test_allowed_twins_reads_every_precheck_format(self):
+        f = self.d / "qa-precheck.json"
+        self.assertEqual(qc.allowed_twins(f), {})  # no QA corrections in the run
+        f.write_text(json.dumps({"hidden_twins_allowed": {"s1": ["t1"]}}))  # a run built before the sweep allowance
+        self.assertEqual(qc.allowed_twins(f), {"s1": {"t1": {"kind": "qa"}}})
+        sweep = {"kind": "sweep", "reason": "duplicate of c; un-published by sweep", "canonical": "c"}
+        f.write_text(json.dumps({"hidden_twins_allowed": {"s1": {"t1": "qa", "t2": sweep}}}))
+        self.assertEqual(qc.allowed_twins(f), {"s1": {"t1": {"kind": "qa"}, "t2": sweep}})
+        f.write_text(json.dumps({"hidden_twins_allowed": {"s1": {"t2": "sweep"}}}))  # no reason or canonical
+        with self.assertRaises(publish.RefuseToBuild):
+            qc.allowed_twins(f)
+
+
+class TestResumeAfterPublishDryRun(TwinCase):
+    """A QA-correction run whose publish dry run failed (auto-20261026-081701: the hash count guard
+    met the hidden twin), taken with --retry after an earlier refusal, finished with --resume."""
+
+    def resume(self, run, dry=False):
+        from kimport import autopilot as ap
+        return ap.run_autopilot(self.pipe, dry, None, self.deps(), (), run)
+
+    def stopped_at_publish(self):
+        from kimport import autopilot as ap
+        qid, twin = self.two()
+        self.batch("syn-1-qa-1", [row(1, question_text=row(2)["question"]["question_text"])])
+        first = self.run_ap()  # no hidden.jsonl yet: the twin blocks, the batch is refused
+        self.assertEqual(self.state()["batches"]["syn-1-qa-1"]["status"], "refused", first)
+        self.log_hidden((qid, QA_REASON), (twin, TWIN_REASON))
+        self.bank.fail["publish.dryrun.sql"] = [ap.DbError("ERROR: P0001: private question changed: x")]
+        res = self.run_ap(retry=("syn-1-qa-1",))
+        self.assertEqual(res["result"], "stopped", res)
+        self.assertFalse(self.bank.rows[qid]["question"]["is_live"])
+        return res["run"], qid, twin
+
+    def test_a_retried_batch_is_stopped_by_the_run_that_stopped(self):
+        run, _, _ = self.stopped_at_publish()
+        b = self.state()["batches"]["syn-1-qa-1"]
+        self.assertEqual((b["status"], b["run"]), ("stopped", run))
+        self.assertEqual(self.run_ap()["result"], "no_new_batches")  # never retried by itself
+
+    def test_resume_publishes_past_the_twin_without_writing_again(self):
+        run, qid, twin = self.stopped_at_publish()
+        self.assertEqual(self.resume(run, dry=True)["result"], "dry_run_ok")
+        self.bank.ran.clear()
+        res = self.resume(run)
+        self.assertEqual(res["result"], "published", res)
+        self.assertTrue(self.bank.rows[qid]["question"]["is_live"])
+        self.assertFalse(self.bank.rows[twin]["question"]["is_live"])
+        self.assertFalse(any(f.startswith(("stage", "qa.sql", "qa-0")) for f in self.bank.ran))  # nothing re-staged
+        sql = (self.pipe / res["run"] / "publish" / "publish.sql").read_text()
+        self.assertIn(f"AND NOT ((qq.id='{twin}'::uuid", sql)
+        self.assertEqual(self.state()["batches"]["syn-1-qa-1"]["status"], "published")
+
+    def test_resume_takes_a_run_whose_ledger_kept_the_earlier_refusal(self):
+        run, qid, _ = self.stopped_at_publish()
+        st = self.state()
+        st["batches"]["syn-1-qa-1"].update(status="refused", run="auto-earlier", at="2000-01-01T00:00:00Z")
+        (self.pipe / "autopilot-state.json").write_text(json.dumps(st))
+        res = self.resume(run)
+        self.assertEqual(res["result"], "published", res)
+        self.assertTrue(self.bank.rows[qid]["question"]["is_live"])
+
+    def test_resume_refuses_a_run_whose_publish_went_further(self):
+        run, _, _ = self.stopped_at_publish()
+        with open(self.pipe / "intents.jsonl") as f:
+            lines = [json.loads(x) for x in f]
+        for e in lines:
+            if e.get("type") == "close" and e.get("outcome") == "not_applied":
+                e["outcome"] = "unknown"
+        (self.pipe / "intents.jsonl").write_text("".join(json.dumps(e) + "\n" for e in lines))
+        with self.assertRaisesRegex(ValueError, "at most a publish intent closed not_applied"):
+            self.resume(run)
 
 
 def bank_row(n, text, live, comparison_key=None, content_hash="h"):

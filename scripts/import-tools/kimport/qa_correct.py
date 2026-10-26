@@ -63,7 +63,7 @@ from kimport import stage as st
 from kimport.answer_evidence import GENERATED, stable_question_id
 from kimport.export import fingerprint
 from kimport.fix import _blob
-from kimport.publish import STAGED_IMPORT, STAGED_STATUS, RefuseToBuild, duplicate_check
+from kimport.publish import STAGED_IMPORT, STAGED_STATUS, RefuseToBuild, duplicate_check, twin_skip
 from kimport.sqlutil import do_block, dryrun_variant, lit
 from kimport.sweep import UNPUBLISHED_IMPORT, UNPUBLISHED_STATUS
 
@@ -217,7 +217,7 @@ def correct_block(tag: str, it: dict) -> list[str]:
     src = ("o.id<>q.id AND o.source_version IS NOT DISTINCT FROM q.source_version AND o.source_section IS NOT DISTINCT"
            " FROM q.source_section AND o.source_module IS NOT DISTINCT FROM q.source_module"
            " AND o.source_question_number IS NOT DISTINCT FROM q.source_question_number")
-    skip = _twin_skip(it.get("twin_rows") or {})
+    skip = twin_skip(it.get("twin_rows") or {})
     body += [
         f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE {src})"
         " THEN RAISE EXCEPTION 'source question already in the bank on another row: %',v->>'stable_question_id'; END IF;",
@@ -324,23 +324,24 @@ def _chunk_sql(kind: str, name: str, k: int, total: int, rows_total: int, items:
 SWEEP_REASON = re.compile(r"^duplicate of ([0-9a-f-]{36}); un-published by sweep$")
 
 
-def _twin_skip(twins: dict) -> str:
-    """SQL that leaves the allowed duplicate twins out of a guard, each only while it is still
-    in the state the precheck saw: QA-hidden, or un-published by the sweep with no live row in
-    its duplicate group (the sweep's canonical or another row it un-published for it)."""
-    conds = []
-    for tid, t in sorted(twins.items()):
-        if t["kind"] == "qa":
-            conds.append(f"(o.id={lit(tid)}::uuid AND o.archived_at IS NOT NULL AND o.import_flag_reason LIKE "
-                         f"'{QA_PREFIX}%' AND o.publish_status='{STAGED_STATUS}' AND o.import_status='{STAGED_IMPORT}'"
-                         " AND o.is_live IS NOT TRUE)")
-        else:
-            conds.append(f"(o.id={lit(tid)}::uuid AND o.archived_at IS NULL AND o.import_flag_reason={lit(t['reason'])}"
-                         f" AND o.publish_status='{UNPUBLISHED_STATUS}' AND o.import_status='{UNPUBLISHED_IMPORT}'"
-                         " AND o.is_live IS NOT TRUE AND NOT EXISTS (SELECT 1 FROM public.quiz_questions g"
-                         f" WHERE g.is_live IS TRUE AND (g.id={lit(t['canonical'])}::uuid"
-                         f" OR g.import_flag_reason={lit(t['reason'])})))")
-    return f" AND NOT ({' OR '.join(conds)})" if conds else ""
+def allowed_twins(qa_precheck: Path) -> dict[str, dict]:
+    """{stable id: {twin id: twin}} from a run's qa/qa-precheck.json hidden_twins_allowed, for the
+    publish guards (kimport.publish twin_skip). A run built before the sweep allowance listed QA
+    twins only, as a plain id list. No file: {}."""
+    try:
+        raw = json.loads(Path(qa_precheck).read_text(encoding="utf-8")).get("hidden_twins_allowed") or {}
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for sid, twins in raw.items():
+        if isinstance(twins, list):
+            twins = {t: {"kind": "qa"} for t in twins}
+        out[sid] = {t: (v if isinstance(v, dict) else {"kind": v}) for t, v in twins.items()}
+        bad = [t for t, v in out[sid].items() if v.get("kind") not in ("qa", "sweep")
+               or (v["kind"] == "sweep" and not (v.get("reason") and v.get("canonical")))]
+        if bad:
+            raise RefuseToBuild(f"{qa_precheck}: hidden_twins_allowed for {sid} is incomplete ({', '.join(bad)})")
+    return out
 
 
 def twin_candidates(rows: list[dict], hidden_ids: frozenset) -> tuple[dict, dict]:
@@ -463,8 +464,7 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
                     "before_correct_answer": it["snap"]["question"].get("correct_answer"),
                     "after_correct_answer": it["row"]["question"].get("correct_answer")} for it in ok]
     precheck = {"batch": name, "qa_correction": True, "chunks": chunks, "readback_files": rb_names,
-                "hidden_twins_allowed": {it["id"]: {i: t["kind"] for i, t in it["twin_rows"].items()}
-                                         for it in ok if it.get("twin_rows")},
+                "hidden_twins_allowed": {it["id"]: it["twin_rows"] for it in ok if it.get("twin_rows")},
                 "qa_sql_sha256": bulk._sha("".join(files[c["file"]] for c in chunks)),
                 "corrected_ids": [it["id"] for it in ok], "corrections": corrections,
                 "refused": [{"id": k, "batch": next((i["batch"] for i in items if i["id"] == k), None),

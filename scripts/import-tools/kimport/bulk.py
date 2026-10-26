@@ -382,9 +382,9 @@ def _publish_chunk(kind: str, name: str, k: int, total: int, rows_total: int, nu
 
 
 def build_bulk_publish(name: str, readback: Path, sealed: Path, export: Path, intents: Path,
-                       chunk_size: int = 0) -> dict:
+                       chunk_size: int = 0, twins: dict | None = None) -> dict:
     items, doc, precheck = prepare_publish(Path(readback), Path(sealed), Path(export), Path(intents), name,
-                                           bulk=True)
+                                           bulk=True, twins=twins)
     try:
         batch_of = {r.get("stable_question_id"): r.get("kimport_batch")
                     for r in json.loads(Path(sealed).read_text(encoding="utf-8"))["rows"]}
@@ -411,6 +411,7 @@ def build_bulk_publish(name: str, readback: Path, sealed: Path, export: Path, in
     except ValueError as e:
         raise RefuseToBuild(str(e)) from None
     precheck.update({"bulk": True, "chunks": chunks,
+                     "hidden_twins_allowed": {it["id"]: sorted(it["twin_rows"]) for it in items if it.get("twin_rows")},
                      "publish_sql_sha256": _sha("".join(files[c["file"]] for c in chunks)),
                      "question_ids": [it["id"] for it in items]})
     keys = {it["id"]: it["key"] for it in items}
@@ -418,8 +419,8 @@ def build_bulk_publish(name: str, readback: Path, sealed: Path, export: Path, in
 
 
 def run_bulk_publish(name: str, readback: Path, sealed: Path, export: Path, intents: Path, out_dir: Path,
-                     chunk_size: int = 0) -> dict:
-    res = build_bulk_publish(name, readback, sealed, export, intents, chunk_size)
+                     chunk_size: int = 0, twins: dict | None = None) -> dict:
+    res = build_bulk_publish(name, readback, sealed, export, intents, chunk_size, twins)
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     _clear(out_dir, ("publish*.sql", "rollback*.sql", "keys.json", "precheck.json"))

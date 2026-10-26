@@ -241,6 +241,8 @@ def require_key_column(export_rows: list[dict]) -> None:
 
 
 def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
+    """Export freshness and the duplicate check. A QA correction's allowed twins (it["twin_rows"])
+    are not duplicates here, as in its correction precheck; anything else is."""
     require_key_column(export_rows)
     by_id = {r["id"]: r for r in export_rows}
     for it in items:
@@ -252,6 +254,17 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
                 raise RefuseToBuild(f"{it['id']}: export {field} {row.get(field)!r} differs from the private "
                                     f"readback {q.get(field)!r}; take a fresh readback and export")
     report, problems = duplicate_check(items, export_rows)
+    twins = {it["id"]: set(it.get("twin_rows") or ()) for it in items}
+    if any(twins.values()):
+        problems = []
+        for r in report["rows"]:
+            r["exact_matches"] = [i for i in r["exact_matches"] if i not in twins[r["id"]]]
+            r["typo_matches"] = [i for i in r["typo_matches"] if i not in twins[r["id"]]]
+            if r["exact_matches"]:
+                problems.append(f"{r['id']} duplicate: same comparison key as {', '.join(r['exact_matches'])}")
+            if r["typo_matches"]:
+                problems.append(f"{r['id']} duplicate: typo-level match with {', '.join(r['typo_matches'])}")
+        report["passed"] = not problems
     if problems:
         raise RefuseToBuild("duplicate check failed: " + "; ".join(problems))
     return report
@@ -338,6 +351,26 @@ def _check_backfill(exported, key_of: dict, by_id: dict, batch_ids: set) -> None
 # ---------------------------------------------------------------- SQL
 
 
+def twin_skip(twins: dict, alias: str = "o") -> str:
+    """SQL that leaves a QA correction's allowed duplicate twins (kimport.qa_correct
+    hidden_twins_allowed) out of a duplicate guard, each only while it is still in the state the
+    correction precheck saw: QA-hidden ("qa"), or un-published by the duplicate sweep with no
+    live row in its duplicate group ("sweep"). Every other row still counts. No twins: ""."""
+    a, conds = alias, []
+    for tid, t in sorted(twins.items()):
+        if t["kind"] == "qa":
+            conds.append(f"({a}.id={lit(tid)}::uuid AND {a}.archived_at IS NOT NULL AND {a}.import_flag_reason LIKE "
+                         f"'qa:%' AND {a}.publish_status='{STAGED_STATUS}' AND {a}.import_status='{STAGED_IMPORT}'"
+                         f" AND {a}.is_live IS NOT TRUE)")
+        else:
+            conds.append(f"({a}.id={lit(tid)}::uuid AND {a}.archived_at IS NULL AND {a}.import_flag_reason={lit(t['reason'])}"
+                         f" AND {a}.publish_status='{STAGED_STATUS}' AND {a}.import_status='{STAGED_IMPORT}'"
+                         f" AND {a}.is_live IS NOT TRUE AND NOT EXISTS (SELECT 1 FROM public.quiz_questions g"
+                         f" WHERE g.is_live IS TRUE AND (g.id={lit(t['canonical'])}::uuid"
+                         f" OR g.import_flag_reason={lit(t['reason'])})))")
+    return f" AND NOT ({' OR '.join(conds)})" if conds else ""
+
+
 def _items_literal(snap: dict, seal: str) -> str:
     blob = base64.b64encode(json.dumps([{**snap, "seal": seal}], ensure_ascii=False,
                                        separators=(",", ":")).encode()).decode()
@@ -374,7 +407,8 @@ def _publish_block(tag: str, it: dict) -> list[str]:
         "   OR (SELECT count(*) FROM public.quiz_questions qq WHERE qq.source_version=q.source_version"
         " AND qq.source_section=q.source_section AND qq.source_module=q.source_module"
         " AND qq.source_question_number=q.source_question_number)<>1",
-        "   OR (SELECT count(*) FROM public.quiz_questions qq WHERE qq.content_hash_v2=q.content_hash_v2)<>1",
+        "   OR (SELECT count(*) FROM public.quiz_questions qq WHERE qq.content_hash_v2=q.content_hash_v2"
+        f"{twin_skip(it.get('twin_rows') or {}, 'qq')})<>1",
         "  THEN RAISE EXCEPTION 'private question changed: %',q.id; END IF;",
         "  SELECT * INTO STRICT k FROM public.answer_key_entries WHERE question_id=q.id FOR UPDATE;",
         "  IF to_jsonb(k) IS DISTINCT FROM v->'keys'->0",
@@ -387,7 +421,8 @@ def _publish_block(tag: str, it: dict) -> list[str]:
     ]
     if key:
         body.append(f"  IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.comparison_key = {lit(key)}"
-                    " AND o.id <> q.id AND o.archived_at IS NULL) THEN RAISE EXCEPTION 'duplicate comparison key: %', q.id; END IF;")
+                    f" AND o.id <> q.id AND o.archived_at IS NULL{twin_skip(it.get('twin_rows') or {})})"
+                    " THEN RAISE EXCEPTION 'duplicate comparison key: %', q.id; END IF;")
     body += [
         "  UPDATE public.answer_key_entries SET raw_model_response=jsonb_set(",
         f"   jsonb_set(raw_model_response,{_flag_on(raw)}",
@@ -469,8 +504,10 @@ def _sql(batch: str, items: list[dict], kind: str, doc: ExportDoc) -> str:
 
 
 def prepare_publish(private_readback: Path, sealed_preview: Path, export: Path, intents: Path,
-                    batch: str, bulk: bool = False) -> tuple[list[dict], ExportDoc, dict]:
-    """Every input check and the precheck; returns (items, export doc, precheck)."""
+                    batch: str, bulk: bool = False, twins: dict | None = None) -> tuple[list[dict], ExportDoc, dict]:
+    """Every input check and the precheck; returns (items, export doc, precheck). `twins`: {stable id:
+    {twin id: twin}} for QA corrections (kimport.qa_correct.allowed_twins), left out of the duplicate
+    check and the publish SQL's duplicate guards while each twin is still hidden."""
     if not isinstance(batch, str) or not _BATCH.fullmatch(batch):
         raise RefuseToBuild(f"batch name {batch!r} must be lowercase letters, digits and dashes")
     try:
@@ -512,7 +549,7 @@ def prepare_publish(private_readback: Path, sealed_preview: Path, export: Path, 
         if not _KEY.fullmatch(full_key):
             raise RefuseToBuild(f"{qid}: unexpected key format {full_key!r}")
         items.append({"id": qid, "snap": snap, "source": _source(snap["question"]), "record": record,
-                      "full_key": full_key,
+                      "full_key": full_key, "twin_rows": (twins or {}).get(tags.get("stable_question_id"), {}),
                       "key": None if unkeyed else full_key, "seal": seal, "manifest": manifest,
                       "items": _items_literal(snap, seal)})
 

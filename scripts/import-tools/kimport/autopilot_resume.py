@@ -18,8 +18,10 @@ check run again against the bank as it is now:
   intent, every dry run, publish files, visible count, ledger, claims, QA
   corrections recorded).
 
-A run that stopped anywhere else (a stage that stopped part-way, a publish
-that started) is refused: a person must look at it.
+A run whose publish dry run failed (publish intent closed not_applied: the
+real publish file never ran) may be resumed too, and so may the batches it took
+with --retry. A run that stopped anywhere else (a stage that stopped part-way, a
+publish that started) is refused: a person must look at it.
 --dry runs every read-only step and the publish dry runs and writes nothing
 outside its run folder.
 """
@@ -28,7 +30,7 @@ import json
 import shutil
 from pathlib import Path
 
-from kimport import bulk, writer
+from kimport import bulk, qa_correct, writer
 from kimport import stage as st
 
 
@@ -42,18 +44,27 @@ def check_stopped(pipe: Path, state: dict, name: str) -> dict:
     res = _load(old / "result.json")
     if not isinstance(res, dict) or res.get("result") != "stopped" or res.get("dry"):
         raise ValueError(f"{name} is not a stopped (real) run")
-    if (old / "publish" / "precheck.json").exists():
-        raise ValueError(f"{name} built its publish files; a person must look at it")
     if not (old / "seal" / "run-preview.json").exists() or not (old / "seal" / "sealed-preview.json").exists():
         raise ValueError(f"{name} did not get through readback and seal")
     entries = writer._read(Path(pipe) / "intents.jsonl") if (Path(pipe) / "intents.jsonl").exists() else []
     mine = [e for e in entries if e.get("type") == "open" and e.get("batch") == name]
     closed = {e["intent_id"]: e.get("outcome") for e in entries if e.get("type") == "close"}
-    if [e["action"] for e in mine] != ["stage"] or closed.get(mine[0]["intent_id"]) != "verified":
-        raise ValueError(f"{name}: expected exactly one stage intent, closed verified "
-                         f"(found {[(e['action'], closed.get(e['intent_id'])) for e in mine]})")
-    bad = [b for b in res.get("batches") or [] if (state["batches"].get(b) or {}).get("status") != "stopped"
-           or state["batches"][b].get("run") != name]
+    found = [(e["action"], closed.get(e["intent_id"])) for e in mine]
+    # It stopped before publish, or its publish dry run failed (the publish intent was closed not_applied
+    # before the real file ran: nothing was published). Any other publish state needs a person.
+    if found not in ([("stage", "verified")], [("stage", "verified"), ("publish", "not_applied")]):
+        raise ValueError(f"{name}: expected one stage intent closed verified, and at most a publish intent closed "
+                         f"not_applied (found {found})")
+    if (old / "publish" / "precheck.json").exists() and len(found) != 2:
+        raise ValueError(f"{name} built its publish files; a person must look at it")
+
+    def ours(b):
+        e = state["batches"].get(b) or {}
+        # stopped by this run; or (a run before the ledger fix) a --retry of an earlier refusal it left as it was
+        return (e.get("status") == "stopped" and e.get("run") == name) or (
+            e.get("status") == "refused" and e.get("run") != name and str(e.get("at") or "") < str(res.get("at") or ""))
+
+    bad = [b for b in res.get("batches") or [] if not ours(b)]
     if not res.get("batches") or bad:
         raise ValueError(f"{name}: {len(bad)} of its batches are no longer 'stopped' by this run "
                          f"(e.g. {', '.join(bad[:3])})")
@@ -84,6 +95,9 @@ def go(ap, name: str) -> str:
     fpre = _load(old / "fix" / "fix-precheck.json")
     qpre = _load(old / "qa" / "qa-precheck.json")
     preview_rows = _load(old / "seal" / "run-preview.json")["rows"]
+    if qpre:  # the publish guards read the QA corrections' allowed duplicate twins from here
+        (ap.run_dir / "qa").mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(old / "qa" / "qa-precheck.json", ap.run_dir / "qa" / "qa-precheck.json")
     seal_dir = ap.run_dir / "seal"
     seal_dir.mkdir(parents=True, exist_ok=True)
     preview = seal_dir / "run-preview.json"
@@ -128,7 +142,7 @@ def dry(ap, rb: list[Path], preview: Path, doc, n: int) -> str:
     _, export2 = ap.export("live-after-stage.json")
     pub = ap.run_dir / "publish"
     bulk.run_bulk_publish(ap.run_id, sealed.parent / "private-readback.json", sealed, export2, ap.intents, pub,
-                          ap.d.chunk_size)
+                          ap.d.chunk_size, qa_correct.allowed_twins(ap.run_dir / "qa" / "qa-precheck.json"))
     ppre = json.loads((pub / "precheck.json").read_text())
     for c in ppre["chunks"]:
         ap.read(pub / c["file"].replace(".sql", ".dryrun.sql"))
