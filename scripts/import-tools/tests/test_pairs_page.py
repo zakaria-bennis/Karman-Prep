@@ -547,3 +547,11 @@ class WiringTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FormattingTests(unittest.TestCase):
+    def test_source_underline_and_italic_tokens_draw_as_formatting_not_code(self):
+        from kimport import pairs_page as pp
+        self.assertEqual(pp._show_formatting("a &lt;u&gt;b&lt;/u&gt; [[i]]c[[/i]]"), "a <u>b</u> <i>c</i>")
+        self.assertEqual(pp._show_formatting("&lt;img src=x&gt;"), "&lt;img src=x&gt;")
+

@@ -92,18 +92,30 @@ def _identical_choices(a: dict, b: dict) -> bool:
 
 
 def _card(side: dict, other: dict, label: str, show_choices: bool) -> str:
-    stem = _marked(side["text"], other["text"])[0]
+    stem = _show_formatting(_marked(side["text"], other["text"])[0])
     parts = [f'<section class="card"><h3>{html.escape(label)}'
              f'<span class="exam">{html.escape(side["id"])}</span></h3>',
              f'<p class="stem">{stem}</p>']
     if show_choices:
         if side["choices"]:
-            items = "".join(f"<li><b>{'ABCD'[n] if n < 4 else n + 1}</b> <span>{c}</span></li>"
+            items = "".join(f"<li><b>{'ABCD'[n] if n < 4 else n + 1}</b> <span>{_show_formatting(c)}</span></li>"
                             for n, c in enumerate(_choice_html(side, other)))
             parts.append(f'<ol class="choices">{items}</ol>')
-        parts.append(f'<p class="ans">Answer: {_answer_html(side, other)}</p>')
+        parts.append(f'<p class="ans">Answer: {_show_formatting(_answer_html(side, other))}</p>')
     parts.append("</section>")
     return "".join(parts)
+
+
+_FORMAT_TOKENS = {"&lt;u&gt;": "<u>", "&lt;/u&gt;": "</u>", "&lt;i&gt;": "<i>", "&lt;/i&gt;": "</i>",
+                  "[[u]]": "<u>", "[[/u]]": "</u>", "[[i]]": "<i>", "[[/i]]": "</i>"}
+
+
+def _show_formatting(markup: str) -> str:
+    """Draw the source underline/italic tokens as real formatting, the way the student page does,
+    instead of printing them as code."""
+    for token, tag in _FORMAT_TOKENS.items():
+        markup = markup.replace(token, tag)
+    return markup
 
 
 def _pair_html(p: dict) -> str:
@@ -111,12 +123,12 @@ def _pair_html(p: dict) -> str:
     a, b = p["canonical"], p["member"]
     same = _identical_choices(a, b)
     if same:
-        items = "".join(f"<li><b>{'ABCD'[n] if n < 4 else n + 1}</b> <span>{html.escape(c)}</span></li>"
+        items = "".join(f"<li><b>{'ABCD'[n] if n < 4 else n + 1}</b> <span>{_show_formatting(html.escape(c))}</span></li>"
                         for n, c in enumerate(a["choices"]))
         lst = f'<ol class="choices">{items}</ol>' if a["choices"] else ""
         what = "choices and answer identical" if a["choices"] else "answer identical"
         extra = (f'<details class="same-choices"><summary>{what} <span class="link">show choices (C)</span></summary>'
-                 f'{lst}<p class="ans">Answer: {html.escape(str(a["answer"]))}</p></details>')
+                 f'{lst}<p class="ans">Answer: {_show_formatting(html.escape(str(a["answer"])))}</p></details>')
     else:
         extra = '<p class="differs">The choices or the answer differ (highlighted below).</p>'
     return (f'<article class="pair" data-pair="{pid}" hidden>'
