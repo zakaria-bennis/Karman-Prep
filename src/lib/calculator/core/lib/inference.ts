@@ -35,7 +35,12 @@ export type InferenceData =
   | { family: "zp1"; x: number; n: number }
   | { family: "zp2"; x1: number; n1: number; x2: number; n2: number }
   | { family: "chiind"; observed: readonly (readonly number[])[] } // the columns, as written
-  | { family: "chigof"; observed: readonly number[]; expected: readonly number[] }; // expected rescaled
+  | {
+      family: "chigof";
+      observed: readonly number[];
+      expected: readonly number[]; // rescaled to the observed total
+      totalsDiffer: boolean; // expected counts were given and their total is not the observed one
+    };
 
 /**
  * An inference value: the object a test function makes, the test `T.null(h)` makes from it

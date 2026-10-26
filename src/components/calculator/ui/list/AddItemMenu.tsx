@@ -1,6 +1,7 @@
 // The Add item menu (S-2, S-10 to S-13; drawn as EL-42, EL-43): a menu button whose menu holds Add
-// expression and Add table only (owner decision 3: no inference item; CB-1: no notes, folders or
-// images; known deviation D6 from the reference's six items). The
+// expression, Add table and Add inference, the College Board version's three items (FN-59, founder
+// request 2026-10-26; CB-1: no notes, folders or images). Add inference adds an empty row as Add
+// expression does and opens the inference wizard beside it (inference/InferenceWizard.tsx). The
 // menu-button keyboard pattern with Home and End (S-10), placement below the button on the desktop
 // layout and to its right on the stacked one (S-11), insertion after the last active row (S-12)
 // and an announcement of what was added (S-13). Escape closes it as one KB-3 layer.
@@ -11,6 +12,7 @@ import { useAnnouncer } from "../a11y/announcer";
 import { EscapeContext } from "../focus/escape-stack";
 import { FocusContext } from "../focus/focus-controller";
 import { useEngine } from "../hooks/use-engine";
+import { InferenceWizard } from "./inference/InferenceWizard";
 import { insertExpressionItem, insertTableItem } from "./row-actions";
 import { Tooltip, useTooltip } from "./Tooltip";
 
@@ -47,10 +49,27 @@ function holdsFocus(el: Element | null | undefined): boolean {
 /** Focus with no focus ring (the `focusVisible` option, which TypeScript's DOM types lack). */
 const QUIET_FOCUS = { preventScroll: true, focusVisible: false };
 
+/** FN-59: a bell curve with its right tail filled (our own drawing). */
+function InferenceMenuGlyph(): JSX.Element {
+  return (
+    <svg viewBox="0 0 26 26" aria-hidden="true" focusable="false">
+      <path d="M1 21h24" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M1 20.5C6 20.5 8 6 13 6s7 14.5 12 14.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path d="M18 14.6c2 3.6 4 5.9 7 5.9V21h-7z" />
+    </svg>
+  );
+}
+
 // EL-43: the reference's lower-case labels; only the item types Karman supports.
 const ITEMS = [
   { id: "expression", label: "Add expression", text: "expression", icon: ExpressionItemGlyph },
   { id: "table", label: "Add table", text: "table", icon: TableMenuGlyph },
+  { id: "inference", label: "Add inference object", text: "inference", icon: InferenceMenuGlyph },
 ] as const;
 
 export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
@@ -59,6 +78,7 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
   const announcer = useAnnouncer();
   const escape = useContext(EscapeContext);
   const [open, setOpen] = useState(false);
+  const [wizardRow, setWizardRow] = useState<string | null>(null); // FN-59: the wizard's row
   const tip = useTooltip(open);
   const button = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -108,7 +128,8 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
     setOpen(false);
     const anchor = engine.getSnapshot().activeRowId; // S-12: the last active row, else the end
     if (id === "expression") insertExpressionItem(engine, focus, announcer, anchor);
-    else insertTableItem(engine, focus, announcer, anchor);
+    else if (id === "table") insertTableItem(engine, focus, announcer, anchor);
+    else setWizardRow(insertExpressionItem(engine, focus, announcer, anchor));
   };
 
   const onButtonKey = (e: KeyboardEvent) => {
@@ -196,6 +217,16 @@ export function AddItemMenu({ layout }: AddItemMenuProps): JSX.Element {
             );
           })}
         </div>
+      )}
+      {wizardRow !== null && (
+        <InferenceWizard
+          rowId={wizardRow}
+          anchor={button.current}
+          onClose={() => {
+            setWizardRow(null);
+            focus.focusRow(wizardRow, "end"); // the row stays, empty unless Create filled it
+          }}
+        />
       )}
     </div>
   );

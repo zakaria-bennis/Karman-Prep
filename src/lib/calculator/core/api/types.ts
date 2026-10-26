@@ -4,6 +4,7 @@
 import type { PixelSize, Viewport } from "../../plot/viewport";
 import type { TableModel } from "../../regression/table-models";
 import type { SavedSlider } from "../../sliders/model";
+import type { InferenceState } from "./inference-state";
 
 export type AngleMode = "radians" | "degrees";
 export type LineStyle = "solid" | "dashed" | "dotted"; // R-4 (Phase 2 picker)
@@ -90,6 +91,7 @@ export interface ExpressionState {
   columns?: { latex: string; values: string[]; color?: string; hidden?: boolean }[];
   regression?: TableRegressionState; // RT-28: tables only
   displayEvaluationAsFraction?: boolean; // R-5: Desmos's per-row decimal/fraction choice
+  inference?: InferenceState; // FN-59: an inference row's sections, fields and tails
 }
 /** RT-28: a table's regression; `columns.x` is always 0. */
 export interface TableRegressionState {

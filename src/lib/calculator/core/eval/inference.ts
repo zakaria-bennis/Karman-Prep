@@ -165,7 +165,12 @@ export function makeInference(name: string, args: readonly Value[]): Value {
       const total = observed.reduce((s, v) => s + v, 0);
       const w = weights ?? observed.map(() => 1);
       const wTotal = w.reduce((s, v) => s + v, 0);
-      return wrap({ family: "chigof", observed, expected: w.map((v) => (v * total) / wTotal) });
+      return wrap({
+        family: "chigof",
+        observed,
+        expected: w.map((v) => (v * total) / wTotal),
+        totalsDiffer: weights !== undefined && Math.abs(wTotal - total) > 1e-9 * Math.abs(total),
+      });
     }
     default:
       return UNDEFINED;

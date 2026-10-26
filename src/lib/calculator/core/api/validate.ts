@@ -10,6 +10,7 @@ import { LOOP_MODES, type SliderSettings } from "../../sliders/model";
 import { CURVE_SLOTS } from "../../theme/skins";
 import { MAX_ROW_CHARACTERS, MAX_ROWS } from "../latex";
 import { KarmanCalculatorError } from "./errors";
+import { INFERENCE_STATE_KEYS, type InferenceState } from "./inference-state";
 import { MAX_CELL_CHARACTERS, MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "./document";
 import {
   DEFAULT_SETTINGS,
@@ -257,6 +258,7 @@ const EXPRESSION_KEYS = [
   "columns",
   "regression",
   "displayEvaluationAsFraction",
+  "inference",
 ] as const;
 // API-2 and OI-23: other item types are rejected as unsupported; tables ship with D-1 (parity)
 const UNSUPPORTED_TYPES: readonly string[] = ["note", "folder", "image", "text"];
@@ -311,6 +313,21 @@ const sliderBounds: Check<NonNullable<ExpressionState["sliderBounds"]>> = (
 };
 
 /** SLIDERS-11: the saved `slider` object; every field optional, each checked by its type. */
+/** FN-59: an inference row's settings, each key optional: booleans, two LaTeX fields and tails. */
+const inference: Check<InferenceState> = (value, method, field) => {
+  const fields = strictObject(value, method, field, INFERENCE_STATE_KEYS);
+  const out: Record<string, unknown> = {};
+  for (const key of INFERENCE_STATE_KEYS) {
+    const v = own(fields, key);
+    if (v === undefined) continue;
+    const name = `${field}.${key}`;
+    if (key === "level" || key === "hypothesis") out[key] = latex(v, method, name);
+    else if (key === "tails") out[key] = oneOf(["left", "both", "right"] as const)(v, method, name);
+    else out[key] = bool(v, method, name);
+  }
+  return out as InferenceState;
+};
+
 const slider: Check<NonNullable<ExpressionState["slider"]>> = (value, method, field) => {
   const fields = strictObject(value, method, field, SLIDER_SETTING_KEYS);
   const out: { -readonly [K in keyof SliderSettings]?: SliderSettings[K] } = {};
@@ -454,6 +471,7 @@ function expressionFields(
     out.pointStyle = check("pointStyle", oneOf(["filled", "open", "cross"] as const));
   }
   if (value("slider") !== undefined) out.slider = check("slider", slider);
+  if (value("inference") !== undefined) out.inference = check("inference", inference);
   if (value("sliderBounds") !== undefined) out.sliderBounds = check("sliderBounds", sliderBounds);
   if (value("columns") !== undefined) {
     if (out.type !== "table") invalid(method, `${prefix}columns needs type "table"`);
