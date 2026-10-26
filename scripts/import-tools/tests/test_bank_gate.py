@@ -50,6 +50,32 @@ class FounderSpellingRuleTest(unittest.TestCase):
                  choices=[QUOTES[0].replace("engines", "engine")] + QUOTES[1:])
         self.assertTrue(self.same(a, b))
 
+    def test_up_to_three_words_added_or_left_out_are_the_same_question(self):
+        # founder, 2026-10-26: near-identical versions are the same question
+        a = live(1, stem="A survey of students ______ found a trend. Which choice completes the text?")
+        b = live(2, stem="A survey of students at Fairmont University ______ found a trend. Which choice completes the text?")
+        self.assertTrue(self.same(a, b))
+        c = live(3, choices=[QUOTES[0]] + [QUOTES[1]] + ["“The young trees had not outgrown their [planter] boxes then.”"]
+                 + [QUOTES[3]])
+        self.assertTrue(self.same(live(4), c))
+        m1 = math_row(5, stem="The function g is defined by g(x) = (x + 17)(t - x), where t is a constant. What is g(0)?",
+                      publish_status="publish_ready")
+        m2 = math_row(6, stem="g(x) = (x + 17)(t - x)\nThe function g is defined by the equation shown, where t is a "
+                              "constant. What is g(0)?", publish_status="publish_ready")
+        self.assertTrue(self.same(m1, m2))
+
+    def test_four_words_added_a_number_or_the_keyed_answer_changed_are_not(self):
+        a = live(1, stem="A survey of students ______ found a trend. Which choice completes the text?")
+        four = live(2, stem="A survey of students at the Fairmont University ______ found a trend. Which choice completes the text?")
+        self.assertFalse(self.same(a, four))
+        self.assertFalse(self.same(live(3), live(4, choices=QUOTES[:3] + ["“And when the wind is from the South, all soil falls.”"])))
+        m1 = math_row(5, stem="If 3x + 5 = 20, what is the value of x?", publish_status="publish_ready")
+        self.assertFalse(self.same(m1, math_row(6, stem="If 3x + 5 = 20 + 2, what is the value of x?", publish_status="publish_ready")))
+        self.assertFalse(self.same(m1, math_row(7, stem="If 3x - 5 = 20, what is the value of x?", publish_status="publish_ready")))
+        # another word in place of a word, even with the words moved, is a different question
+        self.assertFalse(self.same(live(8, stem="Notes on Florida.\nWhich choice uses the notes?"),
+                                   live(9, stem="Which choice uses the notes?\nNotes on Illinois.")))
+
     def test_a_few_marks_in_a_long_passage_are_formatting(self):
         text = ("Text 1 is adapted from E.M. Forster's 1910 novel Howards End. King's Cross and St. Pancras are "
                 "adjacent railway terminals in London, from which trains travel north; the station suggested Infinity.")

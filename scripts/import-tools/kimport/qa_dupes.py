@@ -9,10 +9,11 @@ aside; the passage and stem sentences and lines (a blank counts as its own) and 
 compared as sorted lists (so a question written before or after its passage, or with its
 choices in another order, is the same question); the answer is the
 correct choice's text (not its letter) or the numeric key's value; any figure data counts as is.
-A near copy is the same question too (see `near`), by the founder's rule of 2026-10-26: up to
+A near copy is the same question too (see `near`), by the founder's rules of 2026-10-26: up to
 three words that differ only in spelling, suffix or a typo ("illustrate"/"illustrates",
-"Chloé"/"Chloe", "solpe"/"slope"), with the same numbers, and the same punctuation except a few
-marks in the passage, stem or a long choice.
+"Chloé"/"Chloe", "solpe"/"slope") or are added or left out ("[planter]", "at Fairmont
+University", "the equation shown"), with the same numbers and math signs, the keyed answer
+unchanged, and the same punctuation except a few marks in the passage, stem or a long choice.
 Every group of two or more live rows (is_live, not archived, publish_status publish_ready or
 publish_ready_with_verified_repair) fails, each row naming the others.
 """
@@ -214,9 +215,11 @@ def spelling_variant(x: str, y: str) -> bool:
     return min(len(x), len(y)) >= 4 and difflib.SequenceMatcher(None, x, y).ratio() >= 0.75
 
 
-def word_changes(a: list[str], b: list[str]) -> int | None:
-    """Words changed from a to b when every change is a spelling variant, a split/joined word or
-    a stray single letter; None when a change is anything else."""
+def word_changes(a: list[str], b: list[str], inserts: bool = True) -> int | None:
+    """Words changed from a to b when every change is a spelling variant, a split/joined word, a
+    stray single letter or (inserts) words added or left out ("[planter] boxes", "at Fairmont
+    University"; founder, 2026-10-26: near-identical versions are the same question); None when
+    a change is anything else (another word in place of a word, a number)."""
     n = 0
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
         if op == "equal":
@@ -228,9 +231,35 @@ def word_changes(a: list[str], b: list[str]) -> int | None:
             n += 1  # a stray letter: "[small]l rice", "| lose" read as "i lose"
         elif op == "replace" and len(xa) == len(xb) and all(spelling_variant(p, q) for p, q in zip(xa, xb)):
             n += len(xa)
+        elif inserts and op in ("insert", "delete") and not any(re.search(r"\d", w) for w in xa + xb):
+            n += len(xa) + len(xb)
         else:
             return None
     return n
+
+
+def bag_changes(a: list[str], b: list[str]) -> int | None:
+    """word_changes for text whose parts moved ("g(x) = (x + 17)(t - x)" set on its own line above
+    "defined by the equation shown"): the words compared as a bag; a word that is a spelling
+    variant of a word on the other side costs one, a word added or left out one; another word in
+    place of a word, or a number added or left out, is None. The caller keeps the numbers and math
+    signs in order."""
+    from collections import Counter
+    ca, cb = Counter(a), Counter(b)
+    da, db = list((ca - cb).elements()), list((cb - ca).elements())
+    if any(re.search(r"\d", w) for w in da + db):
+        return None
+    n, rest, left = 0, list(db), []
+    for x in da:
+        hit = next((y for y in rest if spelling_variant(x, y)), None)
+        if hit is None:
+            left.append(x)
+        else:
+            rest.remove(hit)
+            n += 1
+    if left and rest:  # a word in place of another word: "Illinois" for "Florida"
+        return None
+    return n + len(left) + len(rest)
 
 
 class Info:
@@ -252,6 +281,9 @@ class Info:
                                         if str(c.get("letter")) == str(r.get("correct_answer") or "").strip().upper()),
                                        r.get("correct_answer")))
         self.digits = _digits(self.text_words[0] + [w for ws, _ in self.choice_words for w in ws])
+        # the math signs of the text and choices, in order: a math question's copy keeps them all
+        marks = "".join([self.text_words[1]] + [m for _, m in self.choice_words])
+        self.math_marks = re.sub(r"[^=+\-<>≤≥^/*√π×÷]", "", marks) if r.get("subject") == "math" else ""
         ws = self.text_words[0]
         self.shingles = {" ".join(ws[k:k + 4]) for k in range(max(1, len(ws) - 3))}
 
@@ -271,16 +303,22 @@ def _choice_punct(wa, pa, pb) -> bool:
 
 
 def _spelling_copy(a: Info, b: Info) -> bool:
-    """The founder's rule: at most SPELLING_WORDS spelling/suffix words changed over text, choices
-    and answer, the same numbers, the same or nearly the same punctuation, choices in any order."""
-    if a.digits != b.digits or not _choice_punct(a.answer_words[0], a.answer_words[1], b.answer_words[1]):
+    """The founder's rule: at most SPELLING_WORDS words changed over text and choices (a spelling or
+    suffix variant, or a word added or left out), the same numbers and math signs, the keyed
+    answer's words unchanged but for spelling, the same or nearly the same punctuation, choices in
+    any order."""
+    if (a.digits != b.digits or a.math_marks != b.math_marks
+            or not _choice_punct(a.answer_words[0], a.answer_words[1], b.answer_words[1])):
+        return False
+    if a.frame["format"] == "numeric_entry" and a.answer != b.answer:
         return False
     texts = [(word_changes(a.text_words[0], b.text_words[0]), _text_marks(a.text_words[1], b.text_words[1])),
              (word_changes(a.text_words_sorted[0], b.text_words_sorted[0]),
               _text_marks(a.text_words_sorted[1], b.text_words_sorted[1]))]
+    texts.append((bag_changes(a.text_words[0], b.text_words[0]), _text_marks(a.text_words_sorted[1], b.text_words_sorted[1])))
     found = [n for n, ok in texts if n is not None and ok]
     budget = min(found) if found else None
-    k = word_changes(a.answer_words[0], b.answer_words[0])
+    k = word_changes(a.answer_words[0], b.answer_words[0], inserts=False)  # the keyed answer: no words added
     if budget is None or k is None or budget > SPELLING_WORDS or len(a.choice_words) != len(b.choice_words):
         return False
     rest = list(b.choice_words)
@@ -298,9 +336,9 @@ def _spelling_copy(a: Info, b: Info) -> bool:
 
 
 def near(a: Info, b: Info) -> bool:
-    """a and b are the same question: a fingerprint shared, or a copy by the founder's rule (a
-    typo or spelling/suffix variant in up to three words, a few marks of punctuation in the text
-    or a long choice). A character-level rule is not used: "South"/"North" is two characters."""
+    """a and b are the same question: a fingerprint shared, or a copy by the founder's rules (up to
+    three words in spelling/suffix variants or added/left out, a few marks of punctuation in the
+    text or a long choice). A character-level rule is not used: "South"/"North" is two characters."""
     if a.frame != b.frame:
         return False
     if set(a.fps) & set(b.fps):
