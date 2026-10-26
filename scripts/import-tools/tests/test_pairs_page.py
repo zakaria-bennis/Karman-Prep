@@ -224,6 +224,17 @@ class ApplyTests(Base):
         self.assertEqual(doc["normalizer_version"], NORMALIZER_VERSION)
         self.assertEqual(doc["counts"]["roles"], dict(Counter(doc["roles"].values())))
 
+    def test_saved_answer_about_a_question_that_left_the_bank_does_not_block_new_answers(self):
+        """An older logged answer naming a question QA has since hidden is skipped, not fatal; new answers
+        still apply (2026-10-26: 0393714c hidden for a wrong key blocked every later apply)."""
+        pairs, clusters = self.basic()
+        (self.dir / "founder_decisions.json").write_text(json.dumps(
+            {"gone-id|x1": {"decision": "different", "at": "2026-10-23T01:27:35Z"}}), encoding="utf-8")
+        doc = self.run_apply(pairs, clusters, {"fp-1": "same"})
+        self.assertEqual(doc["roles"]["x2"], "member")
+        log = self.load(self.dir / "founder_decisions.json")
+        self.assertIn("gone-id|x1", log)  # the log itself is never rewritten
+
     def test_undecided_stays_blocked(self):
         pairs, clusters = self.basic()
         doc = self.run_apply(pairs, clusters, {})

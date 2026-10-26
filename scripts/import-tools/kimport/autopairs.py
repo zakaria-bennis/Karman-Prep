@@ -475,10 +475,10 @@ def released(clusters_json: Path, pairs_json: Path, decision_log: Path | None, p
     pairs = json.loads(Path(pairs_json).read_text(encoding="utf-8"))["pairs"]
     by_id = {p["pair_id"]: p for p in pairs}
     log = pairs_page.load_decisions(decision_log) if decision_log else {}
-    decided = {k: v["decision"] for k, v in log.items()}
+    base = pairs_page.live_saved_answers(doc, pairs, {k: v["decision"] for k, v in log.items()})
+    decided = dict(base)
     decided.update({pairs_page.pair_key(by_id[pid]["canonical"]["id"], by_id[pid]["member"]["id"]): v
                     for pid, v in proposed.items()})
-    base = {k: v["decision"] for k, v in log.items()}
     pairs_page.apply_to_doc(doc, [dict(p) for p in pairs], base)  # answers already given are not counted
     before = {i for i, r in doc["roles"].items() if r == "founder_review"}
     pairs_page.apply_to_doc(doc, [dict(p) for p in pairs], decided)

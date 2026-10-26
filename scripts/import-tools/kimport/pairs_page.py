@@ -10,6 +10,7 @@ files). apply_decisions folds the answers back into clusters.json:
 Held clusters (live_elsewhere, figure_review, answer_dispute) are never touched.
 """
 
+import copy
 import difflib
 import hashlib
 import html
@@ -507,6 +508,16 @@ def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str], stale: l
     return remaining
 
 
+def live_saved_answers(doc: dict, pairs: list[dict], saved: dict[str, str]) -> dict[str, str]:
+    """Saved answers that still apply to this clusters file. An earlier answer about a question that has
+    since left the bank (hidden by QA, retired) or whose group is now on hold is skipped, the same way a
+    corpus re-run skips it; only NEW answers are checked strictly."""
+    stale: list = []
+    apply_to_doc(copy.deepcopy(doc), [dict(p) for p in pairs], dict(saved), stale)
+    gone = {x["pair"] for x in stale}
+    return {k: v for k, v in saved.items() if k not in gone}
+
+
 def apply_decisions(pairs_json: Path, decisions_json: Path, clusters_json: Path,
                     decisions_file: Path | None = None, now: str | None = None) -> None:
     """Fold the founder's page answers {pair_id: 'same'|'different'} into clusters.json. The answers are first
@@ -537,7 +548,8 @@ def _apply_decisions_locked(pairs_json: Path, decisions_json: Path, clusters_jso
     log = load_decisions(log_path)
     new = {_key_of(pairs[pid]): v for pid, v in answers.items()}
     check_new(log, new, log_path.name)
-    decided = {**{k: v["decision"] for k, v in log.items()}, **new}
+    saved = live_saved_answers(doc, pairs_doc["pairs"], {k: v["decision"] for k, v in log.items()})
+    decided = {**saved, **new}
     apply_to_doc(doc, [dict(p) for p in pairs_doc["pairs"]], decided)  # raises before anything is written
     if new:
         append_decisions(log_path, log, new, now or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
