@@ -589,7 +589,8 @@ def apply_saved_decisions(result: ClusterResult, decisions_file: Path) -> None:
     doc = {"roles": result.roles, "clusters": result.clusters, "counts": result.counts}
     stale: list = []
     result.founder_pairs = pairs_page.apply_to_doc(doc, result.founder_pairs,
-                                                   {k: v["decision"] for k, v in log.items()}, stale)
+                                                   {k: v["decision"] for k, v in log.items()}, stale,
+                                                   prefer=pairs_page.load_preferred(Path(decisions_file).parent))
     result.stale_answers = stale
     result.counts["stale_answers"] = len(stale)
     result.clusters = doc["clusters"]

@@ -235,6 +235,12 @@ class ApplyTests(Base):
         log = self.load(self.dir / "founder_decisions.json")
         self.assertIn("gone-id|x1", log)  # the log itself is never rewritten
 
+    def test_same_keeps_the_reviewer_chosen_better_copy(self):
+        pairs, clusters = self.basic()
+        (self.dir / "keep-preferred.json").write_text(json.dumps(["x2"]), encoding="utf-8")
+        doc = self.run_apply(pairs, clusters, {"fp-1": "same"})
+        self.assertEqual((doc["roles"]["x2"], doc["roles"]["x1"]), ("canonical", "member"))
+
     def test_undecided_stays_blocked(self):
         pairs, clusters = self.basic()
         doc = self.run_apply(pairs, clusters, {})

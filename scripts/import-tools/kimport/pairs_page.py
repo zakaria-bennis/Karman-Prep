@@ -395,7 +395,8 @@ def _refresh(doc: dict, c: dict) -> None:
             doc["roles"][m["id"]] = "member"
 
 
-def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str], stale: list | None = None) -> list[dict]:
+def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str], stale: list | None = None,
+                 prefer: set[str] | None = None) -> list[dict]:
     """Apply decisions {pair_key: 'same'|'different'} to a clusters document (roles, clusters, counts) in place.
     Returns the pairs still undecided. Raises ValueError, changing nothing, if the answers contradict
     each other or touch a held cluster. With a `stale` list (corpus re-runs), an answer that no longer applies
@@ -453,8 +454,10 @@ def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str], stale: l
         cs = sorted((clusters[c] for c in cids), key=lambda c: (-len(c["members"]), c["cluster_id"]))
         big = cs[0]
         canons = [next(m for m in c["members"] if m["id"] == c["canonical"]) for c in cs]
-        winner = corpus.elect([_stand_in(m) for m in canons]).ref
+        # A reviewer-chosen better-formatted version (corpus/keep-preferred.json) wins a "same" merge.
         members = [m for c in cs for m in c["members"]]
+        chosen = [m for m in members if prefer and m["id"] in prefer]
+        winner = corpus.elect([_stand_in(m) for m in (chosen or canons)]).ref
         for m in members:
             if m["id"] == winner:
                 m["match"] = "canonical"
@@ -508,6 +511,16 @@ def apply_to_doc(doc: dict, pairs: list[dict], decided: dict[str, str], stale: l
     return remaining
 
 
+KEEP_PREFERRED = "keep-preferred.json"
+
+
+def load_preferred(folder: Path) -> set[str]:
+    """Ids a reviewer judged the better-formatted copy of a "same" pair (founder rule 2026-10-26:
+    formatting never makes two questions different; keep the better formatting)."""
+    path = Path(folder) / KEEP_PREFERRED
+    return set(json.loads(path.read_text(encoding="utf-8"))) if path.exists() else set()
+
+
 def live_saved_answers(doc: dict, pairs: list[dict], saved: dict[str, str]) -> dict[str, str]:
     """Saved answers that still apply to this clusters file. An earlier answer about a question that has
     since left the bank (hidden by QA, retired) or whose group is now on hold is skipped, the same way a
@@ -550,7 +563,8 @@ def _apply_decisions_locked(pairs_json: Path, decisions_json: Path, clusters_jso
     check_new(log, new, log_path.name)
     saved = live_saved_answers(doc, pairs_doc["pairs"], {k: v["decision"] for k, v in log.items()})
     decided = {**saved, **new}
-    apply_to_doc(doc, [dict(p) for p in pairs_doc["pairs"]], decided)  # raises before anything is written
+    apply_to_doc(doc, [dict(p) for p in pairs_doc["pairs"]], decided,
+                 prefer=load_preferred(clusters_json.parent))  # raises before anything is written
     if new:
         append_decisions(log_path, log, new, now or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
     atomic_write_json(clusters_json, doc)
