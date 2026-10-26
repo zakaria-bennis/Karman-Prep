@@ -1,12 +1,15 @@
 // One regression fit (D-24 to D-34 as amended by appendix F): Desmos's error for undefined data,
-// the direct SVD path for models affine in their parameters (tested numerically), Levenberg–
+// the direct SVD path for models affine in their parameters (tested numerically; in exact fractions
+// when every value the model reads is exact, exact-linear.ts), Levenberg–
 // Marquardt from the standard starts and the log-mode solution otherwise, log mode unchecked by
 // default and offered only when its values are positive, R² always (RMSE in its place when it is
 // undefined), and r for a linear model with a free intercept or a log-mode fit. Pure TypeScript.
 
 import { fitNonlinear } from "./levenberg";
-import { fitMultiStart } from "./multi-start-fit";
-import { solveColumnOrder } from "./linear-fit";
+import { fitMultiStart, type IndexedGradient } from "./multi-start-fit";
+import { columnOrderPivots, solveColumnOrder } from "./linear-fit";
+import { MAX_EXACT_ROWS, solveExact } from "./exact-linear";
+import { literalFraction, subFractions, type Fraction } from "../core/lib/rational";
 import { regressionStatistics, type RegressionStatistics } from "./statistics";
 
 export const FIT_ERROR = "This model isn't defined for this data.";
@@ -32,6 +35,9 @@ export interface FitInput {
   plainLeft?: boolean; // REG-STATISTICS-8: L is a bare name (default true)
   uniquePredictor?: boolean; // REG-STATISTICS-7: M reads exactly one list (default true)
   multiStart?: boolean; // a fit of both sides whole: REGRESSION-10's multi-start search too
+  gradient?: IndexedGradient; // the model's derivatives for the multi-start search, when known
+  // every observation's prediction as an exact fraction (null where it is not exact), when known
+  exactModel?: (p: readonly Fraction[]) => (Fraction | null)[];
 }
 export interface RegressionResult {
   ok: boolean;
@@ -44,12 +50,15 @@ export interface RegressionResult {
   logMode: { available: boolean; on: boolean };
   approximate: boolean;
   isLinear: boolean; // RT-17: affine in its parameters, so solved exactly (RT-31's "?" when false)
+  exact?: (Fraction | null)[]; // each parameter's exact fraction, from an exact solve (exact-linear.ts)
 }
 
 const STARTS = [1, 0.1, -1, 0, 10]; // D-25
 const AFFINE_TOLERANCE = 1e-9;
+const AFFINE_SEEDS = [0.37, -1.91, 5.83, -7.37, 19.3, -43.1];
 const EXACT_SSE = 1e-20; // sums of squares this close, relative to 1 + Σy², are equal
 const TIE = 1e-9; // and so are sums of squares within this fraction of each other
+const SNAP = 1e-6; // a whole-value fit's parameters smaller than this try 0 (zeroed)
 
 const failure = (available: boolean, on: boolean): RegressionResult => ({
   ok: false,
@@ -133,7 +142,11 @@ function logParams(form: LogFormMatch, k: number, fit: { slope: number; intercep
   return p;
 }
 
-/** The model's columns when it is affine in its parameters (three checks: a far one finds a kink such as |a−3|), else null. */
+/**
+ * The model's columns when it is affine in its parameters, else null. It is tried at AFFINE_SEEDS:
+ * far ones find a kink such as |a−3|, or `\left|2n+7\right|+4\sim1`'s at −3.5 (live −3.5, not
+ * the line's −5, 2026-10-25).
+ */
 function affineColumns(model: FitInput["model"], n: number, k: number) {
   const zero = new Float64Array(k);
   const f0 = Float64Array.from({ length: n }, (_, i) => model(zero, i));
@@ -143,7 +156,7 @@ function affineColumns(model: FitInput["model"], n: number, k: number) {
     return Float64Array.from({ length: n }, (_, i) => model(e, i) - f0[i]);
   });
   if (![...f0, ...cols.flatMap((c) => [...c])].every(Number.isFinite)) return null;
-  for (const seed of [0.37, -1.91, 5.83]) {
+  for (const seed of AFFINE_SEEDS) {
     const p = Float64Array.from({ length: k }, (_, j) => seed * (j + 1.3));
     for (let i = 0; i < n; i++) {
       let lin = f0[i];
@@ -155,6 +168,56 @@ function affineColumns(model: FitInput["model"], n: number, k: number) {
     }
   }
   return { f0, cols };
+}
+
+/**
+ * A whole-value fit's parameters below SNAP in size set to 0, in order, wherever that fits no
+ * worse (live Desmos, 2026-10-25): `-n^2\sim264` stalls at −1.6×10^-7 and shows 0, and so do
+ * stalls at 9.7×10^-7 (`-\left(0.2n\right)^2\sim5767`), while 1.018×10^-6 stays
+ * (`-\left(0.1n\right)^2\sim150`) and `n^3\sim10^{-21}` keeps its exact 1×10^-7.
+ */
+function zeroed(model: FitInput["model"], y: Float64Array, start: Float64Array): Float64Array {
+  const sse = (q: Float64Array) => {
+    let s = 0;
+    for (let i = 0; i < y.length; i++) s += (y[i] - model(q, i)) ** 2;
+    return s;
+  };
+  let p = start,
+    error = sse(p);
+  for (let j = 0; j < p.length; j++) {
+    if (p[j] === 0 || !(Math.abs(p[j]) < SNAP)) continue;
+    const q = Float64Array.from(p);
+    q[j] = 0;
+    const e = sse(q);
+    if (e <= error) [p, error] = [q, e];
+  }
+  return p;
+}
+
+/** The affine model solved in exact fractions when every value it reads is exact, else null. */
+function exactAffine(
+  exactModel: NonNullable<FitInput["exactModel"]>,
+  y: Float64Array,
+  k: number,
+  pivots: () => number[]
+) {
+  if (y.length > MAX_EXACT_ROWS) return null;
+  const observed = Array.from(y, literalFraction); // data read as typed
+  if (observed.some((v) => v === null)) return null;
+  const at = (j: number) =>
+    exactModel(Array.from({ length: k }, (_, q) => ({ n: q === j ? 1 : 0, d: 1 }))).slice(
+      0,
+      y.length
+    );
+  const f0 = at(-1);
+  if (f0.length !== y.length || f0.some((v) => v === null)) return null;
+  const cols: Fraction[][] = [];
+  for (let j = 0; j < k; j++) {
+    const col = at(j).map((v, i) => (v === null ? null : subFractions(v, f0[i]!)));
+    if (col.length !== y.length || col.some((v) => v === null)) return null;
+    cols.push(col as Fraction[]);
+  }
+  return solveExact(f0 as Fraction[], cols, observed as Fraction[], pivots());
 }
 
 export function fitRegression(input: FitInput): RegressionResult {
@@ -171,7 +234,8 @@ export function fitRegression(input: FitInput): RegressionResult {
     return failure(available, on);
   }
   let p: Float64Array = new Float64Array(k),
-    approximate = false;
+    approximate = false,
+    exact: (Fraction | null)[] | undefined;
   const affine = k > 0 ? affineColumns(model, n, k) : null;
   const isLinear = k === 0 || affine !== null;
   const logFit = trans === null ? null : simple(trans.u, trans.v);
@@ -188,6 +252,9 @@ export function fitRegression(input: FitInput): RegressionResult {
         k,
         Float64Array.from(y, (v, i) => v - affine.f0[i])
       );
+      const solved =
+        input.exactModel && exactAffine(input.exactModel, y, k, () => columnOrderPivots(a, n, k));
+      if (solved) [p, exact] = [Float64Array.from(solved.values), solved.fractions];
     } else {
       const starts = STARTS.map((v) => new Float64Array(k).fill(v));
       if (logFit !== null) starts.push(logParams(logForm!, k, logFit));
@@ -199,24 +266,21 @@ export function fitRegression(input: FitInput): RegressionResult {
       const best = Number.isFinite(least)
         ? (fits.find((f) => f.sse <= least * (1 + TIE) + exact) ?? null)
         : null;
-      // A system or equation fitted whole (list-fit.ts), as live Desmos (2026-10-25): an exact
-      // fit from the start 1 stands, so two exact roots give the one reached from 1 (2.25 for
-      // `4a^2-a\sim18`, 1.3 for `a^2-1.2a\sim0.13`, 17/6 for `\left|a+2\right|+2\sim
-      // \left|5a-19\right|+2`); otherwise the multi-start search wins unless it fits worse, so
-      // `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 and `(a-1)^2\sim16`, which stalls at 1, gives 5.
-      const fromOne = fits[0];
+      // A system or equation fitted whole (list-fit.ts), as live Desmos (2026-10-25): the search
+      // from the start 1 stands unless the multi-start search fits better beyond rounding, so
+      // `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 and `(a-1)^2\sim16`, which stalls at 1, gives 5,
+      // while `-n^6\sim264` keeps 1's −0.00645282 and `2^n\sim0` its −143.26663.
       const wide =
-        input.multiStart === true && !(fromOne.sse <= exact) ? fitMultiStart(model, y, k) : null;
-      if (input.multiStart === true && fromOne.sse <= exact) {
-        p = fromOne.params;
-        approximate = !fromOne.converged;
-      } else if (
+        input.multiStart === true
+          ? fitMultiStart(model, y, k, input.gradient, { relative: TIE, slack: exact })
+          : null;
+      if (
         wide !== null &&
         Number.isFinite(wide.sse) &&
         wide.params.every(Number.isFinite) &&
         (best === null || wide.sse <= best.sse * (1 + TIE) + exact)
       ) {
-        p = wide.params;
+        p = zeroed(model, y, wide.params);
       } else {
         if (best === null) return failure(available, on);
         p = best.params;
@@ -266,5 +330,6 @@ export function fitRegression(input: FitInput): RegressionResult {
     logMode: { available, on },
     approximate,
     isLinear,
+    ...(exact === undefined ? {} : { exact }),
   };
 }

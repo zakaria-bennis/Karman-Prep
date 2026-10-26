@@ -55,7 +55,7 @@ it("RC-19 a defined r is an ordinary name inside a regression (b100B, b11B)", as
   expect(b.param(2, "r")).toBeCloseTo(12, 9);
 });
 
-it("REGRESSION-10 two exact roots: the standard starts' root wins, as on Desmos (b36B, b39B)", async () => {
+it("REGRESSION-10 two exact roots: the one reached from 1 wins, as on Desmos (b36B, b39B)", async () => {
   const a = await run(["\\left|a+2\\right|+2\\sim\\left|5a-19\\right|+2"]);
   expect(a.param(0, "a")).toBeCloseTo(17 / 6, 9);
   const b = await run(["\\left|a+4\\right|\\sim\\left|2a-11\\right|"]);

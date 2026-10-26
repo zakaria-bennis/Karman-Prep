@@ -15,18 +15,23 @@ export function solveColumnOrder(
   cols: number,
   y: ArrayLike<number>
 ): Float64Array {
-  const p = solveOnce(a, rows, cols, y);
+  const { p } = solveOnce(a, rows, cols, y);
   for (let step = 0; step < 2; step++) {
     const r = Float64Array.from({ length: rows }, (_, i) => {
       let s = y[i];
       for (let j = 0; j < cols; j++) s -= a[i * cols + j] * p[j];
       return s;
     });
-    const dp = solveOnce(a, rows, cols, r);
+    const { p: dp } = solveOnce(a, rows, cols, r);
     if (!dp.every(Number.isFinite)) break;
     for (let j = 0; j < cols; j++) p[j] += dp[j];
   }
   return p;
+}
+
+/** The columns the solve takes as pivots, in order; every other parameter is 0. */
+export function columnOrderPivots(a: ArrayLike<number>, rows: number, cols: number): number[] {
+  return solveOnce(a, rows, cols, new Float64Array(rows)).pivots;
 }
 
 function solveOnce(
@@ -34,7 +39,7 @@ function solveOnce(
   rows: number,
   cols: number,
   y: ArrayLike<number>
-): Float64Array {
+): { p: Float64Array; pivots: number[] } {
   // Columns scaled to unit norm, so the rank test is relative to each column.
   const scale = new Float64Array(cols);
   for (let j = 0; j < cols; j++) {
@@ -89,5 +94,5 @@ function solveOnce(
     p[j] = s / w[r * cols + j];
   }
   for (let j = 0; j < cols; j++) p[j] = scale[j] > 0 ? p[j] / scale[j] : 0;
-  return p;
+  return { p, pivots };
 }

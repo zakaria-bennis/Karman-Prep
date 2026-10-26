@@ -157,7 +157,7 @@ it("D-25 a nonlinear model fits from the standard starts in original units", () 
   expect(r.approximate).toBe(false);
 });
 
-it("REGRESSION-10 both exact: the standard starts' root, not the multi-start one (b36B)", () => {
+it("REGRESSION-10 both exact: the root the search from 1 reaches (b36B)", () => {
   const fit = fitRegression({
     observed: [0],
     predictor: [0],

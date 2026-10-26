@@ -7,6 +7,7 @@
 import type { Deadline } from "../deadline";
 import { compileExpression, type CompileScope } from "../eval/compile";
 import { numberValue, type Value } from "../eval/values";
+import { exactOf, exactValue, literalValue } from "../eval/exact-values";
 import { fitRegression, type RegressionResult } from "../../regression/fit";
 import { rowErrorMessage } from "../analysis/messages";
 import type { RegressionAnalysis } from "./regression-analysis";
@@ -104,7 +105,18 @@ export function evaluateRegression(
     r.predictors.forEach((name, j) => (vars[name] = numberValue(lists[j][i] ?? NaN)));
     return real(compiled(vars, deadline));
   };
+  // The predictions in exact fractions, data read as typed (exact-values.ts).
+  const exactModel = (p: readonly { n: number; d: number }[]) => {
+    const at: Record<string, Value> = {};
+    r.params.forEach((name, j) => (at[name] = exactValue(p[j])));
+    return observed.map((_, i) => {
+      deadline.check();
+      r.predictors.forEach((name, j) => (at[name] = literalValue(lists[j][i] ?? NaN)));
+      return exactOf(compiled(at, deadline));
+    });
+  };
   const result = fitRegression({
+    exactModel,
     observed,
     // A model with no predictor list (y₁ ~ m) still pairs every observation (D-34).
     predictor: lists[0] ?? observed.map(() => 0),
@@ -123,7 +135,10 @@ export function evaluateRegression(
 export function regressionValues(outcome: RegressionOutcome): [string, Value][] {
   if (!outcome.ok) return [];
   return [
-    ...outcome.params.map(({ name, value }): [string, Value] => [name, numberValue(value)]),
+    ...outcome.params.map(({ name, value }, j): [string, Value] => {
+      const f = outcome.exact?.[j] ?? null; // an exact solve's fraction (exact-linear.ts)
+      return [name, f === null ? numberValue(value) : exactValue(f)];
+    }),
     [outcome.residualName, { type: "list", value: outcome.residuals.map((e) => numberValue(e)) }],
   ];
 }

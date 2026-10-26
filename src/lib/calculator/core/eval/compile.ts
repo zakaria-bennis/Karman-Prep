@@ -47,7 +47,7 @@ import {
 import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { comprehensionValue } from "./comprehension";
-import { exactConstant } from "./exact";
+import { exactReduction, literalValue } from "./exact-values";
 import { hashText, randomValue, shuffleValue } from "./random";
 import { lineConstantSide } from "./line-value";
 import { piecewiseValue } from "./piecewise";
@@ -136,12 +136,10 @@ function constant(v: Value): Compiled {
 }
 
 function compileNode(node: Node, ctx: Context): Compiled {
-  const exact = exactConstant(node); // MATHS-CORE-1: `0.1+0.2-0.3` is 0 (exact.ts)
-  if (exact !== null) return constant(Object.freeze(numberValue(exact)));
   const { complex } = ctx.scope.settings;
   switch (node.kind) {
-    case "num":
-      return constant(Object.freeze(numberValue(node.value)));
+    case "num": // MATHS-CORE-1: an exact fraction, so `0.1+0.2-0.3` is 0 (exact-values.ts)
+      return constant(Object.freeze(literalValue(node.value)));
     case "const":
       return constant(Object.freeze(numberValue(constantValue(node.name))));
     case "id":
@@ -386,7 +384,8 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
       if (reader && values.length > 0 && holdsDistribution(values[0])) {
         return mapN(values, (scalars) => readDistribution(name, scalars));
       }
-      return listFunction(name) === undefined ? UNDEFINED : applyListFunction(name, values);
+      if (listFunction(name) === undefined) return UNDEFINED;
+      return exactReduction(name, values) ?? applyListFunction(name, values);
     };
   }
   // NM-32: every other built-in applies element by element.

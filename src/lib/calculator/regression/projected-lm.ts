@@ -130,10 +130,15 @@ export function projectedLm(
   return { params: p, mse: error };
 }
 
-/** The whole multi-start schedule, with `preferred` as the extra start. */
+/**
+ * The whole multi-start schedule, with `preferred` as the extra start. The preferred run stands
+ * unless the search fits better; with `tie`, only better by more than that relative fraction plus
+ * the absolute mean-square `slack`, so a stall that rounding cannot tell from the search's stands.
+ */
 export function multiStartLm(
   problem: ProjectedProblem,
-  preferred: readonly number[]
+  preferred: readonly number[],
+  tie: { relative: number; slack: number } = { relative: 0, slack: 0 }
 ): ProjectedFit {
   const best = (rows: number[][], iterations: number, keep: number) =>
     rows
@@ -147,7 +152,8 @@ export function multiStartLm(
   const one = best(five, 60, 1);
   const searched = projectedLm(problem, one[0], 250);
   const fromPreferred = projectedLm(problem, preferred, 100);
-  return Number.isFinite(fromPreferred.mse) && !(fromPreferred.mse > searched.mse)
+  return Number.isFinite(fromPreferred.mse) &&
+    !(fromPreferred.mse > searched.mse * (1 + tie.relative) + tie.slack)
     ? fromPreferred
     : searched;
 }

@@ -8,7 +8,12 @@
 
 import type { Deadline } from "../deadline";
 import { compileExpression, type CompileScope } from "../eval/compile";
+import { subV } from "../eval/ops";
+import { differentiate } from "../eval/derivative";
+import type { Node } from "../latex/ast";
 import { numberValue, type Value } from "../eval/values";
+import { exactOf, exactValue, literalValue } from "../eval/exact-values";
+import type { Fraction } from "../lib/rational";
 import { fitRegression, type RegressionResult } from "../../regression/fit";
 import { hasIndex, type RegressionAnalysis } from "./regression-analysis";
 
@@ -82,6 +87,34 @@ export function fitWholeValues(
     }
     return cached;
   };
+  const gradient = derivatives(r, scope, deadline, vars, n, at);
+  // Both sides in exact fractions (exact-values.ts), a list's untagged data read as typed.
+  const exactModel = (p: readonly Fraction[]): (Fraction | null)[] => {
+    deadline.check();
+    const exactVars: Record<string, Value> = {};
+    for (const [name, v] of Object.entries(vars)) {
+      exactVars[name] =
+        v.type === "list"
+          ? {
+              type: "list",
+              value: v.value.map((e) =>
+                e.type === "number" && exactOf(e) === null ? literalValue(e.value) : e
+              ),
+            }
+          : v;
+    }
+    r.params.forEach((name, j) => (exactVars[name] = exactValue(p[j])));
+    const [l, m] = [left(exactVars, deadline), right(exactVars, deadline)];
+    const item = (v: Value, i: number) =>
+      v.type === "list" ? (v.value[i] ?? null) : v.type === "number" ? v : null;
+    return Array.from({ length: n }, (_, i) => {
+      const [li, mi] = [item(l, i), item(m, i)];
+      const fm = mi === null ? null : exactOf(mi);
+      if (!r.leftParams) return fm;
+      const fl = li === null ? null : exactOf(li);
+      return fm === null || fl === null ? null : exactOf(subV(mi!, li!));
+    });
+  };
   const observed = r.leftParams
     ? new Array<number>(n).fill(0)
     : Array.from({ length: n }, (_, i) => at(start[0], i));
@@ -95,5 +128,47 @@ export function fitWholeValues(
     plainLeft: !r.leftParams && r.observed.kind === "id",
     uniquePredictor: false,
     multiStart: true,
+    gradient: gradient ?? undefined,
+    exactModel,
   });
+}
+
+type Elements = { values: number[]; length: number | null } | null;
+
+/**
+ * ∂(M − L)/∂p (∂M/∂p when L reads no parameter) at observation i, from the rows differentiated
+ * symbolically, as live Desmos's search steps by them (2026-10-25); null when a node has no rule.
+ */
+function derivatives(
+  r: RegressionAnalysis,
+  scope: CompileScope,
+  deadline: Deadline,
+  vars: Record<string, Value>,
+  n: number,
+  at: (s: Elements, i: number) => number
+): ((p: ArrayLike<number>, i: number) => number[]) | null {
+  const lookup = (name: string) => scope.functions.get(name);
+  const derive = (side: Node) =>
+    r.params.map((name) => differentiate(side, name, lookup, scope.settings.angleMode));
+  const dm = derive(r.model),
+    dl = r.leftParams ? derive(r.observed) : [];
+  if ([...dm, ...dl].some((d) => d === null)) return null;
+  const compiled = (trees: (Node | null)[]) => trees.map((t) => compileExpression(t!, scope));
+  const [cm, cl] = [compiled(dm), compiled(dl)];
+  let key = "",
+    cached: number[][] = [];
+  return (p, i) => {
+    const k = Array.prototype.join.call(p, ",");
+    if (k !== key) {
+      deadline.check();
+      r.params.forEach((name, j) => (vars[name] = numberValue(p[j])));
+      const m = cm.map((c) => elements(c(vars, deadline)));
+      const l = cl.map((c) => elements(c(vars, deadline)));
+      cached = Array.from({ length: n }, (_, row) =>
+        r.params.map((_, j) => at(m[j], row) - (r.leftParams ? at(l[j], row) : 0))
+      );
+      key = k;
+    }
+    return cached[i];
+  };
 }

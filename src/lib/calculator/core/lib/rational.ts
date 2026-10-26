@@ -39,6 +39,23 @@ export function fractionOf(x: number): Fraction | null {
   return null;
 }
 
+/**
+ * A typed number literal as Desmos reads it: the decimal it is written as (`0.333333333333333`
+ * is 333333333333333/10^15, live 2026-10-25), else when that does not fit the simplest fraction
+ * that rounds to it (fractionOf). The literal's digits are its double's shortest decimal.
+ */
+export function literalFraction(x: number): Fraction | null {
+  const m = /^(-?)(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(String(x));
+  if (m !== null) {
+    const digits = m[3] ?? "",
+      scale = digits.length - Number(m[4] ?? 0);
+    const n = BigInt(m[1] + m[2] + digits) * BigInt(10) ** BigInt(Math.max(0, -scale));
+    const f = reduced(n, BigInt(10) ** BigInt(Math.max(0, scale)));
+    if (f !== null) return f;
+  }
+  return fractionOf(x);
+}
+
 /** A non-integer double as the exact fraction num/den, den a power of 2. */
 function exactParts(x: number): [bigint, bigint] {
   let den = ONE;

@@ -5,7 +5,7 @@
 // evaluates them, captured 2026-10-19); any other point, list or undefined operand gives
 // UNDEFINED (decision 7), analysis reporting Desmos's error for it. Every scalar result passes
 // through numberValue or complexValue, so a non-finite result is UNDEFINED; a point keeps an
-// undefined coordinate as NaN.
+// undefined coordinate as NaN. Two exact numbers combine exactly first (exact-values.ts).
 // Pure TypeScript: no DOM (AR-44).
 
 import type { RelOp } from "../latex/ast";
@@ -13,6 +13,7 @@ import { factorial } from "../lib/gamma";
 import { cadd, cdiv, cmul, cpow, csqrt, csub } from "./complex";
 import { realPow, realRoot, type Rational } from "./real-pow";
 import { complexValue, numberValue, UNDEFINED, type Complex, type Value } from "./values";
+import { exactBinary, exactPower, exactRoot, exactUnary } from "./exact-values";
 
 /** NM-21: an imaginary part at most this times max(1, |Re|) is negligible for plotting. */
 const PLOT_IMAGINARY_TOLERANCE = 1e-12;
@@ -47,12 +48,16 @@ const finite = (v: number) => (Number.isFinite(v) ? v : NaN);
 
 /** a + b; two points add coordinate by coordinate: (1,2)+(3,4) is (4, 6). */
 export function addV(a: Value, b: Value): Value {
+  const exact = exactBinary("add", a, b);
+  if (exact !== null) return exact;
   if (a.type === "point" && b.type === "point") return pointwise(a.value, b.value, (x, y) => x + y);
   return binary(a, b, (x, y) => x + y, cadd);
 }
 
 /** a − b; two points subtract coordinate by coordinate: (1,2)−(3,4) is (−2, −2). */
 export function subV(a: Value, b: Value): Value {
+  const exact = exactBinary("sub", a, b);
+  if (exact !== null) return exact;
   if (a.type === "point" && b.type === "point") return pointwise(a.value, b.value, (x, y) => x - y);
   return binary(a, b, (x, y) => x - y, csub);
 }
@@ -68,6 +73,8 @@ function pointwise(p: Point, q: Point, op: (x: number, y: number) => number): Va
  * number: `(1,2)\cdot(3,4)` is 11 (analysis refuses the juxtaposed `(1,2)(3,4)`).
  */
 export function mulV(a: Value, b: Value): Value {
+  const exact = exactBinary("mul", a, b);
+  if (exact !== null) return exact;
   if (a.type === "point" && b.type === "number") return scaled(a.value, b.value);
   if (a.type === "number" && b.type === "point") return scaled(b.value, a.value);
   if (a.type === "point" && b.type === "point") {
@@ -85,6 +92,8 @@ function scaled([x, y]: Point, k: number): Value {
  * real number divides each coordinate: (1,2)/2 is (0.5, 1).
  */
 export function divV(a: Value, b: Value): Value {
+  const exact = exactBinary("div", a, b);
+  if (exact !== null) return exact;
   if (a.type === "point" && b.type === "number") {
     return point(a.value[0] / b.value, a.value[1] / b.value);
   }
@@ -92,6 +101,8 @@ export function divV(a: Value, b: Value): Value {
 }
 
 export function negV(a: Value): Value {
+  const exact = exactUnary("neg", a);
+  if (exact !== null) return exact;
   if (a.type === "point") return point(-a.value[0], -a.value[1]);
   if (a.type === "number") return numberValue(-a.value);
   return a.type === "complex" ? complexValue(-a.value.re, -a.value.im) : UNDEFINED;
@@ -99,12 +110,16 @@ export function negV(a: Value): Value {
 
 /** a% is a / 100. */
 export function pctV(a: Value): Value {
+  const exact = exactUnary("pct", a);
+  if (exact !== null) return exact;
   if (a.type === "number") return numberValue(a.value / 100);
   return a.type === "complex" ? complexValue(a.value.re / 100, a.value.im / 100) : UNDEFINED;
 }
 
 /** |a|, the modulus for a complex value and the length for a point: |(3,4)| is 5. */
 export function absV(a: Value): Value {
+  const exact = exactUnary("abs", a);
+  if (exact !== null) return exact;
   if (a.type === "number") return numberValue(Math.abs(a.value));
   if (a.type === "point") return numberValue(Math.hypot(a.value[0], a.value[1]));
   return a.type === "complex" ? numberValue(Math.hypot(a.value.re, a.value.im)) : UNDEFINED;
@@ -121,6 +136,8 @@ export function factV(a: Value): Value {
  * (NM-19). A non-real operand always uses cpow. Overflow and 0 to a negative power are ±∞.
  */
 export function powV(a: Value, b: Value, rational: Rational | null, complex: boolean): Value {
+  const exact = exactPower(a, b);
+  if (exact !== null) return exact;
   if (a.type === "number" && b.type === "number") {
     // complex mode takes the principal power of a negative base (Desmos, 2026-10-20):
     // `(-8)^{\frac{1}{3}}` is 1+1.732i there, −2 in real mode
@@ -148,7 +165,8 @@ export function rootV(x: Value, n: Value | null, complex: boolean): Value {
     // NM-18: in complex mode a negative radicand takes the principal root, as Desmos does
     // (`\sqrt[3]{-8}` is 1 + 1.732i there, −2 in real mode).
     if (complex && x.value < 0) return complexRoot({ re: x.value, im: 0 }, n);
-    return numberValue(realRoot(x.value, n === null ? 2 : n.value));
+    const root = numberValue(realRoot(x.value, n === null ? 2 : n.value));
+    return exactRoot(x, n, root) ?? root;
   }
   const z = scalar(x);
   return z ? complexRoot(z, n) : UNDEFINED;

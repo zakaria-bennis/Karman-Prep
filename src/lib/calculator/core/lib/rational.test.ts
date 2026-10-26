@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addFractions, divFractions, fractionOf, subFractions } from "./rational";
+import { addFractions, divFractions, fractionOf, literalFraction, subFractions } from "./rational";
 
 describe("exact fractions for ranges (NM-36)", () => {
   it("reads a double back as the simplest fraction that rounds to it", () => {
@@ -30,4 +30,12 @@ describe("exact fractions for ranges (NM-36)", () => {
     const big = { n: Number.MAX_SAFE_INTEGER, d: 1 };
     expect(addFractions(big, big)).toBeNull();
   });
+});
+
+it("MATHS-CORE-1 a literal is the decimal it is written as", () => {
+  expect(literalFraction(0.333333333333333)).toEqual({ n: 333333333333333, d: 1e15 });
+  expect(literalFraction(1e-7)).toEqual({ n: 1, d: 1e7 });
+  expect(literalFraction(-0.05)).toEqual({ n: -1, d: 20 });
+  expect(literalFraction(1 / 3)).toEqual({ n: 1, d: 3 }); // too many digits: the simplest fraction
+  expect(literalFraction(2.5e-30)).toBeNull();
 });

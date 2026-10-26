@@ -2,15 +2,22 @@
 // and equations such as `[ab,a+b]\sim[6,5]`, where the five equal-valued starts of levenberg.ts sit
 // on the symmetric line a = b and stall (live Desmos gives a = 3, b = 2, 2026-10-22). Parameters are
 // taken as linear greedily, in order, while the model stays affine in all of them together, so
-// `ab` searches b with a solved exactly, as Desmos's variable projection does. Gradients are
-// central differences. Pure TypeScript.
+// `ab` searches b with a solved exactly, as Desmos's variable projection does. Gradients are the
+// model's own derivatives when the caller has them (list-fit.ts differentiates the rows: live
+// Desmos's `-n^4\sim264` is −6.31202×10^-5, which central differences miss in the third digit),
+// else central differences. Pure TypeScript.
 
 import { multiStartLm } from "./projected-lm";
 
 export type IndexedModel = (p: Float64Array, i: number) => number;
+/** ∂model/∂p at observation i, one entry per parameter. */
+export type IndexedGradient = (p: Float64Array, i: number) => number[];
 
 const TOLERANCE = 1e-9;
 const BASES = [0.37, -1.91]; // other parameters' values for the affinity checks
+// where the checked parameters are tried: far ones find a kink, so `\left|2n+7\right|+4\sim1` is
+// searched (live Desmos −3.5, 2026-10-25), not solved as the line 2n + 11 from n = 1 (−5)
+const SEEDS = [1.7, -2.3, -7.9, 13.1, -41.3];
 
 /** Whether `model` is affine in the parameters `set` jointly, at two settings of the others. */
 function affineIn(model: IndexedModel, n: number, k: number, set: number[]): boolean {
@@ -25,7 +32,7 @@ function affineIn(model: IndexedModel, n: number, k: number, set: number[]): boo
       return f.map((v, i) => v - f0[i]);
     });
     if (![...f0, ...cols.flat()].every(Number.isFinite)) return false;
-    for (const seed of [1.7, -2.3]) {
+    for (const seed of SEEDS) {
       const point = set.map((_, s) => seed * (s + 0.9));
       const got = at(new Map(set.map((j, s) => [j, point[s]])));
       for (let i = 0; i < n; i++) {
@@ -42,7 +49,9 @@ function affineIn(model: IndexedModel, n: number, k: number, set: number[]): boo
 export function fitMultiStart(
   model: IndexedModel,
   y: ArrayLike<number>,
-  k: number
+  k: number,
+  derivative?: IndexedGradient,
+  tie?: { relative: number; slack: number }
 ): { params: Float64Array; sse: number } {
   const n = y.length;
   const linearSet: number[] = [];
@@ -55,6 +64,7 @@ export function fitMultiStart(
       linear: Array.from({ length: k }, (_, j) => linearSet.includes(j)),
       model: value,
       gradient: (p, i) =>
+        derivative?.(Float64Array.from(p), i) ??
         p.map((v, j) => {
           const h = 6.06e-6 * Math.max(1, Math.abs(v));
           const up = [...p],
@@ -64,7 +74,8 @@ export function fitMultiStart(
           return (value(up, i) - value(down, i)) / (2 * h);
         }),
     },
-    new Array<number>(k).fill(1)
+    new Array<number>(k).fill(1),
+    tie && { relative: tie.relative, slack: tie.slack / n }
   );
   return { params: Float64Array.from(fit.params), sse: fit.mse * n };
 }
