@@ -47,7 +47,7 @@ class PlainTextMathTest(unittest.TestCase):
     def test_prose_slashes_typeset_math_and_reading_rows_pass(self):
         for stem in ("The car went 60 km/h and/or 50 mi/h on 10/26/2026. What is x?",
                      "If \\(x^2 = 9\\) and $y^{3} = 8$, what is x + y?", "What is $$\\sqrt{x+1}$$ when x = 3?",
-                     "What is 3/4 of 12?", "If x² = 9, what is x?", "If √11 = x, what is x²?"):
+                     "If x² = 9, what is x?", "If √11 = x, what is x²?"):
             self.assertNotIn("plain_text_math", checks(math_row(stem=stem)), stem)
         self.assertNotIn("plain_text_math", checks(mc(stem="The poet wrote x^2 on the wall. Which choice?")))
 

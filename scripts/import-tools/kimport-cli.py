@@ -211,10 +211,12 @@ def _register_lint(sub) -> None:
     ln.add_argument("--clusters", required=True, help="pipeline/corpus/clusters.json")
     ln.add_argument("--lane", required=True, help="pipeline/lane.json")
     ln.add_argument("--now", required=True, help="ISO-8601 time stamped on new lane entries")
+    ln.add_argument("--export", help="a live export (k export): also pull rows that are the same question as a live "
+                                     "row, or whose generated key disagrees with a printed-key twin (PF_QA)")
 
     def run(a):
         res = lint.run_lint(Path(a.reviewed), Path(a.frozen) if a.frozen else None,
-                            Path(a.clusters), Path(a.lane), a.now)
+                            Path(a.clusters), Path(a.lane), a.now, export=Path(a.export) if a.export else None)
         for p in res["pulled"]:
             print(f"pulled {p['id']} {p['code']}: {p['detail']}")
         for w in res["warnings"]:
@@ -610,8 +612,8 @@ def _register_qa(sub) -> None:
     ce.add_argument("--pipe", required=True, help="the pipeline folder (qa/, batches/)")
     ce.add_argument("--now", required=True, help="ISO-8601 time (names the certificate)")
     ce.add_argument("--export", help="use this saved visible export (qa_export visible=True) instead of a fresh one")
-    ce.add_argument("--reuse", help="an earlier qa/certify-<time> folder: reuse its export, static report and render; "
-                                    "certify the answers again")
+    ce.add_argument("--reuse", help="an earlier qa/certify-<time> folder: reuse its export and render; run the static "
+                                    "checks again with the current code and certify the answers again")
     ce.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_certify.run_certify(
         Path(a.pipe), a.now, Path(a.export) if a.export else None,
         log=lambda m: print(m, file=sys.stderr, flush=True), reuse=Path(a.reuse) if a.reuse else None))))

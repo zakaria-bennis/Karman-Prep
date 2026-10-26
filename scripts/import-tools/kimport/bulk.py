@@ -33,7 +33,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from kimport import figure_gate, qa_gate
+from kimport import bank_gate, figure_gate, qa_gate
 from kimport.answer_evidence import evidence_root
 from kimport import stage as st
 from kimport.export import FINGERPRINT_SQL, fingerprint, read_export_doc
@@ -269,12 +269,13 @@ def build_bulk_stage(batch_dirs, export: Path, name: str, exams_dir: Path = EXAM
     report, _ = duplicate_check(items, doc.rows)
     index = st.export_index(doc.rows)
     inside = _run_conflicts(items)
+    live = bank_gate.staged_reasons(items, doc.rows)  # the same question as a live row, a printed twin's key
     refused: dict[int, list[str]] = {}
     for n, (it, rep) in enumerate(zip(items, report["rows"])):
         reasons = (([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
                    + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
                    + st._export_conflicts(it, index) + inside.get(n, []) + it.get("figure_gate", [])
-                   + it.get("qa_gate", []))
+                   + it.get("qa_gate", []) + live.get(it["id"], []))
         rep["batch"] = it["batch"]
         if reasons:
             refused[n] = reasons

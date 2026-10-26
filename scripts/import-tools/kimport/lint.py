@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 from . import figure_gate, lane, qa_gate
+from .export import read_export_doc
 from .evidence import needs_visual
 from .keys import UNKEYED_FIGURE_FIELDS, is_unkeyable
 from .normalize import NORMALIZER_VERSION
@@ -191,7 +192,7 @@ class LintError(ValueError):
 
 
 def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=frozenset(),
-               approved_figures=frozenset(), qa_hidden=frozenset(), qa_checker=None) -> dict:
+               approved_figures=frozenset(), qa_hidden=frozenset(), qa_checker=None, bank=None) -> dict:
     """Return {"passed": [ids], "pulled": [{id, code, detail}], "warnings": [{id, check, detail}]}.
     A row with several problems gets one pulled entry per code and is not in `passed`.
     qa_checker: stands in for ts/qa-check.ts (tests). no_figure: ids a
@@ -221,6 +222,11 @@ def lint_batch(reviewed: Path, frozen: Path | None, clusters: Path, no_figure=fr
         raise LintError(f"clusters were built with normalizer {cluster_data.get('normalizer_version')!r}, "
                         f"not {NORMALIZER_VERSION!r}: rebuild clusters")
     qa = qa_gate.check_rows([qa_gate.row_from_reviewed(r) for r in rows], qa_checker)
+    if bank is not None:  # kimport.bank_gate: the same question as a live row, a printed twin's other key
+        for r in rows:
+            found = bank.findings(qa_gate.row_from_reviewed(r))
+            if found:
+                qa.setdefault(r["stable_question_id"], {"fail": {}, "review": {}})["fail"].update(found)
     passed, pulled, warnings = [], [], []
     for row in rows:
         sid = row["stable_question_id"]
@@ -272,11 +278,17 @@ def qa_hidden_ids(qa_dir: Path) -> frozenset[str]:
         return frozenset()
 
 
-def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str, qa_checker=None) -> dict:
-    """lint_batch, with no-figure.json read from figures/ beside the lane file."""
+def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, now: str, qa_checker=None,
+             export: Path | None = None) -> dict:
+    """lint_batch, with no-figure.json read from figures/ beside the lane file. export: a live
+    export (k export); with it, the live-bank checks (kimport.bank_gate) pull a row as PF_QA too."""
     figures = Path(lane).parent / "figures"
+    bank = None
+    if export is not None:
+        from kimport import bank_gate
+        bank = bank_gate.Bank(read_export_doc(Path(export)).rows)
     result = lint_batch(reviewed, frozen, clusters, figure_gate.no_figure_ids(figures),
-                        figure_gate.approved_ids(figures), qa_hidden_ids(Path(lane).parent / "qa"), qa_checker)
+                        figure_gate.approved_ids(figures), qa_hidden_ids(Path(lane).parent / "qa"), qa_checker, bank)
     if result["pulled"]:
         write_lane(lane, result["pulled"], now)
     return {"passed": len(result["passed"]), "pulled_rows": len({p["id"] for p in result["pulled"]}),

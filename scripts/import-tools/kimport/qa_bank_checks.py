@@ -4,8 +4,12 @@ so `k qa certify`, `k lint` (PF_QA) and the stage prechecks all apply them; live
 the whole live bank and runs only where the bank is read (qa_static.run_static, so certify).
 
 - plain_text_math (fail): a math question shows hand-typed notation outside math delimiters:
-  a caret exponent ("(1.85)^x", "x^2"), a root written "√(...)", or a fraction written
-  "(a)/(b)". Prose slashes (and/or, km/h, 10/26) and typeset math do not count.
+  a caret exponent ("(1.85)^x", "x^2"), a root written "√(...)", a fraction written "(a)/(b)"
+  or with a slash ("g = 14 − x/23", "(5/16)x", "−11/8"), a hyphen for a minus sign ("y = -2x",
+  "(-9, 0)", "3-x"), a star for times ("68*68"), or a number left as text right before the
+  typeset math that continues it ("172,000" before "(0.035)^x"; the second audit of
+  2026-10-26). Prose slashes (and/or, km/h, g/mol, "5 m/s", dates such as 10/26/2026),
+  "a 3-hour trip" and typeset math do not count.
 - money_as_math (fail): two dollar amounts with prose between them that main's MathText pairs
   as $...$ math ("round (like $25.00), just-below (like $24.99)"), so the prose is set as
   run-together italic letters. The pairing is main's currency rule
@@ -16,7 +20,10 @@ the whole live bank and runs only where the bank is read (qa_static.run_static, 
   decimal or a decimal too long for the answer box, where the accepted answers (the reviewed numeric answer set, else the key, within
   numeric_tolerance, as main's evaluateQuizAnswer grades) refuse a decimal the SAT accepts:
   the value cut off or rounded to fill the answer box (5 characters, 6 with a minus sign).
-- live_duplicate (fail): live rows with the same question fingerprint (kimport.qa_dupes).
+- live_duplicate (fail): live rows that are the same question (kimport.qa_dupes), in certify;
+  and a new row or QA correction that is the same question as a live row (kimport.bank_gate).
+- key_conflicts_printed_twin (fail): a generated key that keys another choice text than a
+  printed-key twin (kimport.qa_keys), in certify and against the live bank (kimport.bank_gate).
 """
 
 import re
@@ -24,27 +31,56 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 from fractions import Fraction
 
 LEVELS = {"plain_text_math": "fail", "money_as_math": "fail", "copyright_line": "fail",
-          "live_duplicate": "fail", "numeric_rejects_sat_decimal": "review"}
+          "live_duplicate": "fail", "key_conflicts_printed_twin": "fail", "numeric_rejects_sat_decimal": "review"}
 
 # ---- plain-text math -------------------------------------------------------------------------
 
+_NUM_OPERAND = r"\(?[−-]?\d+(?:\.\d+)?[a-zπ]*\)?"
 _PLAIN_MATH = (
     ("caret exponent", re.compile(r"[\w)\]}.²³]\s*\^\s*[-−+(\w.{]")),
     ("root written √(...)", re.compile(r"√\s*\(")),
     ("fraction written (a)/(b)", re.compile(r"\)\s*/\s*\(")),
+    # x/23, 3/4, (5/16)x, −11/8, cx/(4y): a slash fraction outside typeset math. Not a date
+    # (10/26/2026, blanked first), a unit (km/h, g/mol, "5 m/s", kg·m/s) or and/or (alphabetic on
+    # both sides: only two single letters, x/y, count).
+    ("fraction written with a slash", re.compile(
+        rf"(?<![\w/.·])(?<!\d )(?:{_NUM_OPERAND}|\(?[a-zπ]{{1,2}}\)?|\))\s?/\s?(?:{_NUM_OPERAND}|\(?[a-zπ]\)?|\()(?![\w/])")),
+    # = -3, (-2, ≥ -6, 3-x, 10 - 2x: an ASCII hyphen for a minus sign ("a 3-hour trip" is prose)
+    ("hyphen used as a minus sign",
+     re.compile(r"[=(<>≤≥]\s?-\s?\d|(?<!\w)\d+(?:\.\d+)?\s?-\s?\d{0,3}[a-z](?![a-z])")),
+    ("star used as a multiplication sign", re.compile(r"[\w)]\s?\*\s?[\w(]")),
 )
+_DATE = re.compile(r"\b\d{1,2}/\d{1,2}/\d{2,4}\b")
+_ALPHA_SLASH = re.compile(r"\(?([a-zπ]+)\)?\s?/\s?\(?([a-zπ]+)\)?")
+# 172,000$(0.035)^x$: a number left as text right before typeset math that continues it
+_SPAN = re.compile(r"\$\$[\s\S]+?\$\$|(?<!\\)\$(?:\\\$|[^$\n])+?\$")
 
 
 def _excerpt(s: str, i: int, j: int, pad: int = 25) -> str:
     return re.sub(r"\s+", " ", s[max(0, i - pad):j + pad])[:100]
 
 
-def plain_text_math(name: str, text: str, f: dict, add) -> None:
-    """`text`: the field's prose runs only (qa-check.ts "prose": what MathText does not draw as math)."""
+def _plain_hit(pat, text: str):
+    for m in pat.finditer(text):
+        a = _ALPHA_SLASH.fullmatch(m.group(0))
+        if a and (len(a.group(1)) > 1 or len(a.group(2)) > 1):
+            continue  # km/h, and/or
+        return m
+    return None
+
+
+def plain_text_math(name: str, text: str, f: dict, add, shown: str = "") -> None:
+    """`text`: the field's prose runs only (qa-check.ts "prose": what MathText does not draw as
+    math); `shown`: the field as displayed (math as $...$), for a number glued to typeset math."""
+    text = _DATE.sub(lambda m: " " * len(m.group(0)), text)
     for what, pat in _PLAIN_MATH:
-        m = pat.search(text)
+        m = _plain_hit(pat, text)
         if m:
             add(f, "plain_text_math", f"{name}: {what}: {_excerpt(text, m.start(), m.end())}")
+    for m in _SPAN.finditer(shown or ""):
+        if m.start() and shown[m.start() - 1].isdigit() and m.group(0).lstrip("$").startswith("("):
+            add(f, "plain_text_math", f"{name}: number glued to typeset math: {_excerpt(shown, m.start(), m.end())}")
+            break
 
 
 # ---- money drawn as math (main's currency rule, ported) --------------------------------------
@@ -265,7 +301,7 @@ def check_row(row: dict, fields, f: dict, add) -> None:
     math = row.get("subject") == "math"
     for name, shown, prose, raw in fields:
         if math:
-            plain_text_math(name, prose, f, add)
+            plain_text_math(name, prose, f, add, shown)
         money_as_math(name, raw, f, add)
         copyright_line(name, shown, f, add)
     numeric_grading(row, f, add)

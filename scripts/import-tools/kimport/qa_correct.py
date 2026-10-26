@@ -58,7 +58,7 @@ import json
 import re
 from pathlib import Path
 
-from kimport import bulk, qa_hide
+from kimport import bank_gate, bulk, qa_hide
 from kimport import stage as st
 from kimport.answer_evidence import GENERATED, stable_question_id
 from kimport.export import fingerprint
@@ -411,6 +411,9 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
     report, _ = duplicate_check(ok, others) if ok else ({"rows": []}, None)
     index = st.export_index(others)
     candidates, blocked = twin_candidates(others, hidden_ids)
+    # the same question as a live row, or a printed-key twin keying another choice (kimport.bank_gate);
+    # the hidden twins are not live, so they never count here
+    live = bank_gate.staged_reasons(ok, doc.rows, lambda it: [it["snap"]["question"]["id"]])
     run = list(staged) + ok
     inside = bulk._run_conflicts(run)
     for n, (it, rep) in enumerate(zip(ok, report["rows"])):
@@ -421,7 +424,7 @@ def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_
         typo = [i for i in rep["typo_matches"] if i not in skip]
         why = (([f"same comparison key as {', '.join(exact)}"] if exact else [])
                + ([f"typo-level match with {', '.join(typo)}"] if typo else [])
-               + st._export_conflicts(it, index, skip) + inside.get(len(staged) + n, []))
+               + st._export_conflicts(it, index, skip) + inside.get(len(staged) + n, []) + live.get(it["id"], []))
         if why:
             q = it["row"]["question"]
             hits = set(rep["exact_matches"]) | set(rep["typo_matches"]) | set(

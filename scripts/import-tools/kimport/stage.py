@@ -39,7 +39,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from kimport import figure_gate, qa_gate
+from kimport import bank_gate, figure_gate, qa_gate
 from kimport.answer_evidence import ambiguous, evidence_root
 from kimport.export import _unwrap, read_export_doc
 from kimport.keys import PASSAGE_FIELDS, UNKEYED_FIGURE_FIELDS, comparison_key, is_unkeyable
@@ -377,12 +377,13 @@ def build_stage(batch_dir: Path, export: Path, pdf: Path, rows_doc: dict | None 
     qa_gate.mark_items(items)
     report, _ = duplicate_check(items, doc.rows)
     index = export_index(doc.rows)
+    live = bank_gate.staged_reasons(items, doc.rows)  # the same question as a live row, a printed twin's key
     reasons: dict[str, list[str]] = {}
     for it, rep in zip(items, report["rows"]):
         reasons[it["id"]] = (
             ([f"same comparison key as {', '.join(rep['exact_matches'])}"] if rep["exact_matches"] else [])
             + ([f"typo-level match with {', '.join(rep['typo_matches'])}"] if rep["typo_matches"] else [])
-            + _export_conflicts(it, index) + it["figure_gate"] + it["qa_gate"])
+            + _export_conflicts(it, index) + it["figure_gate"] + it["qa_gate"] + live.get(it["id"], []))
     refused = {k: v for k, v in reasons.items() if v}
     staged = [it for it in items if it["id"] not in refused]
     precheck = {"batch": batch, **report, "passed": not refused,

@@ -14,8 +14,8 @@ Writes the run's files to pipeline/qa/certify-<time>/ and the certificate to
 pipeline/qa/certificate-<date>.md and .json: counts, and every visible id that fails a
 fail-level static check or any render check, or whose answer is uncertified, with the reason;
 and pipeline/qa/uncertified-<date>.json, the uncertified rows for a blind re-solve (no keys).
---reuse <certify folder> certifies the answers again on an earlier run's export, static
-report and render.
+--reuse <certify folder> certifies again on an earlier run's export and render, with the
+static checks run again under the current code.
 """
 
 import json
@@ -247,8 +247,8 @@ def uncertified_list(cert: dict) -> dict:
 
 def run_certify(pipe: Path, now: str, export: Path | None = None, env_file: Path = REPO / ".env.local",
                 log=print, render=render_on_main, exporter=qa_export.run_qa_export, reuse: Path | None = None) -> dict:
-    """reuse: an earlier run's certify-<time> folder; its export, static report and render are used
-    as they are and only the answers are certified again."""
+    """reuse: an earlier run's certify-<time> folder; its export and render are used as they are,
+    the static checks run again (current code) and the answers are certified again."""
     pipe = Path(pipe)
     if reuse is not None:
         work, export = Path(reuse), Path(reuse) / "visible.json"
@@ -266,8 +266,10 @@ def run_certify(pipe: Path, now: str, export: Path | None = None, env_file: Path
     if len(rows) != len(doc["rows"]):
         raise ValueError(f"{export} holds rows students cannot see; use a visible export")
     if reuse is not None:
-        log(f"reusing the static report and render of {work}")
-        static = json.loads((work / "static-report.json").read_text())
+        # The export and the render are reused; the static checks run again with the current code
+        # (seconds, read-only), so a check added since counts.
+        log(f"reusing the export and render of {work}; static checks run again: {len(rows)} rows")
+        static = qa_static.run_static(Path(export), work)
         rend = read_render(work, _reused_commit(pipe, work))
     else:
         log(f"static checks: {len(rows)} rows")

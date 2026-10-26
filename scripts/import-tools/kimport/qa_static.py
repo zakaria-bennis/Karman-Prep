@@ -32,7 +32,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from kimport import qa_bank_checks, qa_dupes
+from kimport import qa_bank_checks, qa_dupes, qa_keys
 from kimport.jsonio import write_text_atomic
 
 REPO = Path(__file__).resolve().parents[3]
@@ -381,6 +381,9 @@ def run_static(export: Path, out: Path, check_urls: bool = True) -> dict:
     urls = reach_urls(rows, out / "image-url-cache.json") if check_urls else None
     per = audit_rows(rows, ts, urls)
     dupes = add_duplicates(rows, per)
+    for rid, lines in qa_keys.bank_findings(rows).items():  # a generated key against a printed twin's
+        if rid in per:
+            per[rid]["checks"]["key_conflicts_printed_twin"] = lines
     t = tally(per)
     report = {"export": str(export), "exported_at": doc.get("exported_at"), "fingerprint": doc.get("fingerprint"),
               "totals": {"live_audited": len(rows), "failing": len(t["failing_ids"]), "review_only": len(t["review_only_ids"]),

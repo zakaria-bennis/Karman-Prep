@@ -240,6 +240,22 @@ def require_key_column(export_rows: list[dict]) -> None:
                             "apply them, then run sql/live_export.sql again")
 
 
+def _live_duplicates(items: list[dict], export_rows: list[dict]) -> list[str]:
+    """A row about to be published that is the same question as a live row (kimport.bank_gate,
+    `k qa certify`'s rule: formatting, order, typo and spelling variants set aside). A QA
+    correction's hidden or sweep twins are not live, so they never count."""
+    from kimport import bank_gate
+    if not items:
+        return []
+    bank = bank_gate.Bank(export_rows)
+    out = []
+    for it in items:
+        same = bank.index.matches(it["snap"], {it["id"]})
+        if same:
+            out.append(f"{it['id']} duplicate: same question as live {', '.join(same)}")
+    return out
+
+
 def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
     """Export freshness and the duplicate check. A QA correction's allowed twins (it["twin_rows"])
     are not duplicates here, as in its correction precheck; anything else is."""
@@ -265,6 +281,7 @@ def _precheck(items: list[dict], export_rows: list[dict]) -> dict:
             if r["typo_matches"]:
                 problems.append(f"{r['id']} duplicate: typo-level match with {', '.join(r['typo_matches'])}")
         report["passed"] = not problems
+    problems += _live_duplicates(items, export_rows)
     if problems:
         raise RefuseToBuild("duplicate check failed: " + "; ".join(problems))
     return report
