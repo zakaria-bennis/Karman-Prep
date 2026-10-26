@@ -3,6 +3,7 @@
 // m×10^n with × U+00D7 and a plain exponent. T-10 thin-space grouping is the renderer's job, never
 // done here. Pure TypeScript: no DOM (AR-44).
 
+import type { InferenceFamily } from "../lib/inference";
 import type { Complex, Value } from "./values";
 
 const SIGNIFICANT_DIGITS = 12; // NM-1
@@ -87,10 +88,25 @@ function format(v: Value, style: Style): string {
         v.value.name,
         v.value.params.map((p) => formatReal(p, style))
       );
+    case "inference":
+      // FN-59: a test shows its own footer, never a value; this names it where text is needed
+      return style.call(INFERENCE_LABELS[v.value.data.family], []);
     case "undefined":
       return style.undefined;
   }
 }
+
+/** The function each kind of test is written with. */
+const INFERENCE_LABELS: Readonly<Record<InferenceFamily, string>> = {
+  z1: "ztest",
+  z2: "ztest",
+  t1: "ttest",
+  t2: "ttest",
+  zp1: "zproptest",
+  zp2: "zproptest",
+  chiind: "chisqtest",
+  chigof: "chisqgof",
+};
 
 /** NM-1 to NM-3, NM-6: 12 significant digits, plain or m×10^n, -0 as 0, non-finite `undefined`. */
 export function formatNumber(v: number): string {

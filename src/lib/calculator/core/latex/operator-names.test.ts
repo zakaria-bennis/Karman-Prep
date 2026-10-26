@@ -21,7 +21,7 @@ describe("operator-name allowlist", () => {
         false
       );
   });
-  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, normaldist, tdist and binomialdist with pdf, cdf and inversecdf, erf, exp, ln, log, hyperbolic trig, number theory, distance and midpoint, and the complex-number functions", () => {
+  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, normaldist, tdist and binomialdist with pdf, cdf and inversecdf, erf, the inference tests, exp, ln, log, hyperbolic trig, number theory, distance and midpoint, and the complex-number functions", () => {
     expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect([...names(), ...hidden].filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
@@ -34,6 +34,7 @@ describe("operator-name allowlist", () => {
         "mean median min max quartile quantile stdev stddev stdDev stdevp stddevp stdDevP " +
         "var variance varp cov covp mad corr spearman count total repeat join sort unique length " +
         "normaldist tdist binomialdist pdf cdf inversecdf inverseCdf erf " +
+        "ztest ttest zproptest chisqtest chisqgof " +
         "exp ln log sinh cosh tanh csch sech coth arcsinh arccosh arctanh arccsch arcsech arccoth " +
         "distance midpoint lcm gcd gcf mcd mcm mod ceil floor round sign nPr nCr abs real imag conj arg"
     );
@@ -71,6 +72,7 @@ describe("operator-name allowlist", () => {
       ["tcdf", 6, [5]],
       ["invT", 6, [2]],
       ["invBinom", 6, [3]],
+      ["ittest", 7, [2]],
     ]);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect(hidden.every((n) => O.isBuiltinName(n) && O.isShippedBuiltin(n))).toBe(true);

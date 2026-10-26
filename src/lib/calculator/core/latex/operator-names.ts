@@ -99,6 +99,12 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "inversecdf",
   "inverseCdf",
   "erf",
+  // FN-53 to FN-59 inference: the five test functions (and the hidden `ittest` below)
+  "ztest",
+  "ttest",
+  "zproptest",
+  "chisqtest",
+  "chisqgof",
   "exp",
   "ln",
   "log",
@@ -159,6 +165,7 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "tcdf",
   "invT",
   "invBinom",
+  "ittest",
 ]);
 
 /**
@@ -258,11 +265,11 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("random", 6, 3, [0, 1, 2, 3]),
   op("erf", 6, 3, [1]), // a Desmos name not in PR-12's list, typed only (not on the panel)
   // 7 Inference
-  op("ztest", 7, 3, [2, 4]),
-  op("ttest", 7, 3, [1, 2]),
+  op("ztest", 7, 3, [2, 3, 4, 6]), // data (L, σ), stats (n, x̄, σ), and two samples of each
+  op("ttest", 7, 3, [1, 2, 3, 6]), // data (L), (L1, L2), stats (n, x̄, s) and two samples
   op("zproptest", 7, 3, [2, 4]),
   op("chisqtest", 7, 3, V),
-  op("chisqgof", 7, 3, [2]),
+  op("chisqgof", 7, 3, [1, 2]), // observed, and expected (equal counts when left out)
   // 8 Calculus
   op("exp", 8, 1, [1]),
   op("ln", 8, 1, [1]),
@@ -353,6 +360,8 @@ export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("tcdf", 6, 3, [5]),
   op("invT", 6, 3, [2]),
   op("invBinom", 6, 3, [3]),
+  // Desmos's name for the two-sample t test of two lists, which its inference wizard writes
+  op("ittest", 7, 3, [2]),
 ]);
 
 /**

@@ -14,6 +14,7 @@ import { givesList, listFunction, reduceNumbers } from "../lib/statistics";
 import { factorial } from "../lib/gamma";
 import type { Compiled, CompileScope } from "./compile";
 import { holdsDistribution } from "./distributions";
+import { INFERENCE_FUNCTIONS } from "./inference";
 import { linkHolds, toPlotNumber } from "./ops";
 import { exactConstant, usesNoName } from "./exact";
 import { exponentRational, realPow, realRoot } from "./real-pow";
@@ -320,6 +321,7 @@ function call(node: Call, ctx: Context): Fn {
  */
 function readsOrMakesDistribution(node: Call, ctx: Context): boolean {
   if (node.member !== undefined || isDistributionName(node.name)) return true;
+  if (INFERENCE_FUNCTIONS.has(node.name)) return true; // FN-53 to FN-56: an inference value
   if (node.name === "pdf" || node.name === "cdf") return true;
   if (!readsDistribution(node.name) || node.args.length === 0) return false;
   const pending: Node[] = [node.args[0]],

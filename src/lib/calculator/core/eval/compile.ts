@@ -45,6 +45,7 @@ import {
   rangeValue,
 } from "./lists";
 import { holdsDistribution, makeDistribution, readDistribution } from "./distributions";
+import { INFERENCE_FUNCTIONS, INFERENCE_MEMBERS, makeInference, readInference } from "./inference";
 import { conditionAt, filterValue, lengthOf, pickValue } from "./index-list";
 import { comprehensionValue } from "./comprehension";
 import { exactReduction, literalValue } from "./exact-values";
@@ -344,6 +345,16 @@ function call(node: Call, ctx: Context): Compiled {
         key
       );
   }
+  if (node.member !== undefined && INFERENCE_MEMBERS.has(node.name)) {
+    // FN-57, FN-58: a test's member, element by element over lists of tests and of numbers
+    const args = node.args.map((arg) => compileNode(arg, ctx)),
+      name = node.name;
+    return (vars, deadline) =>
+      mapN(
+        args.map((arg) => arg(vars, deadline)),
+        (values) => readInference(name, values)
+      );
+  }
   if (isBuiltinName(node.name)) return builtinCall(node.name, node.args, ctx);
   const fn = userFunction(node.name, ctx);
   if (fn === null || fn.params.length !== node.args.length) return constant(UNDEFINED);
@@ -364,6 +375,14 @@ function builtinCall(name: string, argNodes: readonly Node[], ctx: Context): Com
       mapN(
         args.map((arg) => arg(vars, deadline)),
         (values) => applyPointFunction(name, values)
+      );
+  }
+  // FN-53 to FN-56: a test function takes its data lists whole (eval/inference.ts).
+  if (INFERENCE_FUNCTIONS.has(name)) {
+    return (vars, deadline) =>
+      makeInference(
+        name,
+        args.map((arg) => arg(vars, deadline))
       );
   }
   // FN-45: a constructor broadcasts into a list of distributions.
