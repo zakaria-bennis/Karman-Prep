@@ -45,7 +45,9 @@ async function at(page: Page, x: number, y: number): Promise<[number, number]> {
 /** Fills the calculator with everything a question can leave behind. */
 async function dirty(page: Page, isMobile: boolean) {
   await row(page).focus(); // MathQuill keeps the row's textarea at 0 x 0, so it cannot be clicked
-  await page.keyboard.type("y=x^2-2");
+  await page.keyboard.type("y=x^2");
+  await page.keyboard.press("ArrowRight"); // arithmetic stays in an exponent (founder, 2026-10-26)
+  await page.keyboard.type("-2");
   await expect.poll(async () => (await snapshot(page)).canUndo).toBe(true);
   await page.evaluate(() => {
     const e = globalThis.__calculatorHarness!.engine;

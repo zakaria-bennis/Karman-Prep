@@ -118,15 +118,19 @@ function testLines(view: InferenceView): OutputLine[] {
     : [score, p];
 }
 
+/** Only a row whose value is a test has a footer; any other row runs none of its hooks. */
 export function InferenceFooter(props: { row: RowView }): JSX.Element | null {
-  const { row } = props;
+  const value = props.row.value;
+  return value?.type === "inference" ? <Footer row={props.row} inf={value.value} /> : null;
+}
+
+function Footer(props: { row: RowView; inf: Inference }): JSX.Element {
+  const { row, inf } = props;
   const engine = useEngine();
   const skin = useSkin();
   const settings: InferenceSettings = row.inference ?? DEFAULT_INFERENCE;
   const hypothesis = useFieldNumber(engine, settings.hypothesis);
   const level = useFieldNumber(engine, settings.level);
-  if (row.value?.type !== "inference") return null;
-  const inf: Inference = row.value.value;
   const view = inferenceView(inf, settings.tails, hypothesis, level);
   const color = rowIconHex(row.color, skin);
   const rootStyle = { "--kc-inf-color": color } as CSSProperties;

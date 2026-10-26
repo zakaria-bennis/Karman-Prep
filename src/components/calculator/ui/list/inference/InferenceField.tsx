@@ -15,21 +15,20 @@ export function useFieldNumber(
   engine: Pick<CalculatorEngine, "HelperExpression">,
   latex: string
 ): number {
-  const [value, setValue] = useState(NaN);
+  // the value read for one LaTeX; a blank field sets no state at all
+  const [read, setRead] = useState<{ latex: string; value: number } | null>(null);
+  const blank = latex.trim() === "";
   useEffect(() => {
-    if (latex.trim() === "") {
-      setValue(NaN);
-      return;
-    }
+    if (blank) return;
     const helper = engine.HelperExpression({ latex });
-    const read = () => setValue(helper.numericValue);
-    helper.observe("numericValue", read);
+    const onValue = () => setRead({ latex, value: helper.numericValue });
+    helper.observe("numericValue", onValue);
     return () => {
-      helper.unobserve("numericValue", read);
+      helper.unobserve("numericValue", onValue);
       helper.destroy();
     };
-  }, [engine, latex]);
-  return value;
+  }, [engine, latex, blank]);
+  return !blank && read !== null && read.latex === latex ? read.value : NaN;
 }
 
 export function InferenceField(props: {
