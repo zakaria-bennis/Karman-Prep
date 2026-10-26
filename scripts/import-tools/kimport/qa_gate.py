@@ -53,7 +53,7 @@ def row_from_reviewed(row: dict) -> dict:
                             "choice_table_data": table})
     return {"id": row.get("stable_question_id"), "subject": _subject(row.get("domain")),
             "answer_format": fmt, "question_text": row.get("question_text"),
-            "correct_answer": row.get("correct_answer"),
+            "correct_answer": row.get("correct_answer"), "numeric_tolerance": row.get("numeric_tolerance"),
             **{f: row.get(f) for f in _PASSAGES + _FIGURE_COLUMNS},
             "answer_choices": choices, "answer_key_entries": [{"raw_model_response": row.get("reviewed_answer")}]}
 

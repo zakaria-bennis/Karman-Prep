@@ -32,6 +32,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from kimport import qa_bank_checks, qa_dupes
 from kimport.jsonio import write_text_atomic
 
 REPO = Path(__file__).resolve().parents[3]
@@ -60,6 +61,9 @@ LEVELS = {
     "image_unreachable": "fail",
     # delivery
     "delivery_breaks_skill": "fail", "checker_crashed": "fail",
+    # the independent audit of 2026-10-26: plain-text math, money drawn as math, credit lines,
+    # live duplicates, typed answers that refuse an SAT decimal (kimport.qa_bank_checks)
+    **qa_bank_checks.LEVELS,
 }
 
 _MOJIBAKE = re.compile(r"â€|Ã[\u0080-¿\s]|Ã(?=[a-zñóòéèíáú])|(?<=[a-z])Ã|Â[ -¿]|ï»¿|Å[\u0080-¿]")
@@ -191,6 +195,12 @@ def _fields(row: dict, display: dict | None = None):
         if c.get("choice_text"):
             name = f"choice {c.get('letter')}"
             yield name, display.get(name, c["choice_text"])
+
+
+def _raw_fields(row: dict):
+    """The stored text of each field _fields yields, in the same order."""
+    for _, v in _fields(row):
+        yield v
 
 
 def _is_math(row: dict) -> bool:
@@ -327,6 +337,9 @@ def audit_rows(rows: list[dict], ts: dict, urls: dict | None) -> dict:
         structure(row, f)
         formatting(row, f, display)
         completeness(row, f, bool(t.get("figure")) or bool(t.get("choice_tables")), display)
+        prose = t.get("prose") or {}
+        qa_bank_checks.check_row(row, [(name, shown, prose.get(name, qa_bank_checks.prose_runs(raw)), raw)
+                                       for (name, shown), raw in zip(_fields(row, display), _raw_fields(row))], f, _add)
         if urls is not None and isinstance(row.get("image_url"), str) and row["image_url"]:
             why = urls.get(row["image_url"])
             if why:
@@ -334,6 +347,15 @@ def audit_rows(rows: list[dict], ts: dict, urls: dict | None) -> dict:
         per[rid] = {"subject": row.get("subject"), "format": row.get("answer_format"),
                     "figure": t.get("figure"), "delivery": t.get("delivery"), "checks": f}
     return per
+
+
+def add_duplicates(rows: list[dict], per: dict) -> list[list[str]]:
+    """live_duplicate on every row of a live duplicate group (kimport.qa_dupes); the groups."""
+    found, by_id = qa_dupes.findings(rows)
+    for rid, details in by_id.items():
+        if rid in per:
+            per[rid]["checks"]["live_duplicate"] = details
+    return found
 
 
 def tally(per: dict) -> dict:
@@ -358,10 +380,12 @@ def run_static(export: Path, out: Path, check_urls: bool = True) -> dict:
     ts = run_ts(Path(export), out / "static-ts.json")
     urls = reach_urls(rows, out / "image-url-cache.json") if check_urls else None
     per = audit_rows(rows, ts, urls)
+    dupes = add_duplicates(rows, per)
     t = tally(per)
     report = {"export": str(export), "exported_at": doc.get("exported_at"), "fingerprint": doc.get("fingerprint"),
-              "totals": {"live_audited": len(rows), "failing": len(t["failing_ids"]), "review_only": len(t["review_only_ids"])},
-              **t, "questions": {rid: item for rid, item in per.items() if item["checks"]}}
+              "totals": {"live_audited": len(rows), "failing": len(t["failing_ids"]), "review_only": len(t["review_only_ids"]),
+                         "duplicate_groups": len(dupes)},
+              **t, "duplicate_groups": dupes, "questions": {rid: item for rid, item in per.items() if item["checks"]}}
     write_text_atomic(out / "static-report.json", json.dumps(report, indent=1, ensure_ascii=False))
     return report
 
@@ -396,6 +420,8 @@ def write_summary(out: Path) -> str:
         for c, e in sorted(r["checks"].items()):
             lines.append(f"| {c} | {e['count']} |")
         lines.append("")
+    if s and s.get("duplicate_groups"):
+        lines += ["## Live duplicate groups", ""] + [f"- {', '.join(f'`{i}`' for i in g)}" for g in s["duplicate_groups"]] + [""]
     if s:
         lines += ["## Ids per static check", ""]
         for c, e in s["checks"].items():

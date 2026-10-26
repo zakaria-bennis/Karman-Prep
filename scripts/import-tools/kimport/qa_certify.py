@@ -167,6 +167,7 @@ def build_certificate(rows: list[dict], static: dict, render: dict, rec: qa_answ
                        "uncertified": len(uncertified), "uncertified_by_reason": dict(sorted(per_reason.items())),
                        "answer_basis": dict(sorted(bases.items())), "review_only_static": review_only},
             "rendered": {k: render.get("totals", {}).get(k) for k in ("expected", "rendered", "render_failed")},
+            "duplicate_groups": static.get("duplicate_groups") or [],
             "failing": failing, "uncertified": uncertified, "blind_resolve_rejected": rec.resolves.rejected}
 
 
@@ -201,6 +202,9 @@ def certificate_md(cert: dict) -> str:
         x for x in (_detail(f["static"]), _detail(f["render"]),
                     f"answer: {f['answer']['reason']} ({f['answer']['detail']})" if f.get("answer") else "") if x)
         for f in cert["failing"]] or ["None."])
+    dupes = cert.get("duplicate_groups") or []
+    lines += ["", f"## Live duplicate groups ({len(dupes)} groups, {sum(map(len, dupes))} questions; each copy fails live_duplicate)", ""]
+    lines += [f"- {', '.join(f'`{i}`' for i in g)}" for g in dupes] or ["None."]
     rejected = cert.get("blind_resolve_rejected") or []
     lines += ["", "## Blind re-solve lines not counted", ""]
     if not rejected:

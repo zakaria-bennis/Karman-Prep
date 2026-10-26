@@ -15,7 +15,8 @@
 //             reviewed numeric answer set (skipped with --gate: the import publish gate checks
 //             rows before they are sealed); numeric keys parseNumericAnswer accepts
 // Usage: npx tsx scripts/import-tools/ts/qa-check.ts [--gate] <rows.json> <out.json>
-// Writes {"<id>": {"checks": {"<check>": ["detail", ...]}, "figure", "display": {field: text}}}.
+// Writes {"<id>": {"checks": {"<check>": ["detail", ...]}, "figure", "display": {field: text},
+// "prose": {field: the text runs only, math and blanks left out}}}.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import katex from "katex";
@@ -129,8 +130,8 @@ export function checkText(
   text: string,
   serialized: boolean,
   treatBlankWord = false
-): { display: string; blanks: number } {
-  if (!text) return { display: "", blanks: 0 };
+): { display: string; prose: string; blanks: number } {
+  if (!text) return { display: "", prose: "", blanks: 0 };
   const { segments, problems } = displaySegments(text, serialized, treatBlankWord);
   for (const p of problems) add(f, "markup_unmatched", `${field}: ${p}`);
   for (const s of segments) {
@@ -180,6 +181,11 @@ export function checkText(
   }
   return {
     display: displayText(segments),
+    // The text MathText draws as prose (no math, no blanks): what the plain-text math check reads.
+    prose: segments
+      .filter((x) => x.kind === "text")
+      .map((x) => x.value)
+      .join(" "),
     blanks: segments.filter((x) => x.kind === "blank").length,
   };
 }
@@ -304,10 +310,14 @@ export function checkRow(q: Obj, gate = false) {
   const f: Findings = {};
   const math = q.subject === "math";
   const display: Record<string, string> = {};
+  const prose: Record<string, string> = {};
   let blanks = 0;
   const field = (name: string, text: unknown, serialized: boolean) => {
     const r = checkText(f, name, String(text ?? ""), serialized, BLANK_WORD_FIELDS.has(name));
-    if (text) display[name] = r.display;
+    if (text) {
+      display[name] = r.display;
+      prose[name] = r.prose;
+    }
     if (name !== "passage_intro" && !name.startsWith("choice ")) blanks += r.blanks;
   };
   for (const name of ["passage_intro", "passage", "passage_a", "passage_b"])
@@ -326,7 +336,7 @@ export function checkRow(q: Obj, gate = false) {
   const choiceTables = ((q.answer_choices ?? []) as Obj[]).filter(
     (c) => c.choice_table_data != null
   ).length;
-  return { checks: f, figure, choice_tables: choiceTables, delivery, display };
+  return { checks: f, figure, choice_tables: choiceTables, delivery, display, prose };
 }
 
 if (/qa-check\.ts$/.test(process.argv[1] ?? "")) {
@@ -349,6 +359,7 @@ if (/qa-check\.ts$/.test(process.argv[1] ?? "")) {
         choice_tables: 0,
         delivery: "unknown",
         display: {},
+        prose: {},
       };
     }
   }
