@@ -3,7 +3,8 @@
 // statements, the guarantee and the close. Every word comes from site-copy.ts.
 import type { ReactNode } from "react";
 import { list, pairs, section, type CopySection } from "@/lib/marketing/site-copy";
-import { Action, delay, GuaranteeBlock, Icon } from "./parts";
+import GuaranteeDeal from "./GuaranteeDeal";
+import { Action, delay, Icon } from "./parts";
 
 function Head({ f, children }: { f: CopySection; children?: ReactNode }) {
   return (
@@ -170,7 +171,7 @@ export function Statements({ n, mark = "check" }: { n: number; mark?: "check" | 
   );
 }
 
-/** The guarantee block on black, with its own id so "How the guarantee works" can jump to it. */
+/** The guarantee, drawn, with its own id so "How the guarantee works" can jump to it. */
 export function GuaranteeSection({
   id = "guarantee",
   override,
@@ -180,9 +181,9 @@ export function GuaranteeSection({
 }) {
   const g = { ...section(8), ...override } as CopySection;
   return (
-    <section className="panel guarantee dark" id={id} aria-labelledby={`${id}-h`}>
+    <section className="panel guarantee" id={id} aria-labelledby={`${id}-h`}>
       <div className="in">
-        <GuaranteeBlock g={g} headId={`${id}-h`} />
+        <GuaranteeDeal g={g} headId={`${id}-h`} />
       </div>
     </section>
   );

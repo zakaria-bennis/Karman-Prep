@@ -2,14 +2,13 @@
 
 /* ---------- glints: a slow diagonal sweep of light, about 1 s of a 7 to 13 s cycle ---------- */
 .ks .glint { position: relative; }
-.ks .btn.glint, .ks .datecard.glint, .ks .badge b.glint { overflow: hidden; isolation: isolate; }
-.ks .btn.glint::after, .ks .datecard.glint::after {
+.ks .btn.glint, .ks .badge b.glint { overflow: hidden; isolation: isolate; }
+.ks .btn.glint::after {
   content: ""; position: absolute; inset: -20% auto -20% -40%; width: 30%; pointer-events: none; z-index: 2;
   background: linear-gradient(100deg, transparent, rgba(255,255,255,.55) 45%, rgba(255,255,255,.7) 50%, rgba(255,255,255,.55) 55%, transparent);
   transform: skewX(-18deg) translateX(0); opacity: 0;
   animation: ks-glint-sweep var(--gc, 9s) cubic-bezier(.45, 0, .2, 1) var(--gd, 0s) infinite paused;
 }
-.ks .datecard.glint::after { background: linear-gradient(100deg, transparent, rgba(235,162,31,.18) 50%, transparent); }
 .ks .glint-on::after { animation-play-state: running; }
 @keyframes ks-glint-sweep {
   0% { transform: skewX(-18deg) translateX(0); opacity: 0; }
@@ -18,13 +17,13 @@
   12%, 100% { transform: skewX(-18deg) translateX(560%); opacity: 0; }
 }
 /* the big marigold numbers: a band of light passes through the letters themselves */
-.ks .g-promise.glint, .ks .i-big.glint, .ks .plan.program .price b.glint, .ks .badge b.glint, .ks .i-facts dt.glint {
+.ks .gx-promise .big.glint, .ks .i-big.glint, .ks .plan.program .price b.glint, .ks .badge b.glint, .ks .i-facts dt.glint {
   background-image: linear-gradient(100deg, currentColor 0 40%, #fff3d6 48%, #fffaf0 50%, #fff3d6 52%, currentColor 60% 100%);
   background-size: 300% 100%; background-position: 100% 0; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   animation: ks-glint-text var(--gc, 9s) cubic-bezier(.45, 0, .2, 1) var(--gd, 0s) infinite paused;
 }
 .ks .i-facts dt.glint { background-image: linear-gradient(100deg, currentColor 0 42%, var(--marigold) 50%, currentColor 58% 100%); }
-.ks .glint-on.g-promise, .ks .glint-on.i-big, .ks .glint-on.i-facts dt, .ks .plan.program .price b.glint-on, .ks .badge b.glint-on { animation-play-state: running; }
+.ks .gx-promise .big.glint-on, .ks .glint-on.i-big, .ks .glint-on.i-facts dt, .ks .plan.program .price b.glint-on, .ks .badge b.glint-on { animation-play-state: running; }
 @keyframes ks-glint-text { 0% { background-position: 100% 0; } 13%, 100% { background-position: 0 0; } }
 /* the phone's orange edge: a short glint travels along the band */
 .ks .iphone.glint::after {
@@ -45,7 +44,7 @@
 .ks .near-light { --near: 0; position: relative; isolation: isolate; }
 .ks .near-light::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; opacity: calc(var(--near) * .9);
   background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.75), transparent 60%); }
-.ks[data-mode="dark"] .near-light::before, .ks .dark .near-light::before, .ks .outcomes.near-light::before { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.07), transparent 60%); }
+.ks[data-mode="dark"] .near-light::before, .ks .dark .near-light::before { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.07), transparent 60%); }
 .ks .plan.program.near-light::before { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(235,162,31,.12), transparent 60%); }
 /* lift: the primary button rises a hair as the cursor approaches, so the press feels expected */
 .ks .btn.near-lift { translate: 0 calc(var(--near, 0) * -2px); }

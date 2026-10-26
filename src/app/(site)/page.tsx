@@ -1,11 +1,12 @@
 import HomeFilm from "@/components/site/home/HomeFilm";
-import { SeesLists, Tutors, Ways } from "@/components/site/home/HomeSections";
+import { Tutors, Ways } from "@/components/site/home/HomeSections";
+import GuaranteeDeal from "@/components/site/GuaranteeDeal";
 import ToolsCarousel from "@/components/site/home/ToolsCarousel";
 import SitePage from "@/components/site/SitePage";
 import WeekCalendar from "@/components/site/WeekCalendar";
 import { SCREENS } from "@/components/site/live/screens";
 import { jsonLd, pageMeta } from "@/components/site/meta";
-import { Arrow, Btn, delay, Drawn, GuaranteeBlock, Kinetic, Phone } from "@/components/site/parts";
+import { Arrow, Btn, delay, Drawn, Kinetic, Phone, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
@@ -31,7 +32,7 @@ const FEATURES = [
   { n: 2, media: "wide", screen: SCREENS.zoom, side: "right" },
   { n: 3, media: "wide", screen: SCREENS.review, side: "left" },
   { n: 4, media: "phone", screen: SCREENS.daily10, side: "right" },
-  { n: 5, media: "phone", screen: SCREENS.parent, side: "left", sees: true },
+  { n: 5, media: "phone", screen: SCREENS.parent, side: "left" },
 ] as const;
 
 function Feature({ x }: { x: (typeof FEATURES)[number] }) {
@@ -54,14 +55,8 @@ function Feature({ x }: { x: (typeof FEATURES)[number] }) {
             {f["feature title"] ? <b>{f["feature title"]}</b> : null} {f["feature text"]}
           </p>
         ) : null}
-        {f["card title"] ? (
-          <p className="note">
-            <b>{f["card title"]}</b>
-            {f["card text"]}
-          </p>
-        ) : null}
+        {f["research link"] ? <TextLink label={f["research link"]} href={ROUTES.research} /> : null}
       </div>
-      {"sees" in x ? <SeesLists /> : null}
     </article>
   );
 }
@@ -70,7 +65,6 @@ const CAMPUS = ["c8a", "c8b", "c8c"];
 
 export default function HomePage() {
   const hero = section(1);
-  const date = section(7);
   const campus = section(9);
   const cal = section(14);
   const end = section(11);
@@ -116,14 +110,13 @@ export default function HomePage() {
         <span className="cue" aria-hidden="true" />
       </section>
 
-      <section className="panel guarantee dark" id="m-8" aria-labelledby="g-h">
-        <div className="in">
-          <GuaranteeBlock g={section(8)} headId="g-h" />
-        </div>
-      </section>
-
       <div className="panel duo">
         <Tutors />
+        <section className="guarantee" id="m-8" aria-labelledby="g-h">
+          <div className="in">
+            <GuaranteeDeal g={section(8)} headId="g-h" />
+          </div>
+        </section>
         <Ways />
       </div>
 
@@ -142,25 +135,6 @@ export default function HomePage() {
             </div>
           </article>
           <ToolsCarousel />
-        </div>
-      </section>
-
-      <section className="window statement" id="m-7">
-        <div className="in">
-          {date.headline ? <h2 className="rv">{date.headline}</h2> : null}
-          {date["card date"] ? (
-            <div className="datecard rv" style={delay(0.15)}>
-              {date["card intro"] ? <p className="i">{date["card intro"]}</p> : null}
-              <p className="d">{date["card date"]}</p>
-              {date["card later"] ? <p className="l">{date["card later"]}</p> : null}
-              {date["card link"] ? (
-                <a className="lk" href="#m-8">
-                  {date["card link"]}
-                  <Arrow />
-                </a>
-              ) : null}
-            </div>
-          ) : null}
         </div>
       </section>
 

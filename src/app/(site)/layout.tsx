@@ -9,6 +9,9 @@ import "./styles/home.css";
 import "./styles/inner.css";
 import "./styles/pricing.css";
 import "./styles/photos.css";
+import "./styles/guarantee.css";
+import "./styles/research.css";
+import "./styles/calendar.css";
 import "./styles/alive.css";
 import "./styles/site.css";
 

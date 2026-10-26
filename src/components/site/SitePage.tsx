@@ -93,6 +93,7 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.guarantee, "guarantee link"],
       [ROUTES.faq, "faq link"],
       [ROUTES.about, "about link"],
+      [ROUTES.research, "research link"],
       [ROUTES.signIn, "sign in link"],
     ],
   ],

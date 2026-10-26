@@ -1,9 +1,9 @@
 // Small pieces every marketing page shares: the marigold button, the drawn iPhone, icons, the hero line
-// that rises word by word, and the guarantee block (the home page, the guarantee page and pricing show it).
+// that rises word by word.
 import { Fragment, type CSSProperties, type ReactNode } from "react";
-import { list, pairs, type CopySection } from "@/lib/marketing/site-copy";
+import type { CopySection } from "@/lib/marketing/site-copy";
+import { MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { ARROW_SVG, iconSvg, type IconName } from "./live/icons";
-import { ROUTES } from "./routes";
 
 /** Our own constant drawing markup (screens, drawings, icons). Never pass visitor input here. */
 export function Drawn({
@@ -103,67 +103,23 @@ export function Kinetic({ text }: { text: string }) {
   );
 }
 
-/** The guarantee: the promise, what the family gets for each result, both sides' rules and who it
- *  covers, all on the page, nothing in small print. */
-export function GuaranteeBlock({ g, headId }: { g: CopySection; headId: string }) {
-  const outcomes = pairs(g.outcomes);
-  const covers = list(g.covers);
-  const side = (title: string | undefined, items: string[], cls: string) =>
-    items.length ? (
-      <div className={`side-list ${cls} rv`}>
-        <h3>{title}</h3>
-        <ul>
-          {items.map((x) => (
-            <li key={x}>{x}</li>
-          ))}
-        </ul>
-      </div>
-    ) : null;
+/** The class's paid seats as a row of rings, the held ones filled, with the words beside them. The count
+ *  comes from offer.ts (paidSeatsTaken), so it only ever shows real seats. */
+export function Seats({ label, className = "" }: { label?: string; className?: string }) {
+  if (!label) return null;
   return (
-    <>
-      <div className="g-top">
-        <div className="g-words">
-          {g.eyebrow ? <p className="eyebrow rv">{g.eyebrow}</p> : null}
-          {g.headline ? (
-            <h2 className="rv" id={headId}>
-              {g.headline}
-            </h2>
-          ) : null}
-          {g.text ? <p className="lede rv">{g.text}</p> : null}
-          {g.promise ? (
-            <p className="g-promise rv" id={g.headline ? undefined : headId}>
-              {g.promise}
-            </p>
-          ) : null}
-          {g["promise note"] ? <p className="g-note rv">{g["promise note"]}</p> : null}
-        </div>
-        {outcomes.length ? (
-          <dl className="outcomes rv">
-            {outcomes.map(([r, w]) => (
-              <div key={r}>
-                <dt>{r}</dt>
-                <dd>{w}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-      </div>
-      <div className="sides">
-        {side(g["we do title"], list(g["we do"]), "")}
-        {side(g["you do title"], list(g["you do"]), "you")}
-      </div>
-      <div className="g-foot rv">
-        {covers.length ? (
-          <p className="covers">
-            {covers.map((x) => (
-              <span key={x}>{x}</span>
-            ))}
-          </p>
-        ) : null}
-        {g.claim ? <p className="claim">{g.claim}</p> : null}
-        {g.link ? <TextLink label={g.link} href={ROUTES.guarantee} /> : null}
-      </div>
-    </>
+    <p className={`seats ${className}`}>
+      <span className="seat-row" aria-hidden="true">
+        {Array.from({ length: MP.paidSeats }, (_, k) => (
+          <i
+            key={k}
+            className={k < MP.paidSeatsTaken ? "held" : ""}
+            style={{ "--k": k } as CSSProperties}
+          />
+        ))}
+      </span>
+      {label}
+    </p>
   );
 }
 

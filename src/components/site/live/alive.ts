@@ -1,6 +1,6 @@
 /* Karman's "alive" layer (ported from the approved mock, 2026-10-25), on every marketing page.
-   Glints: now and then a slow sweep of light crosses the marigold button, the guarantee's big numbers, the
-   orange phone edges and the date card. Each one runs on its own clock (a 7 to 13 s cycle, a random offset),
+   Glints: now and then a slow sweep of light crosses the marigold button, the guarantee's big numbers and the
+   orange phone edges. Each one runs on its own clock (a 7 to 13 s cycle, a random offset),
    so the page never pulses in sync, and each runs only while it is on screen.
    Nearness (desktop with a mouse only): a few things answer the cursor as it comes closer. Product screens and
    phones lean toward it, drawings and price cards catch a soft light where it points, the primary button
@@ -8,14 +8,14 @@
    everything settles back when it leaves. Off entirely with reduced motion. Browser only. */
 
 const GLINT =
-  ".btn, .g-promise, .i-big, .datecard, .iphone, .badge b, .i-facts dt, .plan.program .price b";
+  ".btn, .gx-promise .big, .i-big, .iphone, .badge b, .i-facts dt, .plan.program .price b";
 
 // reach: how far away (px) the cursor starts to count; kind: what the element does with it (alive.css)
 const NEAR: [string, number, string][] = [
   [".turn", 420, "lean"], // the phones beside the features
   [".wide", 360, "lean"], // the laptop screens
-  [".i-art > svg, .fig > .hl", 320, "lean"], // the drawings (their inner layer, so the reveal keeps its own transform)
-  [".plan, .i-pack, .i-formcard, .datecard, .i-ex > div, .outcomes", 220, "light"],
+  [".i-art > svg", 320, "lean"], // the drawings (their inner layer, so the reveal keeps its own transform)
+  [".plan, .i-pack, .i-formcard, .i-ex > div", 220, "light"],
   [".btn", 140, "lift"],
   [".k-photo .fr", 360, "drift"], // the people photos: the picture shifts a few px against the cursor, like depth
 ];

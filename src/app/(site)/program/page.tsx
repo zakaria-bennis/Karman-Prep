@@ -4,7 +4,7 @@ import Photo from "@/components/site/Photo";
 import SitePage from "@/components/site/SitePage";
 import { GuaranteeSection, InnerHero, Rows, TextCard } from "@/components/site/inner";
 import { jsonLd, pageMeta } from "@/components/site/meta";
-import { delay, TextLink } from "@/components/site/parts";
+import { delay, Seats, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { formatPrice, MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { section, SITE } from "@/lib/marketing/site-copy";
@@ -64,7 +64,12 @@ export default function ProgramPage() {
       <Rows
         n={25}
         style="steps"
-        after={<LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard wide rv" />}
+        after={
+          <>
+            <Seats label={section(25).seats} className="rv" />
+            <LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard wide rv" />
+          </>
+        }
       />
       <section className="i-sec" data-light id="s-26">
         <div className="in i-split">

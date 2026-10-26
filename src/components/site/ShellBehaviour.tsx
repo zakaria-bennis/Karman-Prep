@@ -80,12 +80,10 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
       ticking = false;
       if (!hd) return;
       const y = 36;
-      const light = [...ks.querySelectorAll(".panel:not(.dark), .datecard, [data-light]")].some(
-        (p) => {
-          const r = p.getBoundingClientRect();
-          return r.top <= y && r.bottom >= y;
-        }
-      );
+      const light = [...ks.querySelectorAll(".panel:not(.dark), [data-light]")].some((p) => {
+        const r = p.getBoundingClientRect();
+        return r.top <= y && r.bottom >= y;
+      });
       const down = scrollY > 40;
       hd.classList.toggle("light", light);
       hd.classList.toggle("dim", down && !light);

@@ -46,10 +46,6 @@ export default function ToolsCarousel() {
             <span>{line}</span>
           </li>
         ))}
-        <li className="tool chat-card">
-          <b>{f["chat title"]}</b>
-          <span>{f["chat text"]}</span>
-        </li>
       </ul>
     </div>
   );

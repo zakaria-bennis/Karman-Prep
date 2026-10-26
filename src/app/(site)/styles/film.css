@@ -140,16 +140,6 @@ html.ks-lock { overflow: hidden; }
 @keyframes ks-cue { to { top: 100%; } }
 
 /* the test date, over the film */
-.ks .statement { min-height: 92svh; display: flex; align-items: center; padding-top: 120px; padding-bottom: 120px; text-align: center; }
-.ks .statement .in { display: grid; gap: 26px; justify-items: center; }
-.ks .datecard { margin-top: 10px; width: min(460px, 100%); display: grid; gap: 6px; justify-items: start; text-align: left; padding: 30px 30px 24px; border-radius: 18px; background: var(--paper); color: var(--ink); position: relative; overflow: hidden; }
-.ks .datecard .i { font-size: 15px; font-weight: 600; color: var(--ink2); }
-.ks .datecard .d { font-size: clamp(32px, 3.2vw, 44px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; margin-top: 4px; }
-.ks .datecard .l { font-weight: 700; color: var(--marigold-ink); }
-.ks .datecard .x { font-size: 16px; color: var(--ink2); margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
-.ks .datecard .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 800; text-decoration: none; }
-.ks .datecard .lk svg { width: 15px; height: 15px; color: var(--marigold-ink); transition: transform .4s var(--spring); }
-@media (hover: hover) and (pointer: fine) { .ks .datecard .lk:hover svg { transform: translateX(4px); } .ks .datecard .lk:hover { text-decoration: underline; text-decoration-color: var(--marigold); text-decoration-thickness: 2px; text-underline-offset: 5px; } }
 
 /* the close: the day dissolves into orbit */
 .ks .end { min-height: 112svh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-top: 140px; padding-bottom: 120px; }
@@ -214,47 +204,9 @@ html.ks-lock { overflow: hidden; }
 }
 
 /* the line drawings (live/week.ts): isometric line work that answers the pointer */
-.ks .fig { position: relative; margin-top: 4px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); overflow: hidden; max-width: 380px; }
-.ks .fig .hl { cursor: pointer; padding: 10px 18px 6px; touch-action: pan-y; }
-.ks .fig svg { width: 100%; height: auto; overflow: visible; }
-.ks .fig path { stroke-linejoin: round; stroke-width: 1.35; vector-effect: non-scaling-stroke; }
-.ks .fig .t-shadow { fill: #f1eee7; stroke: none; }
-.ks .fig .t-side { fill: #dcd7cc; stroke: #4a463f; }
-.ks .fig .t-top { fill: #fff; stroke: #4a463f; }
-.ks .fig .t-tile.hi .t-top { stroke: #d48c0c; stroke-width: 2.2; }
-.ks .fig .t-tile.hi .t-side { stroke: #d48c0c; }
 
-/* ---------- the guarantee: black, loud, nothing in small print ---------- */
+/* the black panels */
 .ks .panel.dark { background: var(--night); color: #fff; margin: 0 clamp(0px, 1.1vw, 16px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
-.ks .guarantee .in { display: grid; gap: clamp(44px, 5vw, 80px); }
-.ks .g-top { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 80px); align-items: end; }
-.ks .g-words { display: grid; gap: 18px; }
-.ks .guarantee h2 { font-size: clamp(40px, 5vw, 80px); max-width: 13ch; }
-.ks .guarantee .lede { color: #d6d1c7; }
-.ks .g-promise { font-size: clamp(56px, 7.4vw, 124px); font-weight: 800; letter-spacing: -0.055em; line-height: .92; color: var(--marigold); text-wrap: balance; }
-.ks .g-note { color: #bdb8ae; font-size: 16px; max-width: 46ch; }
-/* what the family gets, by result: three rows that read like a receipt */
-.ks .outcomes { display: grid; border-radius: 16px; overflow: hidden; background: #1a1a1a; }
-.ks .outcomes > div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; padding: 20px 24px; border-top: 1px solid #2a2a2a; }
-.ks .outcomes > div:first-child { border-top: 0; }
-.ks .outcomes dt { font-weight: 800; font-size: clamp(17px, 1.4vw, 21px); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-.ks .outcomes dd { margin: 0; color: #d6d1c7; font-size: 16px; }
-.ks .outcomes > div:last-child dt { color: var(--marigold); }
-.ks .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; border-radius: 18px; overflow: hidden; background: #262626; }
-.ks .side-list { padding: clamp(26px, 3vw, 44px); background: #141414; }
-.ks .side-list.you { background: #1b1a17; }
-.ks .side-list h3 { font-size: clamp(22px, 2vw, 30px); }
-.ks .side-list ul { list-style: none; display: grid; margin-top: 14px; }
-.ks .side-list li { padding: 14px 0; border-top: 1px solid #2c2c2c; font-size: 17px; color: #e7e3da; }
-.ks .g-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px 40px; }
-.ks .covers { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
-.ks .covers span { padding: 8px 14px; border-radius: 999px; background: #1f1f1f; color: #e7e3da; font-size: 15px; font-weight: 600; }
-.ks .claim { color: #bdb8ae; font-size: 16px; max-width: 64ch; }
-.ks .g-foot .lk, .ks .datecard .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 800; text-decoration: none; }
-.ks .g-foot .lk { color: var(--marigold); font-size: 18px; }
-.ks .g-foot .lk svg, .ks .datecard .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
-@media (hover: hover) and (pointer: fine) { .ks .g-foot .lk:hover svg { transform: translateX(4px); } }
-@media (max-width: 900px) { .ks .g-top, .ks .sides, .ks .g-foot { grid-template-columns: 1fr; } .ks .outcomes > div { grid-template-columns: 1fr; gap: 4px; } }
 
 /* ---------- the campus films, side by side ---------- */
 .ks .campus { padding: clamp(14px, 1.4vw, 22px); }
@@ -299,10 +251,6 @@ html.ks-lock { overflow: hidden; }
 @media (max-width: 380px) { .ks .btn { font-size: 15.5px; gap: 10px; padding-left: 20px; } }
 .ks .end .obj { font-size: 16px; max-width: 56ch; opacity: .82; text-shadow: 0 1px 14px rgba(0,0,0,.4); }
 /* the line drawings in dark mode */
-.ks[data-mode="dark"] .fig .t-shadow { fill: rgba(255,255,255,.04); }
-.ks[data-mode="dark"] .fig .t-side { fill: #1d1c19; stroke: #cfc8ba; }
-.ks[data-mode="dark"] .fig .t-top { fill: #262521; stroke: #cfc8ba; }
-.ks[data-mode="dark"] .fig .t-tile.hi .t-top, .ks[data-mode="dark"] .fig .t-tile.hi .t-side { stroke: var(--marigold); }
 
 /* ---------- phones: the dock, one button in thumb reach ---------- */
 .ks .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; padding: 12px 16px max(12px, env(safe-area-inset-bottom));

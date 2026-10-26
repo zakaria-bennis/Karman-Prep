@@ -75,6 +75,9 @@ export const MARCH_PROGRAM = {
   // CONFIRM: enrollment deadline.
   enrollmentClosesLabel: "Wednesday, December 30, 2026",
   paidSeats: 5,
+  /** Paid seats already held with a deposit. The site shows the seats still open.
+   *  CONFIRM: update as each family holds a seat. */
+  paidSeatsTaken: 0,
   scholarshipSeats: 1,
   /** Founding price — the March 2027 cohort only. */
   price: 995,
@@ -104,7 +107,8 @@ export const MARCH_PROGRAM = {
     },
     {
       title: "Daily 10",
-      detail: "Ten minutes a day. Every question you miss comes back after 2, 7 and 21 days.",
+      detail:
+        "Ten questions a day, picked from your weakest skills. Missed questions come back until they stick.",
     },
     {
       title: "10,000+ original practice questions",

@@ -1,8 +1,8 @@
-// The home page's own sections (2026-10-26): who teaches, the ways to learn with Karman, and what tutors and
-// parents can see. Every word comes from site-copy.ts (sections 5, 12 and 13).
-import { list, pairs, section } from "@/lib/marketing/site-copy";
+// The home page's own sections (2026-10-26): who teaches and the ways to learn with Karman.
+// Every word comes from site-copy.ts (sections 12 and 13).
+import { pairs, section } from "@/lib/marketing/site-copy";
 import type { IconName } from "../live/icons";
-import { Btn, delay, Icon, TextLink } from "../parts";
+import { Btn, delay, Icon, Seats, TextLink } from "../parts";
 import { ROUTES } from "../routes";
 
 const CRED_ICONS: IconName[] = ["phd", "quant", "analyst", "research", "professor", "certified"];
@@ -68,6 +68,7 @@ export function Ways() {
                 <b>{f[`${key} price`]}</b>
                 <span>{f[`${key} note`]}</span>
               </p>
+              {key === "program" ? <Seats label={f["program seats"]} /> : null}
               <p className="wt">{f[`${key} text`]}</p>
               <TextLink label={f[`${key} link`]} href={href} />
             </article>
@@ -78,29 +79,5 @@ export function Ways() {
         </div>
       </div>
     </section>
-  );
-}
-
-/** Everything a tutor sees, and what a parent sees, as two plain lists. */
-export function SeesLists() {
-  const f = section(5);
-  const col = (title: string, items: string[], cls: string) => (
-    <div className={`sees ${cls}`}>
-      <h3>{title}</h3>
-      <ul>
-        {items.map((x) => (
-          <li key={x}>
-            <Icon name="check" />
-            <span>{x}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-  return (
-    <div className="sees-cols rv">
-      {col(f["tutor title"], list(f["tutor sees"]), "tutor")}
-      {col(f["parent title"], list(f["parent sees"]), "parent")}
-    </div>
   );
 }
