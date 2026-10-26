@@ -9,30 +9,26 @@ import { ExpressionPanel } from "../list/ExpressionPanel";
 import { SettingsPopover } from "./SettingsPopover";
 
 const ORDER = [
-  ["radio", "Display size: default"],
-  ["radio", "Display size: large"],
-  ["checkbox", "Reverse contrast"],
-  ["checkbox", "Braille Mode"],
+  ["slider", "Text Size"],
   ["checkbox", "Grid"],
   ["button", "Cartesian Grid"],
   ["button", "Polar Grid"],
-  ["checkbox", "Arrows"],
-  ["checkbox", "Axis Numbers"],
   ["checkbox", "Minor Gridlines"],
+  ["checkbox", "Axis Numbers"],
+  ["checkbox", "Arrows"],
   ["checkbox", "X-Axis"],
-  ["textbox", "Label"],
   ["textbox", "X Axis Minimum:"],
   ["textbox", "X Axis Maximum:"],
-  ["textbox", "X Axis Step Size:"],
+  ["button", "Label and step"],
   ["checkbox", "Y-Axis"],
-  ["textbox", "Label"],
   ["textbox", "Y Axis Minimum:"],
   ["textbox", "Y Axis Maximum:"],
-  ["textbox", "Y Axis Step Size:"],
-  ["button", "More Options"],
+  ["button", "Label and step"],
   ["checkbox", "Complex Mode"],
   ["radio", "Radians"],
   ["radio", "Degrees"],
+  ["checkbox", "Key Sounds"],
+  ["button", "More Options"],
 ] as const;
 const popover = (onClose: () => void = vi.fn()) => (
   <SettingsPopover
@@ -42,11 +38,11 @@ const popover = (onClose: () => void = vi.fn()) => (
   />
 );
 
-it("SETTINGS-8, -9 the settings popover is the region Graph Settings with the reference's controls in order", () => {
+it("SETTINGS-8, -9 the settings popover is the region Graph Settings with its controls in order (founder layout, 2026-10-26)", () => {
   renderEditor(popover(), { rows: [""] });
   const dialog = screen.getByRole("region", { name: "Graph Settings" });
   // ByRoleOptions has no `exact` (tsc rejects it); a string name already matches the whole name.
-  // Both axes have a field named "Label", so the nth one of a name is the nth in the order.
+  // Both axes have a "Label and step" button, so the nth one of a name is the nth in the order.
   const seen = new Map<string, number>();
   const controls = ORDER.map(([role, name]) => {
     const n = seen.get(role + name) ?? 0;
@@ -61,9 +57,9 @@ it("SETTINGS-8, -9 the settings popover is the region Graph Settings with the re
       ).toBeTruthy()
     );
   const count = (role: string) => within(dialog).queryAllByRole(role).length;
-  expect(count("checkbox") + count("radio") + count("textbox") + count("button")).toBe(
-    ORDER.length
-  );
+  expect(
+    count("slider") + count("checkbox") + count("radio") + count("textbox") + count("button")
+  ).toBe(ORDER.length);
 });
 
 it("S-1 each display control writes its setting and Escape closes the popover", async () => {
@@ -80,6 +76,14 @@ it("S-1 each display control writes its setting and Escape closes the popover", 
     await user.click(screen.getByRole("checkbox", { name }));
     expect(kit.engine.settings[setting]).toBe(!DEFAULT_SETTINGS[setting]);
   }
+  // The label and step sit behind each axis's "Label and step" disclosure.
+  expect(screen.queryByRole("textbox", { name: "Label" })).toBeNull();
+  for (const more of screen.getAllByRole("button", { name: "Label and step" })) {
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    await user.click(more);
+    expect(more).toHaveAttribute("aria-expanded", "true");
+  }
+  expect(screen.getByRole("textbox", { name: "X Axis Step Size:" })).toBeInTheDocument();
   // SETTINGS-19: each keystroke in Label sets the label.
   await user.type(screen.getAllByRole("textbox", { name: "Label" })[0], "ti");
   expect(kit.engine.settings.xAxis.label).toBe("ti");
@@ -114,15 +118,43 @@ it("S-5 Complex mode is off by default and switches complex evaluation", async (
   expect(await screen.findByText("2i")).toBeInTheDocument();
 });
 
-it("SETTINGS-11, -12, -13 display size, reverse contrast and Braille write their settings", async () => {
+it("SETTINGS-11 the Text Size slider has seven notches with the default marked, and writes the size", () => {
+  const kit = renderEditor(popover(), { rows: [""] });
+  const slider = screen.getByRole("slider", { name: "Text Size" });
+  expect(slider).toHaveAttribute("min", "1");
+  expect(slider).toHaveAttribute("max", "7");
+  expect(slider).toHaveAttribute("step", "1");
+  expect(slider).toHaveValue("3");
+  expect(slider).toHaveAttribute("aria-valuetext", "Size 3 of 7, default");
+  expect(slider).toHaveFocus(); // SETTINGS-32
+  const notches = document.querySelectorAll(".kc-size-notch");
+  expect(notches).toHaveLength(7);
+  expect([...notches].map((n) => n.getAttribute("data-default"))).toEqual([
+    null,
+    null,
+    "true",
+    null,
+    null,
+    null,
+    null,
+  ]);
+  act(() => {
+    // A native range's change, as a drag or arrow key makes it.
+    const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    set.call(slider, "6");
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  expect(kit.engine.settings.displaySize).toBe(6);
+  expect(slider).toHaveAttribute("aria-valuetext", "Size 6 of 7");
+  expect(screen.queryByRole("checkbox", { name: "Reverse contrast" })).toBeNull();
+});
+
+it("SETTINGS-13 Braille Mode lives in More Options and writes its settings", async () => {
   const kit = renderEditor(popover(), { rows: [""] });
   const user = userEvent.setup();
-  expect(screen.getByRole("radiogroup", { name: "Display Size" })).toBeInTheDocument();
-  await user.click(screen.getByRole("radio", { name: "Display size: large" }));
-  expect(kit.engine.settings.displaySize).toBe("large");
-  await user.click(screen.getByRole("checkbox", { name: "Reverse contrast" }));
-  expect(kit.engine.settings.reverseContrast).toBe(true);
-  expect(screen.queryByRole("radiogroup", { name: "Braille Mode" })).toBeNull();
+  expect(screen.queryByRole("checkbox", { name: "Braille Mode" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "More Options" }));
+  expect(screen.queryByRole("radiogroup", { name: "Braille code" })).toBeNull();
   await user.click(screen.getByRole("checkbox", { name: "Braille Mode" }));
   expect(kit.engine.settings.brailleMode).toBe("nemeth");
   await user.click(screen.getByRole("radio", { name: "UEB" }));
@@ -131,6 +163,37 @@ it("SETTINGS-11, -12, -13 display size, reverse contrast and Braille write their
   expect(kit.engine.settings.sixKeyInput).toBe(true);
   await user.click(screen.getByRole("checkbox", { name: "Braille Mode" }));
   expect(kit.engine.settings.brailleMode).toBe("none");
+});
+
+it("More Options explains the axis scale, Lock Viewport and Braille Mode on a help button: hover, focus and tap", async () => {
+  renderEditor(popover(), { rows: [""] });
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("button", { name: "More Options" }));
+  for (const topic of ["Axis scale", "Lock Viewport", "Braille Mode"]) {
+    const help = screen.getByRole("button", { name: `About ${topic}` });
+    // Screen readers hear the explanation as the button's description.
+    expect(help).toHaveAccessibleDescription(/\w{3,}/);
+    expect(help).toHaveAttribute("aria-expanded", "false");
+    await user.click(help); // a tap or click pins it open
+    expect(help).toHaveAttribute("aria-expanded", "true");
+    await user.click(help);
+    expect(help).toHaveAttribute("aria-expanded", "false");
+  }
+  const lock = screen.getByRole("button", { name: "About Lock Viewport" });
+  expect(lock).toHaveAccessibleDescription(/dragging, scrolling and the zoom buttons/);
+});
+
+it("Key Sounds is off by default and remembers a change on the device", async () => {
+  localStorage.removeItem("karman.calculator.keySounds");
+  renderEditor(popover(), { rows: [""] });
+  const box = screen.getByRole("checkbox", { name: "Key Sounds" });
+  expect(box).not.toBeChecked();
+  expect(box).toHaveAccessibleDescription("A soft sound for each key you type or press.");
+  await userEvent.setup().click(box);
+  expect(box).toBeChecked();
+  expect(localStorage.getItem("karman.calculator.keySounds")).toBe("on");
+  await userEvent.setup().click(box);
+  expect(localStorage.getItem("karman.calculator.keySounds")).toBe("off");
 });
 
 it("SETTINGS-14, -15 grid off hides the grid type and Minor Gridlines; polar hides Minor Gridlines and Step", async () => {
@@ -151,7 +214,7 @@ it("SETTINGS-20 More Options opens to the axis scales and Lock Viewport, and reo
   expect(screen.queryByRole("checkbox", { name: "Lock Viewport" })).toBeNull();
   await user.click(more);
   expect(more).toHaveAttribute("aria-expanded", "true");
-  const x = screen.getByRole("radiogroup", { name: "X-Axis:" });
+  const x = screen.getByRole("radiogroup", { name: "X-axis scale" });
   expect(within(x).getByRole("radio", { name: "Linear" })).toBeChecked();
   await user.click(within(x).getByRole("radio", { name: "Logarithmic" }));
   expect(within(x).getByRole("radio", { name: "Linear" })).toBeChecked();
@@ -177,7 +240,7 @@ it("SETTINGS-23 complex mode shows its hint and greys Angle, keeping the angle m
   const kit = renderEditor(popover(), { rows: [""] });
   const user = userEvent.setup();
   await user.click(screen.getByRole("checkbox", { name: "Complex Mode" }));
-  expect(screen.getByText(/Note: complex values will be plotted as \(real, imag\)/)).toBeVisible();
+  expect(screen.getByText(/Complex values are plotted as \(real, imag\)/)).toBeVisible();
   const angle = screen.getByRole("radiogroup", { name: "Angle Settings" });
   expect(angle).toHaveAttribute("title", "Complex mode uses radians");
   expect(within(angle).getByRole("radio", { name: "Degrees" })).toBeDisabled();

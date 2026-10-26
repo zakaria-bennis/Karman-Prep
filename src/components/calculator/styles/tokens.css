@@ -113,6 +113,29 @@
   --kc-dur-800: 800ms;
   --kc-ease: ease;
   --kc-ease-out: ease-out;
+  /* A spring (damping 0.8, response 0.35 s) sampled for CSS: settles in 500 ms with a 1.5%
+     overshoot. A transition retargets from where it is, so a second tap mid-flight turns it
+     around smoothly. Older browsers without linear() fall back to ease-out. */
+  --kc-dur-spring: 500ms;
+  --kc-spring: linear(
+    0,
+    0.116,
+    0.343,
+    0.568,
+    0.747,
+    0.871,
+    0.948,
+    0.99,
+    1.009,
+    1.015,
+    1.014,
+    1.011,
+    1.008,
+    1.005,
+    1.002,
+    1.001,
+    1
+  );
 }
 @media (prefers-reduced-motion: reduce) {
   :host {

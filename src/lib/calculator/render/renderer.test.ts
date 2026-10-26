@@ -11,7 +11,7 @@ import { elementRegions, GraphRenderer, readRenderTheme } from "./renderer";
 import { buildShadingRects } from "./shading";
 import type { RenderFrame, RenderTheme } from "./types";
 
-const p = SKIN_COLORS.ivory.normal;
+const p = SKIN_COLORS.white.normal;
 const THEME: RenderTheme = {
   paper: p.roles.paper,
   text: p.roles.text,

@@ -1,24 +1,35 @@
 // Skin ids, colour roles, tones and curve slots of the calculator theme (section 6). "classic" is
-// the hand-set skin that matches the reference graphing calculator (desmos-palette.ts), used when
-// no site theme applies; the 12 site skins are the site themes of src/lib/themes/palettes.ts in
-// order (TH-5), derived by derive.ts.
+// the hand-set skin that matches the reference graphing calculator (desmos-palette.ts) and the
+// default; the 20 theme skins are the calculator's own themes of themes.ts in order, ten light
+// then ten dark (founder decision, 2026-10-26), derived by derive.ts.
 
-export const SITE_SKIN_IDS = [
+export const LIGHT_SKIN_IDS = [
+  "white",
+  "map",
+  "sage",
+  "dreamsicle",
+  "karman",
+  "pink",
+  "sky",
+  "mint",
+  "lavender",
+  "sand",
+] as const;
+export const DARK_SKIN_IDS = [
   "observatory",
   "charcoal",
   "forest",
-  "ivory",
-  "paper",
-  "sand",
-  "sage",
-  "lavender",
-  "peach",
-  "rose",
-  "blush",
   "plum",
+  "navy",
+  "ocean",
+  "wine",
+  "slate",
+  "neon",
+  "ember",
 ] as const;
-export type SiteSkinId = (typeof SITE_SKIN_IDS)[number];
-export const SKIN_IDS = ["classic", ...SITE_SKIN_IDS] as const;
+export const THEME_SKIN_IDS = [...LIGHT_SKIN_IDS, ...DARK_SKIN_IDS] as const;
+export type ThemeSkinId = (typeof THEME_SKIN_IDS)[number];
+export const SKIN_IDS = ["classic", ...THEME_SKIN_IDS] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
 export type BackgroundRole =
   | "paper"

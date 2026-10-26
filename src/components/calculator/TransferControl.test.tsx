@@ -316,7 +316,7 @@ it("TH-2 the control, tooltip and outline take colours only from --kcc-*, the in
   );
   for (const { path, css } of sections)
     if (path !== "vendor/mathquill/mathquill.css") expect(strip(css), path).not.toMatch(literal);
-  const host = hostThemeCss("ivory");
+  const host = hostThemeCss("white");
   expect(host.startsWith(":host{")).toBe(true);
   for (const name of [...Object.values(ROLE_VARS), ...Object.values(CURVE_VARS)])
     expect(host).toContain(`${name}:`);

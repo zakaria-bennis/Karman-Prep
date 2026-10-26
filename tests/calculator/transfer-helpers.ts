@@ -1,7 +1,7 @@
 // Shared helpers for the transfer specs. No tests: Playwright's default testMatch skips it.
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { SKIN_COLORS } from "../../src/lib/calculator/theme/skin-colors.generated";
-import type { SkinId } from "../../src/lib/calculator/theme/skins";
+import { resolveSkinId } from "../../src/lib/calculator/theme/roles";
 
 export const url = (flow = "diagnostic", extra = "") => `/?flow=${flow}&questions=transfer${extra}`;
 export const xq = (s: string) => `"${s}"`;
@@ -162,7 +162,6 @@ export const snapshot = (page: Page) =>
       focusedLatex: s.rows.find((r) => r.id === s.focusedRowId)?.latex ?? null,
       keypad: s.settings.keypad,
       displaySize: s.settings.displaySize,
-      reverseContrast: s.settings.reverseContrast,
       regions: [...s.geometry.values()].filter((g) => g.kind === "region").length,
     };
   });
@@ -189,15 +188,18 @@ export const failMountOnce = () => {
     return attach.call(this, init);
   };
 };
-/** Switches the site skin as applyTheme does: data-theme plus the dark class for dark skins. */
-export const applySkin = (page: Page, skin: SkinId) =>
+/**
+ * Switches the site theme as applyTheme does: data-theme plus the dark class for dark themes. Any
+ * other id (such as "classic") is no site theme, so the calculator shows Classic.
+ */
+export const applySkin = (page: Page, siteTheme: string) =>
   page.evaluate(
     ([s, dark]) => {
       const r = document.documentElement;
       r.classList.toggle("dark", dark);
       r.dataset.theme = s; // TH-15: the calculator and its light-DOM chrome follow the site theme
     },
-    [skin, SKIN_COLORS[skin].normal.dark] as const
+    [siteTheme, SKIN_COLORS[resolveSkinId(siteTheme)].normal.dark] as const
   );
 /** A computed rgb()/rgba() colour as #rrggbb (alpha dropped). */
 export const hex = (css: string) =>

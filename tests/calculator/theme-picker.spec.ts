@@ -1,95 +1,150 @@
-// The Settings theme picker (owner decision, 2026-10-22) on the shell harness: Auto, Classic and the
-// 12 site skins as a radio group; arrow keys, Space and Enter; the choice applies at once, is
-// remembered on the device and reaches every calculator; Classic is the /calculator page's default
-// (the harness's theme=classic) and Auto the quiz's; a change keeps the expressions and the view;
-// it fits a 390 px phone; blocked storage still applies the choice.
+// The Settings theme picker (founder decisions 2026-10-22 and 2026-10-26) on the shell harness: a
+// combobox button that opens a list of Auto, Classic and the ten Light and ten Dark themes;
+// keyboard and pointer picks; the choice applies at once, is remembered on the device (a retired
+// theme moves to its nearest one) and reaches every calculator; Classic is the /calculator page's
+// default (the harness's theme=classic) and Auto the quiz's; a change keeps the expressions and
+// the view; the list fits a 390 px phone; blocked storage still applies the choice. Every theme is
+// applied once and its colours checked on the calculator.
 
 import { expect, test, type Page } from "@playwright/test";
 import { THEME_STORAGE_KEY } from "@/lib/calculator/theme/choice";
-import { SKIN_COLORS } from "@/lib/calculator/theme/skin-colors.generated";
+import { resolveSkinId } from "@/lib/calculator/theme/roles";
+import { SKIN_COLORS, SKIN_NAMES } from "@/lib/calculator/theme/skin-colors.generated";
+import { THEME_SKIN_IDS, type SkinId } from "@/lib/calculator/theme/skins";
 import { enc, hostVar, openSettings, openShell, tap, useConsoleGuard } from "./shell-helpers";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- registers Playwright hooks; not a React hook
 useConsoleGuard();
 
-const paper = (skin: keyof typeof SKIN_COLORS) => SKIN_COLORS[skin].normal.roles.paper;
-const group = (page: Page) => page.getByRole("radiogroup", { name: "Theme" });
-const option = (page: Page, name: string) => group(page).getByRole("radio", { name });
+const paper = (skin: SkinId) => SKIN_COLORS[skin].normal.roles.paper;
+const button = (page: Page) => page.getByRole("combobox", { name: /^Theme/ });
+const list = (page: Page) => page.getByRole("listbox", { name: "Theme" });
+const option = (page: Page, name: string) => list(page).getByRole("option", { name, exact: true });
 
-test("the Theme section lists Auto, Classic and the 12 site themes; the quiz starts on Auto and arrow keys, Space and Enter pick at once", async ({
+async function pick(page: Page, isMobile: boolean, name: string): Promise<void> {
+  await tap(isMobile, button(page));
+  await expect(list(page)).toBeVisible();
+  await tap(isMobile, option(page, name));
+  await expect(list(page)).toBeHidden();
+}
+
+test("the Theme button opens Auto, Classic and the Light and Dark groups; the keyboard opens, moves, finds and picks at once", async ({
   page,
-  browserName,
 }) => {
-  await openShell(page, "?skin=sage&w=800&h=600");
+  await openShell(page, "?skin=sage&w=800&h=700");
   await openSettings(page);
-  await expect(group(page).getByRole("radio")).toHaveCount(14);
-  await expect(option(page, "Auto")).toBeChecked();
+  await expect(button(page)).toHaveAccessibleName("Theme Auto");
   expect(await hostVar(page, "--kc-paper")).toBe(paper("sage"));
-  await option(page, "Auto").focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(option(page, "Classic")).toBeChecked();
-  await expect(option(page, "Classic")).toBeFocused();
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("classic"));
+  await expect(list(page)).toBeHidden();
+  await button(page).focus();
   await page.keyboard.press("ArrowDown");
-  await expect(option(page, "Observatory")).toBeChecked();
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("observatory"));
-  await page.keyboard.press("ArrowLeft");
-  await expect(option(page, "Classic")).toBeChecked();
-  // The selected swatch carries the accent ring; the focused option draws the popover's outline.
-  const looks = await option(page, "Classic").evaluate((input) => {
-    const label = input.closest("label")!;
-    return {
-      ring: getComputedStyle(label.querySelector(".kc-theme-swatch")!).boxShadow,
-      outline: getComputedStyle(label).outlineStyle,
-    };
-  });
-  expect(looks.ring).not.toBe("none");
-  // WebKit does not match :focus-visible on a scripted focus moved by arrow keys; same rule there.
-  if (browserName === "chromium") expect(looks.outline).toBe("solid");
-  await option(page, "Plum").focus();
+  await expect(list(page)).toBeVisible();
+  await expect(list(page).getByRole("option")).toHaveCount(22);
+  await expect(list(page).getByRole("group", { name: "Light" }).getByRole("option")).toHaveCount(
+    10
+  );
+  await expect(list(page).getByRole("group", { name: "Dark" }).getByRole("option")).toHaveCount(10);
+  const active = () =>
+    button(page).evaluate((b) => {
+      const id = b.getAttribute("aria-activedescendant");
+      return id === null
+        ? null
+        : b.getRootNode() instanceof ShadowRoot
+          ? (b.getRootNode() as ShadowRoot).getElementById(id)?.textContent
+          : document.getElementById(id)?.textContent;
+    });
+  expect(await active()).toBe("Auto");
+  await page.keyboard.press("ArrowDown");
+  expect(await active()).toBe("Classic");
   await page.keyboard.press("Enter");
-  await expect(option(page, "Plum")).toBeChecked();
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("plum"));
-  await option(page, "Rose").focus();
-  await page.keyboard.press(" ");
-  await expect(option(page, "Rose")).toBeChecked();
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("rose"));
-  // The popover stays open through every pick.
+  await expect(list(page)).toBeHidden();
+  await expect(button(page)).toBeFocused();
+  await expect(button(page)).toHaveAccessibleName("Theme Classic");
+  expect(await hostVar(page, "--kc-paper")).toBe(paper("classic"));
+  // Typing a name's first letters finds it; Space picks.
+  await page.keyboard.press("Space");
+  await page.keyboard.type("neo");
+  expect(await active()).toBe("Neon Night");
+  await page.keyboard.press("Space");
+  expect(await hostVar(page, "--kc-paper")).toBe(paper("neon"));
+  expect(await hostVar(page, "color-scheme")).toBe("dark");
+  // Escape closes the list and leaves the popover open; a second Escape closes the popover.
+  await page.keyboard.press("ArrowDown");
+  await expect(list(page)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(list(page)).toBeHidden();
   await expect(page.getByRole("region", { name: "Graph Settings" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("region", { name: "Graph Settings" })).toHaveCount(0);
+});
+
+test("every one of the 20 themes applies from the list: its paper, list, keypad and accent reach the calculator", async ({
+  page,
+  isMobile,
+}) => {
+  await openShell(page, `?theme=classic&w=800&h=700&rows=${enc(["y=x^2"])}`);
+  await page.evaluate(() => globalThis.__shell!.handle.calculator.updateSettings({ keypad: true }));
+  await openSettings(page);
+  for (const skin of THEME_SKIN_IDS) {
+    await pick(page, isMobile, SKIN_NAMES[skin]);
+    const roles = SKIN_COLORS[skin].normal.roles;
+    for (const [name, role] of [
+      ["--kc-paper", "paper"],
+      ["--kc-list", "list"],
+      ["--kc-key", "key"],
+      ["--kc-accent", "accent"],
+    ] as const)
+      expect(await hostVar(page, name), `${skin} ${name}`).toBe(roles[role]);
+    await expect(button(page)).toHaveAccessibleName(`Theme ${SKIN_NAMES[skin]}`);
+    await expect(page.locator(`#calc [data-theme-choice="${skin}"]`)).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+  }
 });
 
 test("Classic is the /calculator default on a dark site theme; a pick is remembered after a reload and in the quiz, and Auto follows the site theme", async ({
   page,
   isMobile,
 }) => {
-  await openShell(page, "?skin=observatory&theme=classic&w=800&h=600");
+  await openShell(page, "?skin=observatory&theme=classic&w=800&h=700");
   expect(await hostVar(page, "--kc-paper")).toBe(paper("classic"));
   expect(await hostVar(page, "color-scheme")).toMatch(/^(only light|light only)$/);
   await openSettings(page);
-  await expect(option(page, "Classic")).toBeChecked();
-  await tap(isMobile, option(page, "Forest"));
+  await expect(button(page)).toHaveAccessibleName("Theme Classic");
+  await pick(page, isMobile, "Forest");
   expect(await hostVar(page, "--kc-paper")).toBe(paper("forest"));
   expect(await page.evaluate((key) => localStorage.getItem(key), THEME_STORAGE_KEY)).toBe("forest");
-  await page.waitForLoadState("networkidle"); // WebKit logs the lazy chunks a reload cuts short
-  await page.reload();
-  await page.waitForFunction(() => globalThis.__shell !== undefined);
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("forest"));
-  expect(await hostVar(page, "color-scheme")).toBe("dark");
-  await openShell(page, "?skin=ivory&w=800&h=600"); // the quiz: its default would be Auto
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("forest"));
+  // A fresh page of the same browser (the same device storage) stands in for a reload, so no
+  // navigation cuts short the lazy chunks this page is still loading (WebKit logs those).
+  const again = await page.context().newPage();
+  await openShell(again, "?skin=observatory&theme=classic&w=800&h=700");
+  expect(await hostVar(again, "--kc-paper")).toBe(paper("forest"));
+  expect(await hostVar(again, "color-scheme")).toBe("dark");
+  const quiz = await page.context().newPage();
+  await openShell(quiz, "?skin=ivory&w=800&h=700"); // the quiz: its default would be Auto
+  expect(await hostVar(quiz, "--kc-paper")).toBe(paper("forest"));
+  await openSettings(quiz);
+  await expect(button(quiz)).toHaveAccessibleName("Theme Forest");
+  await pick(quiz, isMobile, "Auto");
+  expect(await hostVar(quiz, "--kc-paper")).toBe(paper(resolveSkinId("ivory")));
+  await quiz.evaluate(() => (document.documentElement.dataset.theme = "charcoal"));
+  await expect.poll(() => hostVar(quiz, "--kc-paper")).toBe(paper("charcoal"));
+});
+
+test("a stored theme from the old list opens as its nearest current theme", async ({ page }) => {
+  await page.addInitScript((key) => localStorage.setItem(key, "blush"), THEME_STORAGE_KEY);
+  await openShell(page, "?theme=classic&w=800&h=700");
+  expect(await hostVar(page, "--kc-paper")).toBe(paper("pink"));
   await openSettings(page);
-  await expect(option(page, "Forest")).toBeChecked();
-  await tap(isMobile, option(page, "Auto"));
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("ivory"));
-  await page.evaluate(() => (document.documentElement.dataset.theme = "charcoal"));
-  await expect.poll(() => hostVar(page, "--kc-paper")).toBe(paper("charcoal"));
+  await expect(button(page)).toHaveAccessibleName("Theme Pastel Pink");
 });
 
 test("a theme change keeps the expressions, the view, the keypad and the open popover", async ({
   page,
   isMobile,
 }) => {
-  await openShell(page, `?w=800&h=600&rows=${enc(["y=x^2", "a=3", "(1,2)"])}`);
+  await openShell(page, `?w=800&h=700&rows=${enc(["y=x^2", "a=3", "(1,2)"])}`);
   await page.evaluate(() => {
     const c = globalThis.__shell!.handle.calculator;
     c.setMathBounds({ left: -4, right: 9, bottom: -3, top: 6 });
@@ -106,49 +161,49 @@ test("a theme change keeps the expressions, the view, the keypad and the open po
     });
   const before = await state();
   await openSettings(page);
-  for (const name of ["Charcoal", "Peach", "Classic"]) {
-    await tap(isMobile, option(page, name));
+  for (const name of ["Charcoal", "Dreamsicle", "Classic"]) {
+    await pick(page, isMobile, name);
     expect(await state()).toEqual(before);
   }
   await expect(page.getByRole("region", { name: "Graph Settings" })).toBeVisible();
 });
 
-test("on a 390 by 844 phone the Theme section fits the popover, every option is a tap target of 30 px or more, and a tap applies", async ({
+test("on a 390 by 844 phone the list fits the popover, every option is a tap target of 32 px or more, and a tap applies", async ({
   page,
   isMobile,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openShell(page);
   await openSettings(page);
-  const last = option(page, "Plum");
-  await last.evaluate((el) => el.closest("label")!.scrollIntoView({ block: "nearest" }));
-  const boxes = await group(page).evaluate((g) => {
-    const pop = g.closest(".kc-settings-body")!.getBoundingClientRect();
+  await tap(isMobile, button(page));
+  const boxes = await list(page).evaluate((l) => {
+    const pop = l.closest(".kc-settings-body")!.getBoundingClientRect();
+    const r = l.getBoundingClientRect();
     return {
-      pop: { left: pop.left, right: pop.right },
-      options: [...g.querySelectorAll("label")].map((l) => {
-        const r = l.getBoundingClientRect();
-        const name = l.querySelector<HTMLElement>(".kc-theme-name")!;
+      pop: { left: pop.left, right: pop.right, top: pop.top, bottom: pop.bottom },
+      list: { left: r.left, right: r.right, top: r.top, bottom: r.bottom },
+      options: [...l.querySelectorAll("[role=option]")].map((o) => {
+        const name = o.querySelector<HTMLElement>(".kc-theme-name")!;
         return {
-          left: r.left,
-          right: r.right,
-          height: r.height,
+          height: o.getBoundingClientRect().height,
           clipped: name.scrollWidth > name.clientWidth + 1,
         };
       }),
     };
   });
-  expect(boxes.pop.left).toBeGreaterThanOrEqual(0);
-  expect(boxes.pop.right).toBeLessThanOrEqual(390);
+  expect(boxes.list.left).toBeGreaterThanOrEqual(boxes.pop.left);
+  expect(boxes.list.right).toBeLessThanOrEqual(boxes.pop.right);
+  expect(boxes.list.top).toBeGreaterThanOrEqual(boxes.pop.top);
+  expect(boxes.list.bottom).toBeLessThanOrEqual(boxes.pop.bottom + 1);
   for (const o of boxes.options) {
-    expect(o.left).toBeGreaterThanOrEqual(boxes.pop.left);
-    expect(o.right).toBeLessThanOrEqual(boxes.pop.right);
-    expect(o.height).toBeGreaterThanOrEqual(30);
+    expect(o.height).toBeGreaterThanOrEqual(32);
     expect(o.clipped).toBe(false); // every name reads in full
   }
+  const last = option(page, "Ember");
+  await last.evaluate((el) => el.scrollIntoView({ block: "nearest" }));
   await tap(isMobile, last);
-  await expect(last).toBeChecked();
-  expect(await hostVar(page, "--kc-paper")).toBe(paper("plum"));
+  await expect(list(page)).toBeHidden();
+  expect(await hostVar(page, "--kc-paper")).toBe(paper("ember"));
 });
 
 test("with storage blocked the pick still applies for this calculator and nothing throws", async ({
@@ -163,10 +218,9 @@ test("with storage blocked the pick still applies for this calculator and nothin
       },
     });
   });
-  await openShell(page, "?skin=paper&theme=classic&w=800&h=600");
+  await openShell(page, "?skin=paper&theme=classic&w=800&h=700");
   expect(await hostVar(page, "--kc-paper")).toBe(paper("classic"));
   await openSettings(page);
-  await tap(isMobile, option(page, "Lavender"));
-  await expect(option(page, "Lavender")).toBeChecked();
+  await pick(page, isMobile, "Lavender");
   expect(await hostVar(page, "--kc-paper")).toBe(paper("lavender"));
 });

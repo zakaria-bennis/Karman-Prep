@@ -1,65 +1,79 @@
-// The settings popover's own controls, drawn to the reference calculator's measurements
-// (popovers-menus.md VIS-11 to VIS-19): a checkbox with a square box and a blue tick, an on/off
-// toggle, a segmented choice, the round grid-type buttons and their glyphs. Each wraps a native
-// input, so roles, names, keyboard behaviour and the checked state stay the browser's own.
+// The settings popover's own controls: an on/off switch (every on/off setting in the calculator
+// uses it, founder decision 2026-10-26), a labelled switch row, a segmented choice, the round
+// grid-type buttons and their glyphs. Each wraps a native input, so roles, names, keyboard
+// behaviour and the checked state stay the browser's own.
 
-import type { JSX, ReactNode, Ref } from "react";
+import { useId, type JSX, type ReactNode, type Ref } from "react";
 
-export interface SettingCheckProps {
-  label: string;
-  /** The accessible name when it differs from the visible label (e.g. "Show x-axis"). */
-  name?: string;
-  size?: "normal" | "small" | "axis" | "more";
-  checked: boolean;
-  onChange(checked: boolean): void;
-}
-
-/** VIS-11: our own tick, drawn past the box's top-right corner as the reference's is. */
-function TickGlyph(): JSX.Element {
-  return (
-    <svg className="kc-check-tick" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <path d="M3 10.8 9.2 16.2 18.8 4.8" />
-    </svg>
-  );
-}
-
-/** A checkbox named by the <label> around it (or by `name`). */
-export function SettingCheck(props: SettingCheckProps): JSX.Element {
-  return (
-    <label className="kc-check" data-size={props.size ?? "normal"}>
-      <span className="kc-check-box">
-        <input
-          type="checkbox"
-          aria-label={props.name}
-          checked={props.checked}
-          onChange={(event) => props.onChange(event.currentTarget.checked)}
-        />
-        <TickGlyph />
-      </span>
-      <span className="kc-check-text">{props.label}</span>
-    </label>
-  );
-}
-
-/** VIS-14: a 30 by 10 track with an 18 px knob that slides 12 px when on. */
-export function SettingToggle(props: {
+export interface SettingToggleProps {
+  /** The accessible name (a labelled row names the switch by its visible label instead). */
   name: string;
   checked: boolean;
   onChange(checked: boolean): void;
   inputRef?: Ref<HTMLInputElement>;
-}): JSX.Element {
+  id?: string;
+  /** The ids of text that describes the switch (a row's hint). */
+  describedBy?: string;
+}
+
+/**
+ * The on/off switch, drawn after the platform switch: a 36 by 22 track that fills with the accent
+ * when on, and a round thumb that springs across (settings-switch.css). It is a native checkbox,
+ * so Space toggles it and screen readers hear its state.
+ */
+export function SettingToggle(props: SettingToggleProps): JSX.Element {
   return (
-    <label className="kc-toggle">
+    <span className="kc-toggle">
       <input
         ref={props.inputRef}
+        id={props.id}
         type="checkbox"
-        aria-label={props.name}
+        aria-label={props.id === undefined ? props.name : undefined}
+        aria-describedby={props.describedBy}
         checked={props.checked}
         onChange={(event) => props.onChange(event.currentTarget.checked)}
       />
       <span className="kc-toggle-track" aria-hidden="true" />
       <span className="kc-toggle-knob" aria-hidden="true" />
-    </label>
+    </span>
+  );
+}
+
+/**
+ * A setting's row: its label on the left (a press anywhere on it flips the switch), an optional
+ * help button beside it, the switch on the right, and an optional hint under the label.
+ */
+export function SettingSwitchRow(props: {
+  label: string;
+  checked: boolean;
+  onChange(checked: boolean): void;
+  hint?: ReactNode;
+  help?: ReactNode;
+  size?: "normal" | "small";
+}): JSX.Element {
+  const id = useId();
+  const hintId = props.hint === undefined ? undefined : `${id}-hint`;
+  return (
+    <div className="kc-switch-row" data-size={props.size ?? "normal"}>
+      <div className="kc-switch-head">
+        <label className="kc-switch-label" htmlFor={id}>
+          {props.label}
+        </label>
+        {props.help}
+        <SettingToggle
+          id={id}
+          name={props.label}
+          checked={props.checked}
+          onChange={props.onChange}
+          describedBy={hintId}
+        />
+      </div>
+      {props.hint !== undefined && (
+        <p className="kc-switch-hint" id={hintId}>
+          {props.hint}
+        </p>
+      )}
+    </div>
   );
 }
 

@@ -4,7 +4,7 @@
 // "classic" when no site theme applies; any other choice (the student's theme picker, or the
 // host's default, Classic on /calculator) keeps that skin whatever the site theme is. setChoice
 // switches at once. A prefers-contrast or forced-colors change keeps the skin and bumps `revision`
-// by one, so the shell re-applies its roles and repaints without toggling Reverse contrast (S-4).
+// by one, so the shell re-applies its roles and repaints (S-4).
 // The OS colour scheme plays no part.
 
 import { skinForChoice, type ThemeChoice } from "@/lib/calculator/theme/choice";

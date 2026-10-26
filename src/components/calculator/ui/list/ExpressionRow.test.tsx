@@ -61,7 +61,7 @@ it("R-1 the colour icon shows the row colour and a wave or point kind glyph and 
   });
   const tab = screen.getByRole("button", { name: "Hide: Expression 1" });
   expect(tab).toHaveAttribute("data-kind", "wave");
-  const { hex } = resolveRowColor(kit.engine.getSnapshot().rows[0].color, "ivory");
+  const { hex } = resolveRowColor(kit.engine.getSnapshot().rows[0].color, "white");
   expect(tab.style.getPropertyValue("--kc-row-color")).toBe(hex);
   expect(screen.getByRole("button", { name: "Hide: Expression 2" })).toHaveAttribute(
     "data-kind",

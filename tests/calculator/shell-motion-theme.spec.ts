@@ -79,7 +79,7 @@ test("AR-38 CSS transitions and keyframes stop under prefers-reduced-motion and 
   await page.waitForTimeout(300);
   expect(await keypad.boundingBox()).toEqual(first);
 });
-test("TH-15 site theme (light to dark), contrast and forced-colour changes repaint within one frame with no remount and no lost rows; prefers-contrast never toggles Reverse contrast; with no site theme the calculator is classic whatever the colour scheme", async ({
+test("TH-15 site theme (light to dark), contrast and forced-colour changes repaint within one frame with no remount and no lost rows; with no site theme the calculator is classic whatever the colour scheme", async ({
   page,
 }) => {
   await page.addInitScript(recordStrokes);
@@ -87,7 +87,7 @@ test("TH-15 site theme (light to dark), contrast and forced-colour changes repai
   await rowField(page, "2").click();
   await page.evaluate(markLayoutNode); // sets a property on [data-kc-layout] that a remount would lose
   const after = await page.evaluate(setThemeAndWait, "observatory");
-  const roles = SKIN_COLORS.observatory.normal.roles;
+  const roles = SKIN_COLORS.observatory.normal.roles; // the site's Observatory is the calculator's
   expect([after.strokes.includes(roles.axis.toLowerCase()), after.paper]).toEqual([
     true,
     roles.paper.toLowerCase(),
@@ -100,10 +100,7 @@ test("TH-15 site theme (light to dark), contrast and forced-colour changes repai
   const s0 = (await strokes(page)).length;
   await page.emulateMedia({ contrast: "more" });
   await frames(page);
-  expect([
-    (await strokes(page)).length > s0,
-    await page.evaluate(() => globalThis.__calculatorHarness!.engine.settings.reverseContrast),
-  ]).toEqual([true, false]);
+  expect((await strokes(page)).length).toBeGreaterThan(s0);
   const s1 = (await strokes(page)).length;
   await page.emulateMedia({ forcedColors: "active" });
   await frames(page);
