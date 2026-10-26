@@ -326,14 +326,14 @@ export default function QuestionTable({
           )}
         />
       </div>
+      {/* The transfer control's item is the element just before it (TransferControl): the
+          table's frame, so hovering the table shows the control at its top right (TR-46). */}
       {calculator && (
-        <div className={`border-t ${RULE} px-4 py-2`}>
-          <CalculatorTableAction
-            rows={rows}
-            headers={header_row ?? undefined}
-            itemId={calculatorItemId}
-          />
-        </div>
+        <CalculatorTableAction
+          rows={rows}
+          headers={header_row ?? undefined}
+          itemId={calculatorItemId}
+        />
       )}
     </figure>
   );

@@ -1,5 +1,6 @@
 // The executor's units of work (AR-47, AR-48, AR-54, API-10): one values pass (analyzeRows then
-// evaluateRows under per-row 250 ms deadlines), one row's plot, one helper job. Errors become
+// evaluateRows under per-row deadlines: 250 ms, a regression's fit longer), one row's plot, one
+// helper job. Errors become
 // `fault` messages and UNDEFINED values, never throws. Pure TypeScript: no DOM (AR-44).
 
 import {
@@ -11,6 +12,7 @@ import {
 import {
   DeadlineExceeded,
   POI_DEADLINE_MS,
+  REGRESSION_DEADLINE_MS,
   ROW_VALUE_DEADLINE_MS,
   type Deadline,
 } from "../core/deadline";
@@ -66,12 +68,23 @@ function postFault(ctx: PassContext, thrown: unknown): void {
   ctx.post({ v: 1, type: "fault", generation: ctx.generation, message });
 }
 
+/** AR-48: a regression row, typed or a table's, whose fit gets REGRESSION_DEADLINE_MS. */
+function fitsRegression(analysis: AnalysisResult, rowId: string): boolean {
+  const row = analysis.byId.get(rowId);
+  return row?.regression !== undefined || (row?.kind === "table" && row.table?.regression != null);
+}
+
 /**
- * One evaluation round's `deadlineFor`: the first call for a row id starts its 250 ms deadline
- * (AR-48), whose expiry adds the row to `overrun`, and posts `begin`; later calls for that id in
- * the same round return the same deadline and post nothing.
+ * One evaluation round's `deadlineFor`: the first call for a row id starts its deadline (AR-48:
+ * 250 ms for a row value, REGRESSION_DEADLINE_MS for a regression row's fit), whose expiry adds
+ * the row to `overrun`, and posts `begin`; later calls for that id in the same round return the
+ * same deadline and post nothing.
  */
-function roundDeadlines(ctx: PassContext, overrun: Set<string>): (rowId: string) => Deadline {
+function roundDeadlines(
+  ctx: PassContext,
+  overrun: Set<string>,
+  analysis: AnalysisResult
+): (rowId: string) => Deadline {
   const cache = new Map<string, Deadline>();
   return (rowId) => {
     const cached = cache.get(rowId);
@@ -79,7 +92,7 @@ function roundDeadlines(ctx: PassContext, overrun: Set<string>): (rowId: string)
     const deadline = createWorkDeadline({
       clock: ctx.clock,
       now: ctx.now,
-      limitMs: ROW_VALUE_DEADLINE_MS,
+      limitMs: fitsRegression(analysis, rowId) ? REGRESSION_DEADLINE_MS : ROW_VALUE_DEADLINE_MS,
       rowId,
       onExpire: () => overrun.add(rowId),
     });
@@ -121,7 +134,7 @@ export function runValuesPass(
         table: (rowId, table) => tables.set(rowId, table),
         regression: (rowId, result) => regressions.set(rowId, result),
       };
-      values = fns.evaluateRows(analysis, settings, roundDeadlines(ctx, overrun), sink);
+      values = fns.evaluateRows(analysis, settings, roundDeadlines(ctx, overrun, analysis), sink);
       break;
     } catch (thrown) {
       if (thrown instanceof DeadlineExceeded && thrown.rowId !== null) {

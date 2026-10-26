@@ -36,6 +36,7 @@ export type RowErrorCode =
   | "equation-required" // an expression in x and y, or that is only a name: needs `y=` or `=`
   | "reserved-name"
   | "arity"
+  | "prime-arity" // FN-63: a prime on a function of other than one argument, `g'(1,2)`
   | "point-coordinates"
   | "mixed-variables"
   | "polar-variable"

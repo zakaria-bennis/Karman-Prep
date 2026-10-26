@@ -30,5 +30,12 @@ export const NO_DEADLINE: Deadline = Object.freeze({
 });
 
 export const ROW_VALUE_DEADLINE_MS = 250; // AR-48
-export const REGRESSION_DEADLINE_MS = 1000;
+/**
+ * AR-48, amended 2026-10-25: a regression row's fit keeps going, as Desmos's does (it never shows
+ * "took too long" for a question-bank fit); the fit runs in the worker, so typing never waits on
+ * it, every model evaluation checks this budget (heartbeats keep the AR-49 watchdog quiet), and a
+ * newer edit's generation replaces its result. The budget only stops a runaway fit: a two-parameter
+ * fit that takes 150 ms on a laptop (b27B) can pass 1 s on a slow phone.
+ */
+export const REGRESSION_DEADLINE_MS = 15_000;
 export const POI_DEADLINE_MS = 500;

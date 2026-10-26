@@ -9,7 +9,7 @@
 // element with `T[k]`, folded once when it uses no coordinate. Pure TypeScript: no DOM (AR-44).
 
 import { NO_DEADLINE } from "../deadline";
-import { sourceChildren, type Node, type RelOp, type SourceSpan } from "../latex/ast";
+import { sourceChildren, withChildren, type Node, type RelOp, type SourceSpan } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { POINT_FUNCTIONS } from "../lib/geometry";
@@ -242,52 +242,4 @@ function usesCoordinates(tree: Node, ctx: Context): boolean {
     pending.push(...sourceChildren(n));
   }
   return false;
-}
-
-/** `node` with its sourceChildren replaced by `kids`, in sourceChildren's order. */
-function withChildren(node: Node, kids: readonly Node[]): Node {
-  switch (node.kind) {
-    case "num":
-    case "id":
-    case "const":
-      return node;
-    case "add":
-    case "sub":
-    case "mul":
-    case "div":
-    case "pow":
-    case "sim":
-      return { ...node, left: kids[0], right: kids[1] };
-    case "neg":
-    case "pct":
-    case "fact":
-    case "abs":
-      return { ...node, arg: kids[0] };
-    case "root":
-      return node.index === null
-        ? { ...node, arg: kids[0] }
-        : { ...node, index: kids[0], arg: kids[1] };
-    case "call":
-      return { ...node, args: [...kids] };
-    case "point":
-      return { ...node, x: kids[0], y: kids[1] };
-    case "rel":
-      return { ...node, operands: [...kids] };
-    case "list":
-      return { ...node, items: [...kids] };
-    case "index":
-      return { ...node, target: kids[0], items: kids.slice(1) };
-    case "piecewise": {
-      let at = 0;
-      const branches = node.branches.map(({ value }) => {
-        const cond = kids[at++] as Extract<Node, { kind: "rel" }>;
-        return { cond, value: value === null ? null : kids[at++] };
-      });
-      return { ...node, branches, otherwise: node.otherwise === null ? null : kids[at] };
-    }
-    case "for": {
-      const bindings = node.bindings.map((b, k) => ({ ...b, list: kids[k + 1] }));
-      return { ...node, body: kids[0], bindings };
-    }
-  }
 }

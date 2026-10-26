@@ -14,10 +14,10 @@ it("POI-TRACE-12 a dot is hit within 12 px on a mouse and 22 px on touch", () =>
   expect(POI_HIT_PX).toEqual({ fine: 12, coarse: 22 });
   expect(hitPoi(P, VIEW, [400, 380 + 12], "fine")).toBe(0);
   expect(hitPoi(P, VIEW, [400, 380 + 13], "fine")).toBeNull();
-  // A pointer event's float32 clientY: 12 px reads as 12.0000122 and still hits, as on Desmos.
-  expect(hitPoi(P, VIEW, [400, 380 + Math.fround(12.2) - 0.2], "fine")).toBe(0);
-  expect(hitPoi(P, VIEW, [400, 380 + 21.5], "coarse")).toBe(0);
-  expect(hitPoi(P, VIEW, [400, 380 + 22], "coarse")).toBeNull(); // short of 22 on touch
+  // Up to and including the reach, as on Desmos (live 2026-10-25): 12.00001 px misses.
+  expect(hitPoi(P, VIEW, [400, 380 + 12.00001], "fine")).toBeNull();
+  expect(hitPoi(P, VIEW, [400, 380 + 22], "coarse")).toBe(0);
+  expect(hitPoi(P, VIEW, [400, 380 + 22.00001], "coarse")).toBeNull();
   expect(hitPoi(P, VIEW, [400 + 23, 380], "coarse")).toBeNull();
   expect(hitPoi([], VIEW, [400, 380], "fine")).toBeNull();
 });
@@ -33,9 +33,9 @@ it("POI-TRACE-21 a press within 10 px (20 on touch) of a branch hits the nearest
   expect(hitBranch(rows, VIEW, [200, 303], "fine")).toBe("1");
   expect(hitBranch(rows, VIEW, [200, 310], "fine")).toBe("1");
   expect(hitBranch(rows, VIEW, [200, 311], "fine")).toBeNull();
-  expect(hitBranch(rows, VIEW, [200, 300 + Math.fround(10.2) - 0.2], "fine")).toBe("1");
-  expect(hitBranch(rows, VIEW, [200, 319.5], "coarse")).toBe("1");
-  expect(hitBranch(rows, VIEW, [200, 320], "coarse")).toBeNull(); // short of 20 on touch
+  expect(hitBranch(rows, VIEW, [200, 310.00001], "fine")).toBeNull();
+  expect(hitBranch(rows, VIEW, [200, 320], "coarse")).toBe("1"); // 20 px on touch still hits
+  expect(hitBranch(rows, VIEW, [200, 320.00001], "coarse")).toBeNull();
   const vertical = [{ rowId: "3", branches: [{ independent: "y" as const, f: () => 5 }] }];
   expect(hitBranch(vertical, VIEW, [606, 50], "fine")).toBe("3");
   expect(hitBranch([{ rowId: "4", branches: [] }], VIEW, [200, 300], "fine")).toBeNull();
@@ -89,4 +89,26 @@ it("POI-TRACE-12 within 4.75 px the higher kind of dot opens, as on Desmos", () 
     hitPoi([dot(0, -2, ["extremum"]), dot(0.05, -2, ["intersection"])], VIEW, at, "fine")
   ).toBe(1);
   expect(hitPoi([dot(0.05, -2, ["zero"]), dot(0, -2, ["zero"])], VIEW, at, "fine")).toBe(1);
+});
+
+it("POI-TRACE-12 among intersections within 4.75 px, the later row's opens, as on Desmos", () => {
+  // live 2026-10-25, y=0 selected with x=0.05 and x=-0.08 before it, pressed 1 px from (0.05, 0):
+  // (−0.08, 0) 4.2 px away opens; with the two vertical rows swapped, (0.05, 0)
+  const VIEW20: ViewSpec = {
+    viewport: { left: -10, right: 10, bottom: -10, top: 10 },
+    size: { width: 800, height: 800 },
+    dpr: 1,
+  };
+  const meet = (x: number, withRowId: string) => ({
+    x,
+    y: 0,
+    kinds: ["intersection" as const],
+    withRowId,
+  });
+  const order = (ids: string[]) => (id: string) => ids.indexOf(id);
+  const points = [meet(-0.08, "b"), meet(0.05, "a")];
+  expect(hitPoi(points, VIEW20, [401, 400], "fine", order(["a", "b", "y"]))).toBe(0);
+  expect(hitPoi(points, VIEW20, [401, 400], "fine", order(["b", "a", "y"]))).toBe(1);
+  // beyond 4.75 px only the nearer is on it
+  expect(hitPoi(points, VIEW20, [397, 400], "fine", order(["b", "a", "y"]))).toBe(0);
 });

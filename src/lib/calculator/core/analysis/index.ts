@@ -16,6 +16,7 @@ import {
   type RegressionAnalysis,
   type RegressionPlan,
 } from "../data/regression-analysis";
+import { primedCalls, withDerivatives } from "../eval/derivative";
 import { normalizeLatex } from "../latex/index";
 import { arityError, classifyRow } from "./classify";
 import { distributionProblem } from "./distributions";
@@ -173,6 +174,12 @@ export function analyzeRows(
     if (functions.has(name)) return;
     functions.set(name, { name, params, body: head.body, rowId: id });
   });
+  // PR-28: each derivative a row calls, `f'`, as a definition of its own
+  const primed = new Set<string>();
+  for (const row of all) if (row.tree !== null) primedCalls(row.tree, primed);
+  for (const { tree } of tables.flatMap(({ table }) => [...table.headers, ...table.cells.flat()]))
+    if (tree !== null) primedCalls(tree, primed);
+  withDerivatives(functions, primed, settings.angleMode);
   return {
     rows: analysed.slice(0, parsed.length),
     byId: new Map(analysed.map((row) => [row.id, row])),

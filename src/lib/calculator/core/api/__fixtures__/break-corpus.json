@@ -6501,11 +6501,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 1 }
-    ],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "graph": true, "shown": false }, { "error": "This notation isn't supported." }]
-    }
+    ]
   },
   {
     "cat": "arity",
@@ -6513,11 +6509,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": true, "shown": false }
-    ],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "graph": true, "shown": false }, { "error": "This notation isn't supported." }]
-    }
+    ]
   },
   {
     "cat": "arity",
@@ -6525,11 +6517,7 @@
     "desmos": [
       { "graph": true, "shown": false },
       { "graph": false, "shown": true, "value": 2 }
-    ],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "graph": true, "shown": false }, { "error": "This notation isn't supported." }]
-    }
+    ]
   },
   {
     "cat": "arity",

@@ -126,6 +126,7 @@ const DESMOS: Readonly<Record<RowErrorCode, string>> = {
   "point-3d": "This calculator cannot plot a 3d point.",
   "percent-of": "'%' must be used with 'of'. Try '25% of 12'.",
   "prime-use": "Sorry, I don't understand this use of prime notation.",
+  "prime-arity": "Prime notation can only be used for functions of a single argument.",
   "equality-here": "Cannot use an equality here.",
   "inequality-here": "Cannot use an inequality here.",
   "prime-superscript": "Superscripts and primes cannot be combined.",

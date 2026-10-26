@@ -20,17 +20,12 @@ export const POI_HIT_PX: Readonly<Record<Pointer, number>> = Object.freeze({
 });
 
 /**
- * Pointer events carry float32 coordinates, so a pointer exactly 12 px from a dot reads as
- * 12.0000122 px; Desmos still counts that as a hit (12 px hits, 13 px misses), and so do we.
+ * The farthest a hit may be: up to and including the reach, for a mouse and a finger alike (live
+ * Desmos 2026-10-25, a dot on a whole pixel: 12 px from a mouse hits and 12.00001 px misses, 22 px
+ * from a finger hits and 22.00001 px misses; a curve 10 px from a mouse and 20 px from a finger is
+ * hit). The slack only absorbs rounding in the dot's own pixel position.
  */
-const SLACK_PX = 1e-3;
-
-/**
- * The farthest a hit may be: up to and including the reach for a mouse, short of it for a finger
- * (the reference hits a curve 19.5 px from a touch but not 20, and a dot at 21.5 but not 22).
- */
-export const hitLimit = (reach: number, pointer: Pointer): number =>
-  pointer === "fine" ? reach + SLACK_PX : reach - SLACK_PX;
+export const hitLimit = (reach: number): number => reach + 1e-9;
 
 /**
  * A press this near a branch or a dot is on it. Desmos then picks the last such row in list order,
@@ -47,27 +42,42 @@ const rank = (p: { kinds?: readonly PoiKind[] }): number =>
 /**
  * The index of the dot to open for a press at `at`: among dots within ON_CURVE_PX, the highest
  * kind (Desmos, live 2026-10-25: pressed right on an intercept, an intersection or extremum 4.7 px
- * away opens instead, a zero 4 px away does not; 5 px away the nearest opens), the nearest of
- * those; else the dot nearest `at` within the hit radius; else null.
+ * away opens instead, a zero 4 px away does not; 5 px away the nearest opens); among intersections
+ * there, the one with the row latest in the list (`rowOrder`; `x=0.05`, `x=-0.08`, `y=0` with
+ * `y=0` selected, pressed 1 px from (0.05, 0), opens (−0.08, 0) 4.2 px away; with the vertical
+ * rows swapped, (0.05, 0)); then the nearest. Else the dot nearest `at` within the hit radius;
+ * else null.
  */
 export function hitPoi(
-  points: readonly (Pick<PoiPoint, "x" | "y"> & { kinds?: readonly PoiKind[] })[],
+  points: readonly (Pick<PoiPoint, "x" | "y"> & {
+    kinds?: readonly PoiKind[];
+    withRowId?: string | null;
+  })[],
   view: ViewSpec,
   at: Point,
-  pointer: Pointer
+  pointer: Pointer,
+  rowOrder: (rowId: string) => number = () => 0
 ): number | null {
+  const order = (p: (typeof points)[number]) =>
+    p.withRowId === undefined || p.withRowId === null ? -1 : rowOrder(p.withRowId);
+  // [rank, row order, −distance]: the larger wins
+  const key = (p: (typeof points)[number], d: number) => [rank(p), order(p), -d];
+  const beats = (a: number[], b: number[]) => {
+    for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) return a[k] > b[k];
+    return true; // a later dot wins a full tie
+  };
   let best: number | null = null,
-    bestDistance = hitLimit(POI_HIT_PX[pointer], pointer),
+    bestDistance = hitLimit(POI_HIT_PX[pointer]),
     on: number | null = null,
-    onDistance = Infinity;
+    onKey: number[] = [];
   points.forEach((p, i) => {
     const [x, y] = worldToPx(view, p.x, p.y);
     const d = Math.hypot(x - at[0], y - at[1]);
     if (d <= ON_CURVE_PX) {
-      const higher = on === null || rank(p) > rank(points[on]);
-      if (higher || (rank(p) === rank(points[on!]) && d <= onDistance)) {
+      const k = key(p, d);
+      if (on === null || beats(k, onKey)) {
         on = i;
-        onDistance = d;
+        onKey = k;
       }
     }
     if (d <= bestDistance) {
@@ -96,7 +106,7 @@ export function hitBranch(
 ): string | null {
   let best: string | null = null,
     on: string | null = null,
-    bestDistance = hitLimit(CURVE_HIT_PX[pointer], pointer);
+    bestDistance = hitLimit(CURVE_HIT_PX[pointer]);
   for (const row of rows) {
     for (const b of row.branches) {
       const d = branchDistance(b, view, at);

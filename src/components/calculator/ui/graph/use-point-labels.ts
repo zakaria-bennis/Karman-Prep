@@ -39,7 +39,7 @@ export function hitDrawnPoint(
   pointer: Pointer
 ): LabelPoint | null {
   let best: LabelPoint | null = null,
-    bestDistance = hitLimit(CURVE_HIT_PX[pointer], pointer); // 10 px mouse, 20 touch
+    bestDistance = hitLimit(CURVE_HIT_PX[pointer]); // 10 px mouse, 20 touch
   for (const p of drawnPoints(rows)) {
     const [x, y] = worldToPx(view, p.x, p.y);
     const d = Math.hypot(x - at[0], y - at[1]);

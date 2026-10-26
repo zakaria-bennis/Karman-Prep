@@ -192,22 +192,29 @@ export function fitRegression(input: FitInput): RegressionResult {
       const starts = STARTS.map((v) => new Float64Array(k).fill(v));
       if (logFit !== null) starts.push(logParams(logForm!, k, logFit));
       const exact = EXACT_SSE * (1 + y.reduce((acc, v) => acc + v * v, 0));
-      let best: ReturnType<typeof fitNonlinear> | null = null;
-      for (const start of starts) {
-        const fit = fitNonlinear(model, y, start);
-        if (Number.isFinite(fit.sse) && (best === null || fit.sse < best.sse)) best = fit;
-      }
-      // A system or equation fitted whole (list-fit.ts): the multi-start search wins when it fits
-      // better by more than rounding, so `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 as in Desmos,
-      // while the standard starts keep a root as good: 17/6 for `\left|a+2\right|+2\sim
-      // \left|5a-19\right|+2` (not 21/4), and b > 0 for `y_1\sim ab^{x_1}` on x = 0, 2, 4, where
-      // b and -b fit alike (live 2026-10-25).
-      const wide = input.multiStart === true ? fitMultiStart(model, y, k) : null;
-      if (
+      // The first start, in order, whose fit is as good as the best within rounding (b > 0 for
+      // `y_1\sim ab^{x_1}` on x = 0, 2, 4, where b and −b fit alike).
+      const fits = starts.map((start) => fitNonlinear(model, y, start));
+      const least = Math.min(...fits.map((f) => (Number.isFinite(f.sse) ? f.sse : Infinity)));
+      const best = Number.isFinite(least)
+        ? (fits.find((f) => f.sse <= least * (1 + TIE) + exact) ?? null)
+        : null;
+      // A system or equation fitted whole (list-fit.ts), as live Desmos (2026-10-25): an exact
+      // fit from the start 1 stands, so two exact roots give the one reached from 1 (2.25 for
+      // `4a^2-a\sim18`, 1.3 for `a^2-1.2a\sim0.13`, 17/6 for `\left|a+2\right|+2\sim
+      // \left|5a-19\right|+2`); otherwise the multi-start search wins unless it fits worse, so
+      // `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 and `(a-1)^2\sim16`, which stalls at 1, gives 5.
+      const fromOne = fits[0];
+      const wide =
+        input.multiStart === true && !(fromOne.sse <= exact) ? fitMultiStart(model, y, k) : null;
+      if (input.multiStart === true && fromOne.sse <= exact) {
+        p = fromOne.params;
+        approximate = !fromOne.converged;
+      } else if (
         wide !== null &&
         Number.isFinite(wide.sse) &&
         wide.params.every(Number.isFinite) &&
-        (best === null || wide.sse < best.sse * (1 - TIE) - exact)
+        (best === null || wide.sse <= best.sse * (1 + TIE) + exact)
       ) {
         p = wide.params;
       } else {

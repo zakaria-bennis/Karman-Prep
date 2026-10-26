@@ -1,6 +1,6 @@
 // Reserved names (RC-3) and the names a parse tree uses. Pure TypeScript: no DOM (AR-44).
 
-import { sourceChildren, type Node, type SourceSpan } from "../latex/ast";
+import { primedName, sourceChildren, type Node, type SourceSpan } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import type { AnalysisSettings } from "./index";
 
@@ -44,7 +44,7 @@ export function lengthShaping(node: Node): readonly Node[] {
 
 /**
  * Every use of a name in `tree`: each `id`, and each `call` of a non-built-in name (a pre-scanned
- * user function, PR-23) with `call: true`; a member after a dot (`D.pleft`, PR-45) names nothing. Sorted by `span.start`; ties keep tree order, a node
+ * user function, PR-23, or its derivative `f'`, a use of f) with `call: true`; a member after a dot (`D.pleft`, PR-45) names nothing. Sorted by `span.start`; ties keep tree order, a node
  * before its children. Iterative, so a deep tree cannot overflow the stack.
  */
 export function collectNameUses(tree: Node): NameUse[] {
@@ -56,7 +56,9 @@ export function collectNameUses(tree: Node): NameUse[] {
     if (node.kind === "id" && !local.has(node.name)) {
       uses.push({ name: node.name, span: node.span, call: false, inPoint, counted });
     } else if (node.kind === "call" && !isBuiltinName(node.name) && node.member === undefined) {
-      uses.push({ name: node.name, span: node.span, call: true, inPoint, counted });
+      // PR-28: a derivative's call `f'(x)` uses f
+      const name = primedName(node.name)?.base ?? node.name;
+      uses.push({ name, span: node.span, call: true, inPoint, counted });
     }
     const below = inPoint || node.kind === "point";
     const counts = counted || (node.kind === "call" && COUNTING_NAMES.has(node.name));

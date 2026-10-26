@@ -95,7 +95,7 @@ function meetings(b: PoiBranch, o: PoiBranch, view: ViewSpec): [number, number][
     b.independent === o.independent
       ? (t: number) => b.f(t) - o.f(t)
       : (t: number) => t - o.f(b.f(t));
-  return findRoots(d, s, true).flatMap((t) => {
+  return findRoots(d, s, (t) => b.f(t)).flatMap((t) => {
     const v = b.f(t);
     return isNum(v) ? [pointOf(b, t, v)] : [];
   });

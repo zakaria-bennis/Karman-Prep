@@ -102,7 +102,8 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
     (at: readonly [number, number], pointer: Pointer, view: ViewSpec): boolean => {
       const s = engine.getSnapshot();
       const own = selectedPoints(s);
-      const index = hitPoi(own, view, at, pointer);
+      const order = new Map(s.rows.map((r, i) => [r.id, i]));
+      const index = hitPoi(own, view, at, pointer, (id) => order.get(id) ?? -1);
       if (index === null || s.selectedRowId === null) return false;
       dispatch({ type: "toggle", rowId: s.selectedRowId, revision: s.revision, point: own[index] });
       return true;
@@ -121,7 +122,8 @@ export function usePoiLabels(snapshot: EngineSnapshot, engine: CalculatorEngine)
         return;
       }
       const own = selectedPoints(s);
-      const index = hitPoi(own, view, at, "fine");
+      const order = new Map(s.rows.map((r, i) => [r.id, i]));
+      const index = hitPoi(own, view, at, "fine", (id) => order.get(id) ?? -1);
       dispatch({ type: "hover", ...ctx, point: index === null ? null : own[index] });
     },
     [engine]

@@ -73,6 +73,12 @@ export type Node =
   // fastest; the names are local to the body. `brackets`: written inside `[…]`.
   | { kind: "for"; body: Node; bindings: Binding[]; brackets: boolean; span: SourceSpan };
 
+/** PR-28: a derivative's call name, `f''`, split into the function and its prime count. */
+export function primedName(name: string): { base: string; primes: number } | null {
+  const m = /^(.*?)('+)$/.exec(name);
+  return m === null || m[1] === "" ? null : { base: m[1], primes: m[2].length };
+}
+
 export const isAxis = (name: string): name is Axis => name === "x" || name === "y" || name === "z";
 
 /** PR-45, NM-32: the axis a coordinate member `P.x` reads, else null. */
@@ -121,6 +127,54 @@ export function sourceChildren(node: Node): readonly Node[] {
       ];
     case "for":
       return [node.body, ...node.bindings.map((b) => b.list)];
+  }
+}
+
+/** `node` with its sourceChildren replaced by `kids`, in sourceChildren's order. */
+export function withChildren(node: Node, kids: readonly Node[]): Node {
+  switch (node.kind) {
+    case "num":
+    case "id":
+    case "const":
+      return node;
+    case "add":
+    case "sub":
+    case "mul":
+    case "div":
+    case "pow":
+    case "sim":
+      return { ...node, left: kids[0], right: kids[1] };
+    case "neg":
+    case "pct":
+    case "fact":
+    case "abs":
+      return { ...node, arg: kids[0] };
+    case "root":
+      return node.index === null
+        ? { ...node, arg: kids[0] }
+        : { ...node, index: kids[0], arg: kids[1] };
+    case "call":
+      return { ...node, args: [...kids] };
+    case "point":
+      return { ...node, x: kids[0], y: kids[1] };
+    case "rel":
+      return { ...node, operands: [...kids] };
+    case "list":
+      return { ...node, items: [...kids] };
+    case "index":
+      return { ...node, target: kids[0], items: kids.slice(1) };
+    case "piecewise": {
+      let at = 0;
+      const branches = node.branches.map(({ value }) => {
+        const cond = kids[at++] as Extract<Node, { kind: "rel" }>;
+        return { cond, value: value === null ? null : kids[at++] };
+      });
+      return { ...node, branches, otherwise: node.otherwise === null ? null : kids[at] };
+    }
+    case "for": {
+      const bindings = node.bindings.map((b, k) => ({ ...b, list: kids[k + 1] }));
+      return { ...node, body: kids[0], bindings };
+    }
   }
 }
 

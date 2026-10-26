@@ -73,11 +73,12 @@ function errorMessage({ latex, rows, settings }: Case): string | undefined {
   return (row.error ?? chipsError(row))?.message; // a row's undefined names speak as in the list
 }
 
-// Cases not yet matched, each an expected failure that fails once matched: derivatives, integrals,
-// sums and products; complex mode ignoring the degree setting for a real argument. The degree
-// sign matches: Desmos reads `\circ` and `\degree` as names (PR-8, owner decision 2026-10-21).
+// Cases not yet matched, each an expected failure that fails once matched: d/dx (prime notation
+// has shipped, PR-28), integrals, sums and products; complex mode ignoring the degree setting for
+// a real argument. The degree sign matches: Desmos reads `\circ` and `\degree` as names (PR-8,
+// owner decision 2026-10-21).
 const GAPS: readonly RegExp[] = [
-  /\\frac\{d\}|'/,
+  /\\frac\{d\}/,
   /\\int|\\sum|\\prod/,
   /^\[complex\+deg\] \\(?!arcsin\(2\)$)[a-z]+\([0-9.,]+\)$/,
 ];

@@ -139,6 +139,7 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "point-3d": "3D points can't be plotted.",
   "percent-of": "Use % with 'of', like 25% of 12.",
   "prime-use": "Prime notation can't be used this way.",
+  "prime-arity": "Prime notation works only on functions of one input.",
   "equality-here": "An equation can't go here.",
   "inequality-here": "An inequality can't go here.",
   "prime-superscript": "Can't combine a prime and an exponent.",

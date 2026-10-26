@@ -109,3 +109,76 @@ it("API-4 rows set after every row is removed come in their own order, as on Des
   );
   expect(m.engine.getExpressions().map(({ id }) => id)).toEqual(["1", "2", "3"]);
 });
+
+it("REGRESSION-10 two exact roots: the one reached from 1 wins, as on Desmos (b38B)", async () => {
+  // live 2026-10-25: 4a²−a~18 gives 2.25, a²−a~6 gives 3, 3a²+a~2 gives 2/3, a²−1.2a~0.13
+  // gives 1.3; where 1 stalls (the slope is 0 there) the multi-start search decides: a²−2a~3
+  // gives −1, (a−1)²~9 gives −2 and (a−1)²~16 gives 5
+  const cases: [string, number][] = [
+    ["4a^2-a\\sim18", 2.25],
+    ["a^2-a\\sim6", 3],
+    ["3a^2+a\\sim2", 2 / 3],
+    ["a^2-1.2a\\sim0.13", 1.3],
+    ["\\left|2a-1\\right|\\sim5", 3],
+    ["a^2-2a\\sim3", -1],
+    ["\\left(a-1\\right)^2\\sim9", -2],
+    ["\\left(a-1\\right)^2\\sim16", 5],
+  ];
+  for (const [latex, a] of cases) expect((await run([latex])).param(0, "a")).toBeCloseTo(a, 9);
+});
+
+it("PR-28, FN-63 prime notation: f'(b)~1 fits b = 4 and f', f'' evaluate (b116B)", async () => {
+  const { param, value } = await run([
+    "f(x)=2x^2-15x+23",
+    "f'(b)\\sim1",
+    "f'(4)",
+    "f''(4)",
+    "y=f'(x)",
+    "g(x,y)=x+y",
+    "g'(1,2)",
+  ]);
+  expect(param(1, "b")).toBe(4);
+  expect(value(2).evaluation).toEqual({ type: "number", value: 1 });
+  expect(value(3).evaluation).toEqual({ type: "number", value: 4 });
+  expect(value(4)).toMatchObject({ isError: false, isGraphable: true });
+  expect(value(6)).toMatchObject({
+    isError: true,
+    errorMessage: "Prime notation works only on functions of one input.",
+  });
+});
+
+async function intersections(
+  rows: string[],
+  selected: number,
+  viewport: typeof TEST_VIEW.viewport,
+  withRow?: number
+) {
+  const { m } = await run(rows, viewport);
+  m.engine.setSelectedRow(`e${selected}`);
+  for (let k = 0; k < 20 && m.engine.getSnapshot().poi === null; k++) {
+    await new Promise((r) => setTimeout(r, 5));
+    m.flushFrames();
+  }
+  const points = m.engine.getSnapshot().poi?.points ?? [];
+  return points
+    .filter((p) => p.kinds.includes("intersection"))
+    .filter((p) => withRow === undefined || p.withRowId === `e${withRow}`)
+    .map((p) => [p.x, p.y]);
+}
+
+it("POI-TRACE-10 rounding between two equal curves meets nothing (b48A)", async () => {
+  // y=f(x+5) and the exact fit x²+18x+75 are one parabola; Desmos opens the zero (−6.55051, 0)
+  const rows = ["f(x)=x^2+8x+10", "y=f(x+5)", "y=x^2+18x+75"];
+  const meets = await intersections(rows, 2, { left: -14, right: 0, bottom: -10, top: 20 }, 1);
+  expect(meets).toEqual([[-14, 19]]); // the range's end, as for two identical curves
+});
+
+it("POI-TRACE-10 a touch between samples counts only where the curves are exactly equal (b70A)", async () => {
+  const view = { left: -37.05, right: 38.55, bottom: -10.8, top: 64.8 };
+  // live 2026-10-25: the refined top of -4x(6x-18) reads 54.00000000000001 here, so y=54 meets
+  // nothing, while the same parabola written -24(x-1.5)^2+54 touches y=54 at (1.5, 54)
+  expect(await intersections(["y=-4x(6x-18)", "y=54"], 1, view)).toEqual([]);
+  expect(await intersections(["y=-24\\left(x-1.5\\right)^2+54", "y=54"], 1, view)).toEqual([
+    [1.5, 54],
+  ]);
+});

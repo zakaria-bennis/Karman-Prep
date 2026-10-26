@@ -3,7 +3,7 @@
 // (RC-7, RC-8, RC-20). Pure TypeScript: no DOM (AR-44).
 
 import type { RowErrorCode } from "../corpus/types";
-import { sourceChildren, type Node, type SourceSpan } from "../latex/ast";
+import { primedName, sourceChildren, type Node, type SourceSpan } from "../latex/ast";
 import { isBuiltinName } from "../latex/operator-names";
 import { arityText, BUILTIN_ARITY } from "../lib/arity";
 import { POINT_FUNCTIONS } from "../lib/geometry";
@@ -154,8 +154,16 @@ export function arityError(
   for (const call of callsOf(tree)) {
     if (call.member !== undefined) continue; // FN-47 to FN-51: distributions.ts counts these
     if (POINT_FUNCTIONS.has(call.name)) continue; // FN-70, FN-71: points.ts gives Desmos's texts
-    const arity = expectedArity(call.name, resolution);
     const written = call.args.length - (call.base ? 1 : 0);
+    // FN-63: a derivative takes one argument, Desmos's "Prime notation can only be used for
+    // functions of a single argument." for `g'(1,2)` with g(x,y) and `f'(1,2)` with f(x) alike
+    // (live 2026-10-25); `f'(2)` with f(x,y) is f's own arity error (captured 2026-10-20).
+    const primed = primedName(call.name);
+    if (primed !== null && written !== 1 && resolution.functionArity(primed.base) !== null) {
+      return rowError("prime-arity", [], call.span);
+    }
+    const name = primed?.base ?? call.name;
+    const arity = expectedArity(name, resolution);
     const list = listFunction(call.name);
     if (list?.minArguments !== undefined && written < list.minArguments) {
       // FN-35: Desmos's "Function 'join' requires 2 arguments.", for none or one
@@ -165,12 +173,12 @@ export function arityError(
     if ((list?.kind === "reducer" || list?.kind === "length") && written === 0) {
       // FN-23: Desmos's "Function 'mean' requires at least one argument.", and min, max and
       // length's "Function 'min' requires an argument."
-      const name = displayName(call.name);
-      if (list?.oneArgument) return rowError("arity", [name, "1", "0"], call.span);
-      return rowError("reducer-arguments", [name], call.span);
+      const shown = displayName(call.name);
+      if (list?.oneArgument) return rowError("arity", [shown, "1", "0"], call.span);
+      return rowError("reducer-arguments", [shown], call.span);
     }
     if (arity !== null && !arity.includes(written)) {
-      const names = [displayName(call.name), arityText(arity), String(written)];
+      const names = [displayName(name), arityText(arity), String(written)];
       return rowError("arity", names, call.span);
     }
   }

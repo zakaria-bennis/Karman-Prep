@@ -52,8 +52,12 @@ test("TR-63 the chooser opens above or below the item and stays inside the viewp
 }, info) => {
   test.skip(info.project.name !== "calculator-chrome", "mouse placement; the tap case follows");
   await openTables(page);
-  // with room above, it opens above the item and the control, never over either
-  await item(page, TABLE_PAIR).evaluate((el) => el.scrollIntoView({ block: "center" }));
+  // with room above, it opens above the item and the control, never over either; the page
+  // scrolls smoothly (globals.css), so the setup scrolls instantly, or the chooser would be
+  // measured mid-scroll
+  await item(page, TABLE_PAIR).evaluate((el) =>
+    el.scrollIntoView({ block: "center", behavior: "instant" })
+  );
   await transferByMouse(page, TABLE_PAIR);
   await expect(chooser(page)).toBeVisible();
   let g = await geometry(page, chooser(page));
@@ -66,7 +70,7 @@ test("TR-63 the chooser opens above or below the item and stays inside the viewp
   // with no room above, it opens below them
   await item(page, TABLE_PAIR).evaluate((el) => {
     document.body.style.paddingBottom = "2000px"; // room to scroll the item to the top
-    window.scrollBy(0, el.getBoundingClientRect().top - 30);
+    window.scrollBy({ top: el.getBoundingClientRect().top - 30, behavior: "instant" });
   });
   await expect.poll(async () => (await box(item(page, TABLE_PAIR))).y).toBeLessThan(40);
   await transferByMouse(page, TABLE_PAIR);
@@ -87,7 +91,9 @@ test("TR-63 the chooser opens above or below the item and stays inside the viewp
   await page.keyboard.press("Escape");
   // a narrow window keeps the 16 px margin on both sides
   await openTables(page, { width: 360, height: 640 });
-  await item(page, TABLE_PAIR).evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await item(page, TABLE_PAIR).evaluate((el) =>
+    el.scrollIntoView({ block: "center", behavior: "instant" })
+  );
   await transferByMouse(page, TABLE_PAIR);
   await expect(chooser(page)).toBeVisible();
   g = await geometry(page, chooser(page));

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import * as D from "./deadline";
 import { bumpDevCounter } from "../dev-counters";
 describe("deadline", () => {
-  it("createDeadline throws DeadlineExceeded with the row id once ms have elapsed; NO_DEADLINE never throws; budgets 250, 1000, 500 ms", () => {
+  it("createDeadline throws DeadlineExceeded with the row id once ms have elapsed; NO_DEADLINE never throws; budgets 250, 15,000, 500 ms", () => {
     let now = 1000;
     const deadline = D.createDeadline(250, () => now, "row-3");
     now = 1249;
@@ -22,7 +22,7 @@ describe("deadline", () => {
       })
     ).toEqual([true, null]);
     expect([D.ROW_VALUE_DEADLINE_MS, D.REGRESSION_DEADLINE_MS, D.POI_DEADLINE_MS]).toEqual([
-      250, 1000, 500,
+      250, 15_000, 500,
     ]);
   });
 });

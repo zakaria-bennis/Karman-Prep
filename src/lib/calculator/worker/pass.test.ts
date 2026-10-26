@@ -184,3 +184,30 @@ it("API-10 after a=2x the helper a(x+1) is a product, as the row is, and f(2) st
   expect(helperValue(1).value).toEqual(helperValue(2).value);
   expect(helperValue(3).value).toEqual({ type: "number", value: 3 });
 });
+
+it("AR-48 a regression fit on a slow device keeps going past 1 s and posts its result (b27B)", () => {
+  // Every clock read advances 0.02 ms, over ten times slower than a laptop (where this fit takes
+  // about 150 ms): the two-parameter fit takes about 2 simulated seconds, far past the 250 ms row
+  // budget, yet completes, as on Desmos, which never shows "took too long" for it.
+  const { ctx, posts, clock } = makeCtx(0.02);
+  const outcome = runValuesPass(
+    rows(
+      "p(x)=a\\left(\\left(x+6\\right)^2-b\\right)\\left(\\left(x+6\\right)^2-c\\right)",
+      "b=0",
+      "\\left[p(-7),p(0)\\right]\\sim\\left[49,784\\right]",
+      "p(-12)+p(-5)"
+    ),
+    RAD,
+    ctx
+  );
+  expect(clock.t).toBeGreaterThan(1000);
+  expect([...outcome.overrun]).toEqual([]);
+  const fit = posts.find((m) => m.type === "regression" && m.rowId === "r2");
+  expect(fit?.type === "regression" && fit.result.params.map((p) => p.value)).toEqual([
+    expect.closeTo(-7 / 9, 9),
+    expect.closeTo(64, 9),
+  ]);
+  expect(outcome.values.get("r3")).toEqual({ type: "number", value: expect.closeTo(833, 6) });
+  // the watchdog (AR-49) stays quiet: heartbeats keep coming during the fit
+  expect(posts.filter((m) => m.type === "heartbeat").length).toBeGreaterThan(clock.t / 400);
+});

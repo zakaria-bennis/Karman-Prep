@@ -30,8 +30,6 @@ type OpenToken = Extract<Token, { t: "open" }>;
 /** An argument and the end of its text: a braced argument ends at its closing brace. */
 type Argument = { node: Node; end: number };
 
-/** Postfix signs PR-9 reports as `unsupported`: prime. `~` is PR-30's regression. */
-const UNSUPPORTED_POSTFIX: ReadonlySet<string> = new Set(["'"]);
 /** Text-style wrappers: an empty group is half-typed `syntax`, any other use `unsupported` (G15). */
 const NAME_WRAPPERS: ReadonlySet<string> = new Set(["operatorname", "text", "mathrm"]);
 
@@ -80,7 +78,7 @@ export function parsePostfix(state: ParserState): Node {
  * The postfix loop after `atom` (G2), each sign applying to everything before it (PR-20): `\%`,
  * `^` and `!` (factorial, NM-15). An exponent directly after another is `syntax`
  * (G5, PR-19); `3!^{2}` is (3!)². Every operator position follows this loop, so it reports PR-9's
- * notation there: `'` (prime) is `unsupported`, as is a `.` after a member base (isMemberBase)
+ * notation there: `'` (prime) is a derivative's call (primedCall) or an error, a `.` after a member base (isMemberBase) is `unsupported`
  * unless parseMember reads the member (PR-45: `D.\operatorname{pdf}(x)`); any other `.` ends the loop and is `syntax` where the caller meets it. A built-in call with a
  * `(` argument list is an atom too (PR-25). A `[` after any atom or postfix sign is PR-34's
  * indexing (parseIndex), which takes the postfix signs after it too (`L[2]^{2}`, `L[L>3][1]`,
@@ -105,7 +103,11 @@ export function takePostfix(state: ParserState, atom: Node): Node {
         continue;
       }
     }
-    if (UNSUPPORTED_POSTFIX.has(token.ch)) failPrime(state, node, afterExponent);
+    if (token.ch === "'") {
+      node = primedCall(state, node, afterExponent);
+      afterExponent = false;
+      continue;
+    }
     if (token.ch === "." && isMemberBase(node)) {
       fail("unsupported", token.span, `"${token.ch}" is not supported`);
     }
@@ -137,12 +139,13 @@ export function takePostfix(state: ParserState, atom: Node): Node {
 }
 
 /**
- * Desmos's prime errors (captured 2026-10-20): a power beside the prime is "Superscripts and
- * primes cannot be combined.", a primed call of a name no row defines as a function is
- * "Function 'g' is not defined.", and any other prime "Sorry, I don't understand this use of
- * prime notation."; a primed call of a defined function (a derivative) stays `unsupported`.
+ * PR-28, FN-63: `f'(x)`, `f''(x)`: primes and a call of a function some row defines, read as the
+ * call of the name with its primes (`f'`), the derivative eval/derivative.ts builds. Desmos's
+ * other prime errors (captured 2026-10-20): a power beside the prime is "Superscripts and primes
+ * cannot be combined.", a primed call of a name no row defines as a function is "Function 'g' is
+ * not defined.", and any other prime "Sorry, I don't understand this use of prime notation.".
  */
-function failPrime(state: ParserState, node: Node, afterExponent: boolean): never {
+function primedCall(state: ParserState, node: Node, afterExponent: boolean): Node {
   const prime = peek(state);
   let k = 0;
   while (isSymbolAt(state, k, "'")) k += 1;
@@ -152,7 +155,11 @@ function failPrime(state: ParserState, node: Node, afterExponent: boolean): neve
   const after = peek(state, k);
   const call = after.t === "open" && after.ch === "(" && node.kind === "id";
   if (call && state.options.userFunctions?.has(node.name)) {
-    return fail("unsupported", prime.span, `"'" is not supported`);
+    for (let n = 0; n < k; n++) take(state);
+    const called = parseUserCall(state, node);
+    if (called.kind !== "call") return fail("prime-use", prime.span, "a prime on a value");
+    const span = { start: node.span.start, end: called.span.end };
+    return { ...called, name: node.name + "'".repeat(k), span };
   }
   if (call) return fail("function-undefined", node.span, "a primed undefined function", node.name);
   return fail("prime-use", prime.span, "a prime on a value");

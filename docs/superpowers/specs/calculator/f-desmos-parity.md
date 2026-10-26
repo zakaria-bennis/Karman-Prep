@@ -161,7 +161,7 @@ These Desmos behaviours are known and recorded but not yet built:
 - **Statistics gaps (FN-2, FN-23 to FN-29, FN-75).** The reducers, length, gcd, lcm, the
   aliases gcf, mcd, mcm, stddev, stdDev, stddevp, stdDevP and variance, and inversecdf and
   inverseCdf of a list match the catalogue (see below) except where a case uses notation that
-  has not shipped: derivatives, colours and tones, distributions, member access
+  has not shipped: d/dx, colours and tones, distributions, member access
   (`L.\operatorname{mean}`, `\operatorname{mean}(P).x`), comprehensions and matrices, `shuffle`,
   `random`, `stats`, `boxplot` and `polygon`, `\arg`,
   `\infty` as a value, and a point-valued call such as `\operatorname{mean}(P)`, which evaluates to
@@ -177,7 +177,7 @@ These Desmos behaviours are known and recorded but not yet built:
   the parser and free-variable analysis, which is its own task.
 - **List operation gaps (FN-30 to FN-38).** cov, covp, corr, spearman, sort, unique, join,
   repeat, argmin and argmax match the catalogue except where a case uses unshipped notation:
-  derivatives, colours and tones, member access (`L.\operatorname{sort}`, `.x`), actions (`\to`)
+  d/dx, colours and tones, member access (`L.\operatorname{sort}`, `.x`), actions (`\to`)
   and `shuffle`. `frequency` is not a Desmos function: its errors ("Function 'frequency' is not
   defined.") need multi-letter names, as above. Desmos folds `0.1+0.2` exactly to 0.3, so
   `unique([0.1+0.2,0.3])` is [0.3] there and two elements here. Rows Desmos graphs as several
@@ -193,7 +193,7 @@ These Desmos behaviours are known and recorded but not yet built:
   elements; and `y=\operatorname{length}([1...x])` graphs in Desmos (only a top-level list
   needs a constant length) while NM-31's check refuses it here.
 - **Piecewise gaps (PR-31, PR-32).** Piecewise braces and restrictions match Desmos (see below)
-  except where they use notation that has not shipped: derivatives and integrals of a piecewise,
+  except where they use notation that has not shipped: d/dx and integrals of a piecewise,
   distributions in a condition (`invNorm`, `normaldist`), recursion with a piecewise base case
   (`p(n)=\{n=0:1,np(n-1)\}`, still "p is defined in terms of itself."), `and` and `or` in a
   condition (and Desmos's "Ambiguous use of 'and' and 'or'."), `\sum` and `polygon`. A list
@@ -304,8 +304,8 @@ including these, is checked in `desmos.reference.test.ts`:
   parens."). An elementary built-in or a square root of a point reads "Function 'sin' cannot be
   applied to a point." Every catalogue value and error for circular trig, inverse trig and exp,
   and every user-function arity text, is checked in `desmos-trig.reference.test.ts`
-  (`desmos-trig.fixture.json`; real trig values exactly). Not yet matched (`GAPS` there):
-  derivatives, integrals, sums and products, `\infty`, complex mode ignoring the degree setting
+  (`desmos-trig.fixture.json`; real trig values exactly). Prime notation matches (PR-28,
+  2026-10-25). Not yet matched (`GAPS` there): d/dx, integrals, sums and products, `\infty`, complex mode ignoring the degree setting
   and its branch signs for arcsin, arccos, arccsc and arcsec at real x outside the domain,
   `\sin\cos(0)` (Desmos asks for parentheses) and θ outside a polar row. The degree sign matches
   since the owner decision of 2026-10-21: Desmos reads `\circ` and `\degree` as names.
@@ -315,7 +315,7 @@ including these, is checked in `desmos.reference.test.ts`:
   arctanh and arccoth follow Desmos's branches (`\operatorname{arctanh}(2)` is 0.549… − (π/2)i,
   `\operatorname{arccoth}(0.5)` is 0.549… + (π/2)i). Every catalogue hyperbolic value and error
   is checked in `desmos-trig.reference.test.ts` (`desmos-hyperbolic.fixture.json`), except
-  derivatives, the `ar`-spelled names (`\operatorname{arsinh}`) and the hidden complexArc… names.
+  d/dx, the `ar`-spelled names (`\operatorname{arsinh}`) and the hidden complexArc… names.
 - **Literal powers and inlined type errors (PR-26, FN-4).** A power on a trig, hyperbolic or log
   name is allowed only as the literal `2` or `-1`, so `\sin^{2.0}(1)`, `\sin^{(2)}(1)` and
   `\log^{2.0}(3)` are the power errors. A user function called with a point is type-checked
@@ -546,7 +546,7 @@ A11Y-3) and `b-functions-and-data.md` (D-4, D-5, D-7, D-19, D-20, FN-59), plus C
 9. Focusing or editing a row, pressing zoom buttons, and panning close all open POI labels; zoom and pan keep the row selected.
 10. Labels never persist across deselection: reselecting a curve shows grey dots only.
 11. Coincident POIs (for example vertex and y-intercept, or a line's x- and y-intercept at the origin) are one dot with one label.
-12. POI hit area is at least 12 px from the dot centre on a fine pointer and at least 10 px on touch; 16 px away is a miss.
+12. A POI dot is hit up to and including 12 px from its centre with a mouse and 22 px with a finger, and a curve up to 10 px and 20 px; 12.00001 px misses (live 2026-10-25; a mouse is read at whole pixels). Within 4.75 px the highest kind of dot opens, and among intersections the one with the row latest in the list.
 13. A POI label is a light box with border and shadow placed diagonally off the dot on the side away from the curve, and labels avoid overlapping each other.
 14. Integer and terminating values print exactly (`2`, `−0.5`, `0.8`) with a true minus sign and a leading zero below 1.
 15. At the default view, non-terminating POI coordinates print with 5 decimals (`0.33333`, `1.41421`, `0.73205`), and zooming in adds decimals (`0.333333` at 8x) while zooming out does not drop below 5 decimals.

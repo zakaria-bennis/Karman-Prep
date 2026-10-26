@@ -76,8 +76,8 @@ export function isBuiltinCommand(token: Token): token is CommandToken {
  * and sin^-1 are supported. Otherwise, use parens."); `^2` raises the call to it (PR-26). `log`'s base is its last argument, marked `base` (PR-27), and an empty base
  * is `empty-subscript`; any other name in PREFIX_FORM_NAMES (trig, hyperbolic, `ln`) takes no
  * subscript, so `_` after it is `name-subscript` at the name, whatever follows, Desmos's "'ln'
- * cannot have a subscript.". A prime on the name (`\sin'(x)`, like `f'(x)`) is `unsupported`
- * (PR-9). The run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in
+ * cannot have a subscript.". Primes on the name before `(` (`\sin'(x)`, like `f'(x)`) call its
+ * derivative (PR-28); any other prime is `unsupported` (PR-9). The run and the power on the name are for PREFIX_FORM_NAMES only; any other built-in
  * written without `(`, or with a power on its name, is `function-parentheses`, as in Desmos.
  */
 export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
@@ -104,6 +104,19 @@ export function parseBuiltinCall(state: ParserState, name: CommandToken): Node {
   if (power !== null && !prefixForm) return needsParentheses(name);
   if (power !== null && LOG_NAMES.has(name.name) && form !== "two") {
     return fail("log-power", name.span, `only ${name.name}^2 is supported`, name.name);
+  }
+  let primes = 0;
+  while (power === null && base === null && isSymbol(peek(state, primes), "'")) primes += 1;
+  if (primes > 0) {
+    // PR-28: `\sin'(x)`, a built-in's derivative, as Desmos reads it (`\sin'(0)` is 1)
+    const after = peek(state, primes);
+    if (after.t !== "open" || after.ch !== "(") {
+      return fail("unsupported", peek(state).span, `"'" is not supported`);
+    }
+    for (let k = 0; k < primes; k++) take(state);
+    const args = parseArgumentList(state);
+    const call = callNode(name, args, null, previousEnd(state));
+    return takePostfix(state, { ...call, name: name.name + "'".repeat(primes) });
   }
   const open = peek(state);
   if (isSymbol(open, "'")) return fail("unsupported", open.span, `"'" is not supported`);

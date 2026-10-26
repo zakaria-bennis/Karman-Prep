@@ -16,6 +16,8 @@ export interface Search1D {
   /** One pixel of the value axis: a pair whose values stay further apart is a jump. */
   tol?: number;
 }
+/** Intersections (POI-TRACE-10): touching roots count, `level(t)` the curves' size at t. */
+export type Touching = boolean | ((t: number) => number);
 export interface Extremum {
   t: number;
   kind: "maximum" | "minimum";
@@ -35,9 +37,9 @@ export interface Scan {
 
 const EPS = 2.220446049250313e-16;
 const GOLDEN = (Math.sqrt(5) - 1) / 2;
-const TOUCH_RATIO = 1e-8; // a local minimum of |f| this far below its neighbours is a touching root
 const ENDPOINT_RATIO = 1e-5; // a domain endpoint whose value falls this far is a true zero
 const ZERO_EDGE = 5e-8; // POI-TRACE-6: a segment's end this near 0 is a zero
+const TOUCH_NOISE = 1e-12; // relative to the curves: rounding between two equal curves
 const POLE_RATIO = 1e-3; // a refined bracket must end this far below its starting values
 const JUMP_HALVINGS = 64;
 const EDGE_HALVINGS = 80;
@@ -285,16 +287,18 @@ const segmentEnd = (sc: Scan, k: number) =>
  * change between joined samples refined by Brent's method (a bracket that does not shrink is
  * dropped); and the middle of a run of exact zeros the sign changes across. A touching root is not
  * a zero (it is an extremum) unless `touching` is set, which intersections use (POI-TRACE-10):
- * then an interior local minimum of |f| that falls to TOUCH_RATIO of its neighbours counts too.
+ * then a run of exact zeros between samples clear of 0 on one side counts, and so does a touch
+ * between samples (touchingRoots).
  */
 export function findRoots(
   f: (t: number) => number,
   s: Search1D,
-  touching = false,
+  touching: Touching = false,
   sc: Scan = scanRange(f, s)
 ): number[] {
   const { t, v, joined, edge } = sc,
     out: number[] = [];
+  const level = touching === false ? null : touching === true ? () => 1 : touching;
   let buf: number[] = []; // Desmos's zero buffer: a nonzero sample, then maybe a first exact zero
   for (let k = 0; k < t.length; k++) {
     if (!joined[k]) buf = [];
@@ -320,24 +324,43 @@ export function findRoots(
           const bound = Math.max(POLE_RATIO * Math.min(Math.abs(p), Math.abs(a)), ZERO_EDGE);
           if (r !== null && r.size <= bound) pushUnique(out, settleRoot(f, r.t));
         }
-      } else if (touching && buf.length === 2) {
-        pushUnique(out, plateauMiddle(f, sc, buf[1], k - 1)); // touches 0 on exact zeros
+      } else if (level !== null && buf.length === 2) {
+        // touches 0 on exact zeros, between samples clear of rounding noise
+        const noise = TOUCH_NOISE * Math.max(1, Math.abs(level(t[k])));
+        if (Math.abs(p) > noise && Math.abs(a) > noise) {
+          pushUnique(out, plateauMiddle(f, sc, buf[1], k - 1));
+        }
       }
       buf = [k];
     }
-    if (touching && k > 0 && joined[k] && k + 1 < t.length && joined[k + 1] && a !== 0) {
-      const l = Math.abs(v[k - 1]),
-        m = Math.abs(a),
-        r = Math.abs(v[k + 1]);
-      const sameSign = v[k - 1] > 0 === a > 0 && a > 0 === v[k + 1] > 0;
-      if (sameSign && m < l && m <= r) {
-        const tm = goldenMin((x) => Math.abs(f(x)), t[k - 1], t[k + 1]),
-          fm = Math.abs(f(tm));
-        if (isNum(fm) && fm <= TOUCH_RATIO * Math.max(l, r)) pushUnique(out, tm);
-      }
-    }
   }
+  if (level !== null) for (const r of touchingRoots(f, s, sc, level)) pushUnique(out, r);
   return out.sort((x, y) => x - y);
+}
+
+/**
+ * POI-TRACE-10: where f touches 0 between samples: an extremum of f (refined as findExtrema
+ * refines one) where f is exactly 0, its neighbouring samples clear of 0. As on Desmos (live
+ * 2026-10-25): `y=2` meets `y=(x-1.0001)^2+2` at (1.0001, 2) and `y=(x-\pi)^2+2` at (π, 2), but
+ * not `y=2.0000000001` (f bottoms out at −1e-10); `y=54` does not meet `y=-4x(6x-18)` in a view
+ * where the refined top reads 54.00000000000001, yet does meet `y=-24(x-1.5)^2+54` there; and
+ * rounding noise between two equal curves (`y=f(x+5)` and its exact fit, b48A) meets nothing:
+ * the samples beside the touch must clear TOUCH_NOISE of the curves' size there (`level`).
+ */
+function touchingRoots(
+  f: (t: number) => number,
+  s: Search1D,
+  sc: Scan,
+  level: (t: number) => number
+): number[] {
+  return findExtrema(f, s, sc).flatMap(({ t: tm }) => {
+    if (f(tm) !== 0) return [];
+    const k = sc.t.findIndex((t) => t > tm);
+    if (k < 1 || !sc.joined[k]) return [];
+    const [l, r] = [sc.v[k - 1], sc.v[k]];
+    const noise = TOUCH_NOISE * Math.max(1, Math.abs(level(tm)));
+    return Math.abs(l) > noise && Math.abs(r) > noise && l > 0 === r > 0 ? [tm] : [];
+  });
 }
 
 /** How far a polished extremum may move from the golden-section estimate, relative to max(1, |t|). */

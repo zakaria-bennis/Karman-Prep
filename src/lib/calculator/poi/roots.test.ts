@@ -21,6 +21,12 @@ describe("one-dimensional search", () => {
     expect(touching).toHaveLength(1);
     near(touching[0], 2, 10 * Math.sqrt(2.2e-16));
     expect(findRoots((x) => (x - 2) ** 2 + 1e-4, S, true)).toEqual([]);
+    // Only where f is exactly 0: two crossings 2e-5 apart inside one sample step are no touch
+    // (Desmos: y=2.0000000001 against y=(x-1.0001)^2+2, live 2026-10-25)
+    expect(findRoots((x) => (x - 2) ** 2 - 1e-10, S, true)).toEqual([]);
+    // Rounding between two equal curves is no touch either; the range's ends still count
+    const equal = (x: number) => (x + 5) ** 2 + 8 * (x + 5) + 10 - (x * x + 18 * x + 75);
+    expect(findRoots(equal, S, (x) => x * x + 18 * x + 75)).toEqual([-12, 12]);
     // Along f ≡ 0 only the ends of the range count, as Desmos meets two identical curves there.
     expect(findRoots(() => 0, S)).toEqual([-12, 12]);
   });
