@@ -140,6 +140,9 @@ function neg(a: Node): Node {
   return { kind: "neg", arg: a, span: SPAN };
 }
 const square = (a: Node) => pow(a, num(2));
+const root = (a: Node): Node => ({ kind: "root", arg: a, index: null, span: SPAN });
+/** `d` where `f` is defined and undefined where it is not: d + 0·f, which no fold removes. */
+const within = (f: Node, d: Node): Node => bin("add", d, bin("mul", num(0), f));
 /** 0 where `gap` is not 0 and undefined where it is: a step function's derivative (FN-62). */
 const zeroUnless = (gap: Node): Node => bin("div", num(0), { kind: "abs", arg: gap, span: SPAN });
 
@@ -217,9 +220,23 @@ function derive(n: Node, ctx: Ctx): Node {
       return { kind: "list", items: n.items.map(d), span: SPAN };
     case "call":
       return callDerivative(n, ctx);
+    case "deriv": // FN-61: d/dx of d/dt …, the inner derivative first
+      return d(derive(n.arg, { ...ctx, v: n.variable }));
     default:
       throw new NoRule();
   }
+}
+
+/**
+ * FN-61: the tree `\frac{d}{dv}arg` stands for, with the user functions of `functions` (primed
+ * ones included, withDerivatives) inlined; null when some node has no rule.
+ */
+export function expandDerivative(
+  node: Extract<Node, { kind: "deriv" }>,
+  functions: ReadonlyMap<string, FunctionDefinition>,
+  angleMode: "radians" | "degrees"
+): Node | null {
+  return differentiate(node.arg, node.variable, (name) => functions.get(name), angleMode);
 }
 
 /** u^w by the power rule, the exponential rule or, with both varying, u^w·(w'·ln u + w·u'/u). */
@@ -246,6 +263,12 @@ function callDerivative(n: CallNode, ctx: Ctx): Node {
   if (n.name === "log" && n.args.length === 2) {
     // log_b u = ln u / ln b
     return derive(bin("div", call("ln", u), call("ln", n.args[1])), ctx);
+  }
+  if (n.name === "arctan" && n.args.length === 2) {
+    // arctan(y, x)′ = (x·y′ − y·x′)/(x² + y²), in the angle unit (NM-25)
+    const [y, x] = n.args;
+    const d = div(sub(mul(x, derive(y, ctx)), mul(y, derive(x, ctx))), add(square(x), square(y)));
+    return ctx.unit === 1 ? d : div(d, num(ctx.unit));
   }
   if (n.args.length !== 1) throw new NoRule();
   const du = derive(u, ctx);
@@ -304,6 +327,29 @@ function elementary(name: string, u: Node, unit: number): Node {
       return f("sinh");
     case "tanh":
       return div(one, square(f("cosh")));
+    case "sech":
+      return neg(mul(f("sech"), f("tanh")));
+    case "csch":
+      return neg(mul(f("csch"), f("coth")));
+    case "coth":
+      return neg(square(f("csch")));
+    // the inverse hyperbolic functions: undefined wherever the function is (Desmos's arctanh(2)′)
+    case "arcsinh":
+      return within(f(name), div(one, root(add(square(u), one))));
+    case "arccosh":
+      return within(f(name), div(one, root(sub(square(u), one))));
+    case "arctanh":
+    case "arccoth":
+      return within(f(name), div(one, sub(one, square(u))));
+    case "arcsech":
+      return within(f(name), neg(div(one, mul(u, root(sub(one, square(u)))))));
+    case "arccsch":
+      return within(
+        f(name),
+        neg(div(one, mul({ kind: "abs", arg: u, span: SPAN }, root(add(one, square(u))))))
+      );
+    case "erf": // 2/√π·e^{−u²}
+      return mul(num(2 / Math.sqrt(Math.PI)), call("exp", neg(square(u))));
     case "exp":
       return f("exp");
     case "ln":

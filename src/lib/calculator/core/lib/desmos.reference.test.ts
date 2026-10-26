@@ -400,7 +400,9 @@ function sameStatisticsValue(v: Value, expected: Captured, complex: boolean): bo
 // Desmos gives a value when the right side is constant (`y=\operatorname{count}(x,1,2)` = 3) and
 // the calculator graphs as a line without one.
 const STATISTICS_GAPS: readonly RegExp[] = [
-  /\\frac\{d\}|'\(/,
+  /'\(/,
+  // d/dx of a list function: no symbolic rule yet (FN-61's operator has shipped)
+  /\\frac\{d\}\{d[a-z]\}\\(operatorname\{)?(total|mean|min|max|median|stdevp?|var|mad|count|quantile|length|cov|corr|sort|join)\b/,
   /\\operatorname\{(rgb|hsv|okhsv|oklab|oklch|tone)\}/,
   /dist\}/,
   /\.\\operatorname/,
@@ -428,11 +430,11 @@ const statisticsGap = (key: string) =>
 
 const STATISTICS_VALUES = Object.entries(statistics.values) as [string, Captured][];
 
-it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 356 matched", () =>
+it("FN-2 FN-23 FN-29 FN-75 all 438 catalogue statistics values are checked, 358 matched", () =>
   expect([
     STATISTICS_VALUES.length,
     STATISTICS_VALUES.filter(([k]) => !statisticsGap(k)).length,
-  ]).toEqual([438, 356]));
+  ]).toEqual([438, 358]));
 
 for (const [key, expected] of STATISTICS_VALUES) {
   const check = () => {
@@ -500,7 +502,8 @@ for (const [latex, note] of STATISTICS_GRAPHED) {
 // derivatives, colours and tones, member access other than coordinates and actions (`\to`);
 // frequency, which Desmos does not define, so its errors need multi-letter names.
 const LIST_OPERATION_GAPS: readonly RegExp[] = [
-  /\\frac\{d\}/,
+  // d/dx of a list function: no symbolic rule yet (FN-61's operator has shipped)
+  /\\frac\{d\}\{d[a-z]\}\\(operatorname\{)?(total|mean|min|max|median|stdevp?|var|mad|count|quantile|length|cov|corr|sort|join)\b/,
   /\\operatorname\{(rgb|tone|frequency)\}/,
   /\.\\operatorname|\\to/,
 ];
@@ -517,11 +520,11 @@ function shownError(rows: readonly string[], latex: string): string | undefined 
   return errorMessage(rows, latex) ?? (carried === null ? undefined : rowErrorMessage(carried, []));
 }
 
-it("FN-30 FN-38 all 136 catalogue list operation values are checked, 125 matched", () =>
+it("FN-30 FN-38 all 136 catalogue list operation values are checked, 126 matched", () =>
   expect([
     LIST_OPERATION_VALUES.length,
     LIST_OPERATION_VALUES.filter(([k]) => !listOperationGap(k)).length,
-  ]).toEqual([136, 125]));
+  ]).toEqual([136, 126]));
 
 for (const [key, expected] of LIST_OPERATION_VALUES) {
   const check = () => {

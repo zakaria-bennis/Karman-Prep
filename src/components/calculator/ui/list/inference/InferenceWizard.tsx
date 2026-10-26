@@ -81,7 +81,9 @@ function place(
   app: Element
 ): void {
   const graph = app.querySelector(".kc-graph-region");
-  const row = app.querySelector(`[data-row-id="${CSS.escape(rowId)}"]`);
+  const row = [...app.querySelectorAll<HTMLElement>("[data-row-id]")].find(
+    (el) => el.dataset.rowId === rowId
+  );
   const a = app.getBoundingClientRect();
   const g = graph?.getBoundingClientRect();
   const desktop = app.getAttribute("data-kc-layout") === "desktop" && g !== undefined;
@@ -119,7 +121,11 @@ export function InferenceWizard(props: {
   const latest = useRef(props.onClose);
   latest.current = props.onClose;
 
-  useLayoutEffect(() => setApp(props.anchor?.closest(".kc-app") ?? null), [props.anchor]);
+  // the calculator's root; a list rendered on its own (tests) uses its document's body
+  useLayoutEffect(
+    () => setApp(props.anchor?.closest(".kc-app") ?? props.anchor?.ownerDocument.body ?? null),
+    [props.anchor]
+  );
   useLayoutEffect(() => {
     if (box.current === null || cover.current === null || closer.current === null || app === null)
       return;

@@ -62,6 +62,7 @@ export type RowErrorCode =
   | "repeat-counts" // FN-34: `repeat([1,2],[1.5,2])`
   | "refused-function" // a Desmos built-in its calculator refuses: `frequencyList(L,M)`
   | "repeat-lengths" // FN-34: `repeat([1,2,3],[1,2])`
+  | "derivative-operand" // FN-61: `\frac{d}{dx}` alone
   | "inference-sample" // FN-54: `ttest([1])`, a t test sample of fewer than 2 values
   | "inference-lengths" // FN-56: `chisqgof([1,2],[1,2,3])`
   | "inference-short" // FN-56: `chisqgof([1])`

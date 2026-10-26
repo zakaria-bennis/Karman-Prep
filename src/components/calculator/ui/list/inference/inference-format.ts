@@ -5,7 +5,8 @@
 //   (`0.0005`), and is m×10ⁿ with 2 significant digits from 10⁴ up and below 10⁻⁴;
 // - a p-value has 3 decimals, 4 below 0.001 and from 0.995 up (`0.0007`, `0.9976`), and is
 //   "< 0.0001" below that;
-// - the numerical outputs table has 6 significant digits, m×10ⁿ with 2 below 10⁻⁴.
+// - the numerical outputs table has 6 significant digits and at most 5 decimals (6 from 0.995
+//   to 1), m×10ⁿ with 2 significant digits below 10⁻⁴.
 // Pure TypeScript: no DOM.
 
 const MINUS = "−";
@@ -85,5 +86,8 @@ export function outputValue(v: number): Shown {
   if (Math.abs(v) < 1e-4) return { kind: "scientific", ...scientific(v, 2) };
   const text = v.toPrecision(6);
   if (text.includes("e")) return { kind: "scientific", ...scientific(v, 6) };
-  return { kind: "plain", text: tidy(text) };
+  // at most 5 decimals (0.15799, 0.07246), 6 from 0.995 to 1 (0.999609)
+  const decimals = Math.abs(v) >= 0.995 && Math.abs(v) < 1 ? 6 : 5;
+  const capped = Number(text).toFixed(decimals);
+  return { kind: "plain", text: tidy(capped.length < text.length ? capped : text) };
 }

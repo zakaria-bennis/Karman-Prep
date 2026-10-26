@@ -55,6 +55,7 @@ export type ParseErrorCode =
   | "inequality-here" // an inequality inside brackets, `(x<1)`
   | "prime-superscript" // a prime beside a power, `f'^{2}(2)`
   | "function-undefined" // `a()`, `g'(2)`: a call of a name no row defines as a function
+  | "derivative-operand" // FN-61: `\frac{d}{dx}` with nothing after it to differentiate
   // calls of the reference's built-ins this calculator does not evaluate (desmos-calls.ts)
   | "arity"
   | "argument-type"
@@ -131,6 +132,7 @@ const PARSE_ERROR_CODES: ReadonlySet<string> = new Set<ParseErrorCode>([
   "inequality-here",
   "prime-superscript",
   "function-undefined",
+  "derivative-operand",
   // "arity", "argument-type", "refused-function" and "point-function-arity" are analysis codes
   // too: a parse that reports one is checked with the analysis's cases
   "color-arity",

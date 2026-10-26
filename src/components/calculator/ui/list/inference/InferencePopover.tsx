@@ -33,7 +33,8 @@ export function InferencePopover(props: {
   latest.current = props.onClose;
 
   useLayoutEffect(() => {
-    setLayer(props.anchor.current?.closest(".kc-app") ?? null);
+    const anchor = props.anchor.current;
+    setLayer(anchor?.closest(".kc-app") ?? anchor?.ownerDocument.body ?? null);
   }, [props.anchor]);
 
   useLayoutEffect(() => {

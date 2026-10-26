@@ -500,15 +500,26 @@ PANEL_PRESENTATIONS.set("log", [
   panelEntry("log", "logₐ", "log base a", [action("cmd", "\\log"), action("cmd", "_")]),
 ]);
 
-// Per category id in order: the shipped names with a presentation, in OPERATOR_NAMES order;
-// categories left empty are dropped. `phase` is not read: shipping a name with a presentation adds
-// it to the panel at once.
+/**
+ * Buttons that are notation rather than a name, after a category's names. FN-61: Calculus's d/dx
+ * writes `\frac{d}{dx}` with the caret after it, as live Desmos's key does (captured 2026-10-26).
+ */
+const NOTATION_ENTRIES: ReadonlyMap<number, readonly PanelEntry[]> = new Map([
+  [8, [panelEntry("ddx", "d/dx", "d by d x", [action("write", "\\frac{d}{dx}")])]],
+]);
+
+// Per category id in order: the shipped names with a presentation, in OPERATOR_NAMES order, then
+// its notation buttons; categories left empty are dropped. `phase` is not read: shipping a name
+// with a presentation adds it to the panel at once.
 const PANEL_CATEGORIES: readonly PanelCategory[] = Object.freeze(
   CATEGORY_HEADINGS.flatMap((heading, index) => {
     const id = index + 1;
-    const entries = OPERATOR_NAMES.filter(
-      (n) => n.category === id && isShippedBuiltin(n.name)
-    ).flatMap((n) => PANEL_PRESENTATIONS.get(n.name) ?? []);
+    const entries = [
+      ...OPERATOR_NAMES.filter((n) => n.category === id && isShippedBuiltin(n.name)).flatMap(
+        (n) => PANEL_PRESENTATIONS.get(n.name) ?? []
+      ),
+      ...(NOTATION_ENTRIES.get(id) ?? []),
+    ];
     return entries.length === 0
       ? []
       : [Object.freeze({ id, heading, entries: Object.freeze(entries) })];

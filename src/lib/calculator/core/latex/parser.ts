@@ -317,9 +317,10 @@ export function startsFactor(state: ParserState): boolean {
 
 /**
  * `term := unary (mulop unary | factor)*` (G2): explicit and implicit multiplication and division
- * share one level and group left to right (PR-18).
+ * share one level and group left to right (PR-18). FN-61: `\frac{d}{dx}` takes the rest of its
+ * term as what it differentiates, so atoms.ts reads it with this rule too.
  */
-function parseTerm(state: ParserState): Node {
+export function parseTerm(state: ParserState): Node {
   let { node: left, factor } = parseUnary(state);
   for (;;) {
     const kind = mulop(peek(state), factor);

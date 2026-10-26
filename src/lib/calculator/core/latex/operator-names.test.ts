@@ -8,8 +8,11 @@ describe("operator-name allowlist", () => {
       O.mathQuillAutoOperatorNames(),
       names().every(O.isBuiltinName),
     ]).toEqual([116, names().join(" "), true]);
+    // every panel entry is a shipped name, except notation buttons (FN-61's d/dx)
     for (const e of O.panelCategories().flatMap((c) => c.entries))
-      expect(O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name)).toBe(true);
+      expect(e.name === "ddx" || (O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name))).toBe(
+        true
+      );
     expect([O.AUTO_COMMANDS.join(" "), O.mathQuillAutoCommands()]).toEqual(
       Array(2).fill("alpha beta rho sqrt cbrt nthroot pi theta tau phi infinity infty sum prod int")
     );
@@ -108,9 +111,10 @@ describe("operator-name allowlist", () => {
     ).toEqual([
       "1 Trig: sin cos tan csc sec cot",
       "2 Inverse trig: sin⁻¹ cos⁻¹ tan⁻¹ csc⁻¹ sec⁻¹ cot⁻¹",
-      "8 Calculus: exp ln log logₐ",
+      "8 Calculus: exp ln log logₐ d/dx",
     ]);
-    expect(calculus.entries.map((e) => e.name).join(" ")).toBe("exp ln log log");
+    expect(calculus.entries.map((e) => e.name).join(" ")).toBe("exp ln log log ddx");
+    expect(calculus.entries[4].actions).toEqual([{ op: "write", arg: "\\frac{d}{dx}" }]);
     expect(trig.entries[0]).toEqual({
       name: "sin",
       label: "sin",

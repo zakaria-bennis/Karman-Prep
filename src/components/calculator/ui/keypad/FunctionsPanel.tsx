@@ -27,9 +27,21 @@ const VISIBLE_HEADINGS: Readonly<Record<number, string>> = {
   15: "Advanced",
 };
 
-/** VIS-KEYPAD-28: "sin⁻¹" and "logₐ" set as typeset exponents and subscripts. */
+/** VIS-KEYPAD-28: "sin⁻¹" and "logₐ" set as typeset exponents and subscripts; FN-61's d/dx stacked. */
 function FunctionLabel(props: { label: string }): JSX.Element {
   const { label } = props;
+  if (label === "d/dx") {
+    return (
+      <span className="kc-fn-fraction">
+        <span>
+          <i>d</i>
+        </span>
+        <span>
+          <i>dx</i>
+        </span>
+      </span>
+    );
+  }
   if (label.endsWith("⁻¹")) {
     return (
       <>

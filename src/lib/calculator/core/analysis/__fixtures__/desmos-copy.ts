@@ -72,6 +72,7 @@ const DESMOS: Readonly<Record<RowErrorCode, string>> = {
   "refused-function": "This calculator does not support the '{n}' function.",
   "repeat-lengths": "When the arguments of 'repeat' are lists, they must have the same length.",
   // captured 2026-10-26 (College Board version)
+  "derivative-operand": "What do you want to take the derivative of?",
   "inference-sample": "Sample for 'ttest' must have at least 2 observations.",
   "inference-lengths": "Arguments of 'chisqgof' must be lists with the same length.",
   "inference-short": "Each argument of 'chisqgof' must be a list with at least 2 elements.",

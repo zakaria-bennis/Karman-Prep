@@ -533,3 +533,18 @@
 .kc-keypad-bar:focus-visible {
   outline-offset: -2px;
 }
+
+/* FN-61: the Calculus panel's d/dx, a small stacked fraction in the math font. */
+.kc-fn-fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--kc-font-math);
+  font-size: 0.85em;
+  line-height: 1.05;
+}
+
+.kc-fn-fraction > span:first-child {
+  padding: 0 2px;
+  border-bottom: 1px solid currentColor;
+}

@@ -20,6 +20,7 @@ import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { applyListFunction, listFunction } from "../lib/statistics";
 import { C_I } from "./complex";
 import { compileReal, constantValue, MAX_CALL_DEPTH, type GeneralCompile } from "./compile-real";
+import { expandDerivative } from "./derivative";
 import {
   absV,
   addV,
@@ -205,6 +206,12 @@ function compileNode(node: Node, ctx: Context): Compiled {
       return piecewise(node, ctx);
     case "sim": // D-2: a regression row is fitted by the values pass, never compiled
       return constant(UNDEFINED);
+    case "deriv": {
+      // FN-61: `\frac{d}{dx}…` compiles as its symbolic derivative; undefined without a rule
+      const { functions, settings } = ctx.scope;
+      const d = expandDerivative(node, functions, settings.angleMode);
+      return d === null ? constant(UNDEFINED) : compileNode(d, ctx);
+    }
     case "point": {
       // An undefined or non-real coordinate is stored as NaN; G-3: list parts pair up.
       const x = compileNode(node.x, ctx),

@@ -78,7 +78,6 @@ function errorMessage({ latex, rows, settings }: Case): string | undefined {
 // a real argument. The degree sign matches: Desmos reads `\circ` and `\degree` as names (PR-8,
 // owner decision 2026-10-21).
 const GAPS: readonly RegExp[] = [
-  /\\frac\{d\}/,
   /\\int|\\sum|\\prod/,
   /^\[complex\+deg\] \\(?!arcsin\(2\)$)[a-z]+\([0-9.,]+\)$/,
 ];
@@ -136,7 +135,6 @@ for (const [key, expected] of EXACT) {
 // yet matched, each an expected failure that fails once matched: derivatives, the `ar`-spelled
 // inverse names (`\operatorname{arsinh}`) and the hidden complexArc… names, none shipped.
 const HYPERBOLIC_GAPS: readonly RegExp[] = [
-  /\\frac\{d\}/,
   /\\operatorname\{ar(sinh|cosh|tanh|csch|sech|coth)\}/,
   /complexArc/,
 ];

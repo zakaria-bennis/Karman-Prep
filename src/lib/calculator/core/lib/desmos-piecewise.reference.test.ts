@@ -15,11 +15,7 @@ import { karmanCopy } from "../analysis/__fixtures__/desmos-copy";
 
 type Captured = number | number[] | null | string;
 
-const GAPS: readonly RegExp[] = [
-  /\\frac\{d\}|\\int/,
-  /\\operatorname\{(and|or)\}/,
-  /\\sum|polygon/,
-];
+const GAPS: readonly RegExp[] = [/\\int/, /\\operatorname\{(and|or)\}/, /\\sum|polygon/];
 const isGap = (key: string) => GAPS.some((gap) => gap.test(key));
 const GRAPHED = "graphable (no numeric value)";
 
@@ -60,8 +56,8 @@ function sameValue(v: Value, expected: number | number[] | null): boolean {
 const VALUES = Object.entries(piecewise.values) as [string, Captured][];
 const ERRORS = Object.entries(piecewise.errors);
 
-it("PR-31 PR-32 all 33 catalogue piecewise values are checked, 27 matched", () =>
-  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([33, 27]));
+it("PR-31 PR-32 all 33 catalogue piecewise values are checked, 30 matched", () =>
+  expect([VALUES.length, VALUES.filter(([key]) => !isGap(key)).length]).toEqual([33, 30]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {
