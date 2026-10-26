@@ -239,3 +239,25 @@ it("T-7 Backspace deletes % of as one unit, and loaded \\%\\operatorname{of} is 
   field.keystroke("Backspace");
   expect(field.latex()).toBe("7");
 });
+
+// T-6 (founder decision, 2026-10-26): `=`, `~`, `<` and `>` leave an exponent or subscript for the
+// row's main line, through every exponent or subscript they sit directly in; arithmetic stays in.
+it.each([
+  ["x^2=5", "x^{2}=5"],
+  ["y_1~a", "y_{1}\\sim a"],
+  ["x^2<3", "x^{2}<3"],
+  ["x^2>=3", "x^{2}\\ge3"],
+  ["x^2<=3", "x^{2}\\le3"],
+  ["x_1^2=1", "x_{1^{2}}=1"],
+  ["x^2+n", "x^{2+n}"],
+  ["x^2-n", "x^{2-n}"],
+  ["x_1*2", "x_{1\\cdot2}"],
+  ["x^2/3", "x^{\\frac{2}{3}}"],
+  ["y_1{x>0}", "y_{1\\left\\{x>0\\right\\}}"],
+  ["x^(2=1", "x^{\\left(2=1\\right)}"],
+  ["x_1->", "x_{1\\to}"],
+])("typing %s gives %s", (typed, latex) => {
+  const { field } = mount();
+  field.typedText(typed);
+  expect(field.latex()).toBe(latex);
+});

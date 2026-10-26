@@ -53,9 +53,9 @@ it("mathQuillOptions turns on autoSubscriptNumerals and disableAutoSubstitutionI
   expect(config.autoSubscriptNumerals).toBe(true);
   expect(config.disableAutoSubstitutionInSubscripts).toBe(true);
 });
-it("CHARS_THAT_BREAK_OUT_OF_SUPSUB is exactly + - = < > * (live Desmos) and mathQuillOptions uses it", () => {
-  expect(CHARS_THAT_BREAK_OUT_OF_SUPSUB).toBe("+-=<>*");
-  expect(config.charsThatBreakOutOfSupSub).toBe("+-=<>*");
+it("CHARS_THAT_BREAK_OUT_OF_SUPSUB is exactly = ~ < > (founder, 2026-10-26: arithmetic stays inside) and mathQuillOptions uses it", () => {
+  expect(CHARS_THAT_BREAK_OUT_OF_SUPSUB).toBe("=~<>");
+  expect(config.charsThatBreakOutOfSupSub).toBe("=~<>");
 });
 it("mathQuillOptions turns on supSubsRequireOperand, so a lone _ or ^ is ignored as on Desmos", () => {
   expect(config.supSubsRequireOperand).toBe(true);
