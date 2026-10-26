@@ -23,6 +23,9 @@ All the words on the landing page live in one file: `copy.js`, in this folder.
    `screen title: Ten minutes before first period.`
 3. Save, then refresh the landing page in your browser.
 
+Other pages have their own sections: 21 to 27 the SAT Program, 31 to 36 private tutoring, 41 to 45
+the free practice test, 51 to 55 the guarantee, 61 to 65 About, 71 the FAQ. Form labels start with "form".
+
 The home page has eleven sections, top to bottom: Opening, Live classes, One-on-one
 reviews, Daily 10, Parent updates, Between classes, Test date, Guarantee, Campus film,
 Student messages and The close. Each starts with a line like `## 8 Guarantee`. The

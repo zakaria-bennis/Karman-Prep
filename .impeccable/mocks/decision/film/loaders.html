@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem("karman-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<meta name="robots" content="noindex">
+<title>Karman Prep: loaders and messages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="film.css">
+<link rel="stylesheet" href="kit.css">
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="inner.css">
+<link rel="stylesheet" href="alive.css">
+<link rel="icon" href="data:,">
+<style>
+  .demo { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 18px; margin-top: 40px; }
+  .demo article { display: grid; gap: 14px; align-content: start; padding: 26px; border-radius: 26px; background: var(--soft); }
+  .demo .dh2 { font-size: 22px; margin: 0; letter-spacing: -0.03em; line-height: 1.08; }
+  .demo p { color: var(--ink2); font-size: 15.5px; }
+  .demo .when { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--marigold-ink); display: block; padding: 0; border: 0; }
+  .demo .stagebox { height: 150px; border-radius: 18px; background: #0b0b0b; display: grid; place-items: center; }
+  .demo .row { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .demo .box { position: relative; min-height: 220px; border-radius: 20px; background: #fff; padding: 22px; }
+  .demo .ghostbtn { min-height: 46px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--ink); font-weight: 800; justify-self: start; }
+  .demo .ghostbtn:active { transform: scale(.96); }
+</style>
+</head>
+<body class="page-inner">
+<!-- Internal review page: not linked from the site. Every loader and message from kit.js, with the rule for when it appears. -->
+<main id="main">
+  <section class="i-hero" data-light><div class="in"><div class="i-words">
+    <p class="eyebrow">For review</p>
+    <h1>Loaders and messages</h1>
+    <p class="lede">Every one is drawn by our own code. Nothing shows for waits under 400 ms. The rules are written at the top of kit.js.</p>
+  </div></div></section>
+  <section class="i-sec" data-light><div class="in"><div class="demo">
+    <article><span class="when">One tap, a short wait</span><h2 class="dh2">The orb in the button</h2><p>Appears 400 ms after the press, in place of the arrow. The words stay, so the eye doesn't lose its place.</p>
+      <div class="row"><button class="btn" type="button" id="d-btn"><span class="lb">Save the seat</span><span class="go"></span></button></div></article>
+    <article><span class="when">The film is late</span><h2 class="dh2">The large orb</h2><p>Over the film after 400 ms. One line of words joins it after 2.5 s, so a long wait never feels silent.</p>
+      <div class="stagebox"><canvas id="d-orb"></canvas></div></article>
+    <article><span class="when">A page or a big file</span><h2 class="dh2">The line</h2><p>Starts at 12%, runs fast, slows but never stops, then finishes in 180 ms. Its ribbing drifts backward, which makes it read faster.</p>
+      <div class="row"><button class="ghostbtn" type="button" id="d-line">Run a 2-second wait</button><button class="ghostbtn" type="button" id="d-line6">Run a 6-second wait</button></div></article>
+    <article><span class="when">A section's content</span><h2 class="dh2">The skeleton</h2><p>Shaped like what's coming, from 300 ms, held at least 500 ms so it never flickers. The sheen sweeps slowly, in reading direction.</p>
+      <div class="box" id="d-sk"><b>Your week</b><p>Two live classes, one review, Daily 10 every day.</p></div>
+      <button class="ghostbtn" type="button" id="d-skb">Reload this card slowly</button></article>
+    <article><span class="when">Something finished</span><h2 class="dh2">The message</h2><p>Says what happened. The check draws itself. It stays long enough to read twice, and longer while the pointer is on it.</p>
+      <div class="row"><button class="ghostbtn" type="button" id="d-toast">Show the message</button><button class="ghostbtn" type="button" id="d-err">Show an error</button></div></article>
+    <article><span class="when">A field needs fixing</span><h2 class="dh2">The field message</h2><p>Next to the field, only after you leave it, and gone the moment it's fixed. It says what happened and what to do.</p>
+      <div class="k-field"><label for="d-email">Your email</label><input id="d-email" type="email" value="name@gmail"></div></article>
+  </div></div></section>
+</main>
+<script src="copy.js"></script>
+<script src="kit.js"></script>
+<script src="site.js"></script>
+<script>
+  const K = window.KARMAN;
+  document.querySelector("#d-btn .go").innerHTML = K.ARROW;
+  document.getElementById("d-btn").addEventListener("click", (e) => { const b = e.currentTarget; KIT.busy(b, true, K.site["form sending"]); setTimeout(() => KIT.busy(b, false), 2600); });
+  KIT.orb(document.getElementById("d-orb"), { size: 64, dark: true, state: "waiting" });
+  const run = (ms) => { KIT.line.start(ms * 0.8); setTimeout(() => KIT.line.done(), ms); };
+  document.getElementById("d-line").addEventListener("click", () => run(2000));
+  document.getElementById("d-line6").addEventListener("click", () => run(6000));
+  document.getElementById("d-skb").addEventListener("click", () => KIT.wait(document.getElementById("d-sk"), new Promise((r) => setTimeout(r, 1800)), KIT.SK.lines(3)));
+  document.getElementById("d-toast").addEventListener("click", () => KIT.toast(K.site["form done title"] || "The seat is saved.", "Check your inbox for the Zoom link."));
+  document.getElementById("d-err").addEventListener("click", () => KIT.toast("That didn't go through.", K.site["form error network"], "error"));
+  const em = document.getElementById("d-email");
+  KIT.fieldMsg(em, K.site["form error email"]);
+  em.addEventListener("input", () => KIT.fieldMsg(em, /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em.value) ? "" : K.site["form error email"]));
+  K.init();
+</script>
+<script src="alive.js"></script>
+</body>
+</html>

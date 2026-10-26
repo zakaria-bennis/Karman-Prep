@@ -69,12 +69,12 @@
   const parse = text => { const out = []; let m = null, named = false;
     text.split("\n").forEach(line => {
       // "## Site" (n = 0): the words around the film, header, menu and footer
-      const h = line.match(/^##\s*(\d+|site)\b/i); if (h) { m = { n: /site/i.test(h[1]) ? 0 : +h[1], beats: [{ name: "", rows: [] }] }; out.push(m); named = false; return; }
+      const h = line.match(/^##\s*(\d+|site)\b\s*(.*)$/i); if (h) { m = { n: /site/i.test(h[1]) ? 0 : +h[1], title: (h[2] || "").trim(), beats: [{ name: "", rows: [] }] }; out.push(m); named = false; return; }
       const b = line.match(/^###\s*(.*)$/); if (b && m) { if (named) m.beats.push({ name: b[1].trim(), rows: [] }); else m.beats[0].name = b[1].trim(); named = true; return; }
       const r = line.match(/^\s*([a-z ]+):\s*(.*)$/i); if (r && m) m.beats[m.beats.length - 1].rows.push([r[1].trim().toLowerCase(), r[2].trim()]); });
     return out; };
   const rowsOut = rows => rows.map(([k, v]) => `${k}: ${v.replace(/\s*\n\s*/g, " ").trim()}`).join("\n");
-  const serialize = () => "\n" + messages.map(m => (m.n ? `## ${m.n} ${NAMES[m.n - 1] || ""}`.trim() : "## Site") + "\n" +
+  const serialize = () => "\n" + messages.map(m => (m.n ? `## ${m.n} ${m.title || NAMES[m.n - 1] || ""}`.trim() : "## Site") + "\n" +
     (m.beats.length > 1 || m.beats[0].name ? m.beats.map(b => `### ${b.name}\n` + rowsOut(b.rows)).join("\n\n") : rowsOut(m.beats[0].rows))).join("\n\n") + "\n";
 
   // the house copy rules, checked as you type
@@ -95,7 +95,7 @@
     form.innerHTML = "";
     messages.forEach(m => {
       const box = document.createElement("div"); box.className = "ch"; box.dataset.n = m.n;
-      box.innerHTML = `<h2><span>${m.n ? `${m.n}. ${NAMES[m.n - 1] || ""}` : "Site: header, menu and footer"}</span><button type="button">Show</button></h2>`;
+      box.innerHTML = `<h2><span>${m.n ? `${m.n}. ${m.title || NAMES[m.n - 1] || ""}` : "Site: header, menu and footer"}</span><button type="button">Show</button></h2>`;
       // "Show" opens the message at the film that carries its headline
       const hb = Math.max(0, m.beats.findIndex(b => b.rows.some(([k, v]) => k === "headline" && v)));
       box.querySelector("h2 button").onclick = () => show(m.n, hb + 1);

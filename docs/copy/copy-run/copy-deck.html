@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Karman Prep — copy deck</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0b0d;color:#e8e9ed;font:15px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+ padding:56px 24px 96px}
+.wrap{max-width:1080px;margin:0 auto}
+header{border-bottom:1px solid #1e2128;padding-bottom:28px;margin-bottom:44px}
+.eyebrow{color:#6f7580;font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:12px}
+h1{font-size:30px;font-weight:650;letter-spacing:-.02em}
+.sub{color:#8b919c;margin-top:8px;font-size:14px}
+h2{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:#7d838e;margin-bottom:10px;font-weight:600}
+section{margin-bottom:48px}
+.lede{color:#8b919c;font-size:13.5px;margin-bottom:20px;max-width:62ch}
+.poles{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;
+ background:#101217;border:1px solid #1e2128;border-radius:12px;padding:22px}
+.pole-label{color:#6f7580;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px}
+.wire{color:#3a4048;font-size:20px}
+.enemy{margin-top:16px;background:#101217;border:1px solid #1e2128;border-left:3px solid #d9534f;
+ border-radius:0 12px 12px 0;padding:16px 20px}
+.enemy-type{color:#d9534f;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+/* asset mocks */
+.mock{background:#101217;border:1px solid #1e2128;border-radius:14px;overflow:hidden;max-width:600px}
+.mock-fb .fb-head{display:flex;gap:11px;align-items:center;padding:15px 16px 11px}
+.fb-avatar{width:40px;height:40px;border-radius:50%;background:#2b303a;display:flex;align-items:center;
+ justify-content:center;font-weight:650;color:#c7ccd4}
+.fb-brand{font-weight:620;font-size:14px}
+.fb-meta{color:#7d838e;font-size:12px}
+.fb-hook{padding:2px 16px 10px;font-size:15px;white-space:pre-wrap;font-weight:520}
+.fb-body{padding:0 16px 15px;color:#c2c7d0;font-size:14.5px}
+.fb-body p{margin-bottom:13px}
+.fb-card{border-top:1px solid #1e2128;background:#15181e;position:relative}
+.fb-img{height:150px;background:repeating-linear-gradient(45deg,#191d24,#191d24 11px,#1d222a 11px,#1d222a 22px);
+ display:flex;align-items:center;justify-content:center;color:#4a515c;font-size:11px;letter-spacing:.16em;
+ text-transform:uppercase}
+.fb-card-txt{padding:12px 16px}
+.fb-card-head{font-weight:640;font-size:14.5px}
+.fb-card-desc{color:#7d838e;font-size:12.5px;margin-top:3px}
+.fb-btn{position:absolute;right:14px;bottom:14px;background:#2b303a;color:#e8e9ed;padding:8px 15px;
+ border-radius:7px;font-size:13px;font-weight:600}
+.mock-email .inbox{border-bottom:1px solid #1e2128;padding:14px 18px;background:#15181e}
+.inbox-from{font-weight:640;font-size:13px;margin-bottom:3px}
+.inbox-subject{font-size:14px;font-weight:560}
+.inbox-preview{color:#7d838e;font-weight:400}
+.email-body{padding:22px 20px}
+.email-body p{margin-bottom:14px;color:#c2c7d0}
+.email-cta{display:inline-block;background:#e8e9ed;color:#0a0b0d;padding:11px 22px;border-radius:7px;
+ font-weight:640;font-size:14px;margin:6px 0 16px}
+.ps{color:#8b919c;font-size:13.5px;font-style:italic}
+.mock-lp{max-width:760px}
+.lp-nav{padding:14px 24px;border-bottom:1px solid #1e2128;font-weight:640;font-size:13.5px;background:#15181e}
+.lp-hero{padding:44px 30px 38px;text-align:center}
+.lp-hero h2{font-size:30px;line-height:1.2;letter-spacing:-.02em;color:#f2f3f6;text-transform:none;
+ margin-bottom:12px;font-weight:660}
+.lp-sub{color:#a8aeb8;font-size:16px;max-width:46ch;margin:0 auto 22px}
+.lp-btn{display:inline-block;background:#e8e9ed;color:#0a0b0d;padding:12px 28px;border-radius:8px;font-weight:650}
+.lp-proof{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:0 24px 30px}
+.proof{background:#191d24;border:1px solid #232830;border-radius:20px;padding:7px 15px;font-size:12.5px;color:#a8aeb8}
+.lp-section{padding:24px 30px;border-top:1px solid #1a1d23}
+.lp-section h3{font-size:18px;margin-bottom:9px;font-weight:640}
+.lp-section p{color:#a8aeb8;margin-bottom:11px}
+/* ladder */
+.ladders,.alts{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
+.ladder,.alt{background:#101217;border:1px solid #1e2128;border-radius:12px;padding:18px}
+.ladder-id,.alt-id{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#6f7580;margin-bottom:12px}
+.ladder-head{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.13em;
+ text-transform:uppercase;color:#4a515c;margin-bottom:10px}
+.rung{position:relative;padding:6px 0 6px 20px;color:#8b919c;font-size:13.5px}
+.rung-dot{position:absolute;left:3px;top:13px;width:6px;height:6px;border-radius:50%;background:#2f353e}
+.rung-final{color:#f2f3f6;font-weight:620;font-size:15px}
+.rung-final .rung-dot{background:#5b9f6e;box-shadow:0 0 0 3px rgba(91,159,110,.16)}
+.alt ul{list-style:none}
+.alt li{padding:9px 0;border-bottom:1px solid #191d23;color:#a8aeb8;font-size:13.5px}
+.alt li:last-child{border-bottom:none}
+.alt li.shipped{color:#f2f3f6;font-weight:600}
+.tag{background:#1c2b21;color:#5b9f6e;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+ padding:2px 7px;border-radius:4px;margin-left:9px;vertical-align:middle}
+/* gate */
+.gate-row{display:flex;gap:22px;justify-content:space-between;align-items:flex-start;background:#101217;
+ border:1px solid #1e2128;border-left:3px solid #2f353e;border-radius:0 12px 12px 0;padding:16px 20px;margin-bottom:11px}
+.gate-row.s3{border-left-color:#5b9f6e}
+.gate-row.s2{border-left-color:#c8963e}
+.gate-row.s1{border-left-color:#d9534f}
+.gate-id{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#6f7580;margin-bottom:5px}
+.gate-txt{font-size:15px;font-weight:560;color:#f2f3f6}
+.signed{margin-top:9px;font-size:12.5px;color:#8b919c;font-style:italic}
+.signed-label{display:block;font-style:normal;font-size:9.5px;letter-spacing:.13em;
+ text-transform:uppercase;color:#5a616b;margin-bottom:2px}
+.gate-note{margin-top:7px;font-size:12.5px;color:#7d838e}
+.gate-scores{display:flex;gap:14px;align-items:center;flex-shrink:0}
+.chk{text-align:center;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#5a616b}
+.chk span{display:block;margin-bottom:5px}
+.yes{color:#5b9f6e;font-weight:700}
+.no{color:#d9534f;font-weight:700}
+.score{font-size:21px;font-weight:680;color:#e8e9ed;margin-left:6px}
+.score span{font-size:11px;color:#5a616b;font-weight:500}
+/* facts */
+.facts{display:grid;gap:8px}
+.fact{display:grid;grid-template-columns:78px 1fr 130px;gap:14px;align-items:center;background:#101217;
+ border:1px solid #1e2128;border-radius:9px;padding:12px 16px;font-size:13.5px}
+.fact-src{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;text-align:center;padding:3px 0;
+ border-radius:4px;background:#1c222b;color:#8b919c}
+.fact-src.review{background:#16261c;color:#5b9f6e}
+.fact-src.founder{background:#1e2233;color:#7d8ccc}
+.fact-txt{color:#c2c7d0}
+.fact-used{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:10.5px;color:#5a616b;text-align:right}
+.cut{list-style:none;color:#7d838e;font-size:13.5px}
+.cut li{padding:8px 0 8px 18px;border-bottom:1px solid #16191f;position:relative;text-decoration:line-through;
+ text-decoration-color:#3a4048}
+.cut li:before{content:'\00d7';position:absolute;left:0;color:#d9534f;text-decoration:none}
+.caveats{background:#101217;border:1px solid #1e2128;border-radius:12px;padding:22px 26px}
+.caveats ul{list-style:none;color:#8b919c;font-size:13.5px}
+.caveats li{padding:5px 0 5px 16px;position:relative}
+.caveats li:before{content:'\2014';position:absolute;left:0;color:#4a515c}
+footer{border-top:1px solid #1e2128;padding-top:22px;color:#5a616b;font-size:12px;text-align:center}
+footer a{color:#7d838e}
+@media(max-width:720px){.poles{grid-template-columns:1fr}.wire{display:none}
+ .gate-row{flex-direction:column}.fact{grid-template-columns:1fr}.fact-used{text-align:left}}
+</style></head><body><div class="wrap">
+<header>
+  <div class="eyebrow">Conversion Copywriter · Landing page</div>
+  <h1>Karman Prep</h1>
+  <div class="sub">Written 2026-10-25</div>
+</header>
+
+<section>
+  <h2>The race</h2>
+  <p class="lede">You can't start in the middle. Two telephone poles &mdash; the copy is the wire.</p>
+  <div class="poles">
+    <div><div class="pole-label">Point A &mdash; where they are</div>A parent of an 11th grader who has seen &#x27;+200 points guaranteed&#x27; ads, suspects the rules are buried on a terms page, has maybe paid for prep before and watched the homework stop after week two, and has no way to tell what is happening until the score arrives.</div>
+    <div class="wire">&rarr;</div>
+    <div><div class="pole-label">Point B &mdash; where they land</div>Karman shows the whole deal before I talk to anyone (price, dates, every rule of the guarantee as a number), it ends on my kid&#x27;s test date, and I will see every week whether the work got done. Next step: book the free practice test on December 12.</div>
+  </div>
+  <div class="enemy"><div class="enemy-type">A different approach</div>The usual SAT prep sells open-ended hours or subscriptions, prints a big guarantee and hides its rules on a separate page, then stops watching once you have paid. Karman sells a program that ends on one SAT date, prints every rule as a number, and reports the work to the parent every week.</div>
+</section>
+
+<section>
+  <h2>The copy</h2>
+  <p class="lede">Laid out the way the reader will actually see it &mdash; not as a document.</p>
+  
+    <div class="mock mock-lp">
+      <div class="lp-nav">Karman Prep</div>
+      <div class="lp-hero">
+        <h2>The fine print, on the front page.</h2>
+        <p class="lp-sub">Nine-week SAT programs, six students to a class, ending on your student&#x27;s test date. The guarantee and every one of its rules are on this page, in type this size.</p>
+        <div class="lp-btn">Take the free practice test</div>
+      </div>
+      <div class="lp-proof"><div class="proof">Karman&#x27;s 1:1 students gained 285 points on average. Karman 1:1 tutoring, median 16 weeks.</div><div class="proof">Students already at 1500, or under four weeks from the test, are told the program probably isn&#x27;t worth it.</div></div>
+      <div class="lp-section"><h3>Six students, so nobody hides in the back row.</h3><p>Two live classes a week, 90 minutes each, 18 in all. Small enough that every student answers out loud.</p></div><div class="lp-section"><h3>After every practice test, an hour on what went wrong.</h3><p>Five full-length tests. After each one, 60 minutes one-on-one with a Karman tutor, going through every question your student missed and why.</p></div><div class="lp-section"><h3>Miss it on Monday. See it again on Wednesday.</h3><p>The Daily 10: ten questions, about ten minutes. Every missed question comes back after 2, 7 and 21 days.</p></div><div class="lp-section"><h3>You&#x27;ll know every week if the work got done.</h3><p>Minutes practiced, classes attended, practice test scores and next week&#x27;s plan. The same numbers the guarantee is measured on.</p></div><div class="lp-section"><h3>The program ends the day your student sits the SAT.</h3><p>No monthly plan to cancel, no hours left over. Every cohort is built backward from one official test date.</p></div><div class="lp-section"><h3>The whole guarantee. No other page changes it.</h3><p>Other SAT guarantees keep their rules on a terms page: a homework quota, a &#x27;good faith&#x27; clause, a line saying a claim may not be approved. Ours has five rules. Each one is a number on your student&#x27;s dashboard.</p></div><div class="lp-section"><h3>See your student&#x27;s score range before you spend a dollar.</h3><p>December 12, 10:00 a.m. ET, live on Zoom with a proctor. About 75 minutes, 49 of our own questions, then a score range, a breakdown by domain and a 20-minute call to go through it.</p></div>
+    </div>
+</section>
+
+<section><h2>The gate</h2><p class="lede">Harry Dry's three rules. Three nos and it's rubbish. Three yeses and you're onto something.</p><div class="gate">
+        <div class="gate-row s3">
+          <div class="gate-line">
+            <div class="gate-id">headline</div>
+            <div class="gate-txt">The fine print, on the front page.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Princeton Review: false, their guarantee rules sit on a separate terms page. Kaplan: same.</div>
+            <div class="gate-note">Holds only while the full guarantee stays on the home page. If it moves, this line dies.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+            <div class="score">3<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s3">
+          <div class="gate-line">
+            <div class="gate-id">subhead</div>
+            <div class="gate-txt">...The guarantee and every one of its rules are on this page, in type this size.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Nobody advertising &#x27;+200 or your money back&#x27; with a terms link can sign &#x27;in type this size&#x27;.</div>
+            <div class="gate-note">Self-checking: the reader can scroll and verify.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+            <div class="score">3<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s2">
+          <div class="gate-line">
+            <div class="gate-id">live classes H2</div>
+            <div class="gate-txt">Six students, so nobody hides in the back row.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>A small-group tutor with 6-seat classes could sign it.</div>
+            <div class="gate-note">The cap is ours but not unique. Kept because the back row is the strongest picture.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="no">no</span></div>
+            <div class="score">2<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s3">
+          <div class="gate-line">
+            <div class="gate-id">review H2</div>
+            <div class="gate-txt">After every practice test, an hour on what went wrong.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Group courses don&#x27;t include a 1:1 hour after each full-length.</div>
+            <div class="gate-note">This is Zakaria&#x27;s core method; a Karman tutoring session is a full-length review.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+            <div class="score">3<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s2">
+          <div class="gate-line">
+            <div class="gate-id">Daily 10 H2</div>
+            <div class="gate-txt">Miss it on Monday. See it again on Wednesday.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Any spaced-repetition app could sign it.</div>
+            <div class="gate-note">Concrete and true (2-day return). Uniqueness comes from the section around it.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="no">no</span></div>
+            <div class="score">2<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s3">
+          <div class="gate-line">
+            <div class="gate-id">parent update H2</div>
+            <div class="gate-txt">You&#x27;ll know every week if the work got done.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Self-paced prep and most courses send nothing to parents.</div>
+            <div class="gate-note">Answers the &#x27;low commitment after purchase&#x27; problem directly.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+            <div class="score">3<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s3">
+          <div class="gate-line">
+            <div class="gate-id">test date H2</div>
+            <div class="gate-txt">The program ends the day your student sits the SAT.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Subscription and hourly providers can&#x27;t sign it.</div>
+            <div class="gate-note">The business model in one line.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+            <div class="score">3<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s3">
+          <div class="gate-line">
+            <div class="gate-id">guarantee H2</div>
+            <div class="gate-txt">The whole guarantee. No other page changes it.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Anyone with &#x27;see terms&#x27; under their guarantee can&#x27;t sign it.</div>
+            <div class="gate-note">The /guarantee page must repeat these exact terms, never add to them.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+            <div class="score">3<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s2">
+          <div class="gate-line">
+            <div class="gate-id">close H2</div>
+            <div class="gate-txt">See your student&#x27;s score range before you spend a dollar.</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Big brands also run free practice tests.</div>
+            <div class="gate-note">Ours is live-proctored on our own questions with a results call; the body carries that.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="no">no</span></div>
+            <div class="score">2<span>/3</span></div>
+          </div>
+        </div>
+        <div class="gate-row s2">
+          <div class="gate-line">
+            <div class="gate-id">cta</div>
+            <div class="gate-txt">Take the free practice test</div>
+            <div class="signed"><span class="signed-label">competitor test</span>Generic by design: a button names the action.</div>
+            <div class="gate-note">Copy rule 12: a clear verb and outcome.</div>
+          </div>
+          <div class="gate-scores">
+            <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+            <div class="chk"><span>only us</span><span class="no">no</span></div>
+            <div class="score">2<span>/3</span></div>
+          </div>
+        </div></div></section>
+<section><h2>The ladder</h2><p class="lede">Every line starts abstract. This is the climb down to something you can see.</p><div class="ladders"><div class="ladder"><div class="ladder-id">headline</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>Honest SAT prep</div><div class="rung"><span class="rung-dot"></span>SAT prep you can trust</div><div class="rung"><span class="rung-dot"></span>SAT prep with nothing hidden</div><div class="rung"><span class="rung-dot"></span>a guarantee with no fine print</div><div class="rung"><span class="rung-dot"></span>the fine print printed where you can see it</div><div class="rung rung-final"><span class="rung-dot"></span>The fine print, on the front page.</div></div><div class="ladder"><div class="ladder-id">subhead</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>transparent terms</div><div class="rung"><span class="rung-dot"></span>every rule is visible</div><div class="rung"><span class="rung-dot"></span>every rule is on this page</div><div class="rung"><span class="rung-dot"></span>every rule is on this page, the same size as the promise</div><div class="rung rung-final"><span class="rung-dot"></span>in type this size</div></div><div class="ladder"><div class="ladder-id">live classes H2</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>small classes</div><div class="rung"><span class="rung-dot"></span>personal attention</div><div class="rung"><span class="rung-dot"></span>the tutor notices everyone</div><div class="rung"><span class="rung-dot"></span>six students</div><div class="rung rung-final"><span class="rung-dot"></span>nobody hides in the back row</div></div><div class="ladder"><div class="ladder-id">review H2</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>personal feedback</div><div class="rung"><span class="rung-dot"></span>one-on-one reviews</div><div class="rung"><span class="rung-dot"></span>a review after every test</div><div class="rung rung-final"><span class="rung-dot"></span>an hour on every mistake after every practice test</div></div><div class="ladder"><div class="ladder-id">Daily 10 H2</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>spaced repetition</div><div class="rung"><span class="rung-dot"></span>mistakes come back</div><div class="rung"><span class="rung-dot"></span>missed questions return after 2, 7 and 21 days</div><div class="rung rung-final"><span class="rung-dot"></span>Miss it on Monday. See it again on Wednesday.</div></div><div class="ladder"><div class="ladder-id">parent update H2</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>accountability</div><div class="rung"><span class="rung-dot"></span>parents stay informed</div><div class="rung"><span class="rung-dot"></span>a weekly report</div><div class="rung rung-final"><span class="rung-dot"></span>you&#x27;ll know every week if the work got done</div></div><div class="ladder"><div class="ladder-id">test date H2</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>outcome focused</div><div class="rung"><span class="rung-dot"></span>a program with an end</div><div class="rung"><span class="rung-dot"></span>it ends on the test date</div><div class="rung rung-final"><span class="rung-dot"></span>the program ends the day your student sits the SAT</div></div><div class="ladder"><div class="ladder-id">guarantee H2</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>transparent guarantee</div><div class="rung"><span class="rung-dot"></span>no hidden conditions</div><div class="rung"><span class="rung-dot"></span>all the rules on one page</div><div class="rung rung-final"><span class="rung-dot"></span>nothing on another page changes it</div></div><div class="ladder"><div class="ladder-id">close H2</div><div class="ladder-head"><span>abstract</span><span>concrete</span></div><div class="rung"><span class="rung-dot"></span>start for free</div><div class="rung"><span class="rung-dot"></span>try before you buy</div><div class="rung"><span class="rung-dot"></span>a free practice test</div><div class="rung rung-final"><span class="rung-dot"></span>see the score range before you spend a dollar</div></div></div></section>
+<section><h2>Alternates</h2><p class="lede">You get better feedback on three versions than on one. Swap any of these in.</p><div class="alts"><div class="alt"><div class="alt-id">headline</div><ul><li class="shipped">The fine print, on the front page.<span class="tag">shipped</span></li><li class="">+100 points by March 6, or your money back.</li><li class="">Every rule of our guarantee is a number you can check.</li><li class="">SAT prep that tells you if your kid did the work.</li><li class="">Nine weeks. One SAT date. Every rule on this page.</li></ul></div><div class="alt"><div class="alt-id">live classes H2</div><ul><li class="shipped">Six students, so nobody hides in the back row.<span class="tag">shipped</span></li><li class="">Small enough that every student answers out loud.</li><li class="">Six seats. Five paid, one scholarship.</li><li class="">Live, twice a week, six students.</li></ul></div><div class="alt"><div class="alt-id">review H2</div><ul><li class="shipped">After every practice test, an hour on what went wrong.<span class="tag">shipped</span></li><li class="">Every wrong answer gets a one-on-one hour.</li><li class="">Five tests. Five hours going through every mistake.</li><li class="">The test is practice. The review is the lesson.</li></ul></div><div class="alt"><div class="alt-id">Daily 10 H2</div><ul><li class="shipped">Miss it on Monday. See it again on Wednesday.<span class="tag">shipped</span></li><li class="">The question they missed comes back. Three times.</li><li class="">Ten minutes a day, before the bus.</li><li class="">Ten questions. Yesterday&#x27;s mistakes first.</li></ul></div><div class="alt"><div class="alt-id">parent update H2</div><ul><li class="shipped">You&#x27;ll know every week if the work got done.<span class="tag">shipped</span></li><li class="">Minutes practiced, in your inbox, every week.</li><li class="">No waiting for the score report to find out.</li><li class="">The numbers the guarantee uses, sent to you weekly.</li></ul></div><div class="alt"><div class="alt-id">test date H2</div><ul><li class="shipped">The program ends the day your student sits the SAT.<span class="tag">shipped</span></li><li class="">One date, circled since January.</li><li class="">Built backward from March 6.</li><li class="">No monthly plan to forget to cancel.</li></ul></div><div class="alt"><div class="alt-id">guarantee H2</div><ul><li class="shipped">The whole guarantee. No other page changes it.<span class="tag">shipped</span></li><li class="">Five rules. All of them numbers.</li><li class="">Here are the rules other guarantees hide.</li><li class="">What we promise, what your student does, on one screen.</li></ul></div><div class="alt"><div class="alt-id">close H2</div><ul><li class="shipped">See your student&#x27;s score range before you spend a dollar.<span class="tag">shipped</span></li><li class="">Start with 75 minutes and a score range.</li><li class="">Find out where they stand on December 12.</li><li class="">The first step costs nothing and takes a Saturday morning.</li></ul></div></div></section>
+<section><h2>The facts underneath</h2><p class="lede">Every specific in the copy traces back to one of these. No fact, no line.</p><div class="facts"><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Every cohort ends on one official SAT date: March 6, 2027, then May 1 and June 5.</div><div class="fact-used">test date section, hero subhead</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Classes are capped at six students: five paid seats and one scholarship seat.</div><div class="fact-used">live classes H2</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">18 live classes of 90 minutes, two a week (Tuesday and Thursday 7:00 to 8:30 p.m. ET, still marked CONFIRM).</div><div class="fact-used">live classes body</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Five full-length practice tests, each followed by a 60-minute one-on-one review of every missed question.</div><div class="fact-used">review H2</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Daily 10: every missed question returns after 2, 7 and 21 days.</div><div class="fact-used">Daily 10 H2</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Parents get a weekly update: practice time, attendance, test scores and next steps.</div><div class="fact-used">parent update H2</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">The guarantee: +100 points or a 1450. Half or all of the price back, or the next cohort free; the family chooses.</div><div class="fact-used">guarantee, pricing</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">The guarantee has five student rules, each a number tracked on the dashboard: 15 of 18 classes, all 5 reviews, all 5 tests, 90% of practice, sit the SAT.</div><div class="fact-used">guarantee text, parent update body</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Competitor guarantees (read from their own terms pages, 2026-10 research) include 100% homework rules, poll quotas, same-device rules, &#x27;good faith&#x27; clauses and &#x27;submitting a claim doesn&#x27;t guarantee approval&#x27;. Karman&#x27;s guarantee has none of these.</div><div class="fact-used">guarantee text</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">A claim is one email with the official College Board report within 30 days; nothing is taken out of a refund.</div><div class="fact-used">guarantee claim</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">March cohort: $995 founding price, or 3 payments of $345; $1,295 for later cohorts; a $100 refundable deposit holds a seat.</div><div class="fact-used">pricing</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Private 10 is $1,450 and Private 20 is $2,900 ($145 an hour).</div><div class="fact-used">pricing, private page</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Free practice test: Saturday, December 12, 10:00 a.m. ET, about 75 minutes, 49 Karman questions, live proctor on Zoom, estimated score range, domain breakdown, 20-minute results call.</div><div class="fact-used">hero CTA, close</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Karman 1:1 tutoring: +285 points on average (1235 to 1520), 94% reached their target, median 16 weeks, 1,200+ students tutored.</div><div class="fact-used">hero proof</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Students at 1500+ or under four weeks from the test are told a program probably isn&#x27;t worth their money.</div><div class="fact-used">pricing honest note, close objection</div></div><div class="fact"><div class="fact-src founder">founder</div><div class="fact-txt">Karman is named for the Karman line, 100 km up, where the atmosphere ends and space begins.</div><div class="fact-used">close line note</div></div></div></section>
+<section><h2>Cut</h2><ul class="cut"><li>&#x27;The climb starts before sunrise.&#x27; Beautiful film line, but a parent can&#x27;t falsify it and any brand could sign it.</li><li>&#x27;10,000+ original practice questions.&#x27; Live count was 2,588 on 2026-10-19; the release check blocks the claim. Written around until the bank reaches it.</li><li>&#x27;We don&#x27;t sell hours. We sell March 6.&#x27; Two-beat antithesis, banned by copy rule 16.</li><li>&#x27;Cameras on, questions answered live.&#x27; No fact says cameras are required.</li><li>&#x27;Our tutors know every name.&#x27; Talk, not a fact.</li></ul></section>
+<section class="caveats"><h2>Read this before you spend money</h2><ul><li>Every specific in this copy traces to a fact you provided or a review you supplied — check them before you spend money behind them. This writes the copy; it doesn&#x27;t verify your claims or clear them for compliance.</li><li>No customer reviews exist yet (honesty rule), so every line is built on offer facts and the 1:1 track record, not customer words. Once real reviews exist, re-run this with them.</li><li>The guarantee is a proposal waiting on a lawyer. The headline and guarantee section only stay true if the lawyer keeps the full terms on the page.</li><li>Class days and times are still marked CONFIRM in offer.ts.</li><li>The students map numbers (80 U.S., 20 abroad) are unconfirmed; the map copy avoids stating them until you confirm.</li></ul></section>
+
+<footer>
+  Method: Harry Dry's three rules &mdash;
+  <a href="https://marketingexamples.com">marketingexamples.com</a>
+</footer>
+</div></body></html>

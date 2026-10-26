@@ -346,11 +346,23 @@
     if (land) draw(reduce ? DONE + 1 : t);
   });
 
-  Promise.all(
+  // the map data (about 0.5 MB): the line at the top if it takes over 400 ms, and a soft skeleton of the map
+  // where the map will be if it takes over 300 ms (kit.js), with one line of words under it
+  const data = Promise.all(
     ["vendor/map/land-110m.json", "vendor/map/states-10m.json"].map((u) =>
       fetch(u).then((r) => r.json())
     )
-  ).then(([w, us]) => {
+  );
+  window.KIT?.line.start(1200);
+  data.finally(() => window.KIT?.line.done());
+  const stageEl = document.querySelector(".mapstage");
+  if (window.KIT)
+    KIT.wait(
+      stageEl,
+      data,
+      `${KIT.SK.map()}<p class="k-sk-say">${esc(site["loading map"] || "")}</p>`
+    );
+  data.then(([w, us]) => {
     land = topojson.feature(w, w.objects.land);
     nation = topojson.feature(us, us.objects.nation);
     states = topojson.mesh(us, us.objects.states, (a, b) => a !== b);

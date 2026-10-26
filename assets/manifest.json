@@ -142,6 +142,78 @@
       "status": "proposed",
       "route": "nasa",
       "source": "NASA Image and Video Library: GSFC_20180124_m12825_ISS_Airglow, or the JSC 4K Earth Views Extended Cut (2021). Public domain; no NASA logo, no implied endorsement."
+    },
+    {
+      "id": "p-program",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["ava"],
+      "where": "The SAT Program page, opening (beside the headline on desktop, above it on phones)",
+      "prompt": "A 16-year-old girl at her bedroom desk in the evening, in a live online class on her laptop, AirPods Pro in, leaning in, locked in, a small smile at something the tutor said. Warm desk lamp, bookshelves softly out of focus behind her. The laptop is turned away from the camera. Shot from the side at eye level, three-quarter view, room to the left of her for words. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-private",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["david"],
+      "where": "Private tutoring page, opening",
+      "prompt": "A tutor in his late twenties in his own home office, mid-explanation to a student on a video call, one hand gesturing, warm and attentive. Laptop on the desk facing away from the camera, a notebook-free tidy desk, a plant and a window with soft daylight. Side view, waist up, room to the left for words. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-test",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["mateo"],
+      "where": "Free practice test page, beside the sign-up form",
+      "prompt": "A 17-year-old boy at a kitchen table taking a timed practice test on a laptop, AirPods in, chin on his hand, concentrating hard. Soft daylight from a side window, a glass of water by the laptop. The laptop screen faces away from the camera. Three-quarter view from slightly behind his shoulder line, never showing the screen. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-guarantee",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["parent1"],
+      "where": "Guarantee page, next to the worked examples",
+      "prompt": "A parent in their forties at home on the sofa, reading something on a phone with a calm, reassured expression, a cup of tea on the side table. The phone screen faces away from the camera. Soft evening light, natural, unposed, editorial. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-about",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["priya"],
+      "where": "About page, the 'three things we won't do' section",
+      "prompt": "Three 16 and 17 year old teammates on a bench during a break at volleyball practice in a school gym, each doing a quick practice set on their phone, one showing another something on her phone, focused with small smiles. Phone screens face away from the camera. Gym light, warm, documentary. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-pricing",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["clara"],
+      "where": "Pricing page, beside the plans on desktop and between the plans and the guarantee on phones",
+      "prompt": "A parent and their 16-year-old daughter at a kitchen counter looking at a laptop together and talking it through, relaxed, the daughter pointing at something. The laptop is turned away from the camera. Natural light, warm, documentary, room to one side for words. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
     }
   ],
   "plates": [

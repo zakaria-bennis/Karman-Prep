@@ -61,14 +61,14 @@
       "Five full-length practice tests",
       "A 60-minute one-on-one after every full-length",
       "A weekly live session",
-      "Daily 10 and 10,000+ original questions",
+      "Daily 10 and our own practice questions",
       "Your cohort's group chat, answered daily",
       "A weekly update for parents",
     ],
     private: [
       "Weekly 60-minute sessions with a Karman tutor",
       "Scheduled back from your test date",
-      "Practice tests, Daily 10 and 10,000+ questions",
+      "Practice tests, Daily 10 and our own questions",
       "The weekly live session",
       "A note to parents after every session",
     ],
@@ -89,7 +89,7 @@
       "Every session",
     ],
     ["Weekly live session: test mechanics and workshops", "", "yes", "yes"],
-    ["Daily 10 and 10,000+ original questions", "", "yes", "yes"],
+    ["Daily 10 and our own practice questions", "", "yes", "yes"],
     ["Cohort group chat, answered by a tutor every day", "", "yes", ""],
     ["Updates for parents", "", "Every week", "After every session"],
     [
@@ -107,13 +107,13 @@
       ? `<span class="yes">${CHECK}<span class="sr">Included</span></span>`
       : v
         ? esc(v)
-        : '<span class="no" aria-label="Not included">&mdash;</span>';
+        : '<span class="no"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="sr">Not included</span></span>';
   const g = M(8);
 
   /* ---------- the page ---------- */
   document.getElementById("main").innerHTML = `
   <section class="p-hero" data-light>
-    <div class="in">
+    <div class="in p-herogrid"><div class="p-words">
       <p class="eyebrow rv">${S("eyebrow")}</p>
       <h1 class="rv" style="--d:.05s">${S("headline")}</h1>
       <p class="lede rv" style="--d:.1s">${S("text")}</p>
@@ -124,23 +124,19 @@
           <label><input type="radio" name="date" value="other"><span>${S("other date")}</span></label>
         </div>
       </fieldset>
-    </div>
+    </div>${K.photo("pricing", "ph-hero only-wide")}</div>
   </section>
 
   <section class="plans" data-light aria-label="${esc(site["pricing link"] || "")}">
     <div class="in">
       <p class="other-note" hidden>${S("other note")}</p>
+      <div class="freeline rv">
+        <p><b>${esc(site["free test link"])}, $0.</b> ${esc(FREE.date)}, ${esc(FREE.time)}. ${esc(FREE.length)}. ${INCLUDES.free.map(esc).join(", ")}.</p>
+        <a class="lk" href="${ROUTES.test}#seat">${S("free button")}${K.ARROW}</a>
+      </div>
       <div class="cards">
-        <article class="plan free rv">
-          <h2>${esc(site["free test link"])}</h2>
-          <p class="price"><b>$0</b></p>
-          <p class="meta">${esc(FREE.date)}, ${esc(FREE.time)}<br>${esc(FREE.length)}</p>
-          <ul>${INCLUDES.free.map((x) => `<li>${CHECK}${esc(x)}</li>`).join("")}</ul>
-          <a class="ghost" href="${ROUTES.test}">${S("free button")}${K.ARROW}</a>
-        </article>
-
-        <article class="plan program rv" style="--d:.08s">
-          <a class="badge" href="#guarantee"><b>+100</b><span>${S("guarantee headline")}</span></a>
+        <article class="plan program rv">
+          <a class="badge" href="#guarantee"><b>+100</b><span>${S("badge")}</span></a>
           <h2 class="pname">${esc(DATES[0].name)}</h2>
           <div class="pay" role="radiogroup" aria-label="${S("full")} / ${S("split")}">
             <label><input type="radio" name="pay" value="full" checked><span>${S("full")}</span></label>
@@ -152,11 +148,11 @@
             <div><dt>Ends on the SAT</dt><dd class="test"></dd></div>
             <div><dt>Enrollment closes</dt><dd class="closes"></dd></div>
           </dl>
-          <ul>${INCLUDES.program.map((x) => `<li>${CHECK}${esc(x)}</li>`).join("")}</ul>
-          <div class="cta">${btn(site["pricing program button"] || "", ROUTES.program)}<small>${S("program deposit")}</small></div>
+          <ul>${INCLUDES.program.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+          <div class="cta">${btn(site["pricing program button"] || "", `${ROUTES.program}#apply`)}<small>${S("program deposit")}</small></div>
         </article>
 
-        <article class="plan private rv" style="--d:.16s">
+        <article class="plan private rv" style="--d:.08s">
           <h2>${esc(site["private link"])}</h2>
           <div class="pay hours" role="radiogroup">
             ${PRIVATE.packs.map(([h], i) => `<label><input type="radio" name="hours" value="${i}"${i ? "" : " checked"}><span>${h} hours</span></label>`).join("")}
@@ -164,10 +160,11 @@
           <p class="price" aria-live="polite"><b class="amt"></b><span class="per">${money(PRIVATE.rate)} an hour</span></p>
           <a class="badge g20" href="#guarantee" hidden><b>+100</b><span>On 20 hours: +100 points or a 1450.</span></a>
           <p class="meta">Start any time. Sessions are planned back from your test date.</p>
-          <ul>${INCLUDES.private.map((x) => `<li>${CHECK}${esc(x)}</li>`).join("")}</ul>
-          <a class="ghost" href="${ROUTES.private}">${S("private button")}${K.ARROW}</a>
+          <ul>${INCLUDES.private.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+          <a class="ghost" href="${ROUTES.private}#call">${S("private button")}${K.ARROW}</a>
         </article>
       </div>
+      ${K.photo("pricing", "ph-side only-phone")}
     </div>
   </section>
 
@@ -178,14 +175,15 @@
   <section class="compare" data-light aria-labelledby="cmp-h">
     <div class="in">
       <h2 id="cmp-h" class="rv">${S("compare title")}</h2>
-      <div class="tablewrap rv">
+      <details class="cmp rv"${matchMedia("(max-width: 700px)").matches ? "" : " open"}><summary>${S("compare open")}${KIT.icon("plus")}</summary>
+      <div class="tablewrap">
         <table>
           <thead><tr><th scope="col"><span class="sr">Feature</span></th><th scope="col">${esc(site["free test link"])}</th><th scope="col" class="hot">${esc(site["program link"])}</th><th scope="col">${esc(site["private link"])}</th></tr></thead>
           <tbody>${COMPARE.map((r) => `<tr><th scope="row">${esc(r[0])}</th><td>${cell(r[1])}</td><td class="hot">${cell(r[2])}</td><td>${cell(r[3])}</td></tr>`).join("")}
             <tr class="cost"><th scope="row">Price</th><td>$0</td><td class="hot prog-cost"></td><td>${money(PRIVATE.rate)} an hour</td></tr>
           </tbody>
         </table>
-      </div>
+      </div></details>
       <div class="honest">
         <p class="rv">${S("honest note")}</p>
         <p class="rv" style="--d:.08s">${S("scholarship")}</p>
@@ -236,5 +234,6 @@
     .querySelectorAll('input[type="radio"]')
     .forEach((r) => r.addEventListener("change", render));
   render();
+  K.dock(site["pricing program button"], `${ROUTES.program}#apply`);
   K.init();
 })();

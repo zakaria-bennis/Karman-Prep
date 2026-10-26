@@ -20,26 +20,28 @@
 
   /* ---------- the features, most important first; each screen sits at the outer edge of the page ---------- */
   const FEATURES = [
-    { n: 2, media: "wide", src: "img/schedule.webp", side: "right" },
-    { n: 3, media: "wide", src: "img/review.webp", side: "left" },
-    { n: 4, media: "phone", src: "img/daily10.webp", side: "right", figure: "ten" },
-    { n: 5, media: "phone", src: "img/parent-update.webp", side: "left" },
-    { n: 6, media: "phone", src: "img/word-game.webp", side: "right", minor: true },
+    { n: 2, media: "wide", screen: "schedule", side: "right" },
+    { n: 3, media: "wide", screen: "review", side: "left" },
+    { n: 4, media: "phone", screen: "daily10", side: "right", figure: "ten" },
+    { n: 5, media: "phone", screen: "parent", side: "left" },
+    { n: 6, media: "phone", screen: "wordline", side: "right", minor: true },
   ];
+  // the product screens are drawn in code (screens.js), so they match the site and stay sharp at any size
+  const SCR = (name) => (window.KARMAN_SCREENS?.[name] || (() => ""))();
   function feature(x) {
     const f = M(x.n);
     const media =
       x.media === "phone"
-        ? `<div class="turn">${phone(`<img src="${x.src}" alt="" loading="lazy" decoding="async">`, x.side === "left" ? "left" : "")}</div>`
-        : `<figure class="wide"><img src="${x.src}" alt="" decoding="async"></figure>`;
+        ? `<div class="turn">${phone(SCR(x.screen), x.side === "left" ? "left" : "")}</div>`
+        : `<figure class="wide" aria-hidden="true">${SCR(x.screen)}</figure>`;
     const note = f["card title"]
       ? `<p class="note"><b>${esc(f["card title"])}</b>${esc(f["card text"])}</p>`
       : "";
     const fig = x.figure
       ? `<div class="fig" data-fig="${x.figure}"><div class="hl"></div><span class="read" aria-live="polite"></span></div>`
       : "";
-    return `<article class="feat ${x.side}${x.minor ? " minor" : ""} ${x.media}" id="m-${x.n}">
-      <div class="media rv">${media}</div>
+    return `<article class="feat ${x.side}${x.minor ? " minor" : ""} m-${x.media}" id="m-${x.n}">
+      <div class="media rv" aria-hidden="true">${media}</div>
       <div class="words rv" style="--d:.1s">
         ${f.headline ? `<h2>${esc(f.headline)}</h2>` : ""}
         ${f["feature title"] || f["feature text"] ? `<p class="lede">${f["feature title"] ? `<b>${esc(f["feature title"])}</b> ` : ""}${esc(f["feature text"])}</p>` : ""}
@@ -138,6 +140,7 @@
     <div class="in">
       <h2 class="rv">${esc(end.headline)}</h2>
       ${end.text ? `<p class="lede rv" style="--d:.1s">${esc(end.text)}</p>` : ""}
+      ${end.objection ? `<p class="obj rv" style="--d:.15s">${esc(end.objection)}</p>` : ""}
       <div class="rv" style="--d:.2s">${action(end)}</div>
     </div>
     ${end["line note"] ? `<div class="kline rv" style="--d:.35s"><span class="bar" aria-hidden="true"></span><p>${esc(end["line note"])}</p></div>` : ""}
@@ -155,14 +158,31 @@
     edge.src = `c9${sfx}.mp4`;
   }
   // the orb shows only when the film takes longer than 400 ms to arrive
-  let waitT = 0;
+  let waitT = 0,
+    slowT = 0,
+    orbStop = null,
+    orbT = 0;
+  const orbCanvas = stage.querySelector(".orb");
+  stage.querySelector(".late").textContent = K.site["loading film"] || "";
   const waitOn = () => {
     clearTimeout(waitT);
-    waitT = setTimeout(() => stage.classList.add("waiting"), 400);
+    waitT = setTimeout(() => {
+      stage.classList.add("waiting");
+      clearTimeout(orbT);
+      if (!orbStop && window.KIT)
+        orbStop = KIT.orb(orbCanvas, { size: 64, dark: true, state: "waiting" });
+      slowT = setTimeout(() => stage.classList.add("slow"), 2100);
+    }, 400);
   };
   const waitOff = () => {
     clearTimeout(waitT);
-    stage.classList.remove("waiting");
+    clearTimeout(slowT);
+    stage.classList.remove("waiting", "slow");
+    // let the orb fade out before its loop stops
+    orbT = setTimeout(() => {
+      orbStop?.();
+      orbStop = null;
+    }, 450);
   };
   const seen = new Set(); // windows on screen
   let ending = false;
@@ -191,8 +211,18 @@
     clearTimeout(swapT);
     swapT = setTimeout(() => off.pause(), 1500);
   }
+  const motionBtn = document.querySelector(".motion");
+  let campusSeen = false;
+  const syncMotionBtn = () => motionBtn?.classList.toggle("away", seen.size === 0 && !campusSeen);
+  new IntersectionObserver((es) =>
+    es.forEach((e) => {
+      campusSeen = e.isIntersecting;
+      syncMotionBtn();
+    })
+  ).observe(document.getElementById("m-9"));
   const wio = new IntersectionObserver((es) => {
     es.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)));
+    syncMotionBtn();
     sync();
   });
   document.querySelectorAll(".window").forEach((w) => wio.observe(w));
@@ -212,6 +242,19 @@
   new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && (edge.preload = "auto")), {
     rootMargin: "120% 0px",
   }).observe(close);
+
+  /* ---------- the haze: while paper covers most of the screen, the film behind lifts toward the paper's tone ---------- */
+  const lightPanels = [...document.querySelectorAll(".panel:not(.dark)")];
+  const ratio = new Map();
+  const hio = new IntersectionObserver(
+    (es) => {
+      es.forEach((e) => ratio.set(e.target, e.intersectionRect.height / innerHeight));
+      const cover = [...ratio.values()].reduce((a, b) => a + b, 0);
+      stage.classList.toggle("hazy", cover > 0.45);
+    },
+    { threshold: Array.from({ length: 11 }, (_, i) => i / 10) }
+  );
+  lightPanels.forEach((p) => hio.observe(p));
 
   /* ---------- campus films: each plays once when it comes on screen, one after another ---------- */
   const cvids = [...document.querySelectorAll(".campus video")];
@@ -262,46 +305,11 @@
     });
   });
 
-  /* ---------- the Daily 10 figure (Hairline): the tile under your finger lifts, its neighbours follow ---------- */
-  window.hairline = (figure) => {
-    const host = document.querySelector(`[data-fig="${figure.name}"]`);
-    if (!host || !window.HL) return;
-    HL.inject(document);
-    const st = host.querySelector(".hl");
-    st.setAttribute("data-hairline", figure.name);
-    st.setAttribute("role", "img");
-    st.setAttribute("aria-label", figure.means);
-    const svg = HL.mk("svg", { viewBox: "0 0 400 320", "aria-hidden": "true" }, st);
-    const out = host.querySelector(".read");
-    let text = "";
-    const read = {
-      get textContent() {
-        return text;
-      },
-      set textContent(v) {
-        text = v == null ? "" : String(v);
-        out.textContent = text === "rest" ? "" : text;
-        host.classList.toggle("live", text !== "rest" && text !== "");
-      },
-    };
-    figure.mount({ stage: st, svg, read }, figure.range[1]);
-    // a slow lap while it is on screen, for hands that cannot hover; a real pointer takes over at once
-    let lap = null;
-    new IntersectionObserver(
-      (es) =>
-        es.forEach((e) => {
-          if (e.isIntersecting && !lap && !reduce) lap = HL.tour(st, figure.tour || HL.LAP);
-          else if (!e.isIntersecting && lap) {
-            lap.stop();
-            lap = null;
-          }
-        }),
-      { threshold: 0.6 }
-    ).observe(st);
-  };
-  const hs = document.createElement("script");
-  hs.src = "hairline/ten.js";
-  document.body.append(hs);
+  /* ---------- the Daily 10 drawing (ten.js, our own): the tile under your finger lifts, its neighbours follow ---------- */
+  document.querySelectorAll('[data-fig="ten"]').forEach((h) => window.karmanTen?.(h));
+
+  // the first visit's opening (kit.js): the wordmark and the line, only while the first picture isn't ready yet
+  if (!Q.has("rec") && !Q.has("m")) window.KIT?.opening(day.poster, K.site.logo);
 
   K.init();
 

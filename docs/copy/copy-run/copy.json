@@ -1,0 +1,412 @@
+{
+  "brand": "Karman Prep",
+  "format": "landing_page",
+  "generated_on": "2026-10-25",
+  "point_a": "A parent of an 11th grader who has seen '+200 points guaranteed' ads, suspects the rules are buried on a terms page, has maybe paid for prep before and watched the homework stop after week two, and has no way to tell what is happening until the score arrives.",
+  "point_b": "Karman shows the whole deal before I talk to anyone (price, dates, every rule of the guarantee as a number), it ends on my kid's test date, and I will see every week whether the work got done. Next step: book the free practice test on December 12.",
+  "enemy": {
+    "type": "approach",
+    "statement": "The usual SAT prep sells open-ended hours or subscriptions, prints a big guarantee and hides its rules on a separate page, then stops watching once you have paid. Karman sells a program that ends on one SAT date, prints every rule as a number, and reports the work to the parent every week."
+  },
+  "facts": [
+    {
+      "fact": "Every cohort ends on one official SAT date: March 6, 2027, then May 1 and June 5.",
+      "source": "founder",
+      "used_in": "test date section, hero subhead"
+    },
+    {
+      "fact": "Classes are capped at six students: five paid seats and one scholarship seat.",
+      "source": "founder",
+      "used_in": "live classes H2"
+    },
+    {
+      "fact": "18 live classes of 90 minutes, two a week (Tuesday and Thursday 7:00 to 8:30 p.m. ET, still marked CONFIRM).",
+      "source": "founder",
+      "used_in": "live classes body"
+    },
+    {
+      "fact": "Five full-length practice tests, each followed by a 60-minute one-on-one review of every missed question.",
+      "source": "founder",
+      "used_in": "review H2"
+    },
+    {
+      "fact": "Daily 10: every missed question returns after 2, 7 and 21 days.",
+      "source": "founder",
+      "used_in": "Daily 10 H2"
+    },
+    {
+      "fact": "Parents get a weekly update: practice time, attendance, test scores and next steps.",
+      "source": "founder",
+      "used_in": "parent update H2"
+    },
+    {
+      "fact": "The guarantee: +100 points or a 1450. Half or all of the price back, or the next cohort free; the family chooses.",
+      "source": "founder",
+      "used_in": "guarantee, pricing"
+    },
+    {
+      "fact": "The guarantee has five student rules, each a number tracked on the dashboard: 15 of 18 classes, all 5 reviews, all 5 tests, 90% of practice, sit the SAT.",
+      "source": "founder",
+      "used_in": "guarantee text, parent update body"
+    },
+    {
+      "fact": "Competitor guarantees (read from their own terms pages, 2026-10 research) include 100% homework rules, poll quotas, same-device rules, 'good faith' clauses and 'submitting a claim doesn't guarantee approval'. Karman's guarantee has none of these.",
+      "source": "founder",
+      "used_in": "guarantee text"
+    },
+    {
+      "fact": "A claim is one email with the official College Board report within 30 days; nothing is taken out of a refund.",
+      "source": "founder",
+      "used_in": "guarantee claim"
+    },
+    {
+      "fact": "March cohort: $995 founding price, or 3 payments of $345; $1,295 for later cohorts; a $100 refundable deposit holds a seat.",
+      "source": "founder",
+      "used_in": "pricing"
+    },
+    {
+      "fact": "Private 10 is $1,450 and Private 20 is $2,900 ($145 an hour).",
+      "source": "founder",
+      "used_in": "pricing, private page"
+    },
+    {
+      "fact": "Free practice test: Saturday, December 12, 10:00 a.m. ET, about 75 minutes, 49 Karman questions, live proctor on Zoom, estimated score range, domain breakdown, 20-minute results call.",
+      "source": "founder",
+      "used_in": "hero CTA, close"
+    },
+    {
+      "fact": "Karman 1:1 tutoring: +285 points on average (1235 to 1520), 94% reached their target, median 16 weeks, 1,200+ students tutored.",
+      "source": "founder",
+      "used_in": "hero proof"
+    },
+    {
+      "fact": "Students at 1500+ or under four weeks from the test are told a program probably isn't worth their money.",
+      "source": "founder",
+      "used_in": "pricing honest note, close objection"
+    },
+    {
+      "fact": "Karman is named for the Karman line, 100 km up, where the atmosphere ends and space begins.",
+      "source": "founder",
+      "used_in": "close line note"
+    }
+  ],
+  "copy": {
+    "landing_page": {
+      "headline": "The fine print, on the front page.",
+      "subhead": "Nine-week SAT programs, six students to a class, ending on your student's test date. The guarantee and every one of its rules are on this page, in type this size.",
+      "sections": [
+        {
+          "h2": "Six students, so nobody hides in the back row.",
+          "body": "Two live classes a week, 90 minutes each, 18 in all. Small enough that every student answers out loud."
+        },
+        {
+          "h2": "After every practice test, an hour on what went wrong.",
+          "body": "Five full-length tests. After each one, 60 minutes one-on-one with a Karman tutor, going through every question your student missed and why."
+        },
+        {
+          "h2": "Miss it on Monday. See it again on Wednesday.",
+          "body": "The Daily 10: ten questions, about ten minutes. Every missed question comes back after 2, 7 and 21 days."
+        },
+        {
+          "h2": "You'll know every week if the work got done.",
+          "body": "Minutes practiced, classes attended, practice test scores and next week's plan. The same numbers the guarantee is measured on."
+        },
+        {
+          "h2": "The program ends the day your student sits the SAT.",
+          "body": "No monthly plan to cancel, no hours left over. Every cohort is built backward from one official test date."
+        },
+        {
+          "h2": "The whole guarantee. No other page changes it.",
+          "body": "Other SAT guarantees keep their rules on a terms page: a homework quota, a 'good faith' clause, a line saying a claim may not be approved. Ours has five rules. Each one is a number on your student's dashboard."
+        },
+        {
+          "h2": "See your student's score range before you spend a dollar.",
+          "body": "December 12, 10:00 a.m. ET, live on Zoom with a proctor. About 75 minutes, 49 of our own questions, then a score range, a breakdown by domain and a 20-minute call to go through it."
+        }
+      ],
+      "cta": "Take the free practice test",
+      "proof": [
+        "Karman's 1:1 students gained 285 points on average. Karman 1:1 tutoring, median 16 weeks.",
+        "Students already at 1500, or under four weeks from the test, are told the program probably isn't worth it."
+      ]
+    }
+  },
+  "ladders": [
+    {
+      "line_id": "headline",
+      "rungs": [
+        "Honest SAT prep",
+        "SAT prep you can trust",
+        "SAT prep with nothing hidden",
+        "a guarantee with no fine print",
+        "the fine print printed where you can see it",
+        "The fine print, on the front page."
+      ]
+    },
+    {
+      "line_id": "subhead",
+      "rungs": [
+        "transparent terms",
+        "every rule is visible",
+        "every rule is on this page",
+        "every rule is on this page, the same size as the promise",
+        "in type this size"
+      ]
+    },
+    {
+      "line_id": "live classes H2",
+      "rungs": [
+        "small classes",
+        "personal attention",
+        "the tutor notices everyone",
+        "six students",
+        "nobody hides in the back row"
+      ]
+    },
+    {
+      "line_id": "review H2",
+      "rungs": [
+        "personal feedback",
+        "one-on-one reviews",
+        "a review after every test",
+        "an hour on every mistake after every practice test"
+      ]
+    },
+    {
+      "line_id": "Daily 10 H2",
+      "rungs": [
+        "spaced repetition",
+        "mistakes come back",
+        "missed questions return after 2, 7 and 21 days",
+        "Miss it on Monday. See it again on Wednesday."
+      ]
+    },
+    {
+      "line_id": "parent update H2",
+      "rungs": [
+        "accountability",
+        "parents stay informed",
+        "a weekly report",
+        "you'll know every week if the work got done"
+      ]
+    },
+    {
+      "line_id": "test date H2",
+      "rungs": [
+        "outcome focused",
+        "a program with an end",
+        "it ends on the test date",
+        "the program ends the day your student sits the SAT"
+      ]
+    },
+    {
+      "line_id": "guarantee H2",
+      "rungs": [
+        "transparent guarantee",
+        "no hidden conditions",
+        "all the rules on one page",
+        "nothing on another page changes it"
+      ]
+    },
+    {
+      "line_id": "close H2",
+      "rungs": [
+        "start for free",
+        "try before you buy",
+        "a free practice test",
+        "see the score range before you spend a dollar"
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "line_id": "headline",
+      "options": [
+        "The fine print, on the front page.",
+        "+100 points by March 6, or your money back.",
+        "Every rule of our guarantee is a number you can check.",
+        "SAT prep that tells you if your kid did the work.",
+        "Nine weeks. One SAT date. Every rule on this page."
+      ]
+    },
+    {
+      "line_id": "live classes H2",
+      "options": [
+        "Six students, so nobody hides in the back row.",
+        "Small enough that every student answers out loud.",
+        "Six seats. Five paid, one scholarship.",
+        "Live, twice a week, six students."
+      ]
+    },
+    {
+      "line_id": "review H2",
+      "options": [
+        "After every practice test, an hour on what went wrong.",
+        "Every wrong answer gets a one-on-one hour.",
+        "Five tests. Five hours going through every mistake.",
+        "The test is practice. The review is the lesson."
+      ]
+    },
+    {
+      "line_id": "Daily 10 H2",
+      "options": [
+        "Miss it on Monday. See it again on Wednesday.",
+        "The question they missed comes back. Three times.",
+        "Ten minutes a day, before the bus.",
+        "Ten questions. Yesterday's mistakes first."
+      ]
+    },
+    {
+      "line_id": "parent update H2",
+      "options": [
+        "You'll know every week if the work got done.",
+        "Minutes practiced, in your inbox, every week.",
+        "No waiting for the score report to find out.",
+        "The numbers the guarantee uses, sent to you weekly."
+      ]
+    },
+    {
+      "line_id": "test date H2",
+      "options": [
+        "The program ends the day your student sits the SAT.",
+        "One date, circled since January.",
+        "Built backward from March 6.",
+        "No monthly plan to forget to cancel."
+      ]
+    },
+    {
+      "line_id": "guarantee H2",
+      "options": [
+        "The whole guarantee. No other page changes it.",
+        "Five rules. All of them numbers.",
+        "Here are the rules other guarantees hide.",
+        "What we promise, what your student does, on one screen."
+      ]
+    },
+    {
+      "line_id": "close H2",
+      "options": [
+        "See your student's score range before you spend a dollar.",
+        "Start with 75 minutes and a score range.",
+        "Find out where they stand on December 12.",
+        "The first step costs nothing and takes a Saturday morning."
+      ]
+    }
+  ],
+  "gate": [
+    {
+      "line_id": "headline",
+      "line": "The fine print, on the front page.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": true,
+      "score": 3,
+      "signed_by": "Princeton Review: false, their guarantee rules sit on a separate terms page. Kaplan: same.",
+      "note": "Holds only while the full guarantee stays on the home page. If it moves, this line dies."
+    },
+    {
+      "line_id": "subhead",
+      "line": "...The guarantee and every one of its rules are on this page, in type this size.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": true,
+      "score": 3,
+      "signed_by": "Nobody advertising '+200 or your money back' with a terms link can sign 'in type this size'.",
+      "note": "Self-checking: the reader can scroll and verify."
+    },
+    {
+      "line_id": "live classes H2",
+      "line": "Six students, so nobody hides in the back row.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": false,
+      "score": 2,
+      "signed_by": "A small-group tutor with 6-seat classes could sign it.",
+      "note": "The cap is ours but not unique. Kept because the back row is the strongest picture."
+    },
+    {
+      "line_id": "review H2",
+      "line": "After every practice test, an hour on what went wrong.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": true,
+      "score": 3,
+      "signed_by": "Group courses don't include a 1:1 hour after each full-length.",
+      "note": "This is Zakaria's core method; a Karman tutoring session is a full-length review."
+    },
+    {
+      "line_id": "Daily 10 H2",
+      "line": "Miss it on Monday. See it again on Wednesday.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": false,
+      "score": 2,
+      "signed_by": "Any spaced-repetition app could sign it.",
+      "note": "Concrete and true (2-day return). Uniqueness comes from the section around it."
+    },
+    {
+      "line_id": "parent update H2",
+      "line": "You'll know every week if the work got done.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": true,
+      "score": 3,
+      "signed_by": "Self-paced prep and most courses send nothing to parents.",
+      "note": "Answers the 'low commitment after purchase' problem directly."
+    },
+    {
+      "line_id": "test date H2",
+      "line": "The program ends the day your student sits the SAT.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": true,
+      "score": 3,
+      "signed_by": "Subscription and hourly providers can't sign it.",
+      "note": "The business model in one line."
+    },
+    {
+      "line_id": "guarantee H2",
+      "line": "The whole guarantee. No other page changes it.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": true,
+      "score": 3,
+      "signed_by": "Anyone with 'see terms' under their guarantee can't sign it.",
+      "note": "The /guarantee page must repeat these exact terms, never add to them."
+    },
+    {
+      "line_id": "close H2",
+      "line": "See your student's score range before you spend a dollar.",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": false,
+      "score": 2,
+      "signed_by": "Big brands also run free practice tests.",
+      "note": "Ours is live-proctored on our own questions with a results call; the body carries that."
+    },
+    {
+      "line_id": "cta",
+      "line": "Take the free practice test",
+      "visualize": true,
+      "falsifiable": true,
+      "only_us": false,
+      "score": 2,
+      "signed_by": "Generic by design: a button names the action.",
+      "note": "Copy rule 12: a clear verb and outcome."
+    }
+  ],
+  "cut": [
+    "'The climb starts before sunrise.' Beautiful film line, but a parent can't falsify it and any brand could sign it.",
+    "'10,000+ original practice questions.' Live count was 2,588 on 2026-10-19; the release check blocks the claim. Written around until the bank reaches it.",
+    "'We don't sell hours. We sell March 6.' Two-beat antithesis, banned by copy rule 16.",
+    "'Cameras on, questions answered live.' No fact says cameras are required.",
+    "'Our tutors know every name.' Talk, not a fact."
+  ],
+  "caveats": [
+    "Every specific in this copy traces to a fact you provided or a review you supplied — check them before you spend money behind them. This writes the copy; it doesn't verify your claims or clear them for compliance.",
+    "No customer reviews exist yet (honesty rule), so every line is built on offer facts and the 1:1 track record, not customer words. Once real reviews exist, re-run this with them.",
+    "The guarantee is a proposal waiting on a lawyer. The headline and guarantee section only stay true if the lawyer keeps the full terms on the page.",
+    "Class days and times are still marked CONFIRM in offer.ts.",
+    "The students map numbers (80 U.S., 20 abroad) are unconfirmed; the map copy avoids stating them until you confirm."
+  ]
+}

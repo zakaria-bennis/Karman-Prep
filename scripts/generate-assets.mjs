@@ -7,6 +7,7 @@
 //   node scripts/generate-assets.mjs --finish c2 --run  finish an approved Seedance 2.5 draft at 1080p
 //   node scripts/generate-assets.mjs --upscale c2,c3 --run  sharpen drafts 2x on fal FlashVSR (about $0.025 a second)
 //   node scripts/generate-assets.mjs --balance        show prepaid balances
+//   node scripts/generate-assets.mjs --fetch p-program  download a paid result again from its saved link (free)
 //   node scripts/generate-assets.mjs --all            include shots not yet approved in the dry run
 //
 // Rules: a shot runs only when its manifest status is "approved"; a run stops
@@ -39,6 +40,7 @@ const BUDGET = Number(opt("budget", "10"));
 const ONLY = opt("only", null)?.split(",");
 const FINISH = opt("finish", null);
 const UPSCALE = opt("upscale", null)?.split(",");
+const FETCH = opt("fetch", null)?.split(",");
 const OVERRUN = 1.25;
 
 // ---------- keys ----------
@@ -83,6 +85,9 @@ const ROUTES = {
   },
   "gpt-image-2.5": { provider: "openai", model: "gpt-image-2.5-flare", estimate: 0.05 },
   "ideogram-4.5": { provider: "fal", model: "ideogram/v4.5", estimate: 0.06 },
+  // Google's image models on fal (US storage, reachable on networks that block Chinese CDNs); use the cast refs
+  "nano-banana-pro-fal": { provider: "fal-edit", model: "fal-ai/nano-banana-pro/edit" },
+  "nano-banana-2-fal": { provider: "fal-edit", model: "fal-ai/nano-banana-2/edit" },
   "flux-3": { provider: "fal", model: "blackforestlabs/flux-3/text-to-image", estimate: 0.1 },
   nasa: { provider: "none" },
 };
@@ -198,7 +203,7 @@ function atlasBody(shot, route, defaults, refUrls = []) {
 
 function atlasImageBody(shot, route, defaults, refUrls) {
   const size =
-    { "16:9": "2816*1584", "9:16": "1584*2816", "3:4": "1776*2368" }[
+    { "16:9": "2816*1584", "9:16": "1584*2816", "3:4": "1776*2368", "4:5": "1856*2320" }[
       shot.ratio ?? defaults.ratio
     ] ?? "2048*2048";
   return {
@@ -294,19 +299,19 @@ const falHeaders = () => ({
   "Content-Type": "application/json",
 });
 
-async function falUpload(file) {
+async function falUpload(file, type = "video/mp4") {
   const init = await http(
     "https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3",
     {
       method: "POST",
       headers: falHeaders(),
-      body: JSON.stringify({ file_name: basename(file), content_type: "video/mp4" }),
+      body: JSON.stringify({ file_name: basename(file), content_type: type }),
     },
     "fal upload"
   );
   const put = await fetch(init.upload_url, {
     method: "PUT",
-    headers: { "Content-Type": "video/mp4" },
+    headers: { "Content-Type": type },
     body: readFileSync(file),
   });
   if (!put.ok) throw new Error(`fal upload PUT failed: HTTP ${put.status}`);
@@ -360,6 +365,17 @@ async function upscale(ids, state) {
     saveState(state);
     console.log(`  ${j.id}: saved ${basename(file)}  charged ${money(charged)}`);
   }
+}
+
+const falPrices = {};
+async function falPrice(model) {
+  if (falPrices[model] != null) return falPrices[model];
+  const r = await http(
+    `https://api.fal.ai/v1/models/pricing?endpoint_id=${encodeURIComponent(model)}`,
+    { headers: falHeaders() },
+    "fal price"
+  );
+  return (falPrices[model] = Number(r.prices?.[0]?.unit_price));
 }
 
 async function falBalance() {
@@ -492,6 +508,7 @@ async function plan(item, defaults) {
     const body = atlasBody(item, route, defaults, fakeRefs);
     return { item, route, body, quote: await atlasQuote(body) };
   }
+  if (route.provider === "fal-edit") return { item, route, quote: await falPrice(route.model) };
   if (route.provider === "atlas-image") {
     return {
       item,
@@ -566,6 +583,27 @@ async function execute(p, defaults, manifest, state) {
     charged = before - (await atlasBalance());
     source = "balance";
     state[item.id] = { ...(state[item.id] ?? {}), lastFile: file };
+  } else if (route.provider === "fal-edit") {
+    const before = await falBalance();
+    const refUrls = [];
+    for (const r of item.refs ?? []) {
+      const f = refPath(manifest, r);
+      refUrls.push(await falUpload(f, f.endsWith(".png") ? "image/png" : "image/jpeg"));
+    }
+    const r = await falRun(route, {
+      prompt: fullPrompt(item, defaults),
+      image_urls: refUrls,
+      aspect_ratio: item.ratio ?? defaults.ratio,
+      resolution: "2K",
+      output_format: "png",
+      num_images: 1,
+    });
+    state[item.id] = { ...(state[item.id] ?? {}), lastUrl: r.url };
+    saveState(state);
+    await download(r.url, file);
+    charged = before - (await falBalance());
+    source = "balance";
+    state[item.id] = { ...(state[item.id] ?? {}), lastFile: file, pendingJob: undefined };
   } else if (route.provider === "fal") {
     const before = await falBalance();
     const r = await falRun(route, { prompt: fullPrompt(item, defaults) });
@@ -666,6 +704,20 @@ async function main() {
   const save = () => writeFileSync(STATE, JSON.stringify(state, null, 2) + "\n");
 
   if (flag("balance")) return showBalances();
+  if (FETCH) {
+    // a job finished and was paid for, but its download failed: fetch it from the saved link
+    const state = readJson(STATE, {});
+    for (const id of FETCH) {
+      const url = state[id]?.lastUrl;
+      if (!url) throw new Error(`${id} has no saved result link`);
+      const file = join(OUT, "stills", `${id}-${stamp()}.png`);
+      await download(url, file);
+      state[id] = { ...state[id], lastFile: file, pendingJob: undefined };
+      saveState(state);
+      console.log(`  fetched ${file.replace(ROOT + "/", "")}`);
+    }
+    return;
+  }
   if (UPSCALE) return upscale(UPSCALE, state);
   if (FINISH) {
     await finishDraft(FINISH, state);

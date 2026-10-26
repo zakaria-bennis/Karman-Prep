@@ -30,6 +30,13 @@
         "files": [".impeccable/mocks/decision/home-v4.html"],
         "createdAt": "2026-10-20T12:56:36.027Z",
         "reason": "Claude: 26px rotated card titles that set on one line; detector counts the rotated box height as two lines (verified via computed metrics)"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [".impeccable/mocks/decision/film/loaders.html"],
+        "createdAt": "2026-10-25T23:56:14.890Z",
+        "reason": "Same light band as alive.css (founder asked for glimmers and shines, 2026-10-25): solid at rest, a band crosses about 1 s every 7 to 13 s, off with reduced motion."
       }
     ]
   }

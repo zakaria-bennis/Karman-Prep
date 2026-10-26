@@ -1,0 +1,63 @@
+/* People photos on the inner pages and pricing (site.js photo(); copy section 90).
+   Phones: the opening photo runs edge to edge above the headline; the others hang off the right edge.
+   Desktop: the opening photo sits beside the headline and bleeds toward the page edge; the others
+   hang off the right edge beside their heading. Until a file exists the figure hides itself and the
+   section keeps its drawing. */
+.k-photo { margin: 0; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.k-photo[data-missing] { display: none; }
+.k-photo .fr { position: relative; overflow: hidden; aspect-ratio: 4 / 5; border-radius: var(--r-panel); background: var(--soft); isolation: isolate; }
+.k-photo img {
+  position: absolute; left: 0; top: -6%; width: 100%; height: 112%; object-fit: cover; object-position: 50% 32%;
+  opacity: 0; transform: translate3d(calc(var(--px, 0) * 1px), calc((var(--py, 0) + var(--sy, 0)) * 1px), 0) scale(1.03);
+  transition: opacity .7s var(--ease);
+}
+.k-photo[data-ready] img { opacity: 1; }
+/* one pass of warm light across the photo the first time it comes into view */
+.k-photo .fr::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 246, 224, .28) 50%, transparent 62%);
+  background-size: 260% 100%; background-position: 130% 0;
+}
+.k-photo.shine .fr::after { animation: photo-shine 1.8s var(--ease) .25s both; }
+@keyframes photo-shine { to { background-position: -30% 0; } }
+.k-photo figcaption { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.4; color: var(--ink2); }
+.k-photo figcaption::before { content: ""; flex: none; width: 18px; height: 1.5px; background: var(--marigold); }
+
+/* the section's drawing steps aside while its photo is there */
+:has(> .k-photo:not([data-missing])) > .i-art { display: none; }
+
+/* ---------- desktop and tablets ---------- */
+@media (min-width: 901px) {
+  .k-photo.ph-hero { justify-self: end; width: min(100%, 500px); margin-right: calc(-1 * var(--gutter) * .6); }
+  .k-photo.ph-side { justify-self: end; width: min(100%, 440px); margin-right: calc(-1 * var(--gutter)); }
+  .k-photo.ph-side .fr { border-radius: var(--r-panel) 0 0 var(--r-panel); aspect-ratio: 5 / 6; }
+  .k-photo.ph-side figcaption { padding-right: var(--gutter); }
+  .i-withphoto { align-items: end; margin-bottom: clamp(30px, 4vw, 60px); }
+  .k-photo.only-phone { display: none; }
+  /* pricing: words and the date choice on the left, the photo at the right edge */
+  .p-herogrid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: clamp(30px, 5vw, 80px); align-items: start; }
+  .p-herogrid .k-photo.ph-hero { width: min(100%, 380px); margin-right: calc(-1 * var(--gutter)); margin-top: 6px; }
+  .p-herogrid .k-photo.ph-hero .fr { aspect-ratio: 1; border-radius: var(--r-panel) 0 0 var(--r-panel); }
+  .p-herogrid .k-photo.ph-hero figcaption { padding-right: var(--gutter); }
+}
+@media (min-width: 1500px) { .k-photo.ph-hero { width: min(100%, 560px); } }
+
+/* ---------- phones ---------- */
+@media (max-width: 900px) {
+  .k-photo.only-wide { display: none; }
+  .k-photo.ph-hero { order: -1; margin: 0 calc(-1 * var(--gutter)); }
+  .k-photo.ph-hero .fr { border-radius: 0; aspect-ratio: auto; height: min(40svh, 104vw); }
+  .k-photo.ph-hero img { object-position: 50% 28%; }
+  .k-photo.ph-hero figcaption { padding: 0 var(--gutter); }
+  .i-hero:has(> .in > .k-photo.ph-hero:not([data-missing])) { padding-top: 72px; }
+  .i-hero:has(> .in > .k-photo.ph-hero:not([data-missing])) > .in { gap: 22px; }
+  .k-photo.ph-hero + .i-words, .i-hero .k-photo.ph-hero ~ .i-words { margin-top: 0; }
+  .k-photo.ph-side { justify-self: end; width: 88%; margin: 8px calc(-1 * var(--gutter)) 0 auto; }
+  .k-photo.ph-side .fr { aspect-ratio: 1; border-radius: var(--r-panel) 0 0 var(--r-panel); }
+  .k-photo.ph-side figcaption { padding-right: var(--gutter); }
+  .plans .k-photo.only-phone { margin-top: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .k-photo img { transform: none; transition: none; }
+  .k-photo.shine .fr::after { animation: none; }
+}
