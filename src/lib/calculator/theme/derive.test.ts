@@ -106,7 +106,7 @@ it("R-2 the warning marker keeps its orange hue, 3:1 on the list and chrome in e
   expect(deriveRoles(t("charcoal")).warning).toBe("#fa7e19"); // dark skins keep the seed unchanged
 });
 
-it("Observatory, Charcoal, Forest and Plum keep the site themes' colours, so Auto matches the quiz", () => {
+it("Observatory, Charcoal, Forest and Plum keep the site themes' colours, so the auto choice matches the quiz", () => {
   for (const id of ["observatory", "charcoal", "forest", "plum"]) {
     const site = SITE_THEMES.find((x) => x.id === id)!;
     const theme = t(id);

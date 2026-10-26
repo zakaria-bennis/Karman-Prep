@@ -1,6 +1,7 @@
 // Key sounds (founder decisions, 2026-10-26): a short, soft sound for each key typed into a math
 // field or pressed on the on-screen keypad, chosen by what the key does (sound-recipes.ts): a
-// mechanical key's click and thock, warm and low-mid, never piercing. Off by default; the Graph
+// mechanical key's click and thock, warm and low-mid, never piercing, and for digits and letters
+// only a quiet tick. Off by default; the Graph
 // Settings switch turns them on, and the choice is remembered on the device in localStorage
 // (every access in try/catch). Every sound is synthesised here with Web Audio, our own and nothing
 // recorded. No AudioContext exists until the sounds are on and one plays (or the switch turns them
@@ -90,7 +91,7 @@ function audio(): { ctx: AudioContext; out: GainNode } | null {
     }
     // Level, then a warm low-pass, then a gentle limiter before the speakers.
     master = context.createGain();
-    master.gain.value = 0.22;
+    master.gain.value = 0.15;
     const warm = context.createBiquadFilter();
     warm.type = "lowpass";
     warm.frequency.value = 3200;
@@ -161,29 +162,9 @@ function body(
   osc.stop(at + decay + 0.02);
 }
 
-/** The constant's voice: a soft buzz through two formants gliding from "ah" toward "ee". */
-function vowel(ctx: AudioContext, out: AudioNode, at: number, r: Recipe, pitch: number): void {
-  const source = ctx.createOscillator();
-  source.type = "sawtooth";
-  source.frequency.setValueAtTime(pitch, at);
-  source.frequency.exponentialRampToValueAtTime(pitch * r.glide, at + r.decay);
-  const mix = envelope(ctx, at, 0.28, r.decay);
-  for (const [from, to] of r.vowel ?? []) {
-    const formant = ctx.createBiquadFilter();
-    formant.type = "bandpass";
-    formant.Q.value = 7;
-    formant.frequency.setValueAtTime(from, at);
-    formant.frequency.exponentialRampToValueAtTime(to, at + r.decay);
-    source.connect(formant).connect(mix);
-  }
-  mix.connect(out);
-  source.start(at);
-  source.stop(at + r.decay + 0.02);
-}
-
 /**
  * Plays `sound` if key sounds are on; a no-op (and no audio created) while they are off.
- * `variant` (0 to 6) moves the body up that many semitones, so functions of one family differ.
+ * `variant` (0 to 6) moves the body up that many semitones, so each function sounds its own.
  */
 export function playKeySound(sound: KeySound, variant = 0): void {
   if (!keySoundsEnabled()) return;
@@ -198,8 +179,7 @@ export function playKeySound(sound: KeySound, variant = 0): void {
   const r = RECIPES[sound];
   const shift = 2 ** (Math.max(0, Math.min(6, variant)) / 12);
   click(ctx, out, at, r);
-  if (r.vowel !== undefined) vowel(ctx, out, at, r, r.body * shift);
-  body(ctx, out, at, r.body * shift, r.glide, r.decay, r.bodyLevel);
+  if (r.bodyLevel > 0) body(ctx, out, at, r.body * shift, r.glide, r.decay, r.bodyLevel);
   for (const tap of r.taps ?? [])
     body(ctx, out, at + tap.delay, tap.body * shift, r.glide, r.decay * 0.8, tap.level);
 }

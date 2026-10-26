@@ -42,7 +42,7 @@ const reducedMotion = params.get("reducedMotion") === "1";
 const themeParam = params.get("theme");
 const defaultTheme = isThemeChoice(themeParam) ? themeParam : undefined;
 
-// The site theme, as applyTheme sets it: the calculator (its Auto choice) and its light-DOM chrome
+// The site theme, as applyTheme sets it: the calculator (its auto choice, labelled Dark) and its light-DOM chrome
 // follow the calculator theme that site theme maps to.
 const skin = params.get("skin") || "classic";
 document.documentElement.dataset.theme = skin;

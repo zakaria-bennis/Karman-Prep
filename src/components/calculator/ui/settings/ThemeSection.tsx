@@ -1,5 +1,5 @@
 // The settings popover's Theme picker (founder decisions 2026-10-22 and 2026-10-26): one button
-// showing the current theme's swatch and name, which opens a list of every theme: Auto (the site
+// showing the current theme's swatch and name, which opens a list of every theme: Dark (the auto choice: the site
 // or quiz theme) and Classic, then the ten Light and the ten Dark themes under their group names.
 // Each option is a small swatch of our own drawing (the skin's paper, a keypad stripe and an
 // accent dot) and the theme's name. It follows the select-only combobox pattern: the button is a
@@ -40,7 +40,7 @@ export interface ThemeChoiceValue {
 /** Provided by App from the shell store; absent (no Theme section) on harness pages. */
 export const ThemeChoiceContext = createContext<ThemeChoiceValue | null>(null);
 
-/** The swatch colours of a choice; Auto shows the skin it gives now. */
+/** The swatch colours of a choice; the auto choice (Dark) shows the skin it gives now. */
 function swatchStyle(choice: ThemeChoice, siteTheme: string | undefined): CSSProperties {
   const { roles } = SKIN_COLORS[skinForChoice(choice, siteTheme)].normal;
   return {

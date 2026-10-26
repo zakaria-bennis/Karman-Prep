@@ -367,7 +367,7 @@ export const CALCULATOR_THEMES: readonly CalculatorTheme[] = [
 ];
 
 /**
- * The calculator theme for each site theme of src/lib/themes/palettes.ts: the skin "Auto" shows
+ * The calculator theme for each site theme of src/lib/themes/palettes.ts: the skin the "auto" choice (labelled Dark) shows
  * while the quiz page has that site theme, and the light-DOM chrome of that site theme. It also
  * moves a stored choice of a retired calculator theme (the 2026-10-22 list, which was the site
  * themes) to the nearest current one.

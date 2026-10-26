@@ -31,7 +31,7 @@ function Picker(props: { initial: ThemeChoice; onChoose(choice: ThemeChoice): vo
 
 const button = () => screen.getByRole("combobox", { name: /^Theme/ });
 
-it("is one combobox named by Theme and the current theme; its list holds Auto and Classic, then Light and Dark groups of ten", async () => {
+it("is one combobox named by Theme and the current theme; its list holds Dark (the auto choice) and Classic, then Light and Dark groups of ten", async () => {
   render(<Picker initial="classic" onChoose={() => {}} />);
   expect(button()).toHaveAccessibleName("Theme Classic");
   expect(button()).toHaveAttribute("aria-expanded", "false");
@@ -42,7 +42,7 @@ it("is one combobox named by Theme and the current theme; its list holds Auto an
   const options = within(list).getAllByRole("option");
   expect(options.map((o) => o.getAttribute("data-theme-choice"))).toEqual([...THEME_CHOICES]);
   expect(options.map((o) => o.textContent)).toEqual([
-    "Auto",
+    "Dark",
     "Classic",
     "White",
     "Map",
@@ -81,7 +81,7 @@ it("is one combobox named by Theme and the current theme; its list holds Auto an
   );
 });
 
-it("each swatch shows its skin's paper, keypad and accent; Auto shows the skin the site theme gives now", async () => {
+it("each swatch shows its skin's paper, keypad and accent; the auto choice (Dark) shows the skin the site theme gives now", async () => {
   document.documentElement.dataset.theme = "rose";
   const { container } = render(<Picker initial="auto" onChoose={() => {}} />);
   await userEvent.setup().click(button());
@@ -124,7 +124,7 @@ it("a click on an option picks it and closes the list; the keyboard opens, moves
   await user.keyboard("o");
   expect(active()).toHaveTextContent("Ocean");
   await user.keyboard("{Home}");
-  expect(active()).toHaveTextContent("Auto");
+  expect(active()).toHaveTextContent("Dark");
   await user.keyboard(" ");
   expect(onChoose).toHaveBeenLastCalledWith("auto");
 });

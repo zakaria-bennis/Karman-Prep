@@ -19,15 +19,15 @@ afterEach(() => {
   localStorage.clear();
 });
 
-it("offers Auto, Classic and the 20 calculator themes, named as themes.ts names them", () => {
+it("offers Dark (the auto choice), Classic and the 20 calculator themes, named as themes.ts names them", () => {
   expect(THEME_CHOICES).toEqual(["auto", ...SKIN_IDS]);
   expect(THEME_CHOICES).toHaveLength(22);
-  expect(themeChoiceName("auto")).toBe("Auto");
+  expect(themeChoiceName("auto")).toBe("Dark");
   expect(themeChoiceName("classic")).toBe("Classic");
   for (const theme of CALCULATOR_THEMES) expect(themeChoiceName(theme.id)).toBe(theme.name);
 });
 
-it("groups the picker as Auto and Classic, then Light and Dark with ten themes each", () => {
+it("groups the picker as Dark (the auto choice) and Classic, then Light and Dark with ten themes each", () => {
   expect(THEME_GROUPS.map((g) => g.label)).toEqual([null, "Light", "Dark"]);
   expect(THEME_GROUPS[0].choices).toEqual(["auto", "classic"]);
   expect(THEME_GROUPS[1].choices).toEqual(LIGHT_SKIN_IDS);

@@ -1,7 +1,9 @@
 // The student's theme choice (owner decision, 2026-10-22): "auto" follows the site or quiz theme
 // in html[data-theme] (TH-5), and any skin id keeps that skin whatever the site theme is. The
 // choice is remembered on the device in localStorage and applies wherever the calculator appears;
-// with nothing stored, the host's default applies (Auto in the quiz, Classic on /calculator).
+// with nothing stored, the host's default applies ("auto" in the quiz, Classic on /calculator).
+// The picker labels the "auto" choice Dark (founder decision, 2026-10-26); its stored id stays
+// "auto", so a remembered choice keeps working.
 // Every storage access is in try/catch, so blocked or full storage keeps the choice in memory.
 // A stored theme retired on 2026-10-26 (the old list was the site themes) reads as the nearest
 // current one (themes.ts SITE_THEME_SKINS), so nobody loses their pick.
@@ -13,14 +15,14 @@ import { SITE_THEME_SKINS } from "./themes";
 
 export type ThemeChoice = "auto" | SkinId;
 
-/** The picker's groups: Auto and Classic first, then the ten light and the ten dark themes. */
+/** The picker's groups: Dark (the auto choice) and Classic first, then the light and dark themes. */
 export const THEME_GROUPS: readonly { label: string | null; choices: readonly ThemeChoice[] }[] = [
   { label: null, choices: ["auto", "classic"] },
   { label: "Light", choices: LIGHT_SKIN_IDS },
   { label: "Dark", choices: DARK_SKIN_IDS },
 ];
 
-/** The picker's order: Auto, Classic, then the light and the dark themes. */
+/** The picker's order: Dark (the auto choice), Classic, then the light and the dark themes. */
 export const THEME_CHOICES: readonly ThemeChoice[] = ["auto", ...SKIN_IDS];
 
 /** The localStorage key of the choice. */
@@ -32,7 +34,7 @@ export function isThemeChoice(value: unknown): value is ThemeChoice {
 
 /** The picker's name for a choice. */
 export function themeChoiceName(choice: ThemeChoice): string {
-  return choice === "auto" ? "Auto" : SKIN_NAMES[choice];
+  return choice === "auto" ? "Dark" : SKIN_NAMES[choice];
 }
 
 /** The skin a choice shows while the site theme is `siteTheme`. */

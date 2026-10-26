@@ -1,8 +1,8 @@
 // The Settings theme picker (founder decisions 2026-10-22 and 2026-10-26) on the shell harness: a
-// combobox button that opens a list of Auto, Classic and the ten Light and ten Dark themes;
+// combobox button that opens a list of Dark (the auto choice), Classic and the ten Light and ten Dark themes;
 // keyboard and pointer picks; the choice applies at once, is remembered on the device (a retired
 // theme moves to its nearest one) and reaches every calculator; Classic is the /calculator page's
-// default (the harness's theme=classic) and Auto the quiz's; a change keeps the expressions and
+// default (the harness's theme=classic) and the auto choice (labelled Dark) the quiz's; a change keeps the expressions and
 // the view; the list fits a 390 px phone; blocked storage still applies the choice. Every theme is
 // applied once and its colours checked on the calculator.
 
@@ -28,12 +28,12 @@ async function pick(page: Page, isMobile: boolean, name: string): Promise<void> 
   await expect(list(page)).toBeHidden();
 }
 
-test("the Theme button opens Auto, Classic and the Light and Dark groups; the keyboard opens, moves, finds and picks at once", async ({
+test("the Theme button opens Dark (the auto choice), Classic and the Light and Dark groups; the keyboard opens, moves, finds and picks at once", async ({
   page,
 }) => {
   await openShell(page, "?skin=sage&w=800&h=700");
   await openSettings(page);
-  await expect(button(page)).toHaveAccessibleName("Theme Auto");
+  await expect(button(page)).toHaveAccessibleName("Theme Dark");
   expect(await hostVar(page, "--kc-paper")).toBe(paper("sage"));
   await expect(list(page)).toBeHidden();
   await button(page).focus();
@@ -53,7 +53,7 @@ test("the Theme button opens Auto, Classic and the Light and Dark groups; the ke
           ? (b.getRootNode() as ShadowRoot).getElementById(id)?.textContent
           : document.getElementById(id)?.textContent;
     });
-  expect(await active()).toBe("Auto");
+  expect(await active()).toBe("Dark");
   await page.keyboard.press("ArrowDown");
   expect(await active()).toBe("Classic");
   await page.keyboard.press("Enter");
@@ -103,7 +103,7 @@ test("every one of the 20 themes applies from the list: its paper, list, keypad 
   }
 });
 
-test("Classic is the /calculator default on a dark site theme; a pick is remembered after a reload and in the quiz, and Auto follows the site theme", async ({
+test("Classic is the /calculator default on a dark site theme; a pick is remembered after a reload and in the quiz, and Dark (the auto choice) follows the site theme", async ({
   page,
   isMobile,
 }) => {
@@ -122,11 +122,11 @@ test("Classic is the /calculator default on a dark site theme; a pick is remembe
   expect(await hostVar(again, "--kc-paper")).toBe(paper("forest"));
   expect(await hostVar(again, "color-scheme")).toBe("dark");
   const quiz = await page.context().newPage();
-  await openShell(quiz, "?skin=ivory&w=800&h=700"); // the quiz: its default would be Auto
+  await openShell(quiz, "?skin=ivory&w=800&h=700"); // the quiz: its default would be the auto choice (Dark)
   expect(await hostVar(quiz, "--kc-paper")).toBe(paper("forest"));
   await openSettings(quiz);
   await expect(button(quiz)).toHaveAccessibleName("Theme Forest");
-  await pick(quiz, isMobile, "Auto");
+  await pick(quiz, isMobile, "Dark");
   expect(await hostVar(quiz, "--kc-paper")).toBe(paper(resolveSkinId("ivory")));
   await quiz.evaluate(() => (document.documentElement.dataset.theme = "charcoal"));
   await expect.poll(() => hostVar(quiz, "--kc-paper")).toBe(paper("charcoal"));

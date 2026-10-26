@@ -2,20 +2,91 @@
 // into a math field, one for presses on the on-screen keypad (its keys carry data-key) and on the
 // Functions panel (its buttons are .kc-function, named by the function). A physical key and the
 // keypad key that types the same thing make the same sound. The listeners only read events, so
-// typing and the keypad behave exactly as without them. A key sounds on its press, as a physical
-// key clicks on the way down.
+// typing and the keypad behave exactly as without them. A key sounds on its press.
+//
+// Names are read as the editor reads them (founder decision, 2026-10-26): MathQuill turns a run of
+// typed letters into function names by taking, from the left, the longest name that starts at
+// each letter (its autoOperatorNames), and turns an auto-command (pi, sqrt, …) into its symbol the
+// moment its last letter is typed. So an auto-command sounds at once, and a function sounds only
+// when its name is complete and committed: when the run of letters ends (the next key is not a
+// letter) and the run's last name reaches the end of the run. Typing "distance" never sounds
+// "tan" on the way, "sinh" never sounds "sin", and "arcsin" sounds once, as arcsin.
 
+import {
+  AUTO_COMMANDS,
+  mathQuillAutoOperatorNames,
+  panelCategories,
+} from "@/lib/calculator/core/latex/operator-names";
 import { DOUBLE_TAP_MS } from "../keypad/double-tap";
 import { playKeySound } from "./key-sounds";
-import type { KeySound } from "./sound-recipes";
+import { functionVariant, type KeySound } from "./sound-recipes";
 
-/** A sound and its variant (semitones up, so functions of one family differ). */
+/** A sound and its variant (semitones up, so each function sounds its own). */
 export interface KeyHit {
   sound: KeySound;
   variant: number;
 }
 
 const hit = (sound: KeySound, variant = 0): KeyHit => ({ sound, variant });
+
+const OPERATOR_NAMES: readonly string[] = mathQuillAutoOperatorNames().split(" ");
+const LONGEST_NAME = Math.max(...OPERATOR_NAMES.map((n) => n.length));
+const NAME_SET: ReadonlySet<string> = new Set(OPERATOR_NAMES);
+
+/** What each auto-command becomes, as a sound. */
+const COMMAND_SOUNDS: Readonly<Record<string, KeySound>> = {
+  pi: "constant",
+  tau: "constant",
+  infinity: "constant",
+  infty: "constant",
+  sqrt: "sqrt",
+  cbrt: "sqrt",
+  nthroot: "sqrt",
+  sum: "function",
+  prod: "function",
+  int: "function",
+};
+
+/**
+ * The function names MathQuill makes of a run of letters: from the left, the longest name starting
+ * at each letter, the letters between names staying letters. Each as [name, start, end).
+ */
+export function operatorNamesIn(run: string): [name: string, start: number, end: number][] {
+  const found: [string, number, number][] = [];
+  let i = 0;
+  while (i < run.length) {
+    let match = "";
+    for (let len = Math.min(LONGEST_NAME, run.length - i); len > 0; len--) {
+      const candidate = run.slice(i, i + len);
+      if (NAME_SET.has(candidate)) {
+        match = candidate;
+        break;
+      }
+    }
+    if (match === "") {
+      i++;
+    } else {
+      found.push([match, i, i + match.length]);
+      i += match.length;
+    }
+  }
+  return found;
+}
+
+/**
+ * The auto-command the run ends with now, as the vendored MathQuill converts it on its last
+ * letter: the longest one ending the run, unless a longer ending of the run is a function name
+ * (so "midpoint" stays a name rather than ending in ∫).
+ */
+function commandAtEnd(run: string): string | null {
+  let best: string | null = null;
+  for (const command of AUTO_COMMANDS)
+    if (run.endsWith(command) && (best === null || command.length > best.length)) best = command;
+  if (best === null) return null;
+  for (let len = best.length + 1; len <= Math.min(run.length, LONGEST_NAME); len++)
+    if (NAME_SET.has(run.slice(-len))) return null;
+  return best;
+}
 
 const CHAR_SOUNDS: Readonly<Record<string, KeySound>> = {
   "-": "minus",
@@ -29,7 +100,7 @@ const CHAR_SOUNDS: Readonly<Record<string, KeySound>> = {
   "^": "exponent",
   _: "subscript",
   "~": "regression",
-  "%": "percent",
+  "%": "function",
   "(": "openParen",
   ")": "closeParen",
   "[": "openBracket",
@@ -42,41 +113,62 @@ const CHAR_SOUNDS: Readonly<Record<string, KeySound>> = {
   "≥": "comparison",
   π: "constant",
   τ: "constant",
+  "∞": "constant",
   "√": "sqrt",
   ".": "digit",
 };
 
-/** Words MathQuill turns into a function or symbol as their last letter is typed. */
-const WORD_FAMILIES: readonly [KeySound, readonly string[]][] = [
-  ["constant", ["pi", "tau"]],
-  ["sqrt", ["sqrt"]],
-  ["trig", ["sin", "cos", "tan", "sec", "csc", "cot", "sinh", "cosh", "tanh"]],
-  ["log", ["ln", "log", "exp"]],
-  ["stats", ["mean", "median", "stdev", "var", "total", "count", "max", "min"]],
-];
-
-/** The sound of a key typed into a math field; `recent` is the letters typed just before it. */
-export function soundForTypedKey(key: string, recent: string): KeyHit | null {
+/** The sound of one key on its own, with no run of letters in play. */
+function soundOfKey(key: string): KeyHit | null {
   if (key === "Backspace" || key === "Delete") return hit("delete");
   if (key === "Enter") return hit("enter");
   if (key.startsWith("Arrow")) return hit("move");
   if (key.length !== 1) return null; // Shift, Tab, F-keys and the like
   if (Object.hasOwn(CHAR_SOUNDS, key)) return hit(CHAR_SOUNDS[key]);
-  if (/[a-zθ]/i.test(key)) {
-    const word = (recent + key).toLowerCase();
-    // The longest word that ends here wins, so "sinh" is not heard as "in".
-    let best: KeyHit | null = null;
-    let length = 0;
-    for (const [sound, words] of WORD_FAMILIES) {
-      for (const [i, w] of words.entries()) {
-        if (word.endsWith(w) && w.length > length) [best, length] = [hit(sound, i % 7), w.length];
-      }
-    }
-    if (best !== null) return best;
-    return hit(/^[xyθ]$/i.test(key) ? "variable" : "letter");
-  }
-  if (/[0-9]/.test(key)) return hit("digit");
+  if (/^[xyθ]$/i.test(key)) return hit("variable");
+  if (/^[a-z]$/i.test(key)) return hit("letter");
+  if (/^[0-9]$/.test(key)) return hit("digit");
+  if (key === " ") return null;
   return hit("symbol");
+}
+
+/**
+ * The sounds of keys typed into one math field, in order. It keeps the run of letters typed just
+ * before, so a function sounds when its name is committed (see the header).
+ */
+export class TypedKeySounds {
+  private run = "";
+
+  /** The sounds `key` makes (none, one, or a committed function then nothing else). */
+  key(key: string): KeyHit[] {
+    if (key.length === 1 && /^[a-z]$/i.test(key)) {
+      this.run += key;
+      const command = commandAtEnd(this.run);
+      if (command !== null) {
+        this.run = ""; // MathQuill has replaced those letters with the command's symbol
+        return [hit(COMMAND_SOUNDS[command] ?? "constant")];
+      }
+      return [soundOfKey(key)!];
+    }
+    if (key === "Backspace" || key === "Delete") {
+      this.run = key === "Backspace" ? this.run.slice(0, -1) : this.run;
+      return [hit("delete")];
+    }
+    if (key.length !== 1 && !["Enter", "Tab"].includes(key) && !key.startsWith("Arrow")) return []; // Shift and other modifiers leave the run as it is
+    // Any other key ends the run of letters: a function whose name reaches its end is committed.
+    const names = operatorNamesIn(this.run);
+    const last = names.at(-1);
+    const committed = last !== undefined && last[2] === this.run.length ? last[0] : null;
+    this.run = "";
+    if (committed !== null) return [hit("function", functionVariant(committed))];
+    const own = soundOfKey(key);
+    return own === null ? [] : [own];
+  }
+
+  /** Forgets the run (focus moved, or a click placed the caret elsewhere). */
+  reset(): void {
+    this.run = "";
+  }
 }
 
 const KEYPAD_SOUNDS: Readonly<Record<string, KeySound>> = {
@@ -91,6 +183,7 @@ const KEYPAD_SOUNDS: Readonly<Record<string, KeySound>> = {
   tilde: "regression",
   sqrt: "sqrt",
   pi: "constant",
+  abs: "function",
   lparen: "openParen",
   rparen: "closeParen",
   bracket: "openBracket",
@@ -122,49 +215,43 @@ export function soundForKeypadKey(id: string, doubleEquals: boolean): KeyHit | n
   return hit("symbol");
 }
 
-/** The Functions panel's families, by the heading of the panel group a function is in. */
-const PANEL_FAMILIES: readonly [RegExp, KeySound][] = [
-  [/trig/i, "trig"],
-  [/statistic|list|distribution|inference|visuali/i, "stats"],
-  [/calculus/i, "calculus"],
-];
+/** Each Functions panel entry's function name, by the spoken name its button carries. */
+const PANEL_NAMES: ReadonlyMap<string, string> = new Map(
+  panelCategories().flatMap((c) => c.entries.map((e) => [e.spoken, e.name] as const))
+);
 
-/** The sound of a Functions panel button: its family, varied per function by its name. */
-export function soundForFunction(heading: string, name: string): KeyHit {
-  if (/percent/i.test(name)) return hit("percent");
-  if (/square root/i.test(name)) return hit("sqrt");
-  if (/^(ln|log|exp)/i.test(name)) return hit("log");
-  const family = PANEL_FAMILIES.find(([pattern]) => pattern.test(heading))?.[1] ?? "function";
-  let hash = 0;
-  for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) % 7;
-  return hit(family, hash);
+/** The sound of a Functions panel button: the function family, pitched for that function. */
+export function soundForFunction(spoken: string): KeyHit {
+  const name = PANEL_NAMES.get(spoken) ?? spoken;
+  if (Object.hasOwn(COMMAND_SOUNDS, name) && COMMAND_SOUNDS[name] !== "function")
+    return hit(COMMAND_SOUNDS[name]);
+  return hit("function", functionVariant(name));
 }
 
 /** Installs the listeners on the calculator's root; returns the function that removes them. */
 export function installKeySounds(root: HTMLElement): () => void {
-  let recent = "";
+  const typed = new TypedKeySounds();
   let lastEquals = -Infinity;
-  const play = (h: KeyHit | null) => {
-    if (h !== null) playKeySound(h.sound, h.variant);
+  const play = (hits: readonly (KeyHit | null)[]) => {
+    for (const h of hits) if (h !== null) playKeySound(h.sound, h.variant);
   };
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
     const target = event.composedPath()[0];
     if (!(target instanceof Element) || target.closest(".mq-editable-field") === null) return;
-    play(soundForTypedKey(event.key, recent));
-    recent = /^[a-z]$/i.test(event.key) ? (recent + event.key).slice(-5) : "";
+    play(typed.key(event.key));
   };
   const press = (button: HTMLElement) => {
+    typed.reset();
     if (button.classList.contains("kc-function")) {
-      const group = button.closest("[role='group'][aria-label]:not(.kc-functions-panel)");
-      play(soundForFunction(group?.getAttribute("aria-label") ?? "", button.ariaLabel ?? ""));
+      play([soundForFunction(button.getAttribute("aria-label") ?? "")]);
       return;
     }
     const id = button.dataset.key ?? "";
     const now = performance.now();
     const double = id === "equals" && now - lastEquals <= DOUBLE_TAP_MS;
     lastEquals = id === "equals" && !double ? now : -Infinity;
-    play(soundForKeypadKey(id, double));
+    play([soundForKeypadKey(id, double)]);
   };
   const keyOf = (event: Event): HTMLElement | null => {
     const target = event.composedPath()[0];
@@ -178,6 +265,7 @@ export function installKeySounds(root: HTMLElement): () => void {
     if (event.button !== 0) return;
     const button = keyOf(event);
     if (button !== null) press(button);
+    else typed.reset(); // a click elsewhere moves the caret: the run is over
   };
   // A key pressed from the keyboard (Enter or Space on a focused key) clicks with no pointer.
   const onClick = (event: MouseEvent) => {
@@ -185,12 +273,15 @@ export function installKeySounds(root: HTMLElement): () => void {
     const button = keyOf(event);
     if (button !== null) press(button);
   };
+  const onFocusIn = () => typed.reset();
   root.addEventListener("keydown", onKeyDown, true);
   root.addEventListener("pointerdown", onPointerDown, true);
   root.addEventListener("click", onClick, true);
+  root.addEventListener("focusin", onFocusIn, true);
   return () => {
     root.removeEventListener("keydown", onKeyDown, true);
     root.removeEventListener("pointerdown", onPointerDown, true);
     root.removeEventListener("click", onClick, true);
+    root.removeEventListener("focusin", onFocusIn, true);
   };
 }
