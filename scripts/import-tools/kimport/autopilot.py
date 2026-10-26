@@ -525,7 +525,8 @@ class Autopilot:
             (qa_dir / "hidden-readback.json").write_text(json.dumps(raw))
             snaps = [r["snapshot"] for r in _unwrap(raw)["rows"]]
         qres = qa_correct.build_correct(qa_dirs, doc, self.run_id, snaps, self.d.exams_dir, staged,
-                                        self.d.chunk_size, rows_runner=rows_runner)
+                                        self.d.chunk_size, rows_runner=rows_runner,
+                                        hidden_ids=frozenset(qa_hide.currently_hidden(self.pipe / "qa")))
         st._write_all(qa_dir, qres["files"])
         return qres
 

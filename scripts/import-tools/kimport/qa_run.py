@@ -21,6 +21,7 @@ from pathlib import Path
 
 from kimport import qa_hide as qh
 from kimport import qa_export, qa_ids, qa_legacy, qa_retag, writer
+from kimport import stage as st
 from kimport.autopilot import DbError, supabase_file_runner
 from kimport.autopilot_live import LEDGER
 from kimport.export import export_by_id, read_export_doc
@@ -189,12 +190,21 @@ def _count(values) -> dict:
 def restore_checks(ids: list[str], hidden: dict, results: dict, audit: set, rows: dict,
                    corrected: dict | None = None) -> dict[str, str]:
     """{id: why it cannot be republished}. A results line about a question's old text does not block it
-    once the row's text is its reviewed correction (qh.is_corrected)."""
+    once the row's text is its reviewed correction (qh.is_corrected). A live row with the same
+    comparison key, content hash or normalized text blocks it (a QA correction made the hidden
+    duplicate twin's text live on its kept copy: two live copies are never allowed)."""
     bad = {}
     live_keys: dict = {}
+    live_hash: dict = {}
+    live_text: dict = {}
     for r in rows.values():
-        if r.get("comparison_key") and qh._is_live(r):
-            live_keys.setdefault(r["comparison_key"], r["id"])
+        if qh._is_live(r):
+            if r.get("comparison_key"):
+                live_keys.setdefault(r["comparison_key"], r["id"])
+            if r.get("content_hash_v2"):
+                live_hash.setdefault(r["content_hash_v2"], r["id"])
+            if st._norm_text(r.get("question_text")):
+                live_text.setdefault(st._norm_text(r.get("question_text")), r["id"])
     for qid in ids:
         rec, row = hidden.get(qid), rows.get(qid)
         if rec is None:
@@ -210,6 +220,12 @@ def restore_checks(ids: list[str], hidden: dict, results: dict, audit: set, rows
             bad[qid] = "its state changed since QA hid it"
         elif row.get("comparison_key") in live_keys and live_keys[row["comparison_key"]] != qid:
             bad[qid] = f"a live question has the same comparison key ({live_keys[row['comparison_key']]}): a replacement?"
+        elif live_hash.get(row.get("content_hash_v2"), qid) != qid:
+            bad[qid] = (f"a live question has the same content hash ({live_hash[row['content_hash_v2']]}): its corrected "
+                        "copy is live, so this twin stays hidden")
+        elif live_text.get(st._norm_text(row.get("question_text")), qid) != qid:
+            bad[qid] = (f"a live question has the same normalized text ({live_text[st._norm_text(row.get('question_text'))]}):"
+                        " its corrected copy is live, so this twin stays hidden")
     return bad
 
 

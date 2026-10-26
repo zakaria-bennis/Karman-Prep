@@ -210,16 +210,18 @@ def export_index(export_rows: list[dict]) -> dict:
     return idx
 
 
-def _export_conflicts(it: dict, index: dict) -> list[str]:
-    """Python twins of the stage.sql guards, so a refusal shows up before the SQL runs."""
+def _export_conflicts(it: dict, index: dict, ignore: frozenset = frozenset()) -> list[str]:
+    """Python twins of the stage.sql guards, so a refusal shows up before the SQL runs. `ignore`:
+    rows whose same hash or text does not block (a QA correction's QA-hidden duplicate twins,
+    kimport.qa_correct); the source question check still sees them."""
     q, out = it["row"]["question"], []
     src = index["source"].get(it["source"], [])
     if src:
         out.append(f"source question already in the bank as {', '.join(src)}")
-    same_hash = index["hash"].get(q.get("content_hash_v2"), [])
+    same_hash = [i for i in index["hash"].get(q.get("content_hash_v2"), []) if i not in ignore]
     if same_hash:
         out.append(f"content_hash_v2 already in the bank on {', '.join(same_hash)}")
-    same_text = index["text"].get(_norm_text(q.get("question_text")), [])
+    same_text = [i for i in index["text"].get(_norm_text(q.get("question_text")), []) if i not in ignore]
     if same_text:
         out.append(f"normalized question_text already in the bank on {', '.join(same_text)}")
     return out
