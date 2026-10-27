@@ -48,6 +48,7 @@ export function AnnotationLayer() {
   useLayoutEffect(() => {
     const el = pane();
     if (!el) return;
+    if (typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(() => setTick((t) => t + 1));
     ro.observe(el);
     return () => ro.disconnect();

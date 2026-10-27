@@ -75,6 +75,7 @@ export function InkLayer({ pane }: { pane: "passage" | "question" }) {
   useLayoutEffect(() => {
     const el = paneEl();
     if (!el) return;
+    if (typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(() => setTick((t) => t + 1));
     ro.observe(el);
     el.querySelectorAll("[data-ink-block],[data-ink-figure],[data-ink-choice]").forEach((b) =>
@@ -103,7 +104,8 @@ export function InkLayer({ pane }: { pane: "passage" | "question" }) {
       c.style.width = `${w}px`;
       c.style.height = `${h}px`;
     }
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
     const layout = createDomLayout(el);
