@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyInkOp,
+  canvasScale,
   capStroke,
   invertInkOp,
   MAX_POINTS,
@@ -75,5 +76,16 @@ describe("workspace ink history", () => {
     ws = workspaceReducer(ws, "q", { type: "undo" });
     ws = workspaceReducer(ws, "q", { type: "inkOp", op: { kind: "add", stroke: stroke(2) } });
     expect(ws.q.redo).toEqual([]);
+  });
+});
+
+describe("canvas scale", () => {
+  it("uses the device pixel ratio when the canvas is small", () => {
+    expect(canvasScale(400, 900, 3)).toBe(3);
+  });
+  it("lowers the scale so a long passage stays under iOS Safari's canvas limit", () => {
+    const scale = canvasScale(430, 9000, 3);
+    expect(430 * 9000 * scale * scale).toBeLessThanOrEqual(16_000_000);
+    expect(scale).toBeGreaterThan(1);
   });
 });

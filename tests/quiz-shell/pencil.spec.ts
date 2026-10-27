@@ -276,4 +276,62 @@ test.describe("Apple Pencil and fingers (Chrome input emulation)", () => {
     await chip.click();
     await expect(page.getByRole("radio").nth(2)).toHaveAttribute("aria-checked", "true");
   });
+
+  test("a pen tap on the bookmark toggles it exactly once", async ({ page }) => {
+    await open(page, "set=instant&q=math");
+    const client = await cdp(page);
+    await page.getByRole("button", { name: "Pencil" }).click();
+    const b = (await page.getByRole("button", { name: "Bookmark" }).boundingBox())!;
+    const c = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    await penStroke(client, [c, { x: c.x + 1, y: c.y }]);
+    await expect(page.getByRole("button", { name: "Bookmark" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(await strokes(page, "question")).toBe(0);
+  });
+
+  test("a palm landing during a Pencil stroke neither scrolls nor smears the stroke", async ({
+    page,
+  }) => {
+    await open(page, "set=instant&q=rw");
+    await page.setViewportSize({ width: 820, height: 600 });
+    const client = await cdp(page);
+    const w = await wordRect(page, "passage", "astronomy");
+    const scroller = page.locator("[data-quiz-scroll]").first();
+    const before = await scroller.evaluate((el) => el.scrollTop);
+    const pen = (
+      type: "mouseMoved" | "mousePressed" | "mouseReleased",
+      x: number,
+      buttons: number
+    ) =>
+      client.send("Input.dispatchMouseEvent", {
+        type,
+        x,
+        y: w.y + 4,
+        button: "left",
+        buttons,
+        clickCount: 1,
+        pointerType: "pen",
+        force: 0.5,
+      });
+    await pen("mouseMoved", w.x, 0);
+    await pen("mousePressed", w.x, 1);
+    const palm = (y: number) => [{ x: w.x + 60, y, id: 9, radiusX: 4, radiusY: 4 }];
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: palm(w.y + 120),
+    });
+    for (let i = 1; i <= 6; i++) {
+      await client.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: palm(w.y + 120 - i * 25),
+      });
+      await pen("mouseMoved", w.x + i * 8, 1);
+    }
+    await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await pen("mouseReleased", w.x + 48, 0);
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBe(before);
+    expect(await strokes(page, "passage")).toBe(1);
+  });
 });

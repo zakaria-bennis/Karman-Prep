@@ -146,7 +146,12 @@ describe("level up", () => {
     expect(container.textContent).toBe("");
     // A first completed set has no band before it: no fanfare, least of all for "Struggling".
     rerender(
-      <LevelUpCard skill="Linear equations" before={null} after="struggling" onDone={() => undefined} />
+      <LevelUpCard
+        skill="Linear equations"
+        before={null}
+        after="struggling"
+        onDone={() => undefined}
+      />
     );
     expect(container.textContent).toBe("");
     expect(bandRose(null, "mastered")).toBe(false);

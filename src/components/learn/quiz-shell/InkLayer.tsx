@@ -4,7 +4,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { toAnchored, toPane } from "@/lib/quiz/ink/anchor";
 import { enclosedBadge } from "@/lib/quiz/ink/closed-stroke";
-import { capStroke, simplifyStroke } from "@/lib/quiz/ink/document";
+import { canvasScale, capStroke, simplifyStroke } from "@/lib/quiz/ink/document";
 import { segmentDistance } from "@/lib/quiz/ink/erase";
 import { nextRoutingState, route, TapClassifier, type PointerKind } from "@/lib/quiz/ink/routing";
 import type { InkPoint, InkStroke } from "@/lib/quiz/ink/types";
@@ -95,9 +95,9 @@ export function InkLayer({ pane }: { pane: "passage" | "question" }) {
     const canvas = finished.current;
     const top = live.current;
     if (!el || !canvas || !top || !pencil) return;
-    const dpr = window.devicePixelRatio || 1;
     const w = el.offsetWidth;
     const h = el.offsetHeight;
+    const dpr = canvasScale(w, h, window.devicePixelRatio || 1);
     for (const c of [canvas, top]) {
       c.width = Math.round(w * dpr);
       c.height = Math.round(h * dpr);
@@ -143,7 +143,7 @@ export function InkLayer({ pane }: { pane: "passage" | "question" }) {
     };
     const liveCtx = () => {
       const c = live.current!.getContext("2d")!;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = canvasScale(el.offsetWidth, el.offsetHeight, window.devicePixelRatio || 1);
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       return c;
     };
@@ -303,12 +303,15 @@ export function InkLayer({ pane }: { pane: "passage" | "question" }) {
     }
 
     function touchStart(e: TouchEvent) {
-      // Apple Pencil strokes never scroll; fingers keep native scrolling.
-      for (const t of Array.from(e.changedTouches))
-        if ((t as Touch & { touchType?: string }).touchType === "stylus") {
-          e.preventDefault();
-          return;
-        }
+      // Apple Pencil strokes never scroll. A palm that lands while the Pencil is writing does not
+      // scroll the pane either (that would smear the stroke). Otherwise fingers scroll natively.
+      const stylus = (t: Touch) => (t as Touch & { touchType?: string }).touchType === "stylus";
+      if (
+        ctxRef.current?.routing.current.activePenId != null ||
+        Array.from(e.touches).some(stylus) ||
+        Array.from(e.changedTouches).some(stylus)
+      )
+        e.preventDefault();
     }
 
     el.addEventListener("pointerdown", down);

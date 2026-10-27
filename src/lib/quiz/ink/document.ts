@@ -62,3 +62,13 @@ export function simplifyStroke(points: InkPoint[], tolerance = 0.5): InkPoint[] 
   }
   return points.filter((_, i) => keep[i]);
 }
+
+/** iOS Safari blanks a canvas larger than about 16.7 million pixels. */
+export const MAX_CANVAS_PIXELS = 16_000_000;
+
+/** The backing-store scale for a w x h canvas: the device pixel ratio, lowered when it would
+ * push the canvas past the browser's pixel limit. */
+export function canvasScale(width: number, height: number, dpr: number): number {
+  const area = Math.max(1, width * height);
+  return Math.max(0.5, Math.min(dpr, Math.sqrt(MAX_CANVAS_PIXELS / area)));
+}
