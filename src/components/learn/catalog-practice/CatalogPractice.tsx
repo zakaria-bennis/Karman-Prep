@@ -24,7 +24,7 @@ import {
   actionFlagForTutor,
   actionQuizStudentState,
   actionReportProblem,
-  actionToggleBookmark,
+  actionSetBookmark,
 } from "@/app/learn/saved-question-actions";
 import { QuizShell } from "../quiz-shell/QuizShell";
 import CatalogPoolPreview from "./CatalogPoolPreview";
@@ -173,18 +173,12 @@ export default function CatalogPractice({
         onSubmit={(id, answer) => submit(id, answer)}
         onFinish={() => void next()}
         onExit={() => router.push(`/learn/${skill.subject}`)}
-        onToggleBookmark={(id) =>
-          void actionToggleBookmark({ questionId: id }).catch(() => undefined)
-        }
+        onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
         onFlagForTutor={(id, note) =>
-          void actionFlagForTutor({ questionId: id, nodeId: skill.id, note: note || null }).catch(
-            () => undefined
-          )
+          actionFlagForTutor({ questionId: id, nodeId: skill.id, note: note || null })
         }
         onReportProblem={(id, note) =>
-          void actionReportProblem({ questionId: id, nodeId: skill.id, note }).catch(
-            () => undefined
-          )
+          actionReportProblem({ questionId: id, nodeId: skill.id, note })
         }
         feedback={errorBox}
       />

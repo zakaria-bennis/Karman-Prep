@@ -330,3 +330,11 @@
   min-height: 0;
   min-width: 0;
 }
+
+.saveNotice {
+  margin: 0;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--quiz-wrong) 16%, var(--quiz-panel));
+  color: var(--quiz-text);
+  font-weight: 650;
+}

@@ -20,15 +20,17 @@ async function student() {
   return userId;
 }
 
-export async function actionToggleBookmark(input: {
+/** Sets the bookmark to what the student asked for. A tutor flag is never removed by it. */
+export async function actionSetBookmark(input: {
   questionId: string;
-}): Promise<{ saved: boolean }> {
-  const { questionId: id } = z.object({ questionId }).parse(input);
+  on: boolean;
+}): Promise<{ saved: SavedSource | null }> {
+  const parsed = z.object({ questionId, on: z.boolean() }).parse(input);
   const userId = await student();
-  const current = await getSavedQuestion(userId, id);
-  if (current === "tutor_flag") return { saved: true };
-  await setSavedQuestion(userId, id, current ? null : "bookmark");
-  return { saved: !current };
+  if ((await getSavedQuestion(userId, parsed.questionId)) === "tutor_flag")
+    return { saved: "tutor_flag" };
+  await setSavedQuestion(userId, parsed.questionId, parsed.on ? "bookmark" : null);
+  return { saved: parsed.on ? "bookmark" : null };
 }
 
 export async function actionFlagForTutor(input: {
@@ -40,13 +42,13 @@ export async function actionFlagForTutor(input: {
     .object({ questionId, nodeId, note: z.string().max(2000).nullable() })
     .parse(input);
   const userId = await student();
-  if (parsed.nodeId)
-    await flagQuestion({
-      question_id: parsed.questionId,
-      student_id: userId,
-      node_id: parsed.nodeId,
-      flag_note: parsed.note?.trim() || null,
-    });
+  // Every flag reaches the tutor's queue, filed under its skill when there is one.
+  await flagQuestion({
+    question_id: parsed.questionId,
+    student_id: userId,
+    node_id: parsed.nodeId ?? "unassigned",
+    flag_note: parsed.note?.trim() || null,
+  });
   await setSavedQuestion(userId, parsed.questionId, "tutor_flag");
 }
 
@@ -62,7 +64,8 @@ export async function actionReportProblem(input: {
   await flagQuestion({
     question_id: parsed.questionId,
     student_id: userId,
-    node_id: parsed.nodeId ?? "unknown",
+    // Filed apart from tutor flags so a content problem never reads as a request to the tutor.
+    node_id: "problem-report",
     flag_note: `Problem report: ${parsed.note}`,
   });
 }

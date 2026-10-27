@@ -13,7 +13,7 @@ vi.mock("@/contexts/QuizContext", () => ({
 }));
 vi.mock("@/app/learn/saved-question-actions", () => ({
   actionQuizStudentState: vi.fn(async () => ({ hasTutor: false, saved: {} })),
-  actionToggleBookmark: vi.fn(),
+  actionSetBookmark: vi.fn(),
   actionFlagForTutor: vi.fn(),
   actionReportProblem: vi.fn(),
 }));

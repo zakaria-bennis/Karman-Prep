@@ -6,7 +6,7 @@ import { modeFor } from "@/lib/quiz/mode";
 import { FIXTURE } from "../../../../tests/quiz-shell/fixture/questions";
 
 vi.mock("@/app/learn/saved-question-actions", () => ({
-  actionToggleBookmark: vi.fn(async () => ({ saved: true })),
+  actionSetBookmark: vi.fn(async () => ({ saved: true })),
   actionFlagForTutor: vi.fn(async () => undefined),
   actionReportProblem: vi.fn(async () => undefined),
 }));
@@ -209,5 +209,48 @@ describe("restoring after a reload", () => {
   it("does not start a section clock while the host is still loading", () => {
     setup({ attemptKey: "pending", loading: true });
     expect(sessionStorage.getItem("karman-quiz-start:pending")).toBeNull();
+  });
+});
+
+describe("saving markers", () => {
+  it("a bookmark that fails to save goes back and says so", async () => {
+    const onToggleBookmark = vi.fn(async () => {
+      throw new Error("offline");
+    });
+    setup({ onToggleBookmark });
+    fireEvent.click(screen.getByRole("button", { name: "Bookmark" }));
+    expect(await screen.findByText("That did not save. Try again.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Bookmark" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+  });
+  it("a question flagged for the tutor stays saved when the bookmark is pressed", () => {
+    const onToggleBookmark = vi.fn(async () => undefined);
+    setup({
+      mode: modeFor("skill", { hasTutor: true }),
+      saved: { math: "tutor_flag" },
+      onToggleBookmark,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Bookmark" }));
+    expect(screen.getByRole("button", { name: "Bookmark" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(onToggleBookmark).not.toHaveBeenCalled();
+  });
+  it("a problem report that fails says so instead of thanking", async () => {
+    const onReportProblem = vi.fn(async () => {
+      throw new Error("offline");
+    });
+    setup({ onReportProblem });
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Report a problem" }));
+    fireEvent.change(screen.getByLabelText("What is wrong with this question?"), {
+      target: { value: "Typo" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send report" }));
+    expect(await screen.findByText("That did not send. Try again.")).toBeTruthy();
+    expect(screen.queryByText(/Thanks/)).toBeNull();
   });
 });

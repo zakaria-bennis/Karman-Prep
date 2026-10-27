@@ -53,7 +53,7 @@ vi.mock("./bridge-context", async (original) => {
 vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: vi.fn() }));
 vi.mock("@/app/learn/saved-question-actions", () => ({
   actionQuizStudentState: vi.fn(async () => ({ hasTutor: false, saved: {} })),
-  actionToggleBookmark: vi.fn(),
+  actionSetBookmark: vi.fn(),
   actionFlagForTutor: vi.fn(),
   actionReportProblem: vi.fn(),
 }));

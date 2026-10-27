@@ -60,9 +60,10 @@ export type QuizShellProps = {
   loading?: boolean;
   /** Saved markers by question id (server state the host loaded). */
   saved?: Record<string, "bookmark" | "tutor_flag">;
-  onToggleBookmark?(questionId: string, on: boolean): void;
-  onFlagForTutor?(questionId: string, note: string): void;
-  onReportProblem?(questionId: string, note: string): void;
+  /** Each may return a promise; a rejected one puts the marker back and tells the student. */
+  onToggleBookmark?(questionId: string, on: boolean): void | Promise<unknown>;
+  onFlagForTutor?(questionId: string, note: string): void | Promise<unknown>;
+  onReportProblem?(questionId: string, note: string): void | Promise<unknown>;
   /** Extra content under the question (instant-mode rewards plug in here). */
   feedback?: ReactNode;
   /** The host draws its own clock (Time Trial); the shell shows none and never expires. */
@@ -145,11 +146,25 @@ export function QuizShell(props: QuizShellProps) {
     s.act({ type: "answer", value });
     props.onSelectAnswer?.(q.id, value);
   };
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!saveNotice) return;
+    const t = setTimeout(() => setSaveNotice(null), 5000);
+    return () => clearTimeout(t);
+  }, [saveNotice]);
   const toggleBookmark = () => {
     if (!q || !mode.canBookmark) return;
-    const on = !s.saved[q.id];
-    s.setSaved(({ [q.id]: _gone, ...rest }) => (on ? { ...rest, [q.id]: "bookmark" } : rest));
-    props.onToggleBookmark?.(q.id, on);
+    const id = q.id;
+    // A question flagged for the tutor stays saved; the bookmark cannot remove the flag.
+    if (s.saved[id] === "tutor_flag") return;
+    const on = !s.saved[id];
+    const put = (value: boolean) =>
+      s.setSaved(({ [id]: _gone, ...rest }) => (value ? { ...rest, [id]: "bookmark" } : rest));
+    put(on);
+    Promise.resolve(props.onToggleBookmark?.(id, on)).catch(() => {
+      put(!on);
+      setSaveNotice("That did not save. Try again.");
+    });
   };
   const togglePencil = () => {
     s.setPencilOn(!s.pencilOn);
@@ -313,7 +328,8 @@ export function QuizShell(props: QuizShellProps) {
                     onTextSize={s.setTextSize}
                     showSounds={mode.grading === "instant"}
                     onReport={
-                      props.onReportProblem && ((note) => props.onReportProblem!(q.id, note))
+                      props.onReportProblem &&
+                      ((note) => Promise.resolve(props.onReportProblem!(q.id, note)))
                     }
                     onExit={props.onExit && exit}
                   />
@@ -388,6 +404,11 @@ export function QuizShell(props: QuizShellProps) {
                   after={props.levelUp.after}
                   onDone={() => props.onLevelUpDone?.()}
                 />
+              )}
+              {saveNotice && (
+                <p role="alert" className={styles.saveNotice}>
+                  {saveNotice}
+                </p>
               )}
               {s.pencilOn && layout === "compact" && strip}
               {instant && review && !checking && (

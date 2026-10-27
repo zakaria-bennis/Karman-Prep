@@ -1,9 +1,9 @@
 // Fixture stand-ins for the saved-question server actions.
 const saved = new Set<string>();
-export async function actionToggleBookmark({ questionId }: { questionId: string }) {
-  if (saved.has(questionId)) saved.delete(questionId);
-  else saved.add(questionId);
-  return { saved: saved.has(questionId) };
+export async function actionSetBookmark({ questionId, on }: { questionId: string; on: boolean }) {
+  if (on) saved.add(questionId);
+  else saved.delete(questionId);
+  return { saved: on ? "bookmark" : null };
 }
 export async function actionFlagForTutor({ questionId }: { questionId: string }) {
   saved.add(questionId);

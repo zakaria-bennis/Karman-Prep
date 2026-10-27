@@ -15,6 +15,10 @@ describe("quiz engine migrations", () => {
     expect(sql).toMatch(/student_id = auth\.jwt\(\) ->> 'sub'/);
     expect(sql).toMatch(/tutor_assignments/);
     expect(sql).toMatch(/cohort_members/);
+    // Only current links: a former tutor loses access (1:1 ended, member left, cohort ended).
+    expect(sql).toMatch(/ta\.ended_at IS NULL/);
+    expect(sql).toMatch(/cm\.left_at IS NULL/);
+    expect(sql).toMatch(/c\.ended_at IS NULL/);
   });
   it("timing accommodation: three values, standard by default", () => {
     const sql = read("20261028000002_timing_accommodation.sql");
@@ -32,5 +36,7 @@ describe("quiz engine migrations", () => {
     expect(sql).toMatch(/CHECK \(points IN \(10, 15\)\)/);
     expect(sql).toMatch(/CREATE OR REPLACE VIEW public\.student_point_totals/);
     expect(sql).not.toMatch(/FOR INSERT/);
+    expect(sql).toMatch(/ta\.ended_at IS NULL/);
+    expect(sql).toMatch(/cm\.left_at IS NULL/);
   });
 });

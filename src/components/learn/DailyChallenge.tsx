@@ -13,7 +13,7 @@ import {
   actionFlagForTutor,
   actionQuizStudentState,
   actionReportProblem,
-  actionToggleBookmark,
+  actionSetBookmark,
 } from "@/app/learn/saved-question-actions";
 import { QuizShell } from "./quiz-shell/QuizShell";
 import { CalculatorIcon, ReferenceIcon } from "./quiz-shell/icons";
@@ -160,20 +160,16 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
             setOpen(false);
           }}
           onExit={() => setOpen(false)}
-          onToggleBookmark={(id) =>
-            void actionToggleBookmark({ questionId: id }).catch(() => undefined)
-          }
+          onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
           onFlagForTutor={(id, note) =>
-            void actionFlagForTutor({
+            actionFlagForTutor({
               questionId: id,
               nodeId: q.node_id ?? null,
               note: note || null,
-            }).catch(() => undefined)
+            })
           }
           onReportProblem={(id, note) =>
-            void actionReportProblem({ questionId: id, nodeId: q.node_id ?? null, note }).catch(
-              () => undefined
-            )
+            actionReportProblem({ questionId: id, nodeId: q.node_id ?? null, note })
           }
           feedback={
             error ? (

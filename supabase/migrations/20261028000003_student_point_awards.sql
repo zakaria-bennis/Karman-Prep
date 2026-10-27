@@ -33,11 +33,13 @@ CREATE POLICY "point_awards_tutor_read"
           EXISTS (
             SELECT 1 FROM public.tutor_assignments ta
             WHERE ta.student_user_id = student.id AND ta.tutor_user_id = tutor.id
+              AND ta.ended_at IS NULL
           )
           OR EXISTS (
             SELECT 1 FROM public.cohort_members cm
             JOIN public.cohorts c ON c.id = cm.cohort_id
             WHERE cm.user_id = student.id AND c.tutor_user_id = tutor.id
+              AND cm.left_at IS NULL AND c.ended_at IS NULL
           )
         )
     )

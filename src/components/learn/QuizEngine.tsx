@@ -14,7 +14,7 @@ import {
   actionFlagForTutor,
   actionQuizStudentState,
   actionReportProblem,
-  actionToggleBookmark,
+  actionSetBookmark,
 } from "@/app/learn/saved-question-actions";
 import QuizResults from "./QuizResults";
 import { VideoPromptBanner } from "./quiz/VideoPromptBanner";
@@ -138,18 +138,12 @@ export default function QuizEngine({
           onSubmit={() => submitAnswer()}
           onFinish={() => void nextQuestion()}
           onExit={close}
-          onToggleBookmark={(id) =>
-            void actionToggleBookmark({ questionId: id }).catch(() => undefined)
-          }
+          onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
           onFlagForTutor={(id, note) =>
-            void actionFlagForTutor({ questionId: id, nodeId: node.id, note: note || null }).catch(
-              () => undefined
-            )
+            actionFlagForTutor({ questionId: id, nodeId: node.id, note: note || null })
           }
           onReportProblem={(id, note) =>
-            void actionReportProblem({ questionId: id, nodeId: node.id, note }).catch(
-              () => undefined
-            )
+            actionReportProblem({ questionId: id, nodeId: node.id, note })
           }
           levelUp={
             rose && !levelUpSeen

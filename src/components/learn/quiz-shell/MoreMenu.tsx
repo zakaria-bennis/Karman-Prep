@@ -32,13 +32,14 @@ export function MoreMenu({
   textSize: number;
   onTextSize(size: number): void;
   showSounds: boolean;
-  onReport?(note: string): void;
+  onReport?(note: string): Promise<unknown>;
   onExit?(): void;
 }) {
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<"menu" | "report" | "shortcuts">("menu");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
+  const [failed, setFailed] = useState(false);
   const animations = useQuizAnimations();
   const sounds = useSyncExternalStore(subscribeQuizSounds, quizSoundsEnabled, () => true);
   const { reduced } = useShellMotion();
@@ -161,10 +162,15 @@ export function MoreMenu({
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    if (!note.trim()) return;
-                    onReport?.(note.trim());
-                    setSent(true);
-                    setNote("");
+                    if (!note.trim() || !onReport) return;
+                    setFailed(false);
+                    onReport(note.trim()).then(
+                      () => {
+                        setSent(true);
+                        setNote("");
+                      },
+                      () => setFailed(true)
+                    );
                   }}
                 >
                   <label className={styles.label} htmlFor="quiz-report">
@@ -179,6 +185,11 @@ export function MoreMenu({
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                   />
+                  {failed && (
+                    <p role="alert" className={styles.done}>
+                      That did not send. Try again.
+                    </p>
+                  )}
                   <div className={styles.actions}>
                     <button type="button" className={shell.tool} onClick={() => setPanel("menu")}>
                       Back

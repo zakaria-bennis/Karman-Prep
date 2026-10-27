@@ -15,7 +15,7 @@ vi.mock("@/lib/supabase/queries/quiz/flags", () => ({ flagQuestion: db.flagQuest
 import {
   actionFlagForTutor,
   actionReportProblem,
-  actionToggleBookmark,
+  actionSetBookmark,
 } from "./saved-question-actions";
 
 const Q = "00000000-0000-4000-8000-000000000001";
@@ -23,20 +23,20 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("bookmarks", () => {
   it("rejects a question id that is not a uuid", async () => {
-    await expect(actionToggleBookmark({ questionId: "nope" })).rejects.toThrow();
+    await expect(actionSetBookmark({ questionId: "nope", on: true })).rejects.toThrow();
     expect(db.setSavedQuestion).not.toHaveBeenCalled();
   });
-  it("toggling saves, toggling again unsaves", async () => {
-    db.getSavedQuestion.mockResolvedValueOnce(null);
-    expect(await actionToggleBookmark({ questionId: Q })).toEqual({ saved: true });
+  it("saves what the student asked for, whatever the server had", async () => {
+    db.getSavedQuestion.mockResolvedValue("bookmark");
+    expect(await actionSetBookmark({ questionId: Q, on: true })).toEqual({ saved: "bookmark" });
     expect(db.setSavedQuestion).toHaveBeenLastCalledWith("user_student", Q, "bookmark");
-    db.getSavedQuestion.mockResolvedValueOnce("bookmark");
-    expect(await actionToggleBookmark({ questionId: Q })).toEqual({ saved: false });
+    db.getSavedQuestion.mockResolvedValue(null);
+    expect(await actionSetBookmark({ questionId: Q, on: false })).toEqual({ saved: null });
     expect(db.setSavedQuestion).toHaveBeenLastCalledWith("user_student", Q, null);
   });
-  it("a tutor flag is never removed by the bookmark toggle", async () => {
-    db.getSavedQuestion.mockResolvedValueOnce("tutor_flag");
-    expect(await actionToggleBookmark({ questionId: Q })).toEqual({ saved: true });
+  it("a tutor flag is never removed by the bookmark", async () => {
+    db.getSavedQuestion.mockResolvedValue("tutor_flag");
+    expect(await actionSetBookmark({ questionId: Q, on: false })).toEqual({ saved: "tutor_flag" });
     expect(db.setSavedQuestion).not.toHaveBeenCalled();
   });
 });
@@ -52,9 +52,11 @@ describe("flag for my tutor", () => {
     });
     expect(db.setSavedQuestion).toHaveBeenCalledWith("user_student", Q, "tutor_flag");
   });
-  it("saves the question even when there is no skill to file the flag under", async () => {
-    await actionFlagForTutor({ questionId: Q, nodeId: null, note: null });
-    expect(db.flagQuestion).not.toHaveBeenCalled();
+  it("files the flag for the tutor even when there is no skill to file it under", async () => {
+    await actionFlagForTutor({ questionId: Q, nodeId: null, note: "From the daily card" });
+    expect(db.flagQuestion).toHaveBeenCalledWith(
+      expect.objectContaining({ node_id: "unassigned", flag_note: "From the daily card" })
+    );
     expect(db.setSavedQuestion).toHaveBeenCalledWith("user_student", Q, "tutor_flag");
   });
 });
@@ -66,7 +68,10 @@ describe("report a problem", () => {
     ).rejects.toThrow();
     await actionReportProblem({ questionId: Q, nodeId: "ma-03", note: "Choice C is cut off" });
     expect(db.flagQuestion).toHaveBeenCalledWith(
-      expect.objectContaining({ flag_note: "Problem report: Choice C is cut off" })
+      expect.objectContaining({
+        node_id: "problem-report",
+        flag_note: "Problem report: Choice C is cut off",
+      })
     );
     expect(db.setSavedQuestion).not.toHaveBeenCalled();
   });
