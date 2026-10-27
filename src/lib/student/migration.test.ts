@@ -14,6 +14,11 @@ describe("student dashboard migration", () => {
       /next_target_seconds INTEGER NOT NULL CHECK \(next_target_seconds >= goal_seconds\)/
     );
   });
+  it("keeps tutor-unlocked assignments, one run per assignment link", () => {
+    expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS public\.student_assignments/);
+    expect(sql).toMatch(/completed_at IS NULL OR unlocked_at IS NOT NULL/);
+    expect(sql).toMatch(/assignment_id UUID REFERENCES public\.student_assignments/);
+  });
   it("builds per-skill points on the quiz-engine ledger, not a second one", () => {
     expect(sql).toMatch(/FROM public\.student_point_awards/);
     expect(sql).not.toMatch(/CREATE TABLE[^;]*point/i);

@@ -135,3 +135,26 @@ export function BandGlyph({ band, size = 18 }: { band: ConfidenceBand | null; si
     </svg>
   );
 }
+
+/** A small padlock for scheduled and locked items. */
+export function LockIcon({ size, className }: P) {
+  return (
+    <svg {...frame(size, className)}>
+      <rect x="5" y="10.5" width="14" height="10" rx="1.8" />
+      <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" />
+      <circle cx="12" cy="15.5" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** The tutor's view: a person with a small key, for unlocking. */
+export function TutorIcon({ size, className }: P) {
+  return (
+    <svg {...frame(size, className)}>
+      <circle cx="9.5" cy="8" r="3.4" />
+      <path d="M3.5 20c.7-3.6 3-5.6 6-5.6 1.4 0 2.6.4 3.6 1.2" />
+      <circle cx="17.5" cy="15.5" r="2" />
+      <path d="M17.5 17.5v3.5M17.5 19.5h1.6" />
+    </svg>
+  );
+}

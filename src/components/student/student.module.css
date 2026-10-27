@@ -831,3 +831,63 @@
 .domain {
   scroll-margin-top: 24px;
 }
+
+/* Assignment state line: open, scheduled, locked, done. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.status[data-state="open"] {
+  color: var(--gold);
+}
+.trialChoice[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.78;
+}
+.examRow {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.examRow:last-child {
+  border-bottom: 0;
+}
+.examText {
+  display: grid;
+  gap: 3px;
+}
+.unlockRow {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.unlockRow:last-child {
+  border-bottom: 0;
+}
+.warn {
+  font-size: 0.8rem;
+  color: var(--status-warning, var(--ink-2));
+}
+.textButton {
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}

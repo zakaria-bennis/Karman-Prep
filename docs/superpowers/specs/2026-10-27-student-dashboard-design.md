@@ -220,6 +220,79 @@ What exists today:
   module and per skill, not a scaled score. Cost if wrong: a scoring step later.
 - Wordline and Word parts open their existing screens.
 
+## Assigned modes (founder, 2026-10-27, 2:50 a.m.)
+
+Karman has five modes: full-length exams, the question bank, Time Trials, Your Daily 10 and
+the mini-games. Full-length exams and Time Trials are scheduled by the tutor, made ahead, and
+unlocked by the tutor, so a student cannot repeat them at will.
+
+### Who controls what
+
+| Mode                              | Who starts it                                   | Limit                       |
+| --------------------------------- | ----------------------------------------------- | --------------------------- |
+| Full-length exam                  | Tutor plans a date, then unlocks it             | One attempt per unlock      |
+| Time Trial                        | Tutor plans a date per section, then unlocks it | One attempt per unlock      |
+| Your Daily 10                     | Student                                         | Once a day                  |
+| Question bank (skill practice)    | Student                                         | Open; fresh questions first |
+| Mini-games (Wordline, Word parts) | Student                                         | Wordline is one word a day  |
+
+Ruling: the question bank and mini-games stay open. Locking practice would cut the retrieval
+practice the program depends on; only the exams and trials, whose value comes from being
+taken fresh and on schedule, are gated. Cost if wrong: one more gate.
+
+Ruling: unlocking is a tutor action, not an automatic one on the planned date. The date is the
+plan; the tutor opens it when the student is ready (sessions move, students get sick). Cost if
+wrong: an auto-unlock job later.
+
+### States (`src/lib/student/unlocks.ts`)
+
+- **Scheduled:** on the plan, not open. Student sees a padlock, the date and "David unlocks it".
+- **Open:** the tutor unlocked it. The student sees "Unlocked by David" and one Start button.
+- **Done:** taken. Starting again shows "You have taken this one. Your tutor schedules the next."
+- **Locked:** nothing planned. Student sees "Nothing planned yet. Ask David."
+- Run pages check the state before starting, so a copied link cannot start a locked item.
+
+### Tutor control
+
+The tutor's plan screen lists the student's exams and trials by date, each with its state and
+one Unlock button. Before unlocking, the tutor sees a spacing note when the last one of the
+same kind (and section, for trials) was recent: full-length exams 14 days apart, Time Trials
+2 days apart per section. The note advises; it does not block, because the tutor knows the
+student's week. The same screen shows the student's current Time Trial targets and weakest
+skills, so the decision is made with the data in view.
+
+### Research behind the design
+
+- **Retrieval practice (testing effect):** answering questions from memory builds retention
+  more than rereading (Roediger and Karpicke, 2006). So the bank, the Daily 10 and the trials
+  are all question-first, with explanations after the answer in practice.
+- **Spacing:** practice spread over days beats the same amount massed (Cepeda and others,
+  2006). So the Daily 10 is once a day, exams are spaced, and mastery counts recent answers
+  more.
+- **Interleaving:** mixing skills in one set improves telling problem types apart (Rohrer and
+  Taylor, 2007). So the Daily 10 mixes sections and skills instead of drilling one.
+- **Desirable difficulty:** practice that is a little hard sticks better (Bjork). So the Daily
+  10 always includes a difficulty-5-or-above question, and the Time Trial squeeze moves 20% at
+  a time rather than jumping to test pace.
+- **Fresh items on full-length exams:** a retaken form measures memory of those items, not
+  skill. So each exam is one attempt and draws questions the student has not seen in the
+  other modules.
+- **Speed after accuracy:** pace training that rewards guessing teaches guessing. So a Time
+  Trial only tightens the target when accuracy holds.
+
+### Next research-backed features (not built tonight)
+
+- **Mistakes to retry:** every missed question comes back after 1, 3 and 7 days until it is
+  answered right twice (spaced retrieval of errors).
+- **Tutor review after each full-length exam:** the "Full-length review session" opens the
+  exam's missed questions grouped by skill.
+- **Weekly plan:** the tutor's plan screen as a week view across all their students.
+
+### Data
+
+Migration `20261028000010` adds `student_assignments` (kind, section, scheduled date,
+unlocked at and by, completed at) and links each `time_trial_runs` row to its assignment.
+
 ## Data flow and safety
 
 - `buildStudentHome(input)` is pure. Input: profile (name, accommodation, SAT date,

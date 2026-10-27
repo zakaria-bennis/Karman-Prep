@@ -103,6 +103,7 @@ export function demoStudent(nowMs: number): StudentHomeInput {
     d.setHours(hour, 0, 0, 0);
     return d.toISOString();
   };
+  const day = (days: number) => at(days, 12).slice(0, 10);
   return {
     firstName: "Maya",
     accommodation: "standard",
@@ -133,5 +134,47 @@ export function demoStudent(nowMs: number): StudentHomeInput {
     awards,
     trialRuns,
     dailyDoneOn: null,
+    assignments: [
+      {
+        id: "demo-tt-math-5",
+        kind: "time_trial",
+        section: "math",
+        title: "Math Time Trial",
+        scheduledFor: day(0),
+        unlockedAt: at(-1, 20),
+        completedAt: null,
+        tutor: "David",
+      },
+      {
+        id: "demo-tt-rw-3",
+        kind: "time_trial",
+        section: "reading",
+        title: "Reading and Writing Time Trial",
+        scheduledFor: day(2),
+        unlockedAt: null,
+        completedAt: null,
+        tutor: "David",
+      },
+      {
+        id: "demo-fl-1",
+        kind: "full_length",
+        section: null,
+        title: "Full-length exam 1",
+        scheduledFor: day(-16),
+        unlockedAt: at(-16, 9),
+        completedAt: at(-16, 12),
+        tutor: "David",
+      },
+      {
+        id: "demo-fl-2",
+        kind: "full_length",
+        section: null,
+        title: "Full-length exam 2",
+        scheduledFor: day(4),
+        unlockedAt: null,
+        completedAt: null,
+        tutor: "David",
+      },
+    ],
   };
 }

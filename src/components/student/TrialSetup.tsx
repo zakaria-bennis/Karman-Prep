@@ -4,9 +4,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { buildStudentHome, type StudentHomeInput } from "@/lib/student/home-model";
 import { SQUEEZE, formatClock, type TrialSection } from "@/lib/student/time-trial";
-import { useMergedInput } from "./preview-store";
+import { useMergedInput, useLiveNow } from "./preview-store";
 import { TrialChart } from "./TrialChart";
 import { TrialIcon } from "./icons";
+import { AssignmentStatus } from "./AssignmentStatus";
 import s from "./student.module.css";
 
 const NAME: Record<TrialSection, string> = { math: "Math", reading: "Reading and Writing" };
@@ -25,9 +26,15 @@ export function TrialSetup({
   nowMs: number;
   base: string;
 }) {
-  const home = buildStudentHome(useMergedInput(input), nowMs, base);
-  const [section, setSection] = useState<TrialSection>("math");
+  const now = useLiveNow(nowMs);
+  const home = buildStudentHome(useMergedInput(input), now, base);
+  const openSection = (["math", "reading"] as const).find(
+    (x) => home.trials[x].next?.state === "open"
+  );
+  const [picked, setSection] = useState<TrialSection | null>(null);
+  const section: TrialSection = picked ?? openSection ?? "math";
   const t = home.trials[section];
+  const open = t.next?.state === "open" ? t.next : null;
   return (
     <div className={s.page}>
       <div className={s.trialZone}>
@@ -61,6 +68,7 @@ export function TrialSetup({
                 <span className={s.fact}>{NAME[sec]}</span>
                 <span className={s.trialTarget}>{formatClock(v.target)}</span>
                 <TrialChart steps={v.steps} goal={v.goal} height={44} />
+                <AssignmentStatus a={v.next} tutor="David" />
                 <span className={s.fact}>
                   {v.runs === 0
                     ? v.start.basis === "history"
@@ -73,9 +81,20 @@ export function TrialSetup({
           })}
         </div>
         <motion.div layout className={s.heroActions} style={{ marginTop: 26 }}>
-          <Link href={`${base}/time-trial/run?section=${section}`} className={s.primary}>
-            Start {NAME[section]} trial
-          </Link>
+          {open ? (
+            <Link
+              href={`${base}/time-trial/run?section=${section}&a=${open.id}`}
+              className={s.primary}
+            >
+              Start {NAME[section]} trial
+            </Link>
+          ) : (
+            <span className={s.fact}>
+              {t.next?.state === "scheduled"
+                ? `Opens when ${t.next.tutor} unlocks it.`
+                : `No ${NAME[section]} trial is open right now.`}
+            </span>
+          )}
           <span className={s.fact}>
             {ACCOMMODATION[input.accommodation]} · {section === "math" ? 22 : 27} questions
           </span>

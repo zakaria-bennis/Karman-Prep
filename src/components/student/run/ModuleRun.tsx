@@ -213,6 +213,7 @@ export function ModuleRun(p: Props) {
             }
             questions={p.items.map((it) => it.question)}
             attemptKey={p.attemptKey}
+            hideClock
             index={index}
             section={p.section}
             onNavigate={setIndex}

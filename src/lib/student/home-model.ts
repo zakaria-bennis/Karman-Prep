@@ -2,6 +2,7 @@ import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import type { TimingAccommodation } from "@/lib/quiz/timer";
 import type { ConfidenceBand, QuizDifficultyLevel } from "@/types/quiz";
 import { estimateSkill, BAND_ORDER } from "./mastery";
+import { assignmentState, nextAssignment, type Assignment, type AssignmentState } from "./unlocks";
 import { summarisePoints, type PointAward } from "./skill-points";
 import {
   currentTarget,
@@ -33,6 +34,8 @@ export type StudentHomeInput = {
   awards: PointAward[];
   trialRuns: TrialRun[];
   dailyDoneOn: string | null;
+  /** Full-length exams and Time Trials the tutor schedules and unlocks. */
+  assignments: Assignment[];
 };
 
 export type SkillView = {
@@ -55,6 +58,8 @@ export type TrialView = {
   steps: number[];
   runs: number;
   last: TrialRun | null;
+  /** The next Time Trial the tutor has planned for this section. */
+  next: (Assignment & { state: AssignmentState }) | null;
 };
 
 export type StudentHome = {
@@ -71,6 +76,8 @@ export type StudentHome = {
   nextClass: StudentHomeInput["nextClass"];
   due: StudentHomeInput["due"];
   answered: number;
+  assignments: (Assignment & { state: AssignmentState })[];
+  nextExam: (Assignment & { state: AssignmentState }) | null;
 };
 
 const DAY = 86_400_000;
@@ -133,8 +140,10 @@ export function buildStudentHome(
       .filter((r) => r.section === section)
       .sort((a, b) => a.finishedAt.localeCompare(b.finishedAt));
     const target = currentTarget(section, runs, start);
+    const next = nextAssignment(input.assignments, "time_trial", section, nowMs);
     return {
       section,
+      next: next ? { ...next, state: assignmentState(next, nowMs) } : null,
       target,
       goal: start.goal,
       start,
@@ -172,9 +181,15 @@ export function buildStudentHome(
     nextClass: input.nextClass,
     due: [...input.due].sort((a, b) => a.dueAt.localeCompare(b.dueAt)),
     answered: input.responses.length,
+    assignments: input.assignments.map((a) => ({ ...a, state: assignmentState(a, nowMs) })),
+    nextExam: withState(nextAssignment(input.assignments, "full_length", null, nowMs), nowMs),
   };
 }
 
 export function sectionOf(skillId: string): TrialSection {
   return skillId.startsWith("ma-") ? "math" : "reading";
+}
+
+function withState(a: Assignment | null, nowMs: number) {
+  return a ? { ...a, state: assignmentState(a, nowMs) } : null;
 }

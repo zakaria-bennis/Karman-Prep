@@ -8,7 +8,10 @@ import { pointsForAnswer } from "@/lib/student/skill-points";
 import { CB_MODULE, formatClock } from "@/lib/student/time-trial";
 import type { DeliveredQuestion } from "@/lib/student/preview-bank";
 import type { QuizDifficultyLevel } from "@/types/quiz";
-import { addToHistory } from "../preview-store";
+import { addToHistory, useMergedInput } from "../preview-store";
+import { Locked } from "./Locked";
+import { assignmentState } from "@/lib/student/unlocks";
+import type { StudentHomeInput } from "@/lib/student/home-model";
 import { ModuleRun, type ModuleResult } from "./ModuleRun";
 import { ResultActions, ResultsFrame } from "./Results";
 import s from "../student.module.css";
@@ -27,12 +30,19 @@ export function TestRunner({
   modules,
   accommodation,
   base,
+  input,
+  assignmentId,
 }: {
   modules: TestModule[];
   accommodation: TimingAccommodation;
   base: string;
+  input: StudentHomeInput;
+  assignmentId: string | null;
 }) {
   const router = useRouter();
+  const merged = useMergedInput(input);
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const [step, setStep] = useState(0);
   const [onBreak, setOnBreak] = useState(false);
   const [results, setResults] = useState<ModuleResult[]>([]);
@@ -44,6 +54,21 @@ export function TestRunner({
         <p className={x.verdict}>Not enough published questions for a full test yet.</p>
         <ResultActions primary={{ href: base, label: "Back to home" }} />
       </ResultsFrame>
+    );
+  }
+
+  const assignment = merged.assignments.find(
+    (a) => a.id === assignmentId && a.kind === "full_length"
+  );
+  const state = assignment ? assignmentState(assignment, Date.now()) : null;
+  if (!ready) return null;
+  // Once started, finishing it marks it done; the gate only stops a fresh start.
+  if (step === 0 && !onBreak && state !== "open") {
+    return (
+      <Locked
+        a={assignment && state ? { ...assignment, state } : undefined}
+        back={`${base}/tests`}
+      />
     );
   }
 
@@ -132,6 +157,8 @@ export function TestRunner({
       }),
     });
     setResults((all) => [...all, r]);
+    if (step + 1 >= modules.length && assignmentId)
+      addToHistory({ completions: { [assignmentId]: at } });
     // The break sits between Reading and Writing and Math, as on test day.
     if (modules[step + 1] && modules[step + 1].section !== m.section) setOnBreak(true);
     setStep(step + 1);

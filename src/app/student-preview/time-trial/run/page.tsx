@@ -10,7 +10,7 @@ const BASE = "/student-preview";
 export default async function TrialRunPreview({
   searchParams,
 }: {
-  searchParams: Promise<{ section?: string; seed?: string }>;
+  searchParams: Promise<{ section?: string; seed?: string; a?: string }>;
 }) {
   const q = await searchParams;
   const section: TrialSection = q.section === "reading" ? "reading" : "math";
@@ -18,5 +18,13 @@ export default async function TrialRunPreview({
   const seed = Number(q.seed) || nowMs / 60_000;
   const pool = await sectionPool(section);
   const items = await deliver(assembleModule(section, pool, CB_MODULE[section].questions, seed));
-  return <TrialRunner items={items} input={demoStudent(nowMs)} section={section} base={BASE} />;
+  return (
+    <TrialRunner
+      items={items}
+      input={demoStudent(nowMs)}
+      section={section}
+      base={BASE}
+      assignmentId={q.a ?? null}
+    />
+  );
 }

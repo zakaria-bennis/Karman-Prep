@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { buildStudentHome, sectionOf, type StudentHomeInput } from "@/lib/student/home-model";
@@ -17,7 +16,8 @@ import { addToHistory, useMergedInput } from "../preview-store";
 import { TrialChart } from "../TrialChart";
 import { ModuleRun, type ModuleResult } from "./ModuleRun";
 import { ResultActions, ResultsFrame } from "./Results";
-import s from "../student.module.css";
+import { Locked } from "./Locked";
+import { assignmentState } from "@/lib/student/unlocks";
 import x from "./results.module.css";
 
 const NAME: Record<TrialSection, string> = { math: "Math", reading: "Reading and Writing" };
@@ -36,11 +36,13 @@ export function TrialRunner({
   input,
   section,
   base,
+  assignmentId,
 }: {
   items: DeliveredQuestion[];
   input: StudentHomeInput;
   section: TrialSection;
   base: string;
+  assignmentId: string | null;
 }) {
   const router = useRouter();
   const merged = useMergedInput(input);
@@ -72,6 +74,19 @@ export function TrialRunner({
     );
   }
   if (!frozen) return null;
+  const assignment = merged.assignments.find(
+    (a) => a.id === assignmentId && a.kind === "time_trial"
+  );
+  const state = assignment ? assignmentState(assignment, Date.now()) : null;
+  if (!result && state !== "open") {
+    return (
+      <Locked
+        a={assignment && state ? { ...assignment, state } : undefined}
+        back={`${base}/time-trial`}
+        trial
+      />
+    );
+  }
 
   if (result) {
     const { run, verdict, steps } = result;
@@ -117,17 +132,7 @@ export function TrialRunner({
         <div className={x.panel}>
           <TrialChart steps={steps} goal={frozen.goal} height={120} />
         </div>
-        <ResultActions
-          primary={{ href: base, label: "Back to home" }}
-          secondary={
-            <Link
-              href={`${base}/time-trial/run?section=${section}&seed=${Date.parse(run.finishedAt)}`}
-              className={s.link}
-            >
-              Run it again
-            </Link>
-          }
-        />
+        <ResultActions primary={{ href: base, label: "Back to home" }} />
       </ResultsFrame>
     );
   }
@@ -156,6 +161,7 @@ export function TrialRunner({
       finishedAt,
     };
     addToHistory({
+      completions: assignmentId ? { [assignmentId]: finishedAt } : {},
       trialRuns: [run],
       responses: items
         .filter((it) => m.reviews[it.question.id])

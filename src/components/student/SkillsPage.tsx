@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { buildStudentHome, type SkillView, type StudentHomeInput } from "@/lib/student/home-model";
-import { useMergedInput } from "./preview-store";
+import { useMergedInput, useLiveNow } from "./preview-store";
 import { Legend, SkillList, SkillSheet } from "./SkillSky";
 import s from "./student.module.css";
 
@@ -15,7 +15,8 @@ export function SkillsPage({
   nowMs: number;
   base: string;
 }) {
-  const home = buildStudentHome(useMergedInput(input), nowMs, base);
+  const now = useLiveNow(nowMs);
+  const home = buildStudentHome(useMergedInput(input), now, base);
   const [open, setOpen] = useState<SkillView | null>(null);
   return (
     <div className={s.page}>

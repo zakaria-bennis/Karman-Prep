@@ -2,10 +2,16 @@ import { TestRunner, type TestModule } from "@/components/student/run/TestRunner
 import { assembleModule } from "@/lib/student/assemble";
 import { deliver, sectionPool } from "@/lib/student/preview-bank";
 import { CB_MODULE } from "@/lib/student/time-trial";
+import { demoStudent } from "@/lib/student/demo-student";
 
 export const dynamic = "force-dynamic";
 
-export default async function TestRunPreview() {
+export default async function TestRunPreview({
+  searchParams,
+}: {
+  searchParams: Promise<{ a?: string }>;
+}) {
+  const { a } = await searchParams;
   const seed = Math.floor(Date.now() / 60_000);
   const [reading, math] = await Promise.all([sectionPool("reading"), sectionPool("math")]);
   const plan = [
@@ -31,5 +37,13 @@ export default async function TestRunPreview() {
     picks.forEach((x) => used.add(x.id));
     modules.push({ id: p.id, title: p.title, section: p.section, items: await deliver(picks) });
   }
-  return <TestRunner modules={modules} accommodation="standard" base="/student-preview" />;
+  return (
+    <TestRunner
+      modules={modules}
+      accommodation="standard"
+      base="/student-preview"
+      input={demoStudent(seed * 60_000)}
+      assignmentId={a ?? null}
+    />
+  );
 }

@@ -7,10 +7,11 @@ import {
   type StudentHome as Home,
   type StudentHomeInput,
 } from "@/lib/student/home-model";
-import { useMergedInput } from "./preview-store";
+import { useMergedInput, useLiveNow } from "./preview-store";
 import { SkillSky } from "./SkillSky";
 import { TrialChart, fmt } from "./TrialChart";
-import { CalendarIcon, GamesIcon, TestsIcon, TrialIcon } from "./icons";
+import { CalendarIcon, GamesIcon, TestsIcon, TrialIcon, TutorIcon } from "./icons";
+import { AssignmentStatus } from "./AssignmentStatus";
 import s from "./student.module.css";
 
 const when = (iso: string) =>
@@ -32,7 +33,8 @@ export function StudentHome({
   nowMs: number;
   base: string;
 }) {
-  const home = buildStudentHome(useMergedInput(input), nowMs, base);
+  const now = useLiveNow(nowMs);
+  const home = buildStudentHome(useMergedInput(input), now, base);
   const reduce = useReducedMotion();
   const rise: Variants = {
     hidden: reduce ? { opacity: 0 } : { opacity: 0, y: 14 },
@@ -143,13 +145,16 @@ export function StudentHome({
                   <div className={s.fact}>
                     Goal <strong className={s.num}>{fmt(t.goal)}</strong>
                   </div>
+                  <AssignmentStatus a={t.next} tutor="David" />
                 </div>
                 <TrialChart steps={t.steps} goal={t.goal} />
               </div>
             );
           })}
           <Link href={`${base}/time-trial`} className={s.glassButton} style={{ marginTop: 12 }}>
-            Start a Time Trial
+            {home.trials.math.next?.state === "open" || home.trials.reading.next?.state === "open"
+              ? "Start your Time Trial"
+              : "See Time Trials"}
           </Link>
         </motion.section>
 
@@ -190,7 +195,10 @@ export function StudentHome({
             <li>
               <Link href={`${base}/tests`} className={s.item}>
                 <TestsIcon size={20} />
-                <span className={s.itemTitle}>Full-length practice test</span>
+                <span className={s.examText}>
+                  <span className={s.itemTitle}>{home.nextExam?.title ?? "Full-length exams"}</span>
+                  <AssignmentStatus a={home.nextExam} tutor="David" />
+                </span>
               </Link>
             </li>
           </ul>
@@ -208,6 +216,14 @@ export function StudentHome({
           </div>
           <TopSkills home={home} />
         </motion.section>
+
+        <Link
+          href={`${base}/tutor`}
+          className={s.link}
+          style={{ display: "inline-flex", gap: 8, alignItems: "center", justifySelf: "start" }}
+        >
+          <TutorIcon size={18} /> Preview David&rsquo;s unlock screen
+        </Link>
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 "use client";
-import { useCallback, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import type { StudentHomeInput, StudentResponse } from "@/lib/student/home-model";
 import type { PointAward } from "@/lib/student/skill-points";
 import type { TrialRun } from "@/lib/student/time-trial";
+import { withOverrides } from "@/lib/student/unlocks";
 
 /** What the founder does in the preview, kept in this browser only. Never sent anywhere. */
 export type PreviewHistory = {
@@ -10,10 +11,20 @@ export type PreviewHistory = {
   awards: PointAward[];
   trialRuns: TrialRun[];
   dailyDoneOn: string | null;
+  /** Tutor unlocks and student completions made in this browser, by assignment id. */
+  unlocks: Record<string, string>;
+  completions: Record<string, string>;
 };
 
 const KEY = "karman-preview:v1";
-const EMPTY: PreviewHistory = { responses: [], awards: [], trialRuns: [], dailyDoneOn: null };
+const EMPTY: PreviewHistory = {
+  responses: [],
+  awards: [],
+  trialRuns: [],
+  dailyDoneOn: null,
+  unlocks: {},
+  completions: {},
+};
 let cache: { raw: string | null; value: PreviewHistory } = { raw: null, value: EMPTY };
 const listeners = new Set<() => void>();
 
@@ -42,6 +53,8 @@ export function addToHistory(add: Partial<PreviewHistory>) {
     awards: [...now.awards, ...(add.awards ?? [])],
     trialRuns: [...now.trialRuns, ...(add.trialRuns ?? [])],
     dailyDoneOn: add.dailyDoneOn ?? now.dailyDoneOn,
+    unlocks: { ...now.unlocks, ...add.unlocks },
+    completions: { ...now.completions, ...add.completions },
   };
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
@@ -82,11 +95,30 @@ export function useMergedInput(base: StudentHomeInput): StudentHomeInput {
     awards: [...base.awards, ...h.awards],
     trialRuns: [...base.trialRuns, ...h.trialRuns],
     dailyDoneOn: h.dailyDoneOn ?? base.dailyDoneOn,
+    assignments: withOverrides(base.assignments, h.unlocks, h.completions),
   };
 }
 
-export function useNow(): number {
-  const get = useCallback(() => Math.floor(Date.now() / 60_000) * 60_000, []);
-  return useSyncExternalStore(noop, get, get);
+/** Tutor preview: take an unlock back (only one made in this browser). */
+export function removeUnlock(id: string) {
+  const now = read();
+  const { [id]: _gone, ...unlocks } = now.unlocks;
+  void _gone;
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ ...now, unlocks }));
+  } catch {
+    // storage refused
+  }
+  listeners.forEach((l) => l());
 }
-const noop = () => () => undefined;
+
+const tick = (l: () => void) => {
+  const t = setInterval(l, 1000);
+  return () => clearInterval(t);
+};
+const second = () => Math.floor(Date.now() / 1000) * 1000;
+
+/** The server's time during hydration, then the live clock (so an unlock shows at once). */
+export function useLiveNow(serverNowMs: number): number {
+  return useSyncExternalStore(tick, second, () => serverNowMs);
+}
