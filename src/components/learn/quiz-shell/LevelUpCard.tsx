@@ -7,9 +7,9 @@ import styles from "./rewards.module.css";
 import shell from "./quiz-shell.module.css";
 import { LevelUpConstellation } from "./drawings";
 import { BOUNCE, useShellMotion } from "./motion";
-import { bandName, bandRank } from "./Rewards";
+import { bandName, bandRank, bandRose } from "./Rewards";
 
-export { bandRank };
+export { bandRank, bandRose };
 
 /** Plays once when a completed skill set moves the skill up a band (spec: Level up). */
 export function LevelUpCard({
@@ -24,7 +24,7 @@ export function LevelUpCard({
   onDone(): void;
 }) {
   const { reduced } = useShellMotion();
-  const rose = bandRank(after) > bandRank(before);
+  const rose = bandRose(before, after);
   useEffect(() => {
     if (rose) playRewardSound("levelUp");
   }, [rose]);

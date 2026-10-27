@@ -132,3 +132,10 @@ const BAND_NAME: Record<ConfidenceBand, string> = {
   mastered: "Mastered",
 };
 export const bandName = (b: ConfidenceBand) => BAND_NAME[b];
+/** A level up needs a band before it: a skill's first completed set never celebrates. */
+export function bandRose(
+  before: ConfidenceBand | null | undefined,
+  after: ConfidenceBand | null | undefined
+): boolean {
+  return !!before && !!after && bandRank(after) > bandRank(before);
+}

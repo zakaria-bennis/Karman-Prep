@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { QuizShell, type QuizShellProps } from "./QuizShell";
-import { LevelUpCard, bandRank } from "./LevelUpCard";
+import { LevelUpCard, bandRank, bandRose } from "./LevelUpCard";
 import { modeFor } from "@/lib/quiz/mode";
 import type { StudentQuizReview } from "@/types/quiz";
 import { longSet } from "../../../../tests/quiz-shell/fixture/questions";
@@ -144,5 +144,12 @@ describe("level up", () => {
       />
     );
     expect(container.textContent).toBe("");
+    // A first completed set has no band before it: no fanfare, least of all for "Struggling".
+    rerender(
+      <LevelUpCard skill="Linear equations" before={null} after="struggling" onDone={() => undefined} />
+    );
+    expect(container.textContent).toBe("");
+    expect(bandRose(null, "mastered")).toBe(false);
+    expect(bandRose("developing", "proficient")).toBe(true);
   });
 });

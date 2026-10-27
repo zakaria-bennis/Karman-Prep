@@ -19,7 +19,7 @@ import {
 import QuizResults from "./QuizResults";
 import { VideoPromptBanner } from "./quiz/VideoPromptBanner";
 import { QuizShell } from "./quiz-shell/QuizShell";
-import { bandRank } from "./quiz-shell/LevelUpCard";
+import { bandRose } from "./quiz-shell/LevelUpCard";
 
 interface Props {
   node: MappedNode;
@@ -106,7 +106,7 @@ export default function QuizEngine({
   };
 
   const complete = state.phase === "complete" && state.score !== null && !!state.confidenceBand;
-  const rose = complete && bandRank(state.confidenceBand) > bandRank(state.bandBefore);
+  const rose = complete && bandRose(state.bandBefore, state.confidenceBand);
   const showShell = state.phase !== "complete" || (rose && !levelUpSeen);
   const loading =
     state.phase === "idle" || state.phase === "loading" || state.selectedQuestions.length === 0;
