@@ -36,14 +36,13 @@ export function TrialChart({
       aria-label={`Target steps from ${fmt(steps[0])} to ${fmt(last)}, goal ${fmt(goal)}`}
     >
       <line x1="0" x2="100" y1={y(goal)} y2={y(goal)} className={s.chartGoal} />
-      <motion.g
-        initial={reduce ? false : { scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ type: "spring", bounce: 0, duration: 1.1 }}
-        style={{ transformOrigin: "0 0", transformBox: "view-box" }}
-      >
-        <path d={d} className={s.chartStep} />
-      </motion.g>
+      <motion.path
+        d={d}
+        className={s.chartStep}
+        initial={reduce ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      />
     </svg>
   );
 }
