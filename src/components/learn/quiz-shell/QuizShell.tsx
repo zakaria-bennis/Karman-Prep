@@ -1,5 +1,7 @@
 "use client";
-import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import type { PenIndex } from "@/lib/quiz/ink/types";
+import type { RoutingState } from "@/lib/quiz/ink/routing";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import type { QuizMode } from "@/lib/quiz/mode";
 import type { TimingAccommodation } from "@/lib/quiz/timer";
@@ -20,6 +22,9 @@ import { FigureSlot } from "./FigureSlot";
 import { QuestionContent } from "./QuestionContent";
 import { useQuizLayout } from "./use-quiz-layout";
 import { useShortcuts } from "./use-shortcuts";
+import { PencilContext, type PencilContextValue, type PencilTool } from "./pencil-context";
+import { PencilStrip } from "./PencilStrip";
+import { PenIcon } from "./icons";
 
 export type QuizShellProps = {
   mode: QuizMode;
@@ -61,6 +66,19 @@ export function QuizShell(props: QuizShellProps) {
   const [state, dispatch] = useReducer(reduce, { workspaces: {} });
   const [saved, setSaved] = useState(props.saved ?? {});
   const [eliminatorOn, setEliminatorOn] = useState(false);
+  const [pencilOn, setPencilOn] = useState(false);
+  const [tool, setTool] = useState<PencilTool>("pen");
+  const [pen, setPen] = useState<PenIndex>(1);
+  const [drawing, setDrawing] = useState(false);
+  const [penSeen, setPenSeen] = useState(false);
+  const [pickOffer, setPickOffer] = useState<string | null>(null);
+  const routing = useRef<RoutingState>({
+    pencilOn: false,
+    penSeen: false,
+    activePenId: null,
+    screenReaderTouch: false,
+  });
+  routing.current = { ...routing.current, pencilOn };
   const lastIndex = useRef(index);
   const direction: 1 | -1 = index >= lastIndex.current ? 1 : -1;
   useEffect(() => {
@@ -85,6 +103,34 @@ export function QuizShell(props: QuizShellProps) {
     setSaved(({ [q.id]: _gone, ...rest }) => (on ? { ...rest, [q.id]: "bookmark" } : rest));
     props.onToggleBookmark?.(q.id, on);
   };
+  const inkOf = q ? state.workspaces[q.id] : undefined;
+  const pencilValue = useMemo<PencilContextValue>(
+    () => ({
+      pencilOn,
+      tool,
+      pen,
+      routing,
+      ink: inkOf?.ink ?? { strokes: [] },
+      apply: (op) => q && dispatch({ questionId: q.id, action: { type: "inkOp", op } }),
+      offerPick: setPickOffer,
+      allowPick: !locked && q?.answer_format === "multiple_choice",
+      setDrawing: (d) => {
+        setDrawing(d);
+        setPenSeen(routing.current.penSeen);
+      },
+    }),
+    [pencilOn, tool, pen, inkOf?.ink, q, locked]
+  );
+  useEffect(() => {
+    if (!pickOffer) return;
+    const t = setTimeout(() => setPickOffer(null), 4000);
+    return () => clearTimeout(t);
+  }, [pickOffer, inkOf?.ink]);
+  useEffect(() => setPickOffer(null), [index]);
+  const togglePencil = () => {
+    setPencilOn((v) => !v);
+    setTool("pen");
+  };
   const canNext = !!q && index + 1 < total && (mode.grading !== "instant" || !!review);
   useShortcuts({
     pick: (letter) => {
@@ -95,6 +141,13 @@ export function QuizShell(props: QuizShellProps) {
     },
     mark: () => mode.markForReview && act({ type: "toggleReview", allowed: true }),
     bookmark: toggleBookmark,
+    pencil: togglePencil,
+    eraser: () => {
+      setPencilOn(true);
+      setTool("eraser");
+    },
+    undo: () => act({ type: "undo" }),
+    redo: () => act({ type: "redo" }),
     back: () => index > 0 && props.onNavigate(index - 1),
     next: () => canNext && props.onNavigate(index + 1),
   });
@@ -105,6 +158,20 @@ export function QuizShell(props: QuizShellProps) {
   const last = index + 1 >= total;
   const submitted = !!review;
 
+  const strip = (
+    <PencilStrip
+      tool={tool}
+      pen={pen}
+      canUndo={!!ws?.undo.length}
+      canRedo={!!ws?.redo.length}
+      canClear={!!ws?.ink.strokes.length}
+      onTool={setTool}
+      onPen={setPen}
+      onUndo={() => act({ type: "undo" })}
+      onRedo={() => act({ type: "redo" })}
+      onClear={() => ws && act({ type: "inkOp", op: { kind: "clear", removed: ws.ink.strokes } })}
+    />
+  );
   const primary =
     mode.grading === "instant" && !submitted ? (
       <button
@@ -126,54 +193,84 @@ export function QuizShell(props: QuizShellProps) {
     );
 
   return (
-    <div data-quiz-shell data-layout={layout} className={`${styles.shell} ${styles[layout]}`}>
-      <TopBar section={props.section} topic={props.topic ?? q.topic_cluster} />
-      <QuestionArea
-        layout={layout}
-        questionKey={q.id}
-        direction={direction}
-        passage={
-          hasPassage(q) ? (
-            <>
-              {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
-              <PassageBlock q={q} />
-              {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
-            </>
-          ) : null
-        }
-        question={
-          <QuestionContent
-            q={q}
-            number={index + 1}
-            mode={mode}
-            ws={ws}
-            review={review}
-            bookmarked={!!saved[q.id]}
-            flagged={saved[q.id] === "tutor_flag"}
-            eliminatorOn={eliminatorOn}
-            figureHere={!hasPassage(q)}
-            hasCalculator={!!props.hasCalculator}
-            onAnswer={answerWith}
-            onCross={(letter) => act({ type: "toggleCross", letter })}
-            onToggleReview={() => act({ type: "toggleReview", allowed: mode.markForReview })}
-            onToggleBookmark={toggleBookmark}
-            onFlag={(note) => {
-              setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
-              props.onFlagForTutor?.(q.id, note);
-            }}
-            onToggleEliminator={() => setEliminatorOn((v) => !v)}
+    <PencilContext.Provider value={pencilValue}>
+      <div
+        data-quiz-shell
+        data-layout={layout}
+        data-drawing={drawing || undefined}
+        data-pencil={pencilOn || undefined}
+        data-finger-draw={(pencilOn && !penSeen) || undefined}
+        className={`${styles.shell} ${styles[layout]}`}
+      >
+        <div className={styles.barGroup}>
+          <TopBar
+            section={props.section}
+            topic={props.topic ?? q.topic_cluster}
+            tools={
+              <button
+                type="button"
+                className={styles.tool}
+                aria-label="Pencil"
+                aria-pressed={pencilOn}
+                onClick={togglePencil}
+              >
+                <PenIcon state={pencilOn ? "on" : "off"} tip={`var(--quiz-pen-${pen})`} />
+              </button>
+            }
           />
-        }
-      />
-      <BottomBar
-        index={index}
-        total={total}
-        canBack={index > 0}
-        onBack={() => props.onNavigate(index - 1)}
-        onOpenNavigator={() => undefined}
-        primary={primary}
-      />
-    </div>
+          {pencilOn && layout !== "compact" && strip}
+        </div>
+        <QuestionArea
+          layout={layout}
+          questionKey={q.id}
+          direction={direction}
+          passage={
+            hasPassage(q) ? (
+              <>
+                {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                <PassageBlock q={q} />
+                {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+              </>
+            ) : null
+          }
+          question={
+            <QuestionContent
+              q={q}
+              number={index + 1}
+              mode={mode}
+              ws={ws}
+              review={review}
+              bookmarked={!!saved[q.id]}
+              flagged={saved[q.id] === "tutor_flag"}
+              eliminatorOn={eliminatorOn}
+              figureHere={!hasPassage(q)}
+              hasCalculator={!!props.hasCalculator}
+              onAnswer={answerWith}
+              onCross={(letter) => act({ type: "toggleCross", letter })}
+              onToggleReview={() => act({ type: "toggleReview", allowed: mode.markForReview })}
+              onToggleBookmark={toggleBookmark}
+              onFlag={(note) => {
+                setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
+                props.onFlagForTutor?.(q.id, note);
+              }}
+              onToggleEliminator={() => setEliminatorOn((v) => !v)}
+              pickOffer={pickOffer}
+            />
+          }
+        />
+        <div className={styles.barGroup}>
+          {pencilOn && layout === "compact" && strip}
+          <BottomBar
+            index={index}
+            total={total}
+            canBack={index > 0}
+            onBack={() => props.onNavigate(index - 1)}
+            onOpenNavigator={() => undefined}
+            primary={primary}
+          />
+        </div>
+      </div>
+    </PencilContext.Provider>
   );
 }
 

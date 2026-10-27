@@ -41,11 +41,15 @@ export function simplifyStroke(points: InkPoint[], tolerance = 0.5): InkPoint[] 
     const B = points[b];
     const dx = B.x - A.x;
     const dy = B.y - A.y;
-    const len = Math.hypot(dx, dy) || 1;
+    const len = Math.hypot(dx, dy);
     let worst = -1;
     let index = -1;
     for (let i = a + 1; i < b; i++) {
-      const d = Math.abs(dy * points[i].x - dx * points[i].y + B.x * A.y - B.y * A.x) / len;
+      // When the ends meet (a closed loop), measure from the shared end point instead of a line.
+      const d =
+        len < 1e-9
+          ? Math.hypot(points[i].x - A.x, points[i].y - A.y)
+          : Math.abs(dy * points[i].x - dx * points[i].y + B.x * A.y - B.y * A.x) / len;
       if (d > worst) {
         worst = d;
         index = i;

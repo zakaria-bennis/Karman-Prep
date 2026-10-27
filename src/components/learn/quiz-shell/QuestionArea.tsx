@@ -1,9 +1,10 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useIsPresent } from "framer-motion";
 import { useRef, useState, type ReactNode } from "react";
 import styles from "./quiz-shell.module.css";
 import { Divider } from "./Divider";
 import { Sky } from "./Sky";
+import { InkLayer } from "./InkLayer";
 import { DUR, useShellMotion } from "./motion";
 import type { QuizLayout } from "./use-quiz-layout";
 
@@ -31,6 +32,7 @@ export function QuestionArea({
   const passagePane = passage && (
     <div data-quiz-pane="passage" className={styles.pane}>
       <div className={styles.passageText}>{passage}</div>
+      <InkLayer pane="passage" />
     </div>
   );
   const questionPane = (
@@ -38,6 +40,7 @@ export function QuestionArea({
       <div data-quiz-column className={styles.column}>
         {question}
       </div>
+      <InkLayer pane="question" />
     </div>
   );
 
@@ -65,30 +68,48 @@ export function QuestionArea({
           exit="exit"
           transition={{ duration: reduced ? DUR.fast : DUR.base, ease: [0.2, 0.8, 0.2, 1] }}
         >
-          {split2 ? (
-            <>
+          <Presence>
+            {split2 ? (
+              <>
+                <div data-quiz-scroll className={styles.scroll}>
+                  {passagePane}
+                </div>
+                <Divider
+                  orientation={layout === "wide" ? "vertical" : "horizontal"}
+                  fraction={split}
+                  minPx={MIN_PANE[layout]}
+                  frame={frame}
+                  onChange={setSplit}
+                />
+                <div data-quiz-scroll className={styles.scroll}>
+                  {questionPane}
+                </div>
+              </>
+            ) : (
               <div data-quiz-scroll className={styles.scroll}>
                 {passagePane}
-              </div>
-              <Divider
-                orientation={layout === "wide" ? "vertical" : "horizontal"}
-                fraction={split}
-                minPx={MIN_PANE[layout]}
-                frame={frame}
-                onChange={setSplit}
-              />
-              <div data-quiz-scroll className={styles.scroll}>
                 {questionPane}
               </div>
-            </>
-          ) : (
-            <div data-quiz-scroll className={styles.scroll}>
-              {passagePane}
-              {questionPane}
-            </div>
-          )}
+            )}
+          </Presence>
         </motion.div>
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** The question that is leaving is inert and hidden from assistive technology while it animates out. */
+function Presence({ children }: { children: ReactNode }) {
+  const present = useIsPresent();
+  return (
+    <div
+      data-quiz-frame
+      data-exiting={present ? undefined : "true"}
+      inert={!present}
+      aria-hidden={present ? undefined : true}
+      style={{ display: "contents" }}
+    >
+      {children}
     </div>
   );
 }

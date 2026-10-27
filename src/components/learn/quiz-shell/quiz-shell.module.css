@@ -293,3 +293,19 @@
     animation: none;
   }
 }
+
+.barGroup {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+}
+/* With the pencil on, dragging draws instead of selecting text. */
+.shell[data-pencil="true"] [data-quiz-pane] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* Finger-draw mode: one finger draws, so the engine pans with two fingers itself. */
+.shell[data-finger-draw="true"] [data-quiz-pane] {
+  touch-action: none;
+}

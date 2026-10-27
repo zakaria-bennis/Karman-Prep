@@ -10,8 +10,10 @@ import type { StudentQuizQuestion } from "@/types/quiz";
 import MathText from "../MathText";
 import QuestionTable from "../QuestionTable";
 import styles from "./pane.module.css";
+import ink from "./ink.module.css";
 import { CrossIcon, TickIcon } from "./icons";
 import { BOUNCE, useShellMotion, useStateTransition } from "./motion";
+import { usePencil } from "./pencil-context";
 
 export type ChoiceState = {
   answer: string | null;
@@ -35,15 +37,20 @@ export function Choices({
   eliminatorOn,
   onPick,
   onCross,
+  pickOffer = null,
 }: {
   q: StudentQuizQuestion;
   state: ChoiceState;
   eliminatorOn: boolean;
   onPick(letter: string): void;
   onCross(letter: string): void;
+  /** A letter the student circled with the pencil: offer it, never pick it (spec: "Pick C?"). */
+  pickOffer?: string | null;
 }) {
   const hasCalculator = useCalculator() !== null;
   const { reduced } = useShellMotion();
+  // No press squash while the pencil is writing across the choices.
+  const pencilOn = !!usePencil()?.pencilOn;
   const strike = useStateTransition();
   const choices = [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1));
   const tables = choices.length > 0 && choices.every((c) => c.choice_table_data);
@@ -148,7 +155,7 @@ export function Choices({
                 isCorrect ? styles.correct : isWrong ? styles.wrong : ""
               }`}
               onClick={pick}
-              whileTap={disabled || reduced ? undefined : { scale: 0.985 }}
+              whileTap={disabled || reduced || pencilOn ? undefined : { scale: 0.985 }}
               animate={isWrong && !reduced ? { x: [0, -5, 5, -3, 0] } : { x: 0 }}
               transition={BOUNCE}
             >
@@ -179,6 +186,21 @@ export function Choices({
                 transition={strike}
               />
             </motion.button>
+            <AnimatePresence>
+              {pickOffer === letter && !state.locked && !crossed && (
+                <motion.button
+                  type="button"
+                  className={ink.pick}
+                  initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.6, x: -8 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={reduced ? { duration: 0.15 } : BOUNCE}
+                  onClick={() => onPick(letter)}
+                >
+                  Pick {letter}?
+                </motion.button>
+              )}
+            </AnimatePresence>
             {(crossButton || hasCalculator) && (
               <div
                 className={styles.tools}
