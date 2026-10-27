@@ -462,11 +462,14 @@ enrollment or 1:1 tutor assignment, and passed to the shell. The plan names the
 exact source tables.
 
 - **Points.**
-  - Table `student_point_awards`: `student_id`, `response_id` (unique), `points`,
-    `created_at`.
+  - Table `student_point_awards`: `student_id` (Clerk id), `award_key` (unique
+    text: `lesson:<question_responses.id>`, `catalog:<session id>:<question id>` or
+    `daily:<date>:<subject>`), `points`, `created_at`. One key format covers the
+    three instant-grading hosts, whose answers live in different tables.
   - The grading server action inserts the award inside the same request that
     grades, so retries cannot double-award.
-  - The running total is the sum. A view or a cached column is the plan's choice.
+  - The running total is the sum. It is computed by the view
+    `student_point_totals`.
   - RLS lets students read their own rows. Tutors and admins can read their
     students' rows. Only the server writes.
 - **Level-up data.** `actionCompleteQuiz` adds `bandBefore` to its result. Its
