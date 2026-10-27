@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { GripHorizontal, X } from "lucide-react";
-import { eraseInk, type InkPoint, type InkStroke } from "@/lib/quiz/ink";
+import { eraseInk, type InkPoint, type InkStroke } from "@/lib/quiz/ink/erase";
 import styles from "./quiz/scratchpad.module.css";
 
 interface Props {
