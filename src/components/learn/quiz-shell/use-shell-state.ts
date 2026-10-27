@@ -65,6 +65,10 @@ export function useShellState({
   const highlightSerial = useRef(0);
 
   useEffect(() => dispatch({ load: loadWorkspaces(attemptKey) }), [attemptKey]);
+  // Saved markers can arrive after the first render (loaded by the host).
+  useEffect(() => {
+    if (initialSaved) setSaved((now) => ({ ...initialSaved, ...now }));
+  }, [initialSaved]);
   useEffect(() => saveWorkspaces(attemptKey, state.workspaces), [attemptKey, state.workspaces]);
   useEffect(() => setTextSizeState(readSize()), []);
   useEffect(() => setPickOffer(null), [q?.id]);

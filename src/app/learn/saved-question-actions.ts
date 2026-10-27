@@ -3,7 +3,13 @@
 import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { flagQuestion } from "@/lib/supabase/queries/quiz/flags";
-import { getSavedQuestion, setSavedQuestion } from "@/lib/supabase/queries/quiz/saved";
+import {
+  getSavedFor,
+  getSavedQuestion,
+  setSavedQuestion,
+  type SavedSource,
+} from "@/lib/supabase/queries/quiz/saved";
+import { hasTutor } from "@/lib/supabase/queries/quiz/tutor-link";
 
 const questionId = z.string().uuid();
 const nodeId = z.string().min(1).max(64).nullable();
@@ -59,4 +65,15 @@ export async function actionReportProblem(input: {
     node_id: parsed.nodeId ?? "unknown",
     flag_note: `Problem report: ${parsed.note}`,
   });
+}
+
+/** What the quiz shell needs about the signed-in student: tutor link and saved markers. */
+export async function actionQuizStudentState(input: {
+  questionIds: string[];
+}): Promise<{ hasTutor: boolean; saved: Record<string, SavedSource> }> {
+  const { questionIds } = z.object({ questionIds: z.array(questionId).max(200) }).parse(input);
+  const { userId } = await safeAuth();
+  if (!userId) return { hasTutor: false, saved: {} };
+  const [tutor, saved] = await Promise.all([hasTutor(userId), getSavedFor(userId, questionIds)]);
+  return { hasTutor: tutor, saved };
 }

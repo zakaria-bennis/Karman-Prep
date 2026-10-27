@@ -9,3 +9,6 @@ export async function actionFlagForTutor({ questionId }: { questionId: string })
   saved.add(questionId);
 }
 export async function actionReportProblem() {}
+export async function actionQuizStudentState() {
+  return { hasTutor: false, saved: {} };
+}

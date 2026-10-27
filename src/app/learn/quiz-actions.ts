@@ -15,7 +15,6 @@ import {
   fetchQuizAttemptForStudent,
   completeQuizAttemptAtomic,
   recordQuestionResponse,
-  flagQuestion,
   updateWatchPercentage,
   fetchNodeStatusBundle,
 } from "@/lib/supabase/queries/quiz";
@@ -33,7 +32,6 @@ import {
   quizAttemptIdSchema,
   recordQuizResponseSchema,
   completeQuizSchema,
-  flagQuizQuestionSchema,
   watchPercentageSchema,
 } from "./quiz-action-schemas";
 
@@ -181,22 +179,6 @@ export async function actionCompleteQuiz(input: {
 
   revalidatePath(`/learn/${input.subject}`);
   return { ...result, bandBefore };
-}
-
-export async function actionFlagQuestion(input: {
-  question_id: string;
-  node_id: string;
-  flag_note: string | null;
-}) {
-  const { userId } = await safeAuth();
-  if (!userId) throw new Error("Not authenticated");
-  input = flagQuizQuestionSchema.parse(input);
-  await flagQuestion({
-    question_id: input.question_id,
-    student_id: userId,
-    node_id: input.node_id,
-    flag_note: input.flag_note,
-  });
 }
 
 export async function actionUpdateWatchPercentage(nodeId: string, percentage: number) {

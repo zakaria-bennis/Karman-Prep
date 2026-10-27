@@ -11,7 +11,12 @@ vi.mock("@/contexts/QuizContext", () => ({
   useQuiz: () => quiz,
   useOptionalQuizState: () => quiz.state,
 }));
-vi.mock("./Scratchpad", () => ({ default: () => null }));
+vi.mock("@/app/learn/saved-question-actions", () => ({
+  actionQuizStudentState: vi.fn(async () => ({ hasTutor: false, saved: {} })),
+  actionToggleBookmark: vi.fn(),
+  actionFlagForTutor: vi.fn(),
+  actionReportProblem: vi.fn(),
+}));
 vi.mock("./QuizResults", () => ({ default: () => <div>Results</div> }));
 vi.mock("./quiz/VideoPromptBanner", () => ({ VideoPromptBanner: () => null }));
 
@@ -64,11 +69,11 @@ beforeEach(() => {
     records: [],
     adaptivePath: [],
     consecutiveWrong: 0,
-    isScratchpadOpen: false,
     score: null,
     correctCount: 0,
     targetLength: 1,
     confidenceBand: null,
+    bandBefore: null,
     newStatus: null,
   };
   quiz = {
@@ -79,7 +84,6 @@ beforeEach(() => {
     nextQuestion: vi.fn(async () => {}),
     dismissVideoPrompt: vi.fn(),
     flagCurrent: vi.fn(async () => {}),
-    toggleScratchpad: vi.fn(),
     reset: vi.fn(),
     retakeQuiz: vi.fn(async () => {}),
   };
@@ -160,7 +164,13 @@ describe("quiz activity and math answer selection", () => {
 
   it("still extends the results inactivity timer after pointer activity", () => {
     vi.useFakeTimers();
-    quiz.state = { ...quiz.state, phase: "complete", score: 100, confidenceBand: "mastered" };
+    quiz.state = {
+      ...quiz.state,
+      phase: "complete",
+      score: 100,
+      confidenceBand: "mastered",
+      bandBefore: "mastered",
+    };
     const onClose = vi.fn();
     mount(onClose);
     act(() => vi.advanceTimersByTime(90_000));
