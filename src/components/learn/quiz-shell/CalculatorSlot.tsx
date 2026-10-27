@@ -54,17 +54,20 @@ export function CalculatorFrame({
   children: ReactNode;
 }) {
   const questionKey = makeQuestionKey(attemptKey, questionId);
+  // A question that is sliding out gives up its calculator at once: one calculator on screen.
+  const present = useIsPresent();
+  const on = enabled && present;
   return (
     <CalculatorScope
       key={questionKey}
       questionKey={questionKey}
-      enabled={enabled}
-      open={enabled && open}
+      enabled={on}
+      open={on && open}
       onOpenChange={onOpenChange}
       dockTop={dockTop}
     >
       {children}
-      {enabled && <CalculatorButton />}
+      {on && <CalculatorButton />}
     </CalculatorScope>
   );
 }
