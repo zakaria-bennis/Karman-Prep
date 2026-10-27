@@ -535,8 +535,8 @@ back to block anchoring for raster images.
 
 There is one spring family and one duration scale for everything. No motion runs
 on its own while the student is reading or drawing, nothing loops, and every
-motion ends within 500 ms, except the small-win celebrations, which end within
-900 ms. With reduced motion on, or the "Question animations"
+motion ends within 500 ms, except the small-win rewards (bottom bar within
+900 ms, level-up card within 1.6 s). With reduced motion on, or the "Question animations"
 setting off, each motion becomes a fade of at most 150 ms, and the sky stands
 still.
 
