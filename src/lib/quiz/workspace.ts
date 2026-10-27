@@ -1,8 +1,14 @@
+import { applyInkOp, invertInkOp } from "./ink/document";
 import type { InkDocument, InkOp } from "./ink/types";
 
 export type HighlightColor = 1 | 2 | 3;
 export type AnnotationRange = { blockId: string; start: number; end: number };
-export type Highlight = { id: number; range: AnnotationRange; color: HighlightColor; note?: string };
+export type Highlight = {
+  id: number;
+  range: AnnotationRange;
+  color: HighlightColor;
+  note?: string;
+};
 
 /** Session-only working state for one question (spec: Per-question workspace state). */
 export type QuestionWorkspace = {
@@ -63,17 +69,39 @@ function reduceOne(ws: QuestionWorkspace, action: WorkspaceAction): QuestionWork
     case "updateNote":
       return {
         ...ws,
-        highlights: ws.highlights.map((h) => (h.id === action.id ? { ...h, note: action.note } : h)),
+        highlights: ws.highlights.map((h) =>
+          h.id === action.id ? { ...h, note: action.note } : h
+        ),
       };
     case "removeHighlight":
       return { ...ws, highlights: ws.highlights.filter((h) => h.id !== action.id) };
   }
 }
 
-/** Ink operations are wired in by the ink document module (Task 3). */
-let reduceInk = (ws: QuestionWorkspace, _action: WorkspaceAction): QuestionWorkspace => ws;
-export function setInkReducer(fn: typeof reduceInk) {
-  reduceInk = fn;
+function reduceInk(ws: QuestionWorkspace, action: WorkspaceAction): QuestionWorkspace {
+  if (action.type === "inkOp")
+    return { ...ws, ink: applyInkOp(ws.ink, action.op), undo: [...ws.undo, action.op], redo: [] };
+  if (action.type === "undo") {
+    const op = ws.undo.at(-1);
+    if (!op) return ws;
+    return {
+      ...ws,
+      ink: applyInkOp(ws.ink, invertInkOp(op)),
+      undo: ws.undo.slice(0, -1),
+      redo: [...ws.redo, op],
+    };
+  }
+  if (action.type === "redo") {
+    const op = ws.redo.at(-1);
+    if (!op) return ws;
+    return {
+      ...ws,
+      ink: applyInkOp(ws.ink, op),
+      undo: [...ws.undo, op],
+      redo: ws.redo.slice(0, -1),
+    };
+  }
+  return ws;
 }
 
 export function workspaceReducer(

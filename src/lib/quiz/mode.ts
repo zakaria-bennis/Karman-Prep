@@ -1,8 +1,5 @@
 /** How a quiz host wants the shared question screen to behave (spec: Modes). */
-export type QuizClock =
-  | { kind: "up" }
-  | { kind: "down"; baseSeconds: number }
-  | { kind: "none" };
+export type QuizClock = { kind: "up" } | { kind: "down"; baseSeconds: number } | { kind: "none" };
 
 export type QuizMode = {
   /** "locked" is read-only review or preview. */
@@ -15,7 +12,14 @@ export type QuizMode = {
   canBookmark: boolean;
 };
 
-export type HostKind = "skill" | "catalog" | "daily" | "diagnostic" | "timed" | "review" | "preview";
+export type HostKind =
+  | "skill"
+  | "catalog"
+  | "daily"
+  | "diagnostic"
+  | "timed"
+  | "review"
+  | "preview";
 
 export function modeFor(
   host: HostKind,

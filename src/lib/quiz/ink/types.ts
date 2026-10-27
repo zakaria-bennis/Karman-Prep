@@ -14,4 +14,6 @@ export type InkDocument = { strokes: InkStroke[] };
 export type InkOp =
   | { kind: "add"; stroke: InkStroke }
   | { kind: "erase"; removed: InkStroke[] }
-  | { kind: "clear"; removed: InkStroke[] };
+  | { kind: "clear"; removed: InkStroke[] }
+  /** Puts strokes back; the inverse of erase and clear. */
+  | { kind: "restore"; strokes: InkStroke[] };

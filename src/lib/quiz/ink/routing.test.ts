@@ -1,7 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { nextRoutingState, route, TapClassifier, type PointerSample, type RoutingState } from "./routing";
+import {
+  nextRoutingState,
+  route,
+  TapClassifier,
+  type PointerSample,
+  type RoutingState,
+} from "./routing";
 
-const base: RoutingState = { pencilOn: false, penSeen: false, activePenId: null, screenReaderTouch: false };
+const base: RoutingState = {
+  pencilOn: false,
+  penSeen: false,
+  activePenId: null,
+  screenReaderTouch: false,
+};
 const sample = (over: Partial<PointerSample>): PointerSample => ({
   kind: "touch",
   id: 1,
