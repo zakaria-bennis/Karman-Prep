@@ -1,0 +1,831 @@
+/* Student app. Every colour is an account-theme variable from src/lib/themes/palettes.ts. */
+.app {
+  --ink: var(--text-primary);
+  --ink-2: var(--text-muted);
+  --line: color-mix(in srgb, var(--border) 55%, transparent);
+  --gold: var(--accent-gold);
+  --spring: linear(
+    0,
+    0.009,
+    0.035 2.1%,
+    0.141,
+    0.281 6.7%,
+    0.723 12.9%,
+    0.938 16.7%,
+    1.017,
+    1.077,
+    1.121,
+    1.149 24.3%,
+    1.159,
+    1.163 27%,
+    1.154 29.1%,
+    1.129 32.8%,
+    1.051 39.6%,
+    1.017 43.1%,
+    0.991,
+    0.977 51%,
+    0.975 57.1%,
+    0.997 69.8%,
+    1.003 76.9%,
+    1
+  );
+  position: relative;
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--ink);
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  overflow-x: clip;
+}
+
+/* Ground: the constellation sky (rule 49). */
+.ground {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.groundDrift {
+  animation: drift 90s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+.groundStar {
+  fill: var(--ink);
+}
+.groundLine {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 0.06;
+  opacity: 0.16;
+}
+@keyframes drift {
+  to {
+    transform: translate(-1.5px, 0.8px) rotate(0.6deg);
+  }
+}
+
+/* Navigation: slim rail on wide screens, glass tab bar on phones. */
+.rail {
+  display: none;
+}
+.wordmark {
+  font-family: var(--font-plex-serif), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+.railItem,
+.tab {
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+.railItem {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+}
+.railItem:hover,
+.tab:hover {
+  color: var(--ink);
+}
+.railItem[aria-current="page"] {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  border-color: color-mix(in srgb, var(--ink) 12%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.railBottom {
+  margin-top: auto;
+}
+.tabBar {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-radius: 14px;
+  padding: 6px 4px;
+}
+.tab {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  font-size: 0.68rem;
+  font-weight: 500;
+  border-radius: 10px;
+  min-height: 48px;
+}
+.tab[aria-current="page"] {
+  color: var(--gold);
+}
+.themeFab {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 30;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+}
+.main {
+  position: relative;
+  z-index: 1;
+  padding: 68px 16px calc(110px + env(safe-area-inset-bottom));
+  max-width: 1240px;
+  margin: 0 auto;
+}
+@media (min-width: 700px) {
+  .rail {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 22px 0 18px;
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    border-right: 1px solid var(--line);
+  }
+  .tabBar,
+  .app .themeFab {
+    display: none;
+  }
+  .main {
+    padding: 36px 32px 64px 104px;
+  }
+}
+
+/* Materials: glass for controls (rule 50), solid heavier panels underneath. */
+.glass {
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  backdrop-filter: blur(18px) saturate(1.7);
+  -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 20%, transparent),
+    0 10px 26px -16px rgb(0 0 0 / 0.55);
+}
+.panel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+}
+.glassButton,
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 120ms ease-out,
+    background-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.glassButton {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  backdrop-filter: blur(14px) saturate(1.8);
+  -webkit-backdrop-filter: blur(14px) saturate(1.8);
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 26%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, black 18%, transparent),
+    0 8px 18px -12px rgb(0 0 0 / 0.6);
+}
+.glassButton:hover {
+  background: color-mix(in srgb, var(--ink) 11%, transparent);
+}
+.primary {
+  color: var(--background);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--gold) 88%, white) 0%,
+    var(--gold) 55%
+  );
+  border: 1px solid color-mix(in srgb, var(--gold) 70%, black);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 55%, transparent),
+    0 10px 22px -12px color-mix(in srgb, var(--gold) 70%, black);
+}
+.glassButton:active,
+.primary:active {
+  transform: scale(0.97);
+  transition-duration: 60ms;
+}
+.glassButton:focus-visible,
+.primary:focus-visible,
+.railItem:focus-visible,
+.tab:focus-visible,
+.link:focus-visible,
+.star:focus-visible,
+.row:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.link {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--ink) 35%, transparent);
+  text-underline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Type. Plex Sans 600 for headings, tight tracking as it grows. */
+.h1 {
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+  margin: 0;
+  text-wrap: balance;
+}
+.h2 {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+.muted {
+  color: var(--ink-2);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.fact {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.fact strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Home layout: a main column and a narrower side column, not a tile grid. */
+.home {
+  display: grid;
+  gap: 18px;
+}
+.col {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  min-width: 0;
+}
+@media (min-width: 1100px) {
+  .home {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+  }
+  .col {
+    gap: 24px;
+  }
+}
+.hero {
+  display: grid;
+  gap: 18px;
+  padding: 8px 0 12px;
+}
+.heroFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 20px;
+}
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* Skill sky. */
+.sky {
+  position: relative;
+  height: 400px;
+  margin: 0 -8px;
+}
+.skyLines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.skyLine {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: 0.22;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.domainLabel {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  width: 22%;
+  text-align: center;
+  line-height: 1.25;
+  pointer-events: none;
+}
+.star {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 220ms var(--spring);
+}
+.star:hover {
+  transform: translate(-50%, -50%) scale(1.18);
+}
+.star[data-band="mastered"] svg {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 70%, transparent));
+}
+.skyMath .star {
+  color: var(--subject-math);
+}
+.skyReading .star {
+  color: var(--subject-rw);
+}
+.skyRow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+}
+.skyMath {
+  top: 0;
+}
+.skyReading {
+  top: 50%;
+}
+.tip {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, calc(-100% - 22px));
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  margin-top: 6px;
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Skill list (phones, and the Skills page). */
+.domain + .domain {
+  margin-top: 18px;
+}
+.domainName {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin: 0 0 4px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rowLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rowMeta {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.mathRow {
+  color: var(--subject-math);
+}
+.readingRow {
+  color: var(--subject-rw);
+}
+.onlyPhone {
+  display: block;
+}
+.onlyWide {
+  display: none;
+}
+@media (min-width: 700px) {
+  .onlyPhone {
+    display: none;
+  }
+  .onlyWide {
+    display: block;
+  }
+}
+
+/* Sheets. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 0.45);
+}
+.sheet {
+  position: fixed;
+  z-index: 41;
+  left: 8px;
+  right: 8px;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  max-height: 82dvh;
+  overflow: auto;
+  border-radius: 14px 14px 10px 10px;
+  touch-action: none;
+}
+@media (min-width: 700px) {
+  .sheet {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    width: 400px;
+    border-radius: 12px;
+  }
+}
+.grabber {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  margin: -8px auto 12px;
+  background: color-mix(in srgb, var(--ink) 28%, transparent);
+}
+@media (min-width: 700px) {
+  .grabber {
+    display: none;
+  }
+}
+.sheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0 20px;
+}
+.stat dt {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+.stat dd {
+  margin: 2px 0 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.meter {
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+.meter span {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  transform-origin: left;
+}
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.swatch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.swatch[aria-pressed="true"] {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.swatchChip {
+  display: flex;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid;
+  border-radius: 6px;
+}
+.swatchChip span {
+  width: 7px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+/* Time Trial panel on home. */
+.trialRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.trialRow:last-of-type {
+  border-bottom: 0;
+}
+.trialTarget {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.chart {
+  width: 100%;
+  height: 56px;
+  overflow: visible;
+}
+.chartStep {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.chartGoal {
+  stroke: var(--ink);
+  stroke-opacity: 0.5;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+.chartDot {
+  fill: var(--gold);
+}
+
+/* Lists in the side column. */
+.list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.item:last-child {
+  border-bottom: 0;
+}
+.itemTitle {
+  font-weight: 500;
+}
+.itemWhen {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  margin-top: 2px;
+}
+.pointsTotal {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.pointBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  font-size: 0.86rem;
+  padding: 7px 0;
+}
+.pointBar .meter {
+  grid-column: 1 / -1;
+  height: 4px;
+}
+
+/* Feature pages (Skills, Games, Tests, Time Trial setup). */
+.page {
+  display: grid;
+  gap: 20px;
+  max-width: 860px;
+}
+.choice {
+  display: grid;
+  gap: 10px;
+}
+.choiceGrid {
+  display: grid;
+  gap: 14px;
+}
+@media (min-width: 700px) {
+  .choiceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.skeleton {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .groundDrift,
+  .skeleton {
+    animation: none;
+  }
+  .star,
+  .glassButton,
+  .primary {
+    transition: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glassButton {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--surface-raised);
+  }
+}
+
+/* Time Trial zone: the trial's own theme in every account theme. */
+.trialZone {
+  --background: #10130f;
+  --surface: #191d17;
+  --ink: #f3efe2;
+  --ink-2: #bdb8a6;
+  --line: rgb(95 102 86 / 0.6);
+  --gold: #eba21f;
+  --accent-gold: #eba21f;
+  --text-primary: #f3efe2;
+  position: relative;
+  padding: 26px 22px 28px;
+  border-radius: 10px;
+  color: var(--ink);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 46px, rgb(243 239 226 / 0.04) 46px 47px), #10130f;
+  border: 1px solid #2c3228;
+  color-scheme: dark;
+}
+.trialBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #10130f;
+  background: #eba21f;
+}
+.trialChoice {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  background: rgb(243 239 226 / 0.05);
+  border: 1px solid rgb(243 239 226 / 0.14);
+  box-shadow: inset 0 1px 0 rgb(243 239 226 / 0.16);
+  transition: border-color 160ms ease;
+}
+.trialChoice[aria-checked="true"] {
+  border-color: #eba21f;
+  box-shadow:
+    inset 0 0 0 1px #eba21f,
+    inset 0 1px 0 rgb(243 239 226 / 0.2);
+}
+.trialChoice:focus-visible {
+  outline: 2px solid #eba21f;
+  outline-offset: 2px;
+}
+
+.layer {
+  position: relative;
+  z-index: 40;
+}
+
+/* Phone home: one row per domain, its skills as a strip of star phases. */
+.strip {
+  display: grid;
+  gap: 6px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.strip:last-child {
+  border-bottom: 0;
+}
+.stripLabel {
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+.stripStars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.strip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.domain {
+  scroll-margin-top: 24px;
+}

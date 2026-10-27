@@ -15,9 +15,14 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   // Shells and public navigation provide an in-flow control, clear of content. /calculator has
   // none: its bar stays quiet and the calculator keeps the classic skin in either theme.
   const portalHasThemeControl =
-    ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn"].some(
-      (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
-    ) ||
+    [
+      "/dashboard/student",
+      "/dashboard/parent",
+      "/tutor",
+      "/admin",
+      "/learn",
+      "/student-preview",
+    ].some((prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")) ||
     [
       "/",
       "/free-diagnostic",
