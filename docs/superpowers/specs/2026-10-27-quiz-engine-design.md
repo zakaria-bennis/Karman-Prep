@@ -48,6 +48,12 @@ experience for all users of iPad, iPhone, laptop, and desktop."
 - **No default assets.** Every icon and control is drawn by Karman and has motion
   with tension. The founder approved the full motion list in the motion section,
   including the "Pick C?" chip and the figure draw-in.
+- **Small wins (added 2026-10-27, after the first review).** In instant-grading
+  modes only, a correct answer gets a short celebration that makes the student
+  feel they did well, without overdoing it. Streaks and hard questions get a
+  bigger one. A short sound plays by default, with a mute switch in More. There
+  is no celebration in timed sections, the diagnostic, full tests or review. See
+  "Small wins".
 - **Extra time** is in scope: standard, 1.5x or 2x per student, set by an admin or
   the student's tutor.
 - **The "Saved questions" browsing page** is a separate follow-up design. This spec
@@ -415,7 +421,8 @@ choice's letter badge, a chip reading "Pick C?" springs out beside the choice.
   - The content is written and drawn by Karman, in theme colours, and is not copied
     from College Board artwork.
 - **More menu:** text size (100% to 200%), Report a problem (content errors, for
-  every student), Question animations on or off, keyboard shortcuts, and Exit.
+  every student), Question animations on or off, Sounds on or off (instant modes),
+  keyboard shortcuts, and Exit.
   - In instant mode Exit says "Your progress is saved".
   - In end mode Exit asks for confirmation through the in-app `useConfirm()`
     dialog.
@@ -507,7 +514,8 @@ back to block anchoring for raster images.
 
 There is one spring family and one duration scale for everything. No motion runs
 on its own while the student is reading or drawing, nothing loops, and every
-motion ends within 500 ms. With reduced motion on, or the "Question animations"
+motion ends within 500 ms, except the small-win celebrations, which end within
+900 ms. With reduced motion on, or the "Question animations"
 setting off, each motion becomes a fade of at most 150 ms, and the sky stands
 still.
 
@@ -554,6 +562,46 @@ still.
 | Divider and sheets | Rubber-band resistance past their limits.                                                                                                                               |
 | Timer              | Only the minutes roll like an odometer. Hiding folds the digits into a clock face, and the 5-minute warning is one slow pulse.                                          |
 
+## Small wins
+
+Celebrations run only when `grading === "instant"`: practice, catalog practice,
+Your Daily 10 and the Challenge question. They never run in end mode (timed
+sections, the diagnostic, full tests) or in locked mode.
+
+| Trigger                                                                  | Celebration                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Any correct answer                                                       | The tick draws, the choice lifts and the accent line runs around it. A burst of 6 to 8 pencil-flick strokes, drawn by us in `--quiz-accent`, springs out from the letter badge and fades. One word pops in beside the badge, picked at random from a short list ("Nice", "Clean", "Got it", "Sharp"), never the same twice in a row. A short warm sound plays. |
+| 3 correct in a row                                                       | A streak counter appears in the bottom bar with our own drawn flame, and its number rolls up on each further correct answer.                                                                                                                                                                                                                                   |
+| 5 correct in a row, and every further 5                                  | A wider burst runs across the top of the question pane, with a slightly richer sound.                                                                                                                                                                                                                                                                          |
+| Correct on the first try on a hard question (internal difficulty 5 to 7) | The word becomes "Tough one". The difficulty number is never shown.                                                                                                                                                                                                                                                                                            |
+| A perfect Daily 10                                                       | The results screen plays the largest celebration, once.                                                                                                                                                                                                                                                                                                        |
+
+- **Placement.** The burst stays in the margin around the badge and the top
+  edge of the pane, so it never covers text being read (rule 34). There are no
+  sparkle icons (rule 23), no emoji (rule 7) and no confetti over the page.
+- **Never in the way.** Next is usable at once, and pressing it ends the
+  celebration. Each celebration finishes within 900 ms and never loops.
+- **Wrong answers.** The streak resets quietly, with no "streak lost" message and
+  no extra motion beyond the cross and the shake already described.
+- **Streak scope.** The streak counts within one practice set or one Daily 10,
+  and resets when the set ends. It is not stored.
+- **Sound.**
+  - Sound is on by default.
+  - "Sounds" in More turns it off, and the choice is remembered on the device in
+    `localStorage`, wrapped in try/catch.
+  - The sounds are our own short synthesized tones, played with Web Audio, in the
+    same family as the calculator's key sounds, at a low volume. No audio files
+    come from outside.
+  - Sound starts only after the student's first tap, which browsers require
+    anyway.
+  - Sound is never the only signal: the tick, the word and the screen-reader
+    announcement always carry the result.
+- **Reduced motion or "Question animations" off.** The tick and the word appear
+  with a fade, with no burst and no lift. The sound still plays unless it is
+  muted.
+- **Screen readers.** The word joins the grading announcement, for example
+  "Correct. Nice. 3 in a row."
+
 ## Accessibility
 
 - **Keyboard.**
@@ -599,6 +647,10 @@ still.
   - Light and dark themes.
 - **Accessibility:** an axe scan per layout, plus a contrast test calculated across
   every theme.
+- **Small wins:** component tests that celebrations fire only in instant mode,
+  that streak thresholds trigger at 3 and 5, that "Tough one" fires only on a
+  first-try correct hard question, that Next cancels a celebration, that the
+  mute setting is honoured, and that reduced motion leaves only the fade.
 - **Click-through:** every button and link in the shell is clicked through in a
   browser before it ships, as `CLAUDE.md` requires.
 - **Real devices:** the founder checks on an iPhone and an iPad with Apple Pencil,
