@@ -1,7 +1,8 @@
 /* Karman's product screens, drawn in code (2026-10-26). They match the white, black and marigold site and
  stay sharp at every size. Every word on them is the product's own interface text, not marketing copy, so it
  lives here rather than in site-copy.ts. The screens move (CSS only, in screens.css): a speaker changes in the
- class, the worked method writes itself out, the Daily 10 ticks on, the parent's bars fill. Reduced motion
+ class, the worked method writes itself out, the parent's bars fill. The Daily 10 is its own answerable
+ demo (home/DailyTenDemo.tsx). Reduced motion
  shows each one at its settled frame.
  Only features in the offer appear. The students, the tutor and the questions are fictional Karman originals:
  the hard question is our own, written in the style of the SAT's advanced math, never copied from a test.
@@ -9,7 +10,7 @@
 
 const ic = (d: string) =>
   `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const I = {
+export const I = {
   x: ic('<path d="M6 6l12 12M18 6 6 18"/>'),
   pen: ic('<path d="m14.5 5 4.5 4.5L9 19.5H4.5V15Z"/>'),
   pad: ic(
@@ -45,7 +46,7 @@ const I = {
 };
 
 /** The iPhone's status bar: time, then (right of the Dynamic Island) signal, Wi-Fi and battery. */
-const status = `<div class="sb"><span class="sb-t">9:41</span><span class="sb-r">
+export const status = `<div class="sb"><span class="sb-t">9:41</span><span class="sb-r">
   <svg class="sig" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
   <svg class="wifi" viewBox="0 0 16 12" aria-hidden="true"><path d="M8 11.6 5.6 9.1a3.4 3.4 0 0 1 4.8 0Z"/><path d="M3.4 6.9a6.5 6.5 0 0 1 9.2 0l-1.4 1.4a4.5 4.5 0 0 0-6.4 0Z"/><path d="M1.1 4.6a9.8 9.8 0 0 1 13.8 0l-1.4 1.4a7.8 7.8 0 0 0-11 0Z"/></svg>
   <span class="bat"><i></i></span></span></div>`;
@@ -72,7 +73,36 @@ function zoom() {
   </div>`;
 }
 
-/* ---------- the one-on-one review (laptop): the call beside a hard question and its method ---------- */
+/* ---------- the one-on-one review (laptop): the call beside a hard data question and its method ---------- */
+/** A variable, set the way math is printed: italic serif, numbers stay in the interface font. */
+const v = (s: string) => `<var>${s}</var>`;
+// a used car's value over eight years, and the exponential model through it (our own data)
+const PTS = [
+  [0, 32.4],
+  [1, 27.1],
+  [2, 24.0],
+  [3, 20.1],
+  [4, 17.6],
+  [5, 15.6],
+  [6, 12.9],
+  [7, 11.4],
+  [8, 9.6],
+];
+function plot() {
+  const X = (x: number) => 14 + x * 13,
+    Y = (y: number) => 92 - y * 2.4;
+  const curve = Array.from({ length: 33 }, (_, k) => {
+    const x = k / 4;
+    return `${X(x).toFixed(1)},${Y(32 * Math.pow(0.86, x)).toFixed(1)}`;
+  }).join(" ");
+  return `<svg class="plot" viewBox="0 0 126 104" aria-hidden="true">
+    <path class="ax" d="M14 8V92H122"/>
+    ${[0, 10, 20, 30].map((y) => `<path class="gl" d="M14 ${Y(y)}H122"/><text x="10" y="${Y(y) + 1.6}" text-anchor="end">${y}</text>`).join("")}
+    ${[0, 2, 4, 6, 8].map((x) => `<text x="${X(x)}" y="99" text-anchor="middle">${x}</text>`).join("")}
+    <polyline class="fit" points="${curve}" pathLength="1"/>
+    ${PTS.map(([x, y], k) => `<circle cx="${X(x)}" cy="${Y(y)}" r="2.1" style="--k:${k}"/>`).join("")}
+  </svg>`;
+}
 function review() {
   return `<div class="scr app rev-scr">
     <div class="body">
@@ -84,34 +114,22 @@ function review() {
           <div class="ctl"><span>${I.mic}</span><span>${I.cam}</span><span class="leave">Leave</span></div>
         </div>
         <div class="q">
-          <p class="tag">Math, module 2, question 19 <span class="hard">Hard</span><em>Missed</em></p>
-          <p class="stem"><span class="eq">y = x² − 6x + c<br>y = 2x − 5</span>In the given system of equations, <i>c</i> is a constant. The graphs of the equations intersect at exactly one point. What is the value of <i>c</i>?</p>
-          <div class="ch"><span><i>A</i>3</span><span><i>B</i>9</span><span class="ok"><i>C</i>11</span><span class="no"><i>D</i>16</span></div>
+          <p class="tag">Math, module 2, question 21 <span class="hard">Hard</span><em>Missed</em></p>
+          <div class="qrow">
+            <p class="stem">The scatterplot shows a used car's value ${v("y")}, in thousands of dollars, ${v("x")} years after it was bought. The data are modeled by <span class="eq">${v("y")} = 32(0.86)<sup>${v("x")}</sup></span>. Which is the best interpretation of 0.86?</p>
+            ${plot()}
+          </div>
+          <div class="ch two"><span><i>A</i>It loses $860 a year</span><span class="no"><i>B</i>It loses 86% of its value a year</span><span class="ok"><i>C</i>Each year it keeps 86% of the year before</span><span><i>D</i>It cost $860 new</span></div>
           <ol class="work">
-            <li>Set them equal: x² − 6x + c = 2x − 5</li>
-            <li>Gather terms: x² − 8x + (c + 5) = 0</li>
-            <li>One meeting point means the discriminant is 0: 64 − 4(c + 5) = 0</li>
-            <li>So c + 5 = 16, and c = 11</li>
+            <li>The model has the form ${v("y")} = ${v("a")} · ${v("b")}<sup>${v("x")}</sup>: ${v("a")} is the start, ${v("b")} the change each year</li>
+            <li>Here ${v("b")} = 0.86, so each year's value is 0.86 times the last</li>
+            <li>Keeping 86% means losing 14% a year, not 86%</li>
+            <li>So the answer is C</li>
           </ol>
           <div class="prog"><span>12 of 19 missed questions reviewed</span><span class="bar"><i></i></span></div>
         </div>
       </div>
     </div>
-  </div>`;
-}
-
-/* ---------- the Daily 10 (the student's phone): a missed question coming back on schedule ---------- */
-function daily10() {
-  return `<div class="scr ph d10">${status}
-    <div class="sh"><span class="x">${I.x}</span><b>Your Daily 10</b><span class="of">4 of 10</span></div>
-    <div class="steps">${Array.from({ length: 10 }, (_, i) => `<i class="${i < 3 ? "done" : i === 3 ? "now" : ""}"></i>`).join("")}</div>
-    <div class="tools"><span>${I.pen}Highlight</span><span>${I.pad}Scratch pad</span><span class="tm"><b class="tm-a">4:12</b><b class="tm-b">4:13</b> ${I.eye}</span></div>
-    <p class="back"><i></i>Last time: missed</p>
-    <p class="skill">Sentence boundaries, back after 2 days</p>
-    <p class="stem">The museum's new wing opened in <u></u> its first exhibit drew more visitors in one week than the old galleries had in a month.</p>
-    <p class="ask">Which choice completes the text so that it conforms to the conventions of Standard English?</p>
-    <div class="ch"><span><i>A</i>March, and</span><span><i>B</i>March</span><span class="pick"><i>C</i>March; and</span><span><i>D</i>March and</span></div>
-    <span class="go">Check</span>
   </div>`;
 }
 
@@ -170,5 +188,5 @@ function challenge() {
   return `<div class="tool-ui dc"><p class="t">Today's challenge <span>Hard</span></p><p class="s">If f(x) = 3ˣ⁺², what is f(x + 1) ÷ f(x)?</p><div class="o"><span>2</span><span class="ok">3</span><span>9</span></div></div>`;
 }
 
-export const SCREENS = { zoom, review, daily10, parent };
+export const SCREENS = { zoom, review, parent };
 export const TOOLS = { wordline, flashcards, wordlab, challenge };

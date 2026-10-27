@@ -4,12 +4,11 @@
 // work to SAT day, then splits into the three endings, each with what the family gets. It draws itself when it
 // comes on screen, a dot walks it, and light pulses down all three endings together. Pointing at an ending (or
 // tapping it) lights that one, sends the dot down it and reads it out; every ending is always written on the
-// page, so nothing depends on the pointer. Under it, the two sides of the deal, ticked in turn, joined by two
-// linked rings. Every word comes from site-copy.ts (section 8; pricing passes its own headline and text).
+// page, so nothing depends on the pointer. Under it, the two sides of the deal, ticked in turn. Every word comes from site-copy.ts (section 8; pricing passes its own headline and text).
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { list, pairs, type CopySection } from "@/lib/marketing/site-copy";
 import Photo from "./Photo";
-import { TextLink } from "./parts";
+import { Kinetic, TextLink } from "./parts";
 import { ROUTES } from "./routes";
 
 const MAIN = "M40 330 C120 332 150 300 220 298 S320 252 380 262 S480 214 540 218 S620 204 650 200";
@@ -119,15 +118,15 @@ export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: s
       <div className="gx-head">
         {g.eyebrow ? <p className="eyebrow rv">{g.eyebrow}</p> : null}
         {g.headline ? (
-          <h2 className="rv" id={headId}>
-            {g.headline}
+          <h2 className="rv kin" id={headId}>
+            <Kinetic text={g.headline} />
           </h2>
         ) : null}
         {g.text ? <p className="lede rv">{g.text}</p> : null}
       </div>
 
       <div className="gx-board">
-        <Photo name="program" className="gx-ph start" />
+        <Photo name="start" className="gx-ph start" />
         <div
           className="gx-stage"
           onPointerMove={lean}
@@ -156,7 +155,7 @@ export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: s
             <line className="gx-target" x1="470" x2="960" y1="132" y2="132" />
             <path ref={main} d={MAIN} pathLength={1} className="gx-main" />
             {ENDS.map((d, k) => (
-              <g key={k} className={`gx-end e${k}${pick === k ? "on" : ""}`}>
+              <g key={k} className={`gx-end e${k} ${pick === k ? "on" : ""}`}>
                 <path
                   ref={(n) => {
                     ends.current[k] = n;
@@ -183,7 +182,7 @@ export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: s
           {outcomes.map(([r, w], k) => (
             <li
               key={r}
-              className={`e${k}${pick === k ? "on" : ""}`}
+              className={`e${k} ${pick === k ? "on" : ""}`}
               style={{ "--y": `${(END_Y[k] / 400) * 100}%` } as CSSProperties}
               onPointerEnter={() => choose(k)}
             >
@@ -199,7 +198,6 @@ export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: s
           ))}
         </ol>
       </div>
-      {g["line hint"] ? <p className="gx-hint">{g["line hint"]}</p> : null}
 
       <div className="gx-promise rv">
         <p className="big">{g.promise}</p>
@@ -208,17 +206,10 @@ export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: s
 
       <div className="gx-deal">
         <Side title={g["we do title"]} items={weDo} cls="we" />
-        <div className="gx-rings" aria-hidden="true">
-          <svg viewBox="0 0 120 80">
-            <circle className="r a" cx="45" cy="40" r="26" pathLength={1} />
-            <circle className="r b" cx="75" cy="40" r="26" pathLength={1} />
-          </svg>
-        </div>
         <Side title={g["you do title"]} items={youDo} cls="you" />
       </div>
 
       <div className="gx-foot rv">
-        <Photo name="guarantee" className="gx-ph end" />
         <div>
           {covers.length ? (
             <ul className="gx-covers">

@@ -5,7 +5,7 @@
 import { useRef } from "react";
 import { pairs, section } from "@/lib/marketing/site-copy";
 import { TOOLS } from "../live/screens";
-import { Drawn } from "../parts";
+import { Drawn, Kinetic } from "../parts";
 
 const UI = [TOOLS.wordline, TOOLS.flashcards, TOOLS.wordlab, TOOLS.challenge];
 
@@ -22,7 +22,9 @@ export default function ToolsCarousel() {
     <div className="tools-wrap">
       <div className="tools-head">
         <div>
-          <h2 className="rv">{f.headline}</h2>
+          <h2 className="rv kin">
+            <Kinetic text={f.headline} />
+          </h2>
           {f.text ? <p className="lede rv">{f.text}</p> : null}
         </div>
         <div className="tools-nav">

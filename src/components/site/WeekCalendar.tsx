@@ -17,42 +17,86 @@ const KIND: Record<Kind, string> = {
   ws: "Workshop",
   oh: "Office hours",
 };
-// pair: a full-length test and the session that reviews it share a number
-const DAYS: { d: string; n: number; ev: Ev[] }[] = [
-  { d: "Mon", n: 1, ev: [{ k: "hw", t: "Quadratics, 15 questions", at: "9:00 p.m." }] },
-  { d: "Tue", n: 2, ev: [{ k: "oh", t: "Office hours", at: "6:00 p.m." }] },
-  { d: "Wed", n: 3, ev: [{ k: "fl", t: "Full-length 3", at: "Before Thursday", pair: 3 }] },
+// pair: a full-length test and the session that reviews it share a number. t is the short chip on the grid,
+// long the full line in the side card, so nothing on the grid is cut off.
+type Day = { d: string; n: number; ev: (Ev & { long: string })[] };
+const E = (k: Kind, t: string, long: string, at: string, pair?: number) => ({
+  k,
+  t,
+  long,
+  at,
+  pair,
+});
+const DAYS: Day[] = [
+  { d: "Mon", n: 1, ev: [E("hw", "Quadratics set", "Quadratics, 15 questions", "9:00 p.m.")] },
+  { d: "Tue", n: 2, ev: [E("oh", "Office hours", "Office hours with Lin", "6:00 p.m.")] },
+  {
+    d: "Wed",
+    n: 3,
+    ev: [E("fl", "Full-length 3", "Full-length 3, before Thursday's session", "9:00 p.m.", 3)],
+  },
   {
     d: "Thu",
     n: 4,
-    ev: [{ k: "s", t: "Review full-length 3 with David", at: "5:00 p.m.", pair: 3 }],
+    ev: [E("s", "1:1 with David", "Math review of full-length 3 with David", "5:00 p.m.", 3)],
   },
-  { d: "Fri", n: 5, ev: [{ k: "hw", t: "Transitions, 12 questions", at: "9:00 p.m." }] },
-  { d: "Sat", n: 6, ev: [{ k: "ws", t: "Pacing the second module", at: "11:00 a.m." }] },
+  { d: "Fri", n: 5, ev: [E("hw", "Transitions set", "Transitions, 12 questions", "9:00 p.m.")] },
+  {
+    d: "Sat",
+    n: 6,
+    ev: [E("ws", "Pacing workshop", "Workshop: pacing the second module", "11:00 a.m.")],
+  },
   { d: "Sun", n: 7, ev: [] },
-  { d: "Mon", n: 8, ev: [{ k: "hw", t: "Nonlinear functions, 15 questions", at: "9:00 p.m." }] },
-  { d: "Tue", n: 9, ev: [{ k: "oh", t: "Office hours", at: "6:00 p.m." }] },
-  { d: "Wed", n: 10, ev: [{ k: "fl", t: "Full-length 4", at: "Before Thursday", pair: 4 }] },
+  {
+    d: "Mon",
+    n: 8,
+    ev: [E("s", "1:1 with Lin", "Reading and Writing session with Lin", "5:00 p.m.")],
+  },
+  {
+    d: "Tue",
+    n: 9,
+    ev: [E("hw", "Functions set", "Nonlinear functions, 15 questions", "9:00 p.m.")],
+  },
+  {
+    d: "Wed",
+    n: 10,
+    ev: [E("fl", "Full-length 4", "Full-length 4, before Thursday's session", "9:00 p.m.", 4)],
+  },
   {
     d: "Thu",
     n: 11,
-    ev: [{ k: "s", t: "Review full-length 4 with David", at: "5:00 p.m.", pair: 4 }],
+    ev: [E("s", "1:1 with David", "Math review of full-length 4 with David", "5:00 p.m.", 4)],
   },
-  { d: "Fri", n: 12, ev: [{ k: "hw", t: "Boundaries, 12 questions", at: "9:00 p.m." }] },
-  { d: "Sat", n: 13, ev: [{ k: "ws", t: "Desmos for systems", at: "11:00 a.m." }] },
+  { d: "Fri", n: 12, ev: [E("oh", "Office hours", "Office hours with David", "6:00 p.m.")] },
+  {
+    d: "Sat",
+    n: 13,
+    ev: [E("ws", "Desmos workshop", "Workshop: Desmos for systems", "11:00 a.m.")],
+  },
   { d: "Sun", n: 14, ev: [] },
 ];
 const TODAY = 0;
 const FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const DOMAINS: [string, number][] = [
-  ["Information and Ideas", 78],
-  ["Craft and Structure", 64],
-  ["Expression of Ideas", 82],
-  ["Standard English Conventions", 55],
-  ["Algebra", 88],
-  ["Advanced Math", 61],
-  ["Problem-Solving and Data", 73],
-  ["Geometry and Trigonometry", 47],
+// the eight SAT domains, each on six levels, Reading and Writing first
+const DOMAINS: [string, [string, number][]][] = [
+  [
+    "Reading and Writing",
+    [
+      ["Information and Ideas", 5],
+      ["Craft and Structure", 4],
+      ["Expression of Ideas", 5],
+      ["Standard English Conventions", 3],
+    ],
+  ],
+  [
+    "Math",
+    [
+      ["Algebra", 6],
+      ["Advanced Math", 4],
+      ["Problem-Solving and Data Analysis", 5],
+      ["Geometry and Trigonometry", 3],
+    ],
+  ],
 ];
 
 export default function WeekCalendar() {
@@ -99,94 +143,94 @@ export default function WeekCalendar() {
   const d = DAYS[day];
   return (
     <div className="sc" ref={root}>
-      <div
-        className="sc-win"
-        role="img"
-        aria-label="A one-on-one student's calendar for two weeks: a session with the tutor every Thursday, a full-length test due the day before each, homework, office hours and a Saturday workshop, with progress on all eight SAT domains beside it."
-      >
-        <div className="sc-bar">
-          <i />
-          <i />
-          <i />
-          <span>Karman · Calendar</span>
-        </div>
-        <div className="sc-body">
-          <aside className="sc-side">
-            <div className="sc-next">
-              <small>Next session</small>
-              <b>Thursday, 5:00 p.m.</b>
-              <span>Review full-length 3 with David</span>
-              <em>
-                <u style={{ "--p": 0.4 } as CSSProperties} />
-                Full-length 3 due Wednesday
-              </em>
-            </div>
-            <div className="sc-dom">
-              <small>Progress by domain</small>
-              <ul>
-                {DOMAINS.map(([name, pct], k) => (
-                  <li
-                    key={name}
-                    className={pct < 60 ? "low" : ""}
-                    style={{ "--p": pct / 100, "--k": k } as CSSProperties}
-                  >
-                    <span>{name}</span>
-                    <b>{pct}%</b>
-                    <u />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
-          <div className="sc-main">
-            <div className="sc-head">
-              <b>February</b>
-              <span className="sc-keys">
-                {(Object.keys(KIND) as Kind[]).map((k) => (
-                  <span key={k} className={k}>
-                    <i />
-                    {KIND[k]}
-                  </span>
-                ))}
-              </span>
-            </div>
-            <div
-              className="sc-grid"
-              ref={grid}
-              onPointerLeave={() => {
-                setDay(TODAY);
-                setPair(0);
-              }}
-            >
-              {DAYS.slice(0, 7).map((x) => (
-                <span className="sc-dn" key={x.d}>
-                  {x.d}
-                </span>
-              ))}
-              {DAYS.map((x, i) => (
-                <div
-                  key={x.n}
-                  className={`sc-day${i === day ? "on" : ""}${i === TODAY ? "today" : ""}`}
-                  style={{ "--i": i } as CSSProperties}
-                  onPointerEnter={() => setDay(i)}
-                >
-                  <span className="sc-n">{x.n}</span>
-                  {x.ev.map((e) => (
-                    <span
-                      key={e.t}
-                      className={`sc-ev ${e.k}${e.pair && e.pair === pair ? "lit" : ""}`}
-                      data-pair={e.pair}
-                      onPointerEnter={() => setPair(e.pair ?? 0)}
-                      onPointerLeave={() => setPair(0)}
-                    >
-                      {e.t}
-                    </span>
-                  ))}
+      <div className="mbp">
+        <span className="notch" aria-hidden="true" />
+        <div
+          className="sc-win"
+          role="img"
+          aria-label="A one-on-one student's calendar for two weeks: a session with the tutor every Thursday, a full-length test due the day before each, homework, office hours and a Saturday workshop, with progress on all eight SAT domains beside it."
+        >
+          <div className="sc-bar">
+            <i />
+            <i />
+            <i />
+            <span>Karman · Calendar</span>
+          </div>
+          <div className="sc-body">
+            <aside className="sc-side">
+              <div className="sc-next">
+                <small>Next session</small>
+                <b>Thursday, 5:00 p.m.</b>
+                <span>Math review of full-length 3 with David</span>
+                <em>
+                  <u style={{ "--p": 0.4 } as CSSProperties} />
+                  Full-length 3 due Wednesday
+                </em>
+              </div>
+              {DOMAINS.map(([area, rows], g) => (
+                <div className="sc-dom" key={area}>
+                  <small>{area}</small>
+                  <ul>
+                    {rows.map(([name, lvl], k) => (
+                      <li key={name} style={{ "--k": g * 4 + k } as CSSProperties}>
+                        <span>{name}</span>
+                        <b className="lv" aria-hidden="true">
+                          {Array.from({ length: 6 }, (_, i) => (
+                            <i
+                              key={i}
+                              className={i < lvl ? "on" : ""}
+                              style={{ "--i": i } as CSSProperties}
+                            />
+                          ))}
+                        </b>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
-              <svg className="sc-link" aria-hidden="true">
-                {link ? <path d={link} key={link} pathLength={1} /> : null}
-              </svg>
+            </aside>
+            <div className="sc-main">
+              <div className="sc-head">
+                <b>February</b>
+              </div>
+              <div
+                className="sc-grid"
+                ref={grid}
+                onPointerLeave={() => {
+                  setDay(TODAY);
+                  setPair(0);
+                }}
+              >
+                {DAYS.slice(0, 7).map((x) => (
+                  <span className="sc-dn" key={x.d}>
+                    {x.d}
+                  </span>
+                ))}
+                {DAYS.map((x, i) => (
+                  <div
+                    key={x.n}
+                    className={`sc-day ${i === day ? "on" : ""} ${i === TODAY ? "today" : ""}`}
+                    style={{ "--i": i } as CSSProperties}
+                    onPointerEnter={() => setDay(i)}
+                  >
+                    <span className="sc-n">{x.n}</span>
+                    {x.ev.map((e) => (
+                      <span
+                        key={e.t}
+                        className={`sc-ev ${e.k} ${e.pair && e.pair === pair ? "lit" : ""}`}
+                        data-pair={e.pair}
+                        onPointerEnter={() => setPair(e.pair ?? 0)}
+                        onPointerLeave={() => setPair(0)}
+                      >
+                        {e.t}
+                      </span>
+                    ))}
+                  </div>
+                ))}
+                <svg className="sc-link" aria-hidden="true">
+                  {link ? <path d={link} key={link} pathLength={1} /> : null}
+                </svg>
+              </div>
             </div>
           </div>
         </div>
@@ -203,7 +247,7 @@ export default function WeekCalendar() {
               <li key={e.t} className={e.k}>
                 <i aria-hidden="true" />
                 <span>
-                  <b>{e.t}</b>
+                  <b>{e.long}</b>
                   <small>
                     {KIND[e.k]}, {e.at}
                   </small>

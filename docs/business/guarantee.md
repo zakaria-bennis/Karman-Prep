@@ -37,8 +37,8 @@ terms before they go on the site.** The numbers live in `src/lib/marketing/offer
 - Complete all five one-on-one reviews. Rescheduling with 24 hours' notice is fine.
 - Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.
 - Complete at least 90% of the assigned weekly practice.
-- Sit the official SAT on the program's test date. If that SAT is cancelled, or with a doctor's note,
-  the next SAT within 60 days counts.
+- Sit the official SAT within 60 days of the last class (changed 2026-10-26, when cohorts stopped
+  being tied to a test date; still needs the lawyer's review).
 
 **How to claim**
 - Within 30 days of scores coming out, email the official College Board score report to

@@ -2,6 +2,7 @@ import ArtDrawing from "@/components/site/ArtDrawing";
 import LeadFormCard from "@/components/site/LeadFormCard";
 import Photo from "@/components/site/Photo";
 import SitePage from "@/components/site/SitePage";
+import { FeatureSection } from "@/components/site/Feature";
 import { GuaranteeSection, InnerHero, Rows, TextCard } from "@/components/site/inner";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { delay, Seats, TextLink } from "@/components/site/parts";
@@ -13,13 +14,15 @@ import { siteOrigin } from "@/lib/marketing/public-pages";
 export const metadata = pageMeta(
   ROUTES.program,
   "Karman Prep: The SAT Program",
-  `${MP.name}: ${MP.weeks} weeks ending on the ${MP.testDateLabel} SAT. ${MP.paidSeats + MP.scholarshipSeats} students per class, ${MP.fullLengthTests} full-length tests with a one-on-one review after each, ${formatPrice(MP.price)}.`
+  `${MP.name}: ${MP.weeks} weeks of live SAT classes. ${MP.paidSeats + MP.scholarshipSeats} students per class, ${MP.fullLengthTests} full-length tests with a one-on-one review after each, ${formatPrice(MP.price)}.`
 );
 
-/** "2027-03-06" -> "MAR 6", the date on the drawing's last step */
-const stepDate = new Date(`${MP.testDate}T12:00:00Z`)
-  .toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })
-  .toUpperCase();
+/** The label on the drawing's last step: the program's final week */
+const stepDate = `WEEK ${MP.weeks}`;
+/** The last day of the program: the Sunday of its final week */
+const endDate = new Date(Date.parse(`${MP.startDate}T12:00:00Z`) + (MP.weeks * 7 - 1) * 864e5)
+  .toISOString()
+  .slice(0, 10);
 
 const COURSE = {
   "@context": "https://schema.org",
@@ -38,7 +41,7 @@ const COURSE = {
     "@type": "CourseInstance",
     courseMode: "Online",
     startDate: MP.startDate,
-    endDate: MP.testDate,
+    endDate,
   },
 };
 
@@ -57,6 +60,7 @@ export default function ProgramPage() {
           </>
         }
       />
+      <FeatureSection n={2} />
       <Rows n={22} />
       <Rows n={23} style="time" />
       <TextCard n={24} />
@@ -64,6 +68,7 @@ export default function ProgramPage() {
       <Rows
         n={25}
         style="steps"
+        side={<Photo name="call" className="ph-side rv" clip />}
         after={
           <>
             <Seats label={section(25).seats} className="rv" />

@@ -52,11 +52,8 @@ export type ProgramInclusion = { title: string; detail: string };
 
 export const MARCH_PROGRAM = {
   id: "cohort-march-2027",
-  name: "The March SAT Program",
-  shortName: "March program",
-  testDate: "2027-03-06",
-  testDateLabel: "Saturday, March 6, 2027",
-  testDateShort: "March 6",
+  name: "The January cohort",
+  shortName: "January cohort",
   startDate: "2027-01-04",
   startLabel: "Monday, January 4, 2027",
   startShort: "January 4",
@@ -79,11 +76,12 @@ export const MARCH_PROGRAM = {
    *  CONFIRM: update as each family holds a seat. */
   paidSeatsTaken: 0,
   scholarshipSeats: 1,
-  /** Founding price — the March 2027 cohort only. */
-  price: 995,
+  /** Founding price, the January 2027 cohort only (market analysis session, 2026-10-26).
+   *  CONFIRM: founder approval of the new prices. */
+  price: 1295,
   /** Price for later cohorts. */
-  regularPrice: 1295,
-  installments: { count: 3, amount: 345 },
+  regularPrice: 1495,
+  installments: { count: 3, amount: 435 },
   depositAmount: 100,
   includes: [
     {
@@ -93,7 +91,7 @@ export const MARCH_PROGRAM = {
     {
       title: "Five full-length practice tests",
       detail:
-        "Your week-1 baseline is an official Bluebook test, proctored live. So is the dress rehearsal a week before the SAT.",
+        "Your week-1 baseline is an official Bluebook test, proctored live. So is the last one, in week nine.",
     },
     {
       title: "A 60-minute 1:1 after every full-length",
@@ -126,40 +124,39 @@ export const MARCH_PROGRAM = {
 } as const;
 
 /**
- * Later cohorts. SAT dates are official (College Board 2026-27 calendar,
- * checked 2026-10-20). Start and close dates follow the March rhythm: classes
- * start on a Monday 61 days before the test, applications close the Wednesday
- * before. CONFIRM: start and close dates for May and June.
+ * Later cohorts, named by the week they start. Classes start on a Monday and
+ * applications close the Wednesday before. CONFIRM: start and close dates.
  */
 export const NEXT_PROGRAMS = [
   {
     id: "cohort-may-2027",
-    testDate: "2027-05-01",
-    testDateLabel: "Saturday, May 1, 2027",
-    testDateShort: "May 1",
     startDate: "2027-03-01",
     startLabel: "Monday, March 1",
+    startShort: "March 1",
     enrollmentClosesLabel: "Wednesday, February 24",
   },
   {
     id: "cohort-june-2027",
-    testDate: "2027-06-05",
-    testDateLabel: "Saturday, June 5, 2027",
-    testDateShort: "June 5",
     startDate: "2027-04-05",
     startLabel: "Monday, April 5",
+    startShort: "April 5",
     enrollmentClosesLabel: "Wednesday, March 31",
   },
 ] as const;
+/** Official SAT dates families can name on the call and test forms (College Board 2026-27 calendar,
+ *  checked 2026-10-20). Only asked, never sold against. */
+export const SAT_DATES = ["March 6", "May 1", "June 5"] as const;
+
 export const NEXT_PROGRAMS_ENROLLMENT_LABEL = "Enrollment opens in February.";
 
-export const PRIVATE_HOURLY_RATE = 145;
+/** CONFIRM: founder approval (market analysis session, 2026-10-26). */
+export const PRIVATE_HOURLY_RATE = 195;
 /** The free strategy call before private tutoring, and the fit call before a program seat. */
 export const CALL_MINUTES = 20;
 
 export const PRIVATE_PACKAGES = [
-  { id: "private-10", name: "Private 10", hours: 10, price: 1450 },
-  { id: "private-20", name: "Private 20", hours: 20, price: 2900 },
+  { id: "private-10", name: "Private 10", hours: 10, price: 1950 },
+  { id: "private-20", name: "Private 20", hours: 20, price: 3600 },
 ] as const;
 
 export const PRIVATE_INCLUDES: ProgramInclusion[] = [
@@ -169,8 +166,8 @@ export const PRIVATE_INCLUDES: ProgramInclusion[] = [
       "Each session goes through every mistake on your latest full-length, or targets the skill holding you back.",
   },
   {
-    title: "Scheduled around your test date",
-    detail: "Start whenever you're ready. Hours are planned backward from the SAT you're taking.",
+    title: "Scheduled around your week",
+    detail: "Start whenever you're ready, at times that fit your student's week.",
   },
   {
     title: "Everything on the platform",
@@ -185,6 +182,25 @@ export const PRIVATE_INCLUDES: ProgramInclusion[] = [
     detail: "What you worked on, what improved and what comes next.",
   },
 ];
+
+/**
+ * Self-paced (founder decision 2026-10-26, price from the market analysis session the same day):
+ * the platform on its own, one payment for twelve months, no auto-renew, no guarantee.
+ * CONFIRM: founder approval of the price.
+ */
+export const SELF_PACED = {
+  id: "self-paced",
+  name: "Self-paced",
+  price: 199,
+  months: 12,
+  includes: [
+    "10,000+ original practice questions",
+    "The Daily 10, ten questions a day from the skills your student misses",
+    "Full-length practice tests on the platform",
+    "Weekly office hours and skill workshops, when your student wants them",
+    "Progress for parents on their phone",
+  ],
+} as const;
 
 export const FREE_PRACTICE_TEST = {
   id: "practice-test-2026-12-12",
@@ -230,8 +246,8 @@ export const GUARANTEE = {
   practicePct: 90,
   /** Hours' notice that makes rescheduling a one-on-one review fine. */
   rescheduleHours: 24,
-  /** If the SAT is cancelled (or with a doctor's note), the next official SAT within this many days counts. */
-  fallbackSatDays: 60,
+  /** The official SAT must be taken within this many days of the last class. */
+  satWithinDays: 60,
   /** How recent an official SAT or PSAT must be to serve as the baseline. */
   baselineMonths: 6,
   /** Days after scores come out to send the claim. */
@@ -249,7 +265,7 @@ export const GUARANTEE = {
     "Complete all five one-on-one reviews. Rescheduling with 24 hours' notice is fine.",
     "Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.",
     "Complete at least 90% of the assigned weekly practice.",
-    "Sit the official SAT on the program's test date, or the next one within 60 days if it's cancelled or with a doctor's note.",
+    "Sit the official SAT within 60 days of the last class.",
   ],
   eligibility: [
     "A student's first Karman program, once per student.",
@@ -280,7 +296,7 @@ export const GUARANTEE = {
 export const INTAKE = { scoreFrom: 1500, minWeeks: 4 } as const;
 
 export const INTAKE_NOTE =
-  "If you're already scoring 1500 or higher, or your test is less than four weeks away, we'll tell you honestly that a program probably isn't the best use of your money.";
+  "If you're already scoring 1500 or higher, or your SAT is less than four weeks away, we'll tell you honestly that a program probably isn't the best use of your money.";
 
 export const SCHOLARSHIP = {
   summary:

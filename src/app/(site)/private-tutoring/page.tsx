@@ -1,6 +1,7 @@
 import ArtDrawing from "@/components/site/ArtDrawing";
 import LeadFormCard from "@/components/site/LeadFormCard";
 import Photo from "@/components/site/Photo";
+import { FeatureSection } from "@/components/site/Feature";
 import SitePage from "@/components/site/SitePage";
 import { Close, InnerHero, Rows } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
@@ -17,10 +18,10 @@ import { list, section } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.private,
   "Karman Prep: Private tutoring",
-  `One-on-one SAT tutoring planned back from your student's test date: weekly 60-minute sessions that go through every mistake. ${formatPrice(PRIVATE_HOURLY_RATE)} an hour, in packages of ${PRIVATE_PACKAGES.map((p) => p.hours).join(" or ")}.`
+  `One-on-one SAT tutoring: weekly 60-minute sessions that go through every mistake. ${formatPrice(PRIVATE_HOURLY_RATE)} an hour, in packages of ${PRIVATE_PACKAGES.map((p) => p.hours).join(" or ")}.`
 );
 
-/** "Private 20 = 20 hours, $2,900. Comes with ..." -> name, price, hours and the rest */
+/** "Private 20 = 20 hours, $3,600. Comes with ..." -> name, price, hours and the rest */
 function Pack({ s, hot = false }: { s: string; hot?: boolean }) {
   const [name, rest = ""] = s.split(" = ");
   const [hours = "", price = "", ...more] = rest.split(", ");
@@ -53,6 +54,7 @@ export default function PrivatePage() {
         }
       />
       <Rows n={32} style="steps" />
+      <FeatureSection n={3} />
       <section className="i-sec" data-light id="s-33">
         <div className="in">
           <div className="i-head">

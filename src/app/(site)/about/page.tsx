@@ -11,7 +11,7 @@ import { pairs, section } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.about,
   "Karman Prep: About",
-  "Karman sells SAT programs that end on one official test date, prints every rule of its guarantee, and tells parents every week whether the work got done."
+  "Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives."
 );
 
 const ICONS: IconName[] = ["hours", "eye", "parent"];

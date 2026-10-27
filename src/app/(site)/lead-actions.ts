@@ -56,8 +56,8 @@ const SCHEMAS = {
 } satisfies Record<LeadForm, z.ZodType>;
 
 const COHORTS: Record<string, LeadSource> = {
-  [MARCH_PROGRAM.testDateShort]: MARCH_PROGRAM.id,
-  ...Object.fromEntries(NEXT_PROGRAMS.map((p) => [p.testDateShort, p.id])),
+  [MARCH_PROGRAM.startShort]: MARCH_PROGRAM.id,
+  ...Object.fromEntries(NEXT_PROGRAMS.map((p) => [p.startShort, p.id])),
 };
 
 const LABELS: Record<LeadForm, string> = {
@@ -93,7 +93,10 @@ export async function submitLead(
   const details = Object.fromEntries(
     (["latest", "target", "date", "grade"] as const)
       .filter((k) => data[k])
-      .map((k) => [k === "date" ? "satDate" : k, data[k] as string])
+      .map((k) => [
+        k === "date" ? (form === "apply" ? "startDate" : "satDate") : k,
+        data[k] as string,
+      ])
   );
 
   const dbReady = Boolean(

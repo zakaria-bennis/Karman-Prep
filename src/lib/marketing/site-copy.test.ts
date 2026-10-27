@@ -20,13 +20,13 @@ describe("site copy", () => {
     expect(section(26).headline).toBe(
       `${formatPrice(MARCH_PROGRAM.price)}, or three payments of ${formatPrice(MARCH_PROGRAM.installments.amount)}.`
     );
-    expect(section(21).headline).toContain(MARCH_PROGRAM.testDateLabel.replace(/, \d{4}$/, ""));
+    expect(section(21).text).toContain(MARCH_PROGRAM.startLabel.replace(/, \d{4}$/, ""));
     expect(section(41).headline).toContain(FREE_PRACTICE_TEST.dateShort);
     expect(section(51).headline).toContain(`+${GUARANTEE.points} points or a ${GUARANTEE.orScore}`);
     expect(section(33)["large package"]).toContain(formatPrice(PRIVATE_PACKAGES[1].price));
     expect(list(section(25)["form date options"])).toEqual([
-      MARCH_PROGRAM.testDateShort,
-      ...NEXT_PROGRAMS.map((p) => p.testDateShort),
+      MARCH_PROGRAM.startShort,
+      ...NEXT_PROGRAMS.map((p) => p.startShort),
     ]);
   });
 

@@ -11,7 +11,9 @@
   opacity: 0; transform: translate3d(calc(var(--px, 0) * 1px), calc((var(--py, 0) + var(--sy, 0)) * 1px), 0) scale(1.03);
   transition: opacity .7s var(--ease);
 }
-.ks .k-photo[data-ready] img { opacity: 1; }
+.ks .k-photo[data-ready] img { opacity: 1; animation: kp-breathe 18s ease-in-out infinite alternate; }
+/* the photo is never still: a slow push in and out, on its own axis so the pointer drift still works */
+@keyframes kp-breathe { from { scale: 1; } to { scale: 1.07; } }
 /* one pass of warm light across the photo the first time it comes into view */
 .ks .k-photo .fr::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
@@ -20,8 +22,6 @@
 }
 .ks .k-photo.shine .fr::after { animation: ks-photo-shine 1.8s var(--ease) .25s both; }
 @keyframes ks-photo-shine { to { background-position: -30% 0; } }
-.ks .k-photo figcaption { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.4; color: var(--ink2); }
-.ks .k-photo figcaption::before { content: ""; flex: none; width: 18px; height: 1.5px; background: var(--marigold); }
 
 /* the section's drawing steps aside while its photo is there */
 .ks :has(> .k-photo:not([data-missing])) > .i-art { display: none; }
@@ -58,6 +58,11 @@
   .ks .plans .k-photo.only-phone { margin-top: 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ks .k-photo img { transform: none; transition: none; }
+  .ks .k-photo img { transform: none; transition: none; animation: none !important; }
   .ks .k-photo.shine .fr::after { animation: none; }
 }
+
+/* a photo that moves: the clip sits on the still and takes over once it plays */
+.ks .k-photo .clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s var(--ease); }
+.ks .k-photo[data-ready] .clip { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ks .k-photo .clip { display: none; } }

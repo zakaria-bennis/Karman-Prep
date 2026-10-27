@@ -4,12 +4,16 @@
 import type { ReactNode } from "react";
 import { list, pairs, section, type CopySection } from "@/lib/marketing/site-copy";
 import GuaranteeDeal from "./GuaranteeDeal";
-import { Action, delay, Icon } from "./parts";
+import { Action, delay, Icon, Kinetic } from "./parts";
 
 function Head({ f, children }: { f: CopySection; children?: ReactNode }) {
   return (
     <div className="i-head">
-      {f.headline ? <h2 className="rv">{f.headline}</h2> : null}
+      {f.headline ? (
+        <h2 className="rv kin">
+          <Kinetic text={f.headline} />
+        </h2>
+      ) : null}
       {f.text ? (
         <p className="lede rv" style={delay(0.08)}>
           {f.text}
@@ -56,8 +60,8 @@ export function InnerHero({
       <div className="in">
         <div className="i-words">
           {f.eyebrow ? <p className="eyebrow rv">{f.eyebrow}</p> : null}
-          <h1 className="rv" style={delay(0.04)}>
-            {f.headline}
+          <h1>
+            <Kinetic text={f.headline} />
           </h1>
           {f.text ? (
             <p className="lede rv" style={delay(0.08)}>
@@ -79,11 +83,14 @@ export function Rows({
   style = "grid",
   after,
   id,
+  side,
 }: {
   n: number;
   style?: "grid" | "steps" | "time";
   after?: ReactNode;
   id?: string;
+  /** a photo beside the heading and rows */
+  side?: ReactNode;
 }) {
   const f = section(n);
   const items = pairs(f.rows);
@@ -123,8 +130,20 @@ export function Rows({
   return (
     <section className={`i-sec ${style === "steps" ? "" : "rows"}`} data-light id={id ?? `s-${n}`}>
       <div className="in">
-        <Head f={f} />
-        {body}
+        {side ? (
+          <div className="i-split i-sided">
+            <div>
+              <Head f={f} />
+              {body}
+            </div>
+            {side}
+          </div>
+        ) : (
+          <>
+            <Head f={f} />
+            {body}
+          </>
+        )}
         {after}
       </div>
     </section>
@@ -195,7 +214,11 @@ export function Close({ n, href, children }: { n: number; href?: string; childre
   return (
     <section className="i-close" id={`s-${n}`}>
       <div className="in">
-        {f.headline ? <h2 className="rv">{f.headline}</h2> : null}
+        {f.headline ? (
+          <h2 className="rv kin">
+            <Kinetic text={f.headline} />
+          </h2>
+        ) : null}
         {f.text ? (
           <p className="lede rv" style={delay(0.08)}>
             {f.text}

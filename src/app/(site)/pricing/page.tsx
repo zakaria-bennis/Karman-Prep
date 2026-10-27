@@ -9,7 +9,7 @@ import { SITE } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.pricing,
   "Karman Prep: pricing",
-  `Every Karman price on one page: the free practice test, the SAT Program and private tutoring, with the guarantee in full: +${G.points} points or a ${G.orScore}, or your money back.`
+  `Every Karman price on one page: self-paced, the live cohort and private tutoring, with the guarantee in full: +${G.points} points or a ${G.orScore}, or your money back.`
 );
 
 export default function PricingPage() {

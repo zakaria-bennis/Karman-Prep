@@ -1,8 +1,9 @@
+import Photo from "@/components/site/Photo";
 import ResearchCurve from "@/components/site/ResearchCurve";
 import SitePage from "@/components/site/SitePage";
 import { Close, InnerHero } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
-import { Arrow, delay } from "@/components/site/parts";
+import { Arrow, delay, Kinetic } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { section } from "@/lib/marketing/site-copy";
 
@@ -29,7 +30,12 @@ export default function ResearchPage() {
       <InnerHero n={81} href={ROUTES.test} side={<ResearchCurve />} />
       <section className="i-sec" data-light id="s-82">
         <div className="in">
-          <h2 className="rv">{f.headline}</h2>
+          <div className="i-split rs-top">
+            <h2 className="rv kin">
+              <Kinetic text={f.headline} />
+            </h2>
+            <Photo name="bus" className="ph-side rv" />
+          </div>
           <ol className="rs-list">
             {STUDIES.map(([key, href], k) => (
               <li className="rv" style={delay((k % 2) * 0.08)} key={key}>

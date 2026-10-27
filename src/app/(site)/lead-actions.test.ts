@@ -33,7 +33,7 @@ describe("submitLead", () => {
       email: " Parent@Example.com ",
       latest: "1180",
       target: "1400",
-      date: "May 1",
+      date: "March 1",
       company: "",
     });
     expect(r).toEqual({ ok: true });
@@ -41,7 +41,7 @@ describe("submitLead", () => {
       expect.objectContaining({
         email: "parent@example.com",
         source: "cohort-may-2027",
-        details: { latest: "1180", target: "1400", satDate: "May 1" },
+        details: { latest: "1180", target: "1400", startDate: "March 1" },
       }),
       { onConflict: "email,source" }
     );
@@ -55,7 +55,7 @@ describe("submitLead", () => {
       email: "parent@",
       latest: "1234",
       target: "",
-      date: "March 6",
+      date: "January 4",
     });
     expect(r.ok).toBe(false);
     expect(Object.keys((r as { fields: object }).fields).sort()).toEqual([

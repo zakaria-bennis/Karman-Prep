@@ -2,7 +2,7 @@
 // (ShellBehaviour). Ported from the approved mock's site.js (2026-10-25). Links are plain <a> on purpose:
 // each page is a full load, so the loaders follow the mock's rules exactly.
 import type { ReactNode } from "react";
-import { Hanken_Grotesk } from "next/font/google";
+import { Anton, Hanken_Grotesk } from "next/font/google";
 import { SITE } from "@/lib/marketing/site-copy";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
@@ -15,8 +15,17 @@ const hanken = Hanken_Grotesk({
   display: "swap",
 });
 
+/** The Impact-style headline face, on trial: only pages opened with ?type=impact use it (film.css). */
+const impact = Anton({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-impact",
+  display: "swap",
+  preload: false,
+});
+
 /** Dark is the default (founder, 2026-10-26; design rule 33); the switch to light remembers the visitor's choice. */
-const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m==="dark"||m==="light")document.getElementById("ks").dataset.mode=m}catch(e){}`;
+const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m==="dark"||m==="light")document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
 
 const SUN = (
   <svg
@@ -125,7 +134,7 @@ export default function SitePage({
   return (
     <div
       id="ks"
-      className={`ks ${hanken.variable}${kind === "home" ? "" : ` page-${kind}`}`}
+      className={`ks ${hanken.variable} ${impact.variable} ${kind === "home" ? "" : `page-${kind}`}`}
       data-mode="dark"
       suppressHydrationWarning
     >

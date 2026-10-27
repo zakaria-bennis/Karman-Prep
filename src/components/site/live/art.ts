@@ -46,7 +46,7 @@ const stand = (x: number, y: number, z: number, txt: string, size = 4, cls = "a-
 };
 const layer = (depth: number, inner: string) => `<g class="a-l" data-depth="${depth}">${inner}</g>`;
 
-/** `date` is the SAT date on the program drawing's last step, e.g. "MAR 6" (from offer.ts). */
+/** `date` is the label on the program drawing's last step, e.g. "WEEK 9" (from offer.ts). */
 const ART: Record<
   "weeks" | "call" | "report" | "line" | "sitting",
   (date: string) => [string, number[]]

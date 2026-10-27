@@ -1,12 +1,12 @@
 import HomeFilm from "@/components/site/home/HomeFilm";
-import { Tutors, Ways } from "@/components/site/home/HomeSections";
+import { Tutors } from "@/components/site/home/HomeSections";
+import Feature from "@/components/site/Feature";
 import GuaranteeDeal from "@/components/site/GuaranteeDeal";
 import ToolsCarousel from "@/components/site/home/ToolsCarousel";
 import SitePage from "@/components/site/SitePage";
 import WeekCalendar from "@/components/site/WeekCalendar";
-import { SCREENS } from "@/components/site/live/screens";
 import { jsonLd, pageMeta } from "@/components/site/meta";
-import { Arrow, Btn, delay, Drawn, Kinetic, Phone, TextLink } from "@/components/site/parts";
+import { Arrow, Btn, delay, Kinetic } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
@@ -14,7 +14,7 @@ import { section } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
-  "Karman Prep: SAT programs that end on your test date",
+  "Karman Prep: SAT tutors who see every answer",
   "Live SAT classes of six and private tutoring, taught by PhD students, quants and university professors, with research-backed daily practice and live progress for parents."
 );
 
@@ -26,40 +26,6 @@ const ORG = {
   email: CONTACT.general,
   description: section(1).text,
 };
-
-/** How it works, in the order a week runs: the class, the review, the daily practice, what you see. */
-const FEATURES = [
-  { n: 2, media: "wide", screen: SCREENS.zoom, side: "right" },
-  { n: 3, media: "wide", screen: SCREENS.review, side: "left" },
-  { n: 4, media: "phone", screen: SCREENS.daily10, side: "right" },
-  { n: 5, media: "phone", screen: SCREENS.parent, side: "left" },
-] as const;
-
-function Feature({ x }: { x: (typeof FEATURES)[number] }) {
-  const f = section(x.n);
-  return (
-    <article className={`feat ${x.side} m-${x.media}`} id={`m-${x.n}`}>
-      <div className="media rv" aria-hidden="true">
-        {x.media === "phone" ? (
-          <div className="turn">
-            <Phone screen={x.screen()} />
-          </div>
-        ) : (
-          <Drawn as="figure" className="wide" aria-hidden html={x.screen()} />
-        )}
-      </div>
-      <div className="words rv" style={delay(0.1)}>
-        {f.headline ? <h2>{f.headline}</h2> : null}
-        {f["feature title"] || f["feature text"] ? (
-          <p className="lede">
-            {f["feature title"] ? <b>{f["feature title"]}</b> : null} {f["feature text"]}
-          </p>
-        ) : null}
-        {f["research link"] ? <TextLink label={f["research link"]} href={ROUTES.research} /> : null}
-      </div>
-    </article>
-  );
-}
 
 const CAMPUS = ["c8a", "c8b", "c8c"];
 
@@ -117,14 +83,12 @@ export default function HomePage() {
             <GuaranteeDeal g={section(8)} headId="g-h" />
           </div>
         </section>
-        <Ways />
       </div>
 
       <section className="panel features" id="features">
         <div className="in">
-          {FEATURES.map((x) => (
-            <Feature x={x} key={x.n} />
-          ))}
+          <Feature n={4} />
+          <Feature n={5} />
           <article className="feat cal" id="m-14">
             <div className="words rv">
               <h2>{cal.headline}</h2>

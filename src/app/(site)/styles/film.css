@@ -101,8 +101,7 @@
 html.ks-lock { overflow: hidden; }
 
 /* ---------- type ---------- */
-.ks .eyebrow { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.ks .eyebrow::before { content: ""; width: 26px; height: 3px; border-radius: 2px; background: var(--marigold); }
+.ks .eyebrow { display: inline-flex; align-items: center; font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .ks h1, .ks h2 { font-weight: 800; letter-spacing: -0.045em; line-height: .96; text-wrap: balance; }
 .ks h1 { font-size: clamp(48px, 7.6vw, 124px); max-width: 12ch; }
 .ks h2 { font-size: clamp(38px, 5.2vw, 80px); }
@@ -135,6 +134,9 @@ html.ks-lock { overflow: hidden; }
 .ks .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
 .ks .w > span { display: inline-block; transform: translateY(108%); transition: transform 1.1s var(--ease); transition-delay: calc(.12s + var(--i) * .07s); }
 .ks.ready .w > span { transform: none; }
+/* headings further down rise word by word when they come into view */
+.ks.ready .kin:not(.on) .w > span { transform: translateY(108%); }
+.ks .kin.on .w > span { transition-delay: calc(.05s + var(--i) * .06s); }
 .ks .hero .cue { transition: opacity .4s var(--ease); position: absolute; left: 50%; bottom: 20px; width: 1.5px; height: 44px; background: rgba(255,255,255,.3); overflow: hidden; border-radius: 2px; }
 .ks .hero .cue::after { content: ""; position: absolute; left: 0; top: -40%; width: 100%; height: 40%; background: var(--marigold); animation: ks-cue 2.6s var(--ease) infinite; }
 @keyframes ks-cue { to { top: 100%; } }
@@ -270,3 +272,8 @@ html.ks-lock { overflow: hidden; }
   .ks .feat.left.m-wide .wide { margin-left: -75%; }
   .ks .features { overflow: hidden; }
 }
+
+/* the Impact-style headlines, on trial (?type=impact): tall, condensed, uppercase */
+.ks[data-type="impact"] :is(h1, h2) { font-family: var(--font-impact), Impact, "Arial Narrow", sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0; line-height: .94; }
+.ks[data-type="impact"] h1 { font-size: clamp(54px, 8.4vw, 140px); }
+.ks[data-type="impact"] h2 { font-size: clamp(38px, 5.4vw, 88px); }

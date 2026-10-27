@@ -75,12 +75,16 @@ export function Action({
 }
 
 /** The iPhone 17 Pro in Cosmic Orange, drawn in CSS (phone.css). */
-export function Phone({ screen }: { screen: string }) {
+export function Phone({ screen, children }: { screen?: string; children?: ReactNode }) {
   return (
     <div className="iphone">
       <span className="btns" aria-hidden="true" />
       <div className="glass">
-        <Drawn html={screen} className="scr-host" />
+        {children ? (
+          <div className="scr-host">{children}</div>
+        ) : (
+          <Drawn html={screen ?? ""} className="scr-host" />
+        )}
         <span className="island" aria-hidden="true" />
         <span className="home" aria-hidden="true" />
       </div>
@@ -103,10 +107,12 @@ export function Kinetic({ text }: { text: string }) {
   );
 }
 
-/** The class's paid seats as a row of rings, the held ones filled, with the words beside them. The count
- *  comes from offer.ts (paidSeatsTaken), so it only ever shows real seats. */
+/** The class's paid seats as a row of rings, the held ones filled, with the words beside them, shown only
+ *  when one or two seats are left. The count comes from offer.ts (paidSeatsTaken). */
 export function Seats({ label, className = "" }: { label?: string; className?: string }) {
-  if (!label) return null;
+  const left = MP.paidSeats - MP.paidSeatsTaken;
+  // only real scarcity is shown: with three or more seats open, nothing is
+  if (!label || left > 2 || left < 1) return null;
   return (
     <p className={`seats ${className}`}>
       <span className="seat-row" aria-hidden="true">

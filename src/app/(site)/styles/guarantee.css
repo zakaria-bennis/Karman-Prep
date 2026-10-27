@@ -298,17 +298,6 @@
   opacity: 0.45;
   transition-delay: 0s;
 }
-.ks .gx-hint {
-  margin: -18px 0 0;
-  font-size: 14px;
-  color: var(--ink2);
-  text-align: center;
-}
-@media (hover: none) {
-  .ks .gx-hint {
-    display: none;
-  }
-}
 
 /* the promise, big */
 .ks .gx-promise {
@@ -330,12 +319,11 @@
   font-size: 16px;
   max-width: 52ch;
 }
-
-/* the two sides, joined by two rings */
+/* the two sides */
 .ks .gx-deal {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr);
-  gap: clamp(16px, 3vw, 48px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 80px);
   align-items: start;
 }
 .ks .gx-side h3 {
@@ -378,66 +366,13 @@
 .ks .gx-side.on li path {
   stroke-dashoffset: 0;
 }
-.ks .gx-rings {
-  position: sticky;
-  top: 40vh;
-  display: grid;
-  place-items: center;
-  padding-top: 34px;
-}
-.ks .gx-rings svg {
-  width: 120px;
-  fill: none;
-  stroke-width: 2.4;
-  overflow: visible;
-}
-.ks .gx-rings .r {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transform-box: fill-box;
-  transform-origin: center;
-  transition:
-    stroke-dashoffset 1.4s var(--ease) 0.3s,
-    transform 1.1s var(--spring);
-}
-.ks .gx-rings .a {
-  stroke: var(--ink);
-  transform: translateX(-14px);
-}
-.ks .gx-rings .b {
-  stroke: var(--marigold);
-  transform: translateX(14px);
-}
-.ks .gx.drawn .gx-rings .r {
-  stroke-dashoffset: 0;
-  transform: none;
-}
-.ks .gx.drawn .gx-rings svg {
-  animation: gx-breathe 6s ease-in-out 3s infinite;
-}
-@keyframes gx-breathe {
-  50% {
-    transform: rotate(-6deg) scale(1.04);
-  }
-}
-@media (hover: hover) and (pointer: fine) {
-  .ks .gx-deal:hover .gx-rings .a {
-    transform: translateX(-4px) rotate(-12deg);
-  }
-  .ks .gx-deal:hover .gx-rings .b {
-    transform: translateX(4px) rotate(12deg);
-  }
-}
 
 /* the small print, which isn't small */
 .ks .gx-foot {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(20px, 3vw, 48px);
   align-items: center;
-}
-.ks .gx-ph.end .fr {
-  aspect-ratio: 5 / 4;
 }
 .ks .gx-foot > div {
   display: grid;
@@ -505,10 +440,6 @@
   .ks .gx-deal {
     grid-template-columns: 1fr;
   }
-  .ks .gx-rings {
-    position: static;
-    padding: 0;
-  }
   .ks .gx-foot {
     grid-template-columns: 1fr;
   }
@@ -522,12 +453,6 @@
     transition: none !important;
     animation: none !important;
   }
-  .ks .gx-main,
-  .ks .gx-branch,
-  .ks .gx-side li path,
-  .ks .gx-rings .r {
-    stroke-dashoffset: 0;
-  }
   .ks .gx-node {
     transform: scale(1);
   }
@@ -537,8 +462,5 @@
   .ks .gx-target,
   .ks .gx-dot {
     opacity: 1;
-  }
-  .ks .gx-rings .r {
-    transform: none;
   }
 }

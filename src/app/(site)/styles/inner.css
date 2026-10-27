@@ -227,3 +227,10 @@
   .ks .i-formcard.wide .k-pair { display: contents; }
   .ks .i-formcard.wide .k-form > .k-slot, .ks .i-formcard.wide .k-form > .btn, .ks .i-formcard.wide .k-form > .help { grid-column: 1 / -1; }
 }
+
+/* a product screen on an inner page stays inside the page */
+.ks .i-sec.features .wide { width: 100%; margin-left: 0; margin-right: 0; }
+
+/* rows with a photo beside them */
+.ks .i-sided { align-items: center; }
+.ks .rs-top { align-items: end; margin-bottom: clamp(28px, 4vw, 56px); }

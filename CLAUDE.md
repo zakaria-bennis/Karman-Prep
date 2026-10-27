@@ -4,11 +4,14 @@ Karman is a pre-launch SAT prep company run by a solo, non-technical founder,
 Zakaria Bennis. Write updates for him in plain language. The site is live at
 karmanprep.com on Cloudflare Workers, with no paying users yet.
 
-**Current direction:** sell programs that end on a specific SAT date (a small
-live cohort, private 1:1 packages on top, free entry points) instead of hours or
-monthly plans. The plan is in `docs/business-plan.md`, and every price, date and
-claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
-`CONFIRM:` there need the founder before launch.
+**Current direction (2026-10-26):** three tiers sold on their own terms, never
+tied to "ends on your SAT date" (that positioning is retired): a self-paced tier
+(question bank, Daily 10, opt-in office hours and workshops, no guarantee), a small
+live cohort, and private 1:1 tutoring. Families join a call with the company before
+any paid seat. The free practice test is the entry point, never a pricing card.
+Every price, date and claim the site may state is in `src/lib/marketing/offer.ts`;
+values marked `CONFIRM:` there need the founder before launch. Older parts of
+`docs/business-plan.md` still describe test-date programs.
 
 ## Branches
 

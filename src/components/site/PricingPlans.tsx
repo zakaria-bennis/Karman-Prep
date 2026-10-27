@@ -1,20 +1,21 @@
 "use client";
 
-// Pricing (ported from the mock's pricing.js): every price and every promise on one page. Pick the SAT date
-// and the program card, its dates and its price change to match; the guarantee sits right under the plans
-// with its whole terms; then everything side by side. Numbers come from offer.ts, words from site-copy.ts.
+// Pricing (ported from the mock's pricing.js): every paid option and every promise on one page. Pick when the
+// student wants to start and the cohort card, its dates and its price change to match; self-paced and private
+// tutoring start any day. The guarantee sits right under the plans with its whole terms; then everything side
+// by side. Numbers come from offer.ts, words from site-copy.ts.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   formatPrice as money,
-  FREE_PRACTICE_TEST as FT,
   GUARANTEE as G,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
   PRIVATE_HOURLY_RATE,
   PRIVATE_PACKAGES,
+  SELF_PACED as SP,
 } from "@/lib/marketing/offer";
 import { numberWord, SITE } from "@/lib/marketing/site-copy";
-import { Btn, delay, Icon, TextLink } from "./parts";
+import { Btn, delay, Icon } from "./parts";
 import Photo from "./Photo";
 import { ROUTES } from "./routes";
 
@@ -25,7 +26,6 @@ const month = (iso: string) =>
 type Cohort = {
   key: string;
   short: string;
-  test: string;
   start: string;
   closes: string;
   price: number;
@@ -36,29 +36,26 @@ type Cohort = {
 const DATES: Cohort[] = [
   {
     key: "mar",
-    short: MP.testDateShort,
-    test: MP.testDateLabel,
+    short: MP.startShort,
     start: noYear(MP.startLabel),
     closes: noYear(MP.enrollmentClosesLabel),
     price: MP.price,
     was: MP.regularPrice,
     split: MP.installments,
-    name: MP.name,
+    name: `The ${month(MP.startDate)} cohort`,
   },
   ...NEXT_PROGRAMS.map((p) => ({
     key: p.id,
-    short: p.testDateShort,
-    test: p.testDateLabel,
+    short: p.startShort,
     start: p.startLabel,
     closes: p.enrollmentClosesLabel,
     price: MP.regularPrice,
-    name: `The ${month(p.testDate)} SAT Program`,
+    name: `The ${month(p.startDate)} cohort`,
   })),
 ];
 
 const CLASS = MP.paidSeats + MP.scholarshipSeats;
 const INCLUDES = {
-  free: FT.includes,
   program: [
     `Two live classes a week, up to ${numberWord(CLASS)} students`,
     `${numberWord(MP.fullLengthTests, true)} full-length practice tests`,
@@ -70,13 +67,13 @@ const INCLUDES = {
   ],
   private: [
     "Weekly 60-minute sessions with a Karman tutor",
-    "Scheduled back from your test date",
+    "Scheduled around your week",
     "Practice tests, Daily 10 and our own questions",
     "The weekly live session",
     "A note to parents after every session",
   ],
 };
-// what each option includes, side by side ("" = not included)
+// what each option includes, side by side: self-paced, cohort, private ("" = not included)
 const COMPARE: [string, string, string, string][] = [
   [
     `Live classes in a group of up to ${numberWord(CLASS)}`,
@@ -86,20 +83,20 @@ const COMPARE: [string, string, string, string][] = [
   ],
   [
     "Full-length practice tests",
-    `One shorter test, ${FT.questionCount} questions`,
+    "On the platform",
     "Five, the first and the last proctored live",
     "On the platform",
   ],
   [
     "One-on-one time with a Karman tutor",
-    `A ${FT.callMinutes}-minute results call`,
+    "",
     `${MP.reviewMinutes} minutes after every full-length`,
     "Every session",
   ],
-  ["Weekly live session: test mechanics and workshops", "", "yes", "yes"],
-  ["Daily 10 and our own practice questions", "", "yes", "yes"],
+  ["Office hours and skill workshops", "When your student wants them", "yes", "yes"],
+  ["Daily 10 and our own practice questions", "yes", "yes", "yes"],
   ["Cohort group chat, answered by a tutor every day", "", "yes", ""],
-  ["Updates for parents", "", "Every week", "After every session"],
+  ["Progress for parents", "On their phone", "Every week", "After every session"],
   [
     `The guarantee: +${G.points} points or a ${G.orScore}`,
     "",
@@ -213,15 +210,35 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
           <p className="other-note" hidden={!other}>
             {S("other note")}
           </p>
-          <div className="freeline rv">
-            <p>
-              <b>{SITE["free test link"]}, $0.</b> {noYear(FT.dateLabel)}, {FT.timeLabel}.{" "}
-              {FT.durationLabel}, live on Zoom with a proctor. {INCLUDES.free.join(", ")}.
-            </p>
-            <TextLink label={S("free button")} href={`${ROUTES.test}#seat`} />
-          </div>
           <div className="cards">
-            <article className={`plan program rv ${other ? "dim" : ""}`}>
+            <article className={`plan self rv ${other ? "lift" : ""}`}>
+              <h2>{SP.name}</h2>
+              <p className="price">
+                <b className="amt">{money(SP.price)}</b>
+                <span className="per">for {SP.months} months</span>
+              </p>
+              <p className="meta">{S("self note")}</p>
+              <ul>
+                {SP.includes.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+              <a className="ghost" href={ROUTES.test}>
+                {S("self button")}
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path
+                    d="M3 8h9.5M8.5 4 12.5 8l-4 4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.9"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
+            </article>
+
+            <article className={`plan program rv ${other ? "dim" : ""}`} style={delay(0.06)}>
               <a className="badge" href="#guarantee">
                 <b>+{G.points}</b>
                 <span>{S("badge")}</span>
@@ -267,10 +284,6 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   <dd className="start">{d.start}</dd>
                 </div>
                 <div>
-                  <dt>Ends on the SAT</dt>
-                  <dd className="test">{d.test}</dd>
-                </div>
-                <div>
                   <dt>Enrollment closes</dt>
                   <dd className="closes">{d.closes}</dd>
                 </div>
@@ -286,7 +299,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               </div>
             </article>
 
-            <article className={`plan private rv ${other ? "lift" : ""}`} style={delay(0.08)}>
+            <article className={`plan private rv ${other ? "lift" : ""}`} style={delay(0.12)}>
               <h2>{SITE["private link"]}</h2>
               <div className="pay hours" role="radiogroup" aria-label="Hours">
                 {PRIVATE_PACKAGES.map((p, i) => (
@@ -313,7 +326,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   {G.private20.orScore}.
                 </span>
               </a>
-              <p className="meta">Start any time. Sessions are planned back from your test date.</p>
+              <p className="meta">Start any time.</p>
               <ul>
                 {INCLUDES.private.map((x) => (
                   <li key={x}>{x}</li>
@@ -361,7 +374,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                     <th scope="col">
                       <span className="sr">Feature</span>
                     </th>
-                    <th scope="col">{SITE["free test link"]}</th>
+                    <th scope="col">{SP.name}</th>
                     <th scope="col" className="hot">
                       {SITE["program link"]}
                     </th>
@@ -385,7 +398,9 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   ))}
                   <tr className="cost">
                     <th scope="row">Price</th>
-                    <td>$0</td>
+                    <td>
+                      {money(SP.price)} for {SP.months} months
+                    </td>
                     <td className="hot prog-cost">{money(d.price)}</td>
                     <td>{money(PRIVATE_HOURLY_RATE)} an hour</td>
                   </tr>
