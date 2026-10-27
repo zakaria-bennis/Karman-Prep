@@ -17,7 +17,14 @@ const params = new URLSearchParams(location.search);
 const set = params.get("set") ?? "instant";
 const host: HostKind = set === "end" ? "diagnostic" : set === "review" ? "review" : "skill";
 const theme = params.get("theme");
-if (theme) document.documentElement.dataset.theme = theme;
+if (theme) {
+  try {
+    localStorage.setItem("karman-theme:visitor", theme);
+  } catch {
+    /* fixture only */
+  }
+  document.documentElement.dataset.theme = theme;
+}
 
 function Host() {
   const items = useMemo(() => {
@@ -78,8 +85,52 @@ function Host() {
   );
 }
 
+const DEMOS: [string, string][] = [
+  ["Practice: reading question with a passage", "?set=instant&q=rw"],
+  ["Practice: right triangle with a figure", "?set=instant&q=geo"],
+  ["Practice: math with the calculator", "?set=instant&q=math&calc=1"],
+  ["Practice: table answer choices", "?set=instant&q=table"],
+  ["Practice: typed answer", "?set=instant&q=numeric"],
+  ["Practice set of 6: rewards, dots and streaks", "?set=instant&length=6"],
+  ["Practice set of 2 that ends in a level up", "?set=instant&length=2&levelup=1"],
+  ["Timed section of 6: mark for review and the check page", "?set=end&length=6"],
+  ["Timed section at double time", "?set=end&length=6&acc=double"],
+  ["Student with a tutor: Flag for my tutor", "?set=instant&q=math&tutor=1"],
+  ["Review mode: answers locked, explanations shown", "?set=review"],
+  ["Light theme (Warm ivory)", "?set=instant&q=rw&theme=ivory"],
+];
+
+function Menu() {
+  return (
+    <main
+      style={{ maxWidth: 640, margin: "0 auto", padding: "32px 16px", color: "var(--quiz-text)" }}
+    >
+      <h1 style={{ fontSize: 26, margin: "0 0 18px" }}>Karman quiz screen demo</h1>
+      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
+        {DEMOS.map(([label, href]) => (
+          <li key={href}>
+            <a
+              href={href}
+              style={{
+                display: "block",
+                padding: "14px 16px",
+                border: "1px solid var(--quiz-line)",
+                borderRadius: 10,
+                color: "var(--quiz-text)",
+                textDecoration: "none",
+              }}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+
+const showMenu = !params.has("set") && !params.has("q") && !params.has("length");
+document.body.style.background = "var(--quiz-bg)";
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider>
-    <Host />
-  </ThemeProvider>
+  <ThemeProvider>{showMenu ? <Menu /> : <Host />}</ThemeProvider>
 );
