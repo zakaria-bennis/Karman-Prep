@@ -1,7 +1,7 @@
 // Synthetic transfer questions for the transfer browser specs. Original text only;
 // `?questions=transfer` swaps the diagnostic questions and the daily question (decision: practice
 // and catalog keep their existing synthetic content).
-import type { DiagnosticQuestion } from "../../../../src/components/diagnostic/_hooks/useDiagnosticState";
+import type { DiagnosticQuestion } from "../../../../src/components/diagnostic/diagnostic-question";
 import type { StudentQuizQuestion } from "../../../../src/types/quiz";
 
 export const BLOCK_SYSTEM = "\\begin{cases}y\\ge x^{2}\\\\y<4\\end{cases}";

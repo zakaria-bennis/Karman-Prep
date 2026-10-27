@@ -124,14 +124,14 @@ export function Choices({
                 {mark}
                 <span className={styles.spacer} />
                 {crossButton}
-                {!state.locked && (
+                {
                   <CalculatorTableAction
                     slot="cluster"
                     rows={table.rows}
                     headers={table.header_row ?? undefined}
                     itemId={`choice:${letter}`}
                   />
-                )}
+                }
               </div>
               <div className={styles.tableScroll} onClick={pick}>
                 <QuestionTable
@@ -210,7 +210,7 @@ export function Choices({
                 data-calculator-cluster={hasCalculator ? "" : undefined}
               >
                 {crossButton}
-                {q.subject === "math" && !state.locked && (
+                {q.subject === "math" && (
                   <CalculatorChoiceAction text={c.choice_text} letter={letter} stem={stem} />
                 )}
               </div>

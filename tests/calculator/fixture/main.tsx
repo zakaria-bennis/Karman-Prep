@@ -9,7 +9,7 @@ import { QuizProvider } from "../../../src/contexts/QuizContext";
 import QuizEngine from "../../../src/components/learn/QuizEngine";
 import type { MappedNode } from "../../../src/components/learn/ConstellationMap";
 import DiagnosticClient from "../../../src/components/diagnostic/DiagnosticClient";
-import type { DiagnosticQuestion } from "../../../src/components/diagnostic/_hooks/useDiagnosticState";
+import type { DiagnosticQuestion } from "../../../src/components/diagnostic/diagnostic-question";
 import DailyChallenge from "../../../src/components/learn/DailyChallenge";
 import LearnLayout from "../../../src/components/learn/LearnLayout";
 import type { DailySlot } from "../../../src/lib/daily-challenge/server";

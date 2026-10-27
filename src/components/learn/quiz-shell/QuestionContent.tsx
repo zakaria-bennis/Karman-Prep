@@ -60,12 +60,12 @@ export function QuestionContent(p: QuestionContentProps) {
         onFlag={p.onFlag}
         onToggleEliminator={p.onToggleEliminator}
       />
-      {p.figureHere && <FigureSlot q={q} calculator={p.hasCalculator && !locked} />}
+      {p.figureHere && <FigureSlot q={q} calculator={p.hasCalculator} />}
       <h2 data-ink-block="stem" className={shell.stem}>
         <MathText
           text={q.question_text}
           serializedFunctionLines={q.subject === "math"}
-          calculator={p.hasCalculator && !locked && q.subject === "math"}
+          calculator={p.hasCalculator && q.subject === "math"}
         />
       </h2>
       {q.answer_format === "numeric_entry" ? (
