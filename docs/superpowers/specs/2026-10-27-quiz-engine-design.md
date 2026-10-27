@@ -469,9 +469,8 @@ exact source tables.
   - The running total is the sum. A view or a cached column is the plan's choice.
   - RLS lets students read their own rows. Tutors and admins can read their
     students' rows. Only the server writes.
-- **Level-up data.** The grading response adds `band_before` and `band_after` for
-  the question's skill, read from the existing confidence-band data. No new
-  table is needed.
+- **Level-up data.** `actionCompleteQuiz` adds `bandBefore` to its result. Its
+  existing `confidenceBand` is the band after. No new table is needed.
 
 ## Figure contract (with the figure system session)
 
@@ -651,19 +650,22 @@ the diagnostic, full tests) or locked mode.
 
 ### Level up
 
-- **What triggers it:**
-  - Karman already tracks a confidence band per skill: struggling, developing,
-    proficient, mastered.
-  - The grading response returns the skill's band before and after the answer.
-  - When the band moves up, a level-up card springs up from the bottom bar after
-    the normal reward.
+- **When the band changes:** Karman tracks a confidence band per skill
+  (struggling, developing, proficient, mastered) in `learn_node_status`. The band
+  is recomputed only when a skill-practice set is completed (`actionCompleteQuiz`),
+  not after each answer. This was found while writing the plan, and the founder
+  was told.
+- **What triggers it:** `actionCompleteQuiz` returns the band before and after.
+  When it moves up, the level-up card springs up from the bottom bar after the
+  last question's reward, before the results screen.
 - **The card:**
   - The skill's name and its new band, for example "Linear equations,
     Proficient".
   - A larger constellation drawing that connects star by star.
   - A short fanfare.
 - **Limits:**
-  - It plays once per band change and never for a band moving down.
+  - It plays once per band change, never for a band moving down, and only in
+    skill practice, the one host that has bands.
   - Next dismisses it.
 - **Perfect Daily 10:** the results screen gets the largest celebration, once.
 
@@ -747,7 +749,7 @@ the diagnostic, full tests) or locked mode.
     correctly and switch to "3 of 27" past 12 questions, and that streaks trigger
     at 3 and 5.
   - Component tests that the points chip shows 10 or 15 from the server's award,
-    that level-up fires only when the band moves up, that Next cancels a reward,
+    that level-up fires only when the completed set's band moves up, that Next cancels a reward,
     that the sound preference is honoured, and that reduced motion leaves still
     pictures.
   - A server test that one graded response awards points exactly once.
