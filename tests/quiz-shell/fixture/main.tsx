@@ -47,10 +47,16 @@ function Host() {
         const isCorrect = answer.trim() === item.key.correct_answer;
         setReviews((r) => ({ ...r, [id]: { ...item.key, isCorrect, studentAnswer: answer } }));
       }}
-      onFinish={() => setDone(true)}
+      onFinish={(reason) => {
+        setDone(true);
+        (globalThis as { __finish?: string }).__finish = reason ?? "submit";
+      }}
+      onExit={() => setDone(true)}
+      onReportProblem={() => undefined}
       reviews={reviews}
       startedAtMs={Number(params.get("started") ?? Date.now())}
-      hasCalculator={false}
+      hasCalculator={params.get("calc") === "1"}
+      accommodation={(params.get("acc") as "standard" | "double" | null) ?? "standard"}
     />
   );
 }

@@ -118,3 +118,14 @@ describe("other answer formats", () => {
     expect(container.querySelector("[data-ink-figure] svg")).toBeTruthy();
   });
 });
+
+describe("clock", () => {
+  it("a countdown shows a timer unless the host draws its own", () => {
+    const mode = modeFor("timed", { baseSeconds: 600, hasTutor: false });
+    const { unmount } = setup({ mode });
+    expect(screen.getByRole("timer")).toBeTruthy();
+    unmount();
+    setup({ mode, hideClock: true });
+    expect(screen.queryByRole("timer")).toBeNull();
+  });
+});

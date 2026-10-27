@@ -310,3 +310,14 @@
 .shell[data-finger-draw="true"] [data-quiz-pane] {
   touch-action: none;
 }
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.slot {
+  display: contents;
+}

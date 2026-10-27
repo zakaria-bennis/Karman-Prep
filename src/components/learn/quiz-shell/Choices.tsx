@@ -157,7 +157,10 @@ export function Choices({
               onClick={pick}
               whileTap={disabled || reduced || pencilOn ? undefined : { scale: 0.985 }}
               animate={isWrong && !reduced ? { x: [0, -5, 5, -3, 0] } : { x: 0 }}
-              transition={BOUNCE}
+              // A spring cannot run a five-keyframe shake; the shake is a short tween.
+              transition={
+                isWrong ? { x: { type: "tween", duration: 0.32, ease: "easeOut" } } : BOUNCE
+              }
             >
               <span data-choice-badge className={styles.badge}>
                 <AnimatePresence>
