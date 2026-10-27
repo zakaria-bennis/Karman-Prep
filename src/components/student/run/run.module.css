@@ -170,6 +170,7 @@
   position: absolute;
   top: calc(var(--band-h) + 8px);
   left: 8px;
+  max-width: calc(100% - 16px);
   z-index: 3;
   display: flex;
   flex-wrap: wrap;

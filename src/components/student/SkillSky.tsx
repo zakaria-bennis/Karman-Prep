@@ -6,7 +6,7 @@ import { BAND_LABEL } from "@/lib/student/mastery";
 import { seededRandom } from "@/lib/student/assemble";
 import type { SkillView, StudentHome } from "@/lib/student/home-model";
 import { BandGlyph, CloseIcon } from "./icons";
-import { Layer } from "./Layer";
+import { Layer, useEscape } from "./Layer";
 import s from "./student.module.css";
 
 type Domain = StudentHome["domains"][number];
@@ -196,6 +196,7 @@ export function SkillSheet({
   onClose(): void;
 }) {
   const reduce = useReducedMotion();
+  useEscape(onClose);
   return (
     <Layer>
       <motion.div

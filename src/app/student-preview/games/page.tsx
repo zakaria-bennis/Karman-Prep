@@ -4,12 +4,12 @@ import s from "@/components/student/student.module.css";
 
 export default function GamesPreview() {
   return (
-    <div className={s.page}>
+    <div className={s.page} style={{ minWidth: 0 }}>
       <h1 className={s.h1}>Games</h1>
-      <section className={s.panel} aria-label="Wordline">
+      <section aria-label="Wordline" style={{ minWidth: 0 }}>
         <DailyWordLab />
       </section>
-      <section id="word-parts" className={s.panel} aria-label="Word parts">
+      <section id="word-parts" aria-label="Word parts" style={{ minWidth: 0 }}>
         <WordPartFlashcards />
       </section>
     </div>

@@ -15,7 +15,7 @@ import {
   ThemeIcon,
   TrialIcon,
 } from "./icons";
-import { LAYER_ID } from "./Layer";
+import { LAYER_ID, useEscape } from "./Layer";
 import s from "./student.module.css";
 
 const NAV = [
@@ -93,6 +93,7 @@ export function AppFrame({ base, children }: { base: string; children: ReactNode
 
 function ThemeSheet({ onClose }: { onClose(): void }) {
   const { theme, setTheme } = useTheme();
+  useEscape(onClose);
   return (
     <>
       <motion.div
