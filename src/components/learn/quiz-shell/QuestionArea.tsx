@@ -65,7 +65,6 @@ export function QuestionArea({
         <motion.div
           key={questionKey}
           ref={frame}
-          data-calculator-dock-shift=""
           className={styles.frame}
           style={{ "--split": `${split * 100}%` } as React.CSSProperties}
           custom={direction}

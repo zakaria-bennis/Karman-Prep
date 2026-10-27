@@ -23,6 +23,11 @@ const server = await createServer({
       { find: "@clerk/nextjs", replacement: path.join(fixture, "platform.tsx") },
       { find: "@/app/appearance/actions", replacement: path.join(fixture, "platform.tsx") },
       { find: "@/app/learn/quiz-actions", replacement: path.join(fixture, "actions.ts") },
+      // The shared quiz shell's saved-question actions (founder-approved test-only change).
+      {
+        find: "@/app/learn/saved-question-actions",
+        replacement: path.join(root, "tests/quiz-shell/fixture/actions.ts"),
+      },
       { find: "@/lib/sounds", replacement: path.join(fixture, "platform.tsx") },
       { find: "@sentry/nextjs", replacement: path.join(fixture, "platform.tsx") },
       { find: "next/navigation", replacement: path.join(fixture, "platform.tsx") },

@@ -99,7 +99,7 @@ test("TR-70 a question change discards held payloads, and transfers never change
   });
   await open(page);
   await clickControl(page, "y>2x+1");
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect(rowItem(page)).toBeVisible();
   expect(await rows(page)).toEqual([""]);
   await page.waitForTimeout(500);

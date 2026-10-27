@@ -3,7 +3,7 @@ import type { CatalogSkill } from "../../../src/data/curriculum/skill-catalog";
 import type { CatalogStudentSession } from "../../../src/lib/catalog-practice/student-entry";
 import { catalogQuestions, catalogSession } from "./catalog-actions";
 import { createRoot } from "react-dom/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeProvider, useTheme } from "../../../src/components/shared/ThemeProvider";
 import { QuizProvider } from "../../../src/contexts/QuizContext";
 import QuizEngine from "../../../src/components/learn/QuizEngine";
@@ -51,7 +51,20 @@ const questions: DiagnosticQuestion[] = Array.from({ length: 3 }, (_, i) => ({
   correct: "A",
   explanation: "Synthetic calculator fixture.",
 }));
+/** The Challenge question opens full screen on a tap; the specs start with it open. */
+function useOpenDaily() {
+  useEffect(() => {
+    if (flow !== "daily") return;
+    const open = () =>
+      [...document.querySelectorAll("button")]
+        .find((b) => /^Answer the (Math|Reading & Writing) challenge$/.test(b.textContent ?? ""))
+        ?.click();
+    const t = setTimeout(open, 0);
+    return () => clearTimeout(t);
+  }, []);
+}
 function Flow({ session }: { session: number }) {
+  useOpenDaily();
   return flow === "daily" ? (
     <DailyChallenge
       math={

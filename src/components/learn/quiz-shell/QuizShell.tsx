@@ -309,92 +309,96 @@ export function QuizShell(props: QuizShellProps) {
             />
             {s.pencilOn && layout !== "compact" && strip}
           </div>
-          {content ?? (
-            <QuestionArea
-              layout={layout}
-              questionKey={q.id}
-              direction={direction}
-              wrap={(c) => (
-                <CalculatorFrame
-                  enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
-                  attemptKey={attemptKey}
-                  questionId={q.id}
-                  open={calcOpen}
-                  onOpenChange={setCalcOpen}
-                  dockTop={dockTop}
-                >
-                  {c}
-                </CalculatorFrame>
-              )}
-              passage={
-                hasPassage(q) ? (
+          <div className={styles.body} data-calculator-dock-shift="">
+            {content ?? (
+              <QuestionArea
+                layout={layout}
+                questionKey={q.id}
+                direction={direction}
+                wrap={(c) => (
+                  <CalculatorFrame
+                    enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
+                    attemptKey={attemptKey}
+                    questionId={q.id}
+                    open={calcOpen}
+                    onOpenChange={setCalcOpen}
+                    dockTop={dockTop}
+                  >
+                    {c}
+                  </CalculatorFrame>
+                )}
+                passage={
+                  hasPassage(q) ? (
+                    <>
+                      {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                      <PassageBlock q={q} />
+                      {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                    </>
+                  ) : null
+                }
+                question={
                   <>
-                    {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
-                    <PassageBlock q={q} />
-                    {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                    <QuestionContent
+                      q={q}
+                      number={index + 1}
+                      mode={mode}
+                      ws={ws}
+                      review={review}
+                      bookmarked={!!s.saved[q.id]}
+                      flagged={s.saved[q.id] === "tutor_flag"}
+                      eliminatorOn={eliminatorOn}
+                      figureHere={!hasPassage(q)}
+                      hasCalculator={!!props.hasCalculator}
+                      pickOffer={s.pickOffer}
+                      onAnswer={answerWith}
+                      onCross={(letter) => s.act({ type: "toggleCross", letter })}
+                      onToggleReview={() =>
+                        s.act({ type: "toggleReview", allowed: mode.markForReview })
+                      }
+                      onToggleBookmark={toggleBookmark}
+                      onFlag={(note) => {
+                        s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
+                        props.onFlagForTutor?.(q.id, note);
+                      }}
+                      onToggleEliminator={() => setEliminatorOn((v) => !v)}
+                    />
+                    {props.feedback}
                   </>
-                ) : null
-              }
-              question={
-                <>
-                  <QuestionContent
-                    q={q}
-                    number={index + 1}
-                    mode={mode}
-                    ws={ws}
-                    review={review}
-                    bookmarked={!!s.saved[q.id]}
-                    flagged={s.saved[q.id] === "tutor_flag"}
-                    eliminatorOn={eliminatorOn}
-                    figureHere={!hasPassage(q)}
-                    hasCalculator={!!props.hasCalculator}
-                    pickOffer={s.pickOffer}
-                    onAnswer={answerWith}
-                    onCross={(letter) => s.act({ type: "toggleCross", letter })}
-                    onToggleReview={() =>
-                      s.act({ type: "toggleReview", allowed: mode.markForReview })
-                    }
-                    onToggleBookmark={toggleBookmark}
-                    onFlag={(note) => {
-                      s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
-                      props.onFlagForTutor?.(q.id, note);
-                    }}
-                    onToggleEliminator={() => setEliminatorOn((v) => !v)}
-                  />
-                  {props.feedback}
-                </>
-              }
-            />
-          )}
-          <div className={styles.barGroup}>
-            {props.levelUp && (
-              <LevelUpCard
-                skill={props.levelUp.skill}
-                before={props.levelUp.before}
-                after={props.levelUp.after}
-                onDone={() => props.onLevelUpDone?.()}
+                }
               />
             )}
-            {s.pencilOn && layout === "compact" && strip}
-            {instant && review && !checking && (
-              <FeedbackBar
-                key={q.id}
-                correct={review.isCorrect}
-                points={review.points ?? 0}
-                streak={rewards.streak}
-                showStreak={reward.showStreak}
-                drawing={drawing}
+            <div className={styles.barGroup}>
+              {props.levelUp && (
+                <LevelUpCard
+                  skill={props.levelUp.skill}
+                  before={props.levelUp.before}
+                  after={props.levelUp.after}
+                  onDone={() => props.onLevelUpDone?.()}
+                />
+              )}
+              {s.pencilOn && layout === "compact" && strip}
+              {instant && review && !checking && (
+                <FeedbackBar
+                  key={q.id}
+                  correct={review.isCorrect}
+                  points={review.points ?? 0}
+                  streak={rewards.streak}
+                  showStreak={reward.showStreak}
+                  drawing={drawing}
+                />
+              )}
+              <BottomBar
+                index={index}
+                total={total}
+                canBack={checking || index > 0}
+                onBack={() => (checking ? setChecking(false) : props.onNavigate(index - 1))}
+                onOpenNavigator={() => setDialog("nav")}
+                centre={
+                  checking ? <span className={styles.counter}>Check your work</span> : progress
+                }
+                primary={primary}
               />
-            )}
-            <BottomBar
-              index={index}
-              total={total}
-              canBack={checking || index > 0}
-              onBack={() => (checking ? setChecking(false) : props.onNavigate(index - 1))}
-              onOpenNavigator={() => setDialog("nav")}
-              centre={checking ? <span className={styles.counter}>Check your work</span> : progress}
-              primary={primary}
-            />
+            </div>
           </div>
           {dialog === "nav" && (
             <NavigatorDialog
@@ -460,22 +464,24 @@ function ShellSkeleton({ layout }: { layout: string }) {
       <header data-quiz-bar="top" className={`${styles.topBar} ${styles.glass}`}>
         <div className={styles.skeleton} style={{ width: 160, height: 28 }} />
       </header>
-      <div className={styles.area}>
-        <div className={styles.pane} style={{ position: "absolute", inset: 0 }}>
-          <div className={styles.column}>
-            {[90, 75, 60, 100, 100, 100, 100].map((w, i) => (
-              <div
-                key={i}
-                className={styles.skeleton}
-                style={{ width: `${w}%`, height: i < 3 ? 18 : 52, marginBottom: 14 }}
-              />
-            ))}
+      <div className={styles.body}>
+        <div className={styles.area}>
+          <div className={styles.pane} style={{ position: "absolute", inset: 0 }}>
+            <div className={styles.column}>
+              {[90, 75, 60, 100, 100, 100, 100].map((w, i) => (
+                <div
+                  key={i}
+                  className={styles.skeleton}
+                  style={{ width: `${w}%`, height: i < 3 ? 18 : 52, marginBottom: 14 }}
+                />
+              ))}
+            </div>
           </div>
         </div>
+        <footer data-quiz-bar="bottom" className={`${styles.bottomBar} ${styles.glass}`}>
+          <div className={styles.skeleton} style={{ width: 96, height: 44 }} />
+        </footer>
       </div>
-      <footer data-quiz-bar="bottom" className={`${styles.bottomBar} ${styles.glass}`}>
-        <div className={styles.skeleton} style={{ width: 96, height: 44 }} />
-      </footer>
     </div>
   );
 }

@@ -4,7 +4,7 @@
   inset: 0;
   z-index: 70;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--quiz-bg);
   color: var(--quiz-text);
   font-size: calc(1rem * var(--quiz-text-scale, 1));
@@ -320,4 +320,13 @@
 }
 .slot {
   display: contents;
+}
+
+/* Everything under the top bar. A docked calculator shifts this whole block (question and
+   bottom bar together), so the dock never covers Back, the counter or Next. */
+.body {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  min-width: 0;
 }
