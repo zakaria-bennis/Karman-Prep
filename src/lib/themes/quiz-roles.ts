@@ -1,4 +1,4 @@
-import type { SiteTheme } from "./palettes";
+import { SITE_THEMES, type SiteTheme } from "./palettes";
 
 function channels(hex: string): number[] {
   return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
@@ -47,4 +47,14 @@ export function quizRoles(theme: SiteTheme): Record<string, string> {
     "quiz-pen-4": theme.math,
     "quiz-pen-5": success,
   };
+}
+
+/** The quiz roles for every account theme, as its own stylesheet (palettes.ts stays untouched). */
+export function quizRoleStyleSheet(): string {
+  return SITE_THEMES.map((theme) => {
+    const declarations = Object.entries(quizRoles(theme))
+      .map(([k, v]) => `--${k}:${v}`)
+      .join(";");
+    return `html[data-theme="${theme.id}"]{${declarations}}`;
+  }).join("\n");
 }

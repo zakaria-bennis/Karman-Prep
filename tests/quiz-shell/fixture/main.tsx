@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { useMemo, useState } from "react";
 import "../../../src/app/globals.css";
 import { themeStyleSheet } from "../../../src/lib/themes/palettes";
+import { quizRoleStyleSheet } from "../../../src/lib/themes/quiz-roles";
 import { ThemeProvider } from "../../../src/components/shared/ThemeProvider";
 import { QuizShell } from "../../../src/components/learn/quiz-shell/QuizShell";
 import { modeFor, type HostKind } from "../../../src/lib/quiz/mode";
@@ -9,7 +10,7 @@ import type { StudentQuizReview } from "../../../src/types/quiz";
 import { FIXTURE, longSet } from "./questions";
 
 const sheet = document.createElement("style");
-sheet.textContent = themeStyleSheet();
+sheet.textContent = `${themeStyleSheet()}\n${quizRoleStyleSheet()}`;
 document.head.append(sheet);
 
 const params = new URLSearchParams(location.search);
