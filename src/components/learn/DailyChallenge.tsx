@@ -1,27 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Calculator } from "lucide-react";
 import { actionReviewDailyAnswer } from "@/app/learn/daily-challenge-actions";
 import type { DailySlot } from "@/lib/daily-challenge/server";
 import type { DailySubject } from "@/lib/daily-challenge/selection";
-import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
-import MathText from "./MathText";
-import ReviewedSinglePassage from "./ReviewedSinglePassage";
-import QuestionTable from "./QuestionTable";
-import ChartFigure from "./ChartFigure";
-import GeometryFigure from "./GeometryFigure";
-import FigureFrame from "./FigureFrame";
-import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
-import {
-  CalculatorChoiceAction,
-  CalculatorTableAction,
-} from "@/components/calculator/CalculatorSourceAction";
+import type { StudentQuizReview } from "@/types/quiz";
 import { makeQuestionKey } from "@/components/calculator/question-key";
-import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
-import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
-import { figureLeadsText } from "@/lib/figures/figure-order";
+import { modeFor } from "@/lib/quiz/mode";
+import { clearWorkspaces } from "@/lib/quiz/workspace";
+import {
+  actionFlagForTutor,
+  actionQuizStudentState,
+  actionReportProblem,
+  actionToggleBookmark,
+} from "@/app/learn/saved-question-actions";
+import { QuizShell } from "./quiz-shell/QuizShell";
+import { CalculatorIcon, ReferenceIcon } from "./quiz-shell/icons";
 
 const subjectName: Record<DailySubject, string> = {
   math: "Math",
@@ -62,12 +57,14 @@ export default function DailyChallenge({ math, reading }: DailyChallengeProps) {
 }
 
 function DailySlotCard({ subject, slot }: { subject: DailySubject; slot: DailySlot }) {
-  const Icon = subject === "math" ? Calculator : BookOpen;
+  const Icon = subject === "math" ? CalculatorIcon : ReferenceIcon;
   const accent = subject === "math" ? "text-math" : "text-rw";
   return (
     <article className="min-w-0 border border-bronze bg-surface p-5 sm:p-7">
       <div className="flex items-center gap-3">
-        <Icon className={`h-5 w-5 ${accent}`} aria-hidden="true" />
+        <span className={accent}>
+          <Icon size={20} />
+        </span>
         <h3 className="font-plex-serif text-2xl text-ivory">{subjectName[subject]}</h3>
       </div>
       {slot.state === "ready" ? (
@@ -86,7 +83,7 @@ function DailySlotCard({ subject, slot }: { subject: DailySubject; slot: DailySl
             href={`/learn/${subject}`}
             className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-gold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
           >
-            Explore {subjectName[subject]} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            Explore {subjectName[subject]}
           </Link>
         </div>
       )}
@@ -96,31 +93,29 @@ function DailySlotCard({ subject, slot }: { subject: DailySubject; slot: DailySl
 
 function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }>["value"] }) {
   const { question: q, subject, day } = value;
-  const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [answer, setAnswer] = useState("");
+  const attemptKey = makeQuestionKey(`daily-${day}`, q.id);
+  const [open, setOpen] = useState(false);
   const [review, setReview] = useState<StudentQuizReview | null>(null);
-  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showExplanation, setShowExplanation] = useState(false);
-  const transferChoices = subject === "math"; // the scope below is enabled for math only
-  const clusterPadding = transferChoices ? " pr-14" : "";
-  const stem = useMemo(
-    () => ({ text: q.question_text, serializedFunctionLines: true }),
-    [q.question_text]
-  );
+  const [pending, setPending] = useState(false);
+  const [student, setStudent] = useState<{
+    hasTutor: boolean;
+    saved: Record<string, "bookmark" | "tutor_flag">;
+  }>({ hasTutor: false, saved: {} });
 
-  async function submitAnswer() {
+  function openShell() {
+    setOpen(true);
+    actionQuizStudentState({ questionIds: [q.id] })
+      .then(setStudent)
+      .catch(() => undefined);
+  }
+
+  async function submitAnswer(answer: string) {
     if (pending || review || !answer.trim()) return;
     setPending(true);
     setError(null);
     try {
-      const result = await actionReviewDailyAnswer({
-        subject,
-        day,
-        questionId: q.id,
-        answer,
-      });
-      setReview(result);
+      setReview(await actionReviewDailyAnswer({ subject, day, questionId: q.id, answer }));
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "The answer could not be checked. Try again."
@@ -131,221 +126,63 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
   }
 
   return (
-    <CalculatorScope
-      enabled={subject === "math"}
-      open={calculatorOpen}
-      onOpenChange={setCalculatorOpen}
-      questionKey={makeQuestionKey(day, q.id)}
-      dockTop={LEARN_HEADER_CLEARANCE}
-    >
-      <div className="mt-6 border-t border-bronze pt-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-taupe">
-          <span>{q.topic_cluster}</span>
-          <span>Difficulty {q.difficulty_level} of 7</span>
-        </div>
-        <QuestionContent question={q} />
-        <div className="mt-6">
-          {q.answer_format === "numeric_entry" ? (
-            <label className="block text-sm font-medium text-ivory">
-              Your answer
-              <input
-                type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                value={answer}
-                disabled={!!review || pending}
-                onChange={(event) => setAnswer(event.target.value)}
-                className="mt-2 min-h-11 w-full rounded-lg border border-bronze bg-night px-3 py-2 text-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-              />
-            </label>
-          ) : (
-            <fieldset disabled={!!review || pending}>
-              <legend className="sr-only">Choose an answer</legend>
-              <div className="space-y-2">
-                {[...q.answer_choices]
-                  .sort((left, right) => left.letter.localeCompare(right.letter))
-                  .map((choice) => {
-                    const label = (
-                      <label
-                        key={choice.id}
-                        className={`block cursor-pointer rounded-lg border p-3 focus-within:ring-2 focus-within:ring-gold ${answer === choice.letter ? "border-gold bg-gold/10" : "border-bronze bg-night"}${clusterPadding}`}
-                      >
-                        <span className="flex items-start gap-3">
-                          <input
-                            type="radio"
-                            name={`daily-${subject}-${q.id}`}
-                            value={choice.letter}
-                            checked={answer === choice.letter}
-                            onChange={() => setAnswer(choice.letter)}
-                            className="mt-1 accent-gold"
-                          />
-                          <span className="min-w-0 flex-1 text-sm leading-relaxed text-ivory">
-                            <span className="mr-2 font-semibold">{choice.letter}.</span>
-                            {choice.choice_table_data ? (
-                              <QuestionTable
-                                data={choice.choice_table_data}
-                                ariaLabel={`Choice ${choice.letter} data table`}
-                                className="mt-2 max-w-full"
-                              />
-                            ) : (
-                              <MathText
-                                text={choice.choice_text}
-                                serializedFunctionLines={subject === "math"}
-                              />
-                            )}
-                          </span>
-                        </span>
-                      </label>
-                    );
-                    if (!transferChoices) return label;
-                    // AR-11: the daily cluster, a sibling of the label (14).
-                    return (
-                      <div key={choice.id} className="group relative">
-                        {label}
-                        <div
-                          data-calculator-cluster=""
-                          className="absolute right-1 top-1 flex items-center"
-                        >
-                          {choice.choice_table_data ? (
-                            <CalculatorTableAction
-                              slot="cluster"
-                              rows={choice.choice_table_data.rows}
-                              headers={choice.choice_table_data.header_row ?? undefined}
-                              itemId={`choice:${choice.letter}`}
-                            />
-                          ) : (
-                            <CalculatorChoiceAction
-                              text={choice.choice_text}
-                              letter={choice.letter}
-                              stem={stem}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </fieldset>
-          )}
-        </div>
-        {subject === "math" && <CalculatorTrigger />}
-        <div className="mt-6">
-          <button
-            type="button"
-            onClick={submitAnswer}
-            disabled={!answer.trim() || pending || !!review}
-            className="min-h-11 rounded-xl bg-gold px-5 py-2.5 text-sm font-semibold text-night hover:bg-gold-bright focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {pending ? "Checking answer…" : review ? "Answer checked" : "Check answer"}
-          </button>
-        </div>
-        {error && (
-          <p role="alert" className="mt-3 text-sm text-error-bright">
-            {error}
-          </p>
-        )}
-        {review && (
-          <div className="mt-6 border-t border-bronze pt-5" aria-live="polite">
-            <p
-              className={`font-semibold ${review.isCorrect ? "text-success-bright" : "text-error-bright"}`}
-            >
-              {review.isCorrect ? "Correct" : "Not quite"}
-            </p>
-            <p className="mt-2 text-sm text-ivory">
-              Correct answer: <MathText text={review.correct_answer} />
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowExplanation((current) => !current)}
-              aria-expanded={showExplanation}
-              className="mt-4 min-h-11 text-sm font-semibold text-gold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
-            >
-              {showExplanation ? "Hide explanation" : "Show explanation"}
-            </button>
-            {showExplanation && <DailyExplanation review={review} subject={subject} />}
-            <p className="mt-5 text-xs leading-relaxed text-taupe">
-              This daily check does not save practice history or change skill progress.
-            </p>
-          </div>
-        )}
-      </div>
-    </CalculatorScope>
-  );
-}
-
-function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
-  const geometryReady =
-    q.figure_kind === "geometric" &&
-    q.figure_geometry_data &&
-    buildGeometrySvg(q.figure_geometry_data).renderable;
-  const figureFirst = figureLeadsText(q.subject);
-  const figure =
-    q.figure_kind === "table" && q.figure_table_data ? (
-      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
-    ) : q.figure_kind === "chart" && q.figure_chart_data ? (
-      <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />
-    ) : geometryReady ? (
-      <GeometryFigure data={q.figure_geometry_data!} className="max-w-full" />
-    ) : q.image_url || q.figure_svg ? (
-      <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
-    ) : null;
-  return (
-    <div className="mt-5 min-w-0 space-y-5 text-ivory">
-      {figureFirst && figure}
-      <ReviewedSinglePassage
-        intro={q.passage_intro}
-        passage={q.passage}
-        display={q.reviewed_passage}
-        treatBlankWord
-      />
-      {q.passage_a && (
-        <div className="font-atkinson text-base leading-relaxed">
-          <p className="mb-2 text-sm font-semibold">Text 1</p>
-          <MathText text={q.passage_a} treatBlankWord />
-        </div>
-      )}
-      {q.passage_b && (
-        <div className="font-atkinson text-base leading-relaxed">
-          <p className="mb-2 text-sm font-semibold">Text 2</p>
-          <MathText text={q.passage_b} treatBlankWord />
-        </div>
-      )}
-      {!figureFirst && figure}
-      <div className="font-atkinson text-base leading-relaxed">
-        <MathText
-          calculator={q.subject === "math"}
-          text={q.question_text}
-          serializedFunctionLines={q.subject === "math"}
-        />
-      </div>
-    </div>
-  );
-}
-
-function DailyExplanation({
-  review,
-  subject,
-}: {
-  review: StudentQuizReview;
-  subject: DailySubject;
-}) {
-  return (
-    <div className="mt-3 space-y-3 border-l-2 border-gold pl-4 text-sm leading-relaxed text-ivory">
-      <MathText text={review.explanation_text} />
-      {review.explanation_per_choice &&
-        Object.entries(review.explanation_per_choice).map(([letter, explanation]) =>
-          explanation ? (
-            <p key={letter}>
-              <span className="font-semibold">Choice {letter}: </span>
-              <MathText text={explanation} />
-            </p>
-          ) : null
-        )}
-      {subject === "math" && review.desmos_strategy && (
-        <p>
-          <span className="font-semibold">Calculator strategy: </span>
-          <MathText text={review.desmos_strategy} />
+    <div className="mt-6 border-t border-bronze pt-5">
+      <p className="text-xs text-taupe">{q.topic_cluster}</p>
+      {review ? (
+        <p className="mt-4 text-sm font-semibold text-ivory" role="status">
+          {review.isCorrect ? "Correct." : `Not quite. The answer is ${review.correct_answer}.`}
         </p>
+      ) : null}
+      <button
+        type="button"
+        onClick={openShell}
+        className="mt-5 min-h-11 rounded-xl border border-bronze px-5 py-2 text-sm font-semibold text-ivory"
+      >
+        {review
+          ? `Review the ${subjectName[subject]} challenge`
+          : `Answer the ${subjectName[subject]} challenge`}
+      </button>
+      {open && (
+        <QuizShell
+          mode={modeFor("daily", { hasTutor: student.hasTutor })}
+          questions={[q]}
+          attemptKey={attemptKey}
+          index={0}
+          section="Challenge question"
+          topic={subjectName[subject]}
+          reviews={review ? { [q.id]: review } : {}}
+          saved={student.saved}
+          hasCalculator={subject === "math"}
+          onNavigate={() => undefined}
+          onSubmit={(_, answer) => submitAnswer(answer)}
+          onFinish={() => {
+            clearWorkspaces(attemptKey);
+            setOpen(false);
+          }}
+          onExit={() => setOpen(false)}
+          onToggleBookmark={(id) =>
+            void actionToggleBookmark({ questionId: id }).catch(() => undefined)
+          }
+          onFlagForTutor={(id, note) =>
+            void actionFlagForTutor({
+              questionId: id,
+              nodeId: q.node_id ?? null,
+              note: note || null,
+            }).catch(() => undefined)
+          }
+          onReportProblem={(id, note) =>
+            void actionReportProblem({ questionId: id, nodeId: q.node_id ?? null, note }).catch(
+              () => undefined
+            )
+          }
+          feedback={
+            error ? (
+              <p role="alert" className="mt-4 text-sm">
+                {error}
+              </p>
+            ) : null
+          }
+        />
       )}
     </div>
   );
