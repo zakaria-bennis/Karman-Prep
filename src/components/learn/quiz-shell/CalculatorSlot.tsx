@@ -5,35 +5,19 @@
 import { useIsPresent } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { CalculatorScope, useCalculator } from "@/components/calculator/CalculatorScope";
+import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
 import { makeQuestionKey } from "@/components/calculator/question-key";
-import shell from "./quiz-shell.module.css";
-import { CalculatorIcon } from "./icons";
 
 export const CALC_SLOT_ID = "quiz-calculator-slot";
 
+/** The calculator's own toolbar button, unchanged (its focus return and opener memory are part
+ * of the calculator's contract), placed in the shell's top bar. */
 function CalculatorButton() {
-  const bridge = useCalculator();
   const present = useIsPresent();
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   useEffect(() => setSlot(document.getElementById(CALC_SLOT_ID)), []);
-  if (!bridge || !present || !slot) return null;
-  return createPortal(
-    <button
-      type="button"
-      className={shell.tool}
-      aria-label="Toggle Karman calculator"
-      aria-pressed={bridge.open}
-      data-calculator-trigger=""
-      onPointerEnter={bridge.prefetch}
-      onFocus={bridge.prefetch}
-      onClick={() => bridge.toggle()}
-    >
-      <CalculatorIcon />
-      <span>Calculator</span>
-    </button>,
-    slot
-  );
+  if (!present || !slot) return null;
+  return createPortal(<CalculatorTrigger />, slot);
 }
 
 export function CalculatorFrame({
