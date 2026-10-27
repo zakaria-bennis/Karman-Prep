@@ -1,3 +1,4 @@
+import { addHighlight } from "./annotations/ranges";
 import { applyInkOp, invertInkOp } from "./ink/document";
 import type { InkDocument, InkOp } from "./ink/types";
 
@@ -30,7 +31,8 @@ export type WorkspaceAction =
   | { type: "redo" }
   | { type: "addHighlight"; highlight: Highlight }
   | { type: "updateNote"; id: number; note: string }
-  | { type: "removeHighlight"; id: number };
+  | { type: "removeHighlight"; id: number }
+  | { type: "recolorHighlight"; id: number; color: HighlightColor };
 
 export function emptyWorkspace(): QuestionWorkspace {
   return {
@@ -65,12 +67,19 @@ function reduceOne(ws: QuestionWorkspace, action: WorkspaceAction): QuestionWork
     case "redo":
       return reduceInk(ws, action);
     case "addHighlight":
-      return { ...ws, highlights: [...ws.highlights, action.highlight] };
+      return { ...ws, highlights: addHighlight(ws.highlights, action.highlight) };
     case "updateNote":
       return {
         ...ws,
         highlights: ws.highlights.map((h) =>
           h.id === action.id ? { ...h, note: action.note } : h
+        ),
+      };
+    case "recolorHighlight":
+      return {
+        ...ws,
+        highlights: ws.highlights.map((h) =>
+          h.id === action.id ? { ...h, color: action.color } : h
         ),
       };
     case "removeHighlight":

@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { useMemo, useState } from "react";
 import "../../../src/app/globals.css";
 import { themeStyleSheet } from "../../../src/lib/themes/palettes";
+import { quizRoleStyleSheet } from "../../../src/lib/themes/quiz-roles";
 import { ThemeProvider } from "../../../src/components/shared/ThemeProvider";
 import { QuizShell } from "../../../src/components/learn/quiz-shell/QuizShell";
 import { modeFor, type HostKind } from "../../../src/lib/quiz/mode";
@@ -9,7 +10,7 @@ import type { StudentQuizReview } from "../../../src/types/quiz";
 import { FIXTURE, longSet } from "./questions";
 
 const sheet = document.createElement("style");
-sheet.textContent = themeStyleSheet();
+sheet.textContent = `${themeStyleSheet()}\n${quizRoleStyleSheet()}`;
 document.head.append(sheet);
 
 const params = new URLSearchParams(location.search);
@@ -47,10 +48,16 @@ function Host() {
         const isCorrect = answer.trim() === item.key.correct_answer;
         setReviews((r) => ({ ...r, [id]: { ...item.key, isCorrect, studentAnswer: answer } }));
       }}
-      onFinish={() => setDone(true)}
+      onFinish={(reason) => {
+        setDone(true);
+        (globalThis as { __finish?: string }).__finish = reason ?? "submit";
+      }}
+      onExit={() => setDone(true)}
+      onReportProblem={() => undefined}
       reviews={reviews}
       startedAtMs={Number(params.get("started") ?? Date.now())}
-      hasCalculator={false}
+      hasCalculator={params.get("calc") === "1"}
+      accommodation={(params.get("acc") as "standard" | "double" | null) ?? "standard"}
     />
   );
 }

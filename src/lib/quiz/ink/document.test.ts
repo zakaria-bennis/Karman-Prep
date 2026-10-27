@@ -46,6 +46,14 @@ describe("ink document", () => {
     const pts = Array.from({ length: 100 }, (_, i) => ({ x: i, y: i * 2 }));
     expect(simplifyStroke(pts)).toEqual([pts[0], pts[99]]);
   });
+  it("simplify keeps the shape of a closed loop", () => {
+    const loop = Array.from({ length: 41 }, (_, i) => ({
+      x: 50 + 20 * Math.cos((i / 40) * 2 * Math.PI),
+      y: 50 + 20 * Math.sin((i / 40) * 2 * Math.PI),
+    }));
+    loop[40] = { ...loop[0] }; // a pen lifts exactly where it started
+    expect(simplifyStroke(loop).length).toBeGreaterThan(8);
+  });
   it("cap keeps at most 5000 points", () => {
     const pts = Array.from({ length: 6000 }, (_, i) => ({ x: i, y: 0 }));
     expect(capStroke(pts)).toHaveLength(MAX_POINTS);

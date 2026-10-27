@@ -70,7 +70,8 @@ export function FlagIcon({ state = "off", ...p }: IconProps) {
         }}
         style={{ originX: 0, originY: 0 }}
         fill="currentColor"
-        transition={t}
+        // The wave has four keyframes, so it runs as a tween; the rise keeps the spring.
+        transition={{ ...t, rotate: { type: "tween", duration: 0.5, ease: "easeInOut" } }}
       />
     </Svg>
   );

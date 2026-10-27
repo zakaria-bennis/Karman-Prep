@@ -6,6 +6,7 @@
 // ============================================================
 
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { awardForAnswer } from "@/lib/quiz/points";
 import { revalidatePath } from "next/cache";
 import {
   fetchQuestionsForNode,
@@ -122,14 +123,28 @@ export async function actionRecordResponse(input: {
     is_correct: evaluateQuizAnswer(input.student_answer, question),
     difficulty_at_time: question.difficulty,
   });
-  return toStudentQuizReview(question, stored.is_correct, stored.student_answer);
+  const review = toStudentQuizReview(question, stored.is_correct, stored.student_answer);
+  const points = await awardForAnswer({
+    key: `lesson:${stored.id}`,
+    clerkId: userId,
+    correct: stored.is_correct,
+    difficulty: question.difficulty_level,
+    skillId: attempt.node_id,
+  });
+  return { ...review, points };
 }
 
 export async function actionCompleteQuiz(input: {
   attemptId: string;
   nodeId: string;
   subject: Subject;
-}): Promise<{ score: number; newStatus: string; confidenceBand: ConfidenceBand }> {
+}): Promise<{
+  score: number;
+  newStatus: string;
+  confidenceBand: ConfidenceBand;
+  /** The skill's band before this set, for the level-up card. */
+  bandBefore: ConfidenceBand | null;
+}> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
@@ -144,7 +159,7 @@ export async function actionCompleteQuiz(input: {
       adaptive_path: [],
     });
     revalidatePath(`/learn/${input.subject}`);
-    return completed;
+    return { ...completed, bandBefore: completed.confidenceBand };
   }
   const [questions, responses] = await Promise.all([
     fetchQuestionsForNode(input.nodeId),
@@ -154,6 +169,7 @@ export async function actionCompleteQuiz(input: {
   if (plan.targetLength === 0 || plan.responses.length < plan.targetLength) {
     throw new Error("Quiz is not complete yet");
   }
+  const bandBefore = (await fetchNodeStatusBundle(userId, input.nodeId)).confidence_band;
   const result = await completeQuizAttemptAtomic(input.attemptId, userId, input.nodeId, {
     expectedCount: plan.targetLength,
     adaptive_path: plan.responses.map((response, index) => ({
@@ -164,7 +180,7 @@ export async function actionCompleteQuiz(input: {
   });
 
   revalidatePath(`/learn/${input.subject}`);
-  return result;
+  return { ...result, bandBefore };
 }
 
 export async function actionFlagQuestion(input: {

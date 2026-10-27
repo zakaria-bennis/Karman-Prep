@@ -61,7 +61,18 @@ export async function reviewDailyAnswer(
   subject: DailySubject,
   day: string,
   questionId: string,
-  answer: string
+  answer: string,
+  /** Signed-in students earn points; the public lane passes nothing and keeps no record. */
+  reward?: {
+    clerkId: string;
+    award(input: {
+      key: string;
+      clerkId: string;
+      correct: boolean;
+      difficulty: number;
+      skillId: string | null;
+    }): Promise<0 | 10 | 15>;
+  }
 ): Promise<StudentQuizReview> {
   if (day !== utcDayKey(new Date()))
     throw new Error("A new daily question is available. Refresh the page.");
@@ -79,5 +90,15 @@ export async function reviewDailyAnswer(
   ) {
     throw new Error("Choose one of the displayed answers.");
   }
-  return toStudentQuizReview(question, evaluateQuizAnswer(answer, question), answer);
+  const isCorrect = evaluateQuizAnswer(answer, question);
+  const points = reward
+    ? await reward.award({
+        key: `daily:${day}:${subject}`,
+        clerkId: reward.clerkId,
+        correct: isCorrect,
+        difficulty: question.difficulty_level,
+        skillId: candidate.skillId ?? null,
+      })
+    : 0;
+  return { ...toStudentQuizReview(question, isCorrect, answer), points };
 }

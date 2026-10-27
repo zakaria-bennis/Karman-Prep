@@ -1,4 +1,3 @@
-import { quizRoles } from "./quiz-roles";
 export type ThemeFamily = "Dark" | "Light" | "Soft color" | "Rose & plum";
 export interface SiteTheme {
   id: string;
@@ -281,10 +280,7 @@ export function themeCssVariables(theme: SiteTheme): Record<string, string> {
 /** CSS is in the document before paint; the bootstrap only selects an allowlisted ID. */
 export function themeStyleSheet(): string {
   return SITE_THEMES.map((theme) => {
-    const declarations = Object.entries({
-      ...themeCssVariables(theme),
-      ...Object.fromEntries(Object.entries(quizRoles(theme)).map(([k, v]) => [`--${k}`, v])),
-    })
+    const declarations = Object.entries(themeCssVariables(theme))
       .map(([name, value]) => `${name}:${value}`)
       .join(";");
     return `html[data-theme="${theme.id}"]{${declarations};color-scheme:${theme.dark ? "dark" : "light"}}`;

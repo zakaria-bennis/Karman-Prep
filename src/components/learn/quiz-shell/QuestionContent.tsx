@@ -22,6 +22,7 @@ export type QuestionContentProps = {
   /** Draw the figure in the question pane (math); reading questions draw it with the passage. */
   figureHere: boolean;
   hasCalculator: boolean;
+  pickOffer: string | null;
   onAnswer(value: string | null): void;
   onCross(letter: string): void;
   onToggleReview(): void;
@@ -77,6 +78,7 @@ export function QuestionContent(p: QuestionContentProps) {
           eliminatorOn={p.eliminatorOn}
           onPick={(letter) => p.onAnswer(letter)}
           onCross={p.onCross}
+          pickOffer={p.pickOffer}
         />
       )}
       {graded && review && <Explanation q={q} review={review} />}

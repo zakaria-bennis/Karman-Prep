@@ -1,24 +1,29 @@
 "use client";
-import { useEffect, useReducer, useRef, useState, type ReactNode } from "react";
-import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
+// The one question screen every quiz uses (spec: docs/superpowers/specs/2026-10-27-quiz-engine-design.md).
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { figureLeadsText } from "@/lib/figures/figure-order";
 import type { QuizMode } from "@/lib/quiz/mode";
 import type { TimingAccommodation } from "@/lib/quiz/timer";
-import {
-  loadWorkspaces,
-  saveWorkspaces,
-  workspaceReducer,
-  type QuestionWorkspace,
-  type WorkspaceAction,
-} from "@/lib/quiz/workspace";
-import { figureLeadsText } from "@/lib/figures/figure-order";
+import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import styles from "./quiz-shell.module.css";
-import { TopBar } from "./TopBar";
+import nav from "./nav.module.css";
+import { AnnotationContext } from "./annotation-context";
 import { BottomBar } from "./BottomBar";
-import { QuestionArea } from "./QuestionArea";
-import { PassageBlock, hasPassage } from "./PassageBlock";
+import { CALC_SLOT_ID, CalculatorFrame } from "./CalculatorSlot";
 import { FigureSlot } from "./FigureSlot";
+import { PenIcon, ReferenceIcon } from "./icons";
+import { MoreMenu } from "./MoreMenu";
+import { NavigatorDialog, NavigatorGrid, squaresFor } from "./Navigator";
+import { PassageBlock, hasPassage } from "./PassageBlock";
+import { PencilContext } from "./pencil-context";
+import { PencilStrip } from "./PencilStrip";
+import { QuestionArea } from "./QuestionArea";
 import { QuestionContent } from "./QuestionContent";
+import { ReferenceSheet } from "./ReferenceSheet";
+import { Timer } from "./Timer";
+import { TopBar } from "./TopBar";
 import { useQuizLayout } from "./use-quiz-layout";
+import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
 
 export type QuizShellProps = {
@@ -33,7 +38,8 @@ export type QuizShellProps = {
   onNavigate(index: number): void;
   onSelectAnswer?(questionId: string, answer: string | null): void;
   onSubmit?(questionId: string, answer: string): void | Promise<void>;
-  onFinish?(): void;
+  /** "time" when a countdown ran out and the section submitted itself. */
+  onFinish?(reason?: "time"): void;
   onExit?(): void;
   reviews: Record<string, StudentQuizReview>;
   startedAtMs?: number;
@@ -44,136 +50,325 @@ export type QuizShellProps = {
   saved?: Record<string, "bookmark" | "tutor_flag">;
   onToggleBookmark?(questionId: string, on: boolean): void;
   onFlagForTutor?(questionId: string, note: string): void;
-  slots?: { explanation?: ReactNode };
+  onReportProblem?(questionId: string, note: string): void;
+  /** Extra content under the question (instant-mode rewards plug in here). */
+  feedback?: ReactNode;
+  /** The host draws its own clock (Time Trial); the shell shows none and never expires. */
+  hideClock?: boolean;
+  /** Replaces the counter in the bottom bar (progress dots in instant mode). */
+  progress?: ReactNode;
 };
-
-type State = { workspaces: Record<string, QuestionWorkspace> };
-type Act = { questionId: string; action: WorkspaceAction } | { load: State["workspaces"] };
-
-function reduce(state: State, act: Act): State {
-  if ("load" in act) return { workspaces: act.load };
-  return { workspaces: workspaceReducer(state.workspaces, act.questionId, act.action) };
-}
 
 export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
   const layout = useQuizLayout();
-  const [state, dispatch] = useReducer(reduce, { workspaces: {} });
-  const [saved, setSaved] = useState(props.saved ?? {});
-  const [eliminatorOn, setEliminatorOn] = useState(false);
-  const lastIndex = useRef(index);
-  const direction: 1 | -1 = index >= lastIndex.current ? 1 : -1;
-  useEffect(() => {
-    lastIndex.current = index;
-  }, [index]);
-  useEffect(() => dispatch({ load: loadWorkspaces(attemptKey) }), [attemptKey]);
-  useEffect(() => saveWorkspaces(attemptKey, state.workspaces), [attemptKey, state.workspaces]);
-
   const q = questions[index];
   const total = props.total ?? questions.length;
   const review = q ? props.reviews[q.id] : undefined;
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
-  const act = (action: WorkspaceAction) => q && dispatch({ questionId: q.id, action });
+  const s = useShellState({ attemptKey, q, mode, locked, saved: props.saved });
+  const [eliminatorOn, setEliminatorOn] = useState(false);
+  const [dialog, setDialog] = useState<"nav" | "reference" | "exit" | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [calcOpen, setCalcOpen] = useState(false);
+  const [startedAt] = useState(() => props.startedAtMs ?? Date.now());
+  const header = useRef<HTMLDivElement>(null);
+  const [dockTop, setDockTop] = useState(64);
+  const lastIndex = useRef(index);
+  const direction: 1 | -1 = index >= lastIndex.current ? 1 : -1;
+  useEffect(() => {
+    lastIndex.current = index;
+    setChecking(false);
+  }, [index]);
+  useLayoutEffect(() => {
+    if (header.current) setDockTop(Math.round(header.current.getBoundingClientRect().bottom) + 8);
+  }, [layout, s.pencilOn]);
+
   const answerWith = (value: string | null) => {
     if (!q || locked) return;
-    act({ type: "answer", value });
+    s.act({ type: "answer", value });
     props.onSelectAnswer?.(q.id, value);
   };
   const toggleBookmark = () => {
     if (!q || !mode.canBookmark) return;
-    const on = !saved[q.id];
-    setSaved(({ [q.id]: _gone, ...rest }) => (on ? { ...rest, [q.id]: "bookmark" } : rest));
+    const on = !s.saved[q.id];
+    s.setSaved(({ [q.id]: _gone, ...rest }) => (on ? { ...rest, [q.id]: "bookmark" } : rest));
     props.onToggleBookmark?.(q.id, on);
   };
-  const canNext = !!q && index + 1 < total && (mode.grading !== "instant" || !!review);
+  const togglePencil = () => {
+    s.setPencilOn(!s.pencilOn);
+    s.setTool("pen");
+  };
+  const last = index + 1 >= total;
+  const goNext = () => {
+    if (!last) return props.onNavigate(index + 1);
+    if (mode.grading === "end") return setChecking(true);
+    props.onFinish?.();
+  };
+  const canNext = !!q && (mode.grading !== "instant" || !!review);
+  const exit = () => (mode.grading === "end" ? setDialog("exit") : props.onExit?.());
+
   useShortcuts({
     pick: (letter) => {
-      if (!q || q.answer_format !== "multiple_choice") return;
+      if (!q || q.answer_format !== "multiple_choice" || checking) return;
       if (!q.answer_choices.some((c) => c.letter === letter)) return;
-      if (state.workspaces[q.id]?.crossedOut.includes(letter)) return;
+      if (s.workspaces[q.id]?.crossedOut.includes(letter)) return;
       answerWith(letter);
     },
-    mark: () => mode.markForReview && act({ type: "toggleReview", allowed: true }),
+    mark: () => mode.markForReview && s.act({ type: "toggleReview", allowed: true }),
     bookmark: toggleBookmark,
-    back: () => index > 0 && props.onNavigate(index - 1),
-    next: () => canNext && props.onNavigate(index + 1),
+    pencil: togglePencil,
+    eraser: () => {
+      s.setPencilOn(true);
+      s.setTool("eraser");
+    },
+    undo: () => s.act({ type: "undo" }),
+    redo: () => s.act({ type: "redo" }),
+    back: () => (checking ? setChecking(false) : index > 0 && props.onNavigate(index - 1)),
+    next: () => canNext && !checking && goNext(),
   });
+
   if (props.loading || !q) return <ShellSkeleton layout={layout} />;
-
-  const ws = state.workspaces[q.id];
+  const ws = s.ws;
   const answer = ws?.answer ?? null;
-  const last = index + 1 >= total;
-  const submitted = !!review;
+  const squares = squaresFor(total, questions, s.workspaces, props.reviews, s.saved, mode);
+  const math = q.subject === "math";
 
-  const primary =
-    mode.grading === "instant" && !submitted ? (
-      <button
-        type="button"
-        className={styles.primary}
-        disabled={!answer}
-        onClick={() => answer && props.onSubmit?.(q.id, answer)}
-      >
-        Submit
-      </button>
-    ) : (
-      <button
-        type="button"
-        className={styles.primary}
-        onClick={() => (last ? props.onFinish?.() : props.onNavigate(index + 1))}
-      >
-        {last ? "Finish" : "Next"}
-      </button>
-    );
+  const strip = (
+    <PencilStrip
+      tool={s.tool}
+      pen={s.pen}
+      canUndo={!!ws?.undo.length}
+      canRedo={!!ws?.redo.length}
+      canClear={!!ws?.ink.strokes.length}
+      onTool={s.setTool}
+      onPen={s.setPen}
+      onUndo={() => s.act({ type: "undo" })}
+      onRedo={() => s.act({ type: "redo" })}
+      onClear={() => ws && s.act({ type: "inkOp", op: { kind: "clear", removed: ws.ink.strokes } })}
+    />
+  );
 
-  return (
-    <div data-quiz-shell data-layout={layout} className={`${styles.shell} ${styles[layout]}`}>
-      <TopBar section={props.section} topic={props.topic ?? q.topic_cluster} />
-      <QuestionArea
-        layout={layout}
-        questionKey={q.id}
-        direction={direction}
-        passage={
-          hasPassage(q) ? (
-            <>
-              {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
-              <PassageBlock q={q} />
-              {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
-            </>
-          ) : null
-        }
-        question={
-          <QuestionContent
-            q={q}
-            number={index + 1}
-            mode={mode}
-            ws={ws}
-            review={review}
-            bookmarked={!!saved[q.id]}
-            flagged={saved[q.id] === "tutor_flag"}
-            eliminatorOn={eliminatorOn}
-            figureHere={!hasPassage(q)}
-            hasCalculator={!!props.hasCalculator}
-            onAnswer={answerWith}
-            onCross={(letter) => act({ type: "toggleCross", letter })}
-            onToggleReview={() => act({ type: "toggleReview", allowed: mode.markForReview })}
-            onToggleBookmark={toggleBookmark}
-            onFlag={(note) => {
-              setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
-              props.onFlagForTutor?.(q.id, note);
-            }}
-            onToggleEliminator={() => setEliminatorOn((v) => !v)}
-          />
-        }
-      />
-      <BottomBar
-        index={index}
-        total={total}
-        canBack={index > 0}
-        onBack={() => props.onNavigate(index - 1)}
-        onOpenNavigator={() => undefined}
-        primary={primary}
+  const primary = checking ? (
+    <button type="button" className={styles.primary} onClick={() => props.onFinish?.()}>
+      Submit section
+    </button>
+  ) : mode.grading === "instant" && !review ? (
+    <button
+      type="button"
+      className={styles.primary}
+      disabled={!answer}
+      onClick={() => answer && props.onSubmit?.(q.id, answer)}
+    >
+      Submit
+    </button>
+  ) : (
+    <button type="button" className={styles.primary} onClick={goNext}>
+      {last ? (mode.grading === "end" ? "Review" : "Finish") : "Next"}
+    </button>
+  );
+
+  const content = checking ? (
+    <div className={nav.check}>
+      <h2 className={nav.checkTitle}>Check your work</h2>
+      <p>Go back to any question before you submit this section.</p>
+      <NavigatorGrid
+        squares={squares}
+        current={-1}
+        checkPage
+        onJump={(i) => {
+          setChecking(false);
+          props.onNavigate(i);
+        }}
       />
     </div>
+  ) : null;
+
+  return (
+    <PencilContext.Provider value={s.pencil}>
+      <AnnotationContext.Provider value={s.annotations}>
+        <div
+          data-quiz-shell
+          data-layout={layout}
+          data-drawing={s.drawing || undefined}
+          data-pencil={s.pencilOn || undefined}
+          data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
+          className={`${styles.shell} ${styles[layout]}`}
+          style={{ "--quiz-text-scale": s.textSize / 100 } as React.CSSProperties}
+        >
+          <div ref={header} className={styles.barGroup}>
+            <TopBar
+              section={props.section}
+              topic={props.topic ?? q.topic_cluster}
+              centre={
+                mode.clock.kind !== "none" &&
+                !props.hideClock && (
+                  <Timer
+                    clock={mode.clock}
+                    startedAtMs={startedAt}
+                    accommodation={props.accommodation}
+                    onExpire={() => props.onFinish?.("time")}
+                  />
+                )
+              }
+              tools={
+                <>
+                  <span id={CALC_SLOT_ID} className={styles.slot} />
+                  {math && (
+                    <button
+                      type="button"
+                      className={styles.tool}
+                      aria-label="Reference"
+                      aria-haspopup="dialog"
+                      onClick={() => setDialog("reference")}
+                    >
+                      <ReferenceIcon />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.tool}
+                    aria-label="Pencil"
+                    aria-pressed={s.pencilOn}
+                    onClick={togglePencil}
+                  >
+                    <PenIcon state={s.pencilOn ? "on" : "off"} tip={`var(--quiz-pen-${s.pen})`} />
+                  </button>
+                  <MoreMenu
+                    textSize={s.textSize}
+                    onTextSize={s.setTextSize}
+                    showSounds={mode.grading === "instant"}
+                    onReport={
+                      props.onReportProblem && ((note) => props.onReportProblem!(q.id, note))
+                    }
+                    onExit={props.onExit && exit}
+                  />
+                </>
+              }
+            />
+            {s.pencilOn && layout !== "compact" && strip}
+          </div>
+          {content ?? (
+            <QuestionArea
+              layout={layout}
+              questionKey={q.id}
+              direction={direction}
+              wrap={(c) => (
+                <CalculatorFrame
+                  enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
+                  attemptKey={attemptKey}
+                  questionId={q.id}
+                  open={calcOpen}
+                  onOpenChange={setCalcOpen}
+                  dockTop={dockTop}
+                >
+                  {c}
+                </CalculatorFrame>
+              )}
+              passage={
+                hasPassage(q) ? (
+                  <>
+                    {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                    <PassageBlock q={q} />
+                    {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                  </>
+                ) : null
+              }
+              question={
+                <>
+                  <QuestionContent
+                    q={q}
+                    number={index + 1}
+                    mode={mode}
+                    ws={ws}
+                    review={review}
+                    bookmarked={!!s.saved[q.id]}
+                    flagged={s.saved[q.id] === "tutor_flag"}
+                    eliminatorOn={eliminatorOn}
+                    figureHere={!hasPassage(q)}
+                    hasCalculator={!!props.hasCalculator}
+                    pickOffer={s.pickOffer}
+                    onAnswer={answerWith}
+                    onCross={(letter) => s.act({ type: "toggleCross", letter })}
+                    onToggleReview={() =>
+                      s.act({ type: "toggleReview", allowed: mode.markForReview })
+                    }
+                    onToggleBookmark={toggleBookmark}
+                    onFlag={(note) => {
+                      s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
+                      props.onFlagForTutor?.(q.id, note);
+                    }}
+                    onToggleEliminator={() => setEliminatorOn((v) => !v)}
+                  />
+                  {props.feedback}
+                </>
+              }
+            />
+          )}
+          <div className={styles.barGroup}>
+            {s.pencilOn && layout === "compact" && strip}
+            <BottomBar
+              index={index}
+              total={total}
+              canBack={checking || index > 0}
+              onBack={() => (checking ? setChecking(false) : props.onNavigate(index - 1))}
+              onOpenNavigator={() => setDialog("nav")}
+              centre={
+                checking ? <span className={styles.counter}>Check your work</span> : props.progress
+              }
+              primary={primary}
+            />
+          </div>
+          {dialog === "nav" && (
+            <NavigatorDialog
+              compact={layout === "compact"}
+              title={props.section}
+              onClose={() => setDialog(null)}
+            >
+              <NavigatorGrid
+                squares={squares}
+                current={index}
+                onJump={(i) => {
+                  setDialog(null);
+                  props.onNavigate(i);
+                }}
+              />
+              <div className={nav.legend}>
+                <span>Solid: answered</span>
+                <span>Dashed: unanswered</span>
+                {mode.markForReview && <span>Tag: marked for review</span>}
+              </div>
+            </NavigatorDialog>
+          )}
+          {dialog === "reference" && (
+            <NavigatorDialog
+              compact={layout === "compact"}
+              title="Reference"
+              onClose={() => setDialog(null)}
+            >
+              <ReferenceSheet />
+            </NavigatorDialog>
+          )}
+          {dialog === "exit" && (
+            <NavigatorDialog
+              compact={layout === "compact"}
+              title="Leave this section?"
+              onClose={() => setDialog(null)}
+            >
+              <p>The timer keeps running while you are away.</p>
+              <div className={nav.checkActions}>
+                <button type="button" className={styles.tool} onClick={() => setDialog(null)}>
+                  Stay
+                </button>
+                <button type="button" className={styles.tool} onClick={() => props.onExit?.()}>
+                  Leave
+                </button>
+              </div>
+            </NavigatorDialog>
+          )}
+        </div>
+      </AnnotationContext.Provider>
+    </PencilContext.Provider>
   );
 }
 

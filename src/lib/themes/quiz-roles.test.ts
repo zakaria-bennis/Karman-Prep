@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SITE_THEMES, themeStyleSheet } from "./palettes";
-import { contrastRatio, quizRoles } from "./quiz-roles";
+import { SITE_THEMES } from "./palettes";
+import { contrastRatio, quizRoleStyleSheet, quizRoles } from "./quiz-roles";
 
 describe("quiz roles in every account theme", () => {
   for (const theme of SITE_THEMES)
@@ -30,7 +30,9 @@ describe("quiz roles in every account theme", () => {
         expect(contrastRatio(r["quiz-text"], r["quiz-correct-soft"])).toBeGreaterThanOrEqual(4.5);
       });
     });
-  it("the account stylesheet carries the quiz roles", () => {
-    expect(themeStyleSheet()).toMatch(/html\[data-theme="observatory"\]\{[^}]*--quiz-pen-5:#/);
+  it("the quiz role stylesheet covers every account theme", () => {
+    for (const theme of SITE_THEMES)
+      expect(quizRoleStyleSheet()).toContain(`html[data-theme="${theme.id}"]{--quiz-bg:`);
+    expect(quizRoleStyleSheet()).toMatch(/html\[data-theme="observatory"\]\{[^}]*--quiz-pen-5:#/);
   });
 });

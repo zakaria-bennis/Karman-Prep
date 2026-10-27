@@ -80,5 +80,19 @@ describe("daily challenge admission and response", () => {
     const review = await reviewDailyAnswer("math", slot.value.day, question.id, "A");
     expect(review).toMatchObject({ correct_answer: "A", isCorrect: true });
     await expect(reviewDailyAnswer("math", slot.value.day, "different", "A")).rejects.toThrow();
+    const award = vi.fn(async () => 15 as const);
+    const signedIn = await reviewDailyAnswer("math", slot.value.day, question.id, "A", {
+      clerkId: "user_s",
+      award,
+    });
+    expect(award).toHaveBeenCalledWith({
+      key: `daily:${slot.value.day}:math`,
+      clerkId: "user_s",
+      correct: true,
+      difficulty: question.difficulty_level,
+      skillId: "ma-skill",
+    });
+    expect(signedIn.points).toBe(15);
+    expect(review.points).toBe(0);
   });
 });
