@@ -35,15 +35,13 @@ any task. This plan does not repeat its reasoning.
 - Do not deploy (no `cf:deploy`). Several sessions share the Worker.
 - Replace, don't accumulate. Each host task deletes the old screen, its tests and
   its CSS in the same commit.
-- **Founder gate before Task 17.**
-  `src/components/calculator/transfer-call-sites.test.tsx` imports
-  `ActiveQuizScreen`, `TableChoiceOption`, `CatalogQuestion` and `DailyChallenge`
-  to prove the calculator's Transfer buttons appear on every answer choice.
-  Deleting those screens breaks that calculator test.
-  - **If the founder allows it,** the change is limited to that one test file:
-    point its imports at the shell's `Choices`, and keep every assertion. No
-    calculator code changes.
-  - **Without that permission,** stop before Task 17 and ask.
+- **Founder permission (2026-10-27).** In Task 17, update
+  `src/components/calculator/transfer-call-sites.test.tsx` and only that file: point
+  its imports of `ActiveQuizScreen`, `TableChoiceOption`, `CatalogQuestion` and
+  `DailyChallenge` at the shell's `Choices`, and keep every assertion. No other
+  file under the calculator folders changes.
+- **Execution:** native (one session builds every task), then one fresh
+  whole-branch review on the most capable model.
 - **Calculator imports.** `src/components/calculator/CalculatorScope.tsx` imports
   `useQuizAnimations` from `@/components/learn/quiz/QuizTools`. That export stays
   at that path for good. `src/components/learn/learn-header.ts` (checked by a
