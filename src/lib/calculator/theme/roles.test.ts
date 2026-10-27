@@ -19,11 +19,14 @@ function pal(s: SkinId): SkinPalette {
   return SKIN_COLORS[s].normal;
 }
 
-it("TH-5 the site theme picks the skin; classic when no site theme applies", () => {
-  expect(resolveSkinId("paper")).toBe("paper");
+it("TH-5 the site theme picks its calculator theme; classic when no site theme applies", () => {
+  expect(resolveSkinId("paper")).toBe("white");
+  expect(resolveSkinId("peach")).toBe("dreamsicle");
+  expect(resolveSkinId("rose")).toBe("pink");
   expect(resolveSkinId("plum")).toBe("plum");
   expect(resolveSkinId("observatory")).toBe("observatory");
   expect(resolveSkinId("classic")).toBe("classic");
+  expect(resolveSkinId("neon")).toBe("classic"); // a calculator theme, not a site theme
   expect(resolveSkinId("unknown")).toBe("classic");
   expect(resolveSkinId(undefined)).toBe("classic");
   expect(resolveSkinId(null)).toBe("classic");
@@ -99,9 +102,9 @@ it("F-A1 new rows cycle red, blue, Desmos's new-row green, purple, black and rep
     ...["c1", "c2", g, "c4", "c6"],
     ...["c1", "c2"],
   ]);
-  expect(resolveRowColor(g, "ivory").hex).toBe("#388c46");
+  expect(resolveRowColor(g, "white").hex).toBe("#388c46");
   expect(resolveRowColor(g, "observatory").hex).toBe("#c773b9");
-  expect(resolveRowColor("c3", "ivory").hex).toBe("#348543"); // the picker's green stays
+  expect(resolveRowColor("c3", "white").hex).toBe("#348543"); // the picker's green stays
 });
 
 it("F-A1 the colour after a column or row follows the new-row cycle, so red follows black", () => {
@@ -131,13 +134,13 @@ it("TH-10 a slot id resolves from the active skin and re-maps when the skin chan
       });
     }
   }
-  expect(resolveRowColor("c1", "ivory").hex).not.toBe(resolveRowColor("c1", "observatory").hex);
-  expect(resolveRowColor("not-a-colour", "paper")).toEqual(resolveRowColor("c1", "paper"));
+  expect(resolveRowColor("c1", "white").hex).not.toBe(resolveRowColor("c1", "observatory").hex);
+  expect(resolveRowColor("not-a-colour", "map")).toEqual(resolveRowColor("c1", "map"));
 });
 
 it("F-A1 an explicit colour is used as is with a 40% fill on light skins and inverted on dark skins", () => {
-  expect(resolveRowColor("#757575", "ivory")).toEqual({ hex: "#757575", fillAlpha: 0.4 });
-  expect(resolveRowColor("#FFD400", "paper")).toEqual({ hex: "#ffd400", fillAlpha: 0.4 });
+  expect(resolveRowColor("#757575", "sky")).toEqual({ hex: "#757575", fillAlpha: 0.4 });
+  expect(resolveRowColor("#FFD400", "marigold")).toEqual({ hex: "#ffd400", fillAlpha: 0.4 });
   expect(resolveRowColor("#000000", "observatory")).toEqual({ hex: "#ffffff", fillAlpha: 0.4 });
   expect(resolveRowColor("#c74440", "observatory").hex).toBe("#38bbbf");
 });

@@ -89,7 +89,7 @@ test("AR-55 after a failed load a transfer opens the window on the failure panel
   );
 });
 
-test("TR-70 a question change discards held payloads, and transfers never change display size or reverse contrast", async ({
+test("TR-70 a question change discards held payloads, and transfers never change the display size", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -107,11 +107,9 @@ test("TR-70 a question change discards held payloads, and transfers never change
   await transferByMouse(page, "f(x)=x^{2}-3");
   await expect.poll(() => rows(page)).toEqual(["f(x)=x^{2}-3"]); // the transfer itself has landed
   const s = await snapshot(page);
-  expect([s?.displaySize, s?.reverseContrast]).toEqual(["default", false]);
+  expect(s?.displaySize).toBe(3);
   // The carried student settings (owner decision, 2026-10-21) are untouched by the transfer:
   // none yet (the first question's calculator never mounted), or the defaults.
   const carried = (await windowStore(page))?.preferences ?? null;
-  expect([carried?.displaySize, carried?.reverseContrast]).toEqual(
-    carried === null ? [undefined, undefined] : ["default", false]
-  );
+  expect(carried?.displaySize).toBe(carried === null ? undefined : 3);
 });

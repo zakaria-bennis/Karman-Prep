@@ -1,31 +1,39 @@
 // The settings popover (S-1; drawn to popovers-menus.md VIS-1 to VIS-20): a region named
-// "Graph Settings" (SETTINGS-8) to the left of its Settings control, top-aligned with it, with a 12 px arrow on
-// the control's centre line. It lists the controls in the reference's order (SETTINGS-9): Display
-// Size, Reverse contrast and Braille Mode (DisplaySection), Grid with the pressed Cartesian Grid and
-// Polar Grid buttons, Arrows, the small Axis Numbers and Minor Gridlines, each axis (AxisSection),
-// More Options (MoreOptions), Complex Mode (S-5) with its hint, and the Angle Settings choice
-// (S-6, announced per A11Y-2; greyed while complex, SETTINGS-23), then Karman's own Theme picker
-// (ThemeSection, owner decision 2026-10-22). Visibility follows SETTINGS-14
-// and -15: no grid type or Minor Gridlines with the grid off, no Minor Gridlines in polar. It
-// appears and leaves at once (VIS-5). Escape (rank "popover", KB-3) or a pointerdown outside closes it.
+// "Graph Settings" (SETTINGS-8) to the left of its Settings control, top-aligned with it, with a
+// 12 px arrow on the control's centre line. Its sections (founder decision, 2026-10-26): Text Size
+// (a seven-notch slider) and the Theme picker; Grid with the Cartesian Grid and Polar Grid buttons,
+// Arrows, Axis Numbers and Minor Gridlines; each axis (AxisSection); Complex Mode (S-5) with its
+// hint and the Angle Settings choice (S-6, announced per A11Y-2; greyed while complex,
+// SETTINGS-23); Key Sounds; then More Options (axis scale, Lock Viewport and Braille Mode). Every
+// on/off setting is the same switch (SettingSwitchRow). Visibility follows SETTINGS-14 and -15: no
+// grid type or Minor Gridlines with the grid off, no Minor Gridlines in polar. It appears and
+// leaves at once (VIS-5). Escape (rank "popover", KB-3) or a pointerdown outside closes it.
 
-import { useContext, useEffect, useId, useLayoutEffect, useRef, type JSX } from "react";
+import {
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type JSX,
+} from "react";
 import type { AngleMode } from "@/lib/calculator/core/api/types";
 import { useAnnouncer } from "../a11y/announcer";
 import { EscapeContext, type EscapeStack } from "../focus/escape-stack";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { EDITOR_MESSAGES } from "../list/messages";
+import { keySoundsEnabled, setKeySoundsEnabled, subscribeKeySounds } from "../sound/key-sounds";
 import { AxisSection } from "./AxisSection";
 import {
   CartesianGlyph,
   GridTypeButton,
   PolarGlyph,
-  SettingCheck,
   SettingSegments,
-  SettingToggle,
+  SettingSwitchRow,
 } from "./controls";
-import { DisplaySection } from "./DisplaySection";
 import { MoreOptions } from "./MoreOptions";
+import { TextSizeSlider } from "./TextSizeSlider";
 import { ThemeSection } from "./ThemeSection";
 
 export interface SettingsPopoverProps {
@@ -94,6 +102,7 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
   const announcer = useAnnouncer();
   const escape = useEscapeStack();
   const radioName = useId();
+  const sounds = useSyncExternalStore(subscribeKeySounds, keySoundsEnabled, () => false);
   const ref = useRef<HTMLDivElement>(null);
   const latest = useRef({ anchor, onClose: props.onClose });
 
@@ -116,9 +125,9 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
     });
   }, [escape, open]);
 
-  // SETTINGS-32: opening moves focus to the chosen Display Size radio.
+  // SETTINGS-32: opening moves focus to the first control, the Text Size slider.
   useEffect(() => {
-    if (open) ref.current?.querySelector<HTMLInputElement>(".kc-segment > input:checked")?.focus();
+    if (open) ref.current?.querySelector<HTMLInputElement>(".kc-size-range")?.focus();
   }, [open]);
 
   useEffect(() => {
@@ -146,91 +155,91 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
   return (
     <div ref={ref} className="kc-settings" role="region" aria-label="Graph Settings">
       <div className="kc-settings-body">
-        <DisplaySection />
+        <div className="kc-settings-appearance">
+          <TextSizeSlider />
+          <ThemeSection />
+        </div>
         <div className="kc-settings-section kc-settings-grid">
-          <div className="kc-settings-grid-main">
-            <SettingCheck
-              label="Grid"
-              checked={grid}
-              onChange={(showGrid) => engine.updateSettings({ showGrid })}
+          <SettingSwitchRow
+            label="Grid"
+            checked={grid}
+            onChange={(showGrid) => engine.updateSettings({ showGrid })}
+          />
+          {grid && (
+            <div className="kc-grid-types">
+              <GridTypeButton
+                label="Cartesian Grid"
+                pressed={!settings.polarGrid}
+                onPress={() => engine.updateSettings({ polarGrid: false })}
+              >
+                <CartesianGlyph />
+              </GridTypeButton>
+              <GridTypeButton
+                label="Polar Grid"
+                pressed={settings.polarGrid}
+                onPress={() => engine.updateSettings({ polarGrid: true })}
+              >
+                <PolarGlyph />
+              </GridTypeButton>
+            </div>
+          )}
+          {grid && !settings.polarGrid && (
+            <SettingSwitchRow
+              label="Minor Gridlines"
+              checked={settings.minorGridlines}
+              onChange={(minorGridlines) => engine.updateSettings({ minorGridlines })}
             />
-            {grid && (
-              <div className="kc-grid-types">
-                <GridTypeButton
-                  label="Cartesian Grid"
-                  pressed={!settings.polarGrid}
-                  onPress={() => engine.updateSettings({ polarGrid: false })}
-                >
-                  <CartesianGlyph />
-                </GridTypeButton>
-                <GridTypeButton
-                  label="Polar Grid"
-                  pressed={settings.polarGrid}
-                  onPress={() => engine.updateSettings({ polarGrid: true })}
-                >
-                  <PolarGlyph />
-                </GridTypeButton>
-              </div>
-            )}
-            <SettingCheck
-              label="Arrows"
-              checked={settings.arrows}
-              onChange={(arrows) => engine.updateSettings({ arrows })}
-            />
-          </div>
-          <div className="kc-settings-grid-side">
-            <SettingCheck
-              label="Axis Numbers"
-              size="small"
-              checked={settings.axisNumbers}
-              onChange={(axisNumbers) => engine.updateSettings({ axisNumbers })}
-            />
-            {grid && !settings.polarGrid && (
-              <SettingCheck
-                label="Minor Gridlines"
-                size="small"
-                checked={settings.minorGridlines}
-                onChange={(minorGridlines) => engine.updateSettings({ minorGridlines })}
-              />
-            )}
-          </div>
+          )}
+          <SettingSwitchRow
+            label="Axis Numbers"
+            checked={settings.axisNumbers}
+            onChange={(axisNumbers) => engine.updateSettings({ axisNumbers })}
+          />
+          <SettingSwitchRow
+            label="Arrows"
+            checked={settings.arrows}
+            onChange={(arrows) => engine.updateSettings({ arrows })}
+          />
         </div>
         <div className="kc-settings-section kc-settings-axes">
           <AxisSection axis="x" />
           <AxisSection axis="y" />
-          <MoreOptions />
         </div>
         <div className="kc-settings-section">
-          <div className="kc-settings-complex">
-            <span aria-hidden="true">Complex Mode</span>
-            <SettingToggle
-              name="Complex Mode"
-              checked={settings.complex}
-              onChange={(complex) => engine.updateSettings({ complex })}
+          <SettingSwitchRow
+            label="Complex Mode"
+            checked={settings.complex}
+            onChange={(complex) => engine.updateSettings({ complex })}
+            hint={
+              settings.complex ? (
+                <>
+                  Try writing <i>i</i>
+                  <sup>2</sup> or √−4. Complex values are plotted as (real, imag).
+                </>
+              ) : undefined
+            }
+          />
+          <div className="kc-settings-angle">
+            <SettingSegments
+              name={`${radioName}-angle`}
+              label="Angle Settings"
+              options={ANGLES}
+              value={settings.angleMode}
+              onSelect={setAngle}
+              disabled={settings.complex}
+              title={settings.complex ? COMPLEX_USES_RADIANS : undefined}
             />
           </div>
-          {settings.complex && (
-            <div className="kc-settings-complex-hint">
-              <p>
-                Hint: try writing <i>i</i>
-                <sup>2</sup> or √−4.
-              </p>
-              <p>Note: complex values will be plotted as (real, imag)</p>
-            </div>
-          )}
         </div>
         <div className="kc-settings-section">
-          <SettingSegments
-            name={`${radioName}-angle`}
-            label="Angle Settings"
-            options={ANGLES}
-            value={settings.angleMode}
-            onSelect={setAngle}
-            disabled={settings.complex}
-            title={settings.complex ? COMPLEX_USES_RADIANS : undefined}
+          <SettingSwitchRow
+            label="Key Sounds"
+            checked={sounds}
+            onChange={setKeySoundsEnabled}
+            hint="A soft sound for each key you type or press."
           />
         </div>
-        <ThemeSection />
+        <MoreOptions />
       </div>
     </div>
   );

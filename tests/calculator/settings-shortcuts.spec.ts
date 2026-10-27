@@ -33,7 +33,7 @@ test("SETTINGS-33 Mod+/ opens the Keyboard Shortcuts dialog over the calculator;
   await expect(page.locator("#calc [data-kc-layout]")).toBeAttached();
 });
 
-test("SETTINGS-32 Mod+Alt+G opens Graph settings on Display size and closes it again", async ({
+test("SETTINGS-32 Mod+Alt+G opens Graph settings on the Text Size slider and closes it again", async ({
   page,
 }) => {
   await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
@@ -41,7 +41,7 @@ test("SETTINGS-32 Mod+Alt+G opens Graph settings on Display size and closes it a
   const isMac = await page.evaluate(() => /^Mac/.test(navigator.platform));
   const combo = isMac ? "Control+Meta+KeyG" : "Control+Alt+KeyG";
   await page.keyboard.press(combo);
-  await expect(page.getByRole("radio", { name: "Display size: default" })).toBeFocused();
+  await expect(page.getByRole("slider", { name: "Text Size" })).toBeFocused();
   await page.keyboard.press(combo);
   await expect(page.getByRole("region", { name: "Graph Settings" })).toHaveCount(0);
   // Closing puts focus on the Settings button, as Escape does.
@@ -96,18 +96,44 @@ test("SETTINGS-24 a bound applies as it is typed; an out-of-order bound marks th
   );
 });
 
-test("SETTINGS-11, -12 Large display enlarges the list math and Reverse contrast inverts the calculator", async ({
+test("SETTINGS-11 the Text Size slider has seven notches, starts on the marked default and sets the list math at each", async ({
   page,
 }) => {
   await openShell(page, `?w=1200&h=800&rows=${enc(["y=x"])}`);
-  const size = () => rowField(page, "1").evaluate((el) => getComputedStyle(el).fontSize);
+  // WebKit reports 16.190001px for 16.19px, so sizes are compared to the hundredth.
+  const size = () =>
+    rowField(page, "1").evaluate(
+      (el) => `${Math.round(parseFloat(getComputedStyle(el).fontSize) * 100) / 100}px`
+    );
   expect(await size()).toBe("20.24px");
   await openSettings(page);
-  await page.getByRole("radio", { name: "Display size: large" }).click();
-  await expect.poll(size).toBe("26.4px");
-  await page.getByRole("checkbox", { name: "Reverse contrast" }).click();
-  const filter = await page.locator("#calc .kc-app").evaluate((el) => getComputedStyle(el).filter);
-  expect(filter).toBe("invert(1)");
+  const slider = page.getByRole("slider", { name: "Text Size" });
+  await expect(slider).toBeFocused(); // SETTINGS-32: opening focuses the first control
+  await expect(slider).toHaveAttribute("aria-valuetext", "Size 3 of 7, default");
+  const notches = page.locator("#calc .kc-size-notch");
+  await expect(notches).toHaveCount(7);
+  await expect(notches.nth(2)).toHaveAttribute("data-default", "true");
+  await expect(page.locator("#calc .kc-size-notch[data-default]")).toHaveCount(1);
+  await page.keyboard.press("Home");
+  await expect.poll(size).toBe("16.19px");
+  const seen = [await size()];
+  for (let n = 2; n <= 7; n++) {
+    await page.keyboard.press("ArrowRight");
+    await expect(slider).toHaveValue(String(n));
+    seen.push(await size());
+  }
+  expect(seen).toEqual([
+    "16.19px",
+    "18.22px",
+    "20.24px",
+    "23.28px",
+    "26.4px",
+    "29.35px",
+    "32.38px",
+  ]);
+  await page.keyboard.press("ArrowRight"); // the last notch is the end
+  await expect(slider).toHaveValue("7");
+  await expect(slider).toHaveAttribute("aria-valuetext", "Size 7 of 7");
 });
 
 test("SETTINGS-20 Lock Viewport stops dragging and the wheel and removes the zoom buttons", async ({

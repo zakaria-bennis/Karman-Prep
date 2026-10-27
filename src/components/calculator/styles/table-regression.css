@@ -323,10 +323,11 @@
 .kc-tr-title {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 6px;
   height: 17px;
   color: var(--kc-text-muted);
   font-size: 11.2px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -428,7 +429,7 @@
 }
 
 .kc-tr-log + .kc-tr-footer {
-  margin-top: 13.8px;
+  margin-top: 12px;
 }
 
 .kc-tr-help {
@@ -445,46 +446,50 @@
   text-decoration: none;
 }
 
+/* STATISTICS and RESIDUALS side by side, 16 px apart, each at least 108 px wide; their titles
+   share one line, so their first values do too. */
 .kc-tr-footer {
   display: flex;
-  margin-top: 9px;
+  gap: 16px;
+  margin-top: 12px;
 }
 
 .kc-tr-group {
   display: flex;
-  flex: 0 0 130px;
+  flex: 1 1 0;
   flex-direction: column;
-  min-width: 0;
+  gap: 4px;
+  min-width: 108px;
+  max-width: 160px;
 }
 
-/* The values start right under the title; the indented r follows R² with no gap. */
 .kc-tr-group .kc-tr-title + * {
   margin-top: 0;
 }
 
 .kc-tr-group .kc-tr-title {
   height: 12px;
+  margin-bottom: 0;
 }
 
+/* Each statistic on its own 24 px line, R² and r aligned on one left edge. */
 .kc-tr-stat {
   display: flex;
-  align-items: baseline;
-  min-height: 19px;
+  align-items: center;
+  min-height: 24px;
   color: var(--kc-text);
-}
-
-.kc-tr-stat[data-label="r"] {
-  padding-left: 10.24px;
 }
 
 .kc-tr-undefined {
   font-size: 12.8px;
 }
 
+/* The residual list's name and its plot button on one 24 px line, 8 px apart. */
 .kc-tr-residual {
   display: flex;
-  align-items: flex-start;
-  gap: 7px;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
 }
 
 /* The residual's subscript is set smaller than an ordinary one, as the reference's e₁ is. */
@@ -495,11 +500,11 @@
 /* RT-26: the grey "plot" button, a light top-to-bottom fill as on the reference. */
 .kc-tr-plot {
   box-sizing: border-box;
-  height: 22px;
-  padding: 2px 8px;
-  margin: 1px 0 0 0.1px;
+  height: 24px;
+  padding: 0 10px;
+  margin: 0;
   border: 1px solid var(--kc-row-rule);
-  border-radius: 3px;
+  border-radius: 6px;
   background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
@@ -520,7 +525,7 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  margin: 1px 0 0 -7px;
+  margin: 0 0 0 -4px;
   padding: 0;
   border: none;
   background: transparent;

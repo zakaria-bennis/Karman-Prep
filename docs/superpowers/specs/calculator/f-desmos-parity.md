@@ -119,8 +119,8 @@ are both gone.
   the dark skins black (c6) is the light grey `#c4c4c4`.
 - **Checked on every skin** (owner decision, 2026-10-21): the five colours new rows take (red,
   blue, new-row green, purple, black) are each at least 3:1 on the graph paper and at least
-  OKLab ΔE 0.12 from each other and from the axis and gridline colours, on all 13 skins (classic
-  and the 12 site skins). The bar is Desmos's own closest pair, blue and purple (about 0.125 on
+  OKLab ΔE 0.12 from each other and from the axis and gridline colours, on all 21 skins (classic
+  and the calculator's 20 themes). The bar is Desmos's own closest pair, blue and purple (about 0.125 on
   white). `src/lib/calculator/theme/curve-colours.test.ts` enforces it.
 - **Shading.** Every inequality fill is 40% of its curve colour. Overlapping fills stack in row
   order with no cap.
@@ -640,7 +640,6 @@ Graph
 - **Axis weight** is not specified (owner screenshot has 2 px cream axes, heavier than Desmos's 1.5 px). Add req 7.
 - **TH-9** halo (3 px) applies to point labels only; axis numbers have no halo rule. Add req 9.
 - **TH-17** axis numbers 13 px vs Desmos ≈14 px; math 18 px vs Desmos ≈19-20 px. Minor; consider 14/19.
-- **TH-13** reverse contrast regenerates colours to 7:1, unlike Desmos's plain inversion — ours is better for
-  contrast; no change, but note Desmos keeps curve identity only by complement hue, ours should keep hue (TH-10 slots).
+- **TH-13** retired with the Reverse contrast setting (founder decision, 2026-10-26); the dark themes cover it.
 - **K-6/SC-4** require 44x44 px phone keys; Desmos uses 31x36. Ours is intentionally larger; keep.
 - **R-2** says warning marker in the gutter: matches Desmos. Founder decision 2026-10-18: match Desmos's marker (orange `#fa7e19` triangle replacing the swatch, black tooltip on hover, focus and tap). The earlier `reading` role at 7:1 no longer applies to the marker, which is a non-text icon held to 3:1 (WCAG 1.4.11): `#fa7e19` is 2.6:1 on a white list, so light skins darken it just enough to reach 3:1 and dark skins keep it unchanged. The tooltip text is white on black (21:1, above the 7:1 of TH-1).

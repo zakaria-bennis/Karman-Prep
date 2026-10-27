@@ -264,18 +264,13 @@ export function settingsFromOptions(options: CalculatorOptions): CalculatorSetti
     expressionsCollapsed: options.expressionsCollapsed ?? d.expressionsCollapsed,
     reducedMotion: options.reducedMotion ?? d.reducedMotion,
     displaySize: options.displaySize ?? d.displaySize,
-    reverseContrast: options.reverseContrast ?? d.reverseContrast,
     mode: options.mode ?? d.mode,
   });
 }
 
-/** API-6, Decision 8: DEFAULT_SETTINGS keeping only the current displaySize and reverseContrast. */
+/** API-6, Decision 8: DEFAULT_SETTINGS keeping only the current displaySize. */
 export function blankSettings(current: CalculatorSettings): CalculatorSettings {
-  return freezeSettings({
-    ...DEFAULT_SETTINGS,
-    displaySize: current.displaySize,
-    reverseContrast: current.reverseContrast,
-  });
+  return freezeSettings({ ...DEFAULT_SETTINGS, displaySize: current.displaySize });
 }
 
 /** Equal settings values: the same primitive, or two axes with equal fields. */

@@ -13,7 +13,7 @@ import {
 } from "@/components/calculator/host/quiz-host";
 import { isThemeChoice } from "@/lib/calculator/theme/choice";
 import { SKIN_COLORS } from "@/lib/calculator/theme/skin-colors.generated";
-import type { SkinId } from "@/lib/calculator/theme/skins";
+import { resolveSkinId } from "@/lib/calculator/theme/roles";
 
 interface ShellLog {
   mountedAt: number;
@@ -42,13 +42,11 @@ const reducedMotion = params.get("reducedMotion") === "1";
 const themeParam = params.get("theme");
 const defaultTheme = isThemeChoice(themeParam) ? themeParam : undefined;
 
-// The site theme, as applyTheme sets it: the calculator and its light-DOM chrome follow it.
+// The site theme, as applyTheme sets it: the calculator (its auto choice, labelled Dark) and its light-DOM chrome
+// follow the calculator theme that site theme maps to.
 const skin = params.get("skin") || "classic";
 document.documentElement.dataset.theme = skin;
-document.documentElement.classList.toggle(
-  "dark",
-  SKIN_COLORS[skin as SkinId]?.normal.dark ?? false
-);
+document.documentElement.classList.toggle("dark", SKIN_COLORS[resolveSkinId(skin)].normal.dark);
 
 const frame = document.getElementById("frame")!;
 const slot = document.getElementById("slot")!;

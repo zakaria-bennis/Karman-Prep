@@ -14,10 +14,12 @@ import { INFERENCE_STATE_KEYS, type InferenceState } from "./inference-state";
 import { MAX_CELL_CHARACTERS, MAX_TABLE_COLUMNS, MAX_TABLE_ROWS } from "./document";
 import {
   DEFAULT_SETTINGS,
+  DISPLAY_SIZES,
   type AxisSettings,
   type CalculatorOptions,
   type CalculatorSettings,
   type CalculatorState,
+  type DisplaySize,
   type ExpressionState,
   type SettingsUpdate,
   type TableRegressionState,
@@ -40,7 +42,6 @@ export const SETTINGS_KEYS: readonly (keyof CalculatorSettings)[] = Object.freez
   "lockViewport",
   "piAxisLabels",
   "displaySize",
-  "reverseContrast",
   "keypad",
   "expressionsCollapsed",
   "mode",
@@ -50,6 +51,12 @@ export const SETTINGS_KEYS: readonly (keyof CalculatorSettings)[] = Object.freez
   "brailleMode",
   "sixKeyInput",
 ] as const);
+
+/**
+ * Settings retired after saved states existed (Reverse contrast, removed 2026-10-26): accepted and
+ * dropped, so an old saved state still loads.
+ */
+const RETIRED_KEYS: readonly string[] = Object.freeze(["reverseContrast"]);
 
 /** SETTINGS-13: keys added after saved states existed; a whole settings object may leave them out. */
 const DEFAULTED_KEYS: ReadonlySet<keyof CalculatorSettings> = new Set([
@@ -113,6 +120,18 @@ function phaseOne<T>(check: Check<T>, only: T): Check<T> {
   };
 }
 
+/** The reference's two sizes, saved before the seven-notch slider, read as their notches. */
+const LEGACY_DISPLAY_SIZES: Readonly<Record<string, DisplaySize>> = { default: 3, large: 5 };
+
+/** SETTINGS-11: a notch 1 to 7, or a saved "default" (3) or "large" (5). */
+const displaySize: Check<DisplaySize> = (value, method, field) => {
+  if (typeof value === "string" && Object.hasOwn(LEGACY_DISPLAY_SIZES, value))
+    return LEGACY_DISPLAY_SIZES[value];
+  return (DISPLAY_SIZES as readonly unknown[]).includes(value)
+    ? (value as DisplaySize)
+    : invalid(method, `${field} must be a whole number from 1 to 7`);
+};
+
 const AXIS_KEYS = ["show", "label", "step"] as const;
 
 /** `{ show, label, step }`, all three required; step is null (automatic) or a finite number > 0. */
@@ -141,8 +160,7 @@ const SETTING_CHECKS: { [K in keyof CalculatorSettings]: Check<CalculatorSetting
   yAxis: axis,
   lockViewport: bool, // SETTINGS-20
   piAxisLabels: phaseOne(bool, false),
-  displaySize: oneOf(["default", "large"]), // SETTINGS-11
-  reverseContrast: bool, // SETTINGS-12
+  displaySize, // SETTINGS-11
   keypad: bool,
   expressionsCollapsed: bool,
   mode: phaseOne(oneOf(["graphing", "scientific"]), "graphing"),
@@ -174,7 +192,6 @@ const OPTION_CHECKS: {
   seed,
   reducedMotion: bool,
   displaySize: SETTING_CHECKS.displaySize,
-  reverseContrast: SETTING_CHECKS.reverseContrast,
 };
 const OPTION_KEYS = Object.keys(OPTION_CHECKS);
 
@@ -208,7 +225,7 @@ function settingsFields(
   field: string,
   complete: boolean
 ): SettingsUpdate {
-  const fields = strictObject(value, method, field, SETTINGS_KEYS);
+  const fields = strictObject(value, method, field, [...SETTINGS_KEYS, ...RETIRED_KEYS]);
   const out: Fields = {};
   for (const key of SETTINGS_KEYS) {
     const name = complete ? `${field}.${key}` : key;

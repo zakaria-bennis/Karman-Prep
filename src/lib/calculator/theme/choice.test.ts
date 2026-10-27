@@ -1,34 +1,43 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
-import { SITE_THEMES } from "@/lib/themes/palettes";
 import {
   isThemeChoice,
+  migrateThemeChoice,
   readStoredThemeChoice,
   skinForChoice,
   storeThemeChoice,
   themeChoiceName,
   THEME_CHOICES,
+  THEME_GROUPS,
   THEME_STORAGE_KEY,
 } from "./choice";
-import { SKIN_IDS } from "./skins";
+import { DARK_SKIN_IDS, LIGHT_SKIN_IDS, SKIN_IDS } from "./skins";
+import { CALCULATOR_THEMES } from "./themes";
 
 afterEach(() => {
   vi.restoreAllMocks();
   localStorage.clear();
 });
 
-it("offers Auto, Classic and the 12 site themes, named as the site names them", () => {
+it("offers Dark (the auto choice), Classic and the 20 calculator themes, named as themes.ts names them", () => {
   expect(THEME_CHOICES).toEqual(["auto", ...SKIN_IDS]);
-  expect(THEME_CHOICES).toHaveLength(14);
-  expect(themeChoiceName("auto")).toBe("Auto");
+  expect(THEME_CHOICES).toHaveLength(22);
+  expect(themeChoiceName("auto")).toBe("Dark");
   expect(themeChoiceName("classic")).toBe("Classic");
-  for (const theme of SITE_THEMES) {
-    expect(themeChoiceName(theme.id as (typeof SKIN_IDS)[number])).toBe(theme.name);
-  }
+  for (const theme of CALCULATOR_THEMES) expect(themeChoiceName(theme.id)).toBe(theme.name);
 });
 
-it("auto follows the site theme (classic without one); a skin keeps itself", () => {
+it("groups the picker as Dark (the auto choice) and Classic, then Light and Dark with ten themes each", () => {
+  expect(THEME_GROUPS.map((g) => g.label)).toEqual([null, "Light", "Dark"]);
+  expect(THEME_GROUPS[0].choices).toEqual(["auto", "classic"]);
+  expect(THEME_GROUPS[1].choices).toEqual(LIGHT_SKIN_IDS);
+  expect(THEME_GROUPS[2].choices).toEqual(DARK_SKIN_IDS);
+  expect(THEME_GROUPS.flatMap((g) => g.choices)).toEqual(THEME_CHOICES);
+});
+
+it("auto follows the site theme's calculator theme (classic without one); a skin keeps itself", () => {
   expect(skinForChoice("auto", "plum")).toBe("plum");
+  expect(skinForChoice("auto", "ivory")).toBe("white");
   expect(skinForChoice("auto", undefined)).toBe("classic");
   expect(skinForChoice("auto", "nope")).toBe("classic");
   expect(skinForChoice("classic", "observatory")).toBe("classic");
@@ -40,10 +49,24 @@ it("remembers the choice in localStorage and ignores unknown stored values", () 
   storeThemeChoice("sage");
   expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("sage");
   expect(readStoredThemeChoice()).toBe("sage");
-  localStorage.setItem(THEME_STORAGE_KEY, "neon");
+  localStorage.setItem(THEME_STORAGE_KEY, "solarized");
   expect(readStoredThemeChoice()).toBeNull();
   expect(isThemeChoice("auto")).toBe(true);
+  expect(isThemeChoice("neon")).toBe(true);
   expect(isThemeChoice(3)).toBe(false);
+});
+
+it("a stored retired theme reads as the nearest current one", () => {
+  expect(
+    ["ivory", "paper", "peach", "rose", "blush", "sand", "plum"].map(migrateThemeChoice)
+  ).toEqual(["white", "white", "dreamsicle", "pink", "pink", "sand", "plum"]);
+  // Renamed on 2026-10-26: Karman is now Marigold and Wine is Berry, colours unchanged.
+  expect(["karman", "wine"].map(migrateThemeChoice)).toEqual(["marigold", "berry"]);
+  expect(isThemeChoice("karman")).toBe(false);
+  expect(migrateThemeChoice("toString")).toBeNull();
+  expect(migrateThemeChoice(null)).toBeNull();
+  localStorage.setItem(THEME_STORAGE_KEY, "blush");
+  expect(readStoredThemeChoice()).toBe("pink");
 });
 
 it("blocked or full storage never throws", () => {

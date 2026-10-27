@@ -34,6 +34,7 @@ import { CalculatorLayout } from "./layout/CalculatorLayout";
 import { performRedo, performUndo } from "./list/row-actions";
 import { ThemeChoiceContext } from "./settings/ThemeSection";
 import { ShortcutsHost } from "./shortcuts/ShortcutsHost";
+import { installKeySounds } from "./sound/install-key-sounds";
 
 export interface AppProps {
   engine: CalculatorEngine;
@@ -112,12 +113,13 @@ export function App(props: AppProps): JSX.Element {
     host.dataset.reducedMotion = String(settings.reducedMotion);
   }, [host, settings.reducedMotion]);
 
-  // SETTINGS-11, -12: display-modes.css reads these to scale the list for Large and invert the
-  // calculator for Reverse contrast (never the host page around it).
+  // SETTINGS-11: display-modes.css reads this to set the list's text size for the slider's notch.
   useLayoutEffect(() => {
-    host.dataset.displaySize = settings.displaySize;
-    host.dataset.reverseContrast = String(settings.reverseContrast);
-  }, [host, settings.displaySize, settings.reverseContrast]);
+    host.dataset.displaySize = String(settings.displaySize);
+  }, [host, settings.displaySize]);
+
+  // Key sounds (Graph Settings, off by default): the listeners only read key presses.
+  useEffect(() => installKeySounds(rootRef.current!), []);
 
   const toggleSettings = useCallback(
     (anchor: HTMLElement) => setSettingsAnchor((open) => (open === null ? anchor : null)),

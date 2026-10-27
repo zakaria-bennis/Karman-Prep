@@ -116,8 +116,7 @@ it("API-6 setBlank restores one empty row 1, the S-9 settings, the default viewp
     yAxis: { show: true, label: "", step: null },
     lockViewport: false,
     piAxisLabels: false,
-    displaySize: "default",
-    reverseContrast: false,
+    displaySize: 3,
     keypad: false,
     expressionsCollapsed: false,
     mode: "graphing",
@@ -130,16 +129,12 @@ it("API-6 setBlank restores one empty row 1, the S-9 settings, the default viewp
   expect(e.getState().viewport).toEqual({ left: -10, right: 10, bottom: -5, top: 5 });
   expect(e.canUndo()).toBe(false);
 });
-it("API-6 setBlank keeps displaySize and reverseContrast, resets reducedMotion with the other settings, and re-seeds", () => {
+it("API-6 setBlank keeps displaySize, resets reducedMotion with the other settings, and re-seeds", () => {
   const r = createTestEngine({ reducedMotion: true });
   expect(r.engine.settings.reducedMotion).toBe(true);
   r.engine.setBlank();
-  // API-6 keeps only displaySize and reverseContrast; hosts re-apply AN-13 with updateSettings (Decision 8)
-  expect(r.engine.settings).toMatchObject({
-    displaySize: "default",
-    reverseContrast: false,
-    reducedMotion: false,
-  });
+  // API-6 keeps only displaySize; hosts re-apply AN-13 with updateSettings (Decision 8)
+  expect(r.engine.settings).toMatchObject({ displaySize: 3, reducedMotion: false });
   expect(r.posted.filter((m) => m.type === "hello")).toHaveLength(2);
 });
 it("API-6 setBlank({ allowUndo: true }) is one undo step", () => {

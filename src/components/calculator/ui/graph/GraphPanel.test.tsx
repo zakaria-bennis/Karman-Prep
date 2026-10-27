@@ -105,7 +105,7 @@ afterEach(() => {
 function mount(props: Partial<GraphPanelProps> = {}) {
   return render(
     <EngineContext.Provider value={engine}>
-      <SkinContext.Provider value="ivory">
+      <SkinContext.Provider value="white">
         <GraphPanel
           host={document.body}
           themeRevision={0}
