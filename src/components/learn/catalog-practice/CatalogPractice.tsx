@@ -165,7 +165,6 @@ export default function CatalogPractice({
         topic={skill.label}
         reviews={reviews}
         saved={student.saved}
-        startedAtMs={startedAt.current}
         hasCalculator={skill.subject === "math"}
         onNavigate={(i) => {
           if (i > currentIndex) return void next();

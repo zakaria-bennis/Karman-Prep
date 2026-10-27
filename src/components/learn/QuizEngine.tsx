@@ -129,7 +129,6 @@ export default function QuizEngine({
           loading={loading}
           reviews={state.reviews}
           saved={student.saved}
-          startedAtMs={state.questionStartedAt || undefined}
           hasCalculator={node.subject === "math"}
           onNavigate={navigate}
           onSelectAnswer={(id, answer) => {

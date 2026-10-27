@@ -2,6 +2,7 @@
 // The one question screen every quiz uses (spec: docs/superpowers/specs/2026-10-27-quiz-engine-design.md).
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { figureLeadsText } from "@/lib/figures/figure-order";
+import { sectionStart } from "@/lib/quiz/workspace";
 import type { QuizMode } from "@/lib/quiz/mode";
 import type { TimingAccommodation } from "@/lib/quiz/timer";
 import type { ConfidenceBand, StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
@@ -91,7 +92,8 @@ export function QuizShell(props: QuizShellProps) {
   const [dialog, setDialog] = useState<"nav" | "reference" | "exit" | null>(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
-  const [startedAt] = useState(() => props.startedAtMs ?? Date.now());
+  // The host's server start time wins; otherwise the first start this session (survives reloads).
+  const [startedAt] = useState(() => props.startedAtMs ?? sectionStart(attemptKey));
   const header = useRef<HTMLDivElement>(null);
   const [dockTop, setDockTop] = useState(64);
   const lastIndex = useRef(index);

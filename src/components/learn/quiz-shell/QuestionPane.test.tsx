@@ -129,3 +129,19 @@ describe("clock", () => {
     expect(screen.queryByRole("timer")).toBeNull();
   });
 });
+
+describe("section clock after a reload", () => {
+  it("resumes from the section's first start, not from full time", () => {
+    const attemptKey = "reload-clock";
+    sessionStorage.setItem(`karman-quiz-start:${attemptKey}`, String(Date.now() - 100_000));
+    setup({ attemptKey, mode: modeFor("timed", { baseSeconds: 600, hasTutor: false }) });
+    expect(screen.getByRole("timer").getAttribute("aria-label")).toBe(
+      "Time remaining 8 minutes 20 seconds"
+    );
+  });
+  it("remembers the first start for the next reload", () => {
+    const attemptKey = "fresh-clock";
+    setup({ attemptKey, mode: modeFor("timed", { baseSeconds: 600, hasTutor: false }) });
+    expect(Number(sessionStorage.getItem(`karman-quiz-start:${attemptKey}`))).toBeGreaterThan(0);
+  });
+});

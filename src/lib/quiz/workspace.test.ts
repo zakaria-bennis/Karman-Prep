@@ -59,3 +59,11 @@ describe("session storage mirror", () => {
     expect(sessionStorage.getItem("karman-quiz-ws:att-1")).toBeNull();
   });
 });
+
+describe("section start", () => {
+  it("clearing a section also forgets its start time", () => {
+    sessionStorage.setItem("karman-quiz-start:att-9", "123");
+    clearWorkspaces("att-9");
+    expect(sessionStorage.getItem("karman-quiz-start:att-9")).toBeNull();
+  });
+});

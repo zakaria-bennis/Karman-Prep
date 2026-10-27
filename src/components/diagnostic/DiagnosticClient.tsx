@@ -36,7 +36,6 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [bookmarks, setBookmarks] = useState<string[]>([]);
-  const [startedAt, setStartedAt] = useState(() => Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [scoring, setScoring] = useState<ScoredDiagnostic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +89,6 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
     if (section + 1 < sections.length) {
       setSection(section + 1);
       setIndex(0);
-      setStartedAt(Date.now());
       return;
     }
     void submitAll();
@@ -125,7 +123,6 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
       topic="Diagnostic"
       reviews={{}}
       loading={submitting}
-      startedAtMs={startedAt}
       hasCalculator={current === "math"}
       onNavigate={setIndex}
       onSelectAnswer={(id, answer) =>

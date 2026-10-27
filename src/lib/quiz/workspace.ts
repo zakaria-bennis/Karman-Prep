@@ -142,8 +142,23 @@ export function saveWorkspaces(attemptKey: string, value: Record<string, Questio
   }
 }
 
+const startKey = (attemptKey: string) => `karman-quiz-start:${attemptKey}`;
+
+/** When this section first started on this device; recorded on first call. Survives a reload. */
+export function sectionStart(attemptKey: string, now = Date.now()): number {
+  try {
+    const stored = Number(sessionStorage.getItem(startKey(attemptKey)));
+    if (stored > 0) return stored;
+    sessionStorage.setItem(startKey(attemptKey), String(now));
+  } catch {
+    /* Without storage the clock starts when the screen opens. */
+  }
+  return now;
+}
+
 export function clearWorkspaces(attemptKey: string) {
   try {
+    sessionStorage.removeItem(startKey(attemptKey));
     sessionStorage.removeItem(key(attemptKey));
   } catch {
     /* Nothing stored. */
