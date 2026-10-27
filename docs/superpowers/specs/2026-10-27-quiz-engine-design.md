@@ -48,12 +48,20 @@ experience for all users of iPad, iPhone, laptop, and desktop."
 - **No default assets.** Every icon and control is drawn by Karman and has motion
   with tension. The founder approved the full motion list in the motion section,
   including the "Pick C?" chip and the figure draw-in.
-- **Small wins (added 2026-10-27, after the first review).** In instant-grading
-  modes only, a correct answer gets a short celebration that makes the student
-  feel they did well, without overdoing it. Streaks and hard questions get a
-  bigger one. A short sound plays by default, with a mute switch in More. There
-  is no celebration in timed sections, the diagnostic, full tests or review. See
-  "Small wins".
+- **Small wins, in the style of Khan Academy (added 2026-10-27, after the first
+  review).**
+  - **When:** in instant-grading modes only, a correct answer is rewarded so the
+    student feels they did well, without overdoing it. There is nothing of this in
+    timed sections, the diagnostic, full tests or review.
+  - **What the founder chose:**
+    - The bottom bar carries the reward.
+    - Progress dots fill as the set goes.
+    - A happy jingle plays, on by default.
+    - Points count up during a set and are saved as a running total.
+    - A level-up celebration plays when a skill moves up a mastery step.
+  - **What he rejected:** a random pop-up word.
+  - **Deferred:** a points display on the dashboard, badges and leaderboards.
+  - See "Small wins".
 - **Extra time** is in scope: standard, 1.5x or 2x per student, set by an admin or
   the student's tutor.
 - **The "Saved questions" browsing page** is a separate follow-up design. This spec
@@ -421,7 +429,8 @@ choice's letter badge, a chip reading "Pick C?" springs out beside the choice.
   - The content is written and drawn by Karman, in theme colours, and is not copied
     from College Board artwork.
 - **More menu:** text size (100% to 200%), Report a problem (content errors, for
-  every student), Question animations on or off, Sounds on or off (instant modes),
+  every student), Question animations on or off, Sounds on or off (the app-wide
+  sound preference),
   keyboard shortcuts, and Exit.
   - In instant mode Exit says "Your progress is saved".
   - In end mode Exit asks for confirmation through the in-app `useConfirm()`
@@ -451,6 +460,18 @@ Server actions validate inputs with Zod.
 `showTutorFlag` is computed on the server from the student's active cohort
 enrollment or 1:1 tutor assignment, and passed to the shell. The plan names the
 exact source tables.
+
+- **Points.**
+  - Table `student_point_awards`: `student_id`, `response_id` (unique), `points`,
+    `created_at`.
+  - The grading server action inserts the award inside the same request that
+    grades, so retries cannot double-award.
+  - The running total is the sum. A view or a cached column is the plan's choice.
+  - RLS lets students read their own rows. Tutors and admins can read their
+    students' rows. Only the server writes.
+- **Level-up data.** The grading response adds `band_before` and `band_after` for
+  the question's skill, read from the existing confidence-band data. No new
+  table is needed.
 
 ## Figure contract (with the figure system session)
 
@@ -564,43 +585,117 @@ still.
 
 ## Small wins
 
-Celebrations run only when `grading === "instant"`: practice, catalog practice,
-Your Daily 10 and the Challenge question. They never run in end mode (timed
-sections, the diagnostic, full tests) or in locked mode.
+Modelled on Khan Academy's practice feedback, as the founder asked. The question
+stays calm, and the reward lives in the bottom bar, the progress dots and the
+sound. It runs only when `grading === "instant"`: practice, catalog practice, Your
+Daily 10 and the Challenge question. It never runs in end mode (timed sections,
+the diagnostic, full tests) or locked mode.
 
-| Trigger                                                                  | Celebration                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Any correct answer                                                       | The tick draws, the choice lifts and the accent line runs around it. A burst of 6 to 8 pencil-flick strokes, drawn by us in `--quiz-accent`, springs out from the letter badge and fades. One word pops in beside the badge, picked at random from a short list ("Nice", "Clean", "Got it", "Sharp"), never the same twice in a row. A short warm sound plays. |
-| 3 correct in a row                                                       | A streak counter appears in the bottom bar with our own drawn flame, and its number rolls up on each further correct answer.                                                                                                                                                                                                                                   |
-| 5 correct in a row, and every further 5                                  | A wider burst runs across the top of the question pane, with a slightly richer sound.                                                                                                                                                                                                                                                                          |
-| Correct on the first try on a hard question (internal difficulty 5 to 7) | The word becomes "Tough one". The difficulty number is never shown.                                                                                                                                                                                                                                                                                            |
-| A perfect Daily 10                                                       | The results screen plays the largest celebration, once.                                                                                                                                                                                                                                                                                                        |
+### Bottom-bar reward
 
-- **Placement.** The burst stays in the margin around the badge and the top
-  edge of the pane, so it never covers text being read (rule 34). There are no
-  sparkle icons (rule 23), no emoji (rule 7) and no confetti over the page.
-- **Never in the way.** Next is usable at once, and pressing it ends the
-  celebration. Each celebration finishes within 900 ms and never loops.
-- **Wrong answers.** The streak resets quietly, with no "streak lost" message and
-  no extra motion beyond the cross and the shake already described.
-- **Streak scope.** The streak counts within one practice set or one Daily 10,
-  and resets when the set ends. It is not stored.
-- **Sound.**
-  - Sound is on by default.
-  - "Sounds" in More turns it off, and the choice is remembered on the device in
-    `localStorage`, wrapped in try/catch.
-  - The sounds are our own short synthesized tones, played with Web Audio, in the
-    same family as the calculator's key sounds, at a low volume. No audio files
-    come from outside.
-  - Sound starts only after the student's first tap, which browsers require
-    anyway.
-  - Sound is never the only signal: the tick, the word and the screen-reader
-    announcement always carry the result.
-- **Reduced motion or "Question animations" off.** The tick and the word appear
-  with a fade, with no burst and no lift. The sound still plays unless it is
-  muted.
-- **Screen readers.** The word joins the grading announcement, for example
-  "Correct. Nice. 3 in a row."
+- **On a correct answer:**
+  - The bottom bar becomes the feedback bar. Its background tints to a soft
+    `--quiz-correct`, and a small animated line drawing plays at its left, drawn by
+    Karman in the Hairline style.
+  - The drawing rotates through a set of about eight on the Karman sky theme, never
+    the same one twice in a row: a constellation joining up, a rocket lifting
+    past a line, a planet's ring turning once, a comet, and so on.
+  - Beside the drawing sit the fixed message "Correct" and the points earned, which
+    count up (for example "+10").
+  - Next is the bar's primary button, right there.
+  - On the question itself, only the tick draws and the choice lifts slightly.
+- **On a wrong answer:**
+  - The bar tints neutral, not red, with the fixed message "Not quite" and Next.
+  - The correct choice gets its tick, and the explanation unfolds.
+  - There is no drawing and no penalty.
+
+### Progress dots
+
+- **What they are:** in instant mode the bottom bar shows one dot per question in
+  the set. This is the question-set indicator rule 56 asks for, and tapping the
+  row opens the navigator.
+- **States:**
+  - The current dot is outlined.
+  - A correct answer fills its dot in the accent colour with a small pop and a
+    drawn tick.
+  - A wrong answer fills its dot neutral with a small drawn mark.
+  - Locked future questions stay hollow.
+- **Long sets:** sets longer than 12 questions, or any set on compact screens
+  narrower than the dots need, show "3 of 27" instead, and the dots appear in the
+  navigator grid.
+- **Rule 37:** the dots respond to answers, not to scrolling, so rule 37 does not
+  apply.
+
+### Streaks
+
+- **At 3 correct in a row:** a streak counter appears in the bar with our own drawn
+  flame, and its number rolls up on each further correct answer.
+- **At every 5 in a row:** the bar's drawing is a richer one and the jingle is the
+  longer version.
+- **When it resets:** a wrong answer resets the streak quietly, with no message.
+  The streak lives within one set and is not stored.
+
+### Points
+
+- **Earning:**
+  - Each correct answer in instant mode earns 10 points.
+  - A correct answer to a hard question (internal difficulty 5 to 7) earns 15.
+  - The difficulty number is never shown. The student just sees a larger number,
+    and the points chip turns gold.
+- **Where points show:** they count up in the bar on each correct answer, and the
+  set total shows on the set's results screen.
+- **Who decides:** the server awards points when it grades, so the client never
+  decides points.
+- **Storage:** a running total is saved (see Data). The dashboard display of the
+  total, badges and leaderboards are a follow-up.
+
+### Level up
+
+- **What triggers it:**
+  - Karman already tracks a confidence band per skill: struggling, developing,
+    proficient, mastered.
+  - The grading response returns the skill's band before and after the answer.
+  - When the band moves up, a level-up card springs up from the bottom bar after
+    the normal reward.
+- **The card:**
+  - The skill's name and its new band, for example "Linear equations,
+    Proficient".
+  - A larger constellation drawing that connects star by star.
+  - A short fanfare.
+- **Limits:**
+  - It plays once per band change and never for a band moving down.
+  - Next dismisses it.
+- **Perfect Daily 10:** the results screen gets the largest celebration, once.
+
+### Sound
+
+- **One preference:** sounds go through the existing `src/lib/sounds.ts` and its
+  `sound-preference`, so the quiz's "Sounds" switch in More is that same
+  preference. Sound is on by default.
+- **Three jingles,** each new and made by Karman (not from a stock library):
+  - Correct: about 0.6 s, three rising notes. It replaces `nodeComplete` for
+    correct answers.
+  - Streak: a longer version, about 1 s.
+  - Level up: a fanfare, about 1.5 s.
+- **Volume:** low. Sound starts only after the student's first tap, which browsers
+  require anyway.
+- **Never the only signal:** the tick, the bar and the screen-reader announcement
+  always carry the result.
+
+### Limits
+
+- The reward never covers the question text (rule 34).
+- No confetti over the page, no sparkle icons (rule 23) and no emoji (rule 7).
+- No random words: the messages are always "Correct" and "Not quite".
+- Next works at once and pressing it ends any reward in progress.
+- The bar reward finishes within 900 ms and the level-up card within 1.6 s.
+- Nothing loops.
+- **Reduced motion or "Question animations" off:** the bar tints and shows the
+  message and points with a fade, the dots fill without a pop, and the drawings
+  and the level-up constellation appear as still pictures. Sound still plays
+  unless it is muted.
+- **Screen readers** hear one announcement, for example "Correct. Plus 10 points.
+  3 in a row." or "Level up: Linear equations, Proficient."
 
 ## Accessibility
 
@@ -647,10 +742,15 @@ sections, the diagnostic, full tests) or in locked mode.
   - Light and dark themes.
 - **Accessibility:** an axe scan per layout, plus a contrast test calculated across
   every theme.
-- **Small wins:** component tests that celebrations fire only in instant mode,
-  that streak thresholds trigger at 3 and 5, that "Tough one" fires only on a
-  first-try correct hard question, that Next cancels a celebration, that the
-  mute setting is honoured, and that reduced motion leaves only the fade.
+- **Small wins.**
+  - Component tests that rewards fire only in instant mode, that the dots fill
+    correctly and switch to "3 of 27" past 12 questions, and that streaks trigger
+    at 3 and 5.
+  - Component tests that the points chip shows 10 or 15 from the server's award,
+    that level-up fires only when the band moves up, that Next cancels a reward,
+    that the sound preference is honoured, and that reduced motion leaves still
+    pictures.
+  - A server test that one graded response awards points exactly once.
 - **Click-through:** every button and link in the shell is clicked through in a
   browser before it ships, as `CLAUDE.md` requires.
 - **Real devices:** the founder checks on an iPhone and an iPad with Apple Pencil,
@@ -679,6 +779,8 @@ sections, the diagnostic, full tests) or in locked mode.
 
 ## Follow-ups (not in this spec)
 
+- **Points beyond the set:** the running total on the student dashboard, and any
+  badges or leaderboards.
 - **The "Saved questions" page,** to browse, filter (bookmarked or flagged for
   tutor) and retry. This is a separate short design.
 - **Tutoring tools on figures:** shading, rotating and unfolding solids, using the
