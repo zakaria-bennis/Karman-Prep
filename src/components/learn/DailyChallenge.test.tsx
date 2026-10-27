@@ -81,7 +81,9 @@ describe("DailyChallenge", () => {
     fireEvent.click(screen.getAllByRole("radio")[1]);
     fireEvent.click(submit);
     await waitFor(() =>
-      expect(screen.getByRole("status", { name: "Answer result" }).textContent).toContain("Not quite")
+      expect(screen.getByRole("status", { name: "Answer result" }).textContent).toContain(
+        "Not quite"
+      )
     );
     expect(screen.getByText("Reviewed explanation")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
