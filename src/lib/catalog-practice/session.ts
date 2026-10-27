@@ -56,6 +56,14 @@ export type CatalogPracticeDependencies = {
     studentId: string
   ) => Promise<{ skillId: string; items: CatalogQuestionBinding[] }>;
   store: CatalogSessionStore;
+  /** Awards points for a graded answer (instant modes); returns the points awarded now. */
+  award?: (input: {
+    key: string;
+    clerkId: string;
+    correct: boolean;
+    difficulty: number;
+    skillId: string | null;
+  }) => Promise<0 | 10 | 15>;
 };
 
 function grade(answer: string, snapshot: CatalogDeliverySnapshot): boolean {
@@ -239,7 +247,16 @@ export function createCatalogPracticeService(deps: CatalogPracticeDependencies) 
           responseTimeSeconds: input.responseTimeSeconds,
         },
       });
-      return { questionId: response.questionId, ...review(snapshot, response) };
+      const points = deps.award
+        ? await deps.award({
+            key: `catalog:${session.id}:${response.questionId}`,
+            clerkId: studentId,
+            correct: response.isCorrect,
+            difficulty: snapshot.student.difficulty_level,
+            skillId: snapshot.binding.catalogSkillId,
+          })
+        : 0;
+      return { questionId: response.questionId, ...review(snapshot, response), points };
     },
     async complete(sessionId: string, studentId: string) {
       const session = await deps.store.getOwned(uuid.parse(sessionId), studentId);

@@ -13,11 +13,13 @@ vi.mock("@/lib/auth/dev-auth", () => ({
   safeAuth: async () => ({ userId: "dev_seed_student_stuck" }),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+const points = vi.hoisted(() => ({ awardForAnswer: vi.fn(async () => 10) }));
+vi.mock("@/lib/quiz/points", () => points);
 vi.mock("@/lib/supabase/queries/quiz", () => ({
   ...mocks,
   flagQuestion: vi.fn(),
   updateWatchPercentage: vi.fn(),
-  fetchNodeStatusBundle: vi.fn(),
+  fetchNodeStatusBundle: vi.fn(async () => ({ confidence_band: "developing" })),
 }));
 
 import { actionCompleteQuiz, actionRecordResponse, actionStartQuiz } from "./quiz-actions";
@@ -269,5 +271,50 @@ describe("quiz actions", () => {
       })
     ).rejects.toThrow("approved node pool");
     expect(mocks.recordQuestionResponse).not.toHaveBeenCalled();
+  });
+
+  it("awards points for a correct answer once, keyed by the stored response", async () => {
+    mocks.recordQuestionResponse.mockResolvedValue({
+      id: "resp-1",
+      student_answer: "B",
+      is_correct: true,
+    });
+    const review = await actionRecordResponse({
+      attempt_id: "00000000-0000-4000-8000-000000000010",
+      question_id: question.id,
+      student_answer: "B",
+      response_time_seconds: 3,
+    });
+    expect(points.awardForAnswer).toHaveBeenCalledWith({
+      key: "lesson:resp-1",
+      clerkId: "dev_seed_student_stuck",
+      correct: true,
+      difficulty: 1,
+      skillId: "ma-00",
+    });
+    expect(review.points).toBe(10);
+  });
+
+  it("reports the skill band from before the set was completed", async () => {
+    mocks.fetchQuizAttemptForStudent.mockResolvedValue({
+      id: "00000000-0000-4000-8000-000000000010",
+      node_id: "ma-00",
+      completed_at: null,
+    });
+    mocks.fetchResponsesForAttempt.mockResolvedValue([
+      { question_id: question.id, is_correct: true, student_answer: "B" },
+    ]);
+    mocks.completeQuizAttemptAtomic.mockResolvedValue({
+      score: 100,
+      newStatus: "mastered",
+      confidenceBand: "proficient",
+    });
+    const result = await actionCompleteQuiz({
+      attemptId: "00000000-0000-4000-8000-000000000010",
+      nodeId: "ma-00",
+      subject: "math",
+    });
+    expect(result.bandBefore).toBe("developing");
+    expect(result.confidenceBand).toBe("proficient");
   });
 });
