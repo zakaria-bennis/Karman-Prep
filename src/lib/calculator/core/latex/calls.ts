@@ -301,6 +301,12 @@ export function parseMember(state: ParserState, target: Node): Node | null {
   // PR-45: another letter on its own, `P.X`, is Desmos's "Sorry, I don't understand the way that
   // '.' is used here." (captured 2026-10-19); a run of letters (`T.score`) stays unsupported
   const next = peek(state, 2);
+  if (letter.t === "letter" && letter.ch === "p" && next.t !== "letter") {
+    // FN-57: `T.p`, a test's p-value; analysis reports it after anything else as Desmos does
+    state.pos += 2;
+    const span = { start: target.span.start, end: letter.span.end };
+    return { kind: "call", name: "p", args: [target], member: "property", span };
+  }
   if (letter.t === "letter" && next.t !== "letter") {
     return fail("unexpected-symbol", dot.span, "a letter after a dot", ".");
   }
@@ -373,10 +379,13 @@ function memberName(state: ParserState): { text: string; tokens: number } | null
   if (command.t !== "command") return null;
   if (DOT_NAMES.has(command.name)) return { text: command.name, tokens: 2 };
   if (command.name !== "operatorname" || !isOpen(peek(state, 2), "{")) return null;
+  // the letters were split into names (G7: `score` holds `or`), so read the group's own text
   let text = "",
     k = 3;
-  for (let token = peek(state, k); token.t === "letter"; token = peek(state, ++k)) {
-    text += token.ch;
+  for (let token = peek(state, k); ; token = peek(state, ++k)) {
+    if (token.t === "letter") text += token.ch;
+    else if (token.t === "command" && /^[A-Za-z]+$/.test(token.name)) text += token.name;
+    else break;
   }
   const close = peek(state, k);
   if (close.t !== "close" || close.ch !== "}" || !MEMBER_NAMES.includes(text)) return null;

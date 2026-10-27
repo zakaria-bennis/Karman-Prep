@@ -250,7 +250,14 @@ export function allZero(list: Motion[]): boolean {
 
 /** A linear() easing, or a cubic-bezier whose y values leave [0, 1]. */
 export function overshoots(easing: string): boolean {
-  if (/^linear\(/.test(easing)) return true;
+  // linear(): a sampled curve (the settings switch's critically damped spring) overshoots when any
+  // of its output values leaves 0 to 1.
+  const linear = /^linear\((.*)\)$/.exec(easing);
+  if (linear !== null)
+    return linear[1].split(",").some((stop) => {
+      const y = Number.parseFloat(stop.trim());
+      return !Number.isFinite(y) || y < 0 || y > 1;
+    });
   const bezier = /^cubic-bezier\(([^)]*)\)$/.exec(easing);
   if (bezier === null) return false;
   const [, y1, , y2] = bezier[1].split(",").map(Number);

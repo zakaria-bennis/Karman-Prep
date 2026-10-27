@@ -4,7 +4,7 @@ import { createShellStore, type ShellState } from "./shell-store";
 const SHELL0: ShellState = {
   size: { width: 0, height: 0 },
   layout: "stacked",
-  skin: "ivory",
+  skin: "white",
   themeChoice: "auto",
   themeRevision: 0,
   reducedMotionMedia: false,

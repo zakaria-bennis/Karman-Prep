@@ -3,6 +3,7 @@
 // observatory. The geometry tests in transfer.spec.ts stay as the
 // browser layer beside them. The baselines are Linux renders, so the test runs on Linux only.
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { resolveSkinId } from "../../src/lib/calculator/theme/roles";
 import { SKIN_COLORS } from "../../src/lib/calculator/theme/skin-colors.generated";
 import { BLOCK_SYSTEM } from "./fixture/harness/transfer-questions";
 import {
@@ -33,7 +34,7 @@ const setSkin = async (page: Page, skin: (typeof SKINS)[number]) => {
       r.classList.toggle("dark", dark);
       r.dataset.theme = s;
     },
-    [skin, SKIN_COLORS[skin].normal.dark] as const
+    [skin, SKIN_COLORS[resolveSkinId(skin)].normal.dark] as const
   );
 };
 const glyph = (page: Page, latex: string) => control(page, latex).locator("[data-transfer-glyph]");

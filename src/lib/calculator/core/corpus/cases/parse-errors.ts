@@ -33,7 +33,7 @@ const cases: CorpusCase[] = [
   x(20, ["PR-9"], "\\sum_{n=1}^{3}n", "unsupported"),
   x(21, ["PR-9"], "\\prod_{n=1}^{3}n", "unsupported"),
   x(22, ["PR-9"], "\\int_{0}^{1}xdx", "unsupported"),
-  x(23, ["PR-9"], "\\frac{d}{dx}x^{2}", "unsupported"),
+  x(23, ["PR-9", "FN-61"], "\\frac{d}{dx}", "derivative-operand"), // "What do you want to take the derivative of?"
   x(24, ["PR-9"], "f'(x)", "function-undefined"),
   x(25, ["PR-9"], "x\\operatorname{with}x=1", "unsupported"),
   x(26, ["PR-9"], "x>0\\operatorname{and}y>0", "unsupported"),

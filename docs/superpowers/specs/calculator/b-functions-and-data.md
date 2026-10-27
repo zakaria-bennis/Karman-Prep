@@ -100,24 +100,24 @@ and live refit). It resolves review findings F13, F14, F17 and C7.
 
 ### Answer-affecting conventions
 
-| Choice                | Rule                                                | ID           | Basis                              |
-| --------------------- | --------------------------------------------------- | ------------ | ---------------------------------- |
-| Sample or population  | var, stdev, cov use n − 1; varp, stdevp, covp use n | FN-28, FN-30 | standard definition                |
-| Quartiles             | median of halves, overall median excluded for odd n | FN-26        | Karman default, confirm in Phase 2 |
-| Quantile              | linear interpolation (type 7)                       | FN-27        | Karman default, confirm in Phase 2 |
-| Box-plot whiskers     | min to max; 1.5·IQR only with "Exclude outliers"    | FN-43        | Karman default, confirm in Phase 3 |
-| mad                   | mean absolute deviation from the mean               | FN-29        | Karman default, confirm in Phase 2 |
-| spearman ties         | mid-ranks                                           | FN-32        | standard definition                |
-| Histogram bins        | left-closed, multiples of w, default w = 1          | FN-40        | Karman default, confirm in Phase 3 |
-| geodist support       | k = 1, 2, 3, …                                      | FN-46        | Karman default, confirm in Phase 3 |
-| Discrete cdf bounds   | inclusive                                           | FN-48        | Karman default, confirm in Phase 3 |
-| Discrete inversecdf   | smallest k with F(k) ≥ p                            | FN-49        | standard definition                |
-| Two-sample t          | Welch, dof not rounded                              | FN-54        | Karman default, confirm in Phase 3 |
-| Two-proportion z      | pooled p̂ for the test, unpooled for the interval    | FN-55, FN-58 | standard definition                |
-| Alternative and level | two-sided, conf = 0.95                              | FN-58, FN-59 | Karman default, confirm in Phase 3 |
-| Random                | seeded per question, reseeded by reset              | FN-7         | Karman convention                  |
-| Log mode              | automatic for applicable forms                      | D-27 to D-30 | test day (College Board sheet)     |
-| r display             | linear and log-mode fits only                       | D-31         | Karman convention                  |
+| Choice                | Rule                                                       | ID           | Basis                              |
+| --------------------- | ---------------------------------------------------------- | ------------ | ---------------------------------- |
+| Sample or population  | var, stdev, cov use n − 1; varp, stdevp, covp use n        | FN-28, FN-30 | standard definition                |
+| Quartiles             | median of halves, overall median excluded for odd n        | FN-26        | Karman default, confirm in Phase 2 |
+| Quantile              | linear interpolation (type 7)                              | FN-27        | Karman default, confirm in Phase 2 |
+| Box-plot whiskers     | min to max; 1.5·IQR only with "Exclude outliers"           | FN-43        | Karman default, confirm in Phase 3 |
+| mad                   | mean absolute deviation from the mean                      | FN-29        | Karman default, confirm in Phase 2 |
+| spearman ties         | mid-ranks                                                  | FN-32        | standard definition                |
+| Histogram bins        | left-closed, multiples of w, default w = 1                 | FN-40        | Karman default, confirm in Phase 3 |
+| geodist support       | k = 1, 2, 3, …                                             | FN-46        | Karman default, confirm in Phase 3 |
+| Discrete cdf bounds   | inclusive                                                  | FN-48        | Karman default, confirm in Phase 3 |
+| Discrete inversecdf   | smallest k with F(k) ≥ p                                   | FN-49        | standard definition                |
+| Two-sample t          | Welch, dof not rounded                                     | FN-54        | live Desmos, 2026-10-26            |
+| Two-proportion z      | pooled p̂ for a null of 0, else unpooled; interval unpooled | FN-55, FN-58 | live Desmos, 2026-10-26            |
+| Alternative and level | two-sided, conf = 0.95                                     | FN-58, FN-59 | live Desmos, 2026-10-26            |
+| Random                | seeded per question, reseeded by reset                     | FN-7         | Karman convention                  |
+| Log mode              | automatic for applicable forms                             | D-27 to D-30 | test day (College Board sheet)     |
+| r display             | linear and log-mode fits only                              | D-31         | Karman convention                  |
 
 ## 3. Real and complex domains
 
@@ -209,7 +209,56 @@ row settings that reset per question.
 - **FN-56** chisqtest(C1, …, Ck) takes k ≥ 2 equal-length lists of observed counts (the columns of an r × k table, r ≥ 2) or one matrix (FN-80), uses expected = row total × column total / grand total, score Σ(O − E)²/E and dof (r − 1)(k − 1), and is undefined if any expected count is 0; chisqgof(O, E) takes equal-length observed and expected lists (length ≥ 2), rescales E to the observed total and uses dof = length − 1 (confirm by REA behaviour capture in Phase 3). (Phase 3; verified by unit test)
 - **FN-57** Every test T exposes T.score, T.stderr, T.null, T.dof (undefined for z tests), T.pleft = P(S ≤ score), T.pright = P(S ≥ score) and T.p, the p-value for the selected alternative: min(1, 2·min(pleft, pright)) for "≠" (the default), pleft for "<" and pright for ">"; chi-square tests are always right-tailed. (Phase 3; verified by unit test)
 - **FN-58** T.conf is the confidence level (default 0.95, 0 < conf < 1), T.estimate the point estimate, and T.lower and T.upper are estimate ∓ c·SE with c = Φ⁻¹((1 + conf)/2) for z procedures and the t quantile at the test's dof for t procedures; proportion intervals use the unpooled SE (√(p̂(1 − p̂)/n), or √(p̂1(1 − p̂1)/n1 + p̂2(1 − p̂2)/n2)), and chi-square tests have undefined estimate, lower and upper (confirm by REA behaviour capture in Phase 3). (Phase 3; verified by unit test)
+- _Amended 2026-10-26 (shipped; observed on live Desmos, College Board version,
+  https://www.desmos.com/testing/collegeboard/graphing; `lib/inference.ts`, `eval/inference.ts`,
+  `analysis/inference.ts`; values in `lib/inference.reference.test.ts`), FN-53 to FN-58:_
+  - Forms: `ztest(L, σ)`, `ztest(n, x̄, σ)`, `ztest(L1, σ1, L2, σ2)`, `ztest(n1, x̄1, σ1, n2, x̄2, σ2)`;
+    `ttest(L)`, `ttest(L1, L2)` (Welch; the wizard's `ittest(L1, L2)` is the same test, shown as
+    ttest), `ttest(n, x̄, s)` and its six-number form; `zproptest(x, n)`, `zproptest(x1, n1, x2, n2)`;
+    `chisqtest(C1, C2, …)` of a table's columns (2 or more equal-length lists); `chisqgof(O)` against
+    equal counts or `chisqgof(O, E)` with E rescaled to O's total. Stats-form numbers and z-test σ
+    broadcast over lists (`ztest([1,2,3],[2,3])` is two tests). A paired test is `ttest(L1 − L2)`.
+  - σ is used as written (negative flips the score; 0 gives an undefined score with p = 0); a t
+    sample under 2 values is "Sample for 'ttest' must have at least 2 observations."; successes
+    above n are undefined; a negative stats-form s is undefined; n need not be whole.
+  - `stderr` is unpooled (the sample's √(p̂(1 − p̂)/n) for one proportion); the one-proportion score
+    uses √(p₀(1 − p₀)/n); the two-proportion score uses the pooled p̂ when the null difference is 0
+    and the unpooled error otherwise.
+  - Members: a test has estimate, stderr, score, p, pleft, pright, conf(c), null(h) and (t only)
+    dof; `T.null(h)` has score, p, pleft, pright (dof for t); `T.conf(c)` has lower and upper; a
+    chi-square test has score, p and dof. `T.p` is always two-sided (upper tail for chi-square).
+    `.p` is the plain letter p. `conf(0).lower` is the estimate; conf ≥ 1 or < 0 is undefined. Any
+    other member is "Function '.dof' cannot be applied to a one-sample z-inference object." (Karman:
+    "Can't use .dof on a one-sample z test.").
 - **FN-59** An inference row shows a null-value field, an alternative selector ("≠" default, "<", ">"), the score, p-value and dof, a small plot of the null distribution with the p-value tail or tails shaded, and an interval toggle that shows lower, upper and conf; the Add menu's inference item (S-2) inserts `ttest()` with the caret inside the parentheses (confirm by REA behaviour capture in Phase 3). (Phase 3; verified by component test)
+  - _Amended 2026-10-26 (founder request; shipped from live Desmos, College Board version;
+    `ui/list/inference/`):_ Add item's third entry, "inference", adds an empty row after the active
+    row and opens the **inference wizard** beside it over a dimmed graph: Probability Distribution;
+    "Inference for Quantitative Data:" z-test, t-test; "Inference for Categorical Data:" z-test for
+    proportions, χ² test for independence, χ² goodness of fit test. Each form has a Back button; z
+    and t have Data and Stats tabs (Data: list of data and pop stdev / list of data; Stats: sample
+    size, mean, pop stdev / stdev); "+ SAMPLE 2 (optional)" adds a second sample; the χ² tables grow
+    a row and column as they fill (Group 1… by Group A…; Observed and Expected (optional), with
+    "Expected and observed totals don't match."). Create is disabled until the required cells are
+    filled and writes the row (`zproptest(12,40)`, `ztest([1,2,3],2)`, `chisqtest([10,30],[20,25])`
+    for a table with rows 10 20 / 30 25). Close (×), Escape and a press on the cover close it and
+    leave the empty row. The distribution picker offers the three shipped distributions (Desmos also
+    lists χ², uniform, Poisson, geometric and discrete, which this calculator does not evaluate yet).
+  - The row: a stats form's argument names under the math ("successes, sample size"); collapsed
+    **Confidence Interval** (level field, placeholder 0.95; a bar with the bounds under its ends and
+    a dot at the estimate) and **Hypothesis Test** (null field with μ =, μ₁ − μ₂ =, p =, p₁ − p₂ = and
+    the default greyed; Tails Left / Both / Right, default Both; the null density on −6 to 6 (t or
+    normal) with the p-value tail or tails shaded, a dot at the score and a hollow one at −score for
+    Both, "p-value = 0.011", "df = 4", "z = −2.53"). A chi-square test shows **Observed (Expected)**
+    (Expected, Contributions, Totals checkboxes) and a Hypothesis Test with no null or tails (the
+    χ² density from 0 to its 99.9th percentile). `T.null(h)` shows tails and the diagram only;
+    `T.conf(c)` the interval only. Numbers: 4 significant digits and at most 3 decimals; p-values 3
+    decimals (4 below 0.001 and from 0.995), "< 0.0001" below that. Each diagram's ⋮ ("View
+    numerical outputs") lists values to 6 significant digits (at most 5 decimals) with "Export to
+    the expression list": the test is named T₁ (lowest free T*k) and a row such as
+    `T*{1}.\operatorname{conf}\left(0.95\right).\operatorname{lower}`or`T\_{1}.\operatorname{null}\left(0.4\right).\operatorname{pleft}` goes right after it. The
+sections, fields, tails and checkboxes are saved with the row (`ExpressionState.inference`) and
+    are undo steps. Desmos's "Export Diagram" is left out: on the College Board version it stalls.
 
 ## 10. Calculus
 
@@ -218,6 +267,16 @@ category ships in Phase 4.
 
 - **FN-60** exp(x) = e^x; ln(x) is the natural log and log(x) the base-10 log, both for x > 0; logₐ(x) = ln x / ln a for a > 0, a ≠ 1 and x > 0 (`\log_2(8)` = 3), computed as Desmos does: the exact library log for base 10, 2 and e, and the whole number k whenever a^k is exactly x, so `\log_{3}(81)` is 4 and `\log_{10}(1000)` is 3, not 4.000000000000001 and 2.9999999999999996; in complex mode ln and log use the principal branch (FN-17). (Phase 1; verified by unit test)
 - **FN-61** d/dx E is computed symbolically on the syntax tree with the sum, product, quotient, power and chain rules and the derivative of every elementary function in this file (trig, inverse trig, hyperbolic, exp, ln, log, logₐ, abs, square and nth roots), branch by branch for piecewise expressions, and is undefined where E is not differentiable (d/dx x³ at x = 2 is exactly 12; d/dx |x| at 0 is undefined); d/dt and other variables work the same way. (Phase 4; verified by unit test)
+  - _Amended 2026-10-26 (shipped; live Desmos, College Board version):_ `\frac{d}{dx}` is typed as
+    a fraction (`d/dx`, then →), the keypad's Calculus d/dx writes it, and it differentiates the
+    rest of its term, so `\frac{d}{dx}x^{2}+x^{2}` is 2x + x², `\frac{d}{dx}x^{2}\cdot x` is 3x² and
+    `3\frac{d}{dx}x^{2}` is 6x; any Latin letter is the variable (`\frac{d}{dt}t^{3}`), the operator
+    nests, user functions and primes inline, and with nothing after it the row reads "What do you
+    want to take the derivative of?" (Karman: "Write what to differentiate after d/dx, like d/dx
+    x^2."). Rules added for sech, csch, coth, the inverse hyperbolic functions (undefined where the
+    function is), erf and two-argument arctan. Not yet matched: list functions, legacy distribution
+    names and point functions (no rule, undefined), and Desmos's classifying a row by its derivative
+    (`\frac{d}{dy}x` shows 0 there, graphs here).
 - **FN-62** floor, ceil, round, sign and mod have derivative 0 away from their jumps and undefined at them, cdf(D, x) has derivative pdf(D, x), and any other function without a symbolic rule is differentiated by a central difference with h = 6.06×10⁻⁶·max(1, |x|). (Phase 4; verified by unit test)
 - **FN-63** f′(x) is d/dx f(x) for a one-argument user function f, and f′′(x) its second derivative; prime notation on a function of several arguments, or on a name that is not a function, is the error "Prime notation works on one-argument functions." (Phase 4; verified by unit test)
   - _Amended 2026-10-25 (shipped with live Desmos evidence, b116B):_ f′, f′′ and further primes of a one-parameter user function, and of a one-argument built-in (`\sin'(0)` = 1), are definitions of their own built by FN-61's symbolic rules (`eval/derivative.ts`), other user functions inlined, so `f(x)=2x^2-15x+23` gives f′(4) = 1 exactly, `f'(b)\sim1` fits b = 4, and `y=f'(x)` graphs. Primed calls with other than one argument are "Prime notation works only on functions of one input." (Desmos: "Prime notation can only be used for functions of a single argument.", for `g'(1,2)` and `f'(1,2)` alike); one argument to a function of more is that function's arity error. FN-62 ships for floor, ceil, round and sign; mod, cdf and the central-difference fallback do not yet, so a derivative through them (or a factorial) is undefined. `\frac{d}{dx}` stays Phase 4.

@@ -4,12 +4,19 @@
 import type { PixelSize, Viewport } from "../../plot/viewport";
 import type { TableModel } from "../../regression/table-models";
 import type { SavedSlider } from "../../sliders/model";
+import type { InferenceState } from "./inference-state";
 
 export type AngleMode = "radians" | "degrees";
 export type LineStyle = "solid" | "dashed" | "dotted"; // R-4 (Phase 2 picker)
 export type PointStyle = "filled" | "open" | "cross";
 /** SETTINGS-13: the Braille code the settings popover records (UI only; no Braille input yet). */
 export type BrailleMode = "none" | "nemeth" | "ueb";
+/**
+ * SETTINGS-11 (founder decision, 2026-10-26): the expression list's text size, one of the seven
+ * notches of the settings popover's size slider. 3 is the default; 5 is the reference's Large.
+ */
+export type DisplaySize = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export const DISPLAY_SIZES: readonly DisplaySize[] = Object.freeze([1, 2, 3, 4, 5, 6, 7]);
 export interface AxisSettings {
   show: boolean;
   label: string;
@@ -27,8 +34,7 @@ export interface CalculatorSettings {
   yAxis: AxisSettings;
   lockViewport: boolean;
   piAxisLabels: boolean;
-  displaySize: "default" | "large";
-  reverseContrast: boolean;
+  displaySize: DisplaySize;
   keypad: boolean;
   expressionsCollapsed: boolean;
   mode: "graphing" | "scientific";
@@ -54,8 +60,7 @@ export const DEFAULT_SETTINGS: CalculatorSettings = Object.freeze({
   yAxis: Object.freeze({ show: true, label: "", step: null }),
   lockViewport: false,
   piAxisLabels: false,
-  displaySize: "default",
-  reverseContrast: false,
+  displaySize: 3,
   keypad: false,
   expressionsCollapsed: false,
   mode: "graphing",
@@ -74,8 +79,7 @@ export interface CalculatorOptions {
   onError?: (error: Error) => void;
   seed?: number;
   reducedMotion?: boolean;
-  displaySize?: "default" | "large";
-  reverseContrast?: boolean;
+  displaySize?: DisplaySize;
 }
 export interface ExpressionState {
   id: string;
@@ -90,6 +94,7 @@ export interface ExpressionState {
   columns?: { latex: string; values: string[]; color?: string; hidden?: boolean }[];
   regression?: TableRegressionState; // RT-28: tables only
   displayEvaluationAsFraction?: boolean; // R-5: Desmos's per-row decimal/fraction choice
+  inference?: InferenceState; // FN-59: an inference row's sections, fields and tails
 }
 /** RT-28: a table's regression; `columns.x` is always 0. */
 export interface TableRegressionState {

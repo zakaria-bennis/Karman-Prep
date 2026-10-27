@@ -193,12 +193,9 @@ test("R-11 a trig row shows DEG or RAD after its value or at its end, following 
   );
   await expect(badge("1")).toHaveText("DEG");
   await expect(badge("2")).toHaveText("DEG");
-  await expect(badge("1")).not.toHaveAttribute("tabindex");
   if (!isMobile) {
     await badge("2").hover();
-    await expect(page.locator("#calc .kc-row-tip")).toHaveText(
-      "Angle mode. Change it in Settings."
-    );
+    await expect(page.locator("#calc .kc-row-tip")).toHaveText("Angle mode. Switch to radians.");
   }
 });
 

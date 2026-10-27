@@ -2,26 +2,30 @@ import { describe, expect, it } from "vitest";
 import * as O from "./operator-names";
 const names = () => O.OPERATOR_NAMES.map((n) => n.name);
 describe("operator-name allowlist", () => {
-  it("PR-12 parser names, MathQuill autoOperatorNames and panel entries come from one list; members are separate", () => {
+  it("PR-12 parser names, MathQuill autoOperatorNames and panel entries come from one list; members are typed as names but are no built-ins", () => {
     expect([
       new Set(names()).size,
       O.mathQuillAutoOperatorNames(),
       names().every(O.isBuiltinName),
-    ]).toEqual([116, names().join(" "), true]);
+    ]).toEqual([116, [...names(), ...O.MEMBER_NAMES].join(" "), true]);
+    // every panel entry is a shipped name, except notation buttons (FN-61's d/dx)
     for (const e of O.panelCategories().flatMap((c) => c.entries))
-      expect(O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name)).toBe(true);
+      expect(e.name === "ddx" || (O.isBuiltinName(e.name) && O.isShippedBuiltin(e.name))).toBe(
+        true
+      );
     expect([O.AUTO_COMMANDS.join(" "), O.mathQuillAutoCommands()]).toEqual(
       Array(2).fill("alpha beta rho sqrt cbrt nthroot pi theta tau phi infinity infty sum prod int")
     );
     expect(O.MEMBER_NAMES.join(" ")).toBe(
       "null pleft pright score dof stderr conf lower upper estimate"
     );
-    for (const m of O.MEMBER_NAMES)
-      expect(O.isBuiltinName(m) || O.mathQuillAutoOperatorNames().split(" ").includes(m)).toBe(
-        false
-      );
+    // FN-57: Desmos types `T.score` as `T.\operatorname{score}` (2026-10-26)
+    for (const m of O.MEMBER_NAMES) {
+      expect(O.isBuiltinName(m)).toBe(false);
+      expect(O.mathQuillAutoOperatorNames().split(" ")).toContain(m);
+    }
   });
-  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, normaldist, tdist and binomialdist with pdf, cdf and inversecdf, erf, exp, ln, log, hyperbolic trig, number theory, distance and midpoint, and the complex-number functions", () => {
+  it("PR-12 built-ins ship by name: the SHIPPED set is trig, inverse trig, statistics with its aliases, length, normaldist, tdist and binomialdist with pdf, cdf and inversecdf, erf, the inference tests, exp, ln, log, hyperbolic trig, number theory, distance and midpoint, and the complex-number functions", () => {
     expect([...O.SHIPPED].every(O.isBuiltinName)).toBe(true);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect([...names(), ...hidden].filter(O.isShippedBuiltin)).toEqual([...O.SHIPPED]);
@@ -34,6 +38,7 @@ describe("operator-name allowlist", () => {
         "mean median min max quartile quantile stdev stddev stdDev stdevp stddevp stdDevP " +
         "var variance varp cov covp mad corr spearman count total repeat join sort unique length " +
         "normaldist tdist binomialdist pdf cdf inversecdf inverseCdf erf " +
+        "ztest ttest zproptest chisqtest chisqgof " +
         "exp ln log sinh cosh tanh csch sech coth arcsinh arccosh arctanh arccsch arcsech arccoth " +
         "distance midpoint lcm gcd gcf mcd mcm mod ceil floor round sign nPr nCr abs real imag conj arg"
     );
@@ -71,6 +76,7 @@ describe("operator-name allowlist", () => {
       ["tcdf", 6, [5]],
       ["invT", 6, [2]],
       ["invBinom", 6, [3]],
+      ["ittest", 7, [2]],
     ]);
     const hidden = O.HIDDEN_OPERATOR_NAMES.map((n) => n.name);
     expect(hidden.every((n) => O.isBuiltinName(n) && O.isShippedBuiltin(n))).toBe(true);
@@ -106,9 +112,10 @@ describe("operator-name allowlist", () => {
     ).toEqual([
       "1 Trig: sin cos tan csc sec cot",
       "2 Inverse trig: sin⁻¹ cos⁻¹ tan⁻¹ csc⁻¹ sec⁻¹ cot⁻¹",
-      "8 Calculus: exp ln log logₐ",
+      "8 Calculus: exp ln log logₐ d/dx",
     ]);
-    expect(calculus.entries.map((e) => e.name).join(" ")).toBe("exp ln log log");
+    expect(calculus.entries.map((e) => e.name).join(" ")).toBe("exp ln log log ddx");
+    expect(calculus.entries[4].actions).toEqual([{ op: "write", arg: "\\frac{d}{dx}" }]);
     expect(trig.entries[0]).toEqual({
       name: "sin",
       label: "sin",

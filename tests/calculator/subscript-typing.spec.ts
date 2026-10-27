@@ -3,7 +3,9 @@
 // https://www.desmos.com/calculator on 2026-10-22 after the same keys were typed into an empty
 // row (black-box observation; Desmos's MathQuill settings were read with REA). The rows run on
 // the editor harness /harness/editor.html; the phone-keypad and rendering cases on
-// /harness/calculator.html.
+// /harness/calculator.html. Founder decision, 2026-10-26 (marked where Desmos differs): `+`, `-`, `*`
+// and `/` stay inside an exponent or subscript (only → leaves), `~` leaves as `=`, `<` and `>` do,
+// and they leave every exponent or subscript the caret sits directly in (vendored patch 0013).
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { openShell, rowField, useConsoleGuard } from "./shell-helpers";
@@ -49,12 +51,12 @@ const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
   [["x_1^2"], "x_{1^{2}}"],
   [["y_1{x>0}"], "y_{1\\left\\{x>0\\right\\}}"],
   [["a_{bc}=1"], "a_{\\left\\{bc\\right\\}}=1"],
-  [["x_1+2"], "x_{1}+2"],
+  [["x_1+2"], "x_{1+2}"], // founder, 2026-10-26: Desmos differs
   [["x_1=5"], "x_{1}=5"],
-  [["x_1-2"], "x_{1}-2"],
+  [["x_1-2"], "x_{1-2}"], // founder, 2026-10-26: Desmos differs
   [["x_1<3"], "x_{1}<3"],
   [["(x_1,y_1)"], "\\left(x_{1,y_{\\left(1\\right)}}\\right)"],
-  [["x_1~a"], "x_{1\\sim a}"],
+  [["x_1~a"], "x_{1}\\sim a"], // founder, 2026-10-26: Desmos differs
   [["a_1", { key: "Backspace" }, { key: "Backspace" }], "a"],
   [["a_1", { key: "Backspace" }, { key: "Backspace" }, "b"], "ab"],
   [["a_1", { key: "Backspace" }, { key: "Backspace" }, { key: "Backspace" }, "c"], "c"],
@@ -63,7 +65,7 @@ const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
   [["a_1", { key: "ArrowRight" }, "b"], "a_{1}b"],
   [["a_", { key: "ArrowRight" }, "b"], "a_{ }b"],
   [["a_1", { key: "ArrowLeft" }, "2"], "a_{21}"],
-  [["a_1+b", { key: "Home" }, { key: "ArrowRight" }, { key: "ArrowRight" }, "2"], "a_{12}+b"],
+  [["a_1+b", { key: "Home" }, { key: "ArrowRight" }, { key: "ArrowRight" }, "2"], "a_{1+2b}"], // founder, 2026-10-26: Desmos differs
   [["ab", { key: "ArrowLeft" }, "_1"], "a_{1}b"],
   [["x_1", { key: "ArrowRight" }, "^2"], "x_{1}^{2}"],
   [["x_(1)"], "x_{\\left(1\\right)}"],
@@ -82,7 +84,7 @@ const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
   [["x_pi"], "x_{pi}"],
   [["alpha_1"], "\\alpha_{1}"],
   [["theta1"], "\\theta_{1}"],
-  [["x^2+1"], "x^{2}+1"],
+  [["x^2+1"], "x^{2+1}"], // founder, 2026-10-26: Desmos differs
   [["x^-1"], "x^{-1}"],
   [["x^2_1"], "x^{2_{1}}"],
   [["x^{2}"], "x^{\\left\\{2\\right\\}}"],
@@ -90,14 +92,14 @@ const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
   [["x^2=4"], "x^{2}=4"],
   [["x_ab"], "x_{ab}"],
   [["v_max=3"], "v_{max}=3"],
-  [["x_1*2"], "x_{1}\\cdot2"],
+  [["x_1*2"], "x_{1\\cdot2}"], // founder, 2026-10-26: Desmos differs
   [["x_1/2"], "x_{\\frac{1}{2}}"],
   [["a_1.5"], "a_{1.5}"],
   [["x_1!"], "x_{1!}"],
   [["x_1'"], "x_{1'}"],
-  [["x_n+1"], "x_{n}+1"],
-  [["x_1 +1"], "x_{1\\ }+1"],
-  [["x_0^2+y_0^2=1"], "x_{0^{2}+y_{0^{2}=1}}"],
+  [["x_n+1"], "x_{n+1}"], // founder, 2026-10-26: Desmos differs
+  [["x_1 +1"], "x_{1\\ +1}"], // founder, 2026-10-26: Desmos differs
+  [["x_0^2+y_0^2=1"], "x_{0^{2+y_{0^{2}}}}=1"], // founder, 2026-10-26: Desmos differs
   [["x_1^", { key: "Backspace" }, "3"], "x_{13}"],
   [["y_{", { key: "Backspace" }, "1"], "y_{1}"],
   [["y_{}", "=2"], "y_{\\left\\{\\right\\}}=2"],
@@ -112,15 +114,15 @@ const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
   [["x_1;"], "x_{1;}"],
   [["x_1_2"], "x_{1_{2}}"],
   [["x__1"], "x_{1}"],
-  [["x_1^2+1"], "x_{1^{2}+1}"],
-  [["x_1^2=1"], "x_{1^{2}=1}"],
+  [["x_1^2+1"], "x_{1^{2+1}}"], // founder, 2026-10-26: Desmos differs
+  [["x_1^2=1"], "x_{1^{2}}=1"], // founder, 2026-10-26: Desmos differs
   [["y_1=x_1^2"], "y_{1}=x_{1^{2}}"],
   [["x_1)"], "x_{\\left(1\\right)}"],
   [["(1,2)"], "\\left(1,2\\right)"],
   [["(x_1,2)"], "\\left(x_{\\left(1,2\\right)}\\right)"],
   [["x_1<=3"], "x_{1}\\le3"],
   [["x_1>=3"], "x_{1}\\ge3"],
-  [["x_1->"], "x_{1}\\to"],
+  [["x_1->"], "x_{1\\to}"], // founder, 2026-10-26: Desmos differs
   [["x_1 "], "x_{1\\ }"],
   [["x_1\\"], "x_{1\\backslash}"],
   [["x_1%"], "x_{1\\%\\operatorname{of}}"],
@@ -154,13 +156,13 @@ const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
   [["x\\"], "x\\backslash"],
   [["a\\b"], "a\\backslash b"],
   [["x_\\"], "x_{\\backslash}"],
-  [["x^2*3"], "x^{2}\\cdot3"],
+  [["x^2*3"], "x^{2\\cdot3}"], // founder, 2026-10-26: Desmos differs
   [["x^2,1"], "x^{2,1}"],
   [["(x^2,1)"], "\\left(x^{\\left(2,1\\right)}\\right)"],
-  [["x^2~1"], "x^{2\\sim1}"],
+  [["x^2~1"], "x^{2}\\sim1"], // founder, 2026-10-26: Desmos differs
   [["x^2:1"], "x^{2:1}"],
   [["x^_1"], "x^{1}"],
-  [["x_1^2", { key: "ArrowRight" }, "+1"], "x_{1^{2}}+1"],
+  [["x_1^2", { key: "ArrowRight" }, "+1"], "x_{1^{2}+1}"], // founder, 2026-10-26: Desmos differs
   [["x_1^2", { key: "ArrowRight" }, { key: "ArrowRight" }, "+1"], "x_{1^{2}}+1"],
   [["x_{1}^2"], "x_{\\left\\{1\\right\\}^{2}}"],
   [["x_1", { key: "Backspace" }, { key: "Backspace" }, { key: "Backspace" }], ""],
@@ -179,8 +181,11 @@ const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
   [["Delta"], "Delta"],
   [["rho"], "\\rho"],
   [["varepsilon"], "\\operatorname{var}epsilon"],
-  [["x_beta+1"], "x_{beta}+1"],
+  [["x_beta+1"], "x_{beta+1}"], // founder, 2026-10-26: Desmos differs
   [["a_lambda"], "a_{lambda}"],
+  [["y_1~mx_1", { key: "ArrowRight" }, "+b"], "y_{1}\\sim mx_{1}+b"],
+  [["x^2", { key: "ArrowRight" }, "+n=5"], "x^{2}+n=5"],
+  [["a_x^2=3"], "a_{x^{2}}=3"],
 ];
 
 const latexes = (page: Page) =>
@@ -211,7 +216,7 @@ const KEYPAD_DESMOS: readonly (readonly [readonly string[], string])[] = [
   [["a", "Subscript", "!"], "a_{!}"],
   [["x", "Subscript", "["], "x_{\\left[\\right]}"],
   [["x", "Subscript", "Toggle Numbers", "1", "Power", "2"], "x_{1^{2}}"],
-  [["x", "Subscript", "Toggle Numbers", "1", "Plus", "1"], "x_{1}+1"],
+  [["x", "Subscript", "Toggle Numbers", "1", "Plus", "1"], "x_{1+1}"], // founder, 2026-10-26: Desmos differs
   [["x", "Subscript", "Toggle Numbers", "1", "Right arrow", "Plus", "1"], "x_{1}+1"],
   [["x", "Subscript", "Toggle Numbers", "1", "Left parenthesis", "2"], "x_{1\\left(2\\right)}"],
 ];

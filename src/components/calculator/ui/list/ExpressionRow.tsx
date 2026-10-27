@@ -56,6 +56,7 @@ import {
 } from "./row-actions";
 import { fieldTextbox, rowDomIds, rowTab } from "./row-model";
 import { RegressionPanel, STATISTICS_HINT } from "./RegressionPanel";
+import { InferenceFooter } from "./inference/InferenceFooter";
 import { convertsInPlace, createTableBelow, offersCreateTable, RowMenu } from "./RowMenu";
 import { EditRowActions } from "./EditRowActions";
 import { ToastContext } from "./Toast";
@@ -93,8 +94,9 @@ function writeLatex(field: MathField, latex: string, syncing: { current: boolean
 function isRowBody(target: EventTarget): boolean {
   if (!(target instanceof Element)) return false;
   return (
-    target.closest("button, a, input, select, textarea, .mq-editable-field, .kc-slider-line") ===
-    null
+    target.closest(
+      "button, a, input, select, textarea, .mq-editable-field, .kc-slider-line, .kc-inf"
+    ) === null
   );
 }
 
@@ -487,6 +489,7 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
           )}
           {tab === "point" && <PointLabelLine rowNumber={number} />}
           {error === null && <RegressionPanel row={row} />}
+          {error === null && <InferenceFooter row={row} />}
         </div>
         {trig !== null && valueText === null && <AngleBadge mode={trig} placement="row" />}
         {editing ? (

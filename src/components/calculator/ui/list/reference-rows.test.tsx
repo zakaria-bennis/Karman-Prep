@@ -87,12 +87,34 @@ it("R-11 a trig row shows a RAD badge that turns to DEG with the setting; a poly
   });
   const badge = (id: string) => rowItem(id).querySelector(".kc-angle-badge");
   expect(badge("1")).toHaveTextContent("RAD");
-  expect(badge("1")).toHaveAttribute("aria-hidden", "true");
   expect(badge("2")).toHaveAttribute("data-placement", "row");
   expect(badge("3")).toBeNull();
   act(() => kit.engine.updateSettings({ angleMode: "degrees" }));
   expect(badge("1")).toHaveTextContent("DEG");
   expect(badge("2")).toHaveTextContent("DEG");
+});
+
+it("R-11 the badge is a button: a click or Enter switches the angle mode for every row and says so", async () => {
+  const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
+    rows: ["\\sin(30)", "y=\\tan(x)"],
+  });
+  const user = userEvent.setup();
+  const badge = within(rowItem("1")).getByRole("button", {
+    name: "Angle mode: radians. Switch to degrees.",
+  });
+  await user.click(badge);
+  expect(kit.engine.settings.angleMode).toBe("degrees");
+  expect(rowItem("2").querySelector(".kc-angle-badge")).toHaveTextContent("DEG");
+  expect(kit.announcer.texts).toContain("Angle set to degrees.");
+  const again = within(rowItem("2")).getByRole("button", { name: /Switch to radians/ });
+  again.focus();
+  await user.keyboard("{Enter}");
+  expect(kit.engine.settings.angleMode).toBe("radians");
+  act(() => kit.engine.updateSettings({ complex: true }));
+  const off = within(rowItem("1")).getByRole("button", { name: "Angle mode: radians." });
+  expect(off).toHaveAttribute("aria-disabled", "true");
+  await user.click(off);
+  expect(kit.engine.settings.angleMode).toBe("radians");
 });
 
 it("R-5 a regression parameter row offers no decimal/fraction toggle", async () => {

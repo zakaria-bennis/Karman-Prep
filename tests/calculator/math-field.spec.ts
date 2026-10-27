@@ -11,6 +11,7 @@ import {
 } from "../../src/lib/calculator/core/latex";
 import {
   HIDDEN_OPERATOR_NAMES,
+  MEMBER_NAMES,
   mathQuillAutoOperatorNames,
   panelCategories,
 } from "../../src/lib/calculator/core/latex/operator-names";
@@ -260,9 +261,10 @@ for (const c of keyCases) {
 
 // A hidden built-in (`\operatorname{argmax}`) is no MathQuill name, so the field splits it as typing
 // does (`\arg\max`, as in Desmos); PR-2 leaves those cases out, and the pasted commands Desmos
-// reads as names (`\neq`, `\omicron`, an unknown `\operatorname{foo}`), which MathQuill rewrites.
+// reads as names (`\neq`, `\omicron`, an unknown `\operatorname{foo}`), which MathQuill rewrites;
+// and a bare inference member's letters (`pleft`), which MathQuill makes a name as Desmos does.
 const HIDDEN_NAME = new RegExp(
-  `\\\\operatorname\\{(?:${HIDDEN_OPERATOR_NAMES.map((n) => n.name).join("|")}|foo)\\}|\\\\neq|\\\\omicron`
+  `\\\\operatorname\\{(?:${HIDDEN_OPERATOR_NAMES.map((n) => n.name).join("|")}|foo)\\}|\\\\neq|\\\\omicron|^(?:${MEMBER_NAMES.join("|")})$`
 );
 test("PR-2 every latex corpus case but a hidden built-in parses to the same tree after a MathField round trip", async ({
   page,

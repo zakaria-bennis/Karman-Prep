@@ -16,6 +16,7 @@ import { POINT_FUNCTIONS } from "./geometry";
 import { PROBABILITY_RULES } from "./probability";
 import { LIST_FUNCTION_NAMES } from "./statistics";
 import { evaluateLatex } from "../eval/compile";
+import { INFERENCE_FUNCTIONS } from "../eval/inference";
 import { OPERATOR_NAMES, SHIPPED } from "../latex/operator-names";
 import { readFileSync } from "node:fs";
 
@@ -53,7 +54,8 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
       !LIST_FUNCTION_NAMES.includes(o.name) &&
       !PROBABILITY_NAMES.includes(o.name) &&
       !POINT_FUNCTIONS.has(o.name) &&
-      !COMPLEX_NAMES.includes(o.name)
+      !COMPLEX_NAMES.includes(o.name) &&
+      !INFERENCE_FUNCTIONS.has(o.name) // inference.reference.test.ts
   ).map((o) => o.name);
   expect(new Set(shipped)).toEqual(
     new Set(
@@ -69,7 +71,7 @@ it("FN-1 every shipped built-in and operator has a committed reference case, wit
     BUILTIN_ARITY.get("log"),
     BUILTIN_ARITY.get("round"),
     BUILTIN_ARITY.get("nCr"),
-  ]).toEqual([75, [1], [1, 2], [1, 2], [1, 2], [2]]); // 17 of them hidden names
+  ]).toEqual([80, [1], [1, 2], [1, 2], [1, 2], [2]]); // 18 of them hidden names
   const ops = new Set(reference.cases.map((c) => c.op));
   for (const op of [
     ...shipped,

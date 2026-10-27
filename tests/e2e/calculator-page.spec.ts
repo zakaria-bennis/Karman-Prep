@@ -61,12 +61,14 @@ function watchPage(page: Page) {
 test.describe("desktop", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("opens with no sign-in, graphs y=x^2, never says Desmos, and the logo goes home", async ({
+  test("opens with no sign-in under a bar that only says Graphing Calculator, graphs y=x^2 and never says Desmos", async ({
     page,
   }) => {
     const seen = watchPage(page);
     await openCalculator(page);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Graphing calculator");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Graphing Calculator");
+    await expect(page.getByRole("banner")).toHaveText("Graphing Calculator"); // no logo, no links
+    await expect(page.getByRole("banner").getByRole("link")).toHaveCount(0);
     await expect(page.getByRole("link", { name: /sign in|create account/i })).toHaveCount(0);
     await expect(page.locator("[data-calculator-host]")).toHaveAttribute(
       "data-karman-calculator",
@@ -83,9 +85,6 @@ test.describe("desktop", () => {
     );
     expect(text).not.toMatch(/desmos/i);
     expect(seen.foreign).toEqual([]);
-
-    await page.getByRole("link", { name: "Karman Prep home" }).click();
-    await expect(page).toHaveURL(/\/$/);
     expect(seen.errors).toEqual([]);
   });
 
@@ -102,11 +101,8 @@ test.describe("desktop", () => {
     ).toEqual([""]);
   });
 
-  test("the SAT practice link and the footer Calculator link both work", async ({ page }) => {
-    await openCalculator(page);
-    // the old /questions page was replaced by the free practice test (site rebuild, 2026-10-26)
-    await page.getByRole("link", { name: "SAT practice" }).click();
-    await expect(page).toHaveURL(/\/free-practice-test$/);
+  test("the site footer's Calculator link opens the calculator", async ({ page }) => {
+    await page.goto("/");
     await page
       .getByRole("navigation", { name: "Footer" })
       .getByRole("link", { name: "Calculator" })
@@ -132,8 +128,7 @@ test.describe("phone", () => {
     await page.keyboard.type("y=x^2");
     await expectGraphed(page);
     await expectNoPageScroll(page);
-    await page.getByRole("link", { name: "Karman Prep home" }).tap();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible(); // the title shows on a phone too
     expect(seen.errors).toEqual([]);
   });
 });

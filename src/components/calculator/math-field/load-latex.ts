@@ -18,6 +18,7 @@
 // Every other character of the input is returned unchanged.
 
 import {
+  MEMBER_NAMES,
   OPERATOR_NAMES,
   mathQuillAutoCommands,
   mathQuillAutoOperatorNames,
@@ -57,9 +58,15 @@ const BLOCKS: ReadonlyMap<string, readonly Block[]> = new Map([
   ...withBlocks(["text", "math"], "textcolor class"),
 ]);
 
-/** The names a letter run splits into, as MathQuill's typing and the parser's G7 split (PR-13). */
+/**
+ * The names a letter run splits into, as the parser's G7 split (PR-13): MathQuill's typed names
+ * but the inference members, which typing makes names (`T.score`) while stored letters keep their
+ * meaning (`pleft` is p·l·e·f·t when loaded).
+ */
 const RUN_NAMES: ReadonlySet<string> = new Set([
-  ...mathQuillAutoOperatorNames().split(" "),
+  ...mathQuillAutoOperatorNames()
+    .split(" ")
+    .filter((name) => !MEMBER_NAMES.includes(name)),
   ...mathQuillAutoCommands().split(" "),
 ]);
 const LONGEST_RUN_NAME = Math.max(...[...RUN_NAMES].map((name) => name.length));

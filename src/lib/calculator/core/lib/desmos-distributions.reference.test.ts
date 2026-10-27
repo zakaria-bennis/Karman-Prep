@@ -58,7 +58,8 @@ function errorMessage(key: string): string | undefined {
 // offers an `i` chip (NM-17); and `\operatorname{inv}N\operatorname{or}m`, whose unknown
 // `\operatorname{inv}` the parser refuses before it reaches the `or`.
 const GAPS: readonly RegExp[] = [
-  /\\frac\{d\}/,
+  // d/dx of a legacy distribution name: no symbolic rule yet (FN-61's operator has shipped)
+  /\\frac\{d\}\{da\}\\operatorname\{(invNorm\}\(a|normalpdf\}\(a|normalcdf\}\(0,|binompdf\}\(3,)/,
   /\\operatorname\{random\}/,
   /\\left\(i\\right\)$/,
   /^\\operatorname\{inv\}N\\operatorname\{or\}m/,
@@ -68,13 +69,13 @@ const gap = (key: string) => GAPS.some((g) => g.test(key));
 const VALUES = Object.entries(distributions.values) as [string, Expected][];
 const ERRORS = Object.entries(distributions.errors);
 
-it("FN-45 FN-51 all 194 catalogue distribution values and 69 errors are checked, 183 and 59 matched", () =>
+it("FN-45 FN-51 all 194 catalogue distribution values and 69 errors are checked, 186 and 60 matched", () =>
   expect([
     VALUES.length,
     ERRORS.length,
     VALUES.filter(([k]) => !gap(k)).length,
     ERRORS.filter(([k]) => !gap(k)).length,
-  ]).toEqual([194, 69, 183, 59]));
+  ]).toEqual([194, 69, 186, 60]));
 
 for (const [key, expected] of VALUES) {
   const check = () => {

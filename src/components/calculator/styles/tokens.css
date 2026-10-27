@@ -113,6 +113,29 @@
   --kc-dur-800: 800ms;
   --kc-ease: ease;
   --kc-ease-out: ease-out;
+  /* A critically damped spring (damping 1, response 0.26 s; Apple's default for UI that is not
+     thrown) sampled for CSS: it settles in the 400 ms limit (AN-14) with no overshoot. A
+     transition retargets from where it is, so a second tap mid-flight turns it around smoothly.
+     Older browsers without linear() fall back to ease. */
+  --kc-spring: linear(
+    0,
+    0.123,
+    0.34,
+    0.541,
+    0.695,
+    0.804,
+    0.877,
+    0.924,
+    0.954,
+    0.972,
+    0.983,
+    0.99,
+    0.994,
+    0.997,
+    0.998,
+    0.999,
+    1
+  );
 }
 @media (prefers-reduced-motion: reduce) {
   :host {

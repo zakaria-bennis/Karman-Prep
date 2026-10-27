@@ -109,10 +109,10 @@ const regionOf = (rows: ReturnType<typeof buildRenderRows>, id: string): RegionG
 };
 
 it("G-5 render rows follow list order with skin colours", () => {
-  const rows = buildRenderRows(snap, "ivory", view(), c0);
+  const rows = buildRenderRows(snap, "white", view(), c0);
   expect(rows.map((r) => r.rowId)).toEqual(["1", "4"]);
-  expect(rows[0].color).toBe(resolveRowColor("c1", "ivory").hex);
-  expect(rows[1].fillAlpha).toBe(resolveRowColor("c2", "ivory").fillAlpha);
+  expect(rows[0].color).toBe(resolveRowColor("c1", "white").hex);
+  expect(rows[1].fillAlpha).toBe(resolveRowColor("c2", "white").fillAlpha);
   expect(rows[1].geometry).toBe(REGION);
 });
 
@@ -121,11 +121,11 @@ it("G-5 the region cache keeps a row's shading through a pan and drops it when t
   expect(c1.get("4")?.source).toEqual(view());
   expect(updateRegionCache(c1, panned)).toBe(c1);
 
-  const atPan = buildRenderRows(panned, "ivory", panned.view!, c1);
+  const atPan = buildRenderRows(panned, "white", panned.view!, c1);
   expect(atPan.map((r) => r.rowId)).toEqual(["1", "4"]);
   expect(Array.from(regionOf(atPan, "4").spans)).toEqual([60, 360, -80, 720]);
 
-  const zoomed = buildRenderRows(panned, "ivory", view(vp(-5, 5, -3.75, 3.75)), c1);
+  const zoomed = buildRenderRows(panned, "white", view(vp(-5, 5, -3.75, 3.75)), c1);
   expect(Array.from(regionOf(zoomed, "4").spans)).toEqual([]);
 
   expect(displayedGeometry(panned, c1).get("4")).toBe(REGION);
@@ -148,7 +148,7 @@ it("G-5 the region cache keeps a row's shading through a pan and drops it when t
 });
 
 it("POI-17 only the selected row's render row is marked selected", () => {
-  const rows = buildRenderRows({ ...snap, selectedRowId: "1" }, "ivory", view(), c0);
+  const rows = buildRenderRows({ ...snap, selectedRowId: "1" }, "white", view(), c0);
   expect(rows.map((r) => [r.rowId, r.selected])).toEqual([
     ["1", true],
     ["4", false],
@@ -176,11 +176,11 @@ it("D-11 each series draws in its column's colour, joined in row order only when
       },
     ],
   ]);
-  const rows = buildRenderRows({ ...snap, rows: [tableRow], geometry }, "ivory", view(), c0);
+  const rows = buildRenderRows({ ...snap, rows: [tableRow], geometry }, "white", view(), c0);
   expect(rows.map((r) => [r.rowId, r.geometry.kind, r.color])).toEqual([
-    ["t", "points", resolveRowColor("c2", "ivory").hex],
-    ["t", "curve", resolveRowColor("c3", "ivory").hex],
-    ["t", "points", resolveRowColor("c3", "ivory").hex],
+    ["t", "points", resolveRowColor("c2", "white").hex],
+    ["t", "curve", resolveRowColor("c3", "white").hex],
+    ["t", "points", resolveRowColor("c3", "white").hex],
   ]);
   const line = rows[1].geometry;
   expect(line.kind === "curve" && [...line.polylines]).toEqual([1, 5, 2, 6]);

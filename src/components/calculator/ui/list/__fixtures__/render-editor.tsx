@@ -102,7 +102,7 @@ export function renderEditor(
   const durationMs = options.durationMs ?? 0;
   render(
     <EngineContext.Provider value={engine}>
-      <SkinContext.Provider value={options.skin ?? "ivory"}>
+      <SkinContext.Provider value={options.skin ?? "white"}>
         <FocusContext.Provider value={kit.focus}>
           <EscapeContext.Provider value={escape}>
             <AnnouncerContext.Provider value={kit.announcer}>

@@ -43,7 +43,8 @@ Success means:
    calculator.
 2. Every checklist ID scheduled in Phases 1 to 3 passes its stated test and the phase checks of
    section 8.2 pass.
-3. Phase 4 completes the remaining functions, display size, reverse contrast and audio.
+3. Phase 4 completes the remaining functions, display size and audio (Reverse contrast was
+   retired on 2026-10-26, S-4).
 
 | Owner requirement                                                                | Where it is met                                                                                                                                                       |
 | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -170,7 +171,7 @@ This section number is kept so that references to sections 7 to 12 stay stable.
 | 1     | Foundations and typing | Quiz seam, lazy loading, worker, containment, reset, API; parser, corpus, classification, number rules; explicit, implicit, inequality and point graphs; MathQuill rows and typing; desktop and phone keypads with `~` and the disabled audio key; settings; layouts and window modes; theme and contrast; animation defaults; screen-reader essentials for these features; transfer of expressions, equations, inequalities, functions, systems of equations or inequalities and their answer choices |
 | 2     | Graph depth            | Polar, parametric, piecewise, restrictions, lists; points of interest, trace and draggable points; sliders, style picker and Edit list; Scientific mode (CB-3, SC-); statistics, number theory, hyperbolic and factorial functions; drag alternatives                                                                                                                                                                                                                                                  |
 | 3     | Data                   | Tables, regressions with log mode (CB-2), easier mobile regression, list operations, visualizations, distributions, inference; transfer of tables, coordinate pairs and function coordinates with the chooser; table paste; Add item menu; G-24 and TR-80 checks; the section 8.2 checks                                                                                                                                                                                                               |
-| 4     | Completion             | The full functions panel; calculus; geometry; custom colours; matrices; the Complex category; `with`, `and`, `or` and `tone`; display size; reverse contrast; forced colours; audio trace; refined graph description; points-of-interest traversal                                                                                                                                                                                                                                                     |
+| 4     | Completion             | The full functions panel; calculus; geometry; custom colours; matrices; the Complex category; `with`, `and`, `or` and `tone`; display size; forced colours; audio trace; refined graph description; points-of-interest traversal                                                                                                                                                                                                                                                                       |
 
 ### 7.2 IDs by phase
 
@@ -375,7 +376,7 @@ force and tested (TR-10).
    the viewport, labels, undo history and the keypad page reset on each new question, including
    on going back to one. The student's settings carry to the next question for the page session:
    angle mode, complex mode, grid, polar grid, minor gridlines, arrows, axis numbers, axes shown
-   or hidden, display size, reverse contrast, keypad shown or hidden, trace, points of interest,
+   or hidden, text size, keypad shown or hidden, trace, points of interest,
    braille mode and six-key input. The settings that describe one question's graph view (lock
    viewport, axis bounds, axis labels, axis steps, π axis labels) reset with it (AR-58, RC-21,
    S-9). This is lead resolution R10 as amended, and every R10 reference in the appendices means
@@ -393,7 +394,8 @@ force and tested (TR-10).
 9. Default in force. In question stems, lone numbers, lone identifiers, lone powers such as `x^{2}`
    and lone function references such as `f(x)` get no control (TR-10).
 10. Owner-confirmed. In reverse contrast, minor gridlines reach at least 3:1 and stay lighter than
-    the major gridlines; every other D9 target reaches at least 7:1 (TH-1, TH-13).
+    the major gridlines; every other D9 target reaches at least 7:1 (TH-1, TH-13). Retired with the
+    Reverse contrast setting, founder decision 2026-10-26.
 11. Owner-confirmed. The phone letters page is an alphabetical 7-column layout, so every key keeps
     its 44 px target (K-6).
 12. Owner-confirmed. The complex-mode toggle (S-5) and complex-mode arithmetic and display (NM-17

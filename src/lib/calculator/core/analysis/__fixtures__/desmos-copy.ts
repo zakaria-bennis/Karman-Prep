@@ -71,6 +71,11 @@ const DESMOS: Readonly<Record<RowErrorCode, string>> = {
   "repeat-counts": "Each 'repeat' count must be a finite, non-negative integer.",
   "refused-function": "This calculator does not support the '{n}' function.",
   "repeat-lengths": "When the arguments of 'repeat' are lists, they must have the same length.",
+  // captured 2026-10-26 (College Board version)
+  "derivative-operand": "What do you want to take the derivative of?",
+  "inference-sample": "Sample for 'ttest' must have at least 2 observations.",
+  "inference-lengths": "Arguments of 'chisqgof' must be lists with the same length.",
+  "inference-short": "Each argument of 'chisqgof' must be a list with at least 2 elements.",
   "colon-side": "You need something on both sides of the ':' symbol.",
   "colon-condition": "The left side of a ':' must be a condition, like 'x>1'.",
   "piecewise-condition": "A piecewise expression must have at least one condition.",
