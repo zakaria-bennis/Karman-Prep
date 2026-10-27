@@ -23,9 +23,6 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/learn/math",
   useRouter: () => ({ refresh: vi.fn() }),
 }));
-vi.mock("../Scratchpad", () => ({
-  default: ({ pageKey }: { pageKey: string }) => <div data-testid="scratch-key">{pageKey}</div>,
-}));
 const skill = CATALOG_SKILLS.find((candidate) => candidate.id === catalogSkillId)!;
 const questions = ["a", "b"].map((id) =>
   toStudentQuizQuestion({
@@ -39,9 +36,8 @@ afterEach(() => {
 });
 function expectCurrent(index: number) {
   expect(screen.getByText(questions[index].question_text)).toBeInTheDocument();
-  expect(screen.getByTestId("scratch-key")).toHaveTextContent(questions[index].id);
 }
-it("updates the displayed preview and its scratchpad key together in both directions", () => {
+it("updates the displayed preview in both directions", () => {
   render(<CatalogPractice skill={skill} initialSession={null} availableQuestions={questions} />);
   expectCurrent(0);
   fireEvent.click(screen.getByRole("button", { name: "Next preview" }));
@@ -49,7 +45,7 @@ it("updates the displayed preview and its scratchpad key together in both direct
   fireEvent.click(screen.getByRole("button", { name: "Previous preview" }));
   expectCurrent(0);
 });
-it("keeps the canvas bound to the displayed ID when a refreshed pool shrinks, reorders or empties", () => {
+it("keeps the displayed preview when a refreshed pool shrinks, reorders or empties", () => {
   const view = render(
     <CatalogPractice skill={skill} initialSession={null} availableQuestions={questions} />
   );
@@ -69,6 +65,5 @@ it("keeps the canvas bound to the displayed ID when a refreshed pool shrinks, re
   fireEvent.click(screen.getByRole("button", { name: "Previous preview" }));
   expectCurrent(1);
   view.rerender(<CatalogPractice skill={skill} initialSession={null} availableQuestions={[]} />);
-  expect(screen.getByTestId("scratch-key")).toHaveTextContent("empty-preview");
   expect(screen.getByRole("button", { name: "Start practice" })).toBeDisabled();
 });

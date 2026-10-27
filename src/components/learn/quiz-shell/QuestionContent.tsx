@@ -36,7 +36,11 @@ export function QuestionContent(p: QuestionContentProps) {
   const graded = mode.grading !== "end" && !!review;
   const locked = mode.grading === "locked" || graded;
   const choiceState = {
-    answer: ws?.answer ?? (mode.grading === "locked" ? (review?.studentAnswer ?? null) : null),
+    // Once graded (or in review), the answer the server saved is the one shown.
+    answer:
+      graded || mode.grading === "locked"
+        ? (review?.studentAnswer ?? ws?.answer ?? null)
+        : (ws?.answer ?? null),
     crossedOut: ws?.crossedOut ?? [],
     correct: graded ? (review?.correct_answer ?? null) : null,
     locked,
