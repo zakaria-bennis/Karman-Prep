@@ -1,7 +1,7 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { setSoundEnabled, soundEnabled, subscribeSoundPreference } from "@/lib/sound-preference";
+import { quizSoundsEnabled, setQuizSounds, subscribeQuizSounds } from "@/lib/quiz/reward-sound";
 import { preferenceKey, savePreference, useQuizAnimations } from "../quiz/QuizTools";
 import styles from "./more.module.css";
 import shell from "./quiz-shell.module.css";
@@ -40,7 +40,7 @@ export function MoreMenu({
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
   const animations = useQuizAnimations();
-  const sounds = useSyncExternalStore(subscribeSoundPreference, soundEnabled, () => true);
+  const sounds = useSyncExternalStore(subscribeQuizSounds, quizSoundsEnabled, () => true);
   const { reduced } = useShellMotion();
   const box = useRef<HTMLDivElement>(null);
   const finePointer =
@@ -127,7 +127,7 @@ export function MoreMenu({
                       role="switch"
                       className={styles.switch}
                       checked={sounds}
-                      onChange={(e) => setSoundEnabled(e.target.checked)}
+                      onChange={(e) => setQuizSounds(e.target.checked)}
                     />
                   </label>
                 )}

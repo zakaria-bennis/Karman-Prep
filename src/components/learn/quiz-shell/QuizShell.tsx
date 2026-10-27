@@ -4,7 +4,15 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import type { QuizMode } from "@/lib/quiz/mode";
 import type { TimingAccommodation } from "@/lib/quiz/timer";
-import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
+import type { ConfidenceBand, StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
+import {
+  initialRewards,
+  rewardFor,
+  rewardReducer,
+  showsDots,
+  type DotState,
+} from "@/lib/quiz/rewards";
+import { playRewardSound } from "@/lib/quiz/reward-sound";
 import styles from "./quiz-shell.module.css";
 import nav from "./nav.module.css";
 import { AnnotationContext } from "./annotation-context";
@@ -22,6 +30,9 @@ import { QuestionContent } from "./QuestionContent";
 import { ReferenceSheet } from "./ReferenceSheet";
 import { Timer } from "./Timer";
 import { TopBar } from "./TopBar";
+import { FeedbackBar, ProgressDots } from "./Rewards";
+import { LevelUpCard } from "./LevelUpCard";
+import { DRAWING_NAMES } from "./drawings";
 import { useQuizLayout } from "./use-quiz-layout";
 import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
@@ -55,9 +66,18 @@ export type QuizShellProps = {
   feedback?: ReactNode;
   /** The host draws its own clock (Time Trial); the shell shows none and never expires. */
   hideClock?: boolean;
-  /** Replaces the counter in the bottom bar (progress dots in instant mode). */
+  /** Replaces the counter in the bottom bar. */
   progress?: ReactNode;
+  /** A completed skill set moved the skill's band (skill practice only). */
+  levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
+  onLevelUpDone?(): void;
 };
+
+function seedOf(text: string): number {
+  let h = 0;
+  for (const c of text) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h;
+}
 
 export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
@@ -80,6 +100,27 @@ export function QuizShell(props: QuizShellProps) {
     lastIndex.current = index;
     setChecking(false);
   }, [index]);
+  // Small wins: folded from the graded answers in order, so a repeated review never counts twice.
+  const instant = mode.grading === "instant";
+  const rewards = questions.slice(0, index + 1).reduce((state, item, i) => {
+    const r = props.reviews[item.id];
+    return r && instant
+      ? rewardReducer(state, {
+          kind: "graded",
+          key: item.id,
+          index: i,
+          correct: r.isCorrect,
+          points: r.points ?? 0,
+        })
+      : state;
+  }, initialRewards(total));
+  const played = useRef(new Set<string>());
+  useEffect(() => {
+    if (!instant || !q || !review || played.current.has(q.id)) return;
+    played.current.add(q.id);
+    if (review.isCorrect)
+      playRewardSound(rewardFor(rewards).tier === "streak5" ? "correctStreak" : "correct");
+  }, [instant, q, review, rewards]);
   useLayoutEffect(() => {
     if (header.current) setDockTop(Math.round(header.current.getBoundingClientRect().bottom) + 8);
   }, [layout, s.pencilOn]);
@@ -133,6 +174,24 @@ export function QuizShell(props: QuizShellProps) {
   const answer = ws?.answer ?? null;
   const squares = squaresFor(total, questions, s.workspaces, props.reviews, s.saved, mode);
   const math = q.subject === "math";
+  const dots: DotState[] = Array.from({ length: total }, (_, i) => {
+    const item = questions[i];
+    const r = item ? props.reviews[item.id] : undefined;
+    if (r) return r.isCorrect ? "correct" : "wrong";
+    if (i === index) return "current";
+    return item ? "open" : "locked";
+  });
+  const reward = rewardFor(rewards);
+  const drawing = DRAWING_NAMES[(seedOf(attemptKey) + index * 3) % DRAWING_NAMES.length];
+  const progress =
+    props.progress ??
+    (instant && showsDots(total) ? (
+      <ProgressDots
+        states={dots}
+        label={`Question ${index + 1} of ${total}`}
+        onOpen={() => setDialog("nav")}
+      />
+    ) : undefined);
 
   const strip = (
     <PencilStrip
@@ -306,16 +365,32 @@ export function QuizShell(props: QuizShellProps) {
             />
           )}
           <div className={styles.barGroup}>
+            {props.levelUp && (
+              <LevelUpCard
+                skill={props.levelUp.skill}
+                before={props.levelUp.before}
+                after={props.levelUp.after}
+                onDone={() => props.onLevelUpDone?.()}
+              />
+            )}
             {s.pencilOn && layout === "compact" && strip}
+            {instant && review && !checking && (
+              <FeedbackBar
+                key={q.id}
+                correct={review.isCorrect}
+                points={review.points ?? 0}
+                streak={rewards.streak}
+                showStreak={reward.showStreak}
+                drawing={drawing}
+              />
+            )}
             <BottomBar
               index={index}
               total={total}
               canBack={checking || index > 0}
               onBack={() => (checking ? setChecking(false) : props.onNavigate(index - 1))}
               onOpenNavigator={() => setDialog("nav")}
-              centre={
-                checking ? <span className={styles.counter}>Check your work</span> : props.progress
-              }
+              centre={checking ? <span className={styles.counter}>Check your work</span> : progress}
               primary={primary}
             />
           </div>

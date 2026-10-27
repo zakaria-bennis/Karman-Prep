@@ -33,6 +33,11 @@ function Host() {
     host === "review" ? Object.fromEntries(items.map((f) => [f.q.id, f.key])) : {}
   );
   const [done, setDone] = useState(false);
+  const [levelUp, setLevelUp] = useState<null | {
+    skill: string;
+    before: "developing";
+    after: "proficient";
+  }>(null);
   const mode = modeFor(host, { baseSeconds: 1920, hasTutor: params.get("tutor") === "1" });
   if (done) return <p data-fixture-done>Section submitted.</p>;
   return (
@@ -46,9 +51,20 @@ function Host() {
       onSubmit={(id, answer) => {
         const item = items.find((f) => f.q.id === id)!;
         const isCorrect = answer.trim() === item.key.correct_answer;
-        setReviews((r) => ({ ...r, [id]: { ...item.key, isCorrect, studentAnswer: answer } }));
+        const hard = (item.q.difficulty_level ?? 0) >= 5;
+        const points = isCorrect ? (hard ? 15 : 10) : 0;
+        setReviews((r) => ({
+          ...r,
+          [id]: { ...item.key, isCorrect, studentAnswer: answer, points },
+        }));
       }}
+      levelUp={levelUp}
+      onLevelUpDone={() => setDone(true)}
       onFinish={(reason) => {
+        if (params.get("levelup") === "1" && !levelUp) {
+          setLevelUp({ skill: "Linear equations", before: "developing", after: "proficient" });
+          return;
+        }
         setDone(true);
         (globalThis as { __finish?: string }).__finish = reason ?? "submit";
       }}

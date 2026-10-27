@@ -167,12 +167,15 @@
   padding-top: 3px;
   line-height: 1.5;
 }
-.correct {
+.correct,
+.choice.correct[aria-checked="true"] {
   border-color: var(--quiz-correct);
   box-shadow: inset 0 0 0 1px var(--quiz-correct);
 }
-.wrong {
+.wrong,
+.choice.wrong[aria-checked="true"] {
   border-color: var(--quiz-wrong);
+  box-shadow: inset 0 0 0 1px var(--quiz-wrong);
 }
 .mark {
   display: inline-flex;
