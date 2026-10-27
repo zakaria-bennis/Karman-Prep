@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { eraseInk, type InkStroke } from "./erase";
+import { eraseInk, type InkPoint } from "./erase";
+
+type InkStroke = { id: number; color: string; points: InkPoint[] };
 const strokes: InkStroke[] = [
   { id: 1, color: "red", points: [0, 10, 20, 30, 40, 50].map((x) => ({ x, y: 0 })) },
   {

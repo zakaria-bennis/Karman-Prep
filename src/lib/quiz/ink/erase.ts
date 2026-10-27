@@ -1,6 +1,4 @@
 export type InkPoint = { x: number; y: number };
-/** Stroke shape used by the retiring floating scratch pad. */
-export type InkStroke = { id: number; color: string; points: InkPoint[] };
 export function segmentDistance(p: InkPoint, a: InkPoint, b: InkPoint) {
   const dx = b.x - a.x,
     dy = b.y - a.y;
