@@ -5,6 +5,7 @@ import styles from "./quiz-shell.module.css";
 import { Divider } from "./Divider";
 import { Sky } from "./Sky";
 import { InkLayer } from "./InkLayer";
+import { AnnotationLayer } from "./AnnotationLayer";
 import { DUR, useShellMotion } from "./motion";
 import type { QuizLayout } from "./use-quiz-layout";
 
@@ -32,6 +33,7 @@ export function QuestionArea({
   const passagePane = passage && (
     <div data-quiz-pane="passage" className={styles.pane}>
       <div className={styles.passageText}>{passage}</div>
+      <AnnotationLayer />
       <InkLayer pane="passage" />
     </div>
   );
@@ -40,6 +42,7 @@ export function QuestionArea({
       <div data-quiz-column className={styles.column}>
         {question}
       </div>
+      <AnnotationLayer />
       <InkLayer pane="question" />
     </div>
   );

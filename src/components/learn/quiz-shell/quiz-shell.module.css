@@ -162,6 +162,7 @@
 }
 .pane {
   position: relative;
+  isolation: isolate;
   background: var(--quiz-panel);
   min-height: 100%;
   padding: 24px clamp(16px, 4vw, 48px) 48px;
