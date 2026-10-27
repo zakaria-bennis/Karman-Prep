@@ -53,6 +53,7 @@ const question: StudentQuizQuestion = {
 };
 
 beforeEach(() => {
+  sessionStorage.clear();
   const state: QuizState = {
     phase: "answering",
     nodeId: "ma-02",

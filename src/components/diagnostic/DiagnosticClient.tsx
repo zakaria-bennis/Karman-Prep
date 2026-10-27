@@ -6,6 +6,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import type { TimingAccommodation } from "@/lib/quiz/timer";
 import { DOMAIN_SECTION } from "@/types";
 import type { ScoredDiagnostic } from "@/lib/diagnostic-scoring";
 import { modeFor } from "@/lib/quiz/mode";
@@ -27,15 +28,51 @@ interface Props {
   isSubscribed: boolean;
   /** A second or later attempt granted by an admin: this submission replaces the baseline. */
   isRetake?: boolean;
+  /** The student's extra time for timed sections, set by their tutor or an admin. */
+  accommodation?: TimingAccommodation;
 }
 
-export default function DiagnosticClient({ questions, isSubscribed, isRetake }: Props) {
+type Progress = {
+  attemptId: string;
+  section: number;
+  answers: Record<string, string>;
+  bookmarks: string[];
+};
+const PROGRESS_KEY = "karman-diagnostic-progress";
+function readProgress(): Progress | null {
+  try {
+    const raw = sessionStorage.getItem(PROGRESS_KEY);
+    return raw ? (JSON.parse(raw) as Progress) : null;
+  } catch {
+    return null;
+  }
+}
+function writeProgress(p: Progress | null) {
+  try {
+    if (p) sessionStorage.setItem(PROGRESS_KEY, JSON.stringify(p));
+    else sessionStorage.removeItem(PROGRESS_KEY);
+  } catch {
+    /* Without storage a reload starts the diagnostic again. */
+  }
+}
+const newAttemptId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+
+export default function DiagnosticClient({
+  questions,
+  isSubscribed,
+  isRetake,
+  accommodation = "standard",
+}: Props) {
   const router = useRouter();
   const sections = useMemo(() => sectionsOf(questions), [questions]);
-  const [section, setSection] = useState(0);
+  // Progress survives a reload in this tab: the section, the answers and the attempt's identity.
+  const [restored] = useState(() => readProgress());
+  const [attemptId] = useState(() => restored?.attemptId ?? newAttemptId());
+  const [section, setSection] = useState(restored?.section ?? 0);
   const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>(restored?.answers ?? {});
+  const [bookmarks, setBookmarks] = useState<string[]>(restored?.bookmarks ?? []);
+  const [timeUp, setTimeUp] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [scoring, setScoring] = useState<ScoredDiagnostic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +82,14 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
     () => questions.filter((q) => DOMAIN_SECTION[q.domain] === current).map(toShellQuestion),
     [questions, current]
   );
-  const attemptKey = `diagnostic-${current}`;
+  const attemptKey = `diagnostic-${attemptId}-${current}`;
+  useEffect(() => {
+    if (!scoring) writeProgress({ attemptId, section, answers, bookmarks });
+  }, [attemptId, section, answers, bookmarks, scoring]);
+  function forget() {
+    for (const sec of sections) clearWorkspaces(`diagnostic-${attemptId}-${sec}`);
+    writeProgress(null);
+  }
 
   // Warn before closing the tab while the diagnostic is in progress.
   useEffect(() => {
@@ -75,7 +119,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
       });
       const data = (await res.json()) as { scoring?: ScoredDiagnostic; error?: string };
       if (res.ok && data.scoring) {
-        for (const s of sections) clearWorkspaces(`diagnostic-${s}`);
+        forget();
         setScoring(data.scoring);
       } else setError("Your answers could not be scored. Try submitting again.");
     } catch {
@@ -85,7 +129,12 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
     }
   }
 
-  function finishSection() {
+  function finishSection(reason?: "time") {
+    setTimeUp(
+      reason === "time"
+        ? `Time is up. Your ${current === "math" ? "Math" : "Reading and Writing"} section was submitted.`
+        : null
+    );
     if (section + 1 < sections.length) {
       setSection(section + 1);
       setIndex(0);
@@ -108,6 +157,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
 
   const notice =
     error ??
+    (index === 0 ? timeUp : null) ??
     (isRetake && section === 0 && index === 0
       ? "You are retaking the diagnostic. Submitting creates a new result next to your earlier one, so your progress chart shows both."
       : null);
@@ -116,6 +166,7 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
     <QuizShell
       key={attemptKey}
       mode={modeFor("diagnostic", { baseSeconds: SECTION_SECONDS[current], hasTutor: false })}
+      accommodation={accommodation}
       questions={sectionQuestions}
       attemptKey={attemptKey}
       index={index}
@@ -134,7 +185,10 @@ export default function DiagnosticClient({ questions, isSubscribed, isRetake }: 
         })
       }
       onFinish={finishSection}
-      onExit={() => router.replace(isSubscribed ? "/dashboard/student" : "/")}
+      onExit={() => {
+        forget();
+        router.replace(isSubscribed ? "/dashboard/student" : "/");
+      }}
       onToggleBookmark={(id, on) =>
         setBookmarks((all) =>
           on ? [...all.filter((x) => x !== id), id] : all.filter((x) => x !== id)

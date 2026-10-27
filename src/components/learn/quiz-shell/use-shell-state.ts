@@ -16,11 +16,14 @@ import type { AnnotationContextValue } from "./annotation-context";
 import type { PencilContextValue, PencilTool } from "./pencil-context";
 import { TEXT_SIZES } from "./MoreMenu";
 
-type State = { workspaces: Record<string, QuestionWorkspace> };
-type Act = { questionId: string; action: WorkspaceAction } | { load: State["workspaces"] };
+/** loadedFor: the attempt whose saved work has been read; nothing is saved before that. */
+type State = { workspaces: Record<string, QuestionWorkspace>; loadedFor: string | null };
+type Act =
+  | { questionId: string; action: WorkspaceAction }
+  | { load: State["workspaces"]; key: string };
 function reduce(state: State, act: Act): State {
-  if ("load" in act) return { workspaces: act.load };
-  return { workspaces: workspaceReducer(state.workspaces, act.questionId, act.action) };
+  if ("load" in act) return { workspaces: act.load, loadedFor: act.key };
+  return { ...state, workspaces: workspaceReducer(state.workspaces, act.questionId, act.action) };
 }
 
 const SIZE_KEY = "karman-quiz-text-size";
@@ -46,7 +49,7 @@ export function useShellState({
   locked: boolean;
   saved?: Record<string, "bookmark" | "tutor_flag">;
 }) {
-  const [state, dispatch] = useReducer(reduce, { workspaces: {} });
+  const [state, dispatch] = useReducer(reduce, { workspaces: {}, loadedFor: null });
   const [saved, setSaved] = useState(initialSaved ?? {});
   const [pencilOn, setPencilOn] = useState(false);
   const [tool, setTool] = useState<PencilTool>("pen");
@@ -64,12 +67,14 @@ export function useShellState({
   routing.current = { ...routing.current, pencilOn };
   const highlightSerial = useRef(0);
 
-  useEffect(() => dispatch({ load: loadWorkspaces(attemptKey) }), [attemptKey]);
+  useEffect(() => dispatch({ load: loadWorkspaces(attemptKey), key: attemptKey }), [attemptKey]);
   // Saved markers can arrive after the first render (loaded by the host).
   useEffect(() => {
     if (initialSaved) setSaved((now) => ({ ...initialSaved, ...now }));
   }, [initialSaved]);
-  useEffect(() => saveWorkspaces(attemptKey, state.workspaces), [attemptKey, state.workspaces]);
+  useEffect(() => {
+    if (state.loadedFor === attemptKey) saveWorkspaces(attemptKey, state.workspaces);
+  }, [attemptKey, state.workspaces, state.loadedFor]);
   useEffect(() => setTextSizeState(readSize()), []);
   useEffect(() => setPickOffer(null), [q?.id]);
 
@@ -125,6 +130,7 @@ export function useShellState({
 
   return {
     workspaces: state.workspaces,
+    loadedFor: state.loadedFor,
     ws,
     act,
     saved,

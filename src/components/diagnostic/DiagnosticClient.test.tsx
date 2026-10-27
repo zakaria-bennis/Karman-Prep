@@ -125,4 +125,53 @@ describe("diagnostic on the shared shell", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Leave" }));
     expect(replace).toHaveBeenCalledWith("/dashboard/student");
   });
+
+  it("a reload keeps the section and submits the answers the student can see", async () => {
+    const first = render(<DiagnosticClient questions={questions} isSubscribed />);
+    fireEvent.click(screen.getAllByRole("radio")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit section" }));
+    expect(screen.getByText("Prompt r1")).toBeTruthy();
+    first.unmount();
+    render(<DiagnosticClient questions={questions} isSubscribed />);
+    expect(screen.getByText("Prompt r1")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit section" }));
+    await screen.findByTestId("results");
+    const body = JSON.parse((fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0][1].body);
+    expect(body.answers[0]).toEqual({ questionId: "m1", selectedAnswer: "B" });
+  });
+
+  it("leaving and coming back starts a fresh diagnostic", () => {
+    const first = render(<DiagnosticClient questions={questions} isSubscribed />);
+    fireEvent.click(screen.getAllByRole("radio")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Exit" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog", { name: "Leave this section?" })).getByRole("button", {
+        name: "Leave",
+      })
+    );
+    first.unmount();
+    render(<DiagnosticClient questions={questions} isSubscribed />);
+    expect(screen.getAllByRole("radio")[1]).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByRole("timer").getAttribute("aria-label")).toBe(
+      "Time remaining 32 minutes 00 seconds"
+    );
+  });
+
+  it("applies the student's extra time", () => {
+    render(<DiagnosticClient questions={questions} isSubscribed accommodation="double" />);
+    expect(screen.getByRole("timer").getAttribute("aria-label")).toBe(
+      "Time remaining 64 minutes 00 seconds"
+    );
+  });
+
+  it("says so when time runs out and the section is submitted", () => {
+    vi.useFakeTimers();
+    render(<DiagnosticClient questions={questions} isSubscribed />);
+    act(() => vi.advanceTimersByTime(32 * 60 * 1000 + 1000));
+    expect(screen.getByText("Time is up. Your Math section was submitted.")).toBeTruthy();
+  });
 });

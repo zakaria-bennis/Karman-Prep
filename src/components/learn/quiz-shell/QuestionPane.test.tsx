@@ -145,3 +145,69 @@ describe("section clock after a reload", () => {
     expect(Number(sessionStorage.getItem(`karman-quiz-start:${attemptKey}`))).toBeGreaterThan(0);
   });
 });
+
+describe("restoring after a reload", () => {
+  it("never overwrites saved work with an empty workspace before it loads (strict mode)", async () => {
+    const { StrictMode } = await import("react");
+    const attemptKey = "strict-restore";
+    sessionStorage.setItem(
+      `karman-quiz-ws:${attemptKey}`,
+      JSON.stringify({
+        math: {
+          answer: "C",
+          crossedOut: [],
+          markedForReview: false,
+          ink: { strokes: [] },
+          undo: [],
+          redo: [],
+          highlights: [],
+        },
+      })
+    );
+    render(
+      <StrictMode>
+        <QuizShell
+          mode={modeFor("diagnostic", { baseSeconds: 600, hasTutor: false })}
+          questions={questions}
+          attemptKey={attemptKey}
+          index={1}
+          section="Math"
+          onNavigate={vi.fn()}
+          reviews={{}}
+        />
+      </StrictMode>
+    );
+    expect(screen.getAllByRole("radio")[2]).toHaveAttribute("aria-checked", "true");
+    expect(JSON.parse(sessionStorage.getItem(`karman-quiz-ws:${attemptKey}`)!).math.answer).toBe(
+      "C"
+    );
+  });
+  it("tells the host about restored answers so it can submit them", () => {
+    const attemptKey = "host-restore";
+    sessionStorage.setItem(
+      `karman-quiz-ws:${attemptKey}`,
+      JSON.stringify({
+        math: {
+          answer: "D",
+          crossedOut: [],
+          markedForReview: false,
+          ink: { strokes: [] },
+          undo: [],
+          redo: [],
+          highlights: [],
+        },
+      })
+    );
+    const onSelectAnswer = vi.fn();
+    setup({
+      attemptKey,
+      onSelectAnswer,
+      mode: modeFor("diagnostic", { baseSeconds: 600, hasTutor: false }),
+    });
+    expect(onSelectAnswer).toHaveBeenCalledWith("math", "D");
+  });
+  it("does not start a section clock while the host is still loading", () => {
+    setup({ attemptKey: "pending", loading: true });
+    expect(sessionStorage.getItem("karman-quiz-start:pending")).toBeNull();
+  });
+});

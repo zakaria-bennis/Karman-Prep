@@ -1,6 +1,6 @@
 "use client";
 // The one question screen every quiz uses (spec: docs/superpowers/specs/2026-10-27-quiz-engine-design.md).
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { sectionStart } from "@/lib/quiz/workspace";
 import type { QuizMode } from "@/lib/quiz/mode";
@@ -93,7 +93,20 @@ export function QuizShell(props: QuizShellProps) {
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
   // The host's server start time wins; otherwise the first start this session (survives reloads).
-  const [startedAt] = useState(() => props.startedAtMs ?? sectionStart(attemptKey));
+  // Nothing is recorded while the host is still loading (its attempt key is not real yet).
+  const startedAt = useMemo(
+    () => (props.loading ? Date.now() : (props.startedAtMs ?? sectionStart(attemptKey))),
+    [attemptKey, props.loading, props.startedAtMs]
+  );
+  // Restored answers (after a reload) are reported to the host once, so it submits what is shown.
+  const reported = useRef<string | null>(null);
+  useEffect(() => {
+    if (s.loadedFor !== attemptKey || reported.current === attemptKey) return;
+    reported.current = attemptKey;
+    for (const [id, ws] of Object.entries(s.workspaces))
+      if (ws.answer) props.onSelectAnswer?.(id, ws.answer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.loadedFor, attemptKey]);
   const header = useRef<HTMLDivElement>(null);
   const [dockTop, setDockTop] = useState(64);
   const lastIndex = useRef(index);
