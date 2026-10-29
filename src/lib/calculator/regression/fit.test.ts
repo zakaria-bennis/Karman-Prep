@@ -165,7 +165,6 @@ it("REGRESSION-10 both exact: the root the search from 1 reaches (b36B)", () => 
     model: (p) => Math.abs(5 * p[0] - 19) - Math.abs(p[0] + 2),
     logForm: null,
     logMode: false,
-    multiStart: true,
   });
   expect(fit.params[0].value).toBeCloseTo(17 / 6, 12);
 });
