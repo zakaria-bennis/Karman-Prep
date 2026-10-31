@@ -222,7 +222,7 @@ sizes before showing it.
 - Product names: "Your Daily 10", "Challenge question", "Full-length review
   session", "Wordline".
 - The March cohort's tutor is David, named on screen.
-- No em dashes, no emoji, no fake numbers presented as real, no testimonials.
+- No em dashes, no emoji, and no fake numbers presented as real.
 - The Karman predicted score is one number, never a range, and never shown
   after a Daily 10 (see the student dashboard).
 - Every asset is custom: icons, drawings, loaders, illustrations.
@@ -290,8 +290,10 @@ ones he notices most:
 - **No em dashes, no emoji, and no numbered list markers** (01, 02, 03).
 - **No sentence formulas.** No "it's not X, it's Y". No two-beat antithesis
   like "Less X. More Y." No aphorisms.
-- **Nothing made up.** No invented numbers, and no testimonials until real
-  ones exist. Tutoring results always say "Karman 1:1 tutoring, median 16
+- **Nothing made up.** No invented numbers. The mock's testimonial section is
+  made of placeholders for the founder's review: polish its design, but never
+  port the quotes into `src/` or deploy them until he replaces them with real,
+  approved ones. Add no others. Tutoring results always say "Karman 1:1 tutoring, median 16
   weeks".
 - **What goes where on the site.**
   - The home page shows only what every student shares: Your Daily 10, the
@@ -590,6 +592,7 @@ Ultracode is on, so split the work, but protect consistency.
 - Spend Higgsfield credits.
 - Print a secret.
 - Show a real student's data in a prototype.
+- Port the mock's placeholder testimonials into `src/` or put them live.
 - Claim a feature works without having clicked it.
 
 ---
