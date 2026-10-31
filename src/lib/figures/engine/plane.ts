@@ -5,11 +5,12 @@
  * (scripts/figures/sample-functions.ts); the engine never loads the
  * calculator. Polylines, rays and lines are clipped to the frame
  * (Liang–Barsky) and end in arrowheads where they leave it; segments never do.
- * Axis and tick labels sit at fixed positions; general label placement is a
- * separate step.
+ * Axis and tick labels sit at fixed positions; part labels are placed clear
+ * of them and of every line (plane-labels.ts).
  */
 import { planeDetail } from "./describe-detail";
 import { HOUSE } from "./house";
+import { planeLabels } from "./plane-labels";
 import type { Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
 import { axisTicks, tickValues } from "./ticks";
@@ -628,6 +629,9 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
     }
   }
   items.push(...dots); // points draw on top of the lines through them
+  const labels = planeLabels(spec, items, box, ([x, y]) => [m.px(x), m.py(y)]);
+  items.push(...labels.items);
+  issues.push(...labels.issues);
   return {
     width: box.width,
     height: box.height,
