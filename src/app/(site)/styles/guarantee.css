@@ -1,0 +1,466 @@
+/* ---------- the guarantee, drawn (GuaranteeDeal.tsx): one score line, three endings, two sides ---------- */
+.ks .guarantee .in {
+  display: grid;
+  gap: clamp(36px, 4.4vw, 64px);
+}
+.ks .gx {
+  --gx-ink: var(--ink);
+  --gx-soft: var(--ink2);
+  --gx-faint: var(--line);
+  display: grid;
+  gap: clamp(36px, 4.4vw, 64px);
+}
+.ks .gx-head {
+  display: grid;
+  gap: 18px;
+  max-width: 62ch;
+}
+.ks .gx-head h2 {
+  font-size: clamp(36px, 4.4vw, 68px);
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.ks .gx-head .lede {
+  color: var(--ink2);
+}
+
+/* the board: the student photo, the line, the three endings */
+.ks .gx-board {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 7fr) minmax(0, 3.2fr);
+  gap: clamp(14px, 2vw, 28px);
+  align-items: center;
+}
+.ks .gx-ph .fr {
+  border-radius: 22px;
+}
+.ks .gx-ph.start {
+  align-self: end;
+  margin-bottom: 4%;
+}
+.ks .gx-ph.start .fr {
+  aspect-ratio: 4 / 5;
+}
+.ks .gx-ph figcaption {
+  font-size: 13px;
+}
+.ks .gx-stage {
+  position: relative;
+  transform: translate(var(--lx, 0px), var(--ly, 0px));
+  transition: transform 0.9s var(--ease);
+}
+.ks .gx-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ks .gx-axis,
+.ks .gx-wk {
+  stroke: var(--gx-faint);
+  stroke-width: 2;
+}
+.ks .gx-wk {
+  opacity: 0;
+  transition: opacity 0.4s var(--ease) calc(var(--k) * 70ms + 0.2s);
+}
+.ks .gx-target {
+  stroke: var(--marigold);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 8;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease) 2.4s;
+}
+.ks .gx-main,
+.ks .gx-branch {
+  stroke: var(--gx-ink);
+  stroke-width: 2.6;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.ks .gx-main {
+  transition: stroke-dashoffset 2.4s cubic-bezier(0.6, 0.05, 0.3, 1) 0.4s;
+}
+.ks .gx-branch {
+  transition:
+    stroke-dashoffset 1s var(--ease) calc(2.5s + var(--k) * 0.18s),
+    stroke 0.3s,
+    stroke-width 0.3s,
+    opacity 0.3s;
+}
+.ks .gx-end.e0 .gx-branch {
+  stroke: var(--marigold);
+  stroke-width: 3.2;
+}
+.ks .gx-pulse {
+  stroke: var(--marigold-hi);
+  stroke-width: 4;
+  stroke-dasharray: 0.06 1;
+  stroke-dashoffset: 0.06;
+  opacity: 0;
+}
+.ks .gx-node {
+  fill: var(--paper);
+  stroke: var(--gx-ink);
+  stroke-width: 2.4;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  transition: transform 0.5s var(--spring);
+}
+.ks .gx-node.start {
+  transition-delay: 0.2s;
+}
+.ks .gx-node.split {
+  transition-delay: 2.6s;
+}
+.ks .gx-end .gx-node {
+  transition-delay: calc(3.3s + var(--k, 0) * 0.15s);
+}
+.ks .gx-end.e0 .gx-node {
+  fill: var(--marigold);
+  stroke: var(--marigold);
+}
+.ks .gx-dot {
+  fill: var(--marigold);
+  stroke: var(--paper);
+  stroke-width: 3;
+  opacity: 0;
+  transition: opacity 0.3s;
+  filter: drop-shadow(0 0 8px rgba(235, 162, 31, 0.55));
+}
+
+/* drawn: everything arrives in order */
+.ks .gx.drawn .gx-wk,
+.ks .gx.drawn .gx-target,
+.ks .gx.drawn .gx-dot {
+  opacity: 1;
+}
+.ks .gx.drawn .gx-main,
+.ks .gx.drawn .gx-branch {
+  stroke-dashoffset: 0;
+}
+.ks .gx.drawn .gx-node {
+  transform: scale(1);
+}
+.ks .gx.drawn .gx-pulse {
+  animation: gx-pulse 4.2s cubic-bezier(0.45, 0, 0.3, 1) 4s infinite;
+}
+@keyframes gx-pulse {
+  0% {
+    stroke-dashoffset: 0.06;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  60% {
+    stroke-dashoffset: -1;
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -1;
+  }
+}
+
+/* one ending chosen: it thickens, the others step back */
+.ks .gx[data-pick="0"] .gx-end:not(.e0) .gx-branch,
+.ks .gx[data-pick="1"] .gx-end:not(.e1) .gx-branch,
+.ks .gx[data-pick="2"] .gx-end:not(.e2) .gx-branch {
+  opacity: 0.22;
+}
+.ks .gx-end.on .gx-branch {
+  stroke-width: 4.2;
+}
+.ks .gx-end.on .gx-node {
+  transform: scale(1.35);
+  transition-delay: 0s;
+}
+.ks .gx-end.e1.on .gx-branch,
+.ks .gx-end.e2.on .gx-branch {
+  stroke: var(--marigold-ink);
+}
+
+/* the words on the drawing */
+.ks .gx-lab {
+  position: absolute;
+  margin: 0;
+  font-size: clamp(11px, 1vw, 14px);
+  font-weight: 700;
+  color: var(--ink2);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+.ks .gx.drawn .gx-lab {
+  opacity: 1;
+}
+.ks .gx-lab.s {
+  left: 4%;
+  top: 88%;
+  transform: translateX(-10%);
+  transition-delay: 0.3s;
+}
+.ks .gx-lab.w {
+  left: 34%;
+  top: 96%;
+  transform: translateX(-50%);
+  transition-delay: 1.4s;
+}
+.ks .gx-lab.d {
+  left: 65%;
+  top: 96%;
+  transform: translateX(-50%);
+  color: var(--ink);
+  transition-delay: 2.5s;
+}
+.ks .gx-lab.t {
+  left: 47%;
+  top: 26%;
+  color: var(--marigold-ink);
+  transition-delay: 2.6s;
+}
+
+/* the endings, each beside its branch */
+.ks .gx-ends {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  height: 100%;
+  min-height: 300px;
+}
+.ks .gx-ends li {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--y);
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+.ks .gx.drawn .gx-ends li {
+  opacity: 1;
+}
+.ks .gx.drawn .gx-ends li.e0 {
+  transition-delay: 3.3s;
+}
+.ks .gx.drawn .gx-ends li.e1 {
+  transition-delay: 3.45s;
+}
+.ks .gx.drawn .gx-ends li.e2 {
+  transition-delay: 3.6s;
+}
+.ks .gx-ends button {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 0 8px 14px;
+  border-left: 2px solid var(--line);
+  cursor: pointer;
+  transition:
+    border-color 0.3s,
+    transform 0.45s var(--spring);
+}
+.ks .gx-ends button:focus-visible {
+  outline: 3px solid var(--marigold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.ks .gx-ends b {
+  font-size: clamp(16px, 1.35vw, 20px);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+.ks .gx-ends span {
+  font-size: 15px;
+  color: var(--ink2);
+  line-height: 1.4;
+}
+.ks .gx-ends li.e0 b {
+  color: var(--marigold-ink);
+}
+.ks .gx-ends li.on button {
+  border-color: var(--marigold);
+  transform: translateX(6px);
+}
+.ks .gx[data-pick="0"] .gx-ends li:not(.e0),
+.ks .gx[data-pick="1"] .gx-ends li:not(.e1),
+.ks .gx[data-pick="2"] .gx-ends li:not(.e2) {
+  opacity: 0.45;
+  transition-delay: 0s;
+}
+
+/* the promise, big */
+.ks .gx-promise {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+.ks .gx-promise .big {
+  font-size: clamp(48px, 7vw, 112px);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+  color: var(--marigold-ink);
+  text-wrap: balance;
+}
+.ks .gx-promise .note {
+  color: var(--ink2);
+  font-size: 16px;
+  max-width: 52ch;
+}
+/* the two sides */
+.ks .gx-deal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: start;
+}
+.ks .gx-side h3 {
+  font-size: clamp(22px, 2vw, 30px);
+  padding-bottom: 12px;
+}
+.ks .gx-side.you h3 {
+  color: var(--marigold-ink);
+}
+.ks .gx-side ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.ks .gx-side li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  font-size: 17px;
+  line-height: 1.4;
+}
+.ks .gx-side li svg {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--marigold);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ks .gx-side li path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.5s var(--ease) calc(0.5s + var(--k) * 0.22s);
+}
+.ks .gx-side.on li path {
+  stroke-dashoffset: 0;
+}
+
+/* the small print, which isn't small */
+.ks .gx-foot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 48px);
+  align-items: center;
+}
+.ks .gx-foot > div {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+.ks .gx-covers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ks .gx-covers li {
+  padding: 8px 14px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 15px;
+  font-weight: 600;
+}
+.ks .gx-foot .claim {
+  color: var(--ink2);
+  font-size: 16px;
+  max-width: 60ch;
+}
+.ks .gx-foot .lk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-weight: 800;
+  font-size: 18px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.ks .gx-foot .lk svg {
+  width: 15px;
+  height: 15px;
+  color: var(--marigold-ink);
+  transition: transform 0.4s var(--spring);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ks .gx-foot .lk:hover svg {
+    transform: translateX(4px);
+  }
+}
+
+@media (max-width: 900px) {
+  .ks .gx-board {
+    grid-template-columns: 1fr;
+  }
+  .ks .gx-ph.start {
+    display: none;
+  }
+  .ks .gx-ends {
+    min-height: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .ks .gx-ends li {
+    position: static;
+    transform: none;
+  }
+  .ks .gx-deal {
+    grid-template-columns: 1fr;
+  }
+  .ks .gx-foot {
+    grid-template-columns: 1fr;
+  }
+  .ks .gx-lab.t {
+    top: 22%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .gx *,
+  .ks .gx {
+    transition: none !important;
+    animation: none !important;
+  }
+  .ks .gx-node {
+    transform: scale(1);
+  }
+  .ks .gx-lab,
+  .ks .gx-ends li,
+  .ks .gx-wk,
+  .ks .gx-target,
+  .ks .gx-dot {
+    opacity: 1;
+  }
+}

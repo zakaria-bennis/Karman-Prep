@@ -51,18 +51,25 @@ const isMaintenanceExempt = createRouteMatcher([
 /** Routes that don't require auth in normal (post-launch) operation.
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
+  // the marketing site (src/components/site/routes.ts)
   "/",
-  "/free-diagnostic",
-  "/plans",
-  "/questions",
+  "/program",
+  "/private-tutoring",
+  "/free-practice-test",
+  "/pricing",
+  "/guarantee",
   "/faq",
   "/about",
-  "/calculator",
-  "/blog(.*)",
-  "/guarantee",
+  "/research",
   "/privacy",
   "/terms",
   "/refunds",
+  // old marketing addresses, redirected in next.config.mjs
+  "/free-diagnostic",
+  "/plans",
+  "/questions",
+  "/blog(.*)",
+  "/calculator",
   "/sitemap.xml",
   "/robots.txt",
   "/coming-soon",
@@ -118,7 +125,7 @@ export default DEV_AUTH_BYPASS_ACTIVE ? bypassMiddleware : realMiddleware;
 export const config = {
   matcher: [
     // Skip Next.js internals and static assets
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|mp4)).*)",
     "/(api|trpc)(.*)",
   ],
 };

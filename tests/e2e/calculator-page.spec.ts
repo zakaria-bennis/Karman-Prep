@@ -104,7 +104,7 @@ test.describe("desktop", () => {
   test("the site footer's Calculator link opens the calculator", async ({ page }) => {
     await page.goto("/");
     await page
-      .getByRole("navigation", { name: "Footer product links" })
+      .getByRole("navigation", { name: "Footer" })
       .getByRole("link", { name: "Calculator" })
       .click();
     await expect(page).toHaveURL(/\/calculator$/);

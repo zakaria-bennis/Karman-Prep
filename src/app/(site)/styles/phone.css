@@ -1,0 +1,33 @@
+/* The iPhone 17 Pro in Cosmic Orange, drawn in CSS (2026-10-26). Apple's proportions: 71.9 x 150.0 mm, a
+   6.3-inch display, a thin even black border, corners that share one centre (the band, the glass and the
+   screen are concentric), and the Dynamic Island. No edge pieces: the phone only leans a little, so its
+   front always reads as a phone. Size it with --pw. */
+.ks .iphone {
+  --pw: 300px;
+  --band: calc(var(--pw) * 0.014);
+  --bez: calc(var(--pw) * 0.03);
+  --r: calc(var(--pw) * 0.19);
+  position: relative; flex: none; width: var(--pw); aspect-ratio: 71.9 / 150; border-radius: var(--r);
+  /* the aluminium band: lit along the top-left, darker round the bottom-right */
+  background: linear-gradient(145deg, #f4a56c 0%, #d9692c 30%, #c35a22 62%, #e88a4c 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--pw) * 0.003) rgba(255, 226, 200, .55),
+    0 calc(var(--pw) * 0.04) calc(var(--pw) * 0.12) rgba(0, 0, 0, .28),
+    0 calc(var(--pw) * 0.01) calc(var(--pw) * 0.02) rgba(0, 0, 0, .18);
+}
+.ks .iphone .glass { position: absolute; inset: var(--band); border-radius: calc(var(--r) - var(--band)); background: #050506; padding: var(--bez); overflow: hidden; }
+/* a faint reflection across the glass */
+.ks .iphone .glass::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(120deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 72%, rgba(255,255,255,.04) 100%); }
+.ks .iphone .scr-host { display: block; }
+.ks .iphone .scr-host, .ks .iphone .scr-host > .scr { width: 100%; height: 100%; border-radius: calc(var(--r) - var(--band) - var(--bez)); overflow: hidden; }
+.ks .iphone .island { position: absolute; left: 50%; top: calc(var(--bez) + var(--pw) * 0.026); width: calc(var(--pw) * 0.3); height: calc(var(--pw) * 0.088); transform: translateX(-50%); border-radius: 999px; background: #000; z-index: 2; }
+/* the front camera, just visible inside the island */
+.ks .iphone .island::after { content: ""; position: absolute; right: 18%; top: 50%; width: calc(var(--pw) * 0.03); aspect-ratio: 1; transform: translateY(-50%); border-radius: 50%; background: radial-gradient(circle at 35% 35%, #2a3550, #07080c 70%); }
+/* the buttons on the band: Action and volume on the left, the side button on the right */
+.ks .iphone .btns { position: absolute; inset: 0; pointer-events: none; }
+.ks .iphone .btns::before, .ks .iphone .btns::after { content: ""; position: absolute; width: calc(var(--pw) * 0.012); border-radius: 99px; background: #c25a22; }
+.ks .iphone .btns::before { left: calc(var(--pw) * -0.009); top: 19%; height: 5%; box-shadow: 0 calc(var(--pw) * 0.12) 0 #c25a22, 0 calc(var(--pw) * 0.24) 0 #c25a22; }
+.ks .iphone .btns::after { right: calc(var(--pw) * -0.009); top: 27%; height: 10%; }
+/* the home indicator along the bottom of the screen */
+.ks .iphone .home { position: absolute; left: 50%; bottom: calc(var(--bez) + var(--pw) * 0.022); width: 34%; height: calc(var(--pw) * 0.013); transform: translateX(-50%); border-radius: 99px; background: rgba(255,255,255,.8); z-index: 2; }
+.ks:not([data-mode="dark"]) .iphone .home { background: rgba(10,10,10,.82); }

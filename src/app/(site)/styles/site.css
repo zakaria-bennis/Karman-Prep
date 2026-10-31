@@ -1,0 +1,30 @@
+/* The Next.js port's own additions to the mock's styles (everything else in this folder is the approved
+   mock, scoped under .ks so none of it reaches the student app). */
+.ks { min-height: 100svh; }
+html:has(#ks) { background: #0e0d0c; }
+/* our drawings are placed through a wrapper that must not add a box of its own */
+.ks .scr-host, .ks .k-icon-wrap, .ks .k-arrow-wrap { display: contents; }
+.ks .k-trap { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* the theme switch shows the moon in light mode and the sun in dark mode, before any script runs */
+.ks .theme .sun, .ks[data-mode="dark"] .theme .moon, .ks .theme .to-light, .ks[data-mode="dark"] .theme .to-dark { display: none; }
+.ks[data-mode="dark"] .theme .sun, .ks[data-mode="dark"] .theme .to-light { display: inline; }
+.ks .theme .sun, .ks .theme .moon { width: 20px; height: 20px; }
+
+/* ---------- the legal pages: plain reading type on paper ---------- */
+.ks .legal { max-width: 780px; margin: 0 auto; padding: clamp(130px, 14vw, 180px) var(--gutter) clamp(70px, 8vw, 120px); display: grid; gap: 28px; color: var(--ink); }
+.ks .legal h1 { font-size: clamp(40px, 5.4vw, 72px); max-width: 16ch; margin-bottom: 14px; }
+.ks .legal h2 { font-size: clamp(22px, 2.2vw, 30px); letter-spacing: -0.03em; line-height: 1.15; margin: 34px 0 10px; }
+.ks .legal h3 { font-size: 19px; margin: 18px 0 6px; }
+.ks .legal p, .ks .legal li, .ks .legal td, .ks .legal th { font-size: 17px; line-height: 1.6; color: var(--ink2); }
+.ks .legal p + p { margin-top: 12px; }
+.ks .legal ul, .ks .legal ol { display: grid; gap: 8px; margin: 10px 0; }
+.ks .legal li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; }
+.ks .legal li::before { content: ""; width: 10px; height: 2px; border-radius: 2px; background: var(--marigold); margin-top: .8em; }
+.ks .legal a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--marigold); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.ks .legal aside nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.ks .legal aside nav a { font-size: 15px; font-weight: 600; min-height: 36px; display: inline-flex; align-items: center; }
+.ks .legal aside p { font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+.ks .legal table { width: 100%; border-collapse: collapse; margin: 12px 0; display: block; overflow-x: auto; }
+.ks .legal th, .ks .legal td { text-align: left; padding: 10px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+.ks .legal th { color: var(--ink); font-weight: 700; }
+.ks .legal section { scroll-margin-top: 90px; }
