@@ -136,6 +136,7 @@ export default function CatalogQuestion({
             <legend className="mb-3 text-sm font-semibold">Choose one answer</legend>
             {hasFigureChoices(choices) ? (
               <FigureChoices
+                radio
                 choices={choices}
                 selected={answer}
                 onSelect={onAnswer}

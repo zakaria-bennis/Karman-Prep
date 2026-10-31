@@ -29,7 +29,7 @@ import { HOUSE } from "./house";
 import { placeLabels, textWidth, type PendingLabel } from "./labels";
 import type { Pt } from "./marks";
 import { fmt } from "./plane";
-import type { Scene, SceneIssue, SceneItem } from "./scene";
+import type { ScaleOptions, Scene, SceneIssue, SceneItem } from "./scene";
 import { SOLID_DIMS, type FigureSpec, type Part, type SolidShape } from "./spec";
 
 type Box = { width: number; height: number };
@@ -456,7 +456,7 @@ export function project(
 }
 
 /** The Scene of a `solid3d` FigureSpec drawn in `box`. */
-export function buildSolid3d(spec: FigureSpec, box: Box): Scene {
+export function buildSolid3d(spec: FigureSpec, box: Box, opts: ScaleOptions = {}): Scene {
   const issues: SceneIssue[] = [];
   const solids = spec.parts.filter((p): p is SolidPart => p.kind === "solid");
   for (const p of spec.parts) {
@@ -515,7 +515,9 @@ export function buildSolid3d(spec: FigureSpec, box: Box): Scene {
   const xs = rawPts.map((p) => p[0]);
   const ys = rawPts.map((p) => p[1]);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  const scale = Math.min(availW / Math.max(x1 - x0, EPS), availH / Math.max(y1 - y0, EPS));
+  const fitScale = Math.min(availW / Math.max(x1 - x0, EPS), availH / Math.max(y1 - y0, EPS));
+  // A shared scale (figure choices) maps world units to px the same for every figure in a set.
+  const scale = opts.scale ?? fitScale;
   const fit: Fit = {
     scale,
     x: box.width / 2 - (scale * (x0 + x1)) / 2,
@@ -580,5 +582,6 @@ export function buildSolid3d(spec: FigureSpec, box: Box): Scene {
     items: placed.items,
     issues,
     description: describe(model, labeled, spec.notToScale),
+    scale,
   };
 }

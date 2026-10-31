@@ -30,7 +30,7 @@ import {
   type Pt,
 } from "./marks";
 import { clipParam, fmt } from "./plane";
-import type { Scene, SceneIssue, SceneItem } from "./scene";
+import type { ScaleOptions, Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Label, Part } from "./spec";
 
 type Box = { width: number; height: number };
@@ -451,7 +451,7 @@ function pendingLabels(ctx: LabelContext, issues: SceneIssue[]): PendingLabel[] 
 }
 
 /** The Scene of a `geometry2d` FigureSpec drawn in `box`. */
-export function buildGeometry2d(input: FigureSpec, box: Box): Scene {
+export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions = {}): Scene {
   const issues: SceneIssue[] = [];
   const spec = snap(input);
   const world = pointsOf(spec);
@@ -474,7 +474,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box): Scene {
   const b = bounds(layoutPoints(spec, world));
   const bw = b.x1 - b.x0;
   const bh = b.y1 - b.y0;
-  const scale =
+  const fitScale =
     bw < EPS && bh < EPS
       ? 1
       : bw < EPS
@@ -482,6 +482,8 @@ export function buildGeometry2d(input: FigureSpec, box: Box): Scene {
         : bh < EPS
           ? availW / bw
           : Math.min(availW / bw, availH / bh);
+  // A shared scale (figure choices) maps world units to px the same for every figure in a set.
+  const scale = opts.scale ?? fitScale;
   const ox = box.width / 2 - scale * ((b.x0 + b.x1) / 2);
   const oy = (box.height - noteBand) / 2 - scale * ((b.y0 + b.y1) / 2);
   const points = new Map<string, Pt>();
@@ -633,5 +635,5 @@ export function buildGeometry2d(input: FigureSpec, box: Box): Scene {
   items.push(...placed.items.slice(collision.length));
   issues.push(...placed.issues);
 
-  return { width: box.width, height: box.height, items, issues, description };
+  return { width: box.width, height: box.height, items, issues, description, scale };
 }

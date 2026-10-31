@@ -173,6 +173,7 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
               <legend className="sr-only">Choose an answer</legend>
               {hasFigureChoices(choices) ? (
                 <FigureChoices
+                  radio
                   choices={choices}
                   selected={answer}
                   onSelect={setAnswer}

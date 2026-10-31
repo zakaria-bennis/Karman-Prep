@@ -79,10 +79,12 @@ export default function FigureView({
   title?: string;
 }) {
   const markerId = `figure-arrow-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  // A scene padded to a larger box (figure choices) keeps its drawing centered in it.
+  const [ox, oy] = scene.offset ?? [0, 0];
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${px(scene.width)} ${px(scene.height)}`}
+      viewBox={`${px(-ox)} ${px(-oy)} ${px(scene.width)} ${px(scene.height)}`}
       role="img"
       aria-label={scene.description}
       className={className}

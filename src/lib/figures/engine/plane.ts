@@ -8,6 +8,7 @@
  * Axis and tick labels sit at fixed positions; general label placement is a
  * separate step.
  */
+import { planeDetail } from "./describe-detail";
 import { HOUSE } from "./house";
 import type { Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
@@ -328,7 +329,8 @@ function axisNames(
   const { w, px, py } = m;
   const off = HOUSE.labelOffset;
   const items: SceneItem[] = [];
-  const xName = (frame.xLabel ?? "x").trim();
+  // Category bands (a bar chart) have no x variable to name.
+  const xName = (frame.xLabel ?? (frame.categories ? "" : "x")).trim();
   const yName = at.yAxis ? (frame.yLabel ?? "y").trim() : "";
   if (xName && isShortName(xName)) {
     items.push({
@@ -515,6 +517,9 @@ function describePlane(spec: FigureSpec, frame: PlaneFrame): string {
   for (const p of spec.parts) counts.set(p.kind, (counts.get(p.kind) ?? 0) + 1);
   const what = [...counts].map(([k, n]) => `${n} ${k}${n > 1 ? "s" : ""}`).join(", ");
   const base = `A coordinate plane with x from ${fmt(frame.x[0])} to ${fmt(frame.x[1])} and y from ${fmt(frame.y[0])} to ${fmt(frame.y[1])}`;
+  // What is drawn, so two graphs in one frame never read the same (describe-detail.ts).
+  const detail = planeDetail(spec);
+  if (detail.length) return `${base}: ${detail.join("; ")}.`;
   return what ? `${base}, showing ${what}.` : `${base}.`;
 }
 
@@ -582,10 +587,10 @@ export function planeAxes(
   return { items: [...grid(f, map, yMode), ...axes(f, map, yMode)], map, frame: f };
 }
 
-/** The Scene of a `plane` FigureSpec drawn in `box`. */
 /** The frame a plane spec without one is drawn in. */
 export const DEFAULT_PLANE_FRAME: PlaneFrame = { x: [-10, 10], y: [-10, 10] };
 
+/** The Scene of a `plane` FigureSpec drawn in `box`. */
 export function buildPlane(spec: FigureSpec, box: Box): Scene {
   const issues: SceneIssue[] = [];
   const frame: PlaneFrame = spec.frame ?? DEFAULT_PLANE_FRAME;

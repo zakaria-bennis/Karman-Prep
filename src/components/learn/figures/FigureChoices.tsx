@@ -13,7 +13,7 @@
 // are a read-only list (review screens).
 // ============================================================
 
-import { useMemo } from "react";
+import { useMemo, useRef, type KeyboardEvent } from "react";
 import { Ban, Check, X } from "lucide-react";
 import { choiceScenes } from "@/lib/figures/engine/choices";
 import { cn } from "@/lib/utils";
@@ -65,6 +65,7 @@ export default function FigureChoices({
   onToggleCrossed,
   accent = "info",
   serializedFunctionLines = false,
+  radio = false,
   className,
 }: {
   /** Every choice of the question, in letter order. */
@@ -84,13 +85,38 @@ export default function FigureChoices({
   accent?: "info" | "gold";
   /** Math text fallback for a choice whose spec cannot be drawn. */
   serializedFunctionLines?: boolean;
+  /**
+   * The radio keyboard model (practice surfaces whose text choices are radios): a radiogroup
+   * of role="radio" choices, one Tab stop, arrow keys move between choices, Space or Enter
+   * selects. Otherwise each choice is a toggle button (the quiz screen).
+   */
+  radio?: boolean;
   className?: string;
 }) {
   const scenes = useMemo(() => choiceScenes(choices.map((c) => c.choice_figure_spec)), [choices]);
   const interactive = !!onSelect;
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  const isOff = (letter: string) => disabled || submitted || !!crossed?.(letter);
+  const enabled = choices.flatMap((c, i) => (isOff(c.letter) ? [] : [i]));
+  // The one Tab stop of the radio group: the selected choice, else the first enabled one.
+  const selectedIndex = choices.findIndex((c) => c.letter === selected);
+  const tabStop = enabled.includes(selectedIndex) ? selectedIndex : (enabled[0] ?? -1);
+  const onArrow = (event: KeyboardEvent, index: number) => {
+    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+    if (!step || enabled.length === 0) return;
+    event.preventDefault();
+    const at = enabled.indexOf(index);
+    const next = enabled[(at + step + enabled.length) % enabled.length];
+    buttons.current[next]?.focus();
+  };
 
   return (
-    <div data-figure-choices="" className={cn(styles.grid, className)}>
+    <div
+      data-figure-choices=""
+      role={radio && interactive ? "radiogroup" : undefined}
+      aria-label={radio && interactive ? "Answer choices" : undefined}
+      className={cn(styles.grid, className)}
+    >
       {choices.map((choice, i) => {
         const { letter } = choice;
         const scene = scenes[i];
@@ -109,7 +135,9 @@ export default function FigureChoices({
           state === "selected" && accent === "gold" ? "border-gold bg-gold/10" : STATE_CLASS[state];
         const status = STATUS[state];
         const what = scene ? scene.description : choice.choice_text.trim();
-        const name = what ? `Choice ${letter}: ${what}` : `Choice ${letter}`;
+        const base = what ? `Choice ${letter}: ${what}` : `Choice ${letter}`;
+        // The state is part of the name, so it is announced with the choice.
+        const name = status ? `${base.replace(/\.$/, "")}. ${status}.` : base;
         const content = (
           <>
             {/* With elimination the column keeps room for the tool under the letter. */}
@@ -138,7 +166,6 @@ export default function FigureChoices({
                 />
               </span>
             )}
-            {status && <span className="sr-only">{status}</span>}
           </>
         );
         const boxClass = cn(
@@ -155,10 +182,20 @@ export default function FigureChoices({
           >
             {interactive ? (
               <button
+                ref={(el) => {
+                  buttons.current[i] = el;
+                }}
                 type="button"
                 aria-label={name}
-                aria-pressed={isSelected}
-                disabled={disabled || submitted || isCrossed}
+                {...(radio
+                  ? {
+                      role: "radio",
+                      "aria-checked": isSelected,
+                      tabIndex: i === tabStop ? 0 : -1,
+                      onKeyDown: (event: KeyboardEvent) => onArrow(event, i),
+                    }
+                  : { "aria-pressed": isSelected })}
+                disabled={isOff(letter)}
                 onClick={() => onSelect(letter)}
                 className={cn(
                   boxClass,

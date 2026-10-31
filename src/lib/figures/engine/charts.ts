@@ -13,6 +13,7 @@
  * - A title wraps above the plot; with two or more named series a legend
  *   wraps below it. The figure grows taller for both, so the plot keeps its size.
  */
+import { chartDetail } from "./describe-detail";
 import { HOUSE } from "./house";
 import {
   LINE_HEIGHT,
@@ -367,7 +368,13 @@ const WHAT: Record<ChartKind, string> = {
   box_plot: "Box-and-whisker plot",
 };
 
-function describeChart(spec: FigureSpec, type: ChartKind, frame: PlaneFrame, series: Series[]) {
+function describeChart(
+  spec: FigureSpec,
+  type: ChartKind,
+  frame: PlaneFrame,
+  series: Series[],
+  names: Map<string, string>
+) {
   const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
   const x = frame.xLabel?.trim() || "x";
   const y = frame.yLabel?.trim() || "y";
@@ -387,7 +394,9 @@ function describeChart(spec: FigureSpec, type: ChartKind, frame: PlaneFrame, ser
     return `${title}Graph of ${plural(lines, "function")}. X-axis: ${x}. Y-axis: ${y}.`;
   }
   const extra = lines ? ` It also shows ${plural(lines, "graphed line")}.` : "";
-  return `${title}${body[type]}${extra}`;
+  // The data itself, so two charts in one frame never read the same (describe-detail.ts).
+  const data = chartDetail(type, frame, series, names);
+  return `${title}${body[type]}${extra}${data ? ` ${data[0].toUpperCase()}${data.slice(1)}.` : ""}`;
 }
 
 /** The Scene of a chart FigureSpec (bar, line, scatter, dot_plot, histogram or box_plot) in `box`. */
@@ -497,6 +506,6 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
     height: full.height,
     items,
     issues,
-    description: describeChart(spec, type, axes.frame, series),
+    description: describeChart(spec, type, axes.frame, series, names),
   };
 }

@@ -9,6 +9,7 @@
  */
 import type { QuestionTableData } from "@/types/question-table";
 import { chartSpecFrame } from "./charts";
+import { geometryDetail, solidDetail } from "./describe-detail";
 import { specToTableData } from "./from-table-data";
 import { buildScene, type Box } from "./index";
 import { DEFAULT_PLANE_FRAME } from "./plane";
@@ -68,29 +69,78 @@ function drawnSpec(input: unknown): FigureSpec | null {
   return parsed.ok && parsed.spec.type !== "table" ? parsed.spec : null;
 }
 
+const SCALED = new Set(["geometry2d", "solid3d"]);
+
+/** One scene per choice, or null; a builder throw draws nothing (the text shows instead). */
+function tryBuild(spec: FigureSpec | null, scale?: number): Scene | null {
+  if (!spec) return null;
+  try {
+    return buildScene(spec, CHOICE_BOX, scale === undefined ? {} : { scale });
+  } catch {
+    return null;
+  }
+}
+
+/** A scene padded to `width` × `height`, its drawing centered in the larger box. */
+export function padScene(scene: Scene, width: number, height: number): Scene {
+  if (scene.width === width && scene.height === height) return scene;
+  const [ox, oy] = scene.offset ?? [0, 0];
+  return {
+    ...scene,
+    width,
+    height,
+    offset: [ox + (width - scene.width) / 2, oy + (height - scene.height) / 2],
+  };
+}
+
+/** Descriptions that tell the choices apart: shapes and solids add vertices or dims on a tie. */
+function distinguish(scenes: (Scene | null)[], specs: (FigureSpec | null)[]): (Scene | null)[] {
+  const texts = scenes.filter((s): s is Scene => s !== null).map((s) => s.description);
+  if (new Set(texts).size === texts.length) return scenes;
+  return scenes.map((scene, i) => {
+    const spec = specs[i];
+    if (!scene || !spec) return scene;
+    const detail =
+      spec.type === "geometry2d"
+        ? geometryDetail(spec)
+        : spec.type === "solid3d"
+          ? solidDetail(spec)
+          : "";
+    if (!detail) return scene;
+    return { ...scene, description: `${scene.description.replace(/\.$/, "")}, with ${detail}.` };
+  });
+}
+
 /**
- * The Scene of each choice, in order, all in CHOICE_BOX and one shared frame and
- * padded to one height (a chart's legend or title makes it taller). Null for a
- * choice with no spec, an invalid spec, or a table spec.
+ * The Scene of each choice, in order, all in CHOICE_BOX at one size:
+ * - planes and charts in one shared frame (sharedFrame);
+ * - shapes and solids at one scale, the largest at which every one fits the box
+ *   (each centered), so a figure twice as large in the spec is twice as large on screen;
+ * - each padded to the largest scene (a chart's legend or title makes it taller), centered.
+ * Null for a choice with no spec, an invalid spec, or a table spec.
  */
 export function choiceScenes(specs: unknown[]): (Scene | null)[] {
   const drawn = specs.map(drawnSpec);
   const valid = drawn.filter((s): s is FigureSpec => s !== null);
   const framed = valid.some((s) => frameOf(s) !== null);
   const frame = framed ? sharedFrame(valid) : null;
-  const scenes = drawn.map((spec) => {
-    if (!spec) return null;
-    try {
-      const own = frame && frameOf(spec) ? { ...spec, frame } : spec;
-      return buildScene(own, CHOICE_BOX);
-    } catch {
-      return null;
-    }
-  });
+  const own = drawn.map((spec) => (spec && frame && frameOf(spec) ? { ...spec, frame } : spec));
+  let scenes = own.map((spec) => tryBuild(spec));
+  // Each shape's own fit scale is the most it can take; the smallest of those fits them all.
+  const fits = scenes.flatMap((scene, i) =>
+    scene?.scale !== undefined && SCALED.has(own[i]!.type) ? [scene.scale] : []
+  );
+  if (fits.length > 1) {
+    const scale = Math.min(...fits);
+    scenes = scenes.map((scene, i) =>
+      scene && SCALED.has(own[i]!.type) ? tryBuild(own[i], scale) : scene
+    );
+  }
   const height = Math.max(0, ...scenes.map((s) => s?.height ?? 0));
   const width = Math.max(0, ...scenes.map((s) => s?.width ?? 0));
-  return scenes.map((s) =>
-    s && (s.height !== height || s.width !== width) ? { ...s, width, height } : s
+  return distinguish(
+    scenes.map((s) => (s ? padScene(s, width, height) : s)),
+    own
   );
 }
 

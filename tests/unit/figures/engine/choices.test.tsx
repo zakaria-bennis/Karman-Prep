@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import FigureChoices from "@/components/learn/figures/FigureChoices";
 import CatalogQuestion from "@/components/learn/catalog-practice/CatalogQuestion";
@@ -206,9 +206,10 @@ describe("FigureChoices", () => {
       "data-choice-state",
       "correct"
     );
-    // Not by color alone: the states are also written.
-    expect(within(choice("D")).getByText("Correct answer")).toBeInTheDocument();
-    expect(within(choice("B")).getByText("Your answer, incorrect")).toBeInTheDocument();
+    // Not by color alone: the state is part of each choice's accessible name.
+    expect(choice("D")).toHaveAccessibleName(/^Choice D: .*\. Correct answer\.$/);
+    expect(choice("B")).toHaveAccessibleName(/^Choice B: .*\. Your answer, incorrect\.$/);
+    expect(choice("A").getAttribute("aria-label")).not.toMatch(/answer/i);
   });
 
   it("without onSelect the choices are a read-only list, not buttons", () => {
@@ -301,7 +302,9 @@ describe("student surfaces draw figure choices", () => {
         onAnswer={onAnswer}
       />
     );
-    const buttons = screen.getAllByRole("button", { name: /^Choice [ABCD]: A coordinate plane/ });
+    // The radio keyboard model of Catalog's text choices, kept for figures.
+    expect(screen.getByRole("radiogroup")).toBeInTheDocument();
+    const buttons = screen.getAllByRole("radio", { name: /^Choice [ABCD]: A coordinate plane/ });
     expect(buttons).toHaveLength(4);
     fireEvent.click(buttons[2]);
     expect(onAnswer).toHaveBeenCalledWith("C");
@@ -354,10 +357,10 @@ describe("student surfaces draw figure choices", () => {
         reading={{ state: "empty" }}
       />
     );
-    const a = screen.getByRole("button", { name: /^Choice A: A coordinate plane/ });
+    const a = screen.getByRole("radio", { name: /^Choice A: A coordinate plane/ });
     expect(screen.getByRole("button", { name: "Check answer" })).toBeDisabled();
     fireEvent.click(a);
-    expect(a).toHaveAttribute("aria-pressed", "true");
+    expect(a).toHaveAttribute("aria-checked", "true");
     expect(screen.getByRole("button", { name: "Check answer" })).toBeEnabled();
   });
 

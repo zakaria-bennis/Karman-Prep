@@ -57,4 +57,14 @@ export type Scene = {
   items: SceneItem[];
   issues: SceneIssue[];
   description: string;
+  /** Shapes and solids: px per world unit. Figure choices draw a set at one scale with it. */
+  scale?: number;
+  /** Where the drawing starts in its box, when it was padded to a larger box (centered). */
+  offset?: [number, number];
+};
+
+/** Layout options a shape or solid builder accepts. */
+export type ScaleOptions = {
+  /** px per world unit, instead of fitting the box: a set of figures drawn at one scale. */
+  scale?: number;
 };
