@@ -42,7 +42,8 @@ function mapper(frame: PlaneFrame, box: Box, inset: Inset = MARGIN_INSET) {
   };
 }
 
-const fmt = (n: number) => String(Math.round(n * 100) / 100);
+/** A coordinate rounded to 2 decimals for path data. */
+export const fmt = (n: number) => String(Math.round(n * 100) / 100);
 
 /**
  * Liang–Barsky: the parameter range [t0, t1] of p + t·d that lies inside the

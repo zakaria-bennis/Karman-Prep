@@ -13,6 +13,12 @@ export const HOUSE = {
   arrowLength: 8,
   arrowWidth: 6,
   tickLength: 6,
+  /** Side of the square that marks a right angle. */
+  rightAngleSide: 10,
+  /** Radius of the innermost equal-angle arc. */
+  angleArcRadius: 14,
+  /** Spacing between repeated ticks, arcs or parallel chevrons in one mark. */
+  markGap: 4,
   margin: 16,
   /** Radius of a plotted point's dot. */
   pointRadius: 3,
