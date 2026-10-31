@@ -49,6 +49,28 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   process.exit(1);
 }
 
+// ── Production guard ───────────────────────────────────────
+// This script writes fake personas and fake practice questions.
+// It only runs against a local or CI Supabase (localhost,
+// 127.0.0.1, [::1] or *.localhost). Anything else is refused,
+// including the production project URL.
+{
+  let host = "";
+  try {
+    host = new URL(SUPABASE_URL).hostname;
+  } catch {
+    // fall through: an unparseable URL is refused below
+  }
+  const isLocal =
+    host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host.endsWith(".localhost");
+  if (!isLocal) {
+    console.error(
+      `✗ Refusing to seed "${host || SUPABASE_URL}": seed:dev only targets local/CI databases.`
+    );
+    process.exit(1);
+  }
+}
+
 // ── REST helper ────────────────────────────────────────────
 async function sb(path, init = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -212,6 +234,66 @@ const A_WEEK_AGO = new Date(Date.now() - 7 * 24 * 60 * 60_000).toISOString();
 const A_MONTH_AGO = new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString();
 
 const log = (msg) => console.log(`  ${msg}`);
+
+// ── Practice-question fixtures ─────────────────────────────
+// Four clearly fake multiple-choice questions for node ma-00
+// ("Linear equations (one variable)") so the practice page can
+// start a quiz in CI. Ids live in the fixed uuid namespace
+// 0de00000-0000-4000-8000-… and source_pdf is 'dev-fixture', so
+// they are easy to find and drop:
+//   delete from quiz_questions where source_pdf = 'dev-fixture';
+// Never imported, never published; seed:dev refuses non-local DBs.
+const FIXTURE_NODE = "ma-00";
+const FIXTURE_QUESTIONS = [
+  { q: "DEV FIXTURE 1: If 2x + 3 = 11, what is x?", choices: ["2", "4", "7", "8"], correct: "B" },
+  { q: "DEV FIXTURE 2: If 5x - 10 = 20, what is x?", choices: ["4", "5", "6", "30"], correct: "C" },
+  { q: "DEV FIXTURE 3: If x/3 + 1 = 4, what is x?", choices: ["3", "6", "9", "12"], correct: "C" },
+  { q: "DEV FIXTURE 4: If 3(x - 2) = 12, what is x?", choices: ["2", "4", "6", "8"], correct: "C" },
+];
+
+async function upsertFixtureQuestions() {
+  const letters = ["A", "B", "C", "D"];
+  const questions = FIXTURE_QUESTIONS.map((f, i) => ({
+    id: `0de00000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+    node_id: FIXTURE_NODE,
+    question_text: f.q,
+    raw_question_text: f.q,
+    question_type: "math_computation",
+    difficulty: "foundational",
+    difficulty_level: 1,
+    answer_format: "multiple_choice",
+    correct_answer: f.correct,
+    explanation_text: "Dev fixture explanation. Not a real SAT question.",
+    subject: "math",
+    topic_cluster: "Linear equations (one variable)",
+    domain: "algebra",
+    concept_slug: "linear-equations-one-variable",
+    display_order: i,
+    source_pdf: "dev-fixture",
+    content_hash: `dev-fixture-${i + 1}`,
+    publish_status: "publish_ready",
+  }));
+  await sb(`quiz_questions?on_conflict=id`, {
+    method: "POST",
+    headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+    body: JSON.stringify(questions),
+  });
+  const choices = FIXTURE_QUESTIONS.flatMap((f, i) =>
+    f.choices.map((text, j) => ({
+      question_id: questions[i].id,
+      letter: letters[j],
+      choice_text: text,
+      raw_choice_text: text,
+      is_correct: letters[j] === f.correct,
+    }))
+  );
+  await sb(`answer_choices?on_conflict=question_id,letter`, {
+    method: "POST",
+    headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+    body: JSON.stringify(choices),
+  });
+}
+
 const header = (msg) => console.log(`\n→ ${msg}`);
 
 async function main() {
@@ -222,6 +304,9 @@ async function main() {
   //    table is empty unless we seed it here.
   await upsertSatDatesForSeed();
   log("✓ SAT dates seeded");
+
+  await upsertFixtureQuestions();
+  log(`✓ ${FIXTURE_QUESTIONS.length} dev-fixture practice questions seeded for ${FIXTURE_NODE}`);
 
   // 1. Admin ─────────────────────────────────────────────
   header("dev_seed_admin (admin)");
