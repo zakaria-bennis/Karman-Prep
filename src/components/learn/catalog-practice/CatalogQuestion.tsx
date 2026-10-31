@@ -42,9 +42,10 @@ export default function CatalogQuestion({
     () => withSpecTables([...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter))),
     [q.answer_choices]
   );
+  const figureChoices = useMemo(() => hasFigureChoices(choices), [choices]);
   const toggleCrossed = (letter: string) =>
     setCrossed((old) => ({ ...old, [`${q.id}:${letter}`]: !old[`${q.id}:${letter}`] }));
-  const drawn = drawnFigure(q);
+  const drawn = useMemo(() => drawnFigure(q), [q]);
   const hasPassage = q.passage || q.passage_intro || q.passage_a || q.passage_b;
   const figureFirst = figureLeadsText(q.subject);
   const figure =
@@ -134,7 +135,7 @@ export default function CatalogQuestion({
         ) : (
           <fieldset className="min-w-0 space-y-3">
             <legend className="mb-3 text-sm font-semibold">Choose one answer</legend>
-            {hasFigureChoices(choices) ? (
+            {figureChoices ? (
               <FigureChoices
                 radio
                 choices={choices}

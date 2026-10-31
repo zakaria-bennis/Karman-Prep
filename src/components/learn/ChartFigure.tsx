@@ -1,3 +1,5 @@
+"use client";
+
 // ============================================================
 // ChartFigure: draws quiz_questions.figure_chart_data with the figure
 // engine. It converts the old chart data to a FigureSpec, builds the
@@ -5,16 +7,22 @@
 // and renders it with FigureView, in the Bluebook look with theme
 // colors only.
 //
+// Like SpecFigure (FigureFrame), it is laid out at its container's measured
+// width when the default box would show text under 12px (fitBox).
+//
 // Chart data the engine cannot draw (pie charts, malformed data) shows
 // a plain notice instead of an empty space.
 // ============================================================
 
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { buildChart } from "@/lib/figures/engine/charts";
 import { chartDataToSpec, ChartDataError } from "@/lib/figures/engine/from-chart-data";
 import type { Scene } from "@/lib/figures/engine/scene";
 import type { ChartFigure as ChartFigureData } from "@/types/chart";
+import { fitBox } from "@/lib/figures/engine/index";
 import FigureView from "./figures/FigureView";
+import { useMeasuredWidth } from "./figures/useMeasuredWidth";
 
 interface Props {
   data: ChartFigureData;
@@ -30,9 +38,10 @@ interface Props {
 const boxFor = (data: ChartFigureData) =>
   data.frame === "square" ? { width: 500, height: 500 } : { width: 600, height: 400 };
 
-function sceneFor(data: ChartFigureData): Scene | null {
+/** The chart drawn for a container `width` px wide; its default box before it is measured. */
+function sceneFor(data: ChartFigureData, width: number | null): Scene | null {
   try {
-    return buildChart(chartDataToSpec(data), boxFor(data));
+    return buildChart(chartDataToSpec(data), fitBox(boxFor(data), width));
   } catch (error) {
     if (error instanceof ChartDataError) return null;
     throw error;
@@ -40,11 +49,12 @@ function sceneFor(data: ChartFigureData): Scene | null {
 }
 
 export default function ChartFigure({ data, className, alt }: Props) {
-  const scene = sceneFor(data);
+  const [frame, width] = useMeasuredWidth<HTMLElement>();
+  const scene = useMemo(() => sceneFor(data, width), [data, width]);
   // Block + full width: as an inline-block (or flex item) the width:100% SVG had no
   // definite width and collapsed to the 300px replaced-element default.
   return (
-    <figure className={cn("themed-question-figure block w-full max-w-full", className)}>
+    <figure ref={frame} className={cn("themed-question-figure block w-full max-w-full", className)}>
       {scene ? (
         <FigureView
           scene={alt ? { ...scene, description: alt } : scene}

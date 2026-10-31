@@ -21,7 +21,7 @@ import {
 } from "@/components/calculator/CalculatorSourceAction";
 import { makeQuestionKey } from "@/components/calculator/question-key";
 import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
-import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
+import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
 
@@ -118,6 +118,7 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
       ),
     [q.answer_choices]
   );
+  const figureChoices = useMemo(() => hasFigureChoices(choices), [choices]);
 
   async function submitAnswer() {
     if (pending || review || !answer.trim()) return;
@@ -171,7 +172,7 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
           ) : (
             <fieldset disabled={!!review || pending}>
               <legend className="sr-only">Choose an answer</legend>
-              {hasFigureChoices(choices) ? (
+              {figureChoices ? (
                 <FigureChoices
                   radio
                   choices={choices}
@@ -294,26 +295,23 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
 }
 
 function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
-  const geometryReady =
-    q.figure_kind === "geometric" &&
-    q.figure_geometry_data &&
-    buildGeometrySvg(q.figure_geometry_data).renderable;
+  const drawn = useMemo(() => drawnFigure(q), [q]);
   const figureFirst = figureLeadsText(q.subject);
   const figure =
-    q.figure_spec != null ? (
+    drawn === "table" ? (
+      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data!} />
+    ) : drawn === "chart" ? (
+      <ChartFigure data={q.figure_chart_data!} subject={q.subject} alt={q.image_alt ?? undefined} />
+    ) : drawn === "geometric" ? (
+      <GeometryFigure data={q.figure_geometry_data!} className="max-w-full" />
+    ) : drawn === "spec" || drawn === "image" ? (
       <FigureFrame
         spec={q.figure_spec}
         calculator={q.subject === "math"}
+        src={q.image_url}
+        svg={q.figure_svg}
         alt={q.image_alt ?? "Question figure"}
       />
-    ) : q.figure_kind === "table" && q.figure_table_data ? (
-      <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
-    ) : q.figure_kind === "chart" && q.figure_chart_data ? (
-      <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />
-    ) : geometryReady ? (
-      <GeometryFigure data={q.figure_geometry_data!} className="max-w-full" />
-    ) : q.image_url || q.figure_svg ? (
-      <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
     ) : null;
   return (
     <div className="mt-5 min-w-0 space-y-5 text-ivory">

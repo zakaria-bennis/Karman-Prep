@@ -162,16 +162,31 @@ describe("FigureFrame with figure_spec", () => {
     }
   });
 
-  it("invalid figure_spec renders nothing and logs one error, never a partial figure", () => {
+  // A spec that fails validation (a segment to points that do not exist); `id` keeps each
+  // test's error distinct, since each distinct error is logged once per page.
+  const broken = (id: string) => ({
+    ...PLANE,
+    parts: [...PLANE.parts, { kind: "segment", id, from: "C", to: "D" }],
+  });
+
+  it("invalid figure_spec draws the stored older figure instead, never a partial one, and logs once", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
-    const broken = {
-      ...PLANE,
-      parts: [...PLANE.parts, { kind: "segment", id: "CD", from: "C", to: "D" }],
-    };
-    const { container } = render(<FigureFrame spec={broken} svg={SVG} src="/old.png" alt="x" />);
+    const { container, rerender } = render(
+      <FigureFrame spec={broken("CD1")} src="/old.png" alt="Old figure" />
+    );
+    expect(container.querySelector("img")?.getAttribute("src")).toBe("/old.png");
+    expect(container.querySelector("svg[data-figure-view]")).toBeNull();
+    rerender(<FigureFrame spec={broken("CD1")} src="/old.png" alt="Old figure" />);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(String(error.mock.calls[0][0])).toMatch(/invalid figure_spec, the stored older figure/);
+  });
+
+  it("invalid figure_spec with no older figure renders nothing and logs once", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { container } = render(<FigureFrame spec={broken("CD2")} alt="x" />);
     expect(container.innerHTML).toBe("");
     expect(error).toHaveBeenCalledTimes(1);
-    expect(String(error.mock.calls[0][0])).toMatch(/figure_spec/);
+    expect(String(error.mock.calls[0][0])).toMatch(/invalid figure_spec, nothing drawn/);
   });
 
   it("keeps the old path when figure_spec is null", () => {
@@ -214,6 +229,35 @@ describe("figure_spec through question data", () => {
       drawnFigure(question({ figure_spec: PLANE, figure_kind: "image", image_url: "/a.png" }))
     ).toBe("spec");
     expect(drawnFigure(question({ figure_spec: null, image_url: "/a.png" }))).toBe("image");
+  });
+
+  it("drawnFigure falls back to the older figure fields for an invalid spec, logging once", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const bad = {
+      ...PLANE,
+      parts: [...PLANE.parts, { kind: "segment", id: "EF", from: "E", to: "F" }],
+    };
+    const table = { rows: [["1", "2"]] };
+    expect(drawnFigure(question({ figure_spec: bad, image_url: "/a.png" }))).toBe("image");
+    expect(
+      drawnFigure(question({ figure_spec: bad, figure_kind: "table", figure_table_data: table }))
+    ).toBe("table");
+    expect(drawnFigure(question({ figure_spec: bad }))).toBeNull();
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(String(error.mock.calls[0][0])).toMatch(/invalid figure_spec/);
+  });
+
+  it("a student surface draws the older image when the spec is invalid", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const bad = {
+      ...PLANE,
+      parts: [...PLANE.parts, { kind: "segment", id: "GH", from: "G", to: "H" }],
+    };
+    const q = toStudentQuizQuestion(question({ figure_spec: bad, image_url: "/old.png" }));
+    const { container } = render(
+      <CatalogQuestion question={q} answer="" disabled={false} onAnswer={vi.fn()} />
+    );
+    expect(container.querySelector('img[src="/old.png"]')).not.toBeNull();
   });
 
   it("the student payload and review carry figure_spec and choice_figure_spec only when set", () => {

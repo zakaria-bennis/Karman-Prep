@@ -60,7 +60,11 @@ export const MIN_FIGURE_SCALE = HOUSE.minFontOnScreen / HOUSE.font;
  * kept, so a plane's units stay square and its circles round.
  */
 export function boxForWidth(spec: FigureSpec, width?: number | null): Box {
-  const box = defaultBox(spec);
+  return fitBox(defaultBox(spec), width);
+}
+
+/** `box`, or in a container too narrow for it a box at the container's width (see boxForWidth). */
+export function fitBox(box: Box, width?: number | null): Box {
   if (!width || !(width > 0) || width >= box.width * MIN_FIGURE_SCALE) return box;
   const w = Math.floor(width);
   return { width: w, height: Math.round((box.height * w) / box.width) };

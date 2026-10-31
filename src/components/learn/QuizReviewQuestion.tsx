@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import MathText from "./MathText";
 import ReviewedSinglePassage from "./ReviewedSinglePassage";
 import QuestionTable from "./QuestionTable";
@@ -15,10 +16,12 @@ import type { QuizReviewContent } from "@/lib/quiz-review-content";
 /** Reuse the same math, native figure and table renderers as active practice. */
 export default function QuizReviewQuestion({ question: q }: { question: QuizReviewContent }) {
   // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
-  const choices = withSpecTables(
-    [...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter))
+  const choices = useMemo(
+    () => withSpecTables([...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter))),
+    [q]
   );
-  const drawn = drawnFigure(q);
+  const figureChoices = useMemo(() => hasFigureChoices(choices), [choices]);
+  const drawn = useMemo(() => drawnFigure(q), [q]);
   const figureFirst = figureLeadsText(q.subject);
   const figure =
     drawn === "table" ? (
@@ -58,7 +61,7 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
       )}
       {!figureFirst && figure}
       <MathText text={q.question_text} serializedFunctionLines={q.subject === "math"} />
-      {q.answer_format !== "numeric_entry" && hasFigureChoices(choices) ? (
+      {q.answer_format !== "numeric_entry" && figureChoices ? (
         <FigureChoices choices={choices} serializedFunctionLines={q.subject === "math"} />
       ) : q.answer_format !== "numeric_entry" ? (
         <ul className="space-y-2">

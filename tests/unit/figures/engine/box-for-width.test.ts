@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { boxForWidth, buildScene, defaultBox, MIN_FIGURE_SCALE } from "@/lib/figures/engine/index";
+import {
+  boxForWidth,
+  buildScene,
+  defaultBox,
+  fitBox,
+  MIN_FIGURE_SCALE,
+} from "@/lib/figures/engine/index";
 import { HOUSE } from "@/lib/figures/engine/house";
 import { FIGURE_SPEC_VERSION, type FigureSpec } from "@/lib/figures/engine/spec";
 
@@ -56,6 +62,23 @@ describe("boxForWidth", () => {
         expect(fontPx(box, width), `${spec.type} at ${width}`).toBeGreaterThanOrEqual(
           HOUSE.minFontOnScreen
         );
+      }
+    }
+  });
+
+  // ChartFigure's boxes (600×400, 500×500 for a square plot) go through the same fit.
+  it("fitBox keeps any box's text at least 12px from 300 to 1000px", () => {
+    for (const box of [
+      { width: 600, height: 400 },
+      { width: 500, height: 500 },
+    ]) {
+      expect(fitBox(box)).toEqual(box);
+      for (let width = 300; width <= 1000; width += 7) {
+        const fitted = fitBox(box, width);
+        expect(fontPx(fitted, width), `${box.width} at ${width}`).toBeGreaterThanOrEqual(
+          HOUSE.minFontOnScreen
+        );
+        expect(fitted.height / fitted.width).toBeCloseTo(box.height / box.width, 2);
       }
     }
   });
