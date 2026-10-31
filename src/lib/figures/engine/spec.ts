@@ -71,6 +71,15 @@ const table = z
     header: z.array(z.string()).optional(),
     rows: z.array(z.array(z.string())),
     blankCorner: z.boolean().optional(),
+    /**
+     * Merged headings in a row above `header`, each spanning `span` columns
+     * ("Grade level" over four grade columns). An empty label is a blank cell.
+     */
+    groups: z
+      .array(z.object({ label: z.string(), span: z.number().int().positive() }).strict())
+      .optional(),
+    /** A note printed under the table ("Calculations may be inexact due to rounding."). */
+    note: z.string().optional(),
   })
   .strict();
 

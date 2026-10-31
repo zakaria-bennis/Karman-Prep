@@ -1,0 +1,25 @@
+{
+  "id": "368cec6c-7481-4044-8b13-2631235b6ba9",
+  "figure_table_data": {
+    "rows": [
+      ["English", "4", "9", "9", "22"],
+      ["Mathematics", "10", "1", "9", "20"],
+      ["Science", "4", "6", "4", "14"],
+      ["Social studies", "6", "9", "9", "24"],
+      ["Total", "24", "25", "31", "80"]
+    ],
+    "caption": null,
+    "header_row": ["Subject", "Sixth", "Seventh", "Eighth", "Total"],
+    "footer_note": null,
+    "header_groups": [
+      {
+        "span": 1,
+        "label": ""
+      },
+      {
+        "span": 4,
+        "label": "Grade level"
+      }
+    ]
+  }
+}
