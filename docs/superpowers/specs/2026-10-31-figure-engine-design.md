@@ -60,7 +60,7 @@ Specs cannot set colors or pixel sizes. Colors come from theme roles: `ink`, `in
 **Automatic checks** (in the engine, in `k figures submit`, and in certify):
 
 - every label in the original's transcription is present, and none is invented;
-- every point declared on a line or circle lies on it;
+- every point declared on a line or circle lies on it (a point's `on` lists the segments, rays, lines, circles, arcs, polygons or functions it lies on);
 - nothing overlaps (label to label, label to line) and nothing is clipped;
 - every `function` curve passes through every point the spec says it passes through;
 - `ray` and `line` parts end in arrowheads, and `segment` parts don't;
@@ -110,7 +110,7 @@ Each step replaces the old renderer for that type in the same change, and remove
 
 **Reviewer workflow:**
 
-- Reviewers write `figure.json` as a `FigureSpec` instead of SVG.
+- Reviewers write `figure.json` as a `FigureSpec` instead of SVG (`figure_spec`, or `choice_figure_spec` on each answer choice), with `transcribed_labels` beside each spec: every text printed in the original figure, repeats included.
 - `k figures submit` runs the engine checks and renders a snapshot.
 - The founder reviews at `/dev/figure-review`: original (inverted) beside the engine render.
 - Approval and publishing are unchanged, under the standing OK for check-passing rows.

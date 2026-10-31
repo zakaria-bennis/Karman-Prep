@@ -13,7 +13,19 @@ const THEME_MESSAGE = "colors and sizes come from the theme";
 const id = z.string().min(1);
 const num = z.number().finite();
 
-const point = z.object({ kind: z.literal("point"), id, x: num, y: num }).strict();
+const point = z
+  .object({
+    kind: z.literal("point"),
+    id,
+    x: num,
+    y: num,
+    /**
+     * The parts this point lies on: a segment, ray, line, circle, arc, polygon
+     * or function. The checks (checks.ts) refuse the figure when it does not.
+     */
+    on: z.array(id).min(1).optional(),
+  })
+  .strict();
 
 const twoPoint = (kind: "segment" | "ray" | "line") =>
   z.object({ kind: z.literal(kind), id, from: id, to: id }).strict();
@@ -231,6 +243,9 @@ const POINT_REFS: Record<string, string[]> = {
   angle: ["vertex", "from", "to"],
 };
 
+/** The parts a point can be declared `on`. */
+const ON_KINDS = new Set(["segment", "ray", "line", "circle", "arc", "polygon", "function"]);
+
 function checkReferences(spec: FigureSpec): string[] {
   const errors: string[] = [];
   const seen = new Set<string>();
@@ -251,6 +266,18 @@ function checkReferences(spec: FigureSpec): string[] {
     for (const ref of refs) {
       if (!pointIds.has(ref)) {
         errors.push(`part "${part.id}": references missing point "${ref}"`);
+      }
+    }
+  }
+  // A point may lie only on something drawn as a line or curve.
+  const kinds = new Map(spec.parts.map((p) => [p.id, p.kind]));
+  for (const part of spec.parts) {
+    if (part.kind !== "point") continue;
+    for (const ref of part.on ?? []) {
+      const kind = kinds.get(ref);
+      if (!kind) errors.push(`point "${part.id}": on references missing part "${ref}"`);
+      else if (!ON_KINDS.has(kind)) {
+        errors.push(`point "${part.id}": on "${ref}" is a ${kind}, not a line or curve`);
       }
     }
   }
