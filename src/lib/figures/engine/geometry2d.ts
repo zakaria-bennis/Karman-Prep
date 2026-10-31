@@ -43,7 +43,7 @@ export const NOT_TO_SCALE = "Note: Figure not drawn to scale.";
  * when one line would not fit the box less the margin. Joined with one
  * space, the lines are always exactly NOT_TO_SCALE.
  */
-function noteLines(width: number): string[] {
+export function noteLines(width: number): string[] {
   if (textWidth(NOT_TO_SCALE) <= width - 2 * HOUSE.margin) return [NOT_TO_SCALE];
   const mid = NOT_TO_SCALE.length / 2;
   let cut = -1;

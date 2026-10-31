@@ -29,4 +29,10 @@ export const HOUSE = {
   charWidthEm: 0.6,
   /** Snapping tolerance as a fraction of the figure's larger side. */
   snapTolerance: 0.02,
+  /** Oblique view of a 3D solid (the SAT's): depth recedes at this angle, in degrees... */
+  obliqueAngle: 30,
+  /** ...drawn at this fraction of its true length. */
+  obliqueDepth: 0.5,
+  /** Points sampled around every circle of a curved solid. */
+  circleSamples: 64,
 } as const;

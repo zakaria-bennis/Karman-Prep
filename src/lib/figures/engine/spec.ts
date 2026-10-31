@@ -54,15 +54,43 @@ const fn = z
 
 const region = z.object({ kind: z.literal("region"), id, latex: z.string().min(1) }).strict();
 
+/**
+ * The dimensions each solid needs, named as the SAT words them. A label
+ * attaches to one with `on: "<solid id>.<dimension>"` ("can.radius").
+ */
+export const SOLID_DIMS = {
+  prism: ["length", "width", "height"],
+  cylinder: ["radius", "height"],
+  cone: ["radius", "height"],
+  pyramid: ["baseLength", "baseWidth", "height"],
+  sphere: ["radius"],
+} as const;
+
+export type SolidShape = keyof typeof SOLID_DIMS;
+
 const solid = z
   .object({
     kind: z.literal("solid"),
     id,
     shape: z.enum(["prism", "cylinder", "cone", "pyramid", "sphere"]),
     dims: z.record(z.string(), num),
-    view: z.string().optional(),
+    /** oblique (the SAT's default, 30° at half depth) or isometric. */
+    view: z.enum(["oblique", "isometric"]).optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (s) => {
+      const need: readonly string[] = SOLID_DIMS[s.shape];
+      const keys = Object.keys(s.dims);
+      return keys.length === need.length && need.every((k) => k in s.dims && s.dims[k] > 0);
+    },
+    {
+      error: (issue) => {
+        const s = issue.input as { shape: SolidShape };
+        return `a ${s.shape} needs exactly the positive dims ${SOLID_DIMS[s.shape].join(", ")}`;
+      },
+    }
+  );
 
 const table = z
   .object({
@@ -226,8 +254,14 @@ function checkReferences(spec: FigureSpec): string[] {
       }
     }
   }
+  // A label may also name one dimension of a solid ("can.radius").
+  const labelTargets = new Set(seen);
+  for (const part of spec.parts) {
+    if (part.kind !== "solid") continue;
+    for (const k of Object.keys(part.dims)) labelTargets.add(`${part.id}.${k}`);
+  }
   for (const label of spec.labels) {
-    if (!seen.has(label.on)) {
+    if (!labelTargets.has(label.on)) {
       errors.push(`label "${label.text}": references missing part "${label.on}"`);
     }
   }
