@@ -5,54 +5,54 @@
 </path>
 </marker>
 </defs>
-<path d="M85 176 L584 176" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+<path d="M81.25 176 L584 176" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
 </path>
-<path d="M85 173 L85 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<path d="M81.25 173 L81.25 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="85" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
-<path d="M168.17 173 L168.17 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="81.25" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M165.04 173 L165.04 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="168.17" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
-<path d="M251.33 173 L251.33 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="165.04" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M248.83 173 L248.83 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="251.33" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
-<path d="M334.5 173 L334.5 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="248.83" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M332.63 173 L332.63 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="334.5" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">6</text>
-<path d="M417.67 173 L417.67 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="332.63" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">6</text>
+<path d="M416.42 173 L416.42 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="417.67" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
-<path d="M500.83 173 L500.83 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="416.42" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
+<path d="M500.21 173 L500.21 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="500.83" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<text x="500.21" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
 <path d="M584 173 L584 179" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
 <text x="584" y="194" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">12</text>
-<text x="334.5" y="215" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Number of books</text>
-<path d="M85 56 L126.58 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+<text x="332.63" y="215" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Number of books</text>
+<path d="M81.25 56 L123.15 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
 </path>
-<path d="M251.33 56 L292.92 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+<path d="M248.83 56 L290.73 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
 </path>
-<path d="M85 46 L85 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+<path d="M81.25 46 L81.25 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
 </path>
-<path d="M292.92 46 L292.92 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+<path d="M290.73 46 L290.73 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
 </path>
-<rect x="126.58" y="36" width="124.75" height="40" fill="none" stroke="var(--figure-ink)" stroke-width="1.5" data-part="b1">
+<rect x="123.15" y="36" width="125.69" height="40" fill="none" stroke="var(--figure-ink)" stroke-width="1.5" data-part="b1">
 </rect>
-<path d="M168.17 36 L168.17 76" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+<path d="M165.04 36 L165.04 76" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
 </path>
-<text x="79" y="61" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="b1">Class A</text>
-<path d="M126.58 136 L251.33 136" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
+<text x="75.25" y="61" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="b1">Class A</text>
+<path d="M123.15 136 L248.83 136" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
 </path>
-<path d="M459.25 136 L500.83 136" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
+<path d="M458.31 136 L500.21 136" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
 </path>
-<path d="M126.58 126 L126.58 146" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
+<path d="M123.15 126 L123.15 146" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
 </path>
-<path d="M500.83 126 L500.83 146" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
+<path d="M500.21 126 L500.21 146" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
 </path>
-<rect x="251.33" y="116" width="207.92" height="40" fill="none" stroke="var(--figure-ink)" stroke-width="1.5" data-part="b2">
+<rect x="248.83" y="116" width="209.48" height="40" fill="none" stroke="var(--figure-ink)" stroke-width="1.5" data-part="b2">
 </rect>
-<path d="M376.08 116 L376.08 156" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
+<path d="M374.52 116 L374.52 156" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b2">
 </path>
-<text x="79" y="141" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="b2">Class B</text>
+<text x="75.25" y="141" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="b2">Class B</text>
 </svg>

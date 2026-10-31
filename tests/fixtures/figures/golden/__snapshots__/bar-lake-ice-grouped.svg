@@ -56,12 +56,12 @@
 <rect x="478.81" y="204.05" width="50.09" height="174.2" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
 </rect>
 <text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Days per Winter That Lakes Have Surface Ice</text>
-<rect x="99" y="434" width="12" height="12" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+<rect x="106.5" y="434" width="12" height="12" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
 </rect>
-<text x="117" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Lake Kegonsa</text>
-<rect x="243" y="434" width="12" height="12" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+<text x="124.5" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Lake Kegonsa</text>
+<rect x="250.5" y="434" width="12" height="12" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
 </rect>
-<text x="261" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Oulujärvi</text>
+<text x="268.5" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Oulujärvi</text>
 <rect x="360" y="434" width="12" height="12" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
 </rect>
 <text x="378" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Lake Neusiedl</text>

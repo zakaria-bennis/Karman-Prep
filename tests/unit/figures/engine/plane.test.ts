@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { HOUSE } from "@/lib/figures/engine/house";
+import { textBox } from "@/lib/figures/engine/labels";
 import { buildPlane } from "@/lib/figures/engine/plane";
 import type { SceneItem } from "@/lib/figures/engine/scene";
 import { FIGURE_SPEC_VERSION, type FigureSpec, type Part } from "@/lib/figures/engine/spec";
@@ -215,9 +216,8 @@ describe("buildPlane", () => {
     const texts = scene.items.filter((i): i is TextItem => i.t === "text");
     expect(texts.some((t) => t.text === "10")).toBe(true);
     for (const t of texts) {
-      const w = 0.6 * HOUSE.font * t.text.length;
-      const x0 = t.anchor === "start" ? t.x : t.anchor === "middle" ? t.x - w / 2 : t.x - w;
-      const x1 = x0 + w;
+      // The engine's one text-width estimate (labels.ts), the one its insets are made from.
+      const [x0, x1] = textBox(t);
       expect(x0, `${t.text} left`).toBeGreaterThanOrEqual(0);
       expect(x1, `${t.text} right`).toBeLessThanOrEqual(scene.width);
       expect(t.y - HOUSE.font, `${t.text} top`).toBeGreaterThanOrEqual(0);

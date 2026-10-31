@@ -15,6 +15,7 @@
  */
 import { chartDetail } from "./describe-detail";
 import { HOUSE } from "./house";
+import { textWidth } from "./labels";
 import {
   LINE_HEIGHT,
   dotAt,
@@ -316,8 +317,6 @@ function numberLineHeight(
   return (tallest + 1) * pitch + HOUSE.dotPlotGap;
 }
 
-const advance = (text: string) => HOUSE.charWidthEm * HOUSE.font * text.length;
-
 type LegendEntry = { id: string; name: string; kind: ChartKind; index: number };
 
 /** Legend rows packed within `width`: each entry is a swatch and its series name. */
@@ -339,7 +338,7 @@ function legendRows(entries: LegendEntry[], width: number): LegendEntry[][] {
 }
 
 const legendWidth = (e: LegendEntry) =>
-  SWATCH + HOUSE.labelOffset + advance(e.name) + 3 * HOUSE.labelOffset;
+  SWATCH + HOUSE.labelOffset + textWidth(e.name) + 3 * HOUSE.labelOffset;
 
 function legendItems(rows: LegendEntry[][], width: number, top: number): SceneItem[] {
   const items: SceneItem[] = [];
@@ -480,7 +479,7 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
   const rows = drawn > 1 && entries.length ? legendRows(entries, box.width - 2 * margin) : [];
   const legendH = rows.length ? rows.length * LINE_HEIGHT + 2 * HOUSE.labelOffset : 0;
   const rowNames = type === "box_plot" ? series.map((s) => names.get(s.id) ?? "") : [];
-  const left = Math.max(0, ...rowNames.map((n) => (n ? advance(n) + HOUSE.labelOffset : 0)));
+  const left = Math.max(0, ...rowNames.map((n) => (n ? textWidth(n) + HOUSE.labelOffset : 0)));
   const full = { width: box.width, height: box.height + titleH + legendH };
   const opts = { y: yMode, reserve: { top: titleH, bottom: legendH, left } };
   let axes = planeAxes(frame, full, opts);

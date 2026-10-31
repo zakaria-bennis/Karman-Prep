@@ -12,7 +12,7 @@
  */
 import { planeDetail } from "./describe-detail";
 import { HOUSE } from "./house";
-import { textBox } from "./labels";
+import { textBox, textWidth } from "./labels";
 import { planeLabels } from "./plane-labels";
 import { helperPoints, pathOf, regionItems, shapeItems } from "./plane-shapes";
 import type { Scene, SceneIssue, SceneItem } from "./scene";
@@ -198,9 +198,6 @@ function labelStep(
 
 const clamp = (v: number, [lo, hi]: [number, number]) => Math.min(hi, Math.max(lo, v));
 
-/** Estimated advance of `text` at the house font (the same estimate textBounds uses). */
-const advance = (text: string) => HOUSE.charWidthEm * HOUSE.font * text.length;
-
 /** Line height for wrapped text. */
 export const LINE_HEIGHT = Math.round(HOUSE.font * 1.2);
 
@@ -209,7 +206,7 @@ export function wrapText(text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   for (const word of text.trim().split(/\s+/).filter(Boolean)) {
     const last = lines[lines.length - 1];
-    if (last !== undefined && advance(`${last} ${word}`) <= maxWidth) {
+    if (last !== undefined && textWidth(`${last} ${word}`) <= maxWidth) {
       lines[lines.length - 1] = `${last} ${word}`;
     } else lines.push(word);
   }
@@ -325,7 +322,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
     // Where the axes meet away from the origin (a histogram from 10), the x-axis
     // label at the corner wins and the y label beside it is left off.
     if (!collides(label, items)) items.push(label);
-    yLabelWidth = Math.max(yLabelWidth, advance(fmt(y)) + tick + off / 2);
+    yLabelWidth = Math.max(yLabelWidth, textWidth(fmt(y)) + tick + off / 2);
   }
   // One "0" at the origin, below and left of it, unless the spec leaves it off, or
   // the axes are so short that it would sit on the first tick label below it.
@@ -543,14 +540,6 @@ function describePlane(spec: FigureSpec, frame: PlaneFrame): string {
   return what ? `${base}, showing ${what}.` : `${base}.`;
 }
 
-/** Estimated box [left, right, top, bottom] of a text item, in px. */
-function textBounds(t: Extract<SceneItem, { t: "text" }>): [number, number, number, number] {
-  const w = HOUSE.charWidthEm * HOUSE.font * t.text.length;
-  const x0 = t.anchor === "start" ? t.x : t.anchor === "middle" ? t.x - w / 2 : t.x - w;
-  // Cap height above the baseline, a descender's room below it.
-  return [x0, x0 + w, t.y - HOUSE.font, t.y + 0.25 * HOUSE.font];
-}
-
 /**
  * The plot inset that keeps every axis label inside the box: the house margin
  * plus any reserved room, grown on any side where labels would hang past the
@@ -573,7 +562,7 @@ function labelInset(frame: PlaneFrame, box: Box, opts: AxesOptions): Inset {
     );
     const over = { left: 0, right: 0, top: 0, bottom: 0 };
     for (const t of texts) {
-      const [left, right, top, bottom] = textBounds(t);
+      const [left, right, top, bottom] = textBox(t);
       over.left = Math.max(over.left, (r.left ?? 0) - left);
       over.right = Math.max(over.right, right - (box.width - (r.right ?? 0)));
       over.top = Math.max(over.top, (r.top ?? 0) - top);

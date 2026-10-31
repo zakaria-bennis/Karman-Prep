@@ -29,14 +29,20 @@ type Rect = [number, number, number, number];
 type Seg = [number, number, number, number];
 type TextItem = Extract<SceneItem, { t: "text" }>;
 
-const NARROW = new Set("il1.,'|");
+/**
+ * Characters narrower than the house advance in the figure serif (STIX Two
+ * Text): each is counted at NARROW_EM, every other at HOUSE.charWidthEm, so the
+ * estimate is never under a real advance. Digits are tabular (0.5em), so "1"
+ * is not narrow; the hyphen that writes a negative number (0.33em) is.
+ */
+const NARROW = new Set("il.,'|-");
 const NARROW_EM = 0.35;
 const ANGLE_STEPS = 8;
 const DISTANCE_FACTORS = [1, 1.8, 2.6];
 /** Clear space kept between a label box and another label or a line. */
 const GAP = 1.5;
 
-/** Estimated advance width of `text` in px. */
+/** Estimated advance width of `text` in px: the one text-width estimate every builder uses. */
 export function textWidth(text: string): number {
   let em = 0;
   for (const ch of text) em += NARROW.has(ch) ? NARROW_EM : HOUSE.charWidthEm;

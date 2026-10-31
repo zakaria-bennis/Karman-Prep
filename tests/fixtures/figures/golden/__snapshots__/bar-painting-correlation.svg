@@ -5,55 +5,55 @@
 </path>
 </marker>
 </defs>
-<path d="M33 378.25 L584 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+<path d="M29.25 378.25 L584 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
 </path>
-<path d="M33 314.6 L584 314.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+<path d="M29.25 314.6 L584 314.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
 </path>
-<path d="M33 250.95 L584 250.95" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+<path d="M29.25 250.95 L584 250.95" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
 </path>
-<path d="M33 187.3 L584 187.3" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+<path d="M29.25 187.3 L584 187.3" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
 </path>
-<path d="M33 123.65 L584 123.65" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+<path d="M29.25 123.65 L584 123.65" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
 </path>
-<path d="M33 60 L584 60" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+<path d="M29.25 60 L584 60" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
 </path>
-<path d="M33 378.25 L584 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+<path d="M29.25 378.25 L584 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
 </path>
-<path d="M33 378.25 L33 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+<path d="M29.25 378.25 L29.25 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
 </path>
-<text x="170.75" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Abstract</text>
-<text x="446.25" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Cubist</text>
-<path d="M30 378.25 L36 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="167.94" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Abstract</text>
+<text x="445.31" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Cubist</text>
+<path d="M26.25 378.25 L32.25 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="27" y="383.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
-<path d="M30 314.6 L36 314.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="23.25" y="383.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M26.25 314.6 L32.25 314.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="27" y="319.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.1</text>
-<path d="M30 250.95 L36 250.95" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="23.25" y="319.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.1</text>
+<path d="M26.25 250.95 L32.25 250.95" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="27" y="255.95" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.2</text>
-<path d="M30 187.3 L36 187.3" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="23.25" y="255.95" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.2</text>
+<path d="M26.25 187.3 L32.25 187.3" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="27" y="192.3" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.3</text>
-<path d="M30 123.65 L36 123.65" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="23.25" y="192.3" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.3</text>
+<path d="M26.25 123.65 L32.25 123.65" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="27" y="128.65" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.4</text>
-<path d="M30 60 L36 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+<text x="23.25" y="128.65" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.4</text>
+<path d="M26.25 60 L32.25 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="27" y="65" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.5</text>
-<text x="308.5" y="420.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Painting style</text>
+<text x="23.25" y="65" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.5</text>
+<text x="306.63" y="420.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Painting style</text>
 <text x="0" y="39" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit">Correlation</text>
-<rect x="88.1" y="276.41" width="50.09" height="101.84" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+<rect x="84.73" y="276.41" width="50.43" height="101.84" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
 </rect>
-<rect x="363.6" y="180.94" width="50.09" height="197.32" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+<rect x="362.1" y="180.94" width="50.43" height="197.32" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
 </rect>
-<rect x="145.7" y="193.67" width="50.09" height="184.58" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+<rect x="142.72" y="193.67" width="50.43" height="184.58" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
 </rect>
-<rect x="421.2" y="206.4" width="50.09" height="171.86" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+<rect x="420.1" y="206.4" width="50.43" height="171.86" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
 </rect>
-<rect x="203.31" y="104.56" width="50.09" height="273.7" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
+<rect x="200.72" y="104.56" width="50.43" height="273.7" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
 </rect>
-<rect x="478.81" y="206.4" width="50.09" height="171.86" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
+<rect x="478.09" y="206.4" width="50.43" height="171.86" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
 </rect>
 <text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Ratings, by Painting Style</text>
 <rect x="225" y="434" width="12" height="12" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">

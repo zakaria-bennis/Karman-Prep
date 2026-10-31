@@ -184,6 +184,13 @@ export const MarkSchema = z
   })
   .strict();
 
+/** The most grid ticks a frame's explicit step may give one axis. */
+export const MAX_TICKS = 200;
+
+/** Ticks `step` gives over `range` (0 without a step: the automatic step is always readable). */
+const tickCount = ([lo, hi]: [number, number], step?: number) =>
+  step ? Math.floor((hi - lo) / step) + 1 : 0;
+
 export const PlaneFrameSchema = z
   .object({
     x: z.tuple([num, num]),
@@ -204,7 +211,15 @@ export const PlaneFrameSchema = z
     xLabel: z.string().optional(),
     yLabel: z.string().optional(),
   })
-  .strict();
+  .strict()
+  .refine((f) => f.x[0] < f.x[1], { message: "a frame's x range must run from low to high" })
+  .refine((f) => f.y[0] < f.y[1], { message: "a frame's y range must run from low to high" })
+  .refine((f) => tickCount(f.x, f.step) <= MAX_TICKS, {
+    message: `a frame's step gives more than ${MAX_TICKS} ticks on the x-axis; use a wider step`,
+  })
+  .refine((f) => tickCount(f.y, f.yStep ?? f.step) <= MAX_TICKS, {
+    message: `a frame's step gives more than ${MAX_TICKS} ticks on the y-axis; use a wider step`,
+  });
 
 export const FIGURE_TYPES = [
   "table",

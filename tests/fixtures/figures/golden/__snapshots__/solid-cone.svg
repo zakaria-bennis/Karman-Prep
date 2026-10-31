@@ -15,5 +15,5 @@
 </path>
 <text x="200" y="292" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
 <text x="236.56" y="246.82" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.radius">5</text>
-<text x="213.13" y="134.11" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.height">12</text>
+<text x="215" y="134.11" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.height">12</text>
 </svg>

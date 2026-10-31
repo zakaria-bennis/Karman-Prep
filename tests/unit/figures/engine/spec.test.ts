@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FIGURE_SPEC_VERSION, parseFigureSpec } from "@/lib/figures/engine/spec";
+import { FIGURE_SPEC_VERSION, MAX_TICKS, parseFigureSpec } from "@/lib/figures/engine/spec";
 
 function triangle() {
   return {
@@ -59,5 +59,38 @@ describe("parseFigureSpec", () => {
     const spec = triangle();
     spec.labels.push({ text: "?", on: "nope" });
     expect(errorsOf(spec).join(" ")).toContain("nope");
+  });
+});
+
+// Found in the final branch review: a reversed or empty range, or a step that
+// gives thousands of ticks, passed validation and drew nonsense or hung.
+describe("frame validation", () => {
+  const plane = (frame: Record<string, unknown>) => ({
+    version: FIGURE_SPEC_VERSION,
+    type: "plane",
+    parts: [],
+    labels: [],
+    marks: [],
+    frame,
+  });
+
+  it("requires each range to run from low to high", () => {
+    expect(parseFigureSpec(plane({ x: [-5, 5], y: [-5, 5] })).ok).toBe(true);
+    expect(errorsOf(plane({ x: [5, -5], y: [-5, 5] })).join(" ")).toMatch(/x range/);
+    expect(errorsOf(plane({ x: [-5, 5], y: [2, 2] })).join(" ")).toMatch(/y range/);
+  });
+
+  it("refuses a step that gives more than MAX_TICKS ticks on an axis", () => {
+    expect(MAX_TICKS).toBe(200);
+    // 200 ticks is the most: [0, 199] at step 1.
+    expect(parseFigureSpec(plane({ x: [0, 199], y: [0, 10], step: 1 })).ok).toBe(true);
+    expect(errorsOf(plane({ x: [0, 200], y: [0, 10], step: 1 })).join(" ")).toMatch(
+      /more than 200 ticks on the x-axis/
+    );
+    expect(errorsOf(plane({ x: [0, 1], y: [0, 1000], step: 0.5, yStep: 1 })).join(" ")).toMatch(
+      /more than 200 ticks on the y-axis/
+    );
+    // Without a step the automatic one is always readable.
+    expect(parseFigureSpec(plane({ x: [0, 1e6], y: [0, 1e6] })).ok).toBe(true);
   });
 });
