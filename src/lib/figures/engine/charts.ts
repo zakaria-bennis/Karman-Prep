@@ -30,6 +30,7 @@ import type { FigureSpec, Part, PlaneFrame } from "./spec";
 import { niceStep } from "./ticks";
 
 type Series = Extract<Part, { kind: "series" }>;
+type Fn = Extract<Part, { kind: "function" }>;
 type ChartKind = "bar" | "line" | "scatter" | "dot_plot" | "histogram" | "box_plot";
 type Pair = [number, number];
 
@@ -158,7 +159,8 @@ function histogram(s: Series, c: Ctx): SceneItem[] {
     c.issues.push(clippedIssue(s, "a histogram needs [bin start, count] pairs"));
   }
   const gaps = bins.slice(1).map((b, i) => b[0] - bins[i][0]);
-  const width = c.frame.step ?? (gaps.length ? Math.min(...gaps) : 1);
+  // The data's own bin width; the grid step only when there is a single bin.
+  const width = gaps.length ? Math.min(...gaps) : (c.frame.step ?? 1);
   return bins.map(([left, count]) => {
     if (!inX(c.frame, left) || !inX(c.frame, left + width) || !inY(c.frame, count)) {
       c.issues.push(clippedIssue(s, `the bin at ${fmt(left)} runs past the frame`));
@@ -372,8 +374,13 @@ function describeChart(spec: FigureSpec, type: ChartKind, frame: PlaneFrame, ser
     box_plot: `${WHAT.box_plot} with ${plural(series.length, "box", "boxes")}. Value axis: ${x}.`,
   };
   const lines = spec.parts.filter((p) => p.kind === "function").length;
+  const title = spec.title ? `${spec.title}. ` : "";
+  // A function plot: a line chart holding only graphed functions.
+  if (type === "line" && series.length === 0 && lines) {
+    return `${title}Graph of ${plural(lines, "function")}. X-axis: ${x}. Y-axis: ${y}.`;
+  }
   const extra = lines ? ` It also shows ${plural(lines, "graphed line")}.` : "";
-  return `${spec.title ? `${spec.title}. ` : ""}${body[type]}${extra}`;
+  return `${title}${body[type]}${extra}`;
 }
 
 /** The Scene of a chart FigureSpec (bar, line, scatter, dot_plot, histogram or box_plot) in `box`. */
@@ -409,16 +416,24 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
   const margin = HOUSE.margin;
   const titleLines = spec.title ? wrapText(spec.title, box.width - 2 * margin) : [];
   const titleH = titleLines.length ? titleLines.length * LINE_HEIGHT + HOUSE.labelOffset : 0;
+  const fns = spec.parts.filter((p): p is Fn => p.kind === "function");
   const entries: LegendEntry[] =
     type === "box_plot"
       ? []
-      : series.flatMap((s) => {
-          const name = names.get(s.id);
-          const kind = kinds.get(s.id)!;
-          return name ? [{ id: s.id, name, kind, index: ofKind(kind).indexOf(s) }] : [];
-        });
-  const rows =
-    series.length > 1 && entries.length ? legendRows(entries, box.width - 2 * margin) : [];
+      : [
+          ...series.flatMap((s) => {
+            const name = names.get(s.id);
+            const kind = kinds.get(s.id)!;
+            return name ? [{ id: s.id, name, kind, index: ofKind(kind).indexOf(s) }] : [];
+          }),
+          // Graphed functions show as line swatches in their own style.
+          ...fns.flatMap((f, index) => {
+            const name = names.get(f.id);
+            return name ? [{ id: f.id, name, kind: "line" as const, index }] : [];
+          }),
+        ];
+  const drawn = series.length + fns.length;
+  const rows = drawn > 1 && entries.length ? legendRows(entries, box.width - 2 * margin) : [];
   const legendH = rows.length ? rows.length * LINE_HEIGHT + 2 * HOUSE.labelOffset : 0;
   const rowNames = type === "box_plot" ? series.map((s) => names.get(s.id) ?? "") : [];
   const left = Math.max(0, ...rowNames.map((n) => (n ? advance(n) + HOUSE.labelOffset : 0)));
@@ -443,8 +458,13 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
     else items.push(...boxPlot(s, c, names.get(s.id)));
   }
   for (const part of spec.parts) {
-    if (part.kind === "function") items.push(...functionItems(part, axes.frame, m, issues));
-    else if (part.kind !== "series") {
+    if (part.kind === "function") {
+      // A second graphed function is dashed, matching its legend swatch.
+      const dashed = fns.indexOf(part) % 2 === 1;
+      for (const item of functionItems(part, axes.frame, m, issues)) {
+        items.push(dashed && item.t === "path" ? { ...item, weight: "dashed" } : item);
+      }
+    } else if (part.kind !== "series") {
       issues.push({
         code: "clipped",
         partId: part.id,

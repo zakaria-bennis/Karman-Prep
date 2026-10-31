@@ -3,14 +3,17 @@
  * mechanically and without loss of what a student needs:
  *
  * - scatterplot, line_graph, bar_chart and boxplot become scatter, line, bar
- *   and box_plot specs; function_plot becomes a plane with function parts.
+ *   and box_plot specs; function_plot becomes a line chart holding only
+ *   function parts, so it gets the chart's title and legend.
  * - Series become `series` parts s1, s2, ...; boxes become parts b1, b2, ...
  *   holding [min, Q1, median, Q3, max]; functions become parts f1, f2, ...
  *   with their expression written as LaTeX and their `samples` computed here.
  *   The four expression kinds (linear, quadratic, absolute value, exponential)
  *   are evaluated directly, so live chart data never needs the calculator.
- * - A series name becomes a label on its part (the legend); a box's category
- *   becomes a label on its box (the row name).
+ * - A series or function name becomes a label on its part (the legend); a
+ *   box's category becomes a label on its box (the row name).
+ * - A step of 0 means automatic. A null category is an unnamed one (""). A bar
+ *   whose category is not on the axis keeps index -1, so the chart reports it.
  * - Axis ranges, steps, label steps, categories, axis names, the grid switch
  *   and the hidden origin label go into the frame. A missing numeric range is
  *   derived from the data.
@@ -39,14 +42,21 @@ export class ChartDataError extends Error {
 const num = z.number().finite();
 const pair = z.tuple([num, num]);
 const label = z.string().nullish();
+/** A step; 0 (or less) in old data means "let the renderer pick". */
+const step = num.nullish().transform((v) => (v != null && v > 0 ? v : null));
+/** A category name; null is an unnamed category, never the word "null". */
+const category = z
+  .union([z.string(), num])
+  .nullish()
+  .transform((v) => (v == null ? "" : String(v)));
 
 const axisSchema = z.object({
   label: z.string().nullish(),
   min: num.nullish(),
   max: num.nullish(),
-  tick_step: num.positive().nullish(),
-  categories: z.array(z.coerce.string()).nullish(),
-  label_step: num.positive().nullish(),
+  tick_step: step,
+  categories: z.array(category).nullish(),
+  label_step: step,
 });
 
 const expressionSchema = z.discriminatedUnion("kind", [
@@ -62,7 +72,7 @@ const seriesSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("bar"),
     label,
-    bars: z.array(z.object({ category: z.coerce.string(), value: num })),
+    bars: z.array(z.object({ category, value: num })),
   }),
   z.object({
     kind: z.literal("function"),
@@ -97,7 +107,7 @@ const TYPE: Record<ChartData["kind"], FigureSpec["type"]> = {
   scatterplot: "scatter",
   line_graph: "line",
   bar_chart: "bar",
-  function_plot: "plane",
+  function_plot: "line",
   boxplot: "box_plot",
 };
 
@@ -226,7 +236,8 @@ export function chartDataToSpec(input: unknown): FigureSpec {
           kind: "series",
           id,
           seriesKind: "bar",
-          values: complete ? at.map(([, v]) => v) : at.filter(([c]) => c >= 0),
+          // A bar off the axis keeps index -1; buildChart reports it as clipped.
+          values: complete ? at.map(([, v]) => v) : at,
         });
         name(s.label, id);
         ys.push(...s.bars.map((b) => b.value));
@@ -240,6 +251,7 @@ export function chartDataToSpec(input: unknown): FigureSpec {
           ...(s.domain ? { domain: s.domain } : {}),
         });
         expressions.set(`f${i + 1}`, s.expression);
+        name(s.label, `f${i + 1}`);
         break;
       case "boxplot":
         for (const box of s.boxes) {

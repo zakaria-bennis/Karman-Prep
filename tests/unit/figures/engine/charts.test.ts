@@ -166,6 +166,34 @@ describe("buildChart", () => {
     expect(bars[1].height / bars[0].height).toBeCloseTo(2.5, 6);
   });
 
+  it("sizes histogram bins from the data's bin gap, not the grid step", () => {
+    const scene = buildChart(
+      spec({
+        type: "histogram",
+        parts: [
+          {
+            kind: "series",
+            id: "h",
+            values: [
+              [0, 3],
+              [10, 5],
+              [20, 2],
+            ],
+          },
+        ],
+        frame: { x: [0, 30], y: [0, 6], step: 5, yStep: 1 },
+      }),
+      BOX
+    );
+    const bars = rects(scene, "h");
+    expect(bars).toHaveLength(3);
+    const tenUnits = bars[1].x - bars[0].x;
+    for (const b of bars) expect(b.width).toBeCloseTo(tenUnits, 6);
+    expect(bars[0].x + bars[0].width).toBeCloseTo(bars[1].x, 6);
+    expect(bars[1].x + bars[1].width).toBeCloseTo(bars[2].x, 6);
+    expect(scene.issues).toEqual([]);
+  });
+
   it("keeps every text item inside the figure, with a wrapped title and a legend", () => {
     const scene = buildChart(
       spec({
@@ -219,7 +247,7 @@ describe("chartDataToSpec", () => {
     series: { kind: string; points?: [number, number][]; label?: string | null }[];
   };
 
-  it("round-trips every fixture in tests/fixtures/charts", () => {
+  it("converts every fixture to a valid spec that keeps its data and draws with clean, on-tick labels", () => {
     expect(fixtures.length).toBeGreaterThanOrEqual(8);
     for (const { id, figure_chart_data } of fixtures as { id: string; figure_chart_data: Data }[]) {
       const data = figure_chart_data;
@@ -265,6 +293,151 @@ describe("chartDataToSpec", () => {
         }
       }
     }
+  });
+
+  it("samples a fixture's curve to match its expression at three x values", () => {
+    const fixture = fixtures.find((f) => f.id.startsWith("72c29a75"))!;
+    const fn = chartDataToSpec(fixture.figure_chart_data).parts.find((p) => p.kind === "function");
+    if (fn?.kind !== "function" || !fn.samples) throw new Error("no sampled function");
+    const pts = fn.samples.flat();
+    // y = 3(1.07)^x
+    for (const x of [0, 1, 10]) {
+      const near = pts.reduce((a, b) => (Math.abs(b[0] - x) < Math.abs(a[0] - x) ? b : a));
+      expect(Math.abs(near[0] - x)).toBeLessThan(0.02);
+      expect(near[1]).toBeCloseTo(3 * 1.07 ** near[0], 9);
+      expect(near[1]).toBeCloseTo(3 * 1.07 ** x, 1);
+    }
+  });
+
+  const axis0 = { label: "", min: 0, max: 10, tick_step: 2, categories: null };
+  const legendTexts = (scene: Scene) =>
+    texts(scene)
+      .filter((t) => t.partId === "legend")
+      .map((t) => t.text);
+  const build = (out: FigureSpec) =>
+    out.type === "plane" ? buildPlane(out, BOX) : buildChart(out, BOX);
+
+  it("lists a named line of best fit beside the named data in the legend", () => {
+    const out = chartDataToSpec({
+      kind: "scatterplot",
+      title: null,
+      x_axis: axis0,
+      y_axis: axis0,
+      show_grid: true,
+      series: [
+        {
+          kind: "scatter",
+          label: "Data",
+          points: [
+            [1, 2],
+            [3, 4],
+          ],
+        },
+        {
+          kind: "function",
+          label: "Line of best fit",
+          expression: { kind: "linear", m: 1, b: 1 },
+          domain: null,
+        },
+      ],
+    });
+    const scene = build(out);
+    expect(legendTexts(scene)).toEqual(["Data", "Line of best fit"]);
+    expect(scene.issues).toEqual([]);
+  });
+
+  it("gives a function plot with two named curves a legend with both names", () => {
+    const out = chartDataToSpec({
+      kind: "function_plot",
+      title: "Two plans",
+      x_axis: axis0,
+      y_axis: { ...axis0, max: 20 },
+      show_grid: true,
+      series: [
+        {
+          kind: "function",
+          label: "Plan A",
+          expression: { kind: "linear", m: 1, b: 2 },
+          domain: null,
+        },
+        {
+          kind: "function",
+          label: "Plan B",
+          expression: { kind: "linear", m: 2, b: 0 },
+          domain: null,
+        },
+      ],
+    });
+    const scene = build(out);
+    expect(legendTexts(scene)).toEqual(["Plan A", "Plan B"]);
+    expect(texts(scene).some((t) => t.partId === "title" && t.text === "Two plans")).toBe(true);
+    // The two curves differ in line style, as their swatches do.
+    const weights = ["f1", "f2"].map((id) => paths(scene, id)[0].weight);
+    expect(new Set(weights).size).toBe(2);
+    const swatches = paths(scene, "legend").map((p) => p.weight);
+    expect(swatches).toEqual(weights);
+    expect(scene.issues).toEqual([]);
+  });
+
+  it("reads a tick_step or label_step of 0 as automatic", () => {
+    const out = chartDataToSpec({
+      kind: "scatterplot",
+      title: null,
+      x_axis: { ...axis0, tick_step: 0, label_step: 0 },
+      y_axis: { ...axis0, tick_step: 0 },
+      show_grid: true,
+      series: [{ kind: "scatter", label: null, points: [[1, 2]] }],
+    });
+    expect(out.frame?.step).toBeUndefined();
+    expect(out.frame?.yStep).toBeUndefined();
+    expect(out.frame?.labelStep).toBeUndefined();
+    expect(build(out).issues).toEqual([]);
+  });
+
+  it("never turns a null category into the word null", () => {
+    const out = chartDataToSpec({
+      kind: "bar_chart",
+      title: null,
+      x_axis: { ...axis0, min: null, max: null, tick_step: null, categories: ["A", null] },
+      y_axis: axis0,
+      show_grid: true,
+      series: [
+        {
+          kind: "bar",
+          label: null,
+          bars: [
+            { category: "A", value: 3 },
+            { category: null, value: 4 },
+          ],
+        },
+      ],
+    });
+    expect(out.frame?.categories).toEqual(["A", ""]);
+    expect(JSON.stringify(out)).not.toContain("null");
+    expect(texts(build(out)).some((t) => t.text === "null")).toBe(false);
+  });
+
+  it("reports a bar whose category is not on the axis instead of dropping it silently", () => {
+    const out = chartDataToSpec({
+      kind: "bar_chart",
+      title: null,
+      x_axis: { ...axis0, min: null, max: null, tick_step: null, categories: ["A", "B"] },
+      y_axis: axis0,
+      show_grid: true,
+      series: [
+        {
+          kind: "bar",
+          label: null,
+          bars: [
+            { category: "A", value: 3 },
+            { category: "Z", value: 4 },
+          ],
+        },
+      ],
+    });
+    const issues = build(out).issues;
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ code: "clipped", partId: "s1" });
   });
 
   it("maps old kinds onto figure types and keeps bar categories and box summaries", () => {

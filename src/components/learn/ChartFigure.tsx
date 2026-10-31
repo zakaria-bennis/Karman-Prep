@@ -1,7 +1,7 @@
 // ============================================================
 // ChartFigure: draws quiz_questions.figure_chart_data with the figure
 // engine. It converts the old chart data to a FigureSpec, builds the
-// scene (charts on chart axes, function plots on a coordinate plane)
+// chart scene (function plots are line charts of graphed functions)
 // and renders it with FigureView, in the Bluebook look with theme
 // colors only.
 //
@@ -12,7 +12,6 @@
 import { cn } from "@/lib/utils";
 import { buildChart } from "@/lib/figures/engine/charts";
 import { chartDataToSpec, ChartDataError } from "@/lib/figures/engine/from-chart-data";
-import { buildPlane } from "@/lib/figures/engine/plane";
 import type { Scene } from "@/lib/figures/engine/scene";
 import type { ChartFigure as ChartFigureData } from "@/types/chart";
 import FigureView from "./figures/FigureView";
@@ -33,9 +32,7 @@ const boxFor = (data: ChartFigureData) =>
 
 function sceneFor(data: ChartFigureData): Scene | null {
   try {
-    const spec = chartDataToSpec(data);
-    const box = boxFor(data);
-    return spec.type === "plane" ? buildPlane(spec, box) : buildChart(spec, box);
+    return buildChart(chartDataToSpec(data), boxFor(data));
   } catch (error) {
     if (error instanceof ChartDataError) return null;
     throw error;
