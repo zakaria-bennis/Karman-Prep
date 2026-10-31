@@ -9,7 +9,8 @@
 //
 // HOME PAGE, top to bottom:
 //    1 Opening   2 Live classes   3 Classes built on mistakes   4 Daily 10   5 Parent updates
-//    6 Between classes   7 Test date   8 Guarantee   9 Campus film   10 Student messages   11 The close
+//    6 Between classes   7 Test date   8 Guarantee   9 Campus film   10 Student messages
+//    12 Testimonials (PLACEHOLDER, shows between 10 and 11)   11 The close
 // OTHER PAGES:
 //    21 to 27  The SAT Program page
 //    31 to 36  Private tutoring page
@@ -89,6 +90,20 @@ headline: What the nine weeks are for.
 
 ## 10 Student messages
 headline: Texts from Karman 1:1 students, shared with permission.
+
+## 12 Testimonials
+### PLACEHOLDER TESTIMONIALS: invented for the founder's review. Replace with real, approved testimonials or remove before any deploy or port into src/.
+### Shows on the home page right after Student messages. Each "quote" line is: the words = name, who they are. Delete a line to drop that quote.
+headline: Parents and students on 1:1 tutoring.
+format: Karman 1:1 tutoring, median 16 weeks.
+quote a: I expected another stack of worksheets. Instead he came out of every session able to tell me which kinds of questions he kept missing, and why. That was new for us. = Dana R., Parent of an 11th grader
+quote b: the reviews were kind of brutal at first lol. we went through every single question i got wrong on the practice test. by week 6 i was catching my own mistakes before he pointed them out = Jordan T., Junior, Texas
+quote c: Two sports and a part-time job, so scheduling was my biggest worry. Sessions were on Zoom and she did two of them from the car outside practice. Nobody made that a problem. = Michelle K., Parent of a junior
+quote d: He never just told me the answer. He asked what I was thinking when I picked it, which was annoying, but it worked. = Aisha M., Senior, New Jersey
+quote e: We tried a self-paced course first and he stopped logging in after two weeks. Having a real person who knew his tests, and expected him to show up, is what kept him going. = Greg H., Parent of an 11th grader
+quote f: Reading was the section I avoided. My tutor had me start every session with it. I still don't love it but I'm not scared of it anymore. = Lucas P., Junior, California
+quote g: What I appreciated most was the honesty. When she wasn't ready for the date we'd picked, they told us, and we planned for the next one instead. = Sandra L., Parent of a junior
+quote h: ngl i thought doing it over zoom would be weird. it wasn't. easier to focus in my own room than at a learning center = Ethan W., Senior, Illinois
 
 ## 11 The close
 headline: See their predicted score before you spend a dollar.

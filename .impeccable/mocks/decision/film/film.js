@@ -86,7 +86,26 @@
     g = M(8),
     campus = M(9),
     msgs = M(10),
+    voices = M(12),
     end = M(11);
+  /* PLACEHOLDER TESTIMONIALS: invented for the founder's review. Replace with real, approved testimonials or
+     remove before any deploy or port into src/. The words are in copy.js, section 12; each "quote" line is
+     "the words = name, who they are". They sit inside the Student messages panel, under the wall. */
+  const quotes = Object.keys(voices)
+    .filter((k) => /^quote\b/.test(k) && voices[k])
+    .sort()
+    .map((k) => {
+      const [words, who = ""] = voices[k].split(" = ");
+      const [name, ...role] = who.split(",");
+      return `<figure class="vq rv"><blockquote><p>\u201c${esc(words.trim())}\u201d</p></blockquote>${who ? `<figcaption><b>${esc(name.trim())}</b>${role.length ? `<span>${esc(role.join(",").trim())}</span>` : ""}</figcaption>` : ""}</figure>`;
+    });
+  const voicesHTML = quotes.length
+    ? `<div class="in voices" id="m-12">
+      ${voices.headline ? `<h2 class="rv" id="v-h">${esc(voices.headline)}</h2>` : ""}
+      ${voices.format ? `<p class="vfmt rv">${esc(voices.format)}</p>` : ""}
+      <div class="vgrid">${quotes.join("")}</div>
+    </div>`
+    : "";
   const CAMPUS = ["c8a", "c8b", "c8c"];
   document.getElementById("main").innerHTML = `
   <section class="window hero" id="m-1">
@@ -134,6 +153,7 @@
   <section class="panel messages" id="m-10">
     ${msgs.headline ? `<div class="in"><h2 class="rv">${esc(msgs.headline)}</h2></div>` : ""}
     <div class="wall" aria-hidden="true"><div class="tilt">${wall}</div></div>
+    ${voicesHTML}
   </section>
 
   <section class="window end" id="m-11">
