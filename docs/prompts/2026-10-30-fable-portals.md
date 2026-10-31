@@ -1,6 +1,7 @@
 # Fable 5.1 brief: the website and the portals
 
-Draft 2, 2026-10-30. Everything below the line is the prompt. The business
+Draft 2, 2026-10-30. The prompt is everything between the two horizontal lines (it starts with
+"ultracode" and ends with the "Never" list). The business
 decisions are settled (plans, prices, cohort format, school scope), and the
 environment checklist at the bottom is done. Start the Fable session on the
 `claude/site-redesign` branch, not `main`: `main` doesn't yet have the
