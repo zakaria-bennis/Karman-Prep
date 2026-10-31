@@ -1,4 +1,5 @@
-"""`k qa hide`, `k qa restore` and `k qa fix-legacy`: run the QA SQL end to end; `k qa ids`
+"""`k qa hide`, `k qa restore`, `k qa fix-legacy`, `k qa retag` and `k qa normalize`: run the QA SQL
+end to end; `k qa ids`
 builds the hidden id map (read-only).
 
 Sequence (README "The sequence", same as the autopilot): writer lock, no open
@@ -20,7 +21,7 @@ import time
 from pathlib import Path
 
 from kimport import qa_hide as qh
-from kimport import qa_export, qa_ids, qa_legacy, qa_retag, writer
+from kimport import qa_export, qa_ids, qa_legacy, qa_normalize, qa_retag, writer
 from kimport import stage as st
 from kimport.autopilot import DbError, supabase_file_runner
 from kimport.autopilot_live import LEDGER
@@ -35,13 +36,14 @@ HOLDER = "kimport-qa"
 
 class Deps:
     def __init__(self, db=supabase_file_runner, exporter=None, sleep=time.sleep, log=print, full_exporter=None,
-                 retag_checker=None):
+                 retag_checker=None, normalize_checker=None):
         self.db = db
         self.exporter = exporter or (lambda out: run_export(out, log=lambda m: None))
         # Every live row in full (REST, read-only) for `k qa retag`, which needs the evidence and the payload.
         self.full_exporter = full_exporter or (lambda out: qa_export.run_qa_export(
             out, Path(__file__).resolve().parents[3] / ".env.local", log=lambda m: None))
         self.retag_checker = retag_checker or qa_retag_check
+        self.normalize_checker = normalize_checker or qa_normalize_check
         self.sleep = sleep
         self.log = log
 
@@ -407,6 +409,76 @@ def run_retag(pipe: Path, decisions: str, now: str, dry: bool = False, export: s
              "columns_before": {c: it["row"].get(c) for c in it["question_after"]}, "columns_after": it["question_after"]}
             for it in items])
         return {**summary, "result": "changed", "readback_sha256": digest,
+                "undo": str(run_dir / "restore.sql")}
+
+    return _locked(pipe, now, dry, go)
+
+
+def qa_normalize_check(items: list[dict], work: Path) -> dict:
+    """ts/normalize-check.ts on the planned text fixes (the app's seals, hashes and display code)."""
+    import subprocess
+    src = Path(work) / "normalize-check-input.json"
+    src.write_text(json.dumps({"rows": [{"row": it["row"], "question": it["change"]["question"],
+                                         "choices": it["change"]["choices"], "raw_after": it["raw_after"]}
+                                        for it in items]}, ensure_ascii=False), encoding="utf-8")
+    done = subprocess.run(["npx", "--no-install", "tsx", "scripts/import-tools/ts/normalize-check.ts", str(src)],
+                          cwd=qa_retag.REPO, capture_output=True, text=True, timeout=1800)
+    if done.returncode != 0:
+        raise ValueError(f"normalize-check.ts: {(done.stderr or done.stdout).strip()[-400:]}")
+    return json.loads(done.stdout)
+
+
+def run_normalize(pipe: Path, now: str, dry: bool = False, export: str | None = None,
+                  live_rows: str | None = None, violations: str | None = None, deps: Deps | None = None) -> dict:
+    """`k qa normalize`: the mechanical Bluebook text fixes on live rows in place (kimport.qa_normalize),
+    in the qa hide sequence. --dry builds everything and runs only the .dryrun.sql (rolled back)."""
+    pipe, deps = Path(pipe), deps or Deps()
+    violations = Path(violations) if violations else pipe / "qa" / "bluebook-style" / "violations.json"
+
+    def go():
+        qa_dir = pipe / "qa"
+        run_dir = qa_dir / f"normalize-{_stamp(now)}{'-dry' if dry else ''}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+        doc, _ = _export(deps, run_dir, export)
+        full = Path(live_rows) if live_rows else run_dir / "live-full.json"
+        if not live_rows:
+            deps.full_exporter(full)
+        rows = json.loads(full.read_text(encoding="utf-8"))["rows"]
+        plan = qa_normalize.build_plan(rows, doc, lambda items: deps.normalize_checker(items, run_dir), now, run_dir.name)
+        items = plan["items"]
+        summary = {"run": str(run_dir), "export": doc.exported_at, "live_rows": len(rows),
+                   "candidates": plan["candidates"], "to_change": len(items), "refused": len(plan["refused"]),
+                   "dry": dry}
+
+        def write_plan(**extra):
+            (run_dir / "plan.json").write_text(json.dumps(qa_normalize.plan_doc(plan, {**summary, **extra}, violations),
+                                                          indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+        write_plan()
+        if not items:
+            return {**summary, "result": "nothing to change", "plan": str(run_dir / "plan.json")}
+        sql = qa_normalize.normalize_sql(items, doc)
+        _write_chunks(run_dir, "restore", qa_normalize.restore_sql(items))
+        (run_dir / "readback.sql").write_text(qa_normalize.readback_sql([it["id"] for it in items]), encoding="utf-8")
+        summary["sql_files"] = len(sql)
+        per_rule = qa_normalize.plan_doc(plan, summary)["per_rule"]
+        if dry:
+            for _, drypath in _write_chunks(run_dir, "normalize", sql):
+                _read(deps, drypath)
+            write_plan(dry_passed=True)
+            return {**summary, "per_rule": per_rule, "result": "dry run passed (rolled back)",
+                    "plan": str(run_dir / "plan.json")}
+        digest = _apply(deps, pipe, run_dir, "normalize", sql, qa_normalize.expected(items, True),
+                        qa_normalize.expected(items, False), now,
+                        readback=qa_normalize.readback_sql([it["id"] for it in items]))
+        qh.append_log(qa_dir / "normalizations.jsonl", [
+            {"id": it["id"], "stable_question_id": it["stable_question_id"], "at": now, "run": run_dir.name,
+             "rules": it["change"]["rules"], "before": {**{f: it["row"].get(f) for f in it["change"]["question"]},
+                                                        **{f"choice {x}": t for x, t in qa_normalize._choices(it, False).items()}},
+             "after": {**it["change"]["question"], **{f"choice {x}": t for x, t in it["change"]["choices"].items()}}}
+            for it in items])
+        write_plan(applied=True, readback_sha256=digest)
+        return {**summary, "per_rule": per_rule, "result": "changed", "readback_sha256": digest,
                 "undo": str(run_dir / "restore.sql")}
 
     return _locked(pipe, now, dry, go)

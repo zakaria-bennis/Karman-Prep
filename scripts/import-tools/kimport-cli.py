@@ -600,6 +600,15 @@ def _register_qa(sub) -> None:
     rt.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
     rt.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_retag(
         Path(a.pipe), a.decisions, a.now, a.dry, a.export, a.live_rows, _qa_deps()))))
+    nz = qsub.add_parser("normalize", help="apply the mechanical Bluebook text fixes to live questions in place")
+    nz.add_argument("--pipe", required=True, help="the pipeline folder (writer.lock, intents.jsonl, qa/)")
+    nz.add_argument("--now", required=True, help="ISO-8601 time")
+    nz.add_argument("--export", help="use this saved export (for the fingerprint guard) instead of a fresh one")
+    nz.add_argument("--live-rows", help="use this saved full live export (qa export) instead of a fresh one")
+    nz.add_argument("--violations", help="the style audit counts (default <pipe>/qa/bluebook-style/violations.json)")
+    nz.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
+    nz.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_normalize(
+        Path(a.pipe), a.now, a.dry, a.export, a.live_rows, a.violations, _qa_deps()))))
     fc = qsub.add_parser("record-fix-corrections",
                          help="record in qa/corrections.jsonl the QA corrections a run published through the fix path")
     fc.add_argument("--pipe", required=True, help="the pipeline folder")
