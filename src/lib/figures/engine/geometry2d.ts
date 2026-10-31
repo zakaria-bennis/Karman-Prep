@@ -38,6 +38,21 @@ type TwoPoint = Extract<Part, { kind: "segment" | "ray" | "line" }>;
 
 export const NOT_TO_SCALE = "Note: Figure not drawn to scale.";
 
+/**
+ * The note as one line, or as two broken at the space nearest the middle
+ * when one line would not fit the box less the margin. Joined with one
+ * space, the lines are always exactly NOT_TO_SCALE.
+ */
+function noteLines(width: number): string[] {
+  if (textWidth(NOT_TO_SCALE) <= width - 2 * HOUSE.margin) return [NOT_TO_SCALE];
+  const mid = NOT_TO_SCALE.length / 2;
+  let cut = -1;
+  for (let i = 0; i < NOT_TO_SCALE.length; i++) {
+    if (NOT_TO_SCALE[i] === " " && (cut < 0 || Math.abs(i - mid) < Math.abs(cut - mid))) cut = i;
+  }
+  return [NOT_TO_SCALE.slice(0, cut), NOT_TO_SCALE.slice(cut + 1)];
+}
+
 /** A traced angle this close to 90° is snapped when it is marked right_angle. */
 const RIGHT_ANGLE_WINDOW_DEG = 10;
 /** Clear space kept between an angle label and the angle's rays. */
@@ -449,7 +464,8 @@ export function buildGeometry2d(input: FigureSpec, box: Box): Scene {
 
   // Layout: the box less the margin, room for labels outside the shape, and the note band.
   const font = HOUSE.font;
-  const noteBand = spec.notToScale ? 1.25 * font + HOUSE.labelOffset : 0;
+  const note = spec.notToScale ? noteLines(box.width) : [];
+  const noteBand = note.length ? note.length * 1.25 * font + HOUSE.labelOffset : 0;
   const widest = Math.max(0, ...spec.labels.map((l) => textWidth(l.text)));
   const roomX = spec.labels.length ? HOUSE.labelOffset + widest : 0;
   const roomY = spec.labels.length ? HOUSE.labelOffset + 1.25 * font : 0;
@@ -598,16 +614,17 @@ export function buildGeometry2d(input: FigureSpec, box: Box): Scene {
   // Dots for points that are not a corner of a drawn line, on top of the lines.
   for (const [id, p] of points) if (!corners.has(id)) items.push(pointDot(p, id));
 
-  if (spec.notToScale) {
+  // The note's last line sits just above the bottom edge; earlier lines stack above it.
+  note.forEach((text, i) => {
     items.push({
       t: "text",
       x: box.width / 2,
-      y: box.height - HOUSE.margin / 2,
-      text: NOT_TO_SCALE,
+      y: box.height - HOUSE.margin / 2 - (note.length - 1 - i) * 1.25 * font,
+      text,
       role: "ink",
       anchor: "middle",
     });
-  }
+  });
 
   const ctx: LabelContext = { spec, parts, points, dirs, center: centroid([...points.values()]) };
   const pending = pendingLabels(ctx, issues);

@@ -213,6 +213,84 @@ describe("buildGeometry2d", () => {
     expect(notes[0].x).toBeCloseTo(BOX.width / 2, 6);
   });
 
+  describe("the not-to-scale note on narrow boxes", () => {
+    const NOTE = "Note: Figure not drawn to scale.";
+    const noted = geo(
+      [
+        pt("A", 0, 100),
+        pt("B", 240, 100),
+        pt("C", 160, 20),
+        seg("AB", "A", "B"),
+        seg("BC", "B", "C"),
+        seg("CA", "C", "A"),
+        { kind: "line", id: "AL", from: "A", to: "C" },
+      ],
+      [],
+      [
+        { text: "A", on: "A" },
+        { text: "B", on: "B" },
+        { text: "C", on: "C" },
+        { text: "24", on: "AB" },
+        { text: "11", on: "BC" },
+        { text: "18", on: "CA" },
+      ],
+      { notToScale: true }
+    );
+    /** The note's text items: the bottom run of texts that joins to the note. */
+    const noteItems = (items: SceneItem[]) =>
+      texts(items).filter(
+        (t) => NOTE.split(" ").some((w) => t.text.includes(w)) && t.text.length > 3
+      );
+
+    it("on a 260×300 box every note line fits within the margin and the lines join to the exact text", () => {
+      const box = { width: 260, height: 300 };
+      const notes = noteItems(buildGeometry2d(noted, box).items);
+      expect(notes.length).toBe(2);
+      expect(notes.map((t) => t.text).join(" ")).toBe(NOTE);
+      for (const t of notes) {
+        const [l, r, top, bottom] = textBox(t);
+        expect(l).toBeGreaterThanOrEqual(HOUSE.margin);
+        expect(r).toBeLessThanOrEqual(box.width - HOUSE.margin);
+        expect(top).toBeGreaterThanOrEqual(0);
+        expect(bottom).toBeLessThanOrEqual(box.height);
+      }
+      // Stacked one line height apart, in reading order.
+      expect(notes[1].y - notes[0].y).toBeCloseTo(1.25 * HOUSE.font, 6);
+    });
+
+    it("on a 400×300 box the note stays on one line", () => {
+      const notes = noteItems(buildGeometry2d(noted, BOX).items);
+      expect(notes.map((t) => t.text)).toEqual([NOTE]);
+    });
+
+    it("nothing in the figure overlaps the note at 260 wide", () => {
+      const box = { width: 260, height: 300 };
+      const scene = buildGeometry2d(noted, box);
+      expect(scene.issues.filter((i) => i.code === "label_collision")).toEqual([]);
+      const notes = noteItems(scene.items);
+      const noteBoxes = notes.map(textBox);
+      const others = texts(scene.items).filter((t) => !notes.includes(t));
+      expect(others).toHaveLength(6);
+      for (const [l, r, t, b] of noteBoxes) {
+        for (const o of others.map(textBox)) {
+          expect(o[0] < r && l < o[1] && o[2] < b && t < o[3]).toBe(false);
+        }
+        for (const p of paths(scene.items)) {
+          const vs = vertices(p.d);
+          for (let i = 0; i + 1 < vs.length; i++) {
+            const [s, e] = [vs[i], vs[i + 1]];
+            const n = Math.ceil(dist(s, e) * 4) || 1;
+            for (let k = 0; k <= n; k++) {
+              const x = s[0] + ((e[0] - s[0]) * k) / n;
+              const y = s[1] + ((e[1] - s[1]) * k) / n;
+              expect(x > l && x < r && y > t && y < b).toBe(false);
+            }
+          }
+        }
+      }
+    });
+  });
+
   it("hidden_dashed segment uses weight dashed", () => {
     const spec = geo(
       [pt("A", 0, 0), pt("B", 100, 0), pt("C", 50, 80), seg("AB", "A", "B"), seg("BC", "B", "C")],
