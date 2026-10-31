@@ -407,23 +407,16 @@ html.dark {
   --figure-gold: rgb(var(--k-gold));
   --figure-grid-opacity: 0.72;
 }
-/* Figure engine roles (src/lib/figures/engine). SAT look: plain dark lines on
-   light, inverted in dark mode. Light values sit on :root, dark on html.dark. */
+/* Figure engine roles (src/lib/figures/engine). Defined once from the semantic
+   theme tokens: --k-ivory is the theme's text color and --k-night its canvas,
+   so every light and dark theme gets correct contrast. */
 :root {
-  --figure-ink: rgb(var(--k-night));
-  --figure-ink-muted: rgb(var(--k-night) / 0.62);
-  --figure-grid: rgb(var(--k-night) / 0.16);
-  --figure-fill-faint: rgb(var(--k-night) / 0.06);
-  --figure-fill-shade: rgb(var(--k-night) / 0.14);
-  --figure-highlight: color-mix(in srgb, rgb(var(--k-math)) 65%, rgb(var(--k-night)));
-}
-html.dark {
   --figure-ink: rgb(var(--k-ivory));
-  --figure-ink-muted: rgb(var(--k-ivory) / 0.68);
-  --figure-grid: rgb(var(--k-ivory) / 0.18);
-  --figure-fill-faint: rgb(var(--k-ivory) / 0.07);
-  --figure-fill-shade: rgb(var(--k-ivory) / 0.16);
-  --figure-highlight: rgb(var(--k-math-glow));
+  --figure-ink-muted: rgb(var(--k-taupe));
+  --figure-grid: rgb(var(--k-ivory) / 0.16);
+  --figure-fill-faint: rgb(var(--k-ivory) / 0.06);
+  --figure-fill-shade: rgb(var(--k-ivory) / 0.14);
+  --figure-highlight: color-mix(in srgb, rgb(var(--k-math)) 65%, rgb(var(--k-ivory)));
 }
 
 .themed-question-figure {
