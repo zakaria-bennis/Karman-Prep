@@ -20,9 +20,11 @@ import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
+import FigureChoices from "../figures/FigureChoices";
 import { TableChoiceOption } from "./TableChoiceOption";
 import PassageAnnotations from "./PassageAnnotations";
 import { drawnFigure } from "@/lib/figures/question-figure";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { useFigureStemAlign } from "./use-figure-stem-align";
 
@@ -87,10 +89,12 @@ export function ActiveQuizScreen({
   );
   if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
   const drawn = useMemo(() => drawnFigure(q), [q]);
+  // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
   const sortedChoices = useMemo(
-    () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
+    () => withSpecTables([...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1))),
     [q]
   );
+  const figureChoices = useMemo(() => hasFigureChoices(sortedChoices), [sortedChoices]);
   const allChoicesAreTables =
     sortedChoices.length > 0 && sortedChoices.every((choice) => choice.choice_table_data);
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";
@@ -186,6 +190,18 @@ export function ActiveQuizScreen({
               tolerance={review?.numeric_tolerance ?? null}
               wasCorrect={state.phase === "submitted_correct"}
               readOnly={readOnly}
+            />
+          ) : figureChoices ? (
+            <FigureChoices
+              className="mt-7"
+              choices={sortedChoices}
+              selected={state.selectedAnswer}
+              onSelect={readOnly ? undefined : onSelectAnswer}
+              submitted={isSubmitted}
+              correctLetter={correctLetter}
+              crossed={(letter) => !!crossed[`${q.id}:${letter}`]}
+              onToggleCrossed={toggleCrossed}
+              serializedFunctionLines={q.subject === "math"}
             />
           ) : (
             <div

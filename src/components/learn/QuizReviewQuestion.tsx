@@ -6,12 +6,18 @@ import QuestionTable from "./QuestionTable";
 import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
+import FigureChoices from "./figures/FigureChoices";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import type { QuizReviewContent } from "@/lib/quiz-review-content";
 
 /** Reuse the same math, native figure and table renderers as active practice. */
 export default function QuizReviewQuestion({ question: q }: { question: QuizReviewContent }) {
+  // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
+  const choices = withSpecTables(
+    [...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter))
+  );
   const drawn = drawnFigure(q);
   const figureFirst = figureLeadsText(q.subject);
   const figure =
@@ -52,29 +58,29 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
       )}
       {!figureFirst && figure}
       <MathText text={q.question_text} serializedFunctionLines={q.subject === "math"} />
-      {q.answer_format !== "numeric_entry" && (
+      {q.answer_format !== "numeric_entry" && hasFigureChoices(choices) ? (
+        <FigureChoices choices={choices} serializedFunctionLines={q.subject === "math"} />
+      ) : q.answer_format !== "numeric_entry" ? (
         <ul className="space-y-2">
-          {[...q.answer_choices]
-            .sort((a, b) => a.letter.localeCompare(b.letter))
-            .map((choice) => (
-              <li key={choice.id} className="min-w-0 rounded-lg border border-bronze p-3">
-                <p className="mb-1 text-sm font-semibold">Choice {choice.letter}</p>
-                {choice.choice_table_data ? (
-                  <QuestionTable
-                    data={choice.choice_table_data}
-                    ariaLabel={`Choice ${choice.letter} data table`}
-                    className="max-w-full"
-                  />
-                ) : (
-                  <MathText
-                    text={choice.choice_text}
-                    serializedFunctionLines={q.subject === "math"}
-                  />
-                )}
-              </li>
-            ))}
+          {choices.map((choice) => (
+            <li key={choice.id} className="min-w-0 rounded-lg border border-bronze p-3">
+              <p className="mb-1 text-sm font-semibold">Choice {choice.letter}</p>
+              {choice.choice_table_data ? (
+                <QuestionTable
+                  data={choice.choice_table_data}
+                  ariaLabel={`Choice ${choice.letter} data table`}
+                  className="max-w-full"
+                />
+              ) : (
+                <MathText
+                  text={choice.choice_text}
+                  serializedFunctionLines={q.subject === "math"}
+                />
+              )}
+            </li>
+          ))}
         </ul>
-      )}
+      ) : null}
       <div className="rounded-lg border border-bronze bg-surface-raised p-4">
         <p className="mb-2 text-sm font-semibold">Current correct answer</p>
         <MathText text={q.correct_answer} />

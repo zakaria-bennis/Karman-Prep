@@ -5,6 +5,12 @@ import "./figure-roles.css";
 
 const paint = (role: Role) => `var(--figure-${role})`;
 
+/**
+ * Coordinates to 0.01 unit. Server and browser math can differ in the last digits
+ * (sin/cos), and an unrounded attribute then fails hydration.
+ */
+const px = (n: number) => Math.round(n * 100) / 100;
+
 function strokeProps(weight: Weight) {
   return {
     strokeWidth: HOUSE[weight],
@@ -17,8 +23,8 @@ function renderItem(item: SceneItem, index: number, markerId: string) {
     return (
       <text
         key={index}
-        x={item.x}
-        y={item.y}
+        x={px(item.x)}
+        y={px(item.y)}
         textAnchor={item.anchor}
         fill={paint(item.role)}
         fontSize={HOUSE.font}
@@ -34,10 +40,10 @@ function renderItem(item: SceneItem, index: number, markerId: string) {
     return (
       <rect
         key={index}
-        x={item.x}
-        y={item.y}
-        width={item.width}
-        height={item.height}
+        x={px(item.x)}
+        y={px(item.y)}
+        width={px(item.width)}
+        height={px(item.height)}
         fill={item.fill ? paint(item.fill) : "none"}
         stroke={paint(item.role)}
         {...strokeProps(item.weight ?? "line")}
@@ -76,7 +82,7 @@ export default function FigureView({
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${scene.width} ${scene.height}`}
+      viewBox={`0 0 ${px(scene.width)} ${px(scene.height)}`}
       role="img"
       aria-label={scene.description}
       className={className}

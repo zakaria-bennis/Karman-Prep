@@ -1,4 +1,5 @@
 import type { QuizQuestion } from "@/types/quiz";
+import { parseFigureSpec } from "./engine/spec";
 import { buildGeometrySvg } from "./geometry-svg";
 
 export type DrawnFigure = "spec" | "table" | "chart" | "geometric" | "image";
@@ -20,10 +21,13 @@ type FigureFields = Pick<
  * image, SVG or structured data, and such a question must lay out exactly like a question
  * without a figure (no empty figure column or box). Every student surface picks its figure
  * here, in this order: figure_spec (FigureFrame draws it with the figure engine), native
- * table, native chart, renderable geometry, then image or SVG.
+ * table, native chart, renderable geometry, then image or SVG. An invalid figure_spec draws
+ * nothing (FigureFrame never shows a partial or an older figure for it), so it lays out like
+ * no figure at all: null, with no empty figure column.
  */
 export function drawnFigure(q: FigureFields): DrawnFigure | null {
-  if (q.figure_spec !== null && q.figure_spec !== undefined) return "spec";
+  if (q.figure_spec !== null && q.figure_spec !== undefined)
+    return parseFigureSpec(q.figure_spec).ok ? "spec" : null;
   if (q.figure_kind === "table" && q.figure_table_data) return "table";
   if (q.figure_kind === "chart" && q.figure_chart_data) return "chart";
   if (

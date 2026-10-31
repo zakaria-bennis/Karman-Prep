@@ -583,9 +583,12 @@ export function planeAxes(
 }
 
 /** The Scene of a `plane` FigureSpec drawn in `box`. */
+/** The frame a plane spec without one is drawn in. */
+export const DEFAULT_PLANE_FRAME: PlaneFrame = { x: [-10, 10], y: [-10, 10] };
+
 export function buildPlane(spec: FigureSpec, box: Box): Scene {
   const issues: SceneIssue[] = [];
-  const frame: PlaneFrame = spec.frame ?? { x: [-10, 10], y: [-10, 10] };
+  const frame: PlaneFrame = spec.frame ?? DEFAULT_PLANE_FRAME;
   if (!spec.frame) issues.push({ code: "clipped", detail: "no frame given; using -10 to 10" });
   const { items, map: m } = planeAxes(frame, box);
   const points = new Map<string, Pt>();

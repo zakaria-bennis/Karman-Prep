@@ -13,6 +13,8 @@ import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
+import FigureChoices from "../figures/FigureChoices";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 
@@ -35,6 +37,13 @@ export default function CatalogQuestion({
     () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
     [q.question_text, q.subject]
   );
+  // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
+  const choices = useMemo(
+    () => withSpecTables([...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter))),
+    [q.answer_choices]
+  );
+  const toggleCrossed = (letter: string) =>
+    setCrossed((old) => ({ ...old, [`${q.id}:${letter}`]: !old[`${q.id}:${letter}`] }));
   const drawn = drawnFigure(q);
   const hasPassage = q.passage || q.passage_intro || q.passage_a || q.passage_b;
   const figureFirst = figureLeadsText(q.subject);
@@ -125,9 +134,18 @@ export default function CatalogQuestion({
         ) : (
           <fieldset className="min-w-0 space-y-3">
             <legend className="mb-3 text-sm font-semibold">Choose one answer</legend>
-            {[...q.answer_choices]
-              .sort((a, b) => a.letter.localeCompare(b.letter))
-              .map((choice) =>
+            {hasFigureChoices(choices) ? (
+              <FigureChoices
+                choices={choices}
+                selected={answer}
+                onSelect={onAnswer}
+                disabled={disabled}
+                crossed={(letter) => !!crossed[`${q.id}:${letter}`]}
+                onToggleCrossed={toggleCrossed}
+                serializedFunctionLines={q.subject === "math"}
+              />
+            ) : (
+              choices.map((choice) =>
                 choice.choice_table_data ? (
                   <div key={choice.id} className="min-w-0 rounded-xl border border-bronze p-4">
                     <label className="mb-3 flex min-h-11 items-center gap-3 font-semibold">
@@ -184,12 +202,7 @@ export default function CatalogQuestion({
                             : `Cross out choice ${choice.letter}`
                         }
                         aria-pressed={!!crossed[`${q.id}:${choice.letter}`]}
-                        onClick={() =>
-                          setCrossed((old) => ({
-                            ...old,
-                            [`${q.id}:${choice.letter}`]: !old[`${q.id}:${choice.letter}`],
-                          }))
-                        }
+                        onClick={() => toggleCrossed(choice.letter)}
                       >
                         <Ban size={18} />
                       </button>
@@ -203,7 +216,8 @@ export default function CatalogQuestion({
                     </div>
                   </div>
                 )
-              )}
+              )
+            )}
           </fieldset>
         )}
       </div>

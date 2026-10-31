@@ -13,6 +13,7 @@ import QuestionTable from "./QuestionTable";
 import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
+import FigureChoices from "./figures/FigureChoices";
 import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
 import {
   CalculatorChoiceAction,
@@ -22,6 +23,7 @@ import { makeQuestionKey } from "@/components/calculator/question-key";
 import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
 import { buildGeometrySvg } from "@/lib/figures/geometry-svg";
 import { figureLeadsText } from "@/lib/figures/figure-order";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
 
 const subjectName: Record<DailySubject, string> = {
   math: "Math",
@@ -108,6 +110,14 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
     () => ({ text: q.question_text, serializedFunctionLines: true }),
     [q.question_text]
   );
+  // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
+  const choices = useMemo(
+    () =>
+      withSpecTables(
+        [...q.answer_choices].sort((left, right) => left.letter.localeCompare(right.letter))
+      ),
+    [q.answer_choices]
+  );
 
   async function submitAnswer() {
     if (pending || review || !answer.trim()) return;
@@ -161,10 +171,18 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
           ) : (
             <fieldset disabled={!!review || pending}>
               <legend className="sr-only">Choose an answer</legend>
-              <div className="space-y-2">
-                {[...q.answer_choices]
-                  .sort((left, right) => left.letter.localeCompare(right.letter))
-                  .map((choice) => {
+              {hasFigureChoices(choices) ? (
+                <FigureChoices
+                  choices={choices}
+                  selected={answer}
+                  onSelect={setAnswer}
+                  disabled={!!review || pending}
+                  accent="gold"
+                  serializedFunctionLines={subject === "math"}
+                />
+              ) : (
+                <div className="space-y-2">
+                  {choices.map((choice) => {
                     const label = (
                       <label
                         key={choice.id}
@@ -224,7 +242,8 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
                       </div>
                     );
                   })}
-              </div>
+                </div>
+              )}
             </fieldset>
           )}
         </div>

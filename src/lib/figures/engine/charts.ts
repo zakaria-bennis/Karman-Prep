@@ -85,6 +85,13 @@ function autoFrame(type: ChartKind, series: Series[]): PlaneFrame {
   return { x: niceRange(lo(xs), hi(xs)), y: niceRange(Math.min(0, lo(ys)), hi(ys)) };
 }
 
+/** The frame a chart spec is drawn in before the chart's own adjustments: its own, or its data's extent. */
+export function chartSpecFrame(spec: FigureSpec): PlaneFrame | null {
+  if (!isChartKind(spec.type)) return null;
+  const series = spec.parts.filter((p): p is Series => p.kind === "series");
+  return spec.frame ?? autoFrame(spec.type, series);
+}
+
 /** The frame adjusted for the chart: bars include 0, number lines need no y range. */
 function chartFrame(type: ChartKind, frame: PlaneFrame, series: Series[]): PlaneFrame {
   if (type === "bar") {
