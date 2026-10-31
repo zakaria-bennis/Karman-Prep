@@ -1,0 +1,40 @@
+{
+  "source": "Codex 2025-06_ASIA_V3_MATH_M1_Q14 (figure_chart_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "box_plot",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "b1",
+        "seriesKind": "box_plot",
+        "values": [0, 1, 2, 4, 5]
+      },
+      {
+        "kind": "series",
+        "id": "b2",
+        "seriesKind": "box_plot",
+        "values": [1, 4, 7, 9, 10]
+      }
+    ],
+    "labels": [
+      {
+        "text": "Class A",
+        "on": "b1"
+      },
+      {
+        "text": "Class B",
+        "on": "b2"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [0, 12],
+      "y": [0, 2],
+      "step": 2,
+      "grid": false,
+      "xLabel": "Number of books",
+      "yLabel": ""
+    }
+  }
+}

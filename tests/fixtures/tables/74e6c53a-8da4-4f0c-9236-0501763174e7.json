@@ -1,0 +1,19 @@
+{
+  "id": "74e6c53a-8da4-4f0c-9236-0501763174e7",
+  "figure_table_data": {
+    "rows": [
+      ["One-cent", "41.4", "127.4", "-86.0", "-2.08"],
+      ["Five-cent", "70.8", "163.4", "-92.6", "-1.31"],
+      ["Ten-cent", "266.6", "141.1", "125.5", "0.47"],
+      ["Quarter-dollar", "568.4", "264.4", "304.0", "0.53"]
+    ],
+    "caption": "Value, Cost, and Seigniorage of US Coins by Denomination, 2023",
+    "header_row": [
+      "Denomination",
+      "Total value of units produced (in millions of dollars)",
+      "Gross cost (in millions of dollars)",
+      "Seigniorage (in millions of dollars)",
+      "Seigniorage per $1 issued (dollars)"
+    ]
+  }
+}

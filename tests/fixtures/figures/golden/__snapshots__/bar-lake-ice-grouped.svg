@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 454" role="img" aria-label="Days per Winter That Lakes Have Surface Ice. Bar chart with 2 categories. Y-axis: Days. Lake Kegonsa: 1980–81 93, 2005–06 100; Oulujärvi: 1980–81 195, 2005–06 155; Lake Neusiedl: 1980–81 77, 2005–06 103." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M33 378.25 L584 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M33 310.6 L584 310.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M33 242.95 L584 242.95" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M33 175.3 L584 175.3" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M33 107.65 L584 107.65" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M33 40 L584 40" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M33 378.25 L584 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M33 378.25 L33 40" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<text x="170.75" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">1980–81</text>
+<text x="446.25" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">2005–06</text>
+<path d="M30 378.25 L36 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="27" y="383.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M30 310.6 L36 310.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="27" y="315.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">40</text>
+<path d="M30 242.95 L36 242.95" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="27" y="247.95" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">80</text>
+<path d="M30 175.3 L36 175.3" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="27" y="180.3" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">120</text>
+<path d="M30 107.65 L36 107.65" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="27" y="112.65" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">160</text>
+<path d="M30 40 L36 40" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="27" y="45" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">200</text>
+<text x="308.5" y="420.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Winter</text>
+<text x="39" y="55" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit">Days</text>
+<rect x="88.1" y="220.96" width="50.09" height="157.29" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="363.6" y="209.13" width="50.09" height="169.13" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="145.7" y="48.46" width="50.09" height="329.79" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="421.2" y="116.11" width="50.09" height="262.14" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="203.31" y="248.02" width="50.09" height="130.23" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
+</rect>
+<rect x="478.81" y="204.05" width="50.09" height="174.2" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
+</rect>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Days per Winter That Lakes Have Surface Ice</text>
+<rect x="106.5" y="434" width="12" height="12" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+</rect>
+<text x="124.5" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Lake Kegonsa</text>
+<rect x="250.5" y="434" width="12" height="12" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+</rect>
+<text x="268.5" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Oulujärvi</text>
+<rect x="360" y="434" width="12" height="12" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+</rect>
+<text x="378" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Lake Neusiedl</text>
+</svg>

@@ -1,0 +1,13 @@
+/* Figure engine roles (src/lib/figures/engine), the only colors FigureView paints with.
+   Defined once from the semantic theme tokens: --k-ivory is the theme's text color and
+   --k-night its canvas, so every light and dark theme gets correct contrast.
+   :root:root outranks the legacy figure tokens in globals.css (which stay unchanged),
+   so --figure-grid here wins over the legacy bronze grid. */
+:root:root {
+  --figure-ink: rgb(var(--k-ivory));
+  --figure-ink-muted: rgb(var(--k-taupe));
+  --figure-grid: rgb(var(--k-ivory) / 0.16);
+  --figure-fill-faint: rgb(var(--k-ivory) / 0.06);
+  --figure-fill-shade: rgb(var(--k-ivory) / 0.14);
+  --figure-highlight: color-mix(in srgb, rgb(var(--k-math)) 65%, rgb(var(--k-ivory)));
+}

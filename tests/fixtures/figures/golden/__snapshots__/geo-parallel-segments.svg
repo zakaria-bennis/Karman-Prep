@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Angle TUV = p°, angle TWV = r°." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M113.44 51.38 L40 248.62" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="SW">
+</path>
+<path d="M83.87 130.8 L153.31 133.21" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="TU">
+</path>
+<path d="M153.31 133.21 L360 231.84" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="UV">
+</path>
+<path d="M40 248.62 L360 231.84" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="WV">
+</path>
+<path d="M113.49 134.83 L119.59 132.04 L113.7 128.84" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="TU">
+</path>
+<path d="M117.49 134.97 L123.59 132.18 L117.7 128.97" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="TU">
+</path>
+<path d="M195.16 243.49 L201 240.18 L194.85 237.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="WV">
+</path>
+<path d="M199.16 243.28 L204.99 239.97 L198.84 237.29" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="WV">
+</path>
+<text x="119.03" y="42" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="S">S</text>
+<text x="73.37" y="136.06" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="T">T</text>
+<text x="157.03" y="123.64" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="U">U</text>
+<text x="370.38" y="239.53" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="V">V</text>
+<text x="30.66" y="261.1" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="W">W</text>
+<text x="149.59" y="154.04" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="aU">p°</text>
+<text x="60.13" y="239.47" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="aW">r°</text>
+</svg>

@@ -1,7 +1,9 @@
 import type { QuizQuestion } from "@/types/quiz";
+import { parseFigureSpec } from "./engine/spec";
 import { buildGeometrySvg } from "./geometry-svg";
+import { logInvalidSpec } from "./invalid-spec-log";
 
-export type DrawnFigure = "table" | "chart" | "geometric" | "image";
+export type DrawnFigure = "spec" | "table" | "chart" | "geometric" | "image";
 
 type FigureFields = Pick<
   QuizQuestion,
@@ -11,6 +13,7 @@ type FigureFields = Pick<
   | "figure_geometry_data"
   | "image_url"
   | "figure_svg"
+  | "figure_spec"
 >;
 
 /**
@@ -18,9 +21,25 @@ type FigureFields = Pick<
  * to draw. figure_kind alone is not enough: a row can say 'image' (or any kind) and carry no
  * image, SVG or structured data, and such a question must lay out exactly like a question
  * without a figure (no empty figure column or box). Every student surface picks its figure
- * here, in this order: native table, native chart, renderable geometry, then image or SVG.
+ * here, in this order: figure_spec (FigureFrame draws it with the figure engine), native
+ * table, native chart, renderable geometry, then image or SVG. An invalid figure_spec is
+ * logged once and skipped: the question falls back to its stored older figure when it has one
+ * (FigureFrame draws the same fallback), else lays out like no figure at all (null, with no
+ * empty figure column). A partial spec figure is never drawn.
  */
 export function drawnFigure(q: FigureFields): DrawnFigure | null {
+  if (q.figure_spec !== null && q.figure_spec !== undefined) {
+    const parsed = parseFigureSpec(q.figure_spec);
+    if (parsed.ok) return "spec";
+    const legacy = legacyFigure(q);
+    logInvalidSpec(parsed.errors.join("; "), legacy !== null);
+    return legacy;
+  }
+  return legacyFigure(q);
+}
+
+/** The figure the older fields draw, in order: table, chart, renderable geometry, image or SVG. */
+function legacyFigure(q: FigureFields): DrawnFigure | null {
   if (q.figure_kind === "table" && q.figure_table_data) return "table";
   if (q.figure_kind === "chart" && q.figure_chart_data) return "chart";
   if (

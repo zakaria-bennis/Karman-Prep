@@ -1,0 +1,28 @@
+{
+  "id": "3fc9ceb1-73fd-4961-a9d0-3eec92084250",
+  "figure_table_data": {
+    "rows": [
+      ["Running", "6", "10", "9", "25"],
+      ["Cycling", "8", "13", "4", "25"],
+      ["Swimming", "5", "3", "17", "25"],
+      ["Total", "19", "26", "30", "75"]
+    ],
+    "caption": null,
+    "header_row": ["Activity", "Less than 130", "130–139", "140–149", "Total"],
+    "footer_note": null,
+    "header_groups": [
+      {
+        "span": 1,
+        "label": ""
+      },
+      {
+        "span": 3,
+        "label": "Average heart rate (beats per minute)"
+      },
+      {
+        "span": 1,
+        "label": ""
+      }
+    ]
+  }
+}

@@ -85,4 +85,26 @@ describe("DailyChallenge", () => {
       answer: "B",
     });
   });
+
+  // Found in the final branch review: the daily check picked its figure by hand, so an invalid
+  // figure_spec hid the question's stored figure. It now picks with drawnFigure, as the quiz does.
+  it("picks the figure with drawnFigure: an invalid spec falls back to the stored image", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const invalid = { version: "figure-spec/1", type: "plane", parts: [{ kind: "blob" }] };
+    const { container } = render(
+      <DailyChallenge
+        math={{
+          state: "ready",
+          value: {
+            day: "2026-10-08",
+            subject: "math",
+            question: { ...question, figure_spec: invalid, image_url: "/old.png" },
+          },
+        }}
+        reading={{ state: "empty" }}
+      />
+    );
+    expect(container.querySelector('img[src="/old.png"]')).not.toBeNull();
+    vi.restoreAllMocks();
+  });
 });

@@ -1,0 +1,22 @@
+{
+  "id": "02c3a10d-dc67-408c-9101-a015ec5878fd",
+  "figure_table_data": {
+    "rows": [
+      ["Kalmarinjärvi", "62.79", "198", "172", "175", "184", "131", "152"],
+      ["Lake Neusiedl", "47.82", "77", "86", "87", "128", "50", "104"],
+      ["Mirror Lake", "43.94", "122", "129", "125", "136", "141", "119"]
+    ],
+    "caption": "Days per Winter That Lakes Have Surface Ice",
+    "header_row": [
+      "Lake",
+      "Latitude (degrees)",
+      "1980–81",
+      "1985–86",
+      "1990–91",
+      "1995–96",
+      "2000–01",
+      "2005–06"
+    ],
+    "footer_note": null
+  }
+}

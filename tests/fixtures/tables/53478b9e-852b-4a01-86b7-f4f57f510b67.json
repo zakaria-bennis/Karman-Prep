@@ -1,0 +1,20 @@
+{
+  "id": "53478b9e-852b-4a01-86b7-f4f57f510b67",
+  "figure_table_data": {
+    "rows": [
+      ["Indonesia", "0.1", "51", "1.0", "63"],
+      ["Netherlands", "0.6", "79", "0.8", "79"],
+      ["South Africa", "0.0", "9", "0.3", "30"],
+      ["Taiwan", "0.0", "1", "0.5", "17"]
+    ],
+    "caption": null,
+    "header_row": [
+      "Country",
+      "Estimated electricity for green hydrogen production (kilowatts per capita), 2020",
+      "Percentage of direct-use electricity capacity, 2020",
+      "Estimated electricity for green hydrogen production (kilowatts per capita), 2050",
+      "Percentage of direct-use electricity capacity, 2050"
+    ],
+    "footer_note": "Estimated electricity for green hydrogen production data are rounded to the first decimal place."
+  }
+}

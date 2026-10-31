@@ -1,0 +1,29 @@
+{
+  "source": "hand-modelled: SAT right circular cylinder, radius 3, height 8",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "cylinder",
+        "dims": {
+          "radius": 3,
+          "height": 8
+        }
+      }
+    ],
+    "labels": [
+      {
+        "text": "3",
+        "on": "s.radius"
+      },
+      {
+        "text": "8",
+        "on": "s.height"
+      }
+    ],
+    "marks": []
+  }
+}

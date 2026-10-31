@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Line graph of 1 series. X-axis: x. Y-axis: y. Points (0, 5), (1, 7.5), (2, 8.75), (3, 9.5), (4, 9.95), (5, 10.3)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M24 16 L24 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M136 16 L136 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M248 16 L248 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M360 16 L360 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M472 16 L472 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M584 16 L584 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 378.25 L584 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 345.32 L584 345.32" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 312.39 L584 312.39" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 279.45 L584 279.45" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 246.52 L584 246.52" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 213.59 L584 213.59" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 180.66 L584 180.66" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 147.73 L584 147.73" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 114.8 L584 114.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 81.86 L584 81.86" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 48.93 L584 48.93" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 16 L584 16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 378.25 L584 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M24 378.25 L24 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M136 375.25 L136 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="136" y="396.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>
+<path d="M248 375.25 L248 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="248" y="396.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M360 375.25 L360 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="360" y="396.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">3</text>
+<path d="M472 375.25 L472 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="472" y="396.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M584 375.25 L584 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="584" y="396.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">5</text>
+<path d="M21 312.39 L27 312.39" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="317.39" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M21 246.52 L27 246.52" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="251.52" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M21 180.66 L27 180.66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="185.66" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">6</text>
+<path d="M21 114.8 L27 114.8" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="119.8" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
+<path d="M21 48.93 L27 48.93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="53.93" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<text x="18" y="396.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<text x="578" y="372.25" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">x</text>
+<text x="30" y="31" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">y</text>
+<path d="M24 213.59 L136 131.26 L248 90.1 L360 65.4 L472 50.58 L584 39.05" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M21 213.59 A3 3 0 1 0 27 213.59 A3 3 0 1 0 21 213.59 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M133 131.26 A3 3 0 1 0 139 131.26 A3 3 0 1 0 133 131.26 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M245 90.1 A3 3 0 1 0 251 90.1 A3 3 0 1 0 245 90.1 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M357 65.4 A3 3 0 1 0 363 65.4 A3 3 0 1 0 357 65.4 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M469 50.58 A3 3 0 1 0 475 50.58 A3 3 0 1 0 469 50.58 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M581 39.05 A3 3 0 1 0 587 39.05 A3 3 0 1 0 581 39.05 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+</svg>

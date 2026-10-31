@@ -59,7 +59,7 @@ export default function ChartFigureEditor({
     setDraft((d) => ({ ...d, [which]: { ...d[which], ...patch } }));
   }
 
-  function updateKind(kind: ChartKind) {
+  function updateKind(kind: EditableKind) {
     setDraft((d) => {
       // When the kind changes, normalize the series shape so the
       // preview keeps rendering. e.g. switching from scatter to bar
@@ -78,10 +78,9 @@ export default function ChartFigureEditor({
   }
 
   function addSeries() {
-    setDraft((d) => ({
-      ...d,
-      series: [...d.series, blankSeriesFor(d.kind)],
-    }));
+    setDraft((d) =>
+      d.kind === "pie" ? d : { ...d, series: [...d.series, blankSeriesFor(d.kind)] }
+    );
   }
 
   function removeSeries(idx: number) {
@@ -143,13 +142,16 @@ export default function ChartFigureEditor({
         <Section
           label="Series"
           action={
-            <button
-              type="button"
-              onClick={addSeries}
-              className="inline-flex items-center gap-1 rounded-md border border-bronze px-2 py-1 text-[11px] font-semibold text-ivory hover:bg-surface-raised"
-            >
-              <Plus className="h-3 w-3" /> Add series
-            </button>
+            // The figure engine cannot draw a pie chart, so the editor never adds pie data.
+            draft.kind !== "pie" && (
+              <button
+                type="button"
+                onClick={addSeries}
+                className="inline-flex items-center gap-1 rounded-md border border-bronze px-2 py-1 text-[11px] font-semibold text-ivory hover:bg-surface-raised"
+              >
+                <Plus className="h-3 w-3" /> Add series
+              </button>
+            )
           }
         >
           <div className="space-y-3">
@@ -383,8 +385,9 @@ function SeriesEditor({
         <EquationInput series={series} onChange={(next) => onChange(next)} />
       ) : (
         <p className="mt-1.5 text-[11px] text-taupe">
-          {series.kind === "boxplot" ? "Box-and-whisker" : "Pie"} data isn&apos;t editable in this
-          form yet — edit the underlying JSON directly.
+          {series.kind === "boxplot"
+            ? "Box-and-whisker data isn\u2019t editable in this form yet — edit the underlying JSON directly."
+            : "Pie charts can\u2019t be drawn by the figure engine, so they aren\u2019t editable here."}
         </p>
       )}
       {/* Show a hint when chart_kind and series kind don't align —
@@ -522,7 +525,10 @@ function EquationInput({
 
 // ── Helpers ──────────────────────────────────────────────────
 
-function blankSeriesFor(kind: ChartKind): ChartSeries {
+/** The chart kinds the editor offers and adds series for (never pie, which the engine cannot draw). */
+type EditableKind = Exclude<ChartKind, "pie">;
+
+function blankSeriesFor(kind: EditableKind): ChartSeries {
   switch (kind) {
     case "scatterplot":
       return { kind: "scatter", label: null, points: [] };
@@ -539,8 +545,6 @@ function blankSeriesFor(kind: ChartKind): ChartSeries {
       };
     case "boxplot":
       return { kind: "boxplot", label: null, boxes: [] };
-    case "pie":
-      return { kind: "pie", label: null, slices: [] };
   }
 }
 
@@ -551,7 +555,7 @@ function seriesMatchesChartKind(series: ChartSeries, chartKind: ChartKind): bool
   return series.kind === "function";
 }
 
-function convertSeries(s: ChartSeries, kind: ChartKind): ChartSeries {
+function convertSeries(s: ChartSeries, kind: EditableKind): ChartSeries {
   if (seriesMatchesChartKind(s, kind)) return s;
   // Preserve label across kind changes; reset data because the
   // shape doesn't carry over.

@@ -1,0 +1,30 @@
+{
+  "source": "hand-modelled: SAT histogram of plant heights in 5 cm bins",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "histogram",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "values": [
+          [10, 2],
+          [15, 5],
+          [20, 8],
+          [25, 6],
+          [30, 3]
+        ]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [10, 35],
+      "y": [0, 9],
+      "step": 5,
+      "yStep": 1,
+      "xLabel": "Height (centimeters)",
+      "yLabel": "Frequency"
+    }
+  }
+}

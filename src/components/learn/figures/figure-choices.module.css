@@ -1,0 +1,50 @@
+/* Figure answer choices (figure engine spec §2).
+   One column on phones; two side by side (a 2×2 grid) once each column can be at least
+   17rem, which leaves every figure at least 0.8 of CHOICE_BOX's width so the house font
+   never renders under 12px. min(100%, ...) keeps a very narrow container from scrolling. */
+.grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(17rem, calc(50% - 0.375rem))), 1fr));
+}
+
+/* The letter column: the letter on top, the cross-out tool at the bottom (a sibling of the
+   choice button, placed over this column so it never covers the figure). */
+.letterColumn {
+  display: flex;
+  width: 2.75rem;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.figure {
+  display: block;
+  min-width: 0;
+  flex: 1 1 0%;
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+.tools {
+  position: absolute;
+  bottom: 0.625rem;
+  left: 0.625rem;
+}
+
+/* A crossed-out figure: dimmed, with one diagonal rule across it (line-through does not
+   reach SVG). */
+.crossed {
+  position: relative;
+  opacity: 0.5;
+}
+.crossed .figure {
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 1px),
+    currentColor calc(50% - 1px),
+    currentColor calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}

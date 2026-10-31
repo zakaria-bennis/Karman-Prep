@@ -1,0 +1,115 @@
+{
+  "source": "hand-modelled: SAT circle with center O, chord AB, radius OB and the dashed distance OM to the chord",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "O",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "kind": "circle",
+        "id": "c",
+        "center": "O",
+        "radius": 100
+      },
+      {
+        "kind": "point",
+        "id": "A",
+        "x": -80,
+        "y": 60,
+        "on": ["c", "AB"]
+      },
+      {
+        "kind": "point",
+        "id": "B",
+        "x": 80,
+        "y": 60,
+        "on": ["c", "AB"]
+      },
+      {
+        "kind": "point",
+        "id": "M",
+        "x": 0,
+        "y": 60,
+        "on": ["AB"]
+      },
+      {
+        "kind": "segment",
+        "id": "AB",
+        "from": "A",
+        "to": "B"
+      },
+      {
+        "kind": "segment",
+        "id": "OM",
+        "from": "O",
+        "to": "M"
+      },
+      {
+        "kind": "segment",
+        "id": "OB",
+        "from": "O",
+        "to": "B"
+      },
+      {
+        "kind": "angle",
+        "id": "aM",
+        "vertex": "M",
+        "from": "O",
+        "to": "B"
+      },
+      {
+        "kind": "point",
+        "id": "C",
+        "x": 0,
+        "y": -100,
+        "on": ["c"]
+      }
+    ],
+    "labels": [
+      {
+        "text": "O",
+        "on": "O"
+      },
+      {
+        "text": "A",
+        "on": "A"
+      },
+      {
+        "text": "B",
+        "on": "B"
+      },
+      {
+        "text": "M",
+        "on": "M"
+      },
+      {
+        "text": "C",
+        "on": "C"
+      },
+      {
+        "text": "10",
+        "on": "OB"
+      },
+      {
+        "text": "8",
+        "on": "AB",
+        "at": "end"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "right_angle",
+        "on": ["aM"]
+      },
+      {
+        "kind": "hidden_dashed",
+        "on": ["OM"]
+      }
+    ]
+  }
+}

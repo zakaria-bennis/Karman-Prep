@@ -1,0 +1,25 @@
+{
+  "source": "Codex 2024-03_UNSPECIFIED_VC_MATH_M2_Q01 (figure_chart_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "bar",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "bar",
+        "values": [65, 75, 80, 59]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [0, 4],
+      "y": [0, 90],
+      "yStep": 10,
+      "categories": ["Plot 1", "Plot 2", "Plot 3", "Plot 4"],
+      "xLabel": "",
+      "yLabel": "Trees planted"
+    }
+  }
+}

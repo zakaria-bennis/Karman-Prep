@@ -139,25 +139,19 @@ describe("QuestionTable — grouped column headers", () => {
   });
 });
 
-describe("QuestionTable — wide-table density", () => {
+describe("QuestionTable — wide tables", () => {
   const wide = (n: number) => ({
     header_row: Array.from({ length: n }, (_, i) => `Column heading ${i + 1}`),
     rows: [Array.from({ length: n }, (_, i) => `v${i}`)],
   });
-  it("uses large, roomy, compact, then dense cells as columns grow", () => {
-    const tier = (n: number) =>
-      render(<QuestionTable data={wide(n)} renderMath={false} />).container.querySelector("figure")
-        ?.dataset.tableDensity;
-    expect([tier(4), tier(5), tier(6), tier(8)]).toEqual(["large", "roomy", "compact", "dense"]);
-  });
-  it("shrinks padding and type but keeps legible size and wrapping headers", () => {
+  it("keeps one type size and lets headings wrap, scrolling inside the frame", () => {
     const { container } = render(<QuestionTable data={wide(8)} renderMath={false} />);
     const th = container.querySelector("thead th") as HTMLElement;
-    expect(th.className).toContain("group-data-[table-density=dense]/table:px-1.5");
-    expect(th.className).toContain("group-data-[table-density=dense]/table:text-[13px]");
+    expect(th.className).toContain("text-base");
     expect(th.className).not.toContain("whitespace-nowrap");
     // The sideways scroll lives inside the frame, not on the frame itself.
-    expect(container.querySelector("figure > div > div")?.className).toContain("overflow-x-auto");
+    expect(container.querySelector("[role=region]")?.className).toContain("overflow-x-auto");
+    expect(container.querySelector("figure")?.className).not.toContain("overflow-x-auto");
   });
 });
 
@@ -182,9 +176,11 @@ describe("QuestionTable — words never break", () => {
     }
   });
   it("keeps numbers on one line but lets word cells wrap at spaces", () => {
-    const { getByText } = render(<QuestionTable data={data} renderMath={false} />);
-    expect(getByText("1,250").closest("td")?.className).toContain("whitespace-nowrap");
-    expect(getByText("12.5%").closest("td")?.className).toContain("whitespace-nowrap");
+    const { getByText, container } = render(<QuestionTable data={data} renderMath={false} />);
+    const cell = (text: string) =>
+      Array.from(container.querySelectorAll("td")).find((td) => td.textContent === text);
+    expect(cell("1,250")?.className).toContain("whitespace-nowrap");
+    expect(cell("12.5%")?.className).toContain("whitespace-nowrap");
     expect(getByText("United").closest("th")?.className).not.toContain("whitespace-nowrap");
   });
   it("renders each word unbreakable so hyphenated words like 1980-81 stay whole", () => {
@@ -203,7 +199,7 @@ describe("QuestionTable — words never break", () => {
 });
 
 describe("QuestionTable — founder review 2026-10-22", () => {
-  it("centres numeric row labels and keeps word labels left", () => {
+  it("aligns numeric row labels on the decimal point and keeps word labels left", () => {
     const { getByText } = render(
       <QuestionTable
         data={{
@@ -216,9 +212,9 @@ describe("QuestionTable — founder review 2026-10-22", () => {
         renderMath={false}
       />
     );
-    expect(getByText("1").closest("th")?.className).toContain("text-center");
+    expect(getByText("1").closest("th")?.getAttribute("data-align")).toBe("decimal");
     expect(getByText("Cloudy").closest("th")?.className).toContain("text-left");
-    expect(getByText("9").closest("td")?.className).toContain("text-center");
+    expect(getByText("9").closest("td")?.getAttribute("data-align")).toBe("decimal");
   });
   it("keeps currency and percent symbols tight to the number", () => {
     const { container } = render(
@@ -236,13 +232,13 @@ describe("QuestionTable — founder review 2026-10-22", () => {
     expect(container.textContent).toContain("$4");
     expect(container.textContent).toContain("8%");
   });
-  it("starts with 18px type and gives the frame no padding, so row rules reach the border", () => {
+  it("gives the frame no padding, so row rules reach the border", () => {
     const { container } = render(
       <QuestionTable data={{ header_row: ["x", "y"], rows: [["0", "1"]] }} renderMath={false} />
     );
     const figure = container.querySelector("figure")!;
     expect(figure.className).not.toMatch(/(^|\s)p[xy]?-\d/);
-    expect(container.querySelector("td")?.className).toContain("text-lg");
+    expect(container.querySelector("td")?.className).toContain("md:text-lg");
   });
 });
 

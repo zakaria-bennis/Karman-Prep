@@ -1,0 +1,30 @@
+{
+  "source": "hand-modelled: SAT dot plot with a title, values on a 10-step axis",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "dot_plot",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "values": [
+          [10, 1],
+          [20, 3],
+          [30, 2],
+          [40, 4],
+          [50, 2],
+          [70, 1]
+        ]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [0, 80],
+      "y": [0, 5],
+      "step": 10,
+      "xLabel": "Minutes"
+    },
+    "title": "Minutes Spent Reading"
+  }
+}

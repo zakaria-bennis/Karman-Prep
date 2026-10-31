@@ -1,0 +1,53 @@
+{
+  "id": "aaa7c9e9-93eb-46e7-9278-88c490518ae0",
+  "figure_chart_data": {
+    "kind": "scatterplot",
+    "frame": "wide",
+    "title": null,
+    "series": [
+      {
+        "kind": "scatter",
+        "label": "",
+        "points": [
+          [1, 120],
+          [2, 340],
+          [4, 480],
+          [6, 615],
+          [8, 700],
+          [9, 670]
+        ]
+      },
+      {
+        "kind": "function",
+        "label": "",
+        "domain": [0, 10],
+        "expression": {
+          "b": 163.26,
+          "m": 65.62,
+          "kind": "linear"
+        }
+      }
+    ],
+    "x_axis": {
+      "max": 10,
+      "min": 0,
+      "label": "x",
+      "tick_step": 1,
+      "categories": null
+    },
+    "y_axis": {
+      "max": 900,
+      "min": 0,
+      "label": "y",
+      "tick_step": 100,
+      "categories": null,
+      "label_step": 2
+    },
+    "show_grid": true,
+    "confidence": 1,
+    "extracted_at": "2026-10-21T00:00:00Z",
+    "extracted_by": "manual source-pixel reading (r3)",
+    "extractor_note": null,
+    "hide_origin_label": true
+  }
+}

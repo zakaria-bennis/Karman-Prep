@@ -1,0 +1,30 @@
+{
+  "source": "hand-modelled: SAT right circular cone, radius 5, height 12, not drawn to scale",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "cone",
+        "dims": {
+          "radius": 5,
+          "height": 12
+        }
+      }
+    ],
+    "labels": [
+      {
+        "text": "5",
+        "on": "s.radius"
+      },
+      {
+        "text": "12",
+        "on": "s.height"
+      }
+    ],
+    "marks": [],
+    "notToScale": true
+  }
+}

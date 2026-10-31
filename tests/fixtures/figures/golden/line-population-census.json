@@ -1,0 +1,31 @@
+{
+  "source": "Codex 2024-05_ASIA_V1_MATH_M1_Q05 (figure_chart_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "line",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "line",
+        "values": [
+          [0, 4],
+          [1, 4.8],
+          [2, 5.7],
+          [3, 6.9],
+          [4, 8.3],
+          [5, 9.9]
+        ]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [0, 5],
+      "y": [0, 14],
+      "step": 1,
+      "xLabel": "Years after census was taken",
+      "yLabel": "Population (in thousands)"
+    }
+  }
+}

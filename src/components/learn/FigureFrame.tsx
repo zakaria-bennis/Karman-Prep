@@ -1,7 +1,17 @@
 "use client";
 
 // ============================================================
-// FigureFrame — themed wrapper for raster question figures
+// FigureFrame — themed wrapper for question figures
+//
+// A question's figure_spec (a FigureSpec, src/lib/figures/engine) wins over
+// every older figure field: a drawn type renders as FigureView(buildScene(...)),
+// a table as SpecTable (TableView, plus the calculator's table transfer control
+// on Math surfaces). An invalid spec is never drawn in part: it logs one error
+// and the stored older figure (src or svg) shows instead, or nothing when there
+// is none (drawnFigure makes the same choice). Without a spec, the older path
+// below is unchanged.
+//
+// Older path: themed wrapper for raster question figures
 // (scatterplots, geometry diagrams, coordinate planes, 3-D solids,
 // bar/line graphs — anything that isn't yet a native table or SVG).
 //
@@ -18,9 +28,16 @@
 // solids.
 // ============================================================
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { boxForWidth, buildScene } from "@/lib/figures/engine/index";
+import type { Scene } from "@/lib/figures/engine/scene";
+import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
 import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
+import { logInvalidSpec } from "@/lib/figures/invalid-spec-log";
 import { cn } from "@/lib/utils";
+import FigureView from "./figures/FigureView";
+import { useMeasuredWidth } from "./figures/useMeasuredWidth";
+import { SpecTable } from "./QuestionTable";
 
 // The SVG sanitizer and display fixes load only when a figure is drawn as inline SVG, so
 // quiz pages without one never download them (page bundle budget, AR-33).
@@ -45,6 +62,12 @@ function loadSvgDisplay(): Promise<SvgDisplay> {
 }
 
 interface Props {
+  /** The question's figure_spec, unvalidated as stored. When present it is drawn instead of
+   *  `src` and `svg`; when invalid `src` or `svg` is drawn, else nothing. */
+  spec?: unknown;
+  /** Math surfaces: a table spec gets the calculator's table transfer control, as
+   *  QuestionTable's `calculator` does. */
+  calculator?: boolean;
   /** Raster or .svg figure URL. Empty when the figure is an inline `svg`. */
   src?: string | null;
   /** A hand-drawn figure SVG stored on the question (figure_svg); used only without `src`.
@@ -57,13 +80,90 @@ interface Props {
   className?: string;
 }
 
+const FRAME = cn(
+  "themed-question-figure my-4 rounded-lg border border-bronze bg-surface p-3",
+  "shadow-[0_1px_0_0_rgba(195,171,106,0.18)_inset,0_4px_16px_-8px_rgba(0,0,0,0.45)]"
+);
+
+type SpecDrawing = { table: FigureSpec } | { scene: Scene } | { error: string };
+
+/** The spec drawn for a container `width` px wide (boxForWidth); its default box before it is measured. */
+function drawSpec(input: unknown, width: number | null): SpecDrawing {
+  const parsed = parseFigureSpec(input);
+  if (!parsed.ok) return { error: parsed.errors.join("; ") };
+  if (parsed.spec.type === "table") return { table: parsed.spec };
+  try {
+    return { scene: buildScene(parsed.spec, boxForWidth(parsed.spec, width)) };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+function SpecFigure({
+  spec,
+  alt,
+  calculator = false,
+  maxHeightClass,
+  className,
+  src,
+  svg,
+}: Props & { maxHeightClass: string }) {
+  // The figure's content width, so a narrow screen lays it out at its own size (text ≥ 12px).
+  // A callback ref: the <figure> mounts only for a drawn spec, so a table spec that becomes a
+  // drawn one is still measured.
+  const [frame, width] = useMeasuredWidth<HTMLElement>();
+  const drawing = useMemo(() => drawSpec(spec, width), [spec, width]);
+  const error = "error" in drawing ? drawing.error : null;
+  const fallback = !!(src || svg);
+  useEffect(() => {
+    if (error) logInvalidSpec(error, fallback);
+  }, [error, fallback]);
+  if ("error" in drawing)
+    return fallback ? (
+      <StoredFigure
+        src={src}
+        svg={svg}
+        alt={alt}
+        maxHeightClass={maxHeightClass}
+        className={className}
+      />
+    ) : null;
+  if ("table" in drawing)
+    return <SpecTable spec={drawing.table} calculator={calculator} className={className} />;
+  const { scene } = drawing;
+  // The description generated from the spec's named parts names what is actually drawn.
+  const description = scene.description || alt;
+  return (
+    <figure ref={frame} className={cn(FRAME, className)}>
+      <FigureView
+        scene={{ ...scene, description }}
+        className={cn("mx-auto block h-auto w-full max-w-full", maxHeightClass)}
+      />
+    </figure>
+  );
+}
+
 export default function FigureFrame({
+  spec,
+  calculator,
+  maxHeightClass = "max-h-[28rem]",
+  ...rest
+}: Props) {
+  if (spec !== null && spec !== undefined)
+    return (
+      <SpecFigure spec={spec} calculator={calculator} maxHeightClass={maxHeightClass} {...rest} />
+    );
+  return <StoredFigure maxHeightClass={maxHeightClass} {...rest} />;
+}
+
+/** The older figure fields: a raster or .svg `src`, or a stored `svg`. */
+function StoredFigure({
   src,
   svg,
   alt,
-  maxHeightClass = "max-h-[28rem]",
+  maxHeightClass,
   className,
-}: Props) {
+}: Omit<Props, "spec" | "calculator"> & { maxHeightClass: string }) {
   const [inline, setInline] = useState<{ src: string; alt: string; svg: string } | null>(null);
   const markup = src ? null : (svg ?? null);
   const url =
@@ -118,13 +218,7 @@ export default function FigureFrame({
     };
   }, [themed]);
   return (
-    <figure
-      className={cn(
-        "themed-question-figure my-4 rounded-lg border border-bronze bg-surface p-3",
-        "shadow-[0_1px_0_0_rgba(195,171,106,0.18)_inset,0_4px_16px_-8px_rgba(0,0,0,0.45)]",
-        className
-      )}
-    >
+    <figure className={cn(FRAME, className)}>
       {themed ? (
         <div
           ref={holder}

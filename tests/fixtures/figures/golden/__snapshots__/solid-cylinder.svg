@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Right circular cylinder, radius 3, height 8." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M275.18 235.4 L274.94 233.87 L273.97 232.42 L272.29 231.06 L269.92 229.8 L266.87 228.67 L263.18 227.66 L258.88 226.79 L254.01 226.06 L248.62 225.49 L242.77 225.08 L236.5 224.83 L229.88 224.75 L222.97 224.83 L215.84 225.08 L208.56 225.49 L201.2 226.06 L193.82 226.79 L186.51 227.66 L179.32 228.67 L172.34 229.8 L165.62 231.06 L159.23 232.42 L153.23 233.87 L147.69 235.4 L142.64 236.99 L138.15 238.63 L134.26 240.31 L131 242 L128.4 243.69 L126.5 245.37 L125.3 247.01 L124.82 248.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M200 58 L269 58" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.radius">
+</path>
+<path d="M275.18 51.4 L274.7 52.99 L273.5 54.63 L271.6 56.31 L269 58 L265.74 59.69 L261.85 61.37 L257.36 63.01 L252.31 64.6 L246.77 66.13 L240.77 67.58 L234.38 68.94 L227.66 70.2 L220.68 71.33 L213.49 72.34 L206.18 73.21 L198.8 73.94 L191.44 74.51 L184.16 74.92 L177.03 75.17 L170.12 75.25 L163.5 75.17 L157.23 74.92 L151.38 74.51 L145.99 73.94 L141.12 73.21 L136.82 72.34 L133.13 71.33 L130.08 70.2 L127.71 68.94 L126.03 67.58 L125.06 66.13 L124.82 64.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M275.18 51.4 L274.94 49.87 L273.97 48.42 L272.29 47.06 L269.92 45.8 L266.87 44.67 L263.18 43.66 L258.88 42.79 L254.01 42.06 L248.62 41.49 L242.77 41.08 L236.5 40.83 L229.88 40.75 L222.97 40.83 L215.84 41.08 L208.56 41.49 L201.2 42.06 L193.82 42.79 L186.51 43.66 L179.32 44.67 L172.34 45.8 L165.62 47.06 L159.23 48.42 L153.23 49.87 L147.69 51.4 L142.64 52.99 L138.15 54.63 L134.26 56.31 L131 58 L128.4 59.69 L126.5 61.37 L125.3 63.01 L124.82 64.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M275.18 51.4 L275.18 235.4 L274.7 236.99 L273.5 238.63 L271.6 240.31 L269 242 L265.74 243.69 L261.85 245.37 L257.36 247.01 L252.31 248.6 L246.77 250.13 L240.77 251.58 L234.38 252.94 L227.66 254.2 L220.68 255.33 L213.49 256.34 L206.18 257.21 L198.8 257.94 L191.44 258.51 L184.16 258.92 L177.03 259.17 L170.12 259.25 L163.5 259.17 L157.23 258.92 L151.38 258.51 L145.99 257.94 L141.12 257.21 L136.82 256.34 L133.13 255.33 L130.08 254.2 L127.71 252.94 L126.03 251.58 L125.06 250.13 L124.82 248.6 L124.82 64.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<text x="234.5" y="88.6" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.radius">3</text>
+<text x="285.68" y="155.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.height">8</text>
+</svg>

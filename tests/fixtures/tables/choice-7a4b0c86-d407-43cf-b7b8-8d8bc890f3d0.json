@@ -1,0 +1,12 @@
+{
+  "id": "7a4b0c86-d407-43cf-b7b8-8d8bc890f3d0",
+  "choice_table_data": {
+    "rows": [
+      ["\\(x\\)", "−1", "0", "1", "2"],
+      ["\\(y\\)", "10", "17", "24", "31"]
+    ],
+    "caption": null,
+    "header_row": null,
+    "footer_note": null
+  }
+}
