@@ -223,10 +223,12 @@ with it. Every answer saves:
 
 The full list is in Part 6 of that research.
 
-**Onboarding asks for real SAT and PSAT scores.** Take the section scores and
-test dates, plus an optional photo of the score report that is read
-automatically. `DECIDE:` the founder said the photo goes "through Jev"; confirm
-what that is.
+**Onboarding asks for real SAT and PSAT scores.** Students type in their
+section scores and test dates. There's also an optional photo upload of the
+score report. Reading the photo automatically is a later idea: the founder
+plans an image-reading service called Jev but doesn't have its API key yet.
+Build the upload so a reader can be plugged in later, and make sure typing the
+scores works fully without it.
 
 **Endless mode.** A student starts a session and keeps answering. Each next
 question is chosen from:
