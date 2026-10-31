@@ -88,9 +88,8 @@
     msgs = M(10),
     voices = M(12),
     end = M(11);
-  /* PLACEHOLDER TESTIMONIALS: invented for the founder's review. Replace with real, approved testimonials or
-     remove before any deploy or port into src/. The words are in copy.js, section 12; each "quote" line is
-     "the words = name, who they are". They sit inside the Student messages panel, under the wall. */
+  /* Testimonials: real ones only, added by the founder in copy.js section 12 ("the words = name, who they are").
+     They sit inside the Student messages panel, under the wall, and the block is left out while there are none. */
   const quotes = Object.keys(voices)
     .filter((k) => /^quote\b/.test(k) && voices[k])
     .sort()
