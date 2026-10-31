@@ -1,8 +1,10 @@
 # Fable 5.1 brief: student, parent, tutor and school portals
 
 Draft 2, 2026-10-30. Everything below the line is the prompt. The business
-decisions are settled (plans, prices, cohort format, school scope). Before
-pasting, run the environment checklist at the bottom of this file.
+decisions are settled (plans, prices, cohort format, school scope), and the
+environment checklist at the bottom is done. Start the Fable session on the
+`claude/site-redesign` branch, not `main`: `main` doesn't yet have the
+current design rules, design principles, launch checklist or offer.
 
 ---
 
@@ -312,7 +314,7 @@ approves each portal.
 
 ### Phase 2: build the approved portals
 
-Work on a `claude/portals-*` branch from `main`. Move the approved design into
+Work on a `claude/portals-*` branch cut from `claude/site-redesign`. That's where the current design rules, offer and these docs live; `main` is behind it until the site redesign merges. Move the approved design into
 `src/`, replacing the old portal code rather than adding beside it.
 
 New tables go in migrations. Every server action validates with Zod. Row
