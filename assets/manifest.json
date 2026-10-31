@@ -12,7 +12,10 @@
     "mateo": ".impeccable/mocks/decision/hf-shots/cast/mateo.jpg",
     "priya": ".impeccable/mocks/decision/hf-shots/cast/b5-priya.png",
     "parent1": ".impeccable/mocks/decision/hf-shots/cast/b7-parent1.png",
-    "david": ".impeccable/mocks/decision/hf-shots/cast/david.jpg"
+    "david": ".impeccable/mocks/decision/hf-shots/cast/david.jpg",
+    "lin": ".impeccable/mocks/decision/hf-shots/cast/lin.jpg",
+    "noah": ".impeccable/mocks/decision/hf-shots/cast/noah.jpg",
+    "sofia": ".impeccable/mocks/decision/hf-shots/cast/sofia.jpg"
   },
   "shots": [
     {
@@ -214,6 +217,30 @@
       "prompt": "A parent and their 16-year-old daughter at a kitchen counter looking at a laptop together and talking it through, relaxed, the daughter pointing at something. The laptop is turned away from the camera. Natural light, warm, documentary, room to one side for words. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
       "approved": "2026-10-25 founder",
       "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "v-daily",
+      "status": "approved",
+      "route": "wan-3.0",
+      "firstFrame": ".impeccable/mocks/decision/film/raw/stills/p-daily-2026-10-27T01-37-15.png",
+      "ratio": "3:4",
+      "duration": 5,
+      "resolution": "720p",
+      "approved": "2026-10-26 founder (clips ok)",
+      "where": "Home, Daily 10, behind the phone (loops)",
+      "prompt": "The boy on the bleachers keeps answering on his phone, thumbs tapping lightly, a small nod as he gets one right, a soft breeze moves the towel edge; teammates stretch slowly far behind. Camera almost still, a very slight slow push in. Calm, natural motion, no cuts."
+    },
+    {
+      "id": "v-call",
+      "status": "approved",
+      "route": "wan-3.0",
+      "firstFrame": ".impeccable/mocks/decision/film/raw/stills/p-call-2026-10-27T01-46-43.png",
+      "ratio": "3:4",
+      "duration": 5,
+      "resolution": "720p",
+      "approved": "2026-10-26 founder (clips ok)",
+      "where": "Program page, beside how to join (loops)",
+      "prompt": "The mother and daughter keep listening to the video call, the daughter nods slightly and smiles, the mother lowers her hand from her chin and nods; the pendant light glows steadily. Camera almost still, a very slight slow push in. Calm, natural motion, no cuts."
     }
   ],
   "plates": [
@@ -461,6 +488,111 @@
       "ratio": "16:9",
       "refs": [".impeccable/mocks/decision/film/raw/stills/k1-kitchen-pro-2026-10-22T03-51-21.png"],
       "prompt": "Edit this photograph. Keep everything exactly the same: the same girl, face, hair, pose, framing, kitchen and light. Only change one thing: in the window reflection just left of the girl's head there is a blurry reflected building with lit shapes that look like letters. Remove that building entirely and replace it with dark oak leaves against the deep blue pre-dawn sky. No letters, signs or lit shapes anywhere in the reflection."
+    },
+    {
+      "id": "cast-lin",
+      "status": "approved",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new characters ok)",
+      "prompt": "Lin, a Chinese-American woman in her early thirties, an SAT tutor, shoulder-length straight black hair, thin gold-rim glasses, oatmeal knit cardigan over a white tee, warm and sharp. Editorial portrait photograph, chest up, looking slightly off camera, calm and focused with at most a small closed-mouth smile, soft window light, plain warm interior background softly out of focus, 4:5 frame."
+    },
+    {
+      "id": "cast-noah",
+      "status": "approved",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new characters ok)",
+      "prompt": "Noah, a 17-year-old Black American high school boy, short twists, a plain heather-grey zip track jacket, a cross-country runner, thoughtful. Editorial portrait photograph, chest up, looking slightly off camera, calm and focused with at most a small closed-mouth smile, soft window light, plain warm interior background softly out of focus, 4:5 frame."
+    },
+    {
+      "id": "cast-sofia",
+      "status": "approved",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new characters ok)",
+      "prompt": "Sofia, a 16-year-old Mexican-American high school girl, long dark curly hair loosely tied back, small gold hoop earrings, a sage green crewneck sweatshirt, quietly determined. Editorial portrait photograph, chest up, looking slightly off camera, calm and focused with at most a small closed-mouth smile, soft window light, plain warm interior background softly out of focus, 4:5 frame."
+    },
+    {
+      "id": "p-lin",
+      "refs": ["lin"],
+      "where": "Private tutoring page and home tutors section",
+      "prompt": "The woman from Image 1, Lin, a tutor in her early thirties, at her own home desk in the late afternoon, on a video call with a student, mid-explanation, one hand open as she makes a point, AirPods Pro in. The laptop faces away from the camera. Plants and a linen curtain softly out of focus behind her, warm side light. Three-quarter view from slightly beside the laptop, room to the right of her. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-daily",
+      "refs": ["noah"],
+      "where": "Home, beside the Daily 10 phone",
+      "prompt": "The boy from Image 1, Noah, 17, sitting on aluminium bleachers beside a running track just after cross-country practice, golden late-afternoon light, a water bottle and a folded towel beside him, AirPods Pro in, answering questions on his phone held in both hands, focused with a very small smile. The phone screen faces away from the camera. Teammates stretching far in the background, out of focus. Shot from slightly below at eye level, three-quarter view. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-start",
+      "refs": ["sofia"],
+      "where": "Home guarantee section, the starting point of the score line",
+      "prompt": "The girl from Image 1, Sofia, 16, just home from school, standing at a kitchen island with her backpack still on one shoulder, opening a laptop to start a practice test, a glass of water beside it, focused and a little determined. The laptop screen faces away from the camera. Soft afternoon light through a big window, warm wood and white stone kitchen, out of focus behind her. Three-quarter view. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-call",
+      "refs": ["sofia"],
+      "where": "Program page apply section and pricing: the call with Karman",
+      "prompt": "The girl from Image 1, Sofia, 16, sitting beside her mother, a Mexican-American woman in her mid forties in a soft cream sweater, at a dining table in the early evening, both on a video call on one laptop, listening closely, the mother with a hand near her chin, Sofia leaning in. The laptop faces away from the camera. Warm pendant light, a calm well-kept home softly out of focus. Shot from across the table at a slight angle. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-bus",
+      "refs": ["noah"],
+      "where": "Pricing self-paced card and the research page",
+      "prompt": "The boy from Image 1, Noah, 17, in a window seat on a city bus in the morning, a backpack on his lap, AirPods Pro in, doing practice questions on his phone, calm and focused. The phone screen faces away from the camera. Soft morning light through the window, the city passing in a gentle blur outside. Shot from the seat across the aisle, three-quarter view. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-school-class",
+      "status": "proposed",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Pricing page, the School band; school portal prototype, the admin overview",
+      "prompt": "A high-school classroom in the late morning, eleven students of 16 and 17 at desks on laptops, focused, a teacher standing beside one desk helping, natural window light, documentary. Laptop screens face away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "quote": "$0.10 (flux-3 text-to-image, fixed estimate, 2026-10-31, not run)",
+      "note": "Proposed in the first pass (2026-10-31). Not generated. The founder approves the prompt and the still before any spend."
+    },
+    {
+      "id": "p-teacher",
+      "status": "proposed",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "School portal prototype, the teacher view",
+      "prompt": "A teacher in her forties at her classroom desk after school, reading something on a laptop with a calm, attentive expression, a mug beside the laptop, late afternoon window light, documentary. The laptop screen faces away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "quote": "$0.10 (flux-3 text-to-image, fixed estimate, 2026-10-31, not run)",
+      "note": "Proposed in the first pass (2026-10-31). Not generated. The founder approves the prompt and the still before any spend."
+    },
+    {
+      "id": "p-report-photo",
+      "status": "proposed",
+      "route": "seedream-5-edit",
+      "refs": ["noah"],
+      "ratio": "4:5",
+      "where": "Student onboarding, the score report step",
+      "prompt": "The boy from Image 1, Noah, 17, at a kitchen table in the morning, holding his phone up with both hands to photograph something on the table in front of him, concentrating, natural light from a side window. The phone screen faces away from the camera and the table surface under the phone is plain and empty. No notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "quote": "$0.07 (seedream-5-edit, live quote was $0.072 per edit on 2026-10-27, not run)",
+      "note": "Proposed in the first pass (2026-10-31). Not generated. The founder approves the prompt and the still before any spend."
     }
   ]
 }

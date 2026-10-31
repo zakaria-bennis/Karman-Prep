@@ -21,18 +21,21 @@ web
 
 ## Product Purpose
 
-Karman Prep helps students raise their SAT scores, measurably. It sells
-programs that end on a specific SAT date rather than hours or monthly plans:
-a small live cohort is the flagship, private 1:1 packages sit on top, and free
-tools bring families in. Success is an official score that went up, and a
-family that understood what it was buying.
+Karman Prep helps students raise their SAT scores, measurably. It sells a
+ladder of plans: Free, Platform ($29 a month) and Plus ($49 a month) practice
+plans, a small live cohort that ends on an SAT date, Private 1:1 packages on
+top, and School licenses at $10 per student a year (plan ladder, 2026-10-30).
+Only the cohort and Private 20 carry the guarantee. Success is an official
+score that went up, and a family that understood what it was buying.
 
 ## Positioning
 
-A platform, not a lone tutor: one program with a fixed finish line (a real SAT
-date), built on a review method where every full-length test is followed by a
-1:1 session going through every mistake. The cohort, the question bank, the
-daily tools and the parent updates all serve that one date.
+A platform with a method, not a lone tutor. Classes teach the skills most of
+the group missed, each student practises them at their own difficulty, and
+every missed question comes back in Your Daily 10 after 2, 7 and 21 days.
+Private 1:1 sessions go through every mistake on the latest full-length test.
+The question bank, the daily tools and the parent updates all serve the
+student's SAT date.
 
 ## Operating Context
 
@@ -48,11 +51,11 @@ daily tools and the parent updates all serve that one date.
 ## Capabilities and Constraints
 
 Live today (wired to data): question bank practice by subject, domain, skill
-and difficulty; 35-question diagnostic; Daily Question; Wordle-style vocab game
+and difficulty; 35-question diagnostic; Challenge question; Wordle-style vocab game
 and word-part flashcards (`/learn/daily`); cohort chat with moderation;
 bookings; student, parent, tutor and admin portals; Stripe checkout.
 
-Not built yet, must be labeled "coming" with a season when shown: Daily 10
+Not built yet, must be labeled "coming" with a season when shown: Your Daily 10
 spaced review, full-length timed tests, video lessons (recording planned for
 December 2026), Score Plan test-date planner, Ask Karman, Test-Day Playbook.
 
@@ -69,7 +72,7 @@ Existing portal data plumbing is kept; redesign replaces the look and flows.
   Nabil Kafil Asrar must not appear anywhere.
 - Voice (from `docs/brand.md`): confident, not cocky; warm, not bro-y; respects
   the student's intelligence; plain, not corporate. Short sentences, active voice.
-- The 31 rules in `docs/design-rules.md` are binding on every surface
+- The 58 rules, the copy rules and the SEO list in `docs/design-rules.md` are binding on every surface
   (no Lucide icons, no pure white, no em dashes, no Inter/Geist/Space Grotesk,
   no bento grids, no three pricing tiers, no drop shadows, no horizontal
   scrolling, skeleton loaders, Terms and Privacy linked from the footer, and the rest).
