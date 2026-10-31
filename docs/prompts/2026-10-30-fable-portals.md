@@ -247,7 +247,8 @@ of the research.
 
 **Full-length tests** follow Bluebook's two-module design. Module 1 decides
 whether module 2 is harder or easier. Full-length tests may include a few
-unscored tryout questions, and students are not told which ones.
+unscored tryout questions. As College Board does, one line before the test
+says a few questions don't count toward the score, without saying which.
 
 **A demo 1:1 student.** By the time the dashboard is done, the founder must be
 able to sign in as a demo Private student and click through everything a real
