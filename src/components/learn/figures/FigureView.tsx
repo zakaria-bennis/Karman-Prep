@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { HOUSE } from "@/lib/figures/engine/house";
 import type { Role, Scene, SceneItem, Weight } from "@/lib/figures/engine/scene";
+import "./figure-roles.css";
 
 const paint = (role: Role) => `var(--figure-${role})`;
 

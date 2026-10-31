@@ -402,26 +402,15 @@ html.dark {
   --figure-cf-grid: var(--figure-axis);
   --figure-text: rgb(var(--k-ivory));
   --figure-axis: rgb(var(--k-taupe));
+  --figure-grid: rgb(var(--k-bronze));
   --figure-math: rgb(var(--k-math));
   --figure-reading: rgb(var(--k-rw));
   --figure-gold: rgb(var(--k-gold));
   --figure-grid-opacity: 0.72;
 }
-/* Figure engine roles (src/lib/figures/engine). Defined once from the semantic
-   theme tokens: --k-ivory is the theme's text color and --k-night its canvas,
-   so every light and dark theme gets correct contrast. */
-:root {
-  --figure-ink: rgb(var(--k-ivory));
-  --figure-ink-muted: rgb(var(--k-taupe));
-  --figure-grid: rgb(var(--k-ivory) / 0.16);
-  --figure-fill-faint: rgb(var(--k-ivory) / 0.06);
-  --figure-fill-shade: rgb(var(--k-ivory) / 0.14);
-  --figure-highlight: color-mix(in srgb, rgb(var(--k-math)) 65%, rgb(var(--k-ivory)));
-}
-
 .themed-question-figure {
   background: var(--figure-background);
-  border-color: rgb(var(--k-bronze));
+  border-color: var(--figure-grid);
   color: var(--figure-text);
 }
 .themed-question-figure svg {
