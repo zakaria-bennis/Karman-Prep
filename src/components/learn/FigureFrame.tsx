@@ -1,7 +1,14 @@
 "use client";
 
 // ============================================================
-// FigureFrame — themed wrapper for raster question figures
+// FigureFrame — themed wrapper for question figures
+//
+// A question's figure_spec (a FigureSpec, src/lib/figures/engine) wins over
+// every older figure field: a drawn type renders as FigureView(buildScene(...)),
+// a table as TableView. An invalid spec renders nothing and logs one error,
+// never a partial figure. Without a spec, the older path below is unchanged.
+//
+// Older path: themed wrapper for raster question figures
 // (scatterplots, geometry diagrams, coordinate planes, 3-D solids,
 // bar/line graphs — anything that isn't yet a native table or SVG).
 //
@@ -18,9 +25,14 @@
 // solids.
 // ============================================================
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { buildScene, defaultBox } from "@/lib/figures/engine/index";
+import type { Scene } from "@/lib/figures/engine/scene";
+import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
 import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
 import { cn } from "@/lib/utils";
+import FigureView from "./figures/FigureView";
+import TableView from "./figures/TableView";
 
 // The SVG sanitizer and display fixes load only when a figure is drawn as inline SVG, so
 // quiz pages without one never download them (page bundle budget, AR-33).
@@ -45,6 +57,9 @@ function loadSvgDisplay(): Promise<SvgDisplay> {
 }
 
 interface Props {
+  /** The question's figure_spec, unvalidated as stored. When present it is drawn instead of
+   *  `src` and `svg`; when invalid nothing is drawn. */
+  spec?: unknown;
   /** Raster or .svg figure URL. Empty when the figure is an inline `svg`. */
   src?: string | null;
   /** A hand-drawn figure SVG stored on the question (figure_svg); used only without `src`.
@@ -57,13 +72,59 @@ interface Props {
   className?: string;
 }
 
-export default function FigureFrame({
+const FRAME = cn(
+  "themed-question-figure my-4 rounded-lg border border-bronze bg-surface p-3",
+  "shadow-[0_1px_0_0_rgba(195,171,106,0.18)_inset,0_4px_16px_-8px_rgba(0,0,0,0.45)]"
+);
+
+type SpecDrawing = { table: FigureSpec } | { scene: Scene } | { error: string };
+
+function drawSpec(input: unknown): SpecDrawing {
+  const parsed = parseFigureSpec(input);
+  if (!parsed.ok) return { error: parsed.errors.join("; ") };
+  if (parsed.spec.type === "table") return { table: parsed.spec };
+  try {
+    return { scene: buildScene(parsed.spec, defaultBox(parsed.spec)) };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+function SpecFigure({ spec, alt, maxHeightClass, className }: Props & { maxHeightClass: string }) {
+  const drawing = useMemo(() => drawSpec(spec), [spec]);
+  const error = "error" in drawing ? drawing.error : null;
+  useEffect(() => {
+    if (error) console.error(`FigureFrame: invalid figure_spec, nothing drawn: ${error}`);
+  }, [error]);
+  if ("error" in drawing) return null;
+  if ("table" in drawing) return <TableView spec={drawing.table} className={className} />;
+  const { scene } = drawing;
+  // The description generated from the spec's named parts names what is actually drawn.
+  const description = scene.description || alt;
+  return (
+    <figure className={cn(FRAME, className)}>
+      <FigureView
+        scene={{ ...scene, description }}
+        className={cn("mx-auto block h-auto w-full max-w-full", maxHeightClass)}
+      />
+    </figure>
+  );
+}
+
+export default function FigureFrame({ spec, maxHeightClass = "max-h-[28rem]", ...rest }: Props) {
+  if (spec !== null && spec !== undefined)
+    return <SpecFigure spec={spec} maxHeightClass={maxHeightClass} {...rest} />;
+  return <StoredFigure maxHeightClass={maxHeightClass} {...rest} />;
+}
+
+/** The older figure fields: a raster or .svg `src`, or a stored `svg`. */
+function StoredFigure({
   src,
   svg,
   alt,
-  maxHeightClass = "max-h-[28rem]",
+  maxHeightClass,
   className,
-}: Props) {
+}: Omit<Props, "spec"> & { maxHeightClass: string }) {
   const [inline, setInline] = useState<{ src: string; alt: string; svg: string } | null>(null);
   const markup = src ? null : (svg ?? null);
   const url =
@@ -118,13 +179,7 @@ export default function FigureFrame({
     };
   }, [themed]);
   return (
-    <figure
-      className={cn(
-        "themed-question-figure my-4 rounded-lg border border-bronze bg-surface p-3",
-        "shadow-[0_1px_0_0_rgba(195,171,106,0.18)_inset,0_4px_16px_-8px_rgba(0,0,0,0.45)]",
-        className
-      )}
-    >
+    <figure className={cn(FRAME, className)}>
       {themed ? (
         <div
           ref={holder}

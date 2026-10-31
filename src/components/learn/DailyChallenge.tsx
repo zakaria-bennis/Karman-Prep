@@ -280,7 +280,9 @@ function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
     buildGeometrySvg(q.figure_geometry_data).renderable;
   const figureFirst = figureLeadsText(q.subject);
   const figure =
-    q.figure_kind === "table" && q.figure_table_data ? (
+    q.figure_spec != null ? (
+      <FigureFrame spec={q.figure_spec} alt={q.image_alt ?? "Question figure"} />
+    ) : q.figure_kind === "table" && q.figure_table_data ? (
       <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
     ) : q.figure_kind === "chart" && q.figure_chart_data ? (
       <ChartFigure data={q.figure_chart_data} subject={q.subject} alt={q.image_alt ?? undefined} />

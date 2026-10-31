@@ -38,12 +38,17 @@ export function toStudentQuizQuestion(question: QuizQuestionWithChoices): Studen
     // Only an SVG figure carries the key, so every other question's payload (and its
     // catalogQuestionPayloadHash seal) is unchanged.
     ...(studentFigureSvg(question) ? { figure_svg: studentFigureSvg(question) } : {}),
+    // Likewise only a question or choice with a figure_spec carries that key.
+    ...(question.figure_spec != null ? { figure_spec: question.figure_spec } : {}),
     answer_choices: question.answer_choices.map((choice) => ({
       id: choice.id,
       question_id: choice.question_id,
       letter: choice.letter,
       choice_text: choice.choice_text,
       choice_table_data: choice.choice_table_data ?? null,
+      ...(choice.choice_figure_spec != null
+        ? { choice_figure_spec: choice.choice_figure_spec }
+        : {}),
     })),
   };
 }

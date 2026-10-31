@@ -413,6 +413,7 @@ export function ActiveQuizScreen({
         //   Phase 9D — figure_kind='geometric' uses GeometryFigure (SVG),
         //     reached only after the Stage-6.6 gate confirmed the render
         //     matches the screenshot.
+        //   figure_spec (checked first) — the figure engine, via FigureFrame.
         //   Default — raster image_url crop via FigureFrame.
         // ChartFigure/GeometryFigure render inside their own styled boxes
         // so we skip the white-bg FigureFrame card for them.
@@ -440,8 +441,9 @@ export function ActiveQuizScreen({
           <div className="mb-6 flex justify-center">
             <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
           </div>
-        ) : drawn === "image" ? (
+        ) : drawn === "spec" || drawn === "image" ? (
           <FigureFrame
+            spec={q.figure_spec}
             src={q.image_url}
             svg={q.figure_svg}
             alt={q.image_alt ?? ""}

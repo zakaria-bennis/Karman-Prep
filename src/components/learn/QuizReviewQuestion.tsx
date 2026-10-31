@@ -21,8 +21,13 @@ export default function QuizReviewQuestion({ question: q }: { question: QuizRevi
       <ChartFigure data={q.figure_chart_data!} subject={q.subject} alt={q.image_alt ?? undefined} />
     ) : drawn === "geometric" ? (
       <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
-    ) : drawn === "image" ? (
-      <FigureFrame src={q.image_url} svg={q.figure_svg} alt={q.image_alt ?? "Question figure"} />
+    ) : drawn === "spec" || drawn === "image" ? (
+      <FigureFrame
+        spec={q.figure_spec}
+        src={q.image_url}
+        svg={q.figure_svg}
+        alt={q.image_alt ?? "Question figure"}
+      />
     ) : null;
   return (
     <div className="mt-4 min-w-0 space-y-4 text-ivory">
