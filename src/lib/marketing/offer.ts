@@ -65,7 +65,6 @@ export const MARCH_PROGRAM = {
   classMinutes: 90,
   totalClasses: 18,
   fullLengthTests: 5,
-  reviewMinutes: 60,
   // CONFIRM: class days and times.
   scheduleLabel: "Tuesdays and Thursdays, 7:00–8:30 p.m. ET",
   // CONFIRM: enrollment deadline.
@@ -89,9 +88,9 @@ export const MARCH_PROGRAM = {
         "Your week-1 baseline is an official Bluebook test, proctored live. So is the dress rehearsal a week before the SAT.",
     },
     {
-      title: "A 60-minute 1:1 after every full-length",
+      title: "Classes built on your group's mistakes",
       detail:
-        "Your tutor goes through every mistake with your student: what happened and how to fix it.",
+        "Class time goes to the skills most of the group missed, and everyone practises them at their own level.",
     },
     {
       title: "A weekly live session",
@@ -143,22 +142,22 @@ export const NEXT_PROGRAMS = [
 ] as const;
 export const NEXT_PROGRAMS_ENROLLMENT_LABEL = "Enrollment opens in February.";
 
-export const PRIVATE_HOURLY_RATE = 145;
-
+/** Prices end in 95 to match the cohort (founder, 2026-10-30). */
 export const PRIVATE_PACKAGES = [
-  { id: "private-10", name: "Private 10", hours: 10, price: 1450 },
-  { id: "private-20", name: "Private 20", hours: 20, price: 2900 },
+  { id: "private-10", name: "Private 10", hours: 10, price: 1495 },
+  { id: "private-20", name: "Private 20", hours: 20, price: 2495 },
 ] as const;
 
 export const PRIVATE_INCLUDES: ProgramInclusion[] = [
   {
-    title: "Weekly 60-minute sessions with a Karman tutor",
+    title: "60-minute sessions with a Karman tutor",
     detail:
       "Each session goes through every mistake on your latest full-length, or targets the skill holding you back.",
   },
   {
-    title: "Scheduled around your test date",
-    detail: "Start whenever you're ready. Hours are planned backward from the SAT you're taking.",
+    title: "Booked when it suits you",
+    detail:
+      "No fixed weekly slot. Book your next session yourself, with hours planned backward from the SAT you're taking.",
   },
   {
     title: "Everything on the platform",
@@ -173,6 +172,26 @@ export const PRIVATE_INCLUDES: ProgramInclusion[] = [
     detail: "What you worked on, what improved and what comes next.",
   },
 ];
+
+/**
+ * Practice plans and school licenses (founder, 2026-10-30). Features per plan
+ * are in docs/business/plan-ladder-2026-10-30.md. None of these carries the
+ * guarantee. CONFIRM: the names "Platform" and "Plus" are working names.
+ */
+export const PRACTICE_PLANS = [
+  { id: "free", name: "Free", price: 0, billing: "none", questions: 100 },
+  { id: "platform", name: "Platform", price: 29, billing: "month", questions: 500 },
+  { id: "plus", name: "Plus", price: 49, billing: "month", questions: "all" },
+] as const;
+
+export const SCHOOL_PLAN = {
+  id: "school",
+  name: "School",
+  pricePerStudentPerYear: 10,
+  term: "July 1 to June 30",
+  questions: 2000,
+  pilot: { schools: 10, label: "Free from January to June 2027 for up to 10 founding schools" },
+} as const;
 
 export const FREE_PRACTICE_TEST = {
   id: "practice-test-2026-12-12",
@@ -217,7 +236,6 @@ export const GUARANTEE = {
   ],
   requirements: [
     "Attend at least 15 of the 18 live classes, live.",
-    "Complete all five one-on-one reviews. Rescheduling with 24 hours' notice is fine.",
     "Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.",
     "Complete at least 90% of the assigned weekly practice.",
     "Sit the official SAT on the program's test date, or the next one within 60 days if it's cancelled or with a doctor's note.",

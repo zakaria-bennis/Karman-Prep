@@ -34,7 +34,7 @@ terms before they go on the site.** The numbers live in `src/lib/marketing/offer
 
 **What the student does** (every rule is a number shown on the student's dashboard)
 - Attend at least 15 of the 18 live classes, live. A recording doesn't count.
-- Complete all five one-on-one reviews. Rescheduling with 24 hours' notice is fine.
+- ~~Complete all five one-on-one reviews.~~ Removed 2026-10-30: the cohort no longer includes 1:1 reviews.
 - Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.
 - Complete at least 90% of the assigned weekly practice.
 - Sit the official SAT on the program's test date. If that SAT is cancelled, or with a doctor's note,
