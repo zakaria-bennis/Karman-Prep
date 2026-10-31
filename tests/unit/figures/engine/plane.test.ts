@@ -132,4 +132,19 @@ describe("buildPlane", () => {
       expect(a.weight).toBe("line");
     }
   });
+
+  it("-5..5 frame with step 1 in a 320px box labels every integer from -5 to 5 except 0 on each axis", () => {
+    const scene = buildPlane(plane([]), BOX);
+    type TextItem = Extract<SceneItem, { t: "text" }>;
+    const texts = scene.items.filter((i): i is TextItem => i.t === "text");
+    const want = ["-5", "-4", "-3", "-2", "-1", "1", "2", "3", "4", "5"];
+    const xLabels = texts.filter((t) => t.anchor === "middle").map((t) => t.text);
+    const yLabels = texts.filter(
+      (t) => t.anchor === "end" && /^-?\d+$/.test(t.text) && t.text !== "0"
+    );
+    expect([...xLabels].sort()).toEqual([...want].sort());
+    expect(yLabels.map((t) => t.text).sort()).toEqual([...want].sort());
+    // The origin is labeled once.
+    expect(texts.filter((t) => t.text === "0" || t.text === "O")).toHaveLength(1);
+  });
 });

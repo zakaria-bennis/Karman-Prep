@@ -134,6 +134,21 @@ function multiples([min, max]: [number, number], step: number): number[] {
   return out;
 }
 
+/** Bluebook density: labels need at least this much center spacing along an axis. */
+export const MIN_LABEL_SPACING_PX = 28;
+
+/**
+ * The step between tick labels on an axis `lengthPx` long: every grid step
+ * (`step`, else the step axisTicks picks), or every 2nd step when labels on
+ * every step would sit closer than MIN_LABEL_SPACING_PX. 0 means no labels.
+ */
+function labelStep(range: [number, number], lengthPx: number, step?: number): number {
+  const base = step ?? axisTicks(range[0], range[1], lengthPx).step;
+  if (!base) return 0;
+  const pxPerStep = (lengthPx * base) / (range[1] - range[0]);
+  return pxPerStep >= MIN_LABEL_SPACING_PX ? base : 2 * base;
+}
+
 const clamp = (v: number, [lo, hi]: [number, number]) => Math.min(hi, Math.max(lo, v));
 
 function axes(frame: PlaneFrame, box: Box): SceneItem[] {
@@ -158,11 +173,11 @@ function axes(frame: PlaneFrame, box: Box): SceneItem[] {
       partId: "axis",
     },
   ];
-  const xTicks = axisTicks(frame.x[0], frame.x[1], w);
-  const yTicks = axisTicks(frame.y[0], frame.y[1], h);
   const tick = HOUSE.tickLength / 2;
-  for (const x of xTicks.major) {
-    if (Math.abs(x) < EPS) continue;
+  const xStep = labelStep(frame.x, w, frame.step);
+  const yStep = labelStep(frame.y, h, frame.step);
+  for (const x of xStep ? multiples(frame.x, xStep) : []) {
+    if (Math.abs(x) < EPS) continue; // the origin is labeled once, below
     const X = px(x);
     const Y = py(ax);
     items.push({
@@ -180,7 +195,7 @@ function axes(frame: PlaneFrame, box: Box): SceneItem[] {
       anchor: "middle",
     });
   }
-  for (const y of yTicks.major) {
+  for (const y of yStep ? multiples(frame.y, yStep) : []) {
     if (Math.abs(y) < EPS) continue;
     const X = px(ay);
     const Y = py(y);
@@ -195,6 +210,17 @@ function axes(frame: PlaneFrame, box: Box): SceneItem[] {
       x: X - tick - off / 2,
       y: Y + font / 3,
       text: fmt(y),
+      role: "ink-muted",
+      anchor: "end",
+    });
+  }
+  // One "0" at the origin, below and left of it, when both axes pass through it.
+  if (ax === 0 && ay === 0 && (xStep || yStep)) {
+    items.push({
+      t: "text",
+      x: px(0) - tick - off / 2,
+      y: py(0) + tick + font,
+      text: "0",
       role: "ink-muted",
       anchor: "end",
     });
