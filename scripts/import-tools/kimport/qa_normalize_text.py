@@ -16,7 +16,7 @@ Rules (plan.json counts each one):
                 to U+2212 (inside math `-` is already the math minus and stays)
   fractions     a simple slash fraction inside math (digits or one letter each side) to \\frac
   math_commas   `1,150` inside math to `1{,}150`
-  percent_units `30 percent` / `30 %` to `30%`, `$ 13` to `$13`, `2.29mm` to `2.29 mm`
+  percent_units `30 %` to `30%` (the word "percent" is kept), `$ 13` to `$13`, `2.29mm` to `2.29 mm`
   whitespace    trailing spaces, doubled spaces between words, spaces before , . ; : ? !
   blanks        `______blank`, `[blank]` and other underscore runs to the standard `______`
   notes         the notes intro wording and `• ` bullets in a notes list
@@ -264,7 +264,7 @@ def _percent_units(s: str, subject: str, res: Result) -> str:
     def p(m):
         res.hit("percent_units")
         return "%"
-    s = re.sub(r"(?<=\d)[ \t]?percent\b(?!-)", p, s)
+    # The word "percent" is the exam's own wording (SAT passages spell it out); never rewritten.
     s = re.sub(r"(?<=\d)[ \t]+%", p, s)
 
     def dollar(m):

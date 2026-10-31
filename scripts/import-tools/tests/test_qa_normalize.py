@@ -130,8 +130,7 @@ class MathCommaTest(TransformCase):
 
 class PercentUnitTest(TransformCase):
     def test_spacing(self):
-        self.becomes("up to 30 percent of", "up to 30% of", "percent_units")
-        self.becomes("more than 80percent", "more than 80%", "percent_units")
+        self.same("up to 30 percent of")  # the exam's wording is kept
         self.becomes("by 150 % of", "by 150% of", "percent_units", "math")
         self.becomes("worth $ 180 in all", "worth $180 in all", "percent_units", "math")
         self.becomes("was 2.29mm in October and 100g", "was 2.29 mm in October and 100 g", "percent_units")
@@ -206,7 +205,7 @@ class ThousandsTest(TransformCase):
 
 class WordsTest(unittest.TestCase):
     def test_swaps_keep_the_words(self):
-        pairs = [("30 percent", "30%"), ("1,150", "1{,}150"), ("1/8", "\\frac{1}{8}"), ("100g", "100 g"),
+        pairs = [("1,150", "1{,}150"), ("1/8", "\\frac{1}{8}"), ("100g", "100 g"),
                  ("a ______blank b", "a ______ b"), ("27000", "27,000"),
                  ("While researching a topic, a student took the following notes:", nt.NOTES_INTRO)]
         for a, b in pairs:
