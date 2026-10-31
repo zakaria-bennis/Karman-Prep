@@ -1,0 +1,51 @@
+{
+  "source": "Codex 2024-10_ASIA_V1_RW_M2_Q13 (figure_chart_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "bar",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "bar",
+        "values": [0.16, 0.31]
+      },
+      {
+        "kind": "series",
+        "id": "s2",
+        "seriesKind": "bar",
+        "values": [0.29, 0.27]
+      },
+      {
+        "kind": "series",
+        "id": "s3",
+        "seriesKind": "bar",
+        "values": [0.43, 0.27]
+      }
+    ],
+    "labels": [
+      {
+        "text": "P3",
+        "on": "s1"
+      },
+      {
+        "text": "P7",
+        "on": "s2"
+      },
+      {
+        "text": "P6",
+        "on": "s3"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [0, 2],
+      "y": [0, 0.5],
+      "yStep": 0.1,
+      "categories": ["Abstract", "Cubist"],
+      "xLabel": "Painting style",
+      "yLabel": "Correlation"
+    },
+    "title": "Ratings, by Painting Style"
+  }
+}

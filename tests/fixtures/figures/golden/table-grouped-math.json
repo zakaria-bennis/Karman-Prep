@@ -1,0 +1,31 @@
+{
+  "source": "tests/fixtures/tables/48122737-df2c-4c42-953b-94281484650c.json",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "table",
+    "parts": [
+      {
+        "kind": "table",
+        "id": "t1",
+        "header": ["Value", "Frequency", "Value", "Frequency"],
+        "rows": [
+          ["\\(c\\)", "12", "\\(c\\)", "30"],
+          ["\\(2c\\)", "21", "\\(2c\\)", "21"],
+          ["\\(3c\\)", "30", "\\(3c\\)", "12"]
+        ],
+        "groups": [
+          {
+            "label": "Data Set A",
+            "span": 2
+          },
+          {
+            "label": "Data Set B",
+            "span": 2
+          }
+        ]
+      }
+    ],
+    "labels": [],
+    "marks": []
+  }
+}

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Triangle RST, right angle at S, RT = 67, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M316.04 40.75 L316.04 234.5 L83.96 234.5 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="RST">
+</path>
+<path d="M316.04 40.75 L83.96 234.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="RT">
+</path>
+<path d="M316.04 224.5 L306.04 224.5 L306.04 234.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="angleS">
+</path>
+<text x="200" y="292" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+<text x="322.97" y="31.57" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="R">R</text>
+<text x="324.78" y="248.87" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="S">S</text>
+<text x="73.82" y="243.8" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="T">T</text>
+<text x="188.33" y="129.27" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="RT">67</text>
+</svg>

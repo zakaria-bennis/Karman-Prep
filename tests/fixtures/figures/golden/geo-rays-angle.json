@@ -1,0 +1,92 @@
+{
+  "source": "hand-modelled: SAT angle figure, rays BA, BD and BC from B, angles 40° and x°",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "B",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "kind": "point",
+        "id": "A",
+        "x": 160,
+        "y": 0
+      },
+      {
+        "kind": "point",
+        "id": "D",
+        "x": 120,
+        "y": -100
+      },
+      {
+        "kind": "point",
+        "id": "C",
+        "x": -40,
+        "y": -150
+      },
+      {
+        "kind": "ray",
+        "id": "BA",
+        "from": "B",
+        "to": "A"
+      },
+      {
+        "kind": "ray",
+        "id": "BD",
+        "from": "B",
+        "to": "D"
+      },
+      {
+        "kind": "ray",
+        "id": "BC",
+        "from": "B",
+        "to": "C"
+      },
+      {
+        "kind": "angle",
+        "id": "a1",
+        "vertex": "B",
+        "from": "A",
+        "to": "D"
+      },
+      {
+        "kind": "angle",
+        "id": "a2",
+        "vertex": "B",
+        "from": "D",
+        "to": "C"
+      }
+    ],
+    "labels": [
+      {
+        "text": "A",
+        "on": "A"
+      },
+      {
+        "text": "B",
+        "on": "B"
+      },
+      {
+        "text": "C",
+        "on": "C"
+      },
+      {
+        "text": "D",
+        "on": "D"
+      },
+      {
+        "text": "40°",
+        "on": "a1"
+      },
+      {
+        "text": "x°",
+        "on": "a2"
+      }
+    ],
+    "marks": []
+  }
+}

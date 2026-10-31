@@ -1,0 +1,25 @@
+{
+  "source": "Codex 2024-05_ASIA_V2_MATH_M2_Q02 (figure_chart_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "box_plot",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "b1",
+        "seriesKind": "box_plot",
+        "values": [85, 97, 114, 124, 138]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [80, 140],
+      "y": [0, 1],
+      "step": 10,
+      "grid": false,
+      "xLabel": "Number of units sold per day",
+      "yLabel": ""
+    }
+  }
+}

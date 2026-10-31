@@ -1,0 +1,30 @@
+{
+  "source": "hand-modelled: SAT histogram with unit bins, a data set of 20 values",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "histogram",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "values": [
+          [1, 2],
+          [2, 3],
+          [3, 6],
+          [4, 5],
+          [5, 3],
+          [6, 1]
+        ]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [1, 7],
+      "y": [0, 7],
+      "step": 1,
+      "xLabel": "Value",
+      "yLabel": "Frequency"
+    }
+  }
+}

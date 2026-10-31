@@ -1,0 +1,115 @@
+{
+  "source": "Codex 2024-12_US_V2_MATH_M2_Q09 (figure_geometry_data, traced points; T moved onto SW, parallel marks added from the stem)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "S",
+        "x": 190,
+        "y": 70
+      },
+      {
+        "kind": "point",
+        "id": "T",
+        "x": 161.81,
+        "y": 145.7,
+        "on": ["SW"]
+      },
+      {
+        "kind": "point",
+        "id": "U",
+        "x": 228,
+        "y": 148
+      },
+      {
+        "kind": "point",
+        "id": "V",
+        "x": 425,
+        "y": 242
+      },
+      {
+        "kind": "point",
+        "id": "W",
+        "x": 120,
+        "y": 258
+      },
+      {
+        "kind": "segment",
+        "id": "SW",
+        "from": "S",
+        "to": "W"
+      },
+      {
+        "kind": "segment",
+        "id": "TU",
+        "from": "T",
+        "to": "U"
+      },
+      {
+        "kind": "segment",
+        "id": "UV",
+        "from": "U",
+        "to": "V"
+      },
+      {
+        "kind": "segment",
+        "id": "WV",
+        "from": "W",
+        "to": "V"
+      },
+      {
+        "kind": "angle",
+        "id": "aU",
+        "vertex": "U",
+        "from": "T",
+        "to": "V"
+      },
+      {
+        "kind": "angle",
+        "id": "aW",
+        "vertex": "W",
+        "from": "T",
+        "to": "V"
+      }
+    ],
+    "labels": [
+      {
+        "text": "S",
+        "on": "S"
+      },
+      {
+        "text": "T",
+        "on": "T"
+      },
+      {
+        "text": "U",
+        "on": "U"
+      },
+      {
+        "text": "V",
+        "on": "V"
+      },
+      {
+        "text": "W",
+        "on": "W"
+      },
+      {
+        "text": "p°",
+        "on": "aU"
+      },
+      {
+        "text": "r°",
+        "on": "aW"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "parallel",
+        "on": ["TU", "WV"],
+        "count": 2
+      }
+    ]
+  }
+}

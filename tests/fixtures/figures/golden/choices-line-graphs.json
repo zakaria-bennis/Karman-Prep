@@ -1,0 +1,149 @@
+{
+  "source": "hand-modelled: SAT \"Which graph could represent y = 2x − 3?\"",
+  "answer_choices": [
+    {
+      "letter": "A",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "plane",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "P",
+            "x": 0,
+            "y": -3
+          },
+          {
+            "kind": "point",
+            "id": "Q",
+            "x": 1,
+            "y": -1
+          },
+          {
+            "kind": "line",
+            "id": "l",
+            "from": "P",
+            "to": "Q"
+          }
+        ],
+        "labels": [],
+        "marks": [],
+        "frame": {
+          "x": [-5, 5],
+          "y": [-5, 5],
+          "step": 1,
+          "xLabel": "x",
+          "yLabel": "y"
+        }
+      }
+    },
+    {
+      "letter": "B",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "plane",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "P",
+            "x": 0,
+            "y": -3
+          },
+          {
+            "kind": "point",
+            "id": "Q",
+            "x": 1,
+            "y": -5
+          },
+          {
+            "kind": "line",
+            "id": "l",
+            "from": "P",
+            "to": "Q"
+          }
+        ],
+        "labels": [],
+        "marks": [],
+        "frame": {
+          "x": [-5, 5],
+          "y": [-5, 5],
+          "step": 1,
+          "xLabel": "x",
+          "yLabel": "y"
+        }
+      }
+    },
+    {
+      "letter": "C",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "plane",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "P",
+            "x": 0,
+            "y": -3
+          },
+          {
+            "kind": "point",
+            "id": "Q",
+            "x": 1,
+            "y": -2.5
+          },
+          {
+            "kind": "line",
+            "id": "l",
+            "from": "P",
+            "to": "Q"
+          }
+        ],
+        "labels": [],
+        "marks": [],
+        "frame": {
+          "x": [-5, 5],
+          "y": [-5, 5],
+          "step": 1,
+          "xLabel": "x",
+          "yLabel": "y"
+        }
+      }
+    },
+    {
+      "letter": "D",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "plane",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "P",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "kind": "point",
+            "id": "Q",
+            "x": 1,
+            "y": 5
+          },
+          {
+            "kind": "line",
+            "id": "l",
+            "from": "P",
+            "to": "Q"
+          }
+        ],
+        "labels": [],
+        "marks": [],
+        "frame": {
+          "x": [-5, 5],
+          "y": [-5, 5],
+          "step": 1,
+          "xLabel": "x",
+          "yLabel": "y"
+        }
+      }
+    }
+  ]
+}

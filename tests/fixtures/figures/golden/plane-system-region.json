@@ -1,0 +1,79 @@
+{
+  "source": "hand-modelled: the solutions of y > x − 2 and y < −2x + 4, strict boundaries dashed, region labelled",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "plane",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "A",
+        "x": 0,
+        "y": -2
+      },
+      {
+        "kind": "point",
+        "id": "B",
+        "x": 2,
+        "y": 0
+      },
+      {
+        "kind": "line",
+        "id": "b1",
+        "from": "A",
+        "to": "B"
+      },
+      {
+        "kind": "point",
+        "id": "C",
+        "x": 0,
+        "y": 4
+      },
+      {
+        "kind": "point",
+        "id": "D",
+        "x": 2,
+        "y": 0
+      },
+      {
+        "kind": "line",
+        "id": "b2",
+        "from": "C",
+        "to": "D"
+      },
+      {
+        "kind": "region",
+        "id": "R",
+        "latex": "y>x-2, y<-2x+4",
+        "boundary": ["b1", "b2"],
+        "samples": [
+          [
+            [-5, -5],
+            [-3, -5],
+            [2, 0],
+            [-0.5, 5],
+            [-5, 5]
+          ]
+        ]
+      }
+    ],
+    "labels": [
+      {
+        "text": "R",
+        "on": "R"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "hidden_dashed",
+        "on": ["b1", "b2"]
+      }
+    ],
+    "frame": {
+      "x": [-5, 5],
+      "y": [-5, 5],
+      "step": 1,
+      "xLabel": "x",
+      "yLabel": "y"
+    }
+  }
+}

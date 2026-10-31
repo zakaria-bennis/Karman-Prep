@@ -1,0 +1,123 @@
+{
+  "source": "Codex 2024-05_ASIA_V2_MATH_M2_Q09 (figure_geometry_data, traced points)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "r1",
+        "x": 247,
+        "y": 75
+      },
+      {
+        "kind": "point",
+        "id": "r2",
+        "x": 247,
+        "y": 292
+      },
+      {
+        "kind": "point",
+        "id": "s1",
+        "x": 322,
+        "y": 75
+      },
+      {
+        "kind": "point",
+        "id": "s2",
+        "x": 322,
+        "y": 292
+      },
+      {
+        "kind": "point",
+        "id": "t1",
+        "x": 181,
+        "y": 292
+      },
+      {
+        "kind": "point",
+        "id": "t2",
+        "x": 382,
+        "y": 92
+      },
+      {
+        "kind": "point",
+        "id": "P1",
+        "x": 247,
+        "y": 226,
+        "on": ["r", "t"]
+      },
+      {
+        "kind": "point",
+        "id": "P2",
+        "x": 322,
+        "y": 152,
+        "on": ["s", "t"]
+      },
+      {
+        "kind": "line",
+        "id": "r",
+        "from": "r2",
+        "to": "r1"
+      },
+      {
+        "kind": "line",
+        "id": "s",
+        "from": "s2",
+        "to": "s1"
+      },
+      {
+        "kind": "line",
+        "id": "t",
+        "from": "t1",
+        "to": "t2"
+      },
+      {
+        "kind": "angle",
+        "id": "ax",
+        "vertex": "P1",
+        "from": "r2",
+        "to": "t1"
+      },
+      {
+        "kind": "angle",
+        "id": "ay",
+        "vertex": "P2",
+        "from": "s1",
+        "to": "P1"
+      }
+    ],
+    "labels": [
+      {
+        "text": "r",
+        "on": "r",
+        "at": "end"
+      },
+      {
+        "text": "s",
+        "on": "s",
+        "at": "end"
+      },
+      {
+        "text": "t",
+        "on": "t",
+        "at": "end"
+      },
+      {
+        "text": "x°",
+        "on": "ax"
+      },
+      {
+        "text": "y°",
+        "on": "ay"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "parallel",
+        "on": ["r", "s"]
+      }
+    ],
+    "notToScale": true
+  }
+}

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 138.75" role="img" aria-label="Box-and-whisker plot with 1 box. Value axis: Shoal bass length (cm). Minimum 35, first quartile 36, median 41, third quartile 46, maximum 50." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 96 L584 96" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M16 93 L16 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="16" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">32</text>
+<path d="M79.11 93 L79.11 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="79.11" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">34</text>
+<path d="M142.22 93 L142.22 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="142.22" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">36</text>
+<path d="M205.33 93 L205.33 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="205.33" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">38</text>
+<path d="M268.44 93 L268.44 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="268.44" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">40</text>
+<path d="M331.56 93 L331.56 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="331.56" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">42</text>
+<path d="M394.67 93 L394.67 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="394.67" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">44</text>
+<path d="M457.78 93 L457.78 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="457.78" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">46</text>
+<path d="M520.89 93 L520.89 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="520.89" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">48</text>
+<path d="M584 93 L584 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="584" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">50</text>
+<text x="300" y="135" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Shoal bass length (cm)</text>
+<path d="M110.67 56 L142.22 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<path d="M457.78 56 L584 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<path d="M110.67 46 L110.67 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<path d="M584 46 L584 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<rect x="142.22" y="36" width="315.56" height="40" fill="none" stroke="var(--figure-ink)" stroke-width="1.5" data-part="b1">
+</rect>
+<path d="M300 36 L300 76" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+</svg>

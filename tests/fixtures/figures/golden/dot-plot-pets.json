@@ -1,0 +1,29 @@
+{
+  "source": "hand-modelled: SAT dot plot, number of pets per student",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "dot_plot",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "values": [
+          [0, 3],
+          [1, 5],
+          [2, 4],
+          [3, 2],
+          [4, 1],
+          [6, 1]
+        ]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [0, 6],
+      "y": [0, 6],
+      "step": 1,
+      "xLabel": "Number of pets"
+    }
+  }
+}

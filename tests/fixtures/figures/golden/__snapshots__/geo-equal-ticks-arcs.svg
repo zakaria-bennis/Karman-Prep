@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Angle UTR = x°, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M46.48 234.5 L353.52 40.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="US">
+</path>
+<path d="M46.48 234.5 L348.05 234.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="UR">
+</path>
+<path d="M208.87 132.03 L46.48 234.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="TU">
+</path>
+<path d="M208.87 132.03 L348.05 234.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="TR">
+</path>
+<path d="M259.77 234.5 L353.52 40.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="VS">
+</path>
+<path d="M129.28 185.8 L126.07 180.73" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="TU">
+</path>
+<path d="M280.24 180.85 L276.68 185.68" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="TR">
+</path>
+<path d="M58.32 227.03 A14 14 0 0 1 60.48 234.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="aU">
+</path>
+<path d="M334.05 234.5 A14 14 0 0 1 336.77 226.2" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="aR">
+</path>
+<text x="200" y="292" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+<text x="36.41" y="244.12" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="U">U</text>
+<text x="362.01" y="36.87" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="S">S</text>
+<text x="358.25" y="243.47" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="R">R</text>
+<text x="209.42" y="122.28" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="T">T</text>
+<text x="252.65" y="254.83" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="V">V</text>
+<text x="208.05" y="160.46" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="aT">x°</text>
+</svg>
