@@ -239,7 +239,7 @@ function circlePath([x, y]: Pt, r: number): string {
 const polyline = (pts: Pt[], close = false) =>
   pts.map((p, i) => `${i ? "L" : "M"}${at(p)}`).join(" ") + (close ? " Z" : "");
 
-function dot_(p: Pt, partId: string): SceneItem {
+function pointDot(p: Pt, partId: string): SceneItem {
   return {
     t: "path",
     d: circlePath(p, HOUSE.pointRadius),
@@ -596,7 +596,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box): Scene {
   }
 
   // Dots for points that are not a corner of a drawn line, on top of the lines.
-  for (const [id, p] of points) if (!corners.has(id)) items.push(dot_(p, id));
+  for (const [id, p] of points) if (!corners.has(id)) items.push(pointDot(p, id));
 
   if (spec.notToScale) {
     items.push({
