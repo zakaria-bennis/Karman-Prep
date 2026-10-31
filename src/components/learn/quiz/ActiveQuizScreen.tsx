@@ -444,6 +444,7 @@ export function ActiveQuizScreen({
         ) : drawn === "spec" || drawn === "image" ? (
           <FigureFrame
             spec={q.figure_spec}
+            calculator={!readOnly && q.subject === "math"}
             src={q.image_url}
             svg={q.figure_svg}
             alt={q.image_alt ?? ""}

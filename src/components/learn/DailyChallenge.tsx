@@ -281,7 +281,11 @@ function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
   const figureFirst = figureLeadsText(q.subject);
   const figure =
     q.figure_spec != null ? (
-      <FigureFrame spec={q.figure_spec} alt={q.image_alt ?? "Question figure"} />
+      <FigureFrame
+        spec={q.figure_spec}
+        calculator={q.subject === "math"}
+        alt={q.image_alt ?? "Question figure"}
+      />
     ) : q.figure_kind === "table" && q.figure_table_data ? (
       <QuestionTable calculator={q.subject === "math"} data={q.figure_table_data} />
     ) : q.figure_kind === "chart" && q.figure_chart_data ? (

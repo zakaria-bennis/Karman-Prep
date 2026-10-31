@@ -5,7 +5,8 @@
 //
 // A question's figure_spec (a FigureSpec, src/lib/figures/engine) wins over
 // every older figure field: a drawn type renders as FigureView(buildScene(...)),
-// a table as TableView. An invalid spec renders nothing and logs one error,
+// a table as SpecTable (TableView, plus the calculator's table transfer control
+// on Math surfaces). An invalid spec renders nothing and logs one error,
 // never a partial figure. Without a spec, the older path below is unchanged.
 //
 // Older path: themed wrapper for raster question figures
@@ -32,7 +33,7 @@ import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
 import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
 import { cn } from "@/lib/utils";
 import FigureView from "./figures/FigureView";
-import TableView from "./figures/TableView";
+import { SpecTable } from "./QuestionTable";
 
 // The SVG sanitizer and display fixes load only when a figure is drawn as inline SVG, so
 // quiz pages without one never download them (page bundle budget, AR-33).
@@ -60,6 +61,9 @@ interface Props {
   /** The question's figure_spec, unvalidated as stored. When present it is drawn instead of
    *  `src` and `svg`; when invalid nothing is drawn. */
   spec?: unknown;
+  /** Math surfaces: a table spec gets the calculator's table transfer control, as
+   *  QuestionTable's `calculator` does. */
+  calculator?: boolean;
   /** Raster or .svg figure URL. Empty when the figure is an inline `svg`. */
   src?: string | null;
   /** A hand-drawn figure SVG stored on the question (figure_svg); used only without `src`.
@@ -90,14 +94,21 @@ function drawSpec(input: unknown): SpecDrawing {
   }
 }
 
-function SpecFigure({ spec, alt, maxHeightClass, className }: Props & { maxHeightClass: string }) {
+function SpecFigure({
+  spec,
+  alt,
+  calculator = false,
+  maxHeightClass,
+  className,
+}: Props & { maxHeightClass: string }) {
   const drawing = useMemo(() => drawSpec(spec), [spec]);
   const error = "error" in drawing ? drawing.error : null;
   useEffect(() => {
     if (error) console.error(`FigureFrame: invalid figure_spec, nothing drawn: ${error}`);
   }, [error]);
   if ("error" in drawing) return null;
-  if ("table" in drawing) return <TableView spec={drawing.table} className={className} />;
+  if ("table" in drawing)
+    return <SpecTable spec={drawing.table} calculator={calculator} className={className} />;
   const { scene } = drawing;
   // The description generated from the spec's named parts names what is actually drawn.
   const description = scene.description || alt;
@@ -111,9 +122,16 @@ function SpecFigure({ spec, alt, maxHeightClass, className }: Props & { maxHeigh
   );
 }
 
-export default function FigureFrame({ spec, maxHeightClass = "max-h-[28rem]", ...rest }: Props) {
+export default function FigureFrame({
+  spec,
+  calculator,
+  maxHeightClass = "max-h-[28rem]",
+  ...rest
+}: Props) {
   if (spec !== null && spec !== undefined)
-    return <SpecFigure spec={spec} maxHeightClass={maxHeightClass} {...rest} />;
+    return (
+      <SpecFigure spec={spec} calculator={calculator} maxHeightClass={maxHeightClass} {...rest} />
+    );
   return <StoredFigure maxHeightClass={maxHeightClass} {...rest} />;
 }
 
@@ -124,7 +142,7 @@ function StoredFigure({
   alt,
   maxHeightClass,
   className,
-}: Omit<Props, "spec"> & { maxHeightClass: string }) {
+}: Omit<Props, "spec" | "calculator"> & { maxHeightClass: string }) {
   const [inline, setInline] = useState<{ src: string; alt: string; svg: string } | null>(null);
   const markup = src ? null : (svg ?? null);
   const url =

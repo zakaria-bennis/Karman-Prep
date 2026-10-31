@@ -5,7 +5,8 @@
 // choice's choice_table_data, with the figure engine. It converts the old
 // table data to a `type: table` FigureSpec and renders TableView, a native
 // HTML table in the house table style. Math questions add the calculator's
-// table transfer control just after the table's frame.
+// table transfer control just after the table's frame (SpecTable, shared with
+// FigureFrame's figure_spec tables).
 // ============================================================
 
 import { CalculatorTableAction } from "@/components/calculator/CalculatorSourceAction";
@@ -48,15 +49,37 @@ export default function QuestionTable({
   const spec = specFor(data);
   if (!spec) return <p className="my-4 text-sm">This table can&apos;t be shown yet.</p>;
   return (
+    <SpecTable
+      spec={spec}
+      renderMath={renderMath}
+      ariaLabel={ariaLabel}
+      className={className}
+      calculator={calculator}
+      calculatorItemId={calculatorItemId}
+    />
+  );
+}
+
+/**
+ * A `type: table` FigureSpec as TableView, plus (with `calculator`) the calculator's table
+ * transfer control fed from the spec's table part. Shared by QuestionTable and a
+ * question's figure_spec (FigureFrame), so both get the same control.
+ */
+export function SpecTable({
+  spec,
+  renderMath = true,
+  ariaLabel,
+  className,
+  calculator = false,
+  calculatorItemId = "table",
+}: Omit<Props, "data"> & { spec: FigureSpec }) {
+  const part = spec.parts.find((p) => p.kind === "table");
+  return (
     <TableView spec={spec} renderMath={renderMath} ariaLabel={ariaLabel} className={className}>
       {/* The transfer control's item is the element just before it (TransferControl): the
           table's frame, so hovering the table shows the control at its top right (TR-46). */}
-      {calculator && (
-        <CalculatorTableAction
-          rows={data.rows}
-          headers={data.header_row ?? undefined}
-          itemId={calculatorItemId}
-        />
+      {calculator && part && (
+        <CalculatorTableAction rows={part.rows} headers={part.header} itemId={calculatorItemId} />
       )}
     </TableView>
   );

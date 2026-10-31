@@ -48,6 +48,7 @@ export default function CatalogQuestion({
     ) : drawn === "spec" || drawn === "image" ? (
       <FigureFrame
         spec={q.figure_spec}
+        calculator={q.subject === "math"}
         src={q.image_url}
         svg={q.figure_svg}
         alt={q.image_alt ?? "Question figure"}

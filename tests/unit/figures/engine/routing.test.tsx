@@ -4,6 +4,7 @@ import path from "node:path";
 import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import FigureFrame from "@/components/learn/FigureFrame";
+import CatalogQuestion from "@/components/learn/catalog-practice/CatalogQuestion";
 import { buildChart } from "@/lib/figures/engine/charts";
 import { buildGeometry2d } from "@/lib/figures/engine/geometry2d";
 import { buildScene, defaultBox } from "@/lib/figures/engine/index";
@@ -62,7 +63,18 @@ const TABLE: FigureSpec = {
 const SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" data-figure-theme="karman-v1" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="#070605"/></svg>';
 
-afterEach(() => vi.restoreAllMocks());
+// The calculator's table transfer control, as a marker carrying what it was given.
+vi.mock("@/components/calculator/CalculatorSourceAction", async (original) => ({
+  ...(await original<typeof import("@/components/calculator/CalculatorSourceAction")>()),
+  CalculatorTableAction: (props: { rows: string[][]; headers?: string[]; itemId?: string }) => (
+    <span data-testid="table-transfer" data-props={JSON.stringify(props)} />
+  ),
+}));
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("buildScene", () => {
   it("the fixtures are valid specs", () => {
@@ -109,7 +121,6 @@ describe("FigureFrame with figure_spec", () => {
     expect(container.querySelector('[data-part="AB"]')).not.toBeNull();
     expect(container.querySelector('rect[fill="#070605"]')).toBeNull();
     expect(fetch).not.toHaveBeenCalled();
-    vi.unstubAllGlobals();
   });
 
   it("routes a table spec to TableView", () => {
@@ -117,6 +128,38 @@ describe("FigureFrame with figure_spec", () => {
     expect(container.querySelector("table")).not.toBeNull();
     expect(container.querySelector("svg")).toBeNull();
     expect(container.querySelector("img")).toBeNull();
+  });
+
+  it("a Math table spec shows the calculator's table transfer control, fed from the spec", () => {
+    const { container } = render(<FigureFrame spec={TABLE} calculator alt="Table" />);
+    const control = container.querySelector('[data-testid="table-transfer"]');
+    expect(control).not.toBeNull();
+    expect(JSON.parse(control!.getAttribute("data-props")!)).toEqual({
+      rows: [["1", "2"]],
+      headers: ["x", "y"],
+      itemId: "table",
+    });
+  });
+
+  it("a Reading and Writing table spec has no transfer control", () => {
+    const { container } = render(<FigureFrame spec={TABLE} calculator={false} alt="Table" />);
+    expect(container.querySelector("table")).not.toBeNull();
+    expect(container.querySelector('[data-testid="table-transfer"]')).toBeNull();
+  });
+
+  it("a student surface gives Math table specs the control and Reading and Writing ones none", () => {
+    for (const [subject, count] of [
+      ["math", 1],
+      ["reading", 0],
+    ] as const) {
+      const q = toStudentQuizQuestion(question({ subject, figure_spec: TABLE }));
+      const { container, unmount } = render(
+        <CatalogQuestion question={q} answer="" disabled={false} onAnswer={vi.fn()} />
+      );
+      expect(container.querySelector("table")).not.toBeNull();
+      expect(container.querySelectorAll('[data-testid="table-transfer"]')).toHaveLength(count);
+      unmount();
+    }
   });
 
   it("invalid figure_spec renders nothing and logs one error, never a partial figure", () => {
