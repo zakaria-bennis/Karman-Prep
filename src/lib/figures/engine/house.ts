@@ -14,6 +14,10 @@ export const HOUSE = {
   arrowWidth: 6,
   tickLength: 6,
   margin: 16,
+  /** Radius of a plotted point's dot. */
+  pointRadius: 3,
+  /** Estimated text advance per character, as a fraction of the font size. */
+  charWidthEm: 0.6,
   /** Snapping tolerance as a fraction of the figure's larger side. */
   snapTolerance: 0.02,
 } as const;

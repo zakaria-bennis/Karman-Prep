@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { curveFor } from "@/lib/figures/engine/calc-adapter";
+import { HOUSE } from "@/lib/figures/engine/house";
 import { buildPlane } from "@/lib/figures/engine/plane";
 import type { SceneItem } from "@/lib/figures/engine/scene";
 import { FIGURE_SPEC_VERSION, type FigureSpec, type Part } from "@/lib/figures/engine/spec";
@@ -146,5 +147,72 @@ describe("buildPlane", () => {
     expect(yLabels.map((t) => t.text).sort()).toEqual([...want].sort());
     // The origin is labeled once.
     expect(texts.filter((t) => t.text === "0" || t.text === "O")).toHaveLength(1);
+  });
+
+  it("line through two very close points has arrows both and finite ends on the edge", () => {
+    const close = { kind: "point", id: "B", x: 1e-6, y: 1e-6 } as const;
+    const scene = buildPlane(plane([A, close, { kind: "line", id: "l", from: "A", to: "B" }]), BOX);
+    const [line] = byPart(scene.items, "l");
+    expect(line.arrows).toBe("both");
+    expect(line.d).not.toMatch(/Infinity|NaN/);
+    const vs = vertices(line.d);
+    expect(edgeOf(scene, ...vs[0])).toBe(true);
+    expect(edgeOf(scene, ...vs[vs.length - 1])).toBe(true);
+  });
+
+  it("line and ray with a sub-EPS direction (8e-10, 8e-10) stay finite and reach the edge", () => {
+    const tiny = { kind: "point", id: "B", x: 8e-10, y: 8e-10 } as const;
+    const scene = buildPlane(
+      plane([
+        A,
+        tiny,
+        { kind: "line", id: "l", from: "A", to: "B" },
+        { kind: "ray", id: "r", from: "A", to: "B" },
+      ]),
+      BOX
+    );
+    const [line] = byPart(scene.items, "l");
+    const [ray] = byPart(scene.items, "r");
+    expect(line.arrows).toBe("both");
+    expect(ray.arrows).toBe("end");
+    for (const item of [line, ray]) {
+      expect(item.d).not.toMatch(/Infinity|NaN/);
+      const vs = vertices(item.d);
+      expect(edgeOf(scene, ...vs[vs.length - 1])).toBe(true);
+    }
+    const rs = vertices(ray.d);
+    expect(rs[0][0]).toBeCloseTo(160, 1);
+    expect(rs[0][1]).toBeCloseTo(160, 1);
+    // The ray heads up and to the right: its end is at the top-right corner.
+    expect(rs[rs.length - 1][0]).toBeCloseTo(BOX.width - 16, 1);
+    expect(rs[rs.length - 1][1]).toBeCloseTo(16, 1);
+  });
+
+  it("first-quadrant 0..10 frame: every text item lies inside [0,width]×[0,height]", () => {
+    const frame = { x: [0, 10] as [number, number], y: [0, 10] as [number, number], step: 1 };
+    const scene = buildPlane(plane([], frame), BOX);
+    type TextItem = Extract<SceneItem, { t: "text" }>;
+    const texts = scene.items.filter((i): i is TextItem => i.t === "text");
+    expect(texts.some((t) => t.text === "10")).toBe(true);
+    for (const t of texts) {
+      const w = 0.6 * HOUSE.font * t.text.length;
+      const x0 = t.anchor === "start" ? t.x : t.anchor === "middle" ? t.x - w / 2 : t.x - w;
+      const x1 = x0 + w;
+      expect(x0, `${t.text} left`).toBeGreaterThanOrEqual(0);
+      expect(x1, `${t.text} right`).toBeLessThanOrEqual(scene.width);
+      expect(t.y - HOUSE.font, `${t.text} top`).toBeGreaterThanOrEqual(0);
+      expect(t.y, `${t.text} bottom`).toBeLessThanOrEqual(scene.height);
+    }
+  });
+
+  it("-10..10 frame in a 320px box labels every 2nd step", () => {
+    const frame = { x: [-10, 10] as [number, number], y: [-10, 10] as [number, number], step: 1 };
+    const scene = buildPlane(plane([], frame), BOX);
+    type TextItem = Extract<SceneItem, { t: "text" }>;
+    const xLabels = scene.items
+      .filter((i): i is TextItem => i.t === "text" && i.anchor === "middle")
+      .map((t) => Number(t.text))
+      .sort((a, b) => a - b);
+    expect(xLabels).toEqual([-10, -8, -6, -4, -2, 2, 4, 6, 8, 10]);
   });
 });

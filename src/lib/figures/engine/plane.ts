@@ -13,22 +13,32 @@ import type { FigureSpec, Part, PlaneFrame } from "./spec";
 
 type Box = { width: number; height: number };
 type Pt = [number, number];
+/** Distance in px from each box edge to the plot area. */
+type Inset = { left: number; right: number; top: number; bottom: number };
+type Mapper = ReturnType<typeof mapper>;
 
-const POINT_RADIUS = 3;
 const EPS = 1e-9;
+/** Coincidence tolerance, relative to the frame's larger span. */
+const REL_EPS = 1e-12;
 
-/** World-to-pixel mapping for the frame inside the box, less the house margin. */
-function mapper(frame: PlaneFrame, box: Box) {
-  const m = HOUSE.margin;
+const MARGIN_INSET: Inset = {
+  left: HOUSE.margin,
+  right: HOUSE.margin,
+  top: HOUSE.margin,
+  bottom: HOUSE.margin,
+};
+
+/** World-to-pixel mapping for the frame inside the box, less `inset` on each side. */
+function mapper(frame: PlaneFrame, box: Box, inset: Inset = MARGIN_INSET) {
   const [x0, x1] = frame.x;
   const [y0, y1] = frame.y;
-  const w = box.width - 2 * m;
-  const h = box.height - 2 * m;
+  const w = box.width - inset.left - inset.right;
+  const h = box.height - inset.top - inset.bottom;
   return {
     w,
     h,
-    px: (x: number) => m + ((x - x0) / (x1 - x0)) * w,
-    py: (y: number) => m + ((y1 - y) / (y1 - y0)) * h,
+    px: (x: number) => inset.left + ((x - x0) / (x1 - x0)) * w,
+    py: (y: number) => inset.top + ((y1 - y) / (y1 - y0)) * h,
   };
 }
 
@@ -36,7 +46,10 @@ const fmt = (n: number) => String(Math.round(n * 100) / 100);
 
 /**
  * Liang–Barsky: the parameter range [t0, t1] of p + t·d that lies inside the
- * frame, starting from [tMin, tMax], or null when none does.
+ * frame, starting from [tMin, tMax], or null when none does (or when the
+ * range stays unbounded, which only a zero direction can cause). Parallel
+ * means an exactly zero component, so a tiny direction still clips; callers
+ * with unbounded ranges pass a unit direction.
  */
 export function clipParam(
   p: Pt,
@@ -54,7 +67,7 @@ export function clipParam(
     [d[1], frame.y[1] - p[1]],
   ];
   for (const [q, r] of checks) {
-    if (Math.abs(q) < EPS) {
+    if (q === 0) {
       if (r < 0) return null;
       continue;
     }
@@ -67,6 +80,7 @@ export function clipParam(
       if (t < t1) t1 = t;
     }
   }
+  if (!Number.isFinite(t0) || !Number.isFinite(t1)) return null; // unbounded both ways
   return t0 <= t1 ? [t0, t1] : null;
 }
 
@@ -100,8 +114,8 @@ function clipPolyline(run: number[], frame: PlaneFrame): Pt[][] {
   return out;
 }
 
-function grid(frame: PlaneFrame, box: Box): SceneItem[] {
-  const { w, h, px, py } = mapper(frame, box);
+function grid(frame: PlaneFrame, m: Mapper): SceneItem[] {
+  const { w, h, px, py } = m;
   const step = frame.step;
   const xs = step ? multiples(frame.x, step) : axisTicks(frame.x[0], frame.x[1], w).major;
   const ys = step ? multiples(frame.y, step) : axisTicks(frame.y[0], frame.y[1], h).major;
@@ -151,8 +165,8 @@ function labelStep(range: [number, number], lengthPx: number, step?: number): nu
 
 const clamp = (v: number, [lo, hi]: [number, number]) => Math.min(hi, Math.max(lo, v));
 
-function axes(frame: PlaneFrame, box: Box): SceneItem[] {
-  const { w, h, px, py } = mapper(frame, box);
+function axes(frame: PlaneFrame, m: Mapper): SceneItem[] {
+  const { w, h, px, py } = m;
   const ax = clamp(0, frame.y); // the x-axis sits at y = 0, or the nearer frame edge
   const ay = clamp(0, frame.x);
   const font = HOUSE.font;
@@ -245,7 +259,7 @@ function axes(frame: PlaneFrame, box: Box): SceneItem[] {
   return items;
 }
 
-function pathOf(pts: Pt[], m: ReturnType<typeof mapper>): string {
+function pathOf(pts: Pt[], m: Mapper): string {
   return pts.map(([x, y], i) => `${i ? "L" : "M"}${fmt(m.px(x))} ${fmt(m.py(y))}`).join(" ");
 }
 
@@ -254,28 +268,36 @@ function straight(
   part: Extract<Part, { kind: "segment" | "ray" | "line" }>,
   points: Map<string, Pt>,
   frame: PlaneFrame,
-  m: ReturnType<typeof mapper>,
+  m: Mapper,
   issues: SceneIssue[]
 ): SceneItem | null {
   const a = points.get(part.from);
   const b = points.get(part.to);
   if (!a || !b) return null;
-  const d: Pt = [b[0] - a[0], b[1] - a[1]];
-  if (Math.hypot(d[0], d[1]) < EPS) {
+  const span = Math.max(frame.x[1] - frame.x[0], frame.y[1] - frame.y[0]);
+  const tol = REL_EPS * span;
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  if (!(len > tol)) {
     issues.push({ code: "off_line", partId: part.id, detail: "its two points coincide" });
     return null;
   }
+  // Clip along a unit direction, so t is a world distance and tiny offsets clip exactly.
+  const d: Pt = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
   const range =
-    part.kind === "segment" ? [0, 1] : part.kind === "ray" ? [0, Infinity] : [-Infinity, Infinity];
+    part.kind === "segment"
+      ? [0, len]
+      : part.kind === "ray"
+        ? [0, Infinity]
+        : [-Infinity, Infinity];
   const c = clipParam(a, d, frame, range[0], range[1]);
-  if (!c || c[1] - c[0] < EPS) {
+  if (!c || c[1] - c[0] < tol) {
     issues.push({ code: "clipped", partId: part.id, detail: "lies outside the frame" });
     return null;
   }
-  if (part.kind === "segment" && (c[0] > 0 || c[1] < 1)) {
+  if (part.kind === "segment" && (c[0] > tol || c[1] < len - tol)) {
     issues.push({ code: "clipped", partId: part.id, detail: "runs past the frame" });
   }
-  if (part.kind === "ray" && c[0] > 0) {
+  if (part.kind === "ray" && c[0] > tol) {
     issues.push({
       code: "clipped",
       partId: part.id,
@@ -283,6 +305,10 @@ function straight(
     });
   }
   const pts: Pt[] = [c[0], c[1]].map((t) => [a[0] + t * d[0], a[1] + t * d[1]] as Pt);
+  if (!pts.flat().every(Number.isFinite)) {
+    issues.push({ code: "clipped", partId: part.id, detail: "could not be clipped to the frame" });
+    return null;
+  }
   const item: SceneItem = {
     t: "path",
     d: pathOf(pts, m),
@@ -295,10 +321,10 @@ function straight(
   return item;
 }
 
-function dot([x, y]: Pt, m: ReturnType<typeof mapper>, partId: string): SceneItem {
+function dot([x, y]: Pt, m: Mapper, partId: string): SceneItem {
   const X = m.px(x);
   const Y = m.py(y);
-  const r = POINT_RADIUS;
+  const r = HOUSE.pointRadius;
   return {
     t: "path",
     d: `M${fmt(X - r)} ${fmt(Y)} A${r} ${r} 0 1 0 ${fmt(X + r)} ${fmt(Y)} A${r} ${r} 0 1 0 ${fmt(X - r)} ${fmt(Y)} Z`,
@@ -312,7 +338,7 @@ function dot([x, y]: Pt, m: ReturnType<typeof mapper>, partId: string): SceneIte
 function functionItems(
   part: Extract<Part, { kind: "function" }>,
   frame: PlaneFrame,
-  m: ReturnType<typeof mapper>,
+  m: Mapper,
   issues: SceneIssue[]
 ): SceneItem[] {
   let sub = frame;
@@ -350,16 +376,56 @@ function describePlane(spec: FigureSpec, frame: PlaneFrame): string {
   return what ? `${base}, showing ${what}.` : `${base}.`;
 }
 
+/** Estimated box [left, right, top, bottom] of a text item, in px. */
+function textBounds(t: Extract<SceneItem, { t: "text" }>): [number, number, number, number] {
+  const w = HOUSE.charWidthEm * HOUSE.font * t.text.length;
+  const x0 = t.anchor === "start" ? t.x : t.anchor === "middle" ? t.x - w / 2 : t.x - w;
+  // Cap height above the baseline, a descender's room below it.
+  return [x0, x0 + w, t.y - HOUSE.font, t.y + 0.25 * HOUSE.font];
+}
+
+/**
+ * The plot inset that keeps every axis label inside the box: the house margin,
+ * grown on any side where labels would hang past the edge (an axis on a frame
+ * edge, as in a first-quadrant plane). Labels keep their place outside the
+ * axes; the plot shrinks to make room. A few passes settle the mapping.
+ */
+function labelInset(frame: PlaneFrame, box: Box): Inset {
+  const inset = { ...MARGIN_INSET };
+  for (let pass = 0; pass < 4; pass++) {
+    const texts = axes(frame, mapper(frame, box, inset)).filter(
+      (i): i is Extract<SceneItem, { t: "text" }> => i.t === "text"
+    );
+    const over = { left: 0, right: 0, top: 0, bottom: 0 };
+    for (const t of texts) {
+      const [l, r, top, bottom] = textBounds(t);
+      over.left = Math.max(over.left, -l);
+      over.right = Math.max(over.right, r - box.width);
+      over.top = Math.max(over.top, -top);
+      over.bottom = Math.max(over.bottom, bottom - box.height);
+    }
+    let grew = false;
+    for (const side of ["left", "right", "top", "bottom"] as const) {
+      if (over[side] > 0.01) {
+        inset[side] += over[side];
+        grew = true;
+      }
+    }
+    if (!grew) break;
+  }
+  return inset;
+}
+
 /** The Scene of a `plane` FigureSpec drawn in `box`. */
 export function buildPlane(spec: FigureSpec, box: Box): Scene {
   const issues: SceneIssue[] = [];
   const frame: PlaneFrame = spec.frame ?? { x: [-10, 10], y: [-10, 10] };
   if (!spec.frame) issues.push({ code: "clipped", detail: "no frame given; using -10 to 10" });
-  const m = mapper(frame, box);
+  const m = mapper(frame, box, labelInset(frame, box));
   const points = new Map<string, Pt>();
   for (const p of spec.parts) if (p.kind === "point") points.set(p.id, [p.x, p.y]);
 
-  const items: SceneItem[] = [...grid(frame, box), ...axes(frame, box)];
+  const items: SceneItem[] = [...grid(frame, m), ...axes(frame, m)];
   const dots: SceneItem[] = [];
   for (const part of spec.parts) {
     switch (part.kind) {
