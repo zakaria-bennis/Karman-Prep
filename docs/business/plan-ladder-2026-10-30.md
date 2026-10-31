@@ -28,7 +28,7 @@ features:
 - **Built-in graphing calculator.**
 - **Your Daily 10.**
 - **Challenge question and Wordline.**
-- **Full-length tests:** timed, scored, with a score range.
+- **Full-length tests:** timed, scored, with a Karman predicted score.
 - **Progress and rewards:** skill levels, stats, streaks, tokens, boxes, the
   fox.
 - **Planning tools:** Score Plan, Test-Day Playbook, Ask Karman (coming 2027).

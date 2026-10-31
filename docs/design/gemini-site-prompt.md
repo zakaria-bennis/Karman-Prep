@@ -61,7 +61,7 @@ RULES (break none of them)
 - Text never overlaps text, and no fixed or sticky element ever sits over text being read, at any scroll position or screen size.
 - No before-and-after sliders, no scroll-driven bars or squares that fill up, no visible play or pause button on background film, no difficulty levels or skill maps on marketing pages.
 - Show the actual product on every page, not icons. Skeleton loaders for loading states.
-- No testimonials (none exist yet). No fake urgency. Score estimates only as labelled ranges. Never present any question as an official SAT or College Board question.
+- No testimonials (none exist yet). No fake urgency. Scores as one Karman predicted score, never called official. Never present any question as an official SAT or College Board question.
 - Footer links to Terms, Privacy and Cookie Policy. A consent banner only if a non-essential cookie is set, with Decline as easy as Accept.
 - Every button, link and redirect goes somewhere real.
 

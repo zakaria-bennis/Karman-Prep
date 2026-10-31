@@ -206,7 +206,7 @@ export const FREE_PRACTICE_TEST = {
   delivery: "Live on Zoom, with a live proctor.",
   cadence: "Every month.",
   includes: [
-    "An estimated score range",
+    "A Karman predicted score",
     "A domain-by-domain breakdown",
     "A 20-minute results call with a Karman tutor",
   ],

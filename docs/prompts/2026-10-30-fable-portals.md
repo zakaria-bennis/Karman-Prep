@@ -223,12 +223,19 @@ with it. Every answer saves:
 
 The full list is in Part 6 of that research.
 
-**Onboarding asks for real SAT and PSAT scores.** Students type in their
-section scores and test dates. There's also an optional photo upload of the
-score report. Reading the photo automatically is a later idea: the founder
-plans an image-reading service called Jev but doesn't have its API key yet.
-Build the upload so a reader can be plugged in later, and make sure typing the
-scores works fully without it.
+**Onboarding asks for real SAT and PSAT score reports, as a photo or screenshot
+only.** Students never type their scores. The image service Jev reads each
+report and:
+
+- pulls out the section scores, total and test date
+- can suggest which cohort the student fits, using the 1250 split
+- asks the student to retake the picture if it's blurry, cropped or doesn't
+  look like a real score report
+
+The founder doesn't have Jev's API key yet. Build the reader as one swappable
+piece. Until the key exists, uploads wait in the tutor or admin view, where a
+person reads the image and enters the score. Never store the image anywhere
+public, and treat it as private student data.
 
 **Endless mode.** A student starts a session and keeps answering. Each next
 question is chosen from:

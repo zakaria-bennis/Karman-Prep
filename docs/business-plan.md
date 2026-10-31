@@ -148,7 +148,7 @@ What each plan includes is in the plan ladder.
   and one Math module, about 49 questions, about 75 minutes), built from
   Karman's own questions and proctored live on Zoom, monthly.
   - The first one is Saturday, December 12, 2026.
-  - It includes an estimated score range, a domain breakdown and a 20-minute
+  - It includes a Karman predicted score, a domain breakdown and a 20-minute
     results call.
 - **35-question diagnostic.** Free with an account, any time.
 - **Challenge question.** One hard question a day, with streaks and a share
@@ -206,7 +206,8 @@ What each plan includes is in the plan ladder.
    a plan's start is labeled "coming" with a season.
 5. **Only original questions in public.** No College Board content on the
    site, in videos, or in the Challenge question.
-6. **Score estimates are ranges** and are called estimates.
+6. **Scores are Karman predicted scores**: one number, always labeled as
+   Karman's, never presented as official.
 7. **Never claim "cheapest".** Khan Academy, Bluebook and Varsity Tutors are
    free, so no paid plan is the cheapest.
 8. **Publish real results** once about 15 to 20 official scores exist: every

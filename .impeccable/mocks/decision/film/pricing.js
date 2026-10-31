@@ -52,7 +52,7 @@
   };
   const INCLUDES = {
     free: [
-      "An estimated score range",
+      "A Karman predicted score",
       "A domain-by-domain breakdown",
       "A 20-minute results call with a Karman tutor",
     ],

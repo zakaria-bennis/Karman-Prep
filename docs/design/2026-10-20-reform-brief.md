@@ -453,7 +453,7 @@ The spec's bank protection keeps answer keys off the client, so feedback has two
 
 - **Homepage chapter 9 card:** "You answered today's {skill} question. Correct." For a miss: "You chose {x}. The answer was {y}." plus the three return dates and the Daily 10 label. The return dates appear only for a missed question. The card fixes The Session's error of promising a return for a correct answer.
 - **In sessions:** a sentence comes first ("8 correct. Words in Context and Linear functions come back on Thursday."), then today's square fills (300ms) and level changes are listed.
-- **Free practice test and diagnostic:** the result is a labelled estimated range band growing out from its centre (600ms `--ease-expo`), plus eight domain bars filling 150ms apart. Never a single score counting up. Count-ups (800ms) are only for true counts.
+- **Free practice test and diagnostic:** the result is the Karman predicted score (one number) growing in from zero (600ms `--ease-expo`), plus eight domain bars filling 150ms apart. Never a single score counting up. Count-ups (800ms) are only for true counts.
 
 **E5. Section cards.** In a full-length test, moving from Reading and Writing to Math shows a full-bleed card ("Math, 22 questions, calculator allowed", from the real test spec), with a hard cut from bone to night. The heading rises from its mask (800ms `--ease-expo`). Continue appears after 900ms, and the timer starts only on Continue. Nothing auto-advances.
 
@@ -544,7 +544,7 @@ By portal:
   - The next full-length test (labelled "Coming, winter 2027" until built).
   - The last mistake review.
   - The test date in the side rail as a real date.
-  - Sessions use the shell, E1, E5, E6 and E4. Mistake-log rows grow into their review. Progress is the skill map and the labelled range band.
+  - Sessions use the shell, E1, E5, E6 and E4. Mistake-log rows grow into their review. Progress is the skill map and the Karman predicted score.
 - **Parent:** the weekly update in the finish-card layout (a sentence first, the practice-days strip, attendance, level changes), read-only.
 - **Tutor:** the same tokens and feedback timings, the review-note entry and skeletons. No scenes.
 - **The calculator is not touched.**
@@ -573,7 +573,7 @@ a fixed palette (design rules 41 to 48). Nothing has been generated.
 ### What stays honest
 
 - **No testimonials** until real, approved ones exist.
-- **The track record** always shows "Karman 1:1 tutoring, median 16 weeks" directly beside it. Score estimates are only labelled ranges, never a single number counting up.
+- **The track record** always shows "Karman 1:1 tutoring, median 16 weeks" directly beside it. Scores are one Karman predicted score (founder, 2026-10-30), never called official.
 - **Question count:** `bankCountLabel()` shows the live count rounded down (2,500+ today) and switches to "10,000+" only when it is true. The release can never be held up by hero copy.
 - **Unbuilt things carry "Coming, winter 2027"** from one status map: Daily 10, the in-app full-length test runner, and the mistake log if it is not live at release. Return dates appear only for a missed question and say "would come back in the March program".
 - **Dates** come from `COHORTS` and `PRACTICE_TESTS`, so nothing shows a date that has passed. No countdowns, nothing ticking. Seats show as five plus one scholarship seat from `offer.ts`, and "seats left" appears only from real enrollment data.

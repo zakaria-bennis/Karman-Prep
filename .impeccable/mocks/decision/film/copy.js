@@ -91,8 +91,8 @@ headline: What the nine weeks are for.
 headline: Texts from Karman 1:1 students, shared with permission.
 
 ## 11 The close
-headline: See their score range before you spend a dollar.
-text: December 12 at 10:00 a.m. ET, live on Zoom with a proctor. About 75 minutes, 49 of our own questions, then an estimated score range, a breakdown by domain and a 20-minute call to go through it.
+headline: See their predicted score before you spend a dollar.
+text: December 12 at 10:00 a.m. ET, live on Zoom with a proctor. About 75 minutes, 49 of our own questions, then a Karman predicted score, a breakdown by domain and a 20-minute call to go through it.
 objection: Already scoring 1500, or under four weeks from the test? We'll tell you a program probably isn't worth your money.
 button: Take the free practice test
 button note: Free. No card needed.
@@ -184,7 +184,7 @@ form done text: We'll email you times for the 20-minute call.
 ## 41 Test: opening
 eyebrow: Free practice test
 headline: A proctored practice SAT, free, on December 12.
-text: 75 minutes on Zoom with a live proctor. 49 questions written by Karman: one Reading and Writing module, one Math module. Then a score range, a breakdown by domain and a 20-minute call.
+text: 75 minutes on Zoom with a live proctor. 49 questions written by Karman: one Reading and Writing module, one Math module. Then a predicted score, a breakdown by domain and a 20-minute call.
 facts: Saturday, December 12 = 10:00 a.m. ET | About 75 minutes = 49 questions | Live on Zoom = With a proctor | $0 = No card needed
 
 ## 42 Test: the form
@@ -203,15 +203,15 @@ form done text: Check your inbox for the Zoom link. It comes from hello@karmanpr
 
 ## 43 Test: what you get
 headline: What you get back.
-rows: A score range = An estimate, given as a range, never a single number | A breakdown by domain = Which of the eight SAT domains cost the most points | A 20-minute call = A Karman tutor walks you through it and answers questions
+rows: A predicted score = Karman's prediction of the SAT score, from this test | A breakdown by domain = Which of the eight SAT domains cost the most points | A 20-minute call = A Karman tutor walks you through it and answers questions
 
 ## 44 Test: the sitting
 headline: How the sitting runs.
 rows: Join the Zoom = At 10:00 a.m. ET. The proctor checks everyone in | Reading and Writing = One timed module | Math = One timed module, with Desmos | Done = Your results come with a link to book the call
 
 ## 45 Test: honest note
-headline: An estimate, not a prediction.
-text: It's half the length of the SAT and built from our own questions, so the range is an estimate. That's why it's a range. We show it so you can judge the quality of our questions before you pay for anything.
+headline: Our prediction, not an official score.
+text: It's half the length of the SAT and built from our own questions, so the score is Karman's prediction, not a College Board score. We show it so you can judge the quality of our questions before you pay for anything.
 button: Save the seat
 
 ## 51 Guarantee: opening
@@ -252,7 +252,7 @@ proof: Karman's 1:1 students gained 285 points on average. Karman 1:1 tutoring, 
 
 ## 64 About: our own rules
 headline: Rules we hold our own marketing to.
-list: No testimonials until real ones exist | Every result says where it came from | Score estimates are always ranges | No countdown timers or fake deadlines | Every cohort's results published, dropouts included, once 15 to 20 official scores exist
+list: No testimonials until real ones exist | Every result says where it came from | Predicted scores are always labeled as Karman's, never official | No countdown timers or fake deadlines | Every cohort's results published, dropouts included, once 15 to 20 official scores exist
 
 ## 65 About: close
 headline: Start with one Saturday.

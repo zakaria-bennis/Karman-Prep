@@ -69,7 +69,7 @@ The ecosystem is sold as separate paths, not a ladder.
   away. Exclusivity comes only from true facts: six seats, the application,
   the intake rules. No countdowns, no invented scarcity.
 - **Free practice test:** available any time, taken in the browser, timed, scored
-  automatically with an estimated range and a skill breakdown. A 20-minute
+  automatically with a Karman predicted score and a skill breakdown. A 20-minute
   results call is optional and capped through Cal.com. The monthly live
   proctored session stays as an optional extra. Until the test runner exists,
   the free-test call to action goes to the diagnostic.
@@ -273,7 +273,7 @@ sign-up, or an on-page anchor.
 | Classes        | Schedule, joining links, recordings when they exist                                                      | Live (bookings, cohorts)                            |
 | Daily          | Daily Question, word game, word-part cards                                                               | Live                                                |
 | Messages       | Cohort chat and questions to the tutor                                                                   | Live (existing chat and moderation)                 |
-| Progress       | Score range estimate (labelled range), skill mastery by domain                                           | Live (`progress`, `mastered`), redesigned           |
+| Progress       | Karman predicted score (one number), skill mastery by domain                                             | Live (`progress`, `mastered`), redesigned           |
 | Settings       | Profile, test date, notifications, theme                                                                 | Live                                                |
 
 **Question bank design.** Two panes on desktop, stacked on phones:
