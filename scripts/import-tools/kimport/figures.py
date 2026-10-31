@@ -6,6 +6,15 @@
                 choices and answer so the review page renders the whole question
   status.json   {occurrence_id, status, round, claimed_by, submitted_file_sha256,
                  approved_file_sha256, history: [{at, decision, note, by}]}
+  figure.svg    the engine's render of figure_spec, written by submit (choice-<letter>.svg for
+                each choice_figure_spec), for the snapshot
+
+A new figure is a FigureSpec (`figure_spec`, or `choice_figure_spec` on each answer choice) with
+`transcribed_labels` beside it: every text printed in the original figure. `submit` runs the
+figure engine's checks on it (scripts/figures/check-spec.ts in FIGURE_ENGINE_DIR, which samples
+every function first) and refuses it on any issue, so it goes back to its reviewer and never
+reaches the founder; it then stores the sampled spec in figure.json. Hand-written `figure_svg`
+is refused.
 
 Statuses: drafting (a reviewer has it) -> ready_for_founder (submitted) ->
 approved | rejected (the founder, in /dev/figure-review). A rejected item goes
@@ -22,6 +31,7 @@ not change under it); here every read-modify-write holds a FileLock.
 """
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -38,6 +48,62 @@ FIGURE_STATUS = "figure_review"  # clusters.json status of a group grouped by te
 REPO = Path(__file__).resolve().parents[3]
 PIPELINE_FIGURES = Path("/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures")
 CHECK_TS = REPO / "scripts/import-tools/ts/check-figure.ts"
+# The figure engine is not on main yet (2026-10-31 ruling): its checker runs from the engine
+# worktree, or FIGURE_ENGINE_DIR. Drop this once the engine merges.
+DEFAULT_ENGINE_DIR = Path("/Users/zakariabennis/Karman-Prep/.claude/worktrees/figure-engine-spec")
+CHECK_SPEC = "scripts/figures/check-spec.ts"
+SVG_FILE = "figure.svg"
+
+
+def engine_dir() -> Path:
+    return Path(os.environ.get("FIGURE_ENGINE_DIR") or DEFAULT_ENGINE_DIR)
+
+
+def spec_check(figure_file: Path) -> dict:
+    """Run the engine's checks (check-spec.ts) on a FigureSpec figure.json: {ok, issues, svg, spec,
+    choices}, with every function sampled. Raises ValueError when they cannot run or cannot read
+    the spec."""
+    try:
+        r = subprocess.run(["npx", "--no-install", "tsx", CHECK_SPEC, str(Path(figure_file).resolve())],
+                           cwd=engine_dir(), capture_output=True, text=True, timeout=180)
+        out = json.loads(r.stdout.strip().splitlines()[-1])
+    except (OSError, subprocess.TimeoutExpired, ValueError, IndexError) as e:
+        raise ValueError(f"figure checks could not run in {engine_dir()}: {e}") from None
+    if r.returncode == 2 and out.get("errors"):
+        raise ValueError("the figure spec cannot be checked:\n  - " + "\n  - ".join(map(str, out["errors"])))
+    if r.returncode not in (0, 1) or not isinstance(out, dict) or "ok" not in out:
+        raise ValueError(f"figure checks failed: {(r.stderr or r.stdout).strip()[-300:]}")
+    return out
+
+
+def _issue_lines(result: dict) -> list[str]:
+    def line(prefix, i):
+        part = f" {i['partId']}" if i.get("partId") else ""
+        return f"{prefix}{i.get('code')}{part}: {i.get('detail')}"
+    lines = [line("", i) for i in result.get("issues") or []]
+    for c in result.get("choices") or []:
+        lines += [line(f"choice {c.get('letter')}: ", i) for i in c.get("issues") or []]
+    return lines
+
+
+def _store_checked(folder: Path, doc: dict, result: dict) -> None:
+    """figure.json with the sampled specs check-spec.ts returned, and their renders beside it
+    (renders from an earlier submit are removed first, so none is stale)."""
+    for stale in [folder / SVG_FILE, *folder.glob("choice-*.svg")]:
+        stale.unlink(missing_ok=True)
+    if doc.get("figure_spec") not in fg._EMPTY:
+        doc["figure_spec"] = result["spec"]
+        if result.get("svg"):
+            (folder / SVG_FILE).write_text(result["svg"], encoding="utf-8")
+    by_letter = {c.get("letter"): c for c in result.get("choices") or []}
+    for c in doc.get("answer_choices") or []:
+        got = by_letter.get(c.get("letter")) if isinstance(c, dict) else None
+        if got is None:
+            continue
+        c["choice_figure_spec"] = got["spec"]
+        if got.get("svg"):
+            (folder / f"choice-{c['letter']}.svg").write_text(got["svg"], encoding="utf-8")
+    atomic_write_json(folder / fg.FIGURE_FILE, doc)
 
 
 def render_errors(figure_file: Path) -> list[str]:
@@ -207,13 +273,29 @@ def submit(figures_dir: Path, occ_id: str, by: str, now: str) -> dict:
             doc = load_json(folder / fg.FIGURE_FILE)
         except (OSError, ValueError) as e:
             raise ValueError(f"{occ_id}: cannot read figure.json: {e}") from None
+        if isinstance(doc, dict) and doc.get("figure_svg") not in fg._EMPTY:
+            raise ValueError(f"{occ_id}: figure.json carries figure_svg; hand-written SVG is not accepted for new "
+                             "figures: write the figure as a FigureSpec (figure_spec) with transcribed_labels")
         problems = fg.validate_figure(doc, occ_id)
         if problems:
             raise ValueError(f"{occ_id}: figure.json is not ready:\n  - " + "\n  - ".join(problems))
-        drawn = render_errors(folder / fg.FIGURE_FILE)
-        if drawn:
-            raise ValueError(f"{occ_id}: the quiz renderer cannot draw this figure (it would show blank):\n  - "
-                             + "\n  - ".join(drawn))
+        result = None
+        if fg.has_figure_spec(doc):
+            try:
+                result = spec_check(folder / fg.FIGURE_FILE)
+            except ValueError as e:
+                raise ValueError(f"{occ_id}: {e}") from None
+            issues = _issue_lines(result)
+            if issues or not result.get("ok"):
+                raise ValueError(f"{occ_id}: the figure checks found problems; fix them and submit again:\n  - "
+                                 + "\n  - ".join(issues or ["the checks did not pass"]))
+        if doc.get("figure_spec") in fg._EMPTY:  # the question's own figure (or table choices), as before
+            drawn = render_errors(folder / fg.FIGURE_FILE)
+            if drawn:
+                raise ValueError(f"{occ_id}: the quiz renderer cannot draw this figure (it would show blank):\n  - "
+                                 + "\n  - ".join(drawn))
+        if result is not None:
+            _store_checked(folder, doc, result)
         if state == "rejected":
             status["round"] = int(status.get("round") or 1) + 1
         status.update({"status": "ready_for_founder", "submitted_file_sha256": fg.file_sha256(folder / fg.FIGURE_FILE),

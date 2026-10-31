@@ -138,6 +138,53 @@ class NumericGradingTest(unittest.TestCase):
         self.assertNotIn("numeric_rejects_sat_decimal", checks(mc()))
 
 
+PLANE = {"version": "figure-spec/1", "type": "plane", "parts": [], "labels": [], "marks": [],
+         "frame": {"x": [0, 1], "y": [0, 1]}}
+TABLE = {"version": "figure-spec/1", "type": "table", "parts": [{"kind": "table", "id": "t", "rows": [["1"]]}],
+         "labels": [], "marks": []}
+
+
+def with_choice_figures(row, **by_letter):
+    """`row` with choice fields set per letter: A={"choice_figure_spec": ...}."""
+    for c in row["answer_choices"]:
+        c.update(by_letter.get(c["letter"], {}))
+    return row
+
+
+class FigureChoiceTest(unittest.TestCase):
+    def test_certify_flags_graph_a_choices_with_no_figure(self):
+        row = math_row(choices=["Graph A", "Graph B.", "Table C", "Chart D"])
+        f = checks(row)
+        self.assertEqual(len(f["figure_choice_placeholder"]), 1)
+        self.assertIn("A, B, C, D", f["figure_choice_placeholder"][0])
+        self.assertEqual(qa_static.LEVELS["figure_choice_placeholder"], "fail")
+        # a choice that draws its figure (a spec, or a table) is not a placeholder
+        drawn = with_choice_figures(math_row(choices=["Graph A", "Graph B", "Figure C", "Figure D"]),
+                                    A={"choice_figure_spec": PLANE}, B={"choice_figure_spec": PLANE},
+                                    C={"choice_table_data": {"rows": [["1"]]}})
+        self.assertEqual(checks(drawn)["figure_choice_placeholder"], ["choice D: \"Figure D\" names a figure but draws none"])
+        for text in ("Graph A shows growth", "Graph E", "graphs A", "The table"):
+            self.assertNotIn("figure_choice_placeholder", checks(math_row(choices=[text, "2", "3", "4"])), text)
+
+    def test_certify_flags_a_mixed_set(self):
+        mixed = with_choice_figures(math_row(choices=["", "", "", ""]),
+                                    A={"choice_figure_spec": PLANE}, B={"choice_figure_spec": TABLE},
+                                    C={"choice_figure_spec": PLANE}, D={"choice_figure_spec": PLANE})
+        f = checks(mixed)
+        self.assertEqual(f["figure_choice_mixed"], ["tables (B) and drawn figures (A, C, D) in one choice set"])
+        self.assertEqual(qa_static.LEVELS["figure_choice_mixed"], "fail")
+        # a legacy choice table next to drawn specs is mixed too
+        legacy = with_choice_figures(math_row(choices=["", "", "", ""]), A={"choice_table_data": {"rows": [["1"]]}},
+                                     B={"choice_figure_spec": PLANE})
+        self.assertIn("figure_choice_mixed", checks(legacy))
+        all_drawn = with_choice_figures(math_row(choices=["", "", "", ""]),
+                                        **{L: {"choice_figure_spec": PLANE} for L in "ABCD"})
+        all_tables = with_choice_figures(math_row(choices=["", "", "", ""]),
+                                         **{L: {"choice_figure_spec": TABLE} for L in "ABCD"})
+        self.assertNotIn("figure_choice_mixed", checks(all_drawn))
+        self.assertNotIn("figure_choice_mixed", checks(all_tables))
+
+
 def live(n, stem, choices, key="B", passage=None, **extra):
     r = mc(n, stem=stem, choices=choices, key=key, passage=passage, publish_status="publish_ready", archived_at=None)
     r.update(extra)

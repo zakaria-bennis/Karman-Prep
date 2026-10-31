@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from kimport import figure_gate as fg, figures
 from tests import figure_fixtures as ffx
@@ -258,3 +259,145 @@ class RenderabilityTests(unittest.TestCase):
         self.assertTrue(s["history"][-1]["note"].startswith("renders blank: "))
         self.assertEqual(fg.read_status(self.figs / good)["status"], "ready_for_founder")
         self.assertEqual([i["id"] for i in figures.rework(self.figs)], [bad])
+
+
+TRIANGLE_SPEC = {"version": "figure-spec/1", "type": "geometry2d",
+                 "parts": [{"kind": "point", "id": "A", "x": 0, "y": 100}, {"kind": "point", "id": "B", "x": 120, "y": 100},
+                           {"kind": "point", "id": "C", "x": 0, "y": 0},
+                           {"kind": "polygon", "id": "T", "points": ["A", "B", "C"]}],
+                 "labels": [{"text": "A", "on": "A"}, {"text": "B", "on": "B"}, {"text": "C", "on": "C"}], "marks": []}
+PLANE_SPEC = {"version": "figure-spec/1", "type": "plane", "parts": [{"kind": "function", "id": "f", "latex": "y=x"}],
+              "labels": [], "marks": [], "frame": {"x": [0, 1], "y": [0, 1], "step": 1, "originLabel": False}}
+
+
+def spec_doc(occ, spec=TRIANGLE_SPEC, labels=("A", "B", "C")):
+    doc = table_doc(occ)
+    doc.update({"figure_kind": None, "figure_table_data": None, "figure_spec": spec, "transcribed_labels": list(labels)})
+    return doc
+
+
+def checked(ok=True, issues=(), spec=None, svg="<svg/>", choices=(), returncode=None):
+    """A check-spec.ts run as subprocess.run returns it."""
+    out = {"ok": ok, "issues": list(issues), "svg": svg, "spec": spec, "choices": list(choices)}
+    return subprocess.CompletedProcess([], 0 if ok else 1 if returncode is None else returncode,
+                                       json.dumps(out) + "\n", "")
+
+
+class SpecSubmit(unittest.TestCase):
+    """submit on a FigureSpec figure.json: the engine checks (scripts/figures/check-spec.ts, which
+    samples every function first), refusal on any issue or on figure_svg, the sampled spec stored."""
+
+    OCC = "2023-03_UNSPECIFIED_V1_Math_MUNSPECIFIED_Q01"
+    NOW = "2026-10-31T10:05:00Z"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.figs = Path(self.tmp.name)
+        self.addCleanup(self.tmp.cleanup)
+        self.folder = self.figs / self.OCC
+
+    def write(self, doc):
+        ffx.write_figure(self.figs, self.OCC, doc, status="drafting")
+
+    def run_submit(self, result):
+        with mock.patch.object(figures.subprocess, "run", return_value=result) as run:
+            return figures.submit(self.figs, self.OCC, "r1", self.NOW), run
+
+    def status(self):
+        return fg.read_status(self.folder)["status"]
+
+    def test_submit_refuses_figure_svg(self):
+        doc = table_doc(self.OCC)
+        doc.update({"figure_kind": "image", "figure_table_data": None, "figure_svg": SVG, "image_alt": "A line."})
+        self.write(doc)
+        with mock.patch.object(figures.subprocess, "run") as run:
+            with self.assertRaisesRegex(ValueError, "figure_svg"):
+                figures.submit(self.figs, self.OCC, "r1", self.NOW)
+            run.assert_not_called()
+        self.write({**spec_doc(self.OCC), "figure_svg": SVG})  # a spec does not excuse it either
+        with self.assertRaisesRegex(ValueError, "figure_svg"):
+            figures.submit(self.figs, self.OCC, "r1", self.NOW)
+        self.assertEqual(self.status(), "drafting")
+
+    def test_submit_refuses_a_spec_with_issues(self):
+        self.write(spec_doc(self.OCC))
+        before = (self.folder / "figure.json").read_bytes()
+        issues = [{"code": "off_line", "partId": "P", "detail": 'declared on "k" but drawn 9px off it'},
+                  {"code": "missing_label", "detail": '"12" from the original is not drawn'}]
+        with self.assertRaises(ValueError) as e:
+            self.run_submit(checked(ok=False, issues=issues))
+        self.assertIn("off_line P: declared on", str(e.exception))
+        self.assertIn('missing_label: "12" from the original is not drawn', str(e.exception))
+        self.assertEqual(self.status(), "drafting")
+        self.assertEqual((self.folder / "figure.json").read_bytes(), before)
+        self.assertFalse((self.folder / "figure.svg").exists())
+
+    def test_submit_refuses_issues_on_a_figure_choice(self):
+        doc = table_doc(self.OCC)
+        doc["answer_choices"][0].update({"choice_text": "", "choice_figure_spec": PLANE_SPEC, "transcribed_labels": []})
+        self.write(doc)
+        choice = {"letter": "A", "ok": False, "svg": "<svg/>", "spec": PLANE_SPEC,
+                  "issues": [{"code": "unsampled_function", "partId": "f", "detail": "has no samples"}]}
+        with self.assertRaisesRegex(ValueError, "choice A: unsampled_function f"):
+            self.run_submit(checked(ok=False, spec=None, svg=None, choices=[choice]))
+        self.assertEqual(self.status(), "drafting")
+
+    def test_submit_stores_the_sampled_spec(self):
+        self.write(spec_doc(self.OCC, PLANE_SPEC, ("x", "y", "1", "1")))
+        filled = {**PLANE_SPEC, "parts": [{**PLANE_SPEC["parts"][0], "samples": [[[0, 0], [1, 1]]]}]}
+        with mock.patch.dict(figures.os.environ, {"FIGURE_ENGINE_DIR": "/elsewhere/engine"}):
+            s, run = self.run_submit(checked(spec=filled, svg="<svg>drawn</svg>"))
+        # one run: check-spec.ts samples the functions, then checks the filled spec
+        (args,), kwargs = run.call_args
+        self.assertEqual(args[-2:], ["scripts/figures/check-spec.ts", str((self.folder / "figure.json").resolve())])
+        self.assertEqual(kwargs["cwd"], Path("/elsewhere/engine"))
+        stored = json.loads((self.folder / "figure.json").read_text())
+        self.assertEqual(stored["figure_spec"], filled)
+        self.assertEqual(stored["transcribed_labels"], ["x", "y", "1", "1"])
+        self.assertEqual((self.folder / "figure.svg").read_text(), "<svg>drawn</svg>")
+        self.assertEqual(s["status"], "ready_for_founder")
+        self.assertEqual(s["submitted_file_sha256"], fg.file_sha256(self.folder / "figure.json"))
+
+    def test_submit_stores_sampled_choice_specs(self):
+        doc = table_doc(self.OCC)
+        for c in doc["answer_choices"]:
+            c.update({"choice_text": "", "choice_figure_spec": PLANE_SPEC, "transcribed_labels": []})
+        self.write(doc)
+        filled = {**PLANE_SPEC, "parts": [{**PLANE_SPEC["parts"][0], "samples": [[[0, 0], [1, 1]]]}]}
+        choices = [{"letter": L, "ok": True, "issues": [], "svg": f"<svg>{L}</svg>", "spec": filled} for L in "ABCD"]
+        (self.folder / "figure.svg").write_text("<svg>from an earlier submit</svg>")
+        self.run_submit(checked(spec=None, svg=None, choices=choices))
+        stored = json.loads((self.folder / "figure.json").read_text())
+        self.assertEqual([c["choice_figure_spec"] for c in stored["answer_choices"]], [filled] * 4)
+        self.assertEqual((self.folder / "choice-C.svg").read_text(), "<svg>C</svg>")
+        self.assertFalse((self.folder / "figure.svg").exists())
+
+    def test_spec_needs_its_transcription_and_no_legacy_fields(self):
+        doc = spec_doc(self.OCC)
+        del doc["transcribed_labels"]
+        self.assertTrue(any("transcribed_labels" in p for p in fg.validate_figure(doc, self.OCC)))
+        both = {**spec_doc(self.OCC), "figure_table_data": table_doc(self.OCC)["figure_table_data"]}
+        self.assertTrue(any("figure_table_data is set" in p for p in fg.validate_figure(both, self.OCC)))
+        self.assertEqual(fg.validate_figure(spec_doc(self.OCC), self.OCC), [])
+
+    def test_a_spec_the_checker_cannot_read_is_refused(self):
+        self.write(spec_doc(self.OCC))
+        bad = subprocess.CompletedProcess([], 2, json.dumps({"ok": False, "errors": ['part "P": bad']}) + "\n", "")
+        with self.assertRaisesRegex(ValueError, 'part "P": bad'):
+            self.run_submit(bad)
+        self.assertEqual(self.status(), "drafting")
+
+    @unittest.skipUnless((figures.engine_dir() / "scripts/figures/check-spec.ts").is_file(),
+                         "the figure engine worktree is not here")
+    def test_real_engine_samples_checks_and_stores(self):
+        self.write(spec_doc(self.OCC, PLANE_SPEC, ("x", "y", "1", "1")))
+        s = figures.submit(self.figs, self.OCC, "r1", self.NOW)
+        self.assertEqual(s["status"], "ready_for_founder")
+        part = json.loads((self.folder / "figure.json").read_text())["figure_spec"]["parts"][0]
+        self.assertGreater(len(part["samples"][0]), 1)
+        self.assertTrue((self.folder / "figure.svg").read_text().startswith("<svg"))
+        # the same figure with a label the original does not print goes back to its reviewer
+        other = self.figs / "2023-03_UNSPECIFIED_V1_Math_MUNSPECIFIED_Q02"
+        ffx.write_figure(self.figs, other.name, spec_doc(other.name, PLANE_SPEC, ("x", "1", "1")), status="drafting")
+        with self.assertRaisesRegex(ValueError, "not in original"):
+            figures.submit(self.figs, other.name, "r1", self.NOW)

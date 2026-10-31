@@ -24,6 +24,12 @@ the whole live bank and runs only where the bank is read (qa_static.run_static, 
   and a new row or QA correction that is the same question as a live row (kimport.bank_gate).
 - key_conflicts_printed_twin (fail): a generated key that keys another choice text than a
   printed-key twin (kimport.qa_keys), in certify and against the live bank (kimport.bank_gate).
+- figure_choice_placeholder (fail): a choice whose text only names a figure ("Graph A",
+  "Table B.", "Figure C", "Chart D") and draws none (no choice_figure_spec, no choice_table_data):
+  the student sees the name and no graph (figure engine spec, section 2).
+- figure_choice_mixed (fail): one choice set that mixes tables (a table choice_figure_spec, or a
+  choice_table_data) with drawn figures (any other choice_figure_spec); the choices of one question
+  share one frame, and a table has none.
 """
 
 import re
@@ -31,7 +37,8 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 from fractions import Fraction
 
 LEVELS = {"plain_text_math": "fail", "money_as_math": "fail", "copyright_line": "fail",
-          "live_duplicate": "fail", "key_conflicts_printed_twin": "fail", "numeric_rejects_sat_decimal": "review"}
+          "live_duplicate": "fail", "key_conflicts_printed_twin": "fail", "numeric_rejects_sat_decimal": "review",
+          "figure_choice_placeholder": "fail", "figure_choice_mixed": "fail"}
 
 # ---- plain-text math -------------------------------------------------------------------------
 
@@ -294,6 +301,38 @@ def numeric_grading(row: dict, f: dict, add) -> None:
             f"tolerance {row.get('numeric_tolerance') or 0})")
 
 
+# ---- figure answer choices ------------------------------------------------------------------
+
+_PLACEHOLDER = re.compile(r"^(Graph|Table|Figure|Chart)\s+[A-D]\.?$")
+_NONE = (None, "", [], {})
+
+
+def _spec_type(spec):
+    return spec.get("type") if isinstance(spec, dict) else None
+
+
+def figure_choices(row: dict, f: dict, add) -> None:
+    choices = [c for c in row.get("answer_choices") or [] if isinstance(c, dict)]
+    empty = [c.get("letter") for c in choices
+             if isinstance(c.get("choice_text"), str) and _PLACEHOLDER.match(c["choice_text"].strip())
+             and c.get("choice_figure_spec") in _NONE and c.get("choice_table_data") in _NONE]
+    if len(empty) == 1:
+        c = next(c for c in choices if c.get("letter") == empty[0])
+        add(f, "figure_choice_placeholder", f'choice {empty[0]}: "{c["choice_text"].strip()}" names a figure but draws none')
+    elif empty:
+        add(f, "figure_choice_placeholder", f"choices {', '.join(map(str, empty))} name a figure but draw none")
+    tables, drawn = [], []
+    for c in choices:
+        spec = c.get("choice_figure_spec")
+        if spec not in _NONE:
+            (tables if _spec_type(spec) == "table" else drawn).append(str(c.get("letter")))
+        elif c.get("choice_table_data") not in _NONE:
+            tables.append(str(c.get("letter")))
+    if tables and drawn:
+        add(f, "figure_choice_mixed",
+            f"tables ({', '.join(tables)}) and drawn figures ({', '.join(drawn)}) in one choice set")
+
+
 # ---- the row checks, as audit_rows runs them -------------------------------------------------
 
 def check_row(row: dict, fields, f: dict, add) -> None:
@@ -305,3 +344,4 @@ def check_row(row: dict, fields, f: dict, add) -> None:
         money_as_math(name, raw, f, add)
         copyright_line(name, shown, f, add)
     numeric_grading(row, f, add)
+    figure_choices(row, f, add)

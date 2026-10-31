@@ -283,6 +283,20 @@ def svg_problems(svg) -> list[str]:
     return sorted(set(out))
 
 
+def has_figure_spec(doc: dict) -> bool:
+    """figure.json draws with the figure engine: a figure_spec, or a choice_figure_spec on a choice."""
+    return doc.get("figure_spec") not in _EMPTY or any(
+        isinstance(c, dict) and c.get("choice_figure_spec") not in _EMPTY for c in doc.get("answer_choices") or ())
+
+
+def _transcription_problems(holder: dict, what: str) -> list[str]:
+    labels = holder.get("transcribed_labels")
+    if isinstance(labels, list) and all(isinstance(t, str) for t in labels):
+        return []
+    return [f"{what} needs transcribed_labels: every text printed in the original figure, repeats included "
+            "([] when it prints none)"]
+
+
 def validate_figure(doc, occ_id: str) -> list[str]:
     """Every problem that keeps figure.json from rendering in the quiz as the pilot standard
     requires; an empty list means it can go to the founder."""
@@ -294,23 +308,29 @@ def validate_figure(doc, occ_id: str) -> list[str]:
     if doc.get("occurrence_id") != occ_id:
         out.append(f"occurrence_id must be {occ_id}")
     kind = doc.get("figure_kind")
-    if kind not in KINDS and _choice_tables(doc) is None:
-        out.append(f"figure_kind must be one of {', '.join(KINDS)} (or null with table choices)")
     wanted = {"table": "figure_table_data", "chart": "figure_chart_data", "geometric": "figure_geometry_data",
               "image": "figure_svg"}
-    for k, field in wanted.items():
-        if kind != k and doc.get(field) not in _EMPTY:
-            out.append(f"{field} is set but figure_kind is {kind!r}")
-    if kind == "table":
-        out += _table_problems(doc.get("figure_table_data"), "figure_table_data")
-    elif kind == "chart":
-        out += _chart_problems(doc.get("figure_chart_data"))
-    elif kind == "geometric":
-        out += _geometry_problems(doc.get("figure_geometry_data"))
-    elif kind == "image":
-        out += svg_problems(doc.get("figure_svg"))
-        if not isinstance(doc.get("image_alt"), str) or not doc["image_alt"].strip():
-            out.append("image_alt (a short description of the figure) is required for an SVG figure")
+    if doc.get("figure_spec") not in _EMPTY:
+        # The engine draws it, and check-spec.ts (k figures submit) checks the spec itself.
+        out += _transcription_problems(doc, "figure_spec")
+        out += [f"{field} is set but figure_spec draws the figure"
+                for field in wanted.values() if doc.get(field) not in _EMPTY]
+    else:
+        if kind not in KINDS and _choice_tables(doc) is None and not has_figure_spec(doc):
+            out.append(f"figure_kind must be one of {', '.join(KINDS)} (or null with table or figure choices)")
+        for k, field in wanted.items():
+            if kind != k and doc.get(field) not in _EMPTY:
+                out.append(f"{field} is set but figure_kind is {kind!r}")
+        if kind == "table":
+            out += _table_problems(doc.get("figure_table_data"), "figure_table_data")
+        elif kind == "chart":
+            out += _chart_problems(doc.get("figure_chart_data"))
+        elif kind == "geometric":
+            out += _geometry_problems(doc.get("figure_geometry_data"))
+        elif kind == "image":
+            out += svg_problems(doc.get("figure_svg"))
+            if not isinstance(doc.get("image_alt"), str) or not doc["image_alt"].strip():
+                out.append("image_alt (a short description of the figure) is required for an SVG figure")
     if not isinstance(doc.get("question_text"), str) or not doc["question_text"].strip():
         out.append("question_text is empty")
     if not isinstance(doc.get("subject"), str) or not doc["subject"]:
@@ -324,7 +344,11 @@ def validate_figure(doc, occ_id: str) -> list[str]:
             if not isinstance(c, dict):
                 continue
             table = c.get("choice_table_data")
-            if table not in _EMPTY:
+            if c.get("choice_figure_spec") not in _EMPTY:
+                out += _transcription_problems(c, f"choice {c.get('letter')} choice_figure_spec")
+                if table not in _EMPTY:
+                    out.append(f"choice {c.get('letter')} has both choice_figure_spec and choice_table_data")
+            elif table not in _EMPTY:
                 out += _table_problems(table, f"choice {c.get('letter')} choice_table_data")
             elif not isinstance(c.get("choice_text"), str) or not c["choice_text"].strip():
                 out.append(f"choice {c.get('letter')} has no text and no table")
