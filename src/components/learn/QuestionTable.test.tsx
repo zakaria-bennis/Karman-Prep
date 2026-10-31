@@ -150,7 +150,7 @@ describe("QuestionTable — wide tables", () => {
     expect(th.className).toContain("text-base");
     expect(th.className).not.toContain("whitespace-nowrap");
     // The sideways scroll lives inside the frame, not on the frame itself.
-    expect(container.querySelector("figure > div")?.className).toContain("overflow-x-auto");
+    expect(container.querySelector("[role=region]")?.className).toContain("overflow-x-auto");
     expect(container.querySelector("figure")?.className).not.toContain("overflow-x-auto");
   });
 });

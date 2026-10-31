@@ -78,12 +78,27 @@ function isWholeMath(text: string) {
   return /^\$[^$]+\$$/.test(text) || /^\\\(.+\\\)$/.test(text) || /^\$\$[\s\S]+\$\$$/.test(text);
 }
 
-/** Splits a number at its decimal point; a leading hyphen becomes a minus sign. */
+/**
+ * Splits a number into the part left of its decimal point and the rest, and turns a
+ * leading hyphen into a minus sign. A number without a point splits after its leading
+ * digits, so a suffix ("%", ")", "¢", a range's "-81") sits right of where the point
+ * would be, and "12%" lines up with "12.5%".
+ */
 export function splitDecimal(text: string): { int: string; frac: string } {
   const number = text.trim().replace(/^-/, "−");
   const point = number.search(/\.\d/);
-  if (point < 0) return { int: number, frac: "" };
-  return { int: number.slice(0, point), frac: number.slice(point) };
+  if (point >= 0) return { int: number.slice(0, point), frac: number.slice(point) };
+  const lead = number.match(/^[-−+$€£(]?\d(?:[\d,]|\s(?=\d))*/);
+  if (!lead) return { int: number, frac: "" };
+  return { int: lead[0], frac: number.slice(lead[0].length) };
+}
+
+/** Which edges have more content past them while a frame scrolls (drives the fades). */
+export function scrollEdges(scrollLeft: number, clientWidth: number, scrollWidth: number) {
+  return {
+    left: scrollLeft > 1,
+    right: scrollLeft + clientWidth < scrollWidth - 1,
+  };
 }
 
 /**
@@ -142,13 +157,19 @@ export function layoutTable(spec: FigureSpec): TableModel {
     ? part.header.map((h) => ({ text: tightenUnits(h), align: "center" as const }))
     : null;
   const rows = part.rows.map((row) => row.map(classify));
-  const columnCount = Math.max(header?.length ?? 0, ...rows.map((r) => r.length), 1);
+  const groups = part.groups?.length ? part.groups : null;
+  const columnCount = Math.max(
+    header?.length ?? 0,
+    groups ? groups.reduce((n, g) => n + g.span, 0) : 0,
+    ...rows.map((r) => r.length),
+    1
+  );
   return {
     title: spec.title || undefined,
     note: part.note || undefined,
-    groups: part.groups?.length ? part.groups : null,
+    groups,
     header,
-    blankCorner: Boolean(header && part.blankCorner),
+    blankCorner: Boolean(header && (part.blankCorner || header[0].text.trim() === "")),
     rows,
     columnCount,
     rowHeaders: Boolean(header && header.length > 1),

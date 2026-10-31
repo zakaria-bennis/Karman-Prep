@@ -2,7 +2,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { act, fireEvent, render } from "@testing-library/react";
 import MathText from "@/components/learn/MathText";
 import TableView from "@/components/learn/figures/TableView";
 import { tableDataToSpec, TableDataError } from "@/lib/figures/engine/from-table-data";
@@ -106,7 +106,36 @@ describe("tables", () => {
     expect(splitDecimal("-2.08")).toEqual({ int: "−2", frac: ".08" });
     expect(splitDecimal("$141,510")).toEqual({ int: "$141,510", frac: "" });
     expect(splitDecimal("12.5%")).toEqual({ int: "12", frac: ".5%" });
-    expect(splitDecimal("1980–81")).toEqual({ int: "1980–81", frac: "" });
+    expect(splitDecimal("12%")).toEqual({ int: "12", frac: "%" });
+    expect(splitDecimal("(3)")).toEqual({ int: "(3", frac: ")" });
+    expect(splitDecimal("(3.5)")).toEqual({ int: "(3", frac: ".5)" });
+    expect(splitDecimal("1980–81")).toEqual({ int: "1980", frac: "–81" });
+  });
+
+  it.each([
+    [
+      ["12%", "12.5%", "3%"],
+      ["12", "12", "3"],
+    ],
+    [
+      ["(3)", "(3.5)", "(12)"],
+      ["(3", "(3", "(12"],
+    ],
+    [
+      ["3-5", "2.5", "10"],
+      ["3", "2", "10"],
+    ],
+  ])("a suffix sits right of the point, so %j share one decimal x", (values, ints) => {
+    const spec = tableDataToSpec({ header_row: ["Value"], rows: values.map((v) => [v]) });
+    const { container } = render(<TableView spec={spec} renderMath={false} />);
+    const cells = column(container, 0);
+    const intBoxes = cells.map((td) => td.querySelector<HTMLElement>("[data-int]")!);
+    // The point (or where it would be) is the right edge of the integer box: one width for all.
+    expect(new Set(intBoxes.map((b) => b.style.minWidth)).size).toBe(1);
+    expect(intBoxes.map((b) => b.textContent)).toEqual(ints);
+    const layout = layoutTable(spec).decimal[0]!;
+    for (const b of intBoxes) expect(textWidthEm(b.textContent!)).toBeLessThanOrEqual(layout.intEm);
+    expect(cells.map((td) => td.textContent)).toEqual(values.map((v) => v.replace(/^-/, "−")));
   });
 
   it("text cells are left-aligned", () => {
@@ -146,9 +175,14 @@ describe("tables", () => {
       "Total",
     ]);
     expect(getAllByRole("rowheader").map((th) => th.textContent)).toEqual(["Male", "Female"]);
-    // Old data marks the corner with an empty first heading.
+    // Old data marks the corner with an empty first heading, even in a one-cell header.
     const part = tableDataToSpec({ header_row: ["", "Black"], rows: [["Male", "4"]] }).parts[0];
     expect(part).toMatchObject({ kind: "table", blankCorner: true });
+    const single = tableDataToSpec({ header_row: [""], rows: [["4"]] });
+    expect(single.parts[0]).toMatchObject({ blankCorner: true });
+    const { container: one } = render(<TableView spec={single} renderMath={false} />);
+    expect(one.querySelector("thead th")).toBeNull();
+    expect(one.querySelector("thead td[data-table-corner]")).not.toBeNull();
   });
 
   it("math in cells is typeset like question text", () => {
@@ -183,6 +217,58 @@ describe("tables", () => {
       }
       unmount();
     }
+  });
+
+  it("the scroll frame is a named, focusable region a keyboard can scroll", () => {
+    const { container } = render(<TableView spec={tableDataToSpec(fixture(LAKES))} />);
+    const frame = container.querySelector("table")!.parentElement!;
+    expect(frame.tabIndex).toBe(0);
+    expect(frame.getAttribute("role")).toBe("region");
+    expect(frame.getAttribute("aria-label")).toBe(
+      "Days per Winter That Lakes Have Surface Ice, scrollable table"
+    );
+    expect(frame.className).toContain("focus-visible:ring-[color:var(--figure-highlight)]");
+    const { container: choice } = render(
+      <TableView spec={twoWay} ariaLabel="Choice A data table" renderMath={false} />
+    );
+    expect(choice.querySelector("[role=region]")!.getAttribute("aria-label")).toBe(
+      "Choice A data table, scrollable table"
+    );
+  });
+
+  it("fades the edge with more content past it, and keeps the title and note in view", () => {
+    const { container } = render(<TableView spec={tableDataToSpec(fixture(LAKES))} />);
+    const frame = container.querySelector<HTMLElement>("[role=region]")!;
+    const fade = (side: string) =>
+      container.querySelector(`[data-fade=${side}]`)!.getAttribute("data-shown");
+    expect(fade("right")).toBe("false");
+    const size = { scrollLeft: 0, clientWidth: 300, scrollWidth: 600 };
+    for (const key of Object.keys(size) as (keyof typeof size)[])
+      Object.defineProperty(frame, key, { configurable: true, get: () => size[key] });
+    act(() => void fireEvent.scroll(frame));
+    expect(fade("right")).toBe("true");
+    expect(fade("left")).toBe("false");
+    const title = container.querySelector<HTMLElement>("caption > span")!;
+    expect(title.className).toContain("sticky");
+    expect(title.style.width).toBe("300px");
+    size.scrollLeft = 300;
+    act(() => void fireEvent.scroll(frame));
+    expect(fade("right")).toBe("false");
+    expect(fade("left")).toBe("true");
+    // The note stays in view the same way.
+    const { container: noted } = render(
+      <TableView spec={tableDataToSpec(fixture("53478b9e-852b-4a01-86b7-f4f57f510b67"))} />
+    );
+    expect(noted.querySelector("tfoot span.sticky")?.textContent).toContain("rounded");
+  });
+
+  it("an empty table renders with a clear no-data row", () => {
+    const spec = tableDataToSpec({ header_row: ["x", "y"], rows: [] });
+    const { container } = render(<TableView spec={spec} renderMath={false} />);
+    expect(container.querySelectorAll("thead th")).toHaveLength(2);
+    const empty = container.querySelector<HTMLElement>("td[data-table-empty]")!;
+    expect(empty.textContent).toBe("No data");
+    expect(empty.getAttribute("colspan")).toBe("2");
   });
 
   it("merged headings span their columns, with one header style", () => {
@@ -234,7 +320,8 @@ describe("tables", () => {
 
   it("refuses data that is not a table", () => {
     expect(() => tableDataToSpec({ rows: "nope" })).toThrow(TableDataError);
-    expect(() => tableDataToSpec({ rows: [] })).toThrow(TableDataError);
+    expect(() => tableDataToSpec({ rows: [["1"], [2, null]] })).not.toThrow();
+    expect(() => tableDataToSpec(null)).toThrow(TableDataError);
   });
 });
 

@@ -4,6 +4,7 @@
  *
  * - `rows` and `header_row` carry over cell for cell (an empty header row is none);
  * - an empty first heading ("" over the row labels) sets `blankCorner`;
+ * - `rows: []` is kept (an empty table shows "No data");
  * - `header_groups` become `groups` (a missing label is a blank cell);
  * - `caption` becomes the spec's `title`, `footer_note` the table's `note`.
  *
@@ -30,7 +31,8 @@ const tableDataSchema = z.object({
     .array(z.object({ label: z.string().nullish(), span: z.number().finite() }))
     .nullish(),
   header_row: z.array(cell).nullish(),
-  rows: z.array(z.array(cell)).min(1, "a table needs at least one row"),
+  // An empty table is still a table: TableView shows "No data" in its body.
+  rows: z.array(z.array(cell)),
   footer_note: z.string().nullish(),
 });
 
@@ -48,7 +50,7 @@ export function tableDataToSpec(data: unknown): FigureSpec {
     id: "t1",
     rows,
     ...(header ? { header } : {}),
-    ...(header && header.length > 1 && header[0].trim() === "" ? { blankCorner: true } : {}),
+    ...(header && header[0].trim() === "" ? { blankCorner: true } : {}),
     ...(header_groups?.length
       ? {
           groups: header_groups.map((g) => ({
