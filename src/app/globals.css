@@ -402,15 +402,33 @@ html.dark {
   --figure-cf-grid: var(--figure-axis);
   --figure-text: rgb(var(--k-ivory));
   --figure-axis: rgb(var(--k-taupe));
-  --figure-grid: rgb(var(--k-bronze));
   --figure-math: rgb(var(--k-math));
   --figure-reading: rgb(var(--k-rw));
   --figure-gold: rgb(var(--k-gold));
   --figure-grid-opacity: 0.72;
 }
+/* Figure engine roles (src/lib/figures/engine). SAT look: plain dark lines on
+   light, inverted in dark mode. Light values sit on :root, dark on html.dark. */
+:root {
+  --figure-ink: rgb(var(--k-night));
+  --figure-ink-muted: rgb(var(--k-night) / 0.62);
+  --figure-grid: rgb(var(--k-night) / 0.16);
+  --figure-fill-faint: rgb(var(--k-night) / 0.06);
+  --figure-fill-shade: rgb(var(--k-night) / 0.14);
+  --figure-highlight: color-mix(in srgb, rgb(var(--k-math)) 65%, rgb(var(--k-night)));
+}
+html.dark {
+  --figure-ink: rgb(var(--k-ivory));
+  --figure-ink-muted: rgb(var(--k-ivory) / 0.68);
+  --figure-grid: rgb(var(--k-ivory) / 0.18);
+  --figure-fill-faint: rgb(var(--k-ivory) / 0.07);
+  --figure-fill-shade: rgb(var(--k-ivory) / 0.16);
+  --figure-highlight: rgb(var(--k-math-glow));
+}
+
 .themed-question-figure {
   background: var(--figure-background);
-  border-color: var(--figure-grid);
+  border-color: rgb(var(--k-bronze));
   color: var(--figure-text);
 }
 .themed-question-figure svg {
