@@ -399,3 +399,45 @@ describe("buildGeometry2d", () => {
     expect(buildGeometry2d(spec, BOX).description).toBe("Triangle ABC, right angle at C, AB = 13.");
   });
 });
+
+// Found in the Task 12 golden review (lines r and s cut by t, 2024-05 Asia V2 M2 Q9).
+describe("buildGeometry2d lines cut by a transversal", () => {
+  const spec = geo(
+    [
+      pt("r1", 0, 0),
+      pt("r2", 0, 200),
+      pt("t1", -60, 200),
+      pt("t2", 120, 20),
+      { kind: "point", id: "P", x: 0, y: 140, on: ["r", "t"] },
+      { kind: "line", id: "r", from: "r2", to: "r1" },
+      { kind: "line", id: "t", from: "t1", to: "t2" },
+    ],
+    [],
+    [
+      { text: "r", on: "r", at: "end" },
+      { text: "t", on: "t", at: "end" },
+    ]
+  );
+
+  it("an unlabelled point where two lines cross draws no dot", () => {
+    const scene = buildGeometry2d(spec, BOX);
+    expect(byPart(scene.items, "P")).toEqual([]);
+    const labelled = buildGeometry2d({ ...spec, labels: [{ text: "P", on: "P" }] }, BOX);
+    expect(byPart(labelled.items, "P")).toHaveLength(1);
+  });
+
+  it("a line named at its end sits beside the drawn arrowhead, not 3/4 along its points", () => {
+    const scene = buildGeometry2d(spec, BOX);
+    for (const id of ["r", "t"]) {
+      const [line] = byPart(scene.items, id);
+      const ends = vertices(line.d);
+      const tip = ends[ends.length - 1];
+      const label = texts(scene.items).find((t) => t.text === id)!;
+      const box = textBox(label);
+      const cx = (box[0] + box[1]) / 2;
+      const cy = (box[2] + box[3]) / 2;
+      expect(Math.hypot(cx - tip[0], cy - tip[1]), id).toBeLessThan(HOUSE.font * 2);
+    }
+    expect(scene.issues).toEqual([]);
+  });
+});

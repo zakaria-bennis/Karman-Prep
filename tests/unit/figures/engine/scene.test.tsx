@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import FigureView from "@/components/learn/figures/FigureView";
@@ -71,5 +73,19 @@ describe("FigureView", () => {
     );
     expect(container.innerHTML).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     expect(container.innerHTML).toContain("var(--figure-fill-shade)");
+  });
+
+  // Found in the Task 12 golden review: figure choices drew their labels in the
+  // choice button's sans-serif instead of the figure serif.
+  it("marks its svg so figure-font.css sets the figure serif on its text anywhere", () => {
+    const { container } = render(<FigureView scene={scene()} />);
+    expect(container.querySelector("svg")?.hasAttribute("data-figure-view")).toBe(true);
+    const css = readFileSync(
+      path.resolve(__dirname, "../../../../src/app/figure-font.css"),
+      "utf8"
+    );
+    expect(css).toMatch(
+      /svg\[data-figure-view\] text,?[^{]*\{\s*font-family: var\(--figure-font\)/
+    );
   });
 });

@@ -164,8 +164,9 @@ describe("buildPlane", () => {
     );
     expect([...xLabels].sort()).toEqual([...want].sort());
     expect(yLabels.map((t) => t.text).sort()).toEqual([...want].sort());
-    // The origin is labeled once.
-    expect(texts.filter((t) => t.text === "0" || t.text === "O")).toHaveLength(1);
+    // Labels 28.8px apart leave no room for the origin's 0 above the -1 (golden review):
+    // it is left off rather than drawn over it.
+    expect(texts.filter((t) => t.text === "0" || t.text === "O")).toHaveLength(0);
   });
 
   it("line through two very close points has arrows both and finite ends on the edge", () => {
@@ -233,5 +234,55 @@ describe("buildPlane", () => {
       .map((t) => Number(t.text))
       .sort((a, b) => a - b);
     expect(xLabels).toEqual([-10, -8, -6, -4, -2, 2, 4, 6, 8, 10]);
+  });
+});
+
+// Found in the Task 12 golden review.
+describe("buildPlane golden-review fixes", () => {
+  type TextItem = Extract<SceneItem, { t: "text" }>;
+  const dotsOf = (items: SceneItem[]) =>
+    paths(items)
+      .filter((p) => p.weight === "line" && p.fill && p.partId)
+      .map((p) => p.partId);
+
+  it("points that only place a line or a ray's direction draw no dot; shown points keep theirs", () => {
+    const spec: FigureSpec = {
+      ...plane([
+        { kind: "point", id: "P", x: -2, y: -1 },
+        { kind: "point", id: "Q", x: 2, y: 3 },
+        { kind: "line", id: "l", from: "P", to: "Q" },
+        { kind: "point", id: "C", x: 1, y: -2 },
+        { kind: "point", id: "D", x: 4, y: -4 },
+        { kind: "ray", id: "r", from: "C", to: "D" },
+        { kind: "point", id: "E", x: -4, y: 2 },
+        { kind: "point", id: "F", x: -3, y: 4 },
+        { kind: "segment", id: "EF", from: "E", to: "F" },
+        { kind: "point", id: "G", x: 0, y: 1, on: ["l"] },
+        { kind: "point", id: "H", x: 3, y: 2 },
+        { kind: "point", id: "K", x: 4, y: 2 },
+        { kind: "line", id: "m", from: "H", to: "K" },
+      ]),
+      labels: [{ text: "H", on: "H" }],
+    };
+    const scene = buildPlane(spec, BOX);
+    // P, Q (line l) and D (ray direction) and K (line m) are placement only.
+    expect(dotsOf(scene.items).sort()).toEqual(["C", "E", "F", "G", "H"]);
+  });
+
+  it("the origin's 0 is left off when it would sit on the first negative y label", () => {
+    // A -5..5 plane in a figure-choice box: y labels every 2 units sit 29.6px apart.
+    const scene = buildPlane(plane([], { x: [-5, 5], y: [-5, 5], step: 1 }), {
+      width: 240,
+      height: 180,
+    });
+    const texts = scene.items.filter((i): i is TextItem => i.t === "text").map((t) => t.text);
+    expect(texts).not.toContain("0");
+    expect(texts).toContain("-2");
+    // In the default box there is room, and the 0 stays.
+    const big = buildPlane(plane([], { x: [-5, 5], y: [-5, 5], step: 1 }), {
+      width: 640,
+      height: 480,
+    });
+    expect(big.items.some((i) => i.t === "text" && i.text === "0")).toBe(true);
   });
 });

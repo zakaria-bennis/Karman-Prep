@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildChart } from "@/lib/figures/engine/charts";
+import { HOUSE } from "@/lib/figures/engine/house";
 import {
   chartDataToSpec,
   ChartDataError,
@@ -507,5 +508,77 @@ describe("sampleExpression", () => {
     });
     const [f] = out.parts;
     expect(f.kind === "function" && f.samples?.flat()[0]).toEqual([0, 0]);
+  });
+});
+
+// Found in the Task 12 golden review.
+describe("chart axes where they meet away from the origin", () => {
+  it("a histogram from 10 keeps the x label 10 and leaves off the y label 0 that would sit on it", () => {
+    const spec: FigureSpec = {
+      version: FIGURE_SPEC_VERSION,
+      type: "histogram",
+      parts: [
+        {
+          kind: "series",
+          id: "s1",
+          values: [
+            [10, 2],
+            [15, 5],
+            [20, 8],
+            [25, 6],
+            [30, 3],
+          ],
+        },
+      ],
+      labels: [],
+      marks: [],
+      frame: { x: [10, 35], y: [0, 9], step: 5, yStep: 1, xLabel: "Height", yLabel: "Frequency" },
+    };
+    const scene = buildChart(spec, BOX);
+    const shown = texts(scene).map((t) => t.text);
+    expect(shown).toContain("10");
+    expect(shown).not.toContain("0");
+    expect(shown).toContain("1");
+    expect(scene.issues).toEqual([]);
+  });
+});
+
+// Found in the Task 12 golden review: a dot plot sat at the foot of an empty 400px box.
+describe("number-line charts are only as tall as their dots or boxes", () => {
+  const chart = (type: FigureSpec["type"], values: FigureSpec["parts"]): FigureSpec => ({
+    version: FIGURE_SPEC_VERSION,
+    type,
+    parts: values,
+    labels: [],
+    marks: [],
+    frame: { x: [0, 6], y: [0, 6], step: 1, xLabel: "Number of pets" },
+  });
+
+  it("a dot plot's tallest stack sits one dot below the top of the drawing", () => {
+    const spec = chart("dot_plot", [
+      {
+        kind: "series",
+        id: "s1",
+        values: [
+          [1, 5],
+          [2, 4],
+          [6, 1],
+        ],
+      },
+    ]);
+    const scene = buildChart(spec, BOX);
+    expect(scene.issues).toEqual([]);
+    expect(scene.height).toBeLessThan(BOX.height - 100);
+    const tops = paths(scene, "s1").map((p) => dotCenter(p.d)[1]);
+    const pitch = 2 * HOUSE.dotPlotRadius + HOUSE.dotPlotGap;
+    // The top dot's center is within two pitches (plus the margin) of the top edge.
+    expect(Math.min(...tops)).toBeLessThan(HOUSE.margin + 2 * pitch);
+  });
+
+  it("a single box plot is not stretched over the full box", () => {
+    const spec = chart("box_plot", [{ kind: "series", id: "b1", values: [1, 2, 3, 4, 5] }]);
+    const scene = buildChart(spec, BOX);
+    expect(scene.issues).toEqual([]);
+    expect(scene.height).toBeLessThan(BOX.height - 100);
   });
 });

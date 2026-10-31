@@ -325,6 +325,8 @@ type LabelContext = {
   points: Map<string, Pt>;
   /** Unit directions of every drawn line leaving each point. */
   dirs: Map<string, Pt[]>;
+  /** The drawn ends of each line and ray, clipped to the figure (from-side, to-side). */
+  drawnEnds: Map<string, [Pt, Pt]>;
   center: Pt;
 };
 
@@ -371,7 +373,14 @@ function sideLabel(part: TwoPoint, label: Label, ctx: LabelContext) {
   const b = ctx.points.get(part.to);
   if (!a || !b || len(sub(b, a)) < EPS) return null;
   const t = label.at === "start" ? 0.25 : label.at === "end" ? 0.75 : 0.5;
-  const anchor = add(a, mul(sub(b, a), t));
+  // A line or ray is named at its drawn end (beside the arrowhead), as on a plane.
+  const ends = part.kind === "segment" ? undefined : ctx.drawnEnds.get(part.id);
+  const anchor =
+    ends && label.at === "end"
+      ? ends[1]
+      : ends && label.at === "start"
+        ? ends[0]
+        : add(a, mul(sub(b, a), t));
   const poly = polygonWithSide(ctx.spec, part.from, part.to);
   const c = poly ? centroid(poly.points.map((q) => ctx.points.get(q)!)) : ctx.center;
   const u = unit(sub(b, a));
@@ -499,6 +508,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
   /** Polygon stand-ins for curved paths, since label collisions read arcs as chords. */
   const proxies = new Map<SceneItem, SceneItem>();
   const corners = new Set<string>();
+  const drawnEnds = new Map<string, [Pt, Pt]>();
   const dirs = new Map<string, Pt[]>();
   const addDir = (id: string, d: Pt) => dirs.set(id, [...(dirs.get(id) ?? []), unit(d)]);
 
@@ -539,6 +549,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
         issues.push({ code: "clipped", partId: part.id, detail: "lies outside the figure" });
         continue;
       }
+      drawnEnds.set(part.id, [add(a, mul(d, c[0])), add(a, mul(d, c[1]))]);
       const item: SceneItem = {
         t: "path",
         d: polyline([add(a, mul(d, c[0])), add(a, mul(d, c[1]))]),
@@ -613,8 +624,14 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
     items.push(...drawMark(mark, geo));
   }
 
-  // Dots for points that are not a corner of a drawn line, on top of the lines.
-  for (const [id, p] of points) if (!corners.has(id)) items.push(pointDot(p, id));
+  // Dots for points that are not a corner of a drawn line, on top of the lines. An
+  // unlabelled point declared on a line (where two lines cross) gets none, as in Bluebook.
+  const named = new Set(spec.labels.filter((l) => l.text.trim()).map((l) => l.on));
+  for (const part of spec.parts) {
+    if (part.kind !== "point" || corners.has(part.id)) continue;
+    if (part.on?.length && !named.has(part.id)) continue;
+    items.push(pointDot(points.get(part.id)!, part.id));
+  }
 
   // The note's last line sits just above the bottom edge; earlier lines stack above it.
   note.forEach((text, i) => {
@@ -628,7 +645,14 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
     });
   });
 
-  const ctx: LabelContext = { spec, parts, points, dirs, center: centroid([...points.values()]) };
+  const ctx: LabelContext = {
+    spec,
+    parts,
+    points,
+    dirs,
+    drawnEnds,
+    center: centroid([...points.values()]),
+  };
   const pending = pendingLabels(ctx, issues);
   const collision = items.map((i) => proxies.get(i) ?? i);
   const placed = placeLabels(collision, pending, box);

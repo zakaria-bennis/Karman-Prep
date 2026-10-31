@@ -345,6 +345,10 @@ describe("table cell text", () => {
     expect(plainWords("\\frac{1}{2}")).toBeNull();
     expect(plainWords("<b>bold</b>")).toBeNull();
     expect(plainWords("___")).toBeNull();
+    // A lone "$" is a currency sign, not math (golden review: the header
+    // "Seigniorage per $1 issued (dollars)" broke inside its words).
+    expect(plainWords("per $1 issued")).toEqual(["per", " ", "$1", " ", "issued"]);
+    expect(plainWords("$a$ and $b$")).toBeNull();
   });
 
   it("keeps currency and unit symbols against the number", () => {

@@ -88,6 +88,7 @@ export default function FigureView({
       viewBox={`${px(-ox)} ${px(-oy)} ${px(scene.width)} ${px(scene.height)}`}
       role="img"
       aria-label={scene.description}
+      data-figure-view=""
       className={className}
     >
       {title ? <title>{title}</title> : null}

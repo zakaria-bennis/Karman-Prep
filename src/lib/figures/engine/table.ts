@@ -54,14 +54,16 @@ export function isNumericCell(text: string) {
   return /^[-−+$€£(]?\d[\d,.\s ]*(%|\))?([-–]\d[\d,.]*)?$/.test(text.trim());
 }
 
+const MARKUP = /[\\<[_]/;
+/** Math needs a pair of dollar signs; a lone "$" is a currency sign ("per $1 issued"). */
+const mathDollars = (text: string) => (text.match(/\$/g)?.length ?? 0) >= 2;
 /**
  * Splits plain cell text into words and the spaces between them, so each word can be
  * rendered unbreakable (browsers would otherwise wrap at hyphens and dashes, as in
  * "1980-81"). Text with math, blanks or source markup returns null and renders as is.
  */
-const MARKUP = /[$\\<[_]/;
 export function plainWords(text: string): string[] | null {
-  if (MARKUP.test(text)) return null;
+  if (MARKUP.test(text) || mathDollars(text)) return null;
   return text.split(/(\s+)/).filter((part) => part.length > 0);
 }
 

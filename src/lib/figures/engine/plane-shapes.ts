@@ -224,3 +224,26 @@ export function regionItems(
     },
   ];
 }
+
+/**
+ * Points that only place a line, a ray's direction, a circle or an arc
+ * (unlabelled, on nothing, and no segment end, ray start or polygon corner): they
+ * draw no dot, as Bluebook prints a line "y = 2x + 1" with no points on it.
+ */
+export function helperPoints(spec: FigureSpec): Set<string> {
+  const placing = new Set<string>();
+  const shown = new Set(spec.labels.filter((l) => l.text.trim()).map((l) => l.on));
+  for (const p of spec.parts) {
+    if (p.kind === "line") [p.from, p.to].forEach((id) => placing.add(id));
+    if (p.kind === "ray") placing.add(p.to);
+    if (p.kind === "circle") [p.center, p.through].forEach((id) => id && placing.add(id));
+    if (p.kind === "arc") [p.center, p.from, p.to].forEach((id) => placing.add(id));
+  }
+  for (const p of spec.parts) {
+    if (p.kind === "segment") [p.from, p.to].forEach((id) => shown.add(id));
+    if (p.kind === "ray") shown.add(p.from);
+    if (p.kind === "polygon") p.points.forEach((id) => shown.add(id));
+    if (p.kind === "point" && p.on?.length) shown.add(p.id);
+  }
+  return new Set([...placing].filter((id) => !shown.has(id)));
+}

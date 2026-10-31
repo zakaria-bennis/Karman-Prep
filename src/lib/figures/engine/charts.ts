@@ -288,6 +288,34 @@ function boxPlot(s: Series, c: Ctx, name: string | undefined): SceneItem[] {
   return items;
 }
 
+/**
+ * The plot height a dot plot or box plot needs: its tallest stack of dots with
+ * one dot's room above, or two box heights per box. Null for other charts.
+ */
+function numberLineHeight(
+  type: ChartKind,
+  series: Series[],
+  kinds: Map<string, ChartKind>
+): number | null {
+  if (type === "box_plot") {
+    const boxes = series.filter((s) => kinds.get(s.id) === "box_plot").length;
+    return Math.max(1, boxes) * 2 * BOX_HEIGHT;
+  }
+  if (type !== "dot_plot") return null;
+  const pitch = 2 * HOUSE.dotPlotRadius + HOUSE.dotPlotGap;
+  let tallest = 1;
+  for (const s of series) {
+    if (kinds.get(s.id) !== "dot_plot") continue;
+    const counts = new Map<number, number>();
+    for (const v of s.values) {
+      const [value, n] = isPair(v) ? v : [v, 1];
+      counts.set(value, (counts.get(value) ?? 0) + n);
+    }
+    tallest = Math.max(tallest, ...counts.values());
+  }
+  return (tallest + 1) * pitch + HOUSE.dotPlotGap;
+}
+
 const advance = (text: string) => HOUSE.charWidthEm * HOUSE.font * text.length;
 
 type LegendEntry = { id: string; name: string; kind: ChartKind; index: number };
@@ -454,10 +482,15 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
   const rowNames = type === "box_plot" ? series.map((s) => names.get(s.id) ?? "") : [];
   const left = Math.max(0, ...rowNames.map((n) => (n ? advance(n) + HOUSE.labelOffset : 0)));
   const full = { width: box.width, height: box.height + titleH + legendH };
-  const axes = planeAxes(frame, full, {
-    y: yMode,
-    reserve: { top: titleH, bottom: legendH, left },
-  });
+  const opts = { y: yMode, reserve: { top: titleH, bottom: legendH, left } };
+  let axes = planeAxes(frame, full, opts);
+  // A number line (dot or box plot) is only as tall as its stacks or boxes, so the
+  // drawing is not left at the foot of an empty box.
+  const need = numberLineHeight(type, series, kinds);
+  if (need !== null && axes.map.h > need) {
+    full.height -= axes.map.h - need;
+    axes = planeAxes(frame, full, opts);
+  }
   const m = axes.map;
 
   const items: SceneItem[] = [...axes.items];

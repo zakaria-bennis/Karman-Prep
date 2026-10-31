@@ -12,8 +12,9 @@
  */
 import { planeDetail } from "./describe-detail";
 import { HOUSE } from "./house";
+import { textBox } from "./labels";
 import { planeLabels } from "./plane-labels";
-import { pathOf, regionItems, shapeItems } from "./plane-shapes";
+import { helperPoints, pathOf, regionItems, shapeItems } from "./plane-shapes";
 import type { Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
 import { axisTicks, tickValues } from "./ticks";
@@ -220,6 +221,20 @@ const isShortName = (name: string) => name.length <= 4 && !/\s/.test(name);
 /** A single-letter name is a variable and prints in italic. */
 const isVariable = (name: string) => /^[A-Za-z]$/.test(name);
 
+/** True when text `t` would overlap a text in `items` by more than 1px both ways (checks.ts). */
+function collides(t: SceneItem, items: SceneItem[]): boolean {
+  if (t.t !== "text") return false;
+  const a = textBox(t);
+  return items.some((o) => {
+    if (o.t !== "text") return false;
+    const b = textBox(o);
+    return (
+      Math.min(a[1], b[1]) - Math.max(a[0], b[0]) > 1 &&
+      Math.min(a[3], b[3]) - Math.max(a[2], b[2]) > 1
+    );
+  });
+}
+
 function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
   const { w, h, px, py } = m;
   const yAxis = yMode === "ticks";
@@ -299,26 +314,31 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
       role: "ink",
       weight: "line",
     });
-    items.push({
+    const label: SceneItem = {
       t: "text",
       x: X - tick - off / 2,
       y: Y + font / 3,
       text: fmt(y),
       role: "ink-muted",
       anchor: "end",
-    });
+    };
+    // Where the axes meet away from the origin (a histogram from 10), the x-axis
+    // label at the corner wins and the y label beside it is left off.
+    if (!collides(label, items)) items.push(label);
     yLabelWidth = Math.max(yLabelWidth, advance(fmt(y)) + tick + off / 2);
   }
-  // One "0" at the origin, below and left of it, unless the spec leaves it off.
+  // One "0" at the origin, below and left of it, unless the spec leaves it off, or
+  // the axes are so short that it would sit on the first tick label below it.
   if (sharedOrigin && frame.originLabel !== false && (xStep || yStep)) {
-    items.push({
+    const zero: SceneItem = {
       t: "text",
       x: px(0) - tick - off / 2,
       y: py(0) + tick + font,
       text: "0",
       role: "ink-muted",
       anchor: "end",
-    });
+    };
+    if (!collides(zero, items)) items.push(zero);
   }
   items.push(...axisNames(frame, m, { ax, ay, yAxis, below, yLabelWidth }));
   return items;
@@ -600,6 +620,7 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
   for (const p of spec.parts) if (p.kind === "point") points.set(p.id, [p.x, p.y]);
 
   const dashed = new Set(spec.marks.filter((k) => k.kind === "hidden_dashed").flatMap((k) => k.on));
+  const helpers = helperPoints(spec);
   const fills: SceneItem[] = [];
   const dots: SceneItem[] = [];
   const lines: SceneItem[] = [];
@@ -625,7 +646,7 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
         break;
       case "point":
         if (clipParam([part.x, part.y], [0, 0], frame, 0, 0)) {
-          dots.push(dot([part.x, part.y], m, part.id));
+          if (!helpers.has(part.id)) dots.push(dot([part.x, part.y], m, part.id));
         } else {
           issues.push({ code: "clipped", partId: part.id, detail: "lies outside the frame" });
         }

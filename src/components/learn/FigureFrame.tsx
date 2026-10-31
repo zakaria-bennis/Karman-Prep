@@ -27,7 +27,7 @@
 // ============================================================
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { buildScene, defaultBox } from "@/lib/figures/engine/index";
+import { boxForWidth, buildScene } from "@/lib/figures/engine/index";
 import type { Scene } from "@/lib/figures/engine/scene";
 import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
 import { figureFetchPolicy } from "@/lib/figures/figure-fetch-policy";
@@ -83,12 +83,13 @@ const FRAME = cn(
 
 type SpecDrawing = { table: FigureSpec } | { scene: Scene } | { error: string };
 
-function drawSpec(input: unknown): SpecDrawing {
+/** The spec drawn for a container `width` px wide (boxForWidth); its default box before it is measured. */
+function drawSpec(input: unknown, width: number | null): SpecDrawing {
   const parsed = parseFigureSpec(input);
   if (!parsed.ok) return { error: parsed.errors.join("; ") };
   if (parsed.spec.type === "table") return { table: parsed.spec };
   try {
-    return { scene: buildScene(parsed.spec, defaultBox(parsed.spec)) };
+    return { scene: buildScene(parsed.spec, boxForWidth(parsed.spec, width)) };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }
@@ -101,7 +102,20 @@ function SpecFigure({
   maxHeightClass,
   className,
 }: Props & { maxHeightClass: string }) {
-  const drawing = useMemo(() => drawSpec(spec), [spec]);
+  // The figure's content width, so a narrow screen lays it out at its own size (text ≥ 12px).
+  const frame = useRef<HTMLElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const el = frame.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => {
+      const w = Math.floor(entry.contentRect.width);
+      setWidth((old) => (old === w ? old : w));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const drawing = useMemo(() => drawSpec(spec, width), [spec, width]);
   const error = "error" in drawing ? drawing.error : null;
   useEffect(() => {
     if (error) console.error(`FigureFrame: invalid figure_spec, nothing drawn: ${error}`);
@@ -113,7 +127,7 @@ function SpecFigure({
   // The description generated from the spec's named parts names what is actually drawn.
   const description = scene.description || alt;
   return (
-    <figure className={cn(FRAME, className)}>
+    <figure ref={frame} className={cn(FRAME, className)}>
       <FigureView
         scene={{ ...scene, description }}
         className={cn("mx-auto block h-auto w-full max-w-full", maxHeightClass)}
