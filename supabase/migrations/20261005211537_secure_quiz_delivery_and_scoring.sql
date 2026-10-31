@@ -1,3 +1,5 @@
+-- Recorded from production supabase_migrations.schema_migrations (20261005211537).
+-- Applied by hand on 20261005; this file makes the repo match production history. Do not edit.
 -- Quiz writes run under one Postgres transaction per RPC. Only the server's
 -- service role may call these functions; the browser never receives the key.
 CREATE OR REPLACE FUNCTION public.start_quiz_attempt_atomic(
