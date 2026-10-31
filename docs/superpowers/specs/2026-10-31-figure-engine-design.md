@@ -10,16 +10,16 @@ Goal: every figure in the bank, and every figure answer choice, is drawn by one 
 
 ## Founder decisions
 
-| Topic | Decision |
-|---|---|
-| Look | Exactly like Bluebook: thin lines, plain labels, light grid. All colors come from the theme and are never typed into a figure. |
-| Where shapes come from | Option C. Graphs, coordinate planes and charts are computed from their data or equation. 2D geometry and 3D solids are traced from the original and then cleaned up. |
-| Future tutoring tools | Design for them now and build them later. Parts are named, and solids are stored as real 3D shapes, so shading, rotating, unfolding into nets and highlighting can be added without redrawing. |
-| Existing figures | Redraw everything in stages: first the ~650 waiting for approval, then the live figures in batches. Each batch is checked and shown to the founder before it replaces the old one. |
-| Approach | Option 1: our own engine (no JSXGraph, Mafs, D3 or three.js). Graph curves use the calculator's formula reader and plot math (`src/lib/calculator/core`, `src/lib/calculator/plot`) read-only. The calculator itself is not changed. |
-| Tables | Same engine, same theme and the same rules. |
-| Figure answer choices | Each choice is its own drawn figure. Text placeholders like "Graph A" are never allowed. The four choices share one scale, axes and size. |
-| Devices | Readable and accessible on phone, tablet and laptop (Section 2). |
+| Topic                  | Decision                                                                                                                                                                                                                                                                                                               |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Look                   | Exactly like Bluebook: thin lines, plain labels, light grid. All colors come from the theme and are never typed into a figure.                                                                                                                                                                                         |
+| Where shapes come from | Option C. Graphs, coordinate planes and charts are computed from their data or equation. 2D geometry and 3D solids are traced from the original and then cleaned up.                                                                                                                                                   |
+| Future tutoring tools  | Design for them now and build them later. Parts are named, and solids are stored as real 3D shapes, so shading, rotating, unfolding into nets and highlighting can be added without redrawing.                                                                                                                         |
+| Existing figures       | Redraw everything in stages: first the ~650 waiting for approval, then the live figures in batches. Each batch is checked and shown to the founder before it replaces the old one.                                                                                                                                     |
+| Approach               | Option 1: our own engine (no JSXGraph, Mafs, D3 or three.js). Graph curves use the calculator's formula reader and plot math (`src/lib/calculator/core`, `src/lib/calculator/plot`) read-only, at authoring time only. The site never loads the calculator to draw a figure, and the calculator itself is not changed. |
+| Tables                 | Same engine, same theme and the same rules.                                                                                                                                                                                                                                                                            |
+| Figure answer choices  | Each choice is its own drawn figure. Text placeholders like "Graph A" are never allowed. The four choices share one scale, axes and size.                                                                                                                                                                              |
+| Devices                | Readable and accessible on phone, tablet and laptop (Section 2).                                                                                                                                                                                                                                                       |
 
 ## Section 1: Figure format and engine
 
@@ -29,11 +29,17 @@ Goal: every figure in the bank, and every figure answer choice, is drawn by one 
 - `parts`: named elements, each with an `id` you could point at later. Examples: `point A`, `segment AB`, `ray AB` (a start point and a direction point, with an arrowhead), `line AB` (arrowheads at both ends), `circle O`, `arc`, `angle ABC`, `polygon`, `function f` (with an expression), `region` (shaded inequality or area), `axis`, `grid`, and the solids `prism`, `cylinder`, `cone`, `pyramid` and `sphere`.
 - `labels`: exam wording (`x°`, `12`, `Figure 1`), each attached to the part it describes.
 - `marks`: the SAT's conventions, namely right-angle box, equal-length ticks, equal-angle arcs, parallel arrows, dashed hidden edges, and the line "Note: Figure not drawn to scale."
-- `frame`: for planes, the axis ranges, grid step and axis labels. For geometry, nothing: the engine fits and centers the drawing.
+- `frame`: for planes and charts, the axis ranges, grid step and axis labels. For geometry, nothing: the engine fits and centers the drawing. Optional frame fields (`PlaneFrame` in `src/lib/figures/engine/spec.ts`, added with the charts):
+  - `step` and `yStep`: the grid and tick step on x (and on y too unless `yStep` is set) and on y. Without them the engine picks a 1, 2 or 5 × 10^k step.
+  - `labelStep` and `yLabelStep`: label every `labelStep` on x (and y, unless `yLabelStep` is set, and only while the axes share one step), instead of every tick.
+  - `categories`: names along x, one band each (bar charts). The x range becomes 0 to the number of categories, with no vertical grid lines.
+  - `grid`: `false` draws no grid lines.
+  - `originLabel`: `false` leaves off the "0" where the axes meet, as printed SAT figures often do.
+  - `xLabel` and `yLabel`: the axis names.
 
 **Where coordinates come from (option C).**
 
-- **plane, charts and tables:** exact data or equations. `function` parts are parsed and sampled with the calculator's own formula reader and plotting math, which handles domains, gaps, asymptotes and adaptive sampling. A ray or line on a plane is clipped to the frame and gets arrowheads.
+- **plane, charts and tables:** exact data or equations. A `function` part keeps its expression (`latex`, optional `domain`) and stores its graph as `samples`: world-unit polylines, already broken at gaps and asymptotes. The samples are computed at authoring time by `scripts/figures/sample-functions.ts` (CLI: `npx tsx scripts/figures/sample-spec.ts spec.json`), which uses the calculator's own formula reader and plotting math, read-only, for domains, gaps, asymptotes and adaptive sampling. The runtime engine never loads the calculator: it only clips the stored samples to the frame, and a function part without samples draws nothing and raises an `unsampled_function` issue. Old `figure_chart_data` functions (linear, quadratic, absolute value, exponential) are sampled directly when they are converted. Automatic tick steps come from the engine's own `ticks.ts`. A ray or line on a plane is clipped to the frame and gets arrowheads.
 - **geometry2d:** traced points, in any unit. The engine snaps near-collinear points onto their line and near-concyclic points onto their circle (tolerance 2% of the figure size). It also snaps near-90° angles to 90° when the spec marks them as right angles, normalizes the figure to its box, centers it, and places labels outside the shape at the bisector of the free angle, stepping clear of every line and other label.
 - **solid3d:** dimensions plus the view (`oblique`, the SAT's default, at 30° and half-depth, or `isometric`). Hidden edges are dashed. The solid is stored as a 3D model (vertices, edges and faces), so rotating it and unfolding it into a net are later extensions.
 
@@ -46,7 +52,7 @@ Goal: every figure in the bank, and every figure answer choice, is drawn by one 
 - tick length;
 - margins.
 
-Specs cannot set colors or pixel sizes. Colors come from theme roles: `ink`, `ink-muted`, `grid`, `fill-faint`, `fill-shade` and `highlight`. These map to CSS variables, so light, dark and future themes all work.
+Specs cannot set colors or pixel sizes. Colors come from theme roles: `ink`, `ink-muted`, `grid`, `fill-faint`, `fill-shade` and `highlight`. These map to CSS variables, so light, dark and future themes all work. The variables live in `src/components/learn/figures/figure-roles.css`, which `FigureView` imports. They are derived from the theme tokens (`--k-ivory` for ink, never the canvas `--k-night`) under `:root:root`, so they outrank the older figure variables in `src/app/globals.css`, which stays unchanged.
 
 **Automatic checks** (in the engine, in `k figures submit`, and in certify):
 

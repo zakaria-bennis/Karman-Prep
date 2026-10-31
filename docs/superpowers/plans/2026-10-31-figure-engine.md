@@ -4,7 +4,7 @@
 
 **Goal:** One in-house engine draws every question figure and figure answer choice from a `FigureSpec`, in the Bluebook look, with colors taken only from the theme.
 
-**Architecture:** `FigureSpec` (versioned JSON, validated with Zod) goes to a pure `buildScene(spec, box)`, which returns a `Scene` (role-colored primitives, no DOM). `<FigureView>` renders the `Scene` as one SVG. Graph curves come from the calculator's parser and plotting code, used read-only through one adapter. `figure_spec` and `choice_figure_spec` columns hold the specs. `FigureFrame` prefers them over the old figure fields.
+**Architecture:** `FigureSpec` (versioned JSON, validated with Zod) goes to a pure `buildScene(spec, box)`, which returns a `Scene` (role-colored primitives, no DOM). `<FigureView>` renders the `Scene` as one SVG. Graph curves come from the calculator's parser and plotting code, used read-only at authoring time by `scripts/figures/sample-functions.ts`, which stores them in each function part's `samples`. The runtime engine never imports the calculator. `figure_spec` and `choice_figure_spec` columns hold the specs. `FigureFrame` prefers them over the old figure fields.
 
 **Tech Stack:** TypeScript, React (Next.js 16), Zod, Vitest, Playwright, Supabase migrations, Python kimport CLI for the reviewer and submit path.
 
@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - **No outside drawing libraries:** no JSXGraph, Mafs, D3 or three.js. Never load or copy anything from Desmos.
-- **The calculator is read-only:** import from `src/lib/calculator/core` and `src/lib/calculator/plot`, and never edit `src/lib/calculator/` or `src/components/calculator/`.
+- **The calculator is read-only:** only `scripts/figures/sample-functions.ts` imports it (from `src/lib/calculator/core` and `src/lib/calculator/plot`). Nothing under `src/` outside the calculator may import calculator modules (seam test AR-1), and nobody edits `src/lib/calculator/` or `src/components/calculator/`. `src/app/globals.css` and `src/lib/themes/palettes.ts` stay unchanged (test TH-2).
 - **Colors** come only from the theme roles `ink`, `ink-muted`, `grid`, `fill-faint`, `fill-shade` and `highlight`, mapped to CSS variables `--figure-ink`, `--figure-ink-muted`, `--figure-grid`, `--figure-fill-faint`, `--figure-fill-shade` and `--figure-highlight`. Specs cannot carry colors or pixel sizes.
 - **House sizes:**
   - line 1.5, grid 1, dashed 1.25 with dash `4 3`;
@@ -39,10 +39,12 @@
 ### Task 1: FigureSpec types and validation
 
 **Files:**
+
 - Create: `src/lib/figures/engine/spec.ts`
 - Test: `tests/unit/figures/engine/spec.test.ts`
 
 **Interfaces:**
+
 - Produces: `FigureSpec` and `Part` (a discriminated union on `kind`), `parseFigureSpec(input: unknown): { ok: true; spec: FigureSpec } | { ok: false; errors: string[] }`, and `FIGURE_SPEC_VERSION = "figure-spec/1"`.
 - `FigureSpec` is `{ version, type: "table"|"bar"|"line"|"scatter"|"dot_plot"|"histogram"|"box_plot"|"plane"|"geometry2d"|"solid3d", parts: Part[], labels: Label[], marks: Mark[], frame?: PlaneFrame, notToScale?: boolean, title?: string }`.
 - `Part` kinds:
@@ -75,18 +77,20 @@
 ### Task 2: Scene model, theme roles and FigureView
 
 **Files:**
+
 - Create: `src/lib/figures/engine/scene.ts`, `src/lib/figures/engine/house.ts`, `src/components/learn/figures/FigureView.tsx`
-- Modify: `src/app/globals.css` (add the six `--figure-*` variables in each theme block, from existing theme ink/background tokens)
+- Create: `src/components/learn/figures/figure-roles.css` (the six `--figure-*` variables under `:root:root`, from the theme ink token; imported by `FigureView`). `src/app/globals.css` is not changed (remediation, 2026-10-31).
 - Test: `tests/unit/figures/engine/scene.test.tsx`
 
 **Interfaces:**
+
 - Produces: `Scene = { width: number; height: number; items: SceneItem[]; issues: SceneIssue[]; description: string }`.
 - `SceneItem` is one of:
   - `{t:"path", d, role, weight:"line"|"grid"|"dashed", fill?: Role, arrows?: "start"|"end"|"both", partId?}`;
   - `{t:"text", x, y, text, role, anchor, partId?}`;
   - `{t:"rect"...}`.
 - `Role = "ink"|"ink-muted"|"grid"|"fill-faint"|"fill-shade"|"highlight"`.
-- `SceneIssue = { code: "label_collision"|"clipped"|"off_line"|"missing_label"|"arrow_rule", partId?: string, detail: string }`.
+- `SceneIssue = { code: "label_collision"|"clipped"|"off_line"|"missing_label"|"arrow_rule"|"unsampled_function", partId?: string, detail: string }`.
 - `house.ts` exports `HOUSE` with the Global Constraints sizes.
 - `FigureView({ scene, className, title? })` renders an `<svg viewBox>` with `role="img"` and `aria-label={scene.description}`, and maps each role to `var(--figure-<role>)`.
 
@@ -103,12 +107,14 @@
 ### Task 3: Coordinate plane, functions, rays and lines
 
 **Files:**
-- Create: `src/lib/figures/engine/plane.ts`, `src/lib/figures/engine/calc-adapter.ts`
-- Test: `tests/unit/figures/engine/plane.test.ts`
+
+- Create: `src/lib/figures/engine/plane.ts`, `src/lib/figures/engine/ticks.ts`, `scripts/figures/sample-functions.ts` and `scripts/figures/sample-spec.ts` (remediation, 2026-10-31: the adapter first written as `src/lib/figures/engine/calc-adapter.ts` moved out of `src/`)
+- Test: `tests/unit/figures/engine/plane.test.ts`, `tests/unit/figures/engine/ticks.test.ts`, `tests/unit/figures/authoring/sample-functions.test.ts`
 
 **Interfaces:**
-- Consumes: `axisTicks` from `src/lib/calculator/plot/ticks.ts`, `plotRow` and `PlotInput` from `src/lib/calculator/plot/index.ts`, and `parseLatex` from `src/lib/calculator/core/latex/index.ts`. Build the row's `PlotInput` the way `src/lib/calculator/worker/pass.ts:214-219` does through `plotInputFor`, and give `plotRow` a generous deadline (`limitMs: null`).
-- Produces: `curveFor(latex: string, frame: PlaneFrame, box: {width:number;height:number}): number[][]` (polylines in world units, broken at gaps and asymptotes), and `buildPlane(spec: FigureSpec, box): Scene`.
+
+- Consumes (in `scripts/figures/sample-functions.ts` only): `plotRow` and `PlotInput` from `src/lib/calculator/plot/index.ts`, and `parseLatex` from `src/lib/calculator/core/latex/index.ts`. Build the row's `PlotInput` the way `src/lib/calculator/worker/pass.ts:214-219` does through `plotInputFor`, and give `plotRow` a generous deadline (`limitMs: null`).
+- Produces: `curveFor(latex: string, frame: PlaneFrame, box: {width:number;height:number}): number[][]` (polylines in world units, broken at gaps and asymptotes) and `sampleSpec(spec, box = 640×480): FigureSpec` (fills every function part's `samples`), both in `scripts/figures/sample-functions.ts`; `niceStep`, `tickValues` and `axisTicks` in `src/lib/figures/engine/ticks.ts`; and `buildPlane(spec: FigureSpec, box): Scene`, which draws only stored `samples` and reports `unsampled_function` for a function part without them.
 
 - [ ] **Step 1: Write failing tests:**
   - `y=2x^2-3 passes through (1,-1) and (2,5)` (the nearest polyline vertex is within 1% of the frame span);
@@ -120,17 +126,19 @@
   - `ray whose direction point is outside the frame still draws from A to the edge`;
   - `grid lines use role grid and axes role ink`.
 - [ ] **Step 2:** Run the tests. Expected: FAIL.
-- [ ] **Step 3:** Implement. Clip rays and lines to the frame with Liang–Barsky. Ticks come from `axisTicks`. Axis labels sit at the positive ends.
+- [ ] **Step 3:** Implement. Clip rays and lines to the frame with Liang–Barsky. Ticks come from the engine's `axisTicks` (1, 2 or 5 × 10^k). Axis labels sit at the positive ends.
 - [ ] **Step 4:** Run the tests. Expected: PASS.
 - [ ] **Step 5:** Commit `feat(figures): coordinate planes, function graphs, rays and lines`.
 
 ### Task 4: Label placement and overlap checks
 
 **Files:**
+
 - Create: `src/lib/figures/engine/labels.ts`
 - Test: `tests/unit/figures/engine/labels.test.ts`
 
 **Interfaces:**
+
 - Produces: `placeLabels(items: SceneItem[], labels: PendingLabel[], box): { items: SceneItem[]; issues: SceneIssue[] }`, where `PendingLabel = { text; anchor: {x;y}; preferred: {dx;dy}; partId }`.
 
 - [ ] **Step 1: Write failing tests:**
@@ -146,11 +154,13 @@
 ### Task 5: 2D geometry (traced, snapped, marked)
 
 **Files:**
+
 - Create: `src/lib/figures/engine/geometry2d.ts`, `src/lib/figures/engine/marks.ts`
 - Delete when unused: `src/lib/figures/geometry-svg.ts`, `src/lib/figures/geometry-layout.ts` and their tests, plus `src/components/learn/GeometryFigure.tsx` (after Task 11 routes geometry to the engine)
 - Test: `tests/unit/figures/engine/geometry2d.test.ts`
 
 **Interfaces:**
+
 - Produces: `buildGeometry2d(spec, box): Scene`, `snap(spec): FigureSpec`, and `drawMark(mark, scene): SceneItem[]`.
 
 - [ ] **Step 1: Write failing tests:**
@@ -169,11 +179,13 @@
 ### Task 6: Charts
 
 **Files:**
+
 - Create: `src/lib/figures/engine/charts.ts`, `src/lib/figures/engine/from-chart-data.ts`
 - Modify: `src/components/learn/ChartFigure.tsx` (it becomes a thin wrapper: convert, build the scene, render `FigureView`; delete its drawing code and the now-unused exports `BAR_BAND_SHARE`, `GROUP_BAND_SHARE` and `MAX_BAR_SHARE` once nothing imports them)
 - Test: `tests/unit/figures/engine/charts.test.ts`
 
 **Interfaces:**
+
 - Produces: `buildChart(spec, box): Scene` for `bar|line|scatter|dot_plot|histogram|box_plot`, and `chartDataToSpec(figure_chart_data: unknown): FigureSpec`.
 
 - [ ] **Step 1: Write failing tests:**
@@ -190,11 +202,13 @@
 ### Task 7: Tables
 
 **Files:**
+
 - Create: `src/lib/figures/engine/table.ts`, `src/lib/figures/engine/from-table-data.ts`
 - Modify: `src/components/learn/QuestionTable.tsx` (renders from the table spec: an HTML `<table>` for accessibility and text selection, styled by the house table rules)
 - Test: `tests/unit/figures/engine/table.test.tsx`
 
 **Interfaces:**
+
 - Produces: `tableDataToSpec(figure_table_data | choice_table_data): FigureSpec`, and `TableView({ spec })`.
 
 - [ ] **Step 1: Write failing tests:**
@@ -211,10 +225,12 @@
 ### Task 8: 3D solids
 
 **Files:**
+
 - Create: `src/lib/figures/engine/solid3d.ts`
 - Test: `tests/unit/figures/engine/solid3d.test.ts`
 
 **Interfaces:**
+
 - Produces: `solidModel(part): { vertices: [x,y,z][]; edges: [i,j][]; faces: number[][] }`, `project(model, view): Scene` (hidden edges dashed by face-normal visibility), and `buildSolid3d(spec, box): Scene`.
 
 - [ ] **Step 1: Write failing tests:**
@@ -231,12 +247,14 @@
 ### Task 9: Database columns and renderer routing
 
 **Files:**
+
 - Create: `supabase/migrations/<YYYYMMDDHHMMSS>_figure_spec.sql` (adds `quiz_questions.figure_spec jsonb` and `answer_choices.choice_figure_spec jsonb`, both nullable), and `supabase/rollbacks/<same>_figure_spec.down.sql`
 - Create: `src/lib/figures/engine/index.ts` (`buildScene(spec, box): Scene` dispatches on `spec.type`)
 - Modify: `src/components/learn/FigureFrame.tsx` (when `figure_spec` is present, render `FigureView(buildScene(...))`; otherwise keep the existing path), and the question and choice data types and queries that select figure fields (`src/types/supabase.ts` is regenerated, not hand-edited)
 - Test: `tests/unit/figures/engine/routing.test.tsx`
 
 **Interfaces:**
+
 - Produces: `buildScene`. The `figure_spec` and `choice_figure_spec` fields appear on the question and choice types.
 
 - [ ] **Step 1: Write failing tests:**
@@ -250,11 +268,13 @@
 ### Task 10: Figure answer choices and device layout
 
 **Files:**
+
 - Create: `src/components/learn/figures/FigureChoices.tsx`
 - Modify: the answer-choice rendering component under `src/components/learn/` that lists choices (it uses `FigureChoices` when any choice has `choice_figure_spec`)
 - Test: `tests/unit/figures/engine/choices.test.tsx`, `tests/visual/figures.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `buildScene`.
 - Produces: `sharedFrame(specs: FigureSpec[]): PlaneFrame` (the union of ranges, applied to all four).
 
@@ -272,19 +292,22 @@
 ### Task 11: Checks, reviewer submit path and certify
 
 **Files:**
+
 - Create: `src/lib/figures/engine/checks.ts`, `scripts/figures/check-spec.ts` (CLI: reads `figure.json`, prints `{ok, issues[], svg}`)
-- Modify, on the import branch `claude/import-dedup-spec`: `scripts/import-tools/kimport/figures.py` (`figures submit` runs `npx tsx scripts/figures/check-spec.ts` and refuses on issues or on a `figure_svg` field), `scripts/import-tools/kimport/qa_bank_checks.py` (adds a `figure_choice_placeholder` fail check: choice text matching `^(Graph|Table|Figure|Chart)\s+[A-D]\.?$` with no `choice_figure_spec`), and `src/app/dev/figure-review/` (renders the engine output beside the inverted original)
+- Modify, on the import branch `claude/import-dedup-spec`: `scripts/import-tools/kimport/figures.py` (`figures submit` first runs `npx tsx scripts/figures/sample-spec.ts figure.json` and stores the filled spec, so every function part carries `samples`, then runs `npx tsx scripts/figures/check-spec.ts` on the filled spec and refuses on issues, including `unsampled_function`, or on a `figure_svg` field), `scripts/import-tools/kimport/qa_bank_checks.py` (adds a `figure_choice_placeholder` fail check: choice text matching `^(Graph|Table|Figure|Chart)\s+[A-D]\.?$` with no `choice_figure_spec`), and `src/app/dev/figure-review/` (renders the engine output beside the inverted original)
 - Test: `tests/unit/figures/engine/checks.test.ts`, plus kimport tests in `scripts/import-tools/tests/`
 
 **Interfaces:**
-- Produces: `checkSpec(spec, transcribedLabels: string[]): SceneIssue[]`, which covers missing or invented labels, `off_line`, `label_collision`, `clipped`, `arrow_rule`, and curve-through-point.
+
+- Produces: `checkSpec(spec, transcribedLabels: string[]): SceneIssue[]`, which covers missing or invented labels, `off_line`, `label_collision`, `clipped`, `arrow_rule`, `unsampled_function`, and curve-through-point (checked against the stored `samples`).
 
 - [ ] **Step 1: Write failing tests:**
   - `missing label from transcription → missing_label`;
   - `invented label → missing_label with detail "not in original"`;
   - `point declared on circle but off it → off_line`;
-  - `segment drawn with arrows → arrow_rule`.
-  - kimport: `submit refuses figure_svg`, `submit refuses a spec with issues`, and `certify flags "Graph A" choices with no figure`.
+  - `segment drawn with arrows → arrow_rule`;
+  - `function part without samples → unsampled_function`.
+  - kimport: `submit fills samples before checking`, `submit refuses figure_svg`, `submit refuses a spec with issues`, and `certify flags "Graph A" choices with no figure`.
 - [ ] **Step 2:** Run `npx vitest run tests/unit/figures/engine/checks.test.ts` and `cd scripts/import-tools && python3 -m unittest discover -s tests -q`. Expected: FAIL.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Run both. Expected: PASS.
@@ -293,6 +316,7 @@
 ### Task 12: Golden figures and full-bank verification
 
 **Files:**
+
 - Create: `tests/fixtures/figures/golden/*.json` (about 30 specs covering every part kind and mark, at least 3 per type) and `tests/unit/figures/engine/golden.test.ts`
 - Create: `scripts/figures/render-all.ts` (renders every live `figure_spec` at 390, 820 and 1280 widths in light and dark, and writes `issues.json`)
 
