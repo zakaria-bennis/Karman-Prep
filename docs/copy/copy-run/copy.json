@@ -27,7 +27,8 @@
     {
       "fact": "Five full-length practice tests, each followed by a 60-minute one-on-one review of every missed question.",
       "source": "founder",
-      "used_in": "review H2"
+      "used_in": "review H2",
+      "superseded": "2026-10-30: the cohort no longer includes 1:1 reviews. Its classes now focus on the skills the group missed most, and every student practises at their own level."
     },
     {
       "fact": "Daily 10: every missed question returns after 2, 7 and 21 days.",
@@ -47,7 +48,8 @@
     {
       "fact": "The guarantee has five student rules, each a number tracked on the dashboard: 15 of 18 classes, all 5 reviews, all 5 tests, 90% of practice, sit the SAT.",
       "source": "founder",
-      "used_in": "guarantee text, parent update body"
+      "used_in": "guarantee text, parent update body",
+      "superseded": "2026-10-30: the review rule was removed, so the guarantee has four student rules: 15 of 18 classes, all 5 tests, 90% of practice, sit the SAT."
     },
     {
       "fact": "Competitor guarantees (read from their own terms pages, 2026-10 research) include 100% homework rules, poll quotas, same-device rules, 'good faith' clauses and 'submitting a claim doesn't guarantee approval'. Karman's guarantee has none of these.",
@@ -67,7 +69,8 @@
     {
       "fact": "Private 10 is $1,450 and Private 20 is $2,900 ($145 an hour).",
       "source": "founder",
-      "used_in": "pricing, private page"
+      "used_in": "pricing, private page",
+      "superseded": "2026-10-30: Private 10 is $1,495 and Private 20 is $2,495, booked by the student with no fixed weekly slot."
     },
     {
       "fact": "Free practice test: Saturday, December 12, 10:00 a.m. ET, about 75 minutes, 49 Karman questions, live proctor on Zoom, estimated score range, domain breakdown, 20-minute results call.",
@@ -101,7 +104,8 @@
         },
         {
           "h2": "After every practice test, an hour on what went wrong.",
-          "body": "Five full-length tests. After each one, 60 minutes one-on-one with a Karman tutor, going through every question your student missed and why."
+          "body": "Five full-length tests. After each one, 60 minutes one-on-one with a Karman tutor, going through every question your student missed and why.",
+          "superseded": "2026-10-30: replaced on the site by section 3 'Classes built on mistakes' (see copy.js)."
         },
         {
           "h2": "Miss it on Monday. See it again on Wednesday.",
@@ -170,7 +174,8 @@
         "one-on-one reviews",
         "a review after every test",
         "an hour on every mistake after every practice test"
-      ]
+      ],
+      "superseded": "2026-10-30: the review H2 no longer applies to the cohort."
     },
     {
       "line_id": "Daily 10 H2",
@@ -245,7 +250,8 @@
         "Every wrong answer gets a one-on-one hour.",
         "Five tests. Five hours going through every mistake.",
         "The test is practice. The review is the lesson."
-      ]
+      ],
+      "superseded": "2026-10-30: alternates built on one-on-one reviews no longer apply to the cohort."
     },
     {
       "line_id": "Daily 10 H2",
@@ -408,5 +414,6 @@
     "The guarantee is a proposal waiting on a lawyer. The headline and guarantee section only stay true if the lawyer keeps the full terms on the page.",
     "Class days and times are still marked CONFIRM in offer.ts.",
     "The students map numbers (80 U.S., 20 abroad) are unconfirmed; the map copy avoids stating them until you confirm."
-  ]
+  ],
+  "superseded_2026_10_30": "The cohort no longer includes 1:1 reviews, the guarantee has four student rules, and Private is $1,495 / $2,495, self-booked. Entries marked 'superseded' are kept as the record of the 2026-10-25 run; the live words are in .impeccable/mocks/decision/film/copy.js."
 }

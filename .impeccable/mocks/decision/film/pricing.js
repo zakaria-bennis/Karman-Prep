@@ -38,11 +38,11 @@
       name: "The June SAT Program",
     },
   ];
+  // Private 10 and Private 20 (offer.ts, 2026-10-30): 20 hours costs less per hour
   const PRIVATE = {
-    rate: 145,
     packs: [
-      [10, 1450],
-      [20, 2900],
+      [10, 1495],
+      [20, 2495],
     ],
   };
   const FREE = {
@@ -59,15 +59,15 @@
     program: [
       "Two live classes a week, up to six students",
       "Five full-length practice tests",
-      "A 60-minute one-on-one after every full-length",
+      "Classes built on the skills your group missed",
       "A weekly live session",
       "Daily 10 and our own practice questions",
       "Your cohort's group chat, answered daily",
       "A weekly update for parents",
     ],
     private: [
-      "Weekly 60-minute sessions with a Karman tutor",
-      "Scheduled back from your test date",
+      "60-minute sessions with a Karman tutor",
+      "Booked when it suits you, planned back from your test date",
       "Practice tests, Daily 10 and our own questions",
       "The weekly live session",
       "A note to parents after every session",
@@ -82,12 +82,7 @@
       "Five, the first and the last proctored live",
       "On the platform",
     ],
-    [
-      "One-on-one time with a Karman tutor",
-      "A 20-minute results call",
-      "60 minutes after every full-length",
-      "Every session",
-    ],
+    ["One-on-one time with a Karman tutor", "A 20-minute results call", "", "Every session"],
     ["Weekly live session: test mechanics and workshops", "", "yes", "yes"],
     ["Daily 10 and our own practice questions", "", "yes", "yes"],
     ["Cohort group chat, answered by a tutor every day", "", "yes", ""],
@@ -157,9 +152,9 @@
           <div class="pay hours" role="radiogroup">
             ${PRIVATE.packs.map(([h], i) => `<label><input type="radio" name="hours" value="${i}"${i ? "" : " checked"}><span>${h} hours</span></label>`).join("")}
           </div>
-          <p class="price" aria-live="polite"><b class="amt"></b><span class="per">${money(PRIVATE.rate)} an hour</span></p>
+          <p class="price" aria-live="polite"><b class="amt"></b><span class="per"></span></p>
           <a class="badge g20" href="#guarantee" hidden><b>+100</b><span>On 20 hours: +100 points or a 1450.</span></a>
-          <p class="meta">Start any time. Sessions are planned back from your test date.</p>
+          <p class="meta">Start any time. You book each session when it suits you.</p>
           <ul>${INCLUDES.private.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
           <a class="ghost" href="${ROUTES.private}#call">${S("private button")}${K.ARROW}</a>
         </article>
@@ -180,7 +175,7 @@
         <table>
           <thead><tr><th scope="col"><span class="sr">Feature</span></th><th scope="col">${esc(site["free test link"])}</th><th scope="col" class="hot">${esc(site["program link"])}</th><th scope="col">${esc(site["private link"])}</th></tr></thead>
           <tbody>${COMPARE.map((r) => `<tr><th scope="row">${esc(r[0])}</th><td>${cell(r[1])}</td><td class="hot">${cell(r[2])}</td><td>${cell(r[3])}</td></tr>`).join("")}
-            <tr class="cost"><th scope="row">Price</th><td>$0</td><td class="hot prog-cost"></td><td>${money(PRIVATE.rate)} an hour</td></tr>
+            <tr class="cost"><th scope="row">Price</th><td>$0</td><td class="hot prog-cost"></td><td>From ${money(PRIVATE.packs[0][1])}</td></tr>
           </tbody>
         </table>
       </div></details>
@@ -228,6 +223,7 @@
     document.querySelector(".prog-cost").textContent = money(d.price);
     const h = +document.querySelector('input[name="hours"]:checked').value;
     roll(priv.querySelector(".amt"), money(PRIVATE.packs[h][1]));
+    priv.querySelector(".per").textContent = `for ${PRIVATE.packs[h][0]} hours`;
     priv.querySelector(".g20").hidden = h !== 1;
   }
   document

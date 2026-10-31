@@ -21,7 +21,7 @@
   /* ---------- the features, most important first; each screen sits at the outer edge of the page ---------- */
   const FEATURES = [
     { n: 2, media: "wide", screen: "schedule", side: "right" },
-    { n: 3, media: "wide", screen: "review", side: "left" },
+    { n: 3, media: "wide", screen: "classPlan", side: "left" },
     { n: 4, media: "phone", screen: "daily10", side: "right", figure: "ten" },
     { n: 5, media: "phone", screen: "parent", side: "left" },
     { n: 6, media: "phone", screen: "wordline", side: "right", minor: true },

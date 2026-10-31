@@ -26,8 +26,8 @@ All the words on the landing page live in one file: `copy.js`, in this folder.
 Other pages have their own sections: 21 to 27 the SAT Program, 31 to 36 private tutoring, 41 to 45
 the free practice test, 51 to 55 the guarantee, 61 to 65 About, 71 the FAQ. Form labels start with "form".
 
-The home page has eleven sections, top to bottom: Opening, Live classes, One-on-one
-reviews, Daily 10, Parent updates, Between classes, Test date, Guarantee, Campus film,
+The home page has eleven sections, top to bottom: Opening, Live classes, Classes
+built on mistakes, Daily 10, Parent updates, Between classes, Test date, Guarantee, Campus film,
 Student messages and The close. Each starts with a line like `## 8 Guarantee`. The
 `## Site` block holds the header, menu and footer words, the pricing page (labels
 starting `pricing`) and the students map (labels starting `map`).
@@ -43,8 +43,7 @@ Things to know:
   `## 1` to `## 7` message lines, the `## Site` line and the `### ` film lines
   exactly as they are.
 - A headline stays on screen from the film it is written under to the end of
-  its message (in Classes and reviews it stays over Priya's class only; the
-  review's screen title carries David's film); a clock stays until the next
+  its message (in Live classes it stays over Priya's class only); a clock stays until the next
   clock.
 - `skip:` in message 1 is the small "Skip the film" link under the button.
   Leave it empty to hide the link.

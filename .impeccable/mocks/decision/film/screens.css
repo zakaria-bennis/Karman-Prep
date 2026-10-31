@@ -23,7 +23,6 @@
 .legend .k { display: inline-flex; align-items: center; gap: 0.6cqw; }
 .legend .k::before { content: ""; width: 1.8cqw; height: 1.1cqw; border-radius: 0.35cqw; }
 .legend .class::before, .ev.class { background: var(--s-ink); color: var(--s-bg); }
-.legend .review::before, .ev.review { background: var(--s-mari); color: var(--s-ink); }
 .legend .work::before, .ev.work { background: var(--s-mari-soft); }
 .legend .hw::before, .ev.hw { border: 1.5px dashed var(--s-mute); background: var(--s-bg); }
 .legend .test::before, .ev.test { border: 1.5px solid var(--s-ink); background: var(--s-bg); }
@@ -36,35 +35,27 @@
 .ev b { font-weight: 700; line-height: 1.2; }
 .ev span { opacity: .78; font-weight: 600; }
 
-/* the review */
-.rev { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 1.8cqw; min-height: 0; grid-row: span 2; }
-.call { display: grid; grid-template-rows: 1fr 1fr auto; gap: 1cqw; }
-.tile { position: relative; border-radius: 1.4cqw; background: linear-gradient(160deg, #2a2723, #141311); display: grid; place-items: center; }
-.tile.t2 { background: linear-gradient(160deg, #3a3329, #1b1813); }
-.tile .face { width: 7cqw; height: 7cqw; border-radius: 50%; display: grid; place-items: center; background: var(--s-mari); color: var(--s-ink); font-weight: 800; font-size: 3cqw; }
-.tile.t2 .face { background: #fff; }
-.tile .nm { position: absolute; left: 1cqw; bottom: 0.9cqw; color: #fff; font-weight: 700; font-size: 1.25cqw; background: rgba(0,0,0,.45); padding: 0.3cqw 0.8cqw; border-radius: 99px; }
-.tile.t1 { box-shadow: inset 0 0 0 2px var(--s-mari); }
-.ctl { display: flex; justify-content: center; gap: 1cqw; }
-.ctl span { height: 3.6cqw; min-width: 3.6cqw; border-radius: 99px; display: grid; place-items: center; background: var(--s-soft); border: 1px solid var(--s-line); padding: 0 0.9cqw; }
-.ctl span svg { width: 1.8cqw; height: 1.8cqw; }
-.ctl .leave { background: #b3261e; color: #fff; border: 0; font-weight: 700; font-size: 1.25cqw; padding: 0 1.6cqw; }
-.q { border: 1px solid var(--s-line); border-radius: 1.4cqw; padding: 1.8cqw; display: flex; flex-direction: column; gap: 1.3cqw; }
-.q .tag { font-weight: 700; color: var(--s-ink2); font-size: 1.25cqw; display: flex; gap: 1cqw; align-items: center; }
-.q .tag em { font-style: normal; color: var(--s-bad); background: var(--s-bad-bg); padding: 0.2cqw 0.8cqw; border-radius: 99px; }
-.q .stem { font-size: 1.85cqw; font-weight: 600; line-height: 1.35; }
-.q .ch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8cqw; }
+/* the tutor's class plan */
+.plan-scr .body { padding-left: 5cqw; } /* the screen bleeds off the page's left edge: keep the words on the page */
+.plan { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 1.8cqw; min-height: 0; grid-row: span 2; }
+.pcol { border: 1px solid var(--s-line); border-radius: 1.4cqw; padding: 1.8cqw; display: flex; flex-direction: column; gap: 1.8cqw; min-width: 0; }
+.pcol.sets { gap: 1.25cqw; }
+.ph { font-weight: 700; color: var(--s-ink2); font-size: 1.45cqw; }
+.mr { display: grid; gap: 0.8cqw; }
+.mt { display: flex; justify-content: space-between; align-items: baseline; gap: 1cqw; font-size: 1.9cqw; }
+.mt b { font-weight: 700; }
+.mt span { color: var(--s-ink2); font-weight: 600; font-size: 1.4cqw; white-space: nowrap; }
+.mr .bar { height: 1cqw; border-radius: 99px; background: var(--s-soft); overflow: hidden; }
+.mr .bar i { display: block; height: 100%; background: var(--s-ink); border-radius: inherit; }
 .ch span { display: flex; align-items: center; gap: 0.9cqw; border: 1.5px solid var(--s-line); border-radius: 1cqw; padding: 0.8cqw 1cqw; font-weight: 600; }
 .ch i { font-style: normal; width: 2.4cqw; height: 2.4cqw; border-radius: 50%; border: 1.5px solid var(--s-mute); display: grid; place-items: center; font-size: 1.15cqw; font-weight: 800; flex: none; }
-.q .ch .ok { border-color: #2e7d4f; background: var(--s-ok-bg); }
-.q .ch .ok i { background: #2e7d4f; border-color: #2e7d4f; color: #fff; }
-.q .ch .no { border-color: #b3261e; background: var(--s-bad-bg); text-decoration: line-through; text-decoration-color: rgba(179,38,30,.6); }
-.q .ch .no i { background: #b3261e; border-color: #b3261e; color: #fff; text-decoration: none; }
+.pcol .tnote { margin-top: auto; font-size: 1.5cqw; }
+.st { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 1.1cqw; align-items: center; font-size: 1.5cqw; }
+.st .face { grid-row: span 2; width: 3.8cqw; height: 3.8cqw; border-radius: 50%; display: grid; place-items: center; background: var(--s-soft); border: 1px solid var(--s-line); font-weight: 800; font-size: 1.4cqw; }
+.st b { font-weight: 700; line-height: 1.2; }
+.st span:last-child { color: var(--s-ink2); font-weight: 600; font-size: 1.3cqw; line-height: 1.25; }
 .tnote { background: var(--s-mari-soft); border-radius: 1cqw; padding: 1cqw 1.2cqw; font-size: 1.3cqw; line-height: 1.4; }
 .tnote b { display: block; font-weight: 800; margin-bottom: 0.2cqw; }
-.q .prog { margin-top: auto; display: grid; gap: 0.6cqw; font-size: 1.2cqw; font-weight: 600; color: var(--s-ink2); }
-.q .bar { height: 0.7cqw; border-radius: 99px; background: var(--s-soft); overflow: hidden; }
-.q .bar i { display: block; height: 100%; background: var(--s-ink); border-radius: inherit; }
 
 /* ---------- phone screens ---------- */
 .scr.ph { font-size: 4.1cqw; display: flex; flex-direction: column; gap: 3.2cqw; padding: 0 5.5cqw 5cqw; }
@@ -144,5 +135,5 @@
 /* dark mode: the app's own dark look, so a screen never glares out of a dark page */
 :root[data-theme="dark"] .scr { --s-ink: #f1ede4; --s-ink2: #b6b0a4; --s-line: #2e2c28; --s-soft: #22211d; --s-mari-ink: #f0b545; --s-mari-soft: rgba(235,162,31,.16);
   --s-bg: #161513; --s-mute: #6f6a61; --s-x: #2c2a26; --s-bad: #f2a7a1; --s-bad-bg: rgba(179,38,30,.22); --s-ok-bg: rgba(46,125,79,.25); --s-today: rgba(235,162,31,.08); }
-:root[data-theme="dark"] .scr .go, :root[data-theme="dark"] .scr .ev.review, :root[data-theme="dark"] .wl .row i.g, :root[data-theme="dark"] .wl .kr i.g { color: #0b0b0b; }
+:root[data-theme="dark"] .scr .go, :root[data-theme="dark"] .wl .row i.g, :root[data-theme="dark"] .wl .kr i.g { color: #0b0b0b; }
 :root[data-theme="dark"] .sb-r b::after, :root[data-theme="dark"] .sb-r i { background: var(--s-ink); }

@@ -29,12 +29,6 @@
       '<rect x="5" y="4" width="14" height="16.5" rx="2"/><path d="M8.5 9h7M8.5 12.5h7M8.5 16h4"/>'
     ),
     eye: ic('<path d="M3 12s3.3-6 9-6 9 6 9 6-3.3 6-9 6-9-6-9-6Z"/><path d="M4 20 20 4"/>'),
-    mic: ic(
-      '<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5"/>'
-    ),
-    cam: ic(
-      '<rect x="3" y="7" width="12.5" height="10" rx="2"/><path d="m15.5 11 5.5-3v8l-5.5-3Z"/>'
-    ),
     back: ic('<path d="M15 5 8 12l7 7"/>'),
     check: ic('<path d="M5 12.5 10 17.5 19 7"/>'),
   };
@@ -51,9 +45,9 @@
       <nav class="rail"><span class="logo">K</span>${I.home}${I.ten}<span class="on">${I.cal}</span>${I.test}${I.chat}<span class="sp"></span>${I.bell}<span class="av">M</span></nav>
       <div class="body">
         <div class="top"><h3>February 1 to 7</h3><span class="sat">The SAT, Saturday, March 6</span></div>
-        <div class="legend"><span class="k class">Live classes</span><span class="k review">One-on-one reviews</span><span class="k work">Weekly session</span><span class="k hw">Homework from David</span><span class="k test">Tests</span></div>
+        <div class="legend"><span class="k class">Live classes</span><span class="k work">Weekly session</span><span class="k hw">Homework from David</span><span class="k test">Tests</span></div>
         <div class="week">
-          ${day("Mon", 1, [ev("review", "Review of full-length 3 with David", "6:00 p.m.")])}
+          ${day("Mon", 1, [ev("hw", "Daily 10", "Due today")])}
           ${day("Tue", 2, [ev("class", "Live class: linear functions", "7:00 p.m."), ev("hw", "From David: timed set of 12", "Due tonight")], "today")}
           ${day("Wed", 3, [ev("work", "Workshop: pacing module 2", "7:00 p.m."), ev("hw", "Daily 10", "Due today")])}
           ${day("Thu", 4, [ev("class", "Live class: transitions", "7:00 p.m.")])}
@@ -65,24 +59,33 @@
     </div>`;
   }
 
-  /* ---------- the one-on-one review (laptop): the call beside the question being reviewed ---------- */
-  function review() {
-    return `<div class="scr app rev-scr">
-      <nav class="rail"><span class="logo">K</span>${I.home}${I.ten}${I.cal}<span class="on">${I.test}</span>${I.chat}<span class="sp"></span>${I.bell}<span class="av">M</span></nav>
+  /* ---------- the tutor's class plan (laptop): what the group missed most, and a practice set for each student ---------- */
+  function classPlan() {
+    const miss = (skill, n, of) =>
+      `<div class="mr"><div class="mt"><b>${skill}</b><span>${n} of ${of} missed it</span></div><span class="bar"><i style="width:${Math.round((n / of) * 100)}%"></i></span></div>`;
+    const st = (name, set) =>
+      `<div class="st"><span class="face">${name[0]}</span><b>${name}</b><span>${set}</span></div>`;
+    return `<div class="scr app plan-scr">
+      <nav class="rail"><span class="logo">K</span>${I.home}${I.ten}<span class="on">${I.cal}</span>${I.test}${I.chat}<span class="sp"></span>${I.bell}<span class="av">D</span></nav>
       <div class="body">
-        <div class="top"><h3>Review: full-length 3</h3><span class="sat">With David, 60 minutes</span></div>
-        <div class="rev">
-          <div class="call">
-            <div class="tile t1"><span class="face">D</span><span class="nm">David</span></div>
-            <div class="tile t2"><span class="face">M</span><span class="nm">Maya</span></div>
-            <div class="ctl"><span>${I.mic}</span><span>${I.cam}</span><span class="leave">Leave</span></div>
+        <div class="top"><h3>Tuesday's class</h3><span class="sat">Built from full-length 3</span></div>
+        <div class="plan">
+          <div class="pcol sets">
+            <p class="ph">Practice sets for the last 30 minutes</p>
+            ${st("Maya", "Slope, starting with the basics")}
+            ${st("Jonah", "Slope, the hardest questions")}
+            ${st("Sofia", "Transitions")}
+            ${st("Eli", "Slope, starting with the basics")}
+            ${st("Nia", "Command of evidence")}
+            ${st("Theo", "Slope, the hardest questions")}
           </div>
-          <div class="q">
-            <p class="tag">Math, module 2, question 14 <em>Missed</em></p>
-            <p class="stem">A line passes through the points (2, 5) and (6, 13). What is the slope of the line?</p>
-            <div class="ch"><span class="ok"><i>A</i>2</span><span><i>B</i>3</span><span class="no"><i>C</i>4</span><span><i>D</i>8</span></div>
-            <div class="tnote"><b>From David</b>You divided by 2, the first x, instead of the change in x. The slope is (13 minus 5) over (6 minus 2): 8 over 4, which is 2.</div>
-            <div class="prog"><span>12 of 19 missed questions reviewed</span><span class="bar"><i style="width:63%"></i></span></div>
+          <div class="pcol">
+            <p class="ph">What the group missed most</p>
+            ${miss("Slope from two points", 5, 6)}
+            ${miss("Transitions", 4, 6)}
+            ${miss("Command of evidence", 3, 6)}
+            ${miss("Sentence boundaries", 2, 6)}
+            <div class="tnote"><b>Class plan</b>25 minutes on slope, 20 on transitions. Then everyone works a set built from their own misses.</div>
           </div>
         </div>
       </div>
@@ -118,7 +121,7 @@
       <div class="nums">
         <div><b>2 of 2</b><span>Live classes</span></div>
         <div><b>96%</b><span>Practice done</span></div>
-        <div><b>1 of 1</b><span>Reviews</span></div>
+        <div><b>3 of 5</b><span>Full-length tests</span></div>
       </div>
       <div class="tnote"><b>From David</b>Maya fixed every slope question from test 3. Next week: evidence questions, and full-length 4 on Saturday.</div>
       <div class="inc"><span>Incomplete</span>Transitions set, due Friday</div>
@@ -152,5 +155,5 @@
     </div>`;
   }
 
-  window.KARMAN_SCREENS = { schedule, review, daily10, parent, wordline };
+  window.KARMAN_SCREENS = { schedule, classPlan, daily10, parent, wordline };
 })();
