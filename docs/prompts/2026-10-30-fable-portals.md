@@ -290,10 +290,9 @@ ones he notices most:
 - **No em dashes, no emoji, and no numbered list markers** (01, 02, 03).
 - **No sentence formulas.** No "it's not X, it's Y". No two-beat antithesis
   like "Less X. More Y." No aphorisms.
-- **Nothing made up.** No invented numbers. The mock's testimonial section is
-  made of placeholders for the founder's review: polish its design, but never
-  port the quotes into `src/` or deploy them until he replaces them with real,
-  approved ones. Add no others. Tutoring results always say "Karman 1:1 tutoring, median 16
+- **Nothing made up.** No invented numbers or quotes. The founder adds
+  testimonials himself in `copy.js`: polish the testimonial section's design,
+  but never write or invent a quote. Tutoring results always say "Karman 1:1 tutoring, median 16
   weeks".
 - **What goes where on the site.**
   - The home page shows only what every student shares: Your Daily 10, the
@@ -592,7 +591,7 @@ Ultracode is on, so split the work, but protect consistency.
 - Spend Higgsfield credits.
 - Print a secret.
 - Show a real student's data in a prototype.
-- Port the mock's placeholder testimonials into `src/` or put them live.
+- Write or invent a testimonial.
 - Claim a feature works without having clicked it.
 
 ---

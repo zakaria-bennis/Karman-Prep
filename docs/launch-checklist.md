@@ -32,7 +32,7 @@ Status key: `[ ]` to do, `[x]` done (with date and how it was checked).
 
 - [ ] Question count gate: the release preflight queries the live question count and refuses to publish while it is below `QUESTION_BANK.claimedMinimum` (10,000). Founder decision 2026-10-20: the site claims 10,000+ original questions; 2,588 were live on 2026-10-19.
 - [ ] Every cohort date shown on the site is a real upcoming SAT date from `SAT_DATES`, never a past one.
-- [ ] Testimonials: the website mock has placeholder testimonials invented for the founder's review (2026-10-30). Before any deploy, each one is replaced with a real, approved testimonial from a Karman student or parent, or removed. A disclaimer does not make invented testimonials allowed (FTC rule on fake reviews, 2024).
+- [ ] Testimonials: every testimonial on the site is real, written by a Karman student or parent who gave written permission, and kept on file. The founder adds them himself (2026-10-30).
 
 ## Legal and accessibility
 
