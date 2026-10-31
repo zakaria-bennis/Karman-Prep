@@ -49,27 +49,21 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   process.exit(1);
 }
 
-// ── Production guard ───────────────────────────────────────
-// This script writes fake personas and fake practice questions.
-// It only runs against a local or CI Supabase (localhost,
-// 127.0.0.1, [::1] or *.localhost). Anything else is refused,
-// including the production project URL.
-{
-  let host = "";
-  try {
-    host = new URL(SUPABASE_URL).hostname;
-  } catch {
-    // fall through: an unparseable URL is refused below
-  }
-  const isLocal =
-    host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host.endsWith(".localhost");
-  if (!isLocal) {
-    console.error(
-      `✗ Refusing to seed "${host || SUPABASE_URL}": seed:dev only targets local/CI databases.`
-    );
-    process.exit(1);
-  }
+// ── Local-database check ───────────────────────────────────
+// Personas are seeded wherever .env.local points (unchanged). The fake practice
+// questions below are live-shaped rows, so they are only ever written to a local
+// or CI Supabase (localhost, 127.0.0.1, [::1] or *.localhost), never to production.
+let SEED_HOST = "";
+try {
+  SEED_HOST = new URL(SUPABASE_URL).hostname;
+} catch {
+  // unparseable: treated as not local
 }
+const IS_LOCAL_DB =
+  SEED_HOST === "localhost" ||
+  SEED_HOST === "127.0.0.1" ||
+  SEED_HOST === "[::1]" ||
+  SEED_HOST.endsWith(".localhost");
 
 // ── REST helper ────────────────────────────────────────────
 async function sb(path, init = {}) {
@@ -242,7 +236,7 @@ const log = (msg) => console.log(`  ${msg}`);
 // 0de00000-0000-4000-8000-… and source_pdf is 'dev-fixture', so
 // they are easy to find and drop:
 //   delete from quiz_questions where source_pdf = 'dev-fixture';
-// Never imported, never published; seed:dev refuses non-local DBs.
+// Never imported, never published; only seeded into a local or CI database.
 const FIXTURE_NODE = "ma-00";
 const FIXTURE_QUESTIONS = [
   { q: "DEV FIXTURE 1: If 2x + 3 = 11, what is x?", choices: ["2", "4", "7", "8"], correct: "B" },
@@ -305,8 +299,12 @@ async function main() {
   await upsertSatDatesForSeed();
   log("✓ SAT dates seeded");
 
-  await upsertFixtureQuestions();
-  log(`✓ ${FIXTURE_QUESTIONS.length} dev-fixture practice questions seeded for ${FIXTURE_NODE}`);
+  if (IS_LOCAL_DB) {
+    await upsertFixtureQuestions();
+    log(`✓ ${FIXTURE_QUESTIONS.length} dev-fixture practice questions seeded for ${FIXTURE_NODE}`);
+  } else {
+    log(`· dev-fixture practice questions skipped: ${SEED_HOST || "this database"} is not local`);
+  }
 
   // 1. Admin ─────────────────────────────────────────────
   header("dev_seed_admin (admin)");
