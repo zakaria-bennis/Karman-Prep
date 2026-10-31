@@ -35,6 +35,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from . import figure_gate as fg
@@ -69,10 +70,18 @@ def spec_check(figure_file: Path) -> dict:
         out = json.loads(r.stdout.strip().splitlines()[-1])
     except (OSError, subprocess.TimeoutExpired, ValueError, IndexError) as e:
         raise ValueError(f"figure checks could not run in {engine_dir()}: {e}") from None
+    tail = (r.stderr or r.stdout).strip()[-300:]
+    if not isinstance(out, dict):
+        raise ValueError(f"figure checks gave no result object: {tail}")
     if r.returncode == 2 and out.get("errors"):
         raise ValueError("the figure spec cannot be checked:\n  - " + "\n  - ".join(map(str, out["errors"])))
-    if r.returncode not in (0, 1) or not isinstance(out, dict) or "ok" not in out:
-        raise ValueError(f"figure checks failed: {(r.stderr or r.stdout).strip()[-300:]}")
+    ok = out.get("ok")
+    # exit 0 exactly when every spec passes, 1 when any has issues; a pass carries the sampled specs
+    if not isinstance(ok, bool) or r.returncode != (0 if ok else 1):
+        raise ValueError(f"figure checks failed (exit {r.returncode}, ok={ok!r}): {tail}")
+    if ok and ("spec" not in out or not isinstance(out.get("choices"), list)
+               or any(not isinstance(c, dict) or "spec" not in c for c in out["choices"])):
+        raise ValueError("figure checks passed but returned no sampled spec to store")
     return out
 
 
@@ -87,14 +96,15 @@ def _issue_lines(result: dict) -> list[str]:
 
 
 def _store_checked(folder: Path, doc: dict, result: dict) -> None:
-    """figure.json with the sampled specs check-spec.ts returned, and their renders beside it
-    (renders from an earlier submit are removed first, so none is stale)."""
-    for stale in [folder / SVG_FILE, *folder.glob("choice-*.svg")]:
-        stale.unlink(missing_ok=True)
+    """figure.json with the sampled specs check-spec.ts returned, then their renders beside it.
+    Renders go to temp files first and replace the old ones only after figure.json is written;
+    renders from an earlier submit that are not rewritten are removed last. A crash never leaves
+    renders newer than figure.json."""
+    renders: dict[str, str] = {}
     if doc.get("figure_spec") not in fg._EMPTY:
         doc["figure_spec"] = result["spec"]
         if result.get("svg"):
-            (folder / SVG_FILE).write_text(result["svg"], encoding="utf-8")
+            renders[SVG_FILE] = result["svg"]
     by_letter = {c.get("letter"): c for c in result.get("choices") or []}
     for c in doc.get("answer_choices") or []:
         got = by_letter.get(c.get("letter")) if isinstance(c, dict) else None
@@ -102,8 +112,23 @@ def _store_checked(folder: Path, doc: dict, result: dict) -> None:
             continue
         c["choice_figure_spec"] = got["spec"]
         if got.get("svg"):
-            (folder / f"choice-{c['letter']}.svg").write_text(got["svg"], encoding="utf-8")
-    atomic_write_json(folder / fg.FIGURE_FILE, doc)
+            renders[f"choice-{c['letter']}.svg"] = got["svg"]
+    temps = {}
+    try:
+        for name, svg in renders.items():
+            fd, tmp = tempfile.mkstemp(prefix=name + ".", suffix=".tmp", dir=folder)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(svg)
+            temps[name] = tmp
+        atomic_write_json(folder / fg.FIGURE_FILE, doc)
+        for name, tmp in temps.items():
+            os.replace(tmp, folder / name)
+    finally:
+        for tmp in temps.values():
+            Path(tmp).unlink(missing_ok=True)
+    for stale in [folder / SVG_FILE, *folder.glob("choice-*.svg")]:
+        if stale.name not in renders:
+            stale.unlink(missing_ok=True)
 
 
 def render_errors(figure_file: Path) -> list[str]:
@@ -409,7 +434,6 @@ def snapshot(figures_dir: Path, out_dir: Path, status: str = "ready_for_founder"
     """One composite JPEG per figure with this status (original.png left, the real quiz render right) for a
     hosted review page, plus manifest.json. Resumable: a file already there for the same round is kept.
     Rendering is done by figure-snapshot.mjs against the dev server's /dev/figure-review/render route."""
-    import tempfile
     out_dir.mkdir(parents=True, exist_ok=True)
     items, jobs, skipped = [], [], []
     for d in _folders(figures_dir):

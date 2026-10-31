@@ -401,3 +401,35 @@ class SpecSubmit(unittest.TestCase):
         ffx.write_figure(self.figs, other.name, spec_doc(other.name, PLANE_SPEC, ("x", "1", "1")), status="drafting")
         with self.assertRaisesRegex(ValueError, "not in original"):
             figures.submit(self.figs, other.name, "r1", self.NOW)
+
+    def test_a_checker_result_that_is_not_an_object_is_refused(self):
+        self.write(spec_doc(self.OCC))
+        for stdout in ("[1, 2]\n", '"ok"\n', "null\n"):
+            with self.assertRaisesRegex(ValueError, "no result object"):
+                self.run_submit(subprocess.CompletedProcess([], 0, stdout, ""))
+        self.assertEqual(self.status(), "drafting")
+
+    def test_exit_code_must_match_ok_and_a_pass_must_carry_its_spec(self):
+        self.write(spec_doc(self.OCC))
+        mismatched = [checked(ok=True, spec=TRIANGLE_SPEC), checked(ok=False, issues=[])]
+        mismatched[0].returncode, mismatched[1].returncode = 1, 0
+        for result in mismatched:
+            with self.assertRaisesRegex(ValueError, "figure checks failed"):
+                self.run_submit(result)
+        no_spec = subprocess.CompletedProcess([], 0, json.dumps({"ok": True, "issues": [], "choices": []}) + "\n", "")
+        bad_choice = checked(ok=True, spec=TRIANGLE_SPEC, choices=[{"letter": "A", "ok": True, "issues": []}])
+        for result in (no_spec, bad_choice):
+            with self.assertRaisesRegex(ValueError, "no sampled spec"):
+                self.run_submit(result)
+        self.assertEqual(self.status(), "drafting")
+
+    def test_a_crash_writing_figure_json_leaves_the_old_renders(self):
+        self.write(spec_doc(self.OCC))
+        (self.folder / "figure.svg").write_text("<svg>old</svg>")
+        before = (self.folder / "figure.json").read_bytes()
+        with mock.patch.object(figures, "atomic_write_json", side_effect=OSError("disk full")):
+            with self.assertRaises(OSError):
+                self.run_submit(checked(spec=TRIANGLE_SPEC, svg="<svg>new</svg>"))
+        self.assertEqual((self.folder / "figure.svg").read_text(), "<svg>old</svg>")
+        self.assertEqual((self.folder / "figure.json").read_bytes(), before)
+        self.assertEqual(sorted(p.name for p in self.folder.iterdir() if p.suffix == ".tmp"), [])
