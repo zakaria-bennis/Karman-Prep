@@ -7,6 +7,7 @@
  * `samples`; the runtime engine (src/lib/figures/engine) draws only those and
  * never loads the calculator.
  */
+import { isFramed, sharedFrame } from "@/lib/figures/engine/choices";
 import type { FigureSpec, PlaneFrame } from "@/lib/figures/engine/spec";
 import { plot, plotInput, viewFor } from "./calculator-read";
 import { regionSamples } from "./sample-regions";
@@ -98,4 +99,17 @@ export function sampleSpec(spec: FigureSpec, box = DEFAULT_BOX): FigureSpec {
     return { ...part, samples };
   });
   return { ...spec, parts };
+}
+
+/**
+ * A figure-choice set ready to store: every framed choice set to the set's
+ * shared frame (sharedFrame, the one window the four are drawn in) and sampled
+ * in it, so each curve and region reaches the shared frame's edges. Shapes,
+ * solids and tables are sampled as they are. choiceScenes refuses a set whose
+ * sampled choices were not stored this way (choiceFrameIssues).
+ */
+export function sampleChoices(specs: FigureSpec[], box = DEFAULT_BOX): FigureSpec[] {
+  const framed = specs.filter(isFramed);
+  const frame = framed.length ? sharedFrame(framed) : null;
+  return specs.map((spec) => sampleSpec(frame && isFramed(spec) ? { ...spec, frame } : spec, box));
 }

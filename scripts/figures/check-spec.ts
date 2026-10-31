@@ -10,8 +10,11 @@
  * `transcribed_labels` beside each spec, or labels.json (a JSON array of
  * strings) for the bare spec or the question's figure_spec.
  *
- * Each spec's function parts are sampled first (sampleSpec, the calculator's
- * plotting math), then validated and checked (checkSpec). Prints one JSON line:
+ * Each spec's function and region parts are sampled first (sampleSpec, the
+ * calculator's plotting math), then validated and checked (checkSpec). Answer
+ * choices that are graphs or charts are first set to the one frame they are
+ * drawn in (sampleChoices), so each is sampled, checked and stored in it.
+ * Prints one JSON line:
  *
  *   {ok, issues[], svg, spec, choices: [{letter, ok, issues[], svg, spec}]}
  *
@@ -25,11 +28,11 @@ import Module from "node:module";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { checkSpec } from "@/lib/figures/engine/checks";
-import { CHOICE_BOX, choiceScenes, sharedFrame } from "@/lib/figures/engine/choices";
+import { CHOICE_BOX, choiceFrameIssues, choiceScenes } from "@/lib/figures/engine/choices";
 import { buildScene, defaultBox } from "@/lib/figures/engine/index";
 import type { Scene, SceneIssue } from "@/lib/figures/engine/scene";
 import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
-import { sampleSpec } from "./sample-functions";
+import { sampleChoices, sampleSpec } from "./sample-functions";
 
 /**
  * The default theme's figure roles (figure-roles.css over the :root tokens in
@@ -45,9 +48,13 @@ type Checked = { ok: boolean; issues: SceneIssue[]; svg: string | null; spec: Fi
 
 class InputError extends Error {}
 
-function fail(errors: string[]): never {
-  process.stdout.write(`${JSON.stringify({ ok: false, errors })}\n`);
-  process.exit(2);
+/**
+ * The exit status is set, never forced with process.exit: a forced exit cuts
+ * stdout off at the pipe buffer (64 KB), and a figure's svg is often longer.
+ */
+function finish(out: unknown, code: number) {
+  process.stdout.write(`${JSON.stringify(out)}\n`);
+  process.exitCode = code;
 }
 
 function readJson(file: string): unknown {
@@ -67,11 +74,15 @@ function labelsOf(value: unknown, where: string): string[] {
   return value;
 }
 
-/** Valid, sampled and valid again (sampling must not break a spec). */
-function sampled(raw: unknown, where: string): FigureSpec {
+function valid(raw: unknown, where: string): FigureSpec {
   const input = parseFigureSpec(raw);
   if (!input.ok) throw new InputError(input.errors.map((e) => `${where}: ${e}`).join("\n"));
-  const filled = parseFigureSpec(sampleSpec(input.spec));
+  return input.spec;
+}
+
+/** Sampling must not break a spec: the sampled spec is validated again. */
+function revalidated(spec: FigureSpec, where: string): FigureSpec {
+  const filled = parseFigureSpec(spec);
   if (!filled.ok) {
     throw new InputError(filled.errors.map((e) => `${where} after sampling: ${e}`).join("\n"));
   }
@@ -87,12 +98,12 @@ async function svgOf(scene: Scene | null): Promise<string | null> {
   return markup.replace(/^<svg([^>]*)>/, (open) => open + STANDALONE_STYLE);
 }
 
-const isFramed = (s: FigureSpec) =>
-  s.type !== "table" && s.type !== "geometry2d" && s.type !== "solid3d";
-
 async function main() {
   const [file, labelsFile] = process.argv.slice(2);
-  if (!file) fail(["usage: npx tsx scripts/figures/check-spec.ts <figure.json> [labels.json]"]);
+  if (!file)
+    throw new InputError(
+      "usage: npx tsx scripts/figures/check-spec.ts <figure.json> [labels.json]"
+    );
   const doc = readJson(file) as Record<string, unknown> | null;
   if (!doc || typeof doc !== "object") throw new InputError(`${file}: not a JSON object`);
   const extra = labelsFile ? labelsOf(readJson(labelsFile), labelsFile) : null;
@@ -112,24 +123,27 @@ async function main() {
 
   let figure: Checked | null = null;
   if (figureRaw != null) {
-    const spec = sampled(figureRaw, bare ? file : `${file} figure_spec`);
+    const where = bare ? file : `${file} figure_spec`;
+    const spec = revalidated(sampleSpec(valid(figureRaw, where)), where);
     const labels = extra ?? labelsOf(doc.transcribed_labels, `${file}`);
     const issues = checkSpec(spec, labels);
     const svg = spec.type === "table" ? null : await svgOf(buildScene(spec, defaultBox(spec)));
     figure = { ok: issues.length === 0, issues, svg, spec };
   }
 
-  const specs = choiceDocs.map((c) => sampled(c.choice_figure_spec, `${file} choice ${c.letter}`));
-  // Choices are drawn in one frame, so each is checked in it (choices.ts).
-  const framed = specs.filter(isFramed);
-  const frame = framed.length ? sharedFrame(framed) : null;
+  // Choices are drawn in one frame, so each is stored in it, sampled in it and
+  // checked in it (sampleChoices, choices.ts).
+  const where = (c: Record<string, unknown>) => `${file} choice ${c.letter}`;
+  const specs = sampleChoices(choiceDocs.map((c) => valid(c.choice_figure_spec, where(c)))).map(
+    (spec, i) => revalidated(spec, where(choiceDocs[i]))
+  );
+  const setIssues = choiceFrameIssues(specs);
   const scenes = choiceScenes(specs);
   const choices = await Promise.all(
     choiceDocs.map(async (c, i) => {
       const spec = specs[i];
-      const labels = labelsOf(c.transcribed_labels, `${file} choice ${c.letter}`);
-      const drawn = frame && isFramed(spec) ? { ...spec, frame } : spec;
-      const issues = checkSpec(drawn, labels, CHOICE_BOX);
+      const labels = labelsOf(c.transcribed_labels, where(c));
+      const issues = [...setIssues, ...checkSpec(spec, labels, CHOICE_BOX)];
       return {
         letter: c.letter,
         ok: issues.length === 0,
@@ -148,14 +162,14 @@ async function main() {
     spec: figure?.spec ?? null,
     choices,
   };
-  process.stdout.write(`${JSON.stringify(out)}\n`);
-  process.exit(ok ? 0 : 1);
+  finish(out, ok ? 0 : 1);
 }
 
 main().catch((error) => {
-  if (error instanceof InputError) fail(error.message.split("\n"));
+  if (error instanceof InputError)
+    return finish({ ok: false, errors: error.message.split("\n") }, 2);
   process.stderr.write(
     `${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`
   );
-  process.exit(3);
+  process.exitCode = 3;
 });

@@ -44,7 +44,7 @@ import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "n
 import path from "node:path";
 import { chromium, type Page } from "@playwright/test";
 import { checkSpec } from "@/lib/figures/engine/checks";
-import { CHOICE_BOX, sharedFrame } from "@/lib/figures/engine/choices";
+import { CHOICE_BOX, choiceFrameIssues, isFramed, sharedFrame } from "@/lib/figures/engine/choices";
 import type { Box } from "@/lib/figures/engine/index";
 import type { SceneIssue } from "@/lib/figures/engine/scene";
 import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
@@ -186,9 +186,6 @@ export function readFigures(input: string): Figure[] {
 
 // ---------------------------------------------------------------- engine (Node)
 
-const isFramed = (s: FigureSpec) =>
-  s.type !== "table" && s.type !== "geometry2d" && s.type !== "solid3d";
-
 /**
  * The engine's own checks (checkSpec), before any browser. With the original's
  * transcription (`transcribed_labels`) every check runs; without one, the
@@ -232,6 +229,8 @@ function engineIssues(fig: Figure): string[] {
     // Choices are drawn in one frame, so each is checked in it (as check-spec.ts does).
     const framed = specs.filter((s): s is FigureSpec => !!s && isFramed(s));
     const frame = framed.length ? sharedFrame(framed) : null;
+    // A set sampled outside its shared frame is never drawn.
+    run("choices: ", () => choiceFrameIssues(specs));
     specs.forEach((spec, i) => {
       if (!spec) return;
       const drawn = frame && isFramed(spec) ? { ...spec, frame } : spec;

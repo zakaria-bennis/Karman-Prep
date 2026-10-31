@@ -25,7 +25,13 @@ import { describe, expect, it } from "vitest";
 import FigureView from "@/components/learn/figures/FigureView";
 import TableView from "@/components/learn/figures/TableView";
 import { checkSpec } from "@/lib/figures/engine/checks";
-import { CHOICE_BOX, choiceScenes, sharedFrame } from "@/lib/figures/engine/choices";
+import {
+  CHOICE_BOX,
+  choiceFrameIssues,
+  choiceScenes,
+  isFramed,
+  sharedFrame,
+} from "@/lib/figures/engine/choices";
 import { buildScene, defaultBox, type Box } from "@/lib/figures/engine/index";
 import type { Scene, SceneIssue } from "@/lib/figures/engine/scene";
 import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
@@ -62,9 +68,6 @@ function issuesOf(spec: FigureSpec, box?: Box): SceneIssue[] {
   );
 }
 
-const isFramed = (s: FigureSpec) =>
-  s.type !== "table" && s.type !== "geometry2d" && s.type !== "solid3d";
-
 function render(golden: Golden, name: string): { markup: string; issues: SceneIssue[] } {
   if (golden.figure_spec != null) {
     const spec = parsed(golden.figure_spec, name);
@@ -82,7 +85,7 @@ function render(golden: Golden, name: string): { markup: string; issues: SceneIs
   const scenes = choiceScenes(specs);
   const framed = specs.filter(isFramed);
   const frame = framed.length ? sharedFrame(framed) : null;
-  const issues: SceneIssue[] = [];
+  const issues: SceneIssue[] = [...choiceFrameIssues(specs)];
   const parts = scenes.map((scene, i) => {
     if (!scene) throw new Error(`${name} ${choices[i].letter}: no scene`);
     issues.push(...scene.issues);

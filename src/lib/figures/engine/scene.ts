@@ -52,7 +52,8 @@ export type SceneIssue = {
     | "arrow_rule"
     | "unsampled_function"
     | "unsampled_region"
-    | "region_unmarked";
+    | "region_unmarked"
+    | "frame_mismatch";
   partId?: string;
   detail: string;
 };

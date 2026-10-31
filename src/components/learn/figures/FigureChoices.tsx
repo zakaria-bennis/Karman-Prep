@@ -13,9 +13,9 @@
 // are a read-only list (review screens).
 // ============================================================
 
-import { useMemo, useRef, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { Ban, Check, X } from "lucide-react";
-import { choiceScenes } from "@/lib/figures/engine/choices";
+import { choiceFrameIssues, choiceScenes } from "@/lib/figures/engine/choices";
 import { cn } from "@/lib/utils";
 import MathText from "../MathText";
 import workspace from "../quiz/workspace.module.css";
@@ -93,7 +93,19 @@ export default function FigureChoices({
   radio?: boolean;
   className?: string;
 }) {
-  const scenes = useMemo(() => choiceScenes(choices.map((c) => c.choice_figure_spec)), [choices]);
+  const specs = useMemo(() => choices.map((c) => c.choice_figure_spec), [choices]);
+  const scenes = useMemo(() => choiceScenes(specs), [specs]);
+  // A set sampled outside its shared frame shows its text choices; say why once.
+  const refused = useMemo(
+    () =>
+      choiceFrameIssues(specs)
+        .map((i) => i.detail)
+        .join("; "),
+    [specs]
+  );
+  useEffect(() => {
+    if (refused) console.error(`FigureChoices: figure choices not drawn: ${refused}`);
+  }, [refused]);
   const interactive = !!onSelect;
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const isOff = (letter: string) => disabled || submitted || !!crossed?.(letter);
