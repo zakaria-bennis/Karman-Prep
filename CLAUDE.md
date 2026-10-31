@@ -78,7 +78,8 @@ under about 700 lines. Server actions validate their inputs with Zod.
   the redesign off the site, so never deploy from `main`. The deploy command
   is `npm run cf:build:release && npm run cf:deploy`, always both together.
 - **Merging to `main`.** It applies database migrations to production.
-- **Writing to the live question bank.**
+- **Writing to the live question bank.** Import sessions follow their own
+  standing rules for this.
 - **Changing the calculator.** Don't edit `src/components/calculator/`,
   `src/lib/calculator/` or the `/calculator` page unless asked.
 - **Printing or committing a secret.**

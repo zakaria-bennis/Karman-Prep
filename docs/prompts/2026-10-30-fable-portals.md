@@ -98,10 +98,11 @@ Work in this order for the website, and again for each portal.
 2. **Study what exists.** For the website, that's the current mock. For the
    app, it's the Daily 10 end screen in `prototypes/daily10-end/`. Screenshot
    them on phone, iPad and desktop before changing anything.
-3. **Set the direction with the founder.** Where a decision is genuinely open,
-   build two or three versions side by side as working screens and let him
-   pick. Don't ask him to judge from a description. Use the impeccable and
-   taste-skill skills to shape and critique the options.
+3. **Set the direction.** Where a decision is genuinely open, build two or
+   three versions side by side as working screens. In the first pass, continue
+   with your recommendation and let him pick at the review. Don't ask him to
+   judge from a description. Use the impeccable and taste-skill skills to
+   shape and critique the options.
 4. **Build the design system once.** That means the tokens, type, colour in
    both modes, motion, icons, and components ported from 21st.dev. Every page
    and portal uses it.
@@ -491,21 +492,31 @@ a survey on 2026-10-30:
 
 ## How to run this
 
-### Phase 0: questions (stop here first)
+The founder wants a great first pass with as little intervention as
+possible. Phases 0 and 1 run as one uninterrupted pass. You stop once, at the
+end of Phase 1, for his review.
 
-Read the files above. Then send the founder one short message with:
+### Phase 0: read, decide, keep going
+
+Read the files above. Write these into `prototypes/FIRST-PASS-NOTES.md`:
 
 - your understanding in five lines
-- any question the docs leave open
+- every question the docs leave open, each with the default you chose and why
 - any conflict you found between docs
 
-Give each question closed options and your recommendation. Wait for his
-answers.
+Don't wait for answers. Go ahead on your defaults, and he'll correct them at
+the review.
 
-### Phase 1: prototypes (stop again at the end)
+### Phase 1: the first pass (stop once, at the end)
 
-Build one shared design system first: tokens, the sky, glass controls, type,
-icons, and ported 21st.dev components. Every portal uses it.
+Polish the website in the mock on a `claude/` branch cut from
+`claude/site-redesign`, including the speed work. Then build the portals:
+
+Build one shared design system first: tokens, the background, glass
+controls, type, icons, and ported 21st.dev components. Every portal uses it.
+Where a choice is open, such as the three or four background directions, build
+the options side by side in the gallery, continue with your recommendation,
+and mark which one you picked.
 
 Then build clickable prototypes of every screen, for every plan and role,
 with realistic mock data:
@@ -527,8 +538,14 @@ Check your own work before he sees it:
 - Calculate the contrast.
 - Click every control.
 
-Then stop and send him the gallery link and a short tour. Iterate until he
-approves each portal.
+**Images and video in the first pass.** Use existing approved assets and
+drawings made in code. Write any new shot you want into `assets/manifest.json`
+as proposed, with its prompt and quoted price, but don't generate it. He
+approves shots at the review, because they cost money.
+
+Then stop, once. Send him the gallery link, a short tour, and
+`prototypes/FIRST-PASS-NOTES.md`. Iterate until he approves the website and
+each portal.
 
 ### Phase 2: build the approved portals
 
