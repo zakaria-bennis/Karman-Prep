@@ -10,7 +10,7 @@
 // HOME PAGE, top to bottom:
 //    1 Opening   2 Live classes   3 Classes built on mistakes   4 Daily 10   5 Parent updates
 //    6 Between classes   7 Test date   8 Guarantee   9 Campus film   10 Student messages
-//    12 Testimonials (real ones only, hidden until added; shows between 10 and 11)   11 The close
+//    12 Testimonials (shows between 10 and 11, hidden while empty)   11 The close
 // OTHER PAGES:
 //    21 to 27  The SAT Program page
 //    31 to 36  Private tutoring page
@@ -92,16 +92,11 @@ headline: What the nine weeks are for.
 headline: Texts from Karman 1:1 students, shared with permission.
 
 ## 12 Testimonials
-### Real testimonials only, each from a Karman student or parent with written permission on file. The founder adds them.
-### Shows on the home page right after Student messages, and stays hidden until there is at least one quote. Each "quote" line is: the words = first name and last initial, who they are (for example "Parent of an 11th grader" or "Junior, Texas").
+### Real, approved testimonials only. Founder adds them. Shows after Student messages, hidden while "quotes" is empty.
+### Format, one per quote, with " | " between quotes: the quote = First name L., role
 headline: Parents and students on 1:1 tutoring.
 format: Karman 1:1 tutoring, median 16 weeks.
-quote a:
-quote b:
-quote c:
-quote d:
-quote e:
-quote f:
+quotes:
 
 ## 11 The close
 headline: See their predicted score before you spend a dollar.

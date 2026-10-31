@@ -88,16 +88,12 @@
     msgs = M(10),
     voices = M(12),
     end = M(11);
-  /* Testimonials: real ones only, added by the founder in copy.js section 12 ("the words = name, who they are").
-     They sit inside the Student messages panel, under the wall, and the block is left out while there are none. */
-  const quotes = Object.keys(voices)
-    .filter((k) => /^quote\b/.test(k) && voices[k])
-    .sort()
-    .map((k) => {
-      const [words, who = ""] = voices[k].split(" = ");
-      const [name, ...role] = who.split(",");
-      return `<figure class="vq rv"><blockquote><p>\u201c${esc(words.trim())}\u201d</p></blockquote>${who ? `<figcaption><b>${esc(name.trim())}</b>${role.length ? `<span>${esc(role.join(",").trim())}</span>` : ""}</figcaption>` : ""}</figure>`;
-    });
+  /* Real, approved testimonials only. Founder adds them. (copy.js section 12, "quotes": the quote = First name L., role | ...) */
+  const quotes = list(voices.quotes).map((q) => {
+    const [words, who = ""] = q.split(" = ");
+    const [name, ...role] = who.split(",");
+    return `<figure class="vq rv"><blockquote><p>\u201c${esc(words.trim())}\u201d</p></blockquote>${who ? `<figcaption><b>${esc(name.trim())}</b>${role.length ? `<span>${esc(role.join(",").trim())}</span>` : ""}</figcaption>` : ""}</figure>`;
+  });
   const voicesHTML = quotes.length
     ? `<div class="in voices" id="m-12">
       ${voices.headline ? `<h2 class="rv" id="v-h">${esc(voices.headline)}</h2>` : ""}

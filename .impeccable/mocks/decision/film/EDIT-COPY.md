@@ -29,9 +29,8 @@ the free practice test, 51 to 55 the guarantee, 61 to 65 About, 71 the FAQ. Form
 The home page has eleven sections, top to bottom: Opening, Live classes, Classes
 built on mistakes, Daily 10, Parent updates, Between classes, Test date, Guarantee, Campus film,
 Student messages and The close. Each starts with a line like `## 8 Guarantee`.
-`## 12 Testimonials` shows between Student messages and The close once it has a quote.
-Only real testimonials go there, from a Karman student or parent with written permission
-on file. The
+`## 12 Testimonials` stays hidden until you fill in its `quotes:` line, then shows after Student messages.
+Write each one as `the quote = First name L., role` and put `|` between quotes. The
 `## Site` block holds the header, menu and footer words, the pricing page (labels
 starting `pricing`) and the students map (labels starting `map`).
 

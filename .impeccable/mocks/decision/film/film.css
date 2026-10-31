@@ -276,8 +276,8 @@ main { position: relative; z-index: 1; }
 /* ---------- the wall of student phones ---------- */
 .messages { padding: clamp(60px, 7vw, 110px) 0 0; overflow: hidden; }
 .messages .in { padding: 0 var(--gutter); }
-/* testimonials (real ones only, from copy.js section 12): plain quotes under the wall, two loose columns on wide
-   screens, one on phones */
+/* Real, approved testimonials only. Founder adds them. Plain quotes under the wall: two loose columns on wide
+   screens, one on phones. */
 .voices { margin-top: clamp(56px, 7vw, 110px); }
 .voices h2 { max-width: 15ch; }
 .vfmt { margin-top: 16px; color: var(--ink2); font-size: 15px; font-weight: 600; }
