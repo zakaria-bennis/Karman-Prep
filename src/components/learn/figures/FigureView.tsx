@@ -22,6 +22,7 @@ function renderItem(item: SceneItem, index: number, markerId: string) {
         fill={paint(item.role)}
         fontSize={HOUSE.font}
         fontFamily="inherit"
+        fontStyle={item.italic ? "italic" : undefined}
         data-part={item.partId}
       >
         {item.text}

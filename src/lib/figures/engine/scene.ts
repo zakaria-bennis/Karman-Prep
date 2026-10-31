@@ -23,6 +23,8 @@ export type SceneItem =
       text: string;
       role: Role;
       anchor: "start" | "middle" | "end";
+      /** Variables (x, y) print in italic, as in Bluebook. */
+      italic?: boolean;
       partId?: string;
     }
   | {

@@ -22,6 +22,9 @@ export const HOUSE = {
   margin: 16,
   /** Radius of a plotted point's dot. */
   pointRadius: 3,
+  /** Radius of a dot in a dot plot, and the clear space between stacked dots. */
+  dotPlotRadius: 5,
+  dotPlotGap: 2,
   /** Estimated text advance per character, as a fraction of the font size. */
   charWidthEm: 0.6,
   /** Snapping tolerance as a fraction of the figure's larger side. */

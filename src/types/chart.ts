@@ -6,9 +6,9 @@
 // from the raster image_url crop via Gemini Pro Vision, then
 // stored in quiz_questions.figure_chart_data (JSONB).
 //
-// Consumed by src/components/learn/ChartFigure.tsx to produce
-// clean, theme-aware, scalable SVG instead of the blurry PDF
-// screenshot.
+// Consumed by src/components/learn/ChartFigure.tsx, which converts
+// it to a FigureSpec (src/lib/figures/engine/from-chart-data.ts)
+// and draws it with the figure engine.
 //
 // Design notes
 // ============
@@ -17,9 +17,9 @@
 //   scatterplot may have 12 dots with axes 0-10 by 2 — that's the
 //   structure. Exact pixel position doesn't matter.
 // · One Figure may carry multiple SERIES (e.g. two lines on the
-//   same axes for "compare the two students' scores"). Subject-
-//   coded coloring is used for single-series; a sequential palette
-//   takes over when series.length > 1.
+//   same axes for "compare the two students' scores"). The figure
+//   engine tells them apart with theme roles, line styles and a
+//   legend, never with subject colors.
 // · `confidence` is set by the extractor (0.0 — 1.0). The Inspector
 //   shows a "review" panel when confidence < 0.8.
 // ============================================================
@@ -144,8 +144,7 @@ export interface ChartFigure {
   /** Omit the 0 tick labels where the axes meet (printed SAT figures leave the
    *  origin unlabelled or mark it O). */
   hide_origin_label?: boolean | null;
-  /** One or more series. Multi-series charts trigger the sequential
-   *  color palette + a legend. */
+  /** One or more series. Named multi-series charts get a legend. */
   series: ChartSeries[];
   /** Set by the extractor. 0.0 — 1.0. Surfaced in the Inspector for
    *  manual review when below the auto-publish threshold (0.8). */
@@ -160,26 +159,3 @@ export interface ChartFigure {
    *  guess: 'Time'"). Surfaces in the Inspector. */
   extractor_note: string | null;
 }
-
-/** Subject → series color mapping for single-series figures.
- *  Multi-series (length > 1) uses the SEQUENTIAL_PALETTE below.
- *
- *  Constellation accents from docs/brand.md — subject SIGNALS on the
- *  warm-dark canvas. Math = Math blue, R&W = R&W rose. */
-export const SUBJECT_CHART_COLOR: Record<string, string> = {
-  math: "#2FA8FF", // --subject-math
-  reading: "#D84F73", // --subject-rw
-};
-
-/** Sequential palette for multi-series charts — the brand accents in
- *  order: math blue → R&W rose → antique gold → the two glow variants →
- *  star gold. Stops after 6; a 7+-series SAT chart would be visually
- *  unreadable and the extractor should surface it for manual review. */
-export const SEQUENTIAL_PALETTE = [
-  "#2FA8FF", // math blue
-  "#D84F73", // R&W rose
-  "#C8AB6A", // antique gold
-  "#42D9FF", // math glow
-  "#F06A8C", // R&W glow
-  "#E4C86A", // star gold
-] as const;

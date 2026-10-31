@@ -11,11 +11,11 @@ import { HOUSE } from "./house";
 import type { Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
 
-type Box = { width: number; height: number };
+export type Box = { width: number; height: number };
 type Pt = [number, number];
 /** Distance in px from each box edge to the plot area. */
-type Inset = { left: number; right: number; top: number; bottom: number };
-type Mapper = ReturnType<typeof mapper>;
+export type Inset = { left: number; right: number; top: number; bottom: number };
+export type Mapper = ReturnType<typeof mapper>;
 
 const EPS = 1e-9;
 /** Coincidence tolerance, relative to the frame's larger span. */
@@ -115,12 +115,34 @@ function clipPolyline(run: number[], frame: PlaneFrame): Pt[][] {
   return out;
 }
 
-function grid(frame: PlaneFrame, m: Mapper): SceneItem[] {
+/** How the y-axis is drawn: with grid, ticks and labels, or not at all (a number line). */
+export type YAxisMode = "ticks" | "none";
+
+/** Options for planeAxes: the y-axis mode and room kept clear for titles, legends and row labels. */
+export type AxesOptions = { y?: YAxisMode; reserve?: Partial<Inset> };
+
+/** Grid and tick steps per axis (undefined: the calculator's automatic step). */
+function steps(frame: PlaneFrame) {
+  const x = frame.step;
+  const y = frame.yStep ?? frame.step;
+  // labelStep spans both axes only while they share one step.
+  const yLabel = frame.yLabelStep ?? (frame.yStep === undefined ? frame.labelStep : undefined);
+  return { x, y, xLabel: frame.labelStep, yLabel };
+}
+
+function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
+  if (frame.grid === false) return [];
   const { w, h, px, py } = m;
-  const step = frame.step;
-  const xs = step ? multiples(frame.x, step) : axisTicks(frame.x[0], frame.x[1], w).major;
-  const ys = step ? multiples(frame.y, step) : axisTicks(frame.y[0], frame.y[1], h).major;
+  const s = steps(frame);
   const items: SceneItem[] = [];
+  // Categories get no vertical lines; a number line (no y-axis) gets no grid at all.
+  if (yMode === "none") return items;
+  const xs = frame.categories
+    ? []
+    : s.x
+      ? multiples(frame.x, s.x)
+      : axisTicks(frame.x[0], frame.x[1], w).major;
+  const ys = s.y ? multiples(frame.y, s.y) : axisTicks(frame.y[0], frame.y[1], h).major;
   for (const x of xs) {
     items.push({
       t: "path",
@@ -153,22 +175,56 @@ function multiples([min, max]: [number, number], step: number): number[] {
 export const MIN_LABEL_SPACING_PX = 28;
 
 /**
- * The step between tick labels on an axis `lengthPx` long: every grid step
- * (`step`, else the step axisTicks picks), or every 2nd step when labels on
- * every step would sit closer than MIN_LABEL_SPACING_PX. 0 means no labels.
+ * The step between tick labels on an axis `lengthPx` long: every `every` (an
+ * explicit label step, snapped to a whole number of ticks so labels sit on
+ * ticks), else every grid step (`step`, else the step axisTicks picks),
+ * doubled while labels would sit closer than MIN_LABEL_SPACING_PX (once, on
+ * any sensible axis). 0 means no labels.
  */
-function labelStep(range: [number, number], lengthPx: number, step?: number): number {
-  const base = step ?? axisTicks(range[0], range[1], lengthPx).step;
-  if (!base) return 0;
-  const pxPerStep = (lengthPx * base) / (range[1] - range[0]);
-  return pxPerStep >= MIN_LABEL_SPACING_PX ? base : 2 * base;
+function labelStep(
+  range: [number, number],
+  lengthPx: number,
+  step?: number,
+  every?: number
+): number {
+  const tick = step ?? axisTicks(range[0], range[1], lengthPx).step;
+  let base = every && tick ? tick * Math.max(1, Math.round(every / tick)) : (every ?? tick);
+  if (!base || !(lengthPx > 0)) return 0;
+  const pxPerUnit = lengthPx / (range[1] - range[0]);
+  while (base * pxPerUnit < MIN_LABEL_SPACING_PX) base *= 2;
+  return base;
 }
 
 const clamp = (v: number, [lo, hi]: [number, number]) => Math.min(hi, Math.max(lo, v));
 
-function axes(frame: PlaneFrame, m: Mapper): SceneItem[] {
+/** Estimated advance of `text` at the house font (the same estimate textBounds uses). */
+const advance = (text: string) => HOUSE.charWidthEm * HOUSE.font * text.length;
+
+/** Line height for wrapped text. */
+export const LINE_HEIGHT = Math.round(HOUSE.font * 1.2);
+
+/** Words of `text` packed into lines no wider than `maxWidth`; a long word keeps its own line. */
+export function wrapText(text: string, maxWidth: number): string[] {
+  const lines: string[] = [];
+  for (const word of text.trim().split(/\s+/).filter(Boolean)) {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && advance(`${last} ${word}`) <= maxWidth) {
+      lines[lines.length - 1] = `${last} ${word}`;
+    } else lines.push(word);
+  }
+  return lines;
+}
+
+/** A short axis name (x, y, t, f(x)) sits at the axis end; a longer one is a title beside the plot. */
+const isShortName = (name: string) => name.length <= 4 && !/\s/.test(name);
+/** A single-letter name is a variable and prints in italic. */
+const isVariable = (name: string) => /^[A-Za-z]$/.test(name);
+
+function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
   const { w, h, px, py } = m;
-  const ax = clamp(0, frame.y); // the x-axis sits at y = 0, or the nearer frame edge
+  const yAxis = yMode === "ticks";
+  // The x-axis sits at y = 0, or the nearer frame edge; a number line sits at the bottom.
+  const ax = yAxis ? clamp(0, frame.y) : frame.y[0];
   const ay = clamp(0, frame.x);
   const font = HOUSE.font;
   const off = HOUSE.labelOffset;
@@ -180,38 +236,61 @@ function axes(frame: PlaneFrame, m: Mapper): SceneItem[] {
       weight: "line",
       partId: "axis",
     },
-    {
+  ];
+  if (yAxis) {
+    items.push({
       t: "path",
       d: `M${fmt(px(ay))} ${fmt(py(frame.y[0]))} L${fmt(px(ay))} ${fmt(py(frame.y[1]))}`,
       role: "ink",
       weight: "line",
       partId: "axis",
-    },
-  ];
-  const tick = HOUSE.tickLength / 2;
-  const xStep = labelStep(frame.x, w, frame.step);
-  const yStep = labelStep(frame.y, h, frame.step);
-  for (const x of xStep ? multiples(frame.x, xStep) : []) {
-    if (Math.abs(x) < EPS) continue; // the origin is labeled once, below
-    const X = px(x);
-    const Y = py(ax);
-    items.push({
-      t: "path",
-      d: `M${fmt(X)} ${fmt(Y - tick)} L${fmt(X)} ${fmt(Y + tick)}`,
-      role: "ink",
-      weight: "line",
-    });
-    items.push({
-      t: "text",
-      x: X,
-      y: Y + tick + font,
-      text: fmt(x),
-      role: "ink-muted",
-      anchor: "middle",
     });
   }
+  const tick = HOUSE.tickLength / 2;
+  const s = steps(frame);
+  // Where both labelled axes cross at 0, one "0" serves both.
+  const sharedOrigin = yAxis && !frame.categories && ax === 0 && ay === 0;
+  // Baseline of the lowest text under the plot, for the x-axis title.
+  let below = py(frame.y[0]);
+  let xStep = 0;
+  if (frame.categories) {
+    const band = w / frame.categories.length;
+    frame.categories.forEach((name, i) => {
+      const lines = wrapText(name, band - off);
+      lines.forEach((line, k) => {
+        const y = py(frame.y[0]) + off + font + k * LINE_HEIGHT;
+        below = Math.max(below, y);
+        items.push({ t: "text", x: px(i + 0.5), y, text: line, role: "ink", anchor: "middle" });
+      });
+    });
+  } else {
+    xStep = labelStep(frame.x, w, s.x, s.xLabel);
+    for (const x of xStep ? multiples(frame.x, xStep) : []) {
+      if (sharedOrigin && Math.abs(x) < EPS) continue; // the origin is labeled once, below
+      const X = px(x);
+      const Y = py(ax);
+      items.push({
+        t: "path",
+        d: `M${fmt(X)} ${fmt(Y - tick)} L${fmt(X)} ${fmt(Y + tick)}`,
+        role: "ink",
+        weight: "line",
+      });
+      items.push({
+        t: "text",
+        x: X,
+        y: Y + tick + font,
+        text: fmt(x),
+        role: "ink-muted",
+        anchor: "middle",
+      });
+      below = Math.max(below, Y + tick + font);
+    }
+  }
+  // Width of the widest y tick label, for the y-axis title.
+  let yLabelWidth = 0;
+  const yStep = yAxis ? labelStep(frame.y, h, s.y, s.yLabel) : 0;
   for (const y of yStep ? multiples(frame.y, yStep) : []) {
-    if (Math.abs(y) < EPS) continue;
+    if (sharedOrigin && Math.abs(y) < EPS) continue;
     const X = px(ay);
     const Y = py(y);
     items.push({
@@ -228,9 +307,10 @@ function axes(frame: PlaneFrame, m: Mapper): SceneItem[] {
       role: "ink-muted",
       anchor: "end",
     });
+    yLabelWidth = Math.max(yLabelWidth, advance(fmt(y)) + tick + off / 2);
   }
-  // One "0" at the origin, below and left of it, when both axes pass through it.
-  if (ax === 0 && ay === 0 && (xStep || yStep)) {
+  // One "0" at the origin, below and left of it, unless the spec leaves it off.
+  if (sharedOrigin && frame.originLabel !== false && (xStep || yStep)) {
     items.push({
       t: "text",
       x: px(0) - tick - off / 2,
@@ -240,23 +320,70 @@ function axes(frame: PlaneFrame, m: Mapper): SceneItem[] {
       anchor: "end",
     });
   }
-  // Axis names at the positive ends.
-  items.push({
-    t: "text",
-    x: px(frame.x[1]) - off,
-    y: py(ax) - off,
-    text: frame.xLabel ?? "x",
-    role: "ink",
-    anchor: "end",
-  });
-  items.push({
-    t: "text",
-    x: px(ay) + off,
-    y: py(frame.y[1]) + font,
-    text: frame.yLabel ?? "y",
-    role: "ink",
-    anchor: "start",
-  });
+  items.push(...axisNames(frame, m, { ax, ay, yAxis, below, yLabelWidth }));
+  return items;
+}
+
+/** Axis names: short ones at the positive ends, longer ones as titles below and above the plot. */
+function axisNames(
+  frame: PlaneFrame,
+  m: Mapper,
+  at: { ax: number; ay: number; yAxis: boolean; below: number; yLabelWidth: number }
+): SceneItem[] {
+  const { w, px, py } = m;
+  const off = HOUSE.labelOffset;
+  const items: SceneItem[] = [];
+  const xName = (frame.xLabel ?? "x").trim();
+  const yName = at.yAxis ? (frame.yLabel ?? "y").trim() : "";
+  if (xName && isShortName(xName)) {
+    items.push({
+      t: "text",
+      x: px(frame.x[1]) - off,
+      y: py(at.ax) - off,
+      text: xName,
+      role: "ink",
+      anchor: "end",
+      italic: isVariable(xName) || undefined,
+    });
+  } else if (xName) {
+    const mid = (px(frame.x[0]) + px(frame.x[1])) / 2;
+    wrapText(xName, w).forEach((line, k) => {
+      items.push({
+        t: "text",
+        x: mid,
+        y: at.below + HOUSE.font + off + k * LINE_HEIGHT,
+        text: line,
+        role: "ink",
+        anchor: "middle",
+      });
+    });
+  }
+  if (yName && isShortName(yName)) {
+    items.push({
+      t: "text",
+      x: px(at.ay) + off,
+      y: py(frame.y[1]) + HOUSE.font,
+      text: yName,
+      role: "ink",
+      anchor: "start",
+      italic: isVariable(yName) || undefined,
+    });
+  } else if (yName) {
+    // Above the plot, left-aligned with the y tick labels.
+    const left = px(at.ay) - at.yLabelWidth;
+    const lines = wrapText(yName, px(frame.x[1]) - left);
+    const top = py(frame.y[1]) - HOUSE.font - off - (lines.length - 1) * LINE_HEIGHT;
+    lines.forEach((line, k) => {
+      items.push({
+        t: "text",
+        x: left,
+        y: top + k * LINE_HEIGHT,
+        text: line,
+        role: "ink",
+        anchor: "start",
+      });
+    });
+  }
   return items;
 }
 
@@ -322,21 +449,31 @@ function straight(
   return item;
 }
 
-function dot([x, y]: Pt, m: Mapper, partId: string): SceneItem {
-  const X = m.px(x);
-  const Y = m.py(y);
-  const r = HOUSE.pointRadius;
-  return {
+/** A dot of radius `r` centred on pixel (X, Y): filled, or open (outline only). */
+export function dotAt(
+  X: number,
+  Y: number,
+  partId: string,
+  r: number = HOUSE.pointRadius,
+  open = false
+): SceneItem {
+  const item: SceneItem = {
     t: "path",
     d: `M${fmt(X - r)} ${fmt(Y)} A${r} ${r} 0 1 0 ${fmt(X + r)} ${fmt(Y)} A${r} ${r} 0 1 0 ${fmt(X - r)} ${fmt(Y)} Z`,
     role: "ink",
     weight: "line",
-    fill: "ink",
     partId,
   };
+  if (!open) item.fill = "ink";
+  return item;
 }
 
-function functionItems(
+function dot([x, y]: Pt, m: Mapper, partId: string): SceneItem {
+  return dotAt(m.px(x), m.py(y), partId);
+}
+
+/** The graph of a function part, clipped to the frame (and to its domain). */
+export function functionItems(
   part: Extract<Part, { kind: "function" }>,
   frame: PlaneFrame,
   m: Mapper,
@@ -386,24 +523,32 @@ function textBounds(t: Extract<SceneItem, { t: "text" }>): [number, number, numb
 }
 
 /**
- * The plot inset that keeps every axis label inside the box: the house margin,
- * grown on any side where labels would hang past the edge (an axis on a frame
- * edge, as in a first-quadrant plane). Labels keep their place outside the
- * axes; the plot shrinks to make room. A few passes settle the mapping.
+ * The plot inset that keeps every axis label inside the box: the house margin
+ * plus any reserved room, grown on any side where labels would hang past the
+ * edge (an axis on a frame edge, as in a first-quadrant plane). Labels keep
+ * their place outside the axes; the plot shrinks to make room. A few passes
+ * settle the mapping.
  */
-function labelInset(frame: PlaneFrame, box: Box): Inset {
-  const inset = { ...MARGIN_INSET };
+function labelInset(frame: PlaneFrame, box: Box, opts: AxesOptions): Inset {
+  const r = opts.reserve ?? {};
+  const inset = {
+    left: MARGIN_INSET.left + (r.left ?? 0),
+    right: MARGIN_INSET.right + (r.right ?? 0),
+    top: MARGIN_INSET.top + (r.top ?? 0),
+    bottom: MARGIN_INSET.bottom + (r.bottom ?? 0),
+  };
+  const yMode = opts.y ?? "ticks";
   for (let pass = 0; pass < 4; pass++) {
-    const texts = axes(frame, mapper(frame, box, inset)).filter(
+    const texts = axes(frame, mapper(frame, box, inset), yMode).filter(
       (i): i is Extract<SceneItem, { t: "text" }> => i.t === "text"
     );
     const over = { left: 0, right: 0, top: 0, bottom: 0 };
     for (const t of texts) {
-      const [l, r, top, bottom] = textBounds(t);
-      over.left = Math.max(over.left, -l);
-      over.right = Math.max(over.right, r - box.width);
-      over.top = Math.max(over.top, -top);
-      over.bottom = Math.max(over.bottom, bottom - box.height);
+      const [left, right, top, bottom] = textBounds(t);
+      over.left = Math.max(over.left, (r.left ?? 0) - left);
+      over.right = Math.max(over.right, right - (box.width - (r.right ?? 0)));
+      over.top = Math.max(over.top, (r.top ?? 0) - top);
+      over.bottom = Math.max(over.bottom, bottom - (box.height - (r.bottom ?? 0)));
     }
     let grew = false;
     for (const side of ["left", "right", "top", "bottom"] as const) {
@@ -417,16 +562,31 @@ function labelInset(frame: PlaneFrame, box: Box): Inset {
   return inset;
 }
 
+/**
+ * Grid, axes, tick labels and axis names for `frame` in `box`, and the
+ * world-to-pixel map of the plot they frame. Charts and planes share it.
+ * With categories the x range becomes [0, n], one band per category.
+ */
+export function planeAxes(
+  frame: PlaneFrame,
+  box: Box,
+  opts: AxesOptions = {}
+): { items: SceneItem[]; map: Mapper; frame: PlaneFrame } {
+  const f: PlaneFrame = frame.categories ? { ...frame, x: [0, frame.categories.length] } : frame;
+  const yMode = opts.y ?? "ticks";
+  const map = mapper(f, box, labelInset(f, box, opts));
+  return { items: [...grid(f, map, yMode), ...axes(f, map, yMode)], map, frame: f };
+}
+
 /** The Scene of a `plane` FigureSpec drawn in `box`. */
 export function buildPlane(spec: FigureSpec, box: Box): Scene {
   const issues: SceneIssue[] = [];
   const frame: PlaneFrame = spec.frame ?? { x: [-10, 10], y: [-10, 10] };
   if (!spec.frame) issues.push({ code: "clipped", detail: "no frame given; using -10 to 10" });
-  const m = mapper(frame, box, labelInset(frame, box));
+  const { items, map: m } = planeAxes(frame, box);
   const points = new Map<string, Pt>();
   for (const p of spec.parts) if (p.kind === "point") points.set(p.id, [p.x, p.y]);
 
-  const items: SceneItem[] = [...grid(frame, m), ...axes(frame, m)];
   const dots: SceneItem[] = [];
   for (const part of spec.parts) {
     switch (part.kind) {

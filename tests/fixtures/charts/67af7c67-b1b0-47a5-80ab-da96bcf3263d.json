@@ -1,0 +1,39 @@
+{
+  "id": "67af7c67-b1b0-47a5-80ab-da96bcf3263d",
+  "figure_chart_data": {
+    "kind": "function_plot",
+    "title": null,
+    "series": [
+      {
+        "kind": "function",
+        "label": null,
+        "domain": [0, 2.4],
+        "expression": {
+          "a": 1,
+          "b": 1,
+          "c": 4,
+          "kind": "quadratic"
+        }
+      }
+    ],
+    "x_axis": {
+      "max": 5,
+      "min": 0,
+      "label": "x",
+      "tick_step": 1,
+      "categories": null
+    },
+    "y_axis": {
+      "max": 12,
+      "min": 0,
+      "label": "y",
+      "tick_step": 1,
+      "categories": null
+    },
+    "show_grid": true,
+    "confidence": 1,
+    "extracted_at": "2026-06-02T02:04:07.401Z",
+    "extracted_by": "gemini-2.5-pro@2026-05-31",
+    "extractor_note": null
+  }
+}

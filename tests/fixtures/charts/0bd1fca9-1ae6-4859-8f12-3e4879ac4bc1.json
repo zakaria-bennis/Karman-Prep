@@ -1,0 +1,43 @@
+{
+  "id": "0bd1fca9-1ae6-4859-8f12-3e4879ac4bc1",
+  "figure_chart_data": {
+    "kind": "scatterplot",
+    "title": null,
+    "series": [
+      {
+        "kind": "scatter",
+        "label": null,
+        "points": [
+          [1, 7],
+          [2.5, 7],
+          [3, 5],
+          [4.5, 5],
+          [5.5, 5],
+          [6.5, 4],
+          [7.5, 4],
+          [9, 1],
+          [10, 2]
+        ]
+      }
+    ],
+    "x_axis": {
+      "max": 10,
+      "min": 0,
+      "label": "x",
+      "tick_step": 1,
+      "categories": null
+    },
+    "y_axis": {
+      "max": 10,
+      "min": 0,
+      "label": "y",
+      "tick_step": 1,
+      "categories": null
+    },
+    "show_grid": true,
+    "confidence": 1,
+    "extracted_at": "2026-06-01T23:28:50.249Z",
+    "extracted_by": "gemini-2.5-pro@2026-05-31",
+    "extractor_note": null
+  }
+}

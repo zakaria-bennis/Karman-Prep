@@ -114,7 +114,19 @@ export const PlaneFrameSchema = z
   .object({
     x: z.tuple([num, num]),
     y: z.tuple([num, num]),
+    /** Grid and tick step on both axes (on x only when yStep is set). */
     step: num.positive().optional(),
+    /** Grid and tick step on the y-axis, when it differs from x. */
+    yStep: num.positive().optional(),
+    /** Label every labelStep on x (and y, unless yLabelStep), not every tick. */
+    labelStep: num.positive().optional(),
+    yLabelStep: num.positive().optional(),
+    /** Category names along x, one band each (bar charts). */
+    categories: z.array(z.string()).optional(),
+    /** false: no "0" where the axes meet (printed SAT figures often leave it off). */
+    originLabel: z.boolean().optional(),
+    /** false: no grid lines. */
+    grid: z.boolean().optional(),
     xLabel: z.string().optional(),
     yLabel: z.string().optional(),
   })
