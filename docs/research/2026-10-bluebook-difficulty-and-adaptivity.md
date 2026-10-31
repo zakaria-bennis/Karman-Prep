@@ -6,8 +6,8 @@ Research note, 2026-10-30. Read-only research: no code, import tool, live questi
 
 These decisions were made after the first draft. Where they differ from the original recommendations below, the text has been updated to match.
 
-1. **One predicted score, not a range.** Students see a single "Karman predicted score", calculated from their performance. Karman collects as much data as possible to make it accurate. Internally, Karman checks it against students' reported real scores and records the typical error. This replaces the earlier advice to show labeled ranges. Note: `CLAUDE.md` and the site copy rules still say score estimates are shown only as labeled ranges, so they need a separate update to match this decision.
-2. **Unscored tryout questions are not announced.** Full-length tests will contain unscored tryout questions, and students will not be told.
+1. **One predicted score, not a range.** Students see a single "Karman predicted score", calculated from their performance. Karman collects as much data as possible to make it accurate. Internally, Karman checks it against students' reported real scores and records the typical error. This replaces the earlier advice to show labeled ranges. Note: `CLAUDE.md` no longer carries the old ranges rule, but some older design docs still do (`docs/design/2026-10-20-reform-brief.md`, `docs/design/gemini-site-prompt.md` and `docs/superpowers/specs/2026-10-19-site-redesign-design.md`). They need a separate update to match this decision.
+2. **Say some, not which.** Full-length tests contain unscored tryout questions. As College Board does, students are told that a few questions don't count toward the score, but not which ones.
 3. **Real scores are collected at onboarding.** Students give their real SAT and PSAT scores during onboarding, with an optional photo of the score report that is read automatically (image reading tool to be confirmed).
 4. **Endless mode starts at about 75% success.** The target is tuned from data later.
 
@@ -214,7 +214,7 @@ Use **one ability per section** (Reading and Writing, Math), as College Board do
 
 **Copy the structure exactly** (Part 2): 2 sections, 2 modules each, 27 and 22 questions, 32 and 35 minutes, module locking, flag and review inside a module only, a break between sections, the same ordering rules, all four domains in every module, and the same domain shares per test. [CB]
 
-**Use the 2 extra slots per module for Karman's own tryout questions.** This copies College Board's pretesting. By founder decision, students are not told which questions, or that any questions, are unscored tryouts. Put the same tryout questions in both versions of module 2, never in the first or last two positions. This is how Karman originals get calibrated before they are used for scoring.
+**Use the 2 extra slots per module for Karman's own tryout questions.** This copies College Board's pretesting. By founder decision, students are told that a few questions don't count toward the score, but not which ones, as College Board does. Put the same tryout questions in both versions of module 2, never in the first or last two positions. This is how Karman originals get calibrated before they are used for scoring.
 
 **Build fixed panels, not a live algorithm, at first.** Each Karman practice test is one panel per section: a module 1 plus a harder and an easier module 2. That is 81 Reading and Writing plus 66 Math questions, 147 in total per test. Assemble each panel against the domain blueprint, aim module 1 at a broad mix, the harder module 2 skewed hard and the easier one skewed easy, with all three levels in both. College Board does not publish the mix. A reasonable starting assumption is about a third each in module 1, and about 50% hard, 35% medium and 15% easy in the harder module 2 (mirrored for the easier one). [inferred; adjust from data]
 
