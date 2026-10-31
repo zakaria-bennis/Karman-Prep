@@ -2,7 +2,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildChart } from "@/lib/figures/engine/charts";
-import { chartDataToSpec, ChartDataError } from "@/lib/figures/engine/from-chart-data";
+import {
+  chartDataToSpec,
+  ChartDataError,
+  sampleExpression,
+} from "@/lib/figures/engine/from-chart-data";
 import { buildPlane } from "@/lib/figures/engine/plane";
 import type { Scene, SceneItem } from "@/lib/figures/engine/scene";
 import { FIGURE_SPEC_VERSION, parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
@@ -299,5 +303,36 @@ describe("chartDataToSpec", () => {
   it("refuses chart data the engine cannot draw, with a clear reason", () => {
     expect(() => chartDataToSpec({ kind: "pie", series: [] })).toThrow(ChartDataError);
     expect(() => chartDataToSpec(null)).toThrow(ChartDataError);
+  });
+});
+
+describe("sampleExpression", () => {
+  it("samples an absolute value through its vertex, as finite pairs within the range", () => {
+    const [run, ...rest] = sampleExpression(
+      { kind: "absolute_value", a: 2, h: 1 / 3, k: -1 },
+      [-2, 2]
+    );
+    expect(rest).toHaveLength(0);
+    expect(run).toContainEqual([1 / 3, -1]);
+    expect(run[0]).toEqual([-2, 2 * (2 + 1 / 3) - 1]);
+    expect(run[run.length - 1][0]).toBe(2);
+    for (const p of run) expect(p.every(Number.isFinite)).toBe(true);
+  });
+
+  it("breaks the graph where it has no finite value, and gives nothing for an empty range", () => {
+    // (-2)^x is defined only at integer x, so no two neighbouring samples are both finite.
+    expect(sampleExpression({ kind: "exponential", a: 1, b: -2 }, [0.5, 3.5])).toEqual([]);
+    expect(sampleExpression({ kind: "linear", m: 1, b: 0 }, [2, 2])).toEqual([]);
+  });
+
+  it("gives chart-data functions their samples, so they draw without the calculator", () => {
+    const out = chartDataToSpec({
+      kind: "function_plot",
+      x_axis: { label: "x", min: -5, max: 5, tick_step: 1 },
+      y_axis: { label: "y", min: -5, max: 5, tick_step: 1 },
+      series: [{ kind: "function", expression: { kind: "linear", m: 1, b: 0 }, domain: [0, 2] }],
+    });
+    const [f] = out.parts;
+    expect(f.kind === "function" && f.samples?.flat()[0]).toEqual([0, 0]);
   });
 });

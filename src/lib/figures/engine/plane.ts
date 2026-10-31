@@ -1,15 +1,17 @@
 /**
  * Coordinate-plane builder: grid, axes, tick labels, function graphs, points,
- * segments, rays and lines, as a role-colored Scene. Function graphs come from
- * the calculator through calc-adapter. Rays and lines are clipped to the frame
+ * segments, rays and lines, as a role-colored Scene. Function graphs are the
+ * part's `samples`, world polylines computed when the figure is authored
+ * (scripts/figures/sample-functions.ts); the engine never loads the
+ * calculator. Polylines, rays and lines are clipped to the frame
  * (Liang–Barsky) and end in arrowheads where they leave it; segments never do.
  * Axis and tick labels sit at fixed positions; general label placement is a
  * separate step.
  */
-import { axisTicks, curveFor } from "./calc-adapter";
 import { HOUSE } from "./house";
 import type { Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
+import { axisTicks, tickValues } from "./ticks";
 
 export type Box = { width: number; height: number };
 type Pt = [number, number];
@@ -85,17 +87,17 @@ export function clipParam(
   return t0 <= t1 ? [t0, t1] : null;
 }
 
-/** Splits a flat world polyline into runs that stay inside the frame. */
-function clipPolyline(run: number[], frame: PlaneFrame): Pt[][] {
+/** Splits a world polyline into runs that stay inside the frame. */
+function clipPolyline(run: readonly Pt[], frame: PlaneFrame): Pt[][] {
   const out: Pt[][] = [];
   let cur: Pt[] = [];
   const close = () => {
     if (cur.length > 1) out.push(cur);
     cur = [];
   };
-  for (let i = 0; i + 3 < run.length; i += 2) {
-    const a: Pt = [run[i], run[i + 1]];
-    const d: Pt = [run[i + 2] - a[0], run[i + 3] - a[1]];
+  for (let i = 0; i + 1 < run.length; i++) {
+    const a: Pt = [run[i][0], run[i][1]];
+    const d: Pt = [run[i + 1][0] - a[0], run[i + 1][1] - a[1]];
     const c = clipParam(a, d, frame, 0, 1);
     if (!c) {
       close();
@@ -121,7 +123,7 @@ export type YAxisMode = "ticks" | "none";
 /** Options for planeAxes: the y-axis mode and room kept clear for titles, legends and row labels. */
 export type AxesOptions = { y?: YAxisMode; reserve?: Partial<Inset> };
 
-/** Grid and tick steps per axis (undefined: the calculator's automatic step). */
+/** Grid and tick steps per axis (undefined: the automatic step from ./ticks). */
 function steps(frame: PlaneFrame) {
   const x = frame.step;
   const y = frame.yStep ?? frame.step;
@@ -140,9 +142,11 @@ function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
   const xs = frame.categories
     ? []
     : s.x
-      ? multiples(frame.x, s.x)
+      ? tickValues(frame.x[0], frame.x[1], s.x)
       : axisTicks(frame.x[0], frame.x[1], w).major;
-  const ys = s.y ? multiples(frame.y, s.y) : axisTicks(frame.y[0], frame.y[1], h).major;
+  const ys = s.y
+    ? tickValues(frame.y[0], frame.y[1], s.y)
+    : axisTicks(frame.y[0], frame.y[1], h).major;
   for (const x of xs) {
     items.push({
       t: "path",
@@ -160,15 +164,6 @@ function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
     });
   }
   return items;
-}
-
-/** Multiples of `step` within [min, max], computed from integer indices. */
-function multiples([min, max]: [number, number], step: number): number[] {
-  const out: number[] = [];
-  const lo = Math.ceil(min / step - EPS);
-  const hi = Math.floor(max / step + EPS);
-  for (let n = lo; n <= hi; n++) out.push(n === 0 ? 0 : n * step);
-  return out;
 }
 
 /** Bluebook density: labels need at least this much center spacing along an axis. */
@@ -265,7 +260,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
     });
   } else {
     xStep = labelStep(frame.x, w, s.x, s.xLabel);
-    for (const x of xStep ? multiples(frame.x, xStep) : []) {
+    for (const x of xStep ? tickValues(frame.x[0], frame.x[1], xStep) : []) {
       if (sharedOrigin && Math.abs(x) < EPS) continue; // the origin is labeled once, below
       const X = px(x);
       const Y = py(ax);
@@ -289,7 +284,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
   // Width of the widest y tick label, for the y-axis title.
   let yLabelWidth = 0;
   const yStep = yAxis ? labelStep(frame.y, h, s.y, s.yLabel) : 0;
-  for (const y of yStep ? multiples(frame.y, yStep) : []) {
+  for (const y of yStep ? tickValues(frame.y[0], frame.y[1], yStep) : []) {
     if (sharedOrigin && Math.abs(y) < EPS) continue;
     const X = px(ay);
     const Y = py(y);
@@ -472,15 +467,26 @@ function dot([x, y]: Pt, m: Mapper, partId: string): SceneItem {
   return dotAt(m.px(x), m.py(y), partId);
 }
 
-/** The graph of a function part, clipped to the frame (and to its domain). */
+/**
+ * The graph of a function part: its authored `samples`, clipped to the frame
+ * (and to its domain). A part without samples draws nothing and is reported
+ * as "unsampled_function"; run scripts/figures/sample-spec.ts to fill them.
+ */
 export function functionItems(
   part: Extract<Part, { kind: "function" }>,
   frame: PlaneFrame,
   m: Mapper,
   issues: SceneIssue[]
 ): SceneItem[] {
+  if (!part.samples) {
+    issues.push({
+      code: "unsampled_function",
+      partId: part.id,
+      detail: "has no samples; run scripts/figures/sample-spec.ts",
+    });
+    return [];
+  }
   let sub = frame;
-  let width = m.w;
   if (part.domain) {
     const lo = Math.max(frame.x[0], Math.min(...part.domain));
     const hi = Math.min(frame.x[1], Math.max(...part.domain));
@@ -489,10 +495,8 @@ export function functionItems(
       return [];
     }
     sub = { ...frame, x: [lo, hi] };
-    width = Math.max(1, (m.w * (hi - lo)) / (frame.x[1] - frame.x[0]));
   }
-  const runs = curveFor(part.latex, sub, { width, height: m.h });
-  const clipped = runs.flatMap((run) => clipPolyline(run, sub));
+  const clipped = part.samples.flatMap((run) => clipPolyline(run, sub));
   if (clipped.length === 0) {
     issues.push({ code: "clipped", partId: part.id, detail: "draws nothing inside the frame" });
     return [];

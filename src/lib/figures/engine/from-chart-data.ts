@@ -6,7 +6,9 @@
  *   and box_plot specs; function_plot becomes a plane with function parts.
  * - Series become `series` parts s1, s2, ...; boxes become parts b1, b2, ...
  *   holding [min, Q1, median, Q3, max]; functions become parts f1, f2, ...
- *   with their expression written as LaTeX for the calculator's formula reader.
+ *   with their expression written as LaTeX and their `samples` computed here.
+ *   The four expression kinds (linear, quadratic, absolute value, exponential)
+ *   are evaluated directly, so live chart data never needs the calculator.
  * - A series name becomes a label on its part (the legend); a box's category
  *   becomes a label on its box (the row name).
  * - Axis ranges, steps, label steps, categories, axis names, the grid switch
@@ -17,7 +19,6 @@
  * with a ChartDataError that says why.
  */
 import { z } from "zod";
-import { axisTicks } from "./calc-adapter";
 import { niceRange } from "./charts";
 import {
   FIGURE_SPEC_VERSION,
@@ -26,6 +27,7 @@ import {
   type Part,
   type PlaneFrame,
 } from "./spec";
+import { niceStep } from "./ticks";
 
 export class ChartDataError extends Error {
   constructor(message: string) {
@@ -107,7 +109,51 @@ function n(v: number): string {
 /** " + v" or " - |v|", for a term after the first. */
 const signed = (v: number) => (v < 0 ? `-${n(-v)}` : `+${n(v)}`);
 
-/** The expression as an equation the calculator's formula reader graphs. */
+/** The expression's value at x (NaN or ±Infinity where it has none). */
+function valueAt(e: Expression, x: number): number {
+  switch (e.kind) {
+    case "linear":
+      return e.m * x + e.b;
+    case "quadratic":
+      return e.a * x * x + e.b * x + e.c;
+    case "absolute_value":
+      return e.a * Math.abs(x - e.h) + e.k;
+    case "exponential":
+      return e.a * e.b ** x;
+  }
+}
+
+/** Segments per sampled function: well under a pixel each on a 600 px figure. */
+const SAMPLE_SEGMENTS = 1200;
+
+/**
+ * The expression's graph over [lo, hi] as world polylines, broken wherever
+ * it has no finite value. An absolute value's vertex is always a sample.
+ */
+export function sampleExpression(e: Expression, [lo, hi]: [number, number]): [number, number][][] {
+  if (!(hi > lo)) return [];
+  const xs: number[] = [];
+  for (let i = 0; i <= SAMPLE_SEGMENTS; i++) xs.push(lo + ((hi - lo) * i) / SAMPLE_SEGMENTS);
+  if (e.kind === "absolute_value" && e.h > lo && e.h < hi) {
+    xs.push(e.h);
+    xs.sort((a, b) => a - b);
+  }
+  const runs: [number, number][][] = [];
+  let run: [number, number][] = [];
+  for (const x of xs) {
+    const y = valueAt(e, x);
+    if (Number.isFinite(y)) {
+      run.push([x, y]);
+    } else {
+      if (run.length > 1) runs.push(run);
+      run = [];
+    }
+  }
+  if (run.length > 1) runs.push(run);
+  return runs;
+}
+
+/** The expression as an equation in LaTeX (the authoring tools and calculator read it). */
 export function expressionLatex(e: Expression): string {
   switch (e.kind) {
     case "linear":
@@ -144,6 +190,7 @@ export function chartDataToSpec(input: unknown): FigureSpec {
   const parts: Part[] = [];
   let boxes = 0;
   const labels: Label[] = [];
+  const expressions = new Map<string, Expression>();
   const xs: number[] = [];
   const ys: number[] = [];
   let categories = data.x_axis.categories ?? undefined;
@@ -192,6 +239,7 @@ export function chartDataToSpec(input: unknown): FigureSpec {
           latex: expressionLatex(s.expression),
           ...(s.domain ? { domain: s.domain } : {}),
         });
+        expressions.set(`f${i + 1}`, s.expression);
         break;
       case "boxplot":
         for (const box of s.boxes) {
@@ -210,12 +258,21 @@ export function chartDataToSpec(input: unknown): FigureSpec {
     x: categories && type === "bar" ? [0, categories.length] : range(data.x_axis, xs, false),
     y: type === "box_plot" ? [0, Math.max(1, boxes)] : range(data.y_axis, ys, type === "bar"),
   };
+  // Samples span the function's domain within the frame.
+  for (const part of parts) {
+    const e = part.kind === "function" ? expressions.get(part.id) : undefined;
+    if (part.kind !== "function" || !e) continue;
+    const [d0, d1] = part.domain ?? frame.x;
+    const lo = Math.max(frame.x[0], Math.min(d0, d1));
+    const hi = Math.min(frame.x[1], Math.max(d0, d1));
+    part.samples = sampleExpression(e, [lo, hi]);
+  }
   // Steps: y inherits x's step in a spec, so a y-axis without its own step gets
-  // the calculator's automatic one written out.
+  // the automatic one written out.
   const xStep = data.x_axis.tick_step ?? undefined;
   let yStep = data.y_axis.tick_step ?? undefined;
   if (xStep !== undefined && yStep === undefined && type !== "box_plot") {
-    yStep = axisTicks(frame.y[0], frame.y[1], 300).step || undefined;
+    yStep = niceStep(frame.y[0], frame.y[1], 300) || undefined;
   }
   if (xStep !== undefined) frame.step = xStep;
   if (yStep !== undefined && yStep !== xStep) frame.yStep = yStep;

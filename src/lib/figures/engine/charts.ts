@@ -13,7 +13,6 @@
  * - A title wraps above the plot; with two or more named series a legend
  *   wraps below it. The figure grows taller for both, so the plot keeps its size.
  */
-import { axisTicks } from "./calc-adapter";
 import { HOUSE } from "./house";
 import {
   LINE_HEIGHT,
@@ -28,6 +27,7 @@ import {
 } from "./plane";
 import type { Role, Scene, SceneIssue, SceneItem, Weight } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
+import { niceStep } from "./ticks";
 
 type Series = Extract<Part, { kind: "series" }>;
 type ChartKind = "bar" | "line" | "scatter" | "dot_plot" | "histogram" | "box_plot";
@@ -55,10 +55,10 @@ const FILLS: Role[] = ["ink-muted", "ink", "highlight"];
 const BOX_HEIGHT = 40;
 const SWATCH = 12;
 
-/** A clean [min, max] covering lo..hi, on multiples of the calculator's tick step. */
+/** A clean [min, max] covering lo..hi, on multiples of the automatic tick step. */
 export function niceRange(lo: number, hi: number): [number, number] {
   if (!(hi > lo)) [lo, hi] = [lo - 1, hi + 1];
-  const step = axisTicks(lo, hi, 400).step || 1;
+  const step = niceStep(lo, hi, 400) || 1;
   return [Math.floor(lo / step) * step, Math.ceil(hi / step) * step];
 }
 

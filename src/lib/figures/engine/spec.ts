@@ -43,6 +43,12 @@ const fn = z
     id,
     latex: z.string().min(1),
     domain: z.tuple([num, num]).optional(),
+    /**
+     * The graph as world-unit polylines, already broken at gaps and
+     * asymptotes. Filled when the figure is authored
+     * (scripts/figures/sample-spec.ts); the engine draws only these.
+     */
+    samples: z.array(z.array(z.tuple([num, num]))).optional(),
   })
   .strict();
 

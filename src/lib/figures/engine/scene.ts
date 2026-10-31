@@ -40,7 +40,13 @@ export type SceneItem =
     };
 
 export type SceneIssue = {
-  code: "label_collision" | "clipped" | "off_line" | "missing_label" | "arrow_rule";
+  code:
+    | "label_collision"
+    | "clipped"
+    | "off_line"
+    | "missing_label"
+    | "arrow_rule"
+    | "unsampled_function";
   partId?: string;
   detail: string;
 };

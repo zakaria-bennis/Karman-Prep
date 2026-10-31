@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { curveFor } from "@/lib/figures/engine/calc-adapter";
 import { HOUSE } from "@/lib/figures/engine/house";
 import { buildPlane } from "@/lib/figures/engine/plane";
 import type { SceneItem } from "@/lib/figures/engine/scene";
 import { FIGURE_SPEC_VERSION, type FigureSpec, type Part } from "@/lib/figures/engine/spec";
+// Tests may import authoring scripts: AR-1 exempts test files, and the runtime never does.
+import { sampleSpec } from "../../../../scripts/figures/sample-functions";
 
 const FRAME = { x: [-5, 5] as [number, number], y: [-5, 5] as [number, number], step: 1 };
 const BOX = { width: 320, height: 320 };
@@ -28,43 +29,61 @@ function vertices(d: string): [number, number][] {
   return out;
 }
 
-/** Nearest polyline vertex distance to (x, y), in world units. */
-function nearest(runs: number[][], x: number, y: number): number {
-  let best = Infinity;
-  for (const run of runs) {
-    for (let i = 0; i + 1 < run.length; i += 2) {
-      best = Math.min(best, Math.hypot(run[i] - x, run[i + 1] - y));
-    }
-  }
-  return best;
-}
+/** World coordinates of a pixel in the -5..5 frame, whose plot spans 16..304 px in BOX. */
+const worldOf = ([px, py]: [number, number]): [number, number] => [
+  -5 + ((px - 16) / (BOX.width - 32)) * SPAN,
+  5 - ((py - 16) / (BOX.height - 32)) * SPAN,
+];
 
-describe("curveFor", () => {
-  it("y=2x^2-3 passes through (1,-1) and (2,5)", () => {
-    const runs = curveFor("y=2x^2-3", FRAME, BOX);
-    expect(runs.length).toBeGreaterThan(0);
-    expect(nearest(runs, 1, -1)).toBeLessThan(0.01 * SPAN);
-    expect(nearest(runs, 2, 5)).toBeLessThan(0.01 * SPAN);
+describe("buildPlane function parts", () => {
+  const fn = (id: string, latex: string, domain?: [number, number]): Part => ({
+    kind: "function",
+    id,
+    latex,
+    ...(domain ? { domain } : {}),
   });
 
-  it("1/(x-2) has no segment crossing x=2", () => {
-    const runs = curveFor("y=\\frac{1}{x-2}", FRAME, BOX);
+  it("y=2x^2-3, sampled at authoring time, draws through (1,-1) and (2,5)", () => {
+    const scene = buildPlane(sampleSpec(plane([fn("f", "y=2x^2-3")])), BOX);
+    expect(scene.issues).toEqual([]);
+    const pts = byPart(scene.items, "f").flatMap((p) => vertices(p.d).map((v) => worldOf(v)));
+    expect(pts.length).toBeGreaterThan(0);
+    const near = (x: number, y: number) =>
+      Math.min(...pts.map(([a, b]) => Math.hypot(a - x, b - y)));
+    expect(near(1, -1)).toBeLessThan(0.01 * SPAN);
+    expect(near(2, 5)).toBeLessThan(0.01 * SPAN);
+  });
+
+  it("1/(x-2) draws at least two paths and no path crosses x=2", () => {
+    const scene = buildPlane(sampleSpec(plane([fn("f", "y=\\frac{1}{x-2}")])), BOX);
+    expect(scene.issues).toEqual([]);
+    const runs = byPart(scene.items, "f");
     expect(runs.length).toBeGreaterThanOrEqual(2);
     for (const run of runs) {
-      for (let i = 0; i + 3 < run.length; i += 2) {
-        const a = run[i] - 2;
-        const b = run[i + 2] - 2;
-        expect(a * b < 0).toBe(false);
-      }
+      const xs = vertices(run.d).map((v) => worldOf(v)[0] - 2);
+      for (let i = 1; i < xs.length; i++) expect(xs[i - 1] * xs[i] < -1e-6).toBe(false);
     }
   });
 
-  it("\\sqrt{x} draws nothing left of 0", () => {
-    const runs = curveFor("y=\\sqrt{x}", FRAME, BOX);
-    expect(runs.length).toBeGreaterThan(0);
-    for (const run of runs) {
-      for (let i = 0; i < run.length; i += 2) expect(run[i]).toBeGreaterThanOrEqual(-1e-9);
-    }
+  it("\\sqrt{x} draws nothing left of 0, and a domain clips the graph", () => {
+    const scene = buildPlane(
+      sampleSpec(plane([fn("r", "y=\\sqrt{x}"), fn("g", "y=x", [-1, 2])])),
+      BOX
+    );
+    expect(scene.issues).toEqual([]);
+    const xsOf = (id: string) =>
+      byPart(scene.items, id).flatMap((p) => vertices(p.d).map((v) => worldOf(v)[0]));
+    expect(Math.min(...xsOf("r"))).toBeGreaterThanOrEqual(-0.02);
+    expect(Math.min(...xsOf("g"))).toBeGreaterThanOrEqual(-1.02);
+    expect(Math.max(...xsOf("g"))).toBeLessThanOrEqual(2.02);
+  });
+
+  it("a function part without samples reports unsampled_function and draws no path", () => {
+    const scene = buildPlane(plane([fn("f", "y=x")]), BOX);
+    expect(byPart(scene.items, "f")).toHaveLength(0);
+    expect(scene.issues).toEqual([
+      expect.objectContaining({ code: "unsampled_function", partId: "f" }),
+    ]);
   });
 });
 
