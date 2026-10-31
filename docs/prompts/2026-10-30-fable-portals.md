@@ -78,9 +78,8 @@ unlockable parts. The founder wants few, clear choices.
 4. `docs/business-plan.md`: who buys, who uses it, the offer, honesty rules.
    Then `docs/business/plan-ladder-2026-10-30.md`: each plan's price and
    features, the source for the plan config.
-5. `src/lib/marketing/offer.ts`: dates, guarantee terms and site claims. It
-   still carries old Private prices and cohort 1:1 reviews; where it differs
-   from the plan ladder, the ladder wins. Don't edit it without the founder.
+5. `src/lib/marketing/offer.ts`: dates, guarantee terms and site claims. It matches
+   the plan ladder. Don't edit it without the founder.
 6. `docs/brand.md`: the voice section only. Its palette is retired.
 7. The Daily 10 end screen prototype, the reference for how a finished set
    should feel: `prototypes/daily10-end/` (its README lists what it shows and
@@ -373,6 +372,5 @@ These were cleaned up so Fable reads one consistent picture:
 4. `GEMINI.md`, `replit.md` and `dashboard-qa-report.md` were deleted.
 5. `CLAUDE.md` now describes the plan ladder and the portals workstream.
 
-**Still to do (not blocking the run):** `src/lib/marketing/offer.ts` still has
-the old Private prices and the cohort's 1:1 reviews. Change it with the
-founder, since the live site reads it.
+6. `src/lib/marketing/offer.ts` was updated to the ladder: Private prices
+   and booking, the cohort without 1:1 reviews, and the new plans.

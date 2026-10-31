@@ -14,8 +14,7 @@ karmanprep.com on Cloudflare Workers, with no paying users yet.
 Only the cohort and Private carry the guarantee. Prices and features are in
 `docs/business/plan-ladder-2026-10-30.md`, and the reasoning is in
 `docs/business-plan.md`. The claims, dates and guarantee terms the site may
-state are in `src/lib/marketing/offer.ts`. That file doesn't match the new
-ladder yet, and where it differs, the ladder wins. Values marked `CONFIRM:`
+state are in `src/lib/marketing/offer.ts`. It matches the ladder (updated 2026-10-30). Values marked `CONFIRM:`
 there need the founder before launch.
 
 ## Branches

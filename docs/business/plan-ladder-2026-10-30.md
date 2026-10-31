@@ -2,8 +2,8 @@
 
 These are the founder's picks from the plan checklist, plus the decisions he
 made in the same conversation. They replace "programs, not monthly plans" in
-`docs/business-plan.md`. That file and `src/lib/marketing/offer.ts` still need
-updating to match. Lines marked `OPEN:` are not settled yet. The research
+`docs/business-plan.md`. Both that file and `src/lib/marketing/offer.ts` were updated to
+match on 2026-10-30. Lines marked `OPEN:` are not settled yet. The research
 behind the prices is in `market-comparison-2026-10-30.md` and
 `school-pricing-2026-10-30.md`.
 
@@ -91,17 +91,11 @@ features:
   covering spring SAT School Day; the renewal quote goes out in April, before
   budgets close. `OPEN:` a minimum number of students per school.
 
-## Follow-ups this creates
+## Follow-ups
 
-1. **`offer.ts`.**
-   - Private prices: $1,450 / $2,900 become $1,495 / $2,495. The "weekly
-     60-minute sessions" become self-booked.
-   - Cohort: remove the 1:1 full-length review after each test, and update the
-     guarantee requirement "Complete all five one-on-one reviews".
-   - Add Free, Platform, Plus and School.
-2. **`docs/business-plan.md`.** Rewrite "Why programs, not hours", the offer
-   section and the economics around this ladder.
-3. **Guarantee terms.** The cohort's requirements change. They need the
+1. **Guarantee terms.** The cohort's requirements changed. They need the
    lawyer review that's already pending.
-4. **Plan config.** The portals read one plan config. This table is its first
+2. **Plan config.** The portals read one plan config. This table is its first
    version.
+3. **Plan names.** "Platform" and "Plus" are working names (`CONFIRM:` in
+   `offer.ts`).

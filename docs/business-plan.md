@@ -4,8 +4,7 @@ This is the working plan for what Karman sells, how it's priced, and what gets
 built in what order. The plan ladder, with each plan's price and features, is
 in [`docs/business/plan-ladder-2026-10-30.md`](./business/plan-ladder-2026-10-30.md).
 Product copy on the marketing site comes from
-[`src/lib/marketing/offer.ts`](../src/lib/marketing/offer.ts). That file
-doesn't match the ladder yet (see "Open decisions"). Visual and voice rules
+[`src/lib/marketing/offer.ts`](../src/lib/marketing/offer.ts). It matches this plan as of 2026-10-30. Visual and voice rules
 live in [`docs/design-rules.md`](./design-rules.md) and the voice section of
 [`docs/brand.md`](./brand.md).
 
@@ -160,9 +159,8 @@ What each plan includes is in the plan ladder.
 - **Who gets it.** It belongs only to the cohort and Private 1:1.
 - **Terms.** The terms differ by product and live in `offer.ts`: +100 points
   or 1450, with the remedy depending on the result.
-- **Pending changes.** The cohort's requirements still list five one-on-one
-  reviews, so they must change now that the cohort has none. The terms need
-  the lawyer review that's already pending.
+- **Pending.** The requirement to complete five one-on-one reviews was removed
+  on 2026-10-30 with the cohort's 1:1s. The terms still need the lawyer review.
 - **Honest intake.** Students already scoring 1500+, or fewer than about 4
   weeks from their test, are told plainly that a program probably isn't worth
   it for them.
@@ -276,8 +274,3 @@ What each plan includes is in the plan ladder.
 
 - **Placeholders in `offer.ts`,** marked `CONFIRM:`: class days and times, the
   free practice test's start time, and the enrollment deadline.
-- **`offer.ts` doesn't match this plan yet.**
-  - The Private prices and booking.
-  - The cohort's 1:1 reviews and guarantee requirements.
-  - The new Free, Platform, Plus and School plans.
-- **A minimum number of students per school.**
