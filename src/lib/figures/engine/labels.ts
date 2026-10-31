@@ -5,7 +5,8 @@
  * Collision rules, kept simple on purpose:
  * - Lines are the M/L segments of path items. An A (arc) command is tested by
  *   its chord, start to end point. Grid-weight paths are ignored, since they
- *   cross everything. Rect items are not tested.
+ *   cross everything, and so are fills drawn without a stroke (a shaded
+ *   region). Rect items are not tested.
  * - Text boxes come from the house advance estimate, not real font metrics.
  */
 import { HOUSE } from "./house";
@@ -18,6 +19,8 @@ export type PendingLabel = {
   /** Preferred side, as a direction from the anchor (any length). */
   preferred: { dx: number; dy: number };
   partId: string;
+  /** When given, a spot counts only if its box [left, right, top, bottom] passes (inside a region). */
+  within?: (box: [number, number, number, number]) => boolean;
 };
 
 type Box = { width: number; height: number };
@@ -126,7 +129,9 @@ export function placeLabels(
   labels: PendingLabel[],
   box: Box
 ): { items: SceneItem[]; issues: SceneIssue[] } {
-  const lines = items.flatMap((i) => (i.t === "path" && i.weight !== "grid" ? segments(i.d) : []));
+  const lines = items.flatMap((i) =>
+    i.t === "path" && i.weight !== "grid" && i.stroke !== false ? segments(i.d) : []
+  );
   const taken: Rect[] = items.filter((i): i is TextItem => i.t === "text").map(textBox);
   const placed: SceneItem[] = [];
   const issues: SceneIssue[] = [];
@@ -176,6 +181,7 @@ export function placeLabels(
         )
           continue;
         if (taken.some((o) => rectsOverlap(padded, o))) continue;
+        if (label.within && !label.within(r)) continue;
         if (lines.some((s) => segHitsRect(s, padded))) continue;
         found = item;
         break search;

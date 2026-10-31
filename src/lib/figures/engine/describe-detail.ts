@@ -4,7 +4,8 @@
  * answer choices, spec §2; WCAG 1.1.1). Builders append it to their summary.
  *
  * - planes: each line by its equation (slope-intercept), each ray and segment
- *   by its two points, other points by coordinates, each function in words;
+ *   by its two points, circles, arcs and polygons by their points, other
+ *   points by coordinates, each function and shaded region in words;
  * - charts: the value per category, the points or values up to 12, else a summary;
  * - shapes: vertex positions; solids: shape and dims.
  *
@@ -114,6 +115,24 @@ export function planeDetail(spec: FigureSpec): string[] {
       else out.push(`a segment from ${at(part.from)} to ${at(part.to)}`);
     } else if (part.kind === "function") {
       out.push(`the graph of ${latexToWords(part.latex)}`);
+    } else if (part.kind === "circle") {
+      if (!points.has(part.center) || (part.through && !points.has(part.through))) continue;
+      used.add(part.center);
+      if (part.through) used.add(part.through);
+      const size = part.through
+        ? `through ${at(part.through)}`
+        : `and radius ${num(part.radius ?? 0)}`;
+      out.push(`a circle with center ${at(part.center)} ${size}`);
+    } else if (part.kind === "arc") {
+      if (![part.center, part.from, part.to].every((id) => points.has(id))) continue;
+      [part.center, part.from, part.to].forEach((id) => used.add(id));
+      out.push(`an arc centered at ${at(part.center)} from ${at(part.from)} to ${at(part.to)}`);
+    } else if (part.kind === "polygon") {
+      if (!part.points.every((id) => points.has(id))) continue;
+      part.points.forEach((id) => used.add(id));
+      out.push(`a polygon with vertices ${list(part.points.map(at))}`);
+    } else if (part.kind === "region") {
+      out.push(`the shaded region where ${latexToWords(part.latex)}`);
     }
   }
   const loose = [...points.keys()].filter((id) => !used.has(id));

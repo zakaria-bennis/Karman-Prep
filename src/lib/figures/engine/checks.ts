@@ -5,7 +5,8 @@
  *
  * checkSpec builds the figure the way students see it (buildScene, or
  * layoutTable for a table) and keeps every issue its builder reports
- * (snapping, label placement, clipping to the frame, unsampled functions).
+ * (snapping, label placement, clipping to the frame, unsampled functions and
+ * regions, regions marked by shading alone).
  * On top of those it checks what no builder can:
  *
  * - labels: every text in the original's transcription is drawn, and every
@@ -15,7 +16,9 @@
  *   detail says "not in original".
  * - off_line: a point declared `on` a line, circle, arc, polygon or function
  *   lies on it once the figure is snapped (a function through its stored
- *   samples), and an arc's end point lies on its circle.
+ *   samples), and an arc's end point lies on its circle. Circles are measured
+ *   in world units (the nearest point of the true circle, then in px), so a
+ *   circle that draws as an ellipse on an unequal-scale plane still checks.
  * - arrow_rule: rays and lines end in arrowheads; segments never do.
  * - clipped: nothing is drawn past the figure's edge.
  * - label_collision: no two texts overlap.
@@ -230,25 +233,33 @@ function arrowRule(spec: FigureSpec, scene: Scene): SceneIssue[] {
 
 // ---------------------------------------------------------------- points on lines and curves
 
-/** The figure's points and parts in px, as the builder places them (snapped, scaled). */
-type Placed = { points: Map<string, Pt>; px: (p: Pt) => Pt; perUnit: number; parts: Part[] };
+/**
+ * The figure's points in world units and in px, as the builder places them
+ * (snapped, scaled), and the world-to-px map.
+ */
+type Placed = {
+  world: Map<string, Pt>;
+  points: Map<string, Pt>;
+  px: (p: Pt) => Pt;
+  parts: Part[];
+};
 
 function placed(spec: FigureSpec, scene: Scene, box: Box): Placed | null {
   if (spec.type === "geometry2d") {
     const snapped = snap(spec);
     const s = scene.scale ?? 1;
     const px = ([x, y]: Pt): Pt => [x * s, y * s];
-    return { points: pointsOf(snapped, px), px, perUnit: s, parts: snapped.parts };
+    return {
+      world: pointsOf(snapped, (p) => p),
+      points: pointsOf(snapped, px),
+      px,
+      parts: snapped.parts,
+    };
   }
   if (spec.type === "plane") {
     const { map } = planeAxes(spec.frame ?? DEFAULT_PLANE_FRAME, box);
     const px = ([x, y]: Pt): Pt => [map.px(x), map.py(y)];
-    return {
-      points: pointsOf(spec, px),
-      px,
-      perUnit: Math.abs(map.px(1) - map.px(0)),
-      parts: spec.parts,
-    };
+    return { world: pointsOf(spec, (p) => p), points: pointsOf(spec, px), px, parts: spec.parts };
   }
   return null;
 }
@@ -270,8 +281,12 @@ function toLine(p: Pt, a: Pt, b: Pt, lo: number, hi: number): number {
   return dist(p, [a[0] + t * d[0], a[1] + t * d[1]]);
 }
 
-/** Distance (px) from p to the drawn part, or null when the part draws nothing to compare with. */
-function distanceTo(p: Pt, part: Part, at: Placed): number | null {
+/**
+ * Distance (px) from world point `pw` to the drawn part, or
+ * null when the part draws nothing to compare with.
+ */
+function distanceTo(pw: Pt, part: Part, at: Placed): number | null {
+  const p = at.px(pw);
   const P = (id: string) => at.points.get(id);
   switch (part.kind) {
     case "segment":
@@ -290,16 +305,15 @@ function distanceTo(p: Pt, part: Part, at: Placed): number | null {
     }
     case "circle":
     case "arc": {
-      const c = P(part.center);
+      // The nearest point of the true circle, found in world units, then measured in px.
+      const c = at.world.get(part.center);
       const through = part.kind === "arc" ? part.from : part.through;
-      const t = through ? P(through) : undefined;
-      const r =
-        t && c
-          ? dist(t, c)
-          : part.kind === "circle" && part.radius
-            ? part.radius * at.perUnit
-            : null;
-      return c && r !== null ? Math.abs(dist(p, c) - r) : null;
+      const t = through ? at.world.get(through) : undefined;
+      const r = t && c ? dist(t, c) : part.kind === "circle" && part.radius ? part.radius : null;
+      if (!c || r === null) return null;
+      const away = dist(pw, c);
+      const u: Pt = away > 0 ? [(pw[0] - c[0]) / away, (pw[1] - c[1]) / away] : [1, 0];
+      return dist(p, at.px([c[0] + r * u[0], c[1] + r * u[1]]));
     }
     case "function": {
       if (!part.samples?.length) return null; // unsampled_function or clipped says why
@@ -324,7 +338,7 @@ function offLine(spec: FigureSpec, scene: Scene, box: Box): SceneIssue[] {
   const issues: SceneIssue[] = [];
   for (const part of at.parts) {
     if (part.kind === "point") {
-      const p = at.points.get(part.id)!;
+      const p = at.world.get(part.id)!;
       for (const ref of part.on ?? []) {
         const target = byId.get(ref);
         const d = target ? distanceTo(p, target, at) : null;
@@ -336,9 +350,9 @@ function offLine(spec: FigureSpec, scene: Scene, box: Box): SceneIssue[] {
           });
         }
       }
-    } else if (part.kind === "arc" && spec.type === "geometry2d") {
+    } else if (part.kind === "arc") {
       // The arc is drawn at its start point's radius, so its end point must be on that circle.
-      const end = at.points.get(part.to);
+      const end = at.world.get(part.to);
       const d = end ? distanceTo(end, part, at) : null;
       if (d !== null && d > OFF_LINE_PX) {
         issues.push({

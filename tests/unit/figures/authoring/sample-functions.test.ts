@@ -93,3 +93,87 @@ describe("sampleSpec", () => {
     expect(JSON.stringify(spec)).toBe(before);
   });
 });
+
+describe("sampleSpec regions", () => {
+  type Region = Extract<FigureSpec["parts"][number], { kind: "region" }>;
+  const regionSpec = (latex: string): FigureSpec => ({
+    version: FIGURE_SPEC_VERSION,
+    type: "plane",
+    parts: [{ kind: "region", id: "R", latex }],
+    labels: [{ text: "R", on: "R" }],
+    marks: [],
+    frame: FRAME,
+  });
+  const rings = (latex: string) => (sampleSpec(regionSpec(latex)).parts[0] as Region).samples!;
+  const onFrameEdge = ([x, y]: [number, number]) =>
+    Math.abs(Math.abs(x) - 5) < 1e-9 || Math.abs(Math.abs(y) - 5) < 1e-9;
+  const inFrame = ([x, y]: [number, number]) =>
+    x >= -5 - 1e-9 && x <= 5 + 1e-9 && y >= -5 - 1e-9 && y <= 5 + 1e-9;
+
+  it("sampleSpec fills y > 2x - 1 region on a -5..5 frame with one ring whose every vertex satisfies y >= 2x - 1 - 1e-6 and lies inside the frame", () => {
+    const out = rings("y>2x-1");
+    expect(out).toHaveLength(1);
+    expect(out[0].length).toBeGreaterThanOrEqual(3);
+    for (const [x, y] of out[0]) {
+      expect(y).toBeGreaterThanOrEqual(2 * x - 1 - 1e-6);
+      expect(inFrame([x, y])).toBe(true);
+    }
+  });
+
+  it("linear y > 2x - 1: every vertex is on the frame edge or on the line within 1e-9", () => {
+    for (const p of rings("y>2x-1")[0]) {
+      expect(onFrameEdge(p) || Math.abs(p[1] - (2 * p[0] - 1)) < 1e-9).toBe(true);
+    }
+  });
+
+  it("a system of two inequalities gives the exact quadrilateral or triangle", () => {
+    // y < 3 and x > -1 cut the frame to the rectangle (-1..5) × (-5..3).
+    const quad = rings("y<3, x>-1");
+    expect(quad).toHaveLength(1);
+    const key = (ps: [number, number][]) => ps.map(([x, y]) => `${x},${y}`).sort();
+    expect(key(quad[0])).toEqual(
+      key([
+        [-1, -5],
+        [5, -5],
+        [5, 3],
+        [-1, 3],
+      ])
+    );
+    // y \ge x and y \le 2, within the frame: the triangle (-5,-5), (2,2), (-5,2).
+    const tri = rings("y\\ge x \\\\ y\\le 2");
+    expect(tri).toHaveLength(1);
+    expect(tri[0]).toHaveLength(3);
+    for (const [x, y] of [
+      [-5, -5],
+      [2, 2],
+      [-5, 2],
+    ]) {
+      expect(tri[0].some(([a, b]) => Math.hypot(a - x, b - y) < 1e-9)).toBe(true);
+    }
+  });
+
+  it("nonlinear y > x^2 gives a ring whose boundary samples lie within 1% of the frame span of y = x^2", () => {
+    const out = rings("y>x^2");
+    expect(out.length).toBeGreaterThanOrEqual(1);
+    const curve: [number, number][] = [];
+    for (let x = -5; x <= 5; x += 0.001) curve.push([x, x * x]);
+    const toCurve = ([x, y]: [number, number]) =>
+      Math.min(
+        ...curve.filter(([a]) => Math.abs(a - x) < 0.2).map(([a, b]) => Math.hypot(a - x, b - y))
+      );
+    let onCurve = 0;
+    for (const p of out.flat()) {
+      expect(inFrame(p)).toBe(true);
+      if (onFrameEdge(p)) continue;
+      onCurve++;
+      expect(toCurve(p)).toBeLessThan(0.01 * SPAN);
+    }
+    expect(onCurve).toBeGreaterThan(4);
+  });
+
+  it("the filled region spec validates", () => {
+    const out = sampleSpec(regionSpec("y>x^2"));
+    const parsed = parseFigureSpec(out);
+    expect(parsed.ok, parsed.ok ? "" : parsed.errors.join("; ")).toBe(true);
+  });
+});

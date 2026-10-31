@@ -13,6 +13,10 @@ export type SceneItem =
       role: Role;
       weight: Weight;
       fill?: Role;
+      /** How a fill treats overlapping rings: evenodd leaves holes unshaded. */
+      fillRule?: "evenodd";
+      /** false: a fill with no outline (a shaded region); it is no obstacle for labels. */
+      stroke?: false;
       arrows?: "start" | "end" | "both";
       partId?: string;
     }
@@ -46,7 +50,9 @@ export type SceneIssue = {
     | "off_line"
     | "missing_label"
     | "arrow_rule"
-    | "unsampled_function";
+    | "unsampled_function"
+    | "unsampled_region"
+    | "region_unmarked";
   partId?: string;
   detail: string;
 };

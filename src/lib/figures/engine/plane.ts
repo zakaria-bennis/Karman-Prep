@@ -1,16 +1,19 @@
 /**
  * Coordinate-plane builder: grid, axes, tick labels, function graphs, points,
- * segments, rays and lines, as a role-colored Scene. Function graphs are the
+ * segments, rays, lines, circles, arcs, polygons and shaded regions
+ * (plane-shapes.ts), as a role-colored Scene. Function graphs are the
  * part's `samples`, world polylines computed when the figure is authored
  * (scripts/figures/sample-functions.ts); the engine never loads the
  * calculator. Polylines, rays and lines are clipped to the frame
  * (Liang–Barsky) and end in arrowheads where they leave it; segments never do.
  * Axis and tick labels sit at fixed positions; part labels are placed clear
- * of them and of every line (plane-labels.ts).
+ * of them and of every line (plane-labels.ts). Region fills sit under every
+ * line; a part marked hidden_dashed draws dashed.
  */
 import { planeDetail } from "./describe-detail";
 import { HOUSE } from "./house";
 import { planeLabels } from "./plane-labels";
+import { pathOf, regionItems, shapeItems } from "./plane-shapes";
 import type { Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
 import { axisTicks, tickValues } from "./ticks";
@@ -90,7 +93,7 @@ export function clipParam(
 }
 
 /** Splits a world polyline into runs that stay inside the frame. */
-function clipPolyline(run: readonly Pt[], frame: PlaneFrame): Pt[][] {
+export function clipPolyline(run: readonly Pt[], frame: PlaneFrame): Pt[][] {
   const out: Pt[][] = [];
   let cur: Pt[] = [];
   const close = () => {
@@ -385,10 +388,6 @@ function axisNames(
   return items;
 }
 
-function pathOf(pts: Pt[], m: Mapper): string {
-  return pts.map(([x, y], i) => `${i ? "L" : "M"}${fmt(m.px(x))} ${fmt(m.py(y))}`).join(" ");
-}
-
 /** A clipped segment, ray or line, with arrows where a ray or line leaves the frame. */
 function straight(
   part: Extract<Part, { kind: "segment" | "ray" | "line" }>,
@@ -600,19 +599,30 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
   const points = new Map<string, Pt>();
   for (const p of spec.parts) if (p.kind === "point") points.set(p.id, [p.x, p.y]);
 
+  const dashed = new Set(spec.marks.filter((k) => k.kind === "hidden_dashed").flatMap((k) => k.on));
+  const fills: SceneItem[] = [];
   const dots: SceneItem[] = [];
+  const lines: SceneItem[] = [];
   for (const part of spec.parts) {
     switch (part.kind) {
       case "function":
-        items.push(...functionItems(part, frame, m, issues));
+        lines.push(...functionItems(part, frame, m, issues));
         break;
       case "segment":
       case "ray":
       case "line": {
         const item = straight(part, points, frame, m, issues);
-        if (item) items.push(item);
+        if (item) lines.push(item);
         break;
       }
+      case "circle":
+      case "arc":
+      case "polygon":
+        lines.push(...shapeItems(part, points, frame, m, issues));
+        break;
+      case "region":
+        fills.push(...regionItems(part, spec, frame, m, issues));
+        break;
       case "point":
         if (clipParam([part.x, part.y], [0, 0], frame, 0, 0)) {
           dots.push(dot([part.x, part.y], m, part.id));
@@ -628,6 +638,13 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
         });
     }
   }
+  for (const item of lines) {
+    if (item.t === "path" && item.partId && dashed.has(item.partId)) item.weight = "dashed";
+  }
+  // Fills go under the axes and every line, right after the grid.
+  const firstInk = items.findIndex((i) => !(i.t === "path" && i.role === "grid"));
+  items.splice(firstInk < 0 ? items.length : firstInk, 0, ...fills);
+  items.push(...lines);
   items.push(...dots); // points draw on top of the lines through them
   const labels = planeLabels(spec, items, box, ([x, y]) => [m.px(x), m.py(y)]);
   items.push(...labels.items);

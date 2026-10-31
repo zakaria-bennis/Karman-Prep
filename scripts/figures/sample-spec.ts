@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * Fills the `samples` of every function part in a FigureSpec JSON file and
- * writes the filled spec to stdout. The input file is not changed.
+ * Fills the `samples` of every function and region part in a FigureSpec JSON
+ * file and writes the filled spec to stdout. The input file is not changed.
  *
  *   npx tsx scripts/figures/sample-spec.ts path/to/spec.json > filled.json
  *

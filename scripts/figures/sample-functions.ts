@@ -1,34 +1,21 @@
 /**
- * Authoring-time function sampling for the figure engine. This is the only
- * place figure code reads the calculator, and it does so read-only: function
- * parts are parsed, analysed and sampled with the calculator's own formula
- * reader and plotting math, so domains, gaps, asymptotes and adaptive
- * sampling match the calculator. The result is stored in each function part's
+ * Authoring-time function sampling for the figure engine. Figure code reads
+ * the calculator only from scripts/figures, and only read-only
+ * (calculator-read.ts): function parts are parsed, analysed and sampled with
+ * the calculator's own formula reader and plotting math, so domains, gaps,
+ * asymptotes and adaptive sampling match the calculator. The result is stored in each function part's
  * `samples`; the runtime engine (src/lib/figures/engine) draws only those and
  * never loads the calculator.
  */
-import { analyzeRows } from "@/lib/calculator/core/analysis/index";
-import { buildCompileScope, plotInputFor } from "@/lib/calculator/plot/from-analysis";
-import { plotRow } from "@/lib/calculator/plot/index";
-import type { ViewSpec } from "@/lib/calculator/plot/viewport";
-import { createWorkDeadline, SliceClock } from "@/lib/calculator/worker/slice";
 import type { FigureSpec, PlaneFrame } from "@/lib/figures/engine/spec";
-
-const SETTINGS = { angleMode: "radians", complex: false } as const;
-const ROW_ID = "figure-function";
+import { plot, plotInput, viewFor } from "./calculator-read";
+import { regionSamples } from "./sample-regions";
 
 /** The frame buildPlane uses when a spec has none. */
 const DEFAULT_FRAME: PlaneFrame = { x: [-10, 10], y: [-10, 10] };
 
 /** The view size samples are made dense enough for. */
 export const DEFAULT_BOX = { width: 640, height: 480 };
-
-/** A deadline that never expires (plot sampling), built as the calculator's worker builds it. */
-function plotDeadline() {
-  const now = () => Date.now();
-  const clock = new SliceClock({ now, sliceMs: 8, heartbeatMs: 200 }, () => {});
-  return createWorkDeadline({ clock, now, limitMs: null, rowId: ROW_ID });
-}
 
 /**
  * The graph of `latex` over `frame`, sampled for a view `box` px in size, as
@@ -41,18 +28,9 @@ export function curveFor(
   frame: PlaneFrame,
   box: { width: number; height: number }
 ): number[][] {
-  const analysis = analyzeRows([{ id: ROW_ID, latex, hidden: false }], SETTINGS);
-  const row = analysis.byId.get(ROW_ID);
-  if (!row || row.graph === null) return [];
-  const scope = buildCompileScope(analysis, new Map(), SETTINGS);
-  const input = plotInputFor(row, scope, null);
+  const input = plotInput(latex);
   if (input === null) return [];
-  const view: ViewSpec = {
-    viewport: { left: frame.x[0], right: frame.x[1], bottom: frame.y[0], top: frame.y[1] },
-    size: { width: box.width, height: box.height },
-    dpr: 1,
-  };
-  const geometry = plotRow(input, view, plotDeadline());
+  const geometry = plot(input, viewFor(frame, box));
   if (geometry.kind !== "curve") return [];
   const runs: number[][] = [];
   let run: number[] = [];
@@ -79,12 +57,27 @@ function rounder(span: number): (v: number) => number {
 
 /**
  * `spec` with `samples` filled for every function part, sampled over the
- * spec's frame (restricted to the part's domain) for a `box`-sized view.
- * Existing samples are replaced; other parts are untouched.
+ * spec's frame (restricted to the part's domain) for a `box`-sized view, and
+ * for every region part (sample-regions.ts). Existing samples are replaced;
+ * other parts are untouched. A region the calculator cannot shade keeps no
+ * samples, so the engine reports it as unsampled_region.
  */
 export function sampleSpec(spec: FigureSpec, box = DEFAULT_BOX): FigureSpec {
   const frame = spec.frame ?? DEFAULT_FRAME;
   const parts = spec.parts.map((part) => {
+    if (part.kind === "region") {
+      const out = { ...part };
+      delete out.samples;
+      const filled = regionSamples(part.latex, frame, box);
+      if (!filled) return out;
+      // Exact (linear) vertices stay exact; traced ones are rounded like curves.
+      const rx = rounder(frame.x[1] - frame.x[0]);
+      const ry = rounder(frame.y[1] - frame.y[0]);
+      const samples = filled.exact
+        ? filled.rings
+        : filled.rings.map((r) => r.map(([x, y]): [number, number] => [rx(x), ry(y)]));
+      return { ...out, samples };
+    }
     if (part.kind !== "function") return part;
     let sub = frame;
     let width = box.width;

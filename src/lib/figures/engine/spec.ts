@@ -64,7 +64,26 @@ const fn = z
   })
   .strict();
 
-const region = z.object({ kind: z.literal("region"), id, latex: z.string().min(1) }).strict();
+const region = z
+  .object({
+    kind: z.literal("region"),
+    id,
+    /** The inequality, or a system of up to 4 separated by commas, semicolons or a LaTeX line break. */
+    latex: z.string().min(1),
+    /**
+     * The line or curve parts that draw the region's edge. They keep their own
+     * styling: a strict inequality's edge is dashed only when that part is
+     * marked hidden_dashed.
+     */
+    boundary: z.array(id).min(1).optional(),
+    /**
+     * The shaded area as closed world-unit rings, already clipped to the
+     * frame; holes are separate rings (even-odd fill). Filled when the figure
+     * is authored (scripts/figures/sample-spec.ts); the engine draws only these.
+     */
+    samples: z.array(z.array(z.tuple([num, num]))).optional(),
+  })
+  .strict();
 
 /**
  * The dimensions each solid needs, named as the SAT words them. A label
@@ -278,6 +297,17 @@ function checkReferences(spec: FigureSpec): string[] {
       if (!kind) errors.push(`point "${part.id}": on references missing part "${ref}"`);
       else if (!ON_KINDS.has(kind)) {
         errors.push(`point "${part.id}": on "${ref}" is a ${kind}, not a line or curve`);
+      }
+    }
+  }
+  // A region's boundary is drawn by line or curve parts.
+  for (const part of spec.parts) {
+    if (part.kind !== "region") continue;
+    for (const ref of part.boundary ?? []) {
+      const kind = kinds.get(ref);
+      if (!kind) errors.push(`region "${part.id}": boundary references missing part "${ref}"`);
+      else if (!ON_KINDS.has(kind)) {
+        errors.push(`region "${part.id}": boundary "${ref}" is a ${kind}, not a line or curve`);
       }
     }
   }

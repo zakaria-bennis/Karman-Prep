@@ -57,7 +57,8 @@ function renderItem(item: SceneItem, index: number, markerId: string) {
       key={index}
       d={item.d}
       fill={item.fill ? paint(item.fill) : "none"}
-      stroke={paint(item.role)}
+      fillRule={item.fillRule}
+      stroke={item.stroke === false ? "none" : paint(item.role)}
       strokeLinecap="round"
       strokeLinejoin="round"
       {...strokeProps(item.weight)}
