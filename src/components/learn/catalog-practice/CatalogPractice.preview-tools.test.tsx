@@ -13,7 +13,7 @@ const actions = vi.hoisted(() => ({
   submit: vi.fn(),
   complete: vi.fn(),
 }));
-vi.mock("@/app/learn/catalog-quiz-actions", () => ({
+vi.mock("@/app/(app)/learn/catalog-quiz-actions", () => ({
   actionStartCatalogPractice: actions.start,
   actionResumeCatalogPractice: actions.resume,
   actionSubmitCatalogPractice: actions.submit,

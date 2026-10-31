@@ -17,8 +17,9 @@
 // ============================================================
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
+import { SITE_PAGES } from "@/components/site/routes";
 
 /** Dev-only auth bypass. When NODE_ENV !== "production" and
  *  DEV_IMPERSONATE_CLERK_ID is set, the entire Clerk gate is
@@ -51,17 +52,28 @@ const isMaintenanceExempt = createRouteMatcher([
 /** Routes that don't require auth in normal (post-launch) operation.
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
+  // the marketing site (src/components/site/routes.ts)
   "/",
+  "/program",
+  "/private-tutoring",
+  "/free-practice-test",
+  "/pricing",
+  "/guarantee",
+  "/faq",
+  "/about",
+  "/research",
+  "/privacy",
+  "/cookies",
+  "/terms",
+  "/refunds",
+  // old marketing addresses, redirected in next.config.mjs
   "/free-diagnostic",
   "/plans",
   "/questions",
-  "/faq",
-  "/about",
   "/blog(.*)",
-  "/guarantee",
-  "/privacy",
-  "/terms",
-  "/refunds",
+  "/calculator",
+  "/sitemap.xml",
+  "/robots.txt",
   "/coming-soon",
   "/auth/sign-in(.*)",
   "/auth/sign-up(.*)",
@@ -108,14 +120,26 @@ const realMiddleware = clerkMiddleware(async (auth, request) => {
   return NextResponse.next();
 }, KARMAN_AUTH_ROUTES);
 
+/** The marketing pages (src/components/site/routes.ts). Once the site is launched they never touch Clerk:
+ *  nothing on them reads the session, and Clerk's first-visit handshake (three redirects before the HTML on a
+ *  development instance) was the slowest part of every first visit. Before launch they still go through the
+ *  maintenance gate above, which needs the session to know whom to show the coming-soon page. */
+const SITE_PATHS = new Set<string>([...SITE_PAGES, "/"]);
+const isSitePage = (request: NextRequest) => SITE_PATHS.has(request.nextUrl.pathname);
+
+function siteOrRealMiddleware(request: NextRequest, event: NextFetchEvent) {
+  if (LAUNCHED && isSitePage(request)) return NextResponse.next();
+  return realMiddleware(request, event);
+}
+
 // Pick at module load — bypass branch skips Clerk's per-request
 // publishable-key check entirely. Cannot fire in production.
-export default DEV_AUTH_BYPASS_ACTIVE ? bypassMiddleware : realMiddleware;
+export default DEV_AUTH_BYPASS_ACTIVE ? bypassMiddleware : siteOrRealMiddleware;
 
 export const config = {
   matcher: [
     // Skip Next.js internals and static assets
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|mp4)).*)",
     "/(api|trpc)(.*)",
   ],
 };

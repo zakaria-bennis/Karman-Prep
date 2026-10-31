@@ -28,7 +28,7 @@ import {
   TIER_LABELS,
   SUBJECT_COLORS,
 } from "@/data/curriculum";
-import { markNodeComplete } from "@/app/learn/actions";
+import { markNodeComplete } from "@/app/(app)/learn/actions";
 import { playSound } from "@/lib/sounds";
 
 interface NeighborNode extends CurriculumNode {

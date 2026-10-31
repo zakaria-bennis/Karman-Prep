@@ -49,7 +49,7 @@ vi.mock("./bridge-context", async (original) => {
       h.stub ? (h.bridge as ReturnType<typeof real.useCalculator>) : real.useCalculator(),
   };
 });
-vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: vi.fn() }));
+vi.mock("@/app/(app)/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: vi.fn() }));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/free-diagnostic",
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),

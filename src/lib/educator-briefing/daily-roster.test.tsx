@@ -8,7 +8,7 @@ vi.mock("@/lib/supabase/server", () => ({ createAdminClient: vi.fn() }));
 import { requireBriefingEducator } from "./access";
 import { createAdminClient } from "@/lib/supabase/server";
 import { readDailyBriefing } from "./daily";
-import DailyBriefingPage from "@/app/tutor/briefing/page";
+import DailyBriefingPage from "@/app/(app)/tutor/briefing/page";
 import { fakeDatabase, bookingId, studentUuid, tutorUuid } from "./fixtures.test-helper";
 
 const profile = { id: tutorUuid, clerk_id: "tutor-a", time_zone: "America/Chicago" };

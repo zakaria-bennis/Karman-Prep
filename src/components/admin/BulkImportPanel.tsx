@@ -16,7 +16,11 @@ import { useRef, useState } from "react";
 import { Upload, Download, Check, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Subject } from "@/data/curriculum";
-import { actionBulkImport, type BulkImportRow, type BulkImportResult } from "@/app/admin/actions";
+import {
+  actionBulkImport,
+  type BulkImportRow,
+  type BulkImportResult,
+} from "@/app/(app)/admin/actions";
 import {
   CSV_HEADERS as SHARED_CSV_HEADERS,
   parseCsv as sharedParseCsv,

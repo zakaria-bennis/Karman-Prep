@@ -35,7 +35,7 @@ import {
   actionRemoveQuestionImage,
   actionUpdateQuestionDifficultyLevel,
   actionUploadQuestionImage,
-} from "@/app/admin/actions";
+} from "@/app/(app)/admin/actions";
 
 const LETTERS: AnswerLetter[] = ["A", "B", "C", "D"];
 

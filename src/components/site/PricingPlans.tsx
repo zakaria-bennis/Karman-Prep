@@ -1,21 +1,26 @@
 "use client";
 
-// Pricing (ported from the mock's pricing.js): every paid option and every promise on one page. Pick when the
-// student wants to start and the cohort card, its dates and its price change to match; self-paced and private
-// tutoring start any day. The guarantee sits right under the plans with its whole terms; then everything side
-// by side. Numbers come from offer.ts, words from site-copy.ts.
+// Pricing (ported from the mock's pricing.js, brought onto the October 30 plan ladder): every paid option and
+// every promise on one page. Pick the SAT your student is taking and the program card, its dates and its price
+// change to match; private tutoring starts any day. Two cards only (design rule 17): the program and private
+// tutoring. The practice plans and the school license follow as one band of rows (their designed version comes
+// after the founder's review). The guarantee sits under them with its whole terms; then everything side by side.
+// Numbers come from offer.ts, words from site-copy.ts.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  CONTACT,
   formatPrice as money,
+  FREE_PRACTICE_TEST as FT,
   GUARANTEE as G,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
-  PRIVATE_HOURLY_RATE,
+  PRACTICE_PLANS,
+  PRIVATE_INCLUDES,
   PRIVATE_PACKAGES,
-  SELF_PACED as SP,
+  SCHOOL_PLAN,
 } from "@/lib/marketing/offer";
-import { numberWord, SITE } from "@/lib/marketing/site-copy";
-import { Btn, delay, Icon } from "./parts";
+import { CALL_MINUTES, numberWord, SITE } from "@/lib/marketing/site-copy";
+import { Arrow, Btn, delay, Icon } from "./parts";
 import Photo from "./Photo";
 import { ROUTES } from "./routes";
 
@@ -26,6 +31,7 @@ const month = (iso: string) =>
 type Cohort = {
   key: string;
   short: string;
+  test: string;
   start: string;
   closes: string;
   price: number;
@@ -33,76 +39,94 @@ type Cohort = {
   split?: { count: number; amount: number };
   name: string;
 };
+/** The programs, one per SAT date (offer.ts): the founding price for March, the regular price after. */
 const DATES: Cohort[] = [
   {
-    key: "mar",
-    short: MP.startShort,
+    key: MP.testDate,
+    short: MP.testDateShort,
+    test: noYear(MP.testDateLabel),
     start: noYear(MP.startLabel),
     closes: noYear(MP.enrollmentClosesLabel),
     price: MP.price,
     was: MP.regularPrice,
     split: MP.installments,
-    name: `The ${month(MP.startDate)} cohort`,
+    name: MP.name,
   },
   ...NEXT_PROGRAMS.map((p) => ({
-    key: p.id,
-    short: p.startShort,
+    key: p.testDate,
+    short: p.testDateShort,
+    test: noYear(p.testDateLabel),
     start: p.startLabel,
     closes: p.enrollmentClosesLabel,
     price: MP.regularPrice,
-    name: `The ${month(p.startDate)} cohort`,
+    name: `The ${month(p.testDate)} SAT Program`,
   })),
 ];
 
-const CLASS = MP.paidSeats + MP.scholarshipSeats;
 const INCLUDES = {
   program: [
-    `Two live classes a week, up to ${numberWord(CLASS)} students`,
+    `Two live classes a week, in a class of ${numberWord(MP.paidSeats)}`,
     `${numberWord(MP.fullLengthTests, true)} full-length practice tests`,
-    `A ${MP.reviewMinutes}-minute one-on-one after every full-length`,
+    "Classes built on the skills your group missed",
     "A weekly live session",
-    "Daily 10 and our own practice questions",
+    "Your Daily 10 and our own practice questions",
     "Your cohort's group chat, answered daily",
-    "Live progress for parents, and a weekly summary",
+    "A weekly update for parents",
   ],
-  private: [
-    "Weekly 60-minute sessions with a Karman tutor",
-    "Scheduled around your week",
-    "Practice tests, Daily 10 and our own questions",
-    "The weekly live session",
-    "A note to parents after every session",
-  ],
+  private: PRIVATE_INCLUDES.map((x) => x.title),
 };
-// what each option includes, side by side: self-paced, cohort, private ("" = not included)
+// what each option includes, side by side: the free test, the program, private tutoring ("" = not included)
 const COMPARE: [string, string, string, string][] = [
   [
-    `Live classes in a group of up to ${numberWord(CLASS)}`,
+    `Live classes in a class of ${numberWord(MP.paidSeats)}`,
     "",
     `Two a week, ${MP.totalClasses} in all`,
     "",
   ],
   [
     "Full-length practice tests",
-    "On the platform",
-    "Five, the first and the last proctored live",
+    `One shorter test, ${FT.questionCount} questions`,
+    `${numberWord(MP.fullLengthTests, true)}, the first and the last proctored live`,
     "On the platform",
   ],
   [
     "One-on-one time with a Karman tutor",
+    `A ${CALL_MINUTES}-minute results call`,
     "",
-    `${MP.reviewMinutes} minutes after every full-length`,
     "Every session",
   ],
-  ["Office hours and skill workshops", "When your student wants them", "yes", "yes"],
-  ["Daily 10 and our own practice questions", "yes", "yes", "yes"],
+  ["Weekly live session: test mechanics and workshops", "", "yes", "yes"],
+  ["Your Daily 10 and our own practice questions", "", "yes", "yes"],
   ["Cohort group chat, answered by a tutor every day", "", "yes", ""],
-  ["Progress for parents", "On their phone", "Every week", "After every session"],
+  ["Updates for parents", "", "Every week", "After every session"],
   [
     `The guarantee: +${G.points} points or a ${G.orScore}`,
     "",
     "Money back or the next cohort free",
     `On ${PRIVATE_PACKAGES[1].hours} hours: free hours, then half back`,
   ],
+];
+
+/** The practice plans and the school license (offer.ts, plan ladder 2026-10-30), one row each. */
+const PLAN_ROWS = [
+  ...PRACTICE_PLANS.map((p) => ({
+    id: p.id,
+    name: p.name,
+    price:
+      p.billing === "month" ? `${money(p.price)} ${SITE["pricing per month"]}` : money(p.price),
+    what:
+      p.questions === "all"
+        ? SITE["pricing every question"]
+        : `${p.questions.toLocaleString("en-US")} questions`,
+    href: `${ROUTES.signUp}?plan=${p.id}`,
+  })),
+  {
+    id: SCHOOL_PLAN.id,
+    name: SCHOOL_PLAN.name,
+    price: `${money(SCHOOL_PLAN.pricePerStudentPerYear)} ${SITE["pricing per student"]}`,
+    what: `${SCHOOL_PLAN.questions.toLocaleString("en-US")} questions per student, ${SCHOOL_PLAN.term}. ${SCHOOL_PLAN.pilot.label}.`,
+    href: `mailto:${CONTACT.general}?subject=${encodeURIComponent("School license")}`,
+  },
 ];
 
 function Cell({ v }: { v: string }) {
@@ -211,34 +235,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
             {S("other note")}
           </p>
           <div className="cards">
-            <article className={`plan self rv ${other ? "lift" : ""}`}>
-              <h2>{SP.name}</h2>
-              <p className="price">
-                <b className="amt">{money(SP.price)}</b>
-                <span className="per">for {SP.months} months</span>
-              </p>
-              <p className="meta">{S("self note")}</p>
-              <ul>
-                {SP.includes.map((x) => (
-                  <li key={x}>{x}</li>
-                ))}
-              </ul>
-              <a className="ghost" href={ROUTES.test}>
-                {S("self button")}
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path
-                    d="M3 8h9.5M8.5 4 12.5 8l-4 4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.9"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </a>
-            </article>
-
-            <article className={`plan program rv ${other ? "dim" : ""}`} style={delay(0.06)}>
+            <article className={`plan program rv ${other ? "dim" : ""}`}>
               <a className="badge" href="#guarantee">
                 <b>+{G.points}</b>
                 <span>{S("badge")}</span>
@@ -284,6 +281,10 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   <dd className="start">{d.start}</dd>
                 </div>
                 <div>
+                  <dt>Ends on the SAT</dt>
+                  <dd className="test">{d.test}</dd>
+                </div>
+                <div>
                   <dt>Enrollment closes</dt>
                   <dd className="closes">{d.closes}</dd>
                 </div>
@@ -299,7 +300,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               </div>
             </article>
 
-            <article className={`plan private rv ${other ? "lift" : ""}`} style={delay(0.12)}>
+            <article className={`plan private rv ${other ? "lift" : ""}`} style={delay(0.08)}>
               <h2>{SITE["private link"]}</h2>
               <div className="pay hours" role="radiogroup" aria-label="Hours">
                 {PRIVATE_PACKAGES.map((p, i) => (
@@ -317,7 +318,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               </div>
               <p className="price" aria-live="polite">
                 <Roll text={money(PRIVATE_PACKAGES[hours].price)} />
-                <span className="per">{money(PRIVATE_HOURLY_RATE)} an hour</span>
+                <span className="per">for {PRIVATE_PACKAGES[hours].hours} hours</span>
               </p>
               <a className="badge g20" href="#guarantee" hidden={hours !== 1}>
                 <b>+{G.private20.points}</b>
@@ -326,7 +327,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   {G.private20.orScore}.
                 </span>
               </a>
-              <p className="meta">Start any time.</p>
+              <p className="meta">{S("private note")}</p>
               <ul>
                 {INCLUDES.private.map((x) => (
                   <li key={x}>{x}</li>
@@ -348,6 +349,24 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
             </article>
           </div>
           <Photo name="pricing" className="ph-side only-phone" />
+
+          <div className="plans-band rv" style={delay(0.12)}>
+            <h2>{S("plans title")}</h2>
+            <p>{S("plans text")}</p>
+            <ul>
+              {PLAN_ROWS.map((r) => (
+                <li key={r.id}>
+                  <b>{r.name}</b>
+                  <span className="amt">{r.price}</span>
+                  <span className="what">{r.what}</span>
+                  <a className="lk" href={r.href}>
+                    {S(`plan ${r.id} button`)}
+                    <Arrow />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -374,7 +393,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                     <th scope="col">
                       <span className="sr">Feature</span>
                     </th>
-                    <th scope="col">{SP.name}</th>
+                    <th scope="col">{SITE["free test link"]}</th>
                     <th scope="col" className="hot">
                       {SITE["program link"]}
                     </th>
@@ -398,11 +417,9 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   ))}
                   <tr className="cost">
                     <th scope="row">Price</th>
-                    <td>
-                      {money(SP.price)} for {SP.months} months
-                    </td>
+                    <td>{money(0)}</td>
                     <td className="hot prog-cost">{money(d.price)}</td>
-                    <td>{money(PRIVATE_HOURLY_RATE)} an hour</td>
+                    <td>From {money(PRIVATE_PACKAGES[0].price)}</td>
                   </tr>
                 </tbody>
               </table>

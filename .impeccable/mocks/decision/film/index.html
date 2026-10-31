@@ -4,26 +4,35 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<script>try{var t=localStorage.getItem("karman-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<title>Karman Prep: SAT programs that end on your test date</title>
-<meta name="description" content="Live SAT classes in groups of up to six, classes built on what the group missed, and daily practice, all planned back from your student's SAT date.">
+<script>(function(){var t=null;try{t=localStorage.getItem("karman-theme")}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t})()</script>
+<title>Karman Prep: SAT prep, every rule in print</title>
+<meta name="description" content="Your Daily 10, Karman tutors in every live class, a weekly update for parents, and a guarantee printed in full: +100 points or a 1450. Start with the free practice test on December 12.">
 <link rel="canonical" href="https://karmanprep.com/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="day.jpg">
+<link rel="preload" as="image" href="day.jpg" media="(min-width: 761px), (orientation: landscape)">
+<link rel="preload" as="image" href="day-p.jpg" media="(max-width: 760px) and (orientation: portrait)">
 <link rel="stylesheet" href="film.css">
 <link rel="stylesheet" href="phone.css">
 <link rel="stylesheet" href="kit.css">
 <link rel="stylesheet" href="screens.css">
 <link rel="stylesheet" href="alive.css">
-<link rel="icon" href="data:,">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://karmanprep.com/">
+<meta property="og:title" content="Karman Prep: SAT prep, every rule in print">
+<meta property="og:description" content="Your Daily 10, Karman tutors in every live class, a weekly update for parents, and a guarantee printed in full: +100 points or a 1450. Start with the free practice test on December 12.">
+<meta property="og:image" content="https://karmanprep.com/og/index.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body>
 <!-- Every word comes from copy.js; site.js adds the header, menu and footer; film.js builds the sections. -->
-<!-- the film: one continuous day behind the whole page, never tied to the scroll -->
+<!-- the film: one continuous day behind the whole page, never tied to the scroll. The opening still is painted by film.css; the film's src is set by film.js after first paint (the strategy is at the top of film.js). -->
 <div class="stage" aria-hidden="true">
-  <video class="day" muted playsinline loop preload="auto" poster="day.jpg"></video>
-  <video class="edge" muted playsinline preload="none" poster="c9.jpg"></video>
+  <video class="day" muted playsinline loop preload="auto"></video>
+  <video class="edge" muted playsinline preload="none"></video>
   <div class="scrim"></div>
   <div class="haze"></div>
   <canvas class="orb" width="64" height="64"></canvas>

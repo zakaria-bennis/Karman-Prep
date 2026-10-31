@@ -12,7 +12,7 @@ import {
   getCoveredLegacyNodes,
   getLegacySkillMapping,
 } from "./legacy-skill-crosswalk";
-import { quizNodeIdSchema } from "@/app/learn/quiz-action-schemas";
+import { quizNodeIdSchema } from "@/app/(app)/learn/quiz-action-schemas";
 
 describe("approved 39-skill catalog compatibility", () => {
   it("retains the exact approved labels/order and excludes both broad grammar backgrounds", () => {

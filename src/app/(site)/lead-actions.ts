@@ -8,14 +8,16 @@ import { z } from "zod";
 import { FROM, resend } from "@/lib/integrations/resend/client";
 import { addToWaitlist } from "@/lib/integrations/resend/emails";
 import { okEmail, okScore, SCORE_FLOOR, type LeadForm } from "@/lib/marketing/lead-rules";
-import {
-  FREE_PRACTICE_TEST,
-  MARCH_PROGRAM,
-  NEXT_PROGRAMS,
-  type LeadSource,
-} from "@/lib/marketing/offer";
+import { FREE_PRACTICE_TEST, MARCH_PROGRAM, type LeadSource } from "@/lib/marketing/offer";
 import { list, section, SITE } from "@/lib/marketing/site-copy";
 import { createAdminClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/supabase";
+
+/** A marketing_leads row. The live site's 2026-10-26 migration added `details` (the form's answers) and
+ *  `updated_at`; this branch's migrations and generated types predate it, so the row is asserted here until
+ *  supabase/migrations/20261026120000_marketing_leads_details.sql and src/types/supabase.ts are brought over.
+ *  Where the columns are missing the upsert fails and the admin email below is the record. */
+type LeadRow = Database["public"]["Tables"]["marketing_leads"]["Insert"];
 
 export type LeadResult =
   | { ok: true }
@@ -55,11 +57,6 @@ const SCHEMAS = {
   }),
 } satisfies Record<LeadForm, z.ZodType>;
 
-const COHORTS: Record<string, LeadSource> = {
-  [MARCH_PROGRAM.startShort]: MARCH_PROGRAM.id,
-  ...Object.fromEntries(NEXT_PROGRAMS.map((p) => [p.startShort, p.id])),
-};
-
 const LABELS: Record<LeadForm, string> = {
   apply: "SAT Program application",
   call: "Private tutoring strategy call",
@@ -84,19 +81,14 @@ export async function submitLead(
     return { ok: false, fields };
   }
   const data = parsed.data as Record<string, string | undefined>;
+  // Every application is recorded under the March program: offer.ts (2026-10-30) has no lead source for the
+  // May and June cohorts yet, so the SAT date the family chose travels in details.satDate.
   const source: LeadSource =
-    form === "seat"
-      ? FREE_PRACTICE_TEST.id
-      : form === "call"
-        ? "private"
-        : COHORTS[data.date ?? ""];
+    form === "seat" ? FREE_PRACTICE_TEST.id : form === "call" ? "private" : MARCH_PROGRAM.id;
   const details = Object.fromEntries(
     (["latest", "target", "date", "grade"] as const)
       .filter((k) => data[k])
-      .map((k) => [
-        k === "date" ? (form === "apply" ? "startDate" : "satDate") : k,
-        data[k] as string,
-      ])
+      .map((k) => [k === "date" ? "satDate" : k, data[k] as string])
   );
 
   const dbReady = Boolean(
@@ -105,18 +97,16 @@ export async function submitLead(
   let saved = false;
   try {
     if (dbReady) {
+      const row = {
+        email: data.email as string,
+        source,
+        name: data.name ?? null,
+        details,
+        updated_at: new Date().toISOString(),
+      } as LeadRow;
       const { error } = await createAdminClient()
         .from("marketing_leads")
-        .upsert(
-          {
-            email: data.email as string,
-            source,
-            name: data.name ?? null,
-            details,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "email,source" }
-        );
+        .upsert(row, { onConflict: "email,source" });
       if (error) throw error;
       saved = true;
     } else if (process.env.NODE_ENV === "production") {

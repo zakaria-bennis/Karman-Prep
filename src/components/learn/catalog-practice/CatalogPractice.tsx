@@ -9,7 +9,7 @@ import {
   actionResumeCatalogPractice,
   actionSubmitCatalogPractice,
   actionCompleteCatalogPractice,
-} from "@/app/learn/catalog-quiz-actions";
+} from "@/app/(app)/learn/catalog-quiz-actions";
 import {
   catalogPracticeError,
   catalogSessionHref,

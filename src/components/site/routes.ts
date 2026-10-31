@@ -13,8 +13,10 @@ export const ROUTES = {
   research: "/research",
   terms: "/terms",
   privacy: "/privacy",
+  cookies: "/cookies",
   refunds: "/refunds",
   signIn: "/auth/sign-in",
+  signUp: "/auth/sign-up",
   calculator: "/calculator",
 } as const;
 
@@ -31,5 +33,6 @@ export const SITE_PAGES = [
   ROUTES.research,
   ROUTES.terms,
   ROUTES.privacy,
+  ROUTES.cookies,
   ROUTES.refunds,
 ] as const;

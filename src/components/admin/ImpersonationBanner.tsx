@@ -11,7 +11,7 @@
 
 import { Eye, X, Loader2 } from "lucide-react";
 import { useTransition } from "react";
-import { actionClearImpersonation } from "@/app/admin/impersonation-actions";
+import { actionClearImpersonation } from "@/app/(app)/admin/impersonation-actions";
 
 export default function ImpersonationBanner({
   role,

@@ -5,7 +5,7 @@ import SitePage from "@/components/site/SitePage";
 import { FeatureSection } from "@/components/site/Feature";
 import { GuaranteeSection, InnerHero, Rows, TextCard } from "@/components/site/inner";
 import { jsonLd, pageMeta } from "@/components/site/meta";
-import { delay, Seats, TextLink } from "@/components/site/parts";
+import { delay, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { formatPrice, MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { section, SITE } from "@/lib/marketing/site-copy";
@@ -14,15 +14,11 @@ import { siteOrigin } from "@/lib/marketing/public-pages";
 export const metadata = pageMeta(
   ROUTES.program,
   "Karman Prep: The SAT Program",
-  `${MP.name}: ${MP.weeks} weeks of live SAT classes. ${MP.paidSeats + MP.scholarshipSeats} students per class, ${MP.fullLengthTests} full-length tests with a one-on-one review after each, ${formatPrice(MP.price)}.`
+  `${MP.name}: ${MP.weeks} weeks of live SAT classes ending on ${MP.testDateLabel.replace(/, \d{4}$/, "")}. ${MP.paidSeats} paid seats and ${MP.scholarshipSeats} scholarship seat per class, ${MP.fullLengthTests} full-length tests, ${formatPrice(MP.price)}.`
 );
 
 /** The label on the drawing's last step: the program's final week */
 const stepDate = `WEEK ${MP.weeks}`;
-/** The last day of the program: the Sunday of its final week */
-const endDate = new Date(Date.parse(`${MP.startDate}T12:00:00Z`) + (MP.weeks * 7 - 1) * 864e5)
-  .toISOString()
-  .slice(0, 10);
 
 const COURSE = {
   "@context": "https://schema.org",
@@ -41,7 +37,7 @@ const COURSE = {
     "@type": "CourseInstance",
     courseMode: "Online",
     startDate: MP.startDate,
-    endDate,
+    endDate: MP.testDate,
   },
 };
 
@@ -69,12 +65,7 @@ export default function ProgramPage() {
         n={25}
         style="steps"
         side={<Photo name="call" className="ph-side rv" clip />}
-        after={
-          <>
-            <Seats label={section(25).seats} className="rv" />
-            <LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard wide rv" />
-          </>
-        }
+        after={<LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard wide rv" />}
       />
       <section className="i-sec" data-light id="s-26">
         <div className="in i-split">

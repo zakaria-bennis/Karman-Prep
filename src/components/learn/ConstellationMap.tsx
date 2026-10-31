@@ -35,7 +35,7 @@ import {
 } from "@/data/curriculum";
 import { playSound } from "@/lib/sounds";
 import { QuizProvider, useQuiz } from "@/contexts/QuizContext";
-import { actionFetchNodeBundle } from "@/app/learn/quiz-actions";
+import { actionFetchNodeBundle } from "@/app/(app)/learn/quiz-actions";
 import NodeCard from "./NodeCard";
 import LessonOverlay from "./LessonOverlay";
 import QuizEngine from "./QuizEngine";

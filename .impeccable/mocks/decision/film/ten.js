@@ -1,4 +1,4 @@
-/* The Daily 10 drawing (our own, 2026-10-25; replaces the Hairline engine).
+/* The Your Daily 10 drawing (our own, 2026-10-25; replaces the Hairline engine).
    A phone-sized slab holding ten question tiles, five rows of two, drawn in isometric line work.
    At rest the three answered tiles sit a little proud and marigold; the next question has the bright edge.
    The tile under the pointer lifts; its neighbours follow, less and later the farther they sit.
@@ -104,22 +104,11 @@
     stage.setAttribute("role", "img");
     stage.setAttribute(
       "aria-label",
-      "The Daily 10 as ten tiles on a phone. The question under the pointer lifts, and its neighbours rise after it."
+      "Your Daily 10 as ten tiles on a phone. The question under the pointer lifts, and its neighbours rise after it."
     );
 
-    // the slab, its screen and a soft shadow
+    // the slab and its screen (no drawn shadow: design rule 5)
     const base = rrect(0, 0, SX, SY, 9);
-    mk(
-      "path",
-      {
-        d: poly(
-          base.map(([x, y]) => [x + 3, y + 3]),
-          0
-        ),
-        class: "t-shadow",
-      },
-      svg
-    );
     mk("path", { d: sides(base, 0, SLAB), class: "t-side" }, svg);
     mk("path", { d: poly(base, SLAB), class: "t-top" }, svg);
     mk("path", { d: poly(rrect(3.2, 3.2, SX - 3.2, SY - 3.2, 6.4), SLAB), class: "t-screen" }, svg);

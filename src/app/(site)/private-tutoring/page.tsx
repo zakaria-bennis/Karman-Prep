@@ -3,37 +3,35 @@ import LeadFormCard from "@/components/site/LeadFormCard";
 import Photo from "@/components/site/Photo";
 import { FeatureSection } from "@/components/site/Feature";
 import SitePage from "@/components/site/SitePage";
-import { Close, InnerHero, Rows } from "@/components/site/inner";
+import { Close, InnerHero, Rows, Statements } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
 import { delay } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import {
-  formatPrice,
-  PRIVATE_HOURLY_RATE,
-  PRIVATE_PACKAGES,
-  TRACK_RECORD,
-} from "@/lib/marketing/offer";
+import { formatPrice, PRIVATE_PACKAGES, TRACK_RECORD } from "@/lib/marketing/offer";
 import { list, section } from "@/lib/marketing/site-copy";
+
+const [P10, P20] = PRIVATE_PACKAGES;
 
 export const metadata = pageMeta(
   ROUTES.private,
   "Karman Prep: Private tutoring",
-  `One-on-one SAT tutoring: weekly 60-minute sessions that go through every mistake. ${formatPrice(PRIVATE_HOURLY_RATE)} an hour, in packages of ${PRIVATE_PACKAGES.map((p) => p.hours).join(" or ")}.`
+  `One-on-one SAT tutoring: 60-minute sessions booked when they suit you, each one going through every mistake on the latest full-length test. ${formatPrice(P10.price)} for ${P10.hours} hours or ${formatPrice(P20.price)} for ${P20.hours}.`
 );
 
-/** "Private 20 = 20 hours, $3,600. Comes with ..." -> name, price, hours and the rest */
+/** "Private 20 = 20 hours, $2,495. Comes with ..." -> name, hours, price and the rest */
 function Pack({ s, hot = false }: { s: string; hot?: boolean }) {
-  const [name, rest = ""] = s.split(" = ");
-  const [hours = "", price = "", ...more] = rest.split(", ");
-  const [amount, ...after] = price.split(".");
+  const m = s.match(/^(.+?) = (.+?), (\$[\d,]+)\.\s*(.*)$/);
+  const [name, hours, amount, text] = m ? m.slice(1) : [s, "", "", ""];
   return (
     <article className={`i-pack rv ${hot ? "hot" : ""}`}>
       <h3>{name}</h3>
-      <p className="i-price">
-        <b>{amount}</b>
-        <span>{hours}</span>
-      </p>
-      <p>{`${after.join(".")} ${more.join(", ")}`.trim()}</p>
+      {amount ? (
+        <p className="i-price">
+          <b>{amount}</b>
+          <span>{hours}</span>
+        </p>
+      ) : null}
+      {text ? <p>{text}</p> : null}
     </article>
   );
 }
@@ -84,7 +82,7 @@ export default function PrivatePage() {
           </div>
         </div>
       </section>
-      <Rows n={35} />
+      <Statements n={35} />
       <Close n={36}>
         <LeadFormCard n={36} form="call" anchor="call" />
       </Close>

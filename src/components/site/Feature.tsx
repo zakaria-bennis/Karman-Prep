@@ -2,6 +2,7 @@
 // shows the shared product (the Daily 10, what tutors see); the program page shows the live class and the
 // private page the one-on-one review. Words from site-copy.ts.
 import { section } from "@/lib/marketing/site-copy";
+import "@/app/(site)/styles/screens.css";
 import { SCREENS } from "./live/screens";
 import { delay, Drawn, Kinetic, Phone, TextLink } from "./parts";
 import { ROUTES } from "./routes";

@@ -1,9 +1,7 @@
-"use client";
-
 // The Daily 10 on the student's phone, and it works: pick a choice, press Check, and the phone answers the way
-// the app does, right or wrong, with the explanation. The question is our own, in the SAT's Standard English
-// conventions style. Its words are the product's interface text, so they live here.
-import { useState } from "react";
+// the app does, right or wrong, with the explanation (live/daily.ts). The question is our own, in the SAT's
+// Standard English conventions style. Its words are the product's interface text, so they live here; the
+// feedback lines ride on the elements as data attributes for the behaviour to read.
 import { I, status } from "../live/screens";
 import { Drawn, Phone } from "../parts";
 
@@ -22,12 +20,15 @@ const WHY = [
 ];
 
 export default function DailyTenDemo() {
-  const [pick, setPick] = useState(-1);
-  const [checked, setChecked] = useState(false);
-  const right = checked && pick === RIGHT;
   return (
     <Phone>
-      <div className={`scr ph d10 live ${checked ? "done" : ""}`}>
+      <div
+        className="scr ph d10 live"
+        data-ok="Correct."
+        data-no={`Not quite. The answer is ${CHOICES[RIGHT][0]}.`}
+        data-check="Check"
+        data-again="Try it again"
+      >
         <Drawn html={status} />
         <div className="sh">
           <Drawn html={I.x} className="x" aria-hidden />
@@ -36,12 +37,7 @@ export default function DailyTenDemo() {
         </div>
         <div className="steps" aria-hidden="true">
           {Array.from({ length: 10 }, (_, i) => (
-            <i
-              key={i}
-              className={
-                i < 3 ? "done" : i === 3 ? (checked ? (right ? "done" : "miss") : "now") : ""
-              }
-            />
+            <i key={i} className={i < 3 ? "done" : i === 3 ? "now" : ""} />
           ))}
         </div>
         <p className="back">
@@ -57,50 +53,22 @@ export default function DailyTenDemo() {
           English?
         </p>
         <div className="ch" role="radiogroup" aria-label="Answer choices">
-          {CHOICES.map(([l, t], k) => {
-            const state = checked
-              ? k === RIGHT
-                ? "ok"
-                : k === pick
-                  ? "no"
-                  : ""
-              : pick === k
-                ? "pick"
-                : "";
-            return (
-              <button
-                type="button"
-                role="radio"
-                aria-checked={pick === k}
-                key={l}
-                className={state}
-                disabled={checked}
-                onClick={() => setPick(k)}
-              >
-                <i>{l}</i>
-                {t}
-              </button>
-            );
-          })}
+          {CHOICES.map(([l, t], k) => (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={false}
+              key={l}
+              data-why={WHY[k]}
+              data-right={k === RIGHT ? "1" : undefined}
+            >
+              <i>{l}</i>
+              {t}
+            </button>
+          ))}
         </div>
-        {checked ? (
-          <div className={`fb ${right ? "ok" : "no"}`} aria-live="polite">
-            <b>{right ? "Correct." : `Not quite. The answer is A.`}</b>
-            <span>{WHY[right ? RIGHT : pick]}</span>
-          </div>
-        ) : null}
-        <button
-          type="button"
-          className="go"
-          disabled={pick < 0}
-          onClick={() => {
-            if (checked) {
-              setChecked(false);
-              setPick(-1);
-            } else setChecked(true);
-          }}
-        >
-          {checked ? "Try it again" : "Check"}
+        <button type="button" className="go" disabled>
+          Check
         </button>
       </div>
     </Phone>

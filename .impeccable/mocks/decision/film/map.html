@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<script>try{var t=localStorage.getItem("karman-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<title>Karman Prep: our students</title>
-<meta name="description" content="Karman students across the United States and around the world.">
+<script>(function(){var t=null;try{t=localStorage.getItem("karman-theme")}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t})()</script>
+<title>Karman Prep: Our students</title>
+<meta name="description" content="Each line runs from a Karman 1:1 student's home town to the university they enrolled at.">
 <link rel="canonical" href="https://karmanprep.com/students">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,15 @@
 <link rel="stylesheet" href="kit.css">
 <link rel="stylesheet" href="pages.css">
 <link rel="stylesheet" href="alive.css">
-<link rel="icon" href="data:,">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://karmanprep.com/students">
+<meta property="og:title" content="Karman Prep: Our students">
+<meta property="og:description" content="Each line runs from a Karman 1:1 student's home town to the university they enrolled at.">
+<meta property="og:image" content="https://karmanprep.com/og/map.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body class="page-map">
 <!-- Every word comes from copy.js. -->

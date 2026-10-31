@@ -1,0 +1,8 @@
+# Cache headers for the files the Worker serves as static assets (Workers Static Assets reads this file).
+# Hashed build files never change at their address; the site's stills, films, clips and photos change with a
+# deploy, so they are kept a day and refreshed in the background for a week after that.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/site/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

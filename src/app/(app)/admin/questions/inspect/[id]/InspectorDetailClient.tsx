@@ -1,0 +1,646 @@
+"use client";
+
+// ============================================================
+// InspectorDetailClient — split-pane question deep view.
+//
+// Left: the question rendered as a student sees it (passage,
+// stem, choices, figure if attached).
+// Right: every finding grouped by severity, with the grader's
+// reasoning and (when present) the Pro tiebreak verdict.
+//
+// Above: action buttons:
+//   · Accept (flip is_live=true + import_status=ok)
+//   · Mark needs-review
+//   · Resolve all findings on this row
+//   · Open source PDF page (if rendered locally — link only)
+// ============================================================
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import {
+  AlertOctagon,
+  AlertTriangle,
+  Info,
+  CheckCheck,
+  Flag,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Pencil,
+  Save,
+  X,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { QuestionFinding, FindingSeverity } from "@/lib/supabase/queries/quiz/findings";
+import type { QuizQuestionWithChoices } from "@/types/quiz";
+import {
+  actionResolveFinding,
+  actionAcceptInspectedQuestion,
+  actionFlagInspectedQuestion,
+  actionReauditRow,
+  actionApplySuggestedFix,
+} from "@/app/(app)/admin/inspector-actions";
+import { actionUpdateInspectedQuestion } from "@/app/(app)/admin/inspector-edit-actions";
+import ViewMode from "./_components/ViewMode";
+import EditForm from "./_components/EditForm";
+import HistoryPane from "./_components/HistoryPane";
+import { SourceLineageSection } from "./_components/SourceLineageSection";
+import { makeInitialForm, type EditFormShape } from "./_components/edit-form-utils";
+import type { QuestionHistoryEntry } from "@/lib/supabase/queries/quiz/history";
+import { OrphanWarningBanner } from "@/components/admin/source-lineage/OrphanWarningBanner";
+import type { SourceLineage } from "@/lib/source-lineage/types";
+
+interface Props {
+  question: QuizQuestionWithChoices;
+  findings: QuestionFinding[];
+  history: QuestionHistoryEntry[];
+  sourceLineage: SourceLineage | null;
+}
+
+const SEVERITY_META: Record<
+  FindingSeverity,
+  { label: string; icon: typeof AlertOctagon; cls: string; rowCls: string }
+> = {
+  BLOCKING: {
+    label: "Blocking",
+    icon: AlertOctagon,
+    cls: "text-error-bright",
+    rowCls: "border-error/40 bg-error/[0.06]",
+  },
+  WARNING: {
+    label: "Warning",
+    icon: AlertTriangle,
+    cls: "text-warning-bright",
+    rowCls: "border-warning/40 bg-warning/[0.05]",
+  },
+  NOTICE: {
+    label: "Notice",
+    icon: Info,
+    cls: "text-taupe",
+    rowCls: "border-bronze bg-surface-raised/30",
+  },
+};
+
+export default function InspectorDetailClient({
+  question,
+  findings,
+  history,
+  sourceLineage,
+}: Props) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [topAction, setTopAction] = useState<
+    "idle" | "accepting" | "flagging" | "saving" | "reauditing"
+  >("idle");
+  const [applyingFindingId, setApplyingFindingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [expandedDetail, setExpandedDetail] = useState<Set<string>>(new Set());
+  const [editMode, setEditMode] = useState(false);
+  const [form, setForm] = useState<EditFormShape>(() => makeInitialForm(question));
+
+  const isMc = question.answer_format !== "numeric_entry";
+
+  function updateField<K extends keyof EditFormShape>(key: K, value: EditFormShape[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function enterEditMode() {
+    setForm(makeInitialForm(question));
+    setEditMode(true);
+    setFeedback(null);
+  }
+
+  function cancelEdit() {
+    setForm(makeInitialForm(question));
+    setEditMode(false);
+    setFeedback(null);
+  }
+
+  function saveEdits() {
+    setTopAction("saving");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        // Build a patch with only changed fields so we don't overwrite
+        // anything we didn't touch.
+        const original = makeInitialForm(question);
+        const patch: Record<string, unknown> = { questionId: question.id };
+        let changes = 0;
+        const stringFields = [
+          "question_text",
+          "hint",
+          "explanation_text",
+          "desmos_strategy",
+          "image_alt",
+          "passage_intro",
+          "passage",
+          "passage_a",
+          "passage_b",
+          "correct_answer",
+          "concept_slug",
+        ] as const;
+        for (const k of stringFields) {
+          if (form[k] !== original[k]) {
+            patch[k] = form[k];
+            changes++;
+          }
+        }
+        // Choices (MC only) — bundle into `choices` object
+        if (isMc) {
+          const choices: Record<string, string> = {};
+          const choiceTables: Record<
+            string,
+            import("@/types/question-table").QuestionTableData | null
+          > = {};
+          (["A", "B", "C", "D"] as const).forEach((letter) => {
+            const k = `choice_${letter.toLowerCase()}` as keyof EditFormShape;
+            if (form[k] !== original[k]) {
+              choices[letter] = form[k] as string;
+              changes++;
+            }
+            const tableKey = `choice_table_${letter.toLowerCase()}` as keyof EditFormShape;
+            if (JSON.stringify(form[tableKey]) !== JSON.stringify(original[tableKey])) {
+              choiceTables[letter] = form[tableKey] as
+                | import("@/types/question-table").QuestionTableData
+                | null;
+              changes++;
+            }
+          });
+          if (Object.keys(choices).length > 0) patch.choices = choices;
+          if (Object.keys(choiceTables).length > 0) patch.choice_tables = choiceTables;
+        }
+        // Per-choice explanations (MC only) — bundle into
+        // `explanations_per_choice` (note the plural — payload field
+        // distinct from the JSONB column name).
+        if (isMc) {
+          const epc: Record<string, string> = {};
+          let epcChanged = false;
+          (["A", "B", "C", "D"] as const).forEach((letter) => {
+            const k = `explanation_${letter.toLowerCase()}` as keyof EditFormShape;
+            if (form[k] !== original[k]) epcChanged = true;
+            if (form[k]) epc[letter] = form[k] as string;
+          });
+          if (epcChanged) {
+            patch.explanations_per_choice = epc;
+            changes++;
+          }
+        }
+        // numeric_tolerance — parse-to-number-or-null
+        if (form.numeric_tolerance !== original.numeric_tolerance) {
+          const v = form.numeric_tolerance.trim();
+          patch.numeric_tolerance = v === "" ? null : Number.parseFloat(v);
+          changes++;
+        }
+        if (changes === 0) {
+          setFeedback({ kind: "success", message: "No changes to save." });
+          setEditMode(false);
+          setTopAction("idle");
+          return;
+        }
+        await actionUpdateInspectedQuestion(
+          patch as unknown as Parameters<typeof actionUpdateInspectedQuestion>[0]
+        );
+        setFeedback({
+          kind: "success",
+          message: `Saved ${changes} change${changes === 1 ? "" : "s"}.`,
+        });
+        setEditMode(false);
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Save failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setTopAction("idle");
+      }
+    });
+  }
+
+  function toggleDetail(id: string) {
+    setExpandedDetail((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function resolve(f: QuestionFinding) {
+    setBusyId(f.id);
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        await actionResolveFinding({ findingId: f.id, note: "Resolved via Inspector" });
+        setFeedback({ kind: "success", message: `Finding resolved.` });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Resolve failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setBusyId(null);
+      }
+    });
+  }
+
+  function acceptLive() {
+    setTopAction("accepting");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        await actionAcceptInspectedQuestion({ questionId: question.id });
+        // After accept, the question is live and its findings auto-resolved.
+        // The row no longer belongs in the worklist, so go back to the list
+        // with a success banner that the next page render will surface.
+        router.push("/admin/questions/inspect?accepted=" + encodeURIComponent(question.id));
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Accept failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+        setTopAction("idle");
+      }
+    });
+  }
+
+  function flagForReview() {
+    setTopAction("flagging");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        await actionFlagInspectedQuestion({ questionId: question.id });
+        setFeedback({
+          kind: "success",
+          message: "Marked needs-review. The question stays hidden from students until cleared.",
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Flag failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setTopAction("idle");
+      }
+    });
+  }
+
+  // Re-run deterministic audit checks on this single row. Calls the
+  // shared @/lib/question-bank/audit-rules (same code as the CLI uses)
+  // — inserts new auditor findings, auto-resolves stale ones, leaves
+  // unchanged codes alone. Surfaces a count summary as a success banner.
+  function reaudit() {
+    setTopAction("reauditing");
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        const r = await actionReauditRow({ questionId: question.id });
+        const parts: string[] = [];
+        if (r.newFindings > 0)
+          parts.push(`${r.newFindings} new finding${r.newFindings === 1 ? "" : "s"}`);
+        if (r.autoResolvedFindings > 0)
+          parts.push(`${r.autoResolvedFindings} auto-resolved (no longer flagged)`);
+        parts.push(`${r.stillOpenFindings} unchanged`);
+        setFeedback({
+          kind: "success",
+          message: `Re-audit complete: ${parts.join(", ")}.`,
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Re-audit failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setTopAction("idle");
+      }
+    });
+  }
+
+  // One-click "apply Pro's answer" for likely_wrong findings. The
+  // grader's Gemini-2.5-Pro pass picked a letter — this swaps
+  // correct_answer + flips the matching answer_choice's is_correct,
+  // snapshots history, and resolves the finding. MC only.
+  function applySuggested(f: QuestionFinding) {
+    setApplyingFindingId(f.id);
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        const r = await actionApplySuggestedFix({ findingId: f.id });
+        setFeedback({
+          kind: "success",
+          message: `Applied Pro's suggested answer (correct_answer → ${r.newCorrect}). History updated.`,
+        });
+        router.refresh();
+      } catch (err) {
+        setFeedback({
+          kind: "error",
+          message: `Apply failed: ${err instanceof Error ? err.message : String(err)}`,
+        });
+      } finally {
+        setApplyingFindingId(null);
+      }
+    });
+  }
+
+  // Group findings by severity
+  const blocking = findings.filter((f) => f.severity === "BLOCKING");
+  const warning = findings.filter((f) => f.severity === "WARNING");
+  const notice = findings.filter((f) => f.severity === "NOTICE");
+
+  const choices = [...question.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter));
+  const hasPassage =
+    !!question.passage || !!question.passage_a || !!question.passage_b || !!question.passage_intro;
+
+  return (
+    <div className="space-y-4">
+      {/* Top action bar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-bronze bg-surface/50 px-4 py-3">
+        <div className="flex flex-1 items-center gap-2 text-xs text-taupe">
+          <span>Status:</span>
+          {question.is_live ? (
+            <span className="rounded bg-success/15 px-2 py-0.5 text-xs font-semibold text-success-bright">
+              live
+            </span>
+          ) : (
+            <span className="rounded bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning-bright">
+              {question.import_status ?? "draft"}
+            </span>
+          )}
+          <span className="text-taupe">·</span>
+          <span>{blocking.length} blocking</span>
+          <span className="text-taupe">·</span>
+          <span>{warning.length} warning</span>
+          <span className="text-taupe">·</span>
+          <span>{notice.length} notice</span>
+        </div>
+        {editMode ? (
+          <>
+            <button
+              onClick={saveEdits}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold-bright hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "saving" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
+              {topAction === "saving" ? "Saving…" : "Save edits"}
+            </button>
+            <button
+              onClick={cancelEdit}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <X className="h-3.5 w-3.5" /> Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={enterEditMode}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold-bright hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit fields
+            </button>
+            <button
+              onClick={reaudit}
+              disabled={topAction !== "idle"}
+              title="Re-run deterministic audit checks on this row (same as the CLI auditor)"
+              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface-raised/40 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "reauditing" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              {topAction === "reauditing" ? "Re-auditing…" : "Re-run checks"}
+            </button>
+            <button
+              onClick={acceptLive}
+              disabled={blocking.length > 0 || topAction !== "idle"}
+              title={blocking.length > 0 ? "Resolve blocking findings first" : "Set live"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-success/15 px-3 py-1.5 text-xs font-semibold text-success-bright hover:bg-success/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "accepting" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <CheckCheck className="h-3.5 w-3.5" />
+              )}
+              {topAction === "accepting" ? "Accepting…" : "Accept live"}
+            </button>
+            <button
+              onClick={flagForReview}
+              disabled={topAction !== "idle"}
+              className="inline-flex items-center gap-1.5 rounded-md bg-warning/15 px-3 py-1.5 text-xs font-semibold text-warning-bright hover:bg-warning/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {topAction === "flagging" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Flag className="h-3.5 w-3.5" />
+              )}
+              {topAction === "flagging" ? "Flagging…" : "Mark needs-review"}
+            </button>
+          </>
+        )}
+      </div>
+
+      {feedback && (
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
+            feedback.kind === "success"
+              ? "border-success/40 bg-success/[0.06] text-success-bright"
+              : "border-error/40 bg-error/[0.06] text-error-bright"
+          )}
+        >
+          {feedback.kind === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <XCircle className="h-4 w-4 shrink-0" />
+          )}
+          <span className="flex-1">{feedback.message}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-xs underline opacity-70 hover:opacity-100"
+          >
+            dismiss
+          </button>
+        </div>
+      )}
+
+      <OrphanWarningBanner
+        lineage={sourceLineage}
+        questionId={question.id}
+        className="rounded-xl"
+      />
+
+      <SourceLineageSection lineage={sourceLineage} />
+
+      {/* Split pane */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
+        {/* LEFT — student preview (view mode) OR editable form (edit mode) */}
+        <div className="rounded-xl border border-bronze bg-surface/40 p-5">
+          <div className="mb-4 flex items-center justify-between border-b border-bronze pb-2">
+            <h2 className="text-sm font-semibold text-ivory">
+              {editMode ? "Edit fields" : "Student preview"}
+            </h2>
+            <span className="text-[10px] uppercase tracking-wider text-taupe">
+              difficulty {question.difficulty_level ?? "?"} · {question.subject ?? "—"}
+            </span>
+          </div>
+
+          {editMode ? (
+            <EditForm
+              form={form}
+              isMc={isMc}
+              setForm={updateField}
+              questionId={question.id}
+              currentImageUrl={question.image_url ?? null}
+              sourcePdf={question.source_pdf ?? null}
+              sourcePage={question.source_page ?? null}
+            />
+          ) : (
+            <ViewMode question={question} hasPassage={hasPassage} choices={choices} />
+          )}
+        </div>
+
+        {/* RIGHT — findings (always visible — admin reads the issue
+            while editing the field) */}
+        <div className="rounded-xl border border-bronze bg-surface/40 p-5">
+          <div className="mb-4 flex items-center justify-between border-b border-bronze pb-2">
+            <h2 className="text-sm font-semibold text-ivory">Findings</h2>
+            <span className="text-[10px] uppercase tracking-wider text-taupe">
+              {findings.length} active
+            </span>
+          </div>
+
+          {findings.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm text-taupe">No active findings — looks clean.</p>
+              <p className="mt-1 text-xs text-taupe">
+                Either none flagged, or all have been resolved.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {[
+                ...blocking.map((f) => ({ f, sev: "BLOCKING" as const })),
+                ...warning.map((f) => ({ f, sev: "WARNING" as const })),
+                ...notice.map((f) => ({ f, sev: "NOTICE" as const })),
+              ].map(({ f }) => {
+                const meta = SEVERITY_META[f.severity];
+                const Icon = meta.icon;
+                const isExpanded = expandedDetail.has(f.id);
+                const hasDetail = f.detail && Object.keys(f.detail).length > 0;
+                // `likely_wrong` findings carry detail.pro_answer (A/B/C/D)
+                // — surface a one-click "apply" button so the admin
+                // doesn't have to enter edit mode just to flip a letter.
+                const proAnswer =
+                  f.code === "likely_wrong" && f.detail
+                    ? String((f.detail as Record<string, unknown>).pro_answer ?? "").toUpperCase()
+                    : "";
+                const canApplyFix = /^[A-D]$/.test(proAnswer) && isMc;
+                return (
+                  <div key={f.id} className={cn("rounded-lg border p-3 text-xs", meta.rowCls)}>
+                    <div className="flex items-start gap-2">
+                      <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", meta.cls)} />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={cn("text-[10px] font-bold uppercase", meta.cls)}>
+                            {meta.label}
+                          </span>
+                          <code className="rounded bg-surface-raised/60 px-1.5 py-0.5 font-mono text-[10px] text-ivory">
+                            {f.source}:{f.code}
+                          </code>
+                          <span className="text-[10px] text-taupe">{f.category}</span>
+                        </div>
+                        <div className="mt-1 leading-relaxed text-ivory">{f.message}</div>
+                        {f.value && (
+                          <div className="mt-1 rounded bg-night/60 px-2 py-1 font-mono text-[11px] text-ivory">
+                            {f.value}
+                          </div>
+                        )}
+                        {hasDetail && (
+                          <button
+                            onClick={() => toggleDetail(f.id)}
+                            className="mt-1.5 inline-flex items-center gap-0.5 text-[10px] font-semibold text-taupe hover:text-ivory"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                            grader detail
+                          </button>
+                        )}
+                        {isExpanded && hasDetail && (
+                          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded bg-night/80 p-2 font-mono text-[10px] leading-snug text-ivory">
+                            {JSON.stringify(f.detail, null, 2)}
+                          </pre>
+                        )}
+                        {canApplyFix && (
+                          <div className="mt-2">
+                            <button
+                              onClick={() => applySuggested(f)}
+                              disabled={applyingFindingId !== null}
+                              title={`Set correct_answer to ${proAnswer} (Pro's suggestion) and resolve this finding`}
+                              className="inline-flex items-center gap-1.5 rounded-md bg-success/15 px-2 py-1 text-[10px] font-semibold text-success-bright hover:bg-success/25 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {applyingFindingId === f.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3 w-3" />
+                              )}
+                              {applyingFindingId === f.id
+                                ? "Applying…"
+                                : `Apply Pro's answer (→ ${proAnswer})`}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => resolve(f)}
+                        disabled={busyId === f.id}
+                        title="Resolve this finding"
+                        className="shrink-0 rounded-md border border-bronze px-2 py-1 text-[10px] font-semibold text-ivory hover:bg-surface-raised disabled:opacity-40"
+                      >
+                        {busyId === f.id ? "…" : "Resolve"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <HistoryPane questionId={question.id} history={history} />
+
+      {/* Source-PDF reference */}
+      {question.source_pdf && (
+        <div className="rounded-xl border border-bronze bg-surface/40 px-4 py-3 text-xs text-taupe">
+          <ExternalLink className="mr-1.5 inline-block h-3.5 w-3.5" /> Source:{" "}
+          <span className="font-mono text-ivory">{question.source_pdf}</span>, page{" "}
+          <span className="font-mono text-ivory">{question.source_page}</span>. Original PDFs live
+          in R2 (<code>pdf-inbox/&lt;job-id&gt;/</code>); ask backend to render the page if needed
+          for manual diff.
+        </div>
+      )}
+    </div>
+  );
+}

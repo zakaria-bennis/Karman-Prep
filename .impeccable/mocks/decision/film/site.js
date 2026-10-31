@@ -1,8 +1,9 @@
-/* Shared by every page of the mock (home, pricing, students map): reads copy.js, fills the header, menu and
-   footer, the small pause button, the header's colour over white or dark surfaces, the button press orb and
-   the one reveal. A page script builds its own sections, then calls KARMAN.init(). */
+/* Shared by every page of the mock (home, inner pages, pricing, students map): reads copy.js, fills the header,
+   menu and footer, the theme (device first, dark when it states none, the toggle remembered: design rule 33),
+   the footer's film control, the header's colour over white or dark surfaces, the button press orb and the one
+   reveal. A page script builds its own sections, then calls KARMAN.init(). */
 (function () {
-  // pages of this mock; sign-in and the legal pages are pages of the live site (karmanprep.com)
+  // pages of this mock; sign-in, sign-up and the legal pages are pages of the live site (karmanprep.com)
   const ROUTES = {
     pricing: "pricing.html",
     students: "map.html",
@@ -15,6 +16,7 @@
     about: "about.html",
     cookies: "https://karmanprep.com/cookies",
     signIn: "https://karmanprep.com/auth/sign-in",
+    signUp: "https://karmanprep.com/auth/sign-up",
     terms: "https://karmanprep.com/terms",
     privacy: "https://karmanprep.com/privacy",
   };
@@ -56,23 +58,27 @@
     '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9.5M8.5 4 12.5 8l-4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const btn = (label, href, cls = "btn") =>
     `<a class="${cls}" href="${href}"><span class="lb">${esc(label)}</span><span class="go">${ARROW}</span></a>`;
+  // a plain outlined action: every button that is not the page's one highlighted button (design rule 35)
+  const ghost = (label, href) =>
+    `<a class="ghost" href="${href}"><span class="lb">${esc(label)}</span>${ARROW}</a>`;
 
   /* the iPhone 17 Pro Max in Cosmic Orange, drawn in CSS (phone.css): front, glass, the Dynamic Island,
      and its aluminium edge with the buttons when it is turned */
   const phone = (screen, cls = "") =>
-    `<div class="iphone ${cls}"><span class="rim" aria-hidden="true"></span><span class="side" aria-hidden="true"></span><div class="glass">${screen}<span class="island" aria-hidden="true"></span></div></div>`;
+    `<div class="iphone ${cls}" data-ui><span class="rim" aria-hidden="true"></span><span class="side" aria-hidden="true"></span><div class="glass">${screen}<span class="island" aria-hidden="true"></span></div></div>`;
 
-  /* the guarantee, as one block both the home page and the pricing page use: the promise, what the family
-     gets for each result, both sides' obligations and who it covers, all on the page, nothing in small print */
-  /* A people photo (copy section 90 holds its alt text and caption). Until the file exists the figure
-     marks itself missing and hides, and the section keeps its drawing instead. */
+  /* A people photo (copy section 90 holds its alt text and caption). Until the file arrives the frame shows a
+     skeleton (design rule 29); if the file is missing the figure hides and the section keeps its drawing. */
   function photo(key, cls = "") {
     const P = M(90),
       alt = P[`${key} alt`] || "",
       cap = P[`${key} caption`];
-    return `<figure class="k-photo ${cls}" data-photo="${key}"><div class="fr"><img src="photos/p-${key}.webp" srcset="photos/p-${key}-800.webp 800w, photos/p-${key}.webp 1400w" sizes="(max-width: 900px) 100vw, 560px" alt="${esc(alt)}" width="1400" height="1750" loading="${/ph-hero/.test(cls) && !/only-wide/.test(cls) ? "eager" : "lazy"}" decoding="async" onerror="this.closest('figure').dataset.missing='1'" onload="this.closest('figure').dataset.ready='1'"></div>${cap ? `<figcaption>${esc(cap)}</figcaption>` : ""}</figure>`;
+    return `<figure class="k-photo ${cls}" data-photo="${key}"><div class="fr"><i class="k-sk fill" aria-hidden="true"></i><img src="photos/p-${key}.webp" srcset="photos/p-${key}-800.webp 800w, photos/p-${key}.webp 1400w" sizes="(max-width: 900px) 100vw, 560px" alt="${esc(alt)}" width="1400" height="1750" loading="${/ph-hero/.test(cls) && !/only-wide/.test(cls) ? "eager" : "lazy"}" decoding="async" onerror="this.closest('figure').dataset.missing='1'" onload="this.closest('figure').dataset.ready='1'"></div>${cap ? `<figcaption>${esc(cap)}</figcaption>` : ""}</figure>`;
   }
 
+  /* the guarantee, as one block the home, program, pricing and guarantee pages share: the promise, what the
+     family gets for each result, both sides' obligations and who it covers, all on the page, nothing in small
+     print. No label above the headline (the heading carries its own weight). */
   function guarantee(g, headId) {
     const pairs = list(g.outcomes).map((x) => x.split(" = "));
     const side = (title, items, cls) =>
@@ -81,7 +87,6 @@
         : "";
     return `<div class="g-top">
         <div class="g-words">
-          ${g.eyebrow ? `<p class="eyebrow rv">${esc(g.eyebrow)}</p>` : ""}
           ${g.headline ? `<h2 class="rv" id="${headId}">${esc(g.headline)}</h2>` : ""}
           ${g.text ? `<p class="lede rv">${esc(g.text)}</p>` : ""}
           ${g.promise ? `<p class="g-promise rv"${g.headline ? "" : ` id="${headId}"`}>${esc(g.promise)}</p>` : ""}
@@ -98,19 +103,13 @@
         ${side(g["you do title"], list(g["you do"]), "you")}
       </div>
       <div class="g-foot rv">
-        ${
-          list(g.covers).length
-            ? `<p class="covers">${list(g.covers)
-                .map((x) => `<span>${esc(x)}</span>`)
-                .join("")}</p>`
-            : ""
-        }
+        ${g.covers ? `<p class="covers">${esc(g.covers)}</p>` : ""}
         ${g.claim ? `<p class="claim">${esc(g.claim)}</p>` : ""}
         ${g.link ? `<a class="lk" href="${ROUTES.guarantee}">${esc(g.link)}${ARROW}</a>` : ""}
       </div>`;
   }
 
-  /* ---------- the shell: skip link, header, phone menu, pause button and footer, the same on every page ---------- */
+  /* ---------- the shell: skip link, header, phone menu and footer, the same on every page ---------- */
   (function shell() {
     const b = document.body;
     if (document.querySelector(".hd")) return;
@@ -140,10 +139,12 @@
       document.querySelector(".sheet").after(m);
     }
     const main = document.getElementById("main");
-    if (document.querySelector(".stage"))
-      main.insertAdjacentHTML("afterend", '<button class="motion" type="button"></button>');
     const col = (h, items) => `<div class="col"><p class="h" data-t="${h}"></p>${items}</div>`;
-    (document.querySelector(".motion") || main).insertAdjacentHTML(
+    // the film control sits in the footer, as plain words, only on a page with a film (design rule 38)
+    const motion = document.querySelector(".stage")
+      ? '<button class="ft-motion" type="button" aria-pressed="false"></button>'
+      : "";
+    main.insertAdjacentHTML(
       "afterend",
       `<footer class="ft">
         <div class="cols">
@@ -154,7 +155,7 @@
             ${col("footer legal", r("terms", "terms link") + r("privacy", "privacy link") + r("cookies", "cookies link") + '<a data-t="email" data-mail></a>')}
           </nav>
         </div>
-        <p class="credit" data-t="credits"></p>
+        <div class="ft-row"><p class="credit" data-t="credits"></p>${motion}</div>
       </footer>`
     );
   })();
@@ -169,7 +170,9 @@
     root.querySelectorAll("[data-mail]").forEach((a) => (a.href = `mailto:${site.email || ""}`));
   }
 
-  /* ---------- light and dark (design rule 33): a switch in the header and the phone menu, remembered ---------- */
+  /* ---------- light and dark (design rule 33): the head script already set data-theme from the remembered
+     choice or the device (dark when it states none). The switch in the header and the phone menu overrides it
+     and remembers; without a remembered choice the page keeps following the device. ---------- */
   const SUN =
     '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>';
   const MOON =
@@ -177,6 +180,14 @@
   function themeSwitch() {
     const root = document.documentElement;
     const btns = document.querySelectorAll(".theme");
+    const device = matchMedia("(prefers-color-scheme: light)");
+    const stored = () => {
+      try {
+        return localStorage.getItem("karman-theme");
+      } catch (e) {
+        return null;
+      }
+    };
     const paint = () => {
       const dark = root.dataset.theme === "dark";
       btns.forEach((b) => {
@@ -188,40 +199,42 @@
         b.title = word;
       });
     };
+    const apply = (theme) => {
+      root.classList.add("theming"); // colours cross-fade once, then transitions go back to normal
+      root.dataset.theme = theme;
+      paint();
+      setTimeout(() => root.classList.remove("theming"), 600);
+      document.dispatchEvent(new CustomEvent("karman:theme"));
+    };
     btns.forEach((b) =>
       b.addEventListener("click", () => {
-        root.classList.add("theming"); // colours cross-fade once, then transitions go back to normal
-        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+        const next = root.dataset.theme === "dark" ? "light" : "dark";
         try {
-          localStorage.setItem("karman-theme", root.dataset.theme);
+          localStorage.setItem("karman-theme", next);
         } catch (e) {}
-        paint();
-        setTimeout(() => root.classList.remove("theming"), 600);
-        document.dispatchEvent(new CustomEvent("karman:theme"));
+        apply(next);
       })
     );
+    // no remembered choice: follow the device while the page is open
+    device.addEventListener("change", (e) => {
+      if (!stored()) apply(e.matches ? "light" : "dark");
+    });
     paint();
   }
 
-  /* ---------- the pause button: small, bottom right; stops every film on the page, remembered ---------- */
+  /* ---------- the film control: plain words in the footer; stops every film on the page, remembered ---------- */
   let paused = false;
   try {
     paused = localStorage.getItem("karman-motion") === "off";
   } catch (e) {}
-  const PAUSE =
-    '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="3" width="2.6" height="10" rx="1"/><rect x="9.4" y="3" width="2.6" height="10" rx="1"/></svg>';
-  const PLAY =
-    '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2v9.6c0 .6.6.9 1.1.6l7.2-4.8a.7.7 0 0 0 0-1.2L6.1 2.6C5.6 2.3 5 2.6 5 3.2Z"/></svg>';
-  function motionButton() {
-    const b = document.querySelector(".motion");
+  function motionControl() {
+    const b = document.querySelector(".ft-motion");
     if (!b) return;
     const label = () => {
-      b.innerHTML = paused ? PLAY : PAUSE;
-      b.setAttribute("aria-label", paused ? site.play || "Play" : site.pause || "Pause");
-      b.title = b.getAttribute("aria-label");
+      b.textContent = paused ? site.play || "Play the film" : site.pause || "Pause the film";
       b.setAttribute("aria-pressed", String(paused));
     };
-    b.hidden = reduce;
+    b.hidden = reduce; // with reduced motion no film loads, so there is nothing to pause
     label();
     b.addEventListener("click", () => {
       paused = !paused;
@@ -237,10 +250,9 @@
   function header() {
     const hd = document.querySelector(".hd");
     if (!hd) return;
-    let ticking = false;
-    const surfaces = () => [
-      ...document.querySelectorAll(".panel:not(.dark), .datecard, [data-light]"),
-    ];
+    let ticking = false,
+      lastY = scrollY;
+    const surfaces = () => [...document.querySelectorAll(".panel:not(.dark), [data-light]")];
     const run = () => {
       ticking = false;
       const y = 36;
@@ -252,6 +264,13 @@
       hd.classList.toggle("light", light);
       hd.classList.toggle("dim", down && !light);
       document.documentElement.classList.toggle("scrolled", down);
+      // away while reading down (past the first screen), back as soon as the reader scrolls up or the menu is open
+      const delta = scrollY - lastY;
+      if (Math.abs(delta) > 4) {
+        const away = delta > 0 && scrollY > 60 && document.getElementById("menu")?.hidden !== false;
+        hd.classList.toggle("away", away);
+        lastY = scrollY;
+      }
     };
     const ask = () => {
       if (!ticking) {
@@ -368,14 +387,16 @@
       { threshold: 0.12 }
     );
     document.querySelectorAll(".rv").forEach((el) => io.observe(el));
-    if (Q.has("rec")) document.querySelectorAll(".rv").forEach((el) => el.classList.add("on"));
-    requestAnimationFrame(() => document.documentElement.classList.add("ready"));
+    if (Q.has("rec")) {
+      document.documentElement.classList.add("rec");
+      document.querySelectorAll(".rv").forEach((el) => el.classList.add("on"));
+    }
   }
 
   function init() {
     fill();
     themeSwitch();
-    motionButton();
+    motionControl();
     header();
     menu();
     dock();
@@ -398,6 +419,7 @@
     list,
     ARROW,
     btn,
+    ghost,
     phone,
     guarantee,
     photo,

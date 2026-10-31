@@ -1,4 +1,4 @@
-/* The home page's one-on-one calendar (WeekCalendar.tsx) and the open-seat rings (parts.tsx Seats). */
+/* The home page's one-on-one calendar (WeekCalendar.tsx). */
 .ks .feat.cal { grid-template-columns: 1fr; }
 .ks .feat.cal .words { max-width: 64ch; }
 .ks .feat.cal h2 { font-size: clamp(30px, 3.4vw, 52px); max-width: 24ch; }
@@ -77,52 +77,4 @@
   .ks .sc-link path { stroke-dashoffset: 0; }
   .ks .sc-next em u::after { transform: scaleX(var(--p)); }
   .ks .sc-dom .lv i.on { background: var(--s); }
-}
-
-/* ---------- the open seats: one ring per paid seat, the held ones filled ---------- */
-.ks .seats {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-  margin: 2px 0 4px;
-}
-.ks .seat-row {
-  display: inline-flex;
-  gap: 6px;
-}
-.ks .seat-row i {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 2px var(--marigold);
-  animation: seat-in 0.5s var(--spring) calc(var(--k) * 90ms) both;
-}
-.ks .seat-row i.held {
-  background: var(--ink);
-  box-shadow: inset 0 0 0 2px var(--ink);
-}
-.ks .seat-row i:not(.held) {
-  animation:
-    seat-in 0.5s var(--spring) calc(var(--k) * 90ms) both,
-    seat-open 3.6s ease-in-out calc(1s + var(--k) * 180ms) infinite;
-}
-@keyframes seat-in {
-  from {
-    transform: scale(0);
-  }
-}
-@keyframes seat-open {
-  50% {
-    box-shadow:
-      inset 0 0 0 2px var(--marigold),
-      0 0 0 4px rgba(235, 162, 31, 0.18);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ks .seat-row i {
-    animation: none !important;
-  }
 }

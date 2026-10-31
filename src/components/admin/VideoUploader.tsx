@@ -8,7 +8,11 @@
 import { useRef, useState, useTransition } from "react";
 import { Upload, Trash2, ExternalLink, Link2, Video, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { actionSaveVideoURL, actionUploadVideo, actionDeleteVideo } from "@/app/admin/actions";
+import {
+  actionSaveVideoURL,
+  actionUploadVideo,
+  actionDeleteVideo,
+} from "@/app/(app)/admin/actions";
 
 interface Props {
   nodeId: string;

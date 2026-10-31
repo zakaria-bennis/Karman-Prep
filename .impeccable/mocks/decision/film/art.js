@@ -1,7 +1,7 @@
-/* Karman's page drawings (our own, 2026-10-25): isometric line work in the Daily 10 drawing's style, one per
-   page where there is no person or product screen to show. Black lines, white and bone faces, one marigold
-   accent each. Layers drift a few pixels toward the pointer on desktop, so the drawing feels touchable without
-   moving on its own. window.KARMAN_ART.draw(host, name) mounts one; names: weeks, call, report, line, sitting. */
+/* Karman's page drawings (our own, 2026-10-25; still since 2026-10-31): isometric line work in the Daily 10
+   drawing's style, one per page where there is no person or product screen to show. Black lines, bone faces,
+   one marigold accent each, no plate under them (design rule 5) and nothing that answers the pointer (rule 25).
+   window.KARMAN_ART.draw(host, name) mounts one; names: weeks, call, report, line, sitting. */
 (function () {
   const C30 = Math.cos(Math.PI / 6),
     K = 3.2;
@@ -51,20 +51,7 @@
         s += box(i * 9, 30 - i * 3.2, 0, 8, 12, 3 + i * 2.2, i === 8 ? "" : "a-soft");
       s += box(84, 0, 0, 16, 16, 26, "a-hot");
       const top = layer(1, stand(87, 16, 19, "MAR 6", 4.2, "a-tx b"));
-      return [
-        layer(
-          0.6,
-          `<path class="a-sh" d="${path([
-            [0, 30, 0],
-            [104, 0, 0],
-            [104, 20, 0],
-            [0, 46, 0],
-          ])}"/>`
-        ) +
-          layer(1, s) +
-          top,
-        [-40, -90, 380, 260],
-      ];
+      return [layer(1, s) + top, [-40, -90, 380, 260]];
     },
     /* private tutoring: two call tiles, and a reviewed question floating between them */
     call() {
@@ -80,7 +67,7 @@
         )}"/>`;
       const sheet =
         box(16, 22, 18, 28, 20, 1, "") +
-        flat(19, 26, 19.2, "Question 14", 2.6) +
+        flat(18, 25, 19.2, "Question 14", 4.2) +
         `<path class="a-mk no" d="${open([
           [20, 32, 19.2],
           [26, 35, 19.2],
@@ -89,20 +76,10 @@
           [22, 39, 19.2],
           [26, 36, 19.2],
         ])}"/>` +
-        flat(29, 32, 19.2, "4", 3, "a-tx no") +
-        flat(29, 36, 19.2, "2", 3, "a-tx ok");
+        flat(29, 32, 19.2, "4", 4.2, "a-tx no") +
+        flat(29, 36, 19.2, "2", 4.2, "a-tx ok");
       return [
-        layer(
-          0.5,
-          `<path class="a-sh" d="${path([
-            [0, 0, 0],
-            [70, 0, 0],
-            [70, 50, 0],
-            [0, 50, 0],
-          ])}"/>`
-        ) +
-          layer(1, tile(0, "a-dark") + tile(36, "a-dark hot")) +
-          layer(1.8, sheet),
+        layer(1, tile(0, "a-dark") + tile(36, "a-dark hot")) + layer(1.8, sheet),
         [-150, -60, 380, 260],
       ];
     },
@@ -111,27 +88,14 @@
       const sheet = box(0, 0, 0, 44, 58, 1.2, "");
       const bars = box(8, 8, 1.2, 8, 8, 9, "a-soft") + box(24, 8, 1.2, 8, 8, 17, "a-hot");
       const words =
-        flat(8, 20, 1.3, "Before", 2.4) +
-        flat(24, 20, 1.3, "After", 2.4) +
-        flat(5, 32, 1.3, "Score report", 3.2, "a-tx b") +
-        flat(5, 39, 1.3, "Baseline 1180", 2.7) +
-        flat(5, 45, 1.3, "SAT 1300", 2.7, "a-tx b");
+        flat(7, 20, 1.3, "Before", 4.2) +
+        flat(23, 20, 1.3, "After", 4.2) +
+        flat(4, 31, 1.3, "Score report", 4.6, "a-tx b") +
+        flat(4, 39, 1.3, "Baseline 1180", 4.2) +
+        flat(4, 46, 1.3, "SAT 1300", 4.2, "a-tx b");
       const [cx, cy] = P(46, 8, 14);
       const seal = `<g class="a-seal"><circle cx="${cx}" cy="${cy}" r="${10 * K}"/><text x="${cx}" y="${cy + 4 * K * 0.45}" text-anchor="middle" font-size="${7.5 * K}">+100</text></g>`;
-      return [
-        layer(
-          0.5,
-          `<path class="a-sh" d="${path([
-            [3, 3, 0],
-            [47, 3, 0],
-            [47, 61, 0],
-            [3, 61, 0],
-          ])}"/>`
-        ) +
-          layer(1, sheet + words + bars) +
-          layer(2, seal),
-        [-200, -40, 420, 250],
-      ];
+      return [layer(1, sheet + words + bars) + layer(2, seal), [-200, -40, 420, 250]];
     },
     /* about: the ground's curve, the dashed line 100 km up, and one path climbing to it */
     line() {
@@ -171,21 +135,8 @@
       const [tx, ty] = P(22, 20, 21);
       const ring = `<g class="a-timer"><circle cx="${tx}" cy="${ty}" r="${10 * K}" class="bg"/><circle cx="${tx}" cy="${ty}" r="${10 * K}" class="fg" transform="rotate(-90 ${tx} ${ty})"/><text x="${tx}" y="${ty + 4}" text-anchor="middle" font-size="${4 * K}">75:00</text></g>`;
       const proctor =
-        box(40, 19, 26, 13, 1, 9, "a-dark") + stand(41.5, 20, 27.5, "Proctor", 2.2, "a-tx w");
-      return [
-        layer(
-          0.5,
-          `<path class="a-sh" d="${path([
-            [2, 22, 0],
-            [62, 22, 0],
-            [62, 62, 0],
-            [2, 62, 0],
-          ])}"/>`
-        ) +
-          layer(1, base + keys + lid + ring) +
-          layer(1.7, proctor),
-        [-160, -40, 380, 300],
-      ];
+        box(40, 19, 26, 16, 1, 9, "a-dark") + stand(41.5, 20, 27.5, "Proctor", 4.2, "a-tx w");
+      return [layer(1, base + keys + lid + ring) + layer(1.7, proctor), [-160, -40, 380, 300]];
     },
   };
 
@@ -194,35 +145,6 @@
     if (!host || !make) return;
     const [inner, vb] = make();
     host.innerHTML = `<svg class="art" viewBox="${vb.join(" ")}" aria-hidden="true">${inner}</svg>`;
-    if (
-      !matchMedia("(hover: hover) and (pointer: fine)").matches ||
-      matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
-    const layers = [...host.querySelectorAll(".a-l")];
-    let raf = 0,
-      tx = 0,
-      ty = 0,
-      x = 0,
-      y = 0;
-    const step = () => {
-      x += (tx - x) * 0.08;
-      y += (ty - y) * 0.08;
-      layers.forEach(
-        (l) =>
-          (l.style.transform = `translate(${(x * l.dataset.depth).toFixed(2)}px, ${(y * l.dataset.depth).toFixed(2)}px)`)
-      );
-      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.02 ? requestAnimationFrame(step) : 0;
-    };
-    addEventListener(
-      "pointermove",
-      (e) => {
-        tx = (e.clientX / innerWidth - 0.5) * 8;
-        ty = (e.clientY / innerHeight - 0.5) * 6;
-        raf ||= requestAnimationFrame(step);
-      },
-      { passive: true }
-    );
   }
   window.KARMAN_ART = { draw };
 })();

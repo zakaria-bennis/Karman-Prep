@@ -1,12 +1,12 @@
-"use client";
-
 // The home page's calendar (2026-10-26): the app's own screen for a one-on-one student, flat, as it looks on a
 // computer. Two weeks of sessions, the full-length test due before each session, homework, workshops and
 // office hours, with the next session and progress on all eight SAT domains beside them. It arrives in a
 // stagger and the domain bars fill. Pointing at a day lifts it and reads it out in the side panel; pointing at
-// a full-length test or its session draws the line between the two. The student and their week are
-// fictional, so the words live here like the other screens' words do.
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+// a full-length test or its session draws the line between the two (live/calendar.ts, which reads the days'
+// words from the data attributes here). The student and their week are fictional, so the words live here
+// like the other screens' words do.
+import type { CSSProperties } from "react";
+import "@/app/(site)/styles/calendar.css";
 
 type Kind = "s" | "fl" | "hw" | "ws" | "oh";
 type Ev = { k: Kind; t: string; at: string; pair?: number };
@@ -76,6 +76,8 @@ const DAYS: Day[] = [
   { d: "Sun", n: 14, ev: [] },
 ];
 const TODAY = 0;
+const MONTH = "February";
+const FREE_DAY = "A free day. The Daily 10 still takes ten minutes.";
 const FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 // the eight SAT domains, each on six levels, Reading and Writing first
 const DOMAINS: [string, [string, number][]][] = [
@@ -100,49 +102,9 @@ const DOMAINS: [string, [string, number][]][] = [
 ];
 
 export default function WeekCalendar() {
-  const root = useRef<HTMLDivElement>(null);
-  const grid = useRef<HTMLDivElement>(null);
-  const [day, setDay] = useState(TODAY);
-  const [pair, setPair] = useState(0);
-  const [link, setLink] = useState("");
-
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (es) => {
-        if (es[0].isIntersecting) {
-          el.classList.add("in-view");
-          io.disconnect();
-        }
-      },
-      { threshold: 0.25 }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  // the line from a full-length test to the session that reviews it, in the grid's own pixels
-  useLayoutEffect(() => {
-    const g = grid.current;
-    if (!g || !pair) return setLink("");
-    const a = g.querySelector<HTMLElement>(`[data-pair="${pair}"].fl`),
-      b = g.querySelector<HTMLElement>(`[data-pair="${pair}"].s`);
-    if (!a || !b) return setLink("");
-    const o = g.getBoundingClientRect(),
-      ra = a.getBoundingClientRect(),
-      rb = b.getBoundingClientRect();
-    const x1 = ra.left + ra.width / 2 - o.left,
-      y1 = ra.top - o.top,
-      x2 = rb.left + rb.width / 2 - o.left,
-      y2 = rb.top - o.top;
-    const lift = Math.max(28, Math.abs(x2 - x1) * 0.45);
-    setLink(`M${x1} ${y1} C${x1} ${y1 - lift} ${x2} ${y2 - lift} ${x2} ${y2}`);
-  }, [pair]);
-
-  const d = DAYS[day];
+  const d = DAYS[TODAY];
   return (
-    <div className="sc" ref={root}>
+    <div className="sc" data-free={FREE_DAY}>
       <div className="mbp">
         <span className="notch" aria-hidden="true" />
         <div
@@ -191,16 +153,9 @@ export default function WeekCalendar() {
             </aside>
             <div className="sc-main">
               <div className="sc-head">
-                <b>February</b>
+                <b>{MONTH}</b>
               </div>
-              <div
-                className="sc-grid"
-                ref={grid}
-                onPointerLeave={() => {
-                  setDay(TODAY);
-                  setPair(0);
-                }}
-              >
+              <div className="sc-grid">
                 {DAYS.slice(0, 7).map((x) => (
                   <span className="sc-dn" key={x.d}>
                     {x.d}
@@ -209,27 +164,29 @@ export default function WeekCalendar() {
                 {DAYS.map((x, i) => (
                   <div
                     key={x.n}
-                    className={`sc-day ${i === day ? "on" : ""} ${i === TODAY ? "today" : ""}`}
+                    className={`sc-day ${i === TODAY ? "on today" : ""}`}
                     style={{ "--i": i } as CSSProperties}
-                    onPointerEnter={() => setDay(i)}
+                    data-day={FULL[i % 7]}
+                    data-month={MONTH}
+                    data-n={x.n}
                   >
                     <span className="sc-n">{x.n}</span>
                     {x.ev.map((e) => (
                       <span
                         key={e.t}
-                        className={`sc-ev ${e.k} ${e.pair && e.pair === pair ? "lit" : ""}`}
+                        className={`sc-ev ${e.k}`}
                         data-pair={e.pair}
-                        onPointerEnter={() => setPair(e.pair ?? 0)}
-                        onPointerLeave={() => setPair(0)}
+                        data-kind={e.k}
+                        data-kind-name={KIND[e.k]}
+                        data-long={e.long}
+                        data-at={e.at}
                       >
                         {e.t}
                       </span>
                     ))}
                   </div>
                 ))}
-                <svg className="sc-link" aria-hidden="true">
-                  {link ? <path d={link} key={link} pathLength={1} /> : null}
-                </svg>
+                <svg className="sc-link" aria-hidden="true" />
               </div>
             </div>
           </div>
@@ -237,9 +194,9 @@ export default function WeekCalendar() {
       </div>
       <div className="sc-card" aria-live="polite">
         <p className="sc-d">
-          <b>{FULL[day % 7]}</b>
-          February {d.n}
-          {day === TODAY ? <span className="sc-today">Today</span> : null}
+          <b>{FULL[TODAY % 7]}</b>
+          {MONTH} {d.n}
+          <span className="sc-today">Today</span>
         </p>
         {d.ev.length ? (
           <ul>
@@ -256,7 +213,7 @@ export default function WeekCalendar() {
             ))}
           </ul>
         ) : (
-          <p className="sc-free">A free day. The Daily 10 still takes ten minutes.</p>
+          <p className="sc-free">{FREE_DAY}</p>
         )}
       </div>
     </div>

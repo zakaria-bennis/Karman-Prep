@@ -20,7 +20,7 @@ import userEvent from "@testing-library/user-event";
 import ImpersonationMenu from "./ImpersonationMenu";
 
 const setImpersonationMock = vi.fn();
-vi.mock("@/app/admin/impersonation-actions", () => ({
+vi.mock("@/app/(app)/admin/impersonation-actions", () => ({
   actionSetImpersonation: (...args: unknown[]) => setImpersonationMock(...args),
 }));
 

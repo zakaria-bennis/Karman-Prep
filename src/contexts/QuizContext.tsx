@@ -32,7 +32,7 @@ import {
   actionRecordResponse,
   actionCompleteQuiz,
   actionFlagQuestion,
-} from "@/app/learn/quiz-actions";
+} from "@/app/(app)/learn/quiz-actions";
 import type { Subject } from "@/data/curriculum";
 import { playSound } from "@/lib/sounds";
 import * as Sentry from "@sentry/nextjs";

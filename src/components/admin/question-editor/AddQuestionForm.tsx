@@ -24,7 +24,7 @@ import type {
 } from "@/types/quiz";
 import { DIFFICULTY_LEVEL_HEX, DIFFICULTY_LEVEL_LABELS } from "@/types/quiz";
 import type { Subject } from "@/data/curriculum";
-import { actionAddQuestion, actionUploadQuestionImage } from "@/app/admin/actions";
+import { actionAddQuestion, actionUploadQuestionImage } from "@/app/(app)/admin/actions";
 import type { QuestionTableData } from "@/types/question-table";
 import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
 import { ChoiceTableEditor } from "./ChoiceTableEditor";

@@ -28,20 +28,20 @@ beforeEach(() => {
 });
 
 describe("submitLead", () => {
-  it("records a program application with its answers, under the cohort's source", async () => {
+  it("records a program application with its answers and the SAT date chosen", async () => {
     const r = await submitLead("apply", {
       email: " Parent@Example.com ",
       latest: "1180",
       target: "1400",
-      date: "March 1",
+      date: "May 1",
       company: "",
     });
     expect(r).toEqual({ ok: true });
     expect(db.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "parent@example.com",
-        source: "cohort-may-2027",
-        details: { latest: "1180", target: "1400", startDate: "March 1" },
+        source: "cohort-march-2027",
+        details: { latest: "1180", target: "1400", satDate: "May 1" },
       }),
       { onConflict: "email,source" }
     );
@@ -55,7 +55,7 @@ describe("submitLead", () => {
       email: "parent@",
       latest: "1234",
       target: "",
-      date: "January 4",
+      date: "March 6",
     });
     expect(r.ok).toBe(false);
     expect(Object.keys((r as { fields: object }).fields).sort()).toEqual([

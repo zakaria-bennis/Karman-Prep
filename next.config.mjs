@@ -1,7 +1,46 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
+/** The marketing pages (kept in step with src/components/site/routes.ts). They are built once and served
+ *  as static files; this header lets the edge keep each one for a day and refresh it in the background for a
+ *  week after that, so a visitor never waits for the Worker. */
+const SITE_PAGES = [
+  "/",
+  "/program",
+  "/private-tutoring",
+  "/free-practice-test",
+  "/pricing",
+  "/guarantee",
+  "/faq",
+  "/about",
+  "/research",
+  "/terms",
+  "/privacy",
+  "/cookies",
+  "/refunds",
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async headers() {
+    return SITE_PAGES.map((source) => ({
+      source,
+      headers: [
+        {
+          key: "Cache-Control",
+          value: "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800",
+        },
+      ],
+    }));
+  },
+  // Marketing pages replaced in the October 2026 rebuild: old links land on the page that replaced them.
+  async redirects() {
+    return [
+      { source: "/plans", destination: "/pricing", permanent: true },
+      { source: "/free-diagnostic", destination: "/free-practice-test", permanent: true },
+      { source: "/blog", destination: "/", permanent: true },
+      { source: "/questions", destination: "/free-practice-test", permanent: true },
+    ];
+  },
   // Cloudflare Workers (via OpenNext) needs the Node.js runtime
   // compatibility flag — set in wrangler.toml.
   // See: https://opennext.js.org/cloudflare/get-started

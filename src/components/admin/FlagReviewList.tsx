@@ -10,7 +10,7 @@ import Link from "next/link";
 import { Check, ExternalLink, Flag, Edit3 } from "lucide-react";
 import type { FlaggedQuestion, QuizQuestionWithChoices } from "@/types/quiz";
 import { DIFFICULTY_COLORS } from "@/types/quiz";
-import { actionResolveFlaggedQuestion, actionUpdateQuestion } from "@/app/admin/actions";
+import { actionResolveFlaggedQuestion, actionUpdateQuestion } from "@/app/(app)/admin/actions";
 import { cn } from "@/lib/utils";
 
 type FlagRow = FlaggedQuestion & { question: QuizQuestionWithChoices | null };

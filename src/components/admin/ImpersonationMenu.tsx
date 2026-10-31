@@ -8,7 +8,7 @@
 
 import { useState, useRef, useEffect, useTransition } from "react";
 import { Eye, ChevronDown, Loader2 } from "lucide-react";
-import { actionSetImpersonation } from "@/app/admin/impersonation-actions";
+import { actionSetImpersonation } from "@/app/(app)/admin/impersonation-actions";
 
 type ViewAsRole = "student" | "tutor" | "parent";
 

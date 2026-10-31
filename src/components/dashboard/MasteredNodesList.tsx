@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowUpDown, CheckCircle, Flame, BookOpen, Calculator } from
 import { cn } from "@/lib/utils";
 import DashboardLayout from "./DashboardLayout";
 import { nodeAtmosphere, ATMOSPHERE_COLORS, SUBJECT_COLORS, type Subject } from "@/data/curriculum";
-import type { MasteredNodeRow } from "@/app/dashboard/student/mastered/page";
+import type { MasteredNodeRow } from "@/app/(app)/dashboard/student/mastered/page";
 
 type SubjectFilter = "all" | Subject;
 type SortMode = "chronological" | "alphabetical";

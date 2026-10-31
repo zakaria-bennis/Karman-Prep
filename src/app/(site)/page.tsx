@@ -11,11 +11,12 @@ import { ROUTES } from "@/components/site/routes";
 import { CONTACT } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
 import { section } from "@/lib/marketing/site-copy";
+import "./styles/home.css";
 
 export const metadata = pageMeta(
   ROUTES.home,
   "Karman Prep: SAT tutors who see every answer",
-  "Live SAT classes of six and private tutoring, taught by PhD students, quants and university professors, with research-backed daily practice and live progress for parents."
+  "Live SAT classes of five and private tutoring, taught by PhD students, quants and university professors, with research-backed daily practice and live progress for parents."
 );
 
 const ORG = {
@@ -40,13 +41,15 @@ export default function HomePage() {
       <link
         rel="preload"
         as="image"
-        href="/site/film/day.jpg"
+        type="image/webp"
+        href="/site/film/day.webp"
         media="(min-width: 761px), (orientation: landscape)"
       />
       <link
         rel="preload"
         as="image"
-        href="/site/film/day-p.jpg"
+        type="image/webp"
+        href="/site/film/day-p.webp"
         media="(max-width: 760px) and (orientation: portrait)"
       />
       <section className="window hero" id="m-1">
@@ -120,7 +123,7 @@ export default function HomePage() {
                 muted
                 playsInline
                 preload="none"
-                poster={`/site/film/${id}-r0.jpg`}
+                data-poster={`/site/film/${id}-r0.jpg`}
                 data-src={`/site/film/${id}-r.mp4`}
                 aria-hidden="true"
               />

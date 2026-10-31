@@ -2,7 +2,6 @@
 // that rises word by word.
 import { Fragment, type CSSProperties, type ReactNode } from "react";
 import type { CopySection } from "@/lib/marketing/site-copy";
-import { MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { ARROW_SVG, iconSvg, type IconName } from "./live/icons";
 
 /** Our own constant drawing markup (screens, drawings, icons). Never pass visitor input here. */
@@ -104,28 +103,6 @@ export function Kinetic({ text }: { text: string }) {
         </Fragment>
       ))}
     </>
-  );
-}
-
-/** The class's paid seats as a row of rings, the held ones filled, with the words beside them, shown only
- *  when one or two seats are left. The count comes from offer.ts (paidSeatsTaken). */
-export function Seats({ label, className = "" }: { label?: string; className?: string }) {
-  const left = MP.paidSeats - MP.paidSeatsTaken;
-  // only real scarcity is shown: with three or more seats open, nothing is
-  if (!label || left > 2 || left < 1) return null;
-  return (
-    <p className={`seats ${className}`}>
-      <span className="seat-row" aria-hidden="true">
-        {Array.from({ length: MP.paidSeats }, (_, k) => (
-          <i
-            key={k}
-            className={k < MP.paidSeatsTaken ? "held" : ""}
-            style={{ "--k": k } as CSSProperties}
-          />
-        ))}
-      </span>
-      {label}
-    </p>
   );
 }
 

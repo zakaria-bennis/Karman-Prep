@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Calculator } from "lucide-react";
-import { actionReviewDailyAnswer } from "@/app/learn/daily-challenge-actions";
+import { actionReviewDailyAnswer } from "@/app/(app)/learn/daily-challenge-actions";
 import type { DailySlot } from "@/lib/daily-challenge/server";
 import type { DailySubject } from "@/lib/daily-challenge/selection";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";

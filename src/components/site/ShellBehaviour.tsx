@@ -2,13 +2,21 @@
 
 // What the frame does once the page is on screen (ported from the mock's site.js): the light and dark switch,
 // the header's colour over film or paper, the phone menu, the film's pause button, the phone dock, the
-// press feedback on links and buttons, the one reveal, and the alive layer. It renders nothing.
+// press feedback on links and buttons, the one reveal, the page's own small behaviours (the moving photos,
+// the guarantee drawing, the calendar, the Daily 10 demo, the tools row) and the alive layer. The dock and
+// the alive layer wait for an idle moment. It renders nothing.
 import { useEffect } from "react";
 import { SITE } from "@/lib/marketing/site-copy";
 import { startAlive } from "./live/alive";
+import { startCalendar } from "./live/calendar";
+import { startDailyTen } from "./live/daily";
+import { startGuarantee } from "./live/guarantee";
 import { ARROW_SVG } from "./live/icons";
+import { idle } from "./live/idle";
 import { busy, line } from "./live/kit";
 import { motionPaused, setMotionPaused } from "./live/motion";
+import { startClips } from "./live/photos";
+import { startTools } from "./live/tools";
 
 const PAUSE =
   '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="3" width="2.6" height="10" rx="1"/><rect x="9.4" y="3" width="2.6" height="10" rx="1"/></svg>';
@@ -148,9 +156,19 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
       line.done();
     });
 
+    /* ---------- the page's own behaviours ---------- */
+    offs.push(
+      startClips(ks),
+      startGuarantee(ks),
+      startCalendar(ks),
+      startDailyTen(ks),
+      startTools(ks)
+    );
+
     /* ---------- phones: the dock. One button at the bottom, in thumb reach, only while no other main
        button is on screen (design rule 35), and only on the way back up, never while reading down ---------- */
-    if (matchMedia("(max-width: 760px)").matches) {
+    const dock = () => {
+      if (!matchMedia("(max-width: 760px)").matches) return;
       const el = document.createElement("div");
       el.className = "dock";
       const a = document.createElement("a");
@@ -181,13 +199,14 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
           sync();
         }
       });
-      offs.push(() => {
+      return () => {
         io.disconnect();
         el.remove();
-      });
-    }
+      };
+    };
 
-    /* ---------- one reveal everywhere: rise a little and fade in, once ---------- */
+    /* ---------- one reveal everywhere: rise a little and fade in, once. The first screen's words and blocks
+       rise on their own (film.css), so adding the class to them changes nothing ---------- */
     const rio = new IntersectionObserver(
       (es) =>
         es.forEach((x) => {
@@ -202,7 +221,17 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
     offs.push(() => rio.disconnect());
     requestAnimationFrame(() => ks.classList.add("ready"));
 
-    offs.push(startAlive(ks));
+    /* ---------- the dock and the alive layer, once the browser is idle ---------- */
+    offs.push(
+      idle(() => {
+        const undock = dock();
+        const unlive = startAlive(ks);
+        return () => {
+          undock?.();
+          unlive();
+        };
+      })
+    );
     return () => offs.forEach((off) => off());
   }, [dockLabel, dockHref]);
   return null;

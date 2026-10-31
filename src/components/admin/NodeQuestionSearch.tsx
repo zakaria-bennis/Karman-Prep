@@ -27,7 +27,7 @@ import { RW_NODES, MATH_NODES, type CurriculumNode } from "@/data/curriculum";
 import {
   actionSearchBankQuestions,
   type QuestionSearchResult,
-} from "@/app/admin/curriculum/search-actions";
+} from "@/app/(app)/admin/curriculum/search-actions";
 
 const DEBOUNCE_MS = 250;
 const MAX_NODE_RESULTS = 8;

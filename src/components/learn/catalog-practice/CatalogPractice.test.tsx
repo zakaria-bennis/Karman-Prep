@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   complete: vi.fn(),
   replace: vi.fn(),
 }));
-vi.mock("@/app/learn/catalog-quiz-actions", () => ({
+vi.mock("@/app/(app)/learn/catalog-quiz-actions", () => ({
   actionStartCatalogPractice: mocks.start,
   actionResumeCatalogPractice: mocks.resume,
   actionSubmitCatalogPractice: mocks.submit,

@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   record: vi.fn(),
   complete: vi.fn(),
 }));
-vi.mock("@/app/learn/quiz-actions", () => ({
+vi.mock("@/app/(app)/learn/quiz-actions", () => ({
   actionStartQuiz: mocks.start,
   actionRecordResponse: mocks.record,
   actionCompleteQuiz: mocks.complete,

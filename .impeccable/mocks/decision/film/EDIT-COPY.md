@@ -1,11 +1,11 @@
-# Writing your own landing page copy
+# Writing your own site copy
 
 ## The easy way: the copy editor
 
 1. In the Terminal panel, run `npm run copy`. Your browser opens the editor.
-2. Change any words on the left. The real landing page on the right updates
-   as you type; click "Show" on a message (or on one of its films) to jump the
-   preview there, and use "Phone" to see it on a phone.
+2. Change any words on the left. The page on the right updates as you type;
+   click "Show" on a section to jump the preview there, and use "Phone" to see
+   it on a phone.
 3. Red notes (like an em dash) must be fixed before you can save; amber notes
    are reminders of the house rules.
 4. Click "Save to the page". That writes `copy.js` on your computer only.
@@ -14,48 +14,62 @@
 
 ## By hand
 
-All the words on the landing page live in one file: `copy.js`, in this folder.
+All the words on the site live in one file: `copy.js`, in this folder.
 
 1. Open `copy.js` in any text editor (TextEdit works; choose Format, then Make
    Plain Text).
 2. Change the words after each label. For example, change
-   `screen title: Ten minutes on the way to school.` to
-   `screen title: Ten minutes before first period.`
-3. Save, then refresh the landing page in your browser.
+   `headline: Every miss comes back three times.` to
+   `headline: Every missed question comes back.`
+3. Save, then refresh the page in your browser.
 
-Other pages have their own sections: 21 to 27 the SAT Program, 31 to 36 private tutoring, 41 to 45
-the free practice test, 51 to 55 the guarantee, 61 to 65 About, 71 the FAQ. Form labels start with "form".
+## What is where
 
-The home page has eleven sections, top to bottom: Opening, Live classes, Classes
-built on mistakes, Daily 10, Parent updates, Between classes, Test date, Guarantee, Campus film,
-Student messages and The close. Each starts with a line like `## 8 Guarantee`.
-`## 12 Testimonials` stays hidden until you fill in its `quotes:` line, then shows after Student messages.
-Write each one as `the quote = First name L., role` and put `|` between quotes. The
-`## Site` block holds the header, menu and footer words, the pricing page (labels
-starting `pricing`) and the students map (labels starting `map`).
+The home page, top to bottom: `## 1 Opening`, `## 4 Your Daily 10`,
+`## 2 The tutors`, `## 3 The calendar and tools`, `## 5 Parent updates`,
+`## 6 Between sets`, `## 8 Guarantee`, `## 9 Campus film`, `## 12 Testimonials`,
+`## 10 Student messages` and `## 11 The close`. (The numbers are names, not the
+order; the page follows the order above.)
 
-After the seven messages, a `## Site` block holds the words around the film:
-the header and menu links, the footer's column titles, links and footage
-credits, and the Pause, Play and Light mode controls. The copy editor shows it
-as the last box, "Site: header, menu and footer".
+- `## 12 Testimonials` stays hidden until you fill in its `quotes:` line. Write
+  each one as `the quote = First name L., role` and put `|` between quotes.
+  Only real, approved quotes go here.
+- `## 10 Student messages` stays hidden until you have real screens to show.
+- `## 9 Campus film` carries the three cleared captions (Ava, Mateo, Priya)
+  and the line "Karman 1:1 tutoring, median 16 weeks". Keep both.
 
-Things to know:
+The other pages: `## 21` to `## 28` the SAT Program (28 is the test-dates card),
+`## 31` to `## 36` private tutoring, `## 41` to `## 45` the free practice test,
+`## 51` to `## 55` the guarantee, `## 61` to `## 65` About (the only page that
+names Zakaria), `## 71` the FAQ, and `## 90` the photos (their alt text, and a
+caption only when a picture carries a first name).
 
-- Keep the labels (`headline:`, `time:`, `feature text:` and so on), the
-  `## 1` to `## 7` message lines, the `## Site` line and the `### ` film lines
-  exactly as they are.
-- A headline stays on screen from the film it is written under to the end of
-  its message (in Live classes it stays over Priya's class only); a clock stays until the next
-  clock.
-- `skip:` in message 1 is the small "Skip the film" link under the button.
-  Leave it empty to hide the link.
-- Delete a line, or leave it empty after the colon, to hide that piece of text.
+`## Site` holds the header, menu and footer words, the loading and form
+messages (`loading ...`, `form ...`), the students map (`map ...`) and the
+pricing page (`pricing ...`): the free-test line, the three practice plans, the
+SAT Program, Private, School, the 13 bundle descriptions (`pricing bundles`),
+the guarantee block and the honest note.
+
+## Things to know
+
+- Keep the labels (`headline:`, `text:`, `feature title:` and so on), the
+  `## ` section lines and the `## Site` line exactly as they are. Lines that
+  start with `###` are notes and never show on the page.
+- Leave a line empty after the colon to hide that piece of text. The `eyebrow:`
+  lines are empty on purpose: nothing prints above a headline.
+- Lists use `|` between items. Pairs use `=` between the two sides
+  (`Ava = 1520, UC Berkeley`).
 - Keep the two backtick marks ( ` ) at the top and bottom of the copy.
-- Headlines read best at eight words or fewer, because each one is set very
-  large and animated word by word.
-- The house copy rules still apply: no em dashes, no invented claims, and
-  prices and dates must match the offer. Every score is shown with
-  "Karman 1:1 tutoring, median 16 weeks".
+- Headlines: eight words or fewer and under 40 characters. They are set very
+  large and must fit two lines on a phone.
+- The house rules: no em dashes, no invented claims or quotes, company voice,
+  talk to the parent. Prices and dates must match `src/lib/marketing/offer.ts`.
+  Every result is shown with "Karman 1:1 tutoring, median 16 weeks". Say
+  "Your Daily 10", "Challenge question" and "Wordline" by those names, and
+  "five paid seats and one scholarship seat", never a bare "six".
+
+The reasoning behind every line, with alternates for each headline, is in
+`docs/copy/copy-run/copy-run-2026-10-31.md`.
 
 Send me a message when you've changed it and I'll check every line against the
 copy rules and the overlap scan before it goes on the real site.

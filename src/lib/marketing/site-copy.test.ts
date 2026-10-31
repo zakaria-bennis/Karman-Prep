@@ -25,9 +25,19 @@ describe("site copy", () => {
     expect(section(51).headline).toContain(`+${GUARANTEE.points} points or a ${GUARANTEE.orScore}`);
     expect(section(33)["large package"]).toContain(formatPrice(PRIVATE_PACKAGES[1].price));
     expect(list(section(25)["form date options"])).toEqual([
-      MARCH_PROGRAM.startShort,
-      ...NEXT_PROGRAMS.map((p) => p.startShort),
+      MARCH_PROGRAM.testDateShort,
+      ...NEXT_PROGRAMS.map((p) => p.testDateShort),
     ]);
+    expect(section(8)["you do"]).toBe(
+      GUARANTEE.requirements.map((x) => x.replace(/\.$/, "")).join(" | ")
+    );
+  });
+
+  it("speaks as the company and sells only the October 30 offer", () => {
+    // the founder is named on the About page only (design rule 40); the port's About copy does not name him yet
+    expect(SITE_COPY).not.toMatch(/Zakaria/);
+    expect(SITE_COPY).not.toMatch(/self-paced|\$[\d,]+ an hour|score range|one-on-one review/i);
+    expect(SITE_COPY).not.toMatch(/\bsix students\b/i);
   });
 
   it("puts every tutoring result next to where it came from", () => {

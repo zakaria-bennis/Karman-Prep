@@ -22,7 +22,7 @@ import ImpersonationBanner from "./ImpersonationBanner";
 
 // The banner imports a server-action. In a DOM-only render it'd
 // blow up trying to talk to Next. Stub it out.
-vi.mock("@/app/admin/impersonation-actions", () => ({
+vi.mock("@/app/(app)/admin/impersonation-actions", () => ({
   actionClearImpersonation: vi.fn(),
 }));
 

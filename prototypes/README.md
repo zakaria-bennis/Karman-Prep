@@ -23,3 +23,10 @@ left out of lint, type checks and formatting.
   - The 21st.dev components it ports are credited by id in `kit.js`.
   - `daily10/bank.js` holds ten questions exported read-only from the question
     bank for the demo.
+- `portals/`: the shared design system for the four portals (student, parent,
+  tutor, school) as a Vite + React 19 + Tailwind 3.4 package, with a gallery
+  that switches portal, plan, device, theme, mode, state, type, background and
+  glass recipe, and a kitchen sink at `#/system`. Run `npm run portals` from
+  the repo root (installs once, opens the gallery on 127.0.0.1:5174). Its
+  README says what belongs to whom; `21st-components.md` credits every ported
+  component.

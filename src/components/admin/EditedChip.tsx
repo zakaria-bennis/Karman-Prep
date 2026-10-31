@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from "react";
 import { Pencil, Loader2, X, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { actionGetFieldHistory } from "@/app/admin/actions";
+import { actionGetFieldHistory } from "@/app/(app)/admin/actions";
 
 interface EditEntry {
   id: string;

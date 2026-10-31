@@ -26,10 +26,10 @@ const NEW_FILE_SOFT_LIMIT = 700;
  *  stay at or under that, plus a 50-line grace band. Goal: never
  *  let a known offender grow uncontrollably while we plan a split. */
 const KNOWN_OFFENDERS = {
-  "src/app/admin/cohorts/[id]/CohortDetailClient.tsx": 701,
-  "src/app/admin/revenue/RevenueClient.tsx": 850,
-  "src/app/onboarding/OnboardingClient.tsx": 812,
-  "src/app/onboarding/questionnaire/QuestionnaireClient.tsx": 784,
+  "src/app/(app)/admin/cohorts/[id]/CohortDetailClient.tsx": 701,
+  "src/app/(app)/admin/revenue/RevenueClient.tsx": 850,
+  "src/app/(app)/onboarding/OnboardingClient.tsx": 812,
+  "src/app/(app)/onboarding/questionnaire/QuestionnaireClient.tsx": 784,
   "src/components/diagnostic/DiagnosticClient.tsx": 717,
   "src/lib/supabase/queries/quiz.ts": 712,
 };

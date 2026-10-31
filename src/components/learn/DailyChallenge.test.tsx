@@ -5,7 +5,7 @@ import DailyChallenge from "./DailyChallenge";
 import type { StudentQuizQuestion } from "@/types/quiz";
 
 const action = vi.hoisted(() => vi.fn());
-vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: action }));
+vi.mock("@/app/(app)/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: action }));
 
 const question = {
   id: "00000000-0000-4000-8000-000000000001",

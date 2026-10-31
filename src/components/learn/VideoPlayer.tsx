@@ -9,7 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, SkipForward } from "lucide-react";
-import { actionUpdateWatchPercentage } from "@/app/learn/quiz-actions";
+import { actionUpdateWatchPercentage } from "@/app/(app)/learn/quiz-actions";
 import { cn } from "@/lib/utils";
 
 interface Props {

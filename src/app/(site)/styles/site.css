@@ -1,7 +1,18 @@
 /* The Next.js port's own additions to the mock's styles (everything else in this folder is the approved
    mock, scoped under .ks so none of it reaches the student app). */
 .ks { min-height: 100svh; }
-html:has(#ks) { background: #0e0d0c; }
+/* the site has no Tailwind: the few browser defaults its styles were written over */
+html:has(#ks) { background: #0e0d0c; -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html:has(#ks) body { margin: 0; }
+.ks b, .ks strong { font-weight: bolder; }
+.ks ::placeholder { color: #9ca3af; opacity: 1; }
+@media (prefers-reduced-motion: reduce) { html:has(#ks) { scroll-behavior: auto; } }
+/* the inner pages and the legal pages: paper, and a solid header (no film plays on them) */
+.ks.page-inner { background: var(--paper); }
+.ks.page-inner .hd:not(.dim) { color: var(--ink); }
+.ks.page-inner .hd.dim { background: rgba(11,11,11,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.ks.page-inner .hd.dim::before { display: none; }
+.ks.page-inner main { background: var(--paper); }
 /* our drawings are placed through a wrapper that must not add a box of its own */
 .ks .scr-host, .ks .k-icon-wrap, .ks .k-arrow-wrap { display: contents; }
 .ks .k-trap { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }

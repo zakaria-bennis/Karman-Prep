@@ -15,7 +15,7 @@
 /* one pass of warm light across the photo the first time it comes into view */
 .k-photo .fr::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
-  background: linear-gradient(105deg, transparent 38%, rgba(255, 246, 224, .28) 50%, transparent 62%);
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 246, 224, .28) 50%, transparent 62%); /* taste-skill-ignore: a drawn object or a loader, the founder's request */
   background-size: 260% 100%; background-position: 130% 0;
 }
 .k-photo.shine .fr::after { animation: photo-shine 1.8s var(--ease) .25s both; }
@@ -60,4 +60,11 @@
 @media (prefers-reduced-motion: reduce) {
   .k-photo img { transform: none; transition: none; }
   .k-photo.shine .fr::after { animation: none; }
+}
+
+/* tablets: the pricing hero keeps its photo beside the words, so the right half of the first screen is never empty */
+@media (min-width: 701px) and (max-width: 900px) {
+  .p-herogrid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: 24px; align-items: start; }
+  .p-herogrid .k-photo.only-wide { display: grid; order: 2; justify-self: end; width: 100%; margin: 6px calc(-1 * var(--gutter)) 0 0; }
+  .p-herogrid .k-photo.ph-hero .fr { aspect-ratio: 4 / 5; border-radius: var(--r-panel) 0 0 var(--r-panel); height: auto; }
 }

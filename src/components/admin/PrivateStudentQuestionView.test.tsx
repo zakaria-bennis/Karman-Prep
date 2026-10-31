@@ -11,7 +11,7 @@ const actions = vi.hoisted(() => ({
   actionCompleteQuiz: vi.fn(),
   actionFlagQuestion: vi.fn(),
 }));
-vi.mock("@/app/learn/quiz-actions", () => actions);
+vi.mock("@/app/(app)/learn/quiz-actions", () => actions);
 vi.mock("@/lib/sounds", () => ({ playSound: vi.fn() }));
 import PrivateStudentQuestionView from "./PrivateStudentQuestionView";
 

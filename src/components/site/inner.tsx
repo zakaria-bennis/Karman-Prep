@@ -3,6 +3,7 @@
 // statements, the guarantee and the close. Every word comes from site-copy.ts.
 import type { ReactNode } from "react";
 import { list, pairs, section, type CopySection } from "@/lib/marketing/site-copy";
+import "@/app/(site)/styles/inner.css";
 import GuaranteeDeal from "./GuaranteeDeal";
 import { Action, delay, Icon, Kinetic } from "./parts";
 
@@ -32,8 +33,8 @@ function Facts({ f }: { f: CopySection }) {
       className={`i-facts rv ${items.some(([a]) => a.length > 6) ? "words" : ""}`}
       style={delay(0.24)}
     >
-      {items.map(([a, b]) => (
-        <div key={a}>
+      {items.map(([a, b], k) => (
+        <div key={k}>
           <dt>{a}</dt>
           <dd>{b}</dd>
         </div>

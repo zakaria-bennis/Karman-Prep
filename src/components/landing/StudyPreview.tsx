@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { getCatalogSkills, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
-import styles from "./landing.module.css";
+import styles from "./StudyPreview.module.css";
 
 /** Public navigation uses the approved catalogue; question access stays gated. */
 export default function StudyPreview() {

@@ -15,7 +15,7 @@ import {
   actionApplyNodeOverride,
   actionAssignCheckpointRetake,
   actionOverrideCooldown,
-} from "@/app/tutor/actions";
+} from "@/app/(app)/tutor/actions";
 
 const OVERRIDE_STATUSES: OverrideStatus[] = [
   "locked",

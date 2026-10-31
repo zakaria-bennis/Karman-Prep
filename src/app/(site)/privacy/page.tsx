@@ -1,279 +1,297 @@
-// ============================================================
-// Privacy Policy page
-// ============================================================
-
-import Link from "next/link";
+// Privacy Policy. A plain description of what Karman collects, what it is for, who else handles it, and
+// what a family can ask for. The third parties are the services the code actually calls (see
+// src/lib/integrations and the root layout), named one by one. Lines the lawyer still has to settle are
+// marked CONFIRM.
 import SitePage from "@/components/site/SitePage";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
+import { CONTACT, GUARANTEE as G } from "@/lib/marketing/offer";
+
+// CONFIRM: the effective date waits on the lawyer's review of this page.
+const EFFECTIVE = { iso: "2026-10-31", label: "October 31, 2026" } as const;
+// CONFIRM: the notice period before a material change, kept from the previous policy.
+const CHANGE_NOTICE_DAYS = 14;
+// CONFIRM: retention. The page promises deletion on request and keeps payment records as the law requires;
+// the previous policy's "90 days after cancellation" is not carried over because nothing enforces it.
+
+/** The cookie the consent banner writes (src/lib/consent/server.ts). */
+const CONSENT_COOKIE = "karman_replay_consent";
 
 export const metadata = pageMeta(
   ROUTES.privacy,
   "Karman Prep: Privacy Policy",
-  "How Karman collects, uses, and protects your personal information. GDPR and CCPA compliant."
+  "What Karman collects about a student and a parent, what it is for, which services handle it, and what you can ask for. Never used for marketing."
 );
 
-const SECTIONS = [
+type Processor = { name: string; does: string; href: string };
+
+/** Every service that touches personal data, from the code that calls it. */
+const PROCESSORS: Processor[] = [
   {
-    id: "overview",
-    title: "1. Overview",
-    content: `Karman ("we", "us", "our") operates karmanprep.com and the Karman tutoring platform. This Privacy Policy explains what personal information we collect, how we use it, and your rights regarding that information. We are committed to protecting student and family privacy and comply with applicable U.S. privacy laws including CCPA.`,
+    name: "Clerk",
+    does: "Signs you in and stores passwords.",
+    href: "https://clerk.com/legal/privacy",
+  },
+  { name: "Stripe", does: "Takes every payment.", href: "https://stripe.com/privacy" },
+  { name: "Supabase", does: "Holds the database.", href: "https://supabase.com/privacy" },
+  {
+    name: "Cloudflare",
+    does: "Hosts the site and serves every page.",
+    href: "https://www.cloudflare.com/privacypolicy/",
   },
   {
-    id: "what-we-collect",
-    title: "2. Information We Collect",
-    content: null,
-    subsections: [
-      {
-        subtitle: "Account information",
-        items: [
-          "Name and email address (provided at sign-up)",
-          "Password (stored securely and hashed by Clerk — never visible to Karman)",
-          "Role (student, parent, or tutor)",
-          "SAT test date (optional, provided during onboarding)",
-        ],
-      },
-      {
-        subtitle: "Platform activity",
-        items: [
-          "Diagnostic assessment answers and scores",
-          "Practice quiz responses and concept progress",
-          "Session attendance and scheduling history",
-          "Login timestamps and session duration",
-        ],
-      },
-      {
-        subtitle: "Payment information",
-        items: [
-          "Billing details are processed entirely by Stripe. Karman never stores or has access to your full credit card number, CVV, or bank account details.",
-          "We retain: your Stripe customer ID, subscription tier, subscription status, and billing history for account management.",
-        ],
-      },
-      {
-        subtitle: "Communications",
-        items: [
-          "Email address for transactional emails (receipts, session reminders, progress reports)",
-          "Email address for marketing communications (only with your explicit consent)",
-          "Support messages sent to Karman",
-        ],
-      },
-      {
-        subtitle: "Automatically collected data",
-        items: [
-          "Browser type, operating system, and IP address",
-          "Pages visited and features used within the platform",
-          "Error logs (via Sentry) to identify and fix technical issues",
-          "Product analytics (via PostHog) to understand how features are used — no personally identifiable information is included in these analytics reports",
-        ],
-      },
-    ],
+    name: "Resend",
+    does: "Sends Karman's email.",
+    href: "https://resend.com/legal/privacy-policy",
+  },
+  { name: "Sentry", does: "Receives error reports.", href: "https://sentry.io/privacy/" },
+  {
+    name: "Zoom",
+    does: "Runs the live classes, sessions and the free practice test.",
+    href: "https://www.zoom.com/en/trust/privacy/",
+  },
+  { name: "Cal.com", does: "Books sessions and calls.", href: "https://cal.com/privacy" },
+  {
+    name: "Fireflies",
+    does: "Transcribes Private sessions on Zoom.",
+    href: "https://fireflies.ai/privacy-policy",
   },
   {
-    id: "how-we-use",
-    title: "3. How We Use Your Information",
-    content: null,
-    list: [
-      "Create and manage your Karman account",
-      "Personalize your diagnostic results and study path",
-      "Deliver and schedule tutoring sessions",
-      "Send transactional emails (receipts, reminders, progress reports)",
-      "Send marketing emails (only if you opted in — unsubscribe at any time)",
-      "Process payments and manage your subscription via Stripe",
-      "Monitor platform performance and fix technical issues",
-      "Analyze how the platform is used to improve it for all students",
-      "Comply with legal obligations",
-    ],
+    name: "OpenAI",
+    does: "Drafts the tutor's note to parents from a session transcript, and checks chat messages for safety.",
+    href: "https://openai.com/policies/privacy-policy/",
   },
   {
-    id: "third-parties",
-    title: "4. Third-Party Services",
-    content:
-      "We share minimal data with the following trusted third-party services, each bound by their own privacy policies:",
-    table: [
-      {
-        service: "Clerk",
-        purpose: "Authentication — handles sign-in, sign-up, and password security",
-        link: "https://clerk.com/privacy",
-      },
-      {
-        service: "Stripe",
-        purpose: "Payments — processes all subscription billing and payouts",
-        link: "https://stripe.com/privacy",
-      },
-      {
-        service: "Supabase",
-        purpose:
-          "Database — stores account data, progress, and diagnostic results on encrypted servers",
-        link: "https://supabase.com/privacy",
-      },
-      {
-        service: "Resend",
-        purpose: "Email delivery — sends transactional and marketing emails",
-        link: "https://resend.com/legal/privacy-policy",
-      },
-      {
-        service: "Sentry",
-        purpose: "Error monitoring — captures anonymized crash reports to fix platform bugs",
-        link: "https://sentry.io/privacy/",
-      },
-      {
-        service: "PostHog",
-        purpose: "Product analytics — aggregated, non-personally-identifiable usage data",
-        link: "https://posthog.com/privacy",
-      },
-    ],
-  },
-  {
-    id: "data-retention",
-    title: "5. Data Retention",
-    content: null,
-    list: [
-      "Account and progress data is retained for as long as your subscription is active.",
-      "After cancellation, your data is retained for 90 days to allow reactivation, then deleted.",
-      "Payment records are retained for 7 years as required by financial regulations.",
-      "You may request earlier deletion at any time — see Your Rights below.",
-    ],
-  },
-  {
-    id: "your-rights",
-    title: "6. Your Rights",
-    content: "You have the following rights regarding your personal information:",
-    list: [
-      "Access: request a copy of the personal data we hold about you",
-      "Correction: request that we correct inaccurate or incomplete data",
-      "Deletion: request that we delete your personal data (subject to legal retention requirements)",
-      "Portability: request your data in a machine-readable format",
-      "Opt-out of marketing emails: use the unsubscribe link in any email or email privacy@karmanprep.com",
-      "California residents (CCPA): you have the right to know what data we sell (we do not sell personal data) and to opt out of any future sale",
-    ],
-  },
-  {
-    id: "children",
-    title: "7. Children's Privacy",
-    content: `The Karman platform is designed for students age 13 and older. We do not knowingly collect personal information from children under 13. If a parent or guardian believes their child under 13 has created an account, please contact us at privacy@karmanprep.com and we will promptly delete the account. For students between 13–17, we encourage parental involvement and offer parent dashboard accounts.`,
-  },
-  {
-    id: "security",
-    title: "8. Security",
-    content: `We use industry-standard security measures including encrypted data transmission (HTTPS/TLS), encrypted data storage via Supabase, row-level security policies that ensure users can only access their own data, and third-party authentication management via Clerk. No system is 100% secure. If you believe your account has been compromised, contact privacy@karmanprep.com immediately.`,
-  },
-  {
-    id: "changes",
-    title: "9. Changes to This Policy",
-    content: `We may update this Privacy Policy from time to time. We will notify you by email at least 14 days before any material changes take effect. Continued use of the platform after that date constitutes acceptance of the updated policy.`,
-  },
-  {
-    id: "contact",
-    title: "10. Contact",
-    content: `For any privacy-related questions, requests, or concerns, email privacy@karmanprep.com. We respond within 5 business days.`,
+    name: "Slack",
+    does: "Carries the cohort chat. Students never need a Slack account; their messages pass through Slack's servers.",
+    href: "https://slack.com/trust/privacy/privacy-policy",
   },
 ];
+
+function Mail({ to }: { to: string }) {
+  return <a href={`mailto:${to}`}>{to}</a>;
+}
 
 export default function PrivacyPage() {
   return (
     <SitePage kind="inner">
       <article className="legal">
-        {/* Header */}
-        <section>
-          <div>
-            <h1>Privacy Policy</h1>
-            <p>
-              Effective April 2025 · Questions:{" "}
-              <a href="mailto:privacy@karmanprep.com">privacy@karmanprep.com</a>
-            </p>
-          </div>
+        <header>
+          <h1>Privacy Policy</h1>
+          <p>
+            Effective <time dateTime={EFFECTIVE.iso}>{EFFECTIVE.label}</time>. What Karman collects,
+            what it is for, who else handles it, and what you can ask us to do. Student data runs
+            the program. It is never used for marketing.
+          </p>
+        </header>
+
+        <section id="collected">
+          <h2>What Karman collects</h2>
+          <h3>Your account</h3>
+          <p>
+            Name, email address and role: student, parent, tutor or school staff. For a student, the
+            SAT date and the score they are aiming for, when you give them. Clerk stores passwords;
+            Karman never sees them.
+          </p>
+          <h3>Study data</h3>
+          <p>
+            Every answer a student gives and whether it was right. Scores on the diagnostic and on
+            practice tests, and the Karman predicted score. Progress by skill, streaks and rewards.
+            Attendance at live classes and sessions. Messages in the cohort chat and to tutors, and
+            the notes tutors write. For Private sessions, the transcript the tutor uses to write the
+            note to parents.
+          </p>
+          <h3>Score reports</h3>
+          <p>
+            An official SAT or PSAT score report you send Karman, to set the baseline for the
+            guarantee or to claim it, is private student data. Karman uses it for that purpose only,
+            and only the tutor and the Karman staff handling it can see it.
+          </p>
+          <h3>Parent links</h3>
+          <p>
+            A parent account is linked to the student&apos;s. The parent sees progress, attendance,
+            scores and tutor notes, and gets the weekly update. Tutors see the students they teach.
+          </p>
+          <h3>Payments</h3>
+          <p>
+            Stripe takes every payment. Karman keeps your Stripe customer number, what you bought
+            and whether it is paid. It never has your card number.
+          </p>
+          <h3>Requests from the website</h3>
+          <p>
+            When you apply for the SAT Program, book the free practice test or ask to hear about a
+            plan, Karman keeps your email address, the scores you enter and what you asked for.
+          </p>
+          <h3>Email</h3>
+          <p>
+            Resend delivers account email, receipts, reminders and the weekly parent update.
+            Marketing email goes only to people who asked for it, and every one has an unsubscribe
+            link.
+          </p>
+          <h3>Errors and technical data</h3>
+          <p>
+            When something breaks, Sentry receives a report: the page, the error and the browser,
+            with no personal details attached. Session replay, a recording of clicks and page text
+            used to reproduce bugs, is switched off for everyone. If Karman turns it on, it runs
+            only for visitors who clicked Allow on the consent banner; that answer lives in the{" "}
+            {CONSENT_COOKIE} cookie. Cloudflare, which hosts the site, sees your IP address and
+            country. Karman uses the country only to decide whether to show the consent banner.
+          </p>
         </section>
 
-        {/* Table of contents + content */}
-        <div>
-          {/* TOC sidebar */}
-          <aside>
-            <div>
-              <p>Contents</p>
-              <nav>
-                {SECTIONS.map((s) => (
-                  <a key={s.id} href={`#${s.id}`}>
-                    {s.title}
-                  </a>
-                ))}
-              </nav>
+        <section id="purpose">
+          <h2>What it is for</h2>
+          <ul>
+            <li>
+              <span>
+                Running the plan you bought, and showing the student what to practise next.
+              </span>
+            </li>
+            <li>
+              <span>Showing parents and tutors how the student is doing.</span>
+            </li>
+            <li>
+              <span>Letting the tutor write the note to parents after a session.</span>
+            </li>
+            <li>
+              <span>Sending the email you expect: receipts, reminders and updates.</span>
+            </li>
+            <li>
+              <span>Taking payments and deciding guarantee claims.</span>
+            </li>
+            <li>
+              <span>Finding and fixing bugs.</span>
+            </li>
+            <li>
+              <span>Meeting legal obligations.</span>
+            </li>
+          </ul>
+        </section>
+
+        <section id="never">
+          <h2>What Karman never does</h2>
+          <ul>
+            <li>
+              <span>Sell personal information.</span>
+            </li>
+            <li>
+              <span>Use a student&apos;s data for advertising or marketing.</span>
+            </li>
+            <li>
+              <span>Show ads.</span>
+            </li>
+            <li>
+              <span>Share data with anyone not named on this page.</span>
+            </li>
+          </ul>
+        </section>
+
+        <section id="processors">
+          <h2>Who else handles your data</h2>
+          <p>
+            Each of these services does one job for Karman and is bound by its own privacy policy.
+          </p>
+          {PROCESSORS.map((s) => (
+            <div key={s.name}>
+              <h3>{s.name}</h3>
+              <p>
+                {s.does} <a href={s.href}>Privacy policy</a>.
+              </p>
             </div>
-          </aside>
+          ))}
+        </section>
 
-          {/* Content */}
-          <div>
-            {SECTIONS.map((section) => (
-              <section key={section.id} id={section.id}>
-                <h2>{section.title}</h2>
+        <section id="cookies">
+          <h2>Cookies</h2>
+          <p>
+            Karman sets one cookie of its own, {CONSENT_COOKIE}, to remember your answer to the
+            session-recording question. Clerk sets the cookies that keep you signed in, and Stripe
+            sets its own on its checkout page. There are no analytics or advertising cookies, and
+            nothing non-essential is set without asking first. The{" "}
+            <a href={ROUTES.cookies}>Cookie Policy</a> lists each one, and what the site keeps in
+            your browser&apos;s storage.
+          </p>
+        </section>
 
-                {section.content && <p>{section.content}</p>}
+        <section id="retention">
+          <h2>How long Karman keeps it</h2>
+          <p>
+            As long as the account is open. Ask Karman to delete the account and it is deleted, with
+            its study data. Payment records stay as long as tax and accounting law requires.
+          </p>
+        </section>
 
-                {/* Subsections (for What We Collect) */}
-                {"subsections" in section && section.subsections && (
-                  <div>
-                    {section.subsections.map((sub) => (
-                      <div key={sub.subtitle}>
-                        <p>{sub.subtitle}</p>
-                        <ul>
-                          {sub.items.map((item, i) => (
-                            <li key={i}>
-                              <span />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                )}
+        <section id="children">
+          <h2>Children</h2>
+          <p>
+            Karman is for students 13 and older. A student under 18 uses it with a parent or
+            guardian&apos;s permission. If a child under 13 has made an account, email{" "}
+            <Mail to={CONTACT.support} /> and Karman deletes it.
+          </p>
+        </section>
 
-                {/* Simple bullet list */}
-                {"list" in section && section.list && (
-                  <ul>
-                    {section.list.map((item, i) => (
-                      <li key={i}>
-                        <span />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+        <section id="rights">
+          <h2>Your rights, including in California</h2>
+          <p>Anyone can ask Karman to:</p>
+          <ul>
+            <li>
+              <span>Show the data it holds about you or your student.</span>
+            </li>
+            <li>
+              <span>Correct it.</span>
+            </li>
+            <li>
+              <span>Delete it.</span>
+            </li>
+            <li>
+              <span>Send a copy in a file you can use.</span>
+            </li>
+            <li>
+              <span>Stop marketing email.</span>
+            </li>
+          </ul>
+          <p>
+            California residents also have the right to know what is collected and why (this page),
+            the right to know that Karman does not sell or share personal information for
+            advertising, and the right to the same service whether or not they use these rights.
+          </p>
+          <p>
+            To ask, email <Mail to={CONTACT.support} /> from the address on the account. Karman
+            replies to that address to check it is you. A parent can ask on a student&apos;s behalf.
+          </p>
+        </section>
 
-                {/* Third-party table */}
-                {"table" in section && section.table && (
-                  <div>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Service</th>
-                          <th>Purpose</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {section.table.map((row) => (
-                          <tr key={row.service}>
-                            <td>
-                              <a href={row.link} target="_blank" rel="noopener noreferrer">
-                                {row.service}
-                              </a>
-                            </td>
-                            <td>{row.purpose}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
-            ))}
+        <section id="security">
+          <h2>Security</h2>
+          <p>
+            Every page is served over HTTPS. The database is encrypted at rest, and its access rules
+            mean a student sees only their own data, a parent only their linked student, and a tutor
+            only their students. Clerk handles passwords. No system is perfect: if you think an
+            account has been used by someone else, email <Mail to={CONTACT.support} /> at once.
+          </p>
+        </section>
 
-            <div>
-              <Link href="/terms">Terms of Service</Link>
-              <Link href="/refunds">Refund Policy</Link>
-              <Link href="/guarantee">Score Guarantee</Link>
-            </div>
-          </div>
-        </div>
+        <section id="changes">
+          <h2>Changes to this policy</h2>
+          <p>
+            Account holders get an email at least {CHANGE_NOTICE_DAYS} days before a material change
+            takes effect. The date at the top is the version you are reading.
+          </p>
+        </section>
+
+        <section id="contact">
+          <h2>Contact</h2>
+          <p>
+            Privacy requests: <Mail to={CONTACT.support} />. Anything else:{" "}
+            <Mail to={CONTACT.general} />. Guarantee claims and the score reports that go with them:{" "}
+            <Mail to={G.claimEmail} />.
+          </p>
+        </section>
+
+        <p>
+          Read with the <a href={ROUTES.terms}>Terms of Service</a> and the{" "}
+          <a href={ROUTES.cookies}>Cookie Policy</a>.
+        </p>
       </article>
     </SitePage>
   );

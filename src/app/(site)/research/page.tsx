@@ -6,11 +6,12 @@ import { pageMeta } from "@/components/site/meta";
 import { Arrow, delay, Kinetic } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { section } from "@/lib/marketing/site-copy";
+import "../styles/research.css";
 
 export const metadata = pageMeta(
   ROUTES.research,
   "Karman Prep: The research behind our design",
-  "The studies behind the Daily 10, mixed practice, full-length tests with one-on-one reviews, and small classes, with links to read each one."
+  "The studies behind Your Daily 10, mixed practice, full-length tests and small classes, with links to read each one."
 );
 
 /** Each finding's copy key in section 82, and the study it comes from (its DOI, checked 2026-10-26). */

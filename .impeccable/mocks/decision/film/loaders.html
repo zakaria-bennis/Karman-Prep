@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<script>try{var t=localStorage.getItem("karman-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>(function(){var t=null;try{t=localStorage.getItem("karman-theme")}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.dataset.theme=t})()</script>
 <meta name="robots" content="noindex">
 <title>Karman Prep: loaders and messages</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="pages.css">
 <link rel="stylesheet" href="inner.css">
 <link rel="stylesheet" href="alive.css">
-<link rel="icon" href="data:,">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
   .demo { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 18px; margin-top: 40px; }
   .demo article { display: grid; gap: 14px; align-content: start; padding: 26px; border-radius: 26px; background: var(--soft); }

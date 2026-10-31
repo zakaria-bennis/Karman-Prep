@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Flag, Check, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FlaggedQuestion, QuizQuestionWithChoices } from "@/types/quiz";
-import { actionResolveFlag, actionEditFlaggedQuestion } from "@/app/tutor/actions";
+import { actionResolveFlag, actionEditFlaggedQuestion } from "@/app/(app)/tutor/actions";
 
 type Row = FlaggedQuestion & { question: QuizQuestionWithChoices | null };
 

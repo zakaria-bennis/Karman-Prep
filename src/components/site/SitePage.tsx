@@ -2,30 +2,19 @@
 // (ShellBehaviour). Ported from the approved mock's site.js (2026-10-25). Links are plain <a> on purpose:
 // each page is a full load, so the loaders follow the mock's rules exactly.
 import type { ReactNode } from "react";
-import { Anton, Hanken_Grotesk } from "next/font/google";
 import { SITE } from "@/lib/marketing/site-copy";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
 
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-hanken",
-  display: "swap",
-});
+/** Light or dark (design rule 33, founder 2026-10-30): the visitor's remembered choice first; otherwise the
+ *  mode the device is set to, and dark when it states no preference. Runs before anything below it paints,
+ *  so there is no flash. `?type=impact` tries the Impact-style headlines (film.css). */
+const THEME_BOOT = `(function(){var k=document.getElementById("ks");if(!k)return;var m=null;try{m=localStorage.getItem("karman-site-theme")}catch(e){}if(m!=="dark"&&m!=="light"){var l=false;try{l=matchMedia("(prefers-color-scheme: light)").matches}catch(e){}m=l?"light":"dark"}k.dataset.mode=m;try{if(/[?&]type=impact(&|$)/.test(location.search))k.dataset.type="impact"}catch(e){}})();`;
 
-/** The Impact-style headline face, on trial: only pages opened with ?type=impact use it (film.css). */
-const impact = Anton({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-impact",
-  display: "swap",
-  preload: false,
-});
-
-/** Dark is the default (founder, 2026-10-26; design rule 33); the switch to light remembers the visitor's choice. */
-const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m==="dark"||m==="light")document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
+/** The photos fade in once decoded (photos.css), without waiting for hydration: this marks each one ready
+ *  or missing as it arrives. It runs after the page's markup, so every photo is already in the page. */
+const PHOTO_BOOT = `(function(){var k=document.getElementById("ks");if(!k)return;k.querySelectorAll(".k-photo img").forEach(function(i){var f=i.closest(".k-photo");if(!f)return;var d=function(){f.setAttribute(i.naturalWidth?"data-ready":"data-missing","1")};if(i.complete)d();else{i.addEventListener("load",d,{once:true});i.addEventListener("error",d,{once:true})}})})();`;
 
 const SUN = (
   <svg
@@ -111,6 +100,7 @@ const FOOTER: [string, [string, string][]][] = [
     [
       [ROUTES.terms, "terms link"],
       [ROUTES.privacy, "privacy link"],
+      [ROUTES.cookies, "cookies link"],
       [ROUTES.refunds, "refunds link"],
     ],
   ],
@@ -132,12 +122,7 @@ export default function SitePage({
   dock?: [string, string];
 }) {
   return (
-    <div
-      id="ks"
-      className={`ks ${hanken.variable} ${impact.variable} ${kind === "home" ? "" : `page-${kind}`}`}
-      data-mode="dark"
-      suppressHydrationWarning
-    >
+    <div id="ks" className={`ks ${kind === "home" ? "" : `page-${kind}`}`} suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       <a className="skip" href="#main">
         Skip to content
@@ -222,6 +207,7 @@ export default function SitePage({
         </div>
         {stage ? <p className="credit">{SITE.credits}</p> : null}
       </footer>
+      <script dangerouslySetInnerHTML={{ __html: PHOTO_BOOT }} />
       <ShellBehaviour dock={dock ?? [SITE["free test link"], ROUTES.test]} />
     </div>
   );

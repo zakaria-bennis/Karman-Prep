@@ -1,17 +1,23 @@
-/* The inner pages of the mock (2026-10-25): the SAT Program, private tutoring, the free practice test, the
-   guarantee, About and the FAQ. Each page's HTML file sets <body data-page="...">; this file builds its sections
-   from copy.js (sections 21 to 71), the page drawings from art.js and the loaders and messages from kit.js.
-   Prices and dates mirror src/lib/marketing/offer.ts; the real pages must read them from there. */
+/* The inner pages of the mock (2026-10-25, rebuilt 2026-10-31 for the October 30 offer): the SAT Program,
+   private tutoring, the free practice test, the guarantee, About and the FAQ. Each page's HTML file sets
+   <body data-page="...">; this file builds its sections from copy.js (sections 21 to 71), the product screens
+   from screens.js, the page drawings from art.js and the loaders and messages from kit.js. No label sits above
+   a headline; cohort content (the class plan, the cohort chat, the test dates) lives here on the program page.
+   Prices and dates come from the copy lines that state them; the real pages read src/lib/marketing/offer.ts. */
 (function () {
   const K = window.KARMAN,
     KIT = window.KIT;
-  const { M, esc, list, btn, ROUTES, ARROW, site, photo } = K;
+  const { M, esc, list, btn, ROUTES, ARROW, site, photo, phone } = K;
   const pairs = (s) => list(s).map((x) => x.split(" = ").map((y) => y.trim()));
   const page = document.body.dataset.page;
   const main = document.getElementById("main");
+  const SCR = (name) => (window.KARMAN_SCREENS?.[name] || (() => ""))();
+  const laptop = (screen) =>
+    `<figure class="wide laptop" aria-hidden="true"><div class="lid"><div class="lcd">${SCR(screen)}</div></div><div class="deck"></div></figure>`;
+  const twin = (screen, cls = "") =>
+    `<div class="turn twin" aria-hidden="true">${phone(SCR(screen), cls)}</div>`;
 
   /* ---------- section builders ---------- */
-  const eyebrow = (f) => (f.eyebrow ? `<p class="eyebrow rv">${esc(f.eyebrow)}</p>` : "");
   const h2 = (f, id) =>
     f.headline ? `<h2 class="rv"${id ? ` id="${id}"` : ""}>${esc(f.headline)}</h2>` : "";
   const lede = (f, d = 0.08) =>
@@ -29,20 +35,20 @@
           .join("")}</dl>`
       : "";
 
-  // the opening: words on one side, the page's drawing at the outer edge
+  // the opening: words on one side, the page's photo (or its drawing until the photo exists) at the outer edge
   const hero = (n, art, href, side = "") => {
     const f = M(n);
     return `<section class="i-hero" data-light id="s-${n}">
       <div class="in">
-        <div class="i-words">${eyebrow(f)}<h1 class="rv" style="--d:.04s">${esc(f.headline)}</h1>${lede(f)}${action(f, href)}</div>
+        <div class="i-words"><h1 class="rv" style="--d:.04s">${esc(f.headline)}</h1>${lede(f)}${action(f, href)}</div>
         <div class="i-art rv" style="--d:.2s" data-art="${art}"></div>
         ${side}
       </div>
       ${facts(f)}
     </section>`;
   };
-  // label = text pairs, as a grid, as steps joined by a line, or as a timeline
-  const rows = (n, style = "grid", tone = "") => {
+  // label = text pairs, as a grid, as steps joined by a line, or as a timeline; media (product screens) sit under them
+  const rows = (n, style = "grid", media = "") => {
     const f = M(n);
     const items = pairs(f.rows);
     const body =
@@ -51,15 +57,16 @@
         : style === "time"
           ? `<ol class="i-time">${items.map(([a, b], k) => `<li class="rv${k === items.length - 1 ? " last" : ""}" style="--d:${k * 0.06}s"><b>${esc(a)}</b><span>${esc(b || "")}</span></li>`).join("")}</ol>`
           : `<dl class="i-grid">${items.map(([a, b], k) => `<div class="rv" style="--d:${k * 0.05}s"><dt>${esc(a)}</dt><dd>${esc(b || "")}</dd></div>`).join("")}</dl>`;
-    return `<section class="i-sec ${tone}${style === "steps" ? "" : " rows"}" ${tone === "dark" ? "" : "data-light"} id="s-${n}"><div class="in">
+    return `<section class="i-sec rows${media ? " with-media" : ""}" data-light id="s-${n}"><div class="in">
       <div class="i-head">${h2(f)}${lede(f)}</div>${body}${f.button ? action(f, ROUTES.program) : ""}
+      ${media ? `<div class="i-media rv" style="--d:.1s">${media}</div>` : ""}
     </div></section>`;
   };
   const textCard = (n) => {
     const f = M(n);
     return `<section class="i-sec" data-light id="s-${n}"><div class="in i-split">
       <div class="i-head">${h2(f)}${lede(f)}${f.proof ? `<p class="i-proof rv">${esc(f.proof)}</p>` : ""}</div>
-      ${f["card title"] ? `<aside class="i-card rv" style="--d:.12s">${KIT.icon("plus")}<b>${esc(f["card title"])}</b><p>${esc(f["card text"] || "")}</p></aside>` : ""}
+      ${f["card title"] ? `<aside class="i-card rv" style="--d:.12s"><b>${esc(f["card title"])}</b><p>${esc(f["card text"] || "")}</p></aside>` : ""}
     </div></section>`;
   };
   // a list of plain statements; "no" marks things we refuse
@@ -80,7 +87,21 @@
   const close = (n, href = ROUTES.test) => {
     const f = M(n);
     return `<section class="i-close" id="s-${n}"><div class="in">
-      ${h2(f)}${lede(f)}${f.objection ? `<p class="i-obj rv">${esc(f.objection)}</p>` : ""}${f["form button"] ? "" : action(f, href)}
+      ${h2(f)}${lede(f)}${f["honest note"] ? `<p class="i-obj rv">${esc(f["honest note"])}</p>` : ""}${f["form button"] ? "" : action(f, href)}
+    </div></section>`;
+  };
+  // the test dates (copy section 28): the next SAT as a card, on black, the way the home page once showed it
+  const dates = (n) => {
+    const f = M(n);
+    if (!f["card date"]) return "";
+    return `<section class="i-dates" id="s-${n}"><div class="in">
+      ${h2(f)}
+      <div class="datecard rv" style="--d:.15s">
+        <p class="d">${esc(f["card date"])}</p>
+        ${f["card intro"] ? `<p class="i">${esc(f["card intro"])}</p>` : ""}
+        ${f["card later"] ? `<p class="l">${esc(f["card later"])}</p>` : ""}
+        ${f["card link"] ? `<a class="lk" href="#guarantee">${esc(f["card link"])}${ARROW}</a>` : ""}
+      </div>
     </div></section>`;
   };
 
@@ -137,8 +158,12 @@
   const PAGES = {
     program: () =>
       hero(21, "weeks", "#apply", photo("program", "ph-hero")) +
-      rows(22) +
-      rows(23, "time") +
+      rows(
+        22,
+        "grid",
+        `${laptop("calendar")}${twin("calendarPhone")}<div class="turn" aria-hidden="true">${phone(SCR("chat"), "left")}</div>`
+      ) +
+      rows(23, "time", `${laptop("classPlan")}${twin("classPlanPhone")}`) +
       textCard(24) +
       guarantee() +
       rows(25, "steps").replace(
@@ -147,16 +172,24 @@
       ) +
       `<section class="i-sec" data-light id="s-26"><div class="in i-split">
         <div class="i-head">${h2(M(26))}${lede(M(26))}</div>
-        <div class="i-more rv"><a class="lk" href="${ROUTES.pricing}">${esc(site["pricing link"])}${ARROW}</a></div>
+        <div class="i-more rv"><a class="ghost" href="${ROUTES.pricing}"><span class="lb">${esc(site["pricing link"])}</span>${ARROW}</a></div>
       </div></section>` +
-      textCard(27),
+      textCard(27) +
+      dates(28),
 
     private: () => {
       const f = M(33);
+      const g = M(8);
+      // "Private 20 = 20 hours, $2,495. Carries the guarantee ..." splits into the name, the hours, the price and the rest
       const pack = (s, hot) => {
-        const [name, rest] = s.split(" = ");
-        const [hours, price, ...more] = rest.split(", ");
-        return `<article class="i-pack rv${hot ? " hot" : ""}"><h3>${esc(name)}</h3><p class="i-price"><b>${esc(price.split(".")[0])}</b><span>${esc(hours)}</span></p><p>${esc((price.split(".").slice(1).join(".") + " " + more.join(", ")).trim())}</p></article>`;
+        const [name, rest = ""] = s.split(" = ");
+        const [hours = "", ...more] = rest.split(", ");
+        const priceAndRest = more.join(", ");
+        const price = priceAndRest.split(".")[0];
+        const note = priceAndRest.split(".").slice(1).join(".").trim();
+        return `<article class="i-pack rv${hot ? " hot" : ""}"><h3>${esc(name)}</h3><p class="i-price"><b>${esc(price)}</b><span>${esc(hours)}</span></p>
+          ${hot && g.promise ? `<a class="i-badge" href="${ROUTES.guarantee}"><b>${esc(g.promise)}</b><span>${esc(site["guarantee link"] || "")}${ARROW}</span></a>` : ""}
+          <p>${esc(note)}</p></article>`;
       };
       const rec = M(34);
       return (
@@ -165,7 +198,7 @@
         `<section class="i-sec" data-light id="s-33"><div class="in">
           <div class="i-head">${h2(f)}</div>
           <div class="i-packs">${pack(f["small package"])}${pack(f["large package"], true)}</div>
-          <ul class="i-list check inline">${list(f.includes)
+          <ul class="i-list check">${list(f.includes)
             .map((x) => `<li class="rv"><i class="mk"></i><span>${esc(x)}</span></li>`)
             .join("")}</ul>
         </div></section>` +
@@ -204,22 +237,25 @@
         guarantee() +
         `<section class="i-sec" data-light id="s-52"><div class="in">
           <div class="i-split i-withphoto"><div class="i-head">${h2(M(52))}${lede(M(52))}</div>${photo("guarantee", "ph-side")}</div>
-          <div class="i-ex">${ex
+          <dl class="i-ex">${ex
             .map(([a, b], k) => {
               const [base, sat] = a.split(", ");
-              return `<div class="rv" style="--d:${k * 0.06}s"><p class="sc"><span>${esc(base)}</span>${KIT.icon("plus", "arrow")}<span>${esc(sat)}</span></p><p class="out">${esc(b)}</p></div>`;
+              return `<div class="rv" style="--d:${k * 0.06}s"><dt><span>${esc(base)}</span>${ARROW}<span>${esc(sat || "")}</span></dt><dd>${esc(b || "")}</dd></div>`;
             })
-            .join("")}</div>
+            .join("")}</dl>
         </div></section>` +
         statements(53, "no") +
-        rows(54) +
+        rows(
+          54,
+          "grid",
+          `<div class="turn" aria-hidden="true">${phone(SCR("parent"))}</div><div class="turn" aria-hidden="true">${phone(SCR("test"), "left")}</div>`
+        ) +
         close(55)
       );
     },
 
     about: () => {
       const f = M(62);
-      const icons = ["hours", "eye", "parent"];
       return (
         hero(61, "line", ROUTES.program) +
         `<section class="i-sec" data-light id="s-62"><div class="in">
@@ -227,7 +263,7 @@
           <div class="i-refuse">${pairs(f.rows)
             .map(
               ([a, b], k) =>
-                `<article class="rv" style="--d:${k * 0.08}s">${KIT.icon(icons[k] || "check")}<h3>${esc(a)}</h3><p>${esc(b)}</p></article>`
+                `<article class="rv" style="--d:${k * 0.08}s"><h3>${esc(a)}</h3><p>${esc(b || "")}</p></article>`
             )
             .join("")}</div>
         </div></section>` +
@@ -240,7 +276,7 @@
     faq: () => {
       const f = M(71);
       return (
-        `<section class="i-hero i-faqhero" data-light id="s-71"><div class="in"><div class="i-words">${eyebrow(f)}<h1 class="rv">${esc(f.headline)}</h1></div></div></section>
+        `<section class="i-hero i-faqhero" data-light id="s-71"><div class="in"><div class="i-words"><h1 class="rv">${esc(f.headline)}</h1></div></div></section>
         <section class="i-sec" data-light><div class="in">
           <div class="i-faq">${pairs(f.qa)
             .map(

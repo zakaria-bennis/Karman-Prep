@@ -12,7 +12,7 @@ import {
   actionDeleteQuestion,
   actionReorderQuestions,
   actionUpdateQuestionDifficulty,
-} from "@/app/admin/actions";
+} from "@/app/(app)/admin/actions";
 import { cn } from "@/lib/utils";
 import type { Subject } from "@/data/curriculum";
 import { QuestionCard } from "./question-editor/QuestionCard";

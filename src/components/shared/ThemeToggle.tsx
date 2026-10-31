@@ -12,24 +12,15 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   // Server-rendered buttons must not accept clicks before React attaches the handler.
   // This waits for this control to hydrate, independently of Clerk loading.
   useEffect(() => setReady(true), []);
-  // Shells and public navigation provide an in-flow control, clear of content.
-  const portalHasThemeControl =
-    ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn"].some(
-      (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
-    ) ||
-    [
-      "/",
-      "/free-diagnostic",
-      "/plans",
-      "/questions",
-      "/about",
-      "/faq",
-      "/blog",
-      "/privacy",
-      "/terms",
-      "/refunds",
-      "/guarantee",
-    ].includes(pathname ?? "");
+  // The portals draw their own theme control in their shell, clear of content. The marketing pages have
+  // their own root (src/app/(site)) and never render this one.
+  const portalHasThemeControl = [
+    "/dashboard/student",
+    "/dashboard/parent",
+    "/tutor",
+    "/admin",
+    "/learn",
+  ].some((prefix) => pathname === prefix || pathname?.startsWith(prefix + "/"));
   if (floating && portalHasThemeControl) return null;
   return (
     <button

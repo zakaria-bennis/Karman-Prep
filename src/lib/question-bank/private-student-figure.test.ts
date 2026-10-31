@@ -36,7 +36,7 @@ vi.mock("@/lib/supabase/server", () => ({
     return { from: () => query };
   },
 }));
-import { GET } from "@/app/admin/questions/student-view/[id]/figure/[sha256]/route";
+import { GET } from "@/app/(app)/admin/questions/student-view/[id]/figure/[sha256]/route";
 import { withPrivateStudentFigure } from "./private-student-figure";
 import {
   PRIVATE_Q283_QUESTION_ID,

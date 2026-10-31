@@ -13,7 +13,7 @@ import { section } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.test,
   "Karman Prep: Free practice test",
-  `A free, live-proctored SAT practice test on Zoom, ${FT.dateLabel.replace(/, \d{4}$/, "")}: ${FT.questionCount} Karman questions, an estimated score range, a domain breakdown and a ${FT.callMinutes}-minute results call.`
+  `A free, live-proctored SAT practice test on Zoom, ${FT.dateLabel.replace(/, \d{4}$/, "")}: ${FT.questionCount} Karman questions, then ${FT.includes.map((x) => x.charAt(0).toLowerCase() + x.slice(1)).join(", ")}.`
 );
 
 /** "10:00 a.m. ET" on the test day, as an ISO time in New York's offset that day (EST in December). */

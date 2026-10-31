@@ -9,7 +9,7 @@ import Image from "next/image";
 import { Save, Eye, Edit3, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TextbookContent from "@/components/learn/TextbookContent";
-import { actionSaveTextbook } from "@/app/admin/actions";
+import { actionSaveTextbook } from "@/app/(app)/admin/actions";
 
 interface Props {
   nodeId: string;
