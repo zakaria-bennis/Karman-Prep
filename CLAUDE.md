@@ -45,6 +45,11 @@ Only the cohort and Private carry the guarantee.
   them with Karman's tokens, and credit the component id in a comment.
   Everything else (icons, drawings, loaders, illustrations) is custom-made for
   Karman.
+- **Photos and film are generated** through `scripts/generate-assets.mjs`
+  (`docs/design/generation-models.md`). The founder approves every shot before
+  money is spent.
+- **Website copy is written with the conversion-copywriter skill** and lives in
+  the mock's `copy.js`, which the founder edits himself.
 - **Every screen works on phone, iPad and desktop**, with no sideways scroll.
 - **Light and dark mode follow the visitor's device**, with dark when it states
   no preference (rule 33).

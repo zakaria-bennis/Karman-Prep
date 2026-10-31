@@ -88,31 +88,105 @@ unlockable parts. The founder wants few, clear choices.
 
 Other design and brand docs in the repo predate these and don't apply.
 
-## How design works on this project
+## How the design gets made
 
-**The founder leads.** You may propose tweaks, ideas and alternatives, and
-you should. But nothing visual is final until he approves it on a screen. When
-a decision is genuinely open, build two or three versions side by side and let
-him pick. Don't ask him to judge from a description.
+Work in this order for the website, and again for each portal.
 
-**21st.dev is the component source.** The founder pays for 21st.dev so that
-these portals are built from its components, not generic ones.
+1. **Read the rules.** These are `docs/design-rules.md` (which wins over
+   everything) and `docs/design/site-design-principles.md`, sections 1 to 13.
+2. **Study what exists.** For the website, that's the current mock. For the
+   app, it's the Daily 10 end screen in `prototypes/daily10-end/`. Screenshot
+   them on phone, iPad and desktop before changing anything.
+3. **Set the direction with the founder.** Where a decision is genuinely open,
+   build two or three versions side by side as working screens and let him
+   pick. Don't ask him to judge from a description. Use the impeccable and
+   taste-skill skills to shape and critique the options.
+4. **Build the design system once.** That means the tokens, type, colour in
+   both modes, motion, icons, and components ported from 21st.dev. Every page
+   and portal uses it.
+5. **Make the assets.** Draw icons, illustrations and loaders in code. Use
+   Hairline figures for rounded geometric objects. For anything recognisable,
+   like a person or a device, draw an illustration in code. Photos and film
+   come from the generation tools, after the founder approves each shot.
+6. **Write the words** with the copy method below. The founder edits the
+   website copy himself.
+7. **Make it feel alive.** Put motion where the eye should go: a shimmer on
+   the next step, kinetic type, moving images. Never add hover animation on
+   everything, and keep everything still under reduced motion.
+8. **Check your own work before he sees it:**
+   - screenshots at three sizes, in both modes
+   - the rules run as a checklist
+   - contrast calculated, not eyeballed
+   - every button and link clicked
+   - a review pass with the web-design-guidelines and impeccable skills
+9. **Show him, iterate until he approves,** then build it into the app.
 
-- The 21st.dev MCP is configured for this project. If its tools don't load,
-  reach it with JSON-RPC over curl using the key in `~/.claude.json`. Never
-  print, log or commit the key.
-- The plan allows unlimited component retrievals, but AI generation is off.
-  So search, fetch the code, and port it yourself.
-- For every meaningful surface (numbers that count up, celebrations and
-  confetti, progress, cards, sheets, segmented controls, lists, empty states,
-  charts, navigation), search 21st.dev first and pick the strongest fit.
+**The founder leads.** Propose freely, and you should, but nothing visual is
+final until he approves it on a screen.
+
+## Your tools: use all of them
+
+**21st.dev, for components.** The founder bought it so Karman is built from
+its components, not generic ones.
+
+- The `21st` MCP server is configured for this project. If its tools don't
+  load, reach it with JSON-RPC over curl using the key in `~/.claude.json`.
+  Never print, log or commit the key.
+- Retrievals are unlimited, but AI generation is off. Search, fetch the code,
+  and port it yourself.
+- **Search 21st.dev first for every meaningful surface.** That includes heroes,
+  pricing, numbers that count up, celebrations and confetti, progress, cards,
+  sheets, segmented controls, lists, empty states, charts and navigation. Pick
+  the strongest fit.
 - Recolour every component with Karman's tokens. Swap any Lucide icon for a
   custom Karman icon (rule 52).
-- Credit the component id in a comment, and keep a list in
+- Credit the component id in a comment, and keep the list in
   `prototypes/portals/21st-components.md`.
+- The 21st.dev layer must be obvious. If a screen looks like any other
+  dashboard or landing page, it isn't done.
 
-The founder has said the 21st.dev layer must be obvious. If a screen looks
-like any other dashboard, it isn't done.
+**Image and video generation.** The keys are in `.env.local`. Never print
+them.
+
+| Key                     | Service     | What it makes                                    |
+| ----------------------- | ----------- | ------------------------------------------------ |
+| `ATLAS_API_KEY`         | Atlas Cloud | Seedance (people scenes) and Wan (scenery) video |
+| `GEMINI_API_KEY`        | Google      | Veo video and Nano Banana images                 |
+| `OPENAI_IMAGES_API_KEY` | OpenAI      | GPT Image                                        |
+| `FAL_KEY`               | fal         | Ideogram and FLUX images                         |
+
+How to use them:
+
+- Run everything through `scripts/generate-assets.mjs`. It reads each prompt
+  from `assets/manifest.json`. `docs/design/generation-models.md` has the
+  models, prices and commands.
+- A shot runs only when the manifest marks it approved. The founder approves
+  every prompt and still before money is spent.
+- Draft video at 480p, and finish only approved drafts at 1080p.
+- Keep each run under the script's budget ($10 unless he says otherwise).
+  Every charge is logged in `assets/spend-log.csv`.
+- Pictures follow rules 41 to 48. People come first (students of 16 and 17),
+  focused, on phones and laptops, with no physical calculators. Generate every
+  screen blank, then place a real, approved Karman screen on it. Never let a
+  model invent screen text.
+
+**Skills installed for this work:**
+
+| Skill                           | Use it for                                                                        |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| impeccable                      | Shaping, critiquing, polishing and auditing every interface                       |
+| taste-skill                     | Art direction and avoiding generic-looking pages, for the website and app screens |
+| apple-design                    | Fluid motion: springs, gestures, sheets and interruptible transitions             |
+| web-design-guidelines           | Reviewing UI for accessibility and interface standards                            |
+| hairline-create, hairline-adopt | Isometric line figures for rounded geometric objects                              |
+| onetake                         | Short product motion clips built from the real UI                                 |
+| conversion-copywriter           | Writing the website copy                                                          |
+
+**Sound:** the earshot MCP server checks any sound you add. The end screen's
+sound rules are in the `prototypes/daily10-end/` README.
+
+**Browser:** check every page in a real browser at phone, iPad and desktop
+sizes before showing it.
 
 **The app look (rules 49 to 58):**
 
@@ -149,9 +223,7 @@ like any other dashboard, it isn't done.
 - No em dashes, no emoji, no fake numbers presented as real, no testimonials.
 - The Karman predicted score is one number, never a range, and never shown
   after a Daily 10 (see the student dashboard).
-- Every asset is custom: icons, drawings, loaders, illustrations. Where a
-  drawing is needed, use the hairline-create skill.
-- Use the apple-design and impeccable skills for direction and review.
+- Every asset is custom: icons, drawings, loaders, illustrations.
 
 ## The website
 
@@ -182,6 +254,61 @@ before and after for anything significant.
 
 Polish the website first (Phase 1 and 2 below apply to it too), so the
 portals can borrow its finished type, colour and motion.
+
+## Copy
+
+**Who writes it.** You write the website copy with the conversion-copywriter
+skill. It won't write until it has facts, it builds each section around a real
+problem the parent has, and it offers alternates for every headline. The
+founder reviews the copy and has the final word.
+
+- The facts come only from `src/lib/marketing/offer.ts`, the plan ladder and
+  the track record.
+- Website copy lives in `copy.js` in the mock folder. The founder edits it
+  with `npm run copy` (see `EDIT-COPY.md`). Keep that file the single place the
+  words live.
+- The last copy run and its reasoning are in `docs/copy/copy-run/`. Use them as
+  a starting point, not as fact: prices, the cohort and scores have changed
+  since.
+
+**The founder's copy rules.** The full list is in `docs/design-rules.md`. The
+ones he notices most:
+
+- **Talk to the parent, the buyer, as Karman the company.** Never use the
+  first person. Name Zakaria only on the About page.
+- **Headlines.**
+  - Write specific headlines, with one idea per section and one to three
+    points.
+  - Put the proof next to the claim.
+  - Give every button a clear verb and outcome.
+- **The header test.** If the header says it alone, there's no subheader. A
+  subheader explains only what the header leaves out.
+- **No filler.** No captions that add nothing, no eyebrow lines with a
+  decorative tick, and no generic openers.
+- **No em dashes, no emoji, and no numbered list markers** (01, 02, 03).
+- **No sentence formulas.** No "it's not X, it's Y". No two-beat antithesis
+  like "Less X. More Y." No aphorisms.
+- **Nothing made up.** No invented numbers, and no testimonials until real
+  ones exist. Tutoring results always say "Karman 1:1 tutoring, median 16
+  weeks".
+- **What goes where on the site.**
+  - The home page shows only what every student shares: Your Daily 10, the
+    tutors, the calendar and tools, and the guarantee.
+  - Cohort content goes on the program page, and 1:1 content on the private
+    page. Never sell plan by plan on the home page.
+  - The free practice test is the site's main call to action. It's never a
+    pricing card or a tier.
+  - Show the open-seats graphic only when 1 or 2 seats are left.
+  - Don't lead with "every program ends on your SAT date".
+
+**App copy.**
+
+- Rows say what they are. Add a second line only for a date, due time or
+  state (rule 51).
+- Use the product names from rule 53: "Your Daily 10", "Challenge question",
+  "Full-length review session" and "Wordline".
+- Portal welcome lines are drafted in `docs/design/portal-welcomes.md`, for the
+  founder to review.
 
 ## What each portal must do
 
