@@ -2,10 +2,19 @@
 
 Research note, 2026-10-30. Read-only research: no code, import tool, live question or database was changed.
 
+## Founder decisions (2026-10-30)
+
+These decisions were made after the first draft. Where they differ from the original recommendations below, the text has been updated to match.
+
+1. **One predicted score, not a range.** Students see a single "Karman predicted score", calculated from their performance. Karman collects as much data as possible to make it accurate. Internally, Karman checks it against students' reported real scores and records the typical error. This replaces the earlier advice to show labeled ranges. Note: `CLAUDE.md` and the site copy rules still say score estimates are shown only as labeled ranges, so they need a separate update to match this decision.
+2. **Unscored tryout questions are not announced.** Full-length tests will contain unscored tryout questions, and students will not be told.
+3. **Real scores are collected at onboarding.** Students give their real SAT and PSAT scores during onboarding, with an optional photo of the score report that is read automatically (image reading tool to be confirmed).
+4. **Endless mode starts at about 75% success.** The target is tuned from data later.
+
 Rules that apply to everything below:
 
 - Karman questions and answer keys are never called official. Everything Karman builds here is a Karman estimate.
-- Score estimates are only ever shown as labeled ranges, never as a single number.
+- The predicted score is always labeled as a Karman predicted score, never as an official or College Board score (see founder decision 1).
 - Facts from College Board are marked **[CB]** with the source. Facts from other published research are marked **[research]**. Anything that comes from a third party, or that this note works out by reasoning, is marked **[unofficial]** or **[inferred]**.
 
 ## Short summary
@@ -18,7 +27,7 @@ Rules that apply to everything below:
 6. **Even the real SAT is only precise to about plus or minus 30 points on the total.** College Board's own simulations show a typical error of about 20 scale points per section. That means no prediction, by anyone, can honestly be tighter than roughly plus or minus 30 points on the 1600 scale. [CB, Technical Manual Table 6.2; inferred total]
 7. **Karman's 1 to 7 difficulty is an editorial rating, not a measurement.** Karman's own import contract says so. No source easy/medium/hard labels are stored for any live question, and the 1 to 7 ratings lean easy: about 79% of live questions are rated 1 to 3 and under 7% are rated 5 to 7. A real Bluebook-style "harder module 2" needs far more hard questions than the ratings suggest Karman has.
 8. **Karman can copy College Board's method honestly.** The path is: start with the editorial 1 to 7 ratings as a first guess, let student answers correct them question by question, and later link Karman's ability scale to real SAT scores reported by Karman students. The unscored pretest slot idea can be copied directly to try out Karman's own original questions.
-9. **The biggest gap is data recording, not math.** Karman needs to start saving, for every answer: which question version was shown, in which mode, at what position, whether it was the student's first try, time spent, and whether help was used. Karman also needs to collect students' real SAT scores. Without those, calibration and honest score ranges are not possible later.
+9. **The biggest gap is data recording, not math.** Karman needs to start saving, for every answer: which question version was shown, in which mode, at what position, whether it was the student's first try, time spent, and whether help was used. Karman also needs to collect students' real SAT scores. Without those, calibration and an accurate predicted score are not possible later.
 
 ---
 
@@ -143,7 +152,7 @@ College Board marks every answer right or wrong (typed answers are cleaned first
 
 - College Board says a student's score on one of its full-length practice tests is "highly indicative" of the real score, especially within a couple of weeks of the SAT and under the same time limits. It does not publish an error figure for this. [CB, help center]
 - A College Board study of Bluebook practice found students who finished 1, 2 or 3 or more full-length practice tests scored about 25, 45 and 60 points higher than similar students who did none. This shows a link with higher scores, not prediction accuracy. [CB research, May 2025]
-- **What this means for Karman [inferred]:** even a perfect copy of the SAT, using real College Board questions, would still miss an individual's real score by around 30 points on a typical day. Karman's prediction adds its own errors on top: its questions are not College Board's, its scale is only linked to the SAT indirectly, the student keeps learning between the practice test and test day, and practice conditions are not test-day conditions. A realistic honest range is therefore wider than 60 points at first and narrows only as Karman collects real SAT outcomes.
+- **What this means for Karman [inferred]:** even a perfect copy of the SAT, using real College Board questions, would still miss an individual's real score by around 30 points on a typical day. Karman's prediction adds its own errors on top: its questions are not College Board's, its scale is only linked to the SAT indirectly, the student keeps learning between the practice test and test day, and practice conditions are not test-day conditions. So Karman's typical error will start well above the SAT's own 30 points and shrinks only as Karman collects real SAT outcomes.
 
 ---
 
@@ -199,13 +208,13 @@ Use **one ability per section** (Reading and Writing, Math), as College Board do
 
 **Quality checks to copy from College Board [CB, Technical Manual 6.4]:** flag questions where over 90% or under 20% get it right, where stronger students are not more likely to get it right (discrimination below 0.20), or where a wrong choice attracts stronger students. These also catch wrong answer keys, which matters because 16% of live questions use generated keys. Later, with enough students, check that questions behave the same across student groups.
 
-**Linking to the real SAT scale.** Karman's ability scale means nothing to a student until it is tied to SAT scores. College Board did this with 18,513 students who took both versions. [CB] Karman's version: ask students to report real SAT and PSAT scores (with score report upload where possible) and the test date, then link Karman ability to those scores. A few hundred matched students gives a rough link, and over a thousand gives a stable one (Kolen and Brennan's rules of thumb for linking). [research] Until then, any score shown must be labeled as an early estimate with a wide range.
+**Linking to the real SAT scale.** Karman's ability scale means nothing to a student until it is tied to SAT scores. College Board did this with 18,513 students who took both versions. [CB] Karman's version: collect real SAT and PSAT scores and test dates at onboarding (with an optional score report photo, read automatically by an image reading tool still to be confirmed), then link Karman ability to those scores. A few hundred matched students gives a rough link, and over a thousand gives a stable one (Kolen and Brennan's rules of thumb for linking). [research] Until then, the predicted score rests on the provisional link and its typical error will be large; Karman tracks that error internally.
 
 ### 4.2 Bluebook-style adaptive full-length tests
 
 **Copy the structure exactly** (Part 2): 2 sections, 2 modules each, 27 and 22 questions, 32 and 35 minutes, module locking, flag and review inside a module only, a break between sections, the same ordering rules, all four domains in every module, and the same domain shares per test. [CB]
 
-**Use the 2 extra slots per module for Karman's own tryout questions.** This is the honest version of College Board's pretesting. Students are told in the test directions that a few questions are unscored tryout questions, as College Board does. Put the same tryout questions in both versions of module 2, never in the first or last two positions. This is how Karman originals get calibrated before they are used for scoring.
+**Use the 2 extra slots per module for Karman's own tryout questions.** This copies College Board's pretesting. By founder decision, students are not told which questions, or that any questions, are unscored tryouts. Put the same tryout questions in both versions of module 2, never in the first or last two positions. This is how Karman originals get calibrated before they are used for scoring.
 
 **Build fixed panels, not a live algorithm, at first.** Each Karman practice test is one panel per section: a module 1 plus a harder and an easier module 2. That is 81 Reading and Writing plus 66 Math questions, 147 in total per test. Assemble each panel against the domain blueprint, aim module 1 at a broad mix, the harder module 2 skewed hard and the easier one skewed easy, with all three levels in both. College Board does not publish the mix. A reasonable starting assumption is about a third each in module 1, and about 50% hard, 35% medium and 15% easy in the harder module 2 (mirrored for the easier one). [inferred; adjust from data]
 
@@ -218,13 +227,13 @@ Use **one ability per section** (Reading and Writing, Math), as College Board do
 1. Before calibration: route on the number right in module 1's scored questions, with the cut set from the ratings so that a typical Karman student is near it, then reset to the median of real Karman students once there are a few hundred. [inferred]
 2. After calibration: route the way College Board does, with the ability estimate from module 1 only, cut at the median. [CB]
 
-**Scoring:** after calibration, use pattern scoring (maximum likelihood ability across both modules), then a Karman conversion table linked to real SAT outcomes. Before that, report only a wide, clearly labeled range.
+**Scoring:** after calibration, use pattern scoring (maximum likelihood ability across both modules), then a Karman conversion table linked to real SAT outcomes. Before that, the predicted score uses the provisional link, and Karman tracks its error internally.
 
 **Before publishing any panel, simulate it,** as College Board does: generate thousands of simulated students across the score range and check routing accuracy, score precision, and that no scores are impossible to reach. [CB, Technical Manual 6.5.1]
 
 ### 4.3 Endless mode (adaptive practice)
 
-The goal of practice is different from the goal of a test. A test picks questions to **measure**, so it aims near 50% success. Practice picks questions to **teach and motivate**, so it should aim higher. Research on learning suggests success rates somewhere around 70 to 85%, for example Wilson et al.'s "85% rule," and Math Garden studies tested different target success rates. [research] Karman should pick a target, for example 75%, and tune it from data.
+The goal of practice is different from the goal of a test. A test picks questions to **measure**, so it aims near 50% success. Practice picks questions to **teach and motivate**, so it should aim higher. Research on learning suggests success rates somewhere around 70 to 85%, for example Wilson et al.'s "85% rule," and Math Garden studies tested different target success rates. [research] Karman starts at about 75% (founder decision) and tunes it from data.
 
 **What the picker knows about the student:**
 
@@ -238,7 +247,7 @@ The goal of practice is different from the goal of a test. A test picks question
 
 **How the next question is chosen [inferred design]:** for every eligible question, score it on four things and take the best, with a little randomness so sessions do not feel scripted:
 
-1. How close the student's predicted chance of success is to the target (for example 75%).
+1. How close the student's predicted chance of success is to the target (about 75% to start).
 2. How much the question's skill needs work (weak skills and SAT weight).
 3. Whether it is due for review, or new.
 4. Variety (not the same skill or passage type over and over).
@@ -251,27 +260,28 @@ The goal of practice is different from the goal of a test. A test picks question
 
 **What feeds it:** most weight on recent Karman full-length tests, then recent timed practice, then everything else, with older evidence fading.
 
-**How it is shown:** always a labeled range, for example "Karman estimate if you tested today: 1,240 to 1,320. Not an official College Board score." Never a single number, never framed as a guarantee. This matches the site rules in `CLAUDE.md`.
+**How it is shown (founder decision):** one number, labeled "Karman predicted score", for example "Karman predicted score if you tested today: 1,280". It is never called an official or College Board score and never framed as a guarantee.
 
-**How wide [inferred, a proposal to agree with the founder]:**
+**How its accuracy is kept honest (internal, not shown to students):**
 
-- **Never narrower than about plus or minus 30 points on the total**, since that is the real SAT's own precision.
-- Early on (before Karman has linked to real SAT outcomes), much wider, for example plus or minus 80 to 100 points, and say so.
-- Set the width so that about 4 in 5 real SAT scores land inside the shown range. Then **check it**: every time a student reports a real score, record whether it fell inside. If fewer than 4 in 5 do, widen the ranges. This is the honest test of "as close to the real SAT as possible."
+- Every time a student reports a real SAT score, record the gap between the predicted score and the real one, and the time between them.
+- Track the typical error (for example the average gap and the gap that 4 in 5 students fall within), overall and by score level, and review it on a schedule.
+- Expect the typical error never to fall below about 30 points on the total, since that is the real SAT's own precision. Early on, before Karman has linked to real SAT outcomes, expect it to be much larger, for example 80 to 100 points.
+- If the predicted score is biased (for example consistently too high), recalibrate the link to real scores rather than adjusting single students.
 
-**Predict "if you tested today," not test day.** Projecting future growth adds guesswork. A separate, clearly labeled "on track for" line can come later once Karman has data on how much students actually improve.
+**Predict "if you tested today," not test day.** Projecting future growth adds guesswork. A separate, clearly labeled "on track for" figure can come later once Karman has data on how much students actually improve.
 
 ---
 
 ## Part 5. Phased plan
 
-| Phase                                     | What gets built                                                                                                                                                                                                                                                                                                              | Data it needs                                                                                              | What can honestly be shown                                                        |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **0. Now (before students)**              | Start recording the fields in Part 6. Store the editorial rating with its source and rubric version as real columns. Derive starting difficulties from the rating and source position. Build the full-length test shell (structure, timing, locking, tryout slots) and pick a reserved test pool. Write the panel simulator. | None from students                                                                                         | Nothing score-like beyond "practice," or a very wide labeled range                |
-| **1. First students (roughly 50 to 300)** | Elo-style live estimates. Endless mode on ratings plus live updates. Fixed panels routed on module 1 number right. Ask every student for real PSAT and SAT scores and dates.                                                                                                                                                 | Every answer with the Part 6 fields                                                                        | Wide labeled ranges (for example plus or minus 80 to 100) marked "early estimate" |
-| **2. First calibration**                  | Fit one-number IRT with rating priors on the test pool, using first-try timed answers. Re-route on the ability estimate. First conversion table linked to reported SAT scores. Quality flags (too easy, too hard, bad key).                                                                                                  | About 150 to 300 first-try answers per test-pool question, and a few hundred students with real SAT scores | Narrower ranges, checked against real outcomes                                    |
-| **3. Mature calibration**                 | Add discrimination for core questions. Proper linking to SAT scores. Fairness checks across student groups. Start calibrating Karman originals through tryout slots. Monitor drift.                                                                                                                                          | About 500 to 1,000+ answers per core question, and over 1,000 students with real scores                    | Ranges set by measured accuracy, never narrower than about plus or minus 30       |
-| **4. Ongoing**                            | Recalibrate on a schedule. Retire overexposed or drifting questions. Publish internal accuracy reports.                                                                                                                                                                                                                      | Continuous                                                                                                 | Same, kept honest by the "4 in 5 inside the range" check                          |
+| Phase                                     | What gets built                                                                                                                                                                                                                                                                                                              | Data it needs                                                                                              | What students see                                                                                  |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **0. Now (before students)**              | Start recording the fields in Part 6. Store the editorial rating with its source and rubric version as real columns. Derive starting difficulties from the rating and source position. Build the full-length test shell (structure, timing, locking, tryout slots) and pick a reserved test pool. Write the panel simulator. | None from students                                                                                         | Practice results only, no predicted score yet                                                      |
+| **1. First students (roughly 50 to 300)** | Elo-style live estimates. Endless mode on ratings plus live updates. Fixed panels routed on module 1 number right. Collect real PSAT and SAT scores and dates at onboarding.                                                                                                                                                 | Every answer with the Part 6 fields                                                                        | A Karman predicted score from provisional links; typical error tracked internally (expected large) |
+| **2. First calibration**                  | Fit one-number IRT with rating priors on the test pool, using first-try timed answers. Re-route on the ability estimate. First conversion table linked to reported SAT scores. Quality flags (too easy, too hard, bad key).                                                                                                  | About 150 to 300 first-try answers per test-pool question, and a few hundred students with real SAT scores | Predicted score from the first real-score link; error checked against real outcomes                |
+| **3. Mature calibration**                 | Add discrimination for core questions. Proper linking to SAT scores. Fairness checks across student groups. Start calibrating Karman originals through tryout slots. Monitor drift.                                                                                                                                          | About 500 to 1,000+ answers per core question, and over 1,000 students with real scores                    | Predicted score with measured typical error (expected not below about 30)                          |
+| **4. Ongoing**                            | Recalibrate on a schedule. Retire overexposed or drifting questions. Publish internal accuracy reports.                                                                                                                                                                                                                      | Continuous                                                                                                 | Same, kept honest by the internal accuracy checks                                                  |
 
 ---
 
@@ -312,11 +322,11 @@ None of this changes import tools in this note. It is the list to hand to the im
 
 ### 6.3 Per student
 
-| Field                                                                              | Why                                                                       |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Real SAT and PSAT scores (section and total), test date, self-reported or verified | The only way to link Karman's scale to the SAT and to check the ranges    |
-| Planned test date                                                                  | "If you tested today" versus later projections                            |
-| Timing accommodation                                                               | Already on the quiz-engine branch; needed to compare timed answers fairly |
+| Field                                                                                                 | Why                                                                             |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Real SAT and PSAT scores (section and total), test date, self-reported or from the score report photo | The only way to link Karman's scale to the SAT and to check the predicted score |
+| Planned test date                                                                                     | "If you tested today" versus later projections                                  |
+| Timing accommodation                                                                                  | Already on the quiz-engine branch; needed to compare timed answers fairly       |
 
 Also noted: the diagnostic currently saves only totals, so its answers cannot be used later. Saving its per-question answers would add useful early data.
 
@@ -324,11 +334,10 @@ Also noted: the diagnostic currently saves only totals, so its answers cannot be
 
 ## Open questions for the founder
 
-1. Agree the range rule: never narrower than about plus or minus 30, start at about plus or minus 80 to 100, and target 4 in 5 real scores inside.
-2. Agree to tell students that full-length tests include a few unscored tryout questions, as College Board does.
-3. Agree to ask every student for real SAT and PSAT scores, ideally with a score report upload.
-4. Decide the endless-mode target success rate (suggested start: 75%).
-5. This note does not assess Karman's rights to use questions from administered exam forms. That is a separate question, and it also affects whether those questions can serve as test-pool anchors.
+Questions 1 to 4 of the first draft (score ranges, telling students about tryout questions, collecting real scores, endless-mode target) are answered in the founder decisions at the top. Still open:
+
+1. Which image reading tool reads the score report photos.
+2. This note does not assess Karman's rights to use questions from administered exam forms. That is a separate question, and it also affects whether those questions can serve as test-pool anchors.
 
 ---
 
