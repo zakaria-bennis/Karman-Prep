@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily 10 ending: Box first</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="daily10/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="end.css">
+<link rel="stylesheet" href="kit.css">
+<script src="daily10/themes.js"></script>
+<script src="palette.js"></script>
+<script src="daily10/vendor/katex/katex.min.js"></script>
+<script src="daily10/text.js"></script>
+<script src="daily10/bank.js"></script>
+<script src="daily10/questions.js"></script>
+<script src="daily10/mascot.js"></script>
+<script src="core.js"></script>
+<script src="parts.js"></script>
+<script src="kit.js"></script>
+<script src="ending.js"></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <h1>Round five: Box first</h1>
+    <p>Maya gets 7 of 10 and ends on 3 in a row. Day 7 in a row earns the owl, and her 85 tokens take her past 300, so a mystery box is ready. When the prize appears, tap Wear it or Keep for later yourself.</p>
+    <div class="list" id="list"></div>
+    <div class="ctrl" id="themes" aria-label="Theme"></div>
+  </aside>
+  <section class="main" id="main">
+    <div class="topctl">
+      <div class="segd glass" role="group" aria-label="Device"><button type="button" data-d="desktop" aria-pressed="true">Desktop</button><button type="button" data-d="ipad" aria-pressed="false">iPad</button><button type="button" data-d="phone" aria-pressed="false">Phone</button></div>
+      <label class="pick glass"><span>Tokens</span><select id="pickBoxes"><option value="1">Enough for a box</option><option value="0">Not enough yet</option></select></label>
+      <label class="pick glass"><span>New companion</span><select id="pickUnlock"><option value="">Yes, the owl</option><option value="no">No</option></select></label>
+      <label class="pick glass"><span>Student</span><select id="pickChoice"><option value="">Opens it</option><option value="save">Saves it</option></select></label>
+      <div class="kitsw glass" role="group" aria-label="21st.dev elements"><span>21st.dev</span><button type="button" data-k="on" aria-pressed="true">On</button><button type="button" data-k="off" aria-pressed="false">Off</button></div>
+      <button type="button" class="gbtn glass" id="replay">Replay</button>
+      <button type="button" class="gbtn glass" id="skip">Skip the clip</button>
+      <button type="button" class="gbtn glass" id="mute" aria-pressed="false">Sound on</button>
+    </div>
+    <div class="viewport" id="vp"><div id="stage"></div></div>
+  </section>
+</div>
+<script>
+(function () {
+  const stage = document.getElementById('stage'), vp = document.getElementById('vp'), list = document.getElementById('list');
+  let current = 0, skipClip = false;
+  const DEV = { desktop: [1180, 740], ipad: [820, 1180], phone: [390, 844] }; let dev = 'desktop';
+  window.__dev = 'desktop';
+  function fit() { if (dev === 'app') { vp.style.cssText = ''; vp.dataset.dev = 'phone'; return; } const m = document.getElementById('main'), [w, h] = DEV[dev]; vp.style.width = w + 'px'; vp.style.height = h + 'px'; vp.dataset.dev = dev; const k = Math.min((m.clientWidth - 40) / w, (m.clientHeight - 80) / h, 1.25); vp.style.transform = `scale(${k})`; vp.style.marginTop = '50px'; }
+  addEventListener('resize', fit); fit();
+  Designs.forEach((d, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'di'; b.innerHTML = `<span class="k">${i + 1}</span><b>${d.name}</b><span>${d.idea}<div class="apple">${d.apple}</div></span>`; b.onclick = () => play(i); list.appendChild(b); });
+  async function play(i) {
+    End.unlockAudio(); current = i; const sl = document.querySelector('.ab-sel'); if (sl) sl.value = i;
+    list.querySelectorAll('.di').forEach((b, j) => b.setAttribute('aria-current', String(j === i)));
+    const X = End.makeCtx(stage); End.state = { box: null, wear: null };
+    try { if (!skipClip) await End.clip(X); else X.clear(); await Designs[i].run(X, End); window.__done = i; }
+    catch (e) { if (!(e instanceof End.Cancelled)) { console.error(e); window.__err = String(e && e.stack || e); } }
+  }
+  window.__play = play;
+  window.__device = (d) => { dev = d; window.__dev = d; document.querySelectorAll('.segd button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.d === d))); fit(); };
+  document.querySelectorAll('.segd button').forEach((b) => (b.onclick = () => { window.__device(b.dataset.d); play(current); }));
+  const pu = document.getElementById('pickUnlock'); pu.onchange = () => { End.pick.unlock = pu.value || null; play(current); };
+  const pb = document.getElementById('pickBoxes'); pb.onchange = () => { End.DATA.setBoxes(+pb.value); play(current); };
+  const pc = document.getElementById('pickChoice'); pc.onchange = () => { End.pick.choice = pc.value || null; play(current); };
+  // full-screen phone mode, for the iPhone simulator: ?app=1
+  if (new URLSearchParams(location.search).has('app')) {
+    document.body.classList.add('app'); dev = 'app'; window.__dev = 'phone';
+    const bar = document.createElement('div'); bar.className = 'appbar';
+    bar.innerHTML = `<button type="button" class="ab-prev" aria-label="Previous ending">‹</button><select class="ab-sel" aria-label="Ending">${Designs.map((d, i) => `<option value="${i}">${i + 1}. ${d.name}</option>`).join('')}</select><button type="button" class="ab-next" aria-label="Next ending">›</button><button type="button" class="ab-more" aria-label="Options">Options</button>`;
+    document.body.prepend(bar);
+    const more = document.querySelector('.topctl'); more.classList.add('appopts'); document.body.appendChild(more);
+    bar.querySelector('.ab-more').onclick = () => more.classList.toggle('show');
+    const sel = bar.querySelector('.ab-sel'); sel.onchange = () => play(+sel.value);
+    bar.querySelector('.ab-prev').onclick = () => { sel.value = Math.max(0, current - 1); play(+sel.value); };
+    bar.querySelector('.ab-next').onclick = () => { sel.value = Math.min(Designs.length - 1, current + 1); play(+sel.value); };
+    const go = () => { more.classList.remove('show'); };
+    more.querySelectorAll('select,button').forEach((x) => x.addEventListener('change', go));
+    setTimeout(() => { stage.innerHTML = '<div class="startcard"><div><h2>Daily 10 ending</h2><p>Maya finishes her Daily 10. Tap Start, with sound on.</p><button type="button" class="cta" id="startbtn">Start</button></div></div>'; document.getElementById('startbtn').onclick = () => play(0); }, 0);
+    fit();
+  }
+  stage.innerHTML = '<div class="startcard"><div><h2>Box first</h2><p>Pick it on the left. Sound is on.</p></div></div>';
+  document.querySelectorAll('.kitsw button').forEach((b) => (b.onclick = () => { End.setKit(b.dataset.k === 'on'); document.querySelectorAll('.kitsw button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); play(current); }));
+  if (new URLSearchParams(location.search).get('kit') === 'off') { End.setKit(false); document.querySelectorAll('.kitsw button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.k === 'off'))); }
+  document.getElementById('replay').onclick = () => play(current);
+  const sk = document.getElementById('skip'); sk.onclick = () => { skipClip = !skipClip; sk.textContent = skipClip ? 'Show the clip' : 'Skip the clip'; };
+  const mu = document.getElementById('mute'); mu.onclick = () => { End.muted = !End.muted; mu.textContent = End.muted ? 'Sound off' : 'Sound on'; };
+  const th = document.getElementById('themes');
+  Themes.list.forEach((t) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'sw'; b.title = t.name; b.setAttribute('aria-label', t.name + ' theme'); b.style.setProperty('--c1', t.canvas); b.style.setProperty('--c2', t.surface); b.style.setProperty('--c3', Palette.list[t.id].accent); b.setAttribute('aria-pressed', String(t.id === Themes.current)); b.onclick = () => { Themes.apply(t.id); th.querySelectorAll('.sw').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); }; th.appendChild(b); });
+  addEventListener('keydown', (e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowRight') play(Math.min(Designs.length - 1, current + 1)); if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') play(Math.max(0, current - 1)); if (e.key === 'r') play(current); });
+})();
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# Replit workspace config. See replit.md for the full agent context.
+# Replit workspace config. Agent context lives in CLAUDE.md.
 # This file is just enough to make "Run" boot the dev server.
 
 run = "npm run dev:next"

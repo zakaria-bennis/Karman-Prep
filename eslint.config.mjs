@@ -78,6 +78,7 @@ export default [
       "dist/**",
       "build/**",
       "scripts/**",
+      "prototypes/**",
       "supabase/**",
       "*.config.js",
       "*.config.mjs",

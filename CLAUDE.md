@@ -4,11 +4,19 @@ Karman is a pre-launch SAT prep company run by a solo, non-technical founder,
 Zakaria Bennis. Write updates for him in plain language. The site is live at
 karmanprep.com on Cloudflare Workers, with no paying users yet.
 
-**Current direction:** sell programs that end on a specific SAT date (a small
-live cohort, private 1:1 packages on top, free entry points) instead of hours or
-monthly plans. The plan is in `docs/business-plan.md`, and every price, date and
-claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
-`CONFIRM:` there need the founder before launch.
+**Current direction (2026-10-30):** a ladder of plans. From the bottom up:
+
+- Free, then the monthly Platform and Plus plans.
+- A small live cohort that ends on an SAT date.
+- Private 1:1 at the top.
+- Cheap per-student school licenses.
+
+Only the cohort and Private carry the guarantee. Prices and features are in
+`docs/business/plan-ladder-2026-10-30.md`, and the reasoning is in
+`docs/business-plan.md`. The claims, dates and guarantee terms the site may
+state are in `src/lib/marketing/offer.ts`. That file doesn't match the new
+ladder yet, and where it differs, the ladder wins. Values marked `CONFIRM:`
+there need the founder before launch.
 
 ## Branches
 
@@ -26,6 +34,12 @@ claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
   look is retired, and `docs/design-tokens.md` and the palette in `docs/brand.md`
   no longer apply. The voice section of `docs/brand.md` still does. Every button,
   link and redirect must work, and be clicked through in a browser before it ships.
+- **Portals.** The student dashboard, parent portal and tutor portal are being
+  rebuilt around the plan ladder, and a school portal is being prototyped. The
+  brief is `docs/prompts/2026-10-30-fable-portals.md`. Prototypes first, and
+  the founder leads the design. Reviewed design prototypes live in
+  `prototypes/` and are references, not product code. The Daily 10 end screen
+  is `prototypes/daily10-end/`.
 - **Question import.** Continue the founder's existing Codex pipeline, do not
   replace it. Goals: about 10,000 questions, difficulty 1 to 7, skill tags, no
   duplicates. Import sessions must read `docs/ingestion/reviewed-import-rules.md`.

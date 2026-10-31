@@ -116,6 +116,10 @@ these on top of the rules above. Where they conflict, these win inside the app.
 49. The app's ground is a subtle, slowly moving constellation sky: faint stars
     and lines on night navy in dark mode, faint ink on bone in light mode. It
     never competes with the content and stops moving under reduced motion.
+    Founder, 2026-10-30: the sky is now one option, not a requirement. The
+    background can be any subtle world that fits studying; agents propose
+    several directions and the founder picks. Subtle, behind the content, and
+    still under reduced motion all still apply.
 50. Buttons and controls are liquid glass, not flat frosted glass: they bend
     the background behind them, carry a bright top edge and a soft shadow, and
     look slightly raised. This overrides rules 5 and 8 inside the app only.

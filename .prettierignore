@@ -48,3 +48,6 @@ public/
 
 # Vendored third-party build output (AR-5)
 vendor/
+
+# Reviewed design prototypes (vanilla JS references, not product code)
+prototypes/
