@@ -1,113 +1,95 @@
-# Karman Prep: agent instructions
+# Karman Prep
 
-Karman is a pre-launch SAT prep company run by a solo, non-technical founder,
-Zakaria Bennis. Write updates for him in plain language. The site is live at
-karmanprep.com on Cloudflare Workers, with no paying users yet.
+Karman is a pre-launch SAT prep company run by one founder, Zakaria Bennis. He
+isn't technical. Write to him in plain language, in short sentences. He often
+dictates by voice, so if a number or phrase reads oddly, ask before building
+on it. The site is live at karmanprep.com, with no paying users yet.
 
-**Current direction (2026-10-30):** a ladder of plans. From the bottom up:
+## What Karman sells
 
-- Free, then the monthly Platform and Plus plans.
-- A small live cohort that ends on an SAT date.
-- Private 1:1 at the top.
-- Cheap per-student school licenses.
+Karman sells a ladder of plans:
 
-Only the cohort and Private carry the guarantee. Prices and features are in
-`docs/business/plan-ladder-2026-10-30.md`, and the reasoning is in
-`docs/business-plan.md`. The claims, dates and guarantee terms the site may
-state are in `src/lib/marketing/offer.ts`. It matches the ladder (updated 2026-10-30). Values marked `CONFIRM:`
-there need the founder before launch.
+- Free
+- Platform ($29 a month)
+- Plus ($49 a month)
+- A small live cohort that ends on an SAT date
+- Private 1:1
+- School licenses at $10 per student a year
 
-## Branches
+Only the cohort and Private carry the guarantee.
 
-- Start new work from `main`. It carries the live release line (merged 2026-10).
-- Branch names: `zakaria/<short-kebab>` (founder), `claude/*` and `codex/*` (agents).
-- `wrangler.toml` defines one Worker for karmanprep.com, so the last deploy wins.
-  Coordinate deploys between parallel sessions.
+- Each plan's price and features: `docs/business/plan-ladder-2026-10-30.md`.
+- The reasoning behind them: `docs/business-plan.md`.
+- Every price, date and claim the site shows: `src/lib/marketing/offer.ts`.
+  Values marked `CONFIRM:` need the founder.
 
-## Active workstreams
+## Where to work
 
-- **Website.** Being rebuilt around the program offer. Design rules are in
-  `docs/design-rules.md` (founder's 31 rules, 2026-10-18, plus copy rules and SEO
-  requirements, 2026-10-19). The site is not complete until every item in
-  `docs/launch-checklist.md` (security and performance) is done. The espresso-and-gold
-  look is retired, and `docs/design-tokens.md` and the palette in `docs/brand.md`
-  no longer apply. The voice section of `docs/brand.md` still does. Every button,
-  link and redirect must work, and be clicked through in a browser before it ships.
-- **Portals.** The student dashboard, parent portal and tutor portal are being
-  rebuilt around the plan ladder, and a school portal is being prototyped. The
-  brief is `docs/prompts/2026-10-30-fable-portals.md`. Prototypes first, and
-  the founder leads the design. Reviewed design prototypes live in
-  `prototypes/` and are references, not product code. The Daily 10 end screen
-  is `prototypes/daily10-end/`.
-- **Question import.** Continue the founder's existing Codex pipeline, do not
-  replace it. Goals: about 10,000 questions, difficulty 1 to 7, skill tags, no
-  duplicates. Import sessions must read `docs/ingestion/reviewed-import-rules.md`.
-  Other sessions can skip it. Detail docs are in `docs/ingestion/`.
-- **Calculator.** One calculator: engine in `src/lib/calculator/`, quiz window and
-  UI in `src/components/calculator/`, browser tests in `tests/calculator/`. The
-  living spec is `docs/superpowers/specs/2026-10-16-calculator-design.md` plus
-  `docs/superpowers/specs/calculator/`; the active plan is
-  `docs/superpowers/plans/2026-10-19-calculator-phase2-desmos/`. The founder is
-  reviewing it, so do not change the calculator without being asked.
+- **Branch.** Start from `claude/site-redesign` until it merges into `main`,
+  because `main` is behind it. Name branches `claude/<short-name>`.
+- **The website.** The reference design is `.impeccable/mocks/decision/film/`,
+  and its copy is in `copy.js`. The live site came from PR #232.
+- **The portals.** The brief is `docs/prompts/2026-10-30-fable-portals.md`.
+  Prototypes the founder has reviewed live in `prototypes/`.
+- **Dev server.** Run `npm run dev:next`. To sign in locally, set
+  `DEV_IMPERSONATE_CLERK_ID` in `.env.local`, then run `npm run seed:dev`.
 
-## Must-follow rules
+## Design
 
-### Replace, don't accumulate
+- **The founder leads design.** Propose freely, but show ideas as working
+  screens, and nothing visual is final until he approves it.
+- **The rules are in `docs/design-rules.md`.** They win over everything else
+  here. How pages should move and behave is in
+  `docs/design/site-design-principles.md`.
+- **Build components from 21st.dev first.** Port them to the project, recolour
+  them with Karman's tokens, and credit the component id in a comment.
+  Everything else (icons, drawings, loaders, illustrations) is custom-made for
+  Karman.
+- **Every screen works on phone, iPad and desktop**, with no sideways scroll.
+- **Light and dark mode follow the visitor's device**, with dark when it states
+  no preference (rule 33).
+- **Click every button and link in a browser** before calling a page done.
+- **Replace, don't accumulate.** When something is replaced, delete the old
+  version everywhere in the same change: code, tests, docs and names.
 
-- Replace, don't accumulate: when a feature is replaced or reworked, delete the old
-  version everywhere (code, tests, docs, flags, version-suffixed names) in the same
-  change.
+## Checks before review
 
-### Release and deploy
+Run all of these:
 
-- Public release: `npm run cf:build:release && npm run cf:deploy`. `cf:deploy` only
-  uploads `.open-next/` and never rebuilds, so always run both together.
-- Release builds need the production `NEXT_PUBLIC_*` values, including
-  `NEXT_PUBLIC_KARMAN_LAUNCHED=true`. `scripts/build/check-release-env.mjs` rejects
-  missing values, placeholders, maintenance mode and mismatched Supabase keys.
-  Check the built Worker and keep the previous version for rollback.
-- Merging to `main` runs `db-deploy.yml`, which applies new migrations to production.
+- `npx tsc --noEmit`
+- `npm run lint`
+- `npm run format:check`
+- `npm test`
+- `npm run check:sizes`
+- `npm run cf:build`
 
-### Code gates
+Unused variables and unescaped JSX characters are lint errors. Keep files
+under about 700 lines. Server actions validate their inputs with Zod.
 
-- Before review, run `npx tsc --noEmit`, `npm run lint`, `npm run format:check`,
-  `npm test`, `npm run check:sizes` and `npm run cf:build`. Run `npm run sync:taxonomy`
-  and check that `git diff` shows no change. For calculator changes also run
-  `npm run test:calculator`.
-- `@typescript-eslint/no-unused-vars` and `react/no-unescaped-entities` are errors.
-- No file over about 700 lines. Server actions validate inputs with Zod.
-- Dev server: `npm run dev:next`. Dev-only sign-in bypass: set `DEV_IMPERSONATE_CLERK_ID`
-  in `.env.local` (`src/lib/auth/dev-auth.ts`), then `npm run seed:dev`.
+## Never without the founder
 
-### Database
+- **Deploying.** The live site was built from `claude/musing-kare-59cd6e`
+  (PR #232), which holds the redesign. A deploy built from `main` would take
+  the redesign off the site, so never deploy from `main`. The deploy command
+  is `npm run cf:build:release && npm run cf:deploy`, always both together.
+- **Merging to `main`.** It applies database migrations to production.
+- **Writing to the live question bank.**
+- **Changing the calculator.** Don't edit `src/components/calculator/`,
+  `src/lib/calculator/` or the `/calculator` page unless asked.
+- **Printing or committing a secret.**
 
-- Migrations go in `supabase/migrations/<YYYYMMDDHHMMSS>_name.sql`. Apply with
-  `npm run db:push`, check with `npm run db:status`.
-- Live question writes need the founder's go-ahead for each batch. Check the
-  before-state, read each write back, and keep a rollback.
+## Questions and figures
 
-### Question import (short version)
+Questions are imported by their own sessions on their own branch. Design
+sessions never edit the import tools, the pipeline or live questions.
 
-- Paid AI extraction, grading, figure interpretation and orchestration are retired.
-  Do not restore them without a new founder decision.
-- Publication stays held until the founder approves it.
-- Never label generated answers as printed or official keys. Never alter approved
-  source bytes.
+Question figures are being redrawn by one in-house engine in the Bluebook
+look, taking colours only from the theme's roles. Show them as they are, and
+don't restyle them.
 
-### Calculator
+## Sessions with a narrower job
 
-- Never load a Desmos API, SDK or component. Never copy Desmos code, DOM, asset
-  files, fonts, logo or name, and never fetch anything from desmos.com. Matching
-  Desmos's visual design and behaviour with our own drawings and code is allowed
-  (founder, 2026-10-18). Locally bundled MathQuill and KaTeX are fine (mathjs only
-  in the reference-value script).
-- After editing calculator styles or theme sources, run `npm run calculator:build`
-  (`npm run calculator:check` must pass). Run `npm run test:calculator`. Automated
-  mobile, keyboard and theme checks are required.
-
-### Marketing honesty
-
-- No testimonials until real ones exist. Tutoring stats may be shown as Karman's
-  results (founder decision, 2026-10-19: Karman is Zakaria's business), but always
-  with their format: 1:1 tutoring, median 16 weeks. Never imply they came from the
-  9-week cohort. Give score estimates only as labeled ranges. No fake urgency.
+- **Question import sessions:** read `docs/ingestion/reviewed-import-rules.md`
+  before anything else.
+- **Calculator sessions:** read `docs/superpowers/specs/2026-10-16-calculator-design.md`
+  and run `npm run test:calculator`.

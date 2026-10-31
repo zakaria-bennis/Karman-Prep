@@ -1,4 +1,4 @@
-# Fable 5.1 brief: student, parent, tutor and school portals
+# Fable 5.1 brief: the website and the portals
 
 Draft 2, 2026-10-30. Everything below the line is the prompt. The business
 decisions are settled (plans, prices, cohort format, school scope), and the
@@ -10,10 +10,10 @@ current design rules, design principles, launch checklist or offer.
 
 ultracode
 
-You are designing, then building, the signed-in side of Karman Prep: the
-student dashboard, the parent portal, the tutor portal and a new school
-portal. Work like a senior product designer and staff engineer, but remember
-whose product this is.
+You are polishing Karman Prep's public website, then designing and building
+its signed-in side: the student dashboard, the parent portal, the tutor
+portal and a new school portal. Work like a senior product designer and staff
+engineer, but remember whose product this is.
 
 ## Who you work for
 
@@ -24,9 +24,10 @@ working screens, not paragraphs. Write to him in plain language, short
 sentences, no jargon. He often dictates by voice, so if a number or phrase in
 his reply reads oddly, ask before you build on it.
 
-The test for every screen: would Apple, if it ran an education company, ship
-this? The feeling you're designing for:
+The feeling you're designing for:
 
+- **Parent on the website:** "This company is serious, I understand exactly
+  what I'd get, and I know the next step." The parent is the buyer.
 - **Student:** "I'm getting better, and I know exactly what to do next." After
   any finished set, they should feel proud.
 - **Parent:** "I can see the work and the progress, and I trust where my money
@@ -80,14 +81,12 @@ unlockable parts. The founder wants few, clear choices.
    features, the source for the plan config.
 5. `src/lib/marketing/offer.ts`: dates, guarantee terms and site claims. It matches
    the plan ladder. Don't edit it without the founder.
-6. `docs/brand.md`: the voice section only. Its palette is retired.
+6. `docs/brand.md`: the Voice section only.
 7. The Daily 10 end screen prototype, the reference for how a finished set
    should feel: `prototypes/daily10-end/` (its README lists what it shows and
    which stats belong on the dashboard instead).
 
-Ignore `docs/design-tokens.md`, the old palette in `docs/brand.md`, and
-anything that mentions Strata, the tiers Seminar, Small Group or Elite, or
-Nabil. All of those are retired.
+Other design and brand docs in the repo predate these and don't apply.
 
 ## How design works on this project
 
@@ -128,7 +127,8 @@ like any other dashboard, it isn't done.
 - Raised liquid-glass buttons and controls. Panels are heavier and darker than
   buttons, so glass never sits on glass.
 - Custom-drawn icons and a slim icon rail on desktop.
-- Dark is the default. A remembered toggle switches to light.
+- Each visitor sees their device's light or dark setting, with dark when there's
+  no preference (rule 33). A remembered toggle overrides it.
 - AA contrast, checked by calculation, in both modes.
 - The account themes in `src/lib/themes/palettes.ts` each carry their own
   accent. No marigold in the student progression UI. Tokens are gold in every
@@ -147,10 +147,41 @@ like any other dashboard, it isn't done.
   session", "Wordline".
 - The March cohort's tutor is David, named on screen.
 - No em dashes, no emoji, no fake numbers presented as real, no testimonials.
-- Score estimates appear only as labeled ranges, and never after a Daily 10.
+- The Karman predicted score is one number, never a range, and never shown
+  after a Daily 10 (see the student dashboard).
 - Every asset is custom: icons, drawings, loaders, illustrations. Where a
   drawing is needed, use the hairline-create skill.
 - Use the apple-design and impeccable skills for direction and review.
+
+## The website
+
+The current website design is in a decent direction. Take it and polish it.
+You're free to make whatever refinements you judge will ship the best
+product: layout, type, motion, copy flow, page structure. Show the founder the
+before and after for anything significant.
+
+- **Where it lives.** The reference build is the mock in
+  `.impeccable/mocks/decision/film/`. Its copy lives in `copy.js`, which the
+  founder edits himself (see `EDIT-COPY.md`).
+- **The live site.** The site at karmanprep.com came from PR #232
+  ("Marketing site rebuild", branch `claude/musing-kare-59cd6e`). That PR
+  ported an earlier version of this mock into the Next.js app. Check it
+  before building, and extend that port rather than starting a second one.
+- **The look today.** Light mode is off-white with black and marigold. Dark
+  mode is the default when a visitor's device doesn't say. A continuous film
+  plays behind the page and is never driven by scrolling. The pages are home, the March program, private tutoring, pricing, the free
+  practice test, the guarantee, about and FAQ.
+- **Speed is part of the polish.** On a mid-range phone over slow 4G, the home
+  page takes 11 to 13 seconds to load today (measured 2026-10-30). Slow pages
+  make Karman look less trustworthy. Get Core Web Vitals into the green on
+  mobile. The film and heavy motion must never hold up the first view.
+- **The website follows the same rules as the app.** Copy rules, SEO
+  requirements and `docs/launch-checklist.md` apply as well.
+- **Prices and claims come from `src/lib/marketing/offer.ts`.** The pricing
+  page must show the new plan ladder.
+
+Polish the website first (Phase 1 and 2 below apply to it too), so the
+portals can borrow its finished type, colour and motion.
 
 ## What each portal must do
 
@@ -174,6 +205,56 @@ It also receives the stats the Daily 10 end screen deliberately leaves out:
 - days to the SAT
 
 A score trend is wanted but needs its own design round, so propose options.
+
+**The Karman predicted score.** It's one number, not a range, calculated from
+everything the student has done. It is never shown after a Daily 10. The
+research behind it is in `docs/research/2026-10-bluebook-difficulty-and-adaptivity.md`
+(PR #233); ignore its advice to show ranges, which the founder rejected.
+Collect as much answer data as possible, because the score gets more accurate
+with it. Every answer saves:
+
+- the question version
+- the mode
+- its position
+- whether it was a first try
+- the time spent
+- whether help, the calculator or the explanation was used
+- the device
+
+The full list is in Part 6 of that research.
+
+**Onboarding asks for real SAT and PSAT scores.** Take the section scores and
+test dates, plus an optional photo of the score report that is read
+automatically. `DECIDE:` the founder said the photo goes "through Jev"; confirm
+what that is.
+
+**Endless mode.** A student starts a session and keeps answering. Each next
+question is chosen from:
+
+- the last answer
+- the session so far
+- the student's whole history
+- their weak skills
+
+It aims for about 75% success, weights skills by how often they appear on the
+SAT, brings missed questions back on a spaced schedule, and never repeats a
+question too soon. Build the picker as one swappable module, so better
+difficulty data can replace its first version later. The design is in Part 4.3
+of the research.
+
+**Time trials.** The same picker with a clock, at the real test's pace: about
+71 seconds per Reading and Writing question and 95 per Math question.
+
+**Full-length tests** follow Bluebook's two-module design. Module 1 decides
+whether module 2 is harder or easier. Full-length tests may include a few
+unscored tryout questions, and students are not told which ones.
+
+**A demo 1:1 student.** By the time the dashboard is done, the founder must be
+able to sign in as a demo Private student and click through everything a real
+one experiences: onboarding, the diagnostic, Your Daily 10, practice by skill,
+time trials, endless mode, a full-length test and its review, booking a
+session, and the parent's view. Use real questions from the bank in the dev
+environment, never live student data.
 
 Skill levels are four bars: Learning, Developing, Proficient, Mastered. "Not
 started" means four empty bars.
@@ -352,7 +433,6 @@ Ultracode is on, so split the work, but protect consistency.
 - Touch the calculator, or load anything from Desmos.
 - Write in `~/Library/CloudStorage/Box-Box`. It's read-only.
 - Spend Higgsfield credits.
-- Restore paid AI extraction.
 - Print a secret.
 - Show a real student's data in a prototype.
 - Claim a feature works without having clicked it.
