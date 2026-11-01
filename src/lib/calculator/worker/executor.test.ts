@@ -186,7 +186,7 @@ it("AR-47 heartbeats posted during a long plot carry the running generation", as
   let clock = 0;
   const local: WorkerToMain[] = [];
   const e = new Executor({ post: (m) => local.push(m) }, { now: () => (clock += 10) });
-  e.receive(STATE(1, "x^{2}+y^{2}=25"));
+  e.receive(STATE(1, "x^{4}+y^{4}=625")); // degree 4: plotted implicitly (a circle is solved)
   e.receive(VIEW_MSG(2));
   await untilDone(() => local, 2);
   const beats = local.filter((m) => m.type === "heartbeat");

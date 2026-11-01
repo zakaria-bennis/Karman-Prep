@@ -62,6 +62,8 @@ export class ResultInbox {
   private plots: ReadonlyMap<string, Geometry> = new Map();
   /** The rows plotted in the latest generation; at its `done` only these keep geometry. */
   private plotted = new Set<string>();
+  /** The generation each published geometry was plotted for, so an older plot never replaces it. */
+  private plotGenerations = new Map<string, number>();
   /** The generation of the latest `state` sent, and of the latest `state` or `view` sent. */
   private stateGeneration = 0;
   private latestGeneration = 0;
@@ -100,7 +102,8 @@ export class ResultInbox {
   }
 
   /**
-   * Decision 3 (AR-46): `plot` and `done` count only at the latest generation sent; `analysis`,
+   * Decision 3 (AR-46): `done` counts only at the latest generation sent, `plot` also from an
+   * earlier view of the latest state (not for a region, never older than the row's last plot); `analysis`,
    * `value` and `overrun` count from the latest `state` on, for rows it sent. Helper values go to
    * `onHelperValue` and faults to `onFault`. True when a row result, the geometry or the backend
    * kind (`ready`) changed.
@@ -133,11 +136,21 @@ export class ResultInbox {
         return true;
       }
       case "plot": {
+        // A curve, line set or point plot from an earlier view of the latest state is still
+        // drawn while the view moves (world coordinates), until a newer plot of the row arrives:
+        // dropping it froze a slow row (an implicit curve) for a whole pan or zoom. Region spans
+        // are pixels of the view they were plotted for, so a region counts only at the latest.
         const { generation, rowId, geometry } = message;
         const graphable = this.rows.get(rowId)?.isGraphable === true;
-        if (generation !== this.latestGeneration || !graphable) return false;
+        const current = generation === this.latestGeneration;
+        const earlierView =
+          generation >= this.stateGeneration &&
+          geometry.kind !== "region" &&
+          generation > (this.plotGenerations.get(rowId) ?? -1);
+        if (!graphable || !(current || earlierView)) return false;
         this.plots = new Map(this.plots).set(rowId, geometry);
-        this.plotted.add(rowId);
+        this.plotGenerations.set(rowId, generation);
+        if (current) this.plotted.add(rowId);
         return true;
       }
       case "done":
@@ -181,6 +194,7 @@ export class ResultInbox {
     this.results.clear();
     this.plots = new Map();
     this.plotted = new Set();
+    this.plotGenerations = new Map();
     this.points = null;
     this.stateGeneration = this.latestGeneration = 0;
   }

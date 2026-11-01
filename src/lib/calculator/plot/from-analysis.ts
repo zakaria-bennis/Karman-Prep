@@ -12,6 +12,7 @@ import {
 } from "../core/eval/compile";
 import { branchTrees, chainBranches } from "../core/eval/branches";
 import type { Value } from "../core/eval/values";
+import { drawnConicBranches } from "../poi/conic";
 import type { PlotInput } from "./index";
 
 /**
@@ -62,12 +63,24 @@ export function plotInputFor(
           compileRealFunction1(tree, graph.independent, scope)
         ),
       };
-    case "implicit":
-      return {
-        rowId,
-        kind: "implicit",
-        Fs: branchTrees(graph.expr, scope).map((tree) => compileRealFunction2(tree, scope)),
-      };
+    case "implicit": {
+      // An equation of degree 1 or 2 in y (or x) with a constant leading coefficient draws as its
+      // solved branches (y²=x¹² reaches the origin, which the implicit trace cannot see); a list
+      // row draws that way only when every element does, else the whole row stays implicit.
+      const trees = branchTrees(graph.expr, scope);
+      const Fs = trees.map((tree) => compileRealFunction2(tree, scope));
+      const solved = trees.map((tree, i) => drawnConicBranches(tree, Fs[i]));
+      const independent = solved[0]?.independent;
+      if (solved.length > 0 && solved.every((b) => b !== null && b.independent === independent)) {
+        return {
+          rowId,
+          kind: "explicit",
+          independent: independent!,
+          fs: solved.flatMap((b) => b!.fs),
+        };
+      }
+      return { rowId, kind: "implicit", Fs };
+    }
     case "lines": {
       const axis = graph.orientation === "vertical" ? "x" : "y";
       return {
