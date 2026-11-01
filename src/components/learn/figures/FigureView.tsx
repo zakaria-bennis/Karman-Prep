@@ -1,7 +1,12 @@
 import { useId } from "react";
 import { HOUSE } from "@/lib/figures/engine/house";
 import type { Role, Scene, SceneItem, Weight } from "@/lib/figures/engine/scene";
+import type { StudioLayer } from "@/lib/figures/engine/studio/types";
+import { renderStudioSvg } from "./studio-svg";
 import "./figure-roles.css";
+
+/** How a figure is drawn: Bluebook (the default, as students see it) or the opt-in studio look. */
+export type FigureStyle = "bluebook" | "studio";
 
 const paint = (role: Role) => `var(--figure-${role})`;
 
@@ -69,17 +74,28 @@ function renderItem(item: SceneItem, index: number, markerId: string) {
   );
 }
 
-/** Renders a Scene as one SVG. Colors come only from the --figure-* theme variables. */
+/**
+ * Renders a Scene as one SVG. Colors come only from the --figure-* theme variables.
+ * `style="studio"` with the scene's `studio` layer (studioLayer in the engine) draws
+ * the opt-in studio look around the same scene; Bluebook is the default.
+ */
 export default function FigureView({
   scene,
   className,
   title,
+  style = "bluebook",
+  studio,
 }: {
   scene: Scene;
   className?: string;
   title?: string;
+  style?: FigureStyle;
+  studio?: StudioLayer;
 }) {
   const markerId = `figure-arrow-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  if (style === "studio" && studio) {
+    return renderStudioSvg({ scene, studio, idBase: markerId, className, title });
+  }
   // A scene padded to a larger box (figure choices) keeps its drawing centered in it.
   const [ox, oy] = scene.offset ?? [0, 0];
   return (

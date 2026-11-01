@@ -46,8 +46,9 @@ type Golden = {
   answer_choices?: { letter: string; choice_figure_spec: unknown }[];
 };
 
+// originals.json maps each golden figure to its exam original (the compare page); not a figure.
 const files = readdirSync(DIR)
-  .filter((f) => f.endsWith(".json"))
+  .filter((f) => f.endsWith(".json") && f !== "originals.json")
   .sort();
 
 function parsed(raw: unknown, where: string): FigureSpec {

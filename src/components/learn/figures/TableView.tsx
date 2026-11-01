@@ -19,7 +19,9 @@ import { displayProse } from "@/components/learn/dash-blank-display";
 import type { FigureSpec } from "@/lib/figures/engine/spec";
 import { layoutTable, plainWords, scrollEdges, type TableCell } from "@/lib/figures/engine/table";
 import { cn } from "@/lib/utils";
+import type { FigureStyle } from "./FigureView";
 import "./figure-roles.css";
+import "./figure-studio.css";
 
 /** Wrap only at spaces: no breaks inside a word, no hyphenation. */
 const WORD_WRAP = "[word-break:normal] [overflow-wrap:normal] [hyphens:none]";
@@ -129,8 +131,11 @@ export default function TableView({
   ariaLabel,
   className,
   children,
+  style = "bluebook",
 }: {
   spec: FigureSpec;
+  /** The opt-in studio look: a card with depth, a shaded header and zebra rows. */
+  style?: FigureStyle;
   /** Pass `false` to show cell text as is, without typesetting math. */
   renderMath?: boolean;
   /** Names the figure; distinguishes tables shown as separate answer choices. */
@@ -188,6 +193,7 @@ export default function TableView({
   return (
     <figure
       aria-label={ariaLabel ?? (table.title ? undefined : "Question data table")}
+      data-figure-style={style === "studio" ? "studio" : undefined}
       className={cn(
         "themed-question-figure themed-question-table my-4 inline-block min-w-0 max-w-full overflow-hidden rounded-lg border",
         RULE,

@@ -239,6 +239,103 @@ function pendingLabel(
   return { label, fallback };
 }
 
+type SpecLabel = FigureSpec["labels"][number];
+
+/** The solid's labels by the dimension or point they name, and the labels that name neither. */
+function labelsOf(
+  spec: FigureSpec,
+  part: SolidPart,
+  need: readonly string[]
+): { labeled: Map<string, string>; unknown: SpecLabel[] } {
+  const pointIds = new Set((part.points ?? []).map((p) => p.id));
+  const labeled = new Map<string, string>();
+  const unknown: SpecLabel[] = [];
+  for (const l of spec.labels) {
+    const name = l.on.startsWith(`${part.id}.`) ? l.on.slice(part.id.length + 1) : "";
+    const known = (need.includes(name) || pointIds.has(name)) && !labeled.has(name);
+    if (known) labeled.set(name, l.text);
+    else unknown.push(l);
+  }
+  return { labeled, unknown };
+}
+
+/** Where a solid sits in its box: its camera, the fit from world units to the box, and the fitted drawing. */
+export type SolidLayout = {
+  part: SolidPart;
+  camera: Camera;
+  fit: Fit;
+  d: Drawing;
+  scale: number;
+  note: string[];
+  noteTop: number;
+  top: number;
+  y0: number;
+  y1: number;
+};
+
+function layoutSolid(
+  spec: FigureSpec,
+  part: SolidPart,
+  labeled: Map<string, string>,
+  squared: boolean,
+  box: Box,
+  opts: ScaleOptions
+): SolidLayout {
+  const lines = [...new Set([...labeled.keys(), ...(part.show ?? [])])];
+  if (squared) lines.push("height");
+  const camera = cameraFor(part.shape, part.view, part.dims);
+  const raw = drawSolid(part, camera, new Set(lines));
+
+  // Layout: the box less the margin, room for labels around the solid, and the note band.
+  const font = HOUSE.font;
+  const note = spec.notToScale ? noteLines(box.width) : [];
+  const noteBand = note.length ? note.length * 1.25 * font + HOUSE.labelOffset : 0;
+  const widest = Math.max(0, ...[...labeled.values()].map(textWidth));
+  const roomX = labeled.size ? HOUSE.labelOffset + widest : 0;
+  const roomY = labeled.size ? HOUSE.labelOffset + 1.25 * font : 0;
+  const availW = Math.max(1, box.width - 2 * (HOUSE.margin + roomX));
+  const availH = Math.max(1, box.height - noteBand - 2 * (HOUSE.margin + roomY));
+  const xs = raw.extent.map((p) => p[0]);
+  const ys = raw.extent.map((p) => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const fitScale = Math.min(
+    availW / Math.max(x1 - x0, EPS),
+    availH / Math.max(y1 - y0, EPS),
+    (MAX_EM.width * font) / Math.max(x1 - x0, EPS),
+    (MAX_EM.height * font) / Math.max(y1 - y0, EPS)
+  );
+  // A shared scale (figure choices) maps world units to px the same for every figure in a set.
+  const scale = opts.scale ?? fitScale;
+  // The solid, the room for its labels and the note stand together, centered,
+  // so the note sits just under the figure as in Bluebook.
+  const group = scale * (y1 - y0) + 2 * roomY + noteBand;
+  const top = Math.max(HOUSE.margin, (box.height - group) / 2) + roomY;
+  const fit: Fit = { scale, x: box.width / 2 - (scale * (x0 + x1)) / 2, y: top - scale * y0 };
+  const noteTop = Math.min(
+    top + scale * (y1 - y0) + roomY + HOUSE.labelOffset,
+    box.height - HOUSE.margin / 2 - noteBand + HOUSE.labelOffset
+  );
+  return { part, camera, fit, d: fitted(raw, fit), scale, note, noteTop, top, y0, y1 };
+}
+
+/**
+ * The layout buildSolid3d draws a solid3d spec with in `box`, or null when the spec
+ * draws no solid. The studio render style shades the solid from it.
+ */
+export function solidLayoutFor(
+  spec: FigureSpec,
+  box: Box,
+  opts: ScaleOptions = {}
+): SolidLayout | null {
+  const part = spec.parts.find((p): p is SolidPart => p.kind === "solid");
+  if (!part) return null;
+  const need: readonly string[] = SOLID_DIMS[part.shape];
+  if (!need.every((k) => (part.dims[k] ?? 0) > 0)) return null;
+  const heightRef = `${part.id}.height`;
+  const squared = spec.marks.some((m) => m.kind === "right_angle" && m.on.includes(heightRef));
+  return layoutSolid(spec, part, labelsOf(spec, part, need).labeled, squared, box, opts);
+}
+
 /** The Scene of a `solid3d` FigureSpec drawn in `box`. */
 export function buildSolid3d(spec: FigureSpec, box: Box, opts: ScaleOptions = {}): Scene {
   const issues: SceneIssue[] = [];
@@ -277,55 +374,23 @@ export function buildSolid3d(spec: FigureSpec, box: Box, opts: ScaleOptions = {}
     }
   }
 
-  const pointIds = new Set((part.points ?? []).map((p) => p.id));
-  const labeled = new Map<string, string>();
-  for (const l of spec.labels) {
-    const name = l.on.startsWith(`${part.id}.`) ? l.on.slice(part.id.length + 1) : "";
-    const known = (need.includes(name) || pointIds.has(name)) && !labeled.has(name);
-    if (known) labeled.set(name, l.text);
-    else {
-      issues.push({
-        code: "missing_label",
-        partId: l.on,
-        detail: `label "${l.text}" must name one dimension or point of the solid, like "${part.id}.${need[0]}"`,
-      });
-    }
+  const { labeled, unknown } = labelsOf(spec, part, need);
+  for (const l of unknown) {
+    issues.push({
+      code: "missing_label",
+      partId: l.on,
+      detail: `label "${l.text}" must name one dimension or point of the solid, like "${part.id}.${need[0]}"`,
+    });
   }
-  const lines = [...new Set([...labeled.keys(), ...(part.show ?? [])])];
-  if (squared) lines.push("height");
-  const camera = cameraFor(part.shape, part.view, part.dims);
-  const raw = drawSolid(part, camera, new Set(lines));
-
-  // Layout: the box less the margin, room for labels around the solid, and the note band.
+  const { d, scale, note, noteTop, top, y0, y1 } = layoutSolid(
+    spec,
+    part,
+    labeled,
+    squared,
+    box,
+    opts
+  );
   const font = HOUSE.font;
-  const note = spec.notToScale ? noteLines(box.width) : [];
-  const noteBand = note.length ? note.length * 1.25 * font + HOUSE.labelOffset : 0;
-  const widest = Math.max(0, ...[...labeled.values()].map(textWidth));
-  const roomX = labeled.size ? HOUSE.labelOffset + widest : 0;
-  const roomY = labeled.size ? HOUSE.labelOffset + 1.25 * font : 0;
-  const availW = Math.max(1, box.width - 2 * (HOUSE.margin + roomX));
-  const availH = Math.max(1, box.height - noteBand - 2 * (HOUSE.margin + roomY));
-  const xs = raw.extent.map((p) => p[0]);
-  const ys = raw.extent.map((p) => p[1]);
-  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  const fitScale = Math.min(
-    availW / Math.max(x1 - x0, EPS),
-    availH / Math.max(y1 - y0, EPS),
-    (MAX_EM.width * font) / Math.max(x1 - x0, EPS),
-    (MAX_EM.height * font) / Math.max(y1 - y0, EPS)
-  );
-  // A shared scale (figure choices) maps world units to px the same for every figure in a set.
-  const scale = opts.scale ?? fitScale;
-  // The solid, the room for its labels and the note stand together, centered,
-  // so the note sits just under the figure as in Bluebook.
-  const group = scale * (y1 - y0) + 2 * roomY + noteBand;
-  const top = Math.max(HOUSE.margin, (box.height - group) / 2) + roomY;
-  const fit: Fit = { scale, x: box.width / 2 - (scale * (x0 + x1)) / 2, y: top - scale * y0 };
-  const noteTop = Math.min(
-    top + scale * (y1 - y0) + roomY + HOUSE.labelOffset,
-    box.height - HOUSE.margin / 2 - noteBand + HOUSE.labelOffset
-  );
-  const d = fitted(raw, fit);
 
   const items = strokeItems(d);
   if (squared) items.push(...footSquare(d, heightRef));

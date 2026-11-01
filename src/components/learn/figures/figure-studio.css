@@ -1,0 +1,52 @@
+/* The studio render style's materials (FigureView style="studio", TableView style="studio").
+   Opt-in; Bluebook never reads these. Every color is derived from the theme tokens with
+   color-mix() and relative oklch(), so studio follows each site theme, light and dark:
+   lightness offsets brighten and darken the same way on a light or a dark canvas. */
+:root:root {
+  /* A solid's surface: the raised paper of the theme, tinted toward its math color. */
+  --figure-studio-body: color-mix(
+    in oklab,
+    color-mix(in oklab, rgb(var(--k-surface)) 91%, rgb(var(--k-ivory))) 90%,
+    rgb(var(--k-math))
+  );
+  --figure-studio-lit: oklch(from var(--figure-studio-body) calc(l + 0.11) c h);
+  --figure-studio-shade: oklch(from var(--figure-studio-body) calc(l - 0.15) c h);
+  --figure-studio-spec: oklch(from var(--figure-studio-body) calc(l + 0.14) calc(c * 0.4) h);
+  /* Shadows on the page: the canvas itself, darker. */
+  --figure-studio-ground: oklch(from rgb(var(--k-night)) calc(l * 0.6) c h);
+  /* Paper cut-outs, cards and table surfaces. */
+  --figure-studio-paper: rgb(var(--k-surface));
+  /* Lifted ink: ink-colored, so a shadow on light themes and a soft glow on dark ones. */
+  --figure-studio-lift: color-mix(in oklab, rgb(var(--k-ivory)) 26%, transparent);
+  --figure-studio-glow: color-mix(in oklab, rgb(var(--k-math)) 30%, transparent);
+  /* The halo behind studio text, so it stays crisp over shading. */
+  --figure-studio-halo: color-mix(in oklab, rgb(var(--k-surface)) 80%, transparent);
+}
+
+/* Tables: a card with depth, a shaded header and quiet zebra rows. Still a native table. */
+[data-figure-style="studio"].themed-question-table {
+  border-color: color-mix(in oklab, var(--figure-ink-muted) 55%, transparent);
+  background: linear-gradient(
+    180deg,
+    oklch(from var(--figure-studio-paper) calc(l + 0.015) c h),
+    var(--figure-studio-paper)
+  );
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--figure-studio-ground) 55%, transparent),
+    0 8px 22px -6px color-mix(in oklab, var(--figure-studio-ground) 60%, transparent);
+}
+[data-figure-style="studio"] thead th,
+[data-figure-style="studio"] thead td,
+[data-figure-style="studio"] caption {
+  background: linear-gradient(
+    180deg,
+    oklch(from var(--figure-studio-paper) calc(l - 0.02) c h),
+    oklch(from var(--figure-studio-paper) calc(l - 0.045) c h)
+  );
+}
+[data-figure-style="studio"] tbody tr:nth-child(even) > * {
+  background-color: color-mix(in oklab, var(--figure-ink) 4%, var(--figure-studio-paper));
+}
+[data-figure-style="studio"] tbody tr:nth-child(odd) > * {
+  background-color: var(--figure-studio-paper);
+}

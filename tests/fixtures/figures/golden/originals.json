@@ -1,0 +1,144 @@
+{
+  "bar-lake-ice-grouped": {
+    "figureId": "2024-06_ASIA_V4_RW_M1_Q12",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-06_ASIA_V4_RW_M1_Q12/original.png"
+  },
+  "bar-painting-correlation": {
+    "figureId": "2024-10_ASIA_V1_RW_M2_Q13",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-10_ASIA_V1_RW_M2_Q13/original.png"
+  },
+  "bar-trees-planted": {
+    "figureId": "2024-03_UNSPECIFIED_VC_MATH_M2_Q01",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-03_UNSPECIFIED_VC_MATH_M2_Q01/original.png"
+  },
+  "box-bass-length": {
+    "figureId": "2025-11_ASIA_V2_MATH_M1_Q13",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-11_ASIA_V2_MATH_M1_Q13/original.png"
+  },
+  "box-two-classes": {
+    "figureId": "2025-06_ASIA_V3_MATH_M1_Q14",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-06_ASIA_V3_MATH_M1_Q14/original.png"
+  },
+  "box-units-sold": {
+    "figureId": "2024-05_ASIA_V2_MATH_M2_Q02",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-05_ASIA_V2_MATH_M2_Q02/original.png"
+  },
+  "choices-line-graphs": null,
+  "choices-right-triangles": null,
+  "dot-plot-pets": null,
+  "dot-plot-scores": null,
+  "dot-plot-titled": null,
+  "geo-circle-chord": null,
+  "geo-equal-ticks-arcs": {
+    "figureId": "2024-05_ASIA_V1_MATH_M1_Q18",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-05_ASIA_V1_MATH_M1_Q18/original.png"
+  },
+  "geo-parallel-segments": {
+    "figureId": "2024-12_US_V2_MATH_M2_Q09",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-12_US_V2_MATH_M2_Q09/original.png"
+  },
+  "geo-parallel-transversal": {
+    "figureId": "2024-05_ASIA_V2_MATH_M2_Q09",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-05_ASIA_V2_MATH_M2_Q09/original.png"
+  },
+  "geo-rays-angle": null,
+  "geo-right-triangle": {
+    "figureId": "2024-03_UNSPECIFIED_VA_MATH_M1_Q19",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-03_UNSPECIFIED_VA_MATH_M1_Q19/original.png"
+  },
+  "geo-similar-triangles": {
+    "figureId": "2023-10_UNSPECIFIED_V1_MATH_M1_Q09",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2023-10_UNSPECIFIED_V1_MATH_M1_Q09/original.png"
+  },
+  "histogram-commute": null,
+  "histogram-heights": null,
+  "histogram-unit-bins": null,
+  "line-function-stars": {
+    "figureId": "2024-05_ASIA_V1_MATH_M2_Q12",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-05_ASIA_V1_MATH_M2_Q12/original.png"
+  },
+  "line-graph-growth": {
+    "figureId": "2023-10_UNSPECIFIED_V1_MATH_M1_Q15",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2023-10_UNSPECIFIED_V1_MATH_M1_Q15/original.png"
+  },
+  "line-population-census": {
+    "figureId": "2024-05_ASIA_V1_MATH_M1_Q05",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-05_ASIA_V1_MATH_M1_Q05/original.png"
+  },
+  "plane-circle-arc-polygon": null,
+  "plane-line-ray-segment": null,
+  "plane-linear-region": null,
+  "plane-nonlinear-region": null,
+  "plane-parabola-points": null,
+  "plane-rational-asymptotes": null,
+  "plane-system-region": null,
+  "scatter-best-fit-wide": {
+    "figureId": "2024-03_UNSPECIFIED_VC_MATH_M1_Q16",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-03_UNSPECIFIED_VC_MATH_M1_Q16/original.png"
+  },
+  "scatter-best-fit": {
+    "figureId": "2023-12_ASIA_V2_MATH_M1_Q08",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2023-12_ASIA_V2_MATH_M1_Q08/original.png"
+  },
+  "scatter-points": {
+    "figureId": "2024-06_ASIA_V2_MATH_M1_Q07",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-06_ASIA_V2_MATH_M1_Q07/original.png"
+  },
+  "solid-cone": null,
+  "solid-cylinder": null,
+  "solid-prism": null,
+  "solid-pyramid": null,
+  "solid-sat-cone-flat-a": {
+    "figureId": "2025-03_ASIA_V2_MATH_M1_Q21",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-03_ASIA_V2_MATH_M1_Q21/original.png"
+  },
+  "solid-sat-cone-flat-b": {
+    "figureId": "2025-03_ASIA_V3_MATH_M1_Q21",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-03_ASIA_V3_MATH_M1_Q21/original.png"
+  },
+  "solid-sat-cone-flat-c": {
+    "figureId": "2025-08_US_V1_MATH_M2_Q18",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-08_US_V1_MATH_M2_Q18/original.png"
+  },
+  "solid-sat-cone-tall": {
+    "figureId": "2026-06_US_V3_MATH_M2_Q06",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2026-06_US_V3_MATH_M2_Q06/original.png"
+  },
+  "solid-sat-cylinder-plain": {
+    "figureId": "2026-06_ASIA_V1_MATH_M2_Q21",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2026-06_ASIA_V1_MATH_M2_Q21/original.png"
+  },
+  "solid-sat-cylinder-r-h": {
+    "figureId": "2024-08_US_V5_MATH_M1_Q19",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2024-08_US_V5_MATH_M1_Q19/original.png"
+  },
+  "solid-sat-pyramid-a": {
+    "figureId": "2026-03_US_V1_MATH_M2_Q10",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2026-03_US_V1_MATH_M2_Q10/original.png"
+  },
+  "solid-sat-pyramid-b": {
+    "figureId": "2026-06_US_V3_MATH_M1_Q17",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2026-06_US_V3_MATH_M1_Q17/original.png"
+  },
+  "solid-sat-pyramid-c": {
+    "figureId": "2025-05_ASIA_V2_MATH_M2_Q10",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-05_ASIA_V2_MATH_M2_Q10/original.png"
+  },
+  "solid-sat-pyramid-level": {
+    "figureId": "2026-10_ASIA_V3_MATH_M2_Q20",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2026-10_ASIA_V3_MATH_M2_Q20/original.png"
+  },
+  "solid-sphere": null,
+  "table-coins-decimals": {
+    "figureId": "2025-06_US_V1_RW_M1_Q11",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-06_US_V1_RW_M1_Q11/original.png"
+  },
+  "table-grouped-math": {
+    "figureId": "2025-08_US_V2_MATH_M2_Q22",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-08_US_V2_MATH_M2_Q22/original.png"
+  },
+  "table-hours-note": {
+    "figureId": "2025-12_ASIA_V2_RW_M1_Q10",
+    "path": "/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures/2025-12_ASIA_V2_RW_M1_Q10/original.png"
+  }
+}
