@@ -9,6 +9,7 @@
 // the K-2 policy (reduceKeypad). The quiz setting reaches the stylesheet as the host's
 // data-reduced-motion, and either it or the OS preference makes the graph's motion instant (AN-13).
 
+import { LayoutSettingContext } from "./layout/layout-choice";
 import {
   useCallback,
   useEffect,
@@ -216,26 +217,28 @@ export function App(props: AppProps): JSX.Element {
             <KeyboardTraceContext.Provider value={trace}>
               <SkinContext.Provider value={shell.skin}>
                 <ThemeChoiceContext.Provider value={themeChoice}>
-                  <CalculatorLayout
-                    layout={shell.layout}
-                    containerWidth={shell.size.width}
-                    containerHeight={shell.size.height}
-                    pointer={shell.pointer}
-                    collapsed={settings.expressionsCollapsed}
-                    keypadOpen={settings.keypad}
-                    host={host}
-                    themeRevision={shell.themeRevision}
-                    reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
-                    settingsAnchor={settingsAnchor}
-                    revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
-                    rootRef={rootRef}
-                    onOpenSettings={toggleSettings}
-                    onCloseSettings={closeSettings}
-                    onToggleKeypad={toggleKeypad}
-                    onKeypadChange={changeKeypad}
-                    onTouchFocusRow={touchFocusRow}
-                  />
-                  <ShortcutsHost rootRef={rootRef} />
+                  <LayoutSettingContext.Provider value={shell.layoutSetting}>
+                    <CalculatorLayout
+                      layout={shell.layout}
+                      containerWidth={shell.size.width}
+                      containerHeight={shell.size.height}
+                      pointer={shell.pointer}
+                      collapsed={settings.expressionsCollapsed}
+                      keypadOpen={settings.keypad}
+                      host={host}
+                      themeRevision={shell.themeRevision}
+                      reducedMotion={settings.reducedMotion || shell.reducedMotionMedia}
+                      settingsAnchor={settingsAnchor}
+                      revealRowId={snapshot.focusedRowId ?? snapshot.activeRowId}
+                      rootRef={rootRef}
+                      onOpenSettings={toggleSettings}
+                      onCloseSettings={closeSettings}
+                      onToggleKeypad={toggleKeypad}
+                      onKeypadChange={changeKeypad}
+                      onTouchFocusRow={touchFocusRow}
+                    />
+                    <ShortcutsHost rootRef={rootRef} />
+                  </LayoutSettingContext.Provider>
                 </ThemeChoiceContext.Provider>
               </SkinContext.Provider>
             </KeyboardTraceContext.Provider>

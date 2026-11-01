@@ -27,6 +27,8 @@ export interface QuizMountOptions {
   // The theme until the student picks one in Settings: absent in the quiz ("auto", the site
   // theme); "classic" on the /calculator page.
   defaultTheme?: ThemeChoice;
+  // True on the /calculator page: side by side, as desmos.com/calculator, with no layout setting.
+  fixedSideBySide?: boolean;
 }
 
 export interface QuizCalculatorHandle {
@@ -50,6 +52,7 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
       chromeSlot: options.chromeSlot,
       announceResetOnMount: options.announceReset,
       defaultTheme: options.defaultTheme,
+      fixedSideBySide: options.fixedSideBySide,
     }
   );
   // Everything else starts blank (AR-58); the carried settings are applied before the first frame.

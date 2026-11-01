@@ -16,14 +16,21 @@ afterEach(() => {
   restore();
 });
 
-it("RS-1 layoutFor is side by side from 450 px wide and stacked below, at any height", () => {
+it("RS-1 side by side is chosen from 450 px wide, stacked below, at any height", () => {
+  const side = "side-by-side";
   expect(LAYOUT_DESKTOP_MIN_WIDTH).toBe(450);
-  expect(layoutFor({ width: 450, height: 800 })).toBe("desktop");
-  expect(layoutFor({ width: 449, height: 800 })).toBe("stacked");
-  expect(layoutFor({ width: 768, height: 1024 })).toBe("desktop");
-  expect(layoutFor({ width: 812, height: 375 })).toBe("desktop");
-  expect(layoutFor({ width: 375, height: 812 })).toBe("stacked");
-  expect(layoutFor({ width: 0, height: 0 })).toBe("stacked");
+  expect(layoutFor({ width: 450, height: 800 }, side)).toBe("desktop");
+  expect(layoutFor({ width: 449, height: 800 }, side)).toBe("stacked");
+  expect(layoutFor({ width: 768, height: 1024 }, side)).toBe("desktop");
+  expect(layoutFor({ width: 812, height: 375 }, side)).toBe("desktop");
+  expect(layoutFor({ width: 375, height: 812 }, side)).toBe("stacked");
+  expect(layoutFor({ width: 0, height: 0 }, side)).toBe("stacked");
+});
+
+it("graph on top (the quiz default) is stacked at every width", () => {
+  for (const width of [0, 375, 449, 450, 768, 1440]) {
+    expect(layoutFor({ width, height: 800 }, "graph-top")).toBe("stacked");
+  }
 });
 
 it("AR-29 observeHostSize reports ResizeObserver sizes and re-reads the host on measure()", () => {

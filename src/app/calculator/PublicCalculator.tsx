@@ -61,6 +61,7 @@ export function PublicCalculator() {
         reducedMotion={false}
         announceReset={false}
         defaultTheme="classic"
+        fixedSideBySide
         onStatus={() => {}}
         onHandle={setHandle}
       />

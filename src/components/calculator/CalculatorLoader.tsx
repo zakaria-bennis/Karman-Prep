@@ -98,6 +98,7 @@ export interface CalculatorLoaderProps {
   onHandle(handle: QuizCalculatorHandle | null): void;
   reloadPage?: () => void; // default () => window.location.reload(); tests inject a spy
   defaultTheme?: ThemeChoice; // until the student picks a theme; the quiz leaves it out ("auto")
+  fixedSideBySide?: boolean; // the /calculator page; the quiz follows the layout choice
 }
 
 type Phase = "loading" | "ready" | "load-failed" | "mount-failed";
@@ -166,6 +167,7 @@ export function CalculatorLoader(props: CalculatorLoaderProps) {
       preferences: calculatorWindowStore.get().preferences,
       onPreferences: (preferences) => calculatorWindowStore.set({ preferences }),
       defaultTheme: latest.current.defaultTheme,
+      fixedSideBySide: latest.current.fixedSideBySide,
     };
     let handle: QuizCalculatorHandle;
     try {
