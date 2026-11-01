@@ -4,8 +4,8 @@
 // (a seven-notch slider) and the Theme picker; Grid with the Cartesian Grid and Polar Grid buttons,
 // Arrows, Axis Numbers and Minor Gridlines; each axis (AxisSection); Complex Mode (S-5) with its
 // hint and the Angle Settings choice (S-6, announced per A11Y-2; greyed while complex,
-// SETTINGS-23); Key Sounds; then More Options (axis scale, Lock Viewport and Braille Mode). Every
-// on/off setting is the same switch (SettingSwitchRow). Visibility follows SETTINGS-14 and -15: no
+// SETTINGS-23); in the quiz only, Layout (graph on top or side by side); Key Sounds; then More
+// Options (axis scale, Lock Viewport and Braille Mode). Every on/off setting is the same switch (SettingSwitchRow). Visibility follows SETTINGS-14 and -15: no
 // grid type or Minor Gridlines with the grid off, no Minor Gridlines in polar. It appears and
 // leaves at once (VIS-5). Escape (rank "popover", KB-3) or a pointerdown outside closes it.
 
@@ -23,6 +23,12 @@ import { useAnnouncer } from "../a11y/announcer";
 import { EscapeContext, type EscapeStack } from "../focus/escape-stack";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { EDITOR_MESSAGES } from "../list/messages";
+import {
+  LayoutSettingContext,
+  layoutChoice,
+  setLayoutChoice,
+  subscribeLayoutChoice,
+} from "../layout/layout-choice";
 import { keySoundsEnabled, setKeySoundsEnabled, subscribeKeySounds } from "../sound/key-sounds";
 import { AxisSection } from "./AxisSection";
 import {
@@ -47,6 +53,12 @@ const EDGE = 5; // the least distance kept from the offset parent's edges
 
 /** SETTINGS-23: the Angle tooltip while complex mode is on. */
 export const COMPLEX_USES_RADIANS = "Complex mode uses radians";
+
+// The quiz calculator's layout (founder, 2026-11-01): graph on top by default, or side by side.
+const LAYOUTS = [
+  { value: "graph-top", label: "Graph on Top" },
+  { value: "side-by-side", label: "Side by Side" },
+] as const;
 
 const ANGLES = [
   { value: "radians", label: "Radians" },
@@ -103,6 +115,8 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
   const escape = useEscapeStack();
   const radioName = useId();
   const sounds = useSyncExternalStore(subscribeKeySounds, keySoundsEnabled, () => false);
+  const layoutSetting = useContext(LayoutSettingContext);
+  const layout = useSyncExternalStore(subscribeLayoutChoice, layoutChoice, layoutChoice);
   const ref = useRef<HTMLDivElement>(null);
   const latest = useRef({ anchor, onClose: props.onClose });
 
@@ -231,6 +245,17 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
             />
           </div>
         </div>
+        {layoutSetting && (
+          <div className="kc-settings-section kc-settings-layout">
+            <SettingSegments
+              name={`${radioName}-layout`}
+              label="Layout"
+              options={LAYOUTS}
+              value={layout}
+              onSelect={setLayoutChoice}
+            />
+          </div>
+        )}
         <div className="kc-settings-section">
           <SettingSwitchRow
             label="Key Sounds"

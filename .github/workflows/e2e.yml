@@ -52,9 +52,12 @@ jobs:
     env:
       # Clerk is bypassed via DEV_IMPERSONATE_CLERK_ID in CI. The
       # placeholder keys are enough to satisfy build-time process.env
-      # reads; the dev server never actually hits Clerk.
+      # reads; the dev server never actually hits Clerk. The publishable
+      # key must still be well formed: it decodes to
+      # "placeholder.clerk.accounts.dev$", so Clerk's script host contains
+      # "clerk" (a blank host made it request https://npm/@clerk/...).
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_cGxhY2Vob2xkZXIuY2xlcmsuYWNjb3VudHMuZGV2JA
       CLERK_SECRET_KEY: sk_test_placeholder
       # Stripe + Resend are likewise not exercised by the e2e suite,
       # but the app reads them at boot.

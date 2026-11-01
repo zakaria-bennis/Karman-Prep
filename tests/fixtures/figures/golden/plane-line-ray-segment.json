@@ -1,0 +1,106 @@
+{
+  "source": "hand-modelled: SAT coordinate plane with a line, a ray and a segment",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "plane",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "A",
+        "x": -4,
+        "y": -3,
+        "on": ["l"]
+      },
+      {
+        "kind": "point",
+        "id": "B",
+        "x": 2,
+        "y": 3,
+        "on": ["l"]
+      },
+      {
+        "kind": "line",
+        "id": "l",
+        "from": "A",
+        "to": "B"
+      },
+      {
+        "kind": "point",
+        "id": "C",
+        "x": 1,
+        "y": -2
+      },
+      {
+        "kind": "point",
+        "id": "D",
+        "x": 4,
+        "y": -4,
+        "on": ["r"]
+      },
+      {
+        "kind": "ray",
+        "id": "r",
+        "from": "C",
+        "to": "D"
+      },
+      {
+        "kind": "point",
+        "id": "E",
+        "x": -5,
+        "y": 4
+      },
+      {
+        "kind": "point",
+        "id": "F",
+        "x": -2,
+        "y": 1
+      },
+      {
+        "kind": "segment",
+        "id": "EF",
+        "from": "E",
+        "to": "F"
+      }
+    ],
+    "labels": [
+      {
+        "text": "A",
+        "on": "A"
+      },
+      {
+        "text": "B",
+        "on": "B"
+      },
+      {
+        "text": "C",
+        "on": "C"
+      },
+      {
+        "text": "D",
+        "on": "D"
+      },
+      {
+        "text": "E",
+        "on": "E"
+      },
+      {
+        "text": "F",
+        "on": "F"
+      },
+      {
+        "text": "ℓ",
+        "on": "l",
+        "at": "end"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [-6, 6],
+      "y": [-6, 6],
+      "step": 1,
+      "labelStep": 2,
+      "xLabel": "x",
+      "yLabel": "y"
+    }
+  }
+}

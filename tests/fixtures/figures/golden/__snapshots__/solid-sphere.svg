@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Sphere, radius r." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M200 150 L309.25 150" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s.radius">
+</path>
+<path d="M309.25 150 L308.72 147.32 L307.15 144.67 L304.55 142.07 L300.93 139.55 L296.35 137.12 L290.84 134.83 L284.45 132.67 L277.25 130.69 L269.31 128.89 L260.7 127.29 L251.5 125.91 L241.81 124.77 L231.71 123.86 L221.31 123.21 L210.71 122.82 L200 122.69 L189.29 122.82 L178.69 123.21 L168.29 123.86 L158.19 124.77 L148.5 125.91 L139.3 127.29 L130.69 128.89 L122.75 130.69 L115.55 132.67 L109.16 134.83 L103.65 137.12 L99.07 139.55 L95.45 142.07 L92.85 144.67 L91.28 147.32 L90.75 150" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M90.75 150 L91.28 152.68 L92.85 155.33 L95.45 157.93 L99.07 160.45 L103.65 162.88 L109.16 165.17 L115.55 167.33 L122.75 169.31 L130.69 171.11 L139.3 172.71 L148.5 174.09 L158.19 175.23 L168.29 176.14 L178.69 176.79 L189.29 177.18 L200 177.31 L210.71 177.18 L221.31 176.79 L231.71 176.14 L241.81 175.23 L251.5 174.09 L260.7 172.71 L269.31 171.11 L277.25 169.31 L284.45 167.33 L290.84 165.17 L296.35 162.88 L300.93 160.45 L304.55 157.93 L307.15 155.33 L308.72 152.68 L309.25 150" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M309.25 150 L308.72 160.71 L307.15 171.31 L304.55 181.71 L300.93 191.81 L296.35 201.5 L290.84 210.7 L284.45 219.31 L277.25 227.25 L269.31 234.45 L260.7 240.84 L251.5 246.35 L241.81 250.93 L231.71 254.55 L221.31 257.15 L210.71 258.72 L200 259.25 L189.29 258.72 L178.69 257.15 L168.29 254.55 L158.19 250.93 L148.5 246.35 L139.3 240.84 L130.69 234.45 L122.75 227.25 L115.55 219.31 L109.16 210.7 L103.65 201.5 L99.07 191.81 L95.45 181.71 L92.85 171.31 L91.28 160.71 L90.75 150 L91.28 139.29 L92.85 128.69 L95.45 118.29 L99.07 108.19 L103.65 98.5 L109.16 89.3 L115.55 80.69 L122.75 72.75 L130.69 65.55 L139.3 59.16 L148.5 53.65 L158.19 49.07 L168.29 45.45 L178.69 42.85 L189.29 41.28 L200 40.75 L210.71 41.28 L221.31 42.85 L231.71 45.45 L241.81 49.07 L251.5 53.65 L260.7 59.16 L269.31 65.55 L277.25 72.75 L284.45 80.69 L290.84 89.3 L296.35 98.5 L300.93 108.19 L304.55 118.29 L307.15 128.69 L308.72 139.29 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<text x="242.49" y="167.76" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.radius">r</text>
+</svg>

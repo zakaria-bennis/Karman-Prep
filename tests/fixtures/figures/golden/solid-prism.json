@@ -1,0 +1,34 @@
+{
+  "source": "hand-modelled: SAT right rectangular prism, 6 by 3 by 4",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "prism",
+        "dims": {
+          "length": 6,
+          "width": 3,
+          "height": 4
+        }
+      }
+    ],
+    "labels": [
+      {
+        "text": "6",
+        "on": "s.length"
+      },
+      {
+        "text": "3",
+        "on": "s.width"
+      },
+      {
+        "text": "4",
+        "on": "s.height"
+      }
+    ],
+    "marks": []
+  }
+}

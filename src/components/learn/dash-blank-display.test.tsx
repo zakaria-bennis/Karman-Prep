@@ -4,6 +4,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import MathText from "./MathText";
 import QuestionTable from "./QuestionTable";
 import { blankSegments, displayDashes } from "./dash-blank-display";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 afterEach(cleanup);
 

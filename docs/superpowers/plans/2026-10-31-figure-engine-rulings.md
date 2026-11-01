@@ -1,0 +1,58 @@
+# Figure engine: decisions made during the build (2026-10-31)
+
+The founder asked for the first pass to run without stopping. Every decision taken on his behalf is listed here in the order made. Each says what was decided, why, and what it costs if wrong.
+
+- T5 does NOT delete geometry-svg.ts / geometry-layout.ts / GeometryFigure.tsx; they stay until every live geometry figure is migrated (spec §3 drops old fields in one later migration) — why: old rows must keep rendering — cost if wrong: dead code lingers a few weeks.
+- buildScene(spec) for type "table" is not a Scene; FigureFrame routes type table to TableView (T7) and buildScene throws a clear error for "table" — why: tables are HTML for accessibility (T7) — cost if wrong: small refactor.
+- T11's kimport edits are made in worktree /Users/zakariabennis/Karman-Prep/.claude/worktrees/import-spec on branch claude/import-dedup-spec, committed there — why: plan says so; kimport lives only there — cost if wrong: none.
+- series parts use `seriesKind` (not `kind`) for the chart kind — `kind` is the Part discriminator — later tasks (T6) use seriesKind; cost if wrong: rename.
+- accept implementer's open-shape choices (series.values numbers or [x,y]; solid.dims record of numbers; function.domain [min,max]; duplicate part ids rejected) — consistent with spec; cost if wrong: small schema change.
+- T2 redefines the existing --figure-grid (legacy charts get a fainter grid) — legacy chart drawing is replaced in T6 anyway — cost if wrong: charts look fainter until T6.
+- no separate light block (:root is light, html.dark inverted); observatory block left untouched — observatory look is retired per docs — cost if wrong: one more var block.
+- highlight uses --k-math blue until a marigold token exists — cost if wrong: one-line change.
+- min on-screen font enforced by builders + T10 Playwright check, not FigureView — cost if wrong: add a clamp later.
+- T3 tick labels must follow Bluebook density, not the calculator's 80px rule — label every frame.step (default from axisTicks step) when labels fit with ≥ 28px spacing, else every 2nd step; never fewer than both ends + every 5 — why: spec "look exactly like Bluebook" — cost if wrong: denser labels than ideal.
+- no axis arrowheads (Bluebook axes have none in most items) — cost if wrong: add later.
+- issue code `clipped` for unsupported part / missing frame acceptable for now; function.domain is x-range only (x=f(y) rare on SAT) — deferred minor.
+- T4 drops a label with no free spot and reports label_collision (never draws an overlap) — matches spec "a figure that fails goes back to its reviewer" — cost if wrong: none.
+- arcs collide by chord; grid paths/rects ignored in label collisions — cost if wrong: rare overlap with a curved arc, caught by the Task 12 render check.
+- Review Focus "label dodges a line" success-path test moves to Task 5 (crowded triangle: 6 labels, 25° angle → all placed, no overlap with any segment) — builder supplies `preferred`, so the end-to-end test belongs there — cost if wrong: none.
+- drawMark takes resolved screen points (Scene has no part positions yet) — accepted; a part-positions map is added when tutoring tools need it — cost if wrong: refactor later.
+- right-angle snap only within 10° of 90°; rays/lines extend 15% past their points; single snap pass — accepted defaults — cost if wrong: tune constants.
+- "not drawn to scale" note must never overflow the box (spec: nothing clipped) — must wrap on narrow boxes; reviewer to verify, enters fix loop if not handled.
+- wrapped note = two text items whose texts joined by a space equal the exact string — keeps exact wording and the 12px floor — cost if wrong: none.
+- T6 fixtures folder missing → implementer builds tests/fixtures/charts from 8–12 real figure_chart_data rows of the live export — cost if wrong: none.
+- the figure engine never imports src/lib/calculator at runtime (AR-1; also fixes eager calculator load on quiz pages). Function parts store precomputed world-unit polylines (`samples`) produced at authoring time by a Node script under scripts/figures/ that uses the calculator read-only; buildPlane draws `samples`, and reports issue code "unsampled_function" when absent. calc-adapter moves to scripts/figures/. Founder decision "curves use the calculator's formula reader read-only" still holds, at authoring time — cost if wrong: specs carry sample arrays (a few KB each).
+- globals.css is restored exactly to main; figure roles live in a separate stylesheet (src/components/learn/figures/figure-roles.css, `:root:root{}` to win the cascade over the legacy --figure-grid) imported by FigureView — TH-2 forbids site-token edits — cost if wrong: one extra CSS file.
+- T6 frame extensions (per-axis steps/label steps, categories, grid switch, origin-label switch) accepted; spec doc to be updated in the remediation.
+- pie charts out of scope (Digital SAT has none); "can't be drawn yet" notice stays — deferred minor; admin editor still offers pie.
+- square aspect and plane titles deferred minors.
+- chartDataToSpec computes samples for legacy chart function plots with plain arithmetic (4 expression kinds), no calculator — keeps live function plots drawing — cost if wrong: a rare expression kind draws nothing (flagged unsampled_function).
+- :root:root --figure-grid recolors old inline-SVG grids faintly on pages loading FigureView — old figures are being replaced anyway — cost if wrong: faint grids on legacy SVGs until migrated.
+- T7 adds table part fields `groups` (merged headings) and `note` (footer notes) — needed so 4 + 246 live tables lose nothing — accepted; spec doc to mention them.
+- T7 look changes vs the 2026-10-22 table look (no shrink-to-fit → scroll; bold title; decimal alignment) follow the approved figure spec §2 — accepted, founder sees them in the summary. Scroll affordance (fade or shadow) and a keyboard-focusable scroll frame are accessibility requirements, not polish — reviewer to judge.
+- interior height/radius lines of solids are dashed (Bluebook convention for cones/pyramids); spheres drawn as exact circles with flattened equator — accepted — cost if wrong: one style switch.
+- marks on solids (e.g. right-angle box at a cone's height foot) reported, not drawn — deferred minor; common on SAT, schedule after Task 12 — cost: those figures fail checks until added.
+- solid3d routing into the display is Task 9 (buildScene) — not this task.
+- Math table specs must keep the calculator's table-transfer button (route through the QuestionTable wrapper or equivalent) — losing an existing feature is a regression — reviewer to confirm; enters fix loop.
+- spec figures are named by the engine's generated description (spec §2), not image_alt — cost if wrong: swap the label source.
+- valid specs with engine issues still render; issues are enforced at submit/certify (Task 11) — cost if wrong: none.
+- ~16 KB engine on quiz pages accepted; supabase types regenerated after merge (db:types).
+- two-pane quiz view at tablet stacks figure choices instead of 2×2 when text would drop below 12px — readability floor wins — cost if wrong: none.
+- geometry/solid choices must share one scale, not just one size (spec §2 "same frame (ranges, scale and size)") — implementer flagged as not done → reviewer to treat as a spec gap.
+- choice figure descriptions must distinguish the four choices for screen readers (spec §2 accessible description) — reviewer to judge severity.
+- I2 is implemented now (shared scale option in geometry2d/solid3d) rather than deferred behind a certify refusal — founder decision is explicit; cost: extra builder option.
+- mixed table+drawn choice sets are refused by certify (Task 11 check) — rare; cost if wrong: none.
+- T11 kimport side runs the engine checker from the engine worktree via env FIGURE_ENGINE_DIR (default /Users/zakariabennis/Karman-Prep/.claude/worktrees/figure-engine-spec) until the engine merges to main; the /dev/figure-review page switch to engine renders is deferred until the import branch merges main (the page lives on the import branch, the engine does not) — cost if wrong: one config var to drop later.
+- certify adds `figure_choice_mixed` (table + drawn choice specs in one set) as a fail check alongside `figure_choice_placeholder`.
+- reviewers record `transcribed_labels` including tick numbers (verifies the frame/step matches the exam) — cost if wrong: one-line filter.
+- optional point `on: [partId]` accepted for on-line/on-circle/curve-through checks.
+- plane builder must draw part labels (points, lines, curves) through placeLabels — gap from Task 3, load-bearing for the redraw (every labelled plane fails today) — fixed in Task 11's fix round.
+- publishing figure_spec from the import branch (stage/publish SQL writing figure_spec/choice_figure_spec) is post-merge pipeline work, tracked for after the engine merges and the column exists in production — cost: spec figures wait in review until then.
+- choice shapes checked at own size (minor), stored figure.svg uses default theme colors (review only), hand-written SVG refused on every resubmit (intended).
+- planes don't draw `region` (shaded inequalities) or `circle`/`arc`/`polygon` parts yet — both are common on SAT coordinate-plane items and in spec §1 — added as Task 11b before Task 12: regions sampled at authoring time (scripts/figures, calculator region math read-only) into stored polygons; circles/arcs/polygons drawn natively on planes; labels inside regions via placeLabels. Cost if skipped: those figures can't be redrawn.
+- linear regions (single or systems of ≤4 linear inequalities) → exact polygon by clipping the frame rectangle against each half-plane (no calculator); nonlinear → trace the calculator's span mask and snap edges onto its boundary curves (scripts/figures only) — why: SAT regions are almost all linear, exactness matters there — cost if wrong: tracer code for rare nonlinear regions.
+- region parts gain optional `boundary: string[]` (ids of curve/line parts forming the edge); region_unmarked = no boundary and no label; strict-boundary dashing comes only from the boundary part.
+- circle off_line measured in world units (fix for unequal x/y scales) — in 11b.
+- tick numbers/axis names not kept clear of drawn lines (Bluebook does the same) — accepted.
+- a dropped overlapping "0" may fail a transcription check where the original prints it — accepted; reviewer can omit "0" from transcribed_labels in that case — cost: occasional reviewer friction.

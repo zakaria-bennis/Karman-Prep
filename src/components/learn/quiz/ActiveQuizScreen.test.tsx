@@ -7,6 +7,10 @@ import type { QuizQuestionWithChoices } from "@/types/quiz";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import type { MappedNode } from "../ConstellationMap";
 import { ActiveQuizScreen } from "./ActiveQuizScreen";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const mockQuizState = {
   phase: "answering",

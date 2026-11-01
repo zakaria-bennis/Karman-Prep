@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 144.75" role="img" aria-label="Minutes Spent Reading. Dot plot of 6 values. Axis: Minutes. Values ." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 102 L584 102" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M16 99 L16 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="16" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M87 99 L87 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="87" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<path d="M158 99 L158 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="158" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">20</text>
+<path d="M229 99 L229 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="229" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">30</text>
+<path d="M300 99 L300 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="300" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">40</text>
+<path d="M371 99 L371 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="371" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">50</text>
+<path d="M442 99 L442 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="442" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">60</text>
+<path d="M513 99 L513 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="513" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">70</text>
+<path d="M584 99 L584 105" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="584" y="120" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">80</text>
+<text x="300" y="141" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Minutes</text>
+<path d="M82 95 A5 5 0 1 0 92 95 A5 5 0 1 0 82 95 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M153 95 A5 5 0 1 0 163 95 A5 5 0 1 0 153 95 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M153 83 A5 5 0 1 0 163 83 A5 5 0 1 0 153 83 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M153 71 A5 5 0 1 0 163 71 A5 5 0 1 0 153 71 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M224 95 A5 5 0 1 0 234 95 A5 5 0 1 0 224 95 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M224 83 A5 5 0 1 0 234 83 A5 5 0 1 0 224 83 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M295 95 A5 5 0 1 0 305 95 A5 5 0 1 0 295 95 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M295 83 A5 5 0 1 0 305 83 A5 5 0 1 0 295 83 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M295 71 A5 5 0 1 0 305 71 A5 5 0 1 0 295 71 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M295 59 A5 5 0 1 0 305 59 A5 5 0 1 0 295 59 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M366 95 A5 5 0 1 0 376 95 A5 5 0 1 0 366 95 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M366 83 A5 5 0 1 0 376 83 A5 5 0 1 0 366 83 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M508 95 A5 5 0 1 0 518 95 A5 5 0 1 0 508 95 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Minutes Spent Reading</text>
+</svg>

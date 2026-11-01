@@ -4,6 +4,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { catalogQuestion } from "../../../tests/fixtures/approved-catalog";
 import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const actions = vi.hoisted(() => ({
   actionStartQuiz: vi.fn(),

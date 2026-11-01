@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Angle ABD = 40°, angle DBC = x°." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M113.16 259.25 L384 259.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-end="url(#figure-arrow-_R_0_)" data-part="BA">
+</path>
+<path d="M113.16 259.25 L384 33.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-end="url(#figure-arrow-_R_0_)" data-part="BD">
+</path>
+<path d="M113.16 259.25 L48.29 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-end="url(#figure-arrow-_R_0_)" data-part="BC">
+</path>
+<text x="312" y="280.1" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="104.55" y="274.03" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="53.84" y="82.46" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="C">C</text>
+<text x="267.33" y="155.09" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="D">D</text>
+<text x="166.96" y="245.4" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="a1">40°</text>
+<text x="123.04" y="233.8" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="a2">x°</text>
+</svg>

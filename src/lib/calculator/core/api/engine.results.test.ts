@@ -156,6 +156,28 @@ it("AR-46 plots and done must match the latest generation; values must not preda
   t.flushFrames();
   expect(e.getSnapshot().geometry.has("p")).toBe(true);
 });
+it("AR-46 a curve plotted for an earlier view of the latest state is drawn until a newer plot arrives; a region is not", () => {
+  e.setExpressions([
+    { id: "c", latex: "y=x" },
+    { id: "q", latex: "y\\le x" },
+  ]);
+  const gState = t.latestGeneration();
+  e.setView({ ...TEST_VIEW, viewport: { left: -9, right: 11, bottom: -7.5, top: 7.5 } }); // pan
+  e.setView({ ...TEST_VIEW, viewport: { left: -8, right: 12, bottom: -7.5, top: 7.5 } }); // pan
+  const gLatest = t.latestGeneration();
+  const older = curve("c"),
+    newer = curve("c");
+  t.emit({ v: 1, type: "plot", generation: gLatest - 1, rowId: "c", geometry: older });
+  t.emit({ v: 1, type: "plot", generation: gLatest - 1, rowId: "q", geometry: region("q") });
+  t.flushFrames();
+  expect(e.getSnapshot().geometry.get("c")).toBe(older); // a slow row keeps moving mid-gesture
+  expect(e.getSnapshot().geometry.has("q")).toBe(false); // region spans are pixels of their view
+  t.emit({ v: 1, type: "plot", generation: gLatest, rowId: "c", geometry: newer });
+  t.emit({ v: 1, type: "plot", generation: gLatest - 1, rowId: "c", geometry: older });
+  t.emit({ v: 1, type: "plot", generation: gState - 1, rowId: "c", geometry: older });
+  t.flushFrames();
+  expect(e.getSnapshot().geometry.get("c")).toBe(newer); // never replaced by an older plot
+});
 it("AR-46 geometry is kept until replaced, dropped for edited rows and for regions on a view send, and pruned at done", () => {
   const keys = () => [...e.getSnapshot().geometry.keys()].sort();
   e.setExpressions([

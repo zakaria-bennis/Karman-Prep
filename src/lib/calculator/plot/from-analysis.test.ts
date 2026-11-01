@@ -131,10 +131,29 @@ it.each([
   ],
   [
     "x^{2}+y^{2}=25",
-    "implicit",
+    "explicit", // degree 2 in y with a constant y² term: drawn as y = ±√(25 − x²)
     [
       [3, 4],
       [-5, 0],
+    ],
+  ],
+  [
+    "y^{2}=x^{12}", // y² − x¹² ≥ 0 around y = ±x⁶ near 0, so only the solved branches reach (0, 0)
+    "explicit",
+    [
+      [0, 0],
+      [0.1, 0],
+      [-0.2, 0],
+      [1, -1],
+    ],
+  ],
+  [
+    "(x-1)(y-2)=0", // the y coefficient vanishes at x = 1: solving would lose that line
+    "implicit",
+    [
+      [1, -3],
+      [1, 3],
+      [4, 2],
     ],
   ],
 ] as const)("AR-44 plotInputFor graphs %s through compiled closures", (latex, kind, points) => {
@@ -214,7 +233,8 @@ it("G-22 a list of curves plots each element as its own run, line or region, as 
   expect(curve(["f(x)=[1,2]x"])).toHaveLength(2);
   expect(curve(["y=x+\\operatorname{mean}([1,2,3])"])).toHaveLength(1);
   expect(curve(["y=[1,2]x"], { angleMode: "radians", complex: true })).toHaveLength(2);
-  expect(curve(["x^{2}+y^{2}=[1,4]"])).toHaveLength(2); // two closed circles
+  expect(curve(["x^{2}+y^{2}=[1,4]"])).toHaveLength(4); // two circles, each as two solved halves
+  expect(curve(["x^{4}+y^{4}=[1,4]"])).toHaveLength(2); // degree 4 in x and y: two closed implicit loops
   const empty = run(["y=[]x"]).plot() as CurveGeometry;
   expect([empty.polylines.length, empty.evaluations]).toEqual([0, 0]);
   const lines = run(["x=[1,2,3]"]).plot() as LineSetGeometry;

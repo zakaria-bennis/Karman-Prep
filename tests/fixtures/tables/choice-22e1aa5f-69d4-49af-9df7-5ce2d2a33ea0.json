@@ -1,0 +1,13 @@
+{
+  "id": "22e1aa5f-69d4-49af-9df7-5ce2d2a33ea0",
+  "choice_table_data": {
+    "rows": [
+      ["−1", "5"],
+      ["0", "6"],
+      ["1", "6.5"]
+    ],
+    "caption": null,
+    "header_row": ["\\(x\\)", "\\(y\\)"],
+    "footer_note": null
+  }
+}

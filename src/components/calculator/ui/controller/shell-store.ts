@@ -12,6 +12,7 @@ import type { Pointer } from "./media";
 export interface ShellState {
   size: PixelSize;
   layout: "desktop" | "stacked";
+  layoutSetting: boolean; // the quiz follows the layout choice; the /calculator page is fixed
   skin: SkinId;
   themeChoice: ThemeChoice; // the theme picker's selection ("auto" follows the site theme)
   themeRevision: number;

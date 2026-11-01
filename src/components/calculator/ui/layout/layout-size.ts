@@ -1,15 +1,19 @@
 // AR-29, L-8, RS-1: the calculator picks its layout from its own container width through a
-// ResizeObserver, never from viewport media queries: side by side ("desktop") from 450 px wide,
-// stacked below that, at any height, as the reference calculator does (owner decision 2026-10-19
-// replaces the 560 px / 1.2-aspect rule).
+// ResizeObserver, never from viewport media queries, and from the student's layout choice
+// (layout-choice.ts): stacked, graph on top, by default at every width (founder decision
+// 2026-11-01); side by side ("desktop") only when the student chose it and the calculator is at
+// least 450 px wide, at any height.
 
 import type { PixelSize } from "@/lib/calculator/plot/viewport";
+import type { LayoutChoice } from "./layout-choice";
 
 export const LAYOUT_DESKTOP_MIN_WIDTH = 450;
 
-/** L-1 when `width >= 450`, otherwise L-2; the height plays no part. */
-export function layoutFor(size: PixelSize): "desktop" | "stacked" {
-  return size.width >= LAYOUT_DESKTOP_MIN_WIDTH ? "desktop" : "stacked";
+/** L-1 for side by side at `width >= 450`, otherwise L-2; the height plays no part. */
+export function layoutFor(size: PixelSize, choice: LayoutChoice): "desktop" | "stacked" {
+  return choice === "side-by-side" && size.width >= LAYOUT_DESKTOP_MIN_WIDTH
+    ? "desktop"
+    : "stacked";
 }
 
 /**

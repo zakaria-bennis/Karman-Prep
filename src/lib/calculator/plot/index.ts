@@ -71,16 +71,45 @@ function emptyGeometry(input: PlotInput): Geometry {
 }
 
 /**
- * One row's geometry for `view`, within its G-15 budget split across its branches (G-22), the
- * branches joined into one geometry; throws DeadlineExceeded once expired.
+ * The views of margin around `view` that curves and lines are plotted over: one view beyond each
+ * edge, at the view's own px density, so a pan of up to a screen or a zoom out of up to 3× shows
+ * curve already plotted while the next plot is computed (Desmos never shows a curve ending short of
+ * the edge mid-gesture). Implicit curves and regions keep the exact view: their cost grows with area.
  */
-export function plotRow(input: PlotInput, view: ViewSpec, deadline: Deadline): Geometry {
-  if (!isDrawable(view)) return emptyGeometry(input);
+export const MARGIN_VIEWS = 1;
+const MARGIN_SCALE = 1 + 2 * MARGIN_VIEWS;
+
+export function marginView(view: ViewSpec): ViewSpec {
+  const { viewport: v, size } = view;
+  const w = (v.right - v.left) * MARGIN_VIEWS,
+    h = (v.top - v.bottom) * MARGIN_VIEWS;
+  return {
+    ...view,
+    viewport: { left: v.left - w, right: v.right + w, bottom: v.bottom - h, top: v.top + h },
+    size: { width: size.width * MARGIN_SCALE, height: size.height * MARGIN_SCALE },
+  };
+}
+
+/**
+ * One row's geometry for `view`, within its G-15 budget split across its branches (G-22), the
+ * branches joined into one geometry; throws DeadlineExceeded once expired. With `margin`, curves
+ * and lines cover marginView(view) with the budget scaled to its sampled span.
+ */
+export function plotRow(
+  input: PlotInput,
+  visible: ViewSpec,
+  deadline: Deadline,
+  margin = false
+): Geometry {
+  if (!isDrawable(visible)) return emptyGeometry(input);
   const { rowId } = input;
+  const wide = margin && (input.kind === "explicit" || input.kind === "lines");
+  const view = wide ? marginView(visible) : visible,
+    scale = wide ? MARGIN_SCALE : 1;
   switch (input.kind) {
     case "explicit": {
       const { fs, independent } = input,
-        limit = explicitBranchBudget(fs.length);
+        limit = explicitBranchBudget(fs.length) * scale;
       if (fs.length === 0) return emptyGeometry(input);
       return mergeCurves(fs.map((f) => plotExplicit(rowId, independent, f, view, deadline, limit)));
     }
@@ -91,7 +120,7 @@ export function plotRow(input: PlotInput, view: ViewSpec, deadline: Deadline): G
     }
     case "lines": {
       const { fs, orientation } = input,
-        limit = explicitBranchBudget(fs.length);
+        limit = explicitBranchBudget(fs.length) * scale;
       if (fs.length === 0) return emptyGeometry(input);
       return mergeLines(fs.map((f) => plotLines(rowId, orientation, f, view, deadline, limit)));
     }
