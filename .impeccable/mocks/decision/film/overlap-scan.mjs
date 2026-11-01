@@ -2,14 +2,16 @@
 // dock, toast) that sits over text being read, and any moment with more than one highlighted (marigold)
 // button on screen (design rules 34 and 35). Headings scrolling under the fixed header are reported only
 // when they are more than a third covered, since every page scrolls under its header.
-// Needs the preview server. Usage: node overlap-scan.mjs [width] [height] [steps] [page] [port]
+// Needs the preview server. Usage: node overlap-scan.mjs [width] [height] [steps] [page] [port]   (page may carry a query: index?home=b)
 import { chromium } from "/Users/zakariabennis/Karman-Prep/node_modules/@playwright/test/index.mjs";
 const [w = 1440, h = 900, n = 120] = process.argv.slice(2, 5).map(Number);
 const page = process.argv[5] || "index";
 const port = process.argv[6] || "8766";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: w, height: h } });
-await p.goto(`http://127.0.0.1:${port}/film/${page}.html?rec=1`);
+// a page name may carry its query ("index?home=b")
+const [pname, pquery] = page.split("?");
+await p.goto(`http://127.0.0.1:${port}/film/${pname}.html?${pquery ? pquery + "&" : ""}rec=1`);
 await p.waitForTimeout(2000);
 const max = await p.evaluate(() => window.__max());
 const problems = [];
@@ -21,7 +23,8 @@ for (let i = 0; i <= n; i++) {
     const SEL =
       "h1, h2, h3, .lede, .act, .proof, .skipfilm, .note, .tools-list > div, .outcomes > div, .side-list li, .covers, .claim, .g-foot .lk, .clip figcaption, .cline, .kline p, .obj, .vq, " +
       ".i-facts > div, .i-grid > div, .i-steps li, .i-time li, .i-card, .i-list li, .i-pack, .i-big, .i-proof, .i-refuse article, .i-ex > div, .i-faq details, .i-formcard, .datecard, .i-obj, " +
-      ".freeline, .rung, .rung6, .plan, .band-words, .cmp-table, .cmp-plan, .honest p, .covered, .maptext";
+      ".freeline, .rung, .rung6, .plan, .band-words, .cmp-table, .cmp-plan, .honest p, .covered, .maptext, " +
+      ".b-stand, .b-try, .b-gline, .b-sent, .b-stage .note, .b-table tr, .b-pane figcaption, .b-caps3 > div, .b-cband .cline, .layout-switch, .b-live";
     const FIXED = ".hd:not(.away), .dock.on, .k-toast.on, .sheet:not([hidden])"; // the header hides while reading down
     const vis = (el) => {
       let e = el,

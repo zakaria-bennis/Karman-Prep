@@ -71,6 +71,10 @@ next-env.d.ts
 !/tests/visual/real-device-captures/README.md
 !/tests/visual/real-device-captures/.gitkeep
 
+# Quiz-engine reference captures for the redesign mocks: lossless PNGs are
+# regenerated from the harness (see the folder's README); the WebPs are committed
+/.impeccable/mocks/redesign/engine/renders/*.png
+
 # Question audit working output
 audit-out/
 

@@ -261,6 +261,39 @@ default I chose so the work could keep going. Correct any of it at the review.
   Grotesk. See question 21.
 - **The end screen's phone frame** is 390 by 844; rule 58 says 440 by 956.
 
+## What Phase 1 found (added 2026-10-31, after the site and system tracks)
+
+- **The home film cannot play on iPhones as encoded.** Both home films
+  (`day.mp4`, `day-p.mp4`) are H.264 4:4:4, which iPhone hardware decoders
+  refuse. The orbit clip is fine. A same-quality re-encode to 4:2:0 is in
+  progress; a lighter phone encode is yours to approve on a phone.
+- **Speed.** Measured locally with the same Lighthouse settings: home page
+  36 to 45 before, 100 after; largest paint 8.4 s to 1.1 s; main thread
+  blocked 2.0 s to 25 ms; 59 requests to 20; nothing from Clerk on the
+  page. The live site measured at the same hour scored 94, so part of the
+  old gap was a busy machine; the fair pair is live-now 94 versus local 100,
+  and the real phone gains come from the removed handshake and fonts.
+- **"Dark when the device states no preference."** Browsers report "light"
+  for a device with no setting; there is no "no preference" signal any more.
+  So such devices get light. Say if you want dark forced instead by ignoring
+  the device.
+- **Mobbin** is on a paid plan this account does not have. The builders use
+  the taste-skill's studied app screens and 21st.dev for references.
+- **Tooling, not product.** `npm run lint` dies on scratch files under
+  `tmp/` (fix: ignore `tmp/**`; in progress). `npm test` shows 20 failures
+  under Node 25 only, from its built-in localStorage; the suite is green with
+  `NODE_OPTIONS=--no-experimental-webstorage` or on Node 22, which CI uses.
+- **The pricing page** has two working layouts (`pricing.html?layout=a`
+  and `?layout=b`); A is my pick.
+- **The site code and the branch.** The live site's code is now on
+  `claude/first-pass`, reconciled to the October 30 offer, with the app
+  routes moved under `src/app/(app)/` (URLs unchanged) so the marketing
+  pages carry no Clerk, cookies or app CSS. Deploying this branch is still
+  your call, never from `main`.
+- **The 21st.dev key** appeared once inside a helper agent's own local log
+  while it pulled component bundles. The log was scrubbed; nothing is in
+  git. Rotating it is yours to decide.
+
 ## Things that need you, not me
 
 - Approve or change any default above.

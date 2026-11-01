@@ -12,6 +12,7 @@
 //    1 Opening   4 Your Daily 10   2 The tutors   3 The calendar and tools   5 Parent updates
 //    6 Between sets   8 Guarantee   9 Campus film   12 Testimonials (hidden while empty)
 //    10 Student messages (hidden while empty)   11 The close
+//    Home B (index.html?home=b, for the review) also reads the lines ending in " b" in sections 1 and 3, and section 13.
 // OTHER PAGES:
 //    21 to 28  The SAT Program page (28 holds the test dates)
 //    31 to 36  Private tutoring page
@@ -36,6 +37,10 @@ proof: Karman's 1:1 students gained 285 points on average. Karman 1:1 tutoring, 
 button: Take the free practice test
 button note: Saturday, December 12, live on Zoom with a proctor.
 skip: Skip the film
+### Home B (index.html?home=b) opens with the three lines below instead of "headline" and "text"; "try b" sits by the question on its first screen.
+headline b: Ten SAT questions before the bus.
+text b: Your Daily 10 is ten Karman questions a morning, with every miss back after 2, 7 and 21 days. Below it: Karman tutors in every live class, a weekly update to you, and the guarantee in full.
+try b: Try one the way your student would.
 
 ## 4 Your Daily 10
 headline: Every miss comes back three times.
@@ -55,6 +60,9 @@ headline: Every due date on one calendar.
 feature title: The calendar.
 feature text: Live classes, the weekly live session, every full-length test and Your Daily 10, each with its due date. Your student sees what's next.
 tools: Full-length tests = Timed and scored, with a Karman predicted score after each one. In Platform and up | The built-in graphing calculator = On screen, as on the digital SAT. In Platform and up | Score Plan = Coming spring 2027 | Test-Day Playbook = Coming May 2027 | Ask Karman = Coming in 2027
+### Home B shows the tools as one table (with the Challenge question and Wordline from section 6): its heading and its three column names.
+tools headline b: Everything else on the platform.
+tools columns b: The tool | What it does | Which plan
 
 ## 5 Parent updates
 headline: Every week, you see the practice time.
@@ -85,6 +93,11 @@ link: The guarantee, with worked examples
 headline: Three Karman 1:1 students, on campus.
 captions: Ava = 1520, UC Berkeley | Mateo = 1570, Harvard | Priya = 1540, Stanford
 line: Karman 1:1 tutoring, median 16 weeks
+
+## 13 A school day
+### Home B only: four stills from the film, each with its character's first name and the time (design rule 47: a first name and a moment, never a score). Pairs: who and when = what they are doing. The still is chosen by the first name (Ava, Ava's mother, Priya, David).
+headline: A school day with Karman in it.
+captions: Ava, 6:52 a.m. = Your Daily 10, on the shuttle | Ava's mother, 3:15 p.m. = The weekly update, in the pickup line | Priya, 8:05 p.m. = A live class, from her desk | David, 9:00 p.m. = The weekly live session, as the tutor
 
 ## 10 Student messages
 ### Hidden until the founder supplies real screens (texts from Karman 1:1 students, shared with permission).

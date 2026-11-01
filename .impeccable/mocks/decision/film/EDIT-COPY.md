@@ -38,6 +38,23 @@ order; the page follows the order above.)
 - `## 9 Campus film` carries the three cleared captions (Ava, Mateo, Priya)
   and the line "Karman 1:1 tutoring, median 16 weeks". Keep both.
 
+Home B, the second home page for your review (`index.html?home=b`; the A/B
+pill at the top of either page switches), reads the same sections plus a few
+lines of its own, each ending in ` b`:
+
+- `## 1 Opening`: `headline b:`, `text b:` (its opening title and the two
+  sentences under it) and `try b:` (the line by the question a parent can
+  answer on the first screen). Home A keeps using `headline:` and `text:`.
+- `## 3 The calendar and tools`: `tools headline b:` and `tools columns b:`
+  (the heading and the three column names of the table that lists the
+  `tools:` pairs with the Challenge question and Wordline from `## 6`). In
+  each `tools:` pair, the last sentence names the plan or the season ("In
+  Platform and up", "Coming spring 2027"); the table shows it in its own
+  column.
+- `## 13 A school day`: `headline:` and `captions:`, four stills from the
+  film, each as `who, when = what they are doing`. The first name picks the
+  still (Ava, Ava's mother, Priya, David), so keep the names.
+
 The other pages: `## 21` to `## 28` the SAT Program (28 is the test-dates card),
 `## 31` to `## 36` private tutoring, `## 41` to `## 45` the free practice test,
 `## 51` to `## 55` the guarantee, `## 61` to `## 65` About (the only page that

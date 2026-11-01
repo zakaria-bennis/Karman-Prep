@@ -27,7 +27,7 @@
 .rail .logo { font-weight: 800; font-size: 2.4cqw; color: var(--s-ink); letter-spacing: -0.04em; margin-bottom: 1cqw; }
 .rail .sp { flex: 1; }
 .rail .av { width: 3cqw; height: 3cqw; border-radius: 50%; display: grid; place-items: center; background: var(--s-ink); color: var(--s-bg); font-weight: 800; font-size: 1.4cqw; }
-.scr .body { padding: 2.4cqw 2.6cqw; display: grid; grid-template-rows: auto auto 1fr; gap: 1.5cqw; min-width: 0; }
+.scr .body { padding: 2.4cqw 2.6cqw; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 1.5cqw; min-width: 0; } /* one column that can never outgrow the screen (the session's date and third tile column were clipped) */
 .scr .top { display: flex; justify-content: space-between; align-items: baseline; gap: 2cqw; }
 .scr .top .h { font-size: 3.2cqw; letter-spacing: -0.035em; }
 .scr .sat { font-weight: 700; color: var(--s-mari-ink); font-size: 1.75cqw; white-space: nowrap; }
@@ -134,6 +134,30 @@
 .d10 .back { align-self: flex-start; font-size: 3.2cqw; font-weight: 800; color: var(--s-mari-ink); background: var(--s-mari-soft); padding: 1cqw 2.6cqw; border-radius: 99px; }
 .d10 .skill { margin-top: -1cqw; }
 .d10 .stem u { display: inline-block; width: 24cqw; border-bottom: 2px solid var(--s-ink); vertical-align: baseline; text-decoration: none; }
+
+/* Your Daily 10, live (home B): the choices are labels over radio inputs; the picked one is marked right (ink) or
+   wrong (red) like the set indicator (design rule 56), and the answer, its reason and the dates it comes back on
+   appear under the choices, by CSS alone */
+.d10.try .ch .c { position: relative; cursor: pointer; min-height: max(44px, 11cqw); }
+.d10.try .ch input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.d10.try .ch .c:has(input:checked) { outline: 2px solid var(--s-ink); outline-offset: -2px; background: var(--s-bg); }
+.d10.try .ch .c:has(input:checked) i { background: var(--s-ink); color: var(--s-bg); outline-color: var(--s-ink); }
+.d10.try .ch .c:has(input[data-ok="false"]:checked) { outline-color: var(--s-bad); }
+.d10.try .ch .c:has(input[data-ok="false"]:checked) i { background: var(--s-bad); outline-color: var(--s-bad); color: #fff; }
+.d10.try .ch .c:has(input:focus-visible) { outline: 3px solid var(--s-mari); outline-offset: 2px; }
+.d10.try:has(input[data-ok="true"]:checked) .steps i:first-child { background: var(--s-ink); height: 1.6cqw; margin-top: 0; }
+.d10.try:has(input[data-ok="false"]:checked) .steps i:first-child { background: var(--s-bad); height: 1.6cqw; margin-top: 0; }
+.d10.try .res { display: none; gap: 2.4cqw; }
+.d10.try:has(input[name="try"]:checked) .res { display: grid; }
+.d10.try .res .r { display: none; gap: 0.8cqw; padding: 2.8cqw 3.2cqw; border-radius: 3cqw; background: var(--s-mari-soft); font-size: 3.7cqw; line-height: 1.4; }
+.d10.try .res .r.no { background: var(--s-bad-bg); }
+.d10.try .res .r b { font-weight: 800; }
+.d10.try:has(input[value="A"]:checked) .r-A, .d10.try:has(input[value="B"]:checked) .r-B, .d10.try:has(input[value="C"]:checked) .r-C, .d10.try:has(input[value="D"]:checked) .r-D { display: grid; }
+.d10.try .when { display: grid; gap: 1.2cqw; font-size: 3.5cqw; font-weight: 600; color: var(--s-ink2); }
+.d10.try .when b { color: var(--s-ink); font-weight: 800; font-size: 3.7cqw; }
+.d10.try .when span { padding: 1.8cqw 3cqw; border-radius: 2.4cqw; background: var(--s-soft); font-variant-numeric: tabular-nums; }
+.d10.try .when .if-no, .d10.try:has(input[data-ok="false"]:checked) .when .if-ok { display: none; }
+.d10.try:has(input[data-ok="false"]:checked) .when .if-no { display: block; }
 
 /* the Challenge question */
 .chq .streak { align-self: flex-start; display: inline-flex; align-items: center; gap: 1.2cqw; font-size: 3.3cqw; font-weight: 800; color: var(--s-mari-ink); background: var(--s-mari-soft); padding: 1cqw 2.6cqw 1cqw 2cqw; border-radius: 99px; }

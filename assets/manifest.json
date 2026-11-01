@@ -565,34 +565,37 @@
     },
     {
       "id": "p-school-class",
-      "status": "proposed",
+      "status": "approved",
+      "approved": "2026-10-31 founder (all needed image and short video creation approved, in chat)",
       "route": "flux-3",
       "ratio": "16:9",
       "where": "Pricing page, the School band; school portal prototype, the admin overview",
-      "prompt": "A high-school classroom in the late morning, eleven students of 16 and 17 at desks on laptops, focused, a teacher standing beside one desk helping, natural window light, documentary. Laptop screens face away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
-      "quote": "$0.10 (flux-3 text-to-image, fixed estimate, 2026-10-31, not run)",
-      "note": "Proposed in the first pass (2026-10-31). Not generated. The founder approves the prompt and the still before any spend."
+      "prompt": "A high-school classroom in the late morning, eleven students of 16 and 17 at desks on laptops, focused, a teacher standing beside one desk helping, natural window light, documentary. Laptop screens face away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos. 16:9 frame.",
+      "quote": "$0.10 (flux-3 fixed estimate, dry run 2026-10-31; fal balance fell about $0.07 for it)",
+      "note": "Proposed in the first pass (2026-10-31). Generated 2026-10-31 on flux-3 as proposed, after two routes that honour the ratio at 2K failed without charge: nano-banana-2-fal needs a reference image (fal 422) and nano-banana-2.1 found the Google prepaid credits depleted (402). The script sends flux-3 only the prompt (aspect auto, 1k tier), so the 16:9 frame is named at the end of the prompt like the cast portraits; content unchanged. Raw: raw/stills/p-school-class-2026-10-31T07-21-12.png, 1360x768 (JPEG data in a .png name, the endpoint default). The spend log shows $0.00 because the fal balance updates late; it fell $0.14 for this still and p-teacher together. Converted by hand, upscaled 1.18x, to film/photos/p-school-class.webp (1600x900) and -800 (800x450), copied to prototypes/portals/public/photos/."
     },
     {
       "id": "p-teacher",
-      "status": "proposed",
+      "status": "approved",
+      "approved": "2026-10-31 founder (all needed image and short video creation approved, in chat)",
       "route": "flux-3",
       "ratio": "4:5",
       "where": "School portal prototype, the teacher view",
-      "prompt": "A teacher in her forties at her classroom desk after school, reading something on a laptop with a calm, attentive expression, a mug beside the laptop, late afternoon window light, documentary. The laptop screen faces away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
-      "quote": "$0.10 (flux-3 text-to-image, fixed estimate, 2026-10-31, not run)",
-      "note": "Proposed in the first pass (2026-10-31). Not generated. The founder approves the prompt and the still before any spend."
+      "prompt": "A teacher in her forties at her classroom desk after school, reading something on a laptop with a calm, attentive expression, a mug beside the laptop, late afternoon window light, documentary. The laptop screen faces away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos. 4:5 frame.",
+      "quote": "$0.10 (flux-3 fixed estimate, dry run 2026-10-31; fal balance fell about $0.07 for it)",
+      "note": "Proposed in the first pass (2026-10-31). Generated 2026-10-31 on flux-3 as proposed, after two routes that honour the ratio at 2K failed without charge: nano-banana-2-fal needs a reference image (fal 422) and nano-banana-2.1 found the Google prepaid credits depleted (402). The script sends flux-3 only the prompt (aspect auto, 1k tier), so the 4:5 frame is named at the end of the prompt like the cast portraits; content unchanged. Raw: raw/stills/p-teacher-2026-10-31T07-21-50.png, 912x1152 (JPEG data in a .png name, the endpoint default). The spend log shows $0.00 because the fal balance updates late; it fell $0.14 for this still and p-school-class together. Converted by hand, upscaled 1.54x, to film/photos/p-teacher.webp (1400x1750) and -800 (800x1000), copied to prototypes/portals/public/photos/."
     },
     {
       "id": "p-report-photo",
-      "status": "proposed",
+      "status": "approved",
+      "approved": "2026-10-31 founder (all needed image and short video creation approved, in chat)",
       "route": "seedream-5-edit",
       "refs": ["noah"],
       "ratio": "4:5",
       "where": "Student onboarding, the score report step",
       "prompt": "The boy from Image 1, Noah, 17, at a kitchen table in the morning, holding his phone up with both hands to photograph something on the table in front of him, concentrating, natural light from a side window. The phone screen faces away from the camera and the table surface under the phone is plain and empty. No notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
-      "quote": "$0.07 (seedream-5-edit, live quote was $0.072 per edit on 2026-10-27, not run)",
-      "note": "Proposed in the first pass (2026-10-31). Not generated. The founder approves the prompt and the still before any spend."
+      "quote": "$0.07 (seedream-5-edit, Atlas live quote $0.072 on 2026-10-31)",
+      "note": "Proposed in the first pass (2026-10-31). Generated 2026-10-31: raw/stills/p-report-photo-2026-10-31T07-15-30.png, 1856x2320, charged $0.072 (Atlas balance). Converted by hand to film/photos/p-report-photo.webp (1400x1750) and -800 (800x1000), copied to prototypes/portals/public/photos/."
     }
   ]
 }

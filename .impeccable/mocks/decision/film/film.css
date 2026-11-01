@@ -360,3 +360,10 @@ main { position: relative; z-index: 1; }
 .k-photo[data-ready] .fr .k-sk.fill, .k-photo[data-missing] .fr .k-sk.fill { display: none; }
 .clip.loading .fr::before { content: ""; background: #1f1f1f; animation: k-sheen-dark 1.7s cubic-bezier(.4, 0, .2, 1) infinite; }
 @keyframes k-sheen-dark { 50% { background: #2a2a2a; } }
+
+/* ---------- the founder's review switches (pricing A/B, home A/B), marked data-review in the markup; they go with the port ---------- */
+.layout-switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--soft); color: var(--ink); }
+.layout-switch a { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; border-radius: 999px; font-weight: 800; text-decoration: none; color: var(--ink2); }
+.layout-switch a[aria-current] { background: var(--solid); color: var(--on-solid); }
+/* words for screen readers only */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -265,6 +265,69 @@
     </div>`;
   }
 
+  /* ---------- Your Daily 10, live (home B's first screen): one real Karman question the parent can answer.
+     The choices are radio inputs, so the answer and its explanation show with CSS alone (screens.css); tryLive()
+     fills the dates a miss would come back on (2, 7 and 21 days from today) and speaks the result. The question
+     is the same Karman original as daily10(); every word here is the product's own. ---------- */
+  const TRY = {
+    skill: "Sentence boundaries",
+    stem: "The museum's new wing opened in <u></u> its first exhibit drew more visitors in one week than the old galleries had in a month.",
+    ask: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+    right: "A",
+    choices: [
+      ["A", "March, and", "A comma and “and” join two complete sentences."],
+      ["B", "March", "With no comma and no joining word, the two sentences run together."],
+      ["C", "March; and", "A semicolon joins two complete sentences by itself. The “and” after it is one joiner too many."],
+      ["D", "March and", "Two complete sentences joined by “and” need a comma before it."],
+    ],
+  };
+  function daily10Try() {
+    const marks = ["now", "", "", "", "", "", "", "", "", ""];
+    const opts = TRY.choices
+      .map(
+        ([k, t]) =>
+          `<label class="c" for="try-${k}"><input type="radio" name="try" id="try-${k}" value="${k}" data-ok="${k === TRY.right}"><i>${k}</i><span>${t}</span></label>`
+      )
+      .join("");
+    const res = TRY.choices
+      .map(
+        ([k, , why]) =>
+          `<div class="r r-${k} ${k === TRY.right ? "ok" : "no"}"><b>${k === TRY.right ? "Right." : "Not this one."}</b><p>${why}</p></div>`
+      )
+      .join("");
+    return `<div class="scr ph d10 try" data-ui>${status}
+      <div class="sh"><span class="x">${I.x}</span><b>Your Daily 10</b><span class="of">1 of 10</span></div>
+      <div class="steps">${marks.map((m) => `<i class="${m}"></i>`).join("")}</div>
+      <div class="tools"><span>${I.pen}Highlight</span><span>${I.pad}Scratch pad</span><span class="tm">9:58 ${I.eye}</span></div>
+      <p class="skill">${TRY.skill}</p>
+      <p class="stem">${TRY.stem}</p>
+      <p class="ask" id="try-ask">${TRY.ask}</p>
+      <div class="ch" role="radiogroup" aria-labelledby="try-ask">${opts}</div>
+      <div class="res">${res}
+        <div class="when"><b class="if-ok">A miss would come back</b><b class="if-no">This question comes back</b><span data-in="2">In 2 days</span><span data-in="7">In 7 days</span><span data-in="21">In 21 days</span></div>
+      </div>
+      <p class="sr try-status" role="status"></p>
+    </div>`;
+  }
+  // fills the dates (today plus 2, 7 and 21 days) and speaks the result when a choice is made
+  function tryLive(host) {
+    const fmt = (n) => {
+      const d = new Date();
+      d.setDate(d.getDate() + n);
+      return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+    };
+    host.querySelectorAll("[data-in]").forEach((el) => {
+      el.textContent = `In ${el.dataset.in} days, ${fmt(+el.dataset.in)}`;
+    });
+    const say = host.querySelector(".try-status");
+    host.querySelectorAll('input[name="try"]').forEach((inp) =>
+      inp.addEventListener("change", () => {
+        const r = host.querySelector(`.r-${inp.value}`);
+        if (say && r) say.textContent = r.textContent;
+      })
+    );
+  }
+
   window.KARMAN_SCREENS = {
     calendar,
     calendarPhone,
@@ -278,5 +341,7 @@
     planning,
     parent,
     chat,
+    daily10Try,
+    tryLive,
   };
 })();
