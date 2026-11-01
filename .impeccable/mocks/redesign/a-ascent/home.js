@@ -201,7 +201,8 @@ async function question() {
   document.addEventListener("karman-theme", theme);
   const fit = () => {
     live.classList.toggle("narrow", live.clientWidth < 768);
-    live.style.height = `${Math.ceil(content.scrollHeight) + content.offsetTop}px`;
+    const cs = getComputedStyle(content);
+    live.style.height = `${Math.ceil(content.firstElementChild.getBoundingClientRect().height + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)) + content.offsetTop}px`;
   };
   fit(); addEventListener("resize", fit);
   if (document.fonts?.ready) document.fonts.ready.then(fit);
