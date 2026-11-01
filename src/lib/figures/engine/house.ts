@@ -12,7 +12,15 @@ export const HOUSE = {
   labelOffset: 6,
   arrowLength: 8,
   arrowWidth: 6,
+  /** Axis ticks, and the arms of parallel chevrons. */
   tickLength: 6,
+  /**
+   * The ticks that mark equal (congruent) sides: 1.3 times tickLength, so they read
+   * clearly on a side (founder, 2026-11-01). Axis ticks keep tickLength.
+   */
+  equalTickLength: 7.8,
+  /** Spacing between repeated equal-side ticks: markGap scaled by the same 1.3. */
+  equalTickGap: 5.2,
   /** Side of the square that marks a right angle. */
   rightAngleSide: 10,
   /** Radius of the innermost equal-angle arc. */
