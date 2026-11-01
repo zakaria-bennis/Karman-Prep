@@ -24,7 +24,8 @@ import FigureChoices from "../figures/FigureChoices";
 import { TableChoiceOption } from "./TableChoiceOption";
 import PassageAnnotations from "./PassageAnnotations";
 import { drawnFigure } from "@/lib/figures/question-figure";
-import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
+import { useSpecParser } from "../figures/engine-loader";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { useFigureStemAlign } from "./use-figure-stem-align";
 
@@ -87,14 +88,22 @@ export function ActiveQuizScreen({
     () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
     [q.question_text, q.subject]
   );
+  const parse = useSpecParser(q);
   if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
-  const drawn = useMemo(() => drawnFigure(q), [q]);
+  const drawn = useMemo(() => drawnFigure(q, parse), [q, parse]);
   // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
   const sortedChoices = useMemo(
-    () => withSpecTables([...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1))),
-    [q]
+    () =>
+      withSpecTables(
+        [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
+        parse
+      ),
+    [q, parse]
   );
-  const figureChoices = useMemo(() => hasFigureChoices(sortedChoices), [sortedChoices]);
+  const figureChoices = useMemo(
+    () => hasFigureChoices(sortedChoices, parse),
+    [sortedChoices, parse]
+  );
   const allChoicesAreTables =
     sortedChoices.length > 0 && sortedChoices.every((choice) => choice.choice_table_data);
   const isSubmitted = state.phase === "submitted_correct" || state.phase === "submitted_wrong";

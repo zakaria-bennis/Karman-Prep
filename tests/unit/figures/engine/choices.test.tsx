@@ -7,20 +7,19 @@ import QuizReviewQuestion from "@/components/learn/QuizReviewQuestion";
 import DailyChallenge from "@/components/learn/DailyChallenge";
 import { ActiveQuizScreen } from "@/components/learn/quiz/ActiveQuizScreen";
 import type { MappedNode } from "@/components/learn/ConstellationMap";
-import {
-  CHOICE_BOX,
-  choiceScenes,
-  hasFigureChoices,
-  sharedFrame,
-  withSpecTables,
-} from "@/lib/figures/engine/choices";
+import { CHOICE_BOX, choiceScenes, sharedFrame } from "@/lib/figures/engine/choices";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
 import { buildScene } from "@/lib/figures/engine/index";
-import { FIGURE_SPEC_VERSION, type FigureSpec } from "@/lib/figures/engine/spec";
+import { FIGURE_SPEC_VERSION, parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { catalogQuestionPayloadHash } from "@/lib/question-bank/catalog-question-scope";
 import { toQuizReviewContent } from "@/lib/quiz-review-content";
 import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
 import type { AnswerChoice, QuizQuestionWithChoices, StudentQuizQuestion } from "@/types/quiz";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: vi.fn() }));
 vi.mock("@/contexts/QuizContext", () => ({
@@ -270,10 +269,15 @@ const question = (over: Partial<QuizQuestionWithChoices> = {}) =>
 
 describe("choice data helpers", () => {
   it("hasFigureChoices is true only for a drawn, valid choice spec", () => {
-    expect(hasFigureChoices(question().answer_choices)).toBe(true);
-    expect(hasFigureChoices([choice("A"), choice("B")])).toBe(false);
+    const has = (choices: Parameters<typeof hasFigureChoices>[0]) =>
+      hasFigureChoices(choices, parseFigureSpec);
+    expect(has(question().answer_choices)).toBe(true);
+    expect(has([choice("A"), choice("B")])).toBe(false);
+    expect(has([choice("A", { choice_figure_spec: TABLE })])).toBe(false);
+    expect(has([choice("A", { choice_figure_spec: { type: "plane" } })])).toBe(false);
+    // Before the engine loads only the shape counts; FigureChoices validates when it draws.
+    expect(hasFigureChoices([choice("A", { choice_figure_spec: { type: "plane" } })])).toBe(true);
     expect(hasFigureChoices([choice("A", { choice_figure_spec: TABLE })])).toBe(false);
-    expect(hasFigureChoices([choice("A", { choice_figure_spec: { type: "plane" } })])).toBe(false);
   });
 
   it("withSpecTables turns a table spec choice into the table-choice data it draws", () => {
@@ -405,8 +409,8 @@ describe("Task 9 carry-overs", () => {
 
   it("an invalid figure_spec lays out like a question with no figure", () => {
     const broken = { ...TRIANGLE, parts: [{ kind: "segment", id: "XY", from: "X", to: "Y" }] };
-    expect(drawnFigure(question({ figure_spec: broken } as never))).toBeNull();
-    expect(drawnFigure(question({ figure_spec: TRIANGLE } as never))).toBe("spec");
+    expect(drawnFigure(question({ figure_spec: broken } as never), parseFigureSpec)).toBeNull();
+    expect(drawnFigure(question({ figure_spec: TRIANGLE } as never), parseFigureSpec)).toBe("spec");
     const { container } = render(
       <CatalogQuestion
         question={toStudentQuizQuestion(

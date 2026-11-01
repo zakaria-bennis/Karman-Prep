@@ -5,6 +5,10 @@ import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import { catalogQuestion } from "../../../../tests/fixtures/approved-catalog";
 import CatalogQuestion from "./CatalogQuestion";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 const base = toStudentQuizQuestion(catalogQuestion() as unknown as QuizQuestionWithChoices);
 describe("canonical immutable question rendering", () => {
   it("renders explicit fractions crisply and does not show key or explanations", () => {

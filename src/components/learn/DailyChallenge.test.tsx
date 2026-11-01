@@ -3,6 +3,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import DailyChallenge from "./DailyChallenge";
 import type { StudentQuizQuestion } from "@/types/quiz";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const action = vi.hoisted(() => vi.fn());
 vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: action }));

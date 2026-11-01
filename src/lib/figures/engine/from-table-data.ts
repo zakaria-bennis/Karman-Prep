@@ -11,7 +11,6 @@
  * Malformed data is refused with a TableDataError that says why.
  */
 import { z } from "zod";
-import type { QuestionTableData } from "@/types/question-table";
 import { FIGURE_SPEC_VERSION, type FigureSpec, type Part } from "./spec";
 
 export class TableDataError extends Error {
@@ -69,23 +68,5 @@ export function tableDataToSpec(data: unknown): FigureSpec {
     labels: [],
     marks: [],
     ...(caption ? { title: caption } : {}),
-  };
-}
-
-/**
- * The reverse: a `type: table` FigureSpec as the old table data, so a choice whose
- * choice_figure_spec is a table goes through the table-choice path (radio beside the
- * table, calculator transfer) like a choice_table_data. Null for any other spec.
- */
-export function specToTableData(spec: FigureSpec): QuestionTableData | null {
-  if (spec.type !== "table") return null;
-  const part = spec.parts.find((p) => p.kind === "table");
-  if (!part || part.kind !== "table") return null;
-  return {
-    ...(spec.title ? { caption: spec.title } : {}),
-    ...(part.groups?.length ? { header_groups: part.groups } : {}),
-    ...(part.header?.length ? { header_row: part.header } : {}),
-    rows: part.rows,
-    ...(part.note ? { footer_note: part.note } : {}),
   };
 }

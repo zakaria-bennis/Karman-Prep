@@ -12,6 +12,10 @@ import { FIGURE_SPEC_VERSION, type FigureSpec } from "@/lib/figures/engine/spec"
 import { toQuizReviewContent } from "@/lib/quiz-review-content";
 import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const calls = vi.hoisted(() => ({ drawn: 0, tables: 0, figures: 0 }));
 vi.mock("@/lib/figures/question-figure", async (original) => {
@@ -24,8 +28,8 @@ vi.mock("@/lib/figures/question-figure", async (original) => {
     },
   };
 });
-vi.mock("@/lib/figures/engine/choices", async (original) => {
-  const real = await original<typeof import("@/lib/figures/engine/choices")>();
+vi.mock("@/lib/figures/engine/choice-routing", async (original) => {
+  const real = await original<typeof import("@/lib/figures/engine/choice-routing")>();
   return {
     ...real,
     withSpecTables: ((choices) => {

@@ -4,13 +4,14 @@
 // are native HTML (TableView) and never a Scene, so a table spec throws.
 // ============================================================
 
-import { buildChart, CHART_TYPES } from "./charts";
+import { buildChart } from "./charts";
 import { buildGeometry2d } from "./geometry2d";
 import { buildPlane, type Box } from "./plane";
 import type { ScaleOptions, Scene } from "./scene";
 import { HOUSE } from "./house";
 import { buildSolid3d } from "./solid3d";
 import type { FigureSpec } from "./spec";
+import { CHART_TYPES, defaultBoxForType } from "./spec-types";
 
 export type { Box } from "./plane";
 
@@ -36,15 +37,9 @@ export function buildScene(spec: FigureSpec, box: Box, opts: ScaleOptions = {}):
   }
 }
 
-/**
- * The box a figure is laid out in before it scales to its container (SVG viewBox).
- * Planes use the box their function samples were computed in
- * (scripts/figures/sample-functions.ts), charts the ChartFigure box, and shapes a 4:3 box.
- */
+/** The box a figure is laid out in before it scales to its container (defaultBoxForType). */
 export function defaultBox(spec: FigureSpec): Box {
-  if (spec.type === "plane") return { width: 640, height: 480 };
-  if (CHARTS.includes(spec.type)) return { width: 600, height: 400 };
-  return { width: 400, height: 300 };
+  return defaultBoxForType(spec.type);
 }
 
 /** The least a figure may shrink from its default box: the house font stays at least minFontOnScreen px. */

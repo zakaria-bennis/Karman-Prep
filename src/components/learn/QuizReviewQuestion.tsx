@@ -8,7 +8,8 @@ import ChartFigure from "./ChartFigure";
 import GeometryFigure from "./GeometryFigure";
 import FigureFrame from "./FigureFrame";
 import FigureChoices from "./figures/FigureChoices";
-import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
+import { useSpecParser } from "./figures/engine-loader";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import type { QuizReviewContent } from "@/lib/quiz-review-content";
@@ -16,12 +17,17 @@ import type { QuizReviewContent } from "@/lib/quiz-review-content";
 /** Reuse the same math, native figure and table renderers as active practice. */
 export default function QuizReviewQuestion({ question: q }: { question: QuizReviewContent }) {
   // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
+  const parse = useSpecParser(q);
   const choices = useMemo(
-    () => withSpecTables([...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter))),
-    [q]
+    () =>
+      withSpecTables(
+        [...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter)),
+        parse
+      ),
+    [q, parse]
   );
-  const figureChoices = useMemo(() => hasFigureChoices(choices), [choices]);
-  const drawn = useMemo(() => drawnFigure(q), [q]);
+  const figureChoices = useMemo(() => hasFigureChoices(choices, parse), [choices, parse]);
+  const drawn = useMemo(() => drawnFigure(q, parse), [q, parse]);
   const figureFirst = figureLeadsText(q.subject);
   const figure =
     drawn === "table" ? (

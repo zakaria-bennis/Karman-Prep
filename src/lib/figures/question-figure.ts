@@ -1,5 +1,6 @@
 import type { QuizQuestion } from "@/types/quiz";
-import { parseFigureSpec } from "./engine/spec";
+import type { SpecParser } from "./engine/choice-routing";
+import { storedSpecType } from "./engine/spec-types";
 import { buildGeometrySvg } from "./geometry-svg";
 import { logInvalidSpec } from "./invalid-spec-log";
 
@@ -26,10 +27,17 @@ type FigureFields = Pick<
  * logged once and skipped: the question falls back to its stored older figure when it has one
  * (FigureFrame draws the same fallback), else lays out like no figure at all (null, with no
  * empty figure column). A partial spec figure is never drawn.
+ *
+ * `parse` is parseFigureSpec from the lazily loaded figure engine (useFigureEngine), or null
+ * before it has loaded (and on the server). Without it a spec with a known `type` is taken
+ * as drawn and FigureFrame validates it when it draws (an invalid one shows the stored src
+ * or svg, else nothing, and logs the same error); once the engine loads, the screen picks
+ * again with `parse`.
  */
-export function drawnFigure(q: FigureFields): DrawnFigure | null {
+export function drawnFigure(q: FigureFields, parse: SpecParser | null = null): DrawnFigure | null {
   if (q.figure_spec !== null && q.figure_spec !== undefined) {
-    const parsed = parseFigureSpec(q.figure_spec);
+    if (!parse) return storedSpecType(q.figure_spec) ? "spec" : legacyFigure(q);
+    const parsed = parse(q.figure_spec);
     if (parsed.ok) return "spec";
     const legacy = legacyFigure(q);
     logInvalidSpec(parsed.errors.join("; "), legacy !== null);

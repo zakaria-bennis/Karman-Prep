@@ -4,25 +4,19 @@
  * are drawn in one frame (the same ranges and scale) at one size, so a student
  * compares the drawings and never the windows they were drawn in.
  *
- * A choice whose spec is a table is not drawn here: withSpecTables hands it to
- * the table-choice path (a radio beside an HTML table) as choice_table_data.
+ * A choice whose spec is a table is not drawn here: withSpecTables
+ * (choice-routing.ts) hands it to the table-choice path (a radio beside an HTML
+ * table) as choice_table_data.
  */
-import type { QuestionTableData } from "@/types/question-table";
 import { chartSpecFrame } from "./charts";
 import { geometryDetail, solidDetail } from "./describe-detail";
-import { specToTableData } from "./from-table-data";
-import { buildScene, type Box } from "./index";
+import { buildScene } from "./index";
 import { DEFAULT_PLANE_FRAME } from "./plane";
 import type { Scene, SceneIssue } from "./scene";
 import { parseFigureSpec, type FigureSpec, type PlaneFrame } from "./spec";
+import { CHOICE_BOX } from "./spec-types";
 
-/**
- * The box every figure choice is laid out in. Small on purpose: the house font
- * (15 units) must render at 12px or more, so a choice's figure may shrink to
- * 0.8 of this width and no further. The choice grid (FigureChoices) only puts
- * two choices side by side when each figure gets at least that width.
- */
-export const CHOICE_BOX: Box = { width: 240, height: 180 };
+export { CHOICE_BOX };
 
 /** The frame a plane or chart spec is drawn in, or null for shapes, solids and tables. */
 function frameOf(spec: FigureSpec): PlaneFrame | null {
@@ -183,27 +177,4 @@ export function choiceScenes(specs: unknown[]): (Scene | null)[] {
     scenes.map((s) => (s ? padScene(s, width, height) : s)),
     own
   );
-}
-
-type ChoiceFigureFields = {
-  choice_figure_spec?: unknown;
-  choice_table_data?: QuestionTableData | null;
-};
-
-/** True when any choice has a valid drawn spec: the question's choices are figures. */
-export function hasFigureChoices(choices: readonly ChoiceFigureFields[]): boolean {
-  return choices.some((c) => drawnSpec(c.choice_figure_spec) !== null);
-}
-
-/**
- * The choices with every table choice_figure_spec turned into the choice_table_data
- * it draws (an existing choice_table_data is kept), so table choices keep one path.
- */
-export function withSpecTables<T extends ChoiceFigureFields>(choices: readonly T[]): T[] {
-  return choices.map((c) => {
-    if (c.choice_table_data || c.choice_figure_spec == null) return c;
-    const parsed = parseFigureSpec(c.choice_figure_spec);
-    const table = parsed.ok ? specToTableData(parsed.spec) : null;
-    return table ? { ...c, choice_table_data: table } : c;
-  });
 }

@@ -18,6 +18,10 @@ import { nextWidth, WIDTH_HYSTERESIS_PX } from "@/components/learn/figures/useMe
 import { HOUSE } from "@/lib/figures/engine/house";
 import { FIGURE_SPEC_VERSION, type FigureSpec } from "@/lib/figures/engine/spec";
 import type { ChartFigure as ChartData } from "@/types/chart";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 /** A ResizeObserver stand-in: tests report a width for an observed element by hand. */
 class FakeResizeObserver {

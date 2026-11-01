@@ -29,21 +29,13 @@ import {
 } from "./plane";
 import type { Role, Scene, SceneIssue, SceneItem, Weight } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
+import { CHART_TYPES, type ChartKind } from "./spec-types";
 import { niceStep } from "./ticks";
 
 type Series = Extract<Part, { kind: "series" }>;
 type Fn = Extract<Part, { kind: "function" }>;
-type ChartKind = "bar" | "line" | "scatter" | "dot_plot" | "histogram" | "box_plot";
 type Pair = [number, number];
 
-export const CHART_TYPES: readonly ChartKind[] = [
-  "bar",
-  "line",
-  "scatter",
-  "dot_plot",
-  "histogram",
-  "box_plot",
-];
 const isChartKind = (k: string | undefined): k is ChartKind => CHART_TYPES.includes(k as ChartKind);
 
 /** Share of a category band a lone bar fills, and a group of bars fills. */

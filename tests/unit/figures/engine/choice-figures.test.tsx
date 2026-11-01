@@ -12,6 +12,10 @@ import { latexToWords, MAX_LISTED } from "@/lib/figures/engine/describe-detail";
 import { buildPlane } from "@/lib/figures/engine/plane";
 import type { Scene } from "@/lib/figures/engine/scene";
 import { FIGURE_SPEC_VERSION, type FigureSpec } from "@/lib/figures/engine/spec";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 afterEach(cleanup);
 

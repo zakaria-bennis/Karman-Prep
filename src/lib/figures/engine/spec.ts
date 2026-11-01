@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FIGURE_TYPES } from "./spec-types";
 
 /**
  * FigureSpec: the one JSON format that describes every SAT question figure.
@@ -220,19 +221,6 @@ export const PlaneFrameSchema = z
   .refine((f) => tickCount(f.y, f.yStep ?? f.step) <= MAX_TICKS, {
     message: `a frame's step gives more than ${MAX_TICKS} ticks on the y-axis; use a wider step`,
   });
-
-export const FIGURE_TYPES = [
-  "table",
-  "bar",
-  "line",
-  "scatter",
-  "dot_plot",
-  "histogram",
-  "box_plot",
-  "plane",
-  "geometry2d",
-  "solid3d",
-] as const;
 
 export const FigureSpecSchema = z
   .object({

@@ -23,7 +23,8 @@ import { makeQuestionKey } from "@/components/calculator/question-key";
 import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
-import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
+import { useSpecParser } from "./figures/engine-loader";
 
 const subjectName: Record<DailySubject, string> = {
   math: "Math",
@@ -111,14 +112,16 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
     [q.question_text]
   );
   // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
+  const parse = useSpecParser(q);
   const choices = useMemo(
     () =>
       withSpecTables(
-        [...q.answer_choices].sort((left, right) => left.letter.localeCompare(right.letter))
+        [...q.answer_choices].sort((left, right) => left.letter.localeCompare(right.letter)),
+        parse
       ),
-    [q.answer_choices]
+    [q.answer_choices, parse]
   );
-  const figureChoices = useMemo(() => hasFigureChoices(choices), [choices]);
+  const figureChoices = useMemo(() => hasFigureChoices(choices, parse), [choices, parse]);
 
   async function submitAnswer() {
     if (pending || review || !answer.trim()) return;
@@ -295,7 +298,8 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
 }
 
 function QuestionContent({ question: q }: { question: StudentQuizQuestion }) {
-  const drawn = useMemo(() => drawnFigure(q), [q]);
+  const parse = useSpecParser(q);
+  const drawn = useMemo(() => drawnFigure(q, parse), [q, parse]);
   const figureFirst = figureLeadsText(q.subject);
   const figure =
     drawn === "table" ? (

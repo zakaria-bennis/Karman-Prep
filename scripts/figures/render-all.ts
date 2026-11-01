@@ -367,6 +367,8 @@ async function open(page: Page, baseUrl: string, fig: Figure, theme: (typeof THE
   const shown = await page.evaluate(() => document.documentElement.dataset.theme);
   if (shown !== theme.id)
     throw new Error(`the page did not take the ${theme.name} theme (${shown})`);
+  // The figure engine loads lazily: wait until every placeholder has become its figure.
+  await page.waitForFunction(() => !document.querySelector("[data-figure-placeholder]"));
   await page.evaluate(() => document.fonts.ready);
 }
 

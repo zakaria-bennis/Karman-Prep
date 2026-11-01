@@ -14,7 +14,8 @@ import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
 import FigureChoices from "../figures/FigureChoices";
-import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choices";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
+import { useSpecParser } from "../figures/engine-loader";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 
@@ -38,14 +39,19 @@ export default function CatalogQuestion({
     [q.question_text, q.subject]
   );
   // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
+  const parse = useSpecParser(q);
   const choices = useMemo(
-    () => withSpecTables([...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter))),
-    [q.answer_choices]
+    () =>
+      withSpecTables(
+        [...q.answer_choices].sort((a, b) => a.letter.localeCompare(b.letter)),
+        parse
+      ),
+    [q.answer_choices, parse]
   );
-  const figureChoices = useMemo(() => hasFigureChoices(choices), [choices]);
+  const figureChoices = useMemo(() => hasFigureChoices(choices, parse), [choices, parse]);
   const toggleCrossed = (letter: string) =>
     setCrossed((old) => ({ ...old, [`${q.id}:${letter}`]: !old[`${q.id}:${letter}`] }));
-  const drawn = useMemo(() => drawnFigure(q), [q]);
+  const drawn = useMemo(() => drawnFigure(q, parse), [q, parse]);
   const hasPassage = q.passage || q.passage_intro || q.passage_a || q.passage_b;
   const figureFirst = figureLeadsText(q.subject);
   const figure =

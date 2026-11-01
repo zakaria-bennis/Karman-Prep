@@ -16,6 +16,10 @@ import { catalogQuestionPayloadHash } from "@/lib/question-bank/catalog-question
 import { toQuizReviewContent } from "@/lib/quiz-review-content";
 import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const BOX = { width: 400, height: 300 };
 const base: Pick<FigureSpec, "version" | "labels" | "marks"> = {
@@ -238,13 +242,30 @@ describe("figure_spec through question data", () => {
       parts: [...PLANE.parts, { kind: "segment", id: "EF", from: "E", to: "F" }],
     };
     const table = { rows: [["1", "2"]] };
-    expect(drawnFigure(question({ figure_spec: bad, image_url: "/a.png" }))).toBe("image");
-    expect(
-      drawnFigure(question({ figure_spec: bad, figure_kind: "table", figure_table_data: table }))
-    ).toBe("table");
-    expect(drawnFigure(question({ figure_spec: bad }))).toBeNull();
+    const pick = (over: Partial<QuizQuestionWithChoices>) =>
+      drawnFigure(question(over), parseFigureSpec);
+    expect(pick({ figure_spec: bad, image_url: "/a.png" })).toBe("image");
+    expect(pick({ figure_spec: bad, figure_kind: "table", figure_table_data: table })).toBe(
+      "table"
+    );
+    expect(pick({ figure_spec: bad })).toBeNull();
     expect(error).toHaveBeenCalledTimes(1);
     expect(String(error.mock.calls[0][0])).toMatch(/invalid figure_spec/);
+  });
+
+  it("drawnFigure picks from the spec's shape before the engine loads, never validating", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const bad = {
+      ...PLANE,
+      parts: [...PLANE.parts, { kind: "segment", id: "IJ", from: "I", to: "J" }],
+    };
+    // A known type is taken as drawn; FigureFrame validates when it draws.
+    expect(drawnFigure(question({ figure_spec: bad, image_url: "/a.png" }))).toBe("spec");
+    // An unknown type is never a spec figure.
+    expect(drawnFigure(question({ figure_spec: { type: "pie" }, image_url: "/a.png" }))).toBe(
+      "image"
+    );
+    expect(error).not.toHaveBeenCalled();
   });
 
   it("a student surface draws the older image when the spec is invalid", () => {

@@ -10,6 +10,10 @@ import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import ChartFigure from "./ChartFigure";
 import type { ChartFigure as ChartFigureType } from "@/types/chart";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 function baseAxis(partial: Partial<ChartFigureType["x_axis"]> = {}) {
   return {

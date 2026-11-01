@@ -17,6 +17,10 @@ import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import QuestionTable from "./QuestionTable";
 import { TableChoiceOption } from "./quiz/TableChoiceOption";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const withHeaderAndRowLabels = {
   caption: "State data",
