@@ -116,6 +116,7 @@ def _load_batch(d: Path, exams_dir: Path, rows_doc, rows_runner) -> dict:
         rows_doc = rows_runner(Path(ready["reviewed_file"]), pdf, Path(ready["frozen_manifest"]),
                                ready["frozen_manifest_sha256"])
     rows = rows_doc["rows"]
+    st.carry_figure_specs(rows, ready["reviewed_file"])
     st._check_payload(rows, binding_sha)
     items = st.make_items(rows)
     figure_gate.mark_batch(d, ready["reviewed_file"], items)

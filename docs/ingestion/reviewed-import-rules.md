@@ -11,6 +11,22 @@ Related contracts in this folder:
 [`approved-package-import-readiness.md`](./approved-package-import-readiness.md),
 [`released-exam-figure-recreation.md`](./released-exam-figure-recreation.md).
 
+## Figures: the checked-spec route (founder, 2026-11-01)
+
+The founder decided: "All the figures should be updated to this new model...
+All the figure questions should have these new updated figures, and everything
+should now be uploaded to the live question bank." He does not review each
+figure. A figure drawn by the figure engine (FigureSpecs in `figure_spec` and
+`choice_figure_spec`) may go live, on a new question through stage and publish
+or on a live question through `k figures publish-specs`, only if (a) every
+automatic engine check passes with no issues (`scripts/figures/check-spec.ts`),
+(b) an independent visual comparison against the original exam image recorded
+the verdict "match" for exactly those specs (`visual-verdict.json`), and (c)
+the answer certification and lint gates pass, unchanged. Live tables and charts
+converted mechanically by the engine's own converters (what students already
+see) need no visual verdict. His own figure approval keeps working as before.
+Details: `scripts/import-tools/README.md` and `kimport/figure_gate.py`.
+
 ## Released-exam ingestion
 
 The old paid AI extraction, grading, figure interpretation and orchestration

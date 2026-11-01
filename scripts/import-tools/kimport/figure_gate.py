@@ -10,6 +10,19 @@ and checked by the founder in /dev/figure-review, which writes his decision to
 - the row about to be written carries exactly the figure fields of figure.json
   (compared through one canonical form, so an absent field equals null).
 
+The checked-spec route (founder-authorized 2026-11-01) stands in for his approval of a figure
+drawn by the figure engine. His words: "All the figures should be updated to this new model...
+All the figure questions should have these new updated figures, and everything should now be
+uploaded to the live question bank." He does not review each figure; one may go live only if
+(a) every automatic engine check passes with no issues (scripts/figures/check-spec.ts, run
+again by this gate), (b) an independent visual comparison against original.png recorded the
+verdict "match" (visual-verdict.json beside figure.json, bound to the exact specs and to the
+original's bytes), and (c) the answer certification and lint gates pass, unchanged. So a
+figure.json whose every figure is a FigureSpec (figure_spec, choice_figure_spec), submitted
+(status ready_for_founder, the file he would have seen), passes when (a) and (b) hold;
+`spec_route_problems` says why not. The founder's own approval (status approved, the
+approved bytes) works exactly as before, for every kind of figure.
+
 `gate_reasons` is the one check stage, bulk stage and publish all call.
 Questions without a figure pass untouched. Nothing here edits a file.
 
@@ -38,7 +51,13 @@ FIGURE_FILE, STATUS_FILE, ORIGINAL_FILE = "figure.json", "status.json", "origina
 NO_FIGURE_FILE = "no-figure.json"  # in pipeline/figures: every id found to have no figure
 NO_FIGURE_SCHEMA = "kimport-no-figure-v1"
 # The figure columns compared by the gate, as the quiz engine reads them.
-FIELDS = ("figure_kind", "figure_table_data", "figure_chart_data", "figure_geometry_data", "figure_svg", "image_alt")
+FIELDS = ("figure_kind", "figure_table_data", "figure_chart_data", "figure_geometry_data", "figure_svg", "image_alt",
+          "figure_spec")
+# The older figure fields: a figure.json carrying any of them is not drawn by specs alone.
+LEGACY_FIELDS = ("figure_table_data", "figure_chart_data", "figure_geometry_data", "figure_svg", "choice_tables")
+VERDICT_FILE = "visual-verdict.json"  # the independent visual comparison of the figure with original.png
+VERDICT_SCHEMA = "karman-figure-visual-verdict-v1"
+MATCH = "match"
 GATE = "figure gate: "  # prefix of every gate refusal (autopilot buckets them as figure_gate)
 ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,159}$")
 CHART_KINDS = ("scatterplot", "line_graph", "bar_chart", "function_plot", "boxplot", "pie")
@@ -143,13 +162,29 @@ def _choice_tables(row: dict) -> dict | None:
     return _clean(out)
 
 
+def choice_specs(row: dict) -> dict:
+    """{letter: FigureSpec} from a reviewed row (choice_figure_specs), a staged or readback row
+    (choices[].choice_figure_spec) or figure.json (answer_choices[].choice_figure_spec)."""
+    out = {}
+    specs = row.get("choice_figure_specs")
+    if isinstance(specs, dict):
+        out.update({k: v for k, v in specs.items() if v not in _EMPTY})
+    for key in ("choices", "answer_choices"):
+        for c in row.get(key) or ():
+            if isinstance(c, dict) and c.get("choice_figure_spec") not in _EMPTY:
+                out[c.get("letter")] = c["choice_figure_spec"]
+    return out
+
+
 def figure_fields(row: dict) -> dict:
     """The canonical figure fields of any row shape: a reviewed batch row, a staged row
     ({question, choices}), a readback snapshot ({question, choices, keys}) or figure.json."""
     nested = isinstance(row.get("question"), dict)
     q = row["question"] if nested else row
     out = {f: _clean(q.get(f)) for f in FIELDS}
-    out["choice_tables"] = _choice_tables({**q, "choices": row.get("choices")} if nested else row)
+    flat = {**q, "choices": row.get("choices")} if nested else row
+    out["choice_tables"] = _choice_tables(flat)
+    out["choice_figure_specs"] = _clean(choice_specs(flat))
     if out["figure_kind"] is None and all(out[f] is None for f in out if f != "image_alt"):
         out["image_alt"] = None  # alt text without a figure is not a figure
     return out
@@ -283,6 +318,49 @@ def svg_problems(svg) -> list[str]:
     return sorted(set(out))
 
 
+def spec_sha256(figure_spec, choices: dict | None = None) -> str:
+    """sha256 of the specs a visual verdict judged: the question's figure_spec (one FigureSpec or
+    an ordered list) and each choice's choice_figure_spec, as canonical JSON."""
+    blob = json.dumps({"figure_spec": figure_spec if figure_spec not in _EMPTY else None,
+                       "choice_figure_specs": {k: v for k, v in sorted((choices or {}).items()) if v not in _EMPTY}},
+                      ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+def read_verdict(path: Path) -> dict | None:
+    try:
+        doc = load_json(Path(path))
+    except (OSError, ValueError):
+        return None
+    return doc if isinstance(doc, dict) else None
+
+
+def verdict_problems(verdict: dict | None, ids, figure_sha: str, original_sha: str | None = None) -> list[str]:
+    """Why a visual verdict does not clear these specs ([] = it does). It must say "match", name
+    the question (occurrence_id or stable_question_ids), and carry the sha256 of exactly these
+    specs (spec_sha256) and of the original it was compared with (original_sha, when known)."""
+    if verdict is None:
+        return [f"no readable visual verdict ({VERDICT_FILE})"]
+    out = []
+    if verdict.get("schema") != VERDICT_SCHEMA:
+        out.append(f"the visual verdict's schema is not {VERDICT_SCHEMA}")
+    if verdict.get("verdict") != MATCH:
+        out.append(f"the visual verdict is {verdict.get('verdict')!r}, not {MATCH!r}")
+    named = {verdict.get("occurrence_id")} | set(verdict.get("stable_question_ids") or ())
+    if not named & set(ids):
+        out.append(f"the visual verdict names {sorted(x for x in named if x)}, not {sorted(ids)}")
+    if verdict.get("figure_sha256") != figure_sha:
+        out.append("the visual verdict judged other specs (figure_sha256 differs); compare the figure again")
+    osha = verdict.get("original_sha256")
+    if not isinstance(osha, str) or not re.fullmatch(r"[0-9a-f]{64}", osha):
+        out.append("the visual verdict does not record the original's sha256")
+    elif original_sha is not None and osha != original_sha:
+        out.append("the visual verdict compared another original.png")
+    if not all(isinstance(verdict.get(k), str) and verdict[k].strip() for k in ("reviewer", "at")):
+        out.append("the visual verdict needs reviewer and at")
+    return out
+
+
 def has_figure_spec(doc: dict) -> bool:
     """figure.json draws with the figure engine: a figure_spec, or a choice_figure_spec on a choice."""
     return doc.get("figure_spec") not in _EMPTY or any(
@@ -374,13 +452,75 @@ def read_status(folder: Path) -> dict | None:
         return None
 
 
-def gate_reasons(figures_dir: Path, occ_id: str, rows: dict, no_figure=None) -> list[str]:
+def _spec_route_files(folder: Path, occ_id: str, status: dict | None) -> tuple[dict | None, list[str]]:
+    """(figure.json, problems) for the checked-spec route, without running the engine."""
+    if status is None or status.get("status") != "ready_for_founder":
+        return None, [f"status is {(status or {}).get('status')!r}, not a submitted figure (ready_for_founder)"]
+    try:
+        sha = file_sha256(folder / FIGURE_FILE)
+        doc = load_json(folder / FIGURE_FILE)
+    except (OSError, ValueError) as e:
+        return None, [f"cannot read {folder / FIGURE_FILE}: {e}"]
+    if sha != status.get("submitted_file_sha256"):
+        return None, ["figure.json changed after it was submitted; submit it again"]
+    out = validate_figure(doc, occ_id)
+    if not has_figure_spec(doc):
+        out.append("figure.json has no FigureSpec; only engine-drawn figures take this route")
+    fields = figure_fields(doc)
+    out += [f"figure.json still carries {f}; every figure must be a FigureSpec" for f in LEGACY_FIELDS if fields.get(f)]
+    original = folder / ORIGINAL_FILE
+    osha = file_sha256(original) if original.is_file() else None
+    if osha is None:
+        out.append("no original.png to compare with")
+    elif status.get("original_sha256") and osha != status["original_sha256"]:
+        out.append("original.png is not the source crop the queue recorded")
+    if not out:
+        out += verdict_problems(read_verdict(folder / VERDICT_FILE), {occ_id}, spec_sha256(
+            doc.get("figure_spec"), choice_specs(doc)), osha)
+    return doc, out
+
+
+def spec_route_problems(folder: Path, occ_id: str, status: dict | None, checker=None) -> tuple[dict | None, list[str]]:
+    """(figure.json, why it is not cleared) for the checked-spec route ([] = cleared): a submitted
+    all-FigureSpec figure.json, a "match" visual verdict bound to its specs and original.png, and
+    the engine's checks (check-spec.ts, `checker`, default kimport.figures.spec_check) passing
+    again now with no issues."""
+    doc, out = _spec_route_files(Path(folder), occ_id, status)
+    if out:
+        return doc, out
+    if checker is None:
+        from .figures import spec_check as checker
+    try:
+        result = checker(Path(folder) / FIGURE_FILE)
+    except ValueError as e:
+        return doc, [f"the engine checks could not run: {e}"]
+    issues = list(result.get("issues") or []) + [i for c in result.get("choices") or [] for i in c.get("issues") or []]
+    if result.get("ok") is not True or issues:
+        return doc, [f"the engine checks found {len(issues) or 'unlisted'} issue(s)"]
+    return doc, []
+
+
+def publishable_ids(figures_dir: Path | None) -> frozenset[str]:
+    """Ids whose figure may publish: approved by the founder, or cleared by the checked-spec
+    route as far as files show (the gate also runs the engine checks again)."""
+    out = set(approved_ids(figures_dir))
+    if figures_dir is None or not Path(figures_dir).is_dir():
+        return frozenset(out)
+    for st in Path(figures_dir).glob(f"*/{VERDICT_FILE}"):
+        folder = st.parent
+        if ID.fullmatch(folder.name) and not _spec_route_files(folder, folder.name, read_status(folder))[1]:
+            out.add(folder.name)
+    return frozenset(out)
+
+
+def gate_reasons(figures_dir: Path, occ_id: str, rows: dict, no_figure=None, spec_checker=None) -> list[str]:
     """Why `occ_id` may not be staged or published yet ([] = it may). `rows` maps a label
     ("the reviewed batch row", "the row the importer builds", "the private readback row") to
     that shape of the row about to be written; each must carry exactly figure.json's figure
     fields. A question with no figure in any row and no figure folder passes, and so does one
     in no-figure.json (`no_figure`: those ids, read from figures_dir when None) whose rows
-    carry no figure."""
+    carry no figure. The figure is cleared by the founder's approval or by the checked-spec
+    route (spec_route_problems; `spec_checker` runs check-spec.ts)."""
     folder = Path(figures_dir) / occ_id if ID.fullmatch(str(occ_id or "")) else None
     present = {k: r for k, r in rows.items() if r}
     no_figure = no_figure_ids(figures_dir) if no_figure is None else no_figure
@@ -396,15 +536,18 @@ def gate_reasons(figures_dir: Path, occ_id: str, rows: dict, no_figure=None) -> 
     if status is None:
         return [GATE + f"figure not approved by the founder: no {folder / STATUS_FILE}"]
     if status.get("status") != "approved":
-        return [GATE + f"figure not approved by the founder (status {status.get('status')}, "
-                       f"round {status.get('round')})"]
-    try:
-        sha = file_sha256(folder / FIGURE_FILE)
-        doc = load_json(folder / FIGURE_FILE)
-    except (OSError, ValueError) as e:
-        return [GATE + f"cannot read {folder / FIGURE_FILE}: {e}"]
-    if sha != status.get("approved_file_sha256"):
-        return [GATE + "figure.json changed after the founder approved it; submit it again for review"]
+        doc, why = spec_route_problems(folder, occ_id, status, spec_checker)
+        if why:
+            return [GATE + f"figure not approved by the founder (status {status.get('status')}, "
+                           f"round {status.get('round')}) and not cleared by the checked-spec route: " + "; ".join(why)]
+    else:
+        try:
+            sha = file_sha256(folder / FIGURE_FILE)
+            doc = load_json(folder / FIGURE_FILE)
+        except (OSError, ValueError) as e:
+            return [GATE + f"cannot read {folder / FIGURE_FILE}: {e}"]
+        if sha != status.get("approved_file_sha256"):
+            return [GATE + "figure.json changed after the founder approved it; submit it again for review"]
     want = figure_fields(doc)
     out = []
     for what, r in present.items():
@@ -425,7 +568,7 @@ def reviewed_rows(reviewed_file) -> dict:
     return {q.get("stable_question_id"): q for q in qs if isinstance(q, dict) and q.get("stable_question_id")}
 
 
-def mark_batch(batch_dir: Path, reviewed_file, items: list[dict]) -> None:
+def mark_batch(batch_dir: Path, reviewed_file, items: list[dict], spec_checker=None) -> None:
     """Stage: set it["figure_gate"] (refusal reasons, maybe []) on each precheck item of one batch,
     from the batch's reviewed rows and the importer's rows. Figures live in <pipeline>/figures for
     a batch at <pipeline>/batches/<name> (a folder elsewhere: figures/ beside it)."""
@@ -435,14 +578,14 @@ def mark_batch(batch_dir: Path, reviewed_file, items: list[dict]) -> None:
     for it in items:
         row = it["row"]
         rows = {"the reviewed batch row": reviewed.get(it["id"]), "the row the importer builds": row}
-        reasons = gate_reasons(fdir, it["id"], rows, no_figure)
+        reasons = gate_reasons(fdir, it["id"], rows, no_figure, spec_checker)
         if reasons and it["id"] not in reviewed:
             reasons.append(GATE + f"{it['id']} is not in the reviewed batch file {reviewed_file}")
         it["figure_gate"] = reasons
 
 
-def publish_reasons(intents: Path, stable_id, snap: dict) -> list[str]:
+def publish_reasons(intents: Path, stable_id, snap: dict, spec_checker=None) -> list[str]:
     """Publish: the gate on a private readback snapshot. Figures live in <pipeline>/figures,
     the pipeline being the folder of the intent log."""
     return gate_reasons(figures_dir_for(Path(intents).resolve().parent), stable_id,
-                        {"the private readback row": snap})
+                        {"the private readback row": snap}, spec_checker=spec_checker)

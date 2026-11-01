@@ -21,6 +21,12 @@ fail the import publish gate (kimport.qa_gate: the live QA audit's fail-level
 checks, "qa gate: <check>: ..."). Refused rows are listed in precheck.json;
 nothing else is written unless --skip-refused.
 
+The app's importer writes no figure_spec / choice_figure_spec, so carry_figure_specs copies
+them from the reviewed batch row (figure_spec; choice_figure_specs {letter: spec}) into the
+staged question and its choices; the figure gate then requires them to equal the cleared
+figure.json, and the seal covers them (catalogQuestionPayloadHash carries figure_spec and, only
+when set, choice_figure_spec). A row without them is staged exactly as before.
+
 readback.sql reads the staged rows back in the private-readback shape
 kimport.publish needs. `k seal` then checks that readback against the stage
 preview, seals each row from the database row (ts/seal-readback.ts, the app's
@@ -142,6 +148,26 @@ def export_like(stable_id: str, row: dict) -> dict:
                             "choice_table_data": c.get("choice_table_data")} for c in row["choices"]),
                           key=lambda c: c["letter"] or ""),
     }
+
+
+def carry_figure_specs(rows: list[dict], reviewed_file) -> None:
+    """Put each reviewed row's figure_spec (one FigureSpec or an ordered list) and
+    choice_figure_specs ({letter: FigureSpec}) on its staged question and choices. Rows without
+    them get no new keys. Idempotent."""
+    reviewed = figure_gate.reviewed_rows(reviewed_file)
+    for r in rows:
+        src = reviewed.get(r["stable_question_id"]) or {}
+        spec = src.get("figure_spec")
+        specs = figure_gate.choice_specs({"choice_figure_specs": src.get("choice_figure_specs")})
+        if spec in (None, "", [], {}) and not specs:
+            continue
+        letters = {c.get("letter") for c in r["choices"]}
+        if set(specs) - letters:
+            raise RefuseToBuild(f"{r['stable_question_id']}: choice_figure_specs names "
+                                f"{', '.join(sorted(map(str, set(specs) - letters)))}, which the row has no choice for")
+        r["question"]["figure_spec"] = spec if spec not in ("", [], {}) else None
+        for c in r["choices"]:
+            c["choice_figure_spec"] = specs.get(c.get("letter"))
 
 
 def make_items(rows: list[dict]) -> list[dict]:
@@ -321,7 +347,9 @@ def readback_sql(batch: str, sources: list[tuple]) -> str:
 def preview_row(row: dict, key) -> dict:
     """One stage-preview row: what was inserted, in the sealed-preview layout publish reads."""
     q = row["question"]
+    specs = {c["letter"]: c["choice_figure_spec"] for c in row["choices"] if c.get("choice_figure_spec") is not None}
     return {"stable_question_id": row["stable_question_id"], **q, "comparison_key": key,
+            **({"choice_figure_specs": specs} if specs else {}),
             "choices": {c["letter"]: c["choice_text"] for c in row["choices"]},
             "raw_choice_texts": {c["letter"]: c.get("raw_choice_text") for c in row["choices"]},
             "printed_answer": row["key"].get("printed_answer"),
@@ -370,6 +398,7 @@ def build_stage(batch_dir: Path, export: Path, pdf: Path, rows_doc: dict | None 
         rows_doc = stage_rows(Path(ready["reviewed_file"]), Path(pdf), Path(ready["frozen_manifest"]),
                               ready["frozen_manifest_sha256"])
     rows = rows_doc["rows"]
+    carry_figure_specs(rows, ready["reviewed_file"])
     _check_payload(rows, binding_sha)
 
     items = make_items(rows)

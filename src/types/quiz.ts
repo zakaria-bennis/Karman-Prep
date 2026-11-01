@@ -33,6 +33,9 @@ export interface AnswerChoice {
   choice_text: string;
   /** A source-faithful native table belonging to this answer letter only. */
   choice_table_data?: QuestionTableData | null;
+  /** answer_choices.choice_figure_spec: this choice's own FigureSpec, unvalidated as stored
+   *  (parse with parseFigureSpec). Drawn in Task 10 of the figure engine. */
+  choice_figure_spec?: unknown;
   is_correct: boolean;
 }
 
@@ -200,9 +203,11 @@ export interface QuizQuestion {
    *  Stage-6.6 gate confirmed the SVG render matches the screenshot. */
   figure_geometry_data: import("@/lib/figures/geometry-svg").GeometryFigureData | null;
   /** A founder-approved, hand-drawn figure SVG (figure_kind='image', no image_url),
-   *  inlined through sanitizeThemedSvg. Checked by src/lib/figures/svg-figure-check.ts
-   *  at import. Optional so rows and fixtures without it stay valid. */
+   *  inlined through sanitizeThemedSvg and checked by the importer. Optional so rows and fixtures without it stay valid. */
   figure_svg?: string | null;
+  /** quiz_questions.figure_spec: the figure as a FigureSpec (src/lib/figures/engine/spec.ts),
+   *  unvalidated as stored. When set it is drawn instead of every field above. */
+  figure_spec?: unknown;
 }
 
 /** Admin-supplied overrides for a node's textbook + video.
@@ -240,11 +245,12 @@ export type StudentQuizQuestion = Pick<
   | "figure_chart_data"
   | "figure_geometry_data"
   | "figure_svg"
+  | "figure_spec"
 > & {
   reviewed_passage?: import("@/lib/question-bank/reviewed-passage").ReviewedPassageDisplay;
   answer_choices: Pick<
     AnswerChoice,
-    "id" | "question_id" | "letter" | "choice_text" | "choice_table_data"
+    "id" | "question_id" | "letter" | "choice_text" | "choice_table_data" | "choice_figure_spec"
   >[];
 };
 

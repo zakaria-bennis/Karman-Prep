@@ -56,7 +56,7 @@ STAGED_STATUS, STAGED_IMPORT = "needs_human_review", "needs_review"
 FIGURE_NO_KEY = "figure: checked by people, no database key"
 # Figure columns beyond figure_kind / figure_table_data that a staged row may carry (import-figure.ts).
 FIGURE_COLUMNS = ("figure_chart_data", "figure_geometry_data", "figure_svg", "image_url", "image_storage_path",
-                  "image_alt")
+                  "image_alt", "figure_spec")
 KEYED = "keyed"
 NOT_COMPARABLE_ANSWER = "not comparable (bad answer letter)"
 NOT_COMPARABLE_FORMAT = "not comparable (format mismatch)"
@@ -173,6 +173,13 @@ def _check_row(snap: dict, seal: dict) -> tuple[str, str]:
     for field in FIGURE_COLUMNS:
         if field in seal and q.get(field) != seal[field]:
             raise RefuseToBuild(f"{where}: {field} differs between the private readback and the sealed preview")
+    # figure_spec and choice_figure_spec are carried from the reviewed row (kimport.stage.carry_figure_specs);
+    # a spec in the database that the sealed preview does not name is refused too.
+    specs = {c.get("letter"): c.get("choice_figure_spec") for c in choices or [] if c.get("choice_figure_spec") is not None}
+    if specs != (seal.get("choice_figure_specs") or {}):
+        raise RefuseToBuild(f"{where}: choice_figure_spec differs between the private readback and the sealed preview")
+    if q.get("figure_spec") is not None and "figure_spec" not in seal:
+        raise RefuseToBuild(f"{where}: figure_spec is set in the database but not in the sealed preview")
     if not (q.get("is_live") is False and q.get("archived_at") is None and q.get("publish_status") == STAGED_STATUS
             and q.get("import_status") == STAGED_IMPORT):
         raise RefuseToBuild(f"{where}: not a staged private row (is_live false, archived_at null, "

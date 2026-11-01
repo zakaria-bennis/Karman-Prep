@@ -174,7 +174,8 @@ def _check_dedup(row: dict, clusters: dict, approved_figures=frozenset(), qa_hid
         return []
     if sid not in roles:
         return ["row has no cluster entry"]
-    # A figure group's copy whose figure the founder approved is the copy that group publishes; the stage
+    # A figure group's copy whose figure the founder approved (or the checked-spec route cleared,
+    # figure_gate.publishable_ids) is the copy that group publishes; the stage
     # guards (same text / source / hash in the bank or the run) still stop any second copy.
     if roles[sid] == "figure_review" and sid in approved_figures:
         return []
@@ -288,7 +289,7 @@ def run_lint(reviewed: Path, frozen: Path | None, clusters: Path, lane: Path, no
         from kimport import bank_gate
         bank = bank_gate.Bank(read_export_doc(Path(export)).rows)
     result = lint_batch(reviewed, frozen, clusters, figure_gate.no_figure_ids(figures),
-                        figure_gate.approved_ids(figures), qa_hidden_ids(Path(lane).parent / "qa"), qa_checker, bank)
+                        figure_gate.publishable_ids(figures), qa_hidden_ids(Path(lane).parent / "qa"), qa_checker, bank)
     if result["pulled"]:
         write_lane(lane, result["pulled"], now)
     return {"passed": len(result["passed"]), "pulled_rows": len({p["id"] for p in result["pulled"]}),

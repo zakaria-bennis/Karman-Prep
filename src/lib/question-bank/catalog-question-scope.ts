@@ -141,10 +141,12 @@ export function catalogQuestionPayloadHash(question: QuizQuestionWithChoices): s
     explanation_per_choice: question.explanation_per_choice,
     desmos_strategy: question.desmos_strategy,
     answer_choices: answer_choices
-      .map(({ letter, choice_text, choice_table_data }) => ({
+      .map(({ letter, choice_text, choice_table_data, choice_figure_spec }) => ({
         letter,
         choice_text,
         choice_table_data,
+        // Only when set, so every choice without a drawn figure seals byte-identically.
+        ...(choice_figure_spec != null ? { choice_figure_spec } : {}),
       }))
       .sort((left, right) => left.letter.localeCompare(right.letter)),
   };

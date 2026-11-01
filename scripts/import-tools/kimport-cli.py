@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figures, lane, lint, pairs_page, publish, qa_certify, qa_correct, qa_run, stage, sweep, writer  # noqa: E402
+from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figure_live, figures, lane, lint, pairs_page, publish, qa_certify, qa_correct, qa_run, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -543,6 +543,32 @@ def _register_figures(sub) -> None:
             print(f"  drafting {who}: {n}")
 
     st.set_defaults(func=lambda a: _guard(lambda: status(a)))
+
+    ps = fsub.add_parser("publish-specs", help="put checked figure specs on LIVE questions in place, resealed "
+                                               "(check-spec clean + a 'match' visual verdict, or mechanical tables/charts)")
+    ps.add_argument("--lines", required=True, help="JSON lines {question_id, stable_question_id, kind, figure_spec, "
+                                                   "choice_specs, transcribed_labels, check_ok, visual_verdict_path}")
+    ps.add_argument("--pipe", required=True, help="the pipeline folder (writer.lock, intents.jsonl, qa/)")
+    ps.add_argument("--now", required=True, help="ISO-8601 time")
+    ps.add_argument("--export", help="use this saved export (for the fingerprint guard) instead of a fresh one")
+    ps.add_argument("--live-rows", help="use this saved full live export (qa export) instead of a fresh one")
+    ps.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
+    ps.set_defaults(func=lambda a: _guard(lambda: _qa_print(figure_live.run_publish_specs(
+        Path(a.pipe), a.lines, a.now, a.dry, a.export, a.live_rows, _figure_deps()))))
+
+    cl = fsub.add_parser("convert-live", help="read-only: publish-specs lines for live tables or charts, converted by "
+                                              "the engine's own converters and checked (visual_verdict mechanical)")
+    cl.add_argument("--kind", required=True, choices=("table", "chart"))
+    cl.add_argument("--pipe", required=True, help="the pipeline folder (the run folder goes in qa/)")
+    cl.add_argument("--now", required=True, help="ISO-8601 time")
+    cl.add_argument("--out", help="the lines file to write (default: in the run folder)")
+    cl.add_argument("--live-rows", help="use this saved full live export (qa export) instead of a fresh one")
+    cl.set_defaults(func=lambda a: _guard(lambda: _qa_print(figure_live.run_convert_live(
+        Path(a.pipe), a.kind, a.now, a.out, a.live_rows, _figure_deps()))))
+
+
+def _figure_deps():
+    return figure_live.Deps(log=lambda m: print(m, file=sys.stderr, flush=True))
 
 
 def _register_qa(sub) -> None:

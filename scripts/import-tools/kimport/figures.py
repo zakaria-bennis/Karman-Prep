@@ -49,9 +49,10 @@ FIGURE_STATUS = "figure_review"  # clusters.json status of a group grouped by te
 REPO = Path(__file__).resolve().parents[3]
 PIPELINE_FIGURES = Path("/Users/zakariabennis/Documents/Codex/2026-10-11/task-3/pipeline/figures")
 CHECK_TS = REPO / "scripts/import-tools/ts/check-figure.ts"
-# The figure engine is not on main yet (2026-10-31 ruling): its checker runs from the engine
-# worktree, or FIGURE_ENGINE_DIR. Drop this once the engine merges.
-DEFAULT_ENGINE_DIR = Path("/Users/zakariabennis/Karman-Prep/.claude/worktrees/figure-engine-spec")
+# The engine's checker runs from an app checkout with the newest figure engine: FIGURE_ENGINE_DIR,
+# else the solid3d worktree (3D solids and figure lists, 2026-11-01). This branch's own src/ has
+# no engine (it is behind main), so the checks never run from here.
+DEFAULT_ENGINE_DIR = Path("/Users/zakariabennis/Karman-Prep/.claude/worktrees/solid3d")
 CHECK_SPEC = "scripts/figures/check-spec.ts"
 SVG_FILE = "figure.svg"
 
