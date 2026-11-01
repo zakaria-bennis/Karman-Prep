@@ -14,7 +14,21 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
   },
   workers: 1,
-  use: { baseURL: BASE_URL, launchOptions: { timeout: 20_000 } },
+  use: {
+    baseURL: BASE_URL,
+    launchOptions: { timeout: 20_000 },
+    // The suite was written for side by side from 450 px; the quiz now defaults to graph on top
+    // (founder, 2026-11-01). layout-choice.spec.ts clears this to test the default.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: BASE_URL,
+          localStorage: [{ name: "karman.calculator.layout", value: "side-by-side" }],
+        },
+      ],
+    },
+  },
   reporter: [["list"], ["html", { outputFolder: "tmp/calculator/report", open: "never" }]],
   projects: [
     { name: "calculator-chrome", use: { ...devices["Desktop Chrome"] } },

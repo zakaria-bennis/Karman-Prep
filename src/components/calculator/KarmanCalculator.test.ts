@@ -195,7 +195,7 @@ it("AR-57 a render error reaches options.onError once, and a throwing onError is
 });
 it("API-12 focusExpression and focusFirstExpression wait for the field; activateExpression marks the row active without DOM focus; resize re-measures", async () => {
   const el = mount();
-  const calc = new KarmanCalculator(el);
+  const calc = new KarmanCalculator(el, undefined, { fixedSideBySide: true });
   await vi.waitFor(() => expect(s.props).not.toBeNull());
   calc.setExpressions([
     { id: "1", latex: "1" },

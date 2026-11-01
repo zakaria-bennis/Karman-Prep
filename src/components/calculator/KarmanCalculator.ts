@@ -36,6 +36,8 @@ import { watchTheme, type ThemeState } from "./ui/controller/theme-watcher";
 import { whenFieldReady } from "./ui/controller/when-field-ready";
 import { createEscapeStack, type EscapeStack } from "./ui/focus/escape-stack";
 import { createFocusController, type FocusController } from "./ui/focus/focus-controller";
+import type { PixelSize } from "@/lib/calculator/plot/viewport";
+import { layoutChoice, subscribeLayoutChoice } from "./ui/layout/layout-choice";
 import { layoutFor, observeHostSize } from "./ui/layout/layout-size";
 
 /** AR-32: the scan string that marks the lazy chunk; written to the host at runtime. */
@@ -50,6 +52,9 @@ export interface HostHooks {
   // The theme while the student has chosen none on this device: "auto" (the default, the quiz)
   // follows html[data-theme]; the public /calculator page starts on "classic".
   defaultTheme?: ThemeChoice;
+  // The public /calculator page: always side by side from 450 px, as desmos.com/calculator, with
+  // no layout setting. The quiz leaves it out and follows the student's layout choice.
+  fixedSideBySide?: boolean;
 }
 
 type Method = {
@@ -151,6 +156,7 @@ export class KarmanCalculator {
     this.#store = createShellStore({
       size: { width: 0, height: 0 },
       layout: "stacked",
+      layoutSetting: hooks?.fixedSideBySide !== true,
       skin: theme.initial.skin,
       themeChoice: theme.initial.choice,
       themeRevision: theme.initial.revision,
@@ -160,10 +166,17 @@ export class KarmanCalculator {
 
     // 7. Browser watchers feed the store; the theme watcher is disposed last.
     this.#disposers.push(theme.dispose);
-    const size = observeHostSize(element, (next) =>
-      this.#store.set({ size: next, layout: layoutFor(next) })
-    );
+    let hostSize: PixelSize = { width: 0, height: 0 };
+    const chosen = () => (hooks?.fixedSideBySide === true ? "side-by-side" : layoutChoice());
+    const size = observeHostSize(element, (next) => {
+      hostSize = next;
+      this.#store.set({ size: next, layout: layoutFor(next, chosen()) });
+    });
     this.#disposers.push(size.dispose);
+    // The Graph Settings layout choice re-lays out every open quiz calculator at once.
+    this.#disposers.push(
+      subscribeLayoutChoice(() => this.#store.set({ layout: layoutFor(hostSize, chosen()) }))
+    );
     this.#measure = size.measure;
     size.measure();
     const motion = watchMediaQuery(window, REDUCED_MOTION_QUERY, (matches) =>
