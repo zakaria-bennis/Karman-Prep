@@ -44,9 +44,16 @@ async function expectNoPageScroll(page: Page) {
 function watchPage(page: Page) {
   const errors: string[] = [];
   const foreign: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
+  // Sign-in (Clerk) is site-wide, not part of the calculator. With CI's fake Clerk key it cannot
+  // start and logs its own errors, so those are left out; every other error still fails the test.
+  const fromClerk = (text: string, url = "") => /clerk/i.test(text) || /clerk/i.test(url);
+  page.on("pageerror", (error) => {
+    if (!fromClerk(`${error.name} ${error.message}`, error.stack)) errors.push(error.message);
+  });
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+    if (message.type() === "error" && !fromClerk(message.text(), message.location().url)) {
+      errors.push(message.text());
+    }
   });
   page.on("request", (request) => {
     const url = new URL(request.url());
