@@ -350,7 +350,7 @@ export function postedLog(): void {
 
 export interface CurveStats {
   bands: number; // bands.length / 4 (G-12)
-  maxAbsY: number; // over the finite polyline vertices
+  maxAbsY: number; // over the finite polyline vertices in the visible x range
   maxY: number;
 }
 
@@ -418,12 +418,15 @@ export async function switchAndTime(el: Element, expected: string[]): Promise<Sw
     record();
   }
   unsubscribe();
+  // Curves are plotted one view past each edge; the stats cover the visible x range only.
+  const { left, right } = engine.getSnapshot().viewport;
   const curves = first.map((g) => {
     const curve = g as { polylines?: Float64Array; bands?: Float64Array } | undefined;
     const ys: number[] = [];
     const p = curve?.polylines ?? new Float64Array();
     for (let i = 0; i + 1 < p.length; i += 2) {
-      if (Number.isFinite(p[i]) && Number.isFinite(p[i + 1])) ys.push(p[i + 1]);
+      const visible = p[i] >= left && p[i] <= right;
+      if (visible && Number.isFinite(p[i]) && Number.isFinite(p[i + 1])) ys.push(p[i + 1]);
     }
     return {
       bands: (curve?.bands?.length ?? 0) / 4,
