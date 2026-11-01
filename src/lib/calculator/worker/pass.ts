@@ -201,7 +201,8 @@ export function runPlot(
         const plotted = fns.plotRow(
           { rowId, kind: "explicit", independent: "x", fs: [curve] },
           view,
-          deadline
+          deadline,
+          true
         );
         if (plotted.kind === "curve") geometry.regression = plotted;
       } catch (thrown) {
@@ -216,7 +217,7 @@ export function runPlot(
     if (input === null) return;
     ctx.post({ v: 1, type: "begin", generation, rowId });
     const deadline = createWorkDeadline({ clock: ctx.clock, now: ctx.now, limitMs: null, rowId });
-    const geometry = fns.plotRow(input, view, deadline);
+    const geometry = fns.plotRow(input, view, deadline, true); // curves and lines with a margin
     ctx.post({ v: 1, type: "plot", generation, rowId, geometry }, geometryTransferables(geometry));
   } catch (thrown) {
     postFault(ctx, thrown);

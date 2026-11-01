@@ -1,3 +1,4 @@
+import type { CurveGeometry } from "../plot/geometry";
 import { expect, it } from "vitest";
 import type { Deadline } from "../core/deadline";
 import { UNDEFINED, type Value } from "../core/eval/values";
@@ -113,6 +114,28 @@ it("AR-48 a plot unit has no total limit and posts its geometry with transferabl
   const plot = posts[i] as Extract<WorkerToMain, { type: "plot" }>;
   expect(transfers[i]).toEqual(geometryTransferables(plot.geometry));
   expect(posts.some((m) => m.type === "overrun")).toBe(false);
+});
+it("a curve is plotted one view past each edge of the view, so a pan or zoom out shows it at once", () => {
+  const { ctx, posts } = makeCtx(0);
+  const outcome = runValuesPass(rows("y=0.1x", "x^{4}+y^{4}=16"), RAD, ctx);
+  for (const row of outcome.analysis.rows) runPlot(row, outcome, VIEW, ctx);
+  const xs = (rowId: string) => {
+    const plot = posts.find((m) => m.type === "plot" && m.rowId === rowId) as Extract<
+      WorkerToMain,
+      { type: "plot" }
+    >;
+    const lines = (plot.geometry as CurveGeometry).polylines;
+    const out: number[] = [];
+    for (let k = 0; k + 1 < lines.length; k += 2) if (Number.isFinite(lines[k])) out.push(lines[k]);
+    return [Math.min(...out), Math.max(...out)];
+  };
+  const { left, right } = VIEW.viewport,
+    w = right - left;
+  const [lo, hi] = xs("r0");
+  expect(lo).toBeCloseTo(left - w, 6);
+  expect(hi).toBeCloseTo(right + w, 6);
+  const [ilo, ihi] = xs("r1"); // an implicit curve keeps the exact view: it costs by area
+  expect([ilo >= left, ihi <= right]).toEqual([true, true]);
 });
 it("AR-54 a throwing plot posts a fault naming only the error type and the next row still plots", () => {
   const plotRow: ComputeFns["plotRow"] = (input, view, d) => {
