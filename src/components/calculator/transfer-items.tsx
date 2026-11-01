@@ -13,6 +13,7 @@ import {
 import { classifyTable } from "@/lib/calculator-transfer/table";
 import type { MathSegment } from "@/components/learn/math-segments";
 import { splitMathText } from "@/lib/calculator-transfer/math-split"; // AR-33
+import { TableTransferControl, tableControlName } from "./TableTransferControl";
 import { TransferControl } from "./TransferControl";
 
 export interface TransferControlView {
@@ -121,17 +122,16 @@ export function ChoiceTransferAction(props: {
   return view && <TransferControl {...view} />;
 }
 
-/** The CalculatorTableAction body (TR-22): a question table's control at its top-right corner, or
- * a table answer choice's in its cluster ("choice:<letter>" items are described by the letter). */
+/** The CalculatorTableAction body (TR-22, TR-91): the small table button of a Math table, set into
+ * the table frame's top-right corner, or a table answer choice's in its cluster. Its item id is
+ * "table" (the first question table), "table:<n>" (the n-th) or "choice:<letter>". */
 export function TableTransferAction(props: {
   rows: string[][];
   headers?: string[];
   itemId?: string;
+  label?: string;
   slot?: "cluster";
 }): JSX.Element | null {
-  // A table choice's control is its cluster instance's; catalog practice's QuestionTable, with
-  // no cluster, renders none.
-  if (props.slot !== "cluster" && props.itemId !== "table") return null;
   const sourceId = props.itemId ?? "table";
   const letter = sourceId.startsWith("choice:") ? sourceId.slice("choice:".length) : undefined;
   const item = classifyTable({
@@ -140,8 +140,13 @@ export function TableTransferAction(props: {
     rows: props.rows,
     letter,
   });
-  const accessibleName = item && accessibleNames([item]).get(item.sourceId);
-  if (!item || !accessibleName) return null;
-  const placement = props.slot === "cluster" ? "cluster" : "block";
-  return <TransferControl item={item} accessibleName={accessibleName} placement={placement} />;
+  if (!item) return null;
+  const label = letter !== undefined ? `choice ${letter}` : props.label;
+  return (
+    <TableTransferControl
+      item={item}
+      accessibleName={tableControlName(label)}
+      placement={props.slot === "cluster" ? "cluster" : "corner"}
+    />
+  );
 }

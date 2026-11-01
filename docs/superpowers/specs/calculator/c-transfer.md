@@ -16,6 +16,7 @@ cited inline as ground truth.
 - Sources and default deny: TR-1 to TR-6
 - Classifying math segments: TR-7 to TR-21
 - Tables: TR-22 to TR-25
+- The table button: TR-91 to TR-97
 - What a transfer inserts: TR-26 to TR-39
 - Answer choices: TR-40 to TR-42
 - The control: TR-43 to TR-53
@@ -203,6 +204,30 @@ Table 5.1, accepted shapes:
 | empty, `Yes`, `No`, `Total` | `Male,12,8,20`      | No control (categorical)                         |
 | `x`, `y`                    | a cell `$12` or `?` | No control                                       |
 
+## 5a. The table button
+
+Founder request, 2026-11-01 (verbatim):
+
+> The tables in the math section should have the 'Copy Table to Calculator' button. The only
+> important thing: use 21st.dev to find an asset for the button. I don't want it to be a whole
+> text line. It should just be a small little button integrated into the table, which they can
+> actually just click. It automatically puts it onto the actual table or actual calculator.
+
+And on the icon: "I would prefer one that has a small image of a table and then morphs into an
+arrow to the top left." The look is ported from the 21st.dev "Copy Link Button" (uiable): a small
+icon-only button whose icon changes for about 2 seconds after the click. It is Karman's own code
+(`TableTransferControl.tsx`), with no shadcn, framer-motion or lucide imports. These rules replace
+the hover-revealed, tap-selected control for question tables and table answer choices; TR-43,
+TR-46, TR-47, TR-50, TR-51, TR-52 and TR-55 now apply to stem items and non-table choices only.
+
+- **TR-91** Every eligible (TR-22) table on a Math surface with a calculator gets one always-visible table button: each table of a question's figure (a question with several tables gets one per table, with item ids `table`, `table:2`, `table:3` … in order), each catalog-practice table choice, and each table choice in a practice or daily tool cluster (TR-42, which keeps it outside the answer's label or radio, TR-41); Reading and Writing tables and pages with no calculator get none. (verified by component test)
+- **TR-92** The button is icon-only with the accessible name "Copy table to calculator", followed by ": " and a label when the question has several tables (the table's title when every table has a distinct one, otherwise "table n") or when it is a table choice ("choice B"), so every button's name is distinct; the tooltip "Copy table to calculator" shows after 300 ms of hover or at once on keyboard focus, to the button's left, hides on Escape, blur or pointer leave, and never shows on touch. (verified by component test)
+- **TR-93** In a table frame the button is set into the frame's top-right corner, 6 px in, and the table keeps 40 px of room on the right of its title, or of its top row's last cell when it has no title, whenever the button can show, so the button covers no heading or value and never shifts the table when its lazy chunk loads; the room is kept for every Math table on a page with a calculator, including ineligible ones, because eligibility is decided in the lazy chunk. (verified by component test)
+- **TR-94** One click, tap or keyboard activation transfers that table at once (TR-25 names, TR-35 repeats, opening or docking the calculator under TR-64), with no reveal or tap-select step; after a transfer the calculator took (added, renamed or already present) the table glyph morphs into an arrow pointing up and to the left (rotating and scaling, about 240 ms), holds for 1.8 s and morphs back, and a rejected or unavailable transfer shows no arrow; the result is announced in words by the TR-67 status region ("Added table to calculator: …"). (verified by component test)
+- **TR-95** The visible button is 26 × 26 px with a 16 px glyph; on any touch screen (`(any-pointer: coarse)`) its hit area is 44 × 44 px, anchored at the frame's corner so it stays inside the frame, and a table choice's cluster button is 44 × 44 px everywhere. (verified by component and browser test)
+- **TR-96** With `prefers-reduced-motion: reduce` the glyph switches to the arrow and back with no transition; this morph is the only motion on any Transfer control (TR-52 otherwise). (verified by component test)
+- **TR-97** Colours come only from `--kcc-*` tokens in `transfer-control.css` (TH-2): the glyph in `--kcc-text-secondary`, `--kcc-text` on hover and while the arrow shows, on `--kcc-chrome` with a `--kcc-text-secondary` boundary and the 2 px `--kcc-focus` ring (TR-48, TR-53). (verified by contrast and visual test)
+
 ## 6. What a transfer inserts
 
 - **TR-26** An expression, equation, inequality or function becomes one row with the normalised LaTeX, rendered in 2D by MathQuill; an inequality row in x, y or both graphs as a shaded region under RC-14 and G-17, one whose only free names are not coordinates follows RC-13, and one with no free names follows RC-14. (Phase 1; verified by unit test)
@@ -228,16 +253,16 @@ Table 5.1, accepted shapes:
 
 ## 8. The control
 
-- **TR-43** The glyph is Karman's own icon, a calculator outline with an arrow pointing up and to the right, built from the lucide-react `Calculator` and `ArrowUpRight` glyphs the site already uses, at 16 px for fine reveal and 20 px for coarse reveal, with no visible text on the button; the owner's 'labeled "Transfer to Calculator"' is met by the TR-50 accessible name and the TR-51 tooltip, which both begin with that text, so the button itself stays small (owner confirmation 7). (Phase 1; verified by visual test)
+- **TR-43** (Stem items and non-table choices; tables follow TR-91 to TR-97.) The glyph is Karman's own icon, a calculator outline with an arrow pointing up and to the right, built from the lucide-react `Calculator` and `ArrowUpRight` glyphs the site already uses, at 16 px for fine reveal and 20 px for coarse reveal, with no visible text on the button; the owner's 'labeled "Transfer to Calculator"' is met by the TR-50 accessible name and the TR-51 tooltip, which both begin with that text, so the button itself stays small (owner confirmation 7). (Phase 1; verified by visual test)
 - **TR-44** The hit area is at least 24×24 CSS px for fine reveal and at least 44×44 CSS px for coarse reveal and in every answer-choice tool cluster. (Phase 1; verified by browser test)
 - **TR-45** Each item has exactly one real `<button type="button">`, placed in DOM order right after the item, or for an answer choice inside its tool cluster (TR-42); the math is never made focusable, and while hidden, a stem or question-table control is visually clipped and an answer-choice control is at opacity 0 in its tool cluster (AR-11); either way the button stays in the accessibility tree and tab order (never `display:none`, `visibility:hidden` or `aria-hidden`). (Phase 1; verified by component test)
-- **TR-46** The control is an overlay that never shifts layout or changes how the math wraps: for an inline segment it sits above the end of the segment's last line, overlapping the math box by at least 4 px so no gap separates them, and for display math and tables it sits inside the top-right corner of the block or figure frame; answer-choice controls sit in the tool cluster (TR-42). (Phase 1; verified by visual test)
-- **TR-47** With a mouse or hovering pen a stem or question-table control appears at once when the pointer enters the item or the control, stays while the pointer is over either with no timer, and hides at once when the pointer leaves both unless the control has focus or its chooser is open; answer-choice controls follow TR-42 and AR-11: always visible while (any-pointer: coarse) matches, otherwise shown only while the pointer is over the choice or focus is within its tool cluster, even when the host keeps the cluster itself visible (for example a crossed-out diagnostic choice). (Phase 1; verified by browser test)
+- **TR-46** (Tables: TR-93.) The control is an overlay that never shifts layout or changes how the math wraps: for an inline segment it sits above the end of the segment's last line, overlapping the math box by at least 4 px so no gap separates them, and for display math and tables it sits inside the top-right corner of the block or figure frame; answer-choice controls sit in the tool cluster (TR-42). (Phase 1; verified by visual test)
+- **TR-47** With a mouse or hovering pen a stem control appears at once when the pointer enters the item or the control, stays while the pointer is over either with no timer, and hides at once when the pointer leaves both unless the control has focus or its chooser is open; answer-choice controls follow TR-42 and AR-11: always visible while (any-pointer: coarse) matches, otherwise shown only while the pointer is over the choice or focus is within its tool cluster, even when the host keeps the cluster itself visible (for example a crossed-out diagnostic choice). (Phase 1; verified by browser test)
 - **TR-48** The control is visible whenever it has keyboard focus (`:focus-visible`), with a 2 px focus ring, and while it has focus or its chooser is open the item shows the selected outline (TR-55). (Phase 1; verified by browser test)
 - **TR-49** Escape hides a hover- or tap-revealed control and its tooltip without moving focus or the pointer (unless a chooser is open), the control stays hidden until the pointer leaves and re-enters the item or the item is tapped again, and Escape is consumed only when it hid something; Escape never hides an answer-choice control that TR-42 keeps always visible. (Phase 1; verified by browser test)
-- **TR-50** The accessible name is "Transfer to Calculator: " plus the description in table 8.1, unique within the question (repeats get ", occurrence 2" and so on) and starting with the visible tooltip text as WCAG 2.5.3 requires. (Phase 1; verified by component test)
-- **TR-51** A tooltip reading "Transfer to Calculator" appears after 300 ms of hover on the control or at once on keyboard focus, sits next to the control with no gap, stays while the pointer is on the control or the tooltip, hides on Escape, and is not shown on touch (owner confirmation 7). (Phase 1; verified by browser test)
-- **TR-52** The control, tooltip, selected outline and chooser appear and disappear with no animation, because question text and answer choices are Hold territory (`docs/brand.md:232-234`); calculator motion after a transfer follows AN- rules. (Phase 1; verified by browser test)
+- **TR-50** (Tables: TR-92.) The accessible name is "Transfer to Calculator: " plus the description in table 8.1, unique within the question (repeats get ", occurrence 2" and so on) and starting with the visible tooltip text as WCAG 2.5.3 requires. (Phase 1; verified by component test)
+- **TR-51** (Tables: TR-92.) A tooltip reading "Transfer to Calculator" appears after 300 ms of hover on the control or at once on keyboard focus, sits next to the control with no gap, stays while the pointer is on the control or the tooltip, hides on Escape, and is not shown on touch (owner confirmation 7). (Phase 1; verified by browser test)
+- **TR-52** (Except the table button's morph, TR-94 and TR-96.) The control, tooltip, selected outline and chooser appear and disappear with no animation, because question text and answer choices are Hold territory (`docs/brand.md:232-234`); calculator motion after a transfer follows AN- rules. (Phase 1; verified by browser test)
 - **TR-53** In all 12 skins, using TH- tokens, the glyph is at least 4.5:1 against the button background, the button boundary, focus ring and selected outline are at least 3:1 against the adjacent page colour, and chooser text is at least 7:1. (Phase 1; verified by contrast test)
 
 Table 8.1, descriptions in accessible names:
@@ -248,13 +273,13 @@ Table 8.1, descriptions in accessible names:
 | System                                     | "system of n equations", "system of n inequalities", or "system of n equations and inequalities" when it mixes both |
 | Coordinate pair                            | "point (a, b)", or "n points"                                                                                       |
 | Function coordinate                        | "f(a) = b"                                                                                                          |
-| Table                                      | "table, n rows", with the caption when there is one                                                                 |
+| Table                                      | "table, n rows" in the payload; the button's own name follows TR-92                                                 |
 | Answer choice                              | "choice B"                                                                                                          |
 
 ## 9. Touch
 
 - **TR-54** The pointer type of the triggering event sets the interaction mode (mouse or hovering pen: hover reveal; touch or pen tap: tap-select; keyboard: focus reveal), and neither device class nor viewport width ever does, with one exception: the always-visible answer-choice control follows the `(any-pointer: coarse)` media query (TR-42); docking uses viewport size only (TR-64). (Phase 1; verified by component test)
-- **TR-55** A tap (touch or pen contact moving at most 10 px and lifting in less than 500 ms) on an eligible stem item or question table selects it: the item gets a 2 px solid outline offset by 2 px as a non-colour indicator, the control appears on top of it at 44×44, and only one item is selected at a time (owner confirmation 5); answer choices are never tap-selected as transfer items (TR-42). (Phase 1; verified by browser test)
+- **TR-55** A tap (touch or pen contact moving at most 10 px and lifting in less than 500 ms) on an eligible stem item selects it (a table's button is always visible and is tapped directly, TR-94): the item gets a 2 px solid outline offset by 2 px as a non-colour indicator, the control appears on top of it at 44×44, and only one item is selected at a time (owner confirmation 5); answer choices are never tap-selected as transfer items (TR-42). (Phase 1; verified by browser test)
 - **TR-56** Tapping the control transfers a single-result item at once and opens the chooser only for coordinate pairs and function coordinates, where there is a format to pick, and tapping the selected item again deselects it (owner confirmation 5). (Phase 1; verified by browser test)
 - **TR-57** Selection clears on a tap outside the item and control, Escape, the calculator opening, a transfer or a question change, never times out, and survives scrolling, with the control moving with the item. (Phase 1; verified by browser test)
 - **TR-58** A long press (500 ms or more), a drag, or any gesture ending with a non-collapsed text selection never selects an item; native selection, copy and the Highlight tool work as today, and taps select nothing while Highlight mode is active. (Phase 1; verified by browser test)

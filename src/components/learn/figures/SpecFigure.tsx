@@ -3,8 +3,7 @@
 // ============================================================
 // SpecFigure: a question's figure_spec drawn with the figure engine. A drawn
 // type renders as FigureView(buildScene(...)), a table as SpecTable
-// (TableView, plus the calculator's table transfer control on Math
-// surfaces). A figure_spec that is a list draws each figure as its own
+// (TableView, plus the calculator's table button on Math surfaces). A figure_spec that is a list draws each figure as its own
 // figure, stacked top to bottom with even spacing, each with its own title,
 // note and accessible description; two tables stay two tables. An invalid
 // spec (any figure of a list) is never drawn in part: it logs one error and
@@ -22,7 +21,7 @@ import { logInvalidSpec } from "@/lib/figures/invalid-spec-log";
 import { cn } from "@/lib/utils";
 import FigureView from "./FigureView";
 import StoredFigure, { FIGURE_FRAME, type StoredFigureProps } from "./StoredFigure";
-import { SpecTable } from "./TableFigure";
+import { SpecTable, tableItemIds, tableLabels } from "./TableFigure";
 import { useMeasuredWidth } from "./useMeasuredWidth";
 
 export type SpecFigureProps = StoredFigureProps & {
@@ -88,15 +87,19 @@ export default function SpecFigure({
   const many = figures.length > 1;
   // Every frame in a stack is as wide, so the first drawn figure's width serves them all.
   const measured = figures.findIndex((f) => "scene" in f);
-  // The calculator's table transfer takes one table: the first (its item id is "table").
-  const transfer = figures.findIndex((f) => "table" in f);
+  // Every table gets its own table button (c-transfer TR-91): "table", "table:2", … in order.
+  const tables = figures.flatMap((f) => ("table" in f ? [f.table] : []));
+  const ids = tableItemIds(tables.length);
+  const labels = tableLabels(tables);
   const one = (figure: Drawing, key: number) => {
     if ("table" in figure)
       return (
         <SpecTable
           key={key}
           spec={figure.table}
-          calculator={calculator && key === transfer}
+          calculator={calculator}
+          calculatorItemId={ids[tables.indexOf(figure.table)] ?? undefined}
+          calculatorLabel={labels[tables.indexOf(figure.table)]}
           // In a stack each table keeps its own width and its own row: never side by side.
           className={many ? "my-0 self-start" : className}
         />

@@ -128,6 +128,7 @@ export default function TableView({
   renderMath = true,
   ariaLabel,
   className,
+  actionRoom = false,
   children,
 }: {
   spec: FigureSpec;
@@ -136,7 +137,9 @@ export default function TableView({
   /** Names the figure; distinguishes tables shown as separate answer choices. */
   ariaLabel?: string;
   className?: string;
-  /** Rendered just after the table's frame (the calculator's transfer control). */
+  /** Keeps room in the top-right corner for the calculator's table button (c-transfer TR-93). */
+  actionRoom?: boolean;
+  /** Rendered just after the table's frame (the calculator's table button). */
   children?: ReactNode;
 }) {
   const table = layoutTable(spec);
@@ -153,8 +156,14 @@ export default function TableView({
       ? cn("sticky left-0 z-[1]", SURFACE, columnCount > 1 && "border-r")
       : ci >= 2 && "border-l";
   const lastRow = rows.length - 1;
+  // TR-93: the top row's last cell (or the title) keeps 40px on its right for the table button,
+  // so the button never covers a heading or a value.
+  const roomRow =
+    !actionRoom || table.title ? null : groups ? "groups" : header ? "header" : "body";
+  const room = (row: typeof roomRow, ci: number, count: number) =>
+    roomRow === row && ci === count - 1 && "pr-10";
 
-  const bodyCell = (cell: TableCell, ri: number, ci: number) => {
+  const bodyCell = (cell: TableCell, ri: number, ci: number, row: readonly TableCell[]) => {
     const layout = decimal[ci];
     const content =
       cell.align === "decimal" && layout
@@ -167,7 +176,8 @@ export default function TableView({
         "font-normal",
         ALIGN[cell.align],
         (ri < lastRow || table.note) && "border-b",
-        columnRule(ci)
+        columnRule(ci),
+        ri === 0 && room("body", ci, row.length)
       ),
     };
     return table.rowHeaders && ci === 0 ? (
@@ -190,6 +200,7 @@ export default function TableView({
       aria-label={ariaLabel ?? (table.title ? undefined : "Question data table")}
       className={cn(
         "themed-question-figure themed-question-table my-4 inline-block min-w-0 max-w-full overflow-hidden rounded-lg border",
+        actionRoom && "relative",
         RULE,
         SURFACE,
         className
@@ -208,7 +219,7 @@ export default function TableView({
           <table className="w-full border-separate border-spacing-0">
             {table.title && (
               <caption className={cn(CELL, "caption-top border-b px-0 text-center font-semibold")}>
-                <span className={inView} style={inViewStyle}>
+                <span className={cn(inView, actionRoom && "pr-10")} style={inViewStyle}>
                   {renderText(table.title, renderMath)}
                 </span>
               </caption>
@@ -220,14 +231,15 @@ export default function TableView({
                     {groups.map((group, i) => {
                       const start = groupStarts[i];
                       const rule = group.span === 1 || start > 0 ? columnRule(start) : undefined;
+                      const end = room("groups", i, groups.length);
                       if (!group.label)
-                        return <td key={i} colSpan={group.span} className={cn(CELL, rule)} />;
+                        return <td key={i} colSpan={group.span} className={cn(CELL, rule, end)} />;
                       return (
                         <th
                           key={i}
                           scope="colgroup"
                           colSpan={group.span}
-                          className={cn(HEAD, rule)}
+                          className={cn(HEAD, rule, end)}
                         >
                           {renderText(group.label, renderMath)}
                         </th>
@@ -242,7 +254,11 @@ export default function TableView({
                         // A two-way table's blank corner keeps its rules but is not a heading.
                         <td key={i} data-table-corner="" className={cn(HEAD, columnRule(0))} />
                       ) : (
-                        <th key={i} scope="col" className={cn(HEAD, columnRule(i))}>
+                        <th
+                          key={i}
+                          scope="col"
+                          className={cn(HEAD, columnRule(i), room("header", i, header.length))}
+                        >
                           {renderText(h.text, renderMath)}
                         </th>
                       )
@@ -253,7 +269,7 @@ export default function TableView({
             )}
             <tbody>
               {rows.map((row, ri) => (
-                <tr key={ri}>{row.map((cell, ci) => bodyCell(cell, ri, ci))}</tr>
+                <tr key={ri}>{row.map((cell, ci) => bodyCell(cell, ri, ci, row))}</tr>
               ))}
               {rows.length === 0 && (
                 <tr>

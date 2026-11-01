@@ -204,3 +204,89 @@
   font-size: 12px;
   font-style: italic;
 }
+/* TR-91 to TR-97: the table control (TableTransferControl.tsx), always visible. In a table frame
+   it is set into the top-right corner, in the room TableView keeps there (TR-93); in a table
+   choice's cluster it is a 44 px cluster button. Its tooltip sits to its left, since it is at the
+   right edge. Colours come only from --kcc-* (TH-2). */
+[data-transfer-control][data-kind="table"][data-placement="corner"] {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+[data-transfer-control][data-kind="table"][data-placement="cluster"] {
+  opacity: 1;
+}
+[data-transfer-control][data-kind="table"] > button {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  color: var(--kcc-text-secondary);
+}
+[data-transfer-control][data-kind="table"][data-placement="cluster"] > button {
+  width: 44px;
+  height: 44px;
+}
+[data-transfer-control][data-kind="table"] > button:hover,
+[data-transfer-control][data-kind="table"][data-sent="true"] > button {
+  color: var(--kcc-text);
+}
+/* TR-95: on any touch screen the corner button's hit area is 44 px, anchored at the frame's
+   corner so it stays inside the frame, while the visible button stays small. */
+@media (any-pointer: coarse) {
+  [data-transfer-control][data-kind="table"][data-placement="corner"] > button::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    width: 44px;
+    height: 44px;
+  }
+}
+[data-transfer-control][data-kind="table"] svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+/* TR-94: the morph. The table turns and shrinks away while the arrow turns and grows in from the
+   same centre, and the reverse when the arrow has held; no motion with reduced motion. */
+[data-transfer-control][data-kind="table"] [data-transfer-morph] {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 180ms ease-out;
+}
+[data-transfer-control][data-kind="table"] [data-transfer-morph="arrow"] {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.4);
+}
+[data-transfer-control][data-kind="table"][data-sent="true"] [data-transfer-morph="table"] {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.4);
+}
+[data-transfer-control][data-kind="table"][data-sent="true"] [data-transfer-morph="arrow"] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-transfer-control][data-kind="table"] [data-transfer-morph] {
+    transition: none;
+  }
+}
+[data-transfer-control][data-kind="table"] > [data-transfer-tooltip] {
+  top: 50%;
+  right: 100%;
+  left: auto;
+  transform: translateY(-50%);
+}

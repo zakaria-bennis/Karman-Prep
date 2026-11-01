@@ -43,12 +43,13 @@ export function CalculatorChoiceAction(props: {
   );
 }
 
-/** A question table's control (TR-22), or a table choice's in its cluster (transfer-items). */
+/** A Math table's small table button (TR-22, TR-91), or a table choice's in its cluster. `label`
+ * tells several tables apart in its name ("table 2" or the title, TR-92). */
 export function CalculatorTableAction(props: {
   rows: string[][];
   headers?: string[];
-  layout?: "vertical" | "horizontal";
   itemId?: string;
+  label?: string;
   slot?: "cluster";
 }): JSX.Element | null {
   const bridge = useCalculator();

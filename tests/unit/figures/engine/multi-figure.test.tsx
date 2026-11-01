@@ -30,9 +30,14 @@ import type { QuizQuestion } from "@/types/quiz";
 
 await loadFigureEngine();
 
+// A page with a calculator: SpecTable shows the table button only where useCalculator() is set.
+vi.mock("@/components/calculator/bridge-context", async (original) => ({
+  ...(await original<typeof import("@/components/calculator/bridge-context")>()),
+  useCalculator: () => ({ questionKey: "attempt:q1" }),
+}));
 vi.mock("@/components/calculator/CalculatorSourceAction", async (original) => ({
   ...(await original<typeof import("@/components/calculator/CalculatorSourceAction")>()),
-  CalculatorTableAction: (props: { rows: string[][]; itemId?: string }) => (
+  CalculatorTableAction: (props: { rows: string[][]; itemId?: string; label?: string }) => (
     <span data-testid="table-transfer" data-props={JSON.stringify(props)} />
   ),
 }));
@@ -127,13 +132,16 @@ describe("a question with several figures", () => {
     expect(container.querySelector("caption")?.textContent).toBe("Data Set A");
   });
 
-  it("gives the calculator's table transfer to the first table only", () => {
+  it("gives every table its own table button (TR-91), with distinct ids and labels (TR-92)", () => {
     const { container } = render(<FigureFrame spec={[BAR, SET_A, SET_B]} calculator alt="x" />);
-    const controls = container.querySelectorAll('[data-testid="table-transfer"]');
-    expect(controls).toHaveLength(1);
-    expect(JSON.parse(controls[0].getAttribute("data-props")!).rows).toEqual(
-      SET_A.parts[0].kind === "table" ? SET_A.parts[0].rows : []
-    );
+    const controls = [...container.querySelectorAll('[data-testid="table-transfer"]')];
+    const props = controls.map((c) => JSON.parse(c.getAttribute("data-props")!));
+    const rows = (s: FigureSpec) => (s.parts[0].kind === "table" ? s.parts[0].rows : []);
+    expect(props.map((p) => p.rows)).toEqual([rows(SET_A), rows(SET_B)]);
+    expect(props.map((p) => p.itemId)).toEqual(["table", "table:2"]);
+    expect(props.map((p) => p.label)).toEqual(["Data Set A", "Data Set B"]);
+    // Each button sits in its own table's frame, after the scroll frame.
+    for (const c of controls) expect(c.closest("figure")?.querySelector("table")).not.toBeNull();
   });
 
   it("an invalid figure anywhere in the list draws none of them", () => {
@@ -194,7 +202,7 @@ describe("the real two-table question (48122737), from its legacy table data", (
         "Frequency",
       ]);
     }
-    expect(container.querySelectorAll('[data-testid="table-transfer"]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-testid="table-transfer"]')).toHaveLength(2);
   });
 });
 

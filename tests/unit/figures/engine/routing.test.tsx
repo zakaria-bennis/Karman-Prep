@@ -73,6 +73,11 @@ const SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" data-figure-theme="karman-v1" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="#070605"/></svg>';
 
 // The calculator's table transfer control, as a marker carrying what it was given.
+// A page with a calculator: SpecTable shows the table button only where useCalculator() is set.
+vi.mock("@/components/calculator/bridge-context", async (original) => ({
+  ...(await original<typeof import("@/components/calculator/bridge-context")>()),
+  useCalculator: () => ({ questionKey: "attempt:q1" }),
+}));
 vi.mock("@/components/calculator/CalculatorSourceAction", async (original) => ({
   ...(await original<typeof import("@/components/calculator/CalculatorSourceAction")>()),
   CalculatorTableAction: (props: { rows: string[][]; headers?: string[]; itemId?: string }) => (
