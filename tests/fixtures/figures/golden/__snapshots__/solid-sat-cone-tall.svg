@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Right circular cone, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M270.89 182.23 L270.21 180.95 L269.46 179.68 L268.63 178.43 L267.73 177.19 L266.76 175.97 L265.71 174.77 L264.6 173.59 L263.42 172.43 L262.18 171.29 L260.86 170.17 L259.49 169.08 L258.05 168.02 L256.55 166.98 L254.99 165.96 L253.38 164.98 L251.7 164.03 L249.98 163.11 L248.2 162.22 L246.37 161.36 L244.49 160.53 L242.56 159.74 L240.59 158.99 L238.58 158.27 L236.52 157.59 L234.43 156.95 L232.3 156.34 L230.14 155.78 L227.94 155.25 L225.72 154.76 L223.47 154.32 L221.19 153.91 L218.9 153.55 L216.58 153.23 L214.24 152.95 L211.89 152.71 L209.53 152.51 L207.16 152.36 L204.78 152.26 L202.39 152.19 L200 152.17 L197.61 152.19 L195.23 152.26 L192.85 152.36 L190.48 152.51 L188.11 152.71 L185.76 152.95 L183.43 153.23 L181.11 153.55 L178.81 153.91 L176.54 154.32 L174.29 154.76 L172.06 155.25 L169.87 155.78 L167.7 156.34 L165.58 156.95 L163.48 157.59 L161.43 158.27 L159.42 158.99 L157.44 159.74 L155.52 160.53 L153.64 161.36 L151.81 162.22 L150.03 163.11 L148.3 164.03 L146.63 164.98 L145.01 165.96 L143.45 166.98 L141.95 168.02 L140.52 169.08 L139.14 170.17 L137.83 171.29 L136.58 172.43 L135.4 173.59 L134.29 174.77 L133.25 175.97 L132.28 177.19 L131.38 178.43 L130.55 179.68 L129.79 180.95 L129.11 182.23" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M129.11 182.23 L128.5 183.53 L127.97 184.84 L127.51 186.16 L127.13 187.48 L126.83 188.82 L126.6 190.16 L126.46 191.5 L126.39 192.84 L126.4 194.18 L126.49 195.53 L126.65 196.87 L126.9 198.2 L127.22 199.53 L127.62 200.86 L128.1 202.18 L128.65 203.48 L129.28 204.78 L129.99 206.06 L130.77 207.33 L131.62 208.59 L132.55 209.83 L133.55 211.05 L134.61 212.25 L135.75 213.44 L136.96 214.6 L138.24 215.74 L139.58 216.85 L140.98 217.94 L142.45 219.01 L143.98 220.04 L145.56 221.05 L147.21 222.03 L148.91 222.98 L150.67 223.9 L152.48 224.78 L154.34 225.63 L156.25 226.45 L158.2 227.23 L160.2 227.97 L162.25 228.68 L164.33 229.35 L166.45 229.98 L168.6 230.57 L170.79 231.13 L173.02 231.64 L175.26 232.11 L177.54 232.54 L179.84 232.93 L182.16 233.28 L184.5 233.58 L186.86 233.84 L189.23 234.06 L191.61 234.24 L194 234.37 L196.4 234.46 L198.8 234.5 L201.2 234.5 L203.61 234.46 L206 234.37 L208.39 234.24 L210.78 234.06 L213.15 233.84 L215.5 233.58 L217.84 233.28 L220.17 232.93 L222.47 232.54 L224.74 232.11 L226.99 231.64 L229.21 231.13 L231.4 230.57 L233.56 229.98 L235.68 229.35 L237.76 228.68 L239.8 227.97 L241.8 227.23 L243.76 226.45 L245.67 225.63 L247.53 224.78 L249.34 223.9 L251.09 222.98 L252.8 222.03 L254.44 221.05 L256.03 220.04 L257.56 219.01 L259.03 217.94 L260.43 216.85 L261.77 215.74 L263.04 214.6 L264.25 213.44 L265.39 212.25 L266.46 211.05 L267.46 209.83 L268.38 208.59 L269.24 207.33 L270.02 206.06 L270.72 204.78 L271.35 203.48 L271.91 202.18 L272.38 200.86 L272.79 199.53 L273.11 198.2 L273.35 196.87 L273.52 195.53 L273.61 194.18 L273.62 192.84 L273.55 191.5 L273.4 190.16 L273.18 188.82 L272.88 187.48 L272.5 186.16 L272.04 184.84 L271.5 183.53 L270.89 182.23" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M200 40.75 L270.89 182.23" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M200 40.75 L129.11 182.23" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M200 193.34 L126.38 193.34" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.radius">
+</path>
+<path d="M197 193.34 A3 3 0 1 0 203 193.34 A3 3 0 1 0 197 193.34 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.radius">
+</path>
+<path d="M197 193.34 A3 3 0 1 0 203 193.34 A3 3 0 1 0 197 193.34 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.O">
+</path>
+<text x="200" y="280.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+<text x="200" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.V">V</text>
+<text x="200" y="214.34" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.O">O</text>
+<text x="115.88" y="198.96" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.P">P</text>
+</svg>

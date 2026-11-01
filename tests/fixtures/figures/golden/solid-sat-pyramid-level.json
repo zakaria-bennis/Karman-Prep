@@ -1,0 +1,44 @@
+{
+  "source": "traced from the real exam figure 2026-10_ASIA_V3_MATH_M2_Q20: pyramid seen level from the front corner, turn 40, tilt 24 (fitted to 2.5 px); the original draws the hidden back base edges solid, the engine dashes them",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "pyramid",
+        "dims": {
+          "baseLength": 8.55,
+          "baseWidth": 10.44,
+          "height": 10
+        },
+        "view": {
+          "turn": 40,
+          "tilt": 24,
+          "lean": -2
+        }
+      }
+    ],
+    "labels": [
+      {
+        "text": "ℓ",
+        "on": "s.baseLength"
+      },
+      {
+        "text": "w",
+        "on": "s.baseWidth"
+      },
+      {
+        "text": "h",
+        "on": "s.height"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "right_angle",
+        "on": ["s.height"]
+      }
+    ]
+  }
+}

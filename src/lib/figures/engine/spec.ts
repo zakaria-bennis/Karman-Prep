@@ -100,14 +100,58 @@ export const SOLID_DIMS = {
 
 export type SolidShape = keyof typeof SOLID_DIMS;
 
+/**
+ * Where a named point sits on a solid. `apex`: a cone's or pyramid's top;
+ * `center`: the base's center (a sphere's center); `top`: a cylinder's top
+ * center; `rim` and `topRim`: on the base or top circle at `angle`.
+ */
+export const SOLID_POINT_PLACES = {
+  prism: [],
+  cylinder: ["center", "top", "rim", "topRim"],
+  cone: ["apex", "center", "rim"],
+  pyramid: ["apex", "center"],
+  sphere: ["center", "rim"],
+} as const;
+
+/** Degrees around a circle seen from above: 0 the viewer's right, 90 straight back, 180 left, 270 front. */
+const around = num.min(-360).max(360);
+
+const solidPoint = z
+  .object({
+    id,
+    at: z.enum(["apex", "center", "top", "rim", "topRim"]),
+    angle: around.optional(),
+    /** false: no dot (Bluebook leaves it off a vertex or a line's end, 2026-06_US_V3_MATH_M2_Q06's V and P). */
+    dot: z.boolean().optional(),
+  })
+  .strict();
+
 const solid = z
   .object({
     kind: z.literal("solid"),
     id,
     shape: z.enum(["prism", "cylinder", "cone", "pyramid", "sphere"]),
     dims: z.record(z.string(), num),
-    /** oblique (the SAT's default, 30° at half depth) or isometric. */
-    view: z.enum(["oblique", "isometric"]).optional(),
+    /**
+     * The camera, in degrees, when it differs from the shape's Bluebook view
+     * (BLUEBOOK_VIEW in solid-camera.ts): `turn` about the solid's vertical
+     * axis, `tilt` down from level (a circle flattens to sin(tilt)), `lean`
+     * of the whole drawing on the page.
+     */
+    view: z
+      .object({
+        turn: around.optional(),
+        tilt: num.min(-89).max(89).optional(),
+        lean: num.min(-90).max(90).optional(),
+      })
+      .strict()
+      .optional(),
+    /** Where the radius runs from its center, in degrees around the circle (as a point's angle). */
+    radiusAngle: around.optional(),
+    /** Inner lines drawn without a label (a labeled one is always drawn). */
+    show: z.array(z.enum(["radius", "height"])).optional(),
+    /** Named points, each drawn as a dot; a label names one as "<solid id>.<point id>". */
+    points: z.array(solidPoint).optional(),
   })
   .strict()
   .refine(
@@ -314,11 +358,31 @@ function checkReferences(spec: FigureSpec): string[] {
       }
     }
   }
-  // A label may also name one dimension of a solid ("can.radius").
+  // A label may also name one dimension or named point of a solid ("can.radius", "cone.A"),
+  // and a mark one dimension ("cone.height").
   const labelTargets = new Set(seen);
+  const markTargets = new Set(seen);
   for (const part of spec.parts) {
     if (part.kind !== "solid") continue;
-    for (const k of Object.keys(part.dims)) labelTargets.add(`${part.id}.${k}`);
+    for (const k of Object.keys(part.dims)) {
+      labelTargets.add(`${part.id}.${k}`);
+      markTargets.add(`${part.id}.${k}`);
+    }
+    const places: readonly string[] = SOLID_POINT_PLACES[part.shape];
+    for (const p of part.points ?? []) {
+      const ref = `${part.id}.${p.id}`;
+      if (labelTargets.has(ref)) errors.push(`solid "${part.id}": point "${p.id}" repeats a name`);
+      labelTargets.add(ref);
+      if (!places.includes(p.at)) {
+        errors.push(`solid "${part.id}": a ${part.shape} has no point at "${p.at}"`);
+      }
+      const onCircle = p.at === "rim" || p.at === "topRim";
+      if (onCircle !== (p.angle !== undefined)) {
+        errors.push(
+          `solid "${part.id}": point "${p.id}" needs an angle exactly when it is on a rim`
+        );
+      }
+    }
   }
   for (const label of spec.labels) {
     if (!labelTargets.has(label.on)) {
@@ -327,7 +391,7 @@ function checkReferences(spec: FigureSpec): string[] {
   }
   for (const mark of spec.marks) {
     for (const ref of mark.on) {
-      if (!seen.has(ref)) {
+      if (!markTargets.has(ref)) {
         errors.push(`mark ${mark.kind}: references missing part "${ref}"`);
       }
     }
