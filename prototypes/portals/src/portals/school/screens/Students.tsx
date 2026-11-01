@@ -62,7 +62,7 @@ export default function Students() {
           detail="Students appear here as they sign in with a seat key. Each row shows their level and the questions they answered this week."
         />
       ) : (
-        <Lapsed ended={d.ended} seats={d.seats} what="every student's practice">
+        <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what="every student's practice">
           <Tabs
             label="Filter students"
             className="mb-4"
@@ -100,9 +100,7 @@ export default function Students() {
                             text: `No practice this week · ${className(s.classId)}`,
                             tone: "negative",
                           }
-                        : tab === "all" && d.classes.length > 1
-                          ? { kind: "state", text: className(s.classId) }
-                          : undefined
+                        : undefined
                     }
                     trailing={
                       <span className="inline-flex items-center gap-3">

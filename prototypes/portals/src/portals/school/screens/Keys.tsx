@@ -9,7 +9,8 @@ import { useSchoolData } from "../data";
 import { KeyList, ShareStrip } from "../components/KeyList";
 import { KeySheet } from "../components/Sheets";
 import { revokeKey } from "../store";
-import { Block, Lapsed } from "./common";
+import { LedgerBlock } from "../components/OverviewBlocks";
+import { Block, Columns, Lapsed } from "./common";
 
 /**
  * Seat keys. The question: which keys are out, and how many seats are left
@@ -70,7 +71,6 @@ export default function Keys() {
             kind: "status",
           });
         }}
-        onIssue={() => setOpen(true)}
       />
       <KeySheet
         open={open}
@@ -98,7 +98,6 @@ function Body({
   onDismiss,
   className,
   onRevoke,
-  onIssue,
 }: {
   d: ReturnType<typeof useSchoolData>;
   shown: typeof d.keys;
@@ -110,7 +109,6 @@ function Body({
   onDismiss(): void;
   className(id: string | null): string;
   onRevoke(k: (typeof d.keys)[number]): void;
-  onIssue(): void;
 }) {
   const { phone } = useLayout();
   if (!d.keys.length)
@@ -118,51 +116,73 @@ function Body({
       <Empty
         title="No keys yet"
         detail="Issue one key per class and share its code; or one key per student, which works once. Revoking a key stops new sign-ins and keeps the seats already taken."
-        action={
-          d.classes.length ? <GlassButton onClick={onIssue}>Issue a key</GlassButton> : undefined
-        }
       />
     );
   return (
-    <Lapsed ended={d.ended} seats={d.seats} what="every key">
+    <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what="every key">
       {fresh ? (
         <div className="mb-4">
           <ShareStrip k={fresh} classNameOf={className} onClose={onDismiss} />
         </div>
       ) : null}
-      <Tabs
-        label="Keys"
-        className="mb-4"
-        value={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "live", label: d.ended ? "Paused" : "In use", count: live.length },
-          { id: "revoked", label: "Revoked", count: revoked.length },
-        ]}
-      />
-      <Block
-        title={tab === "live" ? "Keys" : "Revoked keys"}
-        loading={d.loading}
-        error={d.error}
-        what="the keys"
-        padded={false}
-        aside={`${shown.length}`}
-      >
-        <div className="px-4 pb-2">
-          {shown.length ? (
-            <KeyList
-              keys={shown}
-              usedOf={d.usedOf}
-              classNameOf={className}
-              onRevoke={onRevoke}
-              paused={d.ended}
-              phone={phone}
+      <Columns
+        main={
+          <div>
+            <Tabs
+              label="Keys"
+              className="mb-4"
+              value={tab}
+              onChange={setTab}
+              tabs={[
+                { id: "live", label: d.ended ? "Paused" : "In use", count: live.length },
+                { id: "revoked", label: "Revoked", count: revoked.length },
+              ]}
             />
-          ) : (
-            <p className="py-3 text-dense text-muted">No key has been revoked.</p>
-          )}
-        </div>
-      </Block>
+            <Block
+              title={tab === "live" ? "Keys" : "Revoked keys"}
+              loading={d.loading}
+              error={d.error}
+              what="the keys"
+              padded={false}
+              aside={`${shown.length}`}
+            >
+              <div className="px-4 pb-2">
+                {shown.length ? (
+                  <KeyList
+                    keys={shown}
+                    usedOf={d.usedOf}
+                    classNameOf={className}
+                    onRevoke={onRevoke}
+                    paused={d.ended}
+                    phone={phone}
+                  />
+                ) : (
+                  <p className="py-3 text-dense text-muted">No key has been revoked.</p>
+                )}
+              </div>
+            </Block>
+          </div>
+        }
+        side={
+          <>
+            <LedgerBlock d={d} />
+            <Block title="How a key works" loading={d.loading}>
+              <dl className="divide-y divide-line">
+                {[
+                  ["A class key", "Every student in the class uses the same code."],
+                  ["A student key", "Works once, for one seat."],
+                  ["Revoking", "Stops new sign-ins; seats already taken stay."],
+                ].map(([k, v]) => (
+                  <div key={k} className="grid gap-0.5 py-2 text-dense">
+                    <dt className="font-medium">{k}</dt>
+                    <dd className="text-muted">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Block>
+          </>
+        }
+      />
     </Lapsed>
   );
 }

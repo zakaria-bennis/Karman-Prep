@@ -1,13 +1,13 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Panel } from "@/design-system/glass/Panel";
-import { Sheet } from "@/design-system/components/Sheet";
 import { Skeleton } from "@/design-system/components/Skeleton";
 import { KpiStrip, type KpiItem } from "@/design-system/components/KPI";
 import { ErrorBlock } from "@/design-system/components/Empty";
 import { Icon } from "@/design-system/icons";
 import { cn } from "@/design-system/cn";
 import { fmtDate } from "@/mock";
-import { money, perSeat } from "../data";
+import type { Licence } from "../mock";
+import { goScreen } from "../nav";
 import { useLayout } from "../shell";
 
 /** "Tuesday, Nov 3" */
@@ -98,31 +98,34 @@ export function Block({
 
 /**
  * The lapsed-licence panel: when the school's year has ended, a block stays
- * readable under one line saying what renewing restores and one action, never
- * a nag. Shape after the design system's Locked (Billing Upgrade Prompt,
- * 21st.dev 18228), which reads a person's plan; this one reads the licence.
+ * readable under one line saying what renewing restores and one link, never
+ * a nag. The link goes to the Seats screen, where the one Renew button is,
+ * so every locked screen has exactly one upgrade path. Shape after the design
+ * system's Locked (Billing Upgrade Prompt, 21st.dev 18228), which reads a
+ * person's plan; this one reads the licence.
  */
 export function Lapsed({
   ended,
   seats,
+  licence,
   children,
   className,
   what = "this",
 }: {
   ended: boolean;
   seats: number;
+  licence: Licence;
   children: ReactNode;
   className?: string;
   what?: string;
 }) {
-  const [open, setOpen] = useState(false);
   if (!ended) return <>{children}</>;
   return (
     <div className={cn("relative overflow-hidden rounded-panel", className)} data-locked="school">
       <div className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 border-b border-line bg-raised px-4 py-2">
         <Icon name="lock" size={20} className="shrink-0 text-muted" />
         <p className="min-w-0 flex-1 text-dense">
-          <span className="font-semibold">The licence ended June 30.</span>
+          <span className="font-semibold">The licence ended {fmtDate(licence.ends)}.</span>
           <span className="text-muted">
             {" "}
             Renewing {seats} seats keeps {what} going.
@@ -130,25 +133,15 @@ export function Lapsed({
         </p>
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => goScreen("seats")}
           className="min-h-tap shrink-0 text-dense font-semibold text-accent"
         >
-          See the renewal
+          Renew {seats} seats
         </button>
       </div>
       <div aria-hidden="true" className="pointer-events-none select-none [&_*]:!text-muted">
         {children}
       </div>
-      <Sheet open={open} onClose={() => setOpen(false)} title="Renewal for 2027-28">
-        <p className="text-body">
-          {seats} seats at {money(perSeat)} per student a year is {money(seats * perSeat)} for July
-          1, 2027 to June 30, 2028.
-        </p>
-        <p className="mt-2 text-dense text-muted">
-          The quote went out {fmtDate("2027-04-14")}. Students keep their levels and history; keys
-          work again the day the renewal is paid.
-        </p>
-      </Sheet>
     </div>
   );
 }
@@ -186,7 +179,13 @@ export function Grid2({ children, className }: { children: ReactNode; className?
   const { width, desktop } = useLayout();
   const two = width >= GRID2_MIN;
   return (
-    <div className={cn("grid", two ? "grid-cols-2 gap-6" : desktop ? "gap-6" : "gap-5", className)}>
+    <div
+      className={cn(
+        "grid items-start",
+        two ? "grid-cols-2 gap-6" : desktop ? "gap-6" : "gap-5",
+        className
+      )}
+    >
       {children}
     </div>
   );

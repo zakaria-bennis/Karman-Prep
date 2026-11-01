@@ -66,16 +66,11 @@ export default function Classes() {
               ? "Your classes appear here once the school admin adds you to one."
               : "Add a class to issue its seat key. Students join with the key and appear in the class as they sign in."
           }
-          action={
-            teacher ? undefined : (
-              <GlassButton onClick={() => setSheet("class")}>Add a class</GlassButton>
-            )
-          }
         />
       ) : (
         <Columns
           main={
-            <Lapsed ended={d.ended} seats={d.seats} what="every class">
+            <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what="every class">
               <Block
                 title={teacher ? "Your classes" : "Every class"}
                 loading={d.loading}

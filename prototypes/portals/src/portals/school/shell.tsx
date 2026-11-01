@@ -91,7 +91,10 @@ export function SchoolShell({
   const layout = { width, desktop, phone };
   return (
     <LayoutCtx.Provider value={layout}>
-      <div ref={host} className="flex h-full w-full">
+      <div
+        ref={host}
+        className="flex h-full w-full [&_[role=tab]:focus-visible]:outline-2 [&_[role=tab]:focus-visible]:outline-offset-2 [&_[role=tab]:focus-visible]:outline-accent"
+      >
         {desktop ? (
           <IconRail items={main} bottom={bottomRail} active={active} onSelect={nav} />
         ) : null}

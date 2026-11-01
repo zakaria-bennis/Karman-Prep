@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { GlassButton } from "@/design-system/glass/GlassButton";
-import { Panel } from "@/design-system/glass/Panel";
 import { Row, List } from "@/design-system/components/Row";
 import { Empty } from "@/design-system/components/Empty";
 import { LevelBar, BANDS } from "@/design-system/marks";
-import { DOMAINS, SAT_MARCH, SAT_MAY, byBand, fmtDate, studentById } from "@/mock";
-import { StudentHeader } from "@/portals/tutor/shared";
+import { DOMAINS, byBand, fmtDate, studentById } from "@/mock";
 import { SchoolShell } from "../shell";
 import { useSchoolData } from "../data";
 import { useHashParam } from "../nav";
 import { schoolLevelsFor, type SchoolStudent } from "../mock-students";
 import { PracticeSheet } from "../components/MoreSheets";
+import { SchoolStudentHeader, type SchoolHeaderStudent } from "../components/StudentHeader";
+import { Skeleton } from "@/design-system/components/Skeleton";
 import { Block, Columns, Grid2, Lapsed } from "./common";
 
 /**
@@ -66,16 +66,50 @@ export default function Student() {
           detail="A student's levels and work appear here once they sign in with a seat key."
         />
       ) : (
-        <Lapsed ended={d.ended} seats={d.seats} what={`${s.name}'s practice`}>
-          <StudentHeader s={header} />
+        <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what={`${s.name}'s practice`}>
+          <Skeleton.Swap
+            loading={d.loading}
+            label={`Loading ${s.name}`}
+            fallback={
+              <div className="flex items-start gap-3">
+                <Skeleton.Circle size={40} />
+                <div className="grid flex-1 gap-2 pt-1">
+                  <Skeleton.Text lines={1} width="48%" />
+                  <Skeleton.Text lines={1} width="64%" />
+                </div>
+              </div>
+            }
+          >
+            <SchoolStudentHeader s={header} />
+          </Skeleton.Swap>
           <Columns
             className="mt-5"
             main={
               <Grid2>
                 {DOMAINS.map((dom) => (
-                  <Panel key={dom} as="section" className="px-4 py-3">
-                    <h2 className="text-section">{dom}</h2>
-                    <ul className="mt-1 divide-y divide-line">
+                  <Block
+                    key={dom}
+                    title={dom}
+                    loading={d.loading}
+                    error={d.error}
+                    what={`the ${dom} levels`}
+                    fallback={
+                      <ul className="divide-y divide-line">
+                        {levels
+                          .filter((l) => l.domain === dom)
+                          .map((l) => (
+                            <li key={l.id} className="grid gap-1.5 py-2">
+                              <div className="flex items-baseline justify-between gap-3">
+                                <Skeleton.Text lines={1} size={14} width="58%" />
+                                <Skeleton.Text lines={1} size={14} width={28} />
+                              </div>
+                              <Skeleton.Block height={6} />
+                            </li>
+                          ))}
+                      </ul>
+                    }
+                  >
+                    <ul className="divide-y divide-line">
                       {levels
                         .filter((l) => l.domain === dom)
                         .map((l) => (
@@ -100,7 +134,7 @@ export default function Student() {
                           </li>
                         ))}
                     </ul>
-                  </Panel>
+                  </Block>
                 ))}
               </Grid2>
             }
@@ -180,20 +214,21 @@ export default function Student() {
   );
 }
 
-/** The shape the tutor portal's StudentHeader reads: the plan is the school's licence, read from the config by id in mock.ts. */
-function asTutorStudent(s: SchoolStudent) {
+/**
+ * The header's facts. Theo keeps his shared-cast SAT date and target; every
+ * other school seat has neither (nobody set one), so both are null and the
+ * header says nothing rather than guessing (copy rule 2, rule 47).
+ */
+function asTutorStudent(s: SchoolStudent): SchoolHeaderStudent {
+  const theo = s.id === "theo" ? studentById("theo") : null;
   return {
-    id: s.id,
     name: s.name,
     initials: s.initials,
-    plan: "school" as const,
+    plan: "school",
     hue: s.hue,
-    since: s.joined,
-    satDate: s.id === "theo" ? studentById("theo").satDate : s.grade === 12 ? SAT_MARCH : SAT_MAY,
-    target: s.predicted ? Math.ceil((s.predicted + 150) / 50) * 50 : 1250,
+    satDate: theo?.satDate ?? null,
+    target: theo?.target ?? null,
     predicted: s.predicted,
     baseline: s.baseline,
-    grade: s.grade,
-    parent: { id: "", name: "" },
   };
 }

@@ -21,6 +21,9 @@ export default function Teachers() {
   const [open, setOpen] = useState(false);
   const pending = d.staff.filter((s) => !s.signedIn);
   const admins = d.staff.filter((s) => s.role === "admin");
+  const unled = d.classes.filter(
+    (c) => !d.staff.some((s) => s.id === c.teacher && s.role === "teacher")
+  );
   const finding = !d.teachers.length
     ? `Only you so far. A teacher sees their own classes and every student's levels; another admin sees everything.`
     : pending.length
@@ -70,12 +73,11 @@ export default function Teachers() {
         <Empty
           title="No teachers yet"
           detail="A teacher gets an email, signs in with it, and sees their classes. Until then, classes can be yours."
-          action={<GlassButton onClick={() => setOpen(true)}>Add a teacher</GlassButton>}
         />
       ) : (
         <Columns
           main={
-            <Lapsed ended={d.ended} seats={d.seats} what="every teacher's view">
+            <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what="every teacher's view">
               <Block
                 title="Teachers"
                 loading={d.loading}
@@ -91,19 +93,44 @@ export default function Teachers() {
             </Lapsed>
           }
           side={
-            <Block
-              title="School admins"
-              loading={d.loading}
-              padded={false}
-              aside={`${admins.length}`}
-            >
-              <div className="px-4 pb-1">
-                <List>{admins.map(row)}</List>
-              </div>
-              <p className="px-4 pb-3 text-dense text-muted">
-                An admin buys seats, issues keys and adds people. Teachers see their classes only.
-              </p>
-            </Block>
+            <>
+              <Block
+                title="School admins"
+                loading={d.loading}
+                padded={false}
+                aside={`${admins.length}`}
+              >
+                <div className="px-4 pb-1">
+                  <List>{admins.map(row)}</List>
+                </div>
+                <p className="px-4 pb-3 text-dense text-muted">
+                  An admin buys seats, issues keys and adds people. Teachers see their classes only.
+                </p>
+              </Block>
+              <Block
+                title="Classes with no teacher"
+                loading={d.loading}
+                padded={false}
+                aside={`${unled.length} of ${d.classes.length}`}
+              >
+                <div className="px-4 pb-1">
+                  {unled.length ? (
+                    <List>
+                      {unled.map((c) => (
+                        <Row
+                          key={c.id}
+                          title={c.name}
+                          trailing={`${d.studentsIn(c.id).length} students`}
+                          onPress={() => goScreen("class", { id: c.id })}
+                        />
+                      ))}
+                    </List>
+                  ) : (
+                    <p className="py-3 text-dense text-muted">Every class has a teacher.</p>
+                  )}
+                </div>
+              </Block>
+            </>
           }
         />
       )}

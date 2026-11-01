@@ -311,3 +311,19 @@ default I chose so the work could keep going. Correct any of it at the review.
 - Generate any image or video, or spend any credit.
 - Touch the calculator, the question import tools or live questions.
 - Build the school portal into the app (prototype only, by your brief).
+
+### School portal, fix round defaults (2026-11-01)
+
+- **The teacher's class and student screens are the school's own, not the
+  tutor's views.** The tutor's StudentView and ClassView read the tutor
+  portal's data: misses on the latest full-length, bookings, Zoom, cohorts
+  and the guarantee. A school seat has none of that (levels, questions
+  answered and Your Daily 10 only), so rendering them would show a briefing
+  built on tests the student never took. Default: the school screens draw
+  levels by domain and the class's skills to teach from the school data,
+  with the tutor's Initials and header shape reused read-only. If the founder
+  wants one set, the tutor views need a data adapter first.
+- **No target or SAT date on a school seat.** Neither is set by anyone, so
+  the student header shows neither (Theo, from the shared cast, keeps his).
+- **The lapsed licence has one path.** Every locked screen's banner goes to
+  Seats and plan, where the one Renew button is.

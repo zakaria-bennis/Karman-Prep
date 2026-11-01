@@ -3,16 +3,16 @@ import { GlassButton } from "@/design-system/glass/GlassButton";
 import { Row, List } from "@/design-system/components/Row";
 import { useToast } from "@/design-system/components/Toast";
 import { Initials } from "@/portals/tutor/shared";
-import { fmtDate } from "@/mock";
+import { SCHOOL, fmtDate } from "@/mock";
 import { SchoolShell } from "../shell";
 import { useSchoolData } from "../data";
 import { goScreen } from "../nav";
-import { LedgerBlock, PilotBlock, TeachersBlock } from "../components/OverviewBlocks";
+import { KeysBlock, LedgerBlock, PilotBlock, TeachersBlock } from "../components/OverviewBlocks";
 import { RankBars, type RankItem } from "../components/RankBars";
 import { SetupSteps } from "../components/SetupSteps";
 import { ClassSheet } from "../components/Sheets";
 import { PlaceSheet } from "../components/PlaceSheet";
-import { Block, Columns, Kpis, Lapsed, pct } from "./common";
+import { Block, Columns, Kpis, Lapsed, fullDate, pct } from "./common";
 
 /**
  * Overview, the admin's home. The question: is the school using its seats,
@@ -31,14 +31,23 @@ export default function Overview() {
   const keysInUse = d.keys.filter((k) => !k.revoked);
   const yearQuestions = d.students.reduce((a, s) => a + s.questionsTotal, 0);
   const scored = d.students.filter((s) => s.predicted).length;
+  const ranked = d.classes
+    .map((c) => ({ c, value: per(d.studentsIn(c.id)) }))
+    .sort((a, b) => b.value - a.value);
+  const tied = ranked.length > 1 && ranked[0].value === ranked[1].value;
+  const topLine = !ranked.length
+    ? ""
+    : tied
+      ? `${ranked[0].c.name} and ${ranked[1].c.name} both practised ${ranked[0].value} questions a student.`
+      : `${ranked[0].c.name} practised most, ${ranked[0].value} questions a student.`;
 
   const finding = d.firstDay
-    ? `${d.me.name} set the school up this morning: ${d.licence.seats} seats in the founding pilot, free until ${fmtDate(d.licence.ends, "long")}. A class with its key is the first step; students join with the key.`
+    ? `You set ${SCHOOL.name} up this morning: ${d.licence.seats} seats in the founding pilot, free until ${fullDate(d.licence.ends)}. Add a class first; students join with its key.`
     : d.setup
       ? `Classes and keys are ready. No student has used a key yet; the Period 3 and Period 6 keys were issued ${fmtDate(d.keys[0]?.issued ?? d.today)}.`
       : d.ended
         ? `The year ended ${fmtDate(d.licence.ends)} with ${d.students.length} of ${d.seats} seats used and ${yearQuestions.toLocaleString("en-US")} questions answered. The renewal quote went out ${fmtDate(d.licence.renewalQuote)}.`
-        : `${d.week.active} of ${d.students.length} students practised this week. The ${d.unassigned.length} with a seat and no class answered ${per(d.unassigned)} questions each; those in a class, ${per(inClass)}.`;
+        : `${d.week.active} of ${d.students.length} students practised this week. ${topLine} The ${d.unassigned.length} with a seat and no class answered ${per(d.unassigned)} questions each; those in a class, ${per(inClass)}.`;
   const primary = d.firstDay ? (
     <GlassButton variant="primary" onClick={() => setSheet("class")}>
       Add a class
@@ -49,7 +58,7 @@ export default function Overview() {
     </GlassButton>
   ) : d.ended ? (
     <GlassButton variant="primary" onClick={() => goScreen("seats")}>
-      See the renewal
+      Renew {d.seats} seats
     </GlassButton>
   ) : d.unassigned.length ? (
     <GlassButton variant="primary" onClick={() => setSheet("place")}>
@@ -61,28 +70,25 @@ export default function Overview() {
     {
       id: "class",
       label: "Add a class",
-      detail: "Its seat key is issued with it.",
       done: d.classes.length > 0,
       action: { label: "Add", onClick: () => setSheet("class") },
     },
     {
       id: "key",
       label: "Issue a seat key",
-      detail: "One code for a class, or one per student.",
       done: d.keys.length > 0,
       action: { label: "Issue", onClick: () => goScreen("keys") },
     },
     {
       id: "teacher",
       label: "Add a teacher",
-      detail: "They see their classes and each student's levels.",
       done: d.teachers.length > 0,
       action: { label: "Add", onClick: () => goScreen("teachers") },
     },
     {
       id: "students",
       label: "Students join with the key",
-      detail: "Their seats fill in here as they sign in.",
+      detail: d.keys.length ? "Waiting on the first sign-in" : undefined,
       done: d.students.length > 0,
     },
   ];
@@ -109,7 +115,8 @@ export default function Overview() {
         ]
       : []),
   ].sort((a, b) => b.value - a.value);
-  if (classRows[0] && classRows[0].id !== "none") classRows[0].highlight = true;
+  // The leader carries the accent; on a tie, no row does (the finding names both).
+  if (classRows[0] && classRows[0].id !== "none" && !tied) classRows[0].highlight = true;
   const idle = d.students
     .filter((s) => s.questionsWeek === 0)
     .sort((a, b) => (a.lastActive ?? "").localeCompare(b.lastActive ?? ""));
@@ -121,7 +128,7 @@ export default function Overview() {
           <Columns
             main={
               <Block
-                title="Set up Ridgeview High"
+                title={`Set up ${SCHOOL.name}`}
                 loading={d.loading}
                 error={d.error}
                 what="the setup"
@@ -140,7 +147,12 @@ export default function Overview() {
           <Columns
             main={
               <>
-                <Lapsed ended={d.ended} seats={d.seats} what="the school's practice">
+                <Lapsed
+                  ended={d.ended}
+                  seats={d.seats}
+                  licence={d.licence}
+                  what="the school's practice"
+                >
                   <Kpis
                     loading={d.loading}
                     items={
@@ -256,25 +268,7 @@ export default function Overview() {
             side={
               <>
                 <LedgerBlock d={d} />
-                <Block
-                  title="Seat keys in use"
-                  loading={d.loading}
-                  padded={false}
-                  aside={`${keysInUse.length}`}
-                >
-                  <div className="px-4 pb-1">
-                    <List>
-                      {keysInUse.slice(0, 4).map((k) => (
-                        <Row
-                          key={k.id}
-                          title={k.label}
-                          trailing={d.ended ? "Paused" : `${d.usedOf(k.id)} of ${k.uses} used`}
-                          onPress={() => goScreen("keys")}
-                        />
-                      ))}
-                    </List>
-                  </div>
-                </Block>
+                <KeysBlock d={d} keys={keysInUse} />
                 <TeachersBlock d={d} />
               </>
             }

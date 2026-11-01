@@ -14,7 +14,8 @@ import { ProgressBar } from "@/design-system/components/ProgressBar";
 export interface SetupStep {
   id: string;
   label: string;
-  detail: string;
+  /** Only a state (done, or waiting on someone), never a subtitle. */
+  detail?: string;
   done: boolean;
   action?: { label: string; onClick(): void };
 }
@@ -77,7 +78,7 @@ export function SetupSteps({ steps, className }: { steps: SetupStep[]; className
                 >
                   {s.label}
                 </span>
-                <span className="block text-dense text-muted">{s.detail}</span>
+                {s.detail ? <span className="block text-dense text-muted">{s.detail}</span> : null}
               </span>
               {!s.done && s.action ? (
                 <button

@@ -85,14 +85,9 @@ export default function Practice() {
         <Empty
           title="Nothing assigned yet"
           detail="Pick a skill, a class and a due date. Students see it in their own account with the date, and their misses come back in Your Daily 10."
-          action={
-            d.classes.length && !d.ended ? (
-              <GlassButton onClick={() => setOpen(true)}>Assign practice</GlassButton>
-            ) : undefined
-          }
         />
       ) : (
-        <Lapsed ended={d.ended} seats={d.seats} what="practice">
+        <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what="practice">
           <Columns
             main={
               <>

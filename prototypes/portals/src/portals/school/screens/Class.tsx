@@ -147,7 +147,7 @@ export default function Class() {
       {!cls ? (
         <Empty title="No class yet" detail="Classes appear here once the school admin adds one." />
       ) : (
-        <Lapsed ended={d.ended} seats={d.seats} what="the class">
+        <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what="the class">
           <Columns
             main={
               <>

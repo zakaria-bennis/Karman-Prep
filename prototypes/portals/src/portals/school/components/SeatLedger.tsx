@@ -45,7 +45,7 @@ export function SeatLedger({
             className={cn(
               "k-arrive aspect-square rounded-[2px]",
               kind === "class" && (paused ? "bg-text/35" : "bg-accent"),
-              kind === "none" && (paused ? "bg-text/18" : "bg-accent/35"),
+              kind === "none" && (paused ? "bg-text/20" : "bg-accent/35"),
               kind === "free" && "border border-text/25"
             )}
             style={{ animationDelay: `${i * 6}ms`, animationFillMode: "backwards" }}
@@ -55,7 +55,7 @@ export function SeatLedger({
       <p className="flex flex-wrap gap-x-4 gap-y-1 text-dense text-muted">
         <Swatch className={paused ? "bg-text/35" : "bg-accent"} label={`${inClass} in a class`} />
         <Swatch
-          className={paused ? "bg-text/18" : "bg-accent/35"}
+          className={paused ? "bg-text/20" : "bg-accent/35"}
           label={`${unassigned} with no class`}
         />
         <Swatch className="border border-text/25" label={`${free} free`} />

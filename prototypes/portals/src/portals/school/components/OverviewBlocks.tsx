@@ -6,7 +6,7 @@ import { fmtDate } from "@/mock";
 import { Initials } from "@/portals/tutor/shared";
 import { money, perSeat, type SchoolData } from "../data";
 import { goScreen } from "../nav";
-import { SCHOOL_PLAN } from "../mock";
+import { SCHOOL_PLAN, type SeatKey } from "../mock";
 import { SeatLedger } from "./SeatLedger";
 import { Block } from "../screens/common";
 
@@ -101,6 +101,26 @@ export function PilotBlock({ d }: { d: SchoolData }) {
         <span className="font-medium text-text">Every seat includes</span> {names.join(" · ")}, with{" "}
         {SCHOOL_PLAN.questions.toLocaleString("en-US")} questions.
       </p>
+    </Block>
+  );
+}
+
+/** The keys in use, four at most, each with its seats taken; every row opens the Keys screen. */
+export function KeysBlock({ d, keys }: { d: SchoolData; keys: SeatKey[] }) {
+  return (
+    <Block title="Seat keys in use" loading={d.loading} padded={false} aside={`${keys.length}`}>
+      <div className="px-4 pb-1">
+        <List>
+          {keys.slice(0, 4).map((k) => (
+            <Row
+              key={k.id}
+              title={k.label}
+              trailing={d.ended ? "Paused" : `${d.usedOf(k.id)} of ${k.uses} used`}
+              onPress={() => goScreen("keys")}
+            />
+          ))}
+        </List>
+      </div>
     </Block>
   );
 }
