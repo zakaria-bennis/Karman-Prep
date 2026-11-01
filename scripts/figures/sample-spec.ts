@@ -1,7 +1,8 @@
 #!/usr/bin/env tsx
 /**
  * Fills the `samples` of every function and region part in a FigureSpec JSON
- * file and writes the filled spec to stdout. The input file is not changed.
+ * file (one spec, or a list of them) and writes the filled spec or list to
+ * stdout. The input file is not changed.
  *
  *   npx tsx scripts/figures/sample-spec.ts path/to/spec.json > filled.json
  *
@@ -9,8 +10,8 @@
  * before or after sampling.
  */
 import { readFileSync } from "node:fs";
-import { parseFigureSpec } from "@/lib/figures/engine/spec";
-import { sampleSpec } from "./sample-functions";
+import { parseFigureSpecs } from "@/lib/figures/engine/spec";
+import { sampleSpecs } from "./sample-functions";
 
 function fail(lines: string[]): never {
   for (const line of lines) process.stderr.write(`${line}\n`);
@@ -27,10 +28,11 @@ try {
   fail([`${file}: ${error instanceof Error ? error.message : String(error)}`]);
 }
 
-const input = parseFigureSpec(raw);
+const input = parseFigureSpecs(raw);
 if (!input.ok) fail(input.errors.map((e) => `${file}: ${e}`));
 
-const filled = parseFigureSpec(sampleSpec(input.spec));
+const filled = parseFigureSpecs(sampleSpecs(input.specs));
 if (!filled.ok) fail(filled.errors.map((e) => `${file} after sampling: ${e}`));
 
-process.stdout.write(`${JSON.stringify(filled.spec, null, 2)}\n`);
+const out = Array.isArray(raw) ? filled.specs : filled.specs[0];
+process.stdout.write(`${JSON.stringify(out, null, 2)}\n`);

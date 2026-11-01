@@ -435,3 +435,34 @@ export function parseFigureSpec(input: unknown): ParseResult {
   if (refErrors.length) return { ok: false, errors: refErrors };
   return { ok: true, spec };
 }
+
+/** Most figures one stored figure_spec or choice_figure_spec may hold. */
+export const MAX_FIGURES = 4;
+
+export type SpecsResult = { ok: true; specs: FigureSpec[] } | { ok: false; errors: string[] };
+
+/**
+ * Validate a stored figure_spec or choice_figure_spec: one FigureSpec, or an
+ * ordered list of 1 to MAX_FIGURES of them (a question may print more than one
+ * figure, such as two separate tables). Each is checked with parseFigureSpec;
+ * in a list every error names its figure ("figure 2: ..."). One invalid figure
+ * makes the whole value invalid: a partial set of figures is never drawn.
+ */
+export function parseFigureSpecs(input: unknown): SpecsResult {
+  if (!Array.isArray(input)) {
+    const one = parseFigureSpec(input);
+    return one.ok ? { ok: true, specs: [one.spec] } : one;
+  }
+  if (input.length === 0) return { ok: false, errors: ["a list of figures cannot be empty"] };
+  if (input.length > MAX_FIGURES) {
+    return { ok: false, errors: [`a list holds at most ${MAX_FIGURES} figures`] };
+  }
+  const specs: FigureSpec[] = [];
+  const errors: string[] = [];
+  input.forEach((raw, i) => {
+    const one = parseFigureSpec(raw);
+    if (one.ok) specs.push(one.spec);
+    else errors.push(...one.errors.map((e) => `figure ${i + 1}: ${e}`));
+  });
+  return errors.length ? { ok: false, errors } : { ok: true, specs };
+}

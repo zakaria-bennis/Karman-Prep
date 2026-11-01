@@ -5,7 +5,9 @@
  *   npx tsx scripts/figures/check-spec.ts path/to/figure.json [labels.json]
  *
  * figure.json is either a bare FigureSpec, or a figure-lane figure.json whose
- * `figure_spec` (and any answer choice's `choice_figure_spec`) is a FigureSpec.
+ * `figure_spec` (and any answer choice's `choice_figure_spec`) is a FigureSpec
+ * or an ordered list of them (a question that prints several figures, such as
+ * two separate tables).
  * The transcription of the original (every text printed in its figure) is
  * `transcribed_labels` beside each spec, or labels.json (a JSON array of
  * strings) for the bare spec or the question's figure_spec.
@@ -20,19 +22,21 @@
  *
  * `spec` is the sampled spec to store, `svg` its render (FigureView, with the
  * default theme's colors inlined so the file shows on its own; null for a
- * table, which is HTML). Exit 0 when every spec passes, 1 when any has issues,
+ * table, which is HTML). For a list, `spec` and `svg` are lists in the same
+ * order, and the labels are checked against all its figures together
+ * (checkSpecs). Exit 0 when every spec passes, 1 when any has issues,
  * 2 when the input cannot be checked ({ok: false, errors[]}).
  */
 import { readFileSync } from "node:fs";
 import Module from "node:module";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { checkSpec } from "@/lib/figures/engine/checks";
+import { checkSpecs } from "@/lib/figures/engine/checks";
 import { CHOICE_BOX, choiceFrameIssues, choiceScenes } from "@/lib/figures/engine/choices";
 import { buildScene, defaultBox } from "@/lib/figures/engine/index";
 import type { Scene, SceneIssue } from "@/lib/figures/engine/scene";
-import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
-import { sampleChoices, sampleSpec } from "./sample-functions";
+import { parseFigureSpecs, type FigureSpec } from "@/lib/figures/engine/spec";
+import { sampleChoices, sampleSpecs } from "./sample-functions";
 
 /**
  * The default theme's figure roles (figure-roles.css over the :root tokens in
@@ -42,9 +46,16 @@ import { sampleChoices, sampleSpec } from "./sample-functions";
 const STANDALONE_STYLE =
   "<style>svg{background:rgb(7 6 5);--figure-ink:rgb(243 236 221);--figure-ink-muted:rgb(184 176 161);" +
   "--figure-grid:rgb(243 236 221 / 0.16);--figure-fill-faint:rgb(243 236 221 / 0.06);" +
-  "--figure-fill-shade:rgb(243 236 221 / 0.14);--figure-highlight:rgb(116 192 243)}</style>";
+  "--figure-fill-shade:rgb(243 236 221 / 0.14);--figure-highlight:rgb(116 192 243);" +
+  "--figure-paper:rgb(23 22 17)}</style>";
 
-type Checked = { ok: boolean; issues: SceneIssue[]; svg: string | null; spec: FigureSpec };
+type Svg = string | null;
+type Checked = {
+  ok: boolean;
+  issues: SceneIssue[];
+  svg: Svg | Svg[];
+  spec: FigureSpec | FigureSpec[];
+};
 
 class InputError extends Error {}
 
@@ -74,20 +85,24 @@ function labelsOf(value: unknown, where: string): string[] {
   return value;
 }
 
-function valid(raw: unknown, where: string): FigureSpec {
-  const input = parseFigureSpec(raw);
+function valid(raw: unknown, where: string): FigureSpec[] {
+  const input = parseFigureSpecs(raw);
   if (!input.ok) throw new InputError(input.errors.map((e) => `${where}: ${e}`).join("\n"));
-  return input.spec;
+  return input.specs;
 }
 
-/** Sampling must not break a spec: the sampled spec is validated again. */
-function revalidated(spec: FigureSpec, where: string): FigureSpec {
-  const filled = parseFigureSpec(spec);
+/** Sampling must not break a spec: the sampled specs are validated again. */
+function revalidated(specs: FigureSpec[], where: string): FigureSpec[] {
+  const filled = parseFigureSpecs(specs);
   if (!filled.ok) {
     throw new InputError(filled.errors.map((e) => `${where} after sampling: ${e}`).join("\n"));
   }
-  return filled.spec;
+  return filled.specs;
 }
+
+/** A list as stored stays a list; one spec stays one. */
+const asStored = <T>(raw: unknown, values: T[]): T | T[] =>
+  Array.isArray(raw) ? values : values[0];
 
 async function svgOf(scene: Scene | null): Promise<string | null> {
   if (!scene) return null;
@@ -124,32 +139,55 @@ async function main() {
   let figure: Checked | null = null;
   if (figureRaw != null) {
     const where = bare ? file : `${file} figure_spec`;
-    const spec = revalidated(sampleSpec(valid(figureRaw, where)), where);
+    const specs = revalidated(sampleSpecs(valid(figureRaw, where)), where);
     const labels = extra ?? labelsOf(doc.transcribed_labels, `${file}`);
-    const issues = checkSpec(spec, labels);
-    const svg = spec.type === "table" ? null : await svgOf(buildScene(spec, defaultBox(spec)));
-    figure = { ok: issues.length === 0, issues, svg, spec };
+    const issues = checkSpecs(specs, labels);
+    const svgs = await Promise.all(
+      specs.map((spec) =>
+        spec.type === "table" ? null : svgOf(buildScene(spec, defaultBox(spec)))
+      )
+    );
+    figure = {
+      ok: issues.length === 0,
+      issues,
+      svg: asStored(figureRaw, svgs),
+      spec: asStored(figureRaw, specs),
+    };
   }
 
   // Choices are drawn in one frame, so each is stored in it, sampled in it and
-  // checked in it (sampleChoices, choices.ts).
+  // checked in it (sampleChoices, choices.ts). A choice holding a list adds each
+  // of its figures to the set; a table is drawn only as a choice's one figure.
   const where = (c: Record<string, unknown>) => `${file} choice ${c.letter}`;
-  const specs = sampleChoices(choiceDocs.map((c) => valid(c.choice_figure_spec, where(c)))).map(
-    (spec, i) => revalidated(spec, where(choiceDocs[i]))
+  const own = choiceDocs.map((c) => {
+    const specs = valid(c.choice_figure_spec, where(c));
+    if (specs.length > 1 && specs.some((s) => s.type === "table")) {
+      throw new InputError(`${where(c)}: a table choice holds that one table and nothing else`);
+    }
+    return specs;
+  });
+  const flat = sampleChoices(own.flat());
+  let next = 0;
+  const specs = own.map((list, i) =>
+    revalidated(
+      list.map(() => flat[next++]),
+      where(choiceDocs[i])
+    )
   );
-  const setIssues = choiceFrameIssues(specs);
-  const scenes = choiceScenes(specs);
+  const stored = specs.map((list, i) => asStored(choiceDocs[i].choice_figure_spec, list));
+  const setIssues = choiceFrameIssues(stored);
+  const scenes = choiceScenes(stored);
   const choices = await Promise.all(
     choiceDocs.map(async (c, i) => {
-      const spec = specs[i];
       const labels = labelsOf(c.transcribed_labels, where(c));
-      const issues = [...setIssues, ...checkSpec(spec, labels, CHOICE_BOX)];
+      const issues = [...setIssues, ...checkSpecs(specs[i], labels, CHOICE_BOX)];
+      const svgs = await Promise.all((scenes[i] ?? specs[i].map(() => null)).map(svgOf));
       return {
         letter: c.letter,
         ok: issues.length === 0,
         issues,
-        svg: await svgOf(scenes[i]),
-        spec,
+        svg: asStored(c.choice_figure_spec, svgs),
+        spec: stored[i],
       };
     })
   );

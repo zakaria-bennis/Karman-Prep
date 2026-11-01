@@ -3,8 +3,9 @@
 // ============================================================
 // TableFigure: draws a question's figure_table_data, or an answer
 // choice's choice_table_data, with the figure engine. It converts the old
-// table data to a `type: table` FigureSpec and renders TableView, a native
-// HTML table in the house table style. Math questions add the calculator's
+// table data to `type: table` FigureSpecs and renders TableView, a native
+// HTML table in the house table style; data that joined separate tables side
+// by side draws them as separate tables, stacked (tableDataToSpecs). Math questions add the calculator's
 // table transfer control just after the table's frame (SpecTable, shared with
 // SpecFigure's figure_spec tables).
 //
@@ -12,7 +13,8 @@
 // ============================================================
 
 import { CalculatorTableAction } from "@/components/calculator/CalculatorSourceAction";
-import { tableDataToSpec, TableDataError } from "@/lib/figures/engine/from-table-data";
+import { tableDataToSpecs, TableDataError } from "@/lib/figures/engine/from-table-data";
+import { cn } from "@/lib/utils";
 import type { FigureSpec } from "@/lib/figures/engine/spec";
 import type { QuestionTableData } from "@/types/question-table";
 import TableView from "./TableView";
@@ -30,9 +32,9 @@ export interface QuestionTableProps {
   calculatorItemId?: string;
 }
 
-function specFor(data: QuestionTableData): FigureSpec | null {
+function specsFor(data: QuestionTableData): FigureSpec[] | null {
   try {
-    return tableDataToSpec(data);
+    return tableDataToSpecs(data);
   } catch (error) {
     if (error instanceof TableDataError) return null;
     throw error;
@@ -47,17 +49,35 @@ export default function TableFigure({
   calculator = false,
   calculatorItemId = "table",
 }: QuestionTableProps) {
-  const spec = specFor(data);
-  if (!spec) return <p className="my-4 text-sm">This table can&apos;t be shown yet.</p>;
+  const specs = specsFor(data);
+  if (!specs) return <p className="my-4 text-sm">This table can&apos;t be shown yet.</p>;
+  if (specs.length === 1)
+    return (
+      <SpecTable
+        spec={specs[0]}
+        renderMath={renderMath}
+        ariaLabel={ariaLabel}
+        className={className}
+        calculator={calculator}
+        calculatorItemId={calculatorItemId}
+      />
+    );
+  // Separate tables stay separate: one per row, each its own width, never side by side.
+  // The calculator's table transfer takes the first.
   return (
-    <SpecTable
-      spec={spec}
-      renderMath={renderMath}
-      ariaLabel={ariaLabel}
-      className={className}
-      calculator={calculator}
-      calculatorItemId={calculatorItemId}
-    />
+    <div data-figure-stack="" className={cn("my-4 flex flex-col gap-4", className)}>
+      {specs.map((spec, i) => (
+        <SpecTable
+          key={i}
+          spec={spec}
+          renderMath={renderMath}
+          ariaLabel={ariaLabel && `${ariaLabel}, table ${i + 1}`}
+          className="my-0 self-start"
+          calculator={calculator && i === 0}
+          calculatorItemId={calculatorItemId}
+        />
+      ))}
+    </div>
   );
 }
 

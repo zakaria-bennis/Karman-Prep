@@ -6,7 +6,7 @@
  *   npx tsx scripts/figures/build-gallery.ts [outDir]
  *
  * Every figure is a golden spec (tests/fixtures/figures/golden) run through the real
- * engine (parseFigureSpec, buildScene or choiceScenes, FigureView, TableView) and
+ * engine (parseFigureSpecs, buildScene or choiceScenes, FigureView, TableView) and
  * rendered to static markup. Nothing is drawn by hand. Colors come from
  * themeCssVariables (src/lib/themes/palettes.ts) and the role mapping in
  * figure-roles.css; the figure serif (STIX Two Text) is embedded as base64 so the
@@ -22,7 +22,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { choiceScenes } from "@/lib/figures/engine/choices";
 import { boxForWidth, buildScene } from "@/lib/figures/engine/index";
-import { parseFigureSpec } from "@/lib/figures/engine/spec";
+import { parseFigureSpecs } from "@/lib/figures/engine/spec";
 import { SITE_THEMES, themeCssVariables } from "@/lib/themes/palettes";
 
 const ROOT = process.cwd();
@@ -208,7 +208,11 @@ const GROUPS: { title: string; items: Item[] }[] = [
         file: "table-coins-decimals",
         caption: "A titled table whose decimals line up on the point.",
       },
-      { file: "table-grouped-math", caption: "A table with merged group headings." },
+      { file: "table-grouped-grades", caption: "A table with merged group headings." },
+      {
+        file: "table-two-data-sets",
+        caption: "A question that prints two separate tables, shown one under the other.",
+      },
       { file: "table-hours-note", caption: "A table with a title and a source note under it." },
     ],
   },
@@ -254,21 +258,27 @@ function renderFile(file: string, views: Views): string {
     const scenes = choiceScenes(choices.map((c) => c.choice_figure_spec));
     if (scenes.some((s) => !s)) throw new Error(`${file}: a choice was not drawn`);
     const cells = choices.map((c, i) => {
-      const svg = renderToStaticMarkup(createElement(FigureView, { scene: scenes[i]! }));
+      const svg = scenes[i]!.map((scene) =>
+        renderToStaticMarkup(createElement(FigureView, { scene }))
+      ).join("");
       return `<div class="choice"><span class="badge">${String(c.letter)}</span><div class="choice-fig">${svg}</div></div>`;
     });
     return uniqueIds(`<div class="choices">${cells.join("")}</div>`);
   }
-  const parsed = parseFigureSpec(doc.figure_spec);
+  const parsed = parseFigureSpecs(doc.figure_spec);
   if (!parsed.ok) throw new Error(`${file}: ${parsed.errors.join("; ")}`);
-  const spec = parsed.spec;
-  if (spec.type === "table")
-    return uniqueIds(renderToStaticMarkup(createElement(TableView, { spec })));
-  const scene = buildScene(spec, boxForWidth(spec, null));
-  const svg = renderToStaticMarkup(
-    createElement(FigureView, { scene, className: "mx-auto block h-auto w-full max-w-full" })
+  // A question with several figures shows each, top to bottom, never side by side.
+  const figures = parsed.specs.map((spec) => {
+    if (spec.type === "table") return renderToStaticMarkup(createElement(TableView, { spec }));
+    const scene = buildScene(spec, boxForWidth(spec, null));
+    const svg = renderToStaticMarkup(
+      createElement(FigureView, { scene, className: "mx-auto block h-auto w-full max-w-full" })
+    );
+    return `<div class="figure">${svg}</div>`;
+  });
+  return uniqueIds(
+    figures.length > 1 ? `<div class="stack">${figures.join("")}</div>` : figures[0]
   );
-  return uniqueIds(`<div class="figure">${svg}</div>`);
 }
 
 // ---------------------------------------------------------------- styles
@@ -323,6 +333,9 @@ h2{font-size:22px;margin:48px 0 16px;padding-top:16px;border-top:1px solid #c9c5
 .cell-body{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
 .cell-body>*{min-width:0;max-width:100%}
 .figure{width:100%}
+.stack{display:flex;flex-direction:column;align-items:flex-start;gap:16px;width:100%}
+.stack>.figure{align-self:stretch}
+.stack>figure{margin:0}
 .cell-body figure{margin:0}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
 .choice{display:flex;align-items:flex-start;gap:8px;border:1px solid rgb(var(--k-bronze));border-radius:10px;padding:8px;background:rgb(var(--k-surface))}

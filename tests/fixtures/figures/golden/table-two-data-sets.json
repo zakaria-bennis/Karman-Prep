@@ -1,0 +1,43 @@
+{
+  "source": "tests/fixtures/tables/48122737-df2c-4c42-953b-94281484650c.json (two separate tables, stored joined side by side; split by tableDataToSpecs)",
+  "figure_spec": [
+    {
+      "version": "figure-spec/1",
+      "type": "table",
+      "parts": [
+        {
+          "kind": "table",
+          "id": "t1",
+          "rows": [
+            ["\\(c\\)", "12"],
+            ["\\(2c\\)", "21"],
+            ["\\(3c\\)", "30"]
+          ],
+          "header": ["Value", "Frequency"]
+        }
+      ],
+      "labels": [],
+      "marks": [],
+      "title": "Data Set A"
+    },
+    {
+      "version": "figure-spec/1",
+      "type": "table",
+      "parts": [
+        {
+          "kind": "table",
+          "id": "t1",
+          "rows": [
+            ["\\(c\\)", "30"],
+            ["\\(2c\\)", "21"],
+            ["\\(3c\\)", "12"]
+          ],
+          "header": ["Value", "Frequency"]
+        }
+      ],
+      "labels": [],
+      "marks": [],
+      "title": "Data Set B"
+    }
+  ]
+}

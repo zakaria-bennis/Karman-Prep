@@ -14,6 +14,9 @@ import type { Scene } from "@/lib/figures/engine/scene";
 import { FIGURE_SPEC_VERSION, type FigureSpec } from "@/lib/figures/engine/spec";
 import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
 
+/** Each choice's one figure (these choices hold one FigureSpec each), or null. */
+const oneScenes = (choices: unknown[]) => choiceScenes(choices).map((s) => s?.[0] ?? null);
+
 // The figure engine loads lazily; loaded first, every figure renders synchronously.
 await loadFigureEngine();
 
@@ -60,7 +63,7 @@ function extent(scene: Scene): [number, number, number, number] {
 describe("I1: descriptions tell choices apart", () => {
   it("the four descriptions in every choice fixture set are pairwise distinct", () => {
     for (const q of FIGURE_CHOICE_QUESTIONS) {
-      const scenes = choiceScenes(q.answer_choices.map((c) => c.choice_figure_spec));
+      const scenes = oneScenes(q.answer_choices.map((c) => c.choice_figure_spec));
       const texts = scenes.map((s) => s!.description);
       expect(new Set(texts).size, q.id).toBe(4);
     }
@@ -134,20 +137,20 @@ describe("I1: descriptions tell choices apart", () => {
   });
 
   it("shapes that read the same gain their vertex positions", () => {
-    const [a, b] = choiceScenes([triangle(1), triangle(2)]);
+    const [a, b] = oneScenes([triangle(1), triangle(2)]);
     expect(a!.description).toBe("Triangle ABC, with A at (0, 0), B at (4, 0) and C at (0, 3).");
     expect(b!.description).toBe("Triangle ABC, with A at (0, 0), B at (8, 0) and C at (0, 6).");
   });
 
   it("solids that read the same gain their dims", () => {
-    const [a] = choiceScenes([prism(2, 3, 4), prism(4, 2, 2)]);
+    const [a] = oneScenes([prism(2, 3, 4), prism(4, 2, 2)]);
     expect(a!.description).toBe("Rectangular prism, with length 2, width 3 and height 4.");
   });
 });
 
 describe("I2: shape and solid choices share one scale", () => {
   it("two triangles of different world sizes keep their size ratio on screen", () => {
-    const [small, large] = choiceScenes([triangle(1), triangle(2)]);
+    const [small, large] = oneScenes([triangle(1), triangle(2)]);
     const [s0, s1, s2, s3] = extent(small!);
     const [l0, l1, l2, l3] = extent(large!);
     expect((l1 - l0) / (s1 - s0)).toBeCloseTo(2, 1);
@@ -157,14 +160,14 @@ describe("I2: shape and solid choices share one scale", () => {
   });
 
   it("two prisms keep their size ratio on screen", () => {
-    const [small, large] = choiceScenes([prism(1, 1, 1), prism(3, 3, 3)]);
+    const [small, large] = oneScenes([prism(1, 1, 1), prism(3, 3, 3)]);
     const [s0, s1] = extent(small!);
     const [l0, l1] = extent(large!);
     expect(Math.abs((l1 - l0) / (s1 - s0) - 3)).toBeLessThan(0.03);
   });
 
   it("every figure of a set still fits the box, centered", () => {
-    const scenes = choiceScenes([triangle(1), triangle(3), triangle(2), triangle(0.5)]);
+    const scenes = oneScenes([triangle(1), triangle(3), triangle(2), triangle(0.5)]);
     for (const scene of scenes) {
       const [x0, x1, y0, y1] = extent(scene!);
       expect(x0).toBeGreaterThanOrEqual(0);
@@ -226,7 +229,7 @@ describe("M7: a padded scene is centered in its box", () => {
         : [],
       frame: { x: [0, 2], y: [0, 4], categories: ["A", "B"] },
     });
-    const [tall, short] = choiceScenes([bar(true), bar(false)]);
+    const [tall, short] = oneScenes([bar(true), bar(false)]);
     expect(tall!.offset).toBeUndefined();
     expect(short!.height).toBe(tall!.height);
     expect(short!.offset![1]).toBeGreaterThan(0);

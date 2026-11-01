@@ -4,7 +4,10 @@
 // SpecFigure: a question's figure_spec drawn with the figure engine. A drawn
 // type renders as FigureView(buildScene(...)), a table as SpecTable
 // (TableView, plus the calculator's table transfer control on Math
-// surfaces). An invalid spec is never drawn in part: it logs one error and
+// surfaces). A figure_spec that is a list draws each figure as its own
+// figure, stacked top to bottom with even spacing, each with its own title,
+// note and accessible description; two tables stay two tables. An invalid
+// spec (any figure of a list) is never drawn in part: it logs one error and
 // the stored older figure (src or svg) shows instead, or nothing when there
 // is none (drawnFigure makes the same choice).
 //
@@ -14,7 +17,7 @@
 import { useEffect, useMemo } from "react";
 import { boxForWidth, buildScene } from "@/lib/figures/engine/index";
 import type { Scene } from "@/lib/figures/engine/scene";
-import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
+import { parseFigureSpecs, type FigureSpec } from "@/lib/figures/engine/spec";
 import { logInvalidSpec } from "@/lib/figures/invalid-spec-log";
 import { cn } from "@/lib/utils";
 import FigureView from "./FigureView";
@@ -29,19 +32,28 @@ export type SpecFigureProps = StoredFigureProps & {
   calculator?: boolean;
 };
 
-type SpecDrawing = { table: FigureSpec } | { scene: Scene } | { error: string };
+type Drawing = { table: FigureSpec } | { scene: Scene };
+type SpecDrawing = { figures: Drawing[] } | { error: string };
 
-/** The spec drawn for a container `width` px wide (boxForWidth); its default box before it is measured. */
+/** The spec's figures drawn for a container `width` px wide (boxForWidth); default boxes before it is measured. */
 function drawSpec(input: unknown, width: number | null): SpecDrawing {
-  const parsed = parseFigureSpec(input);
+  const parsed = parseFigureSpecs(input);
   if (!parsed.ok) return { error: parsed.errors.join("; ") };
-  if (parsed.spec.type === "table") return { table: parsed.spec };
   try {
-    return { scene: buildScene(parsed.spec, boxForWidth(parsed.spec, width)) };
+    return {
+      figures: parsed.specs.map((spec) =>
+        spec.type === "table"
+          ? { table: spec }
+          : { scene: buildScene(spec, boxForWidth(spec, width)) }
+      ),
+    };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }
 }
+
+/** Several figures: one column, top to bottom, the frames' own margins dropped for one even gap. */
+const STACK = "my-4 flex flex-col gap-4";
 
 export default function SpecFigure({
   spec,
@@ -72,17 +84,42 @@ export default function SpecFigure({
         className={className}
       />
     ) : null;
-  if ("table" in drawing)
-    return <SpecTable spec={drawing.table} calculator={calculator} className={className} />;
-  const { scene } = drawing;
-  // The description generated from the spec's named parts names what is actually drawn.
-  const description = scene.description || alt;
+  const { figures } = drawing;
+  const many = figures.length > 1;
+  // Every frame in a stack is as wide, so the first drawn figure's width serves them all.
+  const measured = figures.findIndex((f) => "scene" in f);
+  // The calculator's table transfer takes one table: the first (its item id is "table").
+  const transfer = figures.findIndex((f) => "table" in f);
+  const one = (figure: Drawing, key: number) => {
+    if ("table" in figure)
+      return (
+        <SpecTable
+          key={key}
+          spec={figure.table}
+          calculator={calculator && key === transfer}
+          // In a stack each table keeps its own width and its own row: never side by side.
+          className={many ? "my-0 self-start" : className}
+        />
+      );
+    // The description generated from the spec's named parts names what is actually drawn.
+    const description = figure.scene.description || alt;
+    return (
+      <figure
+        key={key}
+        ref={key === measured ? frame : undefined}
+        className={cn(FIGURE_FRAME, many ? "my-0" : className)}
+      >
+        <FigureView
+          scene={{ ...figure.scene, description }}
+          className={cn("mx-auto block h-auto w-full max-w-full", maxHeightClass)}
+        />
+      </figure>
+    );
+  };
+  if (!many) return one(figures[0], 0);
   return (
-    <figure ref={frame} className={cn(FIGURE_FRAME, className)}>
-      <FigureView
-        scene={{ ...scene, description }}
-        className={cn("mx-auto block h-auto w-full max-w-full", maxHeightClass)}
-      />
-    </figure>
+    <div data-figure-stack="" className={cn(STACK, className)}>
+      {figures.map(one)}
+    </div>
   );
 }

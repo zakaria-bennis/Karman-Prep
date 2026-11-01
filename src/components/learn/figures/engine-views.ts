@@ -5,7 +5,7 @@
 // a quiz route, or the engine is back in the page's eager JS (AR-33).
 // ============================================================
 
-export { parseFigureSpec } from "@/lib/figures/engine/spec";
+export { parseFigureSpecs } from "@/lib/figures/engine/spec";
 export { default as SpecFigure } from "./SpecFigure";
 export { default as ChartView } from "./ChartView";
 export { default as TableFigure } from "./TableFigure";

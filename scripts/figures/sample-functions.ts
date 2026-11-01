@@ -101,11 +101,17 @@ export function sampleSpec(spec: FigureSpec, box = DEFAULT_BOX): FigureSpec {
   return { ...spec, parts };
 }
 
+/** sampleSpec for each figure of a figure_spec or choice_figure_spec list, in order. */
+export function sampleSpecs(specs: FigureSpec[], box = DEFAULT_BOX): FigureSpec[] {
+  return specs.map((spec) => sampleSpec(spec, box));
+}
+
 /**
  * A figure-choice set ready to store: every framed choice set to the set's
  * shared frame (sharedFrame, the one window the four are drawn in) and sampled
  * in it, so each curve and region reaches the shared frame's edges. Shapes,
- * solids and tables are sampled as they are. choiceScenes refuses a set whose
+ * solids and tables are sampled as they are. `specs` is every figure of the set:
+ * a choice holding a list adds each of its figures. choiceScenes refuses a set whose
  * sampled choices were not stored this way (choiceFrameIssues).
  */
 export function sampleChoices(specs: FigureSpec[], box = DEFAULT_BOX): FigureSpec[] {

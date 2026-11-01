@@ -10,7 +10,12 @@ import { buildGeometry2d } from "@/lib/figures/engine/geometry2d";
 import { buildScene, defaultBox } from "@/lib/figures/engine/index";
 import { buildPlane } from "@/lib/figures/engine/plane";
 import { buildSolid3d } from "@/lib/figures/engine/solid3d";
-import { FIGURE_SPEC_VERSION, parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
+import {
+  FIGURE_SPEC_VERSION,
+  parseFigureSpec,
+  parseFigureSpecs,
+  type FigureSpec,
+} from "@/lib/figures/engine/spec";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { catalogQuestionPayloadHash } from "@/lib/question-bank/catalog-question-scope";
 import { toQuizReviewContent } from "@/lib/quiz-review-content";
@@ -243,7 +248,7 @@ describe("figure_spec through question data", () => {
     };
     const table = { rows: [["1", "2"]] };
     const pick = (over: Partial<QuizQuestionWithChoices>) =>
-      drawnFigure(question(over), parseFigureSpec);
+      drawnFigure(question(over), parseFigureSpecs);
     expect(pick({ figure_spec: bad, image_url: "/a.png" })).toBe("image");
     expect(pick({ figure_spec: bad, figure_kind: "table", figure_table_data: table })).toBe(
       "table"
