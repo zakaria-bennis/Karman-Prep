@@ -3,6 +3,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import DailyChallenge from "./DailyChallenge";
 import type { StudentQuizQuestion } from "@/types/quiz";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const action = vi.hoisted(() => vi.fn());
 vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: action }));
@@ -84,5 +88,27 @@ describe("DailyChallenge", () => {
       questionId: question.id,
       answer: "B",
     });
+  });
+
+  // Found in the final branch review: the daily check picked its figure by hand, so an invalid
+  // figure_spec hid the question's stored figure. It now picks with drawnFigure, as the quiz does.
+  it("picks the figure with drawnFigure: an invalid spec falls back to the stored image", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const invalid = { version: "figure-spec/1", type: "plane", parts: [{ kind: "blob" }] };
+    const { container } = render(
+      <DailyChallenge
+        math={{
+          state: "ready",
+          value: {
+            day: "2026-10-08",
+            subject: "math",
+            question: { ...question, figure_spec: invalid, image_url: "/old.png" },
+          },
+        }}
+        reading={{ state: "empty" }}
+      />
+    );
+    expect(container.querySelector('img[src="/old.png"]')).not.toBeNull();
+    vi.restoreAllMocks();
   });
 });

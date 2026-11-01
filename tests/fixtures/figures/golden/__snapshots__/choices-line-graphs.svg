@@ -1,0 +1,340 @@
+<!-- choice A -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="A coordinate plane with x from -5 to 5 and y from -5 to 5: the line y = 2x - 3 through (0, -3) and (1, -1)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 16 L16 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M36.8 16 L36.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.6 16 L57.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M78.4 16 L78.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M99.2 16 L99.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M120 16 L120 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M140.8 16 L140.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M161.6 16 L161.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M182.4 16 L182.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M203.2 16 L203.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M224 16 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 164 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 149.2 L224 149.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 134.4 L224 134.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 119.6 L224 119.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 104.8 L224 104.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 75.2 L224 75.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 60.4 L224 60.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 45.6 L224 45.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 30.8 L224 30.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 16 L224 16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M120 164 L120 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M36.8 87 L36.8 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="36.8" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M78.4 87 L78.4 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="78.4" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M161.6 87 L161.6 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="161.6" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M203.2 87 L203.2 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="203.2" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M117 149.2 L123 149.2" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="154.2" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M117 119.6 L123 119.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="124.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M117 60.4 L123 60.4" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="65.4" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M117 30.8 L123 30.8" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="35.8" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<text x="218" y="84" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">x</text>
+<text x="126" y="31" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">y</text>
+<path d="M99.2 164 L203.2 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="l">
+</path>
+</svg>
+<!-- choice B -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="A coordinate plane with x from -5 to 5 and y from -5 to 5: the line y = -2x - 3 through (0, -3) and (1, -5)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 16 L16 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M36.8 16 L36.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.6 16 L57.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M78.4 16 L78.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M99.2 16 L99.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M120 16 L120 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M140.8 16 L140.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M161.6 16 L161.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M182.4 16 L182.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M203.2 16 L203.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M224 16 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 164 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 149.2 L224 149.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 134.4 L224 134.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 119.6 L224 119.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 104.8 L224 104.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 75.2 L224 75.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 60.4 L224 60.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 45.6 L224 45.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 30.8 L224 30.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 16 L224 16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M120 164 L120 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M36.8 87 L36.8 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="36.8" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M78.4 87 L78.4 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="78.4" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M161.6 87 L161.6 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="161.6" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M203.2 87 L203.2 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="203.2" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M117 149.2 L123 149.2" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="154.2" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M117 119.6 L123 119.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="124.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M117 60.4 L123 60.4" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="65.4" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M117 30.8 L123 30.8" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="35.8" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<text x="218" y="84" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">x</text>
+<text x="126" y="31" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">y</text>
+<path d="M36.8 16 L140.8 164" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="l">
+</path>
+</svg>
+<!-- choice C -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="A coordinate plane with x from -5 to 5 and y from -5 to 5: the line y = 0.5x - 3 through (0, -3) and (1, -2.5)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 16 L16 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M36.8 16 L36.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.6 16 L57.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M78.4 16 L78.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M99.2 16 L99.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M120 16 L120 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M140.8 16 L140.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M161.6 16 L161.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M182.4 16 L182.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M203.2 16 L203.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M224 16 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 164 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 149.2 L224 149.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 134.4 L224 134.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 119.6 L224 119.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 104.8 L224 104.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 75.2 L224 75.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 60.4 L224 60.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 45.6 L224 45.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 30.8 L224 30.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 16 L224 16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M120 164 L120 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M36.8 87 L36.8 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="36.8" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M78.4 87 L78.4 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="78.4" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M161.6 87 L161.6 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="161.6" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M203.2 87 L203.2 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="203.2" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M117 149.2 L123 149.2" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="154.2" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M117 119.6 L123 119.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="124.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M117 60.4 L123 60.4" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="65.4" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M117 30.8 L123 30.8" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="35.8" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<text x="218" y="84" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">x</text>
+<text x="126" y="31" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">y</text>
+<path d="M36.8 164 L224 97.4" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="l">
+</path>
+</svg>
+<!-- choice D -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="A coordinate plane with x from -5 to 5 and y from -5 to 5: the line y = 2x + 3 through (0, 3) and (1, 5)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 16 L16 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M36.8 16 L36.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.6 16 L57.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M78.4 16 L78.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M99.2 16 L99.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M120 16 L120 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M140.8 16 L140.8 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M161.6 16 L161.6 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M182.4 16 L182.4 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M203.2 16 L203.2 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M224 16 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 164 L224 164" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 149.2 L224 149.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 134.4 L224 134.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 119.6 L224 119.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 104.8 L224 104.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 75.2 L224 75.2" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 60.4 L224 60.4" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 45.6 L224 45.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 30.8 L224 30.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 16 L224 16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M16 90 L224 90" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M120 164 L120 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M36.8 87 L36.8 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="36.8" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M78.4 87 L78.4 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="78.4" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M161.6 87 L161.6 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="161.6" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M203.2 87 L203.2 93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="203.2" y="108" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M117 149.2 L123 149.2" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="154.2" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<path d="M117 119.6 L123 119.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="124.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<path d="M117 60.4 L123 60.4" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="65.4" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M117 30.8 L123 30.8" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="114" y="35.8" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<text x="218" y="84" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">x</text>
+<text x="126" y="31" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">y</text>
+<path d="M36.8 164 L140.8 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="l">
+</path>
+</svg>

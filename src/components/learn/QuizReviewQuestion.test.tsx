@@ -5,6 +5,10 @@ import { toQuizReviewContent } from "@/lib/quiz-review-content";
 import petry from "@/lib/question-bank/reviewed-passage.fixture.json";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import QuizReviewQuestion from "./QuizReviewQuestion";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine loads lazily; loaded first, every figure renders synchronously.
+await loadFigureEngine();
 
 const base = {
   question_text: "Solve $x+1=3$.",

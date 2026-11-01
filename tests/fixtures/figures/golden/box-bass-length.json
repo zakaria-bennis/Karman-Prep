@@ -1,0 +1,25 @@
+{
+  "source": "Codex 2025-11_ASIA_V2_MATH_M1_Q13 (figure_chart_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "box_plot",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "b1",
+        "seriesKind": "box_plot",
+        "values": [35, 36, 41, 46, 50]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [32, 50],
+      "y": [0, 1],
+      "step": 2,
+      "grid": false,
+      "xLabel": "Shoal bass length (cm)",
+      "yLabel": ""
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "source": "Codex 2025-12_ASIA_V2_RW_M1_Q10 (figure_table_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "table",
+    "parts": [
+      {
+        "kind": "table",
+        "id": "t1",
+        "header": ["Country", "1950", "2017", "Change in hours", "Percent change in hours"],
+        "rows": [
+          ["United Kingdom", "2,184", "1,670", "−514", "−24%"],
+          ["Argentina", "2,034", "1,692", "−342", "−17%"],
+          ["Ireland", "2,419", "1,746", "−674", "−28%"],
+          ["Israel", "1,966", "1,921", "−45", "−2%"]
+        ],
+        "note": "Calculations may be inexact due to rounding."
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "title": "Average Hours Worked per Person per Year in 1950 and 2017"
+  }
+}

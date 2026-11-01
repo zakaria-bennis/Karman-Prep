@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Histogram with 6 bins. X-axis: Commute time (minutes). Y-axis: Number of employees. 0 to 10: 4, 10 to 20: 10, 20 to 30: 14, 30 to 40: 7, 40 to 50: 3, 50 to 60: 1." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M24 36 L24 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M117.33 36 L117.33 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M210.67 36 L210.67 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M304 36 L304 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M397.33 36 L397.33 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M490.67 36 L490.67 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M584 36 L584 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 357.25 L584 357.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 317.09 L584 317.09" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 276.94 L584 276.94" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 236.78 L584 236.78" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 196.63 L584 196.63" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 156.47 L584 156.47" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 116.31 L584 116.31" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 76.16 L584 76.16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 36 L584 36" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 357.25 L584 357.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M24 357.25 L24 36" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M117.33 354.25 L117.33 360.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="117.33" y="375.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<path d="M210.67 354.25 L210.67 360.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="210.67" y="375.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">20</text>
+<path d="M304 354.25 L304 360.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="304" y="375.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">30</text>
+<path d="M397.33 354.25 L397.33 360.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="397.33" y="375.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">40</text>
+<path d="M490.67 354.25 L490.67 360.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="490.67" y="375.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">50</text>
+<path d="M584 354.25 L584 360.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="584" y="375.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">60</text>
+<path d="M21 317.09 L27 317.09" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="322.09" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M21 276.94 L27 276.94" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="281.94" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M21 236.78 L27 236.78" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="241.78" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">6</text>
+<path d="M21 196.63 L27 196.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="201.63" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
+<path d="M21 156.47 L27 156.47" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="161.47" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<path d="M21 116.31 L27 116.31" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="121.31" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">12</text>
+<path d="M21 76.16 L27 76.16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="81.16" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">14</text>
+<path d="M21 36 L27 36" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="41" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">16</text>
+<text x="18" y="375.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<text x="304" y="396.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Commute time (minutes)</text>
+<text x="0" y="15" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit">Number of employees</text>
+<rect x="24" y="276.94" width="93.33" height="80.31" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="117.33" y="156.47" width="93.33" height="200.78" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="210.67" y="76.16" width="93.33" height="281.09" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="304" y="216.7" width="93.33" height="140.55" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="397.33" y="297.02" width="93.33" height="60.23" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="490.67" y="337.17" width="93.33" height="20.08" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+</svg>

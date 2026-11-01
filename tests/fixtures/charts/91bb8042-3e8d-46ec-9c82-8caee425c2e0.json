@@ -1,0 +1,40 @@
+{
+  "id": "91bb8042-3e8d-46ec-9c82-8caee425c2e0",
+  "figure_chart_data": {
+    "kind": "function_plot",
+    "frame": "square",
+    "title": null,
+    "series": [
+      {
+        "kind": "function",
+        "label": "",
+        "domain": [0, 152],
+        "expression": {
+          "b": 130,
+          "m": -0.8553,
+          "kind": "linear"
+        }
+      }
+    ],
+    "x_axis": {
+      "max": 160,
+      "min": 0,
+      "label": "Number of M-type stars",
+      "tick_step": 20,
+      "categories": null
+    },
+    "y_axis": {
+      "max": 160,
+      "min": 0,
+      "label": "Number of K-type stars",
+      "tick_step": 20,
+      "categories": null
+    },
+    "show_grid": true,
+    "confidence": 1,
+    "extracted_at": "2026-10-21T00:00:00Z",
+    "extracted_by": "manual source-pixel reading (r2)",
+    "extractor_note": null,
+    "hide_origin_label": false
+  }
+}

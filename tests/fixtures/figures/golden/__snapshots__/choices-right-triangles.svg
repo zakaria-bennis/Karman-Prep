@@ -1,0 +1,88 @@
+<!-- choice A -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="Triangle ABC, right angle at A, AB = 3, AC = 4." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M80.6 119.55 L80.6 60.45 L159.4 119.55 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="ABC">
+</path>
+<path d="M80.6 119.55 L80.6 60.45" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AB">
+</path>
+<path d="M80.6 119.55 L159.4 119.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AC">
+</path>
+<path d="M80.6 109.55 L90.6 109.55 L90.6 119.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="aA">
+</path>
+<text x="71.86" y="133.92" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="73.42" y="51.71" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="169.59" y="128.57" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="C">C</text>
+<text x="70.1" y="95.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AB">3</text>
+<text x="120" y="140.55" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AC">4</text>
+</svg>
+<!-- choice B -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="Triangle ABC, right angle at A, AB = 4, AC = 6." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M60.9 129.4 L60.9 50.6 L179.1 129.4 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="ABC">
+</path>
+<path d="M60.9 129.4 L60.9 50.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AB">
+</path>
+<path d="M60.9 129.4 L179.1 129.4" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AC">
+</path>
+<path d="M60.9 119.4 L70.9 119.4 L70.9 129.4" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="aA">
+</path>
+<text x="52.16" y="143.77" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="53.57" y="42.53" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="189.34" y="138.13" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="C">C</text>
+<text x="50.4" y="95.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AB">4</text>
+<text x="120" y="150.4" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AC">6</text>
+</svg>
+<!-- choice C -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="Triangle ABC, right angle at A, AB = 3, AC = 2." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M100.3 119.55 L100.3 60.45 L139.7 119.55 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="ABC">
+</path>
+<path d="M100.3 119.55 L100.3 60.45" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AB">
+</path>
+<path d="M100.3 119.55 L139.7 119.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AC">
+</path>
+<path d="M100.3 109.55 L110.3 109.55 L110.3 119.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="aA">
+</path>
+<text x="91.56" y="133.92" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="95.72" y="50.96" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="149.49" y="130.41" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="C">C</text>
+<text x="89.8" y="95.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AB">3</text>
+<text x="120" y="140.55" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AC">2</text>
+</svg>
+<!-- choice D -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="Triangle ABC, right angle at A, AB = 5, AC = 5." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M70.75 139.25 L70.75 40.75 L169.25 139.25 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="ABC">
+</path>
+<path d="M70.75 139.25 L70.75 40.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AB">
+</path>
+<path d="M70.75 139.25 L169.25 139.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AC">
+</path>
+<path d="M70.75 129.25 L80.75 129.25 L80.75 139.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="aA">
+</path>
+<text x="62.01" y="153.62" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="64.57" y="31.46" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="179.29" y="149.04" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="C">C</text>
+<text x="60.25" y="95.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AB">5</text>
+<text x="120" y="160.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AC">5</text>
+</svg>

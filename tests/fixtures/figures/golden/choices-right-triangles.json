@@ -1,0 +1,321 @@
+{
+  "source": "hand-modelled: SAT \"Which triangle has an area of 6?\" (one scale)",
+  "answer_choices": [
+    {
+      "letter": "A",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "geometry2d",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "A",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "kind": "point",
+            "id": "B",
+            "x": 0,
+            "y": -3
+          },
+          {
+            "kind": "point",
+            "id": "C",
+            "x": 4,
+            "y": 0
+          },
+          {
+            "kind": "polygon",
+            "id": "ABC",
+            "points": ["A", "B", "C"]
+          },
+          {
+            "kind": "segment",
+            "id": "AB",
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "kind": "segment",
+            "id": "AC",
+            "from": "A",
+            "to": "C"
+          },
+          {
+            "kind": "angle",
+            "id": "aA",
+            "vertex": "A",
+            "from": "B",
+            "to": "C"
+          }
+        ],
+        "labels": [
+          {
+            "text": "A",
+            "on": "A"
+          },
+          {
+            "text": "B",
+            "on": "B"
+          },
+          {
+            "text": "C",
+            "on": "C"
+          },
+          {
+            "text": "3",
+            "on": "AB"
+          },
+          {
+            "text": "4",
+            "on": "AC"
+          }
+        ],
+        "marks": [
+          {
+            "kind": "right_angle",
+            "on": ["aA"]
+          }
+        ]
+      }
+    },
+    {
+      "letter": "B",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "geometry2d",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "A",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "kind": "point",
+            "id": "B",
+            "x": 0,
+            "y": -4
+          },
+          {
+            "kind": "point",
+            "id": "C",
+            "x": 6,
+            "y": 0
+          },
+          {
+            "kind": "polygon",
+            "id": "ABC",
+            "points": ["A", "B", "C"]
+          },
+          {
+            "kind": "segment",
+            "id": "AB",
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "kind": "segment",
+            "id": "AC",
+            "from": "A",
+            "to": "C"
+          },
+          {
+            "kind": "angle",
+            "id": "aA",
+            "vertex": "A",
+            "from": "B",
+            "to": "C"
+          }
+        ],
+        "labels": [
+          {
+            "text": "A",
+            "on": "A"
+          },
+          {
+            "text": "B",
+            "on": "B"
+          },
+          {
+            "text": "C",
+            "on": "C"
+          },
+          {
+            "text": "4",
+            "on": "AB"
+          },
+          {
+            "text": "6",
+            "on": "AC"
+          }
+        ],
+        "marks": [
+          {
+            "kind": "right_angle",
+            "on": ["aA"]
+          }
+        ]
+      }
+    },
+    {
+      "letter": "C",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "geometry2d",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "A",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "kind": "point",
+            "id": "B",
+            "x": 0,
+            "y": -3
+          },
+          {
+            "kind": "point",
+            "id": "C",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "kind": "polygon",
+            "id": "ABC",
+            "points": ["A", "B", "C"]
+          },
+          {
+            "kind": "segment",
+            "id": "AB",
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "kind": "segment",
+            "id": "AC",
+            "from": "A",
+            "to": "C"
+          },
+          {
+            "kind": "angle",
+            "id": "aA",
+            "vertex": "A",
+            "from": "B",
+            "to": "C"
+          }
+        ],
+        "labels": [
+          {
+            "text": "A",
+            "on": "A"
+          },
+          {
+            "text": "B",
+            "on": "B"
+          },
+          {
+            "text": "C",
+            "on": "C"
+          },
+          {
+            "text": "3",
+            "on": "AB"
+          },
+          {
+            "text": "2",
+            "on": "AC"
+          }
+        ],
+        "marks": [
+          {
+            "kind": "right_angle",
+            "on": ["aA"]
+          }
+        ]
+      }
+    },
+    {
+      "letter": "D",
+      "choice_figure_spec": {
+        "version": "figure-spec/1",
+        "type": "geometry2d",
+        "parts": [
+          {
+            "kind": "point",
+            "id": "A",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "kind": "point",
+            "id": "B",
+            "x": 0,
+            "y": -5
+          },
+          {
+            "kind": "point",
+            "id": "C",
+            "x": 5,
+            "y": 0
+          },
+          {
+            "kind": "polygon",
+            "id": "ABC",
+            "points": ["A", "B", "C"]
+          },
+          {
+            "kind": "segment",
+            "id": "AB",
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "kind": "segment",
+            "id": "AC",
+            "from": "A",
+            "to": "C"
+          },
+          {
+            "kind": "angle",
+            "id": "aA",
+            "vertex": "A",
+            "from": "B",
+            "to": "C"
+          }
+        ],
+        "labels": [
+          {
+            "text": "A",
+            "on": "A"
+          },
+          {
+            "text": "B",
+            "on": "B"
+          },
+          {
+            "text": "C",
+            "on": "C"
+          },
+          {
+            "text": "5",
+            "on": "AB"
+          },
+          {
+            "text": "5",
+            "on": "AC"
+          }
+        ],
+        "marks": [
+          {
+            "kind": "right_angle",
+            "on": ["aA"]
+          }
+        ]
+      }
+    }
+  ]
+}

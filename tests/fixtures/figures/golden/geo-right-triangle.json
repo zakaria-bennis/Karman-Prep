@@ -1,0 +1,70 @@
+{
+  "source": "Codex 2024-03_UNSPECIFIED_VA_MATH_M1_Q19 (figure_geometry_data, traced points)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "R",
+        "x": 530,
+        "y": 100
+      },
+      {
+        "kind": "point",
+        "id": "S",
+        "x": 530,
+        "y": 378
+      },
+      {
+        "kind": "point",
+        "id": "T",
+        "x": 197,
+        "y": 378
+      },
+      {
+        "kind": "polygon",
+        "id": "RST",
+        "points": ["R", "S", "T"]
+      },
+      {
+        "kind": "segment",
+        "id": "RT",
+        "from": "R",
+        "to": "T"
+      },
+      {
+        "kind": "angle",
+        "id": "angleS",
+        "vertex": "S",
+        "from": "R",
+        "to": "T"
+      }
+    ],
+    "labels": [
+      {
+        "text": "R",
+        "on": "R"
+      },
+      {
+        "text": "S",
+        "on": "S"
+      },
+      {
+        "text": "T",
+        "on": "T"
+      },
+      {
+        "text": "67",
+        "on": "RT"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "right_angle",
+        "on": ["angleS"]
+      }
+    ],
+    "notToScale": true
+  }
+}

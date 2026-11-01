@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 138.75" role="img" aria-label="Box-and-whisker plot with 1 box. Value axis: Number of units sold per day. Minimum 85, first quartile 97, median 114, third quartile 124, maximum 138." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 96 L584 96" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M16 93 L16 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="16" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">80</text>
+<path d="M110.67 93 L110.67 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="110.67" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">90</text>
+<path d="M205.33 93 L205.33 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="205.33" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">100</text>
+<path d="M300 93 L300 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="300" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">110</text>
+<path d="M394.67 93 L394.67 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="394.67" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">120</text>
+<path d="M489.33 93 L489.33 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="489.33" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">130</text>
+<path d="M584 93 L584 99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="584" y="114" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">140</text>
+<text x="300" y="135" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Number of units sold per day</text>
+<path d="M63.33 56 L176.93 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<path d="M432.53 56 L565.07 56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<path d="M63.33 46 L63.33 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<path d="M565.07 46 L565.07 66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+<rect x="176.93" y="36" width="255.6" height="40" fill="none" stroke="var(--figure-ink)" stroke-width="1.5" data-part="b1">
+</rect>
+<path d="M337.87 36 L337.87 76" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="b1">
+</path>
+</svg>

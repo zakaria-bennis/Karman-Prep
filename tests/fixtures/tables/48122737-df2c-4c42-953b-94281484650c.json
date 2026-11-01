@@ -1,0 +1,23 @@
+{
+  "id": "48122737-df2c-4c42-953b-94281484650c",
+  "figure_table_data": {
+    "rows": [
+      ["\\(c\\)", "12", "\\(c\\)", "30"],
+      ["\\(2c\\)", "21", "\\(2c\\)", "21"],
+      ["\\(3c\\)", "30", "\\(3c\\)", "12"]
+    ],
+    "caption": null,
+    "header_row": ["Value", "Frequency", "Value", "Frequency"],
+    "footer_note": null,
+    "header_groups": [
+      {
+        "span": 2,
+        "label": "Data Set A"
+      },
+      {
+        "span": 2,
+        "label": "Data Set B"
+      }
+    ]
+  }
+}

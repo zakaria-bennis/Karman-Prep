@@ -48,3 +48,6 @@ public/
 
 # Vendored third-party build output (AR-5)
 vendor/
+
+# Golden figure snapshots are compared byte for byte (tests/unit/figures/engine/golden.test.ts).
+tests/fixtures/figures/golden/__snapshots__/
