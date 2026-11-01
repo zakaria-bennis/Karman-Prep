@@ -413,17 +413,27 @@ describe("ChartFigure — grouped bars, legend and titles (founder review 2026-1
       })),
     });
 
-  it("stands each category's bars side by side, never on top of each other", () => {
+  it("stands each category's bars side by side and touching, parted by a paper line", () => {
     const { container } = render(<ChartFigure data={grouped()} />);
     const all = bars(container);
     expect(all).toHaveLength(6);
+    const separators = [...container.querySelectorAll('path[data-part="separator"]')];
+    // Two shared edges in each of the two groups (founder, 2026-11-01).
+    expect(separators).toHaveLength(4);
+    for (const line of separators) expect(line.getAttribute("stroke")).toBe("var(--figure-paper)");
+    const separatorXs = separators.map((p) => Number(p.getAttribute("d")!.split(" ")[0].slice(1)));
     for (const category of [0, 1]) {
       const inSlot = [0, 1, 2].map((s) => all[s * 2 + category]);
       const spans = inSlot.map((b) => [num(b, "x"), num(b, "x") + num(b, "width")]);
-      // A clear gap separates neighbouring bars.
-      for (let i = 1; i < spans.length; i++) expect(spans[i][0]).toBeGreaterThan(spans[i - 1][1]);
+      // Neighbouring bars touch, with a separator on the shared edge.
+      for (let i = 1; i < spans.length; i++) {
+        expect(spans[i][0]).toBeCloseTo(spans[i - 1][1], 1);
+        expect(separatorXs.some((x) => Math.abs(x - spans[i][0]) < 0.02)).toBe(true);
+      }
       expect(new Set(inSlot.map((b) => b.getAttribute("fill"))).size).toBe(3);
     }
+    // The space between category groups stays.
+    expect(num(all[1], "x")).toBeGreaterThan(num(all[4], "x") + num(all[4], "width"));
   });
 
   it("puts the legend below the plot and axis title, inside the figure", () => {
@@ -518,7 +528,7 @@ describe("ChartFigure — grouped bars, legend and titles (founder review 2026-1
     for (const bar of bars(container)) expect(num(bar, "width") / slot).toBeCloseTo(0.4, 2);
   });
 
-  it("keeps grouped bars side by side, the group filling 60% of its band", () => {
+  it("keeps grouped bars side by side and touching, the group filling 60% of its band", () => {
     const categories = ["A", "B", "C", "D", "E"];
     const data = baseFigure({
       kind: "bar_chart",
@@ -541,8 +551,9 @@ describe("ChartFigure — grouped bars, legend and titles (founder review 2026-1
       // Centred on the band.
       expect((l + r) / 2).toBeCloseTo(left + slot * (c + 0.5), 1);
       for (let i = 1; i < 3; i++)
-        expect(num(group[i], "x")).toBeGreaterThan(
-          num(group[i - 1], "x") + num(group[i - 1], "width")
+        expect(num(group[i], "x")).toBeCloseTo(
+          num(group[i - 1], "x") + num(group[i - 1], "width"),
+          1
         );
     }
   });
