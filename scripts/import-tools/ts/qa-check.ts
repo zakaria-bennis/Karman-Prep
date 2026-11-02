@@ -10,7 +10,8 @@
 //   math      every math span MathText would hand to KaTeX, parsed with throwOnError; LaTeX
 //             commands, stray $ and \( \) left in plain text
 //   figure    figureImportErrors (table, chart, geometry, SVG checks) and isValidChoiceTableData,
-//             plus what CatalogQuestion would actually draw for the row's figure columns
+//             plus what CatalogQuestion would actually draw for the row's figure columns: a
+//             figure_spec (one FigureSpec or a list of up to 4) first, as main's drawnFigure does
 //   delivery  the catalog lane (fetchCatalogQuestionPool): scope evidence, payload seal,
 //             reviewed numeric answer set (skipped with --gate: the import publish gate checks
 //             rows before they are sealed); numeric keys parseNumericAnswer accepts
@@ -190,8 +191,49 @@ export function checkText(
   };
 }
 
-/** What CatalogQuestion draws for this row's figure columns (null = nothing). */
+// The figure types the engine draws and the most figures one stored figure_spec may hold: main's
+// FIGURE_TYPES (src/lib/figures/engine/spec-types.ts) and MAX_FIGURES (engine/spec.ts). This
+// branch has no engine, so they are copied here and in kimport.figure_gate (SPEC_TYPES,
+// MAX_FIGURES); tests/test_qa_gate.py checks the copies against the engine checkout.
+export const SPEC_TYPES = [
+  "table",
+  "bar",
+  "line",
+  "scatter",
+  "dot_plot",
+  "histogram",
+  "box_plot",
+  "plane",
+  "geometry2d",
+  "solid3d",
+];
+export const MAX_FIGURES = 4;
+
+/** Why a stored figure_spec or choice_figure_spec is not one the screen draws (null = it is):
+ *  one FigureSpec, or an ordered list of 1 to MAX_FIGURES, each naming a SPEC_TYPES type. This is
+ *  drawnFigure's shape check before the engine loads (storedSpecTypes); the figure gate runs the
+ *  engine's own parser and checks (check-spec.ts) on every spec before it is staged. */
+export function specProblem(spec: unknown): string | null {
+  const list = Array.isArray(spec) ? spec : [spec];
+  if (list.length === 0) return "an empty list of figures";
+  if (list.length > MAX_FIGURES)
+    return `${list.length} figures; a list holds at most ${MAX_FIGURES}`;
+  const bad = list.findIndex(
+    (s) =>
+      s === null ||
+      typeof s !== "object" ||
+      Array.isArray(s) ||
+      !SPEC_TYPES.includes(String((s as Obj).type))
+  );
+  return bad < 0 ? null : `figure ${bad + 1} is not a FigureSpec with a known type`;
+}
+
+const isSet = (v: unknown) => v !== null && v !== undefined;
+
+/** What CatalogQuestion draws for this row's figure columns (null = nothing): a valid
+ *  figure_spec first (main's drawnFigure), else the older fields. */
 export function renderedFigure(q: Obj): string | null {
+  if (isSet(q.figure_spec) && specProblem(q.figure_spec) === null) return "spec";
   const kind = q.figure_kind;
   if (kind === "table" && q.figure_table_data) return "table";
   if (kind === "chart" && q.figure_chart_data) return "chart";
@@ -226,8 +268,11 @@ export function checkFigure(f: Findings, q: Obj) {
   // catches a text that needs the figure.
   const bare = kind !== null && FIGURE_DATA.every((c) => q[c] == null || q[c] === "");
   if (!known) add(f, "figure_invalid", `figure_kind ${kind} is not one the quiz draws`);
-  else if (bare) add(f, "figure_kind_without_figure", `figure_kind ${kind} with no figure data`);
-  else {
+  else if (bare) {
+    // A figure_kind left beside a figure_spec that draws: the spec is the figure (drawnFigure).
+    if (renderedFigure(q) !== "spec")
+      add(f, "figure_kind_without_figure", `figure_kind ${kind} with no figure data`);
+  } else {
     for (const e of figureImportErrors({
       figure_kind: kind as ImportFigureFields["figure_kind"],
       figure_table_data: (q.figure_table_data ?? null) as ImportFigureFields["figure_table_data"],
@@ -240,9 +285,15 @@ export function checkFigure(f: Findings, q: Obj) {
     }))
       add(f, "figure_invalid", e);
   }
-  for (const c of (q.answer_choices ?? []) as Obj[])
+  for (const c of (q.answer_choices ?? []) as Obj[]) {
     if (c.choice_table_data != null && !isValidChoiceTableData(c.choice_table_data))
       add(f, "choice_table_invalid", `choice ${String(c.letter)}: not a table the quiz can draw`);
+    const choiceSpec = isSet(c.choice_figure_spec) ? specProblem(c.choice_figure_spec) : null;
+    if (choiceSpec)
+      add(f, "figure_invalid", `choice ${String(c.letter)} choice_figure_spec: ${choiceSpec}`);
+  }
+  const spec = isSet(q.figure_spec) ? specProblem(q.figure_spec) : null;
+  if (spec) add(f, "figure_invalid", `figure_spec: ${spec}`);
   const drawn = renderedFigure(q);
   if (q.figure_graph_data != null)
     add(f, "figure_not_drawn", "figure_graph_data is set; no student screen draws it");
@@ -333,10 +384,21 @@ export function checkRow(q: Obj, gate = false) {
   )
     add(f, "numeric_key_unparseable", `correct_answer ${clip(String(q.correct_answer), 40)}`);
   const delivery = gate ? "not_checked" : checkDelivery(f, q);
-  const choiceTables = ((q.answer_choices ?? []) as Obj[]).filter(
-    (c) => c.choice_table_data != null
+  const choices = (q.answer_choices ?? []) as Obj[];
+  const choiceTables = choices.filter((c) => c.choice_table_data != null).length;
+  // Choices the engine draws (a valid choice_figure_spec): figures as much as table choices are.
+  const choiceFigures = choices.filter(
+    (c) => isSet(c.choice_figure_spec) && specProblem(c.choice_figure_spec) === null
   ).length;
-  return { checks: f, figure, choice_tables: choiceTables, delivery, display, prose };
+  return {
+    checks: f,
+    figure,
+    choice_tables: choiceTables,
+    choice_figures: choiceFigures,
+    delivery,
+    display,
+    prose,
+  };
 }
 
 if (/qa-check\.ts$/.test(process.argv[1] ?? "")) {
@@ -357,6 +419,7 @@ if (/qa-check\.ts$/.test(process.argv[1] ?? "")) {
         checks: { checker_crashed: [String((e as Error).message)] },
         figure: null,
         choice_tables: 0,
+        choice_figures: 0,
         delivery: "unknown",
         display: {},
         prose: {},

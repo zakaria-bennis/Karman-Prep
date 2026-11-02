@@ -19,7 +19,7 @@ NOW = "2099-01-02T00:00:00Z"
 TABLE = {"header_row": ["x", "y"], "rows": [["1", "2"], ["3", "4"]]}
 
 
-def spec(n=1, kind="geometry"):
+def spec(n=1, kind="geometry2d"):
     return {"version": "figure-spec/1", "type": kind, "parts": [{"kind": "point", "id": f"P{n}", "at": [n, n]}],
             "labels": [{"text": f"P{n}", "on": f"P{n}"}]}
 

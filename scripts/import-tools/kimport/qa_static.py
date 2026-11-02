@@ -33,6 +33,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from kimport import qa_bank_checks, qa_dupes, qa_keys
+from kimport.figure_gate import draws_spec
 from kimport.jsonio import write_text_atomic
 
 REPO = Path(__file__).resolve().parents[3]
@@ -170,10 +171,14 @@ def structure(row: dict, f: dict) -> None:
     for c in choices:
         text = (c.get("choice_text") or "").strip()
         table = c.get("choice_table_data")
-        if not _TOKENS.sub("", text).strip() and table is None:
+        # A choice the figure engine draws (a choice_figure_spec of the shape the screen draws) is a
+        # figure choice, as a table choice is; qa-check.ts reports a bad spec as figure_invalid.
+        spec = c.get("choice_figure_spec") if draws_spec(c.get("choice_figure_spec")) else None
+        if not _TOKENS.sub("", text).strip() and table is None and spec is None:
             _add(f, "choice_empty", f"choice {c.get('letter')} has no text and no table")
             continue
-        sig = ("t", json.dumps(table, sort_keys=True)) if table is not None and not text else ("s", _norm(text), json.dumps(table, sort_keys=True))
+        figure = json.dumps(table if spec is None else [table, spec], sort_keys=True)
+        sig = ("t", figure) if (table is not None or spec is not None) and not text else ("s", _norm(text), figure)
         if sig in seen:
             _add(f, "choices_identical", f"choices {seen[sig]} and {c.get('letter')} are the same")
         else:
@@ -336,12 +341,15 @@ def audit_rows(rows: list[dict], ts: dict, urls: dict | None) -> dict:
     per = {}
     for row in rows:
         rid = str(row["id"])
-        t = ts.get(rid) or {"checks": {"checker_crashed": ["no qa-check.ts result"]}, "figure": None, "choice_tables": 0, "delivery": "unknown"}
+        t = ts.get(rid) or {"checks": {"checker_crashed": ["no qa-check.ts result"]}, "figure": None, "choice_tables": 0, "choice_figures": 0, "delivery": "unknown"}
         f = {k: list(v) for k, v in (t.get("checks") or {}).items()}
         display = t.get("display") or {}
         structure(row, f)
         formatting(row, f, display)
-        completeness(row, f, bool(t.get("figure")) or bool(t.get("choice_tables")), display)
+        # A figure is drawn: the question's own (a figure_spec, a table, chart, geometry or image), or
+        # choices that are tables or engine figures (qa-check.ts choice_figures).
+        drawn = bool(t.get("figure")) or bool(t.get("choice_tables")) or bool(t.get("choice_figures"))
+        completeness(row, f, drawn, display)
         prose = t.get("prose") or {}
         qa_bank_checks.check_row(row, [(name, shown, prose.get(name, qa_bank_checks.prose_runs(raw)), raw)
                                        for (name, shown), raw in zip(_fields(row, display), _raw_fields(row))], f, _add)

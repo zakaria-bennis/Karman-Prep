@@ -19,7 +19,7 @@ from .normalize import NORMALIZER_VERSION
 
 # Matches REVIEWED_DIFFICULTY_RUBRIC_VERSION in karman-release reviewed-difficulty.ts.
 RUBRIC_VERSION = "karman-legacy-1-7-v1"
-_KNOWN_FIGURE_FIELDS = ("figure_kind", "figure_table_data", "choice_tables")
+_KNOWN_FIGURE_FIELDS = ("figure_kind", "figure_table_data", "choice_tables", "figure_spec", "choice_figure_specs")
 _ASSET_KEY = re.compile(r"asset|image|figure", re.IGNORECASE)
 
 LANE_REASON = {
@@ -83,7 +83,31 @@ FIGURE_DATA = {"table": "figure_table_data", "chart": "figure_chart_data",
                "geometric": "figure_geometry_data", "image": "figure_svg"}
 
 
+def _spec_figure(row: dict) -> tuple[bool, list[str]]:
+    """(the row has an engine-drawn figure, why a stored spec is not drawable): figure_spec (one
+    FigureSpec or a list of up to 4) and choice_figure_specs ({letter: spec}), by
+    figure_gate.spec_problem, the shape the screen draws; the figure gate runs the engine's checks."""
+    out, drawn = [], False
+    spec = row.get("figure_spec")
+    if spec not in (None, "", [], {}):
+        why = figure_gate.spec_problem(spec)
+        out += [f"figure_spec: {why}"] if why else []
+        drawn = drawn or not why
+    specs = row.get("choice_figure_specs")
+    if specs not in (None, "", [], {}):
+        if not isinstance(specs, dict):
+            return drawn, out + ["choice_figure_specs must be {letter: FigureSpec}"]
+        for letter, one in sorted(specs.items()):
+            why = figure_gate.spec_problem(one)
+            out += [f"choice {letter} choice_figure_spec: {why}"] if why else []
+            drawn = drawn or not why
+    return drawn, out
+
+
 def _check_figure(row: dict, no_figure=frozenset()) -> list[str]:
+    spec_drawn, spec_problems = _spec_figure(row)
+    if spec_problems:
+        return spec_problems
     kind = row.get("figure_kind")
     if kind is not None and kind not in FIGURE_DATA:
         return [f"figure_kind {kind!r} is not null or one of {', '.join(FIGURE_DATA)}"]
@@ -91,7 +115,7 @@ def _check_figure(row: dict, no_figure=frozenset()) -> list[str]:
         if row.get(FIGURE_DATA[kind]) in (None, "", [], {}):
             return [f"figure_kind is {kind} but {FIGURE_DATA[kind]} is empty"]
         return []
-    if row.get("figure_table_data") not in (None, "", [], {}) or _has_asset(row):
+    if spec_drawn or row.get("figure_table_data") not in (None, "", [], {}) or _has_asset(row):
         return []
     phrase = needs_visual(str(row.get("question_text") or ""))
     if figure_gate.is_figure_question(row.get("stable_question_id"), phrase, no_figure):

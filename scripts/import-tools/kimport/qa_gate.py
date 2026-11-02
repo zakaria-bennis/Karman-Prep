@@ -34,7 +34,7 @@ def _subject(domain) -> str:
 
 
 _FIGURE_COLUMNS = ("figure_kind", "figure_table_data", "figure_chart_data", "figure_geometry_data", "figure_svg",
-                   "figure_graph_data", "image_url", "image_alt")
+                   "figure_graph_data", "image_url", "image_alt", "figure_spec")
 _PASSAGES = ("passage_intro", "passage", "passage_a", "passage_b")
 
 
@@ -42,15 +42,16 @@ def row_from_reviewed(row: dict) -> dict:
     """A reviewed batch row (reviewed-import-ready.json) in the QA export shape."""
     fmt = row.get("question_format") or "multiple_choice"
     tables = row.get("choice_tables") if isinstance(row.get("choice_tables"), dict) else {}
+    specs = row.get("choice_figure_specs") if isinstance(row.get("choice_figure_specs"), dict) else {}
     choices = []
     if fmt != "numeric_entry":
         for letter in "ABCD":
             text = row.get(f"choice_{letter.lower()}")
-            table = tables.get(letter)
-            if text is None and table is None:
+            table, spec = tables.get(letter), specs.get(letter)
+            if text is None and table is None and spec is None:
                 continue
             choices.append({"letter": letter, "choice_text": "" if text is None else str(text),
-                            "choice_table_data": table})
+                            "choice_table_data": table, "choice_figure_spec": spec})
     return {"id": row.get("stable_question_id"), "subject": _subject(row.get("domain")),
             "answer_format": fmt, "question_text": row.get("question_text"),
             "correct_answer": row.get("correct_answer"), "numeric_tolerance": row.get("numeric_tolerance"),
@@ -62,7 +63,8 @@ def row_from_staged(item: dict) -> dict:
     """A stage precheck item (the row the importer builds) in the QA export shape."""
     q = item["row"]["question"]
     choices = sorted(({"letter": c.get("letter"), "choice_text": c.get("choice_text"),
-                       "choice_table_data": c.get("choice_table_data")} for c in item["row"].get("choices") or []),
+                       "choice_table_data": c.get("choice_table_data"),
+                       "choice_figure_spec": c.get("choice_figure_spec")} for c in item["row"].get("choices") or []),
                      key=lambda c: c["letter"] or "")
     return {**q, "id": item["id"], "answer_choices": choices,
             "answer_key_entries": [item["row"]["key"]] if item["row"].get("key") else []}

@@ -64,6 +64,32 @@ CHART_KINDS = ("scatterplot", "line_graph", "bar_chart", "function_plot", "boxpl
 SVG_THEME = "karman-v1"
 FIGURE_FONT = "STIX Two Text"
 _EMPTY = (None, "", [], {})
+# The figure types the engine draws and the most figures one stored figure_spec may hold: main's
+# FIGURE_TYPES (src/lib/figures/engine/spec-types.ts) and MAX_FIGURES (engine/spec.ts), copied
+# here and in ts/qa-check.ts (this branch has no engine); tests/test_qa_gate.py checks the copies.
+SPEC_TYPES = ("table", "bar", "line", "scatter", "dot_plot", "histogram", "box_plot", "plane", "geometry2d", "solid3d")
+MAX_FIGURES = 4
+
+
+def spec_problem(spec) -> str | None:
+    """Why a stored figure_spec or choice_figure_spec is not one the screen draws (None = it is):
+    one FigureSpec, or an ordered list of 1 to MAX_FIGURES, each naming a SPEC_TYPES type. The
+    shape check main's drawnFigure makes before the engine loads (storedSpecTypes); the engine's
+    own parser and checks (check-spec.ts) run on figure.json at submit and again in this gate."""
+    figures = spec if isinstance(spec, list) else [spec]
+    if not figures:
+        return "an empty list of figures"
+    if len(figures) > MAX_FIGURES:
+        return f"{len(figures)} figures; a list holds at most {MAX_FIGURES}"
+    for n, one in enumerate(figures, 1):
+        if not isinstance(one, dict) or one.get("type") not in SPEC_TYPES:
+            return f"figure {n} is not a FigureSpec with a known type"
+    return None
+
+
+def draws_spec(spec) -> bool:
+    """True when a stored figure_spec (or choice_figure_spec) is set and has the shape the screen draws."""
+    return spec is not None and spec_problem(spec) is None
 
 
 def figures_dir_for(pipe: Path) -> Path:
@@ -390,6 +416,8 @@ def validate_figure(doc, occ_id: str) -> list[str]:
               "image": "figure_svg"}
     if doc.get("figure_spec") not in _EMPTY:
         # The engine draws it, and check-spec.ts (k figures submit) checks the spec itself.
+        shape = spec_problem(doc["figure_spec"])
+        out += [f"figure_spec: {shape}"] if shape else []
         out += _transcription_problems(doc, "figure_spec")
         out += [f"{field} is set but figure_spec draws the figure"
                 for field in wanted.values() if doc.get(field) not in _EMPTY]
@@ -423,6 +451,8 @@ def validate_figure(doc, occ_id: str) -> list[str]:
                 continue
             table = c.get("choice_table_data")
             if c.get("choice_figure_spec") not in _EMPTY:
+                shape = spec_problem(c["choice_figure_spec"])
+                out += [f"choice {c.get('letter')} choice_figure_spec: {shape}"] if shape else []
                 out += _transcription_problems(c, f"choice {c.get('letter')} choice_figure_spec")
                 if table not in _EMPTY:
                     out.append(f"choice {c.get('letter')} has both choice_figure_spec and choice_table_data")
@@ -511,6 +541,43 @@ def publishable_ids(figures_dir: Path | None) -> frozenset[str]:
         if ID.fullmatch(folder.name) and not _spec_route_files(folder, folder.name, read_status(folder))[1]:
             out.add(folder.name)
     return frozenset(out)
+
+
+def cleared_figure(figures_dir: Path, occ_id: str, spec_checker=None) -> dict:
+    """figure.json of `occ_id` when its figure may go into a reviewed batch row: approved by the
+    founder (the approved bytes), or cleared by the checked-spec route (spec_route_problems, the
+    engine checks run again). Raises ValueError saying why not. Batch builders call this, so a
+    row is only built from a figure the stage gate will accept."""
+    folder = Path(figures_dir) / check_id(occ_id)
+    status = read_status(folder)
+    if status is None:
+        raise ValueError(f"{occ_id}: no readable {folder / STATUS_FILE}")
+    if status.get("status") == "approved":
+        if file_sha256(folder / FIGURE_FILE) != status.get("approved_file_sha256"):
+            raise ValueError(f"{occ_id}: figure.json changed after the founder approved it")
+        return load_json(folder / FIGURE_FILE)
+    doc, why = spec_route_problems(folder, occ_id, status, spec_checker)
+    if why:
+        raise ValueError(f"{occ_id}: figure not approved and not cleared by the checked-spec route: " + "; ".join(why))
+    return doc
+
+
+def row_figure_fields(doc: dict) -> dict:
+    """The figure fields a reviewed batch row carries for figure.json `doc`, exactly the ones the
+    gate compares (figure_fields): figure_kind and the older figure columns, figure_spec (one
+    FigureSpec or an ordered list, verbatim), choice_figure_specs and choice_tables ({letter: ...}).
+    Empty fields are left out."""
+    out = {f: doc[f] for f in FIELDS if doc.get(f) not in _EMPTY}
+    if figure_fields(doc)["image_alt"] is None:
+        out.pop("image_alt", None)
+    specs = choice_specs(doc)
+    tables = {c.get("letter"): c["choice_table_data"] for c in doc.get("answer_choices") or ()
+              if isinstance(c, dict) and c.get("choice_table_data") not in _EMPTY}
+    if specs:
+        out["choice_figure_specs"] = specs
+    if tables:
+        out["choice_tables"] = tables
+    return out
 
 
 def gate_reasons(figures_dir: Path, occ_id: str, rows: dict, no_figure=None, spec_checker=None) -> list[str]:
