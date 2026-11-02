@@ -203,3 +203,37 @@ test("TR-96 with reduced motion the glyph switches with no transition", async ({
   const arrow = button.locator('[data-transfer-morph="arrow"]');
   expect(await arrow.evaluate((g) => getComputedStyle(g).opacity)).toBe("1");
 });
+
+test("TR-93 a narrow two-column table titled Function f keeps its title on one line with the button beside it; a title wraps only at the container's full width", async ({
+  page,
+}, info) => {
+  test.skip(!/chrome|ios/.test(info.project.name), "one desktop and one phone engine");
+  if (info.project.name === "calculator-chrome")
+    await page.setViewportSize({ width: 1280, height: 800 });
+  await openTwoTables(page);
+  const button = tableButton(page, NAMES[0]);
+  const figure = button.locator("xpath=ancestor::figure[1]");
+  const title = figure.locator("[data-table-title]");
+  await expect(title).toHaveText("Function f");
+  const lines = () =>
+    title.evaluate((el) => {
+      const r = document.createRange();
+      r.selectNodeContents(el);
+      return new Set([...r.getClientRects()].map((rect) => Math.round(rect.top))).size;
+    });
+  expect(await lines()).toBe(1);
+  const t = await box(title);
+  const b = await box(button);
+  expect(t.x + t.width).toBeLessThanOrEqual(b.x); // beside, not under
+  expect(b.y).toBeLessThan(t.y + t.height); // on the title's row
+  expect(b.y + b.height).toBeGreaterThan(t.y);
+  // Squeeze the figure's container just below title + button (frame border 2 px, title padding
+  // 16 + 40 px): the table fills the container and only then does the title wrap, still clear of
+  // the button and never wider than the container.
+  const squeezed = Math.floor(t.width) + 2 + 56 - 4;
+  const container = figure.locator("xpath=..");
+  await container.evaluate((el: HTMLElement, w) => (el.style.width = `${w}px`), squeezed);
+  await expect.poll(lines).toBe(2);
+  expect((await box(figure)).width).toBeLessThanOrEqual(squeezed + 0.5);
+  await coversNoText(button);
+});

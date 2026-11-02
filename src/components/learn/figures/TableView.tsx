@@ -68,6 +68,35 @@ function useScrollEdges() {
   return { frameRef, ...state, update };
 }
 
+/**
+ * The widest the title's line may be: the figure's container width less the frame's border and
+ * the title's side padding (16 px left, 16 px right or 40 px with the calculator's table button).
+ * A table caption adds only its narrowest width to the table's, so a short title wraps at every
+ * space; held to this width as one block, the title widens the table instead and wraps only when
+ * the table is already as wide as its container (c-transfer TR-93). Null until measured.
+ */
+function useTitleWidth(room: boolean) {
+  const figureRef = useRef<HTMLElement>(null);
+  const [max, setMax] = useState<number | null>(null);
+  useIsomorphicLayoutEffect(() => {
+    const parent = figureRef.current?.parentElement;
+    if (!parent) return;
+    const measure = () => {
+      const s = getComputedStyle(parent);
+      const content =
+        parent.clientWidth - parseFloat(s.paddingLeft || "0") - parseFloat(s.paddingRight || "0");
+      const next = Math.max(0, Math.floor(content - 2 - 16 - (room ? 40 : 16)));
+      setMax((m) => (m === next ? m : next));
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, [room]);
+  return { figureRef, max };
+}
+
 /** A fade over one edge of the frame; with the partly cut column it shows there is more. */
 function EdgeFade({ side, shown }: { side: "left" | "right"; shown: boolean }) {
   return (
@@ -145,6 +174,7 @@ export default function TableView({
   const table = layoutTable(spec);
   const { header, groups, rows, columnCount, decimal } = table;
   const { frameRef, left, right, view, update } = useScrollEdges();
+  const title = useTitleWidth(actionRoom);
   const name = ariaLabel ?? table.title ?? "Question data table";
   // The title and note stay in view while the table scrolls: pinned to the frame's width.
   const inView = "sticky left-0 block px-4";
@@ -197,6 +227,7 @@ export default function TableView({
   );
   return (
     <figure
+      ref={title.figureRef}
       aria-label={ariaLabel ?? (table.title ? undefined : "Question data table")}
       className={cn(
         "themed-question-figure themed-question-table my-4 inline-block min-w-0 max-w-full overflow-hidden rounded-lg border",
@@ -220,7 +251,13 @@ export default function TableView({
             {table.title && (
               <caption className={cn(CELL, "caption-top border-b px-0 text-center font-semibold")}>
                 <span className={cn(inView, actionRoom && "pr-10")} style={inViewStyle}>
-                  {renderText(table.title, renderMath)}
+                  <span
+                    data-table-title=""
+                    className="mx-auto block w-max"
+                    style={title.max !== null ? { maxWidth: `${title.max}px` } : undefined}
+                  >
+                    {renderText(table.title, renderMath)}
+                  </span>
                 </span>
               </caption>
             )}
