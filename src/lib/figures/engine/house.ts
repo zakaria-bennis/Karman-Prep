@@ -21,6 +21,8 @@ export const HOUSE = {
   arrowWidth: 6,
   /** Axis ticks, and the arms of parallel chevrons. */
   tickLength: 6,
+  /** Unlabelled (minor) axis ticks between the labelled ones. */
+  minorTickLength: 4,
   /**
    * The ticks that mark equal (congruent) sides: 1.3 times tickLength, so they read
    * clearly on a side (founder, 2026-11-01). Axis ticks keep tickLength.

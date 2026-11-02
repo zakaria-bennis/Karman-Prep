@@ -26,7 +26,8 @@
  *   under their band.
  */
 import { HOUSE } from "./house";
-import { textBox, textOverlap, textWidth } from "./labels";
+import { axisNames, categoryLabels } from "./axis-names";
+import { numberWidth, textBox, textOverlap, textWidth } from "./labels";
 import type { SceneIssue, SceneItem, ThinnedTicks as Thinned } from "./scene";
 import type { PlaneFrame } from "./spec";
 import { axisTicks, tickValues } from "./ticks";
@@ -83,17 +84,6 @@ export function tickText(v: number, group = false): string {
   return `${neg ? MINUS : ""}${grouped}${dec === undefined ? "" : `.${dec}`}`;
 }
 
-/**
- * The width a tick number really takes, for spacing labels along an axis: digits at
- * their tabular 0.5em in the figure font (0.495em measured), the minus at 0.72em,
- * comma and point narrow. textWidth stays the generous estimate for boxes.
- */
-function tickWidth(text: string): number {
-  let em = 0;
-  for (const ch of text) em += ch === MINUS ? 0.72 : /\d/.test(ch) ? 0.5 : 0.35;
-  return em * HOUSE.font;
-}
-
 /** How the y-axis is drawn: with grid, ticks and labels, or not at all (a number line). */
 export type YAxisMode = "ticks" | "none";
 
@@ -109,12 +99,76 @@ function steps(frame: PlaneFrame) {
   const y = frame.yStep ?? frame.step;
   // labelStep spans both axes only while they share one step.
   const yLabel = frame.yLabelStep ?? (frame.yStep === undefined ? frame.labelStep : undefined);
-  return { x, y, xLabel: frame.labelStep, yLabel };
+  const yMinor = frame.yMinorStep ?? frame.minorStep;
+  return { x, y, xLabel: frame.labelStep, yLabel, xMinor: frame.minorStep, yMinor };
 }
 
-function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
+/**
+ * Where a broken axis starts, in world units: BREAK_STEPS of a step (the grid step,
+ * else the automatic one for a plot about `box` wide) before the range, a corner
+ * that stands for 0. Undefined for an axis without a break.
+ */
+export type Corners = { x?: number; y?: number };
+
+/** A break's length, in steps: 2/3, as Bluebook draws the "0 ⌇ 9 10 11" of a histogram. */
+const BREAK_STEPS = 2 / 3;
+
+function breakCorners(frame: PlaneFrame, box: Box, yMode: YAxisMode): Corners {
+  const s = steps(frame);
+  const at = (range: [number, number], step: number | undefined, length: number) =>
+    range[0] -
+    BREAK_STEPS *
+      (step ?? (axisTicks(range[0], range[1], length).step || (range[1] - range[0]) / 10));
+  const out: Corners = {};
+  if (frame.xBreak && !frame.categories) {
+    out.x = at(frame.x, s.x, box.width - 2 * HOUSE.margin);
+  }
+  if (frame.yBreak && yMode === "ticks") {
+    out.y = at(frame.y, s.y, box.height - 2 * HOUSE.margin);
+  }
+  return out;
+}
+
+/** The frame as drawn: each broken axis runs from its corner. */
+const drawnFrame = (frame: PlaneFrame, c: Corners): PlaneFrame => ({
+  ...frame,
+  x: [c.x ?? frame.x[0], frame.x[1]],
+  y: [c.y ?? frame.y[0], frame.y[1]],
+});
+
+/** Half the width of an axis break's zig-zag, and how far it rises and falls. */
+const ZIG_HALF = 6;
+const ZIG_RISE = 4;
+
+/**
+ * An axis from `a` to `b` (px, along x when `horizontal`), with a zig-zag
+ * centered on `zig` when the axis is broken there, as path data.
+ */
+function axisPath(a: number, b: number, at: number, horizontal: boolean, zig?: number): string {
+  const along = zig === undefined ? [] : [-ZIG_HALF, -ZIG_HALF / 2, ZIG_HALF / 2, ZIG_HALF];
+  const off = [0, -ZIG_RISE, ZIG_RISE, 0];
+  const dir = Math.sign(b - a) || 1;
+  const pts: [number, number][] = [
+    [a, 0],
+    ...along.map((d, k): [number, number] => [zig! + dir * d, off[k]]),
+    [b, 0],
+  ];
+  return pts
+    .map(([u, v], k) => {
+      const [x, y] = horizontal ? [u, at + v] : [at + v, u];
+      return `${k ? "L" : "M"}${fmt(x)} ${fmt(y)}`;
+    })
+    .join(" ");
+}
+
+function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners): SceneItem[] {
   if (frame.grid === false) return [];
-  const { w, h, px, py } = m;
+  const { px, py } = m;
+  const w = px(frame.x[1]) - px(frame.x[0]);
+  const h = py(frame.y[0]) - py(frame.y[1]);
+  // Lines reach back to a broken axis's corner.
+  const left = c.x ?? frame.x[0];
+  const bottom = c.y ?? frame.y[0];
   const s = steps(frame);
   const items: SceneItem[] = [];
   // Categories get no vertical lines; a number line (no y-axis) gets no grid at all.
@@ -130,7 +184,7 @@ function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
   for (const x of xs) {
     items.push({
       t: "path",
-      d: `M${fmt(px(x))} ${fmt(py(frame.y[1]))} L${fmt(px(x))} ${fmt(py(frame.y[0]))}`,
+      d: `M${fmt(px(x))} ${fmt(py(frame.y[1]))} L${fmt(px(x))} ${fmt(py(bottom))}`,
       role: "grid",
       weight: "grid",
     });
@@ -138,7 +192,7 @@ function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
   for (const y of ys) {
     items.push({
       t: "path",
-      d: `M${fmt(px(frame.x[0]))} ${fmt(py(y))} L${fmt(px(frame.x[1]))} ${fmt(py(y))}`,
+      d: `M${fmt(px(left))} ${fmt(py(y))} L${fmt(px(frame.x[1]))} ${fmt(py(y))}`,
       role: "grid",
       weight: "grid",
     });
@@ -189,46 +243,22 @@ function labelStep(
 
 const clamp = (v: number, [lo, hi]: [number, number]) => Math.min(hi, Math.max(lo, v));
 
-/** Line height for wrapped text. */
-export const LINE_HEIGHT = Math.round(HOUSE.font * 1.2);
-
-/** Words of `text` packed into lines no wider than `maxWidth`; a long word keeps its own line. */
-export function wrapText(text: string, maxWidth: number): string[] {
-  const lines: string[] = [];
-  for (const word of text.trim().split(/\s+/).filter(Boolean)) {
-    const last = lines[lines.length - 1];
-    if (last !== undefined && textWidth(`${last} ${word}`) <= maxWidth) {
-      lines[lines.length - 1] = `${last} ${word}`;
-    } else lines.push(word);
-  }
-  return lines;
-}
-
 /**
- * wrapText into as few lines as `maxWidth` allows, with the lines as even as they
- * can be ("Concentration of bacteria / (millions of cells per mL)", not a lone "mL)").
+ * True when text `t` would overlap a text in `items` by more than 1px both ways
+ * (checks.ts): two numbers by their glyphs, or, when `roomy`, every pair by the
+ * generous text box (the origin's 0 keeps clear room around it).
  */
-export function balancedWrap(text: string, maxWidth: number): string[] {
-  const lines = wrapText(text, maxWidth);
-  if (lines.length < 2) return lines;
-  const total = textWidth(text);
-  for (let w = total / lines.length; w < maxWidth; w += 2) {
-    const even = wrapText(text, w);
-    if (even.length === lines.length) return even;
-  }
-  return lines;
-}
-
-/** A short axis name (x, y, t, f(x)) sits at the axis end; a longer one is a title beside the plot. */
-const isShortName = (name: string) => name.length <= 4 && !/\s/.test(name);
-/** A single-letter name is a variable and prints in italic. */
-const isVariable = (name: string) => /^[A-Za-z]$/.test(name);
-
-/** True when text `t` would overlap a text in `items` by more than 1px both ways (checks.ts). */
-function collides(t: TextItem, items: SceneItem[]): boolean {
+function collides(t: TextItem, items: SceneItem[], roomy = false): boolean {
   return items.some((o) => {
     if (o.t !== "text") return false;
-    const [w, h] = textOverlap(t, o);
+    let [w, h] = textOverlap(t, o);
+    if (roomy) {
+      const [a, b] = [textBox(t), textBox(o)];
+      [w, h] = [
+        Math.min(a[1], b[1]) - Math.max(a[0], b[0]),
+        Math.min(a[3], b[3]) - Math.max(a[2], b[2]),
+      ];
+    }
     return w > 1 && h > 1;
   });
 }
@@ -248,54 +278,15 @@ const groups = (frame: PlaneFrame, axis: "x" | "y") =>
 
 type Axes = { items: SceneItem[]; issues: SceneIssue[]; thinned: Thinned[] };
 
-/** Category names under their bands: wrapped, or turned 45° when one does not fit. */
-function categoryLabels(frame: PlaneFrame, m: Mapper, axisY: number): TextItem[] {
-  const names = frame.categories ?? [];
-  const off = HOUSE.labelOffset;
-  const font = HOUSE.font;
-  const band = m.w / Math.max(1, names.length);
-  const tooWide = names.some((n) => n.split(/\s+/).some((word) => textWidth(word) > band - off));
-  const turn = frame.rotateCategories ?? tooWide;
-  const out: TextItem[] = [];
-  names.forEach((name, i) => {
-    const cx = m.px(i + 0.5);
-    if (turn) {
-      // The text's end sits just under its band, so it reads up to the right toward it.
-      const text = name.trim().replace(/\s+/g, " ");
-      if (!text) return;
-      out.push({
-        t: "text",
-        x: cx + 0.35 * font,
-        y: axisY + off + 0.7 * font,
-        text,
-        role: "ink",
-        anchor: "end",
-        rotate: -45,
-      });
-      return;
-    }
-    wrapText(name, band - off).forEach((line, k) => {
-      out.push({
-        t: "text",
-        x: cx,
-        y: axisY + off + font + k * LINE_HEIGHT,
-        text: line,
-        role: "ink",
-        anchor: "middle",
-      });
-    });
-  });
-  return out;
-}
-
-/** The origin's label at the first free corner of where the axes meet, or an issue. */
-function originLabel(frame: PlaneFrame, m: Mapper, items: SceneItem[]): Axes {
+/**
+ * The origin's label at the first free corner of where the axes meet (px X, Y),
+ * or an issue.
+ */
+function originLabel(frame: PlaneFrame, X: number, Y: number, items: SceneItem[]): Axes {
   const text = frame.originLabel === "O" ? "O" : "0";
   const tick = HOUSE.tickLength / 2;
   const off = HOUSE.labelOffset;
   const font = HOUSE.font;
-  const X = m.px(0);
-  const Y = m.py(0);
   const left = X - tick - off / 2;
   const right = X + tick + off / 2;
   const below = Y + tick + font;
@@ -309,7 +300,7 @@ function originLabel(frame: PlaneFrame, m: Mapper, items: SceneItem[]): Axes {
   for (const [x, y, anchor] of corners) {
     const label: TextItem = { t: "text", x, y, text, role: "ink-muted", anchor };
     if (text === "O") label.italic = true;
-    if (!collides(label, items)) return { items: [label], issues: [], thinned: [] };
+    if (!collides(label, items, true)) return { items: [label], issues: [], thinned: [] };
   }
   return {
     items: [],
@@ -324,20 +315,33 @@ function originLabel(frame: PlaneFrame, m: Mapper, items: SceneItem[]): Axes {
   };
 }
 
-function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
-  const { w, h, px, py } = m;
+/**
+ * Axes, tick marks, tick numbers, the origin's label and the axis names. `frame` is the
+ * frame's own range; a broken axis (`c`) starts at its corner, which `m` maps too.
+ */
+function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): Axes {
+  const { px, py } = m;
+  const w = px(frame.x[1]) - px(frame.x[0]);
+  const h = py(frame.y[0]) - py(frame.y[1]);
   const yAxis = yMode === "ticks";
-  // The x-axis sits at y = 0, or the nearer frame edge; a number line sits at the bottom.
-  const ax = yAxis ? clamp(0, frame.y) : frame.y[0];
-  const ay = clamp(0, frame.x);
+  const cy = yAxis ? c.y : undefined;
+  // The x-axis sits at y = 0, or the nearer frame edge, or a broken y-axis's corner; a
+  // number line sits at the bottom. The y-axis likewise.
+  const ax = cy ?? (yAxis ? clamp(0, frame.y) : frame.y[0]);
+  const ay = c.x ?? clamp(0, frame.x);
   const font = HOUSE.font;
   const off = HOUSE.labelOffset;
   const arrows = arrowEnds(frame);
   const run = arrows ? ARROW_RUN : 0;
   const back = arrows === "both" ? ARROW_RUN : 0;
+  // A break's zig-zag sits halfway between its corner and the range's start.
+  const xZig = c.x === undefined ? undefined : (px(c.x) + px(frame.x[0])) / 2;
+  const yZig = cy === undefined ? undefined : (py(cy) + py(frame.y[0])) / 2;
+  const xFrom = c.x ?? frame.x[0];
+  const yFrom = cy ?? frame.y[0];
   const xAxis: SceneItem = {
     t: "path",
-    d: `M${fmt(px(frame.x[0]) - back)} ${fmt(py(ax))} L${fmt(px(frame.x[1]) + run)} ${fmt(py(ax))}`,
+    d: axisPath(px(xFrom) - back, px(frame.x[1]) + run, py(ax), true, xZig),
     role: "ink",
     weight: "line",
     partId: "axis",
@@ -349,7 +353,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
   if (yAxis) {
     const yLine: SceneItem = {
       t: "path",
-      d: `M${fmt(px(ay))} ${fmt(py(frame.y[0]) + back)} L${fmt(px(ay))} ${fmt(py(frame.y[1]) - run)}`,
+      d: axisPath(py(yFrom) + back, py(frame.y[1]) - run, px(ay), false, yZig),
       role: "ink",
       weight: "line",
       partId: "axis",
@@ -359,8 +363,13 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
   }
   const tick = HOUSE.tickLength / 2;
   const s = steps(frame);
-  // Where both labelled axes cross at 0, one origin label serves both.
-  const sharedOrigin = yAxis && !frame.categories && ax === 0 && ay === 0;
+  // Where both labelled axes cross at 0 (a broken axis's corner stands for 0), one
+  // origin label serves both, unless the frame asks for a 0 on each axis.
+  const both = frame.originLabel === "both";
+  const xAtZero = c.x !== undefined || ay === 0;
+  const yAtZero = cy !== undefined || ax === 0;
+  const sharedOrigin = yAxis && !frame.categories && xAtZero && yAtZero && !both;
+  const cornerZero = frame.originLabel !== false && !sharedOrigin;
   // Baseline of the lowest text under the plot, for the x-axis title.
   let below = py(frame.y[0]);
   const report = (axis: "x" | "y", l: AxisLabels, key: string, spacing: number) => {
@@ -383,7 +392,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
     const widest = (step: number) =>
       Math.max(
         0,
-        ...tickValues(frame.x[0], frame.x[1], step).map((v) => tickWidth(tickText(v, group)))
+        ...tickValues(frame.x[0], frame.x[1], step).map((v) => numberWidth(tickText(v, group)))
       ) + TICK_LABEL_GAP;
     const l = labelStep(frame.x, w, widest, s.x, s.xLabel);
     report("x", l, "labelStep", (l.asked * w) / (frame.x[1] - frame.x[0]));
@@ -412,6 +421,17 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
       });
       below = Math.max(below, Y + tick + font);
     }
+    // A broken x-axis's corner reads 0, under the y-axis.
+    if (c.x !== undefined && cornerZero && xStep) {
+      items.push({
+        t: "text",
+        x: px(c.x),
+        y: py(ax) + tick + font,
+        text: "0",
+        role: "ink-muted",
+        anchor: "middle",
+      });
+    }
   }
   // Width of the widest y tick label, for the y-axis title.
   let yLabelWidth = 0;
@@ -422,17 +442,23 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
     const l = labelStep(frame.y, h, () => 1.25 * font + TICK_LABEL_GAP / 2, s.y, s.yLabel);
     report("y", l, "yLabelStep", (l.asked * h) / (frame.y[1] - frame.y[0]));
     yStep = l.step;
-    for (const y of yStep ? tickValues(frame.y[0], frame.y[1], yStep) : []) {
+    const ys = yStep ? tickValues(frame.y[0], frame.y[1], yStep) : [];
+    // A broken y-axis's corner reads 0, beside the x-axis.
+    if (cy !== undefined && cornerZero && yStep) ys.unshift(cy);
+    for (const y of ys) {
       if (sharedOrigin && Math.abs(y) < EPS) continue;
+      const corner = y === cy;
       const X = px(ay);
       const Y = py(y);
-      items.push({
-        t: "path",
-        d: `M${fmt(X - tick)} ${fmt(Y)} L${fmt(X + tick)} ${fmt(Y)}`,
-        role: "ink",
-        weight: "line",
-      });
-      const text = tickText(y, group);
+      if (!corner) {
+        items.push({
+          t: "path",
+          d: `M${fmt(X - tick)} ${fmt(Y)} L${fmt(X + tick)} ${fmt(Y)}`,
+          role: "ink",
+          weight: "line",
+        });
+      }
+      const text = corner ? "0" : tickText(y, group);
       const label: TextItem = {
         t: "text",
         x: X - tick - off / 2,
@@ -442,10 +468,11 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
         anchor: "end",
       };
       // Where the axes meet away from the origin (a histogram from 10), the x-axis
-      // label at the corner wins and the y label beside it is left off. Any other y
-      // label that meets an x label (near the origin, in a small box) is reported.
+      // label at the corner wins and a y label that really meets it is left off. Any
+      // other y label that meets an x label (near the origin, in a small box), or a
+      // 0 the frame asks for on each axis, is reported.
       if (!collides(label, items)) items.push(label);
-      else if (sharedOrigin || Math.abs(y - ax) > EPS) {
+      else if (sharedOrigin || both || corner || Math.abs(y - ax) > EPS) {
         issues.push({
           code: "crowded_ticks",
           partId: "axis",
@@ -456,138 +483,63 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
     }
   }
   if (sharedOrigin && frame.originLabel !== false && (xStep || yStep)) {
-    const origin = originLabel(frame, m, items);
+    const origin = originLabel(frame, px(ay), py(ax), items);
     items.push(...origin.items);
     issues.push(...origin.issues);
   }
-  items.push(...axisNames(frame, m, { ax, ay, yAxis, below, yLabelWidth, run }));
+  if (!frame.categories) {
+    items.push(
+      ...minorTicks(
+        frame.x,
+        s.xMinor,
+        xStep,
+        ay,
+        (v, d) => `M${fmt(px(v))} ${fmt(py(ax) - d)} L${fmt(px(v))} ${fmt(py(ax) + d)}`
+      )
+    );
+  }
+  if (yAxis) {
+    items.push(
+      ...minorTicks(
+        frame.y,
+        s.yMinor,
+        yStep,
+        ax,
+        (v, d) => `M${fmt(px(ay) - d)} ${fmt(py(v))} L${fmt(px(ay) + d)} ${fmt(py(v))}`
+      )
+    );
+  }
+  const names = drawnFrame(frame, { x: c.x, y: cy });
+  items.push(...axisNames(names, m, { ax, ay, yAxis, below, yLabelWidth, run }));
   return { items, issues, thinned };
 }
 
 /**
- * Axis letters and titles. A letter (a short name) sits at the positive end of
- * its axis, at the arrow's tip when the axis has one; a title goes under the x
- * tick labels or, for y, above the plot (a long yLabel) or turned upright left
- * of the y tick labels (yTitle).
+ * Unlabelled tick marks every `step` along `range`, shorter than a labelled tick
+ * (HOUSE.minorTickLength): none where a labelled tick (every `labelled`) or the
+ * other axis (`cross`) already is. `path` draws one across the axis at a value.
  */
-function axisNames(
-  frame: PlaneFrame,
-  m: Mapper,
-  at: {
-    ax: number;
-    ay: number;
-    yAxis: boolean;
-    below: number;
-    yLabelWidth: number;
-    run: number;
-  }
+function minorTicks(
+  range: [number, number],
+  step: number | undefined,
+  labelled: number,
+  cross: number,
+  path: (v: number, half: number) => string
 ): SceneItem[] {
-  const { w, h, px, py } = m;
-  const off = HOUSE.labelOffset;
-  const font = HOUSE.font;
-  const items: SceneItem[] = [];
-  // With a title, the letter is only the one the spec names; else the name may be either.
-  const xTitle = frame.xTitle?.trim() ?? "";
-  const yTitle = at.yAxis ? (frame.yTitle?.trim() ?? "") : "";
-  // Category bands (a bar chart) have no x variable to name.
-  const xName = xTitle
-    ? (frame.xLabel ?? "").trim()
-    : (frame.xLabel ?? (frame.categories ? "" : "x")).trim();
-  const yName = !at.yAxis
-    ? ""
-    : yTitle
-      ? (frame.yLabel ?? "").trim()
-      : (frame.yLabel ?? "y").trim();
-  const xLetter = xName && (xTitle || isShortName(xName)) ? xName : "";
-  const yLetter = yName && (yTitle || isShortName(yName)) ? yName : "";
-  if (xLetter) {
-    const item: TextItem = at.run
-      ? {
-          t: "text",
-          x: px(frame.x[1]) + at.run + off / 2,
-          y: py(at.ax) + font / 3,
-          text: xLetter,
-          role: "ink",
-          anchor: "start",
-        }
-      : {
-          t: "text",
-          x: px(frame.x[1]) - off,
-          y: py(at.ax) - off,
-          text: xLetter,
-          role: "ink",
-          anchor: "end",
-        };
-    if (isVariable(xLetter)) item.italic = true;
-    items.push(item);
-  }
-  const xLong = xTitle || (xLetter ? "" : xName);
-  if (xLong) {
-    const mid = (px(frame.x[0]) + px(frame.x[1])) / 2;
-    wrapText(xLong, w).forEach((line, k) => {
-      items.push({
-        t: "text",
-        x: mid,
-        y: at.below + font + off + k * LINE_HEIGHT,
-        text: line,
-        role: "ink",
-        anchor: "middle",
-      });
-    });
-  }
-  if (yLetter) {
-    const item: TextItem = at.run
-      ? {
-          t: "text",
-          x: px(at.ay),
-          y: py(frame.y[1]) - at.run - off / 2,
-          text: yLetter,
-          role: "ink",
-          anchor: "middle",
-        }
-      : {
-          t: "text",
-          x: px(at.ay) + off,
-          y: py(frame.y[1]) + font,
-          text: yLetter,
-          role: "ink",
-          anchor: "start",
-        };
-    if (isVariable(yLetter)) item.italic = true;
-    items.push(item);
-  }
-  if (yTitle) {
-    // Turned to read upward, centered on the plot, its last line nearest the tick labels.
-    const lines = balancedWrap(yTitle, h);
-    const right = px(at.ay) - at.yLabelWidth - off - 0.25 * font;
-    lines.forEach((line, k) => {
-      items.push({
-        t: "text",
-        x: right - (lines.length - 1 - k) * LINE_HEIGHT,
-        y: (py(frame.y[0]) + py(frame.y[1])) / 2,
-        text: line,
-        role: "ink",
-        anchor: "middle",
-        rotate: -90,
-      });
-    });
-  } else if (yName && !yLetter) {
-    // Above the plot, left-aligned with the y tick labels.
-    const left = px(at.ay) - at.yLabelWidth;
-    const lines = wrapText(yName, px(frame.x[1]) - left);
-    const top = py(frame.y[1]) - font - off - (lines.length - 1) * LINE_HEIGHT;
-    lines.forEach((line, k) => {
-      items.push({
-        t: "text",
-        x: left,
-        y: top + k * LINE_HEIGHT,
-        text: line,
-        role: "ink",
-        anchor: "start",
-      });
-    });
-  }
-  return items;
+  if (!step) return [];
+  const onLabel = (v: number) => {
+    if (!labelled) return false;
+    const k = v / labelled;
+    return Math.abs(k - Math.round(k)) < 1e-6;
+  };
+  return tickValues(range[0], range[1], step)
+    .filter((v) => !onLabel(v) && Math.abs(v - cross) > EPS)
+    .map((v) => ({
+      t: "path",
+      d: path(v, HOUSE.minorTickLength / 2),
+      role: "ink",
+      weight: "line",
+    }));
 }
 
 /**
@@ -598,7 +550,7 @@ function axisNames(
  * keep their place outside the axes; the plot shrinks to make room. A few
  * passes settle the mapping.
  */
-function labelInset(frame: PlaneFrame, box: Box, opts: AxesOptions): Inset {
+function labelInset(frame: PlaneFrame, c: Corners, box: Box, opts: AxesOptions): Inset {
   const r = opts.reserve ?? {};
   const inset = {
     left: MARGIN_INSET.left + (r.left ?? 0),
@@ -609,8 +561,8 @@ function labelInset(frame: PlaneFrame, box: Box, opts: AxesOptions): Inset {
   const yMode = opts.y ?? "ticks";
   const avoid = opts.avoid ?? [];
   for (let pass = 0; pass < 6; pass++) {
-    const m = mapper(frame, box, inset);
-    const texts = axes(frame, m, yMode).items.filter((i): i is TextItem => i.t === "text");
+    const m = mapper(drawnFrame(frame, c), box, inset);
+    const texts = axes(frame, m, yMode, c).items.filter((i): i is TextItem => i.t === "text");
     const over = { left: 0, right: 0, top: 0, bottom: 0 };
     for (const t of texts) {
       const [left, right, top, bottom] = textBox(t);
@@ -640,7 +592,9 @@ function labelInset(frame: PlaneFrame, box: Box, opts: AxesOptions): Inset {
 /**
  * Grid, axes, tick labels and axis names for `frame` in `box`, and the
  * world-to-pixel map of the plot they frame. Charts and planes share it.
- * With categories the x range becomes [0, n], one band per category.
+ * With categories the x range becomes [0, n], one band per category. A broken
+ * axis (xBreak, yBreak) is drawn from its corner, which `map` covers; the
+ * returned `frame` keeps the frame's own range, for clipping.
  * `issues` are the frame's own (crowded tick labels, an origin label with no
  * room); `thinned` lists the axes that label fewer ticks than the spec's steps.
  */
@@ -657,10 +611,11 @@ export function planeAxes(
 } {
   const f: PlaneFrame = frame.categories ? { ...frame, x: [0, frame.categories.length] } : frame;
   const yMode = opts.y ?? "ticks";
-  const map = mapper(f, box, labelInset(f, box, opts));
-  const drawn = axes(f, map, yMode);
+  const c = breakCorners(f, box, yMode);
+  const map = mapper(drawnFrame(f, c), box, labelInset(f, c, box, opts));
+  const drawn = axes(f, map, yMode, c);
   return {
-    items: [...grid(f, map, yMode), ...drawn.items],
+    items: [...grid(f, map, yMode, c), ...drawn.items],
     map,
     frame: f,
     issues: drawn.issues,
