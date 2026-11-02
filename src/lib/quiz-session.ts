@@ -1,5 +1,5 @@
 import { stepDifficultyLevel } from "@/types/quiz";
-import { parseNumericAnswer } from "./numeric-answer";
+import { isSatShortenedDecimal, parseNumericAnswer } from "./numeric-answer";
 import type {
   QuestionResponse,
   QuizDifficultyLevel,
@@ -25,7 +25,10 @@ export function evaluateQuizAnswer(
   const accepted = question.reviewed_numeric_answers ?? [question.correct_answer];
   return accepted.some((value) => {
     const correct = parseNumericAnswer(value);
-    return correct !== null && Math.abs(answer - correct) <= tolerance + 1e-9;
+    if (correct === null) return false;
+    return (
+      Math.abs(answer - correct) <= tolerance + 1e-9 || isSatShortenedDecimal(studentAnswer, value)
+    );
   });
 }
 
