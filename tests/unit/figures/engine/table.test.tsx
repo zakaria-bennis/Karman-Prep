@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { act, fireEvent, render } from "@testing-library/react";
 import MathText from "@/components/learn/MathText";
 import TableView from "@/components/learn/figures/TableView";
-import { tableDataToSpec, TableDataError } from "@/lib/figures/engine/from-table-data";
+import { tableDataToSpecs, TableDataError } from "@/lib/figures/engine/from-table-data";
 import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
 import {
   isNumericCell,
@@ -16,6 +16,13 @@ import {
   tightenUnits,
 } from "@/lib/figures/engine/table";
 import type { QuestionTableData } from "@/types/question-table";
+
+/** The one table spec of legacy table data that is a single table. */
+function oneTable(data: unknown): FigureSpec {
+  const specs = tableDataToSpecs(data);
+  expect(specs).toHaveLength(1);
+  return specs[0];
+}
 
 const dir = path.resolve(__dirname, "../../../fixtures/tables");
 type Fixture = {
@@ -41,6 +48,8 @@ const LAKES = "02c3a10d-dc67-408c-9101-a015ec5878fd";
 const FRACTIONS = "ee2e493b-d558-43c6-b98a-e4ac276863be";
 /** Subject by grade level: a merged "Grade level" heading over four columns. */
 const GRADES = "368cec6c-7481-4044-8b13-2631235b6ba9";
+/** Two separate frequency tables, stored joined side by side under two merged headings. */
+const TWO_TABLES = "48122737-df2c-4c42-953b-94281484650c";
 
 const twoWay: FigureSpec = {
   version: "figure-spec/1",
@@ -67,7 +76,7 @@ const column = (container: HTMLElement, c: number) =>
 
 describe("tables", () => {
   it("numbers align on the decimal point", () => {
-    const spec = tableDataToSpec(fixture(COINS));
+    const spec = oneTable(fixture(COINS));
     const { container } = render(<TableView spec={spec} renderMath={false} />);
     const model = layoutTable(spec);
     for (const c of [1, 2, 3, 4]) {
@@ -126,7 +135,7 @@ describe("tables", () => {
       ["3", "2", "10"],
     ],
   ])("a suffix sits right of the point, so %j share one decimal x", (values, ints) => {
-    const spec = tableDataToSpec({ header_row: ["Value"], rows: values.map((v) => [v]) });
+    const spec = oneTable({ header_row: ["Value"], rows: values.map((v) => [v]) });
     const { container } = render(<TableView spec={spec} renderMath={false} />);
     const cells = column(container, 0);
     const intBoxes = cells.map((td) => td.querySelector<HTMLElement>("[data-int]")!);
@@ -139,7 +148,7 @@ describe("tables", () => {
   });
 
   it("text cells are left-aligned", () => {
-    const spec = tableDataToSpec(fixture(COINS));
+    const spec = oneTable(fixture(COINS));
     const { container } = render(<TableView spec={spec} renderMath={false} />);
     for (const cell of column(container, 0)) {
       expect(cell.getAttribute("data-align")).toBe("left");
@@ -176,9 +185,9 @@ describe("tables", () => {
     ]);
     expect(getAllByRole("rowheader").map((th) => th.textContent)).toEqual(["Male", "Female"]);
     // Old data marks the corner with an empty first heading, even in a one-cell header.
-    const part = tableDataToSpec({ header_row: ["", "Black"], rows: [["Male", "4"]] }).parts[0];
+    const part = oneTable({ header_row: ["", "Black"], rows: [["Male", "4"]] }).parts[0];
     expect(part).toMatchObject({ kind: "table", blankCorner: true });
-    const single = tableDataToSpec({ header_row: [""], rows: [["4"]] });
+    const single = oneTable({ header_row: [""], rows: [["4"]] });
     expect(single.parts[0]).toMatchObject({ blankCorner: true });
     const { container: one } = render(<TableView spec={single} renderMath={false} />);
     expect(one.querySelector("thead th")).toBeNull();
@@ -186,7 +195,7 @@ describe("tables", () => {
   });
 
   it("math in cells is typeset like question text", () => {
-    const spec = tableDataToSpec(fixture(FRACTIONS));
+    const spec = oneTable(fixture(FRACTIONS));
     const { container } = render(<TableView spec={spec} />);
     const cell = column(container, 1)[0];
     const source = String.raw`$\dfrac{59}{15}$`;
@@ -201,7 +210,7 @@ describe("tables", () => {
 
   it("wrapper has overflow-x:auto and the table never sets a width wider than its container", () => {
     for (const id of [LAKES, COINS]) {
-      const { container, unmount } = render(<TableView spec={tableDataToSpec(fixture(id))} />);
+      const { container, unmount } = render(<TableView spec={oneTable(fixture(id))} />);
       const table = container.querySelector("table")!;
       const frame = table.parentElement!;
       expect(frame.className).toContain("overflow-x-auto");
@@ -220,7 +229,7 @@ describe("tables", () => {
   });
 
   it("the scroll frame is a named, focusable region a keyboard can scroll", () => {
-    const { container } = render(<TableView spec={tableDataToSpec(fixture(LAKES))} />);
+    const { container } = render(<TableView spec={oneTable(fixture(LAKES))} />);
     const frame = container.querySelector("table")!.parentElement!;
     expect(frame.tabIndex).toBe(0);
     expect(frame.getAttribute("role")).toBe("region");
@@ -237,7 +246,7 @@ describe("tables", () => {
   });
 
   it("fades the edge with more content past it, and keeps the title and note in view", () => {
-    const { container } = render(<TableView spec={tableDataToSpec(fixture(LAKES))} />);
+    const { container } = render(<TableView spec={oneTable(fixture(LAKES))} />);
     const frame = container.querySelector<HTMLElement>("[role=region]")!;
     const fade = (side: string) =>
       container.querySelector(`[data-fade=${side}]`)!.getAttribute("data-shown");
@@ -257,13 +266,13 @@ describe("tables", () => {
     expect(fade("left")).toBe("true");
     // The note stays in view the same way.
     const { container: noted } = render(
-      <TableView spec={tableDataToSpec(fixture("53478b9e-852b-4a01-86b7-f4f57f510b67"))} />
+      <TableView spec={oneTable(fixture("53478b9e-852b-4a01-86b7-f4f57f510b67"))} />
     );
     expect(noted.querySelector("tfoot span.sticky")?.textContent).toContain("rounded");
   });
 
   it("an empty table renders with a clear no-data row", () => {
-    const spec = tableDataToSpec({ header_row: ["x", "y"], rows: [] });
+    const spec = oneTable({ header_row: ["x", "y"], rows: [] });
     const { container } = render(<TableView spec={spec} renderMath={false} />);
     expect(container.querySelectorAll("thead th")).toHaveLength(2);
     const empty = container.querySelector<HTMLElement>("td[data-table-empty]")!;
@@ -272,9 +281,7 @@ describe("tables", () => {
   });
 
   it("merged headings span their columns, with one header style", () => {
-    const { container } = render(
-      <TableView spec={tableDataToSpec(fixture(GRADES))} renderMath={false} />
-    );
+    const { container } = render(<TableView spec={oneTable(fixture(GRADES))} renderMath={false} />);
     const group = container.querySelector("th[scope=colgroup]")!;
     expect(group.textContent).toBe("Grade level");
     expect(group.getAttribute("colspan")).toBe("4");
@@ -289,18 +296,18 @@ describe("tables", () => {
   });
 
   it("uses one rule weight and only theme colors", () => {
-    const { container } = render(<TableView spec={tableDataToSpec(fixture(LAKES))} />);
+    const { container } = render(<TableView spec={oneTable(fixture(LAKES))} />);
     const html = container.innerHTML;
     expect(html).not.toMatch(/#[0-9a-f]{3,8}\b/i);
     expect(html).not.toMatch(/border-(2|4|8)\b/);
     expect(html).not.toMatch(/rgb\(|hsl\(/);
   });
 
-  it("tableDataToSpec round-trips every fixture in tests/fixtures/tables", () => {
+  it("tableDataToSpecs round-trips every one-table fixture in tests/fixtures/tables", () => {
     expect(fixtures.length).toBeGreaterThanOrEqual(8);
-    for (const f of fixtures) {
+    for (const f of fixtures.filter((f) => f.id !== TWO_TABLES)) {
       const data = dataOf(f);
-      const spec = tableDataToSpec(data);
+      const spec = oneTable(data);
       const parsed = parseFigureSpec(spec);
       expect(parsed.ok, f.id).toBe(true);
       expect(spec.type).toBe("table");
@@ -318,10 +325,66 @@ describe("tables", () => {
     }
   });
 
+  it("splits two tables stored side by side back into two tables (question 48122737)", () => {
+    const data = fixture(TWO_TABLES);
+    const specs = tableDataToSpecs(data);
+    expect(specs).toHaveLength(2);
+    expect(specs.map((s) => s.title)).toEqual(["Data Set A", "Data Set B"]);
+    const [a, b] = specs.map((s) => s.parts[0]);
+    if (a.kind !== "table" || b.kind !== "table") throw new Error("not a table");
+    expect(a.header).toEqual(["Value", "Frequency"]);
+    expect(b.header).toEqual(["Value", "Frequency"]);
+    expect(a.rows).toEqual([
+      ["\\(c\\)", "12"],
+      ["\\(2c\\)", "21"],
+      ["\\(3c\\)", "30"],
+    ]);
+    expect(b.rows).toEqual([
+      ["\\(c\\)", "30"],
+      ["\\(2c\\)", "21"],
+      ["\\(3c\\)", "12"],
+    ]);
+    // Neither keeps the merged headings that joined them.
+    expect(a.groups).toBeUndefined();
+    expect(b.groups).toBeUndefined();
+    for (const spec of specs) expect(parseFigureSpec(spec).ok).toBe(true);
+  });
+
+  it("keeps a real merged heading as one table, and splits only matching repeated columns", () => {
+    // A blank corner over the row labels, then one heading over the rest: one table.
+    expect(tableDataToSpecs(fixture(GRADES))).toHaveLength(1);
+    expect(tableDataToSpecs(fixture("3fc9ceb1-73fd-4961-a9d0-3eec92084250"))).toHaveLength(1);
+    const joined = {
+      header_row: ["x", "y", "x", "y"],
+      header_groups: [
+        { label: "Table 1", span: 2 },
+        { label: "Table 2", span: 2 },
+      ],
+      rows: [
+        ["1", "2", "5", "6"],
+        ["3", "4", "", ""],
+      ],
+      footer_note: "Note under both.",
+    };
+    const [one, two] = tableDataToSpecs(joined);
+    // The shorter table ends where its cells do; the note goes under the last table.
+    expect(one.parts[0]).toMatchObject({
+      rows: [
+        ["1", "2"],
+        ["3", "4"],
+      ],
+    });
+    expect(two.parts[0]).toMatchObject({ rows: [["5", "6"]], note: "Note under both." });
+    expect(one.parts[0]).not.toHaveProperty("note");
+    // Different columns under each heading, or a caption over both: one table.
+    expect(tableDataToSpecs({ ...joined, header_row: ["x", "y", "x", "z"] })).toHaveLength(1);
+    expect(tableDataToSpecs({ ...joined, caption: "Both" })).toHaveLength(1);
+  });
+
   it("refuses data that is not a table", () => {
-    expect(() => tableDataToSpec({ rows: "nope" })).toThrow(TableDataError);
-    expect(() => tableDataToSpec({ rows: [["1"], [2, null]] })).not.toThrow();
-    expect(() => tableDataToSpec(null)).toThrow(TableDataError);
+    expect(() => oneTable({ rows: "nope" })).toThrow(TableDataError);
+    expect(() => oneTable({ rows: [["1"], [2, null]] })).not.toThrow();
+    expect(() => oneTable(null)).toThrow(TableDataError);
   });
 });
 

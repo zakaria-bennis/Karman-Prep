@@ -7,7 +7,8 @@
  *
  * <input> is either
  *   - a directory of figure.json files (searched recursively for *.json): each
- *     a bare FigureSpec, or a figure.json carrying `figure_spec` and/or
+ *     a bare FigureSpec (or a list of them), or a figure.json carrying `figure_spec`
+ *     (one FigureSpec or a list) and/or
  *     `answer_choices[].choice_figure_spec` (the review lane's files and
  *     tests/fixtures/figures/golden), or
  *   - a JSON export of rows: question rows with `figure_spec` (and optionally
@@ -26,7 +27,9 @@
  *   - font: figure text not in the figure serif (--font-figure);
  *   - broken_word: a word in a table split over two lines (cells wrap only at spaces);
  *   - overflow: the page scrolling sideways;
- *   - not_drawn: the page drew no figure for the spec (invalid, or a builder threw).
+ *   - not_drawn: the page drew no figure for the spec (invalid, or a builder threw);
+ *   - side_by_side: two figures of one question (a figure_spec list) sharing a row;
+ *     a question's figures stack top to bottom, so two tables never read as one.
  * Before the browser, each spec also runs the engine's own checks in Node
  * (checkSpec: what its builder reports, off-line points, arrowheads, clipping,
  * overlaps, and the labels against `transcribed_labels` when the file has
@@ -43,11 +46,12 @@
 import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { chromium, type Page } from "@playwright/test";
-import { checkSpec } from "@/lib/figures/engine/checks";
 import { CHOICE_BOX, choiceFrameIssues, isFramed, sharedFrame } from "@/lib/figures/engine/choices";
 import type { Box } from "@/lib/figures/engine/index";
 import type { SceneIssue } from "@/lib/figures/engine/scene";
-import { parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
+import { checkSpecs } from "@/lib/figures/engine/checks";
+import { parseFigureSpecs, type FigureSpec } from "@/lib/figures/engine/spec";
+import { storedSpecTypes } from "@/lib/figures/engine/spec-types";
 
 export const WIDTHS = [
   { name: "phone", width: 390, height: 844 },
@@ -87,7 +91,8 @@ export type RenderIssue = {
     | "font"
     | "broken_word"
     | "overflow"
-    | "not_drawn";
+    | "not_drawn"
+    | "side_by_side";
   detail: string;
   width?: number;
   theme?: string;
@@ -149,7 +154,11 @@ export function readFigures(input: string): Figure[] {
         /\.json$/,
         ""
       );
-      const fig = isDoc(doc) ? fromDoc(doc, id.split(path.sep).join("/"), file) : null;
+      const key = id.split(path.sep).join("/");
+      // A bare list of FigureSpecs is one question's figures.
+      if (Array.isArray(doc) && storedSpecTypes(doc))
+        return [{ id: key, source: file, figure_spec: doc }];
+      const fig = isDoc(doc) ? fromDoc(doc, key, file) : null;
       return fig ? [fig] : [];
     });
   }
@@ -191,8 +200,8 @@ export function readFigures(input: string): Figure[] {
  * transcription (`transcribed_labels`) every check runs; without one, the
  * comparison with it is skipped (an invented label cannot be told apart).
  */
-function checked(spec: FigureSpec, labels: string[] | undefined, box?: Box): SceneIssue[] {
-  const issues = checkSpec(spec, labels ?? [], box);
+function checked(specs: FigureSpec[], labels: string[] | undefined, box?: Box): SceneIssue[] {
+  const issues = checkSpecs(specs, labels ?? [], box);
   if (labels) return issues;
   return issues.filter(
     (i) => !(i.code === "missing_label" && i.detail.includes("not in original"))
@@ -205,9 +214,9 @@ const line = (i: SceneIssue, where = "") =>
 /** What the engine itself reports for a figure, before any browser. */
 function engineIssues(fig: Figure): string[] {
   const out: string[] = [];
-  const parse = (raw: unknown, where: string): FigureSpec | null => {
-    const parsed = parseFigureSpec(raw);
-    if (parsed.ok) return parsed.spec;
+  const parse = (raw: unknown, where: string): FigureSpec[] | null => {
+    const parsed = parseFigureSpecs(raw);
+    if (parsed.ok) return parsed.specs;
     out.push(`${where}invalid spec: ${parsed.errors.join("; ")}`);
     return null;
   };
@@ -219,21 +228,21 @@ function engineIssues(fig: Figure): string[] {
     }
   };
   if (fig.figure_spec != null) {
-    const spec = parse(fig.figure_spec, "");
-    if (spec) run("", () => checked(spec, fig.labels));
+    const specs = parse(fig.figure_spec, "");
+    if (specs) run("", () => checked(specs, fig.labels));
   }
   if (fig.choices) {
-    const specs = fig.choices.map((raw, i) =>
+    const lists = fig.choices.map((raw, i) =>
       raw == null ? null : parse(raw, `choice ${"ABCD"[i]}: `)
     );
     // Choices are drawn in one frame, so each is checked in it (as check-spec.ts does).
-    const framed = specs.filter((s): s is FigureSpec => !!s && isFramed(s));
+    const framed = lists.flatMap((l) => l ?? []).filter(isFramed);
     const frame = framed.length ? sharedFrame(framed) : null;
     // A set sampled outside its shared frame is never drawn.
-    run("choices: ", () => choiceFrameIssues(specs));
-    specs.forEach((spec, i) => {
-      if (!spec) return;
-      const drawn = frame && isFramed(spec) ? { ...spec, frame } : spec;
+    run("choices: ", () => choiceFrameIssues(lists));
+    lists.forEach((list, i) => {
+      if (!list) return;
+      const drawn = list.map((spec) => (frame && isFramed(spec) ? { ...spec, frame } : spec));
       run(`choice ${"ABCD"[i]}: `, () => checked(drawn, fig.choiceLabels?.[i], CHOICE_BOX));
     });
   }
@@ -255,6 +264,18 @@ function inspect(minText: number): PageFinding[] {
   const tables = [...root.querySelectorAll<HTMLTableElement>("table")];
   if (!figures.length && !tables.length)
     out.push({ code: "not_drawn", detail: "no figure on the page" });
+  // A question's several figures stack: no two share a row.
+  for (const stack of root.querySelectorAll("[data-figure-stack]")) {
+    const boxes = [...stack.children].map((el) => el.getBoundingClientRect());
+    for (let i = 1; i < boxes.length; i++) {
+      if (boxes[i].top < boxes[i - 1].bottom - 0.5) {
+        out.push({
+          code: "side_by_side",
+          detail: `figures ${i} and ${i + 1} of the question share a row`,
+        });
+      }
+    }
+  }
 
   const label = (el: Element) => `"${(el.textContent ?? "").trim().slice(0, 40)}"`;
   figures.forEach((svg, n) => {
@@ -437,10 +458,11 @@ async function main() {
           if (shots) {
             const dir = path.join(outDir, "shots", fig.id);
             mkdirSync(dir, { recursive: true });
-            // The figure itself: the question figure, else the figure choices.
+            // The figure itself: a question's stack of figures, its one figure, else the
+            // figure choices.
             await page
               .locator(
-                "[data-question-layout] figure, [data-question-layout] [data-figure-choices]"
+                "[data-question-layout] [data-figure-stack], [data-question-layout] figure:not([data-figure-stack] figure), [data-question-layout] [data-figure-choices]"
               )
               .first()
               .screenshot({

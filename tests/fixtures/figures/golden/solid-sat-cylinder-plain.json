@@ -1,0 +1,20 @@
+{
+  "source": "traced from the real exam figure 2026-06_ASIA_V1_MATH_M2_Q21: cylinder A: a plain cylinder, back of the bottom circle dashed; circles flatten to 0.34",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "cylinder",
+        "dims": {
+          "radius": 1,
+          "height": 2.26
+        }
+      }
+    ],
+    "labels": [],
+    "marks": []
+  }
+}

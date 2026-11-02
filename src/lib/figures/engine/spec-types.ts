@@ -46,6 +46,26 @@ export function storedSpecType(input: unknown): FigureType | null {
 }
 
 /**
+ * The figures a stored figure_spec or choice_figure_spec holds, unvalidated: a list as
+ * stored, or one spec as a list of one (parseFigureSpecs validates).
+ */
+export function storedSpecList(input: unknown): unknown[] {
+  if (input === null || input === undefined) return [];
+  return Array.isArray(input) ? input : [input];
+}
+
+/**
+ * The `type` of each figure a stored figure_spec or choice_figure_spec holds, in order, when
+ * it holds at least one and every one names a FIGURE_TYPES type; else null. A shape check only.
+ */
+export function storedSpecTypes(input: unknown): FigureType[] | null {
+  const list = storedSpecList(input);
+  if (list.length === 0) return null;
+  const types = list.map(storedSpecType);
+  return types.every((t): t is FigureType => t !== null) ? types : null;
+}
+
+/**
  * The box a figure of `type` is laid out in before it scales to its container (SVG viewBox).
  * Planes use the box their function samples were computed in
  * (scripts/figures/sample-functions.ts), charts the ChartFigure box, and shapes a 4:3 box.

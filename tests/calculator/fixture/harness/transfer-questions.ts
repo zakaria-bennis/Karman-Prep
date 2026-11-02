@@ -118,3 +118,50 @@ export const TRANSFER_TABLES_DAILY_QUESTION = {
     question_id: TABLES_DAILY_ID,
   })),
 } as StudentQuizQuestion;
+
+/** (`?questions=transfer-two-tables`, daily flow): a question whose figure_spec is two tables, and
+ * two table answer choices, for the table button (c-transfer TR-91 to TR-97). Original data. */
+const TWO_TABLES_DAILY_ID = "00000000-0000-4000-8000-0000000000d3";
+const twoTableSpec = (title: string, rows: string[][]) => ({
+  version: "figure-spec/1",
+  type: "table",
+  title,
+  labels: [],
+  marks: [],
+  parts: [{ kind: "table", id: "t1", header: ["x", "y"], rows }],
+});
+export const TWO_TABLE_ROWS = {
+  first: [
+    ["1", "4"],
+    ["2", "7"],
+    ["3", "10"],
+  ],
+  second: [
+    ["0", "12"],
+    ["2", "8"],
+    ["4", "4"],
+  ],
+};
+export const TRANSFER_TWO_TABLES_DAILY_QUESTION = {
+  ...TRANSFER_DAILY_QUESTION,
+  id: TWO_TABLES_DAILY_ID,
+  question_text:
+    "The tables show values of the linear functions f and g. For what value of x is f(x) = g(x)?",
+  figure_kind: null,
+  figure_spec: [
+    twoTableSpec("Function f", TWO_TABLE_ROWS.first),
+    twoTableSpec("Function g", TWO_TABLE_ROWS.second),
+  ],
+  answer_choices: [
+    ["A", "$1$", null],
+    ["B", "$2$", null],
+    ["C", "", { header_row: ["x", "y"], rows: [["2", "8"]] }],
+    ["D", "", { header_row: ["x", "y"], rows: [["3", "9"]] }],
+  ].map(([letter, choice_text, choice_table_data]) => ({
+    id: `two-tables-${letter}`,
+    question_id: TWO_TABLES_DAILY_ID,
+    letter,
+    choice_text,
+    choice_table_data,
+  })),
+} as unknown as StudentQuizQuestion;

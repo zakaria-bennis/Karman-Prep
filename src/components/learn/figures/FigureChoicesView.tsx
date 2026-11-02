@@ -3,7 +3,8 @@
 // ============================================================
 // FigureChoicesView: answer choices that are graphs, charts or shapes (figure
 // engine spec §2). Each choice draws its own choice_figure_spec, never a text
-// placeholder, and the four share one frame and one size (choiceScenes).
+// placeholder, and the four share one frame and one size (choiceScenes). A
+// choice holding a list of figures shows them stacked, top to bottom.
 //
 // Phones stack the choices one per row with the letter beside each figure;
 // wider containers make a 2×2 grid when the four fit at a readable size
@@ -27,7 +28,7 @@ import styles from "./figure-choices.module.css";
 /** The answer-choice fields a figure choice reads (an AnswerChoice fits). */
 export type FigureChoiceItem = {
   letter: string;
-  /** The stored spec, unvalidated. */
+  /** The stored spec (one FigureSpec or a list), unvalidated. */
   choice_figure_spec?: unknown;
   /** Shown only when the spec cannot be drawn. */
   choice_text: string;
@@ -135,7 +136,7 @@ export default function FigureChoicesView({
     >
       {choices.map((choice, i) => {
         const { letter } = choice;
-        const scene = scenes[i];
+        const figures = scenes[i];
         const isSelected = selected === letter;
         const isCrossed = !!crossed?.(letter);
         const state: ChoiceState = submitted
@@ -150,7 +151,9 @@ export default function FigureChoicesView({
         const stateClass =
           state === "selected" && accent === "gold" ? "border-gold bg-gold/10" : STATE_CLASS[state];
         const status = STATUS[state];
-        const what = scene ? scene.description : choice.choice_text.trim();
+        const what = figures
+          ? figures.map((f) => f.description.replace(/\.$/, "")).join("; ") + "."
+          : choice.choice_text.trim();
         const base = what ? `Choice ${letter}: ${what}` : `Choice ${letter}`;
         // The state is part of the name, so it is announced with the choice.
         const name = status ? `${base.replace(/\.$/, "")}. ${status}.` : base;
@@ -170,9 +173,11 @@ export default function FigureChoicesView({
               {state === "correct" && <Check aria-hidden className="h-4 w-4 text-success-bright" />}
               {state === "incorrect" && <X aria-hidden className="h-4 w-4 text-error-bright" />}
             </span>
-            {scene ? (
+            {figures ? (
               <span className={styles.figure}>
-                <FigureView scene={scene} className="block h-auto w-full" />
+                {figures.map((scene, k) => (
+                  <FigureView key={k} scene={scene} className="block h-auto w-full" />
+                ))}
               </span>
             ) : (
               <span className="min-w-0 flex-1 self-center text-[16px] leading-[1.5] text-ivory">

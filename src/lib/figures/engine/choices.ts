@@ -4,16 +4,18 @@
  * are drawn in one frame (the same ranges and scale) at one size, so a student
  * compares the drawings and never the windows they were drawn in.
  *
- * A choice whose spec is a table is not drawn here: withSpecTables
- * (choice-routing.ts) hands it to the table-choice path (a radio beside an HTML
- * table) as choice_table_data.
+ * A choice may hold one FigureSpec or an ordered list of them (choice_figure_spec);
+ * a list draws as that choice's figures, stacked, every figure of the set in the one
+ * shared frame or scale. A choice whose spec is a table is not drawn here:
+ * withSpecTables (choice-routing.ts) hands it to the table-choice path (a radio
+ * beside an HTML table) as choice_table_data.
  */
 import { chartSpecFrame } from "./charts";
 import { geometryDetail, solidDetail } from "./describe-detail";
 import { buildScene } from "./index";
 import { DEFAULT_PLANE_FRAME } from "./plane";
 import type { Scene, SceneIssue } from "./scene";
-import { parseFigureSpec, type FigureSpec, type PlaneFrame } from "./spec";
+import { parseFigureSpecs, type FigureSpec, type PlaneFrame } from "./spec";
 import { CHOICE_BOX } from "./spec-types";
 
 export { CHOICE_BOX };
@@ -60,11 +62,27 @@ export function sharedFrame(specs: FigureSpec[]): PlaneFrame {
   return shared;
 }
 
-/** The valid drawn (non-table) spec of a stored choice_figure_spec, or null. */
-function drawnSpec(input: unknown): FigureSpec | null {
+/**
+ * The drawn figures of a stored choice_figure_spec (one FigureSpec or a list), or null
+ * when it is missing or invalid, or holds a table (a choice is never drawn in part).
+ */
+export function choiceSpecs(input: unknown): FigureSpec[] | null {
   if (input === null || input === undefined) return null;
-  const parsed = parseFigureSpec(input);
-  return parsed.ok && parsed.spec.type !== "table" ? parsed.spec : null;
+  const parsed = parseFigureSpecs(input);
+  return parsed.ok && parsed.specs.every((s) => s.type !== "table") ? parsed.specs : null;
+}
+
+/** Every choice's figures in one list, with the choice each came from. */
+function flatten(choices: unknown[]): { specs: (FigureSpec | null)[]; owner: number[] } {
+  const specs: (FigureSpec | null)[] = [];
+  const owner: number[] = [];
+  choices.forEach((input, i) => {
+    for (const spec of choiceSpecs(input) ?? [null]) {
+      specs.push(spec);
+      owner.push(i);
+    }
+  });
+  return { specs, owner };
 }
 
 const SCALED = new Set(["geometry2d", "solid3d"]);
@@ -83,8 +101,8 @@ const sameRange = (a: [number, number], b: [number, number]) => a[0] === b[0] &&
  * choice in the shared frame, sampled there (sampleChoices); a set that was
  * not is refused. Charts and point-and-line planes store nothing frame-bound.
  */
-export function choiceFrameIssues(specs: unknown[]): SceneIssue[] {
-  const drawn = specs.map(drawnSpec);
+export function choiceFrameIssues(choices: unknown[]): SceneIssue[] {
+  const { specs: drawn, owner } = flatten(choices);
   const valid = drawn.filter((s): s is FigureSpec => s !== null);
   if (!valid.some((s) => frameOf(s) !== null)) return [];
   const shared = sharedFrame(valid);
@@ -96,7 +114,7 @@ export function choiceFrameIssues(specs: unknown[]): SceneIssue[] {
     issues.push({
       code: "frame_mismatch",
       detail:
-        `choice ${i + 1} was sampled in x [${own.x.join(", ")}], y [${own.y.join(", ")}], ` +
+        `choice ${owner[i] + 1} was sampled in x [${own.x.join(", ")}], y [${own.y.join(", ")}], ` +
         `not the shared frame x [${shared.x.join(", ")}], y [${shared.y.join(", ")}]; ` +
         "run scripts/figures/check-spec.ts to sample every choice in the shared frame",
     });
@@ -145,17 +163,19 @@ function distinguish(scenes: (Scene | null)[], specs: (FigureSpec | null)[]): (S
 }
 
 /**
- * The Scene of each choice, in order, all in CHOICE_BOX at one size:
+ * The Scenes of each choice, in order (one per figure the choice holds), all in
+ * CHOICE_BOX at one size:
  * - planes and charts in one shared frame (sharedFrame);
  * - shapes and solids at one scale, the largest at which every one fits the box
  *   (each centered), so a figure twice as large in the spec is twice as large on screen;
  * - each padded to the largest scene (a chart's legend or title makes it taller), centered.
- * Null for a choice with no spec, an invalid spec, or a table spec. Every
- * choice is null (each shows its text) when the set has a choiceFrameIssues issue.
+ * Null for a choice with no spec, an invalid spec, or a table; a choice with a figure
+ * that cannot be built is null too (never drawn in part). Every choice is null (each
+ * shows its text) when the set has a choiceFrameIssues issue.
  */
-export function choiceScenes(specs: unknown[]): (Scene | null)[] {
-  if (choiceFrameIssues(specs).length) return specs.map(() => null);
-  const drawn = specs.map(drawnSpec);
+export function choiceScenes(choices: unknown[]): (Scene[] | null)[] {
+  if (choiceFrameIssues(choices).length) return choices.map(() => null);
+  const { specs: drawn, owner } = flatten(choices);
   const valid = drawn.filter((s): s is FigureSpec => s !== null);
   const framed = valid.some((s) => frameOf(s) !== null);
   const frame = framed ? sharedFrame(valid) : null;
@@ -173,8 +193,12 @@ export function choiceScenes(specs: unknown[]): (Scene | null)[] {
   }
   const height = Math.max(0, ...scenes.map((s) => s?.height ?? 0));
   const width = Math.max(0, ...scenes.map((s) => s?.width ?? 0));
-  return distinguish(
+  const padded = distinguish(
     scenes.map((s) => (s ? padScene(s, width, height) : s)),
     own
   );
+  return choices.map((_, c) => {
+    const mine = padded.filter((_, i) => owner[i] === c);
+    return mine.every((s): s is Scene => s !== null) ? mine : null;
+  });
 }

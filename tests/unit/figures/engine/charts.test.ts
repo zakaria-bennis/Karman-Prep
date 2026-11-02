@@ -165,6 +165,72 @@ describe("buildChart", () => {
     expect(bars[0].x + bars[0].width).toBeCloseTo(bars[1].x, 6);
     expect(bars[1].x + bars[1].width).toBeCloseTo(bars[2].x, 6);
     expect(bars[1].height / bars[0].height).toBeCloseTo(2.5, 6);
+    // A paper line on each shared edge, as tall as the shorter bin.
+    const lines = paths(scene, "separator");
+    expect(lines).toHaveLength(2);
+    for (const [k, line] of lines.entries()) {
+      const [a, b] = vertices(line.d);
+      expect(line.role).toBe("paper");
+      expect(a[0]).toBeCloseTo(bars[k + 1].x, 1);
+      expect(b[0]).toBeCloseTo(a[0], 6);
+      const shorter = bars[k].height < bars[k + 1].height ? bars[k] : bars[k + 1];
+      expect(Math.min(a[1], b[1])).toBeCloseTo(shorter.y, 1);
+      expect(Math.max(a[1], b[1])).toBeCloseTo(shorter.y + shorter.height, 1);
+    }
+  });
+
+  it("grouped bars touch with a paper separator, values exact, groups apart", () => {
+    const scene = buildChart(
+      spec({
+        type: "bar",
+        parts: [
+          { kind: "series", id: "a", values: [4, 6] },
+          { kind: "series", id: "b", values: [8, 3] },
+          { kind: "series", id: "c", values: [2, 5] },
+        ],
+        frame: { x: [0, 2], y: [0, 10], step: 1, yStep: 2, categories: ["X", "Y"] },
+      }),
+      BOX
+    );
+    const base = xAxisY(scene);
+    const [a, b, c] = ["a", "b", "c"].map((id) => rects(scene, id));
+    const unit = (a[0].height / 4 + b[0].height / 8) / 2;
+    for (const [bars, values] of [
+      [a, [4, 6]],
+      [b, [8, 3]],
+      [c, [2, 5]],
+    ] as const) {
+      bars.forEach((bar, k) => {
+        expect(bar.y + bar.height).toBeCloseTo(base, 6);
+        expect(bar.height).toBeCloseTo(values[k] * unit, 6);
+        expect(bar.role).toBe("ink");
+      });
+    }
+    for (const k of [0, 1]) {
+      expect(a[k].x + a[k].width).toBeCloseTo(b[k].x, 6);
+      expect(b[k].x + b[k].width).toBeCloseTo(c[k].x, 6);
+    }
+    // The space between the two groups stays.
+    expect(a[1].x - (c[0].x + c[0].width)).toBeGreaterThan(a[0].width);
+    const lines = paths(scene, "separator");
+    expect(lines).toHaveLength(4);
+    for (const line of lines) {
+      expect(line.role).toBe("paper");
+      expect(line.weight).toBe("line");
+    }
+    expect(scene.issues).toEqual([]);
+  });
+
+  it("a lone bar series has no separators: its bars never touch", () => {
+    const scene = buildChart(
+      spec({
+        type: "bar",
+        parts: [{ kind: "series", id: "s1", values: [2, 4, 8] }],
+        frame: { x: [0, 3], y: [0, 10], step: 2, categories: ["A", "B", "C"] },
+      }),
+      BOX
+    );
+    expect(paths(scene, "separator")).toEqual([]);
   });
 
   it("sizes histogram bins from the data's bin gap, not the grid step", () => {

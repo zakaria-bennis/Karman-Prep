@@ -23,9 +23,16 @@ describe("figure theme roles", () => {
 
   it("no figure role is derived from the canvas token", () => {
     const roles =
-      css.match(/--figure-(ink|ink-muted|grid|fill-faint|fill-shade|highlight):[^;]+;/g) ?? [];
-    expect(roles).toHaveLength(6);
+      css.match(/--figure-(ink|ink-muted|grid|fill-faint|fill-shade|highlight|paper):[^;]+;/g) ??
+      [];
+    expect(roles).toHaveLength(7);
     for (const r of roles) expect(r).not.toContain("--k-night");
+  });
+
+  it("--figure-paper is the frame's surface, so a bar separator contrasts with the fills", () => {
+    const decl = css.match(/--figure-paper:\s*([^;]+);/);
+    expect(decl).not.toBeNull();
+    expect(decl![1]).toContain("--k-surface");
   });
 
   it("the roles sit under :root:root, so they outrank the legacy --figure-grid", () => {

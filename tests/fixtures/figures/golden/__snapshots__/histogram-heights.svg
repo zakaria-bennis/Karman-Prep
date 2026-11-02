@@ -100,4 +100,12 @@
 </rect>
 <rect x="470.4" y="250.17" width="113.6" height="107.08" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
 </rect>
+<path d="M129.6 285.86 L129.6 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M243.2 178.78 L243.2 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M356.8 143.08 L356.8 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M470.4 250.17 L470.4 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
 </svg>

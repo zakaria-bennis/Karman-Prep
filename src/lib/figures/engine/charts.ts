@@ -6,9 +6,12 @@
  * - Each `series` part draws as its own seriesKind, else as the spec's type, so
  *   a scatterplot can carry a line of best fit (a `function` part).
  * - Bars rise from 0, one band per category; a lone series fills 40% of its
- *   band, several stand side by side filling 60% with a thin gap, and no bar is
- *   wider than an eighth of the plot (founder review, 2026-10-22/23). Bar fills
- *   are opaque roles, so grid lines never show through a bar.
+ *   band, several stand side by side filling 60%, and no bar is wider than an
+ *   eighth of the plot (founder review, 2026-10-22/23). Bars in a group touch,
+ *   as histogram bins do, and a separator line in the `paper` role (the figure's
+ *   own background) is drawn on every shared edge, so neighbours stay distinct
+ *   in light and dark without relying on fill color (founder, 2026-11-01). Bar
+ *   fills are opaque roles, so grid lines never show through a bar.
  * - Box plots and dot plots sit on a number line with no y-axis or grid.
  * - A title wraps above the plot; with two or more named series a legend
  *   wraps below it. The figure grows taller for both, so the plot keeps its size.
@@ -43,8 +46,6 @@ const BAR_SHARE = 0.4;
 const GROUP_SHARE = 0.6;
 /** No bar is wider than this share of the plot. */
 const MAX_BAR_SHARE = 1 / 8;
-/** Gap between neighbouring bars in a group, as a share of a bar's width. */
-const BAR_GAP_SHARE = 0.15;
 /** Opaque fills, one per series in turn: grid lines never show through. */
 const FILLS: Role[] = ["ink-muted", "ink", "highlight"];
 const BOX_HEIGHT = 40;
@@ -120,17 +121,16 @@ function clippedIssue(s: Series, detail: string): SceneIssue {
   return { code: "clipped", partId: s.id, detail };
 }
 
-function bars(s: Series, c: Ctx): SceneItem[] {
+type Rect = Extract<SceneItem, { t: "rect" }>;
+
+function bars(s: Series, c: Ctx): Rect[] {
   const n = c.frame.categories?.length ?? 1;
   const band = c.m.w / n;
-  const fit =
-    c.count > 1
-      ? (band * GROUP_SHARE) / (c.count + BAR_GAP_SHARE * (c.count - 1))
-      : band * BAR_SHARE;
+  const fit = c.count > 1 ? (band * GROUP_SHARE) / c.count : band * BAR_SHARE;
   const barW = Math.min(fit, c.m.w * MAX_BAR_SHARE);
-  const gap = barW * BAR_GAP_SHARE;
-  const groupW = barW * c.count + gap * (c.count - 1);
-  const items: SceneItem[] = [];
+  // Bars in a group touch: no gap inside a group; the space between groups stays.
+  const groupW = barW * c.count;
+  const items: Rect[] = [];
   s.values.forEach((v, k) => {
     const [i, value] = isPair(v) ? v : [k, v];
     if (!Number.isInteger(i) || i < 0 || i >= n) {
@@ -142,7 +142,7 @@ function bars(s: Series, c: Ctx): SceneItem[] {
     const bottom = c.m.py(Math.max(c.frame.y[0], Math.min(value, 0)));
     items.push({
       t: "rect",
-      x: c.m.px(i + 0.5) - groupW / 2 + (barW + gap) * c.index,
+      x: c.m.px(i + 0.5) - groupW / 2 + barW * c.index,
       y: top,
       width: barW,
       height: bottom - top,
@@ -154,7 +154,7 @@ function bars(s: Series, c: Ctx): SceneItem[] {
   return items;
 }
 
-function histogram(s: Series, c: Ctx): SceneItem[] {
+function histogram(s: Series, c: Ctx): Rect[] {
   const bins = s.values.filter(isPair).sort((a, b) => a[0] - b[0]);
   if (bins.length !== s.values.length) {
     c.issues.push(clippedIssue(s, "a histogram needs [bin start, count] pairs"));
@@ -178,6 +178,34 @@ function histogram(s: Series, c: Ctx): SceneItem[] {
       partId: s.id,
     };
   });
+}
+
+/**
+ * A separator on every edge two bars or bins share: a line in the `paper` role (the
+ * figure's background, which contrasts with every opaque fill in light and dark) down
+ * the part of the edge where both sides are filled. The rects keep their exact size,
+ * so every value reads where it did; the line only parts touching neighbours.
+ */
+export function barSeparators(rects: Rect[]): SceneItem[] {
+  const out: SceneItem[] = [];
+  const sorted = [...rects].sort((a, b) => a.x - b.x);
+  for (const a of sorted) {
+    const right = a.x + a.width;
+    for (const b of sorted) {
+      if (b === a || Math.abs(b.x - right) > 1e-6) continue;
+      const top = Math.max(a.y, b.y);
+      const bottom = Math.min(a.y + a.height, b.y + b.height);
+      if (bottom - top <= 1e-6) continue;
+      out.push({
+        t: "path",
+        d: seg(right, top, right, bottom),
+        role: "paper",
+        weight: "line",
+        partId: "separator",
+      });
+    }
+  }
+  return out;
 }
 
 /** [x, y] points of a line or scatter series, reporting numbers and points off the frame. */
@@ -486,17 +514,21 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
 
   const items: SceneItem[] = [...axes.items];
   const dots: SceneItem[] = [];
+  const filled: Rect[] = [];
   for (const s of series) {
     const kind = kinds.get(s.id)!;
     const same = ofKind(kind);
     const c: Ctx = { m, frame: axes.frame, issues, index: same.indexOf(s), count: same.length };
-    if (kind === "bar") items.push(...bars(s, c));
-    else if (kind === "histogram") items.push(...histogram(s, c));
-    else if (kind === "line") items.push(...line(s, c));
+    if (kind === "bar" || kind === "histogram") {
+      const rects = kind === "bar" ? bars(s, c) : histogram(s, c);
+      filled.push(...rects);
+      items.push(...rects);
+    } else if (kind === "line") items.push(...line(s, c));
     else if (kind === "scatter") dots.push(...scatter(s, c));
     else if (kind === "dot_plot") dots.push(...dotPlot(s, c));
     else items.push(...boxPlot(s, c, names.get(s.id)));
   }
+  items.push(...barSeparators(filled));
   for (const part of spec.parts) {
     if (part.kind === "function") {
       // A second graphed function is dashed, matching its legend swatch.

@@ -3,17 +3,18 @@
 // ============================================================
 // FigureFrame — themed wrapper for question figures
 //
-// A question's figure_spec (a FigureSpec, src/lib/figures/engine) wins over
+// A question's figure_spec (a FigureSpec, or an ordered list of them for a
+// question that prints several figures, src/lib/figures/engine) wins over
 // every older figure field: SpecFigure draws it with the figure engine, which
 // loads lazily (engine-loader.tsx) so quiz pages without a spec figure never
 // download it (AR-33). Until it loads, a client-only mount shows a placeholder
-// the size of the spec's default box. An invalid spec logs one error and the
+// the size of each figure's default box. An invalid spec logs one error and the
 // stored older figure (src or svg) shows instead, or nothing when there is none.
 // Without a spec, StoredFigure draws the older fields (raster or .svg `src`,
 // or a stored `svg`).
 // ============================================================
 
-import { defaultBoxForType, storedSpecType } from "@/lib/figures/engine/spec-types";
+import { defaultBoxForType, storedSpecList, storedSpecType } from "@/lib/figures/engine/spec-types";
 import { cn } from "@/lib/utils";
 import { lazyView } from "./figures/engine-loader";
 import { DrawingPlaceholder, TablePlaceholder, tableRows } from "./figures/placeholders";
@@ -21,8 +22,9 @@ import type { SpecFigureProps } from "./figures/SpecFigure";
 import StoredFigure, { FIGURE_FRAME } from "./figures/StoredFigure";
 
 interface Props {
-  /** The question's figure_spec, unvalidated as stored. When present it is drawn instead of
-   *  `src` and `svg`; when invalid `src` or `svg` is drawn, else nothing. */
+  /** The question's figure_spec (one FigureSpec or a list), unvalidated as stored. When
+   *  present it is drawn instead of `src` and `svg`; when invalid `src` or `svg` is drawn,
+   *  else nothing. */
   spec?: unknown;
   /** Math surfaces: a table spec gets the calculator's table transfer control, as
    *  QuestionTable's `calculator` does. */
@@ -39,8 +41,12 @@ interface Props {
   className?: string;
 }
 
-/** The spec's frame at its default box (a table's rows), the size SpecFigure draws. */
-function SpecPlaceholder({ spec, maxHeightClass, className }: SpecFigureProps) {
+/** One figure's frame at its default box (a table's rows), the size SpecFigure draws. */
+function OnePlaceholder({
+  spec,
+  maxHeightClass,
+  className,
+}: Pick<SpecFigureProps, "spec" | "maxHeightClass" | "className">) {
   const type = storedSpecType(spec);
   if (type === "table") {
     const parts = (spec as { parts?: unknown }).parts;
@@ -61,6 +67,20 @@ function SpecPlaceholder({ spec, maxHeightClass, className }: SpecFigureProps) {
         className={cn("mx-auto w-full max-w-full", maxHeightClass)}
       />
     </figure>
+  );
+}
+
+/** Each figure's placeholder, stacked as SpecFigure stacks a list. */
+function SpecPlaceholder({ spec, maxHeightClass, className }: SpecFigureProps) {
+  const list = storedSpecList(spec);
+  if (list.length <= 1)
+    return <OnePlaceholder spec={list[0]} maxHeightClass={maxHeightClass} className={className} />;
+  return (
+    <div className={cn("my-4 flex flex-col gap-4", className)}>
+      {list.map((one, i) => (
+        <OnePlaceholder key={i} spec={one} maxHeightClass={maxHeightClass} className="my-0" />
+      ))}
+    </div>
   );
 }
 

@@ -43,18 +43,26 @@
 <text x="27" y="45" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">200</text>
 <text x="308.5" y="420.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Winter</text>
 <text x="39" y="55" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit">Days</text>
-<rect x="88.1" y="220.96" width="50.09" height="157.29" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+<rect x="88.1" y="220.96" width="55.1" height="157.29" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
 </rect>
-<rect x="363.6" y="209.13" width="50.09" height="169.13" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+<rect x="363.6" y="209.13" width="55.1" height="169.13" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
 </rect>
-<rect x="145.7" y="48.46" width="50.09" height="329.79" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+<rect x="143.2" y="48.46" width="55.1" height="329.79" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
 </rect>
-<rect x="421.2" y="116.11" width="50.09" height="262.14" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+<rect x="418.7" y="116.11" width="55.1" height="262.14" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
 </rect>
-<rect x="203.31" y="248.02" width="50.09" height="130.23" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
+<rect x="198.3" y="248.02" width="55.1" height="130.23" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
 </rect>
-<rect x="478.81" y="204.05" width="50.09" height="174.2" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
+<rect x="473.8" y="204.05" width="55.1" height="174.2" fill="var(--figure-highlight)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s3">
 </rect>
+<path d="M143.2 220.96 L143.2 378.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M198.3 248.02 L198.3 378.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M418.7 209.13 L418.7 378.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M473.8 204.05 L473.8 378.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
 <text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Days per Winter That Lakes Have Surface Ice</text>
 <rect x="106.5" y="434" width="12" height="12" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
 </rect>

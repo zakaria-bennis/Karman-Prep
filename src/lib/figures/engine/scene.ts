@@ -2,7 +2,15 @@
  * Scene: what a builder produces from a FigureSpec. Role-colored primitives
  * with no DOM and no real colors; FigureView maps roles to theme variables.
  */
-export type Role = "ink" | "ink-muted" | "grid" | "fill-faint" | "fill-shade" | "highlight";
+export type Role =
+  | "ink"
+  | "ink-muted"
+  | "grid"
+  | "fill-faint"
+  | "fill-shade"
+  | "highlight"
+  /** The figure's own background: the separator line between touching bars or bins. */
+  | "paper";
 
 export type Weight = "line" | "grid" | "dashed";
 

@@ -85,9 +85,9 @@ const path = (d: string, partId: string): SceneItem => ({
   partId,
 });
 
-/** Offsets along a segment for `n` repeated marks centered on its midpoint. */
-const spread = (n: number) =>
-  Array.from({ length: n }, (_, k) => (k - (n - 1) / 2) * HOUSE.markGap);
+/** Offsets along a segment for `n` repeated marks `gap` apart, centered on its midpoint. */
+const spread = (n: number, gap: number = HOUSE.markGap) =>
+  Array.from({ length: n }, (_, k) => (k - (n - 1) / 2) * gap);
 
 /** The Scene items for one mark, tagged with the id of the part they mark. */
 export function drawMark(mark: Mark, scene: GeoScene): SceneItem[] {
@@ -122,8 +122,8 @@ export function drawMark(mark: Mark, scene: GeoScene): SceneItem[] {
         const u = unit(sub(e[1], e[0]));
         const nrm: Pt = [-u[1], u[0]];
         const mid = mul(add(e[0], e[1]), 0.5);
-        const h = HOUSE.tickLength / 2;
-        return spread(n).map((o) => {
+        const h = HOUSE.equalTickLength / 2;
+        return spread(n, HOUSE.equalTickGap).map((o) => {
           const c = add(mid, mul(u, o));
           return path(`M${at(add(c, mul(nrm, -h)))} L${at(add(c, mul(nrm, h)))}`, id);
         });

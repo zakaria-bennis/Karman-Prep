@@ -14,7 +14,7 @@ import {
 } from "./transfer-helpers";
 
 const URL = "/?flow=daily&questions=transfer-tables";
-const TABLE_NAME = "Transfer to Calculator: table, 4 rows";
+const TABLE_NAME = "Copy table to calculator"; // TR-92: the one table needs no label
 async function openTables(page: Page) {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(URL);
@@ -49,11 +49,9 @@ const chooser = (page: Page) => page.getByRole("menu");
 test("D-40, TR-25, TR-39, D-17 the fixture question's table lands as x₁, y₁ with every transferred point inside graphpaperBounds", async ({
   page,
 }, info) => {
-  test.skip(info.project.name !== "calculator-chrome", "mouse hover; the tap case follows");
+  test.skip(info.project.name !== "calculator-chrome", "fixed desktop viewport");
   await openTables(page);
-  const table = page.locator("figure table");
-  const b = await box(table);
-  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  // TR-94: the table button is always visible, so one click transfers.
   await page.getByRole("button", { name: TABLE_NAME }).click();
   await expect
     .poll(async () => (await calculator(page))?.rows)
