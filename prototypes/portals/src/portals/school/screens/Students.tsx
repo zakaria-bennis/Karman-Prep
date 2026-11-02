@@ -7,7 +7,7 @@ import { LevelMark } from "@/design-system/marks";
 import { Initials } from "@/portals/tutor/shared";
 import { SchoolShell } from "../shell";
 import { useSchoolData } from "../data";
-import { goScreen, hashParam } from "../nav";
+import { hashParam, hrefFor, setHashParam } from "../nav";
 import { schoolLevelsFor, summaryBand } from "../mock-students";
 import { PracticeSheet } from "../components/MoreSheets";
 import { Block, Lapsed } from "./common";
@@ -16,10 +16,20 @@ import { Block, Lapsed } from "./common";
  * Students: everyone in the teacher's classes (or the whole school for the
  * admin), one row each with their level and this week's questions. The
  * question: who is not practising? That is the fourth filter and the finding.
+ * The filter lives in the link (?tab=), so a reload or a shared link keeps
+ * it; a long list shows its first 40 rows and a link for the rest.
  */
+const PAGE = 40;
+
 export default function Students() {
   const d = useSchoolData();
-  const [tab, setTab] = useState(() => hashParam("tab") ?? "all");
+  const [tab, setTabState] = useState(() => hashParam("tab") ?? "all");
+  const [shownCount, setShownCount] = useState(PAGE);
+  const setTab = (t: string) => {
+    setTabState(t);
+    setShownCount(PAGE);
+    setHashParam("tab", t === "all" ? null : t);
+  };
   const [open, setOpen] = useState(false);
   const idle = d.students.filter((s) => s.questionsWeek === 0);
   const list = d.students
@@ -87,8 +97,23 @@ export default function Students() {
             aside={`${list.length}`}
           >
             <div className="px-4 pb-1">
-              <List>
-                {list.map((s) => (
+              <List
+                total={
+                  list.length > shownCount ? `${shownCount} of ${list.length} students` : undefined
+                }
+                viewAll={
+                  list.length > shownCount ? (
+                    <button
+                      type="button"
+                      onClick={() => setShownCount(list.length)}
+                      className="min-h-tap font-semibold text-accent"
+                    >
+                      Show {list.length - shownCount} more
+                    </button>
+                  ) : undefined
+                }
+              >
+                {list.slice(0, shownCount).map((s) => (
                   <Row
                     key={s.id}
                     title={s.name}
@@ -108,7 +133,7 @@ export default function Students() {
                         <span>{s.questionsWeek} q</span>
                       </span>
                     }
-                    onPress={() => goScreen("student", { id: s.id })}
+                    href={hrefFor("student", { id: s.id })}
                   />
                 ))}
               </List>

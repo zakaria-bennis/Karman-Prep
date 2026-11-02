@@ -11,7 +11,7 @@ import { TextLink } from "./Shell";
 import { PlanLocked } from "./PlanSheet";
 import { BookingSheet, slotLabel, type Slot } from "./Booking";
 import { GuaranteeBlock, TestsBlock } from "./ClassesParts";
-import { SESSIONS, OFFICE_HOURS } from "./mock-schedule";
+import { SESSIONS, OFFICE_HOURS, dayDate } from "./mock-schedule";
 import { hoursFor, hoursOf } from "./mock";
 import type { StudentView } from "./view";
 
@@ -127,7 +127,7 @@ export function Workshops({ v }: { v: StudentView }) {
               title="Office hours"
               sub={{
                 kind: "date",
-                text: `${OFFICE_HOURS.day}, ${OFFICE_HOURS.time}, next ${fmtDate(OFFICE_HOURS.next)}`,
+                text: `Next ${dayDate(OFFICE_HOURS.next)}, ${OFFICE_HOURS.time}`,
               }}
               leading={<Icon name="calendar" size={20} />}
             />

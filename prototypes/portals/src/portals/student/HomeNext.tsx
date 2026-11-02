@@ -10,7 +10,7 @@ import { PLANS } from "@/plans/plans";
 import { PlanLocked } from "./PlanSheet";
 import { SetStrip } from "./SetStrip";
 import { goTo, retry } from "./nav";
-import { nextClassDate, CLASS_TIME, OFFICE_HOURS, SESSIONS } from "./mock-schedule";
+import { nextClassDate, dayDate, CLASS_TIME, OFFICE_HOURS, SESSIONS } from "./mock-schedule";
 import { hoursFor } from "./mock";
 import type { StudentView } from "./view";
 
@@ -20,8 +20,6 @@ import type { StudentView } from "./view";
  * The Daily 10 card carries the set strip, the portal's own mark.
  */
 const dueText = (d: string) => (d === TODAY ? "Due today" : `Due ${fmtDate(d)}`);
-const weekday = (d: string) =>
-  new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" });
 
 export function nextStep(v: StudentView) {
   if (v.firstDay || v.baseline === null)
@@ -171,7 +169,7 @@ export function NextUp({ v }: { v: StudentView }) {
               title="Live class with David"
               sub={{
                 kind: "date",
-                text: `${weekday(nextClass)} ${fmtDate(nextClass)}, ${CLASS_TIME}`,
+                text: `${dayDate(nextClass)}, ${CLASS_TIME}`,
               }}
               leading={<Icon name="classes" size={20} />}
               onPress={() => goTo("classes")}
@@ -193,7 +191,7 @@ export function NextUp({ v }: { v: StudentView }) {
               title="Office hours"
               sub={{
                 kind: "date",
-                text: `${fmtDate(OFFICE_HOURS.next, "long")}, ${OFFICE_HOURS.time}`,
+                text: `${dayDate(OFFICE_HOURS.next)}, ${OFFICE_HOURS.time}`,
               }}
               leading={<Icon name="calendar" size={20} />}
               onPress={() => goTo("classes")}

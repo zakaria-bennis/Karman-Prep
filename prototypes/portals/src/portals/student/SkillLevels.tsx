@@ -100,7 +100,7 @@ export function SkillRow({
           "min-h-12 rounded-card hover:bg-raised/70 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
       )}
     >
-      <span className="text-body sm:truncate">{skill.label}</span>
+      <span className="break-words text-body">{skill.label}</span>
       <span className="row-start-2 w-[132px] sm:row-start-auto sm:w-auto">
         <LevelBar value={skill.now} was={skill.was} size="sm" />
       </span>

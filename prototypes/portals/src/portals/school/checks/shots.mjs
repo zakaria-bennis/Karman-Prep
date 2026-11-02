@@ -7,6 +7,7 @@
 // the dev server must be up on 127.0.0.1:5174. Run from prototypes/portals:
 //   node src/portals/school/checks/shots.mjs [--only overview,keys] [--states long-time] [--devices phone] [--modes dark] [--roles admin]
 import { chromium } from "playwright";
+import { open } from "./open.mjs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -40,7 +41,7 @@ async function shoot(t) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("console", (m) => { if (m.type() === "error" || (m.type() === "warning" && /assert/i.test(m.text()))) errors.push(`${m.type()}: ${m.text().slice(0, 160)}`); });
-  await page.goto(t.url, { waitUntil: "networkidle" });
+  await open(page, t.url);
   await page.waitForTimeout(900);
   const file = path.join(OUT, t.id, `${t.role}-${t.state}-${t.device}-${t.mode}.png`);
   await mkdir(path.dirname(file), { recursive: true });

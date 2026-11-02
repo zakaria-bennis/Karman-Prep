@@ -11,7 +11,7 @@ import { THEMES } from "@/design-system/themes";
 import { Icon } from "@/design-system/icons";
 import { cn } from "@/design-system/cn";
 import { SCHOOL } from "@/mock";
-import { goScreen, type Role, type ScreenId } from "./nav";
+import { goScreen, hrefFor, type Role, type ScreenId } from "./nav";
 import { useSchoolData } from "./data";
 
 /**
@@ -124,14 +124,13 @@ export function SchoolShell({
               {desktop ? (
                 <div className="mb-5 grid gap-2">
                   {back ? (
-                    <button
-                      type="button"
-                      onClick={() => goScreen(back.to)}
+                    <a
+                      href={hrefFor(back.to)}
                       className="inline-flex min-h-tap items-center gap-1 justify-self-start text-dense font-semibold text-accent"
                     >
                       <Icon name="chevronLeft" size={20} />
                       {back.label}
-                    </button>
+                    </a>
                   ) : null}
                   <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
                     <div className="min-w-0 flex-1">
@@ -164,10 +163,8 @@ export function SchoolShell({
             <Row
               title="Seats and plan"
               leading={<Icon name="school" size={20} />}
-              onPress={() => {
-                setSheet(null);
-                goScreen("seats");
-              }}
+              href={hrefFor("seats")}
+              onPress={() => setSheet(null)}
             />
             <Row
               title="Settings"

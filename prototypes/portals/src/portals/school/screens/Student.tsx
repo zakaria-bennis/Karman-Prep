@@ -115,9 +115,7 @@ export default function Student() {
                         .map((l) => (
                           <li key={l.id} className="grid gap-1 py-2">
                             <div className="flex items-baseline justify-between gap-3">
-                              <span className="min-w-0 truncate text-dense" title={l.label}>
-                                {l.label}
-                              </span>
+                              <span className="min-w-0 break-words text-dense">{l.label}</span>
                               <span className="tabular shrink-0 text-dense">
                                 {l.now > 0 ? l.now : <span className="text-muted">-</span>}
                                 {l.now !== l.was ? (

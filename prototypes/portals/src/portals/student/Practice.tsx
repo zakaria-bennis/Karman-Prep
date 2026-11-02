@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Panel } from "@/design-system/glass/Panel";
 import { Row, List } from "@/design-system/components/Row";
 import { ProgressBar } from "@/design-system/components/ProgressBar";
@@ -6,67 +5,30 @@ import { Skeleton } from "@/design-system/components/Skeleton";
 import { ErrorBlock } from "@/design-system/components/Empty";
 import { Icon } from "@/design-system/icons";
 import { PLANS } from "@/plans/plans";
-import { SKILLS, type SkillLevel } from "@/mock";
+import { SKILLS } from "@/mock";
+import { GlassButton } from "@/design-system/glass/GlassButton";
 import { StudentShell, withStudent } from "./Shell";
 import { SkillList } from "./SkillLevels";
-import { QuestionView } from "./QuestionView";
-import { SetDone } from "./SetDone";
-import { setFor } from "./pool";
 import { useStudentView } from "./view";
 import { goTo, retry, useExtra } from "./nav";
-import type { SetResult } from "./session";
+import { useOpenQuizMode } from "./quizModes";
 
 /*
  * Practice by skill: the 39 skills by domain with their levels, pick one, a
  * set. Endless mode and the time trials sit above as two rows. The one
  * question: which skill do I work on? The weakest skills are one filter away.
+ * The set runs on the real quiz engine in the quiz modes prototype
+ * (quizModes.ts), at the skill's domain.
  */
 const USED = 73;
 
 function Practice() {
   const v = useStudentView();
-  const preset = useExtra("skill");
-  const [skill, setSkill] = useState<SkillLevel | null>(() =>
-    preset ? (v.levels.find((s) => s.id === preset) ?? null) : null
-  );
-  const [result, setResult] = useState<SetResult | null>(null);
+  const presetId = useExtra("skill");
+  const open = useOpenQuizMode();
+  const preset = v.levels.find((s) => s.id === presetId) ?? null;
   const plan = PLANS[v.plan];
 
-  if (result)
-    return (
-      <StudentShell screen="practice" title="Practice" back={() => setResult(null)}>
-        <SetDone
-          title={`${skill?.label ?? "Practice"} set finished`}
-          result={result}
-          lines={[
-            result.total - result.right > 0 && v.has("daily10")
-              ? `Your ${result.total - result.right} ${result.total - result.right === 1 ? "miss comes" : "misses come"} back in Your Daily 10 after 2, 7 and 21 days.`
-              : "Every answer moves your skill levels.",
-          ]}
-          primary={{
-            label: "Practise another skill",
-            onClick: () => {
-              setResult(null);
-              setSkill(null);
-            },
-          }}
-          secondary={{ label: "Home", onClick: () => goTo("home") }}
-        />
-      </StudentShell>
-    );
-  if (skill)
-    return (
-      <QuestionView
-        screen="practice"
-        title={skill.label}
-        mode="practice"
-        questions={setFor(skill.id)}
-        clock={{ kind: "elapsed" }}
-        tutor={v.tutor}
-        onExit={() => setSkill(null)}
-        onFinish={setResult}
-      />
-    );
   return (
     <StudentShell screen="practice" title="Practice">
       <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
@@ -114,7 +76,18 @@ function Practice() {
                   first set.
                 </p>
               ) : null}
-              <SkillList levels={v.levels} onPick={setSkill} />
+              {preset ? (
+                <div className="flex flex-wrap items-center gap-4 pb-4">
+                  <GlassButton
+                    variant="primary"
+                    className="k-sheen"
+                    onClick={() => open("skill", preset.domain)}
+                  >
+                    Practise {preset.label}
+                  </GlassButton>
+                </div>
+              ) : null}
+              <SkillList levels={v.levels} onPick={(s) => open("skill", s.domain)} />
             </>
           )}
         </Panel>

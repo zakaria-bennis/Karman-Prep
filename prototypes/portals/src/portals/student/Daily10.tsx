@@ -1,24 +1,25 @@
 import { Panel } from "@/design-system/glass/Panel";
 import { Skeleton } from "@/design-system/components/Skeleton";
 import { ErrorBlock } from "@/design-system/components/Empty";
-import { QUESTIONS } from "@/mock";
+import { GlassButton } from "@/design-system/glass/GlassButton";
 import { StudentShell, withStudent } from "./Shell";
 import { PlanLocked } from "./PlanSheet";
 import { SetStrip } from "./SetStrip";
 import { Row, List } from "@/design-system/components/Row";
 import { Icon } from "@/design-system/icons";
-import { QuestionView } from "./QuestionView";
 import { useStudentView } from "./view";
-import { goTo, hrefToPortal, retry } from "./nav";
+import { goTo, retry } from "./nav";
+import { useOpenQuizMode } from "./quizModes";
 
 /*
- * Your Daily 10: ten questions, straight in (Hick: nothing to choose). The
- * finish hands off to the end screen under the daily10 portal, which owns the
- * payout, the companion and the proud moment. The predicted score is never
- * shown here.
+ * Your Daily 10: ten questions, one tap (Hick: nothing to choose). The
+ * questions run on the real quiz engine in the quiz modes prototype
+ * (quizModes.ts), whose ending links to the end screen under the daily10
+ * portal. The predicted score is never shown here.
  */
 function Daily10() {
   const v = useStudentView();
+  const open = useOpenQuizMode();
   if (v.loading || v.error || !v.has("daily10"))
     return (
       <StudentShell screen="daily10" title="Your Daily 10" back={() => goTo("home")}>
@@ -73,18 +74,20 @@ function Daily10() {
       </StudentShell>
     );
   return (
-    <QuestionView
-      screen="daily10"
-      title="Your Daily 10"
-      mode="daily10"
-      questions={QUESTIONS}
-      clock={{ kind: "elapsed" }}
-      tutor={v.tutor}
-      onExit={() => goTo("home")}
-      onFinish={() => {
-        location.hash = hrefToPortal("daily10", "end");
-      }}
-    />
+    <StudentShell screen="daily10" title="Your Daily 10" back={() => goTo("home")}>
+      <Panel className="mx-auto grid max-w-[560px] gap-4 p-5">
+        <SetStrip cells={Array(10).fill("todo")} />
+        <p className="text-body">
+          Ten questions a day, picked from your misses and your weakest skills. Every miss comes
+          back after 2, 7 and 21 days.
+        </p>
+        <div>
+          <GlassButton variant="primary" className="k-sheen" onClick={() => open("daily10")}>
+            Start Your Daily 10
+          </GlassButton>
+        </div>
+      </Panel>
+    </StudentShell>
   );
 }
 

@@ -159,7 +159,8 @@ function TestReview() {
                   {g.misses.map((m) => (
                     <Row
                       key={`${m.section}${m.module}${m.position}`}
-                      title={`${m.section}, module ${m.module}, question ${m.position}`}
+                      // The skill heading above already names the section (each skill sits in one).
+                      title={`Module ${m.module}, question ${m.position}`}
                       onPress={() => setOpen(m)}
                     />
                   ))}

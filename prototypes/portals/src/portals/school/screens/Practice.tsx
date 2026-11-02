@@ -24,6 +24,23 @@ export function didIt(p: PracticeRow, s: SchoolStudent): boolean {
 }
 export const doneCount = (p: PracticeRow, students: SchoolStudent[]) =>
   students.filter((s) => didIt(p, s)).length;
+/**
+ * One rule for an assignment's line wherever it shows (here and on a class):
+ * its due date and who has done it, in the negative tone once the date has
+ * passed and someone has not.
+ */
+export function doneText(p: PracticeRow, students: SchoolStudent[]) {
+  const done = doneCount(p, students);
+  return done === students.length ? "everyone done" : `${done} of ${students.length} done`;
+}
+export function dueLine(p: PracticeRow, students: SchoolStudent[], today: string) {
+  const status = doneText(p, students);
+  return {
+    kind: "due" as const,
+    text: `Due ${fmtDate(p.due)} · ${status}`,
+    tone: p.due < today && status !== "everyone done" ? ("negative" as const) : ("muted" as const),
+  };
+}
 
 export default function Practice() {
   const d = useSchoolData();
@@ -33,34 +50,23 @@ export default function Practice() {
     .filter((p) => p.due >= d.today)
     .sort((a, b) => a.due.localeCompare(b.due));
   const past = d.practice.filter((p) => p.due < d.today).sort((a, b) => b.due.localeCompare(a.due));
-  const status = (p: PracticeRow) => {
-    const list = d.studentsIn(p.classId);
-    const done = doneCount(p, list);
-    return done === list.length ? "everyone done" : `${done} of ${list.length} done`;
-  };
+  const status = (p: PracticeRow) => doneText(p, d.studentsIn(p.classId));
   const shown = d.practice.find((p) => p.id === chosen) ?? soon[0] ?? past[0] ?? null;
   const finding = !d.practice.length
     ? d.classes.length
       ? "Nothing assigned yet. Practice goes to a class: a skill, a due date and ten to twenty questions."
       : "Practice is assigned by class. Your classes appear once the school admin adds you to one."
     : `${d.practice.length} assignments out.${soon[0] ? ` ${soon[0].title}, due ${fmtDate(soon[0].due)}: ${status(soon[0])}.` : ""}`;
-  const row = (p: PracticeRow) => {
-    const late = p.due < d.today && !status(p).startsWith("everyone");
-    return (
-      <Row
-        key={p.id}
-        title={`${p.title}, ${d.classById(p.classId)?.name}`}
-        sub={{
-          kind: "due",
-          text: `Due ${fmtDate(p.due)} · ${status(p)}`,
-          tone: late ? "negative" : "muted",
-        }}
-        trailing={`${p.questions} q`}
-        selected={shown?.id === p.id}
-        onPress={() => setChosen(p.id)}
-      />
-    );
-  };
+  const row = (p: PracticeRow) => (
+    <Row
+      key={p.id}
+      title={`${p.title}, ${d.classById(p.classId)?.name}`}
+      sub={dueLine(p, d.studentsIn(p.classId), d.today)}
+      trailing={`${p.questions} q`}
+      selected={shown?.id === p.id}
+      onPress={() => setChosen(p.id)}
+    />
+  );
   const people = shown
     ? d
         .studentsIn(shown.classId)

@@ -3,7 +3,11 @@
  * homework, the chat's last lines, office hours and the next live class.
  * Demo data beside src/mock, never a real student.
  */
-import { TODAY, addDays, COHORTS, type DueItem } from "@/mock";
+import { TODAY, addDays, fmtDate, COHORTS, type DueItem } from "@/mock";
+
+/** A date as a short weekday and day, "Sun Nov 1", short enough for a row's second line at 375 wide. */
+export const dayDate = (d: string) =>
+  `${new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" })} ${fmtDate(d)}`;
 
 /** Private sessions: seven done, the next one unbooked. Hours are one per session. */
 export interface Session {

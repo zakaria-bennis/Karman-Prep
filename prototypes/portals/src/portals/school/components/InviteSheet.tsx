@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import { GlassButton } from "@/design-system/glass/GlassButton";
 import { GlassSegmented } from "@/design-system/glass/GlassSegmented";
 import { Sheet } from "@/design-system/components/Sheet";
@@ -9,7 +9,7 @@ import { SCHOOL, fmtDate } from "@/mock";
 import { Initials } from "@/portals/tutor/shared";
 import type { Staff } from "../mock";
 import { inviteTeacher } from "../store";
-import { field } from "../screens/common";
+import { FieldError, field, invalid } from "../screens/common";
 
 /*
  * InviteSheet: add a teacher or another admin. Ported from Team Invite Sheet
@@ -34,11 +34,29 @@ export function InviteSheet({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"teacher" | "admin">("teacher");
+  const [errs, setErrs] = useState<{ name?: string; email?: string }>({});
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const nameErr = useId();
+  const emailErr = useId();
+  const close = () => {
+    setErrs({});
+    onClose();
+  };
   const send = () => {
     const n = name.trim();
     const e = email.trim();
-    if (!n || !e) {
-      toast.push({ title: "A name and a school email are needed", kind: "error" });
+    const found = {
+      name: n ? undefined : "Write the teacher's name.",
+      email: !e
+        ? "Add their school email; they sign in with it."
+        : /^\S+@\S+\.\S+$/.test(e)
+          ? undefined
+          : "Write the whole email, like name@school.example.",
+    };
+    if (found.name || found.email) {
+      setErrs(found);
+      (found.name ? nameRef : emailRef).current?.focus();
       return;
     }
     const id = `t${Date.now()}`;
@@ -61,33 +79,49 @@ export function InviteSheet({
     });
     setName("");
     setEmail("");
-    onClose();
+    close();
   };
   return (
-    <Sheet open={open} onClose={onClose} title="Add a teacher">
+    <Sheet open={open} onClose={close} title="Add a teacher">
       <div className="grid gap-4">
-        <label className="grid gap-1.5 text-dense font-medium">
-          Name
-          <input
-            className={field}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ms. Rivera"
-            autoComplete="off"
-          />
-        </label>
-        <label className="grid gap-1.5 text-dense font-medium">
-          School email
-          <input
-            className={field}
-            type="email"
-            spellCheck={false}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@school.example"
-            autoComplete="off"
-          />
-        </label>
+        <div className="grid gap-1.5">
+          <label className="grid gap-1.5 text-dense font-medium">
+            Name
+            <input
+              ref={nameRef}
+              className={field}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setErrs((x) => ({ ...x, name: undefined }));
+              }}
+              placeholder="Ms. Rivera"
+              autoComplete="off"
+              {...invalid(nameErr, errs.name)}
+            />
+          </label>
+          <FieldError id={nameErr} message={errs.name} />
+        </div>
+        <div className="grid gap-1.5">
+          <label className="grid gap-1.5 text-dense font-medium">
+            School email
+            <input
+              ref={emailRef}
+              className={field}
+              type="email"
+              spellCheck={false}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrs((x) => ({ ...x, email: undefined }));
+              }}
+              placeholder="name@school.example"
+              autoComplete="off"
+              {...invalid(emailErr, errs.email)}
+            />
+          </label>
+          <FieldError id={emailErr} message={errs.email} />
+        </div>
         <div className="grid gap-1.5">
           <p className="text-dense font-medium">Role</p>
           <GlassSegmented
@@ -119,7 +153,7 @@ export function InviteSheet({
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-body font-medium">{t.name}</span>
                     <span className="block truncate text-dense text-muted">
-                      Invited {t.invited ? fmtDate(t.invited) : ""}, not signed in yet
+                      Invited {fmtDate(t.invited ?? today)}
                     </span>
                   </span>
                   <Pill>{t.role === "admin" ? "Admin" : "Teacher"}</Pill>

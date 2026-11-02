@@ -9,7 +9,9 @@ import { ProgressBar } from "@/design-system/components/ProgressBar";
  * through and the current one outlined, the "n of m" with a bar. Its
  * numbered ids, Tabler check icon and help card were left out; the check
  * draws itself on the settle easing and the current step carries the
- * screen's one action beside it. Done steps are facts, not clicks.
+ * screen's one action beside it. Done steps are facts, not clicks. Under
+ * reduced motion the check is whole on arrival and the bar's fill lands
+ * without its width transition (checks/reduced-motion.mjs proves both).
  */
 export interface SetupStep {
   id: string;
@@ -17,7 +19,8 @@ export interface SetupStep {
   /** Only a state (done, or waiting on someone), never a subtitle. */
   detail?: string;
   done: boolean;
-  action?: { label: string; onClick(): void };
+  /** A step that opens a screen is a link (href); one that opens a sheet is a button. */
+  action?: { label: string; onClick?(): void; href?: string };
 }
 
 const CHECK = "M5 12.5L10 17.5L19 7.5";
@@ -27,7 +30,7 @@ export function SetupSteps({ steps, className }: { steps: SetupStep[]; className
   const done = steps.filter((s) => s.done).length;
   const current = steps.find((s) => !s.done);
   return (
-    <div className={cn("grid gap-3", className)}>
+    <div className={cn("grid gap-3 motion-reduce:[&_*]:transition-none", className)}>
       <ProgressBar value={done} max={steps.length} label={`${done} of ${steps.length} done`} />
       <ol className="grid gap-2">
         {steps.map((s) => {
@@ -80,7 +83,14 @@ export function SetupSteps({ steps, className }: { steps: SetupStep[]; className
                 </span>
                 {s.detail ? <span className="block text-dense text-muted">{s.detail}</span> : null}
               </span>
-              {!s.done && s.action ? (
+              {!s.done && s.action?.href ? (
+                <a
+                  href={s.action.href}
+                  className="inline-flex min-h-tap shrink-0 items-center self-center text-dense font-semibold text-accent"
+                >
+                  {s.action.label}
+                </a>
+              ) : !s.done && s.action ? (
                 <button
                   type="button"
                   onClick={s.action.onClick}

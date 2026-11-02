@@ -16,8 +16,6 @@ export interface RankItem {
   label: string;
   value: number;
   valueLabel?: string;
-  /** Only for a date or a state (rule 51). */
-  sub?: string;
   highlight?: boolean;
   tone?: "accent" | "negative";
 }
@@ -27,12 +25,15 @@ export function RankBars({
   max,
   className,
   onPress,
+  href,
   labelWidth,
 }: {
   items: RankItem[];
   max?: number;
   className?: string;
   onPress?(id: string): void;
+  /** A row that opens a screen is a link (modifier-click and middle-click work); onPress is for a sheet. */
+  href?(id: string): string | undefined;
   /** The label column, as a CSS length; 9rem by default. */
   labelWidth?: string;
 }) {
@@ -45,30 +46,32 @@ export function RankBars({
     >
       {items.map((it, i) => {
         const w = Math.max(0, Math.min(100, (it.value / top) * 100));
-        const Tag = onPress ? "button" : "div";
+        const link = href?.(it.id);
+        const Tag = link ? "a" : onPress ? "button" : "div";
         return (
           <li key={it.id}>
             <Tag
-              {...(onPress ? { type: "button", onClick: () => onPress(it.id) } : {})}
+              {...(link
+                ? { href: link }
+                : onPress
+                  ? { type: "button", onClick: () => onPress(it.id) }
+                  : {})}
               className={cn(
                 "grid w-full grid-cols-[minmax(0,var(--rank-label,9rem))_minmax(0,1fr)_4.5rem] items-center gap-3 text-left",
-                onPress &&
+                Tag !== "div" &&
                   "min-h-tap rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               )}
             >
               <span className="min-w-0">
+                {/* The label wraps rather than truncates: a skill name cut short is a different skill. */}
                 <span
                   className={cn(
-                    "block truncate text-dense",
+                    "block break-words text-dense",
                     it.highlight ? "font-semibold" : "font-medium"
                   )}
-                  title={it.label}
                 >
                   {it.label}
                 </span>
-                {it.sub ? (
-                  <span className="block truncate text-small text-muted">{it.sub}</span>
-                ) : null}
               </span>
               <span className="bg-text/8 h-3 overflow-hidden rounded-r-chip" aria-hidden="true">
                 <motion.span

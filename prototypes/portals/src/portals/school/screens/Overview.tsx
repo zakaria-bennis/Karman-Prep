@@ -6,13 +6,14 @@ import { Initials } from "@/portals/tutor/shared";
 import { SCHOOL, fmtDate } from "@/mock";
 import { SchoolShell } from "../shell";
 import { useSchoolData } from "../data";
-import { goScreen } from "../nav";
+import { goScreen, hrefFor } from "../nav";
 import { KeysBlock, LedgerBlock, PilotBlock, TeachersBlock } from "../components/OverviewBlocks";
 import { RankBars, type RankItem } from "../components/RankBars";
 import { SetupSteps } from "../components/SetupSteps";
+import { Photo } from "../components/Photo";
 import { ClassSheet } from "../components/Sheets";
 import { PlaceSheet } from "../components/PlaceSheet";
-import { Block, Columns, Kpis, Lapsed, fullDate, pct } from "./common";
+import { Block, Columns, Kpis, Lapsed, fullDate, listOf, pct } from "./common";
 
 /**
  * Overview, the admin's home. The question: is the school using its seats,
@@ -44,7 +45,7 @@ export default function Overview() {
   const finding = d.firstDay
     ? `You set ${SCHOOL.name} up this morning: ${d.licence.seats} seats in the founding pilot, free until ${fullDate(d.licence.ends)}. Add a class first; students join with its key.`
     : d.setup
-      ? `Classes and keys are ready. No student has used a key yet; the Period 3 and Period 6 keys were issued ${fmtDate(d.keys[0]?.issued ?? d.today)}.`
+      ? `Classes and keys are ready. No student has used a key yet; the ${listOf(keysInUse.map((k) => k.label))} ${keysInUse.length === 1 ? "key was" : "keys were"} issued ${fmtDate(keysInUse[0]?.issued ?? d.today)}.`
       : d.ended
         ? `The year ended ${fmtDate(d.licence.ends)} with ${d.students.length} of ${d.seats} seats used and ${yearQuestions.toLocaleString("en-US")} questions answered. The renewal quote went out ${fmtDate(d.licence.renewalQuote)}.`
         : `${d.week.active} of ${d.students.length} students practised this week. ${topLine} The ${d.unassigned.length} with a seat and no class answered ${per(d.unassigned)} questions each; those in a class, ${per(inClass)}.`;
@@ -66,24 +67,21 @@ export default function Overview() {
     </GlassButton>
   ) : null;
 
+  // Adding a class issues its seat key with it, so the two are one step.
   const steps = [
     {
       id: "class",
-      label: "Add a class",
-      done: d.classes.length > 0,
-      action: { label: "Add", onClick: () => setSheet("class") },
-    },
-    {
-      id: "key",
-      label: "Issue a seat key",
-      done: d.keys.length > 0,
-      action: { label: "Issue", onClick: () => goScreen("keys") },
+      label: "Add a class and its seat key",
+      done: d.classes.length > 0 && d.keys.length > 0,
+      action: d.classes.length
+        ? { label: "Issue", href: hrefFor("keys") }
+        : { label: "Add", onClick: () => setSheet("class") },
     },
     {
       id: "teacher",
       label: "Add a teacher",
       done: d.teachers.length > 0,
-      action: { label: "Add", onClick: () => goScreen("teachers") },
+      action: { label: "Add", href: hrefFor("teachers") },
     },
     {
       id: "students",
@@ -127,14 +125,23 @@ export default function Overview() {
         {d.firstDay || d.setup ? (
           <Columns
             main={
-              <Block
-                title={`Set up ${SCHOOL.name}`}
-                loading={d.loading}
-                error={d.error}
-                what="the setup"
-              >
-                <SetupSteps steps={steps} className="pt-1" />
-              </Block>
+              <>
+                <Block
+                  title={`Set up ${SCHOOL.name}`}
+                  loading={d.loading}
+                  error={d.error}
+                  what="the setup"
+                >
+                  <SetupSteps steps={steps} className="pt-1" />
+                </Block>
+                {/* The setup mornings only: the room the seats are for. Under the steps, so the steps lead. */}
+                <Photo
+                  id="p-school-class"
+                  alt="A high-school classroom in morning light: students work on laptops at their desks while a teacher leans in to help one of them."
+                  sizes="(min-width: 1100px) 640px, (min-width: 700px) calc(100vw - 112px), calc(100vw - 32px)"
+                  lazy
+                />
+              </>
             }
             side={
               <>
@@ -214,9 +221,8 @@ export default function Overview() {
                   <RankBars
                     items={classRows}
                     className="pt-2"
-                    onPress={(id) =>
-                      id === "none" ? setSheet("place") : goScreen("class", { id })
-                    }
+                    href={(id) => (id === "none" ? undefined : hrefFor("class", { id }))}
+                    onPress={() => setSheet("place")}
                   />
                 </Block>
                 {!d.ended && d.students.length ? (
@@ -232,13 +238,12 @@ export default function Overview() {
                           total={idle.length > 4 ? `${idle.length} students` : undefined}
                           viewAll={
                             idle.length > 4 ? (
-                              <button
-                                type="button"
-                                onClick={() => goScreen("students", { tab: "idle" })}
-                                className="min-h-tap font-semibold text-accent"
+                              <a
+                                href={hrefFor("students", { tab: "idle" })}
+                                className="inline-flex min-h-tap items-center font-semibold text-accent"
                               >
                                 View all
-                              </button>
+                              </a>
                             ) : undefined
                           }
                         >
@@ -253,7 +258,7 @@ export default function Overview() {
                                   ? `${d.classById(s.classId)?.name ?? "No class"} · last active ${fmtDate(s.lastActive)}`
                                   : `${d.classById(s.classId)?.name ?? "No class"} · never practised`,
                               }}
-                              onPress={() => goScreen("student", { id: s.id })}
+                              href={hrefFor("student", { id: s.id })}
                             />
                           ))}
                         </List>

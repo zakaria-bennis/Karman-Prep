@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import { GlassButton } from "@/design-system/glass/GlassButton";
 import { GlassSegmented } from "@/design-system/glass/GlassSegmented";
 import { GlassToggle } from "@/design-system/glass/GlassToggle";
@@ -7,7 +7,7 @@ import { useToast } from "@/design-system/components/Toast";
 import { Icon } from "@/design-system/icons";
 import type { SchoolClass, Staff } from "../mock";
 import { addClass, issueKey, makeCode } from "../store";
-import { field } from "../screens/common";
+import { FieldError, field, invalid } from "../screens/common";
 
 /**
  * The admin's and the teacher's forms, each a sheet asking three or four
@@ -34,14 +34,18 @@ export function ClassSheet({
   const [name, setName] = useState("");
   const [teacher, setTeacher] = useState(teachers[0]?.id ?? me.id);
   const [withKey, setWithKey] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const errId = useId();
+  const close = () => {
+    setErr(null);
+    onClose();
+  };
   const create = () => {
     const n = name.trim();
     if (!n) {
-      toast.push({
-        title: "Give the class a name",
-        detail: "Period 4, or AP Lang, or Ms. Rivera's SAT prep.",
-        kind: "error",
-      });
+      setErr("Give the class a name, like Period 4 or AP Lang.");
+      nameRef.current?.focus();
       return;
     }
     const id = `c${Date.now()}`;
@@ -70,22 +74,30 @@ export function ClassSheet({
       kind: "success",
     });
     setName("");
-    onClose();
+    close();
     onCreated?.(c);
   };
   return (
-    <Sheet open={open} onClose={onClose} title="Add a class">
+    <Sheet open={open} onClose={close} title="Add a class">
       <div className="grid gap-4">
-        <label className="grid gap-1.5 text-dense font-medium">
-          Class name
-          <input
-            className={field}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Period 4"
-            autoComplete="off"
-          />
-        </label>
+        <div className="grid gap-1.5">
+          <label className="grid gap-1.5 text-dense font-medium">
+            Class name
+            <input
+              ref={nameRef}
+              className={field}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setErr(null);
+              }}
+              placeholder="Period 4"
+              autoComplete="off"
+              {...invalid(errId, err)}
+            />
+          </label>
+          <FieldError id={errId} message={err} />
+        </div>
         <label className="grid gap-1.5 text-dense font-medium">
           Teacher
           <select className={field} value={teacher} onChange={(e) => setTeacher(e.target.value)}>
@@ -136,15 +148,22 @@ export function KeySheet({
   preset?: string;
   onIssued(id: string): void;
 }) {
-  const toast = useToast();
   const [scope, setScope] = useState<"class" | "student" | "any">("class");
   const [classId, setClassId] = useState(preset ?? classes[0]?.id ?? "");
   const [student, setStudent] = useState("");
   const [uses, setUses] = useState("32");
+  const [err, setErr] = useState<string | null>(null);
+  const studentRef = useRef<HTMLInputElement>(null);
+  const errId = useId();
+  const close = () => {
+    setErr(null);
+    onClose();
+  };
   const issue = () => {
     const cls = classes.find((c) => c.id === classId) ?? null;
     if (scope === "student" && !student.trim()) {
-      toast.push({ title: "Name the student the key is for", kind: "error" });
+      setErr("Name the student the key is for.");
+      studentRef.current?.focus();
       return;
     }
     const id = `k${Date.now()}`;
@@ -174,11 +193,11 @@ export function KeySheet({
       revoked: null,
     });
     onIssued(id);
-    onClose();
+    close();
     setStudent("");
   };
   return (
-    <Sheet open={open} onClose={onClose} title="Issue a seat key">
+    <Sheet open={open} onClose={close} title="Issue a seat key">
       <div className="grid gap-4">
         <div className="grid gap-1.5">
           <p className="text-dense font-medium">Who it is for</p>
@@ -195,16 +214,24 @@ export function KeySheet({
           />
         </div>
         {scope === "student" ? (
-          <label className="grid gap-1.5 text-dense font-medium">
-            Student
-            <input
-              className={field}
-              value={student}
-              onChange={(e) => setStudent(e.target.value)}
-              placeholder="First name"
-              autoComplete="off"
-            />
-          </label>
+          <div className="grid gap-1.5">
+            <label className="grid gap-1.5 text-dense font-medium">
+              Student
+              <input
+                ref={studentRef}
+                className={field}
+                value={student}
+                onChange={(e) => {
+                  setStudent(e.target.value);
+                  setErr(null);
+                }}
+                placeholder="First name"
+                autoComplete="off"
+                {...invalid(errId, err)}
+              />
+            </label>
+            <FieldError id={errId} message={err} />
+          </div>
         ) : null}
         {scope !== "any" ? (
           <label className="grid gap-1.5 text-dense font-medium">

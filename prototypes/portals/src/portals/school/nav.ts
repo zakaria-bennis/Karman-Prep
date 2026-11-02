@@ -40,6 +40,23 @@ export function goScreen(id: ScreenId, params: Record<string, string> = {}) {
   location.hash = hrefFor(id, params);
 }
 
+/**
+ * Writes one query into the hash in place (a filter, a tab), so a reload or a
+ * shared link opens the same view, without adding a Back step for each tap.
+ */
+export function setHashParam(key: string, value: string | null) {
+  const [path, query = ""] = location.hash.split("?");
+  const q = new URLSearchParams(query);
+  if (value === null) q.delete(key);
+  else q.set(key, value);
+  const s = q.toString();
+  history.replaceState(
+    history.state,
+    "",
+    `${location.pathname}${location.search}${path}${s ? `?${s}` : ""}`
+  );
+}
+
 export function currentScreen(): ScreenId {
   const s = hashParam("screen") ?? parseHash().path[2] ?? "overview";
   return (SCREENS as readonly string[]).includes(s) ? (s as ScreenId) : "overview";

@@ -1,75 +1,27 @@
-import { useState } from "react";
 import { Panel } from "@/design-system/glass/Panel";
-import { GlassButton } from "@/design-system/glass/GlassButton";
 import { Skeleton } from "@/design-system/components/Skeleton";
 import { ErrorBlock } from "@/design-system/components/Empty";
 import { StudentShell, withStudent } from "./Shell";
-import { QuestionView } from "./QuestionView";
-import { SetDone } from "./SetDone";
-import { usePickerSession, DEMO_HISTORY } from "./pool";
 import { Row, List } from "@/design-system/components/Row";
 import { SkillRow } from "./SkillLevels";
 import { useStudentView } from "./view";
 import { goTo, retry } from "./nav";
-import type { SetResult } from "./session";
+import { useOpenQuizMode } from "./quizModes";
 
 /*
- * Endless mode: one session that keeps going. Every next question comes from
- * the picker module (picker.ts), which reads the last answer, this session,
- * the whole history and the weak skills, aims at about three right in four
- * and brings misses back on a spaced schedule. The student only ever sees one
- * question and one button (Tesler: the complexity is in the picker).
+ * Endless mode: one session that keeps going, Math or Reading and Writing.
+ * The session runs on the real quiz engine in the quiz modes prototype
+ * (quizModes.ts), whose adaptive picker chooses every next question. The
+ * student only ever sees one question and one button (Tesler: the complexity
+ * is in the picker).
  */
+/** Misses from 2 and 7 days ago in the demo history. */
+const MISSES_DUE = 2;
+
 function Endless() {
   const v = useStudentView();
-  const picker = usePickerSession(v.levels, v.quiet);
-  const [phase, setPhase] = useState<"intro" | "session" | "done">("intro");
-  const [result, setResult] = useState<SetResult | null>(null);
+  const open = useOpenQuizMode();
 
-  if (phase === "session")
-    return (
-      <QuestionView
-        screen="endless"
-        title="Endless mode"
-        mode="endless"
-        questions={[]}
-        nextQuestion={picker.next}
-        clock={{ kind: "elapsed" }}
-        tutor={v.tutor}
-        endable
-        onExit={() => setPhase("intro")}
-        onFinish={(r) => {
-          setResult(r);
-          setPhase("done");
-        }}
-        intro={() =>
-          picker.picks.length ? (
-            <p className="pt-2 text-dense text-muted">
-              Why this one: {picker.picks[picker.picks.length - 1].reason}.
-            </p>
-          ) : null
-        }
-      />
-    );
-  if (phase === "done" && result) {
-    const skills = new Set(result.answers.map((a) => a.skill)).size;
-    return (
-      <StudentShell screen="endless" title="Endless mode" back={() => setPhase("intro")}>
-        <SetDone
-          title="Session over"
-          result={result}
-          stats={[{ label: "Skills", value: String(skills) }]}
-          lines={[
-            result.total - result.right > 0 && v.has("daily10")
-              ? "Your misses come back in Your Daily 10 after 2, 7 and 21 days."
-              : "Every answer moves your skill levels.",
-          ]}
-          primary={{ label: "Another session", onClick: () => setPhase("session") }}
-          secondary={{ label: "Home", onClick: () => goTo("home") }}
-        />
-      </StudentShell>
-    );
-  }
   return (
     <StudentShell screen="endless" title="Endless mode" back={() => goTo("practice")}>
       <Panel className="mx-auto grid max-w-[560px] gap-4 p-5">
@@ -87,10 +39,7 @@ function Endless() {
               session, your whole history and your weakest skills, aiming at about three right in
               four.
             </p>
-            <p className="text-dense text-muted">
-              A miss comes back after 2, 7 and 21 days. Nothing repeats within a session or two
-              weeks. Three right in a row steps the difficulty up; two misses step it down.
-            </p>
+            <p className="text-dense text-muted">A miss comes back after 2, 7 and 21 days.</p>
             <div>
               <h2 className="pb-1 text-dense text-muted">Weakest skills right now</h2>
               {v.quiet ? (
@@ -108,19 +57,14 @@ function Endless() {
               )}
             </div>
             <List>
-              <Row
-                title="Misses due back today"
-                trailing={String(v.quiet ? 0 : DEMO_HISTORY.length)}
-              />
+              <Row title="Misses due back today" trailing={String(v.quiet ? 0 : MISSES_DUE)} />
             </List>
             <div>
-              <GlassButton
-                variant="primary"
-                className="k-sheen"
-                onClick={() => setPhase("session")}
-              >
-                Start endless mode
-              </GlassButton>
+              <h2 className="pb-1 text-dense text-muted">Start a session</h2>
+              <List>
+                <Row title="Math" onPress={() => open("endless-math")} />
+                <Row title="Reading and Writing" onPress={() => open("endless-rw")} />
+              </List>
             </div>
           </>
         )}

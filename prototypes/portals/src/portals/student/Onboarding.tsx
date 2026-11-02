@@ -127,10 +127,23 @@ function Onboarding() {
       title: "Your score report",
       content: (
         <div className="grid gap-4">
-          <p className="text-body">
-            A photo or screenshot of your last SAT or PSAT score report. We read the scores from the
-            picture; you never type them.
-          </p>
+          {/* How to take it: an approved still (assets/manifest.json p-report-photo), whole at 4:5, beside the line it shows. */}
+          <div className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[128px_minmax(0,1fr)]">
+            <img
+              src={`${import.meta.env.BASE_URL}photos/p-report-photo-800.webp`}
+              srcSet={`${import.meta.env.BASE_URL}photos/p-report-photo-800.webp 800w, ${import.meta.env.BASE_URL}photos/p-report-photo.webp 1400w`}
+              sizes="(min-width: 640px) 128px, 96px"
+              width={1400}
+              height={1750}
+              alt="A student leans over a kitchen table, holding his phone level in both hands to photograph something lying on the table."
+              decoding="async"
+              className="block aspect-[4/5] h-auto w-full rounded-card border border-line bg-raised"
+            />
+            <p className="text-body">
+              A photo or screenshot of your last SAT or PSAT score report. We read the scores from
+              the picture; you never type them.
+            </p>
+          </div>
           <Dropzone onFile={onFile} />
           {report}
         </div>

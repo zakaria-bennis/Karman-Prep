@@ -1,6 +1,7 @@
 // Proof of the brief's promises, driven with Playwright on desktop and phone:
-//  1. A brand-new school: Add a class (its key comes with it), add a teacher,
-//     and the setup steps tick off as facts; the key is on the Seat keys screen.
+//  1. A brand-new school: Add a class (its key comes with it, one step), add a
+//     teacher, and the setup steps tick off as facts; the key is on the Seat
+//     keys screen. An empty name is refused under the field, with focus on it.
 //  2. Mid-year: Issue a key and get its code to share; copy it; revoke one
 //     (asks once); put the 25 students with no class into a class, and the
 //     ledger and the finding change.
@@ -22,12 +23,17 @@ for (const device of ["desktop", "phone"]) {
   await page.goto(url("overview", "admin", "first-day", device), { waitUntil: "networkidle" });
   const t0 = Date.now();
   await page.getByRole("button", { name: "Add a class" }).first().click();
-  await page.getByLabel("Class name").fill("Period 4");
+  await page.getByRole("button", { name: "Add the class" }).click();
+  await page.waitForTimeout(200);
+  const nameField = page.getByLabel("Class name");
+  const invalidState = await nameField.evaluate((e) => ({ invalid: e.getAttribute("aria-invalid"), focused: e === document.activeElement, note: document.getElementById(e.getAttribute("aria-describedby") ?? "")?.textContent ?? "" }));
+  need(invalidState.invalid === "true" && invalidState.focused && /Give the class a name/.test(invalidState.note), "an empty name shows its message under the field, marks it invalid and focuses it");
+  await nameField.fill("Period 4");
   await page.getByRole("button", { name: "Add the class" }).click();
   await page.waitForTimeout(600);
   let text = await page.locator("main").innerText();
-  need(/2 of 4 done/.test(text), "two setup steps done after one class (its key came with it)");
-  await page.getByRole("button", { name: "Add", exact: true }).first().click().catch(() => {});
+  need(/1 of 3 done/.test(text), "one setup step done after one class (its key came with it)");
+  await page.getByRole("link", { name: "Add", exact: true }).first().click().catch(() => {});
   await page.waitForTimeout(500);
   if (!/screen=teachers/.test(await page.evaluate(() => location.hash))) await page.goto(url("teachers", "admin", "first-day", device), { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Add a teacher" }).first().click();
@@ -44,7 +50,7 @@ for (const device of ["desktop", "phone"]) {
   await page.goto(url("overview", "admin", "first-day", device), { waitUntil: "networkidle" });
   await page.waitForTimeout(400);
   text = await page.locator("main").innerText();
-  need(/3 of 4 done/.test(text), "three of four setup steps done");
+  need(/2 of 3 done/.test(text), "two of three setup steps done");
   console.log(`  ${Date.now() - t0} ms from the first morning to a class, a key and a teacher`);
 
   console.log(`# keys and seats mid-year on ${device}`);

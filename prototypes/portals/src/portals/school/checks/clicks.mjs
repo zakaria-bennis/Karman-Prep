@@ -4,6 +4,7 @@
 // (checked, selected, pressed), or nothing. Follows scripts/click-check.mjs.
 // The dev server must be up.  node src/portals/school/checks/clicks.mjs [--only keys,class]
 import { chromium } from "playwright";
+import { open } from "./open.mjs";
 import { schoolRoutes } from "../routes.ts";
 
 const BASE = process.env.BASE ?? "http://127.0.0.1:5174";
@@ -21,7 +22,7 @@ for (const device of ["desktop", "phone"]) {
   page.on("console", (m) => { if (m.type() === "error" || (m.type() === "warning" && /assert/i.test(m.text()))) errors.push(`${m.type()}: ${m.text().slice(0, 120)}`); });
   for (const r of schoolRoutes.filter((x) => ids.includes(x.id))) for (const role of ["admin", "teacher"].filter((x) => r.roles.includes(x))) {
     const id = r.id;
-    await page.goto(url(id, role, device), { waitUntil: "networkidle" });
+    await open(page, url(id, role, device));
     await page.waitForTimeout(500);
     const seen = new Set();
     const listCounts = new Map();
@@ -58,7 +59,7 @@ for (const device of ["desktop", "phone"]) {
         console.log(`  ${key} -> ${disabled ? "disabled, ignored" : after !== before ? `opens ${screen}${/id=/.test(after) ? ` (${after.match(/id=([a-z0-9-]+)/)[1]})` : ""}` : dialogs > dialogsBefore ? "opens a sheet" : toasts ? "toast" : state ? `state ${state}` : "clicked"}`);
         if (toasts) { await page.waitForFunction(() => !document.querySelector("[class*=z-toast] > *"), null, { timeout: 9000 }).catch(() => {}); }
         if (dialogs > dialogsBefore) { await page.keyboard.press("Escape"); await page.waitForTimeout(450); console.log(`    Escape -> sheet ${(await page.locator("[role=dialog]").count()) ? "still open" : "closed"}`); }
-        if (after !== before) { await page.goto(url(id, role, device), { waitUntil: "networkidle" }); await page.waitForTimeout(400); }
+        if (after !== before) { await open(page, url(id, role, device)); await page.waitForTimeout(400); }
       } catch (e) {
         failed++;
         console.log(`  ${key} -> FAILED ${String(e.message).split("\n")[0].slice(0, 90)}`);

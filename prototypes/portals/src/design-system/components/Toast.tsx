@@ -158,7 +158,9 @@ export function NotificationStack({
     <div
       className={cn(
         "z-toast grid w-[min(100%-32px,380px)] gap-2",
-        inline ? "relative" : "pointer-events-none fixed bottom-4 right-4"
+        inline
+          ? "relative"
+          : "pointer-events-none fixed bottom-[calc(var(--k-bottom-bar,0px)+16px)] right-4"
       )}
     >
       {items.map((it) => (

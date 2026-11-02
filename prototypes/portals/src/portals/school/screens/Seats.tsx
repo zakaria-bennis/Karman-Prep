@@ -12,7 +12,7 @@ import { money, perSeat, useSchoolData } from "../data";
 import { SCHOOL_PLAN } from "../mock";
 import { useStore, markRenewed } from "../store";
 import { SeatsSheet } from "../components/MoreSheets";
-import { Block, Columns, fullDate } from "./common";
+import { Block, Columns, fullDate, schoolYear, yearsOn } from "./common";
 
 /**
  * Seats and plan. The question: how much of what we bought is in use, and
@@ -35,9 +35,12 @@ export default function Seats() {
   const family = upgradeFor("school", "workshops");
   const familyPlan = family ? PLANS[family] : null;
   const term = `${fmtDate(d.licence.starts)} to ${fullDate(d.licence.ends)}`;
+  // The renewal runs the same dates one year on.
+  const next = { starts: yearsOn(d.licence.starts, 1), ends: yearsOn(d.licence.ends, 1) };
+  const nextYear = schoolYear(next.starts, next.ends);
   const finding = d.ended
     ? renewed
-      ? `Renewed: ${d.seats} seats for July 1, 2027 to June 30, 2028, ${money(yearly)}. Keys work again once the invoice is paid.`
+      ? `Renewed: ${d.seats} seats for ${fullDate(next.starts)} to ${fullDate(next.ends)}, ${money(yearly)}. Keys work again once the invoice is paid.`
       : `The licence ended ${fmtDate(d.licence.ends)}. ${used} of ${d.seats} seats were used this year. The renewal quote for ${d.seats} seats, ${money(yearly)}, went out ${fmtDate(d.licence.renewalQuote)}.`
     : d.licence.pilot
       ? `${used} of ${d.seats} seats used, ${free} free. Founding pilot: free until ${fullDate(d.licence.ends)}; the renewal quote comes ${fmtDate(d.licence.renewalQuote)}.`
@@ -45,7 +48,7 @@ export default function Seats() {
   const renew = () => {
     markRenewed();
     toast.push({
-      title: `${d.seats} seats renewed for 2027-28`,
+      title: `${d.seats} seats renewed for ${nextYear}`,
       detail: `${money(yearly)}. The invoice is on its way; keys work again once it is paid.`,
       kind: "success",
     });
@@ -128,7 +131,7 @@ export default function Seats() {
                     <List>
                       {renewed ? (
                         <Row
-                          title="2027-28 licence"
+                          title={`${nextYear} licence`}
                           sub={{ kind: "state", text: "Sent today, due in 30 days" }}
                           trailing={money(yearly)}
                         />
@@ -136,7 +139,7 @@ export default function Seats() {
                       {d.licence.paid.map((p) => (
                         <Row
                           key={p.date}
-                          title={`${p.date.slice(0, 4)}-${String(Number(p.date.slice(0, 4)) + 1).slice(2)} licence`}
+                          title={`${schoolYear(p.date, yearsOn(p.date, 1))} licence`}
                           sub={{ kind: "state", text: `Paid ${fullDate(p.date)}` }}
                           trailing={money(p.amount)}
                         />

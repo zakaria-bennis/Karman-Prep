@@ -8,18 +8,20 @@ import { LevelMark, BANDS } from "@/design-system/marks";
 import { fmtDate } from "@/mock";
 import { SchoolShell } from "../shell";
 import { useSchoolData } from "../data";
-import { goScreen, useHashParam } from "../nav";
-import { schoolLevelsFor, skillsToTeach, summaryBand, type SchoolStudent } from "../mock-students";
+import { hrefFor, useHashParam } from "../nav";
+import { schoolLevelsFor, skillsToTeach, summaryBand } from "../mock-students";
 import { RankBars } from "../components/RankBars";
 import { CopyButton, Code } from "../components/KeyList";
 import { PracticeSheet } from "../components/MoreSheets";
-import { Block, Columns, Kpis, Lapsed, pct } from "./common";
+import { dueLine } from "./Practice";
+import { Block, Columns, Kpis, Lapsed, Stack, pct } from "./common";
 
 /**
  * One class. The question: what should this class work on next? The skills
  * most students are still learning lead; the roster follows with each
  * student's level and this week's questions; the class's practice and its
- * seat key sit beside. The teacher's one action assigns practice.
+ * seat key sit beside, every block on the columns' one gap. The teacher's
+ * one action assigns practice.
  */
 type RosterRow = Record<string, unknown> & {
   id: string;
@@ -94,13 +96,12 @@ export default function Class() {
       key: "name",
       label: "Student",
       render: (v, r) => (
-        <button
-          type="button"
-          onClick={() => goScreen("student", { id: r.id })}
-          className="block min-h-tap w-full min-w-tap text-left font-medium text-text hover:underline"
+        <a
+          href={hrefFor("student", { id: r.id })}
+          className="flex min-h-tap w-full min-w-tap items-center text-left font-medium text-text hover:underline"
         >
           {String(v)}
-        </button>
+        </a>
       ),
     },
     {
@@ -121,7 +122,7 @@ export default function Class() {
     },
     {
       key: "daily",
-      label: "Daily 10",
+      label: "Your Daily 10",
       numeric: true,
       render: (v) => (
         <>
@@ -148,138 +149,140 @@ export default function Class() {
         <Empty title="No class yet" detail="Classes appear here once the school admin adds one." />
       ) : (
         <Lapsed ended={d.ended} seats={d.seats} licence={d.licence} what="the class">
-          <Columns
-            main={
-              <>
-                <Kpis
-                  loading={d.loading}
-                  items={[
-                    {
-                      label: "Practised this week",
-                      value: String(week.active),
-                      unit: `of ${students.length}`,
-                      lead: true,
-                    },
-                    { label: "Questions answered", value: week.questions.toLocaleString("en-US") },
-                    {
-                      label: "Your Daily 10 done",
-                      value: pct(week.daily10Done, week.daily10Slots),
-                      delta: {
-                        text: `${week.daily10Done} of ${week.daily10Slots} school days`,
-                        tone: "muted",
+          <Stack>
+            <Columns
+              main={
+                <>
+                  <Kpis
+                    loading={d.loading}
+                    items={[
+                      {
+                        label: "Practised this week",
+                        value: String(week.active),
+                        unit: `of ${students.length}`,
+                        lead: true,
                       },
-                    },
-                  ]}
-                />
-                <Block
-                  title="Skills to teach next"
-                  loading={d.loading}
-                  error={d.error}
-                  what="the class's skills"
-                  aside="students under Proficient"
-                  className="mt-5"
-                >
-                  {students.length ? (
-                    <RankBars
-                      className="pt-2"
-                      labelWidth="min(14rem, 42%)"
-                      max={students.length}
-                      items={teach.map((t, i) => ({
-                        id: t.skill.id,
-                        label: t.skill.label,
-                        value: t.under,
-                        valueLabel: `${t.under} of ${students.length}`,
-                        sub: t.skill.section,
-                        highlight: i === 0,
-                      }))}
-                    />
-                  ) : (
-                    <p className="py-2 text-dense text-muted">
-                      Levels appear after the first Your Daily 10.
-                    </p>
-                  )}
-                </Block>
-              </>
-            }
-            side={
-              <>
-                <Block title="Where the class stands" loading={d.loading} aside="students by level">
-                  {students.length ? (
-                    <RankBars
-                      className="pt-2"
-                      max={students.length}
-                      items={bands.map((b) => ({
-                        id: BANDS[b.band],
-                        label: BANDS[b.band],
-                        value: b.count,
-                        valueLabel: `${b.count}`,
-                        highlight: b.band >= 3,
-                      }))}
-                    />
-                  ) : (
-                    <p className="py-2 text-dense text-muted">No levels yet.</p>
-                  )}
-                </Block>
-                <Block title="Practice" loading={d.loading} padded={false} aside={`${due.length}`}>
-                  <div className="px-4 pb-1">
-                    {due.length ? (
-                      <List>
-                        {due.map((p) => (
-                          <Row
-                            key={p.id}
-                            title={p.title}
-                            sub={{
-                              kind: "due",
-                              text: `Due ${fmtDate(p.due)}`,
-                              tone: p.due < d.today ? "muted" : "muted",
-                            }}
-                            trailing={`${p.questions} q`}
-                          />
-                        ))}
-                      </List>
+                      {
+                        label: "Questions answered",
+                        value: week.questions.toLocaleString("en-US"),
+                      },
+                      {
+                        label: "Your Daily 10 done",
+                        value: pct(week.daily10Done, week.daily10Slots),
+                        delta: {
+                          text: `${week.daily10Done} of ${week.daily10Slots} school days`,
+                          tone: "muted",
+                        },
+                      },
+                    ]}
+                  />
+                  <Block
+                    title="Skills to teach next"
+                    loading={d.loading}
+                    error={d.error}
+                    what="the class's skills"
+                    aside="students under Proficient"
+                  >
+                    {students.length ? (
+                      <RankBars
+                        className="pt-2"
+                        labelWidth="min(14rem, 42%)"
+                        max={students.length}
+                        items={teach.map((t, i) => ({
+                          id: t.skill.id,
+                          label: t.skill.label,
+                          value: t.under,
+                          valueLabel: `${t.under} of ${students.length}`,
+                          highlight: i === 0,
+                        }))}
+                      />
                     ) : (
-                      <p className="py-3 text-dense text-muted">
-                        Nothing assigned to {cls.name} yet.
+                      <p className="py-2 text-dense text-muted">
+                        Levels appear after the first Your Daily 10.
                       </p>
                     )}
-                  </div>
-                </Block>
-                {key && d.role === "admin" ? (
-                  <Block
-                    title="Seat key"
-                    loading={d.loading}
-                    aside={d.ended ? "Paused" : `${d.usedOf(key.id)} of ${key.uses} used`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                      <Code code={key.code} className="text-section" />
-                      {d.ended ? null : <CopyButton value={key.code} />}
-                    </div>
-                    <p className="mt-1 text-dense text-muted">
-                      Issued {fmtDate(key.issued)}. Students enter it on their first sign-in.
-                    </p>
                   </Block>
-                ) : null}
-              </>
-            }
-          />
-          <Block
-            title="Students"
-            loading={d.loading}
-            padded={false}
-            aside={`${students.length}`}
-            className="mt-5"
-          >
-            <div className="px-4 pb-2">
-              <DataTable
-                rows={rows}
-                columns={columns}
-                rowKey="id"
-                caption={`${cls.name} roster`}
-                defaultSort={{ key: "week", dir: "desc" }}
-                emptyMessage="No students have joined yet."
-              />
-            </div>
-          </Block>
+                </>
+              }
+              side={
+                <>
+                  <Block
+                    title="Where the class stands"
+                    loading={d.loading}
+                    aside="students by level"
+                  >
+                    {students.length ? (
+                      <RankBars
+                        className="pt-2"
+                        max={students.length}
+                        items={bands.map((b) => ({
+                          id: BANDS[b.band],
+                          label: BANDS[b.band],
+                          value: b.count,
+                          valueLabel: `${b.count}`,
+                          highlight: b.band >= 3,
+                        }))}
+                      />
+                    ) : (
+                      <p className="py-2 text-dense text-muted">No levels yet.</p>
+                    )}
+                  </Block>
+                  <Block
+                    title="Practice"
+                    loading={d.loading}
+                    padded={false}
+                    aside={`${due.length}`}
+                  >
+                    <div className="px-4 pb-1">
+                      {due.length ? (
+                        <List>
+                          {due.map((p) => (
+                            <Row
+                              key={p.id}
+                              title={p.title}
+                              sub={dueLine(p, students, d.today)}
+                              trailing={`${p.questions} q`}
+                            />
+                          ))}
+                        </List>
+                      ) : (
+                        <p className="py-3 text-dense text-muted">
+                          Nothing assigned to {cls.name} yet.
+                        </p>
+                      )}
+                    </div>
+                  </Block>
+                  {key && d.role === "admin" ? (
+                    <Block
+                      title="Seat key"
+                      loading={d.loading}
+                      aside={d.ended ? "Paused" : `${d.usedOf(key.id)} of ${key.uses} used`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <Code code={key.code} className="text-section" />
+                        {d.ended ? null : <CopyButton value={key.code} />}
+                      </div>
+                      <p className="mt-1 text-dense text-muted">
+                        Issued {fmtDate(key.issued)}. Students enter it on their first sign-in.
+                      </p>
+                    </Block>
+                  ) : null}
+                </>
+              }
+            />
+            <Block title="Students" loading={d.loading} padded={false} aside={`${students.length}`}>
+              <div className="px-4 pb-2">
+                <DataTable
+                  rows={rows}
+                  columns={columns}
+                  rowKey="id"
+                  caption={`${cls.name} roster`}
+                  defaultSort={{ key: "week", dir: "desc" }}
+                  emptyMessage="No students have joined yet."
+                />
+              </div>
+            </Block>
+          </Stack>
         </Lapsed>
       )}
       <PracticeSheet
@@ -293,5 +296,3 @@ export default function Class() {
     </SchoolShell>
   );
 }
-
-export type { SchoolStudent };

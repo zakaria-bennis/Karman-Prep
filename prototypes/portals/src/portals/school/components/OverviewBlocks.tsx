@@ -5,7 +5,7 @@ import { BUNDLES } from "@/plans/plans";
 import { fmtDate } from "@/mock";
 import { Initials } from "@/portals/tutor/shared";
 import { money, perSeat, type SchoolData } from "../data";
-import { goScreen } from "../nav";
+import { hrefFor } from "../nav";
 import { SCHOOL_PLAN, type SeatKey } from "../mock";
 import { SeatLedger } from "./SeatLedger";
 import { Block } from "../screens/common";
@@ -47,11 +47,11 @@ export function TeachersBlock({ d }: { d: SchoolData }) {
                     ? undefined
                     : {
                         kind: "state",
-                        text: `Invited ${fmtDate(t.invited ?? d.today)}, not signed in yet`,
+                        text: `Invited ${fmtDate(t.invited ?? d.today)}`,
                       }
                 }
                 trailing={`${d.classes.filter((c) => c.teacher === t.id).length} classes`}
-                onPress={() => goScreen("teachers")}
+                href={hrefFor("teachers")}
               />
             ))}
           </List>
@@ -116,7 +116,7 @@ export function KeysBlock({ d, keys }: { d: SchoolData; keys: SeatKey[] }) {
               key={k.id}
               title={k.label}
               trailing={d.ended ? "Paused" : `${d.usedOf(k.id)} of ${k.uses} used`}
-              onPress={() => goScreen("keys")}
+              href={hrefFor("keys")}
             />
           ))}
         </List>

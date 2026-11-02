@@ -7,7 +7,7 @@ import { Icon } from "@/design-system/icons";
 import { cn } from "@/design-system/cn";
 import { fmtDate } from "@/mock";
 import type { Licence } from "../mock";
-import { goScreen } from "../nav";
+import { hrefFor } from "../nav";
 import { useLayout } from "../shell";
 
 /** "Tuesday, Nov 3" */
@@ -24,11 +24,35 @@ export const fullDate = (iso: string) =>
     day: "numeric",
     year: "numeric",
   });
+/** "Period 3", "Period 3 and Period 6", "A, B and C" */
+export const listOf = (items: string[]) =>
+  items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+/** The same calendar day n years on: "2027-06-30" to "2028-06-30". */
+export const yearsOn = (iso: string, n: number) => `${Number(iso.slice(0, 4)) + n}${iso.slice(4)}`;
+/** A school year as it is written: "2027-28". */
+export const schoolYear = (starts: string, ends: string) =>
+  `${starts.slice(0, 4)}-${ends.slice(2, 4)}`;
 export const pct = (part: number, whole: number) =>
   whole > 0 ? `${Math.round((part / whole) * 100)}%` : "0%";
 
 export const field =
-  "h-11 w-full rounded-control border border-border/70 bg-surface px-3 text-body text-text placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+  "h-11 w-full rounded-control border border-border/70 bg-surface px-3 text-body text-text placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent aria-[invalid=true]:border-negative";
+
+/**
+ * A field's problem, under the field in the negative tone. The input carries
+ * aria-invalid and points here with aria-describedby, and the form moves
+ * focus to the first field with a problem; a toast is kept for success.
+ */
+export function FieldError({ id, message }: { id: string; message: string | null | undefined }) {
+  return message ? (
+    <span id={id} className="text-dense font-normal text-negative">
+      {message}
+    </span>
+  ) : null;
+}
+/** The input's side of FieldError: aria-invalid and aria-describedby, only while there is a problem. */
+export const invalid = (id: string, message: string | null | undefined) =>
+  message ? { "aria-invalid": true as const, "aria-describedby": id } : {};
 
 /** A panel with its heading, and the block's own loading and error states inside its frame. */
 export function Block({
@@ -131,15 +155,15 @@ export function Lapsed({
             Renewing {seats} seats keeps {what} going.
           </span>
         </p>
-        <button
-          type="button"
-          onClick={() => goScreen("seats")}
-          className="min-h-tap shrink-0 text-dense font-semibold text-accent"
+        <a
+          href={hrefFor("seats")}
+          className="inline-flex min-h-tap shrink-0 items-center text-dense font-semibold text-accent"
         >
           Renew {seats} seats
-        </button>
+        </a>
       </div>
-      <div aria-hidden="true" className="pointer-events-none select-none [&_*]:!text-muted">
+      {/* Readable, not reachable: inert keeps its links and buttons out of the tab order too. */}
+      <div aria-hidden="true" inert className="pointer-events-none select-none [&_*]:!text-muted">
         {children}
       </div>
     </div>
@@ -173,6 +197,12 @@ export function Columns({
       <div className={cn("grid content-start", desktop ? "gap-6" : "gap-5")}>{side}</div>
     </div>
   );
+}
+
+/** Blocks one under another on the same gap as Columns, so a screen keeps one vertical rhythm. */
+export function Stack({ children }: { children: ReactNode }) {
+  const { desktop } = useLayout();
+  return <div className={cn("grid", desktop ? "gap-6" : "gap-5")}>{children}</div>;
 }
 
 export function Grid2({ children, className }: { children: ReactNode; className?: string }) {

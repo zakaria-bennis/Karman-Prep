@@ -9,6 +9,7 @@ import { useSchoolData } from "../data";
 import { KeyList, ShareStrip } from "../components/KeyList";
 import { KeySheet } from "../components/Sheets";
 import { revokeKey } from "../store";
+import { hashParam, setHashParam } from "../nav";
 import { LedgerBlock } from "../components/OverviewBlocks";
 import { Block, Columns, Lapsed } from "./common";
 
@@ -21,7 +22,12 @@ import { Block, Columns, Lapsed } from "./common";
 export default function Keys() {
   const d = useSchoolData();
   const toast = useToast();
-  const [tab, setTab] = useState("live");
+  // The tab lives in the link (?tab=revoked), so a reload or a shared link keeps it.
+  const [tab, setTabState] = useState(() => (hashParam("tab") === "revoked" ? "revoked" : "live"));
+  const setTab = (t: string) => {
+    setTabState(t);
+    setHashParam("tab", t === "live" ? null : t);
+  };
   const [open, setOpen] = useState(false);
   const [justIssued, setJustIssued] = useState<string | null>(null);
   const live = d.keys.filter((k) => !k.revoked);

@@ -4,24 +4,22 @@ import { GlassButton } from "@/design-system/glass/GlassButton";
 import { Row, List } from "@/design-system/components/Row";
 import { Skeleton } from "@/design-system/components/Skeleton";
 import { Empty, ErrorBlock } from "@/design-system/components/Empty";
-import { useCountdown, formatClock } from "@/design-system/components/Timer";
 import { Icon } from "@/design-system/icons";
-import { QUESTIONS, TODAY, fmtDate, type DemoQuestion } from "@/mock";
+import { TODAY, fmtDate } from "@/mock";
 import { StudentShell, TextLink, withStudent } from "./Shell";
 import { PlanLocked } from "./PlanSheet";
-import { QuestionView } from "./QuestionView";
-import { ModuleSteps, type TestStepId } from "./ModuleSteps";
+import { ModuleSteps } from "./ModuleSteps";
 import { DIAGNOSTIC_DATE } from "./mock";
 import { useStudentView } from "./view";
 import { goTo, retry } from "./nav";
-import type { SetResult } from "./session";
+import { useOpenQuizMode } from "./quizModes";
 
 /*
  * Full-length tests in Bluebook's two-module design: module 1 of each section
  * decides whether module 2 is harder or easier (the student is never told
  * which); a 10-minute break between the sections; a few unscored tryout
- * questions, announced in one plain line. The demo modules reuse the ten
- * Karman originals at the real module lengths.
+ * questions, announced in one plain line. The test itself runs on the real
+ * quiz engine in the quiz modes prototype (quizModes.ts), adaptive or linear.
  */
 export const TRYOUT_LINE =
   "A few questions in this test don't count toward your score. We don't say which.";
@@ -29,84 +27,13 @@ const MODULES = {
   rw: { section: "Reading and Writing" as const, length: 27, minutes: 32, scored: 25 },
   math: { section: "Math" as const, length: 22, minutes: 35, scored: 20 },
 };
-const BREAK_SECONDS = 600;
-
-function moduleQuestions(section: DemoQuestion["section"], length: number): DemoQuestion[] {
-  const own = QUESTIONS.filter((q) => q.section === section);
-  return Array.from({ length }, (_, i) => own[i % own.length]);
-}
-/** Module 1 alone decides the route, at the median: half or more of the scored questions right. */
-export const routeFrom = (right: number, scored: number): "harder" | "easier" =>
-  right >= Math.ceil(scored / 2) ? "harder" : "easier";
-
 function FullLength() {
   const v = useStudentView();
-  const [phase, setPhase] = useState<"hub" | "intro" | TestStepId>("hub");
-  const [routes, setRoutes] = useState<{ rw?: "harder" | "easier"; math?: "harder" | "easier" }>(
-    {}
-  );
-  const breakLeft = useCountdown(BREAK_SECONDS, phase === "break", () => setPhase("m1"));
+  const [phase, setPhase] = useState<"hub" | "intro">("hub");
+  const open = useOpenQuizMode();
   const next = v.nextTest;
   const latest = v.taken[v.taken.length - 1];
 
-  const endModule = (step: TestStepId) => (r: SetResult) => {
-    if (step === "rw1") {
-      setRoutes((x) => ({ ...x, rw: routeFrom(r.right, MODULES.rw.scored) }));
-      setPhase("rw2");
-    } else if (step === "rw2") setPhase("break");
-    else if (step === "m1") {
-      setRoutes((x) => ({ ...x, math: routeFrom(r.right, MODULES.math.scored) }));
-      setPhase("m2");
-    } else goTo("test-review", { just: "1" });
-  };
-
-  if (phase === "rw1" || phase === "rw2" || phase === "m1" || phase === "m2") {
-    const m = phase.startsWith("rw") ? MODULES.rw : MODULES.math;
-    const number = phase.endsWith("1") ? 1 : 2;
-    return (
-      <QuestionView
-        key={phase}
-        screen="test"
-        title={`Full-length test ${next?.n ?? ""}`.trim()}
-        mode="test"
-        questions={moduleQuestions(m.section, m.length)}
-        clock={{ kind: "module", seconds: m.minutes * 60 }}
-        tutor={null}
-        module={{
-          number,
-          section: m.section,
-          route: number === 2 ? (phase === "rw2" ? routes.rw : routes.math) : undefined,
-          length: m.length,
-        }}
-        onExit={() => setPhase("hub")}
-        onFinish={endModule(phase)}
-        intro={<ModuleSteps current={phase} className="pt-3" />}
-      />
-    );
-  }
-  if (phase === "break")
-    return (
-      <StudentShell screen="test" title={`Full-length test ${next?.n ?? ""}`.trim()} bare>
-        <Panel className="mx-auto grid max-w-[560px] gap-4 p-5 text-center">
-          <ModuleSteps current="break" />
-          <p
-            className="tabular text-kpi-lg"
-            role="timer"
-            aria-label={`${formatClock(breakLeft)} left in the break`}
-          >
-            {formatClock(breakLeft)}
-          </p>
-          <p className="text-body text-muted">
-            Math starts when the break ends or when you resume. Reading and Writing is closed now.
-          </p>
-          <div>
-            <GlassButton variant="primary" onClick={() => setPhase("m1")}>
-              Resume now
-            </GlassButton>
-          </div>
-        </Panel>
-      </StudentShell>
-    );
   if (phase === "intro")
     return (
       <StudentShell
@@ -126,10 +53,11 @@ function FullLength() {
             Module 1 decides module 2. A module closes when its time ends or when you finish it, and
             there is no going back to it.
           </p>
-          <div className="flex items-center gap-4">
-            <GlassButton variant="primary" onClick={() => setPhase("rw1")}>
+          <div className="flex flex-wrap items-center gap-4">
+            <GlassButton variant="primary" onClick={() => open("full-adaptive")}>
               Begin Reading and Writing
             </GlassButton>
+            <TextLink onClick={() => open("full-linear")}>Linear version</TextLink>
             <TextLink onClick={() => setPhase("hub")}>Not now</TextLink>
           </div>
         </Panel>

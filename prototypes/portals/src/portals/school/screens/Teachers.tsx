@@ -7,7 +7,7 @@ import { fmtDate } from "@/mock";
 import { Initials } from "@/portals/tutor/shared";
 import { SchoolShell } from "../shell";
 import { useSchoolData } from "../data";
-import { goScreen } from "../nav";
+import { hrefFor } from "../nav";
 import { InviteSheet } from "../components/InviteSheet";
 import { Block, Columns, Lapsed } from "./common";
 
@@ -40,18 +40,24 @@ export default function Teachers() {
         sub={
           t.signedIn
             ? undefined
-            : { kind: "state", text: `Invited ${fmtDate(t.invited ?? d.today)}, not signed in yet` }
+            : { kind: "state", text: `Invited ${fmtDate(t.invited ?? d.today)}` }
         }
         trailing={
           t.role === "admin" ? (
             <Pill>Admin</Pill>
           ) : classes.length ? (
-            `${classes.map((c) => c.name).join(", ")} · ${students}`
+            // Two short lines so the name keeps its room on a phone; the count names its noun.
+            <span className="grid text-right">
+              <span>{classes.map((c) => c.name).join(", ")}</span>
+              <span>
+                {students} {students === 1 ? "student" : "students"}
+              </span>
+            </span>
           ) : (
             "No class yet"
           )
         }
-        onPress={classes[0] ? () => goScreen("class", { id: classes[0].id }) : undefined}
+        href={classes[0] ? hrefFor("class", { id: classes[0].id }) : undefined}
       />
     );
   };
@@ -121,7 +127,7 @@ export default function Teachers() {
                           key={c.id}
                           title={c.name}
                           trailing={`${d.studentsIn(c.id).length} students`}
-                          onPress={() => goScreen("class", { id: c.id })}
+                          href={hrefFor("class", { id: c.id })}
                         />
                       ))}
                     </List>

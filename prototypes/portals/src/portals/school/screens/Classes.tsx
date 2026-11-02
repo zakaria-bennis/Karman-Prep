@@ -6,8 +6,9 @@ import { fmtDate } from "@/mock";
 import { Initials } from "@/portals/tutor/shared";
 import { SchoolShell } from "../shell";
 import { useSchoolData } from "../data";
-import { goScreen } from "../nav";
+import { hrefFor } from "../nav";
 import { RankBars } from "../components/RankBars";
+import { Photo } from "../components/Photo";
 import { ClassSheet } from "../components/Sheets";
 import { PracticeSheet } from "../components/MoreSheets";
 import { PlaceSheet } from "../components/PlaceSheet";
@@ -58,14 +59,28 @@ export default function Classes() {
 
   return (
     <SchoolShell screen="classes" title="Classes" finding={finding} primary={primary}>
-      {!d.classes.length ? (
+      {!d.classes.length && teacher ? (
+        // A teacher's first morning: nothing to act on yet, so the screen has room for her.
+        <Columns
+          main={
+            <Empty
+              title="No classes yet"
+              detail="Your classes appear here once the school admin adds you to one."
+            />
+          }
+          side={
+            <Photo
+              id="p-teacher"
+              alt="A teacher at a desk in an empty classroom after school, reading on her laptop, a mug beside her and late sun through the window."
+              sizes="(min-width: 700px) 400px, calc(100vw - 32px)"
+              className="max-w-[400px]"
+            />
+          }
+        />
+      ) : !d.classes.length ? (
         <Empty
           title="No classes yet"
-          detail={
-            teacher
-              ? "Your classes appear here once the school admin adds you to one."
-              : "Add a class to issue its seat key. Students join with the key and appear in the class as they sign in."
-          }
+          detail="Add a class to issue its seat key. Students join with the key and appear in the class as they sign in."
         />
       ) : (
         <Columns
@@ -97,7 +112,7 @@ export default function Classes() {
                           />
                         }
                         trailing={`${list.length} students`}
-                        onPress={() => goScreen("class", { id: c.id })}
+                        href={hrefFor("class", { id: c.id })}
                       />
                     ))}
                     {!teacher && d.unassigned.length ? (
@@ -105,7 +120,7 @@ export default function Classes() {
                         title="No class yet"
                         sub={{
                           kind: "state",
-                          text: `${d.unassigned.length} students with a seat and no class`,
+                          text: "A seat and no class",
                           tone: "negative",
                         }}
                         trailing={`${d.unassigned.length} students`}
@@ -135,7 +150,7 @@ export default function Classes() {
                         valueLabel: `${per(list)} q`,
                         highlight: i === 0,
                       }))}
-                      onPress={(id) => goScreen("class", { id })}
+                      href={(id) => hrefFor("class", { id })}
                     />
                     <p className="mt-3 text-dense text-muted">
                       Your Daily 10 done {pct(d.week.daily10Done, d.week.daily10Slots)} of school
@@ -159,7 +174,7 @@ export default function Classes() {
                           title={`${p.title}, ${d.classById(p.classId)?.name}`}
                           sub={{ kind: "due", text: `Due ${fmtDate(p.due)}` }}
                           trailing={`${p.questions} q`}
-                          onPress={() => goScreen("class", { id: p.classId })}
+                          href={hrefFor("class", { id: p.classId })}
                         />
                       ))}
                     </List>
@@ -178,13 +193,12 @@ export default function Classes() {
                       total={idle.length > 4 ? `${idle.length} students` : undefined}
                       viewAll={
                         idle.length > 4 ? (
-                          <button
-                            type="button"
-                            onClick={() => goScreen("students", { tab: "idle" })}
-                            className="min-h-tap font-semibold text-accent"
+                          <a
+                            href={hrefFor("students", { tab: "idle" })}
+                            className="inline-flex min-h-tap items-center font-semibold text-accent"
                           >
                             View all
-                          </button>
+                          </a>
                         ) : undefined
                       }
                     >
@@ -197,7 +211,7 @@ export default function Classes() {
                             kind: "state",
                             text: `${d.classById(s.classId)?.name ?? "No class"} · ${s.lastActive ? `last active ${fmtDate(s.lastActive)}` : "never practised"}`,
                           }}
-                          onPress={() => goScreen("student", { id: s.id })}
+                          href={hrefFor("student", { id: s.id })}
                         />
                       ))}
                     </List>

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { cn } from "../cn";
 import { Icon } from "../icons";
 import type { RailItem } from "./IconRail";
@@ -14,8 +15,24 @@ export function BottomBar({
   onSelect(id: string): void;
   className?: string;
 }) {
+  // Publishes the bar's height as --k-bottom-bar so fixed layers (toasts) sit above it, never over its taps.
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const set = () => root.style.setProperty("--k-bottom-bar", `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--k-bottom-bar");
+    };
+  }, []);
   return (
     <nav
+      ref={ref}
       aria-label="Sections"
       className={cn(
         "z-rail grid border-t border-line bg-panel pb-[env(safe-area-inset-bottom)]",

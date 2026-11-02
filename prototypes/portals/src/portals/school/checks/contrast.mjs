@@ -5,6 +5,7 @@
 // controls are sampled by scripts/glass-contrast.mjs.
 //   node src/portals/school/checks/contrast.mjs
 import { chromium } from "playwright";
+import { open } from "./open.mjs";
 import { schoolRoutes } from "../routes.ts";
 
 const BASE = process.env.BASE ?? "http://127.0.0.1:5174";
@@ -15,10 +16,11 @@ let pages = 0;
 for (const r of schoolRoutes.filter((x) => x.id !== "portal")) for (const role of ["admin", "teacher"].filter((x) => r.roles.includes(x))) for (const state of ["long-time", "first-day", "locked"]) for (const device of [{ w: 1440, h: 900 }, { w: 440, h: 956 }]) for (const mode of ["light", "dark"]) {
   const id = r.id;
   const page = await browser.newPage({ viewport: { width: device.w, height: device.h }, colorScheme: mode });
-  await page.goto(`${BASE}/#/screen/school/${id}?portal=school&screen=${id}&role=${role}&device=${device.w > 800 ? "desktop" : "phone"}&mode=${mode}&state=${state}&bare=1`, { waitUntil: "networkidle" });
+  const u = `${BASE}/#/screen/school/${id}?portal=school&screen=${id}&role=${role}&device=${device.w > 800 ? "desktop" : "phone"}&mode=${mode}&state=${state}&bare=1`;
+  await open(page, u);
   await page.waitForTimeout(700);
   pages++;
-  const res = await page.evaluate(() => {
+  const scan = () => {
     const parse = (s) => { const m = (s.match(/[\d.]+/g) || []).map(Number); return m.length < 3 ? { r: 0, g: 0, b: 0, a: 0 } : { r: m[0], g: m[1], b: m[2], a: m.length > 3 ? m[3] : 1 }; };
     const over = (fg, bg) => ({ r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a), a: 1 });
     const lum = ({ r, g, b }) => { const f = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
@@ -55,7 +57,18 @@ for (const r of schoolRoutes.filter((x) => x.id !== "portal")) for (const role o
       if (rr < need) out.push({ text: text.slice(0, 50), fg: cs.color, bg: `rgb(${Math.round(bg.r)} ${Math.round(bg.g)} ${Math.round(bg.b)})`, ratio: +rr.toFixed(2), need, size, cls: (el.className || "").toString().slice(0, 60) });
     }
     return { n, out };
-  });
+  };
+  // A page that reloads under a long run (a busy dev server) destroys the
+  // context mid-scan: open it again and scan once more rather than end the run.
+  let res;
+  try {
+    res = await page.evaluate(scan);
+  } catch (e) {
+    console.log(`  rescanning after ${String(e.message).split("\n")[0].slice(0, 60)}: ${u}`);
+    await open(page, u);
+    await page.waitForTimeout(700);
+    res = await page.evaluate(scan);
+  }
   checked += res.n;
   for (const f of res.out) failures.push({ id, role, state, mode, device: device.w, ...f });
   await page.close();

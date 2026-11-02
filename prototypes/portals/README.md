@@ -36,6 +36,14 @@ Plex Sans 400 to 600, IBM Plex Serif 400). Phase 2 self-hosts the same files.
   whose surface is pure white (rule 3).
 - The fixed clock is Saturday 2026-10-31, 09:41, so screenshots are stable.
 
+## Questions run on the real quiz engine
+
+The student portal no longer draws its own question screen. Its Daily 10, Endless,
+Time trials, Full-length, Practice and Diagnostic screens keep their entry rows and
+their locked, loading and error states, and open the matching mode of the quiz modes
+prototype (`prototypes/quiz-modes`, `node prototypes/quiz-modes/server.mjs`, port
+5180) in the same light or dark mode (`src/portals/student/quizModes.ts`).
+
 ## Folder layout and who owns what
 
 | Path | What | Owner |

@@ -9,6 +9,7 @@
 //   node scripts/generate-assets.mjs --balance        show prepaid balances
 //   node scripts/generate-assets.mjs --fetch p-program  download a paid result again from its saved link (free)
 //   node scripts/generate-assets.mjs --all            include shots not yet approved in the dry run
+//   --manifest <file> --state <file> --out <dir>     use a separate shot list, state file and output folder
 //
 // Rules: a shot runs only when its manifest status is "approved"; a run stops
 // before it starts if the quoted total is over --budget (default $10); after
@@ -23,10 +24,16 @@ import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const MANIFEST = join(ROOT, "assets/manifest.json");
-const STATE = join(ROOT, "assets/generation-state.json");
+// --manifest, --state and --out let several agents generate at once, each with its own shot list,
+// state file and output folder; the spend log stays shared (one appended line per job).
+const pathOpt = (name, fallback) => {
+  const i = process.argv.indexOf(`--${name}`);
+  return i >= 0 && process.argv[i + 1] ? resolve(process.argv[i + 1]) : fallback;
+};
+const MANIFEST = pathOpt("manifest", join(ROOT, "assets/manifest.json"));
+const STATE = pathOpt("state", join(ROOT, "assets/generation-state.json"));
 const LOG = join(ROOT, "assets/spend-log.csv");
-const OUT = join(ROOT, ".impeccable/mocks/decision/film/raw");
+const OUT = pathOpt("out", join(ROOT, ".impeccable/mocks/decision/film/raw"));
 
 // ---------- arguments ----------
 const argv = process.argv.slice(2);
