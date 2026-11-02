@@ -1,0 +1,105 @@
+/* The students map and the pricing page. Base tokens, header, buttons and footer are in film.css. */
+.ks .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- pricing ---------- */
+.ks.page-pricing { background: var(--paper); }
+.ks.page-pricing .hd:not(.dim) { color: var(--ink); }
+.ks .p-hero { padding: 150px var(--gutter) 34px; }
+.ks .p-hero .in, .ks .plans .in, .ks .compare .in { max-width: var(--max); margin: 0 auto; }
+.ks .p-hero h1 { font-size: clamp(44px, 6vw, 96px); max-width: 14ch; margin-top: 18px; }
+.ks .p-hero .lede { color: var(--ink2); margin-top: 18px; }
+.ks .dates { border: 0; margin-top: 40px; display: grid; gap: 14px; }
+.ks .dates legend { font-weight: 800; font-size: 18px; padding: 0; margin-bottom: 12px; }
+/* segmented controls: one choice, the chosen one black */
+.ks .seg, .ks .pay { display: inline-flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: var(--soft); }
+.ks .seg label, .ks .pay label { position: relative; cursor: pointer; }
+.ks .seg input, .ks .pay input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.ks .seg span, .ks .pay span { display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; font-weight: 700; transition: background-color .3s var(--ease), color .3s var(--ease), transform .45s var(--spring); }
+.ks .seg input:checked + span, .ks .pay input:checked + span { background: var(--solid); color: var(--on-solid); }
+.ks .seg input:focus-visible + span, .ks .pay input:focus-visible + span { outline: 3px solid var(--marigold); outline-offset: 2px; }
+.ks .seg label:active span, .ks .pay label:active span { transform: scale(.95); transition-duration: .08s; }
+@media (hover: hover) and (pointer: fine) { .ks .seg input:not(:checked) + span:hover, .ks .pay input:not(:checked) + span:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); } }
+.ks .pay { padding: 4px; }
+.ks .pay span { min-height: 40px; padding: 0 16px; font-size: 15px; }
+.ks .pay[hidden] { display: none; }
+
+.ks .plans { padding: 30px var(--gutter) 90px; }
+.ks .other-note { margin-bottom: 20px; padding: 16px 20px; border-radius: 18px; background: color-mix(in srgb, var(--marigold) 14%, var(--paper)); font-weight: 600; max-width: 720px; }
+.ks .other-note[hidden] { display: none; }
+.ks .cards { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr) minmax(0, 5fr); gap: 18px; align-items: stretch; }
+.ks .plan { position: relative; display: flex; flex-direction: column; gap: 18px; padding: clamp(26px, 2.6vw, 38px); border-radius: 18px; background: var(--soft); transition: opacity .4s var(--ease), transform .6s var(--ease), box-shadow .6s var(--ease); }
+.ks .plan h2 { font-size: clamp(24px, 2.1vw, 32px); letter-spacing: -0.03em; line-height: 1.05; }
+.ks .plan .price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-height: 64px; }
+.ks .plan .price b { display: inline-block; font-size: clamp(46px, 4.4vw, 68px); font-weight: 800; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; }
+.ks .plan .price s { font-size: 20px; color: var(--ink2); font-weight: 600; }
+.ks .plan .price .per { font-size: 15px; font-weight: 600; color: var(--ink2); }
+.ks .plan .meta { font-size: 15px; color: var(--ink2); }
+.ks .plan ul { list-style: none; display: grid; gap: 10px; margin-top: 4px; }
+.ks .plan li { display: grid; grid-template-columns: 14px 1fr; gap: 10px; font-size: 15.5px; line-height: 1.4; }
+.ks .plan li::before { content: ""; width: 10px; height: 2px; border-radius: 2px; background: var(--marigold); margin-top: .7em; }
+.ks .plan .ghost { margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 22px; border-radius: 999px; border: 1.5px solid var(--ink); font-weight: 800; text-decoration: none; transition: background-color .25s var(--ease), color .25s var(--ease), transform .45s var(--spring); }
+.ks .plan .ghost svg { width: 15px; height: 15px; }
+@media (hover: hover) and (pointer: fine) { .ks .plan .ghost:hover { background: var(--solid); color: var(--on-solid); } }
+.ks .plan .ghost:active { transform: scale(.96); transition-duration: .08s; }
+/* the program: white on a marigold ring, the only marigold button on the page */
+.ks .plan.program { background: var(--paper); box-shadow: 0 0 0 2px var(--marigold); padding-top: clamp(30px, 3vw, 44px); }
+.ks .plan.program .cta { margin-top: auto; display: grid; gap: 10px; justify-items: start; }
+.ks .plan.program .cta small { font-size: 14px; color: var(--ink2); }
+.ks .badge { display: flex; align-items: center; gap: 12px; align-self: stretch; padding: 12px 16px; border-radius: 18px; background: var(--night); color: #fff; text-decoration: none; transition: transform .45s var(--spring); }
+.ks .badge b { font-size: 30px; font-weight: 800; letter-spacing: -0.05em; color: var(--marigold); line-height: 1; }
+.ks .badge span { font-size: 14px; font-weight: 700; line-height: 1.3; }
+.ks .plan .badge.g20 { background: var(--soft); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.ks .plan .badge.g20 b { color: var(--marigold-ink); }
+.ks .badge[hidden] { display: none; }
+.ks .badge:active { transform: scale(.97); transition-duration: .08s; }
+.ks .when { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.ks .when dt { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.ks .when dd { margin: 4px 0 0; font-weight: 700; font-size: 14.5px; line-height: 1.3; }
+.ks .plan.dim { opacity: .45; }
+.ks .plan.lift { transform: translateY(-8px); box-shadow: 0 0 0 2px var(--ink); }
+@media (max-width: 900px) { .ks .cards { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .ks .when { grid-template-columns: 1fr 1fr; } }
+
+/* the comparison */
+.ks .compare { padding: clamp(80px, 9vw, 130px) var(--gutter); }
+.ks .compare h2 { font-size: clamp(32px, 3.6vw, 54px); }
+.ks .tablewrap { margin-top: 36px; overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); }
+.ks .compare table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 15.5px; }
+.ks .compare th, .ks .compare td { padding: 16px 18px; text-align: left; border-top: 1px solid var(--line); vertical-align: top; }
+.ks .compare thead th { border-top: 0; font-size: 15px; font-weight: 800; position: sticky; top: 0; background: var(--paper); }
+.ks .compare tbody th { font-weight: 600; width: 34%; }
+.ks .compare .hot { background: color-mix(in srgb, var(--marigold) 7%, var(--paper)); font-weight: 600; }
+.ks .compare thead .hot { background: color-mix(in srgb, var(--marigold) 14%, var(--paper)); }
+.ks .compare .yes svg { width: 20px; height: 20px; color: var(--marigold-ink); }
+.ks .compare .no { color: #b9b4aa; display: inline-grid; } .ks .compare .no svg { width: 16px; height: 16px; }
+.ks .compare .cost th, .ks .compare .cost td { font-weight: 800; font-size: 17px; }
+.ks .honest { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.ks .honest p { padding: 22px 24px; border-radius: 14px; background: var(--soft); font-size: 16.5px; font-weight: 600; }
+@media (max-width: 760px) { .ks .honest { grid-template-columns: 1fr; } .ks .p-hero { padding-top: 120px; } }
+.ks .dates .seg { justify-self: start; }
+/* no film on this page: the header is solid white over white, solid black over the guarantee */
+.ks.page-pricing .hd.dim { background: rgba(11,11,11,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.ks.page-pricing .hd.dim::before { display: none; }
+/* phones: each comparison row becomes its label over three short cells, no sideways scrolling */
+@media (max-width: 700px) {
+  .ks .compare table { min-width: 0; font-size: 14px; }
+  .ks .compare thead tr, .ks .compare tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ks .compare thead th:first-child { display: none; }
+  .ks .compare tbody th { grid-column: 1 / -1; width: auto; padding-bottom: 4px; border-top: 1px solid var(--line); }
+  .ks .compare tbody td { border-top: 0; padding-top: 6px; }
+  .ks .compare th, .ks .compare td { padding-left: 12px; padding-right: 12px; }
+  .ks .compare thead th { position: static; font-size: 13px; }
+}
+
+/* the free test: one line above the plans, not a third tier (design rule 17) */
+/* desktop: the program card's list in two columns, so the card reads wide instead of tall */
+@media (min-width: 1100px) { .ks .plan.program ul { grid-template-columns: 1fr 1fr; column-gap: 28px; } }
+.ks .cmp { margin-top: 24px; }
+.ks .cmp summary { list-style: none; display: none; }
+.ks .cmp summary::-webkit-details-marker { display: none; }
+@media (max-width: 700px) {
+  .ks .cmp summary { display: flex; justify-content: space-between; align-items: center; min-height: 56px; padding: 0 18px; border-radius: 14px; border: 1.5px solid var(--line); font-weight: 800; cursor: pointer; }
+  .ks .cmp summary .k-ico { color: var(--marigold-ink); transition: transform .4s var(--spring); }
+  .ks .cmp[open] summary .k-ico { transform: rotate(45deg); }
+  .ks .cmp[open] .tablewrap { margin-top: 14px; }
+}

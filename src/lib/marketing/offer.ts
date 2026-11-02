@@ -16,12 +16,12 @@ export const FOUNDER = {
 } as const;
 
 /**
- * Zakaria's private-tutoring track record, from before Karman.
- * These are NOT Karman program results — always show
+ * Karman's 1:1 tutoring track record (Zakaria's students). These came
+ * from 1:1 tutoring, not the cohort program, so always show
  * `TRACK_RECORD.sourceLabel` next to them.
  */
 export const TRACK_RECORD = {
-  sourceLabel: "From Zakaria's private tutoring",
+  sourceLabel: "Karman 1:1 tutoring, median 16 weeks",
   averageGain: 285,
   averageBefore: 1235,
   averageAfter: 1520,
@@ -32,11 +32,19 @@ export const TRACK_RECORD = {
 } as const;
 
 export const QUESTION_BANK = {
-  /** Verified, SAT-aligned original questions available today. */
-  verifiedCount: "5,000+",
+  /**
+   * Original questions the site may claim. Founder target (2026-10-20):
+   * 10,000+. 2,588 were live on 2026-10-19. The release preflight
+   * (scripts/build/check-release-env.mjs, see docs/launch-checklist.md)
+   * must refuse to publish while the live count is below this claim.
+   */
+  verifiedCount: "10,000+",
+  /** The number the claim above must be checked against. */
+  claimedMinimum: 10000,
   /** Where the bank is headed — only say "growing to", never "has". */
   targetCount: "10,000+",
-  skills: 89,
+  /** Selectable skills in src/data/curriculum/approved-skill-taxonomy.json. */
+  skills: 39,
   difficultyLevels: 7,
 } as const;
 
@@ -44,11 +52,8 @@ export type ProgramInclusion = { title: string; detail: string };
 
 export const MARCH_PROGRAM = {
   id: "cohort-march-2027",
-  name: "The March SAT Program",
-  shortName: "March program",
-  testDate: "2027-03-06",
-  testDateLabel: "Saturday, March 6, 2027",
-  testDateShort: "March 6",
+  name: "The January cohort",
+  shortName: "January cohort",
   startDate: "2027-01-04",
   startLabel: "Monday, January 4, 2027",
   startShort: "January 4",
@@ -60,46 +65,56 @@ export const MARCH_PROGRAM = {
   reviewMinutes: 60,
   // CONFIRM: class days and times.
   scheduleLabel: "Tuesdays and Thursdays, 7:00–8:30 p.m. ET",
+  classDays: ["Tuesday", "Thursday"],
+  classDaysLabel: "Tuesdays and Thursdays",
+  classStart: "7:00",
+  classEnd: "8:30 p.m. ET",
   // CONFIRM: enrollment deadline.
   enrollmentClosesLabel: "Wednesday, December 30, 2026",
   paidSeats: 5,
+  /** Paid seats already held with a deposit. The site shows the seats still open.
+   *  CONFIRM: update as each family holds a seat. */
+  paidSeatsTaken: 0,
   scholarshipSeats: 1,
-  /** Founding price — the March 2027 cohort only. */
-  price: 995,
+  /** Founding price, the January 2027 cohort only (market analysis session, 2026-10-26).
+   *  CONFIRM: founder approval of the new prices. */
+  price: 1295,
   /** Price for later cohorts. */
-  regularPrice: 1295,
-  installments: { count: 3, amount: 345 },
+  regularPrice: 1495,
+  installments: { count: 3, amount: 435 },
   depositAmount: 100,
   includes: [
     {
       title: "Two live classes a week",
-      detail: "18 classes of 90 minutes in a group of up to six, taught by Zakaria.",
+      detail: "18 classes of 90 minutes in a group of up to six, taught by a Karman tutor.",
     },
     {
       title: "Five full-length practice tests",
       detail:
-        "Your week-1 baseline is an official Bluebook test, proctored live. So is the dress rehearsal a week before the SAT.",
+        "Your week-1 baseline is an official Bluebook test, proctored live. So is the last one, in week nine.",
     },
     {
       title: "A 60-minute 1:1 after every full-length",
-      detail: "Zakaria goes through every mistake with you — what happened and how to fix it.",
+      detail:
+        "Your tutor goes through every mistake with your student: what happened and how to fix it.",
     },
     {
       title: "A weekly live session",
       detail:
-        "Test mechanics — pacing, Desmos, how the adaptive second module works — alternating with workshops on the skills students miss most.",
+        "Test mechanics (pacing, Desmos, how the adaptive second module works), alternating with workshops on the skills students miss most.",
     },
     {
       title: "Daily 10",
-      detail: "Ten minutes a day. Every question you miss comes back after 2, 7 and 21 days.",
+      detail:
+        "Ten questions a day, picked from your weakest skills. Missed questions come back until they stick.",
     },
     {
-      title: "5,000+ original practice questions",
-      detail: "Across all 89 SAT skills at seven difficulty levels.",
+      title: "10,000+ original practice questions",
+      detail: "Across all 39 SAT skills.",
     },
     {
       title: "Your cohort, between classes",
-      detail: "A group chat for your cohort. Questions to Zakaria are answered every day.",
+      detail: "A group chat for your cohort. Questions are answered by a Karman tutor every day.",
     },
     {
       title: "Weekly updates for parents",
@@ -108,32 +123,55 @@ export const MARCH_PROGRAM = {
   ] satisfies ProgramInclusion[],
 } as const;
 
+/**
+ * Later cohorts, named by the week they start. Classes start on a Monday and
+ * applications close the Wednesday before. CONFIRM: start and close dates.
+ */
 export const NEXT_PROGRAMS = [
-  { testDateLabel: "Saturday, May 1, 2027", testDateShort: "May 1" },
-  { testDateLabel: "Saturday, June 5, 2027", testDateShort: "June 5" },
+  {
+    id: "cohort-may-2027",
+    startDate: "2027-03-01",
+    startLabel: "Monday, March 1",
+    startShort: "March 1",
+    enrollmentClosesLabel: "Wednesday, February 24",
+  },
+  {
+    id: "cohort-june-2027",
+    startDate: "2027-04-05",
+    startLabel: "Monday, April 5",
+    startShort: "April 5",
+    enrollmentClosesLabel: "Wednesday, March 31",
+  },
 ] as const;
+/** Official SAT dates families can name on the call and test forms (College Board 2026-27 calendar,
+ *  checked 2026-10-20). Only asked, never sold against. */
+export const SAT_DATES = ["March 6", "May 1", "June 5"] as const;
+
 export const NEXT_PROGRAMS_ENROLLMENT_LABEL = "Enrollment opens in February.";
 
-export const PRIVATE_HOURLY_RATE = 145;
+/** CONFIRM: founder approval (market analysis session, 2026-10-26). */
+export const PRIVATE_HOURLY_RATE = 195;
+/** The free strategy call before private tutoring, and the fit call before a program seat. */
+export const CALL_MINUTES = 20;
 
 export const PRIVATE_PACKAGES = [
-  { id: "private-10", name: "Private 10", hours: 10, price: 1450 },
-  { id: "private-20", name: "Private 20", hours: 20, price: 2900 },
+  { id: "private-10", name: "Private 10", hours: 10, price: 1950 },
+  { id: "private-20", name: "Private 20", hours: 20, price: 3600 },
 ] as const;
 
 export const PRIVATE_INCLUDES: ProgramInclusion[] = [
   {
-    title: "Weekly 60-minute sessions with Zakaria",
+    title: "Weekly 60-minute sessions with a Karman tutor",
     detail:
       "Each session goes through every mistake on your latest full-length, or targets the skill holding you back.",
   },
   {
-    title: "Scheduled around your test date",
-    detail: "Start whenever you're ready. Hours are planned backward from the SAT you're taking.",
+    title: "Scheduled around your week",
+    detail: "Start whenever you're ready, at times that fit your student's week.",
   },
   {
     title: "Everything on the platform",
-    detail: "Practice tests, Daily 10 and 5,000+ original questions.",
+    detail: "Practice tests, Daily 10 and 10,000+ original questions.",
   },
   {
     title: "The weekly live session",
@@ -145,6 +183,25 @@ export const PRIVATE_INCLUDES: ProgramInclusion[] = [
   },
 ];
 
+/**
+ * Self-paced (founder decision 2026-10-26, price from the market analysis session the same day):
+ * the platform on its own, one payment for twelve months, no auto-renew, no guarantee.
+ * CONFIRM: founder approval of the price.
+ */
+export const SELF_PACED = {
+  id: "self-paced",
+  name: "Self-paced",
+  price: 199,
+  months: 12,
+  includes: [
+    "10,000+ original practice questions",
+    "The Daily 10, ten questions a day from the skills your student misses",
+    "Full-length practice tests on the platform",
+    "Weekly office hours and skill workshops, when your student wants them",
+    "Progress for parents on their phone",
+  ],
+} as const;
+
 export const FREE_PRACTICE_TEST = {
   id: "practice-test-2026-12-12",
   name: "Free practice test",
@@ -153,14 +210,17 @@ export const FREE_PRACTICE_TEST = {
   // CONFIRM: start time.
   timeLabel: "10:00 a.m. ET",
   durationLabel: "About 75 minutes",
+  minutes: 75,
   questionCount: 49,
-  format: "One Reading & Writing module and one Math module — about 49 questions.",
-  delivery: "Live on Zoom, proctored by Zakaria.",
+  /** The results call after the test. */
+  callMinutes: 20,
+  format: "One Reading and Writing module and one Math module, about 49 questions.",
+  delivery: "Live on Zoom, with a live proctor.",
   cadence: "Every month.",
   includes: [
     "An estimated score range",
     "A domain-by-domain breakdown",
-    "A 20-minute results call with Zakaria",
+    "A 20-minute results call with a Karman tutor",
   ],
 } as const;
 
@@ -169,24 +229,74 @@ export const DIAGNOSTIC = {
   durationLabel: "About 35 minutes",
 } as const;
 
+/**
+ * The guarantee (proposed 2026-10-25, see docs/business/guarantee.md).
+ * CONFIRM: lawyer review before launch.
+ */
 export const GUARANTEE = {
-  points: 50,
-  baseline: "an official Bluebook practice test, proctored live in your first week",
-  requirements: [
-    "Take the proctored baseline test in your first week.",
-    "Attend at least 80% of live classes and every 1:1 session.",
-    "Complete all five full-length practice tests.",
-    "Complete your assigned weekly practice.",
-    "Sit for the official SAT on your program's test date.",
-    "Send us your official College Board score report within 30 days of receiving it.",
+  points: 100,
+  orScore: 1450,
+  /** Students starting at or above this are not covered (told before enrolling). */
+  excludedFrom: 1450,
+  /** The two bands below the promise: from this gain, half back; under it, everything back. */
+  halfBackFrom: 50,
+  /** Live classes the student must attend, out of MARCH_PROGRAM.totalClasses. */
+  minClassesAttended: 15,
+  /** Share of the assigned weekly practice that must be done. */
+  practicePct: 90,
+  /** Hours' notice that makes rescheduling a one-on-one review fine. */
+  rescheduleHours: 24,
+  /** The official SAT must be taken within this many days of the last class. */
+  satWithinDays: 60,
+  /** How recent an official SAT or PSAT must be to serve as the baseline. */
+  baselineMonths: 6,
+  /** Days after scores come out to send the claim. */
+  claimDays: 30,
+  baseline:
+    "an official SAT or PSAT from the last 6 months, or the week-1 Bluebook test, proctored live by Karman",
+  /** What the family gets, by official result. The family chooses money or a seat. */
+  outcomes: [
+    { result: "+100 or more, or 1450 and up", remedy: "Nothing back. The promise was kept." },
+    { result: "+50 to +99", remedy: "Half the price back, or the next cohort free. You choose." },
+    { result: "Under +50", remedy: "The full price back, or the next cohort free. You choose." },
   ],
-  remedy:
-    "If your official score isn't at least 50 points above your baseline, your next cohort is free.",
+  requirements: [
+    "Attend at least 15 of the 18 live classes, live.",
+    "Complete all five one-on-one reviews. Rescheduling with 24 hours' notice is fine.",
+    "Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.",
+    "Complete at least 90% of the assigned weekly practice.",
+    "Sit the official SAT within 60 days of the last class.",
+  ],
+  eligibility: [
+    "A student's first Karman program, once per student.",
+    "Students starting at 1450 or above are not covered.",
+    "Paid in full, or every installment paid on time.",
+  ],
+  claim:
+    "Within 30 days of scores coming out, email the official College Board score report to guarantee@karmanprep.com.",
   claimEmail: "guarantee@karmanprep.com",
+  private20: {
+    points: 100,
+    orScore: 1450,
+    bonusHours: 6,
+    cancelHours: 24,
+    fullLengthTests: 4,
+    satWithinDays: 30,
+    requirements: [
+      "Attend every session. Cancelling with less than 24 hours' notice counts as a missed session.",
+      "Take four full-length practice tests.",
+      "Sit the official SAT within 30 days of the last session.",
+    ],
+    remedy:
+      "Up to 6 more hours free. If the next official SAT still falls short, half the price back.",
+  },
 } as const;
 
+/** Who we tell, before they pay, that a program probably isn't worth their money. */
+export const INTAKE = { scoreFrom: 1500, minWeeks: 4 } as const;
+
 export const INTAKE_NOTE =
-  "If you're already scoring 1500 or higher, or your test is less than four weeks away, we'll tell you honestly that a program probably isn't the best use of your money.";
+  "If you're already scoring 1500 or higher, or your SAT is less than four weeks away, we'll tell you honestly that a program probably isn't the best use of your money.";
 
 export const SCHOLARSHIP = {
   summary:
@@ -216,6 +326,8 @@ export const LEAD_SOURCES = [
   "newsletter",
   "practice-test-2026-12-12",
   "cohort-march-2027",
+  "cohort-may-2027",
+  "cohort-june-2027",
   "private",
   "scholarship",
 ] as const;

@@ -137,10 +137,13 @@ All numbers here are mirrored in `src/lib/marketing/offer.ts`.
 
 1. **No testimonials until real ones exist.** Every past testimonial has
    been removed.
-2. **Track-record stats are Zakaria's private tutoring results, not Karman
-   program results.** Label them that way wherever they appear: +285
-   average gain (1235 → 1520), 94% reached their target score, median 16
-   weeks to goal, 4.9/5 rating, 1,200+ students tutored.
+2. **Track-record stats are Karman's 1:1 tutoring results** (founder
+   decision, 2026-10-19: Karman is Zakaria's business, so his students are
+   Karman's students): +285 average gain (1235 to 1520), 94% reached their
+   target score, median 16 weeks to goal, 4.9/5 rating, 1,200+ students
+   tutored. Always state the format next to them (1:1 tutoring, median 16
+   weeks) and never present them as results of the 9-week cohort. Replace
+   them with cohort results once those exist.
 3. **No fake urgency.** Real deadlines (enrollment close, test dates, seat
    counts) are fine; countdown gimmicks are not.
 4. **Don't sell features that won't exist in time.** Anything not shipped by

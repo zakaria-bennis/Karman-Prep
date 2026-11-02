@@ -1143,27 +1143,33 @@ export type Database = {
       marketing_leads: {
         Row: {
           created_at: string;
+          details: Json;
           email: string;
           id: string;
           name: string | null;
           role: string | null;
           source: string;
+          updated_at: string;
         };
         Insert: {
           created_at?: string;
+          details?: Json;
           email: string;
           id?: string;
           name?: string | null;
           role?: string | null;
           source: string;
+          updated_at?: string;
         };
         Update: {
           created_at?: string;
+          details?: Json;
           email?: string;
           id?: string;
           name?: string | null;
           role?: string | null;
           source?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

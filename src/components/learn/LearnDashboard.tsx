@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
-import StudyPreview from "@/components/landing/StudyPreview";
+import StudyPreview from "@/components/learn/StudyPreview";
 import type { LearnDashboardData, SubjectProgress } from "@/lib/learn/dashboard";
 import { learningPlanCopy } from "@/lib/learning-plan/copy";
 

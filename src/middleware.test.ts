@@ -33,6 +33,7 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
   for (const path of [
     "/",
     "/about",
+    "/research",
     "/free-diagnostic",
     "/plans",
     "/questions",
