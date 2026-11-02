@@ -21,22 +21,22 @@ The calculator is excluded until the founder has reviewed it.
 9. Em dashes, in any copy.
 10. Inter, Geist or Space Grotesk fonts.
 11. Colored vertical stripes on the left or right edge of a button or card.
-12. Fake testimonials. A testimonial may only appear if it is real and approved.
+12. (removed by the founder, 2026-11-01)
 13. Bento grids.
 14. Terminal windows.
 15. The "it's not X, it's Y" sentence pattern.
 16. Checkmark bullets.
-17. Three pricing tiers.
-18. A page with no real product demo. Show the actual product, not icons.
-19. Soft, heavily rounded corners.
+17. (removed by the founder, 2026-11-01)
+18. (removed by the founder, 2026-11-01)
+19. (removed by the founder, 2026-11-01)
 20. Purple and black color schemes.
 21. Radial orbs.
 22. Dot grids.
 23. Sparkle icons.
-24. Animated arrows.
-25. Hover animations on everything. Hover feedback is limited to what a user needs.
+24. (removed by the founder, 2026-11-01)
+25. (removed by the founder, 2026-11-01)
 26. Neon colors.
-27. Basic pastel colors.
+27. (removed by the founder, 2026-11-01)
 28. Horizontal scrolling, on any screen size.
 
 ## Always do these
@@ -67,7 +67,7 @@ The calculator is excluded until the founder has reviewed it.
 37. No scroll-driven indicators that fill boxes, light up checkpoints or tick
     items off as the reader scrolls (route bars, filling week squares, skill
     meters).
-38. No visible play or pause button on background film.
+38. (removed by the founder, 2026-11-01)
 39. Internal grading stays internal on marketing pages: no difficulty levels
     ("level 4", "1 to 7", "seven levels"), no skill maps or level meters.
 40. Karman is a company, not a personal site. Marketing copy speaks as Karman,
@@ -83,11 +83,7 @@ The calculator is excluded until the founder has reviewed it.
 42. Students are locked in. A small smile is fine; laughing at a laptop, or
     any staged comedy, is not. No cartoon details such as a pencil behind the
     ear.
-43. Study happens anywhere: at a desk, on the go, on the bench during a
-    practice break. The product is digital, so pictures centre on phones and
-    laptops, not paper. AirPods Pro or AirPods Max are fine; no visible
-    brand logos (university clothing in the "next fall" chapters is the one exception;
-    see rule 47).
+43. (removed by the founder, 2026-11-01)
 44. Screens are readable and show real Karman product screens with logical
     content. The founder approves each screen's content before anything is
     generated. Screen text is placed from our own rendered screens, never left
@@ -98,16 +94,7 @@ The calculator is excluded until the founder has reviewed it.
 46. Tutoring is on Zoom, and pictures may show Zoom as it is (student and
     tutor each in their own place), never a tutor in the room or over a
     shoulder.
-47. Generated people may carry fictional first names as characters in a film
-    or its still (for example "Ava, 6:50 a.m., Daily 10"), but never a score,
-    a quote, a result or a claim that they are enrolled Karman students, and
-    no screen in their hands shows a score result.
-    Founder exception (2026-10-22, cleared by Karman's lawyer): the landing
-    film's "next fall" chapters show three characters standing for real Karman
-    1:1 students, with their real first name, official SAT score and college
-    (Ava 1520 UC Berkeley, Mateo 1570 Harvard, Priya 1540 Stanford), wearing
-    that university's clothing, always with "Karman 1:1 tutoring, median 16
-    weeks". Agents must not remove or hide these chapters.
+47. (removed by the founder, 2026-11-01)
 48. Colour in pictures is not limited to the site palette. Pictures must look
     graded and coordinated with each other and with the page around them.
 
