@@ -235,6 +235,7 @@ test("KB-7 undo and redo in a Graph settings text field leave the expression row
   await expect.poll(async () => (await rows(page))[0].latex).not.toBe("xy");
   const before = await rows(page);
   await openSettings(page);
+  await page.getByRole("button", { name: "Label and step" }).first().click();
   const label = page.getByRole("textbox", { name: "Label", exact: true }).first();
   await label.click();
   await page.keyboard.type("ab");

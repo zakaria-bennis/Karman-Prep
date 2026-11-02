@@ -1,0 +1,466 @@
+/* The settings controls drawn after Apple's (founder decision, 2026-10-26): the on/off switch every
+   on/off setting uses, the setting row around it, the Text Size slider and the help button.
+   Colours come only from role variables (TH-3) and the popover tones in settings.css. Motion is
+   the --kc-spring transition, which retargets from where it is when interrupted; reduced motion
+   (base.css) makes every change instant. */
+
+/* The switch: a 38 by 22 track that fills with the accent when on, and an 18 px thumb that springs
+   across. Pressed, the thumb stretches toward the side it will move to, as a finger squashes it.
+   The native checkbox covers the switch and 6 px around it, so the target is 50 by 34. */
+.kc-toggle {
+  --kc-toggle-knob: var(--kc-list);
+  --kc-toggle-knob: light-dark(var(--kc-list), var(--kc-text));
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 38px;
+  height: 22px;
+}
+
+.kc-toggle > input {
+  appearance: none;
+  position: absolute;
+  inset: -6px;
+  z-index: 1;
+  margin: 0;
+  border-radius: 17px;
+  background: none;
+  cursor: pointer;
+}
+
+.kc-toggle-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 11px;
+  background: var(--kc-pop-track);
+  pointer-events: none;
+  transition: background-color var(--kc-dur-250) var(--kc-ease-out);
+}
+
+.kc-toggle:hover > .kc-toggle-track {
+  background: color-mix(in srgb, var(--kc-text) 22%, var(--kc-list));
+}
+
+.kc-toggle > input:checked ~ .kc-toggle-track {
+  background: var(--kc-accent);
+}
+
+.kc-toggle:hover > input:checked ~ .kc-toggle-track {
+  background: var(--kc-kp-accent-hover);
+}
+
+.kc-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--kc-toggle-knob);
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--kc-text) 18%, transparent),
+    0 0 0 0.5px color-mix(in srgb, var(--kc-text) 12%, transparent);
+  pointer-events: none;
+  transition:
+    transform var(--kc-dur-400) var(--kc-spring),
+    width var(--kc-dur-400) var(--kc-spring);
+}
+
+.kc-toggle > input:checked ~ .kc-toggle-knob {
+  transform: translateX(16px);
+}
+
+.kc-toggle > input:active ~ .kc-toggle-knob {
+  width: 22px;
+}
+
+.kc-toggle > input:checked:active ~ .kc-toggle-knob {
+  transform: translateX(12px);
+}
+
+.kc-toggle:has(> input:focus-visible) > .kc-toggle-track {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+/* A setting row: the label (a press anywhere on it flips the switch), help, then the switch. */
+.kc-switch-row + .kc-switch-row {
+  margin-top: 2px;
+}
+
+.kc-switch-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+}
+
+.kc-switch-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 0;
+  font-size: 15.2px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.kc-switch-row[data-size="small"] .kc-switch-label {
+  font-size: 14.4px;
+}
+
+/* Help sits right after the label text, not by the switch. */
+.kc-switch-head > .kc-help {
+  margin-right: auto;
+}
+
+.kc-switch-head > .kc-help ~ .kc-toggle {
+  margin-left: 6px;
+}
+
+.kc-switch-head:has(> .kc-help) > .kc-switch-label {
+  flex: 0 1 auto;
+}
+
+.kc-switch-hint {
+  margin: -2px 48px 4px 0;
+  color: var(--kc-text-secondary);
+  font-size: 12.8px;
+  line-height: 1.4;
+}
+
+.kc-switch-hint i {
+  font-family: var(--kc-font-math);
+  font-size: 14px;
+}
+
+@media (pointer: coarse) {
+  .kc-switch-head {
+    min-height: 42px;
+  }
+}
+
+/* Text Size: a small A, the seven-notch slider, a large A. The track runs between the thumb's
+   centres at the two ends, so every notch sits under the thumb when it is there. */
+.kc-size {
+  --kc-size-progress: 0; /* set inline: how far along the chosen notch is, 0 to 1 */
+}
+
+.kc-size-notch,
+.kc-size-default {
+  --kc-notch: 0; /* set inline: the notch's place along the track, 0 to 1 */
+}
+
+.kc-size-title {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 15.2px;
+}
+
+.kc-size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kc-size-letter {
+  flex: none;
+  width: 22px;
+  color: var(--kc-text-secondary);
+  font-family: var(--kc-font-ui);
+  line-height: 1;
+  text-align: center;
+}
+
+.kc-size-letter[data-end="small"] {
+  font-size: 12.8px;
+}
+
+.kc-size-letter[data-end="large"] {
+  font-size: 22.4px;
+}
+
+.kc-size-control {
+  position: relative;
+  flex: 1 1 auto;
+  height: 52px;
+}
+
+.kc-size-track {
+  position: absolute;
+  top: 19px;
+  right: 14px;
+  left: 14px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--kc-pop-track);
+  pointer-events: none;
+}
+
+.kc-size-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--kc-size-progress) * 100%);
+  border-radius: 2px;
+  background: var(--kc-accent);
+  transition: width var(--kc-dur-400) var(--kc-spring);
+}
+
+.kc-size-notch {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--kc-notch) * 100%);
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--kc-text) 35%, var(--kc-list));
+  transition: background-color var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-size-notch[data-passed="true"] {
+  background: color-mix(in srgb, var(--kc-accent-label) 55%, var(--kc-accent));
+}
+
+/* The default notch: a ring in the accent, larger than the others, named under the track. */
+.kc-size-notch[data-default="true"] {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  box-sizing: border-box;
+  border: 2px solid var(--kc-accent);
+  background: var(--kc-list);
+}
+
+.kc-size-default {
+  position: absolute;
+  top: 36px;
+  left: calc(14px + var(--kc-notch) * (100% - 28px));
+  color: var(--kc-text-secondary);
+  font-size: 11.2px;
+  line-height: 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* The native range covers the control; only its thumb is drawn. */
+.kc-size-range {
+  appearance: none;
+  position: absolute;
+  top: 7px;
+  right: 0;
+  left: 0;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.kc-size-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.kc-size-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.kc-size-range::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 0.5px solid color-mix(in srgb, var(--kc-text) 12%, transparent);
+  border-radius: 50%;
+  background: var(--kc-toggle-knob, var(--kc-list));
+  box-shadow:
+    0 3px 8px color-mix(in srgb, var(--kc-text) 22%, transparent),
+    0 1px 1px color-mix(in srgb, var(--kc-text) 16%, transparent);
+  transition: transform var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-size-range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 0.5px solid color-mix(in srgb, var(--kc-text) 12%, transparent);
+  border-radius: 50%;
+  background: var(--kc-toggle-knob, var(--kc-list));
+  box-shadow:
+    0 3px 8px color-mix(in srgb, var(--kc-text) 22%, transparent),
+    0 1px 1px color-mix(in srgb, var(--kc-text) 16%, transparent);
+  transition: transform var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-size {
+  --kc-toggle-knob: var(--kc-list);
+  --kc-toggle-knob: light-dark(var(--kc-list), var(--kc-text));
+}
+
+/* Pressed, the thumb grows a little under the finger. */
+.kc-size-range:active::-webkit-slider-thumb {
+  transform: scale(1.08);
+}
+
+.kc-size-range:active::-moz-range-thumb {
+  transform: scale(1.08);
+}
+
+/* The tick: each new notch pulses the thumb and lights the notch, like a detent you can see. Two
+   identical animations alternate so every change restarts one. */
+.kc-size-range[data-tick="0"]::-webkit-slider-thumb {
+  animation: kc-size-tick-a var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-size-range[data-tick="1"]::-webkit-slider-thumb {
+  animation: kc-size-tick-b var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-size-range[data-tick="0"]::-moz-range-thumb {
+  animation: kc-size-tick-a var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-size-range[data-tick="1"]::-moz-range-thumb {
+  animation: kc-size-tick-b var(--kc-dur-200) var(--kc-ease-out);
+}
+
+@keyframes kc-size-tick-a {
+  40% {
+    transform: scale(0.88);
+  }
+}
+
+@keyframes kc-size-tick-b {
+  40% {
+    transform: scale(0.88);
+  }
+}
+
+.kc-size-notch[data-landed] {
+  animation: kc-size-land-a var(--kc-dur-250) var(--kc-ease-out);
+}
+
+.kc-size-notch[data-landed="1"] {
+  animation-name: kc-size-land-b;
+}
+
+@keyframes kc-size-land-a {
+  from {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--kc-accent) 35%, transparent);
+  }
+}
+
+@keyframes kc-size-land-b {
+  from {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--kc-accent) 35%, transparent);
+  }
+}
+
+.kc-size-range:focus-visible {
+  outline: none;
+}
+
+.kc-size-range:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+.kc-size-range:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: 2px;
+}
+
+/* The help button: a 16 px ring with a question mark, in a 28 px target; its explanation is a
+   small bubble in the tooltip colours that opens below the button (or above it). */
+.kc-help {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.kc-help-button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--kc-text-secondary);
+  cursor: pointer;
+}
+
+.kc-help-button:hover,
+.kc-help[data-open="true"] .kc-help-button {
+  color: var(--kc-accent);
+}
+
+.kc-help-button:focus-visible {
+  outline: 2px solid var(--kc-focus-ring);
+  outline-offset: -2px;
+}
+
+.kc-help-button > svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.kc-help-button .kc-help-dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+.kc-help-bubble {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -60px;
+  z-index: 3;
+  box-sizing: border-box;
+  width: 210px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--kc-tooltip);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--kc-text) 22%, transparent);
+  color: var(--kc-tooltip-label);
+  font-size: 12.8px;
+  font-weight: normal;
+  line-height: 1.4;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px) scale(0.96);
+  transform-origin: 70px top;
+  pointer-events: none;
+  transition:
+    opacity var(--kc-dur-200) var(--kc-ease-out),
+    transform var(--kc-dur-200) var(--kc-ease-out),
+    visibility 0s linear var(--kc-dur-200);
+}
+
+.kc-help[data-side="above"] .kc-help-bubble {
+  top: auto;
+  bottom: calc(100% + 6px);
+  transform: translateY(4px) scale(0.96);
+  transform-origin: 70px bottom;
+}
+
+.kc-help[data-open="true"] .kc-help-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity var(--kc-dur-200) var(--kc-ease-out),
+    transform var(--kc-dur-200) var(--kc-ease-out),
+    visibility 0s;
+}

@@ -5156,6 +5156,24 @@ var MathQuillModule = (function () {
                 return new VanillaSymbol(ch);
         };
         MathBlock.prototype.write = function (cursor, ch) {
+            // A character in charsThatBreakOutOfSupSub typed in a non-empty exponent or
+            // subscript leaves it, and any exponent or subscript it sits directly in, for the
+            // line they are written on (`x^{2}=`, `a_{x^{2}}=`); one inside brackets or a
+            // fraction stays there (`y_{1\left\{x>0\right\}}`), and so does the `>` of `->`.
+            var arrow = ch === '>' && cursor[L] && cursor[L].ctrlSeq === '-';
+            if (!cursor.selection &&
+                !arrow &&
+                (cursor[L] || cursor[R]) &&
+                cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1) {
+                var outer = null;
+                for (var block = cursor.parent; block && block.parent && typeof block.parent.supsub === 'string'; block = outer.parent) {
+                    outer = block.parent;
+                }
+                if (outer) {
+                    cursor.insRightOf(outer);
+                    cursor.controller.aria.queue('Baseline');
+                }
+            }
             var cmd = this.chToCmd(ch, cursor.options);
             if (cursor.selection)
                 cmd.replaces(cursor.replaceSelection());
@@ -7806,15 +7824,8 @@ var MathQuillModule = (function () {
             endsL.write = function (cursor, ch) {
                 // A subscript keeps whatever is typed in it, as an exponent does, even
                 // under autoSubscriptNumerals: brackets, `^`, `_` and `/` build inside it
-                // (`x_1^2` gives x_{1^{2}}, `y_{` gives y_{\left\{\right\}}). Only an
-                // operator typed at the end of a non-empty block leaves it (`a_2+1`).
-                if (cursor[L] &&
-                    !cursor[R] &&
-                    !cursor.selection &&
-                    cursor.options.charsThatBreakOutOfSupSub.indexOf(ch) > -1) {
-                    cursor.insRightOf(this.parent);
-                    cursor.controller.aria.queue('Baseline');
-                }
+                // (`x_1^2` gives x_{1^{2}}, `y_{` gives y_{\left\{\right\}}). The characters
+                // that leave it are MathBlock.write's (patch 0013).
                 MathBlock.prototype.write.call(this, cursor, ch);
             };
         };

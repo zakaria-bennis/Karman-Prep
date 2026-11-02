@@ -74,7 +74,7 @@ async function setup(): Promise<void> {
   ]);
   render(
     <EngineContext.Provider value={t.engine}>
-      <SkinContext.Provider value="ivory">
+      <SkinContext.Provider value="white">
         <GraphPanel
           host={document.body}
           themeRevision={0}

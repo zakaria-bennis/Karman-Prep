@@ -5,9 +5,12 @@ import {
   T1_STEM_DENIED,
 } from "./fixture/harness/transfer-questions";
 import { compositeShading, contrastRatio } from "../../src/lib/calculator/theme/contrast";
-import { resolveRowColor } from "../../src/lib/calculator/theme/roles";
+import { resolveRowColor, resolveSkinId } from "../../src/lib/calculator/theme/roles";
 import { SKIN_COLORS } from "../../src/lib/calculator/theme/skin-colors.generated";
-import { SITE_SKIN_IDS, SKIN_IDS, type SkinId } from "../../src/lib/calculator/theme/skins";
+import type { SkinId } from "../../src/lib/calculator/theme/skins";
+import { SITE_THEMES } from "../../src/lib/themes/palettes";
+
+const SITE_THEME_IDS = SITE_THEMES.map((t) => t.id);
 import {
   DESKTOP,
   allControls,
@@ -351,7 +354,7 @@ test("TR-53, TH-1, TH-14 in all 12 skins the glyph is 4.5:1 on the button, the b
 }, info) => {
   chromeOnly(info.project.name);
   await open(page);
-  for (const skin of SITE_SKIN_IDS) {
+  for (const skin of SITE_THEME_IDS) {
     // the Transfer control is site chrome, so it follows the 12 site themes (TH-5)
     await applySkin(page, skin);
     await page.mouse.move(5, 790);
@@ -534,9 +537,10 @@ test("F-A1 a transferred inequality and system shade as the uncapped stack of th
   const colors = await page.evaluate(
     () => globalThis.__calculatorHarness?.engine.getSnapshot().rows.map((r) => r.color) ?? []
   );
-  for (const skin of SKIN_IDS) {
+  for (const site of ["classic", ...SITE_THEME_IDS]) {
+    const skin: SkinId = resolveSkinId(site);
     const paper = SKIN_COLORS[skin].normal.roles.paper;
-    await applySkin(page, skin);
+    await applySkin(page, site);
     await expect.poll(() => kcPaper(page)).toBe(paper.toLowerCase());
     await page.evaluate(nextFrame);
     const fills = colors.map((c) => resolveRowColor(c, skin)); // each row's curve colour and fill alpha, in row order

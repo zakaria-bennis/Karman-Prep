@@ -1,0 +1,42 @@
+{
+  "id": "72c29a75-f396-47d6-92ac-3b8335630267",
+  "figure_chart_data": {
+    "kind": "function_plot",
+    "frame": "wide",
+    "title": null,
+    "series": [
+      {
+        "kind": "function",
+        "label": "",
+        "domain": [0, 14.5],
+        "expression": {
+          "a": 3,
+          "b": 1.07,
+          "kind": "exponential"
+        }
+      }
+    ],
+    "x_axis": {
+      "max": 15,
+      "min": 0,
+      "label": "x",
+      "tick_step": 1,
+      "categories": null,
+      "label_step": 2
+    },
+    "y_axis": {
+      "max": 10,
+      "min": 0,
+      "label": "y",
+      "tick_step": 1,
+      "categories": null,
+      "label_step": 2
+    },
+    "show_grid": true,
+    "confidence": 1,
+    "extracted_at": "2026-10-21T00:00:00Z",
+    "extracted_by": "manual source-pixel reading (r3)",
+    "extractor_note": null,
+    "hide_origin_label": true
+  }
+}

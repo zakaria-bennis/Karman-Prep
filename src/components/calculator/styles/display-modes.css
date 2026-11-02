@@ -1,21 +1,42 @@
-/* Display size and Reverse contrast (SETTINGS-11, SETTINGS-12, VIS-THEMES-MODES-3 to -10). App
-   writes data-display-size and data-reverse-contrast on the host.
+/* Display size (SETTINGS-11, founder decision 2026-10-26): the settings popover's slider has seven
+   notches, and App writes the chosen one on the host as data-display-size="1" to "7". Each notch
+   scales the expression list's math (20.24 px at the default, notch 3) and its values by the same
+   ratio: 0.8, 0.9, 1, 1.15, 1.304 (the reference's Large), 1.45 and 1.6. The Graph Settings
+   popover, the top bar, row numbers and the graph's buttons keep their size
+   (VIS-THEMES-MODES-9). */
 
-   Reverse contrast inverts the whole calculator, popovers and tooltips included, with
-   filter: invert(1) and no hue turn; the host page around it is untouched. It does not follow
-   prefers-contrast.
-
-   Large scales the expression list's math 20.24 -> 26.4 px (x1.304) and its values by the same
-   ratio. The Graph Settings popover, the top bar, row numbers and the graph's buttons keep their
-   size (VIS-THEMES-MODES-9). The graph paper's Large constants (5 px curves, 19 px axis numbers)
-   and the taller keypad are not drawn yet. */
-
-:host([data-reverse-contrast="true"]) .kc-app {
-  filter: invert(1);
+:host([data-display-size="1"]) {
+  --kc-size-math: 16.19px;
+  --kc-size-eval-math: 13.98px;
+  --kc-size-eval: 12.16px;
 }
 
-:host([data-display-size="large"]) {
+:host([data-display-size="2"]) {
+  --kc-size-math: 18.22px;
+  --kc-size-eval-math: 15.73px;
+  --kc-size-eval: 13.68px;
+}
+
+:host([data-display-size="4"]) {
+  --kc-size-math: 23.28px;
+  --kc-size-eval-math: 20.1px;
+  --kc-size-eval: 17.48px;
+}
+
+:host([data-display-size="5"]) {
   --kc-size-math: 26.4px;
   --kc-size-eval-math: 22.8px;
   --kc-size-eval: 19.8px;
+}
+
+:host([data-display-size="6"]) {
+  --kc-size-math: 29.35px;
+  --kc-size-eval-math: 25.35px;
+  --kc-size-eval: 22.04px;
+}
+
+:host([data-display-size="7"]) {
+  --kc-size-math: 32.38px;
+  --kc-size-eval-math: 27.97px;
+  --kc-size-eval: 24.32px;
 }

@@ -1,0 +1,44 @@
+{
+  "source": "traced from the real exam figure 2025-08_US_V1_MATH_M2_Q18: wide cone, apex A, point B on the base circle; base flattens to 0.10",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "cone",
+        "dims": {
+          "radius": 1.32,
+          "height": 1
+        },
+        "view": {
+          "tilt": 5.8
+        },
+        "points": [
+          {
+            "id": "A",
+            "at": "apex"
+          },
+          {
+            "id": "B",
+            "at": "rim",
+            "angle": 232
+          }
+        ]
+      }
+    ],
+    "labels": [
+      {
+        "text": "A",
+        "on": "s.A"
+      },
+      {
+        "text": "B",
+        "on": "s.B"
+      }
+    ],
+    "marks": [],
+    "notToScale": true
+  }
+}

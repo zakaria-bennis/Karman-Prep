@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Rectangular pyramid, base length ℓ, base width w, height h." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M305 196.12 L202.79 157.2" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M202.79 157.2 L95 204.87" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M202.79 157.2 L205.04 56.21" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M205.04 56.21 L200 200.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s.height">
+</path>
+<path d="M95 204.87 L197.21 243.79" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.baseLength">
+</path>
+<path d="M197.21 243.79 L305 196.12" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.baseWidth">
+</path>
+<path d="M95 204.87 L205.04 56.21" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M205.04 56.21 L197.21 243.79" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M205.04 56.21 L305 196.12" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M200.35 190.5 L209.69 194.06 L209.35 204.05" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.height">
+</path>
+<text x="140.4" y="244.94" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.baseLength">ℓ</text>
+<text x="257.68" y="240.44" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.baseWidth">w</text>
+<text x="213.02" y="134.34" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.height">h</text>
+</svg>

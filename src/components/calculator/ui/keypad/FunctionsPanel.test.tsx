@@ -22,7 +22,7 @@ afterEach(() => vi.useRealTimers());
 const panelButton = (name: string) =>
   within(screen.getByRole("group", { name: "Functions" })).getByRole("button", { name });
 
-it("K-4 Functions panel shows the shipped categories 1, 2 and 8 in K-4 order under CATEGORY_HEADINGS, category 8 holding exp, ln, log, logₐ only", async () => {
+it("K-4 Functions panel shows the shipped categories 1, 2 and 8 in K-4 order under CATEGORY_HEADINGS, category 8 holding exp, ln, log, logₐ and d/dx", async () => {
   expect(panelCategories().map((c) => c.id)).toEqual([1, 2, 8]);
   expect([CATEGORY_HEADINGS[0], CATEGORY_HEADINGS[1], CATEGORY_HEADINGS[7]]).toEqual([
     "Trig",
@@ -43,7 +43,7 @@ it("K-4 Functions panel shows the shipped categories 1, 2 and 8 in K-4 order und
       .map((b) => b.textContent);
   expect(labels("Trig")).toEqual(["sin", "cos", "tan", "csc", "sec", "cot"]);
   expect(labels("Inverse trig")).toEqual(["sin−1", "cos−1", "tan−1", "csc−1", "sec−1", "cot−1"]);
-  expect(labels("Calculus")).toEqual(["exp", "ln", "log", "loga"]); // −1 and a are typeset
+  expect(labels("Calculus")).toEqual(["exp", "ln", "log", "loga", "ddx"]); // −1, a and d/dx are typeset
 });
 
 it("VIS-KEYPAD-41 the Functions panel is the same popover above the keypad at every width", async () => {
@@ -129,7 +129,7 @@ it("K-5 every shipped entry of categories 1, 2 and 8 inserts its own template in
   const user = userEvent.setup();
   act(() => kit.focus.focusRow("1", "end"));
   const entries = panelCategories().flatMap((c) => c.entries);
-  expect(entries).toHaveLength(16);
+  expect(entries).toHaveLength(17); // d/dx included (FN-61)
   for (const entry of entries) {
     await user.click(key("Functions"));
     field.calls = [];

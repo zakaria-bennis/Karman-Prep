@@ -186,8 +186,7 @@ it("the graph-view settings reset with each question; the student's toggles carr
     axisNumbers: false,
     arrows: true,
     minorGridlines: false,
-    displaySize: "large" as const,
-    reverseContrast: true,
+    displaySize: 6 as const,
     keypad: true,
     brailleMode: "nemeth" as const,
   };
@@ -202,8 +201,7 @@ it("the graph-view settings reset with each question; the student's toggles carr
     axisNumbers: false,
     arrows: true,
     minorGridlines: false,
-    displaySize: "large",
-    reverseContrast: true,
+    displaySize: 6,
     keypad: true,
     brailleMode: "nemeth",
   });

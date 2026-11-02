@@ -17,11 +17,11 @@ it("mathQuillOptions makes '/' take the preceding term as a numerator (both slas
   expect(config.typingSlashWritesDivisionSymbol).toBe(false);
   expect(config.typingSlashCreatesNewFraction).toBe(false);
 });
-it("mathQuillOptions takes autoOperatorNames and autoCommands from operator-names.ts, member names excluded", () => {
+it("mathQuillOptions takes autoOperatorNames and autoCommands from operator-names.ts, member names included (FN-57)", () => {
   expect(config.autoOperatorNames).toBe(mathQuillAutoOperatorNames());
   expect(config.autoCommands).toBe(mathQuillAutoCommands());
   const names = config.autoOperatorNames.split(" ");
-  for (const member of MEMBER_NAMES) expect(names).not.toContain(member);
+  for (const member of MEMBER_NAMES) expect(names).toContain(member);
   expect(config.autoCommands.split(" ")).toEqual(
     expect.arrayContaining([
       "sqrt",
@@ -53,9 +53,9 @@ it("mathQuillOptions turns on autoSubscriptNumerals and disableAutoSubstitutionI
   expect(config.autoSubscriptNumerals).toBe(true);
   expect(config.disableAutoSubstitutionInSubscripts).toBe(true);
 });
-it("CHARS_THAT_BREAK_OUT_OF_SUPSUB is exactly + - = < > * (live Desmos) and mathQuillOptions uses it", () => {
-  expect(CHARS_THAT_BREAK_OUT_OF_SUPSUB).toBe("+-=<>*");
-  expect(config.charsThatBreakOutOfSupSub).toBe("+-=<>*");
+it("CHARS_THAT_BREAK_OUT_OF_SUPSUB is exactly = ~ < > (founder, 2026-10-26: arithmetic stays inside) and mathQuillOptions uses it", () => {
+  expect(CHARS_THAT_BREAK_OUT_OF_SUPSUB).toBe("=~<>");
+  expect(config.charsThatBreakOutOfSupSub).toBe("=~<>");
 });
 it("mathQuillOptions turns on supSubsRequireOperand, so a lone _ or ^ is ignored as on Desmos", () => {
   expect(config.supSubsRequireOperand).toBe(true);

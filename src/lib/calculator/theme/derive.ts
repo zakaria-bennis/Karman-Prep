@@ -1,10 +1,9 @@
-// Derives the calculator skin palettes from the site themes of src/lib/themes/palettes.ts:
-// the 10.3 role mapping with the TH-4 adjustment, the tones of tones.ts, plus Desmos's curve
-// colours and shading (F-A1). The mapping follows how the quiz pages use each theme: surfaces
-// from canvas, surface and raised, ink from text and muted, lines from border, and the
-// interactive blue (focus, selection, the Enter key and the focused row) from math, the colour the
-// quiz gives its selected answers and focus rings, as the reference calculator uses its one blue.
-import type { SiteTheme } from "../../themes/palettes";
+// Derives the calculator skin palettes from the calculator's own themes (themes.ts): each theme
+// names its surfaces, ink, edges, accent and error colour, and this module raises any that miss
+// their 10.3 target by the TH-4 rule, mixes the tones of tones.ts, makes the gridlines neutral
+// (TH-19) and adds Desmos's curve colours and shading (F-A1). The accent is the reference's one
+// interactive blue in each theme's own colour: focus, selection, the Enter key and the focused row.
+import type { CalculatorTheme } from "./themes";
 import {
   adjustLightness,
   compositeOver,
@@ -24,7 +23,7 @@ import { deriveTones, referenceTones } from "./tones";
 import {
   COLOR_ROLES,
   CURVE_SLOTS,
-  SITE_SKIN_IDS,
+  THEME_SKIN_IDS,
   type ColorRole,
   type CurveSlot,
   type SkinId,
@@ -81,43 +80,37 @@ function minorGrid(border: string, paper: string): string {
   return neutral(paper);
 }
 
-/** Every colour role of a site theme by the 10.3 mapping, adjusted by the TH-4 rule. */
-export function deriveRoles(theme: SiteTheme): Record<ColorRole, string> {
-  const paper = theme.dark ? theme.canvas : theme.surface;
-  const list = theme.surface;
-  const chrome = theme.dark ? theme.canvas : theme.raised;
-  const key = theme.dark ? theme.raised : theme.surface;
-  const keyOperator = theme.dark ? theme.surface : theme.canvas;
-  // Labels on the blue fills, and the tooltip label: the page colour, as the quiz labels its
-  // text-coloured primary buttons (`bg-ivory text-night`).
-  const accentLabel = theme.dark ? theme.canvas : theme.surface;
-  const focusBarLabel = accentLabel;
-  const tooltipLabel = accentLabel;
+/** Every colour role of a calculator theme, adjusted by the TH-4 rule. */
+export function deriveRoles(theme: CalculatorTheme): Record<ColorRole, string> {
+  const { paper, list, chrome, key, keyOperator, accentLabel } = theme;
+  // The tooltip is the skin's ink labelled in the page colour, as the reference's black tooltip.
+  const tooltipLabel = theme.dark ? paper : list;
   const backgrounds: Record<string, string> = { paper, list, chrome, key, keyOperator };
   const textBackgrounds = TEXT_BACKGROUNDS.map((role) => backgrounds[role]);
+  const accent = adjustLightness(theme.accent, accentLabel, 7);
+  const grid = theme.grid ?? theme.border;
   const derived: Record<ColorRole, string> = {
     paper,
     list,
     chrome,
     key,
     keyOperator,
-    accent: adjustLightness(theme.math, accentLabel, 7),
+    accent,
     text: adjustAll(theme.text, textBackgrounds, 7),
     textSecondary: adjustAll(theme.muted, textBackgrounds, 7),
-    error: adjustLightness(theme.reading, list, 7),
+    error: adjustLightness(theme.error, list, 7),
     warning: adjustAll(hexOf(WARNING_SEED), [list, chrome], 3),
-    // The reference's black tooltip is the skin's ink: dark on light skins, light on dark ones.
     tooltip: adjustLightness(theme.text, tooltipLabel, 7),
     tooltipLabel,
     axis: adjustLightness(theme.text, paper, 7),
-    gridMajor: neutral(adjustLightness(neutral(theme.border), paper, 3)),
-    gridMinor: minorGrid(theme.border, paper),
-    focusRing: adjustAll(theme.math, textBackgrounds, 3),
-    focusBar: adjustLightness(theme.math, focusBarLabel, 7),
-    focusBarLabel,
+    gridMajor: neutral(adjustLightness(neutral(grid), paper, 3)),
+    gridMinor: minorGrid(grid, paper),
+    focusRing: adjustAll(theme.accent, textBackgrounds, 3),
+    focusBar: accent,
+    focusBarLabel: accentLabel,
     accentLabel,
     boundary: adjustAll(theme.border, [list, chrome, key], 3),
-    selection: compositeOver(theme.math, 0.3, list),
+    selection: compositeOver(theme.accent, 0.3, list),
   };
   return Object.fromEntries(COLOR_ROLES.map((role) => [role, derived[role]])) as Record<
     ColorRole,
@@ -172,7 +165,7 @@ function palette(
  * One skin's roles and tones, with Desmos's curve colours (inverted on dark skins, as its Reverse
  * contrast shows them, black excepted: see darkInk) and 40% fill on every slot (F-A1).
  */
-export function buildSkinPalette(theme: SiteTheme): SkinPalette {
+export function buildSkinPalette(theme: CalculatorTheme): SkinPalette {
   const roles = deriveRoles(theme);
   return palette(theme.dark, roles, deriveTones(roles));
 }
@@ -184,20 +177,20 @@ export function buildClassicPalette(): SkinPalette {
 }
 
 /**
- * Every skin's palette keyed by `SKIN_IDS`: classic first, then the site skins; the themes must be
- * the 12 site skins in `SITE_SKIN_IDS` order.
+ * Every skin's palette keyed by `SKIN_IDS`: classic first, then the theme skins; the themes must be
+ * the 20 theme skins in `THEME_SKIN_IDS` order.
  */
 export function buildSkinColors(
-  themes: readonly SiteTheme[]
+  themes: readonly CalculatorTheme[]
 ): Record<SkinId, { normal: SkinPalette }> {
   if (
-    themes.length !== SITE_SKIN_IDS.length ||
-    themes.some((theme, i) => theme.id !== SITE_SKIN_IDS[i])
+    themes.length !== THEME_SKIN_IDS.length ||
+    themes.some((theme, i) => theme.id !== THEME_SKIN_IDS[i])
   ) {
-    throw new Error("palettes.ts themes do not match SITE_SKIN_IDS");
+    throw new Error("themes.ts themes do not match THEME_SKIN_IDS");
   }
   return Object.fromEntries([
     ["classic", { normal: buildClassicPalette() }],
-    ...SITE_SKIN_IDS.map((id, i) => [id, { normal: buildSkinPalette(themes[i]) }]),
+    ...THEME_SKIN_IDS.map((id, i) => [id, { normal: buildSkinPalette(themes[i]) }]),
   ]) as Record<SkinId, { normal: SkinPalette }>;
 }

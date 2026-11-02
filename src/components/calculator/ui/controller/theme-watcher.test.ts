@@ -24,7 +24,7 @@ it("TH-15 with the auto choice watchTheme follows the site theme in data-theme, 
   expect(w.initial).toEqual({ choice: "auto", skin: "classic", revision: 0 });
   html.dataset.theme = "ivory";
   await tick();
-  expect(seen.at(-1)).toEqual({ choice: "auto", skin: "ivory", revision: 0 });
+  expect(seen.at(-1)).toEqual({ choice: "auto", skin: "white", revision: 0 }); // the site's ivory
   html.dataset.theme = "observatory";
   html.className = "dark";
   await tick();

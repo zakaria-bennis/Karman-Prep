@@ -40,16 +40,14 @@ describe("/calculator", () => {
     expect(viewport.colorScheme).toBe("dark");
   });
 
-  it("shows one heading, the logo home link, one quiet practice link and the calculator", () => {
+  it("shows only the heading Graphing Calculator over the calculator: no logo and no links", () => {
     render(<CalculatorPage />);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Graphing calculator");
-    expect(screen.getByRole("link", { name: "Karman Prep home" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("link", { name: "SAT practice" })).toHaveAttribute(
-      "href",
-      "/questions"
-    );
-    expect(screen.getAllByRole("link")).toHaveLength(2);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^Graphing Calculator$/);
+    expect(screen.getByRole("banner")).toHaveTextContent(/^Graphing Calculator$/);
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    expect(screen.queryByRole("img")).toBeNull(); // no logo
+    expect(document.body.textContent).not.toMatch(/SAT practice|Karman Prep/);
     expect(screen.queryByRole("button")).toBeNull(); // no sign-in prompt, no upsell
     expect(screen.getByTestId("calculator-loader")).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/desmos|sign in|log in/i);

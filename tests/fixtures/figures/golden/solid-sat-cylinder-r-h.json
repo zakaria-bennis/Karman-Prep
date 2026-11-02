@@ -1,0 +1,29 @@
+{
+  "source": "traced from the real exam figure 2024-08_US_V5_MATH_M1_Q19: Bluebook cylinder: radius r from a center dot across the top, h beside the right side; circles flatten to 0.33",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "cylinder",
+        "dims": {
+          "radius": 5,
+          "height": 5.2
+        }
+      }
+    ],
+    "labels": [
+      {
+        "text": "r",
+        "on": "s.radius"
+      },
+      {
+        "text": "h",
+        "on": "s.height"
+      }
+    ],
+    "marks": []
+  }
+}

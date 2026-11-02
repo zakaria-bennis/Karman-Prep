@@ -8,6 +8,7 @@ import type { TableModel } from "../../regression/table-models";
 import { NEW_ROW_COLOURS } from "../../theme/desmos-palette";
 import { sameSlider, type SliderSettings } from "../../sliders/model";
 import type { LineStyle, PointStyle } from "./types";
+import { sameInference, type InferenceSettings } from "./inference-state";
 
 /** Undo steps kept; the oldest is dropped first (Decision 6's plan value; no spec ID sets a size). */
 export const HISTORY_LIMIT = 100;
@@ -31,6 +32,7 @@ export interface StoredRow {
   readonly logMode?: boolean; // D-30: a regression row's Log mode checkbox
   readonly regression?: StoredTableRegression; // RT-28: a table's one regression
   readonly fraction?: true; // R-5: the value shows as a fraction; absent shows it as a decimal
+  readonly inference?: InferenceSettings; // FN-59: absent for the defaults
   /** The empty row that stands in for an emptied list, where Desmos's API has no rows at all. */
   readonly placeholder?: true;
   /**
@@ -136,7 +138,8 @@ function sameRow(a: StoredRow, b: StoredRow): boolean {
     a.fraction === b.fraction &&
     a.lineStyle === b.lineStyle &&
     a.pointStyle === b.pointStyle &&
-    sameSlider(a.slider, b.slider)
+    sameSlider(a.slider, b.slider) &&
+    sameInference(a.inference, b.inference)
   );
 }
 

@@ -13,6 +13,7 @@ import {
 } from "../../sliders/model";
 import type { MainToWorker, WireRow, WireSettings } from "../../worker/protocol";
 import type { StoredRow, StoredTableRegression } from "./document";
+import { inferenceState, mergeInference } from "./inference-state";
 import {
   DEFAULT_SETTINGS,
   type AxisSettings,
@@ -92,6 +93,11 @@ function mergeRow(base: StoredRow, state: ExpressionState, take: TakeColour): St
   if (state.displayEvaluationAsFraction === true)
     merged.fraction = true; // R-5
   else if (state.displayEvaluationAsFraction === false) delete merged.fraction;
+  if (state.inference !== undefined) {
+    const inference = mergeInference(undefined, state.inference); // FN-59: replaces the settings
+    if (inference === undefined) delete merged.inference;
+    else merged.inference = inference;
+  }
   if (state.lineStyle !== undefined) merged.lineStyle = state.lineStyle;
   if (state.pointStyle !== undefined) merged.pointStyle = state.pointStyle;
   // SLIDERS-11: `slider` replaces the settings; the older `sliderBounds` sets hard limits on top.
@@ -232,6 +238,8 @@ export function toExpressionState(row: StoredRow): ExpressionState {
   if (row.lineStyle !== undefined) state.lineStyle = row.lineStyle;
   if (row.pointStyle !== undefined) state.pointStyle = row.pointStyle;
   if (row.fraction === true) state.displayEvaluationAsFraction = true; // R-5, as Desmos saves it
+  const inference = inferenceState(row.inference);
+  if (inference !== undefined) state.inference = inference; // FN-59
   const slider = row.slider === undefined ? undefined : savedSlider(row.slider);
   if (slider !== undefined) state.slider = slider;
   return state;
@@ -256,18 +264,13 @@ export function settingsFromOptions(options: CalculatorOptions): CalculatorSetti
     expressionsCollapsed: options.expressionsCollapsed ?? d.expressionsCollapsed,
     reducedMotion: options.reducedMotion ?? d.reducedMotion,
     displaySize: options.displaySize ?? d.displaySize,
-    reverseContrast: options.reverseContrast ?? d.reverseContrast,
     mode: options.mode ?? d.mode,
   });
 }
 
-/** API-6, Decision 8: DEFAULT_SETTINGS keeping only the current displaySize and reverseContrast. */
+/** API-6, Decision 8: DEFAULT_SETTINGS keeping only the current displaySize. */
 export function blankSettings(current: CalculatorSettings): CalculatorSettings {
-  return freezeSettings({
-    ...DEFAULT_SETTINGS,
-    displaySize: current.displaySize,
-    reverseContrast: current.reverseContrast,
-  });
+  return freezeSettings({ ...DEFAULT_SETTINGS, displaySize: current.displaySize });
 }
 
 /** Equal settings values: the same primitive, or two axes with equal fields. */

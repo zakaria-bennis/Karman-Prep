@@ -1,0 +1,199 @@
+<!-- figure 1 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 424" role="img" aria-label="Group A. Histogram with 5 bins. X-axis: Weight (grams). Y-axis: Number of objects. 0 to 1: 6, 1 to 2: 3, 2 to 3: 2, 3 to 4: 3, 4 to 5: 6." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M24 60 L24 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M136 60 L136 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M248 60 L248 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M360 60 L360 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M472 60 L472 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M584 60 L584 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 381.25 L584 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 327.71 L584 327.71" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 274.17 L584 274.17" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 220.63 L584 220.63" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 167.08 L584 167.08" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 113.54 L584 113.54" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 60 L584 60" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 381.25 L584 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M24 381.25 L24 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M24 378.25 L24 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="24" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M136 378.25 L136 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="136" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>
+<path d="M248 378.25 L248 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="248" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M360 378.25 L360 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="360" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">3</text>
+<path d="M472 378.25 L472 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="472" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M584 378.25 L584 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="584" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">5</text>
+<path d="M21 381.25 L27 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="386.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M21 327.71 L27 327.71" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="332.71" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M21 274.17 L27 274.17" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="279.17" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M21 220.63 L27 220.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="225.63" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">6</text>
+<path d="M21 167.08 L27 167.08" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="172.08" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
+<path d="M21 113.54 L27 113.54" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="118.54" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<path d="M21 60 L27 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="65" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">12</text>
+<text x="304" y="420.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Weight (grams)</text>
+<text x="0" y="39" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit">Number of objects</text>
+<rect x="24" y="220.63" width="112" height="160.63" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="136" y="300.94" width="112" height="80.31" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="248" y="327.71" width="112" height="53.54" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="360" y="300.94" width="112" height="80.31" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="472" y="220.63" width="112" height="160.63" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<path d="M136 300.94 L136 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M248 327.71 L248 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M360 327.71 L360 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M472 300.94 L472 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Group A</text>
+</svg>
+<!-- figure 2 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 424" role="img" aria-label="Group B. Histogram with 5 bins. X-axis: Weight (grams). Y-axis: Number of objects. 9 to 10: 2, 10 to 11: 3, 11 to 12: 10, 12 to 13: 3, 13 to 14: 2." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M89.88 60 L89.88 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M188.71 60 L188.71 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M287.53 60 L287.53 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M386.35 60 L386.35 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M485.18 60 L485.18 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M584 60 L584 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 381.25 L584 381.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 327.71 L584 327.71" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 274.17 L584 274.17" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 220.63 L584 220.63" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 167.08 L584 167.08" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 113.54 L584 113.54" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 60 L584 60" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M24 381.25 L50.94 381.25 L53.94 377.25 L59.94 385.25 L62.94 381.25 L584 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M24 381.25 L24 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M89.88 378.25 L89.88 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="89.88" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">9</text>
+<path d="M188.71 378.25 L188.71 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="188.71" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<path d="M287.53 378.25 L287.53 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="287.53" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">11</text>
+<path d="M386.35 378.25 L386.35 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="386.35" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">12</text>
+<path d="M485.18 378.25 L485.18 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="485.18" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">13</text>
+<path d="M584 378.25 L584 384.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="584" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">14</text>
+<text x="24" y="399.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M21 381.25 L27 381.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="386.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M21 327.71 L27 327.71" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="332.71" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M21 274.17 L27 274.17" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="279.17" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M21 220.63 L27 220.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="225.63" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">6</text>
+<path d="M21 167.08 L27 167.08" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="172.08" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
+<path d="M21 113.54 L27 113.54" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="118.54" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">10</text>
+<path d="M21 60 L27 60" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="18" y="65" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">12</text>
+<text x="304" y="420.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Weight (grams)</text>
+<text x="0" y="39" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit">Number of objects</text>
+<rect x="89.88" y="327.71" width="98.82" height="53.54" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="188.71" y="300.94" width="98.82" height="80.31" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="287.53" y="113.54" width="98.82" height="267.71" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="386.35" y="300.94" width="98.82" height="80.31" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="485.18" y="327.71" width="98.82" height="53.54" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<path d="M188.71 327.71 L188.71 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M287.53 300.94 L287.53 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M386.35 300.94 L386.35 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M485.18 327.71 L485.18 381.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Group B</text>
+</svg>

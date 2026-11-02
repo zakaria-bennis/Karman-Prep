@@ -1,0 +1,40 @@
+{
+  "source": "traced from the real exam figure 2025-05_ASIA_V2_MATH_M2_Q10: Bluebook pyramid photographed on screen (same art as 2026-03_US_V1_MATH_M2_Q10)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "pyramid",
+        "dims": {
+          "baseLength": 9.75,
+          "baseWidth": 5.7,
+          "height": 18
+        }
+      }
+    ],
+    "labels": [
+      {
+        "text": "ℓ",
+        "on": "s.baseLength"
+      },
+      {
+        "text": "w",
+        "on": "s.baseWidth"
+      },
+      {
+        "text": "h",
+        "on": "s.height"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "right_angle",
+        "on": ["s.height"]
+      }
+    ],
+    "notToScale": true
+  }
+}

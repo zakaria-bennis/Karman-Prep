@@ -71,7 +71,10 @@ export type Node =
   | { kind: "piecewise"; branches: Branch[]; otherwise: Node | null; span: SourceSpan }
   // NM-37: `[body \operatorname{for} n=L, m=M]`, every combination with the first name varying
   // fastest; the names are local to the body. `brackets`: written inside `[…]`.
-  | { kind: "for"; body: Node; bindings: Binding[]; brackets: boolean; span: SourceSpan };
+  | { kind: "for"; body: Node; bindings: Binding[]; brackets: boolean; span: SourceSpan }
+  // FN-61: `\frac{d}{dx}` applied to the rest of its term, `\frac{d}{dx}x^{2}\cdot x`: the derivative
+  // of `arg` in the one-letter `variable`, as live Desmos reads it (captured 2026-10-26)
+  | { kind: "deriv"; variable: string; arg: Node; span: SourceSpan };
 
 /** PR-28: a derivative's call name, `f''`, split into the function and its prime count. */
 export function primedName(name: string): { base: string; primes: number } | null {
@@ -107,6 +110,7 @@ export function sourceChildren(node: Node): readonly Node[] {
     case "pct":
     case "fact":
     case "abs":
+    case "deriv":
       return [node.arg];
     case "root":
       return node.index === null ? [node.arg] : [node.index, node.arg];
@@ -148,6 +152,7 @@ export function withChildren(node: Node, kids: readonly Node[]): Node {
     case "pct":
     case "fact":
     case "abs":
+    case "deriv":
       return { ...node, arg: kids[0] };
     case "root":
       return node.index === null

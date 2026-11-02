@@ -1,0 +1,43 @@
+{
+  "id": "d44db33a-94d1-4387-ae09-ff87940ab649",
+  "figure_chart_data": {
+    "kind": "line_graph",
+    "frame": "square",
+    "title": null,
+    "series": [
+      {
+        "kind": "line",
+        "label": "",
+        "points": [
+          [0, 5],
+          [1, 7.5],
+          [2, 8.75],
+          [3, 9.5],
+          [4, 9.95],
+          [5, 10.3]
+        ]
+      }
+    ],
+    "x_axis": {
+      "max": 5,
+      "min": 0,
+      "label": "x",
+      "tick_step": 1,
+      "categories": null
+    },
+    "y_axis": {
+      "max": 11,
+      "min": 0,
+      "label": "y",
+      "tick_step": 1,
+      "categories": null,
+      "label_step": 2
+    },
+    "show_grid": true,
+    "confidence": 1,
+    "extracted_at": "2026-10-21T00:00:00Z",
+    "extracted_by": "manual source-pixel reading (r2)",
+    "extractor_note": null,
+    "hide_origin_label": false
+  }
+}

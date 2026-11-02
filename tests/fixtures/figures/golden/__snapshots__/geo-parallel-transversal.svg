@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="R2r1 = r, s2s1 = s, t1t2 = t, angle r2P1t1 = x°, angle s1P2P1 = y°, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M176.3 259.25 L176.3 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="r">
+</path>
+<path d="M227.82 259.25 L227.82 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="s">
+</path>
+<path d="M83.63 259.25 L328.1 16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="t">
+</path>
+<path d="M179.3 140.63 L176.3 134.63 L173.3 140.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="r">
+</path>
+<path d="M230.82 140.63 L227.82 134.63 L224.82 140.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<text x="200" y="292" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+<text x="165.8" y="21.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="r">r</text>
+<text x="238.32" y="21.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s">s</text>
+<text x="336.83" y="30.4" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="t">t</text>
+<text x="159.49" y="213.14" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="ax">x°</text>
+<text x="208.3" y="113.42" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="ay">y°</text>
+</svg>

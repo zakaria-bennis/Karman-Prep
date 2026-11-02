@@ -1,0 +1,51 @@
+{
+  "source": "Codex 2024-06_ASIA_V4_RW_M1_Q12 (figure_chart_data)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "bar",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "bar",
+        "values": [93, 100]
+      },
+      {
+        "kind": "series",
+        "id": "s2",
+        "seriesKind": "bar",
+        "values": [195, 155]
+      },
+      {
+        "kind": "series",
+        "id": "s3",
+        "seriesKind": "bar",
+        "values": [77, 103]
+      }
+    ],
+    "labels": [
+      {
+        "text": "Lake Kegonsa",
+        "on": "s1"
+      },
+      {
+        "text": "Oulujärvi",
+        "on": "s2"
+      },
+      {
+        "text": "Lake Neusiedl",
+        "on": "s3"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [0, 2],
+      "y": [0, 200],
+      "yStep": 40,
+      "categories": ["1980–81", "2005–06"],
+      "xLabel": "Winter",
+      "yLabel": "Days"
+    },
+    "title": "Days per Winter That Lakes Have Surface Ice"
+  }
+}

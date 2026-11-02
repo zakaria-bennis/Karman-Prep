@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Rectangular prism, length 6, width 3, height 4." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M95 205.43 L140.57 171.99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M140.57 171.99 L305 209.06" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M140.57 171.99 L140.57 57.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M95 205.43 L259.43 242.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.length">
+</path>
+<path d="M95 205.43 L95 90.94" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.height">
+</path>
+<path d="M259.43 242.5 L305 209.06" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.width">
+</path>
+<path d="M259.43 242.5 L259.43 128.01" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M259.43 128.01 L95 90.94 L140.57 57.5 L305 94.57" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M259.43 128.01 L305 94.57" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M305 94.57 L305 209.06" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<text x="173.78" y="244.82" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.length">6</text>
+<text x="290.26" y="242.38" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.width">3</text>
+<text x="84.5" y="153.81" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.height">4</text>
+</svg>

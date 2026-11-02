@@ -8,10 +8,15 @@ import {
 // (substituteTextarea, overrideTypedText, overrideKeystroke, handlers) to these options.
 
 /**
- * Typed at the end of a non-empty superscript or subscript, these leave it first (T-6, T-1).
- * Live Desmos, 2026-10-22: `~`, `,`, `:` and every bracket stay inside (`x_1,` gives `x_{1,}`).
+ * Typed in a non-empty superscript or subscript, these leave it for the row's main line first,
+ * past every exponent or subscript around the caret (T-6, T-1; vendored patch 0013): `x^2=5` is
+ * x^{2}=5 and `y_1~mx_1+b` is y_{1}\sim mx_{1}+b. Founder decision, 2026-10-26: `=` and `~`
+ * always, and the comparisons `<` and `>` (so `<=` and `>=` too) as live Desmos does; arithmetic
+ * (`+`, `-`, `*`, `/`) stays inside (`x^2+n` is x^{2+n}) and only → leaves. Live Desmos differs:
+ * it also leaves on `+`, `-` and `*`, does not leave on `~`, and leaves one level at a time.
+ * `,`, `:` and every bracket stay inside on both (`x_1,` gives `x_{1,}`).
  */
-export const CHARS_THAT_BREAK_OUT_OF_SUPSUB = "+-=<>*";
+export const CHARS_THAT_BREAK_OUT_OF_SUPSUB = "=~<>";
 
 /** MathQuill key names of the undo and redo chords that never reach MathQuill. */
 export const NATIVE_HISTORY_CHORDS: readonly string[] = Object.freeze([

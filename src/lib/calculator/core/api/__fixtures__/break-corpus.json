@@ -2171,20 +2171,12 @@
   {
     "cat": "empty",
     "rows": ["\\frac{d}{dx}"],
-    "desmos": [{ "error": "What do you want to take the derivative of?" }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "error": "Write what to differentiate after d/dx, like d/dx x^2." }]
   },
   {
     "cat": "empty",
     "rows": ["\\frac{d}{dx}()"],
-    "desmos": [{ "error": "The parentheses are empty." }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "error": "The parentheses are empty." }]
   },
   {
     "cat": "empty",
@@ -6604,101 +6596,69 @@
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}x^{2}"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}(x^{2})"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dy}x"],
     "desmos": [{ "graph": false, "shown": true, "value": 0 }],
     "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
+      "reason": "d/dx: Desmos classifies a row by its derivative (0 here, a value); Karman by the written math, which uses x",
+      "ours": [{ "graph": true, "shown": false }]
     }
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}5"],
-    "desmos": [{ "graph": false, "shown": true, "value": 0 }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": false, "shown": true, "value": 0 }]
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}\\frac{d}{dx}x^{3}"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{da}a"],
     "desmos": [{ "graph": false, "shown": true, "value": 1 }],
     "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
+      "reason": "d/dx: Desmos classifies a row by its derivative (1 here, a value); Karman asks to define a",
+      "ours": [{ "error": "Add y= at the start." }]
     }
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}|x|"],
-    "desmos": [{ "error": "Unknown symbol '|'." }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "error": "Unknown symbol '|'." }]
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}\\{x>0:x,0\\}"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}(1,2)"],
     "desmos": [{ "graph": true, "shown": true, "value": { "text": [0, 0] } }],
     "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
+      "reason": "d/dx: Desmos differentiates a point into the point (0,0); Karman gives 0",
+      "ours": [{ "graph": false, "shown": true, "value": 0 }]
     }
   },
   {
     "cat": "calculus",
     "rows": ["\\frac{d}{dx}[x,x^{2}]"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "calculus",
     "rows": ["y=\\frac{d}{dx}\\sin(x)"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "calculus",
@@ -6710,8 +6670,8 @@
     "rows": ["\\frac{d}{dx}x\\frac{d}{dx}x"],
     "desmos": [{ "graph": false, "shown": true, "value": 1 }],
     "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
+      "reason": "d/dx: Desmos classifies a row by its derivative (1 here, a value); Karman graphs it as y=1",
+      "ours": [{ "graph": true, "shown": false }]
     }
   },
   {
@@ -17684,11 +17644,7 @@
   {
     "cat": "scout",
     "rows": ["\\frac{d}{dx}\\left[x,x^{2}\\right]"],
-    "desmos": [{ "graph": true, "shown": false }],
-    "known": {
-      "reason": "not built yet: sums, products, integrals and derivatives (PR-28)",
-      "ours": [{ "error": "This notation isn't supported." }]
-    }
+    "desmos": [{ "graph": true, "shown": false }]
   },
   {
     "cat": "scout",

@@ -1,0 +1,25 @@
+{
+  "id": "48122737-df2c-4c42-953b-94281484650c",
+  "_note": "A question that prints two separate frequency tables (Data Set A, Data Set B). The importer stored them joined side by side as one table with two merged headings; raw_question_text is the live row's own transcription, which shows two tables. tableDataToSpecs splits the data back into two tables.",
+  "raw_question_text": "[Table: Data Set A. Columns: Value | Frequency.]\nc | 12\n2c | 21\n3c | 30\n[Table: Data Set B. Columns: Value | Frequency.]\nc | 30\n2c | 21\n3c | 12\nThe frequency tables represent data sets A and B, where c is a negative integer constant. The mean of data set A is r and the mean of data set B is q. What is the value of \\(\\frac{r}{q}\\)?",
+  "figure_table_data": {
+    "rows": [
+      ["\\(c\\)", "12", "\\(c\\)", "30"],
+      ["\\(2c\\)", "21", "\\(2c\\)", "21"],
+      ["\\(3c\\)", "30", "\\(3c\\)", "12"]
+    ],
+    "caption": null,
+    "header_row": ["Value", "Frequency", "Value", "Frequency"],
+    "footer_note": null,
+    "header_groups": [
+      {
+        "span": 2,
+        "label": "Data Set A"
+      },
+      {
+        "span": 2,
+        "label": "Data Set B"
+      }
+    ]
+  }
+}

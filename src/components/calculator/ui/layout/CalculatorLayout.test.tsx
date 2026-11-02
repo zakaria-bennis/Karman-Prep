@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { setLayoutChoice } from "./layout-choice";
 import { readdirSync, readFileSync } from "node:fs";
 import { join, sep } from "node:path";
 import { fireEvent, within } from "@testing-library/react";
@@ -59,7 +60,7 @@ function ariaIds(root: ShadowRoot): string[] {
 it("AR-29 the layout follows the host's ResizeObserver width (450 and up side by side, 449 stacked, at any height), never a media query", async () => {
   const media = vi.spyOn(window, "matchMedia");
   const el = mount();
-  new KarmanCalculator(el);
+  new KarmanCalculator(el, undefined, { fixedSideBySide: true }); // the /calculator page
   for (const [w, h, l] of [
     [450, 400, "desktop"],
     [449, 400, "stacked"],
@@ -73,6 +74,29 @@ it("AR-29 the layout follows the host's ResizeObserver width (450 and up side by
     await vi.waitFor(() => expect(layoutOf(el)).toBe(l));
   }
   expect(media.mock.calls.map(([q]) => q).filter((q) => /width|height/.test(q))).toEqual([]);
+});
+
+it("the quiz calculator puts the graph on top at every width until Graph Settings picks side by side, and the page never offers the choice", async () => {
+  const el = mount();
+  new KarmanCalculator(el).updateSettings({ keypad: false });
+  triggerResize(el, { width: 1024, height: 600 });
+  await vi.waitFor(() => expect(layoutOf(el)).toBe("stacked"));
+  const root = el.shadowRoot!;
+  button(root, /^graph settings$/i)!.click();
+  await vi.waitFor(() =>
+    expect(root.querySelector('[role="radiogroup"][aria-label="Layout"]')).not.toBeNull()
+  );
+  setLayoutChoice("side-by-side");
+  await vi.waitFor(() => expect(layoutOf(el)).toBe("desktop"));
+  setLayoutChoice("graph-top");
+  await vi.waitFor(() => expect(layoutOf(el)).toBe("stacked"));
+  const page = mount();
+  new KarmanCalculator(page, undefined, { fixedSideBySide: true });
+  triggerResize(page, { width: 1024, height: 600 });
+  await vi.waitFor(() => expect(layoutOf(page)).toBe("desktop"));
+  button(page.shadowRoot!, /^graph settings$/i)!.click();
+  await vi.waitFor(() => expect(page.shadowRoot!.querySelector(".kc-settings")).not.toBeNull());
+  expect(page.shadowRoot!.querySelector('[role="radiogroup"][aria-label="Layout"]')).toBeNull();
 });
 
 it("A11Y-7 ID-based ARIA references resolve inside the shadow root, the host has an id, and no element reflection is used", async () => {

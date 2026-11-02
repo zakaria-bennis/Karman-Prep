@@ -1,0 +1,104 @@
+{
+  "source": "Codex 2023-10_UNSPECIFIED_V1_MATH_M1_Q09 (figure_geometry_data, traced points)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "A",
+        "x": 68,
+        "y": 252
+      },
+      {
+        "kind": "point",
+        "id": "B",
+        "x": 162,
+        "y": 252
+      },
+      {
+        "kind": "point",
+        "id": "C",
+        "x": 115,
+        "y": 344
+      },
+      {
+        "kind": "point",
+        "id": "X",
+        "x": 282,
+        "y": 218
+      },
+      {
+        "kind": "point",
+        "id": "Y",
+        "x": 462,
+        "y": 212
+      },
+      {
+        "kind": "point",
+        "id": "Z",
+        "x": 380,
+        "y": 368
+      },
+      {
+        "kind": "polygon",
+        "id": "ABC",
+        "points": ["A", "B", "C"]
+      },
+      {
+        "kind": "polygon",
+        "id": "XYZ",
+        "points": ["X", "Y", "Z"]
+      },
+      {
+        "kind": "segment",
+        "id": "AC",
+        "from": "A",
+        "to": "C"
+      },
+      {
+        "kind": "angle",
+        "id": "angleA",
+        "vertex": "A",
+        "from": "B",
+        "to": "C"
+      }
+    ],
+    "labels": [
+      {
+        "text": "A",
+        "on": "A"
+      },
+      {
+        "text": "B",
+        "on": "B"
+      },
+      {
+        "text": "C",
+        "on": "C"
+      },
+      {
+        "text": "X",
+        "on": "X"
+      },
+      {
+        "text": "Y",
+        "on": "Y"
+      },
+      {
+        "text": "Z",
+        "on": "Z"
+      },
+      {
+        "text": "60°",
+        "on": "angleA"
+      },
+      {
+        "text": "d",
+        "on": "AC"
+      }
+    ],
+    "marks": [],
+    "notToScale": true
+  }
+}

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Circle with center O, right angle at M, OB = 10, AB = 8." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M90.75 150 A109.25 109.25 0 1 0 309.25 150 A109.25 109.25 0 1 0 90.75 150 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="c">
+</path>
+<path d="M112.6 215.55 L287.4 215.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AB">
+</path>
+<path d="M200 150 L200 215.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="OM">
+</path>
+<path d="M200 150 L287.4 215.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="OB">
+</path>
+<path d="M200 205.55 L210 205.55 L210 215.55" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="aM">
+</path>
+<path d="M197 40.75 A3 3 0 1 0 203 40.75 A3 3 0 1 0 197 40.75 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="C">
+</path>
+<text x="192.82" y="141.26" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="O">O</text>
+<text x="103.86" y="229.92" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="294.58" y="235.54" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="200" y="236.55" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="M">M</text>
+<text x="200" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="C">C</text>
+<text x="254.33" y="174.23" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="OB">10</text>
+<text x="243.7" y="236.55" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="AB">8</text>
+</svg>

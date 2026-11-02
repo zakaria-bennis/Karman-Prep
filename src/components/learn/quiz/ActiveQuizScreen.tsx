@@ -20,9 +20,12 @@ import QuestionTable from "../QuestionTable";
 import ChartFigure from "../ChartFigure";
 import GeometryFigure from "../GeometryFigure";
 import FigureFrame from "../FigureFrame";
+import FigureChoices from "../figures/FigureChoices";
 import { TableChoiceOption } from "./TableChoiceOption";
 import PassageAnnotations from "./PassageAnnotations";
 import { drawnFigure } from "@/lib/figures/question-figure";
+import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
+import { useSpecParser } from "../figures/engine-loader";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { useFigureStemAlign } from "./use-figure-stem-align";
 
@@ -85,11 +88,21 @@ export function ActiveQuizScreen({
     () => ({ text: q.question_text, serializedFunctionLines: q.subject === "math" }),
     [q.question_text, q.subject]
   );
+  const parse = useSpecParser(q);
   if (!state) throw new Error("ActiveQuizScreen requires a quiz session or read-only state.");
-  const drawn = useMemo(() => drawnFigure(q), [q]);
+  const drawn = useMemo(() => drawnFigure(q, parse), [q, parse]);
+  // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
   const sortedChoices = useMemo(
-    () => [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
-    [q]
+    () =>
+      withSpecTables(
+        [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1)),
+        parse
+      ),
+    [q, parse]
+  );
+  const figureChoices = useMemo(
+    () => hasFigureChoices(sortedChoices, parse),
+    [sortedChoices, parse]
   );
   const allChoicesAreTables =
     sortedChoices.length > 0 && sortedChoices.every((choice) => choice.choice_table_data);
@@ -186,6 +199,18 @@ export function ActiveQuizScreen({
               tolerance={review?.numeric_tolerance ?? null}
               wasCorrect={state.phase === "submitted_correct"}
               readOnly={readOnly}
+            />
+          ) : figureChoices ? (
+            <FigureChoices
+              className="mt-7"
+              choices={sortedChoices}
+              selected={state.selectedAnswer}
+              onSelect={readOnly ? undefined : onSelectAnswer}
+              submitted={isSubmitted}
+              correctLetter={correctLetter}
+              crossed={(letter) => !!crossed[`${q.id}:${letter}`]}
+              onToggleCrossed={toggleCrossed}
+              serializedFunctionLines={q.subject === "math"}
             />
           ) : (
             <div
@@ -413,6 +438,7 @@ export function ActiveQuizScreen({
         //   Phase 9D — figure_kind='geometric' uses GeometryFigure (SVG),
         //     reached only after the Stage-6.6 gate confirmed the render
         //     matches the screenshot.
+        //   figure_spec (checked first) — the figure engine, via FigureFrame.
         //   Default — raster image_url crop via FigureFrame.
         // ChartFigure/GeometryFigure render inside their own styled boxes
         // so we skip the white-bg FigureFrame card for them.
@@ -440,8 +466,10 @@ export function ActiveQuizScreen({
           <div className="mb-6 flex justify-center">
             <GeometryFigure data={q.figure_geometry_data!} className="max-w-2xl" />
           </div>
-        ) : drawn === "image" ? (
+        ) : drawn === "spec" || drawn === "image" ? (
           <FigureFrame
+            spec={q.figure_spec}
+            calculator={!readOnly && q.subject === "math"}
             src={q.image_url}
             svg={q.figure_svg}
             alt={q.image_alt ?? ""}

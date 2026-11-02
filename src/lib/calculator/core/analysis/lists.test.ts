@@ -159,10 +159,12 @@ describe("lists in graphs", () => {
       ["y<[1,2]", "region"],
       ["f(x)=[1,2]x", "function-definition"],
       ["y=g(x)", "curve-y"],
-      ["x^{2}+y^{2}=[1,4]", "implicit"],
+      ["x^{4}+y^{4}=[1,4]", "implicit"],
     ]) {
       expect(branches(...context, latex), latex).toEqual([kind, null, true, 2]);
     }
+    // A list of circles draws each as its two solved halves, y = ±√(r² − x²).
+    expect(branches("x^{2}+y^{2}=[1,4]")).toEqual(["implicit", null, true, 4]);
     expect(branches("y=[1,2]x+[1,2,3]")).toEqual(["curve-y", null, true, 2]); // NM-33
     expect(branches("y=[]x")).toEqual(["curve-y", null, true, 0]);
     expect(branches("y=x+\\operatorname{mean}([1,2,3])")).toEqual(["curve-y", null, true, 1]);

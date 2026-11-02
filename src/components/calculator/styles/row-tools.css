@@ -140,20 +140,68 @@
 }
 
 /* The DEG/RAD badge: 10 px capitals in muted ink inside a hairline box. At the end of the value
-   line it follows the value; on a row with no value it sits at the row's bottom right. */
+   line it follows the value; on a row with no value it sits at the row's bottom right. It is a
+   button (owner, 2026-10-26): its hit area reaches 24 px past the small box, a press darkens and
+   shrinks it a little, and the new label fades in over 200 ms. */
 .kc-angle-badge {
+  position: relative;
   display: inline-block;
+  margin: 0;
   padding: 0 3px;
   border: 1px solid var(--kc-boundary);
   border-radius: 3px;
+  background: none;
   color: var(--kc-text-muted);
   font-family: var(--kc-font-ui);
   font-size: 10px;
   font-style: normal;
   letter-spacing: 0.04em;
   line-height: 13px;
-  cursor: default;
+  cursor: pointer;
   user-select: none;
+  transition:
+    color var(--kc-dur-200) var(--kc-ease),
+    border-color var(--kc-dur-200) var(--kc-ease),
+    transform var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-angle-badge::before {
+  content: "";
+  position: absolute;
+  inset: -6px -4px;
+}
+
+.kc-angle-badge:hover {
+  border-color: var(--kc-text-muted);
+  color: var(--kc-text);
+}
+
+.kc-angle-badge:active:not([aria-disabled="true"]) {
+  background: var(--kc-pressed-fill);
+  transform: scale(0.94);
+}
+
+.kc-angle-badge:focus-visible {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 2px;
+}
+
+.kc-angle-badge[aria-disabled="true"] {
+  cursor: default;
+}
+
+.kc-angle-badge-label {
+  display: inline-block;
+  animation: kc-angle-fade var(--kc-dur-200) var(--kc-ease);
+}
+
+@keyframes kc-angle-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .kc-angle-badge[data-placement="value"] {

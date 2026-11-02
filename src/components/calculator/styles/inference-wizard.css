@@ -1,0 +1,316 @@
+/* FN-59: the inference wizard (ui/list/inference/InferenceWizard.tsx), measured on live Desmos
+   (College Board version, 2026-10-26): a 300 px popover beside the list with full-width outlined
+   choice buttons, a grey header with Back and the test's name, tables with grey header cells, and
+   the Create button centred in a grey footer. A translucent cover dims the graph behind it. Colours
+   come only from roles. */
+
+.kc-wiz-cover {
+  position: fixed;
+  z-index: 25;
+  background: color-mix(in srgb, var(--kc-text) 55%, transparent);
+  animation: kc-wiz-fade var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-wiz-close {
+  position: fixed;
+  z-index: 27;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kc-radius-small);
+  background: none;
+  color: var(--kc-list);
+  cursor: pointer;
+}
+
+.kc-wiz-close > svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.kc-wiz-close:focus-visible,
+.kc-wiz-choice:focus-visible,
+.kc-wiz-back:focus-visible,
+.kc-wiz-add-sample:focus-visible,
+.kc-wiz-create-button:focus-visible,
+.kc-wiz-select:focus-visible,
+.kc-wiz-tab:has(> input:focus-visible) {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 1px;
+}
+
+.kc-wiz {
+  position: fixed;
+  z-index: 26;
+  box-sizing: border-box;
+  width: 300px;
+  max-width: calc(100% - 16px);
+  max-height: calc(100% - 16px);
+  overflow: auto;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 4px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-small);
+  animation: kc-wiz-fade var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-wiz-start {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.kc-wiz-heading {
+  margin: 4px 0 0;
+  color: var(--kc-text-secondary);
+  font-size: var(--kc-size-small);
+  font-weight: 400;
+}
+
+.kc-wiz-choices {
+  display: grid;
+  gap: 4px;
+}
+
+.kc-wiz-choices[data-columns="2"] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.kc-wiz-choice {
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 3px;
+  background: var(--kc-list);
+  color: var(--kc-text);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-wiz-choice:hover {
+  background: var(--kc-hover-fill);
+}
+
+.kc-wiz-choice:active {
+  background: var(--kc-pressed-fill);
+}
+
+.kc-wiz var,
+.kc-wiz-choice var {
+  font-family: var(--kc-font-math);
+  font-style: italic;
+}
+
+.kc-wiz-or {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--kc-text-muted);
+}
+
+.kc-wiz-or::before,
+.kc-wiz-or::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--kc-boundary);
+}
+
+.kc-wiz-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 8px 0 4px;
+  border-bottom: 1px solid var(--kc-boundary);
+  background: var(--kc-hover-fill);
+}
+
+.kc-wiz-back {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kc-radius-small);
+  background: none;
+  color: var(--kc-icon-rest);
+  cursor: pointer;
+}
+
+.kc-wiz-back > svg {
+  width: 10px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.kc-wiz-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.kc-wiz-tabs {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 6px 8px 0;
+}
+
+.kc-wiz-tab {
+  position: relative;
+  min-height: 28px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 3px 3px 0 0;
+  line-height: 28px;
+  cursor: pointer;
+}
+
+.kc-wiz-tab:has(> input:checked) {
+  border-color: var(--kc-boundary);
+  border-bottom-color: var(--kc-list);
+  background: var(--kc-list);
+}
+
+.kc-wiz-tab > input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.kc-wiz-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.kc-wiz-sample-title {
+  margin-bottom: 4px;
+  color: var(--kc-text-secondary);
+  text-transform: uppercase;
+}
+
+.kc-wiz-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.kc-wiz-table th,
+.kc-wiz-table td {
+  height: 30px;
+  padding: 0 4px;
+  border: 1px solid var(--kc-boundary);
+  text-align: center;
+}
+
+.kc-wiz-table th {
+  background: var(--kc-hover-fill);
+  font-weight: 400;
+}
+
+.kc-wiz-table td .kc-inf-field,
+.kc-wiz-table td .kc-inf-field-math > .kc-math-field.mq-editable-field {
+  width: 100%;
+}
+
+.kc-wiz-table td .kc-inf-field-math > .kc-math-field.mq-editable-field {
+  border-bottom-color: transparent;
+}
+
+.kc-wiz-table td .kc-inf-field-math > .kc-math-field.mq-editable-field.mq-focused {
+  border-bottom-color: var(--kc-focus-ring);
+}
+
+.kc-wiz-grid-scroll {
+  overflow-x: auto;
+}
+
+.kc-wiz-grid th,
+.kc-wiz-grid td {
+  min-width: 64px;
+}
+
+.kc-wiz-add-sample {
+  align-self: flex-start;
+  min-height: 24px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--kc-radius-small);
+  background: none;
+  color: var(--kc-text-secondary);
+  font: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.kc-wiz-add-sample:hover {
+  color: var(--kc-text);
+}
+
+.kc-wiz-optional {
+  text-transform: none;
+}
+
+.kc-wiz-select {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 4px;
+  background: var(--kc-list);
+  color: var(--kc-text);
+  font: inherit;
+}
+
+.kc-wiz-create {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  border-top: 1px solid var(--kc-boundary);
+  background: var(--kc-hover-fill);
+}
+
+.kc-wiz-create-button {
+  min-height: 32px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--kc-accent);
+  color: var(--kc-list);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-wiz-create-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@keyframes kc-wiz-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

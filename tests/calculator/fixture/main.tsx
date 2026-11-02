@@ -20,6 +20,7 @@ import {
   TRANSFER_DAILY_QUESTION,
   TRANSFER_DIAGNOSTIC_QUESTIONS,
   TRANSFER_TABLES_DAILY_QUESTION,
+  TRANSFER_TWO_TABLES_DAILY_QUESTION,
 } from "./harness/transfer-questions";
 const sheet = document.createElement("style");
 sheet.textContent = themeStyleSheet();
@@ -35,6 +36,8 @@ globalThis.__calculatorWindowStore = calculatorWindowStore;
 const transferQuestions = params.get("questions") === "transfer";
 // 07: ?questions=transfer-tables gives the daily flow a question table, a pair and f(3)=7.
 const tableQuestions = params.get("questions") === "transfer-tables";
+// ?questions=transfer-two-tables: a question with two tables and two table choices (TR-91).
+const twoTableQuestions = params.get("questions") === "transfer-two-tables";
 const subject = params.get("subject") === "reading" ? "reading" : "math";
 const node = { id: subject, subject, topic: "Calculator fixture" } as MappedNode;
 const questions: DiagnosticQuestion[] = Array.from({ length: 3 }, (_, i) => ({
@@ -60,11 +63,13 @@ function Flow({ session }: { session: number }) {
           value: {
             day: "2026-10-16",
             subject: "math",
-            question: tableQuestions
-              ? TRANSFER_TABLES_DAILY_QUESTION
-              : transferQuestions
-                ? TRANSFER_DAILY_QUESTION
-                : catalogQuestions[0],
+            question: twoTableQuestions
+              ? TRANSFER_TWO_TABLES_DAILY_QUESTION
+              : tableQuestions
+                ? TRANSFER_TABLES_DAILY_QUESTION
+                : transferQuestions
+                  ? TRANSFER_DAILY_QUESTION
+                  : catalogQuestions[0],
           },
         } as DailySlot
       }

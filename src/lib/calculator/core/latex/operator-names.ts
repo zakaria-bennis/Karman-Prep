@@ -99,6 +99,12 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "inversecdf",
   "inverseCdf",
   "erf",
+  // FN-53 to FN-59 inference: the five test functions (and the hidden `ittest` below)
+  "ztest",
+  "ttest",
+  "zproptest",
+  "chisqtest",
+  "chisqgof",
   "exp",
   "ln",
   "log",
@@ -159,6 +165,7 @@ export const SHIPPED: ReadonlySet<string> = new Set([
   "tcdf",
   "invT",
   "invBinom",
+  "ittest",
 ]);
 
 /**
@@ -258,11 +265,11 @@ export const OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("random", 6, 3, [0, 1, 2, 3]),
   op("erf", 6, 3, [1]), // a Desmos name not in PR-12's list, typed only (not on the panel)
   // 7 Inference
-  op("ztest", 7, 3, [2, 4]),
-  op("ttest", 7, 3, [1, 2]),
+  op("ztest", 7, 3, [2, 3, 4, 6]), // data (L, σ), stats (n, x̄, σ), and two samples of each
+  op("ttest", 7, 3, [1, 2, 3, 6]), // data (L), (L1, L2), stats (n, x̄, s) and two samples
   op("zproptest", 7, 3, [2, 4]),
   op("chisqtest", 7, 3, V),
-  op("chisqgof", 7, 3, [2]),
+  op("chisqgof", 7, 3, [1, 2]), // observed, and expected (equal counts when left out)
   // 8 Calculus
   op("exp", 8, 1, [1]),
   op("ln", 8, 1, [1]),
@@ -353,6 +360,8 @@ export const HIDDEN_OPERATOR_NAMES: readonly OperatorName[] = Object.freeze([
   op("tcdf", 6, 3, [5]),
   op("invT", 6, 3, [2]),
   op("invBinom", 6, 3, [3]),
+  // Desmos's name for the two-sample t test of two lists, which its inference wizard writes
+  op("ittest", 7, 3, [2]),
 ]);
 
 /**
@@ -418,7 +427,9 @@ export const AUTO_COMMANDS: readonly string[] = Object.freeze([
 const BY_NAME: ReadonlyMap<string, OperatorName> = new Map(
   [...OPERATOR_NAMES, ...HIDDEN_OPERATOR_NAMES, ...DESMOS_ONLY_NAMES].map((n) => [n.name, n])
 );
-const AUTO_OPERATOR_NAMES = OPERATOR_NAMES.map((n) => n.name).join(" ");
+// FN-57: the inference members are typed as names too, as on live Desmos (2026-10-26): `T.score`
+// gives `T.\operatorname{score}`, and `pleft` alone `\operatorname{pleft}`.
+const AUTO_OPERATOR_NAMES = [...OPERATOR_NAMES.map((n) => n.name), ...MEMBER_NAMES].join(" ");
 const AUTO_COMMAND_NAMES = AUTO_COMMANDS.join(" ");
 
 export function isBuiltinName(name: string): boolean {
@@ -434,7 +445,7 @@ export function isShippedBuiltin(name: string): boolean {
   return SHIPPED.has(name) && BY_NAME.has(name);
 }
 
-/** Every allowlisted name, space-separated; MEMBER_NAMES are a separate list and never included. */
+/** Every allowlisted name, then the MEMBER_NAMES, space-separated: what typing turns into names. */
 export function mathQuillAutoOperatorNames(): string {
   return AUTO_OPERATOR_NAMES;
 }
@@ -491,15 +502,26 @@ PANEL_PRESENTATIONS.set("log", [
   panelEntry("log", "logₐ", "log base a", [action("cmd", "\\log"), action("cmd", "_")]),
 ]);
 
-// Per category id in order: the shipped names with a presentation, in OPERATOR_NAMES order;
-// categories left empty are dropped. `phase` is not read: shipping a name with a presentation adds
-// it to the panel at once.
+/**
+ * Buttons that are notation rather than a name, after a category's names. FN-61: Calculus's d/dx
+ * writes `\frac{d}{dx}` with the caret after it, as live Desmos's key does (captured 2026-10-26).
+ */
+const NOTATION_ENTRIES: ReadonlyMap<number, readonly PanelEntry[]> = new Map([
+  [8, [panelEntry("ddx", "d/dx", "d by d x", [action("write", "\\frac{d}{dx}")])]],
+]);
+
+// Per category id in order: the shipped names with a presentation, in OPERATOR_NAMES order, then
+// its notation buttons; categories left empty are dropped. `phase` is not read: shipping a name
+// with a presentation adds it to the panel at once.
 const PANEL_CATEGORIES: readonly PanelCategory[] = Object.freeze(
   CATEGORY_HEADINGS.flatMap((heading, index) => {
     const id = index + 1;
-    const entries = OPERATOR_NAMES.filter(
-      (n) => n.category === id && isShippedBuiltin(n.name)
-    ).flatMap((n) => PANEL_PRESENTATIONS.get(n.name) ?? []);
+    const entries = [
+      ...OPERATOR_NAMES.filter((n) => n.category === id && isShippedBuiltin(n.name)).flatMap(
+        (n) => PANEL_PRESENTATIONS.get(n.name) ?? []
+      ),
+      ...(NOTATION_ENTRIES.get(id) ?? []),
+    ];
     return entries.length === 0
       ? []
       : [Object.freeze({ id, heading, entries: Object.freeze(entries) })];

@@ -16,6 +16,7 @@ import {
   type ListTyping,
   type Shape,
 } from "./lists";
+import { isInferenceShape } from "./inference-shapes";
 import { displayName } from "./messages";
 
 type Call = Extract<Node, { kind: "call" }>;
@@ -104,7 +105,10 @@ function callProblem(call: Call, shapes: readonly (Shape | null)[]): Problem | n
  */
 function memberProblem(call: Call, target: Shape | null): Problem | null {
   const name = `.${call.name}`;
-  if (target === null) return null;
+  // FN-57: a test's members are analysis/inference.ts's; `.p` after anything else is a letter
+  // Desmos does not read after a dot ("Sorry, I don't understand the way that '.' is used here.")
+  if (target === null || isInferenceShape(target)) return null;
+  if (call.name === "p") return { code: "unexpected-symbol", names: ["."] };
   if (target === "numbers" && MEMBER_NAMES.includes(call.name)) return applied(name, [target]);
   if (!isDistributionShape(target)) return { code: "unsupported", names: [] };
   const written = call.args.length - 1,

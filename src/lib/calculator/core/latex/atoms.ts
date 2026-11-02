@@ -15,6 +15,7 @@ import {
   fail,
   missingOperand,
   parseSum,
+  parseTerm,
   peek,
   startsFactor,
   take,
@@ -321,8 +322,12 @@ function parseBars(state: ParserState, open: Token): Node {
 }
 
 /**
- * `\frac` with two G4 arguments: `div`. The derivative operator `\frac{d}{dx}` (numerator the letter
- * d, denominator d then one letter) is `unsupported` at the `\frac` (PR-9).
+ * `\frac` with two G4 arguments: `div`. FN-61: the derivative operator `\frac{d}{dx}` (numerator
+ * the letter d, denominator d then one Latin letter) differentiates the rest of its term in that
+ * letter, as live Desmos reads it (captured 2026-10-26): `\frac{d}{dx}x^{2}+x` is 2x + x,
+ * `\frac{d}{dx}x^{2}\cdot x` is 3x², `3\frac{d}{dx}x^{2}` is 6x; with nothing after it (the end, a
+ * sign, a closing bracket or a relation) it is `derivative-operand`, Desmos's "What do you want to
+ * take the derivative of?".
  */
 function parseFraction(state: ParserState, frac: Token): Node {
   take(state);
@@ -338,7 +343,15 @@ function parseFraction(state: ParserState, frac: Token): Node {
   const numerator = takeArgument(state);
   const denominator = takeArgument(state);
   if (isDerivative(numerator.node, denominator.node)) {
-    return fail("unsupported", frac.span, '"\\frac{d}{d…}" (derivative) is not supported');
+    const letter = (denominator.node as Extract<Node, { left: Node }>).right;
+    const variable = { name: letter.kind === "id" || letter.kind === "const" ? letter.name : "x" };
+    const next = peek(state);
+    const sign = next.t === "symbol" && next.ch === "-";
+    if (!startsFactor(state) && !sign) {
+      return fail("derivative-operand", frac.span, "a derivative of nothing");
+    }
+    const arg = parseTerm(state);
+    return { kind: "deriv", variable: variable.name, arg, span: { start: frac.span.start, end: arg.span.end } }; // prettier-ignore
   }
   const span = { start: frac.span.start, end: denominator.end };
   return { kind: "div", left: numerator.node, right: denominator.node, span };

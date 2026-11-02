@@ -2,7 +2,8 @@
 // theme declarations, and the row colours (F-A1).
 import { DESMOS_FILL_ALPHA, NEW_ROW_COLOURS, NEW_ROW_GREEN, invertHex } from "./desmos-palette";
 import { SKIN_COLORS } from "./skin-colors.generated";
-import { COLOR_ROLES, CURVE_SLOTS, SKIN_IDS, type CurveSlot, type SkinId } from "./skins";
+import { COLOR_ROLES, CURVE_SLOTS, type CurveSlot, type SkinId } from "./skins";
+import { SITE_THEME_SKINS } from "./themes";
 import { CURVE_VARS, FILL_ALPHA_VARS, ROLE_VARS, TONES, TONE_VARS } from "./vars";
 
 export {
@@ -20,11 +21,14 @@ type RowColor = { hex: string; fillAlpha: number };
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 /**
- * TH-5: the calculator takes the skin of the site theme in `html[data-theme]`, so it matches the
- * quiz around it; "classic" (the reference calculator's own colours) when no site theme applies.
+ * TH-5: the calculator takes the calculator theme mapped to the site theme in `html[data-theme]`
+ * (themes.ts SITE_THEME_SKINS), so it matches the quiz around it; "classic" (the reference
+ * calculator's own colours) when no site theme applies.
  */
 export function resolveSkinId(siteTheme: string | null | undefined): SkinId {
-  return isSkinId(siteTheme) ? siteTheme : "classic";
+  if (typeof siteTheme !== "string" || !Object.hasOwn(SITE_THEME_SKINS, siteTheme))
+    return "classic";
+  return SITE_THEME_SKINS[siteTheme];
 }
 
 /**
@@ -91,8 +95,4 @@ export function rowIconHex(color: string, skin: SkinId): string {
 
 function isCurveSlot(id: string): id is CurveSlot {
   return (CURVE_SLOTS as readonly string[]).includes(id);
-}
-
-function isSkinId(id: string | null | undefined): id is SkinId {
-  return typeof id === "string" && (SKIN_IDS as readonly string[]).includes(id);
 }

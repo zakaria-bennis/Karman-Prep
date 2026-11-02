@@ -18,10 +18,8 @@ it("API-1 options validate with their defaults and the Phase 1 rules", () => {
     seed: 7,
     keypad: true,
   });
-  expect(v.validateOptions({ displaySize: "large", reverseContrast: true })).toEqual({
-    displaySize: "large",
-    reverseContrast: true,
-  });
+  expect(v.validateOptions({ displaySize: 6 })).toEqual({ displaySize: 6 });
+  expect(v.validateOptions({ displaySize: "large" })).toEqual({ displaySize: 5 });
   expect(code(() => v.validateOptions({ mode: "scientific" }))).toBe("unsupported");
   for (const o of [
     null,
@@ -32,6 +30,9 @@ it("API-1 options validate with their defaults and the Phase 1 rules", () => {
     { onError: 1 },
     { transferTarget: "x" },
     { mode: "3d" },
+    { displaySize: 8 },
+    { displaySize: 2.5 },
+    { reverseContrast: true }, // retired with the Reverse contrast setting
   ])
     expect(code(() => v.validateOptions(o))).toBe("invalid-argument");
 });
@@ -49,7 +50,6 @@ it("API-7 updateSettings accepts only the listed keys and the Phase 1 values", (
     "lockViewport",
     "piAxisLabels",
     "displaySize",
-    "reverseContrast",
     "keypad",
     "expressionsCollapsed",
     "mode",
@@ -63,22 +63,25 @@ it("API-7 updateSettings accepts only the listed keys and the Phase 1 values", (
   expect(
     v.validateSettingsUpdate({ angleMode: "degrees", xAxis: { show: false, label: "t", step: 2 } })
   ).toEqual({ angleMode: "degrees", xAxis: { show: false, label: "t", step: 2 } });
-  // SETTINGS-11, -12, -13, -20: display size, reverse contrast, Braille and the viewport lock.
+  // SETTINGS-11, -13, -20: display size, Braille and the viewport lock.
   expect(
     v.validateSettingsUpdate({
       lockViewport: true,
-      displaySize: "large",
-      reverseContrast: true,
+      displaySize: 7,
       brailleMode: "ueb",
       sixKeyInput: true,
     })
   ).toEqual({
     lockViewport: true,
-    displaySize: "large",
-    reverseContrast: true,
+    displaySize: 7,
     brailleMode: "ueb",
     sixKeyInput: true,
   });
+  // A saved state from before the seven-notch slider and before Reverse contrast was removed.
+  expect(v.validateSettingsUpdate({ displaySize: "default", reverseContrast: true })).toEqual({
+    displaySize: 3,
+  });
+  expect(code(() => v.validateSettingsUpdate({ displaySize: 0 }))).toBe("invalid-argument");
   for (const [k, val] of [
     ["piAxisLabels", true],
     ["mode", "scientific"],

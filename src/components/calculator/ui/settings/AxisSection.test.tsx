@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { renderEditor } from "../list/__fixtures__/render-editor";
 import { fieldTextbox } from "../list/row-model";
@@ -48,6 +48,8 @@ it("SETTINGS-24 bounds apply as typed while valid; an invalid pair marks both fi
 
 it("SETTINGS-25 the step takes any expression of 0 or more; blank or 0 is automatic, negative is invalid", async () => {
   const kit = renderEditor(popover(), { rows: [""] });
+  // The step is behind the axis's "Label and step" disclosure.
+  fireEvent.click(screen.getAllByRole("button", { name: "Label and step" })[0]);
   const step = kit.fields.byLabel("X Axis Step Size:");
   act(() => step.emitEdit("\\pi"));
   await waitFor(() => expect(kit.engine.settings.xAxis.step).toBeCloseTo(Math.PI, 12));
@@ -74,4 +76,16 @@ it("SETTINGS-24, -25 the axis and step value rules", () => {
   expect(stepFromValue(0)).toEqual({ step: null });
   expect(stepFromValue(-1)).toBeNull();
   expect(stepFromValue(null)).toBeNull();
+});
+
+it("the Label and step disclosure starts closed, and closing it drops typed step text", async () => {
+  const kit = renderEditor(popover(), { rows: [""] });
+  const [x, y] = screen.getAllByRole("button", { name: "Label and step" });
+  expect([x, y].map((b) => b.getAttribute("aria-expanded"))).toEqual(["false", "false"]);
+  fireEvent.click(x);
+  const step = kit.fields.byLabel("X Axis Step Size:");
+  act(() => step.emitEdit("-1"));
+  await waitFor(() => expect(fieldTextbox(step)).toHaveAttribute("aria-invalid", "true"));
+  fireEvent.click(x);
+  expect(screen.queryByRole("textbox", { name: /^X Axis Step Size:/ })).toBeNull();
 });

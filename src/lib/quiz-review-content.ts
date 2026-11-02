@@ -20,12 +20,16 @@ export function toQuizReviewContent(q: QuizQuestionWithChoices) {
     image_url: q.image_url,
     image_alt: q.image_alt,
     figure_svg: studentFigureSvg(q),
-    answer_choices: q.answer_choices.map(({ id, letter, choice_text, choice_table_data }) => ({
-      id,
-      letter,
-      choice_text,
-      choice_table_data,
-    })),
+    figure_spec: q.figure_spec ?? null,
+    answer_choices: q.answer_choices.map(
+      ({ id, letter, choice_text, choice_table_data, choice_figure_spec }) => ({
+        id,
+        letter,
+        choice_text,
+        choice_table_data,
+        choice_figure_spec: choice_figure_spec ?? null,
+      })
+    ),
     correct_answer: q.correct_answer,
     explanation_text: q.explanation_text,
     explanation_per_choice: q.explanation_per_choice,

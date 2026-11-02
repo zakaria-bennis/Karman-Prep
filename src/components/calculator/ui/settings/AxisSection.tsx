@@ -1,7 +1,9 @@
-// One axis of the settings popover (S-1, VIS-17, SETTINGS-19 and -24 to -26): the `X-Axis`
-// checkbox, the `Label` field (shown while the axis is; every keystroke sets the label), the
-// bounds line `[min] ≤ x ≤ [max]` as two MathFields, and `Step:` as a third MathField, hidden in
-// polar mode (SETTINGS-15; y likewise).
+// One axis of the settings popover (S-1, SETTINGS-19 and -24 to -26), laid out simply (founder
+// decision, 2026-10-26): a row with the axis name and its show/hide switch, then the range the view
+// shows as `[min] ≤ x ≤ [max]` (two MathFields), then a "Label and step" disclosure for the
+// less-used parts: the `Label` field (while the axis shows; every keystroke sets the label) and
+// `Step`, a third MathField (blank is Auto), hidden in polar mode (SETTINGS-15; y likewise). The
+// disclosure starts open when the axis has a label or a step.
 //
 // The fields apply as you type, as the reference's do (SETTINGS-24): each edit is evaluated by the
 // backend in the current angle mode, and while both bounds of the axis are valid (finite, min below
@@ -24,7 +26,7 @@ import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "../list/math-field-factory";
 import { fieldTextbox } from "../list/row-model";
 import { evaluateBoundLatex } from "./bounds";
-import { SettingCheck } from "./controls";
+import { SettingSwitchRow } from "./controls";
 
 /** SETTINGS-26: a bound as the reference shows it, to 6 significant digits (-8.60887). */
 export function boundLatex(value: number): string {
@@ -143,6 +145,7 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
   const [typed, setTyped] = useState({ min: false, max: false, step: false });
   const [pairInvalid, setPairInvalid] = useState(false);
   const [stepInvalid, setStepInvalid] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(current.label !== "" || current.step !== null);
   // The typed bounds' values (undefined: the field shows the view), the latest edit per field so
   // a slower evaluation never overwrites a newer one, and the axis this section last applied.
   const values = useRef<Record<Side, number | null | undefined>>({
@@ -224,35 +227,23 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
   );
 
   const labelId = `${id}-label`;
-  // VIS-17: "X-Axis" with the floating-label Label field to its right, then the bounds as inline
-  // math and "Step:" with its underline field.
+  const detailsId = `${id}-details`;
+  const showStep = !settings.polarGrid;
+  const toggleDetails = () => {
+    // Closing drops typed step text, as closing the popover does (SETTINGS-6).
+    if (detailsOpen) {
+      setTyped((t) => (t.step ? { ...t, step: false } : t));
+      setStepInvalid(false);
+    }
+    setDetailsOpen((was) => !was);
+  };
   return (
     <div className="kc-settings-axis">
-      <div className="kc-settings-axis-title">
-        <SettingCheck
-          label={`${Axis}-Axis`}
-          size="axis"
-          checked={current.show}
-          onChange={(show) => update({ show })}
-        />
-        {current.show && (
-          <span className="kc-settings-label">
-            <label className="kc-settings-legend" htmlFor={labelId}>
-              Label
-            </label>
-            <input
-              id={labelId}
-              className="kc-settings-label-input"
-              type="text"
-              autoComplete="off"
-              spellCheck={false}
-              placeholder={`e.g. “${axis}”`}
-              value={current.label}
-              onChange={(event) => update({ label: event.currentTarget.value })}
-            />
-          </span>
-        )}
-      </div>
+      <SettingSwitchRow
+        label={`${Axis}-Axis`}
+        checked={current.show}
+        onChange={(show) => update({ show })}
+      />
       <div className="kc-settings-axis-line">
         <span className="kc-settings-bounds">
           {boundField("min")}
@@ -263,19 +254,56 @@ export function AxisSection(props: { axis: "x" | "y" }): JSX.Element {
           </span>
           {boundField("max")}
         </span>
-        {!settings.polarGrid && (
-          <span className="kc-settings-step">
-            <span aria-hidden="true">Step:</span>
-            <LiveField
-              label={`${Axis} Axis Step Size`}
-              latex={current.step === null ? "" : boundLatex(current.step)}
-              typed={typed.step}
-              invalid={stepInvalid}
-              onEdit={editStep}
-            />
-          </span>
-        )}
       </div>
+      {(current.show || showStep) && (
+        <button
+          type="button"
+          className="kc-axis-more"
+          aria-expanded={detailsOpen}
+          aria-controls={detailsOpen ? detailsId : undefined}
+          onClick={toggleDetails}
+        >
+          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+            <path d="M4.5 2.5 8 6l-3.5 3.5" />
+          </svg>
+          {current.show && showStep ? "Label and step" : current.show ? "Label" : "Step"}
+        </button>
+      )}
+      {detailsOpen && (current.show || showStep) && (
+        <div className="kc-axis-details" id={detailsId}>
+          {current.show && (
+            <span className="kc-axis-field">
+              <label className="kc-axis-field-name" htmlFor={labelId}>
+                Label
+              </label>
+              <input
+                id={labelId}
+                className="kc-settings-label-input"
+                type="text"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder={`e.g. “${axis}”`}
+                value={current.label}
+                onChange={(event) => update({ label: event.currentTarget.value })}
+              />
+            </span>
+          )}
+          {showStep && (
+            <span className="kc-axis-field kc-settings-step">
+              <span className="kc-axis-field-name" aria-hidden="true">
+                Step
+              </span>
+              <LiveField
+                label={`${Axis} Axis Step Size`}
+                latex={current.step === null ? "" : boundLatex(current.step)}
+                typed={typed.step}
+                invalid={stepInvalid}
+                onEdit={editStep}
+              />
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -19,6 +19,12 @@ import { POINT_FUNCTIONS } from "../lib/geometry";
 import { rangeShape } from "../lib/range";
 import { givesList, listFunction } from "../lib/statistics";
 import type { DefinitionHead } from "./definitions";
+import {
+  inferenceCallShape,
+  INFERENCE_SHAPE_NAMES,
+  isInferenceShape,
+  type InferenceShape,
+} from "./inference-shapes";
 import { displayName } from "./messages";
 import { collectNameUses, COORDINATE_NAMES, lengthShaping } from "./names";
 import { coordinateShape, pointCallShape, pointOperatorShape } from "./points";
@@ -38,7 +44,14 @@ const UNBOUND: Bound = new Map();
  * NM-30: a value's type as Desmos names it in "Cannot index {a number} with {a point}.";
  * FN-45: a distribution or a list of them.
  */
-export type Shape = "number" | "point" | "numbers" | "points" | "distribution" | "distributions";
+export type Shape =
+  | "number"
+  | "point"
+  | "numbers"
+  | "points"
+  | "distribution"
+  | "distributions"
+  | InferenceShape;
 export const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
   number: "a number",
   point: "a point",
@@ -46,6 +59,7 @@ export const SHAPE_NAMES: Readonly<Record<Shape, string>> = {
   points: "a list of points",
   distribution: "a distribution",
   distributions: "a list of distributions",
+  ...INFERENCE_SHAPE_NAMES,
 };
 /** FN-45: a distribution or a list of them. */
 export const isDistributionShape = (s: Shape | null) =>
@@ -155,9 +169,11 @@ function shapeOf(node: Node, locals: readonly string[], known: Known, bound: Bou
     case "call": {
       if (POINT_FUNCTIONS.has(node.name)) return pointCallShape(node, of);
       if (node.name === "random" || node.name === "shuffle") return randomShape(node, of);
-      if (!isBuiltinName(node.name)) return userCallShape(node, node.args.map(of), known);
       const args = node.args.map(of),
-        read = distributionCallShape(node, args);
+        inference = inferenceCallShape(node, args);
+      if (inference !== undefined) return inference;
+      if (!isBuiltinName(node.name)) return userCallShape(node, args, known);
+      const read = distributionCallShape(node, args);
       if (read !== undefined) return read;
       if (listFunction(node.name) !== undefined) return listCallShape(node, args);
       return numeric(args);
@@ -353,9 +369,10 @@ function operationShape(name: string, args: readonly (Shape | null)[]): Shape | 
   return kinds.length > 0 && kinds.every((k) => k === kinds[0]) ? kinds[0] : null;
 }
 
-/** Arithmetic's shape over operand shapes: unknown for a point, a distribution or an unknown. */
+/** Arithmetic's shape: unknown for a point, a distribution, a test or an unknown operand. */
 function numeric(operands: readonly (Shape | null)[]): Shape | null {
-  if (operands.some((s) => s === null || pointed(s) || isDistributionShape(s))) return null;
+  const other = (s: Shape) => pointed(s) || isDistributionShape(s) || isInferenceShape(s);
+  if (operands.some((s) => s === null || other(s))) return null;
   return operands.includes("numbers") ? "numbers" : "number";
 }
 

@@ -20,6 +20,7 @@ import { primedCalls, withDerivatives } from "../eval/derivative";
 import { normalizeLatex } from "../latex/index";
 import { arityError, classifyRow } from "./classify";
 import { distributionProblem } from "./distributions";
+import { inferenceProblem } from "./inference";
 import {
   declaredHead,
   parseRows,
@@ -209,6 +210,7 @@ function withListError(row: ParsedRow, typing: ListTyping): ParsedRow {
     comparisonProblem(tree, locals, typing) ??
     pointProblem(tree, locals, typing, normalizeLatex(row.source.latex)) ??
     distributionProblem(tree, locals, typing, normalizeLatex(row.source.latex)) ??
+    inferenceProblem(tree, locals, typing) ??
     listCallProblem(tree, locals, typing);
   if (problem === null) return row;
   const { code, names, span } = problem;

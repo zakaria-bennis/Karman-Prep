@@ -4068,26 +4068,15 @@ export interface ChartFigure {
   extracted_at: string;
   extractor_note: string | null;
 }
-
-// Subject → series color for single-series figures
-export const SUBJECT_CHART_COLOR: Record<string, string> = {
-  math: "#2fa8ff",
-  reading: "#d84f73",
-};
-
-// 5-color sequential palette for multi-series
-export const SEQUENTIAL_PALETTE = [
-  "#2fa8ff", // math blue
-  "#d84f73", // R&W rose
-  "#e4c86a", // accent gold
-  "#42d9ff", // math glow (lighter blue)
-  "#f06a8c", // rose glow (lighter rose)
-] as const;
 ```
 
-`ChartFigure.tsx` renders a 600×400 viewBox SVG with `PAD = { top:
-28, right: 24, bottom: 56, left: 64 }`. Pure component — no state, no
-interactivity.
+Chart data carries no colors. `ChartFigure.tsx` converts it to a FigureSpec
+(`chartDataToSpec`, `src/lib/figures/engine/from-chart-data.ts`) and draws it
+with the figure engine, which paints only with the theme's figure roles
+(`src/components/learn/figures/figure-roles.css`); a series is told apart by
+its fill shade or line pattern, never by a hue. The chart is laid out in a
+600×400 box (500×500 for a square source plot), or at its container's width
+when that box would show text under 12px. Pie charts are not drawn.
 
 ### `QuestionTable` JSON shape
 

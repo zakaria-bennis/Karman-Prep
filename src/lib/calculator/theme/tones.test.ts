@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { contrastRatio } from "./contrast";
 import { hostThemeCss } from "./roles";
 import { SKIN_COLORS } from "./skin-colors.generated";
-import { SITE_SKIN_IDS } from "./skins";
+import { THEME_SKIN_IDS } from "./skins";
 import { TONE_SPECS, deriveTones, toneBackground, toneOver } from "./tones";
 import { TONES, TONE_VARS } from "./vars";
 
@@ -24,8 +24,8 @@ it("TH-1 the classic skin keeps the reference calculator's tone strengths", () =
   expect(css).toContain(`${TONE_VARS.fieldLine}:42%`);
 });
 
-it("TH-1 each site skin's tones are the smallest strengths from the reference up that meet their targets (the contrast suite measures them)", () => {
-  for (const s of SITE_SKIN_IDS) {
+it("TH-1 each theme skin's tones are the smallest strengths from the reference up that meet their targets (the contrast suite measures them)", () => {
+  for (const s of THEME_SKIN_IDS) {
     const { roles, tones } = SKIN_COLORS[s].normal;
     expect(deriveTones(roles), s).toEqual(tones);
     for (const tone of TONES) {
@@ -41,8 +41,8 @@ it("TH-1 each site skin's tones are the smallest strengths from the reference up
   }
 });
 
-it("TH-1 the settings popover's selected segment, Step: text and Label box border reach 7:1, 7:1 and 3:1 in Warm ivory, Sage and Plum", () => {
-  for (const s of ["ivory", "sage", "plum"] as const) {
+it("TH-1 the settings popover's selected segment, Step: text and Label box border reach 7:1, 7:1 and 3:1 in every theme", () => {
+  for (const s of THEME_SKIN_IDS) {
     const { roles, tones } = SKIN_COLORS[s].normal;
     const fill = toneOver(roles, "selectedFill", tones.selectedFill, roles.list);
     expect(contrastRatio(roles.list, fill), `${s} selected segment`).toBeGreaterThanOrEqual(7);

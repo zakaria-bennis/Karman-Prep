@@ -92,6 +92,8 @@ function speak(node: Node, source: string): string {
       return words(at(node.arg, 7), "factorial");
     case "abs":
       return `Start Absolute Value, ${speak(node.arg, source)}, End Absolute Value`;
+    case "deriv": // FN-61: "d by d x of x squared"
+      return words("d by d", identifier(node.variable), "of", at(node.arg, 3));
     case "root":
       return root(node.arg, node.index, source);
     case "call": {

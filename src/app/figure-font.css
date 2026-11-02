@@ -2,11 +2,15 @@
    geometry, charts, tables) uses the printed-SAT-style serif (STIX Two Text, bundled
    in fonts/stix-two-text, OFL). Italic stays per element (variables); numbers stay
    upright. Kept out of globals.css, which the calculator guards against changes. */
-.themed-question-figure {
+.themed-question-figure,
+svg[data-figure-view] {
   --figure-font: var(--font-figure, "Times New Roman"), "Times New Roman", Times, serif;
 }
 .themed-question-figure svg text,
 .themed-question-figure figcaption,
+/* Every engine-drawn figure (FigureView), wherever it sits: figure answer choices are in a
+   choice button that would otherwise lend them its sans-serif. */
+svg[data-figure-view] text,
 .themed-question-table :is(caption, th, td) {
   font-family: var(--figure-font);
 }

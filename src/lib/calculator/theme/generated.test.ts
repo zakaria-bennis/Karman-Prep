@@ -12,7 +12,8 @@ import {
 import { SITE_THEMES } from "../../themes/palettes";
 import { CHROME_VARS, type ChromeRole } from "./roles";
 import { SKIN_COLORS } from "./skin-colors.generated";
-import { SITE_SKIN_IDS, SKIN_IDS, type SkinId } from "./skins";
+import { SKIN_IDS, THEME_SKIN_IDS, type SkinId } from "./skins";
+import { CALCULATOR_THEMES, SITE_THEME_SKINS } from "./themes";
 
 const ROOT = resolve(__dirname, "../../../..");
 const GENERATOR = "scripts/calculator/generate-skin-colors.ts";
@@ -80,7 +81,7 @@ it("TH-5 the generator's value imports never reach skin-colors.generated.ts, so 
   }
 });
 
-it("TH-5 the checked-in table and chrome sheet match a fresh generation from palettes.ts", async () => {
+it("TH-5 the checked-in table and chrome sheet match a fresh generation from themes.ts", async () => {
   const files = await generateSkinColorFiles();
   expect(Object.keys(files).sort()).toEqual([
     GENERATED_FILES.chromeCss,
@@ -91,24 +92,24 @@ it("TH-5 the checked-in table and chrome sheet match a fresh generation from pal
   }
 }, 60_000);
 
-it("TH-5 SKIN_IDS are classic, then the palettes.ts themes in order", () => {
-  expect([...SITE_SKIN_IDS]).toEqual(SITE_THEMES.map((t) => t.id));
-  expect([...SKIN_IDS]).toEqual(["classic", ...SITE_SKIN_IDS]);
+it("TH-5 SKIN_IDS are classic, then the themes.ts themes in order", () => {
+  expect([...THEME_SKIN_IDS]).toEqual(CALCULATOR_THEMES.map((t) => t.id));
+  expect([...SKIN_IDS]).toEqual(["classic", ...THEME_SKIN_IDS]);
 });
 
-it("TH-5 the chrome sheet holds only the seven chrome roles for the 12 skins and the ivory and observatory fallback", () => {
+it("TH-5 the chrome sheet holds only the seven chrome roles for each site theme (its calculator theme) and the ivory and observatory fallback", () => {
   const sheet = readFileSync(join(ROOT, GENERATED_FILES.chromeCss), "utf8");
   const blocks = cssBlocks(sheet);
   expect(blocks.map((b) => b.sel)).toEqual([
     ":root",
     ":root",
-    ...SITE_SKIN_IDS.map((id) => 'html[data-theme="' + id + '"]'),
+    ...SITE_THEMES.map(({ id }) => 'html[data-theme="' + id + '"]'),
   ]);
   expect(sheet).toMatch(/@media \(prefers-color-scheme: dark\) \{\s*:root \{/);
-  expect(blocks[0].decls).toEqual(expected("ivory"));
+  expect(blocks[0].decls).toEqual(expected(SITE_THEME_SKINS.ivory));
   expect(blocks[1].decls).toEqual(expected("observatory"));
-  SITE_SKIN_IDS.forEach((id, i) => {
-    expect(blocks[i + 2].decls, id).toEqual(expected(id));
+  SITE_THEMES.forEach(({ id }, i) => {
+    expect(blocks[i + 2].decls, id).toEqual(expected(SITE_THEME_SKINS[id]));
   });
   expect(gzipSync(sheet).length).toBeLessThan(10_240);
 });

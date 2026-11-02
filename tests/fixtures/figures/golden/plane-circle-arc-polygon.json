@@ -1,0 +1,98 @@
+{
+  "source": "hand-modelled: SAT circle (x − 1)² + (y − 1)² = 9 in the xy-plane, with an inscribed triangle",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "plane",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "O",
+        "x": 1,
+        "y": 1
+      },
+      {
+        "kind": "circle",
+        "id": "c",
+        "center": "O",
+        "radius": 3
+      },
+      {
+        "kind": "point",
+        "id": "P",
+        "x": 4,
+        "y": 1,
+        "on": ["c", "T"]
+      },
+      {
+        "kind": "point",
+        "id": "Q",
+        "x": 1,
+        "y": 4,
+        "on": ["c", "T"]
+      },
+      {
+        "kind": "point",
+        "id": "S",
+        "x": -2,
+        "y": 1,
+        "on": ["c", "T"]
+      },
+      {
+        "kind": "polygon",
+        "id": "T",
+        "points": ["P", "Q", "S"]
+      },
+      {
+        "kind": "point",
+        "id": "U",
+        "x": 5,
+        "y": -2
+      },
+      {
+        "kind": "point",
+        "id": "W",
+        "x": 6,
+        "y": -2
+      },
+      {
+        "kind": "point",
+        "id": "Z",
+        "x": 5,
+        "y": -1
+      },
+      {
+        "kind": "arc",
+        "id": "a",
+        "center": "U",
+        "from": "W",
+        "to": "Z"
+      }
+    ],
+    "labels": [
+      {
+        "text": "O",
+        "on": "O"
+      },
+      {
+        "text": "P",
+        "on": "P"
+      },
+      {
+        "text": "Q",
+        "on": "Q"
+      },
+      {
+        "text": "S",
+        "on": "S"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [-5, 7],
+      "y": [-3, 6],
+      "step": 1,
+      "xLabel": "x",
+      "yLabel": "y"
+    }
+  }
+}

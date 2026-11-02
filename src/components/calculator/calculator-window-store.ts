@@ -29,7 +29,7 @@ export interface WindowStoreState {
 /**
  * The settings a student keeps from question to question (owner decisions, 2026-10-21): angle and
  * complex mode, the grid, axis-number, arrow and minor-gridline toggles, the axes shown or
- * hidden, display size, contrast, the keypad shown or hidden, trace and braille. The rest reset
+ * hidden, display size, the keypad shown or hidden, trace and braille. The rest reset
  * with the calculator's content: the settings that describe one question's graph view (the
  * locked viewport, the axis labels and step sizes, pi axis labels; the axis bounds are the view
  * itself), `mode` (graphing only), `reducedMotion` (set by the host) and `expressionsCollapsed`
@@ -46,7 +46,6 @@ export const PREFERENCE_KEYS = [
   "xAxis",
   "yAxis", // only `show` carries: the label and step reset (preferencesOf)
   "displaySize",
-  "reverseContrast",
   "keypad",
   "trace",
   "pointsOfInterest",

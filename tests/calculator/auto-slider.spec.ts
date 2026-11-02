@@ -36,8 +36,9 @@ const RIGHT = { key: "ArrowRight" };
 
 // Keys typed into the one empty row, then Enter; Desmos's rows after it and the focused row.
 const LIVE_DESMOS: readonly (readonly [readonly Step[], string])[] = [
-  [["x_1+2"], "x_{1}+2 ⏎ x_{1}=1 ⏎  @3"],
-  [["x_1*2"], "x_{1}\\cdot2 ⏎ x_{1}=1 ⏎  @3"],
+  // founder, 2026-10-26: arithmetic stays in the subscript, so these are one name (Desmos leaves it)
+  [["x_1+2"], "x_{1+2} ⏎  @2"],
+  [["x_1*2"], "x_{1\\cdot2} ⏎  @2"],
   [["y=mx+b"], "y=mx+b ⏎ m=1 ⏎ b=1 ⏎  @4"],
   [["a+2"], "a+2 ⏎ a=1 ⏎  @3"],
   [["a"], "a ⏎  @2"],

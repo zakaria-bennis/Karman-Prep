@@ -10,15 +10,19 @@ const menu = () => screen.queryByRole("menu", { name: "Add item" });
 const ids = (kit: ReturnType<typeof renderEditor>) =>
   kit.engine.getSnapshot().rows.map((r) => [r.id, r.type]);
 
-it("S-2 Add item is a menu button whose menu holds Add expression then Add table and nothing else", async () => {
+it("S-2 Add item is a menu button whose menu holds Add expression, Add table and Add inference, as the College Board version's does", async () => {
   renderEditor(<ExpressionPanel {...panelProps()} />, { rows: [""] });
   expect(addItem()).toHaveAttribute("aria-haspopup", "menu");
   expect(addItem()).toHaveAttribute("aria-expanded", "false");
   await userEvent.setup().click(addItem());
   expect(addItem()).toHaveAttribute("aria-expanded", "true");
   const items = within(menu()!).getAllByRole("menuitem");
-  expect(items.map((i) => i.getAttribute("aria-label"))).toEqual(["Add expression", "Add table"]);
-  expect(items.map((i) => i.textContent)).toEqual(["f(x)expression", "table"]);
+  expect(items.map((i) => i.getAttribute("aria-label"))).toEqual([
+    "Add expression",
+    "Add table",
+    "Add inference object",
+  ]);
+  expect(items.map((i) => i.textContent)).toEqual(["f(x)expression", "table", "inference"]);
   expect(items[0]).not.toHaveFocus(); // a mouse open leaves focus where it was (the keyboard: S-10)
   await userEvent.setup().click(addItem());
   expect(menu()).toBeNull();
@@ -46,13 +50,15 @@ it("S-10 Enter, Space and ArrowDown open the menu with focus on the first item; 
     await user.keyboard("{ArrowDown}");
     expect(items[1]).toHaveFocus();
     await user.keyboard("{ArrowDown}");
+    expect(items[2]).toHaveFocus();
+    await user.keyboard("{ArrowDown}");
     expect(items[0]).toHaveFocus();
     await user.keyboard("{ArrowUp}");
-    expect(items[1]).toHaveFocus();
+    expect(items[2]).toHaveFocus();
     await user.keyboard("{Home}");
     expect(items[0]).toHaveFocus();
     await user.keyboard("{End}");
-    expect(items[1]).toHaveFocus();
+    expect(items[2]).toHaveFocus();
     act(() => kit.pressEscape());
     expect(menu()).toBeNull();
     expect(addItem()).toHaveFocus();

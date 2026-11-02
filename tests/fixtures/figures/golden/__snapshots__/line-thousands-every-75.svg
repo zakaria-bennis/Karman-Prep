@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 508" role="img" aria-label="Forest Area for Three Land Use Capability Classes in the Chorotega Region, Costa Rica. Line graph of 3 series. X-axis: x. Y-axis: y. Class VI (severe limitations on use for crops): points (0.5, 355), (1.5, 265), (2.5, 265), (3.5, 510); Class VII (very severe limitations on use for crops): points (0.5, 465), (1.5, 340), (2.5, 405), (3.5, 760); Class I-IV (valuable for crops): points (0.5, 1000), (1.5, 340), (2.5, 360), (3.5, 1000)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M72 396.25 L584 396.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 372.09 L584 372.09" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 347.93 L584 347.93" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 323.77 L584 323.77" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 299.61 L584 299.61" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 275.45 L584 275.45" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 251.29 L584 251.29" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 227.13 L584 227.13" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 202.96 L584 202.96" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 178.8 L584 178.8" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 154.64 L584 154.64" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 130.48 L584 130.48" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 106.32 L584 106.32" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 82.16 L584 82.16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 58 L584 58" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M72 396.25 L584 396.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M72 396.25 L72 58" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<text x="136" y="417.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">1960</text>
+<text x="264" y="417.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">1979</text>
+<text x="392" y="417.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">1986</text>
+<text x="520" y="417.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">2000</text>
+<path d="M69 396.25 L75 396.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="401.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M69 372.09 L75 372.09" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="377.09" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">75</text>
+<path d="M69 347.93 L75 347.93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="352.93" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">150</text>
+<path d="M69 323.77 L75 323.77" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="328.77" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">225</text>
+<path d="M69 299.61 L75 299.61" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="304.61" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">300</text>
+<path d="M69 275.45 L75 275.45" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="280.45" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">375</text>
+<path d="M69 251.29 L75 251.29" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="256.29" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">450</text>
+<path d="M69 227.13 L75 227.13" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="232.13" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">525</text>
+<path d="M69 202.96 L75 202.96" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="207.96" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">600</text>
+<path d="M69 178.8 L75 178.8" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="183.8" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">675</text>
+<path d="M69 154.64 L75 154.64" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="159.64" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">750</text>
+<path d="M69 130.48 L75 130.48" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="135.48" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">825</text>
+<path d="M69 106.32 L75 106.32" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="111.32" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">900</text>
+<path d="M69 82.16 L75 82.16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="87.16" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">975</text>
+<path d="M69 58 L75 58" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="66" y="63" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1,050</text>
+<text x="328" y="438.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Year</text>
+<text x="15" y="227.13" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-90 15 227.13)">Area (square kilometers)</text>
+<path d="M136 281.89 L264 310.88 L392 310.88 L520 231.96" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M136 276.71 L140.5 285.26 L131.5 285.26 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M264 305.71 L268.5 314.26 L259.5 314.26 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M392 305.71 L396.5 314.26 L387.5 314.26 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M520 226.78 L524.5 235.33 L515.5 235.33 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M136 246.45 L264 286.72 L392 265.78 L520 151.42" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s2">
+</path>
+<path d="M132.18 242.63 L139.82 242.63 L139.82 250.28 L132.18 250.28 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M260.18 282.9 L267.83 282.9 L267.83 290.55 L260.18 290.55 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M388.18 261.96 L395.83 261.96 L395.83 269.61 L388.18 269.61 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M516.17 147.6 L523.83 147.6 L523.83 155.25 L516.17 155.25 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M136 74.11 L264 286.72 L392 280.28 L520 74.11" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" stroke-dasharray="0.5 3.5" data-part="s3">
+</path>
+<path d="M131.95 74.11 A4.05 4.05 0 1 0 140.05 74.11 A4.05 4.05 0 1 0 131.95 74.11 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M259.95 286.72 A4.05 4.05 0 1 0 268.05 286.72 A4.05 4.05 0 1 0 259.95 286.72 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M387.95 280.28 A4.05 4.05 0 1 0 396.05 280.28 A4.05 4.05 0 1 0 387.95 280.28 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M515.95 74.11 A4.05 4.05 0 1 0 524.05 74.11 A4.05 4.05 0 1 0 515.95 74.11 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Forest Area for Three Land Use Capability Classes in the</text>
+<text x="300" y="49" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Chorotega Region, Costa Rica</text>
+<path d="M81.37 458 L111.37 458" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<path d="M96.37 452.83 L100.87 461.38 L91.87 461.38 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="117.37" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Class VI (severe limitations on use for crops)</text>
+<path d="M54.37 476 L84.37 476" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="legend">
+</path>
+<path d="M65.55 472.18 L73.2 472.18 L73.2 479.83 L65.55 479.83 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="90.37" y="481" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Class VII (very severe limitations on use for crops)</text>
+<path d="M147 494 L177 494" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" stroke-dasharray="0.5 3.5" data-part="legend">
+</path>
+<path d="M157.95 494 A4.05 4.05 0 1 0 166.05 494 A4.05 4.05 0 1 0 157.95 494 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="183" y="499" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">Class I-IV (valuable for crops)</text>
+</svg>

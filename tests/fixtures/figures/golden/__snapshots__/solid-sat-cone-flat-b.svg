@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Right circular cone, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M303.98 165.72 L303.45 165.41 L302.81 165.11 L302.06 164.8 L301.21 164.5 L300.24 164.21 L299.17 163.91 L298 163.62 L296.72 163.34 L295.34 163.05 L293.86 162.77 L292.28 162.5 L290.6 162.23 L288.82 161.97 L286.96 161.71 L285 161.45 L282.95 161.21 L280.81 160.96 L278.59 160.73 L276.28 160.5 L273.89 160.28 L271.43 160.07 L268.89 159.86 L266.27 159.66 L263.59 159.47 L260.84 159.28 L258.02 159.11 L255.15 158.94 L252.21 158.78 L249.22 158.63 L246.18 158.49 L243.09 158.36 L239.95 158.24 L236.77 158.13 L233.55 158.02 L230.3 157.93 L227.01 157.84 L223.7 157.77 L220.36 157.71 L217 157.65 L213.62 157.6 L210.23 157.57 L206.83 157.54 L203.41 157.53 L200 157.52 L196.59 157.53 L193.17 157.54 L189.77 157.57 L186.38 157.6 L183 157.65 L179.64 157.71 L176.3 157.77 L172.99 157.84 L169.7 157.93 L166.45 158.02 L163.23 158.13 L160.05 158.24 L156.91 158.36 L153.82 158.49 L150.78 158.63 L147.79 158.78 L144.85 158.94 L141.98 159.11 L139.16 159.28 L136.41 159.47 L133.73 159.66 L131.11 159.86 L128.57 160.07 L126.11 160.28 L123.72 160.5 L121.41 160.73 L119.19 160.96 L117.05 161.21 L115 161.45 L113.04 161.71 L111.18 161.97 L109.4 162.23 L107.72 162.5 L106.14 162.77 L104.66 163.05 L103.28 163.34 L102 163.62 L100.83 163.91 L99.76 164.21 L98.79 164.5 L97.94 164.8 L97.19 165.11 L96.55 165.41 L96.02 165.72" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+</path>
+<path d="M96.02 165.72 L95.6 166.02 L95.29 166.33 L95.09 166.64 L95 166.95 L95.02 167.26 L95.16 167.57 L95.41 167.88 L95.76 168.19 L96.23 168.5 L96.81 168.8 L97.5 169.11 L98.29 169.41 L99.2 169.71 L100.21 170 L101.33 170.3 L102.55 170.59 L103.87 170.87 L105.3 171.15 L106.83 171.43 L108.46 171.7 L110.18 171.97 L112 172.23 L113.91 172.49 L115.92 172.74 L118.01 172.99 L120.19 173.23 L122.46 173.46 L124.8 173.68 L127.23 173.9 L129.74 174.11 L132.32 174.32 L134.97 174.51 L137.69 174.7 L140.47 174.88 L143.32 175.05 L146.23 175.22 L149.2 175.37 L152.22 175.52 L155.29 175.65 L158.41 175.78 L161.57 175.9 L164.77 176.01 L168.02 176.11 L171.29 176.2 L174.6 176.28 L177.93 176.35 L181.28 176.41 L184.66 176.46 L188.05 176.5 L191.46 176.53 L194.87 176.55 L198.29 176.56 L201.71 176.56 L205.13 176.55 L208.54 176.53 L211.95 176.5 L215.34 176.46 L218.72 176.41 L222.07 176.35 L225.4 176.28 L228.71 176.2 L231.98 176.11 L235.23 176.01 L238.43 175.9 L241.59 175.78 L244.71 175.65 L247.78 175.52 L250.8 175.37 L253.77 175.22 L256.68 175.05 L259.53 174.88 L262.31 174.7 L265.03 174.51 L267.68 174.32 L270.26 174.11 L272.77 173.9 L275.2 173.68 L277.54 173.46 L279.81 173.23 L281.99 172.99 L284.08 172.74 L286.09 172.49 L288 172.23 L289.82 171.97 L291.54 171.7 L293.17 171.43 L294.7 171.15 L296.13 170.87 L297.45 170.59 L298.67 170.3 L299.79 170 L300.8 169.71 L301.71 169.41 L302.5 169.11 L303.19 168.8 L303.77 168.5 L304.24 168.19 L304.59 167.88 L304.84 167.57 L304.98 167.26 L305 166.95 L304.91 166.64 L304.71 166.33 L304.4 166.02 L303.98 165.72" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M200 98.69 L303.98 165.72" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M200 98.69 L96.02 165.72" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+</path>
+<path d="M197 98.69 A3 3 0 1 0 203 98.69 A3 3 0 1 0 197 98.69 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.A">
+</path>
+<path d="M144.5 175.28 A3 3 0 1 0 150.5 175.28 A3 3 0 1 0 144.5 175.28 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.B">
+</path>
+<text x="200" y="222.31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+<text x="200" y="88.94" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.A">A</text>
+<text x="151.56" y="196.08" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic" data-part="s.B">B</text>
+</svg>

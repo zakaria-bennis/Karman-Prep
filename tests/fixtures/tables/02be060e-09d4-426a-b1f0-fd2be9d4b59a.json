@@ -1,0 +1,19 @@
+{
+  "id": "02be060e-09d4-426a-b1f0-fd2be9d4b59a",
+  "figure_table_data": {
+    "rows": [
+      ["Tribal economic activity", "$7,312,400,000", "51,674", "$141,510"],
+      ["Finance/insurance", "$7,281,900,000", "56,163", "$129,657"],
+      ["Wholesale trade", "$10,723,400,000", "58,346", "$183,790"],
+      ["Administration/waste", "$5,830,600,000", "96,964", "$60,132"]
+    ],
+    "caption": "Impact of Four Key Industries on Oklahoma Economy in 2017",
+    "header_row": [
+      "Industry",
+      "Approximate total contribution by industry",
+      "Number of people employed by industry",
+      "Average contribution per employee by industry"
+    ],
+    "footer_note": null
+  }
+}

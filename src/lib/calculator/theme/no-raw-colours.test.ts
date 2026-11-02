@@ -28,8 +28,13 @@ const SCAN_ROOTS: readonly { dir: string; except: readonly string[] }[] = [
   { dir: "src/lib/calculator/render", except: [] },
   {
     dir: "src/lib/calculator/theme",
-    // desmos-palette.ts is the one hand-written source of Desmos's six curve colours (F-A1).
-    except: [GENERATED_FILES.skinColors, "src/lib/calculator/theme/desmos-palette.ts"],
+    // desmos-palette.ts is the one hand-written source of Desmos's six curve colours (F-A1), and
+    // themes.ts the one hand-written source of the 20 calculator themes' seed colours.
+    except: [
+      GENERATED_FILES.skinColors,
+      "src/lib/calculator/theme/desmos-palette.ts",
+      "src/lib/calculator/theme/themes.ts",
+    ],
   },
 ];
 

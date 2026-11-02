@@ -2,6 +2,8 @@
 // (NM-6): every non-finite number or complex part becomes UNDEFINED here. Pure TypeScript: no DOM
 // (AR-44).
 
+import type { Inference } from "../lib/inference";
+
 export interface Complex {
   re: number;
   im: number;
@@ -20,7 +22,10 @@ export type ListErrorCode =
   | "list-mixed"
   | "repeat-count"
   | "repeat-counts"
-  | "repeat-lengths";
+  | "repeat-lengths"
+  | "inference-sample" // FN-54: a t test sample with fewer than 2 values
+  | "inference-lengths" // FN-56: chisqtest or chisqgof lists of different lengths
+  | "inference-short"; // FN-56: a chisqtest or chisqgof list with fewer than 2 values
 
 /** FN-45: the distributions that have shipped, by constructor name. */
 export type DistributionName = "normaldist" | "tdist" | "binomialdist";
@@ -35,6 +40,7 @@ export interface Distribution {
 }
 
 export type Value =
+  | { type: "inference"; value: Inference } // FN-53 to FN-58: a test, its null test or its interval
   | { type: "number"; value: number }
   | { type: "complex"; value: Complex }
   | { type: "point"; value: [number, number] }

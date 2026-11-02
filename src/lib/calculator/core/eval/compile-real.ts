@@ -13,7 +13,9 @@ import { isDistributionName, readsDistribution } from "../lib/distributions";
 import { givesList, listFunction, reduceNumbers } from "../lib/statistics";
 import { factorial } from "../lib/gamma";
 import type { Compiled, CompileScope } from "./compile";
+import { expandDerivative } from "./derivative";
 import { holdsDistribution } from "./distributions";
+import { INFERENCE_FUNCTIONS } from "./inference";
 import { linkHolds, toPlotNumber } from "./ops";
 import { exactConstant, usesNoName } from "./exact";
 import { exponentRational, realPow, realRoot } from "./real-pow";
@@ -168,6 +170,11 @@ function compile(node: Node, ctx: Context): Fn {
     }
     case "call":
       return call(node, ctx);
+    case "deriv": {
+      // FN-61: its symbolic derivative (derivative.ts), NaN without a rule
+      const d = expandDerivative(node, ctx.scope.functions, ctx.scope.settings.angleMode);
+      return d === null ? undefinedFn : compile(d, ctx);
+    }
     case "rel":
       return relation(node.operands, node.ops, ctx);
     case "fact": {
@@ -320,6 +327,7 @@ function call(node: Call, ctx: Context): Fn {
  */
 function readsOrMakesDistribution(node: Call, ctx: Context): boolean {
   if (node.member !== undefined || isDistributionName(node.name)) return true;
+  if (INFERENCE_FUNCTIONS.has(node.name)) return true; // FN-53 to FN-56: an inference value
   if (node.name === "pdf" || node.name === "cdf") return true;
   if (!readsDistribution(node.name) || node.args.length === 0) return false;
   const pending: Node[] = [node.args[0]],

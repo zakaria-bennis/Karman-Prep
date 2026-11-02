@@ -19,9 +19,11 @@ import { formatValue } from "../eval/format";
 import { displayFraction, type DisplayFraction } from "../eval/fraction";
 import { lineConstantSide } from "../eval/line-value";
 import type { Value } from "../eval/values";
+import { holdsInference } from "../eval/inference";
 import type { TableResult } from "../data/evaluate";
 import type { TableAnalysis } from "../data/table-analysis";
 import type { StoredColumn, StoredRow } from "./document";
+import type { InferenceSettings } from "./inference-state";
 import type { RowResult } from "./inbox";
 import { regressionValues, type RegressionOutcome } from "../data/evaluate-regression";
 import { regressionDefinitionId, type RegressionAnalysis } from "../data/regression-analysis";
@@ -46,6 +48,7 @@ export interface RowView {
   table: TableView | null; // D-10, D-11: a table's analysis and latest results
   regression: RegressionView | null; // D-22: a regression row's analysis and latest fit
   slider?: SliderView | null; // SLIDERS-1: a slider row's limits, range and shown value
+  inference?: InferenceSettings; // FN-59: an inference row's settings; absent for the defaults
 }
 /** A row's error: an analysis error, or a slider's limit error (SLIDERS-18). */
 export type ViewError = Omit<RowError, "code"> & { code: RowError["code"] | "slider-limits" };
@@ -146,7 +149,8 @@ export function rowHasValue(row: RowAnalysis, value: Value | null, overrun: bool
     row.chips.length === 0 &&
     !overrun &&
     value !== null &&
-    valueError(value) === null
+    valueError(value) === null &&
+    !holdsInference(value) // FN-59: a test shows its footer, and Desmos reports no evaluation
   );
 }
 
@@ -280,6 +284,7 @@ function buildRowView(
         ? null
         : { analysis: analysis.regression, result: result.regression ?? null },
     slider,
+    ...(row.inference !== undefined && { inference: row.inference }),
   };
 }
 

@@ -102,6 +102,8 @@ export function printLatex(tree: Node): string {
       return join([wrapIf(tree.arg, POSTFIXED), "!"]);
     case "abs":
       return join(["\\left|", printLatex(tree.arg), "\\right|"]);
+    case "deriv": // FN-61: `\frac{d}{dx}` before the rest of its term
+      return join([`\\frac{d}{d${tree.variable}}`, wrapIf(tree.arg, SUMS)]);
     case "root":
       return tree.index === null
         ? join(["\\sqrt{", printLatex(tree.arg), "}"])

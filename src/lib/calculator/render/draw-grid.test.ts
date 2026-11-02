@@ -7,7 +7,7 @@ import { drawGridLayer } from "./draw-grid";
 import { pickGrid, planGrid } from "./grid-plan";
 import type { RenderTheme } from "./types";
 
-const p = SKIN_COLORS.ivory.normal;
+const p = SKIN_COLORS.white.normal;
 const THEME: RenderTheme = {
   paper: p.roles.paper,
   text: p.roles.text,

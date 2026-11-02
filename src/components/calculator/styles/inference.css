@@ -1,0 +1,483 @@
+/* FN-59: an inference row's footer (ui/list/inference/), measured on live Desmos (College Board
+   version, 2026-10-26): 14 px UI text, section titles at 16 px behind a disclosure caret, each open
+   section indented 16 px past a 1 px rule, and 258 px diagram boxes with a 1 px border and 4 px
+   corners. Colours come only from roles; the row colour arrives as --kc-inf-color. */
+
+.kc-inf {
+  --kc-inf-color: var(--kc-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 10px 0;
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-small);
+  line-height: 1.35;
+}
+
+/* The footer lines up with the row's math, as the regression panel does. */
+.kc-row-main > .kc-inf {
+  padding-right: 35px;
+  padding-left: 53px;
+}
+
+.kc-inf-caption {
+  margin-top: -4px;
+  color: var(--kc-text-muted);
+  font-size: 12px;
+}
+
+.kc-inf-warning {
+  margin: 0;
+  color: var(--kc-text-secondary);
+  font-size: 12px;
+}
+
+.kc-inf-warning::before {
+  content: "⚠ ";
+}
+
+.kc-inf-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 0 4px 0 0;
+  border: 0;
+  border-radius: var(--kc-radius-small);
+  background: none;
+  color: var(--kc-text-secondary);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.kc-inf-section-title:hover {
+  color: var(--kc-text);
+}
+
+.kc-inf-section-title:focus-visible,
+.kc-inf-more:focus-visible,
+.kc-inf-export:focus-visible,
+.kc-inf-tail-option:has(> input:focus-visible),
+.kc-inf-check:has(> input:focus-visible) {
+  outline: 2px solid var(--kc-accent);
+  outline-offset: 1px;
+}
+
+.kc-inf-caret {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  transition: transform var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-inf-caret[data-open="true"] {
+  transform: rotate(90deg);
+}
+
+.kc-inf-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 2px 0 6px 5px;
+  padding-left: 11px;
+  border-left: 1px solid var(--kc-boundary);
+}
+
+.kc-inf-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  min-height: 24px;
+}
+
+.kc-inf-label {
+  color: var(--kc-text-secondary);
+}
+
+.kc-inf-null-name {
+  font-family: var(--kc-font-math);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.kc-inf-null-name var,
+.kc-inf-plot var {
+  font-style: italic;
+}
+
+/* A field: the slider limits' underlined math (slider.css), its default greyed while empty. */
+.kc-inf-field {
+  position: relative;
+  display: inline-block;
+}
+
+.kc-inf-field-math > .kc-math-field.mq-editable-field,
+.kc-inf-field-math > .kc-math-field.mq-editable-field.mq-focused {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: 35px;
+  height: 22.2px;
+  margin: 1px;
+  padding: 1px 2px;
+  border-width: 0 0 1px;
+  border-style: solid;
+  border-color: var(--kc-rule);
+  box-shadow: none;
+  font-size: var(--kc-size-eval);
+  line-height: 15.2px;
+}
+
+.kc-inf-field-math > .kc-math-field.mq-editable-field.mq-focused {
+  border-bottom-color: var(--kc-focus-ring);
+}
+
+.kc-inf-field[data-empty="true"] .mq-empty {
+  background: transparent;
+}
+
+.kc-inf-placeholder {
+  position: absolute;
+  left: 4px;
+  top: 3px;
+  color: var(--kc-text-muted);
+  font-family: var(--kc-font-math);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+/* The tails: three joined buttons at least 24 px tall; the chosen one is tinted. */
+.kc-inf-tails {
+  display: inline-flex;
+}
+
+.kc-inf-tail-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  margin-left: -1px;
+  border: 1px solid var(--kc-boundary);
+  background: var(--kc-list);
+  cursor: pointer;
+  transition: background-color var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-inf-tail-option:first-child {
+  margin-left: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.kc-inf-tail-option:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.kc-inf-tail-option:hover {
+  background: var(--kc-hover-fill);
+}
+
+.kc-inf-tail-option:has(> input:checked) {
+  z-index: 1;
+  border-color: var(--kc-accent);
+  background: color-mix(in srgb, var(--kc-accent) 16%, var(--kc-list));
+  color: var(--kc-text);
+}
+
+.kc-inf-tail-option > input,
+.kc-inf-check > input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.kc-inf-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.kc-inf-check {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  cursor: pointer;
+}
+
+.kc-inf-check::before {
+  content: "";
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 2px;
+  background: var(--kc-list);
+}
+
+.kc-inf-check:has(> input:checked)::before {
+  border-color: var(--kc-accent);
+  background: var(--kc-accent);
+  box-shadow: inset 0 0 0 2px var(--kc-list);
+}
+
+/* A diagram box: 258 px wide with its ⋮ button at the top right. */
+.kc-inf-box {
+  position: relative;
+  box-sizing: border-box;
+  width: min(260px, 100%);
+  padding: 6px 0 4px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 4px;
+  background: var(--kc-list);
+}
+
+.kc-inf-more {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kc-radius-small);
+  background: none;
+  color: var(--kc-icon-rest);
+  cursor: pointer;
+}
+
+.kc-inf-more:hover {
+  background: var(--kc-hover-fill);
+  color: var(--kc-icon-hover);
+}
+
+.kc-inf-more > svg {
+  width: 4px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.kc-inf-interval {
+  position: relative;
+  height: 40px;
+}
+
+.kc-inf-interval > svg,
+.kc-inf-plot > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.kc-inf-bar {
+  stroke: var(--kc-text);
+  stroke-width: 1;
+}
+
+.kc-inf-estimate,
+.kc-inf-score {
+  fill: var(--kc-text);
+}
+
+.kc-inf-bound {
+  position: absolute;
+  top: 22px;
+  font-family: var(--kc-font-math);
+  font-size: 14px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.kc-inf-plot {
+  position: relative;
+  padding-top: 2px;
+}
+
+.kc-inf-plot-values {
+  position: absolute;
+  top: 0;
+  left: 6px;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--kc-font-math);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.kc-inf-curve {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.kc-inf-tail {
+  fill: currentColor;
+  fill-opacity: 0.3;
+  stroke: none;
+}
+
+.kc-inf-axis,
+.kc-inf-tick {
+  stroke: var(--kc-text-muted);
+  stroke-width: 1;
+}
+
+.kc-inf-tick[data-major="true"] {
+  stroke: var(--kc-text);
+}
+
+.kc-inf-mirror {
+  fill: var(--kc-list);
+  stroke: var(--kc-text-muted);
+  stroke-width: 1;
+}
+
+.kc-inf-plot-labels {
+  position: relative;
+  height: 20px;
+  font-family: var(--kc-font-math);
+  font-size: 14px;
+}
+
+.kc-inf-score-label,
+.kc-inf-mirror-label {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.kc-inf-mirror-label {
+  color: var(--kc-text-muted);
+}
+
+/* The Observed (Expected) table: grey header cells, counts with their expected counts in grey. */
+.kc-inf-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.kc-inf-table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.kc-inf-table th,
+.kc-inf-table td {
+  position: relative;
+  min-width: 60px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--kc-boundary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.kc-inf-table th {
+  background: var(--kc-hover-fill);
+  font-weight: 400;
+}
+
+.kc-inf-count {
+  font-family: var(--kc-font-math);
+  font-size: 15px;
+}
+
+.kc-inf-expected {
+  color: var(--kc-text-muted);
+  font-family: var(--kc-font-math);
+}
+
+.kc-inf-total {
+  background: var(--kc-hover-fill);
+}
+
+.kc-inf-contribution {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 7px;
+  background: var(--kc-inf-color);
+}
+
+/* The numerical outputs: a popover table of labels and values, each with an Export button. */
+.kc-inf-popover {
+  position: fixed;
+  z-index: 30;
+  padding: 8px;
+  border: 1px solid var(--kc-boundary);
+  border-radius: 6px;
+  background: var(--kc-list);
+  box-shadow: var(--kc-popover-shadow);
+  color: var(--kc-text);
+  font-family: var(--kc-font-ui);
+  font-size: var(--kc-size-small);
+  animation: kc-inf-fade var(--kc-dur-200) var(--kc-ease);
+}
+
+.kc-inf-outputs {
+  border-collapse: collapse;
+}
+
+.kc-inf-outputs th,
+.kc-inf-outputs td {
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid var(--kc-boundary);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.kc-inf-outputs th {
+  background: var(--kc-hover-fill);
+  font-weight: 400;
+}
+
+.kc-inf-output-value {
+  display: inline-block;
+  min-width: 64px;
+  font-family: var(--kc-font-math);
+  font-size: 15px;
+}
+
+.kc-inf-export {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--kc-radius-small);
+  background: none;
+  color: var(--kc-icon-rest);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.kc-inf-export:hover {
+  background: var(--kc-hover-fill);
+  color: var(--kc-icon-hover);
+}
+
+.kc-inf-export > svg {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes kc-inf-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
