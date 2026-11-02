@@ -1,0 +1,33 @@
+<!-- figure 1 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Triangle ABC, right angle at A." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M54.33 259.25 L345.67 259.25 L54.33 40.75 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="T">
+</path>
+<path d="M64.33 259.25 L64.33 249.25 L54.33 249.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="r">
+</path>
+<text x="45.59" y="273.62" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="355.86" y="268.27" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="47.15" y="32.01" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="C">C</text>
+</svg>
+<!-- figure 2 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Triangle DEF, right angle at D, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M70.83 234.5 L329.17 234.5 L70.83 40.75 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="T">
+</path>
+<path d="M80.83 234.5 L80.83 224.5 L70.83 224.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="r">
+</path>
+<text x="200" y="292" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figures not drawn to scale.</text>
+<text x="62.09" y="248.87" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="D">D</text>
+<text x="339.36" y="243.52" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="E">E</text>
+<text x="63.65" y="32.01" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="F">F</text>
+</svg>

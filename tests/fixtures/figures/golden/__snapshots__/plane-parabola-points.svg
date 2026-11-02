@@ -124,6 +124,6 @@
 </path>
 <path d="M499.4 240 A3 3 0 1 0 505.4 240 A3 3 0 1 0 499.4 240 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="Q">
 </path>
-<text x="394.42" y="438.44" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="V">(1, −4)</text>
+<text x="380.8" y="440.2" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="V">(1, −4)</text>
 <text x="521.2" y="21.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="f">y = f(x)</text>
 </svg>

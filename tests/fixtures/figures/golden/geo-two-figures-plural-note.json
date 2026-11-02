@@ -1,0 +1,118 @@
+{
+  "source": "hand-modelled: two similar right triangles printed as two figures, one plural note under the last",
+  "figure_spec": [
+    {
+      "version": "figure-spec/1",
+      "type": "geometry2d",
+      "parts": [
+        {
+          "kind": "point",
+          "id": "A",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "kind": "point",
+          "id": "B",
+          "x": 120,
+          "y": 0
+        },
+        {
+          "kind": "point",
+          "id": "C",
+          "x": 0,
+          "y": -90
+        },
+        {
+          "kind": "polygon",
+          "id": "T",
+          "points": ["A", "B", "C"]
+        },
+        {
+          "kind": "angle",
+          "id": "r",
+          "vertex": "A",
+          "from": "B",
+          "to": "C"
+        }
+      ],
+      "labels": [
+        {
+          "text": "A",
+          "on": "A"
+        },
+        {
+          "text": "B",
+          "on": "B"
+        },
+        {
+          "text": "C",
+          "on": "C"
+        }
+      ],
+      "marks": [
+        {
+          "kind": "right_angle",
+          "on": ["r"]
+        }
+      ]
+    },
+    {
+      "version": "figure-spec/1",
+      "type": "geometry2d",
+      "parts": [
+        {
+          "kind": "point",
+          "id": "D",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "kind": "point",
+          "id": "E",
+          "x": 60,
+          "y": 0
+        },
+        {
+          "kind": "point",
+          "id": "F",
+          "x": 0,
+          "y": -45
+        },
+        {
+          "kind": "polygon",
+          "id": "T",
+          "points": ["D", "E", "F"]
+        },
+        {
+          "kind": "angle",
+          "id": "r",
+          "vertex": "D",
+          "from": "E",
+          "to": "F"
+        }
+      ],
+      "labels": [
+        {
+          "text": "D",
+          "on": "D"
+        },
+        {
+          "text": "E",
+          "on": "E"
+        },
+        {
+          "text": "F",
+          "on": "F"
+        }
+      ],
+      "marks": [
+        {
+          "kind": "right_angle",
+          "on": ["r"]
+        }
+      ],
+      "notToScale": "figures"
+    }
+  ]
+}
