@@ -71,9 +71,10 @@ export function WeekCalendar({
   const kinds = [...new Set(events.map((e) => e.kind))];
   const hours = Array.from({ length: to - from + 1 }, (_, i) => from + i);
   const hourH = 44;
-  const fmt = (h: number) => `${((h + 11) % 12) + 1}${h >= 12 ? " pm" : " am"}`;
-  const time = (e: CalEvent) =>
-    `${fmt(Math.floor(e.start))}${e.start % 1 ? ":30" : ""} to ${fmt(Math.floor(e.end))}${e.end % 1 ? ":30" : ""}`;
+  /** "7:00 pm", "8:30 pm", from a decimal hour; the axis keeps the short "7 pm". */
+  const fmt = (h: number, axis = false) =>
+    `${((Math.floor(h) + 11) % 12) + 1}${axis ? "" : h % 1 ? ":30" : ":00"} ${h >= 12 ? "pm" : "am"}`;
+  const time = (e: CalEvent) => `${fmt(e.start)} to ${fmt(e.end)}`;
   return (
     <div ref={host} className={cn("grid gap-3", className)}>
       <Legend kinds={kinds} />
@@ -130,7 +131,7 @@ export function WeekCalendar({
                 className="tabular absolute right-2 -translate-y-1/2 text-small text-muted"
                 style={{ top: i * hourH }}
               >
-                {fmt(h)}
+                {fmt(h, true)}
               </span>
             ))}
           </div>

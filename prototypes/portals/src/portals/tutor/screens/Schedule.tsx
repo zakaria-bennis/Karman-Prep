@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GlassSegmented } from "@/design-system/glass/GlassSegmented";
 import { Panel } from "@/design-system/glass/Panel";
-import { WeekCalendar } from "../components/WeekCalendar";
+import { WeekCalendar } from "@/design-system/components/Calendar";
 import { Skeleton } from "@/design-system/components/Skeleton";
 import { ErrorBlock } from "@/design-system/components/Empty";
 import { useToast } from "@/design-system/components/Toast";
@@ -11,9 +11,7 @@ import { useTutorData } from "../data";
 import { weekDates } from "../mock";
 
 /**
- * Schedule: the week as a calendar (the design system's Calendar component,
- * carried in components/WeekCalendar.tsx with the time-format fix until it is
- * promoted):
+ * Schedule: the week as a calendar (the design system's Calendar component):
  * 1:1 sessions, the cohort's classes with David named, the two Saturday
  * tests and the weekly live session. Jakob: a week view people already know;
  * This week and Next week as one segmented control.

@@ -92,3 +92,8 @@ assets/generation-state.json
 
 # Raw generator output for the fresh mocks; the WebP crops in img/ are what the pages use
 .impeccable/mocks/fresh/*/raw/
+
+# Motion lab (Remotion) dependencies and cache
+/.impeccable/mocks/motion/node_modules
+/.impeccable/mocks/motion/.cache
+/.impeccable/mocks/motion/shots/*.png
