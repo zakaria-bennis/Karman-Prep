@@ -143,6 +143,10 @@ elements of the Paddle Billing starter kit's pricing page
 touch rules 1, 6, 8, 16, 17, 21 and 22. Contrast (33), overlap (34), sideways
 scroll (28), no invented claims and the copy rules still hold.
 
+Also on 2026-11-01, after removing rule 47, the founder kept the three real
+results on the home page: Ava 1520 UC Berkeley, Mateo 1570 Harvard and Priya 1540
+Stanford, each with "Karman 1:1 tutoring, median 16 weeks".
+
 ## Copy rules
 
 Set by the founder on 2026-10-19. Every word on the website follows these.
