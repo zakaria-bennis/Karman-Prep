@@ -119,7 +119,12 @@ window.KarmanTry = function (t, onEngine) {
     if (content) content.style.bottom = "0";
   }
 
-  if (frame) {
+  // The engine's stylesheet and fragment load after the page, so they never compete with the hero.
+  function loadEngine() {
+    var css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "../../redesign/engine/engine.css";
+    document.head.appendChild(css);
     fetch(frame.getAttribute("data-fragment"))
       .then(function (r) {
         if (!r.ok) throw new Error("fragment " + r.status);
@@ -186,5 +191,9 @@ window.KarmanTry = function (t, onEngine) {
       .catch(function (err) {
         console.warn(err);
       });
+  }
+  if (frame) {
+    if (document.readyState === "complete") loadEngine();
+    else window.addEventListener("load", loadEngine);
   }
 };

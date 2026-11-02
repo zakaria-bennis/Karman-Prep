@@ -55,21 +55,19 @@
   .tile--start {
     grid-column: 8 / span 5;
   }
-  .tile--handoff {
+  .tile--quiz {
     grid-column: 1 / -1;
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    grid-template-rows: auto auto 1fr;
     column-gap: 32px;
-    align-items: start;
+    align-items: center;
   }
-  .tile--handoff .handoff {
-    grid-row: 1 / span 3;
+  .tile--quiz .quiz__stage {
     margin-bottom: 0;
+    height: 360px;
   }
-  .tile--handoff .h3 {
-    align-self: end;
-    margin-top: 24px;
+  .tile--quiz .quiz__stage .phone {
+    width: 260px;
   }
   .tile {
     padding: 28px;
@@ -112,9 +110,6 @@
 }
 .tile--try .textlink {
   color: var(--on-pine);
-}
-.tile--try .textlink:hover {
-  color: var(--marigold);
 }
 .try__frame .karman-engine {
   position: absolute !important;
@@ -172,16 +167,34 @@
   }
 }
 
-.handoff {
+/* Zoom: the student in her own room, on the call (rule 46). */
+.zoom__photo {
+  position: relative;
   overflow: hidden;
   margin-bottom: 20px;
   border-radius: var(--r-media);
-  background: var(--pine);
+  background: var(--card-2);
 }
-.handoff video {
+.zoom__photo img {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
+}
+.zoom__photo figcaption {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #12110f;
+  color: #f5f5f2;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* The quiz tile: a phone playing Your Daily 10 on the pine block. */
+.quiz__stage {
+  background: var(--pine);
 }
 
 /* ---------- 4. results: the pine card ---------- */

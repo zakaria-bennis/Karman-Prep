@@ -36,28 +36,28 @@ headline: The SAT, [ten questions] a day.
 sub: Daily practice on their phone, live classes on Zoom.
 button: Take the free practice test
 button.url: https://karmanprep.com/free-practice-test
-photo.alt: Two swimmers in team parkas sit on the bleachers beside an indoor pool between sessions, hair still damp.
-phone.alt: Karman Home on an iPhone: Full-length test 2 is due today, Your Daily 10 is 8 of 10, and a live class with David is on Monday.
+photo.alt: A student sits on the edge of an empty school stage, typing on a laptop, a cello on its stand beside her.
+phone.alt: Karman Home on an iPhone: Full-length test 2 is due today and Your Daily 10 is 8 of 10.
 
 ## platform
 headline: Their whole SAT, on one phone.
 sub: Five real screens from the Karman app. Pick one.
 tabs.label: Karman app screens
 home.tab: Home
-home.line: What is due today, and what comes next.
-home.alt: Karman Home scrolling: the next thing to do, Your Daily 10, due items, then skills and personal bests.
+home.line: What is due today, and how today's set went.
+home.alt: Karman Home: Full-length test 2 is due today, Your Daily 10 is 8 of 10, then today's set.
 daily.tab: Your Daily 10
 daily.line: Ten questions, then a mystery box.
 daily.alt: The end of Your Daily 10: a mystery box opens, headphones go on the fox, then the results.
 calendar.tab: Calendar
-calendar.line: Every class on the calendar. Private students book 1:1s here.
-calendar.alt: Karman Classes: this week's live classes and homework, then a 1:1 session booked for Nov 2 at 6:00 pm.
+calendar.line: Private students book their next 1:1 here.
+calendar.alt: Booking a one-hour 1:1 with David on Zoom: Monday at 6:00 pm is picked.
 progress.tab: Progress
 progress.line: Every skill, every streak, every reward.
 progress.alt: Karman Progress scrolling through skills by level, then Rewards with tokens, the fox and the streak.
 parent.tab: For parents
 parent.line: A weekly update: skills that moved, practice, what is next.
-parent.alt: The parent's Karman page, then the weekly update: skills that moved, practice, live classes and what comes next.
+parent.alt: The parent's weekly update: skills that moved, questions answered, days practised and what comes next.
 
 ## week
 headline: What a week looks like.
@@ -70,16 +70,17 @@ try.wrong: This one would come back in 2 days. Take 5 from both sides: 3x = 21, 
 try.again: Try it again
 try.loading: Loading the question
 zoom.title: Two live classes a week, on Zoom.
-zoom.sub: Groups of up to six. David plans each class from what the group missed.
-zoom.alt: The tutor's Karman screen for Monday's class: a 90-minute plan built from the skills most of the group missed on test 1, and Join Zoom.
+zoom.sub: Groups of up to six, built on what the group missed.
+zoom.caption: Maya, on Zoom from home
+zoom.alt: A student at her desk at home in the evening, in over-ear headphones, seen through her laptop camera, listening closely.
 start.date: January 4
 start.line: The March program starts. It ends on the March 6 SAT.
 start.link: See the March program
 start.link.url: https://karmanprep.com/program
-start.alt: The parent's Karman schedule: Full-length test 2 today, live classes with David, and the SAT on Saturday, March 6, 2027.
-handoff.title: On the phone, or on the laptop.
-handoff.sub: The same question screen on both.
-handoff.label: The same Your Daily 10 question moves from the phone to the laptop.
+start.alt: The review of full-length test 1 in the Karman app: every mistake, by skill, with its module and question.
+quiz.title: Every answer comes with the working.
+quiz.sub: Pick one, submit it, and the worked explanation opens.
+quiz.alt: Your Daily 10 on an iPhone: choice C is picked, submitted, marked right, and the worked explanation opens.
 
 ## results
 headline: On average, 285 points higher.
@@ -109,8 +110,8 @@ plus.2: Every practice question
 plus.3: Timed full-length tests
 cohort.name: The March SAT Program
 cohort.price: $995
-cohort.note: once, founding price
-cohort.1: 18 live classes, twice a week
+cohort.note: founding price
+cohort.1: 18 live classes on Zoom
 cohort.2: Five full-length tests
 cohort.3: Score guarantee: +100 points or 1450
 link.all: See every plan
@@ -120,7 +121,7 @@ link.guarantee.url: https://karmanprep.com/guarantee
 
 ## close
 headline: First, see where your student stands.
-sub: Proctored on Zoom, with a predicted score and a results call.
+sub: Proctored on Zoom, with a predicted score.
 objection: Already at 1500, or under four weeks out? We will tell you honestly.
 button: Take the free practice test
 button.url: https://karmanprep.com/free-practice-test

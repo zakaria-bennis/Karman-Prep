@@ -5,8 +5,8 @@ Every word is in `copy.js`. Every price, date and result comes from `src/lib/mar
 
 ## The idea
 
-Two swimmers sit on the pool bleachers between sessions. Their iPhone 17 Pro Max (Karman's own drawn
-frame, Cosmic orange) floats over the empty half of the photo, playing the real Karman Home. As you
+A student sits on the edge of an empty school stage with her laptop. Her iPhone 17 Pro Max (Karman's
+own drawn frame, Cosmic orange) stands between the headline and her, showing the real Karman Home. As you
 scroll, the camera pushes into that phone until its screen fills the view. The screen fades into the
 app's own ground, and the page carries on inside the product: five real screens behind tabs, then a
 week of it as live tiles, then results, plans and the close.
@@ -23,12 +23,12 @@ week of it as live tiles, then results, plans and the close.
 
 | Screen | Ground | Picture or product | Focal element |
 | --- | --- | --- | --- |
-| 1. Hero | Photo stage (28 px card), pine glass copy card | pool-bleachers, phone with the Home clip | The button, last (Land). |
+| 1. Hero | Photo stage (28 px card), pine copy card | rehearsal-stage, phone with Home (still) | The button. Written in the HTML, never hidden; the phone settles 16 px. |
 | (push) | The phone's screen, then the app ground | Home capture at full width | The screen, the only thing growing. |
-| 2. The app | App ground (#F7F6F0 / #101D18), marigold stage | Phone with 5 tabbed real clips | The phone (Land). |
-| 3. A week | Bone, bento of 4 tiles | Live engine question, tutor's class plan, parent schedule, handoff clip | "January 4" (Land). |
-| 4. Results | Pine card (colour beat) | Ava, Mateo, Priya in a hairline grid | The count 1235 to 1520. |
-| 5. Plans | Bone, two cards | None | $995 (Land). |
+| 2. The app | App ground (#F7F6F0 / #101D18), marigold stage | Phone with 5 tabbed real screens (2 clips, 3 stills) | The phone (settles 16 px, never fades). |
+| 3. A week | Bone, bento of 4 tiles | Live engine question, the Zoom student photo, test 1 review on a phone, Your Daily 10 clip on a phone | "January 4" (Land). |
+| 4. Results | Pine card (colour beat) | Ava, Mateo, Priya in a hairline grid | 1520, written from the start. |
+| 5. Plans | Bone, two cards | None | $995 (static). |
 | 6. Close | Night card | Parent on clay | The button (Land). |
 | Footer | Card with the cropped wordmark | None | None. |
 
@@ -40,7 +40,6 @@ week of it as live tiles, then results, plans and the close.
   Pine `#1F4D45` (dark `#275F55`), marigold `#EBA21F`, clay only behind the parent, night for the close.
 - **Depth.** Tone steps. The only shadow is under the phone. Grain at 5 % over the page. Glass on the
   nav pill and the hero copy card.
-- **Opening.** First visit only (`karman-portal-opening`): the mark draws, the line draws, the wordmark rises.
 - **Motion.** GSAP 3.12.5, ScrollTrigger and CustomEase from cdnjs. Tokens from the brief (expo.out,
   power3.inOut, settle 0.2,0.8,0.2,1; 0.6 / 0.9 / 1.2 s; 0.06 / 0.08 s staggers; "top 78%").
   Moves: Arrive, Rise, Land, Demo (clips, tabs, live question), Count, Hand-off (the push), Press.
@@ -49,11 +48,14 @@ week of it as live tiles, then results, plans and the close.
 ## Files
 
 - `index.html`, `copy.js`.
-- `portal.css` (tokens, base, nav, phone, opening), `stage.css` (hero, push, the app section),
+- `portal.css` (tokens, base, nav, phone), `stage.css` (hero, push, the app section),
   `sections.css` (week, results, plans, close, footer).
-- `portal.js` (copy, pictures, phones, theme, nav, tabs, motion), `try.js` (the live question).
+- `portal.js` (content: copy, pictures, phones, theme, nav, tabs; works with no animation library),
+  `try.js` (the live question, loaded after the page), `motion.js` (GSAP reveals and the camera push, deferred).
 
 ## Round 2
+
+(Kept as the record of round 2. Where "Fix round 2" below says otherwise, it wins.)
 
 What the founder asked for, and where it is:
 
@@ -131,3 +133,88 @@ Still short:
 - The calendar clip still shows the prototype's "7 pm to 8 pm:30" bug in this build. The re-render with
   the fix uses the same file name, so it will appear on reload when it lands.
 - The tutor screen in the Zoom tile is the prototype's "December cohort". Only the March program is on sale.
+
+## Fix round 2
+
+From the independent critic (`scratchpad/critic2-portal/`), in its order.
+
+1. **Load.**
+   - The first-visit opening cover is gone: the head script, the `.opening` markup, its JS and its CSS.
+   - The hero is written into `index.html`: pill, headline with its chip, subline, button and the phone with its first frame. copy.js still overwrites it through `data-copy`.
+   - The hero is never hidden. No word masks, no opacity. Only the phone settles 16 px, in CSS.
+   - Scripts are split:
+     - `portal.js` is the content (it works without GSAP). `try.js` loads the engine after the page has loaded.
+     - `motion.js` (GSAP, ScrollTrigger, CustomEase) runs last.
+     - All scripts are `defer`.
+   - Google Fonts load without blocking. The engine's stylesheet and fragment load after the page has loaded.
+   - The hero phone's first frame is one still: `img/screen-home-<mode>-660.webp`, 29 KB, preloaded with `fetchpriority="high"` in the right mode. The sharp 1320 px still swaps in after load, for the camera push.
+   - The hero photo is `fetchpriority="low"`. Every other picture is lazy. No video loads before the page has loaded.
+2. **Founder's name.** The re-rendered captures say David (the booking sheet: "Book a session with David"). No "Zakaria" appears on the page. The only match in the folder is the editing note at the top of `copy.js`, which is not shown.
+3. **Screens that contradicted the offer.** Every screen used now, and why:
+   - **Hero and the Home tab.** `img/screen-home-<mode>.webp`: Home with its two due rows ("Due Nov 2", "Live class with David, Mon Nov 2") spliced out at the card's row boundary (capture rows 1230 to 1655 px). It was rebuilt from the tall capture, with the real bottom bar.
+   - **Calendar tab.** The Private 1:1 booking sheet (`student-booking-slot`). A Private booking is not tied to the cohort's January 4 start. The cohort calendar clip is no longer used.
+   - **For parents tab.** `img/screen-parent-<mode>.webp`: the weekly update with the "Live classes" card and the "Live classes with David" row spliced out (rows 2076 to 2466 and 2841 to 3096 px). It keeps "Week of Oct 19 to 25", which any Plus family can get.
+   - **Your Daily 10 and Progress tabs.** The `d10-finish` and `progress-rewards` clips. They state no cohort and no class date.
+   - **Zoom tile.** The tutor's "December cohort" screen is gone. The tile now shows the fixed Gemini Zoom student.
+   - **January 4 tile.** The parent schedule with November classes is gone. It now shows the full-length test 1 review (`student-testreview-cohort`), which has no dates.
+4. **No plain marigold rectangles.** The phone frames are never lazy. The phone screens sit on the app's ground colour, so a phone is always drawn on its colour block. Phones only move (16 px), never fade.
+5. **No wrong text mid-animation.**
+   - The results number is written as 1520 from the start. No count, so "from 1235 to 1235" can never show.
+   - No price animates.
+   - No heading is masked: every `rise-lines` split was removed.
+6. **The nav.** It is solid (no glass) and shown only within 120 px of the top, or while it holds keyboard focus. Sections get `scroll-margin-top: 88px`. Overlap scan with the nav: 0 at every step and every size, both modes.
+7. **Hero photo.** The pool picture was rejected (generic phone), so it was deleted along with its crop.
+   - The hero is now Gemini `rehearsal-stage.jpg` (fixed: dark MacBook with no logo). I checked the laptop and hands at full size.
+   - On desktop it is scaled from its left edge, so the student sits in the right third and the phone stands between her and the copy card.
+   - Under 1024 px it is a 1752 x 1100 crop on the student, and the phone stands over the dark stage.
+8. **The phone-and-laptop tile.** It is now the iPhone frame playing `d10-right`: "Every answer comes with the working."
+   - The engine clip is cropped to the screen (capture at 1.8x, so the video is 136.4 % wide, at -18.18 % / -0.16 %).
+   - It sits below a 54 pt top inset on the engine's own colour, so the Dynamic Island never covers the engine's top bar.
+9. **Tab descriptions.** 16 px, in ink-2 (6.12:1 light, 6.45:1 dark).
+10. **`.hero__field`.** Uses `inset-inline: 0` under 1024 px. Sideways scroll is 0 at every size.
+11. **Content is never invisible on screen** (orchestrator's addition).
+   - Reveals start at "top 90%" ("top 95%" for the app section) and last 0.5 s.
+   - They only move things: 16 px for headings, phones, pictures and the Land, 12 px for sublines. Nothing fades from 0.
+   - Fast-scroll test at 1440 and 440: six 1,600 px wheel steps and five jumps to each section, screenshot 300 ms after each (`scratchpad/r2-portal/fast/`). Headings, phones, pictures, buttons and prices below 0.95 opacity: 0 at every step. The result reads 1520 at every step.
+
+Other pictures, under the device rule:
+
+- `cast-parent-clay` (close) is in `rejected/` because of its phone. The page uses a crop that stops above her hand, so no device shows. It needs your decision.
+- The results stills have no devices.
+- `zoom-student-tile` (fixed: Sony WH-1000XM5) is used.
+- `cast-student-pine-floor` (fixed) is not used yet.
+
+### Load, before and after
+
+Time to the first screenshot where each part is readable, from `timeline.cjs`. Fast 4G is 9 Mbps with 40 ms delay. Slow 4G is 1.6 Mbps with 150 ms delay. Before: the critic's runs. After: `scratchpad/r2-portal/load-after/` (screenshots every 250 ms).
+
+| Run (cold) | Headline before / after | Button before / after | Phone screen before / after |
+| --- | --- | --- | --- |
+| 1440, local | 1.86 s / 0.07 s | 2.11 s / 0.07 s | 1.81 s / 0.07 s |
+| 440, local | 1.81 s / 0.06 s | 2.06 s / 0.06 s | 1.76 s / 0.06 s |
+| 1440, fast 4G | 2.06 s / 0.10 s | 2.30 s / 0.10 s | 2.00 s / 0.31 s |
+| 440, fast 4G | 2.01 s / 0.11 s | 2.31 s / 0.11 s | 2.01 s / 0.31 s |
+| 1440, slow 4G | 3.57 s / 0.22 s | 3.87 s / 0.22 s | 5.22 s / 1.27 s |
+| 440, slow 4G | 3.37 s / 0.22 s | 3.62 s / 0.27 s | 5.07 s / 1.22 s |
+
+Warm, slow 4G: headline 0.21 to 0.22 s, phone 0.92 s. No frame is blank: from the first frame the page shows the nav, the pine copy card and the phone frame. The photo fills in by 1.8 s on slow 4G.
+
+### Checks after the fix
+
+| Check | Result |
+| --- | --- |
+| Sideways scroll | 0 px at 375, 440, 834 and 1440, light and dark. |
+| Overlap scan (text runs, and the nav when shown) | 0 at 440, 834 and 1440 in both modes. At 375: 2 hits at each of two steps, in the engine's top bar, where the topic is cut with an ellipsis (not visible). |
+| Highlighted buttons on screen | At most 1 at every step. |
+| Words | First screen: 30 at 1440, 25 at 375, 440 and 834. Content screens max: 78 at 1440, 55 at 440, 57 at 834, 50 at 375. |
+| Contrast (pixels of every text run) | 0 below AA in every run. |
+| Console | 0 errors. |
+| Controls | All 5 tabs: the screen swaps. Clip tabs play and show their clip; still tabs keep their clip paused and hidden. Arrow keys work. Live question: wrong, Try it again, right, Hide Timer. Theme flip is remembered and switches the engine. Footer switch works. Nav links land each section at 0 and focus it. The phone menu opens, closes (Escape and Close) and its links work. Back to the top works. The nav is hidden mid-page (also on scroll up) and shown at the top. |
+| Reduced motion | No `.motion`, no pin, 0 videos load, 1520 shown, 0 page text hidden. |
+
+### Still open
+
+- The close portrait comes from a file in `rejected/`, cropped above the phone. A replacement, or approval of the crop, is needed.
+- The desktop hero colour is about 12 to 15 % (the stage photo is warm but dark). Not re-measured this round.
+- The Home and parent screens are stills now, so only Daily 10 and Progress move inside the app phone.
+- The Zoom tile caption names the student "Maya", the prototype's demo name.

@@ -111,16 +111,15 @@
 }
 .hero__field {
   position: absolute;
-  right: -10%;
-  bottom: -10%;
-  width: 70%;
+  inset-inline: 0;
+  bottom: 0;
   height: 80%;
   pointer-events: none;
   background: radial-gradient(closest-side, var(--field), transparent);
 }
 .hero__phone {
   position: absolute;
-  right: 14px;
+  left: 14px;
   bottom: 10px;
   width: clamp(136px, 36vw, 230px);
   z-index: 2;
@@ -133,7 +132,7 @@
     padding-bottom: 200px;
   }
   .hero__phone {
-    right: 40px;
+    left: 40px;
   }
 }
 @media (min-width: 1024px) {
@@ -183,15 +182,19 @@
     aspect-ratio: auto;
     border-radius: var(--r-section);
   }
-  /* The copy sits in a glass card over the bleachers; it also covers the swimmers' hands,
-     so the generated phone in the picture is never seen (device rule, 2026-11-01). */
+  /* The photo is scaled from its left edge so the student sits in the right third; the copy card
+     holds the dark stage on the left, and the phone stands between them. */
+  .hero__photo img {
+    transform: scale(1.15);
+    transform-origin: 0 50%;
+  }
   .hero__copy {
     position: absolute;
     z-index: 3;
     left: clamp(16px, 2.2vw, 32px);
     bottom: clamp(16px, 2.2vw, 32px);
     top: 40%;
-    width: min(46%, 600px);
+    width: min(44%, 560px);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -215,17 +218,17 @@
     margin-top: 22px;
   }
   .hero__field {
-    right: 0;
-    bottom: 0;
-    width: 45%;
+    inset-inline: auto;
+    left: 38%;
+    width: 36%;
     height: 100%;
   }
   .hero__phone {
-    top: max(11%, calc(50% - 320px));
-    right: 9%;
+    top: max(14%, calc(50% - 290px));
+    left: 49.5%;
     bottom: auto;
     width: auto;
-    height: min(78%, 640px);
+    height: min(70%, 580px);
   }
 }
 
@@ -277,7 +280,7 @@
 .tab__line {
   display: none;
   color: var(--ink-2);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.4;
 }
 .tab[aria-selected="true"] {

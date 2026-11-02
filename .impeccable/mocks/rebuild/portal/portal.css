@@ -22,7 +22,6 @@
   --clay: #9a3b26;
   --mark-line: var(--marigold);
   --focus: #1f4d45;
-  --glass: rgba(245, 245, 242, 0.86);
   --field: rgba(235, 162, 31, 0.16);
   --grain-blend: multiply;
 
@@ -54,7 +53,6 @@
   --pine: #275f55;
   --night: #0a0a09;
   --focus: #f0b545;
-  --glass: rgba(30, 28, 25, 0.82);
   --field: rgba(39, 95, 85, 0.45);
   --grain-blend: screen;
   color-scheme: dark;
@@ -259,9 +257,7 @@ button {
   padding: 0 8px 0 18px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  backdrop-filter: blur(20px) saturate(1.2);
+  background: var(--ground); /* solid: it never shows text through it */
 }
 .brand {
   display: inline-flex;
@@ -405,6 +401,33 @@ button {
 .phone__screen .is-out {
   opacity: 0;
 }
+/* A quiz-engine 9x16 clip shows the 440 x 956 capture at 1.8x on a 1080 x 1920 frame. */
+/* It sits below a 54 pt top inset, like the app captures, so the Dynamic Island never covers it. */
+.phone__screen.is-engine {
+  background: rgb(16, 28, 24);
+}
+.phone__screen.is-engine img {
+  top: 5.65%;
+  height: 100%;
+}
+.phone__screen video.crop-engine {
+  left: -18.182%;
+  top: -0.16%;
+  width: 136.364%;
+  height: 111.576%;
+}
+/* The hero phone arrives visible and settles 16 px. */
+.hero__phone {
+  animation: k-settle 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes k-settle {
+  from {
+    translate: 0 16px;
+  }
+}
+main section[id] {
+  scroll-margin-top: 88px;
+}
 .phone__frame {
   position: absolute;
   inset: 0;
@@ -413,86 +436,10 @@ button {
   pointer-events: none;
 }
 
-/* ---------- opening (first visit) ---------- */
-.opening {
-  display: none;
-}
-.is-opening .opening {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 18px;
-  background: var(--ground);
-  color: var(--ink);
-}
-.opening__mark path {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.mk-frame {
-  stroke: currentColor;
-  stroke-width: 2.6;
-}
-.mk-line {
-  stroke: var(--marigold);
-  stroke-width: 3;
-}
-.opening.play .mk-frame,
-.opening.play .mk-line {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.opening.play .mk-frame {
-  animation: draw 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-.opening.play .mk-line {
-  animation: draw 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) 0.42s forwards;
-}
-.opening.play .opening__word {
-  opacity: 0;
-  transform: translateY(8px);
-  animation: arrive 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
-}
-.opening.leave {
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.opening.fade {
-  animation: fadein 0.25s ease both;
-}
-@keyframes draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-@keyframes arrive {
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes fadein {
-  from {
-    opacity: 0;
-  }
-}
-
-/* Word masks for the Rise move (only when motion runs). */
-.motion .rise-lines .w {
-  display: inline-block;
-  overflow: clip;
-  vertical-align: top;
-  padding-bottom: 0.1em;
-  margin-bottom: -0.1em;
-}
-.motion .rise-lines .w > span {
-  display: inline-block;
-}
 @media (prefers-reduced-motion: reduce) {
+  .hero__phone {
+    animation: none;
+  }
   .nav,
   .tabs__glide,
   .phone__screen > * {
