@@ -23,7 +23,7 @@
   --night: #0a0a09;
   --on-night: #f1ede4;
   --on-night-2: #bdb7ac;
-  --field: rgba(39, 90, 81, 0.42);
+  --field: rgba(235, 162, 31, 0.13);
   --nav-bg: rgba(30, 28, 25, 0.82);
   --focus: #f0b545;
   --grain-blend: screen;
@@ -216,13 +216,22 @@ ul {
   row-gap: 8px;
   margin-bottom: 28px;
 }
-/* The marigold chip on one word of the hero (2.10). Ink on marigold, 8.74:1. */
+/* A fact set as text, not as a giant number: one line in marigold ink above the headline. */
+.fact-line {
+  font-family: var(--display);
+  font-weight: 540;
+  font-size: clamp(20px, 1.8vw, 26px);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--marigold-ink);
+}
+/* The marigold chip on one word of the hero (2.10). Ink on marigold, 8.74:1. Static, never masked. */
 .chip {
   display: inline-block;
   background: var(--marigold);
   color: var(--on-marigold);
   border-radius: 0.28em;
-  padding: 0 0.16em 0.04em;
+  padding: 0 0.14em;
   margin: 0 -0.02em;
 }
 
@@ -471,6 +480,15 @@ section {
   position: absolute;
   max-width: none;
 }
+.phone-screen > picture {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.phone-screen picture > img {
+  position: absolute;
+  max-width: none;
+}
 .phone-screen .still {
   inset: 0;
   width: 100%;
@@ -614,22 +632,22 @@ section {
   padding: clamp(28px, 5vw, 56px) 16px;
   border-radius: 24px;
 }
-.class-media {
-  background:
-    radial-gradient(closest-side, var(--field), transparent) center / 120% 120% no-repeat,
-    var(--card);
+/* the Zoom tile: the student as she appears on the call */
+.zoom-tile {
+  aspect-ratio: 1200 / 670;
+  width: 100%;
 }
 .close-media {
   background: var(--pine);
 }
-.class-phone,
 .close-phone {
   width: clamp(220px, 22vw, 300px);
 }
 
 /* ---------- 2. the app (pine card, tabs) ---------- */
 .platform {
-  padding-top: var(--section);
+  /* grouped with the hero: one inset step, not a section gap */
+  padding-top: var(--inset);
 }
 .band-pine {
   display: grid;
@@ -725,8 +743,6 @@ section {
   align-items: flex-start;
   gap: 18px;
 }
-.class-text .numeral,
-.guarantee-text .numeral,
 .close-text .numeral {
   margin-bottom: 6px;
 }
@@ -874,93 +890,8 @@ section {
   color: var(--on-night);
 }
 
-/* ---------- the opening ---------- */
-.opening {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: var(--ground);
-  display: grid;
-  place-items: center;
-  color: var(--ink);
-}
-.opening[hidden] {
-  display: none;
-}
-.pre-open .opening {
-  display: grid;
-}
-.opening-lockup {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-.opening .mark {
-  width: 72px;
-  height: 72px;
-}
-.opening .word {
-  width: 220px;
-  height: 53px;
-}
-.opening-skip {
-  position: absolute;
-  right: var(--gutter);
-  bottom: 24px;
-  min-height: 44px;
-  border: 0;
-  background: none;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 5px;
-  cursor: pointer;
-}
-
-/* ---------- motion helpers ---------- */
-.rise .w {
-  display: inline-block;
-  overflow: hidden;
-  vertical-align: top;
-  padding-bottom: 0.1em;
-  margin-bottom: -0.1em;
-}
-.rise .w > span {
-  display: inline-block;
-}
-.odo {
-  display: inline-flex;
-}
-.odo-col {
-  position: relative;
-  display: inline-block;
-  overflow-y: clip;
-  height: 0.9em;
-  line-height: 0.9;
-}
-.odo-reel {
-  display: flex;
-  flex-direction: column;
-}
-.odo-reel span {
-  display: block;
-  height: 0.9em;
-}
-.odo-reel span::before {
-  content: attr(data-d);
-}
-.odo-gap {
-  display: inline-block;
-  width: 0.22em;
-}
-
 /* ---------- phones under 520 ---------- */
 @media (max-width: 519px) {
-  /* when the nav carries the button, the wordmark and theme icon step aside so nothing overflows
-     (the mark stays; the theme switch is also in the footer) */
-  .nav-pill:has(#headerCta:not([hidden])) .brand .word,
-  .nav-pill:has(#headerCta:not([hidden])) #themeToggle {
-    display: none;
-  }
   .nav-pill {
     padding-left: 14px;
   }

@@ -26,14 +26,10 @@ nav_platform: The app
 nav_class: The class
 nav_results: Results
 nav_guarantee: Guarantee
-cta: Book the free test
 menu: Menu
 close: Close
 theme_to_dark: Switch to dark mode
 theme_to_light: Switch to light mode
-
-## opening
-skip: Skip
 
 ## hero
 pill: Free practice test, December 12
@@ -41,7 +37,7 @@ headline: Know the SAT score before you pay.
 chip: score
 sub: Live on Zoom, with a predicted score and a tutor call after.
 cta: Book the free practice test
-photo_alt: A student sits cross-legged on a deep green floor, working on a laptop, seen from above.
+photo_alt: A student in AirPods Max sits cross-legged on a deep green floor, working on a laptop.
 phone_alt: The Karman student app on an iPhone: Home, Classes, a Daily 10 prize and Rewards.
 
 ## platform
@@ -52,11 +48,11 @@ num1: 10
 unit1: questions a day
 line1: About ten minutes. Every miss comes back after 2, 7 and 21 days.
 alt1: The end of Your Daily 10 on an iPhone: a mystery box opens and the prize goes on the fox.
-tab2: Private 1:1
-num2: 60
-unit2: minute sessions with a tutor
-line2: Your teen books each one, with hours planned back from the SAT.
-alt2: Booking a private session on an iPhone: Monday, November 2 at 6:00 pm, one hour on Zoom.
+tab2: Classes
+num2: 18
+unit2: live classes on Zoom
+line2: Two a week, 90 minutes each, built on your group's mistakes.
+alt2: Classes on an iPhone: this week's live classes with David, then a private session being booked.
 tab3: Progress
 num3: 39
 unit3: SAT skills tracked
@@ -65,17 +61,16 @@ alt3: Progress and Rewards on an iPhone: skills by level, then tokens, the fox a
 tab4: Parents
 num4: 4
 unit4: things in your weekly update
-line4: Practice time, classes, test scores and what comes next.
+line4: Practice time, attendance, test scores and what's next.
 alt4: The parent's weekly update on an iPhone: skills that moved, practice, tests and live classes.
 replay: Play it again
 
 ## class
-number: 6
-unit: students at most
+fact: Up to 6 students in each class.
 headline: Nine weeks to the March 6 SAT.
 sub: Live on Zoom from January 4. Founding price $995.
 link: See the March program
-phone_alt: Classes on an iPhone: this week's live classes with David, then a private session being booked.
+zoom_alt: A student on a Zoom class in her bedroom, headphones on, listening.
 
 ## results
 headline: Official SAT scores.
@@ -88,10 +83,9 @@ name3: Ava, UC Berkeley
 source: Karman 1:1 tutoring, median 16 weeks
 
 ## guarantee
-number: +100
-unit: points or a 1450
+fact: +100 points or a 1450 on the official SAT.
 headline: A guarantee on the March class.
-sub: Short of it on the official SAT? Up to the full price back, or the next cohort free.
+sub: Short of it? Up to the full price back, or the next cohort free.
 link: How the guarantee works
 image_alt: A parent in a navy work jacket against a deep red backdrop, looking at the camera.
 

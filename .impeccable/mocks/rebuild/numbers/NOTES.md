@@ -106,3 +106,117 @@ Still open:
 2. The hero now shows the phone on clay. Keep that, or wait for the fixed pine-floor photo behind it?
 3. Is "60 minute sessions" the right lead for Private 1:1, or would you rather show the 10 and 20 hour packages?
 4. The live site's Cookies page is missing (404). Should it go into the next deploy?
+
+## Fix round 2
+
+From the independent critic's review (`scratchpad/critic2-numbers/`), fixed in its order.
+
+1. **Load.** The logo cover (`pre-open`, its 2.5 s fallback and the opening) is gone. The hero's pill,
+   headline, subline and button are static HTML, so they read at first paint with no animation. Google
+   Fonts load without blocking (preload, then swap to the stylesheet). GSAP, ScrollTrigger, CustomEase,
+   `copy.js` and `numbers.js` are deferred. The hero phone is in the HTML with its first frame chosen by a
+   `<picture>` for the device mode and preloaded. Other phones' posters load lazily; every video waits
+   for the page's load event and for its phone to be in view.
+2. **The founder's name.** OCR (tesseract) of 176 frames (every 0.5 s of the tour, calendar, Daily 10,
+   progress and parent clips, night and pine) and the stills used: "Zakaria" appears nowhere; "David"
+   appears in the calendar and parent-update frames. None in the page text.
+3. **The floating nav** now shows only near the top (under 140 px of scroll) and comes back at the top,
+   so it never sits on headings or numbers. The nav's own button is gone with it.
+4. **Mid-animation masks.** The hero no longer animates, so the chip is never masked. Word masks are
+   exactly one line tall (descenders show through `overflow-clip-margin`) and come off once the words
+   have risen, so no word box reaches into the next line.
+5. **Colour and fullness.** The fixed Gemini pine-floor photo is back behind the phone (checked at full
+   size: AirPods Max, a dark laptop with no logo, clean hands), with a marigold light field in both modes.
+   The gap after the hero is one inset step (8 to 16 px), so the hero and the app card read as a group.
+   The class section shows the fixed Zoom student tile (Sony WH-1000XM5, clean hand).
+6. **Three giant numbers.** The tab numbers, 1570 and Dec 12. "Up to 6 students in each class." and
+   "+100 points or a 1450 on the official SAT." are now one line of marigold-ink text above their headlines.
+7. **The platform.** The second tab is Classes (18 live classes, the calendar clip), not the booking again.
+8. **Parents line** is offer.ts word for word: "Practice time, attendance, test scores and what's next."
+9. **The Daily 10 clip** starts at 1.4 s, on the box ("Tap to open"), with that frame as its poster
+   (`img/d10-box-night.webp`, `img/d10-box-pine.webp`); Play it again restarts there.
+
+### Load, before and after (critic's own script, `timeline.mjs`, 8 s, a screenshot every 250 ms)
+
+Headline and button readable = first contentful paint (they are static HTML now). Phone = the hero
+phone's first frame decoded. 4G = 150 ms latency, 9 Mbit/s. Slow CDN = cdnjs and Google Fonts held 3 s.
+
+| Run (cold, dark) | Before: headline / button / phone | After: headline and button / phone / video playing |
+| --- | --- | --- |
+| 1440 local | 2,202 / 2,219 / 1,114 ms | 248 / 164 / 785 ms |
+| 440 local | 2,178 / 2,270 / 1,169 ms | 376 / 847 / 2,980 ms |
+| 1440 4G | 2,523 / 2,539 / 1,435 ms | 424 to 480 / 460 to 489 / 846 to 894 ms (two runs); one earlier run 1,036 / 992 / 2,516 ms |
+| 440 4G | 2,449 / 2,541 / 1,434 ms | 428 to 440 / 456 to 458 / 887 to 900 ms (two runs); one earlier run 1,364 / 1,339 / 3,323 ms |
+| 1440 slow CDN | 5,200 / 5,217 / 4,112 ms | 476 / 609 ms; video 7.5 s (waits for the load event, which waits for the held fonts) |
+| 440 slow CDN | 5,236 / 5,328 / 4,228 ms | 32 / 24 ms; video 6.2 s |
+
+The page is never blank: the first screenshot after first paint already shows the headline, the button and
+the photo. The one slow 4G run (first run after the server restarted) is reported as measured. Inlining the
+CSS was tried (first paint about 200 ms on 4G) and not kept, so the founder can still edit `numbers.css`.
+
+### Checks after the fix round (2026-11-02)
+
+- 4 sizes x light and dark, every step plus 0 and 400 ms frames, then reduced motion: 0 px sideways,
+  0 overlap hits, 0 console errors or failed requests in all 16 runs.
+- Word boxes in every heading, scanned 120 ms into each reveal and again once settled, at 375 and 1440:
+  0 overlaps. Scrolling back up the whole page: the nav sat over text 0 times.
+- Clicks: 61 of 61 passed (nav links, phone menu, Escape, date pill, all four tabs with number, screen and
+  indicator, arrow keys, Home and End, Play it again, theme icon and memory, Auto / Light / Dark, Pause
+  motion, nav away from the top and back at the top, one highlighted button at most, free test URL).
+- Contrast: the 35 pairs above all pass; the new fact lines are 5.47:1 (light) and 9.99:1 (dark).
+- Words per 400 px: desktop max 43, median 35 (hero 35); phone max 61 (footer), median 29 (hero 36,
+  over the 25 target).
+
+### Still open after the fix round
+
+- The hero runs over the 25-word phone target (36 with the menu and pill).
+- `cast-parent-clay.jpg` was rejected for its phone; the page uses it cropped above her hand (no device in
+  frame). Say if the crop is not enough and the guarantee should lose the portrait.
+- The laptop in the pine-floor photo is dark with no logo; it reads as a MacBook but can't be proved to be a
+  Space Black MacBook Pro.
+- The Zoom tutor tile waits for `zoom-tutor-loop.mp4`.
+- The Daily 10 clip passes the "7 of 10" results screen.
+- `/cookies` still returns 404 on the live site.
+
+## Fix round 3 (scroll reveals and numbers)
+
+The orchestrator saw sections stay empty for 2 to 3 s after a normal mouse-wheel scroll, and the
+odometer show junk such as "0001". Both are fixed by removing what hid things.
+
+- **Nothing on screen is ever hidden.** The word masks and every fade from 0 are gone. Each section's
+  pictures, phone, tabs, heading and lines are always visible. They only travel 16 px up into place in
+  0.5 s, with a 0.03 s stagger. The reveal starts 120 px before the section reaches the screen
+  (`top bottom+=120`). A section already past its start when the page loads is shown finished. A jump or a
+  fast scroll (over 3,000 px/s) finishes the reveal at once.
+- **Numbers never show anything but their final value.** The odometer (Count Up, 21st.dev 20068) is
+  removed. 10 / 18 / 39 / 4, 1570, 1540, 1520 and Dec 12 are in the HTML or set at once from `copy.js`.
+  They only arrive: 12 px up and 0.98 to 1 scale over 0.5 s, the lead score last. A tab change swaps the
+  number at once with the same small arrival. The phone screen moves 8 px and is never dimmed.
+
+### Checks after fix round 3 (2 November)
+
+- **Scroll test.** At 1440 dark and 375 light: mouse wheel in 1,200 px steps, then `scrollTo` jumps
+  (2600, 900, 4200, 1800, 3400, bottom, top), with a screenshot 300 ms after each step. 24 screenshots in
+  total. Headings, phones, photos, numbers, lines and buttons on screen were invisible or more than 16 px
+  out of place 0 times. Every frame recorded every value the numbers showed: only 10, 1570, 1540, 1520
+  and Dec 12 ever appeared, 0 non-final values.
+- **Four sizes, light and dark**, every step with frames at 0 and 400 ms: 0 px sideways, 0 overlaps,
+  0 console errors or failed requests in 8 runs.
+- **Word boxes and the nav.** Word boxes 120 ms into each reveal and once settled, at 375 and 1440:
+  0 overlaps. Scrolling back up the whole page, the nav sat over text 0 times.
+- **Clicks:** 61 of 61 passed.
+- **Load** (critic's script, cold, dark). Headline and button are visible in the first frame after
+  first paint:
+
+| Run | Headline and button | Phone frame | Video playing |
+| --- | --- | --- | --- |
+| 1440 local | 42 ms (first paint 88 ms) | 42 ms | 171 ms |
+| 440 local | 12 ms (first paint 44 ms) | 12 ms | 155 ms |
+| 1440 4G | 391 ms (first paint 428 ms) | 447 ms | 942 ms |
+| 440 4G | 396 ms (first paint 424 ms) | 452 ms | 885 ms |
+
+The machine was heavily loaded during these runs (load average 12 to 52, from other sessions). The 4G
+numbers match the earlier runs.
+
+- The reduced-motion pass from fix round 2 still applies: reduced motion sets nothing hidden and no travel,
+  and nothing in this round adds any.

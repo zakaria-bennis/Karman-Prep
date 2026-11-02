@@ -1,20 +1,20 @@
-/* Karman, the Numbers direction, round 2: words, theme, the floating nav, the opening, the iPhones,
-   the feature tabs and the motion layer. Every word comes from copy.js. Motion uses GSAP 3.12.5 +
-   ScrollTrigger + CustomEase (cdnjs, pinned) and only the brief's named moves: Arrive, Rise, Land,
-   Demo, Count, Press. */
+/* Karman, the Numbers direction, round 2: words, theme, the floating nav, the iPhones, the feature
+   tabs and the motion layer. Every word comes from copy.js. Motion uses GSAP 3.12.5 + ScrollTrigger +
+   CustomEase (cdnjs, pinned, deferred). Nothing on screen is ever hidden: the hero is static HTML, and
+   later sections only travel 16 px into place (0.5 s), starting before they enter the screen. Numbers
+   always show their final value and only arrive (a small rise and a 0.98 to 1 scale). */
 
 /* ---------- pictures: one line per slot. When a Gemini shot lands in assets/gemini-inbox/, convert it
    to WebP in img/ and change the file on the right. ---------- */
 const SLOTS = {
-  // Gemini: cast-student-pine-floor.jpg, sent back for a device fix (AirPods Pro, unbranded laptop).
-  // While it is null the hero shows the phone on a pine card; set it to the fixed WebP to bring it back.
-  hero: null,
-  // Gemini: cast-parent-clay.jpg, cropped above her hand so the AI-drawn phone is out of frame.
+  // Gemini cast-student-pine-floor.jpg after its device fix (AirPods Max, dark MacBook, no logo).
+  hero: "img/student-pine.webp",
+  // Gemini zoom-student-tile.jpg after its device fix (Sony WH-1000XM5).
+  zoom: "img/zoom-student-tile.webp",
+  // Gemini cast-parent-clay.jpg (rejected for its phone), cropped above her hand: no device in frame.
   parent: "img/parent-clay-tile.webp",
 };
-/* Dropped under the device rule (2026-11-01): the round-1 Zoom student (earbuds), Zoom tutor (headset),
-   parent (phone in hand) stand-ins, and cast-student-marigold.jpg (rejected). Zoom tiles return when
-   zoom-student-tile.jpg comes back fixed and zoom-tutor-loop.mp4 arrives. */
+/* Still waiting: zoom-tutor-loop.mp4 (a tutor tile beside the student). */
 /* Real product material from the motion lab: 9x16 clips (the phone at 1.62x on a ground; we crop to
    its screen) and the phone captures. Light mode uses the pine renders (light screens), dark mode the
    night renders (dark screens). */
@@ -22,9 +22,11 @@ const CLIPS = "../../motion/out/";
 const SHOTS = "../../motion/shots/";
 const FRAME = "../../motion/device/iphone-17-pro-max-orange.svg";
 const FREE_TEST = "https://karmanprep.com/free-practice-test";
+/* start: where a clip begins (s); poster: its first picture at that point, per ground. The Daily 10
+   clip starts on the box ("Tap to open") instead of the quieter screen before it. */
 const TABS = {
-  1: { clip: "d10-finish" },
-  2: { shot: "student-booking-slot" },
+  1: { clip: "d10-finish", start: 1.4, poster: "img/d10-box-{ground}.webp" },
+  2: { clip: "calendar" },
   3: { clip: "progress-rewards" },
   4: { clip: "parent-update" },
 };
@@ -75,27 +77,23 @@ const TABS = {
       const fig = img.closest("figure");
       fig.parentElement.classList.add("no-photo");
       fig.remove();
-    } else if (img.getAttribute("src") !== src) img.src = src;
+    } else if (img.getAttribute("src") !== src) {
+      img.removeAttribute("srcset");
+      img.src = src;
+    }
   });
-  $$("[data-main-cta], #headerCta").forEach((a) => (a.href = FREE_TEST));
-
-  // Headings become words inside masks (for Rise); the hero's chip word gets its marigold pill.
-  $$(".rise").forEach((h) => {
-    const text = h.textContent.trim();
-    const chip = h.dataset.chip ? get(h.dataset.chip).toLowerCase() : "";
-    h.setAttribute("aria-label", text);
-    h.textContent = "";
-    text.split(/\s+/).forEach((w, i, all) => {
-      const outer = document.createElement("span");
-      outer.className = "w";
-      outer.setAttribute("aria-hidden", "true");
-      const inner = document.createElement("span");
-      inner.textContent = w;
-      if (chip && w.toLowerCase().replace(/[^a-z0-9]/g, "") === chip) inner.className = "chip";
-      outer.appendChild(inner);
-      h.appendChild(outer);
-      if (i < all.length - 1) h.appendChild(document.createTextNode(" "));
-    });
+  $$("[data-main-cta]").forEach((a) => (a.href = FREE_TEST));
+  // The chip word (one per page) gets its marigold pill after the words are set.
+  $$("[data-chip]").forEach((h) => {
+    const chip = get(h.dataset.chip);
+    const text = h.textContent;
+    const i = text.toLowerCase().indexOf(chip.toLowerCase());
+    if (!chip || i < 0) return;
+    const span = document.createElement("span");
+    span.className = "chip";
+    span.textContent = text.slice(i, i + chip.length);
+    h.textContent = text.slice(0, i);
+    h.append(span, text.slice(i + chip.length));
   });
 
   /* ---------- theme (rule 33) ---------- */
@@ -164,22 +162,14 @@ const TABS = {
     }
   });
 
-  /* ---------- the floating nav hides while scrolling down, returns on the way up (2.1) ---------- */
+  /* ---------- the floating nav shows only near the top, so it never sits on what is being read;
+     scrolling back up to the top brings it back ---------- */
   const navWrap = $("#header");
-  let lastY = scrollY;
-  addEventListener(
-    "scroll",
-    () => {
-      const y = scrollY;
-      const d = y - lastY;
-      if (Math.abs(d) < 4) return;
-      const away = d > 0 && y > 120 && !navWrap.contains(document.activeElement);
-      navWrap.classList.toggle("away", away);
-      lastY = y;
-    },
-    { passive: true }
-  );
+  const paintNav = () =>
+    navWrap.classList.toggle("away", scrollY > 140 && !navWrap.contains(document.activeElement));
+  addEventListener("scroll", paintNav, { passive: true });
   navWrap.addEventListener("focusin", () => navWrap.classList.remove("away"));
+  paintNav();
 
   /* ---------- reduced motion and the site-wide motion control ---------- */
   const reduceMQ = matchMedia("(prefers-reduced-motion: reduce)");
@@ -190,75 +180,25 @@ const TABS = {
   const paintMotion = () => (motionBtn.textContent = get(paused ? "footer.play" : "footer.pause"));
   paintMotion();
 
-  /* ---------- the opening: first visit only, about 1 s, any input skips it ---------- */
-  const opening = $("#opening");
-  const params = new URLSearchParams(location.search);
-  function runOpening() {
-    const lift = () => root.classList.remove("pre-open");
-    if (params.get("opening") === "off") return lift();
-    if (params.get("opening") !== "on" && store.get("karman-opened")) return lift();
-    store.set("karman-opened", "1");
-    if (!window.gsap) return lift();
-    opening.hidden = false;
-    lift();
-    let tl;
-    const end = () => {
-      if (opening.hidden) return;
-      if (tl) tl.kill();
-      gsap.to(opening, {
-        autoAlpha: 0,
-        duration: 0.2,
-        ease: "power3.inOut",
-        onComplete: () => {
-          opening.hidden = true;
-          gsap.set(opening, { clearProps: "all" });
-          window.dispatchEvent(new Event("karman-opened"));
-        },
-      });
-      ["keydown", "pointerdown", "wheel", "touchstart"].forEach((t) => removeEventListener(t, end));
-    };
-    ["keydown", "pointerdown", "wheel", "touchstart"].forEach((t) =>
-      addEventListener(t, end, { passive: true })
-    );
-    $(".opening-skip", opening).addEventListener("click", end);
-    if (still()) {
-      tl = gsap.timeline({ onComplete: end });
-      tl.from(".opening-lockup", { autoAlpha: 0, duration: 0.3, ease: "none" }).to(
-        {},
-        { duration: 0.45 }
-      );
-      return;
-    }
-    // Line Draw SVG (21st.dev 18352): each stroke starts at its full dash offset and draws to 0.
-    const line = $(".mark-line", opening),
-      arc = $(".mark-arc", opening);
-    [line, arc].forEach((p) => {
-      const L = p.getTotalLength();
-      gsap.set(p, { strokeDasharray: L, strokeDashoffset: L });
-    });
-    tl = gsap.timeline({ onComplete: end });
-    tl.to(line, { strokeDashoffset: 0, duration: 0.36, ease: "power3.inOut" })
-      .to(arc, { strokeDashoffset: 0, duration: 0.44, ease: "expo.out" }, 0.18)
-      .fromTo(
-        $(".word", opening),
-        { autoAlpha: 0, x: -10 },
-        { autoAlpha: 1, x: 0, duration: 0.4, ease: "expo.out" },
-        0.4
-      )
-      .to({}, { duration: 0.06 });
-  }
-  runOpening();
-
   /* ---------- the iPhones: a real capture or a lab clip cropped to the screen, under the frame ---------- */
   const phones = [];
   function makePhone(el, loop) {
-    el.innerHTML = `<div class="phone-screen"><img class="still" alt="" decoding="async"><video class="crop" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video></div><img class="phone-frame" src="${FRAME}" alt="">`;
+    // the hero phone is already in the HTML (its first frame paints before any script); others are built
+    // the hero's <picture> chose its first frame by device mode; from here the script picks it
+    el.querySelectorAll("picture").forEach((pic) => {
+      pic.querySelectorAll("source").forEach((src) => src.remove());
+      pic.replaceWith(pic.querySelector("img"));
+    });
+    if (!el.querySelector(".phone-screen"))
+      el.innerHTML = `<div class="phone-screen"><img class="still" alt="" decoding="async" loading="lazy"><video class="crop" muted playsinline preload="none" aria-hidden="true" tabindex="-1"></video></div><img class="phone-frame" src="${FRAME}" alt="" loading="lazy">`;
     const p = {
       el,
       img: $(".still", el),
       video: $("video", el),
       clip: el.dataset.clip || "",
       shot: el.dataset.shot || "",
+      start: 0,
+      poster: "",
       loop,
       inView: false,
       done: false,
@@ -266,6 +206,9 @@ const TABS = {
     };
     p.video.loop = !!loop;
     p.video.addEventListener("playing", () => p.video.classList.add("on"));
+    p.video.addEventListener("loadedmetadata", () => {
+      if (p.start) p.video.currentTime = p.start;
+    });
     p.video.addEventListener("ended", () => {
       p.done = true;
       if (p.onEnd) p.onEnd();
@@ -287,7 +230,7 @@ const TABS = {
     if (!p.clip) return;
     const base = `${CLIPS}${p.clip}-9x16-${ground()}`;
     p.img.className = "still crop";
-    p.img.src = base + ".webp";
+    p.img.src = p.poster ? p.poster.replace("{ground}", ground()) : base + ".webp";
     p.video.classList.remove("on");
     p.video.removeAttribute("src");
     p.video.load();
@@ -295,8 +238,14 @@ const TABS = {
     p.base = base;
     if (p.inView) play(p);
   }
+  // nothing heavy loads before the page has: the hero video waits for the load event
+  let pageLoaded = document.readyState === "complete";
+  addEventListener("load", () => {
+    pageLoaded = true;
+    phones.forEach((p) => p.inView && play(p));
+  });
   function play(p) {
-    if (!moving() || !p.base) return;
+    if (!moving() || !p.base || !pageLoaded) return;
     if (!p.loaded) {
       p.video.src = p.base + ".mp4";
       p.loaded = true;
@@ -325,72 +274,20 @@ const TABS = {
   }
   document.addEventListener("karman-scheme", () => phones.forEach(paintPhone));
 
-  /* ---------- Count: an odometer per number (Count Up, 21st.dev 20068, ported) ---------- */
-  function odometer(el, text) {
-    el.setAttribute("aria-label", text);
-    el.textContent = "";
-    const odo = document.createElement("span");
-    odo.className = "odo";
-    odo.setAttribute("aria-hidden", "true");
-    const reels = [];
-    for (const ch of text) {
-      if (ch === " ") {
-        const g = document.createElement("span");
-        g.className = "odo-gap";
-        odo.appendChild(g);
-        continue;
-      }
-      const col = document.createElement("span");
-      col.className = "odo-col";
-      const reel = document.createElement("span");
-      reel.className = "odo-reel";
-      // one turn of 0-9 then the digit, so every column travels and lands on its own number;
-      // digits are drawn by CSS from data-d, so a screen reader reads the number once
-      const seq = /\d/.test(ch) ? [...Array(10).keys()].concat(Number(ch)) : [ch];
-      seq.forEach((n) => {
-        const r = document.createElement("span");
-        r.dataset.d = String(n);
-        reel.appendChild(r);
-      });
-      if (seq.length > 1) reels.push({ reel, end: (-100 * (seq.length - 1)) / seq.length });
-      col.appendChild(reel);
-      odo.appendChild(col);
-    }
-    el.appendChild(odo);
-    return { el, reels };
-  }
-  const settleAll = (c) =>
-    c.reels.forEach((r) =>
-      window.gsap
-        ? gsap.set(r.reel, { yPercent: r.end })
-        : (r.reel.style.transform = `translateY(${r.end}%)`)
-    );
-  function roll(c, at = 0, tl) {
-    // columns roll right to left, 0.06 s apart, 1.2 s, the settle ease
-    const t = tl || gsap.timeline();
-    // the number is hidden until its roll starts, so a waiting "00" is never read as a figure
-    t.fromTo(c.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15, ease: "none" }, at);
-    c.reels
-      .slice()
-      .reverse()
-      .forEach((r, j) =>
-        t.fromTo(
-          r.reel,
-          { yPercent: 0 },
-          { yPercent: r.end, duration: 1.2, ease: "settle" },
-          at + j * 0.06
-        )
-      );
-    return t;
-  }
   if (window.gsap && window.CustomEase) {
     gsap.registerPlugin(CustomEase);
     CustomEase.create("settle", "0.2,0.8,0.2,1");
   }
-  const counts = $$(".count:not(#tabNum)").map((el) => odometer(el, el.textContent.trim()));
-  counts.forEach(settleAll);
+  // A number lands: it is always its final value, and only its position and scale move.
+  const land = (el, tl, at = 0) =>
+    (tl || gsap.timeline()).fromTo(
+      el,
+      { y: 12, scale: 0.98 },
+      { y: 0, scale: 1, duration: 0.5, ease: "settle" },
+      at
+    );
 
-  /* ---------- the feature tabs: each swaps the phone, its number rolls in (Segmented Tabs, 26923) ---------- */
+  /* ---------- the feature tabs: each swaps the phone, its number lands (Segmented Tabs, 26923) ---------- */
   const tabs = $$("#tabs [role=tab]");
   const ind = $(".seg-ind");
   const tabNum = $("#tabNum"),
@@ -398,7 +295,6 @@ const TABS = {
     tabLine = $("#tabLine"),
     replay = $("#replay"),
     panel = $("#panel");
-  let tabCount = null;
   let current = 0;
   function placeInd(animate) {
     const t = tabs[current - 1];
@@ -413,7 +309,7 @@ const TABS = {
         height: s.height + "px",
       });
   }
-  function select(n, { focus = false, rollIn = true } = {}) {
+  function select(n, { focus = false, animate = true } = {}) {
     if (n === current) {
       if (tabPhone.done) replayClip();
       return;
@@ -430,34 +326,36 @@ const TABS = {
     tabUnit.textContent = get(`platform.unit${n}`);
     tabLine.textContent = get(`platform.line${n}`);
     tabPhone.el.setAttribute("aria-label", get(`platform.alt${n}`));
-    tabCount = odometer(tabNum, get(`platform.num${n}`));
+    tabNum.textContent = get(`platform.num${n}`);
     tabPhone.clip = TABS[n].clip || "";
     tabPhone.shot = TABS[n].shot || "";
+    tabPhone.start = TABS[n].start || 0;
+    tabPhone.poster = TABS[n].poster || "";
     tabPhone.done = false;
     replay.hidden = true;
     paintPhone(tabPhone);
-    if (rollIn && moving()) {
-      // the screen swaps (cross-fade with an 8 px rise), then the number rolls and points at it
+    if (animate && moving()) {
+      // the new screen and its number are there at once; they only settle 8 to 12 px into place
       const tl = gsap.timeline();
       tl.fromTo(
         tabPhone.el.firstElementChild,
-        { autoAlpha: 0.2, y: 8 },
-        { autoAlpha: 1, y: 0, duration: 0.25, ease: "power3.inOut" },
+        { y: 8 },
+        { y: 0, duration: 0.25, ease: "power3.inOut" },
         0
       );
       tl.fromTo(
         [tabUnit, tabLine],
-        { autoAlpha: 0, y: 8 },
-        { autoAlpha: 1, y: 0, duration: 0.4, ease: "expo.out", stagger: 0.08 },
-        0.05
+        { y: 8 },
+        { y: 0, duration: 0.35, ease: "expo.out", stagger: 0.03 },
+        0
       );
-      roll(tabCount, 0, tl);
-    } else settleAll(tabCount);
+      land(tabNum, tl, 0);
+    }
   }
   function replayClip() {
     tabPhone.done = false;
     replay.hidden = true;
-    tabPhone.video.currentTime = 0;
+    tabPhone.video.currentTime = tabPhone.start;
     play(tabPhone);
   }
   tabPhone.onEnd = () => (replay.hidden = false);
@@ -479,7 +377,7 @@ const TABS = {
   paintTheme();
   paintPhone(heroPhone);
   otherPhones.forEach(paintPhone);
-  select(1, { rollIn: false });
+  select(1, { animate: false });
   addEventListener("resize", () => placeInd(false));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeInd(false));
 
@@ -491,53 +389,18 @@ const TABS = {
   });
   reduceMQ.addEventListener("change", () => phones.forEach((p) => still() && p.video.pause()));
 
-  /* ---------- one highlighted button on screen (rule 35): the nav button shows only when the
-     hero and closing buttons are both off screen ---------- */
-  const headerCta = $("#headerCta");
-  const mains = $$("[data-main-cta]");
-  const visible = new Set();
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver((es) => {
-      es.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)));
-      headerCta.hidden = visible.size > 0;
-    });
-    mains.forEach((m) => io.observe(m));
-  }
-
   /* ---------- the motion layer ---------- */
   if (!window.gsap || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
-  const T = {
-    out: "expo.out",
-    reveal: 0.9,
-    base: 0.6,
-    words: 0.06,
-    items: 0.08,
-    start: "top 78%",
-    focus: "top 60%",
-  };
+  // Reveals begin 120 px before a section reaches the screen and last 0.5 s, so content is in place
+  // by the time it is read; nothing fades in from nothing.
+  const T = { out: "expo.out", dur: 0.5, stagger: 0.03, start: "top bottom+=120" };
 
   const mm = gsap.matchMedia();
   mm.add(
     { motion: "(prefers-reduced-motion: no-preference)", wide: "(min-width: 768px)" },
     (ctx) => {
       if (!ctx.conditions.motion) return; // reduced motion: everything is already in its final state
-      const wordsOf = (sec) => $$(".rise .w > span", sec);
-
-      /* Arrive: the photo and the phone are visible at 0 s; words rise at 0.1 s, the subline at
-       0.45 s, the button (the hero's one Land) settles at 0.7 s. */
-      const hero = $(".hero");
-      gsap.set(wordsOf(hero), { yPercent: 105 });
-      gsap.set([".pill", ".hero-sub"], { autoAlpha: 0, y: 12 });
-      gsap.set(".hero-cta", { autoAlpha: 0, scale: 0.96 });
-      const arrive = gsap.timeline({ paused: true });
-      arrive
-        .to(".pill", { autoAlpha: 1, y: 0, duration: T.base, ease: T.out }, 0)
-        .to(wordsOf(hero), { yPercent: 0, duration: T.reveal, ease: T.out, stagger: T.words }, 0.1)
-        .to(".hero-sub", { autoAlpha: 1, y: 0, duration: T.base, ease: T.out }, 0.45)
-        .to(".hero-cta", { autoAlpha: 1, scale: 1, duration: 0.5, ease: "settle" }, 0.7);
-      if (opening.hidden) arrive.play();
-      else addEventListener("karman-opened", () => arrive.play(), { once: true });
 
       /* Light parallax on photographs only, desktop only. */
       if (ctx.conditions.wide) {
@@ -560,35 +423,30 @@ const TABS = {
         });
       }
 
-      /* Each later screen: picture first, then the headline rises, then its one number rolls (Land). */
+      /* Each later screen: picture, then headline and words, then its number lands last. All of it
+         stays visible; it only travels 16 px. A jump past a section finds it finished. */
       $$("main > section:not(.hero)").forEach((sec) => {
-        const words = wordsOf(sec);
-        const pics = $$(".photo, .phone, .seg", sec);
-        const rest = $$(".sub, .unit, .line, .source, .who, .text-link:not([hidden]), .btn", sec);
-        const nums = counts.filter((c) => sec.contains(c.el));
-        if (sec.id === "platform") nums.push(tabCount);
-        gsap.set(words, { yPercent: 105 });
-        gsap.set(pics, { autoAlpha: 0, y: 24 });
-        gsap.set(rest, { autoAlpha: 0, y: 12 });
-        nums.forEach((c) => {
-          gsap.set(c.el, { autoAlpha: 0 });
-          c.reels.forEach((r) => gsap.set(r.reel, { yPercent: 0 }));
-        });
+        const items = $$(
+          ".photo, .phone, .seg, h2, .fact-line, .sub, .unit, .line, .source, .who, .text-link:not([hidden]), .btn",
+          sec
+        );
+        const nums = $$(".land", sec);
+        gsap.set(items, { y: 16 });
         const tl = gsap.timeline({ paused: true, defaults: { ease: T.out } });
-        tl.to(pics, { autoAlpha: 1, y: 0, duration: T.reveal, stagger: T.items }, 0);
-        tl.to(words, { yPercent: 0, duration: T.reveal, stagger: T.words }, 0.1);
-        tl.to(rest, { autoAlpha: 1, y: 0, duration: T.base, stagger: 0.05 }, 0.35);
-        // Land: the number rolls last; on results the lead score finishes last
+        tl.to(items, { y: 0, duration: T.dur, stagger: T.stagger }, 0);
+        // on results the lead score lands last
         nums
           .slice()
           .reverse()
-          .forEach((c, i) => roll(c, 0.5 + i * 0.12, tl));
-        ScrollTrigger.create({
+          .forEach((el, i) => land(el, tl, 0.1 + i * 0.05));
+        const st = ScrollTrigger.create({
           trigger: sec,
           start: T.start,
           once: true,
-          onEnter: () => tl.play(),
+          onEnter: (self) =>
+            self.getVelocity && Math.abs(self.getVelocity()) > 3000 ? tl.progress(1) : tl.play(),
         });
+        if (st.progress > 0) tl.progress(1);
       });
       if (document.fonts && document.fonts.ready)
         document.fonts.ready.then(() => ScrollTrigger.refresh());
