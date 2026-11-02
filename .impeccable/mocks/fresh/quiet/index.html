@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script>
+      // Theme before first paint: a remembered choice, else the device, else dark (rule 33).
+      (function () {
+        var t = null;
+        try {
+          t = localStorage.getItem("karman-theme");
+        } catch (e) {}
+        if (t !== "light" && t !== "dark") {
+          t =
+            window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.classList.add("js");
+        // First visit: cover the page with the opening from the very first paint.
+        try {
+          if (!localStorage.getItem("karman-intro-seen"))
+            document.documentElement.classList.add("first-visit");
+        } catch (e) {}
+      })();
+    </script>
+    <title>Karman | SAT prep that starts with a free practice test</title>
+    <meta
+      name="description"
+      content="A free SAT practice test on Saturday, December 12, live on Zoom. Your student gets a predicted score, a breakdown by domain and a call with a Karman tutor."
+    />
+    <link rel="canonical" href="https://karmanprep.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://karmanprep.com/" />
+    <meta property="og:title" content="Karman | SAT prep that starts with a free practice test" />
+    <meta
+      property="og:description"
+      content="A free practice test on Saturday, December 12, live on Zoom, then a predicted score and a call with a Karman tutor."
+    />
+    <meta property="og:image" content="https://karmanprep.com/og/home.png" />
+    <meta name="theme-color" content="#f2f0eb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f0e0d" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="img/mark.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="img/hero-1360.webp"
+      imagesrcset="img/hero-800.webp 800w, img/hero-1360.webp 1360w"
+      imagesizes="(max-width: 767px) 100vw, 50vw"
+    />
+    <link rel="stylesheet" href="quiet.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://karmanprep.com/#org",
+            "name": "Karman Prep",
+            "url": "https://karmanprep.com/",
+            "email": "hello@karmanprep.com",
+            "logo": "https://karmanprep.com/img/mark.svg"
+          },
+          {
+            "@type": "Event",
+            "name": "Free SAT practice test",
+            "startDate": "2026-12-12T10:00:00-05:00",
+            "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+            "eventStatus": "https://schema.org/EventScheduled",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://karmanprep.com/free-practice-test"
+            },
+            "description": "One Reading and Writing module and one Math module, about 49 questions, live on Zoom with a live proctor. Includes a predicted score, a domain-by-domain breakdown and a 20-minute results call with a Karman tutor.",
+            "isAccessibleForFree": true,
+            "organizer": { "@id": "https://karmanprep.com/#org" },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "url": "https://karmanprep.com/free-practice-test"
+            }
+          },
+          {
+            "@type": "Course",
+            "name": "The March SAT Program",
+            "description": "18 live classes of 90 minutes on Zoom, from January 4 to the March 6, 2027 SAT, in a group of up to six, with five full-length practice tests.",
+            "provider": { "@id": "https://karmanprep.com/#org" },
+            "offers": { "@type": "Offer", "price": "995", "priceCurrency": "USD" },
+            "hasCourseInstance": {
+              "@type": "CourseInstance",
+              "courseMode": "online",
+              "startDate": "2027-01-04",
+              "endDate": "2027-03-06"
+            }
+          },
+          {
+            "@type": "Course",
+            "name": "Private 1:1 SAT tutoring",
+            "description": "60-minute sessions on Zoom with a Karman tutor. Private 10 is 10 hours for $1,495; Private 20 is 20 hours for $2,495.",
+            "provider": { "@id": "https://karmanprep.com/#org" },
+            "offers": { "@type": "Offer", "price": "1495", "priceCurrency": "USD" }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json" id="faq-ld"></script>
+    <script src="copy.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main" data-copy="header.skip"></a>
+
+    <!-- Opening: the K forms, the word wipes in, the logo lands in the header. First visit only,
+     under 1.3 s, any input skips it. The ground stays opaque until the logo has landed (rule 34). -->
+    <div class="intro" id="intro" aria-hidden="true" hidden>
+      <div class="intro__logo" id="intro-logo">
+        <span class="wordmark"
+          ><svg class="k" viewBox="0 0 60 70" aria-hidden="true">
+            <rect class="k__stem" x="0" y="0" width="13" height="70" />
+            <polygon class="k__arm" points="46,0 60,0 27,35 60,70 46,70 13,35" /></svg
+          ><span class="wordmark__rest">arman</span></span
+        >
+      </div>
+    </div>
+
+    <header class="top" id="top">
+      <a class="brand" id="brand" href="#main" data-copy-label="header.home">
+        <span class="wordmark"
+          ><svg class="k" viewBox="0 0 60 70" aria-hidden="true">
+            <rect class="k__stem" x="0" y="0" width="13" height="70" />
+            <polygon class="k__arm" points="46,0 60,0 27,35 60,70 46,70 13,35" /></svg
+          ><span class="wordmark__rest">arman</span></span
+        >
+      </a>
+      <nav class="top__nav" aria-label="Sections">
+        <a href="#question" data-copy="header.nav1"></a>
+        <a href="#class" data-copy="header.nav2"></a>
+        <a href="#private" data-copy="header.nav3"></a>
+        <a href="#prices" data-copy="header.nav4"></a>
+      </nav>
+      <div class="top__tools">
+        <button class="theme" type="button" data-theme-toggle>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <g class="theme__rays">
+              <path d="M12 1.8v2.4" />
+              <path d="M12 19.8v2.4" />
+              <path d="M1.8 12h2.4" />
+              <path d="M19.8 12h2.4" />
+              <path d="M4.8 4.8l1.7 1.7" />
+              <path d="M17.5 17.5l1.7 1.7" />
+              <path d="M4.8 19.2l1.7-1.7" />
+              <path d="M17.5 6.5l1.7-1.7" />
+            </g>
+            <circle class="theme__disc" cx="12" cy="12" r="5.2" />
+            <circle class="theme__bite" cx="16.4" cy="8.6" r="5.2" />
+          </svg>
+          <span class="sr" data-theme-label></span>
+        </button>
+        <button
+          class="menu-open"
+          type="button"
+          id="menu-open"
+          aria-expanded="false"
+          aria-controls="sheet"
+          data-copy="header.menu"
+        ></button>
+      </div>
+    </header>
+
+    <!-- Phone menu. Ported from 21st.dev 27229 (hyperiux, Immersive Full Screen Navigation): clip-path wipe, focus trap, Escape. -->
+    <div
+      class="sheet"
+      id="sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="menu-open"
+      hidden
+    >
+      <div class="sheet__bar">
+        <span class="brand brand--static" aria-hidden="true">
+          <span class="wordmark"
+            ><svg class="k" viewBox="0 0 60 70">
+              <rect class="k__stem" x="0" y="0" width="13" height="70" />
+              <polygon class="k__arm" points="46,0 60,0 27,35 60,70 46,70 13,35" /></svg
+            ><span class="wordmark__rest">arman</span></span
+          >
+        </span>
+        <button
+          type="button"
+          class="sheet__close"
+          id="menu-close"
+          data-copy="header.close"
+        ></button>
+      </div>
+      <nav class="sheet__nav" aria-label="Sections">
+        <a href="#question" data-copy="header.nav1"></a>
+        <a href="#class" data-copy="header.nav2"></a>
+        <a href="#private" data-copy="header.nav3"></a>
+        <a href="#prices" data-copy="header.nav4"></a>
+      </nav>
+    </div>
+
+    <main id="main" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-h">
+        <div class="wrap hero__grid">
+          <div class="hero__text">
+            <h1 id="hero-h" class="display rise" data-copy="hero.headline"></h1>
+            <p class="lead rise" data-copy="hero.body"></p>
+            <div class="hero__act rise">
+              <a
+                class="cta"
+                href="https://karmanprep.com/free-practice-test"
+                data-copy="hero.cta"
+              ></a>
+              <p class="facts">
+                <span data-copy="hero.fact1"></span><span data-copy="hero.fact2"></span
+                ><span data-copy="hero.fact3"></span>
+              </p>
+            </div>
+          </div>
+          <figure class="hero__pic rise">
+            <img
+              src="img/hero-1360.webp"
+              srcset="img/hero-800.webp 800w, img/hero-1360.webp 1360w"
+              sizes="(max-width: 767px) 100vw, 50vw"
+              width="1360"
+              height="768"
+              fetchpriority="high"
+              data-copy-alt="hero.image_alt"
+              alt=""
+            />
+          </figure>
+        </div>
+      </section>
+
+      <section class="question" id="question" aria-labelledby="q-h">
+        <div class="wrap question__head">
+          <h2 id="q-h" class="h2 rise" data-copy="question.headline"></h2>
+          <p class="lead rise" data-copy="question.body"></p>
+        </div>
+        <div class="wrap">
+          <!-- The real QuizEngine (src/components/learn/QuizEngine.tsx), built as a static bundle in live/.
+           The poster underneath is the engine's own capture, shown until the engine has loaded. -->
+          <div class="stage rise" id="stage">
+            <picture class="stage__poster" id="stage-poster">
+              <source
+                media="(max-width: 767px)"
+                data-light="../../redesign/engine/renders/adv-3-phone-light-question.webp"
+                data-dark="../../redesign/engine/renders/adv-3-phone-dark-question.webp"
+                srcset="../../redesign/engine/renders/adv-3-phone-dark-question.webp"
+              />
+              <img
+                data-light="../../redesign/engine/renders/adv-3-desktop-light-question.webp"
+                data-dark="../../redesign/engine/renders/adv-3-desktop-dark-question.webp"
+                src="../../redesign/engine/renders/adv-3-desktop-dark-question.webp"
+                width="2400"
+                height="1600"
+                loading="lazy"
+                data-copy-alt="question.poster_alt"
+                alt=""
+              />
+            </picture>
+            <iframe
+              class="stage__frame"
+              id="engine"
+              loading="lazy"
+              data-src="live/index.html?q=adv-3"
+              data-copy-title="question.frame_title"
+            ></iframe>
+          </div>
+          <p class="stage__after">
+            <button
+              type="button"
+              class="textlink"
+              id="again"
+              data-copy="question.again"
+              hidden
+            ></button>
+          </p>
+        </div>
+      </section>
+
+      <section class="daily" id="daily" aria-labelledby="d-h">
+        <div class="wrap daily__grid">
+          <figure class="pic daily__pic rise">
+            <img
+              src="img/daily-1360.webp"
+              srcset="img/daily-800.webp 800w, img/daily-1360.webp 1360w"
+              sizes="(max-width: 1023px) 100vw, 58vw"
+              width="1360"
+              height="768"
+              loading="lazy"
+              data-copy-alt="daily.image_alt"
+              alt=""
+            />
+          </figure>
+          <div class="daily__text">
+            <h2 id="d-h" class="h2 rise" data-copy="daily.headline"></h2>
+            <p class="lead rise" data-copy="daily.body"></p>
+            <ul class="points rise">
+              <li data-copy="daily.point1"></li>
+              <li data-copy="daily.point2"></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="class" id="class" aria-labelledby="c-h">
+        <div class="wrap class__grid">
+          <div class="class__text">
+            <h2 id="c-h" class="h2 rise" data-copy="class.headline"></h2>
+            <p class="lead rise" data-copy="class.body"></p>
+            <ul class="points rise">
+              <li data-copy="class.point1"></li>
+              <li data-copy="class.point2"></li>
+              <li data-copy="class.point3"></li>
+            </ul>
+            <p class="price rise" data-copy="class.price"></p>
+            <p class="note rise" data-copy="class.terms"></p>
+            <a
+              class="textlink rise"
+              href="https://karmanprep.com/program"
+              data-copy="class.link"
+            ></a>
+          </div>
+          <!-- A class on Zoom, as it is: four people, each in their own place (rule 46). -->
+          <figure class="call rise" role="group" data-copy-label="class.grid_label">
+            <div class="call__tile">
+              <img
+                src="img/tile-david-800.webp"
+                srcset="img/tile-david-480.webp 480w, img/tile-david-800.webp 800w"
+                sizes="(max-width: 767px) 50vw, 26vw"
+                width="800"
+                height="450"
+                loading="lazy"
+                data-copy-alt="class.tile1_alt"
+                alt=""
+              /><span class="call__name" data-copy="class.tile1"></span>
+            </div>
+            <div class="call__tile">
+              <img
+                src="img/tile-leo-800.webp"
+                srcset="img/tile-leo-480.webp 480w, img/tile-leo-800.webp 800w"
+                sizes="(max-width: 767px) 50vw, 26vw"
+                width="800"
+                height="450"
+                loading="lazy"
+                data-copy-alt="class.tile2_alt"
+                alt=""
+              /><span class="call__name" data-copy="class.tile2"></span>
+            </div>
+            <div class="call__tile">
+              <img
+                src="img/tile-nora-800.webp"
+                srcset="img/tile-nora-480.webp 480w, img/tile-nora-800.webp 800w"
+                sizes="(max-width: 767px) 50vw, 26vw"
+                width="800"
+                height="450"
+                loading="lazy"
+                data-copy-alt="class.tile3_alt"
+                alt=""
+              /><span class="call__name" data-copy="class.tile3"></span>
+            </div>
+            <div class="call__tile">
+              <img
+                src="img/tile-jun-800.webp"
+                srcset="img/tile-jun-480.webp 480w, img/tile-jun-800.webp 800w"
+                sizes="(max-width: 767px) 50vw, 26vw"
+                width="800"
+                height="450"
+                loading="lazy"
+                data-copy-alt="class.tile4_alt"
+                alt=""
+              /><span class="call__name" data-copy="class.tile4"></span>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="promise" id="guarantee" aria-labelledby="g-h">
+        <div class="wrap promise__grid">
+          <div class="promise__head">
+            <h2 id="g-h" class="h2 rise" data-copy="guarantee.headline"></h2>
+            <p class="lead rise" data-copy="guarantee.body"></p>
+          </div>
+          <div class="promise__terms rise">
+            <table class="remedy">
+              <caption class="sr">
+                How the guarantee pays out, by official score change
+              </caption>
+              <tbody>
+                <tr>
+                  <th scope="row" data-copy="guarantee.row1_result"></th>
+                  <td data-copy="guarantee.row1_remedy"></td>
+                </tr>
+                <tr>
+                  <th scope="row" data-copy="guarantee.row2_result"></th>
+                  <td data-copy="guarantee.row2_remedy"></td>
+                </tr>
+                <tr>
+                  <th scope="row" data-copy="guarantee.row3_result"></th>
+                  <td data-copy="guarantee.row3_remedy"></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="note" data-copy="guarantee.fine"></p>
+            <p class="note" data-copy="guarantee.private"></p>
+            <a
+              class="textlink"
+              href="https://karmanprep.com/guarantee"
+              data-copy="guarantee.link"
+            ></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="private" id="private" aria-labelledby="pr-h">
+        <div class="wrap private__grid">
+          <div class="private__text">
+            <h2 id="pr-h" class="h2 rise" data-copy="private.headline"></h2>
+            <p class="lead rise" data-copy="private.body"></p>
+            <ul class="points rise">
+              <li data-copy="private.point1"></li>
+              <li data-copy="private.point2"></li>
+              <li data-copy="private.point3"></li>
+            </ul>
+            <a
+              class="textlink rise"
+              href="https://karmanprep.com/private-tutoring"
+              data-copy="private.link"
+            ></a>
+          </div>
+          <div class="pair rise">
+            <figure class="pic">
+              <img
+                src="img/tutor-1360.webp"
+                srcset="img/tutor-800.webp 800w, img/tutor-1360.webp 1360w"
+                sizes="(max-width: 1023px) 100vw, 56vw"
+                width="1360"
+                height="768"
+                loading="lazy"
+                data-copy-alt="private.tutor_alt"
+                alt=""
+              />
+            </figure>
+            <figure class="pic">
+              <img
+                src="img/student-1360.webp"
+                srcset="img/student-800.webp 800w, img/student-1360.webp 1360w"
+                sizes="(max-width: 1023px) 100vw, 56vw"
+                width="1360"
+                height="768"
+                loading="lazy"
+                data-copy-alt="private.student_alt"
+                alt=""
+              />
+            </figure>
+          </div>
+        </div>
+
+        <!-- The proof sits with the claim it backs: three real 1:1 students (rule 47, founder exception). -->
+        <div class="wrap results" id="results">
+          <div class="results__text">
+            <h3 class="h3 rise" data-copy="results.headline"></h3>
+            <ul class="names rise" aria-label="Three Karman 1:1 students">
+              <li>
+                <span class="names__score" data-copy="results.s1_score"></span
+                ><span class="names__who"
+                  ><span data-copy="results.s1_name"></span>,
+                  <span data-copy="results.s1_college"></span
+                ></span>
+              </li>
+              <li>
+                <span class="names__score" data-copy="results.s2_score"></span
+                ><span class="names__who"
+                  ><span data-copy="results.s2_name"></span>,
+                  <span data-copy="results.s2_college"></span
+                ></span>
+              </li>
+              <li>
+                <span class="names__score" data-copy="results.s3_score"></span
+                ><span class="names__who"
+                  ><span data-copy="results.s3_name"></span>,
+                  <span data-copy="results.s3_college"></span
+                ></span>
+              </li>
+            </ul>
+            <p class="source rise" data-copy="results.source"></p>
+          </div>
+          <figure class="fade rise" id="fade">
+            <div class="fade__frame">
+              <img
+                class="is-on"
+                src="img/campus-mateo-1440.webp"
+                srcset="img/campus-mateo-800.webp 800w, img/campus-mateo-1440.webp 1440w"
+                sizes="(max-width: 1023px) 100vw, 56vw"
+                width="1440"
+                height="808"
+                loading="lazy"
+                data-copy-alt="results.image_alt_1"
+                alt=""
+              />
+              <img
+                src="img/campus-priya-1440.webp"
+                srcset="img/campus-priya-800.webp 800w, img/campus-priya-1440.webp 1440w"
+                sizes="(max-width: 1023px) 100vw, 56vw"
+                width="1440"
+                height="808"
+                loading="lazy"
+                data-copy-alt="results.image_alt_2"
+                alt=""
+              />
+              <img
+                src="img/campus-ava-1280.webp"
+                srcset="img/campus-ava-800.webp 800w, img/campus-ava-1280.webp 1280w"
+                sizes="(max-width: 1023px) 100vw, 56vw"
+                width="1280"
+                height="720"
+                loading="lazy"
+                data-copy-alt="results.image_alt_3"
+                alt=""
+              />
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section class="prices" id="prices" aria-labelledby="pp-h">
+        <div class="wrap">
+          <h2 id="pp-h" class="h2 rise" data-copy="prices.headline"></h2>
+          <!-- Every plan in one plain list: name, price, one line. -->
+          <dl class="plans rise" id="plans"></dl>
+          <div class="prices__foot rise">
+            <p class="note" data-copy="prices.monthly"></p>
+            <p class="note" data-copy="prices.school"></p>
+            <a class="textlink" href="https://karmanprep.com/pricing" data-copy="prices.link"></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="close" id="start" aria-labelledby="cl-h">
+        <div class="wrap close__grid">
+          <div class="close__faq">
+            <h2 id="f-h" class="h3 rise" data-copy="faq.headline"></h2>
+            <!-- Ported from 21st.dev 29230 (arihantcodes, Ghost Accordion): borderless rows, plus that turns to a cross; numbering dropped. -->
+            <div class="acc rise" id="acc"></div>
+          </div>
+          <div class="close__act">
+            <p class="objection rise" data-copy="close.objection"></p>
+            <h2 id="cl-h" class="h2 rise" data-copy="close.headline"></h2>
+            <p class="lead rise" data-copy="close.body"></p>
+            <a
+              class="cta rise"
+              href="https://karmanprep.com/free-practice-test"
+              data-copy="close.cta"
+            ></a>
+            <p class="note rise" data-copy="close.after"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <p class="foot__mark" aria-hidden="true">
+          <span class="wordmark"
+            ><svg class="k" viewBox="0 0 60 70">
+              <rect class="k__stem" x="0" y="0" width="13" height="70" />
+              <polygon class="k__arm" points="46,0 60,0 27,35 60,70 46,70 13,35" /></svg
+            ><span class="wordmark__rest">arman</span></span
+          >
+        </p>
+        <div class="foot__row">
+          <p class="foot__line" data-copy="footer.line"></p>
+          <a class="foot__mail" data-copy="footer.contact" data-mailto></a>
+        </div>
+        <div class="foot__row foot__row--small">
+          <nav class="foot__legal" aria-label="Legal">
+            <a href="https://karmanprep.com/terms" data-copy="footer.terms"></a>
+            <a href="https://karmanprep.com/privacy" data-copy="footer.privacy"></a>
+            <!-- The Cookie Policy is not live yet (karmanprep.com/cookies returns 404). Until it is, this
+             points at the Privacy page. Switch it back to /cookies the day that page is published. -->
+            <a href="https://karmanprep.com/privacy" data-copy="footer.cookies"></a>
+          </nav>
+          <button class="theme theme--text" type="button" data-theme-toggle>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <g class="theme__rays">
+                <path d="M12 1.8v2.4" />
+                <path d="M12 19.8v2.4" />
+                <path d="M1.8 12h2.4" />
+                <path d="M19.8 12h2.4" />
+                <path d="M4.8 4.8l1.7 1.7" />
+                <path d="M17.5 17.5l1.7 1.7" />
+                <path d="M4.8 19.2l1.7-1.7" />
+                <path d="M17.5 6.5l1.7-1.7" />
+              </g>
+              <circle class="theme__disc" cx="12" cy="12" r="5.2" />
+              <circle class="theme__bite" cx="16.4" cy="8.6" r="5.2" />
+            </svg>
+            <span data-copy="footer.theme"></span>
+          </button>
+          <p class="foot__copy" data-copy="footer.copyright"></p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="quiet.js"></script>
+  </body>
+</html>

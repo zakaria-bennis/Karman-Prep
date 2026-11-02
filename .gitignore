@@ -89,3 +89,6 @@ audit-out/
 
 # Generation job state: holds signed result URLs, never commit
 assets/generation-state.json
+
+# Raw generator output for the fresh mocks; the WebP crops in img/ are what the pages use
+.impeccable/mocks/fresh/*/raw/
