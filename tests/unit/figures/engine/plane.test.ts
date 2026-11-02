@@ -165,9 +165,12 @@ describe("buildPlane", () => {
     );
     expect([...xLabels].sort()).toEqual([...want].sort());
     expect(yLabels.map((t) => t.text).sort()).toEqual([...want].sort());
-    // Labels 28.8px apart leave no room for the origin's 0 above the -1 (golden review):
-    // it is left off rather than drawn over it.
-    expect(texts.filter((t) => t.text === "0" || t.text === "O")).toHaveLength(0);
+    // Labels 28.8px apart leave no room for the origin's 0 below and left (golden review):
+    // it moves to the next free corner, below and right, and is never dropped silently.
+    const zero = texts.filter((t) => t.text === "0");
+    expect(zero).toHaveLength(1);
+    expect(zero[0].anchor).toBe("start");
+    expect(scene.issues.filter((i) => i.detail.includes("origin"))).toEqual([]);
   });
 
   it("line through two very close points has arrows both and finite ends on the edge", () => {
@@ -269,15 +272,17 @@ describe("buildPlane golden-review fixes", () => {
     expect(dotsOf(scene.items).sort()).toEqual(["C", "E", "F", "G", "H"]);
   });
 
-  it("the origin's 0 is left off when it would sit on the first negative y label", () => {
+  it("the origin's 0 moves to a free corner when it would sit on the first negative y label", () => {
     // A -5..5 plane in a figure-choice box: y labels every 2 units sit 29.6px apart.
     const scene = buildPlane(plane([], { x: [-5, 5], y: [-5, 5], step: 1 }), {
       width: 240,
       height: 180,
     });
-    const texts = scene.items.filter((i): i is TextItem => i.t === "text").map((t) => t.text);
-    expect(texts).not.toContain("0");
-    expect(texts).toContain("-2");
+    const texts = scene.items.filter((i): i is TextItem => i.t === "text");
+    const zero = texts.find((t) => t.text === "0");
+    expect(zero?.anchor).toBe("start"); // below and right of the origin, not below and left
+    expect(texts.map((t) => t.text)).toContain("-2");
+    expect(scene.issues).toEqual([]);
     // In the default box there is room, and the 0 stays.
     const big = buildPlane(plane([], { x: [-5, 5], y: [-5, 5], step: 1 }), {
       width: 640,

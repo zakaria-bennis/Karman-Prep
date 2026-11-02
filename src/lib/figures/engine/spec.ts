@@ -249,12 +249,32 @@ export const PlaneFrameSchema = z
     yLabelStep: num.positive().optional(),
     /** Category names along x, one band each (bar charts). */
     categories: z.array(z.string()).optional(),
-    /** false: no "0" where the axes meet (printed SAT figures often leave it off). */
-    originLabel: z.boolean().optional(),
+    /**
+     * The label where the axes meet: "0" (true, the default), the SAT's italic "O"
+     * ("O"), or none (false: printed SAT figures often leave it off).
+     */
+    originLabel: z.union([z.boolean(), z.literal("O")]).optional(),
     /** false: no grid lines. */
     grid: z.boolean().optional(),
+    /** The axis names: a short one (x, y, t) is the letter at the axis end, a longer one a title. */
     xLabel: z.string().optional(),
     yLabel: z.string().optional(),
+    /**
+     * Axis titles printed beside the letter ("Time (minutes)" under the x-axis, a y
+     * title turned upright left of the y-axis). With a title, xLabel and yLabel are
+     * only the letters, drawn when given.
+     */
+    xTitle: z.string().optional(),
+    yTitle: z.string().optional(),
+    /** Group thousands in tick numbers with commas ("1,200"): true on both axes, or one axis. */
+    thousands: z.union([z.boolean(), z.enum(["x", "y"])]).optional(),
+    /** Arrowheads on the axes: true at the positive ends, "both" at both ends. */
+    arrows: z.union([z.boolean(), z.literal("both")]).optional(),
+    /**
+     * Category names turned 45°: true always, false never (they wrap). Unset, they
+     * turn only when one does not fit its band.
+     */
+    rotateCategories: z.boolean().optional(),
   })
   .strict()
   .refine((f) => f.x[0] < f.x[1], { message: "a frame's x range must run from low to high" })
@@ -274,7 +294,11 @@ export const FigureSpecSchema = z
     labels: z.array(LabelSchema),
     marks: z.array(MarkSchema),
     frame: PlaneFrameSchema.optional(),
-    notToScale: z.boolean().optional(),
+    /**
+     * The note under a shape or solid: true prints "Note: Figure not drawn to scale.";
+     * "figures" prints the plural note once under the last of several figures.
+     */
+    notToScale: z.union([z.boolean(), z.literal("figures")]).optional(),
     title: z.string().optional(),
   })
   .strict();

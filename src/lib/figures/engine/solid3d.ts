@@ -24,7 +24,7 @@ import { noteLines } from "./geometry2d";
 import { HOUSE } from "./house";
 import { placeLabels, textWidth, type PendingLabel } from "./labels";
 import { add, cross, mul, unit, type Pt } from "./marks";
-import { fmt } from "./plane";
+import { fmt } from "./plane-axes";
 import type { ScaleOptions, Scene, SceneIssue, SceneItem } from "./scene";
 import { cameraFor, type Camera } from "./solid-camera";
 import { drawSolid, type Drawing } from "./solid-draw";
@@ -56,7 +56,11 @@ const SHAPE_NAMES: Record<SolidShape, string> = {
 };
 
 /** "Right circular cylinder, radius r, height 10." from the shape and its labels. */
-function describe(shape: SolidShape, labeled: Map<string, string>, notToScale = false): string {
+function describe(
+  shape: SolidShape,
+  labeled: Map<string, string>,
+  notToScale?: boolean | "figures"
+): string {
   const out = [SHAPE_NAMES[shape]];
   for (const [d, text] of labeled)
     out.push(`${d.replace(/[A-Z]/g, (c) => ` ${c.toLowerCase()}`)} ${text}`);
@@ -298,7 +302,7 @@ export function buildSolid3d(spec: FigureSpec, box: Box, opts: ScaleOptions = {}
 
   // Layout: the box less the margin, room for labels around the solid, and the note band.
   const font = HOUSE.font;
-  const note = spec.notToScale ? noteLines(box.width) : [];
+  const note = spec.notToScale ? noteLines(box.width, spec.notToScale) : [];
   const noteBand = note.length ? note.length * 1.25 * font + HOUSE.labelOffset : 0;
   const widest = Math.max(0, ...[...labeled.values()].map(textWidth));
   const roomX = labeled.size ? HOUSE.labelOffset + widest : 0;

@@ -7,6 +7,13 @@ export const HOUSE = {
   grid: 1,
   dashed: 1.25,
   dashPattern: "4 3",
+  /** Dotted and dash-dot lines: the third and fourth series of a line chart. */
+  dotted: 1.5,
+  dotPattern: "0.5 3.5",
+  dashdot: 1.25,
+  dashDotPattern: "7 3 1 3",
+  /** Half the width of a line chart's series marker (triangle, square, circle, diamond). */
+  markerSize: 4.5,
   font: 15,
   minFontOnScreen: 12,
   labelOffset: 6,
