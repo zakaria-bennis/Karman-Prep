@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Karman Prep | SAT practice on their phone, classes on Zoom</title>
+    <meta name="description" content="" />
+    <link rel="canonical" href="https://karmanprep.com/" />
+    <meta property="og:title" content="Karman Prep" />
+    <meta property="og:image" content="https://karmanprep.com/og.jpg" />
+    <script>
+      /* Theme before first paint: the remembered choice, else the device, else dark (rule 33).
+         The opening plays on the first visit only. */
+      (function () {
+        var d = document.documentElement,
+          t = null,
+          seen = null;
+        d.classList.remove("no-js");
+        d.classList.add("js");
+        try {
+          t = localStorage.getItem("karman-theme");
+          seen = localStorage.getItem("karman-portal-opening");
+        } catch (e) {}
+        if (t !== "light" && t !== "dark") {
+          t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        d.setAttribute("data-theme", t);
+        if (!seen) d.classList.add("is-opening");
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Funnel+Sans:wght@300..800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="../../redesign/engine/engine.css" />
+    <link rel="stylesheet" href="portal.css" />
+    <link rel="stylesheet" href="stage.css" />
+    <link rel="stylesheet" href="sections.css" />
+    <link rel="preload" as="image" href="img/pool-bleachers.webp" media="(min-width: 1024px)" />
+    <link
+      rel="preload"
+      as="image"
+      href="img/pool-bleachers-faces.webp"
+      media="(max-width: 1023px)"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "Karman Prep",
+            "url": "https://karmanprep.com",
+            "email": "hello@karmanprep.com"
+          },
+          {
+            "@type": "Course",
+            "name": "The March SAT Program",
+            "description": "18 live classes on Zoom, five full-length practice tests, ending on the Saturday, March 6, 2027 SAT.",
+            "provider": { "@type": "Organization", "name": "Karman Prep" },
+            "offers": { "@type": "Offer", "price": "995", "priceCurrency": "USD" }
+          },
+          {
+            "@type": "Event",
+            "name": "Free practice test",
+            "startDate": "2026-12-12T10:00:00-05:00",
+            "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://karmanprep.com/free-practice-test"
+            },
+            "organizer": { "@type": "Organization", "name": "Karman Prep" },
+            "isAccessibleForFree": true
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main" data-copy="header.skip">Skip to the page</a>
+
+    <!-- Opening: first visit only, under 1.3 s, any key, tap or wheel skips it. -->
+    <div class="opening" aria-hidden="true">
+      <svg class="opening__mark" viewBox="0 0 40 40" width="96" height="96">
+        <path
+          class="mk-frame"
+          pathLength="1"
+          d="M9.2 5.1C14.8 4.6 25.4 4.7 30.9 5.3C33.4 5.5 34.6 6.9 34.7 9.4C35.1 16.5 35.1 23.9 34.6 30.7C34.4 33.2 33.1 34.5 30.6 34.7C24.8 35.2 15.1 35.1 9.3 34.6C6.8 34.4 5.5 33.1 5.4 30.6C4.9 23.7 5 16.3 5.4 9.3C5.6 6.8 6.8 5.3 9.2 5.1Z"
+        />
+        <path class="mk-line" pathLength="1" d="M10.5 27.6L16.6 20.4L20.1 23.3L28.8 12.1" />
+      </svg>
+      <svg class="opening__word" viewBox="0 0 142 36" width="213" height="54">
+        <use href="#wordmark" />
+      </svg>
+    </div>
+
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <!-- Hand-drawn monoline wordmark, one stroke family, no font. -->
+        <g
+          id="wordmark"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4.2 4.6C4.4 13.6 4.3 22.9 4.1 31.6" />
+          <path d="M21.4 4.9C16.8 10.1 12.3 15.1 7.6 19.4" />
+          <path d="M11.2 16.4C14.9 21.6 18.7 26.8 22.6 31.4" />
+          <path
+            d="M43.6 18.6C41.9 14.4 33.4 13.2 31.3 19.9C29.6 25.6 32.4 31.9 38.1 31.6C41.3 31.4 43.2 29.2 43.7 26.6"
+          />
+          <path d="M43.9 14.4C43.8 20.3 43.8 26.2 44.4 31.6" />
+          <path d="M53.6 14.3C53.7 20.1 53.6 26 53.5 31.6" />
+          <path d="M53.7 21.4C55.4 16.3 59.6 13.9 64.6 14.9" />
+          <path d="M71.2 14.4C71.3 20.2 71.3 26 71.1 31.6" />
+          <path d="M71.4 20.2C72.6 14.6 81.3 13.1 81.6 20.4C81.8 24.2 81.7 28 81.6 31.6" />
+          <path d="M81.7 20.3C82.9 14.5 91.4 13.3 91.7 20.6C91.9 24.3 91.8 28.1 91.8 31.6" />
+          <path
+            d="M113.4 18.6C111.7 14.4 103.2 13.2 101.1 19.9C99.4 25.6 102.2 31.9 107.9 31.6C111.1 31.4 113 29.2 113.5 26.6"
+          />
+          <path d="M113.7 14.4C113.6 20.3 113.6 26.2 114.2 31.6" />
+          <path d="M123.4 14.3C123.5 20.1 123.4 26 123.3 31.6" />
+          <path d="M123.5 20.4C124.8 14.4 135.4 13 135.7 21C135.9 24.6 135.8 28.2 135.8 31.6" />
+        </g>
+        <symbol id="mark" viewBox="0 0 40 40">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.6"
+            stroke-linejoin="round"
+            d="M9.2 5.1C14.8 4.6 25.4 4.7 30.9 5.3C33.4 5.5 34.6 6.9 34.7 9.4C35.1 16.5 35.1 23.9 34.6 30.7C34.4 33.2 33.1 34.5 30.6 34.7C24.8 35.2 15.1 35.1 9.3 34.6C6.8 34.4 5.5 33.1 5.4 30.6C4.9 23.7 5 16.3 5.4 9.3C5.6 6.8 6.8 5.3 9.2 5.1Z"
+          />
+          <path
+            fill="none"
+            stroke="var(--mark-line)"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 27.6L16.6 20.4L20.1 23.3L28.8 12.1"
+          />
+        </symbol>
+        <filter id="grain">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.85"
+            numOctaves="2"
+            stitchTiles="stitch"
+          />
+          <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" />
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- Floating pill navigation, after 21st.dev 18090 (Floating Navbar, arihantcodes) and the glass of
+         26786 (Elevate Navbar). Ported to plain HTML: no icons, no dropdown. It hides while the reader
+         scrolls down and returns on scroll up, so it never sits on text being read (rule 34). -->
+    <header class="nav" id="top-nav">
+      <div class="nav__pill">
+        <a class="brand" href="#top" data-copy-label="header.home">
+          <svg class="brand__mark" viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+            <use href="#mark" />
+          </svg>
+          <svg class="brand__word" viewBox="0 0 142 36" width="84" height="21" aria-hidden="true">
+            <use href="#wordmark" />
+          </svg>
+        </a>
+        <nav class="nav__links" aria-label="Sections">
+          <a href="#platform" data-copy="header.nav.platform"></a>
+          <a href="#week" data-copy="header.nav.week"></a>
+          <a href="#results" data-copy="header.nav.results"></a>
+          <a href="#plans" data-copy="header.nav.plans"></a>
+        </nav>
+        <button class="nav__theme" type="button" data-theme-flip aria-live="polite">Light</button>
+        <button
+          class="nav__menu"
+          type="button"
+          aria-expanded="false"
+          aria-controls="sheet"
+          data-copy="header.menu"
+        >
+          Menu
+        </button>
+      </div>
+    </header>
+
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+      <button class="sheet__close" type="button" data-copy="header.close">Close</button>
+      <nav aria-label="Sections">
+        <a href="#platform" data-copy="header.nav.platform"></a>
+        <a href="#week" data-copy="header.nav.week"></a>
+        <a href="#results" data-copy="header.nav.results"></a>
+        <a href="#plans" data-copy="header.nav.plans"></a>
+      </nav>
+      <button class="sheet__theme" type="button" data-theme-flip>Light</button>
+    </div>
+
+    <main id="main">
+      <!-- 1. The hero, and the camera push. A framed stage: the headline on the left, a photograph of
+           students in a real place on the right, and their iPhone 17 Pro Max floating over it with the
+           real Karman Home. On desktop with motion, one sticky stage of 100vh plus 150vh of scroll: the
+           camera pushes into the phone until its screen fills the view (the window-opening mechanic of
+           21st.dev 24466, Scroll Reveal Image, unlumen, rebuilt as one uniform camera scale). -->
+      <div class="portal" data-portal id="top">
+        <div class="portal__stage">
+          <section class="hero" aria-labelledby="hero-title">
+            <div class="hero__card">
+              <div class="hero__copy">
+                <!-- Announcement pill, after 21st.dev 983 (Hero Pill, originui). A text link, never filled. -->
+                <a class="pill" data-href="hero.pill.url" href="#"
+                  ><span class="pill__dot" aria-hidden="true"></span
+                  ><span data-copy="hero.pill"></span
+                  ><svg class="pill__chev" viewBox="0 0 12 12" aria-hidden="true">
+                    <path
+                      d="M4.5 2.5 8 6l-3.5 3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    /></svg
+                ></a>
+                <h1
+                  id="hero-title"
+                  class="hero__title rise-lines"
+                  data-copy-rich="hero.headline"
+                ></h1>
+                <p class="hero__sub" data-copy="hero.sub"></p>
+                <a class="button" data-href="hero.button.url" data-copy="hero.button" href="#"></a>
+              </div>
+              <div class="hero__media">
+                <figure class="hero__photo">
+                  <img
+                    data-slot="hero"
+                    data-copy-alt="hero.photo.alt"
+                    alt=""
+                    width="1920"
+                    height="1072"
+                    fetchpriority="high"
+                    decoding="async"
+                  />
+                </figure>
+                <div class="hero__field" aria-hidden="true"></div>
+                <div
+                  class="phone hero__phone"
+                  data-phone="hero"
+                  data-copy-label="hero.phone.alt"
+                  role="img"
+                ></div>
+              </div>
+            </div>
+          </section>
+          <div class="portal__ground" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- 2. Inside the product: five real screens in the phone, swapped by tabs. Vertical tab list beside
+           a panel, after 21st.dev 27081 (Feature Tab Switcher, Hirael / Mohammad Shehadeh, MIT): arrow
+           keys move between tabs and the panel follows. Recoloured with Karman's tokens, no icons. -->
+      <section class="platform" id="platform" aria-labelledby="platform-title">
+        <div class="platform__inner">
+          <div class="platform__head">
+            <h2 id="platform-title" class="h2 rise-lines" data-copy="platform.headline"></h2>
+            <p class="sub" data-copy="platform.sub"></p>
+          </div>
+          <div
+            class="tabs"
+            role="tablist"
+            aria-orientation="vertical"
+            data-copy-label="platform.tabs.label"
+          >
+            <span class="tabs__glide" aria-hidden="true"></span>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-home"
+              aria-controls="screen"
+              data-tab="home"
+              aria-selected="true"
+            >
+              <span class="tab__name" data-copy="platform.home.tab"></span
+              ><span class="tab__line" data-copy="platform.home.line"></span>
+            </button>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-daily"
+              aria-controls="screen"
+              data-tab="daily"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              <span class="tab__name" data-copy="platform.daily.tab"></span
+              ><span class="tab__line" data-copy="platform.daily.line"></span>
+            </button>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-calendar"
+              aria-controls="screen"
+              data-tab="calendar"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              <span class="tab__name" data-copy="platform.calendar.tab"></span
+              ><span class="tab__line" data-copy="platform.calendar.line"></span>
+            </button>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-progress"
+              aria-controls="screen"
+              data-tab="progress"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              <span class="tab__name" data-copy="platform.progress.tab"></span
+              ><span class="tab__line" data-copy="platform.progress.line"></span>
+            </button>
+            <button
+              class="tab"
+              role="tab"
+              id="tab-parent"
+              aria-controls="screen"
+              data-tab="parent"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              <span class="tab__name" data-copy="platform.parent.tab"></span
+              ><span class="tab__line" data-copy="platform.parent.line"></span>
+            </button>
+          </div>
+          <p class="platform__caption" aria-hidden="true"></p>
+          <div
+            class="platform__stage"
+            id="screen"
+            role="tabpanel"
+            aria-labelledby="tab-home"
+            tabindex="0"
+          >
+            <div class="platform__field" aria-hidden="true"></div>
+            <div class="phone platform__phone land-settle" data-phone="platform" role="img"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. A week, as a bento of live product tiles (modern-UI 2.5), with a pointer spotlight on
+           desktop after 21st.dev 35180 (Spotlight, kevingirelli). Bento container after 21st.dev 622. -->
+      <section class="week" id="week" aria-labelledby="week-title">
+        <h2 id="week-title" class="h2 rise-lines" data-copy="week.headline"></h2>
+        <div class="bento">
+          <article class="tile tile--try spot">
+            <div class="tile__head">
+              <h3 class="h3" data-copy="week.try.title"></h3>
+              <p class="tile__sub" data-copy="week.try.sub"></p>
+            </div>
+            <p class="try__prompt" data-copy="week.try.prompt"></p>
+            <!-- Live fragment of the real Karman quiz engine (redesign/engine/fragments/alg-1.html). -->
+            <div
+              class="try__frame land-settle"
+              data-fragment="../../redesign/engine/fragments/alg-1.html"
+              data-ui
+            >
+              <p class="try__loading" data-copy="week.try.loading"></p>
+            </div>
+            <p class="try__result" aria-live="polite"></p>
+            <button
+              class="textlink try__again"
+              type="button"
+              data-copy="week.try.again"
+              hidden
+            ></button>
+          </article>
+
+          <article class="tile tile--zoom spot">
+            <div class="tile__phone">
+              <div
+                class="phone zoom__phone"
+                data-phone="zoom"
+                data-screen="tutor"
+                role="img"
+                data-copy-label="week.zoom.alt"
+              ></div>
+            </div>
+            <h3 class="h3" data-copy="week.zoom.title"></h3>
+            <p class="tile__sub" data-copy="week.zoom.sub"></p>
+          </article>
+
+          <article class="tile tile--start spot">
+            <div class="tile__phone start__stage">
+              <div
+                class="phone start__phone"
+                data-phone="start"
+                data-screen="schedule"
+                role="img"
+                data-copy-label="week.start.alt"
+              ></div>
+            </div>
+            <div class="start__body">
+              <p class="start__date" data-copy="week.start.date"></p>
+              <p class="tile__sub" data-copy="week.start.line"></p>
+              <a
+                class="textlink"
+                data-href="week.start.link.url"
+                data-copy="week.start.link"
+                href="#"
+              ></a>
+            </div>
+          </article>
+
+          <article class="tile tile--handoff spot">
+            <figure class="handoff" data-ui>
+              <video
+                class="clip"
+                data-clip="handoff"
+                muted
+                playsinline
+                loop
+                preload="none"
+                data-copy-label="week.handoff.label"
+              ></video>
+            </figure>
+            <h3 class="h3" data-copy="week.handoff.title"></h3>
+            <p class="tile__sub" data-copy="week.handoff.sub"></p>
+          </article>
+        </div>
+      </section>
+
+      <!-- 4. Results: the colour beat, in a rounded pine card. One count with its source beside it
+           (copy rule 20), then the three approved results in a hairline grid (modern-UI 2.14). -->
+      <section class="results" id="results" aria-labelledby="results-title">
+        <div class="results__card">
+          <div class="results__head">
+            <h2 id="results-title" class="h2 rise-lines" data-copy="results.headline"></h2>
+            <p class="results__range">
+              <span data-copy="results.range"></span>
+              <span class="results__num" data-count data-copy="results.number"></span>
+            </p>
+            <p class="results__label" data-copy="results.label"></p>
+          </div>
+          <ul class="results__grid">
+            <li>
+              <img
+                data-slot="resultAva"
+                data-copy-alt="results.ava.alt"
+                alt=""
+                width="800"
+                height="450"
+                loading="lazy"
+                decoding="async"
+              />
+              <p>
+                <span class="r-name" data-copy="results.ava.name"></span
+                ><span class="r-score" data-copy="results.ava.score"></span
+                ><span class="r-school" data-copy="results.ava.school"></span>
+              </p>
+            </li>
+            <li>
+              <img
+                data-slot="resultMateo"
+                data-copy-alt="results.mateo.alt"
+                alt=""
+                width="800"
+                height="450"
+                loading="lazy"
+                decoding="async"
+              />
+              <p>
+                <span class="r-name" data-copy="results.mateo.name"></span
+                ><span class="r-score" data-copy="results.mateo.score"></span
+                ><span class="r-school" data-copy="results.mateo.school"></span>
+              </p>
+            </li>
+            <li>
+              <img
+                data-slot="resultPriya"
+                data-copy-alt="results.priya.alt"
+                alt=""
+                width="800"
+                height="450"
+                loading="lazy"
+                decoding="async"
+              />
+              <p>
+                <span class="r-name" data-copy="results.priya.name"></span
+                ><span class="r-score" data-copy="results.priya.score"></span
+                ><span class="r-school" data-copy="results.priya.school"></span>
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 5. Plans as two cards (the founder's Paddle decision allows tier cards). Actions are text links,
+           so the page keeps one highlighted button on screen (rule 35). -->
+      <section class="plans" id="plans" aria-labelledby="plans-title">
+        <h2 id="plans-title" class="h2 rise-lines" data-copy="plans.headline"></h2>
+        <div class="plans__cards">
+          <article class="plan spot">
+            <h3 class="plan__name" data-copy="plans.plus.name"></h3>
+            <p class="plan__price">
+              <span class="plan__amount" data-copy="plans.plus.price"></span>
+              <span class="plan__note" data-copy="plans.plus.note"></span>
+            </p>
+            <ul class="plan__list">
+              <li data-copy="plans.plus.1"></li>
+              <li data-copy="plans.plus.2"></li>
+              <li data-copy="plans.plus.3"></li>
+            </ul>
+          </article>
+          <article class="plan plan--pick spot">
+            <div class="plan__body">
+              <h3 class="plan__name" data-copy="plans.cohort.name"></h3>
+              <p class="plan__price">
+                <span class="plan__amount land-settle" data-copy="plans.cohort.price"></span>
+                <span class="plan__note" data-copy="plans.cohort.note"></span>
+              </p>
+              <ul class="plan__list">
+                <li data-copy="plans.cohort.1"></li>
+                <li data-copy="plans.cohort.2"></li>
+                <li data-copy="plans.cohort.3"></li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        <p class="plans__links">
+          <a
+            class="textlink"
+            data-href="plans.link.all.url"
+            data-copy="plans.link.all"
+            href="#"
+          ></a>
+          <a
+            class="textlink"
+            data-href="plans.link.guarantee.url"
+            data-copy="plans.link.guarantee"
+            href="#"
+          ></a>
+        </p>
+      </section>
+
+      <!-- 6. Close: a night card. Objection, then the one button (copy rule 19). -->
+      <section class="close" id="close" aria-labelledby="close-title">
+        <div class="close__card">
+          <figure class="close__photo">
+            <img
+              data-slot="closeParent"
+              data-copy-alt="close.photo.alt"
+              alt=""
+              width="880"
+              height="1184"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+          <div class="close__body">
+            <h2 id="close-title" class="h2 rise-lines" data-copy="close.headline"></h2>
+            <p class="sub" data-copy="close.sub"></p>
+            <p class="close__objection" data-copy="close.objection"></p>
+            <a
+              class="button land-settle"
+              data-href="close.button.url"
+              data-copy="close.button"
+              href="#"
+            ></a>
+            <p class="close__date" data-copy="close.date"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer card with the wordmark cropped by its bottom edge, after 21st.dev 35508
+         (Giant Wordmark Footer, kedhareswer). -->
+    <footer class="foot">
+      <div class="foot__card">
+        <div class="foot__row">
+          <a
+            class="foot__contact"
+            data-href="footer.contact.url"
+            data-copy="footer.contact"
+            href="#"
+          ></a>
+          <nav class="foot__legal" aria-label="Legal">
+            <a data-href="footer.terms.url" data-copy="footer.terms" href="#"></a>
+            <a data-href="footer.privacy.url" data-copy="footer.privacy" href="#"></a>
+            <a data-href="footer.cookies.url" data-copy="footer.cookies" href="#"></a>
+            <a href="#top" data-copy="footer.top"></a>
+          </nav>
+          <!-- Two-option segmented switch, after 21st.dev 37721 (Theme Switch, zweiundeins). -->
+          <div class="theme" role="radiogroup" data-copy-label="header.theme.label">
+            <button
+              type="button"
+              role="radio"
+              data-theme-set="light"
+              data-copy="header.theme.light"
+            ></button>
+            <button
+              type="button"
+              role="radio"
+              data-theme-set="dark"
+              data-copy="header.theme.dark"
+            ></button>
+          </div>
+        </div>
+        <p class="foot__year" data-copy="footer.year"></p>
+        <svg class="foot__word" viewBox="0 0 142 36" aria-hidden="true">
+          <use href="#wordmark" />
+        </svg>
+      </div>
+    </footer>
+
+    <script src="copy.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+    <script src="try.js"></script>
+    <script src="portal.js"></script>
+  </body>
+</html>

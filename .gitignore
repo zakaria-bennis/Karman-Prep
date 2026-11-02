@@ -97,3 +97,4 @@ assets/generation-state.json
 /.impeccable/mocks/motion/node_modules
 /.impeccable/mocks/motion/.cache
 /.impeccable/mocks/motion/shots/*.png
+/.impeccable/mocks/rebuild/*/raw/

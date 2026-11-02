@@ -1,0 +1,501 @@
+/* Karman, "Through the screen", round 2. Modern UI: floating pill nav, framed hero stage, rounded
+   cards (28 / 20 / 14 px), pill buttons, Funnel Display + Funnel Sans, grain and soft light fields.
+   Colour tokens: docs/design/motion-and-colour-brief.md 2.1; build values: modern-ui-2026-11-01.md. */
+
+:root {
+  --ground: #f5f5f2;
+  --card: #eceae3;
+  --card-2: #e3e1d9;
+  --ink: #12110f;
+  --ink-2: #57564f; /* 6.1:1 on --card, 6.9:1 on --ground */
+  --line: rgba(18, 17, 15, 0.1);
+  --app: #f7f6f0; /* the Karman app's own ground, sampled from the captures */
+  --marigold: #eba21f;
+  --marigold-hover: #dc951a;
+  --marigold-ink: #94600a;
+  --pine: #1f4d45;
+  --on-pine: #f5f3ec;
+  --on-pine-2: #cfe0d9;
+  --night: #0e0d0c;
+  --on-night: #f1ede4;
+  --on-night-2: #c9c3b6;
+  --clay: #9a3b26;
+  --mark-line: var(--marigold);
+  --focus: #1f4d45;
+  --glass: rgba(245, 245, 242, 0.86);
+  --field: rgba(235, 162, 31, 0.16);
+  --grain-blend: multiply;
+
+  --f-display: "Funnel Display", "Helvetica Neue", Arial, sans-serif;
+  --f-text: "Funnel Sans", "Helvetica Neue", Arial, sans-serif;
+  --s-hero: clamp(42px, 5.1vw, 76px);
+  --s-h2: clamp(32px, 3.5vw, 52px);
+  --s-h3: clamp(21px, 1.7vw, 25px);
+  --s-body: 18px;
+  --s-small: 15px;
+
+  --margin: clamp(12px, 1.2vw, 16px);
+  --pad: clamp(20px, 3vw, 48px);
+  --gap: clamp(72px, 9vw, 140px);
+  --r-section: 28px;
+  --r-tile: 20px;
+  --r-media: 14px;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --ground: #151412;
+  --card: #1e1c19;
+  --card-2: #26241f;
+  --ink: #f1ede4;
+  --ink-2: #a39f97; /* 6.6:1 on --card */
+  --line: rgba(241, 237, 228, 0.1);
+  --app: #101d18;
+  --marigold-ink: #f0b545;
+  --pine: #275f55;
+  --night: #0a0a09;
+  --focus: #f0b545;
+  --glass: rgba(30, 28, 25, 0.82);
+  --field: rgba(39, 95, 85, 0.45);
+  --grain-blend: screen;
+  color-scheme: dark;
+}
+@media (max-width: 767px) {
+  :root {
+    --r-section: 20px;
+    --r-tile: 18px;
+  }
+}
+
+/* ---------- base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--f-text);
+  font-size: var(--s-body);
+  line-height: 1.5;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+/* Fine grain over the whole ground (modern-UI 2.12), 4 %, never takes a click. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: var(--grain-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+img,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+h1,
+h2,
+h3,
+p,
+ul,
+figure {
+  margin: 0;
+}
+ul {
+  padding: 0;
+  list-style: none;
+}
+a {
+  color: inherit;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+::selection {
+  background: var(--marigold);
+  color: #12110f;
+}
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 80;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: var(--s-small);
+}
+.skip:focus {
+  top: 16px;
+}
+
+.h2,
+.hero__title,
+.h3 {
+  font-family: var(--f-display);
+  text-wrap: balance;
+}
+.h2 {
+  font-size: var(--s-h2);
+  font-weight: 540;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
+}
+.h3 {
+  font-size: var(--s-h3);
+  font-weight: 540;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.sub,
+.tile__sub {
+  margin-top: 12px;
+  color: var(--ink-2);
+  max-width: 46ch;
+}
+.tile__sub {
+  margin-top: 6px;
+  font-size: 16px;
+}
+.chip {
+  display: inline-block;
+  padding: 0 0.2em;
+  border-radius: 0.28em;
+  background: var(--marigold);
+  color: #12110f;
+}
+
+/* Tactile pill button (modern-UI 2.15): the one marigold fill on screen. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: var(--marigold);
+  color: #12110f;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition:
+    background-color 0.16s ease,
+    transform 0.16s ease;
+}
+.button:hover {
+  background: var(--marigold-hover);
+}
+.button:active {
+  transform: scale(0.97);
+}
+.textlink {
+  display: inline-block;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.textlink:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* ---------- floating pill nav (modern-UI 2.1) ---------- */
+.nav {
+  position: fixed;
+  top: 12px;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav.is-hidden {
+  transform: translateY(calc(-100% - 16px));
+}
+.nav__pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 1180px;
+  height: 56px;
+  padding: 0 8px 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: 999px;
+}
+.nav__links {
+  display: none;
+  margin: 0 auto;
+  gap: 2px;
+}
+.nav__links a,
+.nav__theme,
+.nav__menu {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--s-small);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav__links a:hover,
+.nav__theme:hover,
+.nav__menu:hover {
+  background: var(--line);
+}
+.nav__theme {
+  display: none;
+}
+.nav__menu {
+  margin-left: auto;
+  border: 1px solid var(--line);
+}
+@media (min-width: 1024px) {
+  .nav__links {
+    display: flex;
+  }
+  .nav__theme {
+    display: inline-flex;
+  }
+  .nav__menu {
+    display: none;
+  }
+}
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 24px 40px;
+  background: var(--ground);
+}
+.sheet[hidden] {
+  display: none;
+}
+.sheet__close,
+.sheet__theme {
+  align-self: flex-end;
+  height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: var(--s-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+.sheet__theme {
+  align-self: flex-start;
+  margin-top: auto;
+}
+.sheet nav {
+  display: grid;
+  gap: 4px;
+}
+.sheet nav a {
+  padding: 10px 0;
+  font-family: var(--f-display);
+  font-size: 34px;
+  font-weight: 520;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+/* ---------- the phone: iPhone 17 Pro Max frame from the motion lab (device/README.md) ---------- */
+.phone {
+  position: relative;
+  aspect-ratio: 479 / 994;
+}
+.phone::before {
+  content: "";
+  position: absolute;
+  inset: 2% 3%;
+  border-radius: 16% / 8%;
+  box-shadow: 0 30px 60px -20px rgba(18, 17, 15, 0.35); /* modern-UI 2.11: the one shadow, under the phone */
+}
+.phone__screen {
+  position: absolute;
+  left: 4.071%;
+  top: 1.9115%;
+  width: 91.858%;
+  height: 96.1771%;
+  border-radius: 14.0909% / 6.4854%;
+  overflow: hidden;
+  background: var(--app);
+  isolation: isolate;
+}
+.phone__screen img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+/* A 9x16 feature clip shows its phone at 1.62x on a 1080 x 1920 frame; this crops it to the screen. */
+.phone__screen video {
+  position: absolute;
+  left: -25.756%;
+  top: -11.996%;
+  width: 151.515%;
+  height: 123.973%;
+  max-width: none;
+}
+.phone__screen > * {
+  transition: opacity 0.2s ease;
+}
+.phone__screen .is-out {
+  opacity: 0;
+}
+.phone__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ---------- opening (first visit) ---------- */
+.opening {
+  display: none;
+}
+.is-opening .opening {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  background: var(--ground);
+  color: var(--ink);
+}
+.opening__mark path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mk-frame {
+  stroke: currentColor;
+  stroke-width: 2.6;
+}
+.mk-line {
+  stroke: var(--marigold);
+  stroke-width: 3;
+}
+.opening.play .mk-frame,
+.opening.play .mk-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.opening.play .mk-frame {
+  animation: draw 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.opening.play .mk-line {
+  animation: draw 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) 0.42s forwards;
+}
+.opening.play .opening__word {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: arrive 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+.opening.leave {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.opening.fade {
+  animation: fadein 0.25s ease both;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes arrive {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Word masks for the Rise move (only when motion runs). */
+.motion .rise-lines .w {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: top;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.motion .rise-lines .w > span {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav,
+  .tabs__glide,
+  .phone__screen > * {
+    transition: none !important;
+  }
+}
