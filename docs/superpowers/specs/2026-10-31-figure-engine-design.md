@@ -28,14 +28,20 @@ Goal: every figure in the bank, and every figure answer choice, is drawn by one 
 - `type`: `table | bar | line | scatter | dot_plot | histogram | box_plot | plane | geometry2d | solid3d`.
 - `parts`: named elements, each with an `id` you could point at later. Examples: `point A`, `segment AB`, `ray AB` (a start point and a direction point, with an arrowhead), `line AB` (arrowheads at both ends), `circle O`, `arc`, `angle ABC`, `polygon`, `function f` (with an expression), `region` (shaded inequality or area), `axis`, `grid`, and the solids `prism`, `cylinder`, `cone`, `pyramid` and `sphere`.
 - `labels`: exam wording (`x°`, `12`, `Figure 1`), each attached to the part it describes.
-- `marks`: the SAT's conventions, namely right-angle box, equal-length ticks, equal-angle arcs, parallel arrows, dashed hidden edges, and the line "Note: Figure not drawn to scale." Equal-length ticks are 1.3 times the axis tick (`HOUSE.equalTickLength`, 7.8 against `tickLength` 6), spaced 1.3 times `markGap` (`HOUSE.equalTickGap`), so they read clearly on a side (founder, 2026-11-01). Axis ticks and parallel chevrons keep `tickLength`.
+- `marks`: the SAT's conventions, namely right-angle box, equal-length ticks, equal-angle arcs, parallel arrows, dashed hidden edges, and the line "Note: Figure not drawn to scale." (`notToScale: "figures"` prints "Note: Figures not drawn to scale." once under the last of several figures; the checks refuse a singular note on each) Equal-length ticks are 1.3 times the axis tick (`HOUSE.equalTickLength`, 7.8 against `tickLength` 6), spaced 1.3 times `markGap` (`HOUSE.equalTickGap`), so they read clearly on a side (founder, 2026-11-01). Axis ticks and parallel chevrons keep `tickLength`.
 - `frame`: for planes and charts, the axis ranges, grid step and axis labels. For geometry, nothing: the engine fits and centers the drawing. Optional frame fields (`PlaneFrame` in `src/lib/figures/engine/spec.ts`, added with the charts):
   - `step` and `yStep`: the grid and tick step on x (and on y too unless `yStep` is set) and on y. Without them the engine picks a 1, 2 or 5 × 10^k step.
   - `labelStep` and `yLabelStep`: label every `labelStep` on x (and y, unless `yLabelStep` is set, and only while the axes share one step), instead of every tick.
   - `categories`: names along x, one band each (bar charts). The x range becomes 0 to the number of categories, with no vertical grid lines.
   - `grid`: `false` draws no grid lines.
-  - `originLabel`: `false` leaves off the "0" where the axes meet, as printed SAT figures often do.
-  - `xLabel` and `yLabel`: the axis names.
+  - `originLabel`: `false` leaves off the "0" where the axes meet, as printed SAT figures often do; `"O"` prints the SAT's italic "O". The label sits below and left of the origin, or at the next free corner when tick labels are in the way; with no free corner the figure fails with a `label_collision`. It is never dropped silently.
+  - `xLabel` and `yLabel`: the axis names. A short one (x, y, t) is the letter at the axis end; a longer one is a title.
+  - `xTitle` and `yTitle`: a title beside the letter. The x title sits under the tick labels; the y title is turned to read upward, left of the y tick labels, as in Bluebook. With a title, `xLabel` and `yLabel` are only the letters, drawn when given.
+  - `thousands`: `true`, `"x"` or `"y"` groups tick numbers with commas ("1,200"). Years are left alone unless asked.
+  - `arrows`: `true` puts arrowheads on the axes' positive ends, `"both"` on both ends. The axes run just past the grid, and the letters sit at the arrow tips.
+  - `rotateCategories`: category names turned 45°. Unset, they turn only when one does not fit its band.
+- Tick labels are never dropped silently. An explicit `labelStep` or `yLabelStep` is kept whenever its labels do not overlap. When they would, every other one is drawn and a `crowded_ticks` issue says which step to set. Without one, labels thin to every other step while closer than 28px (rulings, T3), and the scene records it, so a missing tick number of the original is reported with the step to set.
+- Line charts with three or more series give each series its own line pattern (solid, dashed, dotted, dash-dot) and marker (triangle, square, circle, diamond; open ones filled with `paper`), shown in the legend swatch too. One or two series keep solid and dashed with filled dots. Legend names wider than the figure wrap.
 
 **Where coordinates come from (option C).**
 
@@ -69,7 +75,8 @@ Specs cannot set colors or pixel sizes. Colors come from theme roles: `ink`, `in
 
 - every label in the original's transcription is present, and none is invented;
 - every point declared on a line or circle lies on it (a point's `on` lists the segments, rays, lines, circles, arcs, polygons or functions it lies on);
-- nothing overlaps (label to label, label to line) and nothing is clipped;
+- nothing overlaps (label to label, label to line or curve, measured on the drawn curve) and nothing is clipped;
+- an angle's label sits inside its angle (`label_drift`), and every label the spec gives is drawn;
 - every `function` curve passes through every point the spec says it passes through;
 - `ray` and `line` parts end in arrowheads, and `segment` parts don't;
 - every shaded `region` has samples, and a boundary part or a label, so shading never carries meaning by color alone;

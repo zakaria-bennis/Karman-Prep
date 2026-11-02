@@ -57,19 +57,19 @@
 </path>
 <path d="M16 311.67 L16 317.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="16" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-5</text>
+<text x="10.6" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−5</text>
 <path d="M66.67 311.67 L66.67 317.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="66.67" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<text x="61.27" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−4</text>
 <path d="M117.33 311.67 L117.33 317.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="117.33" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-3</text>
+<text x="111.93" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−3</text>
 <path d="M168 311.67 L168 317.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="168" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<text x="162.6" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−2</text>
 <path d="M218.67 311.67 L218.67 317.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="218.67" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-1</text>
+<text x="213.27" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−1</text>
 <path d="M320 311.67 L320 317.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
 <text x="320" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>
@@ -93,13 +93,13 @@
 <text x="624" y="332.67" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">7</text>
 <path d="M266.33 464 L272.33 464" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="263.33" y="469" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-3</text>
+<text x="263.33" y="469" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−3</text>
 <path d="M266.33 414.22 L272.33 414.22" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="263.33" y="419.22" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<text x="263.33" y="419.22" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−2</text>
 <path d="M266.33 364.44 L272.33 364.44" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="263.33" y="369.44" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-1</text>
+<text x="263.33" y="369.44" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−1</text>
 <path d="M266.33 264.89 L272.33 264.89" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
 <text x="263.33" y="269.89" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>

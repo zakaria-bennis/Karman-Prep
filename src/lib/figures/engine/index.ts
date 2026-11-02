@@ -6,14 +6,15 @@
 
 import { buildChart } from "./charts";
 import { buildGeometry2d } from "./geometry2d";
-import { buildPlane, type Box } from "./plane";
+import { buildPlane } from "./plane";
+import type { Box } from "./plane-axes";
 import type { ScaleOptions, Scene } from "./scene";
 import { HOUSE } from "./house";
 import { buildSolid3d } from "./solid3d";
 import type { FigureSpec } from "./spec";
 import { CHART_TYPES, defaultBoxForType } from "./spec-types";
 
-export type { Box } from "./plane";
+export type { Box } from "./plane-axes";
 
 const CHARTS: readonly string[] = CHART_TYPES;
 

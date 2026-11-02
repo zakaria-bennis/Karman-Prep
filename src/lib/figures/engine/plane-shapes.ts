@@ -14,7 +14,8 @@
  * reported as `region_unmarked`.
  */
 import { HOUSE } from "./house";
-import { clipPolyline, fmt, type Mapper } from "./plane";
+import { clipPolyline } from "./plane";
+import { fmt, type Mapper } from "./plane-axes";
 import type { SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
 

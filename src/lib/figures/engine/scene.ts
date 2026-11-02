@@ -12,7 +12,11 @@ export type Role =
   /** The figure's own background: the separator line between touching bars or bins. */
   | "paper";
 
-export type Weight = "line" | "grid" | "dashed";
+/**
+ * Stroke weights. "dashed", "dotted" and "dashdot" are the line patterns that tell
+ * the series of a line chart apart without color, as Bluebook does.
+ */
+export type Weight = "line" | "grid" | "dashed" | "dotted" | "dashdot";
 
 export type SceneItem =
   | {
@@ -37,6 +41,11 @@ export type SceneItem =
       anchor: "start" | "middle" | "end";
       /** Variables (x, y) print in italic, as in Bluebook. */
       italic?: boolean;
+      /**
+       * Degrees the text turns about (x, y), clockwise as in SVG: -90 reads bottom to
+       * top (a y-axis title), -45 slopes up to the right (crowded category names).
+       */
+      rotate?: number;
       partId?: string;
     }
   | {
@@ -61,10 +70,17 @@ export type SceneIssue = {
     | "unsampled_function"
     | "unsampled_region"
     | "region_unmarked"
-    | "frame_mismatch";
+    | "frame_mismatch"
+    /** Tick labels the spec asked for were too crowded to draw; some were left out. */
+    | "crowded_ticks"
+    /** A label drawn away from what it names (outside its angle). */
+    | "label_drift";
   partId?: string;
   detail: string;
 };
+
+/** Tick labels an axis drew less often than the spec's steps asked for (plane-axes.ts). */
+export type ThinnedTicks = { axis: "x" | "y"; asked: number; drawn: number };
 
 export type Scene = {
   width: number;
@@ -74,6 +90,10 @@ export type Scene = {
   description: string;
   /** Shapes and solids: px per world unit. Figure choices draw a set at one scale with it. */
   scale?: number;
+  /** Shapes: every named point where it is drawn, in px (the checks find angles by it). */
+  points?: Record<string, [number, number]>;
+  /** Planes and charts: axes whose tick labels were thinned (the checks explain a missing tick number). */
+  thinned?: ThinnedTicks[];
   /** Where the drawing starts in its box, when it was padded to a larger box (centered). */
   offset?: [number, number];
 };

@@ -29,7 +29,8 @@ import {
   type GeoScene,
   type Pt,
 } from "./marks";
-import { clipParam, fmt } from "./plane";
+import { clipParam } from "./plane";
+import { fmt } from "./plane-axes";
 import type { ScaleOptions, Scene, SceneIssue, SceneItem } from "./scene";
 import type { FigureSpec, Label, Part } from "./spec";
 
@@ -37,20 +38,24 @@ type Box = { width: number; height: number };
 type TwoPoint = Extract<Part, { kind: "segment" | "ray" | "line" }>;
 
 export const NOT_TO_SCALE = "Note: Figure not drawn to scale.";
+/** The note printed once under several figures (a list, or figures side by side in one). */
+export const NOT_TO_SCALE_PLURAL = "Note: Figures not drawn to scale.";
 
 /**
  * The note as one line, or as two broken at the space nearest the middle
  * when one line would not fit the box less the margin. Joined with one
- * space, the lines are always exactly NOT_TO_SCALE.
+ * space, the lines are always exactly the note: NOT_TO_SCALE, or
+ * NOT_TO_SCALE_PLURAL when `which` is "figures".
  */
-export function noteLines(width: number): string[] {
-  if (textWidth(NOT_TO_SCALE) <= width - 2 * HOUSE.margin) return [NOT_TO_SCALE];
-  const mid = NOT_TO_SCALE.length / 2;
+export function noteLines(width: number, which: true | "figures" = true): string[] {
+  const note = which === "figures" ? NOT_TO_SCALE_PLURAL : NOT_TO_SCALE;
+  if (textWidth(note) <= width - 2 * HOUSE.margin) return [note];
+  const mid = note.length / 2;
   let cut = -1;
-  for (let i = 0; i < NOT_TO_SCALE.length; i++) {
-    if (NOT_TO_SCALE[i] === " " && (cut < 0 || Math.abs(i - mid) < Math.abs(cut - mid))) cut = i;
+  for (let i = 0; i < note.length; i++) {
+    if (note[i] === " " && (cut < 0 || Math.abs(i - mid) < Math.abs(cut - mid))) cut = i;
   }
-  return [NOT_TO_SCALE.slice(0, cut), NOT_TO_SCALE.slice(cut + 1)];
+  return [note.slice(0, cut), note.slice(cut + 1)];
 }
 
 /** A traced angle this close to 90° is snapped when it is marked right_angle. */
@@ -473,7 +478,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
 
   // Layout: the box less the margin, room for labels outside the shape, and the note band.
   const font = HOUSE.font;
-  const note = spec.notToScale ? noteLines(box.width) : [];
+  const note = spec.notToScale ? noteLines(box.width, spec.notToScale) : [];
   const noteBand = note.length ? note.length * 1.25 * font + HOUSE.labelOffset : 0;
   const widest = Math.max(0, ...spec.labels.map((l) => textWidth(l.text)));
   const roomX = spec.labels.length ? HOUSE.labelOffset + widest : 0;
@@ -659,5 +664,13 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
   items.push(...placed.items.slice(collision.length));
   issues.push(...placed.issues);
 
-  return { width: box.width, height: box.height, items, issues, description, scale };
+  return {
+    width: box.width,
+    height: box.height,
+    items,
+    issues,
+    description,
+    scale,
+    points: Object.fromEntries(points),
+  };
 }

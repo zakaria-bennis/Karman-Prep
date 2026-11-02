@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 490" role="img" aria-label="Total Science Research Submissions by Topic, 2016–2019. Line graph of 4 series. X-axis: x. Y-axis: y. Cellular and molecular biology: points (0.5, 200), (1.5, 300), (2.5, 280), (3.5, 280); physics and space science: points (0.5, 97), (1.5, 90), (2.5, 87), (3.5, 100); medicine and health: points (0.5, 220), (1.5, 220), (2.5, 223), (3.5, 285); animal science: points (0.5, 50), (1.5, 50), (2.5, 50), (3.5, 90)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M57.75 378.25 L584 378.25" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 329.93 L584 329.93" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 281.61 L584 281.61" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 233.29 L584 233.29" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 184.96 L584 184.96" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 136.64 L584 136.64" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 88.32 L584 88.32" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 40 L584 40" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M57.75 378.25 L584 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M57.75 378.25 L57.75 40" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<text x="123.53" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">2016</text>
+<text x="255.09" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">2017</text>
+<text x="386.66" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">2018</text>
+<text x="518.22" y="399.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">2019</text>
+<path d="M54.75 378.25 L60.75 378.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="383.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M54.75 329.93 L60.75 329.93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="334.93" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">50</text>
+<path d="M54.75 281.61 L60.75 281.61" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="286.61" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">100</text>
+<path d="M54.75 233.29 L60.75 233.29" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="238.29" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">150</text>
+<path d="M54.75 184.96 L60.75 184.96" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="189.96" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">200</text>
+<path d="M54.75 136.64 L60.75 136.64" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="141.64" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">250</text>
+<path d="M54.75 88.32 L60.75 88.32" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="93.32" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">300</text>
+<path d="M54.75 40 L60.75 40" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="51.75" y="45" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">350</text>
+<text x="320.88" y="420.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Year</text>
+<text x="15" y="209.13" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-90 15 209.13)">Number of submissions</text>
+<path d="M123.53 184.96 L255.09 88.32 L386.66 107.65 L518.22 107.65" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M123.53 179.79 L128.03 188.34 L119.03 188.34 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M255.09 83.15 L259.59 91.7 L250.59 91.7 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M386.66 102.48 L391.16 111.03 L382.16 111.03 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M518.22 102.48 L522.72 111.03 L513.72 111.03 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M123.53 284.51 L255.09 291.27 L386.66 294.17 L518.22 281.61" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s2">
+</path>
+<path d="M119.71 280.68 L127.36 280.68 L127.36 288.33 L119.71 288.33 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M251.27 287.45 L258.92 287.45 L258.92 295.1 L251.27 295.1 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M382.83 290.35 L390.48 290.35 L390.48 298 L382.83 298 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M514.39 277.78 L522.04 277.78 L522.04 285.43 L514.39 285.43 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M123.53 165.64 L255.09 165.64 L386.66 162.74 L518.22 102.82" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" stroke-dasharray="0.5 3.5" data-part="s3">
+</path>
+<path d="M119.48 165.64 A4.05 4.05 0 1 0 127.58 165.64 A4.05 4.05 0 1 0 119.48 165.64 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M251.04 165.64 A4.05 4.05 0 1 0 259.14 165.64 A4.05 4.05 0 1 0 251.04 165.64 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M382.61 162.74 A4.05 4.05 0 1 0 390.71 162.74 A4.05 4.05 0 1 0 382.61 162.74 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M514.17 102.82 A4.05 4.05 0 1 0 522.27 102.82 A4.05 4.05 0 1 0 514.17 102.82 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M123.53 329.93 L255.09 329.93 L386.66 329.93 L518.22 291.27" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="7 3 1 3" data-part="s4">
+</path>
+<path d="M123.53 324.53 L128.03 329.93 L123.53 335.33 L119.03 329.93 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<path d="M255.09 324.53 L259.59 329.93 L255.09 335.33 L250.59 329.93 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<path d="M386.66 324.53 L391.16 329.93 L386.66 335.33 L382.16 329.93 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<path d="M518.22 285.87 L522.72 291.27 L518.22 296.67 L513.72 291.27 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Total Science Research Submissions by Topic, 2016–2019</text>
+<path d="M157.13 440 L187.13 440" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<path d="M172.13 434.83 L176.63 443.38 L167.63 443.38 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="193.13" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">cellular and molecular biology</text>
+<path d="M63.38 458 L93.38 458" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="legend">
+</path>
+<path d="M74.55 454.18 L82.2 454.18 L82.2 461.83 L74.55 461.83 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="99.38" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">physics and space science</text>
+<path d="M334.88 458 L364.88 458" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" stroke-dasharray="0.5 3.5" data-part="legend">
+</path>
+<path d="M345.83 458 A4.05 4.05 0 1 0 353.93 458 A4.05 4.05 0 1 0 345.83 458 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="370.88" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">medicine and health</text>
+<path d="M221.63 476 L251.63 476" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="7 3 1 3" data-part="legend">
+</path>
+<path d="M236.63 470.6 L241.13 476 L236.63 481.4 L232.13 476 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="257.63" y="481" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">animal science</text>
+</svg>

@@ -1,0 +1,42 @@
+{
+  "source": "2023-12_UNSPECIFIED_V1_RW_M2_Q12: category names turned 45°, long title over an upright y title",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "bar",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "bar",
+        "values": [0, 0, 2, 1, 2, 3, 8]
+      },
+      {
+        "kind": "series",
+        "id": "s2",
+        "seriesKind": "bar",
+        "values": [1, 0, 1, 1, 0, 1, 3]
+      }
+    ],
+    "labels": [
+      {
+        "text": "escaping",
+        "on": "s1"
+      },
+      {
+        "text": "pursuing",
+        "on": "s2"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [0, 7],
+      "y": [0, 9],
+      "yStep": 1,
+      "categories": ["30–39", "40–49", "50–59", "60–69", "70–79", "80–89", "90–100"],
+      "xTitle": "Percent of maximal speed",
+      "yTitle": "Number of lizard species",
+      "rotateCategories": true
+    },
+    "title": "Number of Lizard Species by Average Percent of Maximal Speed Used When Pursuing Prey or Escaping Predators"
+  }
+}
