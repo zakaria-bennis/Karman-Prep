@@ -9,6 +9,26 @@ What it shows: a dark pricing page ("Simple pricing. Easy setup."), a Monthly / 
 segmented control, price cards, a checkout page with line items, tax and totals, and a
 signed-in subscription page (next payment, payment method, payment history, line items).
 
+## Founder decision (2026-11-01, later the same day)
+
+"You can put three tier cards (including free) and use the design elements in the page
+ignoring the strict rules." So the pricing page follows the starter closely:
+
+1. **Three tier cards in a row: Free, Platform, Plus**, with the segmented control above
+   them. A second view of the control shows the tutor plans (the cohort and Private) in
+   the same card design; School stays a line under the cards.
+2. **The starter's design elements are allowed here:** the soft glow behind the
+   featured card, the faint grid background, grain, frosted cards, the fading gradient
+   card border, a "most popular" badge, and an icon per feature line. Use Karman's
+   palette (marigold and pine, not Paddle's yellow-green) and Karman's own drawn icons,
+   not Lucide.
+3. **Still required:** AA contrast in light and dark (the starter is dark only; build
+   the light version too), no overlap, no sideways scroll, prices and claims only from
+   `offer.ts`, copy rules (so not the two-beat "Simple pricing. Easy setup."), and one
+   clearly highlighted button per screen, on the featured card.
+
+The original analysis follows; where it says "change these", the decision above wins.
+
 ## Take these
 
 1. **A short, big headline and almost nothing else above the cards.** Two lines at

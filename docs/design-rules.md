@@ -146,6 +146,16 @@ these on top of the rules above. Where they conflict, these win inside the app.
 58. Phone screens are drawn for the iPhone 17 Pro Max (440 x 956 points, thin
     bezel, Dynamic Island). Light mode is bone, never pure white.
 
+## Founder decision, 2026-11-01
+
+The rules above are things to minimise and steer away from when unsure, not
+absolute bans, when the founder decides a page needs otherwise. For the pricing
+page he decided: three tier cards in a row, including Free, and the design
+elements of the Paddle Billing starter kit's pricing page
+(`docs/design/research/paddle-pricing-reference.md`) are allowed, even where they
+touch rules 1, 6, 8, 16, 17, 21 and 22. Contrast (33), overlap (34), sideways
+scroll (28), no invented claims and the copy rules still hold.
+
 ## Copy rules
 
 Set by the founder on 2026-10-19. Every word on the website follows these.
