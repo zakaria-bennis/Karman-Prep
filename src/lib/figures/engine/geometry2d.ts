@@ -563,7 +563,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
         partId: part.id,
       };
       if (part.kind === "ray") item.arrows = "end";
-      if (part.kind === "line") item.arrows = "both";
+      if (part.kind === "line" && part.arrows !== false) item.arrows = "both";
       items.push(item);
     } else if (part.kind === "circle") {
       const k = circleOf(part, points, scale);

@@ -9,6 +9,7 @@
  */
 import { isFramed, sharedFrame } from "@/lib/figures/engine/choices";
 import type { FigureSpec, PlaneFrame } from "@/lib/figures/engine/spec";
+import type { LineSetGeometry, RealFn1 } from "@/lib/calculator/plot/geometry";
 import { plot, plotInput, viewFor } from "./calculator-read";
 import { regionSamples } from "./sample-regions";
 
@@ -29,9 +30,15 @@ export function curveFor(
   frame: PlaneFrame,
   box: { width: number; height: number }
 ): number[][] {
-  const input = plotInput(latex);
+  // A bare expression ("-5", "x^2") is the graph of y = it, as a function part means.
+  const bare = !/[=<>]|\\[lg]eq?\b|\\[lg]t\b/.test(latex);
+  const input = plotInput(latex) ?? (bare ? plotInput(`y=${latex}`) : null);
   if (input === null) return [];
   const geometry = plot(input, viewFor(frame, box));
+  if (geometry.kind === "lines") {
+    const fs = input.kind === "lines" ? input.fs : [];
+    return lineSetRuns(geometry, fs, frame);
+  }
   if (geometry.kind !== "curve") return [];
   const runs: number[][] = [];
   let run: number[] = [];
@@ -47,6 +54,37 @@ export function curveFor(
     }
   }
   if (run.length >= 4) runs.push(run);
+  return runs;
+}
+
+/**
+ * A root the calculator found by bisection, made exact when a short decimal
+ * near it is a true zero of the line's equation (y = -5 gives -5, not -4.999997).
+ */
+function exactRoot(root: number, fs: RealFn1[], tolerance: number): number {
+  for (let d = 0; d <= 12; d++) {
+    const c = Number(root.toFixed(d)) || 0;
+    if (Math.abs(c - root) <= tolerance && fs.some((f) => f(c) === 0)) return c;
+  }
+  return root;
+}
+
+/**
+ * A constant (y = -5) or a vertical line (x = 3) as runs across the frame: the
+ * calculator draws these as a line set (one level per position), not a sampled
+ * curve. A position off the frame draws nothing.
+ */
+function lineSetRuns(lines: LineSetGeometry, fs: RealFn1[], frame: PlaneFrame): number[][] {
+  const horizontal = lines.orientation === "horizontal";
+  const [lo, hi] = horizontal ? frame.y : frame.x;
+  const tolerance = (hi - lo) * 1e-4;
+  const runs: number[][] = [];
+  for (const found of lines.positions) {
+    if (!Number.isFinite(found)) continue;
+    const v = exactRoot(found, fs, tolerance);
+    if (v < lo || v > hi) continue;
+    runs.push(horizontal ? [frame.x[0], v, frame.x[1], v] : [v, frame.y[0], v, frame.y[1]]);
+  }
   return runs;
 }
 

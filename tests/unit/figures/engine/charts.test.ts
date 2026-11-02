@@ -579,7 +579,7 @@ describe("sampleExpression", () => {
 
 // Found in the Task 12 golden review.
 describe("chart axes where they meet away from the origin", () => {
-  it("a histogram from 10 keeps the x label 10 and leaves off the y label 0 that would sit on it", () => {
+  it("a histogram from 10 prints the x label 10 and the y label 0 beside it, as the SAT does", () => {
     const spec: FigureSpec = {
       version: FIGURE_SPEC_VERSION,
       type: "histogram",
@@ -603,7 +603,8 @@ describe("chart axes where they meet away from the origin", () => {
     const scene = buildChart(spec, BOX);
     const shown = texts(scene).map((t) => t.text);
     expect(shown).toContain("10");
-    expect(shown).not.toContain("0");
+    // Their digits do not touch (2024-10_ASIA_V1_MATH_M2_Q07 prints both).
+    expect(shown).toContain("0");
     expect(shown).toContain("1");
     expect(scene.issues).toEqual([]);
   });

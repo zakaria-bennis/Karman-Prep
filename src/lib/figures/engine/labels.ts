@@ -7,7 +7,8 @@
  *   short chords along its curve, so a label never sits on an arc. Grid-weight paths are ignored, since they
  *   cross everything, and so are fills drawn without a stroke (a shaded
  *   region). Rect items are not tested.
- * - Text boxes come from the house advance estimate, not real font metrics.
+ * - Text boxes come from the house advance estimate, not real font metrics,
+ *   except between two numbers, which compare by their digits' measured size.
  */
 import { HOUSE } from "./house";
 import type { SceneIssue, SceneItem } from "./scene";
@@ -53,6 +54,38 @@ export function textWidth(text: string): number {
   let em = 0;
   for (const ch of text) em += WIDE[ch] ?? (NARROW.has(ch) ? NARROW_EM : HOUSE.charWidthEm);
   return em * HOUSE.font;
+}
+
+/** A number as a tick prints it: digits with an optional minus, thousands commas and a point. */
+const NUMBER = /^[\u2212-]?\d[\d,]*(\.\d+)?$/;
+
+/**
+ * The width a number really takes: digits at their tabular 0.5em in the figure font
+ * (0.495em measured), the minus at 0.72em, comma and point narrow. textWidth stays
+ * the generous estimate for every other text.
+ */
+export function numberWidth(text: string): number {
+  let em = 0;
+  for (const ch of text) em += ch === "\u2212" ? 0.72 : /\d/.test(ch) ? 0.5 : 0.35;
+  return em * HOUSE.font;
+}
+
+/** Digits' height above the baseline in the figure font (0.68em measured), rounded up. */
+const DIGIT_HEIGHT_EM = 0.7;
+/** Clear space two numbers keep around their glyphs. */
+const DIGIT_PAD = 1;
+
+/**
+ * The glyphs of an upright number: its real width, digit height above the
+ * baseline and nothing below (digits have no descender), padded by DIGIT_PAD.
+ * Null for any other text, which keeps its generous box.
+ */
+function digitBox(t: TextItem): Rect | null {
+  if (t.rotate || !NUMBER.test(t.text)) return null;
+  const w = numberWidth(t.text);
+  const x0 = t.anchor === "start" ? t.x : t.anchor === "middle" ? t.x - w / 2 : t.x - w;
+  const top = t.y - DIGIT_HEIGHT_EM * HOUSE.font;
+  return [x0 - DIGIT_PAD, x0 + w + DIGIT_PAD, top - DIGIT_PAD, t.y + DIGIT_PAD];
 }
 
 /** The box [left, right, top, bottom] of a text item before any rotation. */
@@ -122,6 +155,8 @@ export function textBox(t: TextItem): Rect {
 
 /**
  * How far two texts overlap, as [width, height] of their shared box (≤ 0: apart).
+ * Two upright numbers are compared by their glyphs (digitBox), padded to keep a
+ * clear gap; every other pair by the generous text box.
  * Two texts turned by the same angle (a row of slanted category names) are
  * compared in their own turned frame, so their slanted boxes count, not the
  * larger upright boxes around them.
@@ -130,7 +165,14 @@ export function textOverlap(a: TextItem, b: TextItem): [number, number] {
   const r = a.rotate ?? 0;
   let ra: Rect;
   let rb: Rect;
-  if (r && (b.rotate ?? 0) === r) {
+  const da = digitBox(a);
+  const db = digitBox(b);
+  if (da && db) {
+    // Two numbers (a y tick label beside an x tick label where the axes meet) are
+    // compared by their glyphs, so the corner keeps both, as the SAT prints them.
+    ra = da;
+    rb = db;
+  } else if (r && (b.rotate ?? 0) === r) {
     // Turn b's anchor back into a's frame; both boxes are then upright there.
     const [bx, by] = turn([b.x, b.y], [a.x, a.y], -r);
     ra = uprightBox(a);

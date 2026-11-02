@@ -61,6 +61,7 @@
 <text x="584" y="375.25" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">35</text>
 <path d="M13 357.25 L19 357.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
+<text x="10" y="362.25" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
 <path d="M13 321.56 L19 321.56" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
 <text x="10" y="326.56" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>

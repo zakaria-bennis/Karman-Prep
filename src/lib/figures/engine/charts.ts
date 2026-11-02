@@ -21,11 +21,10 @@ import { HOUSE } from "./house";
 import { textWidth } from "./labels";
 import { lineStyle, marker, STYLED_SWATCH, type LineStyle } from "./line-styles";
 import { dotAt, functionItems } from "./plane";
+import { LINE_HEIGHT, wrapText } from "./axis-names";
 import {
-  LINE_HEIGHT,
   fmt,
   planeAxes,
-  wrapText,
   type Box,
   type Mapper,
   type Rect as Box4,
@@ -88,8 +87,14 @@ export function chartSpecFrame(spec: FigureSpec): PlaneFrame | null {
   return spec.frame ?? autoFrame(spec.type, series);
 }
 
-/** The frame adjusted for the chart: bars include 0, number lines need no y range. */
+/**
+ * The frame adjusted for the chart: bars and bins rise from 0, unless the y-axis
+ * is broken (they then rise from the range's start, above the break).
+ */
 function chartFrame(type: ChartKind, frame: PlaneFrame, series: Series[]): PlaneFrame {
+  const y: [number, number] = frame.yBreak
+    ? frame.y
+    : [Math.min(0, frame.y[0]), Math.max(type === "bar" ? 0 : frame.y[1], frame.y[1])];
   if (type === "bar") {
     const n = Math.max(
       frame.categories?.length ?? 0,
@@ -99,10 +104,10 @@ function chartFrame(type: ChartKind, frame: PlaneFrame, series: Series[]): Plane
     return {
       ...frame,
       categories: frame.categories ?? Array.from({ length: n }, () => ""),
-      y: [Math.min(0, frame.y[0]), Math.max(0, frame.y[1])],
+      y,
     };
   }
-  if (type === "histogram") return { ...frame, y: [Math.min(0, frame.y[0]), frame.y[1]] };
+  if (type === "histogram") return { ...frame, y };
   return frame;
 }
 

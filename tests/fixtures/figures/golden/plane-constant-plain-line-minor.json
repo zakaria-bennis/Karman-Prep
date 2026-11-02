@@ -1,0 +1,47 @@
+{
+  "source": "hand-modelled: held-01 gaps 3-5, a flat function y = -5, a line without arrowheads and minor ticks every unit",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "plane",
+    "parts": [
+      {
+        "kind": "function",
+        "id": "f",
+        "latex": "y=-5",
+        "samples": [
+          [
+            [-8, -5],
+            [8, -5]
+          ]
+        ]
+      },
+      {
+        "kind": "point",
+        "id": "A",
+        "x": -4,
+        "y": -2
+      },
+      {
+        "kind": "point",
+        "id": "B",
+        "x": 4,
+        "y": 6
+      },
+      {
+        "kind": "line",
+        "id": "l",
+        "from": "A",
+        "to": "B",
+        "arrows": false
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [-8, 8],
+      "y": [-8, 8],
+      "step": 2,
+      "minorStep": 1
+    }
+  }
+}
