@@ -22,8 +22,41 @@ function plotDeadline() {
   return createWorkDeadline({ clock, now, limitMs: null, rowId: ROW_ID });
 }
 
-/** The calculator's plot input for one formula row, or null when it cannot graph it. */
+/**
+ * Plain bars written for absolute value ("|x-2|") as the calculator's own
+ * \left| ... \right| pairs, read left to right: a bar opens a pair unless one
+ * is open. Bars already written \left| or \right| are kept. Null when there
+ * are no plain bars or they do not pair up.
+ */
+export function pairedBars(latex: string): string | null {
+  const parts = latex.split(/(\\left\||\\right\||\|)/);
+  let open = false;
+  let plain = 0;
+  const out = parts.map((p) => {
+    if (p === "\\left|") open = true;
+    else if (p === "\\right|") open = false;
+    else if (p === "|") {
+      plain++;
+      open = !open;
+      return open ? "\\left|" : "\\right|";
+    }
+    return p;
+  });
+  return plain && !open ? out.join("") : null;
+}
+
+/**
+ * The calculator's plot input for one formula row, or null when it cannot graph
+ * it. Plain absolute-value bars ("y=|x|") are read as the calculator writes them.
+ */
 export function plotInput(latex: string): PlotInput | null {
+  const input = rowInput(latex);
+  if (input !== null) return input;
+  const paired = pairedBars(latex);
+  return paired === null ? null : rowInput(paired);
+}
+
+function rowInput(latex: string): PlotInput | null {
   const analysis = analyzeRows([{ id: ROW_ID, latex, hidden: false }], SETTINGS);
   const row = analysis.byId.get(ROW_ID);
   if (!row || row.graph === null) return null;
