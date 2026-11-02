@@ -38,15 +38,13 @@
       }
     </style>
     <script>
-      /* Before first paint: the remembered theme, the opening on a first visit, and whether motion runs. */
+      /* Before first paint: the remembered theme and whether motion runs. Nothing in the hero is ever hidden. */
       (function () {
         var d = document.documentElement;
         var t = null;
-        var seen = null;
         var paused = false;
         try {
           t = localStorage.getItem("karman-theme");
-          seen = localStorage.getItem("karman-day-opened");
           paused = localStorage.getItem("karman-motion") === "paused";
         } catch (e) {}
         if (t === "light" || t === "dark") d.setAttribute("data-theme", t);
@@ -54,21 +52,37 @@
         var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (!still && !paused) {
           d.classList.add("js-motion");
-          /* if the motion script never arrives, show everything after 3 s */
+          /* only chapters below the hero are ever hidden; if motion has not started after 2.5 s, show them */
           setTimeout(function () {
             if (!window.gsap) d.classList.remove("js-motion");
-          }, 3000);
+          }, 2500);
         }
-        if (!seen) d.classList.add("intro-on");
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Funnel+Sans:wght@300..800&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Funnel+Sans:wght@300..800&display=swap"
+      media="print"
+      onload="this.media = 'all'"
     />
     <link rel="stylesheet" href="day.css" />
+    <link
+      rel="preload"
+      as="image"
+      href="img/home-dark-720.webp"
+      media="(prefers-color-scheme: dark), (prefers-color-scheme: no-preference)"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="img/home-light-720.webp"
+      media="(prefers-color-scheme: light)"
+      fetchpriority="high"
+    />
+    <link rel="preload" as="image" href="../../motion/device/iphone-17-pro-max-orange.svg" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -131,18 +145,6 @@
 
     <a class="skip" href="#main" data-c="site/skip">Skip to the page</a>
 
-    <div class="intro" id="intro" aria-hidden="true">
-      <div class="intro-logo">
-        <svg class="intro-mark" viewBox="0 0 32 32">
-          <path class="i-ring" pathLength="1" d="M26.4 9.2A13 13 0 1 0 29 16.8" />
-          <path class="i-stem" pathLength="1" d="M12.6 8.4V23.6" />
-          <path class="i-leg" pathLength="1" d="M15.6 14 21.2 23.6" />
-          <path class="i-hand" d="M12.6 16.4 21.4 9" />
-        </svg>
-        <svg class="intro-word" viewBox="-1.6 -1.6 78 18.4"><use href="#word" /></svg>
-      </div>
-    </div>
-
     <!-- Floating pill navigation: hides going down, returns going up (21st.dev 18090, see day.js) -->
     <header class="bar" id="bar">
       <a class="brand" href="#top" aria-label="Karman, back to the top">
@@ -195,7 +197,7 @@
 
     <main id="main">
       <!-- 6:50 a.m. The hero stage: pill, clock, headline with one chip, the button; Maya on marigold with
-           the iPhone 17 Pro Max floating over her, and the day's tabs that swap its screen. -->
+           the iPhone 17 Pro Max on a marigold field, under the day's tabs that swap its screen. -->
       <section class="hero" id="top" aria-labelledby="hero-h">
         <div class="stage">
           <div class="hero-copy">
@@ -223,11 +225,78 @@
             </div>
           </div>
           <div class="hero-media">
-            <figure class="media-card hero-photo" data-slot-host="hero">
-              <!-- slot "hero" (alt: Maya, a high-school student, against a marigold backdrop, headphones around her neck.) is filled by day.js from SLOTS -->
-            </figure>
+            <div class="tabs" id="tabs" role="tablist" aria-label="Her day in the Karman app">
+              <span class="tab-ind" aria-hidden="true"></span>
+              <button
+                class="tab"
+                id="tab-0"
+                type="button"
+                role="tab"
+                aria-controls="hero-phone"
+                aria-selected="true"
+                tabindex="0"
+              >
+                <span class="t">6:50</span><span class="n">Home</span>
+              </button>
+              <button
+                class="tab"
+                id="tab-1"
+                type="button"
+                role="tab"
+                aria-controls="hero-phone"
+                aria-selected="false"
+                tabindex="-1"
+              >
+                <span class="t">7:40</span><span class="n">Daily 10</span>
+              </button>
+              <button
+                class="tab"
+                id="tab-2"
+                type="button"
+                role="tab"
+                aria-controls="hero-phone"
+                aria-selected="false"
+                tabindex="-1"
+              >
+                <span class="t">3:40</span><span class="n">Calendar</span>
+              </button>
+              <button
+                class="tab"
+                id="tab-3"
+                type="button"
+                role="tab"
+                aria-controls="hero-phone"
+                aria-selected="false"
+                tabindex="-1"
+              >
+                <span class="t">9:00</span><span class="n">Rewards</span>
+              </button>
+              <button
+                class="tab"
+                id="tab-4"
+                type="button"
+                role="tab"
+                aria-controls="hero-phone"
+                aria-selected="false"
+                tabindex="-1"
+              >
+                <span class="t">9:15</span><span class="n">Parent</span>
+              </button>
+            </div>
             <div class="phone hero-phone" id="hero-phone" role="tabpanel" aria-labelledby="tab-0">
-              <div class="scr" id="hero-screens"></div>
+              <div class="scr" id="hero-screens">
+                <picture class="shot is-on" data-key="home">
+                  <source media="(prefers-color-scheme: light)" srcset="img/home-light-720.webp" />
+                  <img
+                    src="img/home-dark-720.webp"
+                    width="440"
+                    height="956"
+                    fetchpriority="high"
+                    decoding="async"
+                    alt="Her Karman home screen: Your Daily 10, what's due and her next live class."
+                  />
+                </picture>
+              </div>
               <img
                 class="frame"
                 src="../../motion/device/iphone-17-pro-max-orange.svg"
@@ -236,34 +305,24 @@
                 height="994"
               />
             </div>
-            <div class="tabs" id="tabs" role="tablist" aria-label="Her day in the Karman app">
-              <span class="tab-ind" aria-hidden="true"></span>
-            </div>
           </div>
         </div>
       </section>
 
-      <!-- 7:40 a.m. Your Daily 10, on a marigold block: the real question engine on her phone. -->
+      <!-- 7:40 a.m. Your Daily 10: the real question engine on her phone, stepping through its own states. -->
       <section class="ch" id="daily" aria-labelledby="daily-h">
-        <div class="card c-marigold">
+        <div class="card c-tone">
           <div class="ch-copy">
             <p class="clock" data-clock="daily/clock">7:40 a.m.</p>
             <h2 class="h2" id="daily-h" data-k="daily/headline">
               What she misses <span class="kw">comes back</span>.
             </h2>
             <p class="sub" data-c="daily/text">
-              Ten minutes a day. Each miss returns after 2, 7 and 21 days.
+              Ten minutes a day. Every question she misses comes back after 2, 7 and 21 days.
             </p>
-            <p class="note" data-c="daily/soon">Your Daily 10 arrives this winter.</p>
           </div>
-          <div class="ch-media">
-            <div
-              class="phone"
-              data-clip="daily"
-              data-kind="engine"
-              role="img"
-              data-alt-c="daily/clip alt"
-            >
+          <div class="ch-media crop">
+            <div class="phone" data-demo="daily" role="img" data-alt-c="daily/clip alt">
               <div class="scr"></div>
               <img
                 class="frame"
@@ -278,30 +337,26 @@
         </div>
       </section>
 
-      <!-- 3:40 p.m. Pine: the pool, and the calendar where she books her next session. -->
+      <!-- 3:40 p.m. Pine: after rehearsal, her Classes calendar (a code demo of the real capture scrolling). -->
       <section class="ch" id="calendar" aria-labelledby="cal-h">
         <div class="card c-pine flip">
           <div class="ch-copy">
             <p class="clock" data-clock="calendar/clock">3:40 p.m.</p>
             <h2 class="h2" id="cal-h" data-k="calendar/headline">
-              Her next session, <span class="kw">booked between sets</span>.
+              Classes and homework, <span class="kw">one calendar</span>.
             </h2>
             <p class="sub" data-c="calendar/text">
-              Live classes, homework due dates and 1:1 sessions on one calendar.
+              Two live classes a week, and the practice due before each one.
             </p>
           </div>
-          <div class="ch-media place">
+          <div class="ch-media place crop">
             <figure class="media-card place-photo" data-slot-host="calendar">
               <!-- slot "calendar" (alt: Two swimmers in dark parkas sit on the pool bleachers between sessions, one reading a phone while the other leans in.) is filled by day.js from SLOTS -->
-              <figcaption class="cap" data-c="calendar/caption">Maya and Jo, 3:40 p.m.</figcaption>
+              <figcaption class="cap" data-c="calendar/caption">
+                3:40 p.m., after rehearsal
+              </figcaption>
             </figure>
-            <div
-              class="phone"
-              data-clip="calendar"
-              data-kind="feature"
-              role="img"
-              data-alt-c="calendar/clip alt"
-            >
+            <div class="phone" data-demo="classes" role="img" data-alt-c="calendar/clip alt">
               <div class="scr"></div>
               <img
                 class="frame"
@@ -345,7 +400,8 @@
                 <!-- slot "class-student" (alt: Maya in her bedroom in the evening, earbuds in, chin on her hand, listening on a video call.) is filled by day.js from SLOTS -->
                 <figcaption data-c="class/student">Maya</figcaption>
               </figure>
-              <figure class="tile" data-slot-host="class-tutor">
+              <figure class="tile" data-slot-host="class-tutor" data-empty="camoff">
+                <span class="initial" aria-hidden="true">D</span>
                 <!-- slot "class-tutor" (alt: class/alt tutor) is filled by day.js from SLOTS -->
                 <figcaption data-c="class/tutor">David, Karman tutor</figcaption>
               </figure>
@@ -356,17 +412,14 @@
 
       <!-- 9:00 p.m. The end of Your Daily 10: the mystery box and her rewards. -->
       <section class="ch" id="rewards" aria-labelledby="rew-h">
-        <div class="card c-tone flip">
+        <div class="card c-marigold flip">
           <div class="ch-copy">
             <p class="clock" data-clock="rewards/clock">9:00 p.m.</p>
             <h2 class="h2" id="rew-h" data-k="rewards/headline">
               Ten done, <span class="kw">a box to open</span>.
             </h2>
-            <p class="sub" data-c="rewards/text">
-              Each Daily 10 earns tokens. Enough of them opens a mystery box.
-            </p>
           </div>
-          <div class="ch-media">
+          <div class="ch-media crop">
             <div
               class="phone"
               data-clip="rewards"
@@ -404,7 +457,7 @@
               <li>What's next</li>
             </ul>
           </div>
-          <div class="ch-media place portrait">
+          <div class="ch-media place portrait crop">
             <figure class="media-card parent-photo">
               <img
                 src="img/gemini-parent-clay-top-900.webp"
@@ -412,17 +465,11 @@
                 height="723"
                 loading="lazy"
                 alt="A parent in a navy jacket against a clay-red backdrop, calm."
-                data-alt="A parent in a navy jacket against a clay-red backdrop, calm."
+                data-alt="parent/alt"
                 data-slot="parent"
               />
             </figure>
-            <div
-              class="phone"
-              data-clip="parent"
-              data-kind="feature"
-              role="img"
-              data-alt-c="parent/clip alt"
-            >
+            <div class="phone" data-demo="parent" role="img" data-alt-c="parent/clip alt">
               <div class="scr"></div>
               <img
                 class="frame"
@@ -474,10 +521,9 @@
         </button>
       </section>
 
-      <!-- Next fall: three real 1:1 results in a hairline strip, then the night card with the button. -->
+      <!-- Three real 1:1 results in a hairline strip, then the night card with the button. -->
       <section class="close" id="close" aria-labelledby="close-h">
         <div class="results">
-          <p class="clock" data-clock="close/clock">Next fall</p>
           <ul class="result-strip" id="result-strip"></ul>
           <p class="source" data-c="close/source">Karman 1:1 tutoring, median 16 weeks.</p>
         </div>
@@ -487,7 +533,8 @@
               Start with a <span class="kw">free practice test</span>.
             </h2>
             <p class="sub" data-c="close/honest">
-              Already scoring 1500? We'll tell you a program probably isn't worth your money.
+              If you're already scoring 1500 or higher, or your test is less than four weeks away,
+              we'll tell you honestly that a program probably isn't the best use of your money.
             </p>
             <div class="act">
               <a
@@ -534,19 +581,8 @@
     </footer>
 
     <script src="copy.js"></script>
-    <!-- GSAP 3.12.5 and ScrollTrigger, pinned, from cdnjs (44.7 KB gzipped together, inside the brief's 45 KB) -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
-      integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt"
-      crossorigin="anonymous"
-      defer
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"
-      integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d"
-      crossorigin="anonymous"
-      defer
-    ></script>
+    <!-- GSAP 3.12.5 and ScrollTrigger (cdnjs, pinned, with integrity) are loaded by day.js after the page has
+         loaded, so they never compete with the hero's CSS and Home screen for bandwidth. -->
     <script src="day.js" defer></script>
   </body>
 </html>

@@ -300,14 +300,12 @@ button {
   stroke-width: 2.6;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
 }
 .js-motion .kw:not(.landed) {
   color: inherit;
 }
-.js-motion .kw:not(.landed) .kw-line path {
-  stroke-dashoffset: 1;
+.js-motion .kw:not(.landed) .kw-line {
+  clip-path: inset(0% 100% 0% 0%);
 }
 /* the hero's word is the page's one marigold chip (modern-UI 2.10); it has no underline */
 .h1 .kw {
@@ -532,42 +530,6 @@ button {
 }
 
 /* ---------- the opening (first visit only) ---------- */
-.intro {
-  display: none;
-}
-.intro-on .intro {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: grid;
-  place-items: center;
-  background: var(--ground);
-  color: var(--ink);
-}
-.intro-logo {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-.intro-mark {
-  width: clamp(64px, 9vw, 104px);
-  height: clamp(64px, 9vw, 104px);
-}
-.intro-mark path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.intro-mark .i-hand {
-  stroke: var(--marigold);
-}
-.intro-word {
-  width: clamp(170px, 24vw, 300px);
-  height: auto;
-  aspect-ratio: 78 / 18.4;
-}
 
 /* ---------- the iPhone 17 Pro Max (frame: ../../motion/device, screen box from device.css) ---------- */
 .phone {
@@ -688,28 +650,7 @@ button {
   isolation: isolate;
 }
 /* a warm light field behind the phone, with no edge you can point at (modern-UI 2.12) */
-.stage::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  right: -10%;
-  top: -10%;
-  width: 80%;
-  height: 120%;
-  background: radial-gradient(closest-side, rgba(235, 162, 31, 0.13), rgba(235, 162, 31, 0) 100%);
-  pointer-events: none;
-}
-:root:not([data-theme="light"]) .stage::before {
-  background: radial-gradient(closest-side, rgba(36, 90, 81, 0.32), rgba(36, 90, 81, 0) 100%);
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .stage::before {
-    background: radial-gradient(closest-side, rgba(235, 162, 31, 0.13), rgba(235, 162, 31, 0) 100%);
-  }
-}
-:root[data-theme="light"] .stage::before {
-  background: radial-gradient(closest-side, rgba(235, 162, 31, 0.13), rgba(235, 162, 31, 0) 100%);
-}
+
 .hero-copy {
   padding: 8px 0;
 }
@@ -757,38 +698,7 @@ button {
 .hero .clock {
   margin-top: 28px;
 }
-.hero-media {
-  display: grid;
-  gap: 16px;
-  justify-items: stretch;
-}
-.hero-photo,
-.hero-phone {
-  grid-area: 1 / 1;
-}
-.hero-photo {
-  height: clamp(440px, 64vh, 640px);
-  width: 78%;
-  background: var(--marigold);
-}
-.hero-photo img {
-  object-position: 42% 18%;
-}
-.hero-phone {
-  --pw: clamp(190px, 17vw, 270px);
-  justify-self: end;
-  align-self: end;
-  margin-bottom: -4%;
-  margin-right: 2%;
-}
-.hero-media .tabs {
-  grid-area: 2 / 1;
-  justify-self: start;
-  margin-top: 18px;
-}
-.hero-screens-note {
-  display: none;
-}
+
 #hero-screens > .shot,
 #hero-screens > .eng {
   opacity: 0;
@@ -1187,8 +1097,6 @@ button {
 .r-score {
   position: relative;
   display: block;
-  height: 1em;
-  overflow: hidden;
   font: 480 clamp(38px, 3.6vw, 54px) / 1 var(--f-display);
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
@@ -1208,23 +1116,7 @@ button {
   font-size: 14px;
   color: var(--mut);
 }
-/* odometer columns (21st.dev 20068 Count Up, slide effect) */
-.odo {
-  display: inline-flex;
-}
-.odo .col {
-  display: inline-block;
-  height: 1em;
-  overflow: hidden;
-}
-.odo .reel {
-  display: block;
-  white-space: pre;
-  line-height: 1;
-}
-.odo .reel::before {
-  content: attr(data-seq);
-}
+
 .close-card {
   margin-top: 40px;
   grid-template-columns: 1fr;
@@ -1307,40 +1199,8 @@ button {
 }
 
 /* ---------- entrances: hidden only while motion runs, so the page reads fully without script ---------- */
-.js-motion
-  :is(
-    .hero-copy .pill-link,
-    .hero .clock,
-    .hero .sub,
-    .hero .act,
-    .hero-photo,
-    .hero-phone,
-    .hero-media .tabs,
-    .ch .clock,
-    .ch .sub,
-    .ch .note,
-    .ch .textlink,
-    .ch .chips li,
-    .ch-media,
-    .plans-head .sub,
-    .plans-photo,
-    .plan-grid > li,
-    .plan-toggle,
-    .results .clock,
-    .result-strip li,
-    .source,
-    .close-card .sub,
-    .close-card .act
-  ) {
-  opacity: 0;
-}
-.js-motion :is(.h1, .h2) {
-  opacity: 0;
-}
-.js-motion .h1 .kw {
-  /* the chip arrives with its words */
-  opacity: 0;
-}
+/* entrances: nothing is ever hidden. Reveals move content up to 16 px only, so a heading, phone or picture
+   is readable the moment it is on screen (fix round 2, rule from the orchestrator). */
 
 /* ---------- smaller screens ---------- */
 @media (max-width: 1099px) {
@@ -1377,12 +1237,7 @@ button {
   .card {
     gap: 28px;
   }
-  .hero-media .tabs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-    border-radius: 22px;
-  }
+
   .tab {
     height: 52px;
     flex-direction: column;
@@ -1400,13 +1255,7 @@ button {
   .stage {
     grid-template-columns: 1fr;
   }
-  .hero-photo {
-    width: 74%;
-    height: clamp(380px, 58vw, 560px);
-  }
-  .hero-phone {
-    --pw: clamp(170px, 34vw, 270px);
-  }
+
   .card {
     grid-template-columns: 1fr;
   }
@@ -1451,18 +1300,7 @@ button {
   .stage {
     padding: 22px 16px 18px;
   }
-  .hero-photo {
-    width: 76%;
-    height: 400px;
-  }
-  .hero-photo img {
-    object-position: 46% 14%;
-  }
-  .hero-phone {
-    --pw: 168px;
-    margin-bottom: -2%;
-    margin-right: 0;
-  }
+
   .card {
     padding: 28px 20px 32px;
   }
@@ -1511,27 +1349,7 @@ button {
 
 /* ---------- empty picture slots (founder's device rules): the layout closes up ---------- */
 /* no portrait: the phone stands alone on the stage's light field (modern-UI 2.12) */
-.hero-photo.empty {
-  background: transparent;
-  width: 100%;
-}
-.hero-media:has(.hero-photo.empty) .hero-phone {
-  justify-self: center;
-  align-self: center;
-  margin: 0;
-  --pw: clamp(220px, 24vw, 300px);
-}
-.hero-media:has(.hero-photo.empty) .tabs {
-  justify-self: center;
-}
-@media (max-width: 599px) {
-  .hero-photo.empty {
-    height: 0;
-  }
-  .hero-media:has(.hero-photo.empty) .hero-phone {
-    --pw: 220px;
-  }
-}
+
 .place-photo.empty,
 .plans-photo.empty,
 .tile.empty {
@@ -1562,9 +1380,7 @@ button {
   padding: 4px 4px;
   color: #c9c4ba; /* 9.6:1 on #1b1a18 */
 }
-.hero-media:has(.hero-photo.empty) .tabs {
-  width: min(100%, 560px);
-}
+
 @media (max-width: 599px) {
   .hero .clock {
     margin-top: 18px;
@@ -1574,5 +1390,242 @@ button {
   }
   .stage {
     gap: 18px;
+  }
+}
+
+/* =====================================================================================
+   Fix round 2 (critic, 2 Nov): content under 1 s, colour in the first screen, a big readable phone,
+   the chip behind "prep", unbroken underlines, a camera-off Zoom tile.
+   ===================================================================================== */
+
+/* the chip sits behind the line above it, so it never paints over "prep" */
+.h1 {
+  position: relative;
+  z-index: 0;
+  line-height: 1.08;
+}
+.h1 .kw {
+  position: relative;
+  z-index: -1;
+}
+
+/* the hero's media: a marigold field holding the day's tabs, then the phone, cropped by the field's
+   bottom edge so it can be large */
+.hero-media {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  height: clamp(560px, calc(100svh - 120px), 780px);
+  padding: 22px 22px 0;
+  border-radius: var(--r-card);
+  background: var(--marigold);
+  overflow: hidden;
+}
+.hero-media .tabs {
+  flex: none;
+  max-width: 100%;
+}
+.hero-phone {
+  --pw: clamp(270px, 23vw, 350px);
+  flex: none;
+  filter: drop-shadow(0 30px 40px rgba(18, 17, 15, 0.28));
+}
+/* Arrive: from the first paint, no script needed; the phone rises 24 px in 0.6 s */
+@keyframes k-arrive {
+  from {
+    transform: translateY(16px);
+  }
+  to {
+    transform: none;
+  }
+}
+.js-motion .hero-phone {
+  animation: k-arrive 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+#hero-screens > .shot,
+#hero-screens > .eng,
+#hero-screens > .scrolls {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#hero-screens > .eng {
+  inset: auto;
+}
+#hero-screens > .is-on {
+  opacity: 1;
+  transform: none;
+}
+#hero-screens picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.tabs .tab .n {
+  white-space: nowrap;
+}
+
+/* a long screen scrolled in code: the band between its own top and bottom bars */
+.scrolls {
+  inset: 0;
+}
+.scrolls > .shot {
+  position: absolute;
+}
+.band {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+}
+.band .tall {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: none;
+  will-change: transform;
+}
+.eng > .shot + .shot {
+  position: absolute;
+}
+
+/* chapter phones: large, with the card's bottom edge cropping the phone */
+.card .ch-media.crop {
+  align-self: end;
+  height: clamp(480px, 66vh, 660px);
+  margin-bottom: calc(-1 * var(--pad));
+  overflow: hidden;
+  align-items: flex-start;
+}
+.card > .ch-media.crop > .phone {
+  --pw: clamp(270px, 24vw, 360px);
+}
+.place .phone {
+  --pw: clamp(240px, 20vw, 320px);
+}
+.place.crop {
+  align-content: start;
+}
+/* the rehearsal photo: the student is on the right, so the phone stands on the empty stage at the left */
+#calendar .place-photo {
+  justify-self: end;
+  aspect-ratio: 16 / 10;
+}
+#calendar .place-photo img {
+  object-position: 70% 50%;
+}
+#calendar .place .phone {
+  justify-self: start;
+  margin-top: 18%;
+}
+
+/* the Zoom class: Maya's tile, and David's tile with his camera off (a name and an initial, as Zoom shows it) */
+.tile.camoff {
+  display: grid;
+  place-items: center;
+  background: #24443d;
+}
+.tile .initial {
+  display: grid;
+  place-items: center;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #3d6b62;
+  color: #f1ede4;
+  font: 500 clamp(22px, 2.4vw, 34px) / 1 var(--f-display);
+}
+
+/* the day's tabs: equal cells, the time over the name, one row of five on wide screens */
+.hero-media .tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+  border-radius: 22px;
+}
+.hero-media .tab {
+  height: 52px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 6px;
+  font-size: 14px;
+  line-height: 1.1;
+}
+.hero-media .tab .t {
+  font-size: 12px;
+}
+@media (max-width: 1099px) {
+  .hero-media .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    border-radius: 22px;
+  }
+  .hero-media .tab {
+    height: 52px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 6px;
+    font-size: 14px;
+    line-height: 1.1;
+  }
+  .hero-media .tab .t {
+    font-size: 12px;
+  }
+}
+@media (max-width: 759px) {
+  .hero-media {
+    height: auto;
+    max-height: none;
+    padding: 16px 16px 0;
+  }
+  .hero-phone {
+    --pw: min(300px, 74vw);
+    margin-bottom: -38%;
+  }
+  .card .ch-media.crop {
+    height: auto;
+    max-height: 560px;
+  }
+  .card > .ch-media.crop > .phone {
+    --pw: min(300px, 72vw);
+  }
+  .place .phone {
+    --pw: min(240px, 56vw);
+  }
+}
+/* camera-off tile: the initial sits high, the name stays on one line, so they never touch */
+.tile figcaption {
+  max-width: calc(100% - 16px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tile.camoff {
+  align-content: start;
+  padding-top: 12%;
+}
+.tile .initial {
+  width: 26%;
+}
+@media (max-width: 759px) {
+  .tile figcaption {
+    font-size: 12px;
+  }
+  .portrait .parent-photo {
+    width: 62%;
+  }
+  .portrait .phone {
+    --pw: min(220px, 52vw);
+    margin-top: 46%;
   }
 }

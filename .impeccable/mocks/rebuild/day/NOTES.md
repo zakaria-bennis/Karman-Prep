@@ -133,3 +133,188 @@ Still failing or at risk:
 - The booking sheet and Sessions screens say "Zakaria" (rule 40 keeps him off marketing pages).
 - Copy for the new lines (pill, tab names, calendar, rewards, plan links, Zoom caption) was written in the
   round 1 voice, not run through the conversion-copywriter skill again.
+
+## Fix round 2
+
+The fixes from the independent critic's report (`scratchpad/critic2-day/REPORT.md`), in the order given.
+
+### 1. Load: content on screen under 1 s, never a blank screen
+
+- Nothing in the hero is ever hidden. The headline, button, pill, tabs and phone are in the HTML and show
+  from the first paint. Only sections below the hero wait for their scroll reveal, and they show anyway
+  after 2.5 s if motion has not started.
+- The opening is deleted (markup, CSS and script).
+- The Home screen is in the HTML as a `<picture>` with `fetchpriority="high"`. It is preloaded for each
+  colour scheme as a 720 px, 46 KB copy (`img/home-{light,dark}-720.webp`). The other four tab screens load
+  on the first hover, focus or click.
+- The five tab buttons are in the HTML, so the tray never jumps in.
+- The phone rises 24 px in 0.6 s through a CSS animation that runs from the first paint, with no script.
+- Google Fonts load without blocking (`media="print"`, then all).
+- GSAP and ScrollTrigger load after the page's `load` event, so they no longer compete with the CSS and
+  the Home screen for bandwidth. They are still the same pinned cdnjs files with integrity.
+- Chapter headline rise: 0.6 s, 0.03 s per word (was 0.9 s, 0.06 s).
+
+Load numbers. Throttled "4G" means 150 ms latency, 1.6 Mb/s down and 750 kb/s up. Times are milliseconds
+from navigation.
+
+| Run | Before (critic): headline / button / phone | After: headline / button / phone |
+| --- | --- | --- |
+| Local, cold, 1440 | 2,260 / 2,010 / 1,760 | 34 / 34 / 460 |
+| Local, cold, 440 | (not given) | 31 / 31 / 401 |
+| 4G, cold, 1440 | 2,920 / (blank or logo to 1,200 to 1,500) / 4,420 | 877 / 877 / 1,244 |
+| 4G, warm, 1440 | | 866 / 866 / 1,233 |
+| 4G, cold, 440 | | 886 / 886 / 1,309 |
+| 4G, warm, 440 | | 863 / 863 / 1,237 |
+
+How these numbers were taken:
+
+- "After" comes from `scratchpad/r2-day/tools/loadfine.mjs`. It runs the critic's probe every 50 ms with
+  no screenshots, and the cache is disabled for cold runs.
+- Screenshots every 250 ms come from a second, identical run, saved in `scratchpad/r2-day/load/*-frames/`.
+  In every 4G frame the headline and button are on screen. Before the phone's screen arrives, the
+  marigold field and the tab tray are already there, so the screen is never blank.
+- The critic's own script (`load.mjs`, run again unchanged in `scratchpad/r2-day/load/`) reports 4G cold at
+  1,669 to 1,741 ms. It takes no sample between 0.18 s and those times, because its Playwright screenshots
+  wait while the page loads. Those figures are an upper bound, not the moment the content appeared.
+  Locally, the same script reports headline 15 to 33 ms and phone 505 to 549 ms.
+- The mock server sends no-cache and no gzip. On the live site, day.css (about 45 KB raw) would be about
+  9 KB.
+
+### 2. No "Zakaria" and no Private student in the cohort story
+
+- The Calendar tab and the 3:40 p.m. chapter now show the cohort Classes screen: the next live class with
+  David, this week's classes (times now read "7:00 pm to 8:30 pm"), and homework.
+- In the chapter, the screen is a code demo. The capture's own top and bottom bars stay, and the long
+  capture scrolls between them once, in 4.2 s.
+- The calendar clip (which dissolves to the Private Sessions screen and "Book a session with Zakaria") is
+  no longer used anywhere on the page.
+- The parent's update named "Ava", a real results student. The Parent tab and the 9:15 p.m. chapter now
+  start the scroll band below that line, so the update opens at "Skills that moved". Checked in both modes.
+
+### 3. The chip and the underlines
+
+- The marigold chip now sits behind the line above it (`.h1` is a stacking context, the chip has
+  `z-index: -1`, line height 1.08). The descender of "prep" now shows over it.
+- The underlines are no longer dashed. They are revealed by a clip from left to right, so the stroke stays
+  whole. Checked at 2x after landing.
+
+### 4. A big, readable phone
+
+- Hero phone: 270 to 350 px wide. Chapter phones: 270 to 360 px. Each phone is cropped by its card's
+  bottom edge, so it can be large.
+- Screens are real captures at 1:1 proportions. The hero Home capture is 720 px wide, and the others are
+  the full 1320 px captures.
+
+### 5. Colour in the first screen, and no empty slots
+
+- The hero's media is now a marigold field holding the day's tabs and the phone.
+- The chapter colours follow the day:
+  - 7:40 a.m. Daily 10: the card tone.
+  - 3:40 p.m. Calendar: pine, with the rehearsal photo.
+  - 7:00 p.m. Live class: night.
+  - 9:00 p.m. Rewards: marigold.
+  - 9:15 p.m. Parent: clay.
+- Zoom chapter: Maya's tile (Gemini, fixed) sits beside David's tile with his camera off, showing an
+  initial and his name, as Zoom does. A caption under the shared screen reads "On Zoom with David,
+  7:04 p.m.".
+- Plans heading: the pine-floor student (Gemini, fixed) is back beside it.
+- Daily 10 in light mode now uses the engine's light captures, stepping question, then wrong, then
+  explained. There is no dark clip in light mode any more.
+
+### 6. Copy only from offer.ts
+
+- Removed "Your Daily 10 arrives this winter." and the tokens line ("Each Daily 10 earns tokens...").
+- The Daily 10 line is offer.ts's own: "Ten minutes a day. Every question she misses comes back after 2,
+  7 and 21 days."
+- The honest line is `INTAKE_NOTE` word for word.
+- "Next fall" over the results is removed. The three results and their source line stay (founder-approved).
+
+### 7. Content is never invisible while it is on screen (orchestrator rule, added during this round)
+
+- No element starts hidden any more: the CSS hidden states are deleted.
+- Every reveal moves content up 12 to 16 px in 0.5 s or less, with no opacity change. This covers headings,
+  phones, pictures, plan cards and results. The hero phone rises 16 px by CSS, without fading in.
+- Reveals start at "top 95%", before the section enters.
+- If a section is passed in a jump (`onLeave`/`onEnterBack`), or reached faster than 1,600 px/s, it is
+  shown finished at once.
+- The results no longer roll digit columns, which showed zeros and partial digits. Each score counts from
+  60 under its value to the exact value in 0.5 s, so every frame is a real-looking four-digit score
+  (for example 1518 on the way to 1520).
+- Fixed along the way: arriving from another page with `#close` (or any section link) now lands on that
+  section. Before, it stopped near the top, because the plans and results are built after the browser's
+  own jump.
+
+Test: `scratchpad/r2-day/tools/fast.cjs`, at 1440 x 900 and 440 x 956.
+
+- **Steps:** eight `mouse.wheel` steps of 1,400 px, one instant jump to the top, then six instant
+  `scrollTo` jumps (35%, 80%, 55%, 15%, 98%, 65% of the page), then a fresh load at `#close`.
+- **Probe:** 300 ms after each step it screenshots the page (`scratchpad/r2-day/fast/`) and checks every
+  heading, phone, picture, tile, plan card, result and button on screen for opacity under 0.95, and every
+  score for a value that is not a plausible four-digit score.
+- **Result:** 16 of 16 steps clean at each size, zero errors. The fresh `#close` load lands on the results
+  with the scores mid-count at 1518, 1565 and 1529.
+
+4G load after this change (phone no longer fades in):
+
+| Run | Headline / button | Phone screen |
+| --- | --- | --- |
+| 4G cold 1440 | 859 | 972 |
+| 4G warm 1440 | 850 | 953 |
+| 4G cold 440 | 853 | 1,010 |
+| 4G warm 440 | 872 | 1,396 |
+
+These were measured while the machine was under heavy load (load average 15 to 19, other sessions were
+running).
+
+### Pictures (the slot map at the top of `day.js`)
+
+Every hand and device was cropped and checked at full size against "Devices in pictures and film".
+
+| Slot | File | Check |
+| --- | --- | --- |
+| `calendar` | `img/gemini-rehearsal-stage-1400.webp` (+800) | Dark MacBook lid, no logo; the visible hand is clean |
+| `class-student` | `img/gemini-zoom-student-tile-800.webp` | Sony WH-1000XM5 style headphones; the hand at her chin is natural |
+| `class-tutor` | none: a camera-off tile | `zoom-tutor-loop.mp4` was never downloaded |
+| `parent` | `img/gemini-parent-clay-top-900.webp` | RESULTS.md now lists `cast-parent-clay.jpg` as rejected for its phone, adding that the portrait and hand are good. This crop ends above the hand, so no device is in frame. **The founder should confirm this crop is acceptable.** |
+| `pine-floor` | `img/gemini-cast-student-pine-floor-900.webp` | AirPods Max, dark MacBook with no logo; hands are clean |
+| results | October film stills | No device in frame |
+| hero | none: a marigold field | Every marigold student shot so far was rejected |
+
+### Checks (after the fixes)
+
+| Size | Mode | Steps | Sideways scroll | Contrast fails | Text overlaps | Most marigold buttons | Console errors |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 375 x 812 | light / dark / reduced | 16 / 16 / 16 | 0 | 0 | 0 | 1 | 0 |
+| 440 x 956 | light / dark | 14 / 14 | 0 | 0 | 0 / 1 (nav leaving) | 1 | 0 |
+| 834 x 1194 | light / dark | 10 / 10 | 0 | 0 | 0 | 1 | 0 |
+| 1440 x 900 | light / dark / reduced | 13 / 13 / 13 | 0 | 0 | 1 / 1 (nav leaving) / 0 | 1 | 0 |
+
+- **Overlaps:** the only hits are the nav during the first 150 ms of its 200 ms hide, at the first step
+  down.
+- **Clicked, all working:**
+  - The five tabs, which load lazily and swap the screen.
+  - The arrow keys on the tabs.
+  - The theme switch (Auto, Dark, Light), remembered after reload.
+  - "See all plans", both ways.
+  - The nav and menu links.
+  - Escape on the menu.
+  - Pause and Play motion.
+  - Every outside link.
+- **Clips:** both play once in view.
+- **One error found and fixed:** pressing Play motion reloaded the page scrolled to the footer, and
+  ScrollTrigger threw "reading 'pin'". A once-only trigger was removing itself inside ScrollTrigger's own
+  refresh. Triggers now remove themselves on the next tick (`whenReached` in `day.js`). Zero errors since.
+
+### What is left
+
+- **No hero portrait.** A marigold student shot that passes the device rule is still needed. The hero
+  reads well as a phone on marigold.
+- **No tutor video.** `zoom-tutor-loop.mp4` still needs downloading and checking.
+- **The parent portrait comes from a file marked rejected.** It is cropped so no phone shows. The founder
+  should say yes or no.
+- **The nav still returns over text** when you scroll up, by design.
+- **The page is 8 parts** against the brief's limit of 7.
+- **File sizes:** `day.css` is about 1,670 lines and `day.js` about 1,040, past the repo's 700-line guide.
+  A production build would split them.
+- **Copy:** the new lines (pill, tabs, calendar, Zoom caption) were written in the round 1 voice, not
+  rerun through the copywriter skill.
