@@ -154,7 +154,7 @@ describe("gap 2: the origin label", () => {
 describe("gap 3: thousands separators", () => {
   it("groups thousands only when the frame asks", () => {
     expect(tickText(1200, true)).toBe("1,200");
-    expect(tickText(-12500, true)).toBe("-12,500");
+    expect(tickText(-12500, true)).toBe("\u221212,500");
     expect(tickText(1050.5, true)).toBe("1,050.5");
     expect(tickText(800, true)).toBe("800");
     expect(tickText(2016)).toBe("2016");
@@ -179,6 +179,30 @@ describe("gap 3: thousands separators", () => {
     const issues = checkSpec(spec, ["1", "2", "3", "4", "400", "800", "1,200", "0", "x", "y"]);
     const missing = issues.find((i) => i.detail.startsWith('"1,200"'));
     expect(missing?.detail).toContain("frame.thousands");
+  });
+});
+
+describe("negative tick numbers use the true minus sign (U+2212)", () => {
+  it("prints −2 and −1,200, never an ASCII hyphen", () => {
+    expect(tickText(-2)).toBe("\u22122");
+    expect(tickText(-1200, true)).toBe("\u22121,200");
+    expect(tickText(-0.5)).toBe("\u22120.5");
+    expect(tickText(0)).toBe("0");
+  });
+
+  it("draws every negative tick label on a plane with U+2212", () => {
+    const scene = buildPlane(plane({ x: [-5, 5], y: [-5, 5], step: 1 }), PLANE_BOX);
+    const numbers = texts(scene).filter((t) => /\d/.test(t.text));
+    expect(numbers.some((t) => t.text.startsWith("\u2212"))).toBe(true);
+    expect(numbers.some((t) => t.text.includes("-"))).toBe(false);
+  });
+
+  it("still matches a transcription written with a hyphen or a minus", () => {
+    const spec = plane({ x: [-2, 2], y: [-2, 2], step: 1, originLabel: false });
+    const drawn = texts(buildPlane(spec, PLANE_BOX)).map((t) => t.text);
+    const hyphens = drawn.map((t) => t.replace("\u2212", "-"));
+    expect(checkSpec(spec, hyphens)).toEqual([]);
+    expect(checkSpec(spec, drawn)).toEqual([]);
   });
 });
 

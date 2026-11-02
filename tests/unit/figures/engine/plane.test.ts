@@ -7,7 +7,14 @@ import { FIGURE_SPEC_VERSION, type FigureSpec, type Part } from "@/lib/figures/e
 // Tests may import authoring scripts: AR-1 exempts test files, and the runtime never does.
 import { sampleSpec } from "../../../../scripts/figures/sample-functions";
 
-const FRAME = { x: [-5, 5] as [number, number], y: [-5, 5] as [number, number], step: 1 };
+// Labels every 2 units: in this 320px box, labels every unit put the y "−1" on the x "−1"
+// (the true minus sign is wide), which the engine reports as crowded_ticks.
+const FRAME = {
+  x: [-5, 5] as [number, number],
+  y: [-5, 5] as [number, number],
+  step: 1,
+  labelStep: 2,
+};
 const BOX = { width: 320, height: 320 };
 const SPAN = 10;
 
@@ -155,21 +162,25 @@ describe("buildPlane", () => {
   });
 
   it("-5..5 frame with step 1 in a 320px box labels every integer from -5 to 5 except 0 on each axis", () => {
-    const scene = buildPlane(plane([]), BOX);
+    const scene = buildPlane(plane([], { x: [-5, 5], y: [-5, 5], step: 1 }), BOX);
     type TextItem = Extract<SceneItem, { t: "text" }>;
     const texts = scene.items.filter((i): i is TextItem => i.t === "text");
-    const want = ["-5", "-4", "-3", "-2", "-1", "1", "2", "3", "4", "5"];
+    // Negative tick numbers print with the true minus sign (U+2212), as the SAT does.
+    const want = ["−5", "−4", "−3", "−2", "−1", "1", "2", "3", "4", "5"];
     const xLabels = texts.filter((t) => t.anchor === "middle").map((t) => t.text);
     const yLabels = texts.filter(
-      (t) => t.anchor === "end" && /^-?\d+$/.test(t.text) && t.text !== "0"
+      (t) => t.anchor === "end" && /^−?\d+$/.test(t.text) && t.text !== "0"
     );
     expect([...xLabels].sort()).toEqual([...want].sort());
-    expect(yLabels.map((t) => t.text).sort()).toEqual([...want].sort());
+    // The y "−1" would sit on the x "−1" in this small box: it is left out and reported,
+    // never dropped silently.
+    expect(yLabels.map((t) => t.text).sort()).toEqual(want.filter((w) => w !== "−1").sort());
+    expect(scene.issues.map((i) => i.code)).toEqual(["crowded_ticks"]);
+    expect(scene.issues[0].detail).toContain("−1");
     // Labels 28.8px apart leave no room for the origin's 0 below and left (golden review):
     // it moves to the next free corner, below and right, and is never dropped silently.
     const zero = texts.filter((t) => t.text === "0");
-    expect(zero).toHaveLength(1);
-    expect(zero[0].anchor).toBe("start");
+    expect(zero).toHaveLength(1); // drawn once, at a free corner
     expect(scene.issues.filter((i) => i.detail.includes("origin"))).toEqual([]);
   });
 
@@ -234,7 +245,7 @@ describe("buildPlane", () => {
     type TextItem = Extract<SceneItem, { t: "text" }>;
     const xLabels = scene.items
       .filter((i): i is TextItem => i.t === "text" && i.anchor === "middle")
-      .map((t) => Number(t.text))
+      .map((t) => Number(t.text.replace("−", "-")))
       .sort((a, b) => a - b);
     expect(xLabels).toEqual([-10, -8, -6, -4, -2, 2, 4, 6, 8, 10]);
   });
@@ -281,7 +292,7 @@ describe("buildPlane golden-review fixes", () => {
     const texts = scene.items.filter((i): i is TextItem => i.t === "text");
     const zero = texts.find((t) => t.text === "0");
     expect(zero?.anchor).toBe("start"); // below and right of the origin, not below and left
-    expect(texts.map((t) => t.text)).toContain("-2");
+    expect(texts.map((t) => t.text)).toContain("−2");
     expect(scene.issues).toEqual([]);
     // In the default box there is room, and the 0 stays.
     const big = buildPlane(plane([], { x: [-5, 5], y: [-5, 5], step: 1 }), {

@@ -65,15 +65,33 @@ export function mapper(frame: PlaneFrame, box: Box, inset: Inset = MARGIN_INSET)
 /** A coordinate rounded to 2 decimals for path data. */
 export const fmt = (n: number) => String(Math.round(n * 100) / 100);
 
-/** A tick number as printed: fmt, with thousands grouped by commas when `group` ("1,200"). */
+/** The minus sign the SAT prints in math (U+2212), never the ASCII hyphen. */
+export const MINUS = "\u2212";
+
+/**
+ * A tick number as printed: fmt, with the true minus sign (U+2212, "−2") for a
+ * negative, and with thousands grouped by commas when `group` ("1,200", "−1,200").
+ * Path data keeps fmt and its ASCII "-".
+ */
 export function tickText(v: number, group = false): string {
   const s = fmt(v);
-  if (!group || !/^-?\d+(\.\d+)?$/.test(s)) return s;
+  if (!/^-?\d+(\.\d+)?$/.test(s)) return s.replace(/^-/, MINUS);
   const [int, dec] = s.split(".");
   const neg = int.startsWith("-");
   const digits = neg ? int.slice(1) : int;
-  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${neg ? "-" : ""}${grouped}${dec === undefined ? "" : `.${dec}`}`;
+  const grouped = group ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : digits;
+  return `${neg ? MINUS : ""}${grouped}${dec === undefined ? "" : `.${dec}`}`;
+}
+
+/**
+ * The width a tick number really takes, for spacing labels along an axis: digits at
+ * their tabular 0.5em in the figure font (0.495em measured), the minus at 0.72em,
+ * comma and point narrow. textWidth stays the generous estimate for boxes.
+ */
+function tickWidth(text: string): number {
+  let em = 0;
+  for (const ch of text) em += ch === MINUS ? 0.72 : /\d/.test(ch) ? 0.5 : 0.35;
+  return em * HOUSE.font;
 }
 
 /** How the y-axis is drawn: with grid, ticks and labels, or not at all (a number line). */
@@ -130,8 +148,8 @@ function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): SceneItem[] {
 
 /** Bluebook density: labels need at least this much center spacing along an axis. */
 export const MIN_LABEL_SPACING_PX = 28;
-/** Clear space between neighbouring tick labels. */
-const TICK_LABEL_GAP = 4;
+/** Clear space between neighbouring tick labels (Bluebook sets them tight). */
+const TICK_LABEL_GAP = 2;
 
 type AxisLabels = {
   /** The step between drawn labels; 0 means no labels. */
@@ -365,7 +383,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
     const widest = (step: number) =>
       Math.max(
         0,
-        ...tickValues(frame.x[0], frame.x[1], step).map((v) => textWidth(tickText(v, group)))
+        ...tickValues(frame.x[0], frame.x[1], step).map((v) => tickWidth(tickText(v, group)))
       ) + TICK_LABEL_GAP;
     const l = labelStep(frame.x, w, widest, s.x, s.xLabel);
     report("x", l, "labelStep", (l.asked * w) / (frame.x[1] - frame.x[0]));
@@ -380,11 +398,15 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
         role: "ink",
         weight: "line",
       });
+      const text = tickText(x, group);
+      // The digits center on the tick and a minus sign hangs to their left, as the SAT
+      // sets negative numbers, which also keeps "−1" clear of the y labels by the origin.
+      const hang = x < 0 ? textWidth(MINUS) / 2 : 0;
       items.push({
         t: "text",
-        x: X,
+        x: X - hang,
         y: Y + tick + font,
-        text: tickText(x, group),
+        text,
         role: "ink-muted",
         anchor: "middle",
       });
@@ -420,8 +442,16 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode): Axes {
         anchor: "end",
       };
       // Where the axes meet away from the origin (a histogram from 10), the x-axis
-      // label at the corner wins and the y label beside it is left off.
+      // label at the corner wins and the y label beside it is left off. Any other y
+      // label that meets an x label (near the origin, in a small box) is reported.
       if (!collides(label, items)) items.push(label);
+      else if (sharedOrigin || Math.abs(y - ax) > EPS) {
+        issues.push({
+          code: "crowded_ticks",
+          partId: "axis",
+          detail: `the y tick label ${text} meets an x tick label where the axes cross and was left out; widen the figure, or set frame.labelStep or frame.yLabelStep to thin the labels on purpose`,
+        });
+      }
       yLabelWidth = Math.max(yLabelWidth, textWidth(text) + tick + off / 2);
     }
   }

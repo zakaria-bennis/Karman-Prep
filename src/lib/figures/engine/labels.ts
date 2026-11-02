@@ -36,10 +36,13 @@ type TextItem = Extract<SceneItem, { t: "text" }>;
  * Characters narrower than the house advance in the figure serif (STIX Two
  * Text): each is counted at NARROW_EM, every other at HOUSE.charWidthEm, so the
  * estimate is never under a real advance. Digits are tabular (0.5em), so "1"
- * is not narrow; the hyphen that writes a negative number (0.33em) is.
+ * is not narrow; the hyphen (0.33em) is. The minus sign that writes a negative
+ * tick number is wider than the advance and is counted at its own 0.72em.
  */
 const NARROW = new Set("il.,'|-");
 const NARROW_EM = 0.35;
+/** The minus sign (U+2212) is wider than the house advance: 0.72em as the figure font renders it. */
+const WIDE: Record<string, number> = { "\u2212": 0.72 };
 const ANGLE_STEPS = 8;
 const DISTANCE_FACTORS = [1, 1.8, 2.6];
 /** Clear space kept between a label box and another label or a line. */
@@ -48,7 +51,7 @@ const GAP = 1.5;
 /** Estimated advance width of `text` in px: the one text-width estimate every builder uses. */
 export function textWidth(text: string): number {
   let em = 0;
-  for (const ch of text) em += NARROW.has(ch) ? NARROW_EM : HOUSE.charWidthEm;
+  for (const ch of text) em += WIDE[ch] ?? (NARROW.has(ch) ? NARROW_EM : HOUSE.charWidthEm);
   return em * HOUSE.font;
 }
 
