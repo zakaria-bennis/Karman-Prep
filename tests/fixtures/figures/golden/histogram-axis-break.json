@@ -1,0 +1,64 @@
+{
+  "source": "2025-05_ASIA_V3_MATH_M2_Q17: two histograms, 0 on each axis, Group B's x-axis broken before 9",
+  "figure_spec": [
+    {
+      "version": "figure-spec/1",
+      "type": "histogram",
+      "parts": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "values": [
+            [0, 6],
+            [1, 3],
+            [2, 2],
+            [3, 3],
+            [4, 6]
+          ]
+        }
+      ],
+      "labels": [],
+      "marks": [],
+      "frame": {
+        "x": [0, 5],
+        "y": [0, 12],
+        "step": 1,
+        "yStep": 2,
+        "xLabel": "Weight (grams)",
+        "yLabel": "Number of objects",
+        "originLabel": "both"
+      },
+      "title": "Group A"
+    },
+    {
+      "version": "figure-spec/1",
+      "type": "histogram",
+      "parts": [
+        {
+          "kind": "series",
+          "id": "s1",
+          "values": [
+            [9, 2],
+            [10, 3],
+            [11, 10],
+            [12, 3],
+            [13, 2]
+          ]
+        }
+      ],
+      "labels": [],
+      "marks": [],
+      "frame": {
+        "x": [9, 14],
+        "y": [0, 12],
+        "step": 1,
+        "yStep": 2,
+        "xLabel": "Weight (grams)",
+        "yLabel": "Number of objects",
+        "originLabel": "both",
+        "xBreak": true
+      },
+      "title": "Group B"
+    }
+  ]
+}
