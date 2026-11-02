@@ -97,6 +97,14 @@ for (const t of T) for (const device of DEVS) for (const mode of ["light", "dark
   await page.waitForTimeout(t.wait ?? 1500);
   await prepare(page, t, device);
   if (t.act) await t.act(page);
+  // Marketing captures never name the founder (design rule 40): the demo cast's
+  // Private tutor "Zakaria" is shown as David, the cohort tutor already on screen.
+  await page.evaluate(() => {
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) if (n.nodeValue.includes("Zakaria")) n.nodeValue = n.nodeValue.replaceAll("Zakaria", "David");
+    for (const el of document.querySelectorAll("[aria-label*='Zakaria'],[title*='Zakaria']")) for (const a of ["aria-label", "title"]) if (el.getAttribute(a)) el.setAttribute(a, el.getAttribute(a).replaceAll("Zakaria", "David"));
+  });
+  await page.waitForTimeout(100);
   const file = `${t.name}-${device}-${mode}`;
   await page.screenshot({ path: `${OUT}${file}.png` });
   const g = await page.evaluate(() => {

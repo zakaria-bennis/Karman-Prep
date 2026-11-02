@@ -22,6 +22,12 @@ screen is put in afterwards in code, so the image model never invents one.
 If you pick Harbor instead of Pine as the supporting colour, change "deep pine
 green" to "deep harbor blue" and "#1F4D45" to "#1D3A5F" everywhere below.
 
+## Devices (founder rule, 2026-11-01): paste after the style block
+
+```
+Every device is a real, current product drawn exactly: any phone is an Apple iPhone 17 Pro Max (6.9-inch, flat aluminium sides, the full-width camera plateau across the top of the back with three lenses); any headphones are Sony WH-1000XM5 or Apple AirPods Max 2, nothing else, no earbuds or wired earphones; any laptop is an Apple MacBook Pro in Space Black. No other devices. No phone held up toward the camera; hands are relaxed with five separate fingers.
+```
+
 ## Style block (paste before every prompt)
 
 ```

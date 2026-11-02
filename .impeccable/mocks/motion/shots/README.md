@@ -3,7 +3,7 @@
 Real screens from the portals prototype (`prototypes/portals`, the gallery on
 http://127.0.0.1:5174), each in its long-time-user state, captured by
 `../scripts/capture-screens.mjs` on 2026-11-01. The data is the prototype's demo
-cast (Ava, Maya, David, Zakaria). The prototype's clock is fixed at Saturday
+cast (Ava, Maya, David; the Private tutor "Zakaria" is shown as David in every capture, rule 40). The prototype's clock is fixed at Saturday
 31 October 2026, 9:41 am, so every date below is relative to that day.
 
 ## Naming and sizes
@@ -43,8 +43,8 @@ They are the prototype's demo data, not real students.
 | --- | --- | --- | --- |
 | `student-home-cohort-*`, `student-home-cohort-scroll-phone-*` | Home, the dashboard, for a March cohort student. Top: "Full-length test 2 is due today" with its button. Your Daily 10 (8 of 10 today, done at 7:52 am, 80 tokens). Due items: Linear functions practice, due Nov 2; Live class with David, Mon Nov 2, 7:00 to 8:30 pm ET. Today's set (pace, slowest question, changed answers). Scrolled: tokens and streak, Skills by level, Personal bests. | "Karman predicted score if you tested today" panel (1,220 and its ladder); the cohort panel ("Cohort average 1,210, your rank 3rd of 5"). | Daily 10 "8 of 10"; 77 s a question; 265 tokens; 5 days in a row; skill counts 0, 9, 12, 13, 5; 87% skills practised. |
 | `student-classes-cohort-*`, `-scroll-phone-*` | Classes for the cohort: next live class with David and the practice due before it, This week as a calendar (live classes Tue and Thu, Test 2 today, pacing workshop Sun), Homework with due dates, the guarantee panel. | "Full-length tests" panel (it lists each test's score). | Guarantee panel: "Live classes attended 6 of 7 held, 15 of 18 needed", "1 of 5 taken", "Assigned practice done 92%, 90% needed". The guarantee terms should match offer.ts. **Prototype bug, visible: class times read "7 pm to 8 pm:30" (should be 8:30 pm).** |
-| `student-classes-private-*`, `-scroll-phone-*` | Sessions for a Private student: "No session booked. Zakaria has times next week", Book your next session, hours used, This week, sessions so far, guarantee. | "Full-length tests" panel. | Hours used 35%, 7 of 20; "Sessions attended 7 of 7". |
-| `student-booking-open-*` | The booking sheet open: Book a session with Zakaria, one hour on Zoom, cancel up to 24 hours before, Mon 2 to Fri 6, the day's times (5:00 pm taken). On desktop it is a side sheet over the week calendar. | As above. | "Cancel up to 24 hours before" is a policy; check it. |
+| `student-classes-private-*`, `-scroll-phone-*` | Sessions for a Private student: "No session booked. David has times next week", Book your next session, hours used, This week, sessions so far, guarantee. | "Full-length tests" panel. | Hours used 35%, 7 of 20; "Sessions attended 7 of 7". |
+| `student-booking-open-*` | The booking sheet open: Book a session with David, one hour on Zoom, cancel up to 24 hours before, Mon 2 to Fri 6, the day's times (5:00 pm taken). On desktop it is a side sheet over the week calendar. | As above. | "Cancel up to 24 hours before" is a policy; check it. |
 | `student-booking-slot-*` | The same sheet with 6:00 pm chosen; the button reads "Book Nov 2, 6:00 pm". | As above. | None. |
 | `student-practice-cohort-*`, `-scroll-phone-*` | Practice by skill: Endless mode, Time trials, then every skill of the test with its level, filter chips (All 39, Reading and Writing 20, Math 19, Needs work, Not started). | None. | Skill counts in the chips. |
 | `student-progress-cohort-*`, `-scroll-phone-*` | Progress: Skills by level, the full skill list by domain, Personal bests, Practice days. | The predicted score panel at the top (1,220, the score ladder, "Days to the SAT 126"). | Skill counts; personal bests (9 of 10, 5 days). |
