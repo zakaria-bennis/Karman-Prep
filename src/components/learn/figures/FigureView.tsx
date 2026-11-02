@@ -11,11 +11,14 @@ const paint = (role: Role) => `var(--figure-${role})`;
  */
 const px = (n: number) => Math.round(n * 100) / 100;
 
+const DASHES: Partial<Record<Weight, string>> = {
+  dashed: HOUSE.dashPattern,
+  dotted: HOUSE.dotPattern,
+  dashdot: HOUSE.dashDotPattern,
+};
+
 function strokeProps(weight: Weight) {
-  return {
-    strokeWidth: HOUSE[weight],
-    strokeDasharray: weight === "dashed" ? HOUSE.dashPattern : undefined,
-  };
+  return { strokeWidth: HOUSE[weight], strokeDasharray: DASHES[weight] };
 }
 
 function renderItem(item: SceneItem, index: number, markerId: string) {
@@ -30,6 +33,7 @@ function renderItem(item: SceneItem, index: number, markerId: string) {
         fontSize={HOUSE.font}
         fontFamily="inherit"
         fontStyle={item.italic ? "italic" : undefined}
+        transform={item.rotate ? `rotate(${item.rotate} ${px(item.x)} ${px(item.y)})` : undefined}
         data-part={item.partId}
       >
         {item.text}

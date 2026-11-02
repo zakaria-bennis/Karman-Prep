@@ -5,7 +5,7 @@
  * geometry builder applies them and drawMark returns nothing for them.
  */
 import { HOUSE } from "./house";
-import { fmt } from "./plane";
+import { fmt } from "./plane-axes";
 import type { SceneItem } from "./scene";
 import type { Mark, Part } from "./spec";
 

@@ -13,7 +13,14 @@ import {
 // Tests may import authoring scripts: AR-1 exempts test files, and the runtime never does.
 import { sampleSpec } from "../../../../scripts/figures/sample-functions";
 
-const FRAME = { x: [-5, 5] as [number, number], y: [-5, 5] as [number, number], step: 1 };
+// Labels every 2 units: in this 320px box, labels every unit put the y "−1" on the x "−1"
+// (the true minus sign is wide), which the engine reports as crowded_ticks.
+const FRAME = {
+  x: [-5, 5] as [number, number],
+  y: [-5, 5] as [number, number],
+  step: 1,
+  labelStep: 2,
+};
 const BOX = { width: 320, height: 320 };
 const SPAN = 10;
 

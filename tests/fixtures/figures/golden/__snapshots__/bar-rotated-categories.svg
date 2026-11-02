@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 472" role="img" aria-label="Number of Lizard Species by Average Percent of Maximal Speed Used When Pursuing Prey or Escaping Predators. Bar chart with 7 categories. Y-axis: y. Escaping: 30–39 0, 40–49 0, 50–59 2, 60–69 1, 70–79 2, 80–89 3, 90–100 8; pursuing: 30–39 1, 40–49 0, 50–59 1, 60–69 1, 70–79 0, 80–89 1, 90–100 3." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M39.75 363.66 L584 363.66" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 329.7 L584 329.7" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 295.74 L584 295.74" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 261.78 L584 261.78" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 227.81 L584 227.81" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 193.85 L584 193.85" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 159.89 L584 159.89" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 125.93 L584 125.93" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 91.96 L584 91.96" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 58 L584 58" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 363.66 L584 363.66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M39.75 363.66 L39.75 58" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<text x="83.88" y="380.16" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 83.88 380.16)">30–39</text>
+<text x="161.63" y="380.16" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 161.63 380.16)">40–49</text>
+<text x="239.38" y="380.16" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 239.38 380.16)">50–59</text>
+<text x="317.13" y="380.16" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 317.13 380.16)">60–69</text>
+<text x="394.88" y="380.16" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 394.88 380.16)">70–79</text>
+<text x="472.63" y="380.16" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 472.63 380.16)">80–89</text>
+<text x="550.38" y="380.16" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 550.38 380.16)">90–100</text>
+<path d="M36.75 363.66 L42.75 363.66" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="368.66" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M36.75 329.7 L42.75 329.7" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="334.7" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>
+<path d="M36.75 295.74 L42.75 295.74" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="300.74" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M36.75 261.78 L42.75 261.78" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="266.78" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">3</text>
+<path d="M36.75 227.81 L42.75 227.81" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="232.81" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">4</text>
+<path d="M36.75 193.85 L42.75 193.85" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="198.85" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">5</text>
+<path d="M36.75 159.89 L42.75 159.89" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="164.89" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">6</text>
+<path d="M36.75 125.93 L42.75 125.93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="130.93" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">7</text>
+<path d="M36.75 91.96 L42.75 91.96" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="96.96" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
+<path d="M36.75 58 L42.75 58" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="63" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">9</text>
+<text x="311.88" y="438.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Percent of maximal speed</text>
+<text x="15" y="210.83" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-90 15 210.83)">Number of lizard species</text>
+<rect x="55.3" y="363.66" width="23.33" height="0" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="133.05" y="363.66" width="23.33" height="0" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="210.8" y="295.74" width="23.33" height="67.93" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="288.55" y="329.7" width="23.33" height="33.96" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="366.3" y="295.74" width="23.33" height="67.93" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="444.05" y="261.78" width="23.33" height="101.89" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="521.8" y="91.96" width="23.33" height="271.7" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="78.63" y="329.7" width="23.33" height="33.96" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="156.38" y="363.66" width="23.33" height="0" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="234.13" y="329.7" width="23.33" height="33.96" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="311.88" y="329.7" width="23.33" height="33.96" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="389.63" y="363.66" width="23.33" height="0" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="467.38" y="329.7" width="23.33" height="33.96" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<rect x="545.13" y="261.78" width="23.33" height="101.89" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s2">
+</rect>
+<path d="M234.13 329.7 L234.13 363.66" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M311.88 329.7 L311.88 363.66" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M467.38 329.7 L467.38 363.66" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M545.13 261.78 L545.13 363.66" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Number of Lizard Species by Average Percent of Maximal Speed</text>
+<text x="300" y="49" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Used When Pursuing Prey or Escaping Predators</text>
+<rect x="201.75" y="452" width="12" height="12" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+</rect>
+<text x="219.75" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">escaping</text>
+<rect x="306" y="452" width="12" height="12" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+</rect>
+<text x="324" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">pursuing</text>
+</svg>

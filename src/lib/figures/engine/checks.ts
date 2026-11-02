@@ -26,9 +26,11 @@
 import { snap } from "./geometry2d";
 import { HOUSE } from "./house";
 import { buildScene, defaultBox, type Box } from "./index";
-import { textBox } from "./labels";
-import { DEFAULT_PLANE_FRAME, fmt, planeAxes } from "./plane";
-import type { Scene, SceneIssue, SceneItem } from "./scene";
+import { svgArcPoints, textBox, textOverlap } from "./labels";
+import { droppedLabels, labelDrift, labelsOnLines, tickHint } from "./label-checks";
+import { DEFAULT_PLANE_FRAME } from "./plane";
+import { fmt, planeAxes } from "./plane-axes";
+import type { Scene, SceneIssue, SceneItem, ThinnedTicks } from "./scene";
 import type { FigureSpec, Part } from "./spec";
 import { layoutTable } from "./table";
 
@@ -70,6 +72,8 @@ export function checkSpecs(
     if (!out.some(same)) out.push(issue);
   };
   const drawn: Drawn[] = [];
+  const thinned: ThinnedTicks[] = [];
+  noteIssues(specs).forEach(add);
   specs.forEach((spec, i) => {
     const where = specs.length > 1 ? `figure ${i + 1}: ` : "";
     const addHere = (issue: SceneIssue) => add({ ...issue, detail: `${where}${issue.detail}` });
@@ -79,18 +83,22 @@ export function checkSpecs(
     }
     const at = box ?? defaultBox(spec);
     const scene = buildScene(spec, at);
-    scene.issues.forEach(addHere);
-    arrowRule(spec, scene).forEach(addHere);
-    offLine(spec, scene, at).forEach(addHere);
-    edges(scene).forEach(addHere);
-    overlaps(scene).forEach(addHere);
+    const own: SceneIssue[] = [...scene.issues];
+    own.push(...arrowRule(spec, scene));
+    const at2 = placed(spec, scene, at);
+    if (at2) own.push(...offLine(at2));
+    if (scene.points) own.push(...labelDrift(spec, scene, new Map(Object.entries(scene.points))));
+    own.push(...edges(scene), ...overlaps(scene), ...labelsOnLines(spec, scene));
+    own.push(...droppedLabels(spec, scene, own));
+    own.forEach(addHere);
+    thinned.push(...(scene.thinned ?? []));
     drawn.push(
       ...scene.items
         .filter((i): i is TextItem => i.t === "text")
         .map((t) => ({ forms: [norm(t.text)], text: t.text, partId: t.partId }))
     );
   });
-  labelIssues(specs, drawn, transcribedLabels, out).forEach(add);
+  labelIssues(specs, drawn, transcribedLabels, out, thinned).forEach(add);
   return out;
 }
 
@@ -148,7 +156,8 @@ function labelIssues(
   specs: FigureSpec[],
   drawn: Drawn[],
   transcribed: string[],
-  builderIssues: SceneIssue[]
+  builderIssues: SceneIssue[],
+  thinned: ThinnedTicks[] = []
 ): SceneIssue[] {
   const issues: SceneIssue[] = [];
   const used = drawn.map(() => false);
@@ -166,7 +175,15 @@ function labelIssues(
     if (hit >= 0) continue;
     // A label the builder already reported (no place, no free spot) is not reported again.
     if (builderIssues.some((i) => i.detail.includes(`"${text}"`))) continue;
-    issues.push({ code: "missing_label", detail: `"${text}" from the original is not drawn` });
+    const hint = tickHint(
+      text,
+      thinned,
+      drawn.map((d) => d.text)
+    );
+    issues.push({
+      code: "missing_label",
+      detail: `"${text}" from the original is not drawn${hint}`,
+    });
   }
 
   const invented = new Map<string, number>();
@@ -215,6 +232,28 @@ function wrappedRun(drawn: Drawn[], used: boolean[], want: string): number {
     }
   }
   return -1;
+}
+
+// ---------------------------------------------------------------- the not-to-scale note
+
+/**
+ * Several figures print the note once, in the plural, under the last one
+ * (notToScale: "figures"), as Bluebook does; never one singular note per figure.
+ */
+function noteIssues(specs: FigureSpec[]): SceneIssue[] {
+  if (specs.length < 2) return [];
+  const noted = specs.flatMap((s, i) => (s.notToScale ? [i + 1] : []));
+  const last = specs.length;
+  const ok =
+    noted.length === 0 ||
+    (noted.length === 1 && noted[0] === last && specs[last - 1].notToScale === "figures");
+  if (ok) return [];
+  return [
+    {
+      code: "missing_label",
+      detail: `figures ${noted.join(", ")} print the not-to-scale note; several figures print "Note: Figures not drawn to scale." once: set notToScale to "figures" on figure ${last} only`,
+    },
+  ];
 }
 
 // ---------------------------------------------------------------- arrows
@@ -347,9 +386,7 @@ function distanceTo(pw: Pt, part: Part, at: Placed): number | null {
   }
 }
 
-function offLine(spec: FigureSpec, scene: Scene, box: Box): SceneIssue[] {
-  const at = placed(spec, scene, box);
-  if (!at) return [];
+function offLine(at: Placed): SceneIssue[] {
   const byId = new Map(at.parts.map((p) => [p.id, p]));
   const issues: SceneIssue[] = [];
   for (const part of at.parts) {
@@ -402,31 +439,12 @@ export function pathPoints(d: string): Pt[] {
     } else {
       for (let i = 0; i + 6 < n.length; i += 7) {
         const end: Pt = [n[i + 5], n[i + 6]];
-        out.push(...arcPoints(cur, end, n[i], n[i + 3] === 1, n[i + 4] === 1));
+        out.push(...svgArcPoints(cur, end, n[i], n[i + 3] === 1, n[i + 4] === 1));
         cur = end;
       }
     }
   }
   return out;
-}
-
-/** Samples along a circular SVG arc (SVG's endpoint-to-center conversion, no rotation). */
-function arcPoints(a: Pt, b: Pt, radius: number, large: boolean, sweep: boolean, steps = 16): Pt[] {
-  const hx = (a[0] - b[0]) / 2;
-  const hy = (a[1] - b[1]) / 2;
-  const h2 = hx * hx + hy * hy;
-  if (h2 === 0 || radius <= 0) return [b];
-  const r = Math.max(radius, Math.sqrt(h2));
-  const k = (large === sweep ? -1 : 1) * Math.sqrt(Math.max(0, (r * r - h2) / h2));
-  const c: Pt = [k * hy + (a[0] + b[0]) / 2, -k * hx + (a[1] + b[1]) / 2];
-  const t0 = Math.atan2(a[1] - c[1], a[0] - c[0]);
-  let span = Math.atan2(b[1] - c[1], b[0] - c[0]) - t0;
-  if (sweep && span < 0) span += 2 * Math.PI;
-  if (!sweep && span > 0) span -= 2 * Math.PI;
-  return Array.from({ length: steps + 1 }, (_, i) => {
-    const t = t0 + (span * i) / steps;
-    return [c[0] + r * Math.cos(t), c[1] + r * Math.sin(t)] as Pt;
-  });
 }
 
 function edges(scene: Scene): SceneIssue[] {
@@ -461,13 +479,10 @@ function edges(scene: Scene): SceneIssue[] {
 
 function overlaps(scene: Scene): SceneIssue[] {
   const texts = scene.items.filter((i): i is TextItem => i.t === "text" && i.text.trim() !== "");
-  const boxes = texts.map(textBox);
   const issues: SceneIssue[] = [];
   for (let i = 0; i < texts.length; i++) {
     for (let j = i + 1; j < texts.length; j++) {
-      const [a, b] = [boxes[i], boxes[j]];
-      const w = Math.min(a[1], b[1]) - Math.max(a[0], b[0]);
-      const h = Math.min(a[3], b[3]) - Math.max(a[2], b[2]);
+      const [w, h] = textOverlap(texts[i], texts[j]);
       if (w > OVERLAP_SLACK && h > OVERLAP_SLACK) {
         issues.push({
           code: "label_collision",

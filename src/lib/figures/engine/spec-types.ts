@@ -5,7 +5,7 @@
 // drawing stay in the lazily loaded engine.
 // ============================================================
 
-import type { Box } from "./plane";
+import type { Box } from "./plane-axes";
 
 export const FIGURE_TYPES = [
   "table",

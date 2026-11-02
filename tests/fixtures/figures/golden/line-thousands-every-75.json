@@ -1,0 +1,68 @@
+{
+  "source": "2023-06_UNSPECIFIED_V2_RW_M1_Q12: y labels every 75 to \"1,050\", three styled series, long legend names",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "line",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "line",
+        "values": [
+          [0.5, 355],
+          [1.5, 265],
+          [2.5, 265],
+          [3.5, 510]
+        ]
+      },
+      {
+        "kind": "series",
+        "id": "s2",
+        "seriesKind": "line",
+        "values": [
+          [0.5, 465],
+          [1.5, 340],
+          [2.5, 405],
+          [3.5, 760]
+        ]
+      },
+      {
+        "kind": "series",
+        "id": "s3",
+        "seriesKind": "line",
+        "values": [
+          [0.5, 1000],
+          [1.5, 340],
+          [2.5, 360],
+          [3.5, 1000]
+        ]
+      }
+    ],
+    "labels": [
+      {
+        "text": "Class VI (severe limitations on use for crops)",
+        "on": "s1"
+      },
+      {
+        "text": "Class VII (very severe limitations on use for crops)",
+        "on": "s2"
+      },
+      {
+        "text": "Class I-IV (valuable for crops)",
+        "on": "s3"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [0, 4],
+      "y": [0, 1050],
+      "yStep": 75,
+      "yLabelStep": 75,
+      "categories": ["1960", "1979", "1986", "2000"],
+      "xTitle": "Year",
+      "yTitle": "Area (square kilometers)",
+      "thousands": "y"
+    },
+    "title": "Forest Area for Three Land Use Capability Classes in the Chorotega Region, Costa Rica"
+  }
+}

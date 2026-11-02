@@ -6,7 +6,7 @@
 // ============================================================
 
 import type { CSSProperties } from "react";
-import type { Box } from "@/lib/figures/engine/plane";
+import type { Box } from "@/lib/figures/engine/plane-axes";
 import { cn } from "@/lib/utils";
 
 /** One table row's height in the house table style (TableView's CELL), and the frame's rules. */

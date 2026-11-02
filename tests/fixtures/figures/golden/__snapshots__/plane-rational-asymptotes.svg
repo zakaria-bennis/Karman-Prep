@@ -63,16 +63,16 @@
 </path>
 <path d="M16 274.33 L16 280.33" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="16" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<text x="10.6" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−4</text>
 <path d="M66.67 274.33 L66.67 280.33" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="66.67" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-3</text>
+<text x="61.27" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−3</text>
 <path d="M117.33 274.33 L117.33 280.33" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="117.33" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<text x="111.93" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−2</text>
 <path d="M168 274.33 L168 280.33" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="168" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-1</text>
+<text x="162.6" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−1</text>
 <path d="M269.33 274.33 L269.33 280.33" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
 <text x="269.33" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>
@@ -99,19 +99,19 @@
 <text x="624" y="295.33" text-anchor="middle" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">8</text>
 <path d="M215.67 464 L221.67 464" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="212.67" y="469" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-5</text>
+<text x="212.67" y="469" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−5</text>
 <path d="M215.67 426.67 L221.67 426.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="212.67" y="431.67" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-4</text>
+<text x="212.67" y="431.67" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−4</text>
 <path d="M215.67 389.33 L221.67 389.33" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="212.67" y="394.33" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-3</text>
+<text x="212.67" y="394.33" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−3</text>
 <path d="M215.67 352 L221.67 352" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="212.67" y="357" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-2</text>
+<text x="212.67" y="357" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−2</text>
 <path d="M215.67 314.67 L221.67 314.67" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
-<text x="212.67" y="319.67" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">-1</text>
+<text x="212.67" y="319.67" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">−1</text>
 <path d="M215.67 240 L221.67 240" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 </path>
 <text x="212.67" y="245" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>
