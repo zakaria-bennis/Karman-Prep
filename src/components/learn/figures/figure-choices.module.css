@@ -27,6 +27,11 @@
   margin-inline: auto;
 }
 
+/* A choice holding several figures stacks them, one under the next. */
+.figure > svg + svg {
+  margin-top: 0.75rem;
+}
+
 .tools {
   position: absolute;
   bottom: 0.625rem;

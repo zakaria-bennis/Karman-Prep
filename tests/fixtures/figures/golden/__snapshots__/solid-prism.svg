@@ -5,27 +5,27 @@
 </path>
 </marker>
 </defs>
-<path d="M32.12 259.25 L91.88 224.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+<path d="M95 205.43 L140.57 171.99" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
 </path>
-<path d="M91.88 224.75 L367.88 224.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+<path d="M140.57 171.99 L305 209.06" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
 </path>
-<path d="M91.88 224.75 L91.88 40.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
+<path d="M140.57 171.99 L140.57 57.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s">
 </path>
-<path d="M32.12 259.25 L308.12 259.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.length">
+<path d="M95 205.43 L259.43 242.5" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.length">
 </path>
-<path d="M32.12 259.25 L32.12 75.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.height">
+<path d="M95 205.43 L95 90.94" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.height">
 </path>
-<path d="M308.12 259.25 L367.88 224.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.width">
+<path d="M259.43 242.5 L305 209.06" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s.width">
 </path>
-<path d="M308.12 259.25 L308.12 75.25" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+<path d="M259.43 242.5 L259.43 128.01" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
 </path>
-<path d="M308.12 75.25 L32.12 75.25 L91.88 40.75 L367.88 40.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+<path d="M259.43 128.01 L95 90.94 L140.57 57.5 L305 94.57" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
 </path>
-<path d="M308.12 75.25 L367.88 40.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+<path d="M259.43 128.01 L305 94.57" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
 </path>
-<path d="M367.88 40.75 L367.88 224.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
+<path d="M305 94.57 L305 209.06" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s">
 </path>
-<text x="170.12" y="280.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.length">6</text>
-<text x="345.5" y="260.62" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.width">3</text>
-<text x="21.62" y="172.88" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.height">4</text>
+<text x="173.78" y="244.82" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.length">6</text>
+<text x="290.26" y="242.38" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.width">3</text>
+<text x="84.5" y="153.81" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="s.height">4</text>
 </svg>

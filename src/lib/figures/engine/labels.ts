@@ -19,6 +19,8 @@ export type PendingLabel = {
   /** Preferred side, as a direction from the anchor (any length). */
   preferred: { dx: number; dy: number };
   partId: string;
+  /** A variable (r, h, A) prints in italic. */
+  italic?: boolean;
   /** When given, a spot counts only if its box [left, right, top, bottom] passes (inside a region). */
   within?: (box: [number, number, number, number]) => boolean;
 };
@@ -176,6 +178,7 @@ export function placeLabels(
           anchor: "middle",
           partId: label.partId,
         };
+        if (label.italic) item.italic = true;
         const r = textBox(item);
         if (r[0] < 0 || r[1] > box.width || r[2] < 0 || r[3] > box.height) continue;
         const padded = pad(r, GAP);

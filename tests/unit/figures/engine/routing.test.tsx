@@ -10,7 +10,12 @@ import { buildGeometry2d } from "@/lib/figures/engine/geometry2d";
 import { buildScene, defaultBox } from "@/lib/figures/engine/index";
 import { buildPlane } from "@/lib/figures/engine/plane";
 import { buildSolid3d } from "@/lib/figures/engine/solid3d";
-import { FIGURE_SPEC_VERSION, parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
+import {
+  FIGURE_SPEC_VERSION,
+  parseFigureSpec,
+  parseFigureSpecs,
+  type FigureSpec,
+} from "@/lib/figures/engine/spec";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { catalogQuestionPayloadHash } from "@/lib/question-bank/catalog-question-scope";
 import { toQuizReviewContent } from "@/lib/quiz-review-content";
@@ -68,6 +73,11 @@ const SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" data-figure-theme="karman-v1" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="#070605"/></svg>';
 
 // The calculator's table transfer control, as a marker carrying what it was given.
+// A page with a calculator: SpecTable shows the table button only where useCalculator() is set.
+vi.mock("@/components/calculator/bridge-context", async (original) => ({
+  ...(await original<typeof import("@/components/calculator/bridge-context")>()),
+  useCalculator: () => ({ questionKey: "attempt:q1" }),
+}));
 vi.mock("@/components/calculator/CalculatorSourceAction", async (original) => ({
   ...(await original<typeof import("@/components/calculator/CalculatorSourceAction")>()),
   CalculatorTableAction: (props: { rows: string[][]; headers?: string[]; itemId?: string }) => (
@@ -243,7 +253,7 @@ describe("figure_spec through question data", () => {
     };
     const table = { rows: [["1", "2"]] };
     const pick = (over: Partial<QuizQuestionWithChoices>) =>
-      drawnFigure(question(over), parseFigureSpec);
+      drawnFigure(question(over), parseFigureSpecs);
     expect(pick({ figure_spec: bad, image_url: "/a.png" })).toBe("image");
     expect(pick({ figure_spec: bad, figure_kind: "table", figure_table_data: table })).toBe(
       "table"

@@ -98,4 +98,14 @@
 </rect>
 <rect x="489.33" y="311.36" width="94.67" height="45.89" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
 </rect>
+<path d="M110.67 265.46 L110.67 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M205.33 219.57 L205.33 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M300 127.79 L300 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M394.67 219.57 L394.67 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
+<path d="M489.33 311.36 L489.33 357.25" fill="none" stroke="var(--figure-paper)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="separator">
+</path>
 </svg>

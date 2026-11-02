@@ -157,6 +157,11 @@ describe("buildGeometry2d", () => {
     expect(marks[0].fill).toBeUndefined();
   });
 
+  it("equal-side ticks are 1.3 times the axis tick, spaced 1.3 times markGap", () => {
+    expect(HOUSE.equalTickLength).toBeCloseTo(HOUSE.tickLength * 1.3, 9);
+    expect(HOUSE.equalTickGap).toBeCloseTo(HOUSE.markGap * 1.3, 9);
+  });
+
   it("equal_ticks count 2 draws two ticks perpendicular at each segment midpoint", () => {
     const spec = geo(
       [
@@ -178,13 +183,13 @@ describe("buildGeometry2d", () => {
       expect(ticks).toHaveLength(2);
       const centers = ticks.map((t) => {
         const [a, b] = vertices(t.d);
-        expect(dist(a, b)).toBeCloseTo(HOUSE.tickLength, 1);
+        expect(dist(a, b)).toBeCloseTo(HOUSE.equalTickLength, 1);
         expect(Math.abs(dot(unit(sub(b, a)), dir))).toBeLessThan(0.01);
         const c: V = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-        expect(dist(c, mid)).toBeLessThan(HOUSE.tickLength);
+        expect(dist(c, mid)).toBeLessThan(HOUSE.equalTickLength);
         return c;
       });
-      expect(dist(centers[0], centers[1])).toBeGreaterThan(2);
+      expect(dist(centers[0], centers[1])).toBeCloseTo(HOUSE.equalTickGap, 1);
     }
   });
 

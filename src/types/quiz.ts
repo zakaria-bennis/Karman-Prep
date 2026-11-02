@@ -33,8 +33,8 @@ export interface AnswerChoice {
   choice_text: string;
   /** A source-faithful native table belonging to this answer letter only. */
   choice_table_data?: QuestionTableData | null;
-  /** answer_choices.choice_figure_spec: this choice's own FigureSpec, unvalidated as stored
-   *  (parse with parseFigureSpec). Drawn in Task 10 of the figure engine. */
+  /** answer_choices.choice_figure_spec: this choice's own FigureSpec, or an ordered list of
+   *  them, unvalidated as stored (parse with parseFigureSpecs). */
   choice_figure_spec?: unknown;
   is_correct: boolean;
 }
@@ -206,6 +206,7 @@ export interface QuizQuestion {
    *  inlined through sanitizeThemedSvg and checked by the importer. Optional so rows and fixtures without it stay valid. */
   figure_svg?: string | null;
   /** quiz_questions.figure_spec: the figure as a FigureSpec (src/lib/figures/engine/spec.ts),
+   *  or an ordered list of them when the question prints several figures (drawn stacked),
    *  unvalidated as stored. When set it is drawn instead of every field above. */
   figure_spec?: unknown;
 }

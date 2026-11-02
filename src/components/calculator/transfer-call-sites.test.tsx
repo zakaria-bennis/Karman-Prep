@@ -216,18 +216,20 @@ it("AR-11, TR-22 the wrappers render only Transfer controls, question tables and
   );
   stubbed(bridgeStub());
   render(tree);
-  await waitFor(() => expect(namesOf()).toHaveLength(4));
-  expect(namesOf()).toEqual([
+  const anchors = () => [...document.querySelectorAll("[data-transfer-control]")];
+  await waitFor(() => expect(anchors()).toHaveLength(4));
+  expect(anchors().map((a) => a.querySelector("button")?.getAttribute("aria-label"))).toEqual([
     "Transfer to Calculator: y = 2x + 3",
     "Transfer to Calculator: choice B",
-    "Transfer to Calculator: table, 1 row",
-    "Transfer to Calculator: table, 2 rows",
+    "Copy table to calculator", // TR-92: one table needs no label
+    "Copy table to calculator",
   ]);
-  expect(
-    [...document.querySelectorAll("[data-transfer-control]")].map((a) =>
-      a.getAttribute("data-placement")
-    )
-  ).toEqual(["inline", "cluster", "cluster", "block"]);
+  expect(anchors().map((a) => a.getAttribute("data-placement"))).toEqual([
+    "inline",
+    "cluster",
+    "cluster",
+    "corner",
+  ]);
 });
 
 it("AR-11 a choice with no stem prop classifies against the stem its question's MathText registered", async () => {
@@ -478,7 +480,7 @@ it("AR-11, TR-22 a table choice's control sits in its cluster, and daily math ch
   expect(header).toHaveAttribute("data-calculator-cluster");
   await waitFor(() => expect(document.querySelectorAll("[data-transfer-control]")).toHaveLength(1));
   expect(header?.querySelector("[data-transfer-control] button")).toHaveAccessibleName(
-    "Transfer to Calculator: choice D"
+    "Copy table to calculator: choice D"
   );
   view.unmount();
   const slot = {

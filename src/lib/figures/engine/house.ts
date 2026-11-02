@@ -12,7 +12,15 @@ export const HOUSE = {
   labelOffset: 6,
   arrowLength: 8,
   arrowWidth: 6,
+  /** Axis ticks, and the arms of parallel chevrons. */
   tickLength: 6,
+  /**
+   * The ticks that mark equal (congruent) sides: 1.3 times tickLength, so they read
+   * clearly on a side (founder, 2026-11-01). Axis ticks keep tickLength.
+   */
+  equalTickLength: 7.8,
+  /** Spacing between repeated equal-side ticks: markGap scaled by the same 1.3. */
+  equalTickGap: 5.2,
   /** Side of the square that marks a right angle. */
   rightAngleSide: 10,
   /** Radius of the innermost equal-angle arc. */
@@ -29,10 +37,6 @@ export const HOUSE = {
   charWidthEm: 0.6,
   /** Snapping tolerance as a fraction of the figure's larger side. */
   snapTolerance: 0.02,
-  /** Oblique view of a 3D solid (the SAT's): depth recedes at this angle, in degrees... */
-  obliqueAngle: 30,
-  /** ...drawn at this fraction of its true length. */
-  obliqueDepth: 0.5,
   /** Points sampled around every circle of a curved solid. */
   circleSamples: 64,
 } as const;

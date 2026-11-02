@@ -1,0 +1,55 @@
+{
+  "source": "traced from the real exam figure 2026-06_US_V3_MATH_M2_Q06: tall cone, vertex V, radius OP drawn solid from a dot at O to the left; base flattens to 0.56",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "solid3d",
+    "parts": [
+      {
+        "kind": "solid",
+        "id": "s",
+        "shape": "cone",
+        "dims": {
+          "radius": 0.4,
+          "height": 1
+        },
+        "view": {
+          "tilt": 34
+        },
+        "show": ["radius"],
+        "points": [
+          {
+            "id": "V",
+            "at": "apex",
+            "dot": false
+          },
+          {
+            "id": "O",
+            "at": "center"
+          },
+          {
+            "id": "P",
+            "at": "rim",
+            "angle": 180,
+            "dot": false
+          }
+        ]
+      }
+    ],
+    "labels": [
+      {
+        "text": "V",
+        "on": "s.V"
+      },
+      {
+        "text": "O",
+        "on": "s.O"
+      },
+      {
+        "text": "P",
+        "on": "s.P"
+      }
+    ],
+    "marks": [],
+    "notToScale": true
+  }
+}

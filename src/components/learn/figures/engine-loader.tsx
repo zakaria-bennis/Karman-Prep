@@ -10,7 +10,7 @@
 //   figure; hydration keeps that HTML until the chunk arrives; a client-only
 //   mount shows the wrapper's same-size placeholder until then. Once the
 //   chunk is loaded every later figure renders at once, with no placeholder.
-// - useFigureEngine gives screens parseFigureSpec once the chunk is loaded
+// - useFigureEngine gives screens parseFigureSpecs once the chunk is loaded
 //   (null on the server and during hydration, so both pick the same figure
 //   path); drawnFigure, hasFigureChoices and withSpecTables take it.
 // ============================================================
@@ -106,13 +106,13 @@ type SpecFields = {
 };
 
 /**
- * parseFigureSpec once the engine has loaded, for a question with a figure_spec or a
+ * parseFigureSpecs once the engine has loaded, for a question with a figure_spec or a
  * choice_figure_spec (which starts the load); null before then. Screens pass it to
  * drawnFigure, hasFigureChoices and withSpecTables.
  */
-export function useSpecParser(q: SpecFields): FigureEngine["parseFigureSpec"] | null {
+export function useSpecParser(q: SpecFields): FigureEngine["parseFigureSpecs"] | null {
   const needed =
     (q.figure_spec !== null && q.figure_spec !== undefined) ||
     !!q.answer_choices?.some((c) => c.choice_figure_spec != null);
-  return useFigureEngine(needed)?.parseFigureSpec ?? null;
+  return useFigureEngine(needed)?.parseFigureSpecs ?? null;
 }

@@ -10,13 +10,16 @@ import type { MappedNode } from "@/components/learn/ConstellationMap";
 import { CHOICE_BOX, choiceScenes, sharedFrame } from "@/lib/figures/engine/choices";
 import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
 import { buildScene } from "@/lib/figures/engine/index";
-import { FIGURE_SPEC_VERSION, parseFigureSpec, type FigureSpec } from "@/lib/figures/engine/spec";
+import { FIGURE_SPEC_VERSION, parseFigureSpecs, type FigureSpec } from "@/lib/figures/engine/spec";
 import { drawnFigure } from "@/lib/figures/question-figure";
 import { catalogQuestionPayloadHash } from "@/lib/question-bank/catalog-question-scope";
 import { toQuizReviewContent } from "@/lib/quiz-review-content";
 import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
 import type { AnswerChoice, QuizQuestionWithChoices, StudentQuizQuestion } from "@/types/quiz";
 import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+/** Each choice's one figure (these choices hold one FigureSpec each), or null. */
+const oneScenes = (choices: unknown[]) => choiceScenes(choices).map((s) => s?.[0] ?? null);
 
 // The figure engine loads lazily; loaded first, every figure renders synchronously.
 await loadFigureEngine();
@@ -114,7 +117,7 @@ describe("sharedFrame", () => {
 
 describe("choiceScenes", () => {
   it("four graph choices share one frame and one size", () => {
-    const scenes = choiceScenes(GRAPHS);
+    const scenes = oneScenes(GRAPHS);
     const frame = sharedFrame(GRAPHS);
     scenes.forEach((scene, i) => {
       expect(scene).toEqual(buildScene({ ...GRAPHS[i], frame }, CHOICE_BOX));
@@ -131,14 +134,14 @@ describe("choiceScenes", () => {
   });
 
   it("charts of different heights (a legend) are drawn at one size", () => {
-    const scenes = choiceScenes([BAR([2, 4, 8], "Plan"), BAR([1, 3, 5]), BAR([3, 3, 3]), BAR([6])]);
+    const scenes = oneScenes([BAR([2, 4, 8], "Plan"), BAR([1, 3, 5]), BAR([3, 3, 3]), BAR([6])]);
     const sizes = new Set(scenes.map((s) => `${s!.width}x${s!.height}`));
     expect(sizes.size).toBe(1);
   });
 
   it("an invalid spec or a table has no scene; the others still draw", () => {
     const broken = { ...TRIANGLE, parts: [{ kind: "segment", id: "XY", from: "X", to: "Y" }] };
-    const scenes = choiceScenes([TRIANGLE, broken, TABLE, null]);
+    const scenes = oneScenes([TRIANGLE, broken, TABLE, null]);
     expect(scenes[0]?.items.length).toBeGreaterThan(0);
     expect(scenes.slice(1)).toEqual([null, null, null]);
   });
@@ -148,7 +151,7 @@ describe("FigureChoices", () => {
   it('each choice is one button whose accessible name is "Choice A" plus the figure description', () => {
     const onSelect = vi.fn();
     render(<FigureChoices choices={items(GRAPHS)} onSelect={onSelect} />);
-    const scenes = choiceScenes(GRAPHS);
+    const scenes = oneScenes(GRAPHS);
     LETTERS.forEach((letter, i) => {
       const button = screen.getByRole("button", {
         name: `Choice ${letter}: ${scenes[i]!.description}`,
@@ -270,7 +273,7 @@ const question = (over: Partial<QuizQuestionWithChoices> = {}) =>
 describe("choice data helpers", () => {
   it("hasFigureChoices is true only for a drawn, valid choice spec", () => {
     const has = (choices: Parameters<typeof hasFigureChoices>[0]) =>
-      hasFigureChoices(choices, parseFigureSpec);
+      hasFigureChoices(choices, parseFigureSpecs);
     expect(has(question().answer_choices)).toBe(true);
     expect(has([choice("A"), choice("B")])).toBe(false);
     expect(has([choice("A", { choice_figure_spec: TABLE })])).toBe(false);
@@ -409,8 +412,10 @@ describe("Task 9 carry-overs", () => {
 
   it("an invalid figure_spec lays out like a question with no figure", () => {
     const broken = { ...TRIANGLE, parts: [{ kind: "segment", id: "XY", from: "X", to: "Y" }] };
-    expect(drawnFigure(question({ figure_spec: broken } as never), parseFigureSpec)).toBeNull();
-    expect(drawnFigure(question({ figure_spec: TRIANGLE } as never), parseFigureSpec)).toBe("spec");
+    expect(drawnFigure(question({ figure_spec: broken } as never), parseFigureSpecs)).toBeNull();
+    expect(drawnFigure(question({ figure_spec: TRIANGLE } as never), parseFigureSpecs)).toBe(
+      "spec"
+    );
     const { container } = render(
       <CatalogQuestion
         question={toStudentQuizQuestion(

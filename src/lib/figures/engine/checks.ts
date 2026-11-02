@@ -48,10 +48,20 @@ const OVERLAP_SLACK = 1;
  * included). [] means the figure passes. `box` is the box it is drawn in
  * (defaultBox, or CHOICE_BOX for an answer choice).
  */
-export function checkSpec(
-  spec: FigureSpec,
+export function checkSpec(spec: FigureSpec, transcribedLabels: string[], box?: Box): SceneIssue[] {
+  return checkSpecs([spec], transcribedLabels, box);
+}
+
+/**
+ * checkSpec for the figures of one figure_spec or choice_figure_spec list, in order.
+ * Each figure is built and checked on its own; the labels are compared once, against
+ * every text drawn in all of them, since the transcription covers everything the
+ * original prints. In a list, each issue's detail names its figure ("figure 2: ...").
+ */
+export function checkSpecs(
+  specs: FigureSpec[],
   transcribedLabels: string[],
-  box: Box = defaultBox(spec)
+  box?: Box
 ): SceneIssue[] {
   const out: SceneIssue[] = [];
   const add = (issue: SceneIssue) => {
@@ -59,22 +69,28 @@ export function checkSpec(
       o.code === issue.code && o.partId === issue.partId && o.detail === issue.detail;
     if (!out.some(same)) out.push(issue);
   };
-
-  let drawn: Drawn[];
-  if (spec.type === "table") {
-    drawn = tableTexts(spec, add);
-  } else {
-    const scene = buildScene(spec, box);
-    scene.issues.forEach(add);
-    arrowRule(spec, scene).forEach(add);
-    offLine(spec, scene, box).forEach(add);
-    edges(scene).forEach(add);
-    overlaps(scene).forEach(add);
-    drawn = scene.items
-      .filter((i): i is TextItem => i.t === "text")
-      .map((t) => ({ forms: [norm(t.text)], text: t.text, partId: t.partId }));
-  }
-  labelIssues(spec, drawn, transcribedLabels, out).forEach(add);
+  const drawn: Drawn[] = [];
+  specs.forEach((spec, i) => {
+    const where = specs.length > 1 ? `figure ${i + 1}: ` : "";
+    const addHere = (issue: SceneIssue) => add({ ...issue, detail: `${where}${issue.detail}` });
+    if (spec.type === "table") {
+      drawn.push(...tableTexts(spec, addHere));
+      return;
+    }
+    const at = box ?? defaultBox(spec);
+    const scene = buildScene(spec, at);
+    scene.issues.forEach(addHere);
+    arrowRule(spec, scene).forEach(addHere);
+    offLine(spec, scene, at).forEach(addHere);
+    edges(scene).forEach(addHere);
+    overlaps(scene).forEach(addHere);
+    drawn.push(
+      ...scene.items
+        .filter((i): i is TextItem => i.t === "text")
+        .map((t) => ({ forms: [norm(t.text)], text: t.text, partId: t.partId }))
+    );
+  });
+  labelIssues(specs, drawn, transcribedLabels, out).forEach(add);
   return out;
 }
 
@@ -129,7 +145,7 @@ function authorTexts(spec: FigureSpec): { text: string; partId?: string }[] {
 }
 
 function labelIssues(
-  spec: FigureSpec,
+  specs: FigureSpec[],
   drawn: Drawn[],
   transcribed: string[],
   builderIssues: SceneIssue[]
@@ -169,7 +185,7 @@ function labelIssues(
   const inOriginal = new Map<string, number>();
   for (const t of original) inOriginal.set(norm(t), (inOriginal.get(norm(t)) ?? 0) + 1);
   const authored = new Map<string, number>();
-  for (const a of authorTexts(spec)) {
+  for (const a of specs.flatMap(authorTexts)) {
     const k = norm(a.text);
     authored.set(k, (authored.get(k) ?? 0) + 1);
     const excess = (authored.get(k) ?? 0) - (inOriginal.get(k) ?? 0);

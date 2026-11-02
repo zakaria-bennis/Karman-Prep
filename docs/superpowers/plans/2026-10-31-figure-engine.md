@@ -21,7 +21,7 @@
   - label offset 6 px, arrowhead length 8 px and width 6 px, tick length 6 px;
   - margin 16 px.
 - **Snapping tolerance** is 2% of the figure's larger side.
-- **Solid view:** oblique at 30° with depth scale 0.5 by default, or isometric.
+- **Solid view:** orthographic, each shape's Bluebook camera by default (see the spec's solid3d section).
 - **Replace, don't accumulate:** each task that replaces an old renderer deletes it once nothing calls it. No `v2` names.
 - **Code limits:** no file over about 700 lines. `@typescript-eslint/no-unused-vars` is an error.
 - **Gates before review:** `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run check:sizes`, `npm run cf:build`.
