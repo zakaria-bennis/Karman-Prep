@@ -372,6 +372,47 @@ class SpecSubmit(unittest.TestCase):
         self.assertEqual((self.folder / "choice-C.svg").read_text(), "<svg>C</svg>")
         self.assertFalse((self.folder / "figure.svg").exists())
 
+    def test_submit_stores_a_list_of_figures(self):
+        # two dot plots (2025-08_ASIA_V1_MATH_M1_Q18 crashed here: the list of renders was written as one string)
+        self.write(spec_doc(self.OCC, [TRIANGLE_SPEC, PLANE_SPEC], ("A", "B", "C", "x", "y", "1", "1")))
+        (self.folder / "figure.svg").write_text("<svg>one figure, an earlier submit</svg>")
+        s, _ = self.run_submit(checked(spec=[TRIANGLE_SPEC, PLANE_SPEC], svg=["<svg>1</svg>", "<svg>2</svg>"]))
+        stored = json.loads((self.folder / "figure.json").read_text())
+        self.assertEqual(stored["figure_spec"], [TRIANGLE_SPEC, PLANE_SPEC])
+        self.assertEqual(s["status"], "ready_for_founder")
+        self.assertEqual(s["submitted_file_sha256"], fg.file_sha256(self.folder / "figure.json"))
+        self.assertEqual(sorted(p.name for p in self.folder.glob("*.svg")), ["figure-1.svg", "figure-2.svg"])
+        self.assertEqual((self.folder / "figure-2.svg").read_text(), "<svg>2</svg>")
+        self.assertEqual([p.name for p in self.folder.iterdir() if p.suffix == ".tmp"], [])
+        # a table in the list is HTML: no render file for it; a single spec again replaces the list's renders
+        self.write(spec_doc(self.OCC, [TRIANGLE_SPEC, PLANE_SPEC], ("A", "B", "C", "x", "y", "1", "1")))
+        self.run_submit(checked(spec=[TRIANGLE_SPEC, PLANE_SPEC], svg=[None, "<svg>2</svg>"]))
+        self.assertEqual(sorted(p.name for p in self.folder.glob("*.svg")), ["figure-2.svg"])
+        self.write(spec_doc(self.OCC))
+        self.run_submit(checked(spec=TRIANGLE_SPEC, svg="<svg>one</svg>"))
+        self.assertEqual(sorted(p.name for p in self.folder.glob("*.svg")), ["figure.svg"])
+
+    def test_submit_stores_a_choice_holding_a_list(self):
+        doc = table_doc(self.OCC)
+        for c in doc["answer_choices"]:
+            c.update({"choice_text": "", "choice_figure_spec": [PLANE_SPEC, PLANE_SPEC], "transcribed_labels": []})
+        self.write(doc)
+        choices = [{"letter": L, "ok": True, "issues": [], "svg": [f"<svg>{L}1</svg>", f"<svg>{L}2</svg>"],
+                    "spec": [PLANE_SPEC, PLANE_SPEC]} for L in "ABCD"]
+        self.run_submit(checked(spec=None, svg=None, choices=choices))
+        self.assertEqual((self.folder / "choice-C-2.svg").read_text(), "<svg>C2</svg>")
+        self.assertFalse((self.folder / "choice-C.svg").exists())
+
+    def test_renders_that_do_not_fit_the_list_change_nothing(self):
+        self.write(spec_doc(self.OCC, [TRIANGLE_SPEC, PLANE_SPEC], ("A", "B", "C", "x", "y", "1", "1")))
+        before = (self.folder / "figure.json").read_bytes()
+        for svg in ("<svg>one string for two figures</svg>", ["<svg>1</svg>"], ["<svg>1</svg>", 7]):
+            with self.assertRaisesRegex(ValueError, "render"):
+                self.run_submit(checked(spec=[TRIANGLE_SPEC, PLANE_SPEC], svg=svg))
+            self.assertEqual((self.folder / "figure.json").read_bytes(), before)
+            self.assertEqual(self.status(), "drafting")
+            self.assertEqual([p.name for p in self.folder.iterdir() if p.suffix in (".tmp", ".svg")], [])
+
     def test_spec_needs_its_transcription_and_no_legacy_fields(self):
         doc = spec_doc(self.OCC)
         del doc["transcribed_labels"]
@@ -401,6 +442,18 @@ class SpecSubmit(unittest.TestCase):
         ffx.write_figure(self.figs, other.name, spec_doc(other.name, PLANE_SPEC, ("x", "1", "1")), status="drafting")
         with self.assertRaisesRegex(ValueError, "not in original"):
             figures.submit(self.figs, other.name, "r1", self.NOW)
+
+    @unittest.skipUnless((figures.engine_dir() / "scripts/figures/check-spec.ts").is_file(),
+                         "the figure engine worktree is not here")
+    def test_real_engine_checks_and_stores_a_list(self):
+        self.write(spec_doc(self.OCC, [PLANE_SPEC, TRIANGLE_SPEC], ("x", "y", "1", "1", "A", "B", "C")))
+        s = figures.submit(self.figs, self.OCC, "r1", self.NOW)
+        self.assertEqual(s["status"], "ready_for_founder")
+        stored = json.loads((self.folder / "figure.json").read_text())["figure_spec"]
+        self.assertEqual([f["type"] for f in stored], ["plane", "geometry2d"])
+        self.assertGreater(len(stored[0]["parts"][0]["samples"][0]), 1)
+        self.assertTrue((self.folder / "figure-2.svg").read_text().startswith("<svg"))
+        self.assertEqual([p.name for p in self.folder.iterdir() if p.suffix == ".tmp"], [])
 
     def test_a_checker_result_that_is_not_an_object_is_refused(self):
         self.write(spec_doc(self.OCC))

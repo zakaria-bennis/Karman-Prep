@@ -7,7 +7,9 @@
   status.json   {occurrence_id, status, round, claimed_by, submitted_file_sha256,
                  approved_file_sha256, history: [{at, decision, note, by}]}
   figure.svg    the engine's render of figure_spec, written by submit (choice-<letter>.svg for
-                each choice_figure_spec), for the snapshot
+                each choice_figure_spec), for the snapshot. A list of figures renders one file
+                per figure: figure-1.svg, figure-2.svg ... (choice-<letter>-1.svg ...); a table
+                is HTML and has none
 
 A new figure is a FigureSpec (`figure_spec`, or `choice_figure_spec` on each answer choice) with
 `transcribed_labels` beside it: every text printed in the original figure. `submit` runs the
@@ -96,38 +98,58 @@ def _issue_lines(result: dict) -> list[str]:
     return lines
 
 
+def _renders(stem: str, stored, svg) -> dict[str, str]:
+    """{file name: svg} for one stored figure_spec / choice_figure_spec and check-spec.ts's svg for
+    it: <stem>.svg for one spec; <stem>-1.svg, <stem>-2.svg ... for a list (the svg is then a list
+    in the same order). A table has no svg (null) and no file. Anything else is refused."""
+    if isinstance(stored, list):
+        if not isinstance(svg, list) or len(svg) != len(stored):
+            raise ValueError(f"figure checks returned {type(svg).__name__} renders for a list of {len(stored)} "
+                             "figures; expected one per figure")
+        pairs = [(f"{stem}-{n}.svg", one) for n, one in enumerate(svg, 1)]
+    else:
+        pairs = [(f"{stem}.svg", svg)]
+    out = {}
+    for name, one in pairs:
+        if one is None:
+            continue
+        if not isinstance(one, str):
+            raise ValueError(f"figure checks returned a {type(one).__name__} render for {name}, not SVG text")
+        out[name] = one
+    return out
+
+
 def _store_checked(folder: Path, doc: dict, result: dict) -> None:
     """figure.json with the sampled specs check-spec.ts returned, then their renders beside it.
-    Renders go to temp files first and replace the old ones only after figure.json is written;
-    renders from an earlier submit that are not rewritten are removed last. A crash never leaves
-    renders newer than figure.json."""
+    A figure_spec (or choice_figure_spec) that is a list stays a list, with one render per figure
+    (_renders). Renders go to temp files first and replace the old ones only after figure.json is
+    written; renders from an earlier submit that are not rewritten are removed last. A crash never
+    leaves renders newer than figure.json, nor a temp file behind."""
     renders: dict[str, str] = {}
     if doc.get("figure_spec") not in fg._EMPTY:
         doc["figure_spec"] = result["spec"]
-        if result.get("svg"):
-            renders[SVG_FILE] = result["svg"]
+        renders.update(_renders(SVG_FILE[:-4], result["spec"], result.get("svg")))
     by_letter = {c.get("letter"): c for c in result.get("choices") or []}
     for c in doc.get("answer_choices") or []:
         got = by_letter.get(c.get("letter")) if isinstance(c, dict) else None
         if got is None:
             continue
         c["choice_figure_spec"] = got["spec"]
-        if got.get("svg"):
-            renders[f"choice-{c['letter']}.svg"] = got["svg"]
+        renders.update(_renders(f"choice-{c['letter']}", got["spec"], got.get("svg")))
     temps = {}
     try:
         for name, svg in renders.items():
             fd, tmp = tempfile.mkstemp(prefix=name + ".", suffix=".tmp", dir=folder)
+            temps[name] = tmp
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(svg)
-            temps[name] = tmp
         atomic_write_json(folder / fg.FIGURE_FILE, doc)
         for name, tmp in temps.items():
             os.replace(tmp, folder / name)
     finally:
         for tmp in temps.values():
             Path(tmp).unlink(missing_ok=True)
-    for stale in [folder / SVG_FILE, *folder.glob("choice-*.svg")]:
+    for stale in [*folder.glob("figure*.svg"), *folder.glob("choice-*.svg")]:
         if stale.name not in renders:
             stale.unlink(missing_ok=True)
 
