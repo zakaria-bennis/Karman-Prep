@@ -147,6 +147,18 @@ Also on 2026-11-01, after removing rule 47, the founder kept the three real
 results on the home page: Ava 1520 UC Berkeley, Mateo 1570 Harvard and Priya 1540
 Stanford, each with "Karman 1:1 tutoring, median 16 weeks".
 
+### Devices in pictures and film (founder, 2026-11-01)
+
+Every device in a generated picture or video is a real, current product, named by
+model in the prompt so the model can draw it properly:
+
+- Phones: iPhone 17 Pro Max or iPhone 18 Pro Max only.
+- Headphones: Sony WH-1000XM5 or AirPods Max 2 only (no earbuds, no wired earphones).
+- Laptops: MacBook Pro in Space Black only.
+- Any other device appears only if it is an official product named by its exact model.
+- Every device is checked at full size before a picture is kept; a generic or wrong
+  device is rejected or fixed with an image edit.
+
 ## Copy rules
 
 Set by the founder on 2026-10-19. Every word on the website follows these.
