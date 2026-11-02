@@ -46,6 +46,60 @@ describe("curveFor", () => {
   });
 });
 
+describe("curveFor: flat and vertical lines (the calculator draws them as line sets)", () => {
+  it.each(["y=-5", "y=0", "y=\\frac{3}{2}", "y = -0.5"])(
+    "%s draws one level run across the frame",
+    (latex) => {
+      const level = { "y=-5": -5, "y=0": 0, "y=\\frac{3}{2}": 1.5, "y = -0.5": -0.5 }[latex]!;
+      const f = { ...FRAME, y: [-6, 6] as [number, number] };
+      const runs = curveFor(latex, f, BOX);
+      expect(runs).toHaveLength(1);
+      const [x0, y0, x1, y1] = runs[0];
+      expect([x0, x1]).toEqual([-5, 5]);
+      expect(y0).toBeCloseTo(level, 12);
+      expect(y1).toBeCloseTo(level, 12);
+    }
+  );
+
+  it("x=3 draws one vertical run from the frame's bottom to its top", () => {
+    expect(curveFor("x=3", FRAME, BOX)).toEqual([[3, -5, 3, 5]]);
+  });
+
+  it("a constant off the frame draws nothing", () => {
+    expect(curveFor("y=9", FRAME, BOX)).toEqual([]);
+    expect(curveFor("x=-9", FRAME, BOX)).toEqual([]);
+  });
+
+  it("a bare expression graphs as y = it: -5 is the level line, x^2 the parabola", () => {
+    expect(curveFor("-5", FRAME, BOX)).toEqual(curveFor("y=-5", FRAME, BOX));
+    expect(curveFor("x^2", FRAME, BOX)).toEqual(curveFor("y=x^2", FRAME, BOX));
+  });
+
+  it("plain bars |x| read as absolute value", () => {
+    const runs = curveFor("y=|x-2|", FRAME, BOX);
+    expect(runs).toEqual(curveFor("y=\\left|x-2\\right|", FRAME, BOX));
+    expect(nearest(runs, 2, 0)).toBeLessThan(0.01 * SPAN);
+  });
+
+  it("sampleSpec keeps a constant to its domain", () => {
+    const spec: FigureSpec = {
+      version: FIGURE_SPEC_VERSION,
+      type: "plane",
+      parts: [{ kind: "function", id: "c", latex: "y=-2", domain: [-1, 2] }],
+      labels: [],
+      marks: [],
+      frame: FRAME,
+    };
+    const out = sampleSpec(spec, BOX).parts[0];
+    expect(out.kind === "function" && out.samples).toEqual([
+      [
+        [-1, -2],
+        [2, -2],
+      ],
+    ]);
+  });
+});
+
 describe("sampleSpec", () => {
   const spec: FigureSpec = {
     version: FIGURE_SPEC_VERSION,

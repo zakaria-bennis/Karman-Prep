@@ -172,11 +172,10 @@ describe("buildPlane", () => {
       (t) => t.anchor === "end" && /^−?\d+$/.test(t.text) && t.text !== "0"
     );
     expect([...xLabels].sort()).toEqual([...want].sort());
-    // The y "−1" would sit on the x "−1" in this small box: it is left out and reported,
-    // never dropped silently.
-    expect(yLabels.map((t) => t.text).sort()).toEqual(want.filter((w) => w !== "−1").sort());
-    expect(scene.issues.map((i) => i.code)).toEqual(["crowded_ticks"]);
-    expect(scene.issues[0].detail).toContain("−1");
+    // The y "−1" sits just below the x "−1" in this small box; their digits do not
+    // touch, so both are drawn.
+    expect(yLabels.map((t) => t.text).sort()).toEqual([...want].sort());
+    expect(scene.issues).toEqual([]);
     // Labels 28.8px apart leave no room for the origin's 0 below and left (golden review):
     // it moves to the next free corner, below and right, and is never dropped silently.
     const zero = texts.filter((t) => t.text === "0");

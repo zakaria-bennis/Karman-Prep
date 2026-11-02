@@ -28,8 +28,16 @@ const point = z
   })
   .strict();
 
-const twoPoint = (kind: "segment" | "ray" | "line") =>
+const twoPoint = (kind: "segment" | "ray") =>
   z.object({ kind: z.literal(kind), id, from: id, to: id }).strict();
+
+/**
+ * A line through two points, with arrowheads at both ends; `arrows: false` draws it
+ * without them, as the SAT sometimes prints a line that runs to the frame's edge.
+ */
+const line = z
+  .object({ kind: z.literal("line"), id, from: id, to: id, arrows: z.literal(false).optional() })
+  .strict();
 
 const circle = z
   .object({
@@ -202,7 +210,7 @@ export const PartSchema = z.discriminatedUnion("kind", [
   circle,
   twoPoint("segment"),
   twoPoint("ray"),
-  twoPoint("line"),
+  line,
   arc,
   angle,
   polygon,
@@ -247,13 +255,28 @@ export const PlaneFrameSchema = z
     /** Label every labelStep on x (and y, unless yLabelStep), not every tick. */
     labelStep: num.positive().optional(),
     yLabelStep: num.positive().optional(),
+    /**
+     * Unlabelled tick marks every minorStep on x (and on y unless yMinorStep is
+     * set), shorter than the labelled ones, between them.
+     */
+    minorStep: num.positive().optional(),
+    yMinorStep: num.positive().optional(),
+    /**
+     * An axis break: the axis starts at a corner that stands for 0, then a zig-zag
+     * one step long skips to the range's start (x from 9 printed "0, 9, 10, ...").
+     * The range must start above 0.
+     */
+    xBreak: z.boolean().optional(),
+    yBreak: z.boolean().optional(),
     /** Category names along x, one band each (bar charts). */
     categories: z.array(z.string()).optional(),
     /**
      * The label where the axes meet: "0" (true, the default), the SAT's italic "O"
-     * ("O"), or none (false: printed SAT figures often leave it off).
+     * ("O"), none (false: printed SAT figures often leave it off), or "both": a 0 on
+     * each axis, the y one beside the base and the x one under the corner, as SAT
+     * histograms print it.
      */
-    originLabel: z.union([z.boolean(), z.literal("O")]).optional(),
+    originLabel: z.union([z.boolean(), z.literal("O"), z.literal("both")]).optional(),
     /** false: no grid lines. */
     grid: z.boolean().optional(),
     /** The axis names: a short one (x, y, t) is the letter at the axis end, a longer one a title. */
@@ -284,6 +307,18 @@ export const PlaneFrameSchema = z
   })
   .refine((f) => tickCount(f.y, f.yStep ?? f.step) <= MAX_TICKS, {
     message: `a frame's step gives more than ${MAX_TICKS} ticks on the y-axis; use a wider step`,
+  })
+  .refine(
+    (f) =>
+      tickCount(f.x, f.minorStep) <= MAX_TICKS &&
+      tickCount(f.y, f.yMinorStep ?? f.minorStep) <= MAX_TICKS,
+    { message: `a frame's minor step gives more than ${MAX_TICKS} ticks; use a wider one` }
+  )
+  .refine((f) => !f.xBreak || f.x[0] > 0, {
+    message: "an x-axis break needs an x range that starts above 0",
+  })
+  .refine((f) => !f.yBreak || f.y[0] > 0, {
+    message: "a y-axis break needs a y range that starts above 0",
   });
 
 export const FigureSpecSchema = z

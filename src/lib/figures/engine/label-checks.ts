@@ -147,14 +147,19 @@ const numberOf = (s: string) => {
 
 /**
  * Why a number the original prints may be missing: the tick labels were thinned
- * (`thinned`), or it prints with grouped thousands the frame does not ask for
- * (`drawnTexts` holds it ungrouped). "" when neither.
+ * (`thinned`), it prints with grouped thousands the frame does not ask for
+ * (`drawnTexts` holds it ungrouped), or it is a second 0 where the axes meet. ""
+ * when none of these.
  */
 export function tickHint(text: string, thinned: ThinnedTicks[], drawnTexts: string[]): string {
   const v = numberOf(text);
   if (v === null) return "";
   if (text.includes(",") && drawnTexts.some((d) => numberOf(d) === v && !d.includes(","))) {
     return "; set frame.thousands to print tick numbers with commas";
+  }
+  // A second 0 where the axes meet: the origin is labelled once unless asked for each axis.
+  if (v === 0 && drawnTexts.some((d) => numberOf(d) === 0)) {
+    return '; where the axes meet the 0 is printed once, so set frame.originLabel to "both" if the original prints 0 on each axis';
   }
   for (const t of thinned) {
     const onAsked = Math.abs(v / t.asked - Math.round(v / t.asked)) < 1e-9;

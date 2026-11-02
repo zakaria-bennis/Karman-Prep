@@ -94,7 +94,10 @@ export function clipPolyline(run: readonly Pt[], frame: PlaneFrame): Pt[][] {
   return out;
 }
 
-/** A clipped segment, ray or line, with arrows where a ray or line leaves the frame. */
+/**
+ * A clipped segment, ray or line, with arrows where a ray or line leaves the frame
+ * (none on a line marked `arrows: false`).
+ */
 function straight(
   part: Extract<Part, { kind: "segment" | "ray" | "line" }>,
   points: Map<string, Pt>,
@@ -148,7 +151,7 @@ function straight(
     partId: part.id,
   };
   if (part.kind === "ray") item.arrows = "end";
-  if (part.kind === "line") item.arrows = "both";
+  if (part.kind === "line" && part.arrows !== false) item.arrows = "both";
   return item;
 }
 

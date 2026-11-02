@@ -19,7 +19,8 @@
  *   samples), and an arc's end point lies on its circle. Circles are measured
  *   in world units (the nearest point of the true circle, then in px), so a
  *   circle that draws as an ellipse on an unequal-scale plane still checks.
- * - arrow_rule: rays and lines end in arrowheads; segments never do.
+ * - arrow_rule: rays and lines end in arrowheads (a line marked `arrows: false`
+ *   never does); segments never do.
  * - clipped: nothing is drawn past the figure's edge.
  * - label_collision: no two texts overlap.
  */
@@ -275,11 +276,21 @@ function arrowRule(spec: FigureSpec, scene: Scene): SceneIssue[] {
       });
     } else if (part.kind === "ray" && !own.some((i) => i.arrows === "end" || i.arrows === "both")) {
       issues.push({ code: "arrow_rule", partId: part.id, detail: "a ray needs an arrowhead" });
-    } else if (part.kind === "line" && !own.some((i) => i.arrows === "both")) {
+    } else if (part.kind === "line" && part.arrows === false && arrowed) {
       issues.push({
         code: "arrow_rule",
         partId: part.id,
-        detail: "a line needs arrowheads at both ends",
+        detail: "a line marked arrows: false is drawn with arrowheads",
+      });
+    } else if (
+      part.kind === "line" &&
+      part.arrows !== false &&
+      !own.some((i) => i.arrows === "both")
+    ) {
+      issues.push({
+        code: "arrow_rule",
+        partId: part.id,
+        detail: "a line needs arrowheads at both ends, or arrows: false",
       });
     }
   }
