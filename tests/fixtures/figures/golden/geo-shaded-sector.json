@@ -1,0 +1,81 @@
+{
+  "source": "2026-06_ASIA_V1_MATH_M1_Q16 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "O",
+        "x": 485,
+        "y": 183
+      },
+      {
+        "kind": "point",
+        "id": "A",
+        "x": 395,
+        "y": 183
+      },
+      {
+        "kind": "point",
+        "id": "B",
+        "x": 485,
+        "y": 93
+      },
+      {
+        "kind": "circle",
+        "id": "c",
+        "center": "O",
+        "through": "A"
+      },
+      {
+        "kind": "segment",
+        "id": "OA",
+        "from": "O",
+        "to": "A"
+      },
+      {
+        "kind": "segment",
+        "id": "OB",
+        "from": "O",
+        "to": "B"
+      },
+      {
+        "kind": "angle",
+        "id": "AOB",
+        "vertex": "O",
+        "from": "A",
+        "to": "B"
+      },
+      {
+        "kind": "sector",
+        "id": "shaded",
+        "center": "O",
+        "from": "A",
+        "to": "B",
+        "shade": "shade"
+      }
+    ],
+    "labels": [
+      {
+        "text": "A",
+        "on": "A"
+      },
+      {
+        "text": "B",
+        "on": "B"
+      },
+      {
+        "text": "O",
+        "on": "O"
+      }
+    ],
+    "marks": [
+      {
+        "kind": "right_angle",
+        "on": ["AOB"]
+      }
+    ],
+    "notToScale": true
+  }
+}
