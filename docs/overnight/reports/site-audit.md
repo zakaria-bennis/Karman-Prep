@@ -161,15 +161,15 @@ The list of changes, with before and after pictures, is in
     /faq, /pricing, /program or /free-practice-test.
 - Full type check (after merging the shared branch at 09:39): clean except
   four errors in the scholarship work's files, which import `pdf-lib` and
-  `pdf-parse`. Both are in package.json but not installed in this worktree;
-  `npm ci` on the merged branch fixes them. My own earlier type error in the
-  middleware is fixed.
+  `pdf-parse`. Both were in package.json but not installed here. After
+  `npm ci`, those files type-check and their 43 tests pass. My own earlier
+  type error in the middleware is fixed.
 - Full unit test suite: 9,397 tests pass. My first theme change broke one
   calculator guard test (it requires `palettes.ts` to stay exactly as the
   calculator expects); I moved the device fallback into its own file and the
-  guard passes again. One test file (the scholarship PDF check) can't load
-  here for the same missing `pdf-lib` package. Lint, Prettier and file sizes
-  are clean on every file changed today.
+  guard passes again. The one test file that couldn't load (the scholarship
+  PDF check, missing `pdf-lib`) passes after `npm ci`. Lint, Prettier and
+  file sizes are clean on every file changed today.
 - Not run: `npm run cf:build` (the brief allows one, at the end, and the
   machine was at load 20 or more all morning).
 - I did not use the app's built-in browser after the freeze.
