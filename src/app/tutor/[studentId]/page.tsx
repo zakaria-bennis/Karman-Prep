@@ -136,12 +136,12 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           <p className="kp-meta">Last active {new Date(lastActive).toLocaleString()}</p>
         )}
         <TimingAccommodationControl studentClerkId={studentId} value={timing} />
-        <p>
+        <div className="kp-staff-links">
           <MoreLink href={`/tutor/${encodeURIComponent(studentId)}/briefing`}>
             Saved practice briefing
-          </MoreLink>{" "}
+          </MoreLink>
           <MoreLink href="/tutor">All students</MoreLink>
-        </p>
+        </div>
       </Card>
 
       <Card>
