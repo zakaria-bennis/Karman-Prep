@@ -236,8 +236,8 @@ console.assert(
   "Omar has used every one of Free’s 100 questions"
 );
 console.assert(
-  questionsAnswered(anyStudent("lin"), "platform", "long-time") <= Number(PLANS.platform.questions),
-  "Lin’s answers fit inside Platform’s 500 questions"
+  questionsAnswered(anyStudent("lin"), "platform", "long-time") <= (PLANS.platform.questions === "all" ? Infinity : PLANS.platform.questions),
+  "Lin’s answers fit inside Practice"
 );
 console.assert(
   Object.entries(TESTS).every(([id, t]) => {

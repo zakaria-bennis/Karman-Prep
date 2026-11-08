@@ -27,7 +27,7 @@
 // House rules: no em dashes, nothing the offer doesn't promise, tutoring results always with
 // "Karman 1:1 tutoring, median 16 weeks", no numbered list markers, talk to the parent, company voice.
 // CONFIRM before launch: class days and times, the free test's start time, the enrollment close date,
-// the May and June dates, the names Platform and Plus, the map numbers, the guarantee (lawyer).
+// the later cohort dates, the map numbers, the guarantee (lawyer). Prices: plan ladder of 2026-11-08.
 
 window.KARMAN_COPY = `
 ## 1 Opening
@@ -45,13 +45,13 @@ try b: Try one the way your student would.
 ## 4 Your Daily 10
 headline: Every miss comes back three times.
 feature title: Your Daily 10.
-feature text: Ten questions, about ten minutes, every day. A question your student misses returns after 2, 7 and 21 days. In Platform and up.
+feature text: Ten questions, about ten minutes, every day. A question your student misses returns after 2, 7 and 21 days. In Practice and up.
 
 ## 2 The tutors
 headline: Karman tutors teach every live class.
 text: The weekly live session is theirs too, and in the SAT Program a tutor answers questions in the cohort chat every day.
 feature title: The weekly live session.
-feature text: Pacing, the on-screen calculator and how the adaptive second module works, alternating with workshops on the skills students miss most. In Plus and up.
+feature text: Pacing, the on-screen calculator and how the adaptive second module works, alternating with workshops on the skills students miss most. In the Cohort and private tutoring.
 card title: A 20-minute call with a tutor, free.
 card text: The free practice test ends with a results call. A Karman tutor goes through the predicted score with you and answers your questions.
 
@@ -59,7 +59,7 @@ card text: The free practice test ends with a results call. A Karman tutor goes 
 headline: Every due date on one calendar.
 feature title: The calendar.
 feature text: Live classes, the weekly live session, every full-length test and Your Daily 10, each with its due date. Your student sees what's next.
-tools: Full-length tests = Timed and scored, with a Karman predicted score after each one. In Platform and up | The built-in graphing calculator = On screen, as on the digital SAT. In Platform and up | Score Plan = Coming spring 2027 | Test-Day Playbook = Coming May 2027 | Ask Karman = Coming in 2027
+tools: Full-length tests = Timed and scored, with a Karman predicted score after each one. In Practice and up | The built-in graphing calculator = On screen, as on the digital SAT. In Practice and up | Score Plan = Coming spring 2027 | Test-Day Playbook = Coming May 2027 | Ask Karman = Coming in 2027
 ### Home B shows the tools as one table (with the Challenge question and Wordline from section 6): its heading and its three column names.
 tools headline b: Everything else on the platform.
 tools columns b: The tool | What it does | Which plan
@@ -67,7 +67,7 @@ tools columns b: The tool | What it does | Which plan
 ## 5 Parent updates
 headline: Every week, you see the practice time.
 feature title: The weekly update.
-feature text: Practice time, which skills moved, test scores and what's next. In Platform and up.
+feature text: Practice time, which skills moved, test scores and what's next. In Practice and up.
 
 ## 6 Between sets
 headline: One hard SAT question a day, free.
@@ -79,14 +79,14 @@ card text: An SAT word game built on roots. Free for everyone.
 ## 8 Guarantee
 headline: The whole guarantee, on this page.
 text: Other SAT guarantees keep their rules on a terms page: a homework quota, a "good faith" clause, a line saying a claim may not be approved. Karman's has four rules, each one a number on your student's dashboard.
-promise: +100 points or a 1450
-promise note: Measured from an official SAT or PSAT from the last 6 months, or from the week-1 Bluebook test, proctored live by Karman.
-outcomes: +100 or more, or 1450 and up = Nothing back. The promise was kept. | +50 to +99 = Half the price back, or the next cohort free. You choose. | Under +50 = The full price back, or the next cohort free. You choose.
+promise: +100 points, or +50 from 1400
+promise note: The target is +100 points from a start under 1400, and +50 from 1400 or higher. Measured from an SAT or PSAT score from the last 6 months, or from the week-1 Bluebook practice test, proctored live by Karman.
+outcomes: The target or more = Nothing back. The promise was kept. | Half the target or more = Half the price back, or the next cohort free. You choose. | Under half the target = The full price back, or the next cohort free. You choose.
 we do title: What Karman does
 we do: Two live classes a week, taught by a Karman tutor | Five full-length practice tests, two of them proctored live | Classes built on the skills the group missed | A weekly live session | Your Daily 10, with every miss back after 2, 7 and 21 days | Questions answered by a Karman tutor every day | A weekly update for parents
 you do title: What your student does
-you do: Attend at least 15 of the 18 live classes, live | Take all five full-length tests, each in one timed sitting, in the week it's assigned | Complete at least 90% of the assigned weekly practice | Sit the official SAT on the program's test date, or the next one within 60 days if it's cancelled or with a doctor's note
-covers: Covers the SAT Program and Private 20 only, on a student's first Karman program, starting under 1450, paid in full or with every installment on time.
+you do: Attend at least 15 of the 18 live classes, live | Take all five full-length tests, each in one timed sitting, in the week it's assigned | Complete at least 90% of the assigned weekly practice | Sit the SAT within 60 days of the last class
+covers: Covers the Cohort, Private 10 and Private 20, on a student's first Karman program, paid in full or with every installment on time.
 link: The guarantee, with worked examples
 
 ## 9 Campus film
@@ -121,11 +121,11 @@ line note: 100 km up is the Kármán line, where space begins.
 
 ## 21 Program: opening
 eyebrow:
-headline: Five paid seats, one scholarship seat.
-text: The March SAT Program: two live classes a week with a Karman tutor from Monday, January 4 to the Saturday, March 6 SAT, five full-length tests, and the guarantee printed in full.
+headline: Six students at most, by score band.
+text: The 9-week Cohort: two live 60-minute classes a week with a Karman tutor from Monday, January 4, grouped by score band (1000 to 1200, 1200 to 1400, 1400 to 1600), five full-length tests, and the guarantee printed in full.
 button: Apply for a seat
 button note: Enrollment closes Wednesday, December 30.
-facts: $995 = Founding price, March only | 5 = Paid seats, plus one scholarship seat | 18 = Live classes of 90 minutes | 5 = Full-length tests, two of them proctored live
+facts: $995 = The whole program, all in | 6 = Students at most | 18 = Live classes of 60 minutes | 5 = Full-length tests, two of them proctored live
 
 ## 22 Program: a week
 headline: Two classes a week, ten minutes a day.
@@ -134,18 +134,18 @@ rows: Tuesday, 7:00 p.m. ET = Live class, 90 minutes, with a Karman tutor | Thur
 
 ## 23 Program: the nine weeks
 headline: Five tests, two of them proctored live.
-rows: January 4 = A baseline: an official Bluebook test, proctored live | January and February = Three more full-length tests, each one shaping the classes that follow | Late February = The dress rehearsal, proctored live, about a week before the SAT | Saturday, March 6 = The SAT
+rows: January 4 = A baseline: a Bluebook practice test, proctored live | January and February = Three more full-length tests, each one shaping the classes that follow | Late February = The dress rehearsal, proctored live, about a week before the SAT | Saturday, March 6 = The SAT
 
 ## 24 Program: who it's for
-headline: A spring SAT and a score under 1450.
+headline: A score to raise, and a few months to do it.
 text: It fits a student taking the March, May or June SAT with a score they want to raise. If your student is already at 1500, or the test is under four weeks away, we say so before you pay: a monthly plan probably fits better than a program.
-card title: One seat in every cohort is free.
-card text: The scholarship seat goes to a student whose family can't afford the program. Write to hello@karmanprep.com.
+card title: A $1,500 scholarship in every cohort.
+card text: The student with the top SAT score in each cohort gets $1,500: the $995 back, plus $505.
 
 ## 25 Program: how to join
-headline: A 20-minute call, then a $100 deposit.
-rows: Apply = Two minutes: your email, the latest score and the score they want | A 20-minute call = We check the program fits. If it doesn't, we say so and point to a plan that does | Hold the seat = A $100 deposit, refundable
-button note: Five paid seats and one scholarship seat in every cohort.
+headline: A 20-minute call, then a $95 deposit.
+rows: Apply = Two minutes: your email, the latest score and the score they want | A 20-minute call = We check the program fits. If it doesn't, we say so and point to a plan that does | Hold the seat = A $95 deposit, refundable, part of the $995
+button note: At most six students in every cohort.
 form email: Your email
 form latest: Latest SAT or PSAT score
 form latest help: Leave it empty if they haven't taken one yet.
@@ -157,12 +157,12 @@ form done title: Application received.
 form done text: We'll email you to set up the 20-minute call. Nothing is charged until you hold the seat.
 
 ## 26 Program: price
-headline: $995, or three payments of $345.
-text: The founding price, for the March cohort only. Later cohorts are $1,295. Nothing is added later.
+headline: $995, or a $95 deposit and three payments of $300.
+text: The same price for every cohort, and the deposit is part of it. Nothing is added later.
 
 ## 27 Program: later dates
-headline: Two more cohorts: May 1 and June 5.
-text: The May cohort starts Monday, March 1. The June cohort starts Monday, April 5. Both are $1,295, and enrollment opens in February.
+headline: Two more cohorts: March 1 and April 5.
+text: The next cohorts start Monday, March 1 and Monday, April 5. Both are $995, and enrollment opens in February.
 
 ## 28 Test dates
 headline: One cohort for each SAT date.
@@ -184,8 +184,8 @@ rows: Before = Your student takes a full-length test, or we pick the skill holdi
 
 ## 33 Private: packages
 headline: 10 hours for $1,495, 20 for $2,495.
-small package: Private 10 = 10 hours, $1,495. No guarantee: ten hours is too few to promise a result.
-large package: Private 20 = 20 hours, $2,495. Carries the guarantee: +100 points or a 1450. If not: up to 6 more hours free. If the next official SAT still falls short: half the price back.
+small package: Private 10 = 10 hours, $1,495. Carries the guarantee: +100 points, or +50 from 1400. If not: up to 3 more hours free, then half the price back.
+large package: Private 20 = 20 hours, $2,495. Carries the guarantee: +100 points, or +50 from 1400. If not: up to 6 more hours free. If the next SAT still falls short: half the price back.
 includes: Everything on the platform: full-length tests, Your Daily 10 and our own practice questions across 39 skills | The weekly live session | A note to you after every session
 
 ## 34 Private: track record
@@ -195,7 +195,7 @@ proof: Karman 1:1 tutoring, median 16 weeks. 1,200+ students.
 
 ## 35 Private: guarantee terms
 headline: What Private 20 asks of your student.
-rows: Every session = Attended. Cancelling with less than 24 hours' notice counts as a missed session | Four full-length tests = Taken across the 20 hours | The SAT = Sat within 30 days of the last session | If the score falls short = Up to 6 more hours free. If the next official SAT still falls short, half the price back
+rows: Every session = Attended. Cancelling with less than 24 hours' notice counts as a missed session | Four full-length tests = Taken across the 20 hours | The SAT = Sat within 30 days of the last session | If the score falls short = Up to 6 more hours free. If the next SAT still falls short, half the price back
 
 ## 36 Private: close
 headline: A 20-minute call to pick the hours.
@@ -244,24 +244,24 @@ button: Save the seat
 
 ## 51 Guarantee: opening
 eyebrow:
-headline: +100 points or a 1450, or money back.
+headline: +100 points, or +50 from 1400, or money back or a free repeat.
 text: The same words as on the home page. No terms page adds a rule.
 
 ## 52 Guarantee: examples
 headline: Four worked examples.
-rows: Baseline 1180, SAT 1300 = +120. The promise was kept. Nothing back | Baseline 1180, SAT 1250 = +70. Half the price back, or the next cohort free. The family chooses | Baseline 1180, SAT 1210 = +30. The full price back, or the next cohort free. The family chooses | Baseline 1400, SAT 1450 = +50, but 1450 was reached. The promise was kept
+rows: Baseline 1180, SAT 1300 = +120. The promise was kept. Nothing back | Baseline 1180, SAT 1250 = +70. Half the price back, or the next cohort free. The family chooses | Baseline 1180, SAT 1210 = +30. The full price back, or the next cohort free. The family chooses | Baseline 1420, SAT 1480 = +60. From 1400 the target is +50. The promise was kept
 
 ## 53 Guarantee: what we won't add
 headline: What you won't find in our terms.
 list: A "good faith" clause we get to judge | A quota on answering polls in class | A rule that every session be on the same device | Fees taken out of a refund | A line saying a claim may not be approved
 
 ## 54 Guarantee: private and exclusions
-headline: Private 20, and what isn't covered.
-rows: Private 20 = +100 points or a 1450. If not: up to 6 more hours free, then half the price back if the next official SAT still falls short | Private 10 = No guarantee. Ten hours is too few to promise a result | Free, Platform, Plus and School = No guarantee. The free practice test has none either | Starting at 1450 or above = Not covered, and we say so before you enroll | A second Karman program = Not covered. The guarantee is for a student's first program, once | Installments = Covered only while every installment is paid on time
+headline: Private tutoring, and what isn't covered.
+rows: Private 10 and Private 20 = +100 points, or +50 from 1400. If not: free extra hours (3 or 6), then half the price back if the next SAT still falls short | Free, Practice, Pro, Schools and Tutor affiliate = No guarantee. The free practice test has none either | Starting at 1400 or above = Covered, with a +50 target | A second Karman program = Not covered. The guarantee is for a student's first program, once | Installments = Covered only while every installment is paid on time
 
 ## 55 Guarantee: claim
 headline: Claiming takes one email.
-text: Within 30 days of scores coming out, send the official College Board score report to guarantee@karmanprep.com. No mailed paper reports, no fees taken out of a refund.
+text: Within 30 days of scores coming out, send the College Board score report to guarantee@karmanprep.com. No mailed paper reports, no fees taken out of a refund.
 button: Take the free practice test
 
 ## 61 About: opening
@@ -271,7 +271,7 @@ text: Karman was founded by Zakaria Bennis, a 99th percentile SAT scorer who tut
 
 ## 62 About: three things
 headline: Three things Karman won't do.
-rows: Promise a score on a $29 plan = The guarantee sits on the SAT Program and Private 20 only, and the pricing page says so | Hide the rules = The guarantee's terms sit on the home page, in full, next to the promise | Stop watching after you pay = Every paid plan gives parents the weekly update: practice time, which skills moved, test scores
+rows: Promise a score on a $39 plan = The guarantee sits on the Cohort, Private 10 and Private 20 only, and the pricing page says so | Hide the rules = The guarantee's terms sit on the home page, in full, next to the promise | Stop watching after you pay = Every paid plan gives parents the weekly update: practice time, which skills moved, test scores
 
 ## 63 About: how we teach
 headline: A test, then an hour on every mistake.
@@ -290,7 +290,7 @@ button: Take the free practice test
 ## 71 FAQ
 eyebrow:
 headline: What parents ask before they pay.
-qa: What does the March program cost, all in? = $995, or three payments of $345. Nothing is added later. | Is the $100 deposit refundable? = Yes. It holds the seat after your call. | How many students are in a class? = Five paid seats and one scholarship seat, with one Karman tutor. | Who teaches the classes? = A Karman tutor teaches the live classes and the weekly live session. | What if my student misses a class? = The guarantee counts live attendance: at least 15 of the 18 classes. A recording doesn't count toward it. | What if the March SAT is cancelled? = The next official SAT within 60 days counts for the guarantee. A doctor's note works the same way. | My student is already at 1450. Can they join? = Yes, but the guarantee doesn't cover students starting at 1450 or above, and we say so before you enroll. | Do you use real College Board questions? = The baseline is an official Bluebook test. Everything else, including the free practice test and Your Daily 10, is written by Karman. | How do I claim the guarantee? = Email the official College Board score report to guarantee@karmanprep.com within 30 days of scores coming out. | What does Free include? = 100 practice questions with explanations, highlight, a scratch pad, a timer and a mistake log, plus the Challenge question, progress and streaks. No calculator, no Your Daily 10 and no full-length tests; those start at Platform. | How are Platform and Plus billed? = Monthly: $29 for Platform, $49 for Plus. The plan runs until you cancel it. | What is the difference between Platform and Plus? = Platform has 500 questions. Plus has every question, plus the live workshops and office hours, with recordings and video lessons. | Is there a guarantee on the monthly plans? = No. The guarantee covers the SAT Program and Private 20 only. | How does the School license work? = $10 per student a year, July 1 to June 30: 2,000 questions, parent accounts, and school tools for classes, seat keys, a school admin, a teacher view and reports. Up to 10 founding schools use it free from January to June 2027. | How is Private tutoring scheduled? = Your student books each 60-minute session with a Karman tutor; there's no fixed weekly slot. Packages are 10 hours for $1,495 or 20 hours for $2,495.
+qa: What does the cohort cost, all in? = $995, or a $95 deposit and three payments of $300. Nothing is added later. | Is the $95 deposit refundable? = Yes. It holds the seat after your call. | How many students are in a class? = Six at most, with one Karman tutor. | Who teaches the classes? = A Karman tutor teaches the live classes and the weekly live session. | What if my student misses a class? = The guarantee counts live attendance: at least 15 of the 18 classes. A recording doesn't count toward it. | What if the March SAT is cancelled? = The next SAT within 60 days counts for the guarantee. A doctor's note works the same way. | My student is already at 1400 or higher. Is that covered? = Yes. From a 1400 start, the target is +50 points instead of +100. | Do you use real College Board questions? = The baseline is a Bluebook practice test. Everything else, including the free practice test and Your Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to guarantee@karmanprep.com within 30 days of scores coming out. | What does Free include? = 100 practice questions with explanations, highlight, a scratch pad, a timer and a mistake log, plus the Challenge question, progress and streaks. No calculator, no Your Daily 10 and no full-length tests; Your Daily 10 starts at Practice. | How are Practice and Pro billed? = $39 or $69 a month, or $89 or $149 for 3 months. The plan renews until you cancel it. | What is the difference between Practice and Pro? = Practice is the core question pool with written explanations. Pro adds every question, the hard mastery pool included, and video explanations as they're recorded. | Is there a guarantee on the monthly plans? = No. The guarantee covers the SAT Program and Private 20 only. | How does the School license work? = $10 per student a year, July 1 to June 30: 2,000 questions, parent accounts, and school tools for classes, seat keys, a school admin, a teacher view and reports. Up to 10 founding schools use it free from January to June 2027. | How is Private tutoring scheduled? = Your student books each 60-minute session with a Karman tutor; there's no fixed weekly slot. Packages are 10 hours for $1,495 or 20 hours for $2,495.
 
 ## 90 Photos
 ### A caption shows only when it carries a character's first name (design rule 47). None of these pictures has one, so every caption stays empty.
@@ -342,51 +342,51 @@ form error name: Add your student's first name, so the proctor can check them in
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form retry: Try again
 pricing headline: Every price, before you talk to anyone.
-pricing text: Six plans, every price in full, and what the guarantee covers. Nothing is added later.
+pricing text: Every plan, every price in full, and what the guarantee covers. Nothing is added later.
 pricing date question: Which SAT is your student taking?
 pricing other date: Another date
-pricing other note: Cohorts run to the March 6, May 1 and June 5 SATs. For any other date, Platform or Plus starts today, and Private tutoring books around it.
+pricing other note: Practice and Pro start today, and Private tutoring books around your week.
 pricing free line: Free practice test, $0: Saturday, December 12, live on Zoom with a proctor. A Karman predicted score, a breakdown by domain and a 20-minute call with a tutor.
 pricing free button: Take the free practice test
 pricing practice title: Practice plans
-pricing practice text: Free has 100 questions. Platform and Plus are billed monthly until you cancel. None of the three carries the guarantee.
+pricing practice text: Free has 100 questions and one full-length test. Practice and Pro renew monthly or every 3 months until you cancel. None of the three carries the guarantee.
 pricing free name: Free
 pricing free price: $0
 pricing free text: 100 practice questions with explanations, highlight, a scratch pad, a timer and a mistake log. The Challenge question. Progress and streaks.
-pricing free note: No calculator, no Your Daily 10 and no full-length tests. Those start at Platform.
-pricing platform name: Platform
-pricing platform price: $29 a month
-pricing platform text: 500 questions, the built-in graphing calculator, Your Daily 10, full-length tests with a Karman predicted score, planning tools as they ship, and a parent account with the weekly update.
-pricing platform button: Start Platform
-pricing platform note: Billed monthly until you cancel. No guarantee.
-pricing plus name: Plus
-pricing plus price: $49 a month
-pricing plus text: Everything in Platform, every question in the bank, and the live workshops and office hours, with recordings and video lessons.
-pricing plus button: Start Plus
-pricing plus note: Billed monthly until you cancel. No guarantee.
-pricing program name: The SAT Program
-pricing program text: Two live classes a week with a Karman tutor, five paid seats and one scholarship seat, five full-length tests, the cohort chat, and everything in Plus.
+pricing free note: One full-length test is included. Your Daily 10 starts at Practice.
+pricing platform name: Practice
+pricing platform price: $39 a month, or $89 for 3 months
+pricing platform text: The core question pool with written explanations, the built-in graphing calculator, Your Daily 10, full-length tests with a Karman predicted score, and a parent account with the weekly update.
+pricing platform button: Start Practice
+pricing platform note: Renews until you cancel. No guarantee.
+pricing plus name: Pro
+pricing plus price: $69 a month, or $149 for 3 months
+pricing plus text: Everything in Practice, plus every question in the bank, the hard mastery pool included, and video explanations as they're recorded.
+pricing plus button: Start Pro
+pricing plus note: Renews until you cancel. No guarantee.
+pricing program name: The 9-week Cohort
+pricing program text: Two live 60-minute classes a week with a Karman tutor, at most six students by score band, five full-length tests, the cohort chat, and everything in Pro.
 pricing program button: Apply for a seat
-pricing program deposit: Apply, a 20-minute call, then a $100 refundable deposit holds the seat.
+pricing program deposit: Apply, a 20-minute call, then a $95 refundable deposit holds the seat. It counts toward the $995.
 pricing private name: Private tutoring
-pricing private text: 60-minute sessions with a Karman tutor, booked by your student, that go through every mistake on the latest full-length test. Private 10 is 10 hours for $1,495. Private 20 is 20 hours for $2,495 and carries the guarantee.
+pricing private text: 60-minute sessions with a Karman tutor, booked by your student, that go through every mistake on the latest full-length test. Private 10 is 10 hours for $1,495. Private 20 is 20 hours for $2,495. Both carry the guarantee.
 pricing private button: Book a free strategy call
-pricing private note: Private 10 has no guarantee: ten hours is too few to promise a result.
-pricing school name: School
-pricing school price: $10 per student a year
-pricing school text: 2,000 questions, the calculator, Your Daily 10, full-length tests, parent accounts, and school tools: classes, seat keys, a school admin, a teacher view and reports. Billed yearly, July 1 to June 30.
-pricing school button: Ask about the school pilot
-pricing school note: Free from January to June 2027 for up to 10 founding schools.
-pricing bundles: Quiz engine = Practice by skill, with explanations, highlight, a scratch pad, a timer and a mistake log | Built-in graphing calculator = On screen, as on the digital SAT | Your Daily 10 = Ten minutes a day; every miss comes back after 2, 7 and 21 days | Challenge question and Wordline = One hard question a day, with streaks; Wordline, the SAT word game, comes spring 2027 | Full-length tests = Timed and scored, with a Karman predicted score | Progress and rewards = Stats, streaks, tokens, boxes and the fox | Planning tools = Score Plan, coming spring 2027; Test-Day Playbook, coming May 2027; Ask Karman, coming in 2027 | Live workshops and office hours = The weekly live session, with recordings and video lessons | Live classes = Twice a week with a Karman tutor, proctored tests and the cohort chat | 1:1 sessions = Full-length review sessions and questions to the tutor | Parent account and updates = A weekly update: practice time, which skills moved, test scores, what's next | Score guarantee = +100 points or a 1450, with every rule on the page | School tools = Classes, seat keys, a school admin, a teacher view and reports
+pricing private note: Both packages: +100 points, or +50 from 1400, or free extra hours, then half back.
+pricing school name: Schools
+pricing school price: $8 per student a year, first year free
+pricing school text: Every student gets a Practice plan of their own, not a shared pool, plus school tools: classes, seat keys, a school admin, a teacher view and reports.
+pricing school button: Ask about a school license
+pricing school note: The first year is free.
+pricing bundles: Quiz engine = Practice by skill, with explanations, highlight, a scratch pad, a timer and a mistake log | Built-in graphing calculator = On screen, as on the digital SAT | Your Daily 10 = Ten minutes a day; every miss comes back after 2, 7 and 21 days | Challenge question and Wordline = One hard question a day, with streaks; Wordline, the SAT word game, comes spring 2027 | Full-length tests = Timed and scored, with a Karman predicted score | Progress and rewards = Stats, streaks, tokens, boxes and the fox | Planning tools = Score Plan, coming spring 2027; Test-Day Playbook, coming May 2027; Ask Karman, coming in 2027 | Live workshops and office hours = The weekly live session, with recordings and video lessons | Live classes = Twice a week with a Karman tutor, proctored tests and the cohort chat | 1:1 sessions = Full-length review sessions and questions to the tutor | Parent account and updates = A weekly update: practice time, which skills moved, test scores, what's next | Score guarantee = +100 points, or +50 from 1400, with every rule on the page | School tools = Classes, seat keys, a school admin, a teacher view and reports
 pricing compare title: What each plan includes
 pricing compare open: Compare all six plans, line by line
 pricing guarantee headline: What you get back, by score.
-pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the official score. You choose. Four rules apply, all listed here.
+pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the SAT score. You choose. Four rules apply, all listed here.
 pricing guarantee link: The guarantee, with worked examples
-pricing badge: +100 points or a 1450, or your money back.
-pricing covered: The SAT Program and Private 20 carry it. Free, Platform, Plus, Private 10 and School do not.
-pricing honest note: If your student already scores 1500 or higher, or the test is under four weeks away, we'll say so: a program probably isn't the best use of your money, and Platform or Plus may be.
-pricing scholarship: One seat in every cohort is a scholarship seat, free for a student whose family can't afford the program.
+pricing badge: +100 points, or +50 from 1400, or money back or the next cohort free.
+pricing covered: The Cohort, Private 10 and Private 20 carry it. Free, Practice, Pro, Schools and Tutor affiliate do not.
+pricing honest note: If your student already scores 1500 or higher, or the test is under four weeks away, we'll say so: a program probably isn't the best use of your money, and Practice or Pro may be.
+pricing scholarship: The student with the top SAT score in every cohort gets a $1,500 scholarship: the $995 back, plus $505.
 pricing full: Pay in full
 pricing split: 3 payments
 map eyebrow:

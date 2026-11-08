@@ -31,6 +31,7 @@ import {
   cohortTopicPresentation,
 } from "@/lib/learning-plan/cohort-presentation";
 import { CalendarPlus, AlertCircle } from "lucide-react";
+import { tierLabel } from "@/lib/scheduling/tiers";
 
 export const metadata: Metadata = { title: "Tutor Portal — Karman" };
 export const dynamic = "force-dynamic";
@@ -227,7 +228,7 @@ function CalSetupBanner({
 }
 
 function TierPill({ tier }: { tier: "group" | "small_group" }) {
-  const label = tier === "small_group" ? "Small Group" : "Seminar";
+  const label = tierLabel(tier);
   const cls =
     tier === "small_group"
       ? "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border border-success/40 dark:border-success/20"

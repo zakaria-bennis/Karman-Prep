@@ -63,7 +63,7 @@
   const PRIVATE = [pack(P33["small package"]), pack(P33["large package"])];
 
   /* ---------- the ladder: which plan includes which bundle, in the order of "pricing bundles" (13 rows) ---------- */
-  const PLANS = ["free", "platform", "plus", "program", "private", "school"];
+  const PLANS = ["free", "practice", "pro", "program", "private", "school"];
   const INCLUDED = [
     [1, 1, 1, 1, 1, 1], // Quiz engine
     [0, 1, 1, 1, 1, 1], // Built-in graphing calculator (not in Free: the founder's choice)
@@ -72,11 +72,11 @@
     [0, 1, 1, 1, 1, 1], // Full-length tests
     [1, 1, 1, 1, 1, 1], // Progress and rewards
     [0, 1, 1, 1, 1, 1], // Planning tools
-    [0, 0, 1, 1, 1, 0], // Live workshops and office hours
+    [0, 0, 0, 1, 1, 0], // The weekly live session (cohort and private)
     [0, 0, 0, 1, 0, 0], // Live classes
     [0, 0, 0, 0, 1, 0], // 1:1 sessions
     [0, 1, 1, 1, 1, 1], // Parent account and updates
-    [0, 0, 0, 1, 2, 0], // Score guarantee (2 = Private 20 only)
+    [0, 0, 0, 1, 1, 0], // Score guarantee (the cohort and both private packages)
     [0, 0, 0, 0, 0, 1], // School tools
   ];
   const BUNDLES = pairs(site["pricing bundles"]);

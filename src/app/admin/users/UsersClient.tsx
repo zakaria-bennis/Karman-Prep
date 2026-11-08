@@ -6,6 +6,7 @@
 // ============================================================
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { PRACTICE_PLAN, PRO_PLAN, TUTOR_AFFILIATE_PLAN } from "@/lib/marketing/offer";
 import { Eye, Link2, Loader2, Plus, RefreshCcw, Search, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminCohortLite, AdminUserRow, LinkedStudentRow } from "@/lib/supabase/queries/users";
@@ -17,6 +18,7 @@ import {
   actionUnlinkParentFromStudent,
 } from "./actions";
 import { actionImpersonateUser } from "@/app/admin/impersonation-actions";
+import { tierLabelOf } from "@/lib/scheduling/tiers";
 
 const ROLE_OPTIONS: AppRole[] = ["student", "tutor", "parent", "admin"];
 
@@ -27,20 +29,16 @@ const ROLE_COLOR: Record<AppRole, string> = {
   admin: "bg-warning/10 text-warning-bright border-warning/20",
 };
 
-type SubTier = NonNullable<AdminUserRow["tier"]>;
-const TIER_LABEL: Record<SubTier, string> = {
-  group: "Seminar",
-  small_group: "Small Group",
-  private: "Private",
-  elite: "Elite",
-  annual: "Annual",
+type SubPlan = NonNullable<AdminUserRow["plan_id"]>;
+const PLAN_LABEL: Record<SubPlan, string> = {
+  practice: PRACTICE_PLAN.name,
+  pro: PRO_PLAN.name,
+  "tutor-affiliate": TUTOR_AFFILIATE_PLAN.name,
 };
-const TIER_COLOR: Record<SubTier, string> = {
-  group: "bg-gold/10 text-gold-bright border-gold/20",
-  small_group: "bg-success/10 text-success-bright border-success/20",
-  private: "bg-warning/10 text-warning-bright border-warning/20",
-  elite: "bg-gold/10 text-gold-bright border-gold/20",
-  annual: "bg-success/10 text-success-bright border-success/20",
+const PLAN_COLOR: Record<SubPlan, string> = {
+  practice: "bg-success/10 text-success-bright border-success/20",
+  pro: "bg-gold/10 text-gold-bright border-gold/20",
+  "tutor-affiliate": "bg-warning/10 text-warning-bright border-warning/20",
 };
 
 interface Props {
@@ -115,7 +113,7 @@ export default function UsersClient({ users, cohorts }: Props) {
             <option value="all">All cohorts ({cohorts.length})</option>
             {cohorts.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} ({c.tier === "small_group" ? "Small Group" : "Seminar"})
+                {c.name} ({tierLabelOf(c.tier)})
               </option>
             ))}
           </select>
@@ -162,7 +160,7 @@ export default function UsersClient({ users, cohorts }: Props) {
               <th className="px-4 py-3 text-left font-semibold">Name</th>
               <th className="px-4 py-3 text-left font-semibold">Email</th>
               <th className="px-4 py-3 text-left font-semibold">Role</th>
-              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Tier</th>
+              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Plan</th>
               <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Links</th>
               <th aria-hidden="true" className="w-10" />
             </tr>
@@ -226,14 +224,14 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
           <div className="mt-0.5 truncate font-mono text-xs text-taupe">{user.email}</div>
           {err && <div className="mt-1 text-xs text-error-bright">{err}</div>}
         </div>
-        {user.tier && (
+        {user.plan_id && (
           <span
             className={cn(
               "shrink-0 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
-              TIER_COLOR[user.tier]
+              PLAN_COLOR[user.plan_id]
             )}
           >
-            {TIER_LABEL[user.tier]}
+            {PLAN_LABEL[user.plan_id]}
           </span>
         )}
       </div>
@@ -326,14 +324,14 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
         </div>
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
-        {user.tier ? (
+        {user.plan_id ? (
           <span
             className={cn(
               "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
-              TIER_COLOR[user.tier]
+              PLAN_COLOR[user.plan_id]
             )}
           >
-            {TIER_LABEL[user.tier]}
+            {PLAN_LABEL[user.plan_id]}
           </span>
         ) : (
           <span className="text-xs text-taupe">—</span>

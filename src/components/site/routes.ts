@@ -5,6 +5,8 @@ export const ROUTES = {
   home: "/",
   program: "/program",
   private: "/private-tutoring",
+  schools: "/schools",
+  tutors: "/for-tutors",
   test: "/free-practice-test",
   pricing: "/pricing",
   guarantee: "/guarantee",
@@ -15,6 +17,10 @@ export const ROUTES = {
   privacy: "/privacy",
   refunds: "/refunds",
   signIn: "/auth/sign-in",
+  signUp: "/auth/sign-up",
+  billing: "/billing",
+  /** A plan button: sign-up if needed, then straight to Stripe Checkout. */
+  checkout: "/checkout/start",
   calculator: "/calculator",
 } as const;
 
@@ -23,6 +29,8 @@ export const SITE_PAGES = [
   ROUTES.home,
   ROUTES.program,
   ROUTES.private,
+  ROUTES.schools,
+  ROUTES.tutors,
   ROUTES.test,
   ROUTES.pricing,
   ROUTES.guarantee,

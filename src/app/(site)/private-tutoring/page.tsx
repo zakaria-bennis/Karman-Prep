@@ -7,25 +7,24 @@ import { Close, InnerHero, Rows } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
 import { delay } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import {
-  formatPrice,
-  PRIVATE_HOURLY_RATE,
-  PRIVATE_PACKAGES,
-  TRACK_RECORD,
-} from "@/lib/marketing/offer";
+import { formatPrice, PRIVATE_PACKAGES, TRACK_RECORD } from "@/lib/marketing/offer";
 import { list, section } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.private,
   "Karman Prep: Private tutoring",
-  `One-on-one SAT tutoring: weekly 60-minute sessions that go through every mistake. ${formatPrice(PRIVATE_HOURLY_RATE)} an hour, in packages of ${PRIVATE_PACKAGES.map((p) => p.hours).join(" or ")}.`
+  `One-on-one SAT tutoring: weekly 60-minute sessions that go through every mistake. ${PRIVATE_PACKAGES.map((p) => `${p.hours} hours for ${formatPrice(p.price)}`).join(" or ")}, both with the guarantee.`
 );
 
-/** "Private 20 = 20 hours, $3,600. Comes with ..." -> name, price, hours and the rest */
+/** "Private 20 = 20 hours, $2,495. Comes with ..." -> name, hours, price and the rest */
 function Pack({ s, hot = false }: { s: string; hot?: boolean }) {
   const [name, rest = ""] = s.split(" = ");
-  const [hours = "", price = "", ...more] = rest.split(", ");
-  const [amount, ...after] = price.split(".");
+  const comma = rest.indexOf(", ");
+  const hours = comma < 0 ? rest : rest.slice(0, comma);
+  const tail = comma < 0 ? "" : rest.slice(comma + 2);
+  const stop = tail.indexOf(". ");
+  const amount = stop < 0 ? tail.replace(/\.$/, "") : tail.slice(0, stop);
+  const text = stop < 0 ? "" : tail.slice(stop + 2);
   return (
     <article className={`i-pack rv ${hot ? "hot" : ""}`}>
       <h3>{name}</h3>
@@ -33,7 +32,7 @@ function Pack({ s, hot = false }: { s: string; hot?: boolean }) {
         <b>{amount}</b>
         <span>{hours}</span>
       </p>
-      <p>{`${after.join(".")} ${more.join(", ")}`.trim()}</p>
+      <p>{text}</p>
     </article>
   );
 }

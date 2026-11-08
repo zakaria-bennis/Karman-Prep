@@ -5,13 +5,27 @@
 import SitePage from "@/components/site/SitePage";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
-import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
+import {
+  CONTACT,
+  formatPrice as $,
+  FREE_PLAN,
+  GUARANTEE as G,
+  MARCH_PROGRAM as MP,
+  PLAN_RENEWAL,
+  PRACTICE_PLAN,
+  PRIVATE_PACKAGES,
+  PRO_PLAN,
+  SCHOOL_PLAN,
+  TUTOR_AFFILIATE_PLAN as TA,
+} from "@/lib/marketing/offer";
 import { SCHOLARSHIP_TERMS_SECTION } from "@/lib/scholarship/terms-section";
+
+const [P10, P20] = PRIVATE_PACKAGES;
 
 export const metadata = pageMeta(
   ROUTES.terms,
   "Karman Prep: Terms of Service",
-  "Karman's Terms of Service covering subscriptions, sessions, cancellation, prospective course-fee protection, and acceptable use."
+  "Karman's Terms of Service covering plans and billing, school licenses, tutor affiliates, cancellation, sessions, the guarantee, and acceptable use."
 );
 
 const SECTIONS = [
@@ -22,12 +36,15 @@ const SECTIONS = [
   },
   {
     id: "subscriptions",
-    title: "2. Subscriptions & Billing",
+    title: "2. Plans & Billing",
     content: null,
     list: [
-      `For new checkouts, a ${GUARANTEE_POLICY.trial.days}-day trial is available only on the Seminar (Group) tier. Other tiers do not receive a trial. Any applicable trial and charge date will be displayed in checkout before purchase. Existing subscriptions and purchase terms are not changed by this prospective policy.`,
-      "A payment method may be required at checkout. Any charge timing and recurring amount are shown in the checkout terms for the selected offer.",
-      "Monthly subscriptions renew automatically on the same date each month. Annual subscriptions renew on the anniversary of your purchase date.",
+      `Karman's plans: ${FREE_PLAN.name} (${FREE_PLAN.questionLimit} practice questions in total and one full-length practice test, no card); ${PRACTICE_PLAN.name}, ${$(PRACTICE_PLAN.monthly)} a month or ${$(PRACTICE_PLAN.threeMonths)} for 3 months; ${PRO_PLAN.name}, ${$(PRO_PLAN.monthly)} a month or ${$(PRO_PLAN.threeMonths)} for 3 months; the ${MP.planName}, ${$(MP.price)}; ${P10.name}, ${P10.hours} hours for ${$(P10.price)}; ${P20.name}, ${P20.hours} hours for ${$(P20.price)}; ${SCHOOL_PLAN.name}, ${$(SCHOOL_PLAN.pricePerStudentPerYear)} per student a year, the first year free; ${TA.name}, ${$(TA.monthly)} a month per tutor. There are no free trials; the ${FREE_PLAN.name} plan is how to try Karman.`,
+      "The amount and the charge date are shown at checkout before you pay.",
+      `${PLAN_RENEWAL} The ${MP.planName} and the private packages are one-time payments and do not renew.`,
+      `The ${MP.planName} is paid in full, or with a ${$(MP.depositAmount)} refundable deposit and ${MP.installments.count} payments of ${$(MP.installments.amount)}. The deposit is part of the ${$(MP.price)}, not extra. Private packages are paid in full before the first session.`,
+      `A school license gives every enrolled student a ${PRACTICE_PLAN.name} plan of their own. It is not a shared pool of questions or seats. The first year is free; after that the school is invoiced ${$(SCHOOL_PLAN.pricePerStudentPerYear)} per student a year.`,
+      `A ${TA.name} subscription comes with one code. Up to ${TA.maxStudents} students who redeem it get the ${PRACTICE_PLAN.name} plan free while the tutor's subscription is active; when it ends, those students move to the ${FREE_PLAN.name} plan unless they buy a plan of their own. The tutor can see each redeemed student's progress, assign work, manage the roster and remove a student. A student can leave a tutor's roster at any time.`,
       "All prices are in USD and inclusive of applicable taxes where required.",
       "We reserve the right to change pricing with 30 days' advance notice by email. Continued use after the notice period constitutes acceptance of the new price.",
     ],
@@ -37,10 +54,9 @@ const SECTIONS = [
     title: "3. Cancellation",
     content: null,
     list: [
-      "You may cancel your subscription at any time through Account → Billing → Cancel Subscription, or by emailing billing@karmanprep.com.",
+      `You may cancel a ${PRACTICE_PLAN.name}, ${PRO_PLAN.name} or ${TA.name} subscription at any time through Account → Billing → Cancel Subscription, or by emailing ${CONTACT.billing}.`,
       "Cancellation stops future billing. You retain full platform access through the end of your current billing period.",
       "Cancellation does not automatically generate a refund for the current billing period. See our Refund Policy for details.",
-      "If your new purchase includes a trial, the checkout shows its length and cancellation deadline. Cancel before the displayed deadline to avoid the post-trial charge.",
     ],
   },
   {
@@ -48,17 +64,16 @@ const SECTIONS = [
     title: "4. Session Policies",
     content: null,
     list: [
-      "Sessions must be cancelled with at least 24 hours' advance notice to avoid counting against your monthly session allocation.",
-      "Late cancellations (under 24 hours) and no-shows count as completed sessions and are not rescheduled without charge.",
+      `Private sessions must be cancelled with at least ${G.private.cancelHours} hours' notice. A later cancellation or a no-show counts as a used hour of the package.`,
       "Three or more no-shows within a single month may result in account review and temporary suspension of session scheduling privileges.",
-      "Session recordings: all group sessions are recorded and available to paid subscribers. Private and Elite sessions are not recorded without explicit consent from both the student and tutor.",
+      "Session recordings: live cohort classes may be recorded for the students in that cohort. Private sessions are not recorded without explicit consent from both the student and tutor.",
       "Karman reserves the right to substitute an equivalent tutor if your scheduled tutor is unavailable, with advance notice where possible.",
     ],
   },
   {
     id: "guarantee",
-    title: "5. Prospective Course-Fee Protection",
-    content: `The prospective ${GUARANTEE_POLICY.outcome.instructionalWeeks}-week course-fee protection applies only to a specifically identified qualifying one-to-one SAT offer with a positive online-course fee separately disclosed and paid. It is not a fixed score-improvement promise. Current standard checkout offers are not configured as eligible. The full terms are at karmanprep.com/guarantee. Existing purchases remain subject to the purchase-time terms and policy version.`,
+    title: "5. The Karman Guarantee",
+    content: `The ${MP.planName}, ${P10.name} and ${P20.name} carry the Karman guarantee. The target is +${G.pointsBelow} points from a baseline under ${G.splitAt}, and +${G.pointsFrom} points from a baseline of ${G.splitAt} or higher; a ${G.topScore} always counts. If every requirement is met and the SAT falls short, the family gets the remedy shown at karmanprep.com/guarantee: on the ${MP.planName}, half or all of the price back, or the next cohort free; on a private package, free extra hours, then half the price back. ${PRACTICE_PLAN.name}, ${PRO_PLAN.name}, ${FREE_PLAN.name}, school licenses and ${TA.name} plans carry no guarantee. The requirements, eligibility and how to claim are listed in full on the guarantee page, and for private tutoring on the private tutoring page.`,
   },
   {
     id: "acceptable-use",
@@ -82,7 +97,7 @@ const SECTIONS = [
     title: "8. Disclaimers & Limitation of Liability",
     content: null,
     list: [
-      'Karman provides the platform "as is" and makes no guarantees of specific score outcomes. Any prospective course-fee protection is limited to the expressly eligible offers and terms shown at purchase.',
+      'Karman provides the platform "as is" and promises no specific score outcome, except the guarantee in section 5 on the plans that carry it.',
       "Karman is not liable for internet connectivity issues, College Board testing irregularities, or student circumstances outside our control that affect test performance.",
       "To the maximum extent permitted by law, Karman's total liability for any claim is limited to the amount you paid in the preceding 3 months.",
     ],
@@ -100,7 +115,7 @@ const SECTIONS = [
   {
     id: "contact",
     title: "11. Contact",
-    content: `For billing or policy questions, use the verified contact route at billing@karmanprep.com.`,
+    content: `For billing or policy questions, write to ${CONTACT.billing}.`,
   },
   SCHOLARSHIP_TERMS_SECTION,
 ];
@@ -113,7 +128,7 @@ export default function TermsPage() {
         <section>
           <div>
             <h1>Terms of Service</h1>
-            <p>Effective October 8, 2026 · Governing law: Texas, United States</p>
+            <p>Effective November 8, 2026 · Governing law: Texas, United States</p>
           </div>
         </section>
 

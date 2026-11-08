@@ -31,8 +31,8 @@ const store = {
 };
 const FRESH = { results: [], spent: 0, wearing: null, prize: null, runs: {}, hwDone: [], custom: [], removed: [], skipped: [], sessions: null, creditsUsed: null };
 let state = { ...FRESH, ...store.get("state", {}) };
-let planId = store.get("plan", "platform");
-if (!PLANS[planId]) planId = "platform";
+let planId = store.get("plan", "practice");
+if (!PLANS[planId]) planId = "practice";
 let ui = { picked: null, checked: false, err: false, hideTimer: false, hl: false, pad: false, as: "student" };
 const save = () => store.set("state", state);
 const P = () => PLANS[planId];
@@ -157,7 +157,7 @@ const VIEWS = {
     </div>`;
   },
   plans() {
-    const u = P().upgrade || "Platform";
+    const u = P().upgrade || "Practice";
     return head(`What ${u} adds`, law("Honest design", "says plainly what it adds, with one action and no pressure.")) + `
     <section class="card" style="max-width:620px">${ADDS[u].map((a) => `<div class="row"><b>${a}</b></div>`).join("")}<div style="height:12px"></div><button class="cta" id="moveplan">Move to ${u}</button><a class="link" href="#/today">Not now</a></section>`;
   },
@@ -380,7 +380,7 @@ function bind() {
   on("wear", () => { state.wearing = MAYA.prize.id; state.prize = "kept"; save(); render(); M.toast("Your fox is wearing it"); });
   on("keep", () => { state.prize = "kept"; save(); render(); });
   on("takeoff", () => { state.wearing = null; save(); render(); });
-  on("moveplan", () => { setPlan((P().upgrade || "platform").toLowerCase()); location.hash = "#/today"; });
+  on("moveplan", () => { setPlan((P().upgrade || "practice").toLowerCase()); location.hash = "#/today"; });
   bindSchool();
 }
 function setPlan(id) {

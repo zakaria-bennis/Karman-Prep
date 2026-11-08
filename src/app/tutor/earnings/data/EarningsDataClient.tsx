@@ -27,6 +27,7 @@ import {
   Users as UsersIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { tierLabel } from "@/lib/scheduling/tiers";
 import {
   TIME_RANGE_LABELS,
   type TimeRange,
@@ -330,19 +331,19 @@ function SessionRow({
 function PlanTierBadge({ tier }: { tier: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     private: {
-      label: "Private",
+      label: tierLabel("private"),
       cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
     },
     elite: {
-      label: "Elite",
+      label: tierLabel("elite"),
       cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
     },
     small_group: {
-      label: "Small Group",
+      label: tierLabel("small_group"),
       cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
     },
     group: {
-      label: "Seminar",
+      label: tierLabel("group"),
       cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
     },
   };

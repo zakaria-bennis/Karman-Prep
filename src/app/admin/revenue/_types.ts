@@ -1,10 +1,17 @@
+import type { OneTimePlanId, SubscriptionPlanId } from "@/lib/plans/catalog";
+
+/** One plan's row in the revenue table and pie. */
 export interface TierBreakdown {
-  tier: "group" | "small_group" | "private" | "elite";
+  tier: SubscriptionPlanId | OneTimePlanId;
   label: string;
   color: string;
-  model: "subscription" | "per_session";
+  /** Renewing (subscriptions) or one payment (plan_grants purchases). */
+  model: "subscription" | "one_time";
+  /** The monthly price for a renewing plan, the full price for a one-time plan. */
   price: number;
+  /** Active subscribers, or students who hold the one-time plan now. */
   studentCount: number;
+  /** Monthly value for a renewing plan; purchases in the last 30 days for a one-time plan. */
   revenue: number;
   unitsLabel: string;
 }
@@ -50,12 +57,12 @@ export interface RevenueData {
   refunds30dCount: number;
   refunds30dDollars: number;
   refundRate: number;
+  /** Renewing plans at monthly value plus one-time purchases from the last 30 days. */
+  monthRevenue: number;
   tiers: TierBreakdown[];
   statusCounts: Record<string, number>;
   newSubs30d: number;
   cancellations30d: number;
-  usedBookingFallback: boolean;
-  estimatedSessionsPerStudent: number;
   snapshots: MrrSnapshot[];
   forecast: {
     in3Months: number;

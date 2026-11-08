@@ -1,14 +1,14 @@
 // ============================================================
 // POST /api/stripe/checkout
-// Creates a Stripe Checkout Session for the selected tier.
-// Requires the user to be authenticated via Clerk.
+// Body: { plan, term?, cohortId? } (see createCheckoutBodySchema). Creates a
+// Stripe Checkout Session for that plan, with the price found by
+// its lookup key. Requires a signed-in Clerk user. The rules live in
+// startCheckout (shared with GET /checkout/start).
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { createCheckoutSession, getOrCreateCustomer } from "@/lib/integrations/stripe/client";
-import { createCheckoutBodySchema } from "@/lib/integrations/stripe/schemas";
-import { createAdminClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
+import { startCheckout } from "@/lib/integrations/stripe/start-checkout";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,48 +16,14 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const parsed = createCheckoutBodySchema.safeParse(await req.json().catch(() => ({})));
-    if (!parsed.success) {
+    const result = await startCheckout(userId, await req.json().catch(() => ({})));
+    if (!result.ok) {
       return NextResponse.json(
-        { error: "Invalid request body", issues: parsed.error.issues },
-        { status: 400 }
+        result.issues ? { error: result.error, issues: result.issues } : { error: result.error },
+        { status: result.status }
       );
     }
-    const { tier } = parsed.data;
-
-    const email = clerkUser.emailAddresses[0]?.emailAddress;
-    if (!email) {
-      return NextResponse.json({ error: "No email address found" }, { status: 400 });
-    }
-
-    // Look up existing Stripe customer ID from Supabase
-    const supabase = createAdminClient();
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("stripe_customer_id")
-      .eq("user_id", userId)
-      .single();
-
-    const customer = await getOrCreateCustomer(userId, email);
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-    const session = await createCheckoutSession({
-      customerId: sub?.stripe_customer_id || customer.id,
-      tier,
-      userId,
-      email,
-      successUrl: `${appUrl}/dashboard/student?welcome=1`,
-      cancelUrl: `${appUrl}/#pricing`,
-    });
-
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: result.url });
   } catch (error) {
     console.error("[checkout] Error:", error);
     return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });

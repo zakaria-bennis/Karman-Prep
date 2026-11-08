@@ -3,7 +3,7 @@
 // ============================================================
 
 import Stripe from "stripe";
-import { isFreeTrialEligibleTier } from "./checkout-policy";
+import { priceLabel, type StripePriceSpec } from "./prices";
 
 /** Server-side Stripe client. Never import in browser code.
  *
@@ -20,63 +20,85 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 /**
- * Maps a subscription tier ID to its Stripe Price ID from env.
- * Throws if the env var is missing (catches misconfiguration early).
+ * The active Stripe price for a plan, found by its lookup key. Throws when
+ * the price is missing (the setup script has not run against this Stripe
+ * account) or when its amount or interval differs from offer.ts, so a
+ * family is never charged a price the site does not show.
  */
-export function getPriceId(tier: string): string {
-  const map: Record<string, string> = {
-    group: process.env.STRIPE_PRICE_GROUP_MONTHLY!,
-    small_group: process.env.STRIPE_PRICE_SMALL_GROUP!,
-    private: process.env.STRIPE_PRICE_PRIVATE!,
-    elite: process.env.STRIPE_PRICE_ELITE_MONTHLY!,
-    annual: process.env.STRIPE_PRICE_ANNUAL!,
-  };
-  const priceId = map[tier];
-  if (!priceId) throw new Error(`No Stripe price configured for tier: ${tier}`);
-  return priceId;
+export async function getCheckoutPrice(spec: StripePriceSpec): Promise<Stripe.Price> {
+  const { data } = await stripe.prices.list({
+    lookup_keys: [spec.lookupKey],
+    active: true,
+    limit: 1,
+  });
+  const price = data[0];
+  if (!price) {
+    throw new Error(
+      `No active Stripe price has lookup key ${spec.lookupKey}. Run scripts/stripe/setup-test-products.mjs.`
+    );
+  }
+  const months = price.recurring ? price.recurring.interval_count : null;
+  const sameInterval =
+    spec.intervalMonths === null
+      ? price.type === "one_time"
+      : price.recurring?.interval === "month" && months === spec.intervalMonths;
+  if (price.unit_amount !== spec.amount * 100 || price.currency !== "usd" || !sameInterval) {
+    throw new Error(
+      `Stripe price ${price.id} (${spec.lookupKey}) does not match offer.ts (${priceLabel(spec)}). Run scripts/stripe/setup-test-products.mjs.`
+    );
+  }
+  return price;
 }
 
 /**
- * Creates a Stripe Checkout Session for the given tier.
- * Includes the owner-approved 7-day trial on the bottom tier only.
+ * Creates a Stripe Checkout Session for one plan. Renewing plans use
+ * `mode: "subscription"`, one-payment plans `mode: "payment"`. The same
+ * metadata goes on the session and on the subscription or payment, so
+ * the webhook can tell who bought what.
  */
 export async function createCheckoutSession({
   customerId,
-  tier,
+  spec,
   userId,
-  email,
+  cohortId,
   successUrl,
   cancelUrl,
 }: {
-  customerId?: string;
-  tier: string;
+  customerId: string;
+  spec: StripePriceSpec;
   userId: string;
-  email: string;
+  /** The cohort a Cohort seat is for, when the family picked one. */
+  cohortId?: string;
   successUrl: string;
   cancelUrl: string;
 }) {
-  const trialEligible = isFreeTrialEligibleTier(tier);
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    payment_method_types: ["card"],
+  const price = await getCheckoutPrice(spec);
+  const cohort: Record<string, string> =
+    spec.planId === "cohort" && cohortId ? { cohort_id: cohortId } : {};
+  const metadata = { userId, planId: spec.planId, term: spec.term, ...cohort };
+  const shared: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
-    customer_email: customerId ? undefined : email,
-    line_items: [{ price: getPriceId(tier), quantity: 1 }],
-    // New checkouts only: do not alter existing subscriptions or customer balances.
-    subscription_data: trialEligible
-      ? {
-          trial_period_days: 7,
-          metadata: { userId, tier },
-        }
-      : { metadata: { userId, tier } },
+    payment_method_types: ["card"],
+    line_items: [{ price: price.id, quantity: 1 }],
     success_url: successUrl,
     cancel_url: cancelUrl,
-    metadata: { userId, tier },
+    metadata,
     allow_promotion_codes: true,
-  });
+  };
 
-  return session;
+  if (spec.intervalMonths) {
+    return stripe.checkout.sessions.create({
+      ...shared,
+      mode: "subscription",
+      subscription_data: { metadata: { userId, planId: spec.planId, term: spec.term } },
+    });
+  }
+  return stripe.checkout.sessions.create({
+    ...shared,
+    mode: "payment",
+    // The admin scholarship payout refunds the cohort price by cohort_id.
+    payment_intent_data: { metadata: { userId, planId: spec.planId, ...cohort } },
+  });
 }
 
 /**

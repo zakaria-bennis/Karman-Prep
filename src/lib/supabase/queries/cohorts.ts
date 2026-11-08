@@ -193,18 +193,19 @@ export async function fetchEligibleStudentsForCohort(
 
   if (eligibleUsers.length === 0) return [];
 
-  // Fetch latest active subscription per student to show their paid tier.
+  // Fetch the active renewing plan per student (practice, pro or tutor-affiliate)
+  // to show next to their name. One-time purchases live in plan_grants.
   const clerkIds = eligibleUsers.map((s) => s.clerk_id);
   const { data: subs } = await supabase
     .from("subscriptions")
-    .select("user_id, tier, status")
+    .select("user_id, plan_id, status")
     .in("user_id", clerkIds)
     .in("status", ["active", "trialing"]);
 
   const tierByClerk = new Map<string, string>();
   for (const s of subs ?? []) {
     // Keep first seen — a student shouldn't have multiple active subs.
-    if (!tierByClerk.has(s.user_id)) tierByClerk.set(s.user_id, s.tier);
+    if (!tierByClerk.has(s.user_id)) tierByClerk.set(s.user_id, s.plan_id);
   }
 
   return eligibleUsers.map((s) => ({

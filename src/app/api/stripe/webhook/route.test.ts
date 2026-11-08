@@ -5,9 +5,8 @@ const m = vi.hoisted(() => ({
   rows: true,
   clientError: false,
   writes: vi.fn(),
-  restore: vi.fn(),
-  drop: vi.fn(),
   welcome: vi.fn(),
+  grant: vi.fn(),
 }));
 vi.mock("@sentry/nextjs", () => ({
   setTag: vi.fn(),
@@ -19,11 +18,7 @@ vi.mock("@/lib/integrations/stripe/client", () => ({
   stripe: { webhooks: { constructEventAsync: async () => m.event } },
 }));
 vi.mock("@/lib/integrations/resend/emails", () => ({ sendWelcomeEmail: m.welcome }));
-vi.mock("@/lib/supabase/queries/cohorts", () => ({
-  restoreLastCohort: m.restore,
-  dropFromActiveCohort: m.drop,
-}));
-vi.mock("@/lib/chat/provisioning", () => ({ ensureCohortChannels: async () => undefined }));
+vi.mock("@/lib/plans", () => ({ recordPurchaseGrant: m.grant }));
 vi.mock("@/lib/supabase/server", () => ({
   createAdminClient: () => {
     if (m.clientError) throw new Error("Synthetic client failure");
@@ -52,13 +47,24 @@ vi.mock("@/lib/supabase/server", () => ({
   },
 }));
 import { POST } from "./route";
-const subscription = {
+const PERIOD_END = 1798761600; // 2027-01-01T00:00:00Z
+const subscription = (
+  meta: Record<string, string> = { userId: "synthetic", planId: "practice", term: "month" },
+  priceMeta: Record<string, string> = { plan_id: "practice", term: "month" }
+) => ({
   id: "sub_fixture",
   customer: "cus_fixture",
   status: "active",
-  trial_end: null,
-  metadata: { userId: "synthetic", tier: "group" },
-};
+  metadata: meta,
+  items: { data: [{ current_period_end: PERIOD_END, price: { metadata: priceMeta } }] },
+});
+const session = (overrides: Record<string, unknown> = {}) => ({
+  id: "cs_fixture",
+  mode: "payment",
+  payment_status: "paid",
+  metadata: { userId: "synthetic", planId: "cohort", term: "once" },
+  ...overrides,
+});
 const request = () =>
   new Request("https://example.invalid/api/stripe/webhook", {
     method: "POST",
@@ -71,35 +77,33 @@ const events = [
   "customer.subscription.deleted",
   "charge.refunded",
 ];
+function setEvent(type: string, object?: unknown) {
+  m.event = {
+    type,
+    data: {
+      object:
+        object ??
+        (type === "charge.refunded"
+          ? { metadata: {}, refunds: { data: [{ id: "re_fixture", amount: 100, created: 1 }] } }
+          : subscription()),
+    },
+  };
+}
 beforeEach(() => {
   vi.clearAllMocks();
   m.error = null;
   m.rows = true;
   m.clientError = false;
-  m.restore.mockResolvedValue(null);
-  m.drop.mockResolvedValue(null);
-  m.event = { type: events[0], data: { object: subscription } };
+  m.grant.mockResolvedValue(undefined);
+  setEvent(events[0]);
   vi.stubGlobal("fetch", () => {
     throw new Error("Network disabled in regression test");
   });
 });
-function setEvent(type: string) {
-  m.event = {
-    type,
-    data: {
-      object:
-        type === "charge.refunded"
-          ? { metadata: {}, refunds: { data: [{ id: "re_fixture", amount: 100, created: 1 }] } }
-          : subscription,
-    },
-  };
-}
 it.each(events)("returns retryable failure when %s persistence errors", async (type) => {
   setEvent(type);
   m.error = new Error("Synthetic database rejection");
   expect((await POST(request())).status).toBe(500);
-  expect(m.restore).not.toHaveBeenCalled();
-  expect(m.drop).not.toHaveBeenCalled();
   expect(m.welcome).not.toHaveBeenCalled();
 });
 it.each(events)("does not acknowledge an unpersisted %s row", async (type) => {
@@ -122,6 +126,84 @@ it("uses Stripe subscription identity for idempotent repeat upserts", async () =
     expect.objectContaining({ stripe_subscription_id: "sub_fixture" }),
     { onConflict: "stripe_subscription_id" }
   );
+});
+it("stores the plan id, billing term, status and period end", async () => {
+  await POST(request());
+  expect(m.writes).toHaveBeenCalledWith(
+    "subscriptions",
+    "upsert",
+    {
+      user_id: "synthetic",
+      stripe_customer_id: "cus_fixture",
+      stripe_subscription_id: "sub_fixture",
+      plan_id: "practice",
+      billing_term: "month",
+      status: "active",
+      current_period_end: "2027-01-01T00:00:00.000Z",
+      canceled_at: null,
+    },
+    { onConflict: "stripe_subscription_id" }
+  );
+});
+it("takes the plan from the price after a plan switch in the Stripe portal", async () => {
+  setEvent(
+    "customer.subscription.updated",
+    subscription(
+      { userId: "synthetic", planId: "practice", term: "month" },
+      { plan_id: "pro", term: "quarter" }
+    )
+  );
+  expect((await POST(request())).status).toBe(200);
+  expect(m.writes).toHaveBeenCalledWith(
+    "subscriptions",
+    "upsert",
+    expect.objectContaining({ plan_id: "pro", billing_term: "quarter" }),
+    { onConflict: "stripe_subscription_id" }
+  );
+});
+it.each([
+  ["no userId", { planId: "practice", term: "month" }, {}],
+  ["an old tier id", { userId: "synthetic", tier: "group" }, {}],
+  ["a one-time plan", { userId: "synthetic", planId: "cohort", term: "month" }, {}],
+  ["no term", { userId: "synthetic", planId: "pro" }, {}],
+])("skips a subscription with %s without writing", async (_label, meta, priceMeta) => {
+  setEvent("customer.subscription.created", subscription(meta, priceMeta));
+  const res = await POST(request());
+  expect(res.status).toBe(200);
+  expect(m.writes).not.toHaveBeenCalled();
+  expect(m.welcome).not.toHaveBeenCalled();
+});
+it("records a purchase grant for a paid one-payment checkout", async () => {
+  setEvent("checkout.session.completed", session());
+  expect((await POST(request())).status).toBe(200);
+  expect(m.grant).toHaveBeenCalledWith({
+    userId: "synthetic",
+    planId: "cohort",
+    checkoutSessionId: "cs_fixture",
+  });
+});
+it.each(["private-10", "private-20"])("records a %s purchase grant", async (planId) => {
+  setEvent(
+    "checkout.session.async_payment_succeeded",
+    session({ metadata: { userId: "synthetic", planId, term: "once" } })
+  );
+  expect((await POST(request())).status).toBe(200);
+  expect(m.grant).toHaveBeenCalledWith(expect.objectContaining({ planId }));
+});
+it("returns retryable failure when the purchase grant cannot be saved", async () => {
+  setEvent("checkout.session.completed", session());
+  m.grant.mockRejectedValue(new Error("Synthetic grant failure"));
+  expect((await POST(request())).status).toBe(500);
+});
+it.each([
+  ["a subscription checkout", { mode: "subscription" }],
+  ["an unpaid checkout", { payment_status: "unpaid" }],
+  ["a checkout with a renewing plan id", { metadata: { userId: "synthetic", planId: "pro" } }],
+  ["a checkout without a userId", { metadata: { planId: "cohort" } }],
+])("does not grant anything for %s", async (_label, overrides) => {
+  setEvent("checkout.session.completed", session(overrides));
+  expect((await POST(request())).status).toBe(200);
+  expect(m.grant).not.toHaveBeenCalled();
 });
 it("preserves retryable failure for unexpected errors outside the handler try block", async () => {
   m.clientError = true;

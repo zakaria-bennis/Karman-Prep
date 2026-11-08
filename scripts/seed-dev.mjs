@@ -226,6 +226,7 @@ async function upsertTutorAssignment(tutorUuid, studentUuid) {
 const NOW = new Date().toISOString();
 const A_WEEK_AGO = new Date(Date.now() - 7 * 24 * 60 * 60_000).toISOString();
 const A_MONTH_AGO = new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString();
+const IN_A_MONTH = new Date(Date.now() + 30 * 24 * 60 * 60_000).toISOString();
 
 const log = (msg) => console.log(`  ${msg}`);
 
@@ -349,10 +350,12 @@ async function main() {
     stripe_subscription_id: "sub_dev_seed_mid",
     stripe_customer_id: "cus_dev_seed_mid",
     status: "active",
-    tier: "private",
+    plan_id: "pro",
+    billing_term: "month",
+    current_period_end: IN_A_MONTH,
     created_at: A_MONTH_AGO,
   });
-  log("✓ subscription active (private tier)");
+  log("✓ subscription active (Pro, monthly)");
   await setLearnStatuses("dev_seed_student_mid", [
     // 4 mastered + 3 in-progress + 2 available across RW + Math.
     // best_quiz_score is smallint (0-100), not a float ratio.
@@ -406,7 +409,9 @@ async function main() {
     stripe_subscription_id: "sub_dev_seed_stuck",
     stripe_customer_id: "cus_dev_seed_stuck",
     status: "active",
-    tier: "group",
+    plan_id: "practice",
+    billing_term: "month",
+    current_period_end: IN_A_MONTH,
     created_at: A_WEEK_AGO,
   });
   log("✓ stuck-placement banner should appear on /dashboard/student");

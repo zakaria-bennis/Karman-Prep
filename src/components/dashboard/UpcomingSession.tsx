@@ -4,7 +4,7 @@
 // UpcomingSession — student's next scheduled session card.
 // Shows date/time/tutor, Join button, Cancel + Reschedule
 // actions. Within-24h cancel pops a destructive confirm with
-// the credit-forfeit warning copy.
+// the late-cancel warning (private tutoring: a used hour).
 //
 // Reschedule mode swaps the card for a BookingWidget in
 // reschedule mode; on success or cancel, reverts to the card.
@@ -64,19 +64,11 @@ function cancelWarning(plan: UpcomingSessionBooking["plan_tier"]): {
   description: string;
   confirmLabel: string;
 } {
-  if (plan === "private") {
+  if (plan === "private" || plan === "elite") {
     return {
       title: "Cancelling within 24 hours",
       description:
-        "This session was paid for separately. Per our policy, cancelling now means the $135 will not be refunded and the session can't be rebooked.",
-      confirmLabel: "Cancel anyway",
-    };
-  }
-  if (plan === "elite") {
-    return {
-      title: "Cancelling within 24 hours",
-      description:
-        "This will consume one of your 8 monthly sessions with no replacement. Continue?",
+        "This session is less than 24 hours away. Cancelling now counts it as a used hour of your package.",
       confirmLabel: "Cancel anyway",
     };
   }
@@ -108,7 +100,7 @@ export function UpcomingSession({ booking, tutorName, rescheduleProps }: Upcomin
       : {
           title: "Cancel this session?",
           description:
-            "You're outside the 24-hour window — cancelling is free and you can rebook later.",
+            "You're outside the 24-hour window, so cancelling is free and you can rebook later.",
           confirmLabel: "Cancel session",
         };
 

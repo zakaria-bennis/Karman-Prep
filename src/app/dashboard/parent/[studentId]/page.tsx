@@ -19,6 +19,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { buildParentFocusSummary } from "@/lib/parent/focus-summary";
 import { learningPlanCopy } from "@/lib/learning-plan/copy";
 import { cohortPlacementTitle } from "@/lib/learning-plan/cohort-presentation";
+import { tierLabel } from "@/lib/scheduling/tiers";
 
 export const metadata: Metadata = { title: "Student — Parent Portal | Karman" };
 export const dynamic = "force-dynamic";
@@ -248,7 +249,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
               <div className="space-y-2">
                 <div className="font-semibold text-ivory">{cohort.name}</div>
                 <div className="text-xs text-taupe">
-                  {cohort.tier === "small_group" ? "Small Group" : "Seminar"} · {cohort.status}
+                  {tierLabel(cohort.tier)} · {cohort.status}
                 </div>
                 {cohort.status === "active" && cohort.current_topic && (
                   <div className="border-t border-bronze pt-2 text-sm text-ivory">
@@ -260,7 +261,7 @@ export default async function ParentStudentDetailPage({ params }: PageProps) {
                 )}
               </div>
             ) : (
-              <p className="text-sm italic text-taupe">Not in a cohort (private 1:1 tier).</p>
+              <p className="text-sm italic text-taupe">Not in a cohort (private tutoring).</p>
             )}
           </Card>
 
