@@ -52,9 +52,9 @@ export default async function TutorEarningsPage() {
         />
         <WbStats
           items={[
-            { label: "Hours taught", value: <Num>{fmtHours(summary.total_hours_worked)}</Num> },
-            { label: "Earned", value: <Num>{fmt.format(summary.total_earnings)}</Num> },
-            { label: "Waiting to be paid", value: <Num>{fmt.format(summary.pending_amount)}</Num> },
+            { label: "Hours taught", value: fmtHours(summary.total_hours_worked) },
+            { label: "Earned", value: fmt.format(summary.total_earnings) },
+            { label: "Waiting to be paid", value: fmt.format(summary.pending_amount) },
           ]}
         />
         <p className="kp-meta">
