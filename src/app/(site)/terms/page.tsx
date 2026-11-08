@@ -6,6 +6,7 @@ import SitePage from "@/components/site/SitePage";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import { GUARANTEE_POLICY } from "@/lib/guarantee/policy";
+import { SCHOLARSHIP_TERMS_SECTION } from "@/lib/scholarship/terms-section";
 
 export const metadata = pageMeta(
   ROUTES.terms,
@@ -101,6 +102,7 @@ const SECTIONS = [
     title: "11. Contact",
     content: `For billing or policy questions, use the verified contact route at billing@karmanprep.com.`,
   },
+  SCHOLARSHIP_TERMS_SECTION,
 ];
 
 export default function TermsPage() {
