@@ -43,8 +43,25 @@ export function cover(src: HTMLCanvasElement, w: number, h: number, fx = 0.7, fy
 
 const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
 
-/** Plans every stroke. Times are written for a 2-second painting and stretched later. */
-function plan(src: HTMLCanvasElement, scale: number, aspect: number) {
+const byStart = (a: Stroke, b: Stroke) => a.t0 - b.t0;
+
+interface CoarsePlan {
+  first: string;
+  all: Stroke[];
+}
+
+/**
+ * Plans every stroke. Times are written for a 2-second painting and stretched later.
+ * A generator in two halves: it first yields the coat and the two big brushes (a CoarsePlan),
+ * then plans the three small brushes and the highlights a row at a time (yielding null between
+ * rows, so the caller can pause it) and returns them. The 3-pixel brush starts 0.96 s into the
+ * 2-second plan, so on a slow computer they are planned while the big ones are painted.
+ */
+function* plan(
+  src: HTMLCanvasElement,
+  scale: number,
+  aspect: number
+): Generator<CoarsePlan | null, Stroke[]> {
   const w = PLAN_W;
   const h = Math.max(1, Math.round(w * aspect));
   const base = cover(src, w, h);
@@ -66,7 +83,7 @@ function plan(src: HTMLCanvasElement, scale: number, aspect: number) {
     let G = 0;
     let B = 0;
     let n = 0;
-    const st = Math.max(1, r >> 1);
+    const st = Math.max(1, r);
     for (let j = -r; j <= r; j += st) {
       for (let i = -r; i <= r; i += st) {
         const k = at(x + i, y + j) * 4;
@@ -122,10 +139,17 @@ function plan(src: HTMLCanvasElement, scale: number, aspect: number) {
     [12, 200, 760, 0, 1],
     [6, 560, 1180, 0, 1],
     [3, 960, 1520, 0, 1],
-    [1.6, 1260, 1760, 6, 0.22],
-    [0.9, 1480, 1900, 9, 0],
+    [1.6, 1260, 1760, 6, 0.15],
+    [0.9, 1480, 1900, 11, 0],
   ];
+  let coarseSent = false;
   for (const [R, t0, t1, edge, flatShare] of layers) {
+    if (R < 4 && !coarseSent) {
+      coarseSent = true;
+      const coarse = [...coat, ...strokes].sort(byStart);
+      strokes.length = 0;
+      yield { first: css(first), all: coarse };
+    }
     const list: (Stroke & { y: number; kids: Stroke[] })[] = [];
     const fine = R < 1;
     const step = R * U;
@@ -197,6 +221,7 @@ function plan(src: HTMLCanvasElement, scale: number, aspect: number) {
         const s = stroke(pts, width, css(tone(c, sx, sy, fine ? 5 : 8)));
         list.push({ ...s, y: sy, kids: bristles(s, c, R) });
       }
+      if (R < 4) yield null;
     }
     /* Back to front: far away (higher up) before near (lower down), with a little looseness. */
     const keyed = list.map((s) => ({ s, k: s.y + Math.random() * h * 0.18 }));
@@ -217,9 +242,9 @@ function plan(src: HTMLCanvasElement, scale: number, aspect: number) {
 
   /* Big brushes leave streaks: a lighter and a darker bristle line inside the stroke. */
   function bristles(s: Stroke, c: number[], R: number): Stroke[] {
-    if (R < 3 || s.pts.length < 2) return [];
+    if (R < 6 || s.pts.length < 2) return [];
     const out: Stroke[] = [];
-    const n = R >= 6 ? 2 : 1;
+    const n = 2;
     for (let b = 0; b < n; b++) {
       const side = (b === 0 ? 1 : -1) * (0.18 + Math.random() * 0.16) * s.w;
       const lift = b === 0 ? 16 : -14;
@@ -266,10 +291,25 @@ function plan(src: HTMLCanvasElement, scale: number, aspect: number) {
     strokes.push(stroke(pts, 1.1 * U * scale, css(lit), 1780 + Math.random() * 150, 60));
     lights++;
   }
-  const all = [...coat, ...strokes];
-  /* Stable sort: strokes start in time order, and a stroke's bristles follow it. */
-  all.sort((a, b) => a.t0 - b.t0);
-  return { first: css(first), all };
+  return strokes.sort(byStart);
+}
+
+/** Runs the rest of a plan in short slices between frames, then hands over the strokes. */
+function planLater(rest: Generator<CoarsePlan | null, Stroke[]>, ready: (s: Stroke[]) => void) {
+  let id = 0;
+  const slice = () => {
+    const end = performance.now() + SLICE_MS;
+    while (performance.now() < end) {
+      const r = rest.next();
+      if (r.done) {
+        ready(r.value);
+        return;
+      }
+    }
+    id = window.setTimeout(slice, 0);
+  };
+  id = window.setTimeout(slice, 0);
+  return () => clearTimeout(id);
 }
 
 function drawSeg(ctx: CanvasRenderingContext2D, s: Stroke, i0: number, i1: number) {
@@ -364,33 +404,55 @@ export function paintPicture(
   const ctx = ctx2d(canvas);
   const t0 = performance.now();
   const final = cover(src, W, H);
-  const { first, all } = plan(src, W / PLAN_W, cssH / cssW);
+  const steps = plan(src, W / PLAN_W, cssH / cssW);
+  let r = steps.next();
+  while (!r.done && r.value === null) r = steps.next();
+  const { first, all } = r.value as CoarsePlan;
   /* Timings for the performance check (docs/overnight/reports/painting-detail.md). */
   performance.measure("karman-paint-plan", { start: t0, detail: { strokes: all.length } });
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.fillStyle = first;
   ctx.fillRect(0, 0, W, H);
+  let fine: Stroke[] | null = null;
+  let stopped = false;
+  const k = animate ? ms / 2000 : 1;
+  const cancelPlan = planLater(steps, (list) => {
+    for (const s of list) {
+      s.t0 *= k;
+      s.dur *= k;
+    }
+    fine = list;
+  });
   if (!animate) {
     const t1 = performance.now();
-    /* The coat and the big brushes (all planned to start before 0.96 s) go on now. */
+    /* The coat and the biggest brushes (planned to start before 0.96 s) go on now. */
     let i = 0;
     while (i < all.length && all[i].t0 < 960) drawSeg(ctx, all[i], 0, all[i++].pts.length - 1);
     performance.measure("karman-paint-draw", { start: t1 });
+    let queue = all;
     let id = 0;
-    let stopped = false;
     const slice = () => {
       if (stopped) return;
       const end = performance.now() + SLICE_MS;
-      while (i < all.length && performance.now() < end) {
-        for (let k = 0; k < 200 && i < all.length; k++, i++)
-          drawSeg(ctx, all[i], 0, all[i].pts.length - 1);
+      while (performance.now() < end) {
+        if (i >= queue.length) {
+          if (queue === all && fine) {
+            queue = fine;
+            i = 0;
+            continue;
+          }
+          break;
+        }
+        for (let n = 0; n < 200 && i < queue.length; n++, i++)
+          drawSeg(ctx, queue[i], 0, queue[i].pts.length - 1);
       }
-      if (i < all.length) {
+      if (i < queue.length || queue === all) {
         id = idle(slice);
         return;
       }
       canvasGrain(ctx, W, H);
+      running.delete(canvas);
       performance.measure("karman-paint-finish", { start: t1 });
       done?.();
     };
@@ -398,11 +460,11 @@ export function paintPicture(
     const stop = () => {
       stopped = true;
       cancelIdle(id);
+      cancelPlan();
     };
     running.set(canvas, stop);
     return { stop, final };
   }
-  const k = ms / 2000;
   for (const s of all) {
     s.t0 *= k;
     s.dur *= k;
@@ -410,26 +472,36 @@ export function paintPicture(
   const start = performance.now();
   let raf = 0;
   let told = false;
-  /* Strokes are in start order: everything before `lo` is finished. */
-  let lo = 0;
+  /* Each list is in start order: everything before its `lo` is finished. */
+  const lists: Stroke[][] = [all];
+  const lows = [0];
   const frame = (now: number) => {
     const t = Math.min(now - start, ms);
-    for (let i = lo; i < all.length; i++) {
-      const s = all[i];
-      if (t < s.t0) break;
-      const n = s.pts.length - 1;
-      const to = Math.min(n, Math.ceil(((t - s.t0) / (s.dur || 1)) * n));
-      if (to > s.done) {
-        drawSeg(ctx, s, Math.max(0, s.done), to);
-        s.done = to;
-      }
+    if (fine && lists.length === 1) {
+      lists.push(fine);
+      lows.push(0);
     }
-    while (lo < all.length && all[lo].done >= all[lo].pts.length - 1) lo++;
+    lists.forEach((list, j) => {
+      let lo = lows[j];
+      for (let i = lo; i < list.length; i++) {
+        const s = list[i];
+        if (t < s.t0) break;
+        const n = s.pts.length - 1;
+        const to = Math.min(n, Math.ceil(((t - s.t0) / (s.dur || 1)) * n));
+        if (to > s.done) {
+          drawSeg(ctx, s, Math.max(0, s.done), to);
+          s.done = to;
+        }
+      }
+      while (lo < list.length && list[lo].done >= list[lo].pts.length - 1) lo++;
+      lows[j] = lo;
+    });
     if (!told && t > ms * 0.75) {
       told = true;
       nearlyDone?.();
     }
-    if (now - start < ms) raf = requestAnimationFrame(frame);
+    /* A slow computer may still be planning the small brushes; they go on as soon as ready. */
+    if (now - start < ms || lists.length === 1) raf = requestAnimationFrame(frame);
     else {
       canvasGrain(ctx, W, H);
       done?.();
@@ -439,6 +511,7 @@ export function paintPicture(
   return {
     stop() {
       cancelAnimationFrame(raf);
+      cancelPlan();
     },
     final,
   };
