@@ -63,7 +63,11 @@ have raw answers: `levelFromHistory(answers, now)` (and `foldAnswers`).
 **This is the only copy of the rule.** The student portal (`src/lib/student/levels.ts`), the
 parent and school glance (`src/lib/progress-glance/levels.ts`) and the tutor roster
 (`src/lib/tutor-affiliate/progress.ts`) all call it, so every portal shows the same level for
-the same answers. Do not restate the thresholds or the decay anywhere else.
+the same answers. The parent, school and tutor views also take a level saved in
+`student_skill_levels` when it is higher (`loadSavedLevels` in
+`src/lib/progress-glance/server.ts`, decayed with `decayedLevel`), so they match what the
+student sees after Daily 10s, practice sets and Domain quizzes. Do not restate the thresholds
+or the decay anywhere else.
 
 Storage: `public.student_skill_levels` (student_id = Clerk id, skill_id = catalog skill id,
 level 0 to 4, run, answered, last_practiced_at). Migration

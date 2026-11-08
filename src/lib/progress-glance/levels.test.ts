@@ -47,6 +47,22 @@ describe("buildProgressGlance", () => {
     expect(glance.coursePercent.reading).toBe(0);
   });
 
+  it("shows a higher level the quiz flows saved", () => {
+    const now = new Date("2026-11-08T12:00:00Z");
+    const answers = [true, true, true].map((correct, i) => ({
+      skillId: "ma-skill-percentages",
+      correct,
+      at: `2026-11-07T10:0${i}:00Z`,
+    }));
+    const level = (stored?: Map<string, 0 | 1 | 2 | 3 | 4>) =>
+      buildProgressGlance(answers, now, stored)
+        .domains.flatMap((d) => d.skills)
+        .find((s) => s.id === "ma-skill-percentages")?.level;
+    expect(level()).toBe(2);
+    expect(level(new Map([["ma-skill-percentages", 4]]))).toBe(4);
+    expect(level(new Map([["ma-skill-percentages", 1]]))).toBe(2);
+  });
+
   it("never carries question ids or answers", () => {
     const glance = buildProgressGlance([
       { skillId: "rw-skill-transitions", correct: false, at: "2026-11-07T10:00:00Z" },

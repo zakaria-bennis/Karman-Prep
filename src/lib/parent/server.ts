@@ -312,7 +312,7 @@ export async function loadChildWeek(child: Child, now: Date = new Date()): Promi
     minutesThisWeek: Math.round((act?.secondsSince ?? 0) / 60),
     upcoming: sessions.upcoming,
     past: sessions.past,
-    glance: buildProgressGlance(act?.answers ?? [], now),
+    glance: buildProgressGlance(act?.answers ?? [], now, act?.stored),
     score: { current: history.at(-1)?.score ?? null, history },
     guarantee: guaranteeFor(tier, history),
     tutorNote: noteRow

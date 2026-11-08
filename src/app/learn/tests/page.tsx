@@ -12,7 +12,12 @@ import { createAdminClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Tests and quizzes" };
 
-type Saved = { run_key: string; completed_at: string | null; result: RunResult | null };
+type Saved = {
+  run_key: string;
+  started_at: string;
+  completed_at: string | null;
+  result: RunResult | null;
+};
 
 /** Full-length practice tests, the diagnostic and the Domain quizzes, with where each stands. */
 export default async function TestsPage() {
@@ -22,12 +27,16 @@ export default async function TestsPage() {
     loadQuizAccess(clerkId).catch(() => null),
     (createAdminClient() as unknown as SupabaseClient)
       .from("quiz_runs")
-      .select("run_key, completed_at, result")
+      .select("run_key, started_at, completed_at, result")
       .eq("student_id", clerkId)
       .in("kind", ["full-test", "diagnostic"])
       .then(({ data }) => (data ?? []) as Saved[]),
   ]);
   const byKey = new Map(saved.map((row) => [row.run_key, row]));
+  // The latest diagnostic (an admin can grant retakes: diagnostic:2, :3 ...).
+  const diagnostic = saved
+    .filter((row) => row.run_key.startsWith("diagnostic:"))
+    .sort((a, b) => b.started_at.localeCompare(a.started_at))[0];
   const status = (key: string, locked: boolean) => {
     const row = byKey.get(key);
     if (row?.completed_at && row.result?.predicted)
@@ -36,7 +45,6 @@ export default async function TestsPage() {
     if (locked) return { right: "Practice plan", href: false };
     return { right: "Start", href: true };
   };
-  const freeTestsLeft = access?.fullTestsLeft ?? null;
   return (
     <StudentPortal ctx={ctx} title="Tests and quizzes">
       <Panel>
@@ -44,25 +52,23 @@ export default async function TestsPage() {
           <SectionHeader title="Full-length practice tests" note={`${FULL_LENGTH_FORMS}`} />
           {Array.from({ length: FULL_LENGTH_FORMS }, (_, i) => i + 1).map((form) => {
             const key = `full-test:${form}`;
-            const locked = freeTestsLeft === 0 && !byKey.has(key);
-            const st = status(key, locked);
+            const openOther = saved.some(
+              (row) =>
+                row.run_key.startsWith("full-test:") && !row.completed_at && row.run_key !== key
+            );
+            const waiting = !byKey.has(key) && access?.limited === true && openOther;
+            const locked = !byKey.has(key) && access?.canStartFullTest === false;
+            const st = waiting
+              ? { right: "Finish your open test first", href: false }
+              : status(key, locked);
+            const plain = st.right === "Start" || st.right === "Resume" || locked || waiting;
             return (
               <Row
                 key={form}
                 title={`Practice test ${form}`}
-                sub={
-                  st.right === "Start" || st.right === "Resume" || locked
-                    ? undefined
-                    : "Predicted score"
-                }
-                right={
-                  st.right === "Start" || st.right === "Resume" || locked ? (
-                    st.right
-                  ) : (
-                    <Num>{st.right}</Num>
-                  )
-                }
-                href={st.href ? `/learn/test/${form}` : "/billing"}
+                sub={plain ? undefined : "Predicted score"}
+                right={plain ? st.right : <Num>{st.right}</Num>}
+                href={st.href ? `/learn/test/${form}` : waiting ? undefined : "/billing"}
               />
             );
           })}
@@ -71,7 +77,7 @@ export default async function TestsPage() {
           <SectionHeader title="Diagnostic" />
           <Row
             title="Where to start"
-            right={status("diagnostic:1", false).right}
+            right={status(diagnostic?.run_key ?? "diagnostic:1", false).right}
             href="/learn/diagnostic"
           />
         </Card>

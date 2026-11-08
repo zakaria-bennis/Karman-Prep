@@ -153,7 +153,7 @@ it("AR-32 the sentinel or mq-root-block in the server handler or an eager file f
     "AR-32 karman-calculator:lazy-chunk found in .open-next/server-functions/default/handler.mjs"
   );
   expect(found).toContain(
-    `AR-32 mq-root-block found in eager file ${eagerJs()} of /diagnostic/page`
+    `AR-32 mq-root-block found in eager file ${eagerJs()} of /learn/diagnostic/page`
   );
 });
 
@@ -165,7 +165,9 @@ it("AR-33 each gzip budget fails above its limit", async () => {
     f.set(asset(chunk), noise(270_000));
   });
   const text = (await problems(root, lax(syntheticBuild()))).join("\n");
-  expect(text).toMatch(/^AR-33 \/diagnostic\/page: \d+ gzip bytes added eagerly, budget 10240$/m);
+  expect(text).toMatch(
+    /^AR-33 \/learn\/diagnostic\/page: \d+ gzip bytes added eagerly, budget 10240$/m
+  );
   expect(text).toMatch(/^AR-33 lazy chunk group: \d+ gzip bytes, budget 409600$/m);
   expect(text).toMatch(/^AR-33 worker: \d+ gzip bytes, budget 256000$/m);
 });
@@ -185,9 +187,9 @@ it("AR-33 growth over 10% fails until the baseline is updated, from a committed 
   );
   expect(
     await text({
-      eagerAddedGzipBytes: { ...measured.eagerAddedGzipBytes, "/diagnostic/page": -100 },
+      eagerAddedGzipBytes: { ...measured.eagerAddedGzipBytes, "/learn/diagnostic/page": -100 },
     })
-  ).toContain("AR-33 eagerAddedGzipBytes[/diagnostic/page] grew to 0 from -100 (over 10%)");
+  ).toContain("AR-33 eagerAddedGzipBytes[/learn/diagnostic/page] grew to 0 from -100 (over 10%)");
 });
 
 it("AR-66 a missing bootstrap or a missing worker marker fails and static/media .ts copies are ignored", async () => {

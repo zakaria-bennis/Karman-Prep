@@ -93,7 +93,7 @@ export async function loadClassRoster(
   const doneCounts = new Map<string, number>(rows.map((a) => [a.id, 0]));
   const students: RosterStudent[] = people.map((p) => {
     const act = activity.get(p.user.clerk_id);
-    const glance = buildProgressGlance(act?.answers ?? [], now);
+    const glance = buildProgressGlance(act?.answers ?? [], now, act?.stored);
     const mine = finishedBy.get(p.user.clerk_id) ?? [];
     let assignmentsDone = 0;
     for (const a of rows) {

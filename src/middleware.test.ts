@@ -60,7 +60,7 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
     "/tutor/payouts",
     "/admin/users",
     "/learn/math",
-    "/diagnostic",
+    "/learn/diagnostic",
     "/learn/daily",
     "/learn/practice/rw-skill-inferences",
     "/questions/private",

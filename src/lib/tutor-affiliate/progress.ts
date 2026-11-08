@@ -7,7 +7,8 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import type { SkillLevel } from "@/components/portal/skill-levels";
 import { levelFromHistory } from "@/lib/levels/rules";
-import { coursePercent } from "./progress-rules";
+import { coursePercent } from "@/lib/progress-glance/levels";
+import { loadSavedLevels } from "@/lib/progress-glance/server";
 
 export interface DomainGlance {
   id: string;
@@ -87,6 +88,8 @@ export async function fetchStudentGlances(
     }
   }
 
+  const now = new Date();
+  const saved = await loadSavedLevels(clerkIds, now);
   for (const clerkId of clerkIds) {
     const levels = new Map<string, SkillLevel>();
     for (const [skillId, list] of answers.get(clerkId) ?? []) {
@@ -94,10 +97,13 @@ export async function fetchStudentGlances(
         skillId,
         levelFromHistory(
           list.map((a) => ({ correct: a.right, at: a.at })),
-          new Date()
+          now
         ).level
       );
     }
+    // A higher level the quiz flows saved wins, so the tutor sees what the student sees.
+    for (const [skillId, level] of saved.get(clerkId) ?? [])
+      levels.set(skillId, Math.max(levels.get(skillId) ?? 0, level) as SkillLevel);
     result.set(clerkId, {
       math: course("math", "SAT Math", levels),
       reading: course("reading", "SAT Reading and Writing", levels),

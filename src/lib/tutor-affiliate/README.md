@@ -62,7 +62,7 @@ submitted one or an admin's impersonation target.
 
 ## Where things are
 
-- Rules (pure, tested): `rules.ts`, `service.ts`, `homework.ts`, `progress-rules.ts`
+- Rules (pure, tested): `rules.ts`, `service.ts`, `homework.ts` (skill levels come from `src/lib/levels/rules.ts`)
 - Database: `store.ts`, `homework-store.ts`, `plan-bridge.ts`, `progress.ts`
 - Server actions: `src/app/tutor/affiliate-actions.ts`, `src/app/join/actions.ts`
 - Screens: `src/components/tutor-affiliate/`, routes `/tutor`, `/tutor/[studentId]`,

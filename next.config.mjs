@@ -27,6 +27,7 @@ const nextConfig = {
     return [
       { source: "/plans", destination: "/pricing", permanent: true },
       { source: "/free-diagnostic", destination: "/free-practice-test", permanent: true },
+      { source: "/diagnostic", destination: "/learn/diagnostic", permanent: true },
       { source: "/blog", destination: "/", permanent: true },
       { source: "/questions", destination: "/free-practice-test", permanent: true },
     ];

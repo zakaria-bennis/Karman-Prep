@@ -29,6 +29,7 @@ import {
   type TrialRun,
 } from "@/lib/student/progress";
 import {
+  loadRunAnswers,
   loadSkillAnswers,
   loadStoredLevels,
   levelsBySkill,
@@ -41,7 +42,7 @@ export const metadata: Metadata = { title: "Progress" };
 export const dynamic = "force-dynamic";
 
 /** The diagnostic: where a first predicted score comes from. */
-const DIAGNOSTIC_HREF = "/diagnostic";
+const DIAGNOSTIC_HREF = "/learn/diagnostic";
 
 type DiagnosticRow = { taken_at: string; score_range_low: number; score_range_high: number };
 type AwardRow = { award_key: string; skill_id: string | null; points: number; created_at: string };
@@ -75,8 +76,9 @@ export default async function StudentProgressPage() {
   const db = createAdminClient() as unknown as SupabaseClient;
   const nowMs = Date.now();
 
-  const [answers, stored, diagnostics, trials, awards] = await Promise.all([
+  const [answers, runAnswers, stored, diagnostics, trials, awards] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
+    loadRunAnswers(ctx.clerkId),
     loadStoredLevels(ctx.clerkId, nowMs),
     db
       .from("diagnostic_results")
@@ -94,13 +96,16 @@ export default async function StudentProgressPage() {
 
   const history = scoreHistory((diagnostics.data ?? []) as DiagnosticRow[]);
   const levels = withStored(levelsBySkill(answers, nowMs), stored);
+  // Effort and bests count every answer: catalog practice and the quiz flows' runs.
+  const time = (at: string | number) => (typeof at === "number" ? at : Date.parse(at));
+  const everyAnswer = [...answers, ...runAnswers].sort((a, b) => time(a.at) - time(b.at));
   const skillLevels = CATALOG_SKILLS.map((s) => levels.get(s.id) ?? 0);
   const labels = new Map(CATALOG_SKILLS.map((s) => [s.id, s.label]));
-  const moves = whatMoved(answers, labels, nowMs);
-  const weeks = weeklyEffort(answers, nowMs);
-  const month = monthEffort(answers, nowMs);
+  const moves = whatMoved(everyAnswer, labels, nowMs);
+  const weeks = weeklyEffort(everyAnswer, nowMs);
+  const month = monthEffort(everyAnswer, nowMs);
   const bests = personalBests({
-    sets: practiceSets(answers),
+    sets: practiceSets(everyAnswer),
     trials: (trials.data ?? []) as TrialRun[],
   });
   const tokens = summarisePoints(awards, nowMs).total;

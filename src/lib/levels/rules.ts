@@ -177,3 +177,12 @@ export function foldAnswers(answers: readonly HistoryAnswer[]): LevelState {
 export function levelFromHistory(answers: readonly HistoryAnswer[], now: Date): LevelState {
   return effective(foldAnswers(answers), now);
 }
+
+/** A stored level as it stands at `now`, after decay. */
+export function decayedLevel(
+  level: SkillLevel,
+  lastPracticedAt: string | null,
+  now: Date
+): SkillLevel {
+  return effective({ level, run: 0, answered: 0, lastPracticedAt }, now).level;
+}

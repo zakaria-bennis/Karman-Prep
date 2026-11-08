@@ -3,7 +3,8 @@
  * Levels follow the one rule in `src/lib/levels/rules.ts` (the same the student sees): New on
  * the first answer, then runs of 3, then 4 more, then 5 more right answers in a row; a level is
  * lost for every 4 weeks without practice, never below New. Practice answers carry no hint
- * flag yet, so every right answer counts toward the run.
+ * flag yet, so every right answer counts toward the run. A level the quiz flows saved
+ * (`student_skill_levels`, read by `loadSavedLevels`) wins when it is higher.
  *
  * Only skill names, levels and counts leave this module. Never questions or answers.
  */
@@ -48,7 +49,9 @@ export function coursePercent(levels: readonly number[]): number {
 
 export function buildProgressGlance(
   answers: readonly PracticeAnswer[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  /** Levels the quiz flows saved, after decay; the higher of the two shows. */
+  stored: ReadonlyMap<string, SkillLevel> = new Map()
 ): ProgressGlance {
   const bySkill = new Map<string, PracticeAnswer[]>();
   for (const a of answers) {
@@ -57,10 +60,13 @@ export function buildProgressGlance(
     bySkill.set(a.skillId, list);
   }
   const levelOf = (skillId: string): SkillLevel =>
-    levelFromHistory(
-      (bySkill.get(skillId) ?? []).map((a) => ({ correct: a.correct, at: a.at })),
-      now
-    ).level;
+    Math.max(
+      levelFromHistory(
+        (bySkill.get(skillId) ?? []).map((a) => ({ correct: a.correct, at: a.at })),
+        now
+      ).level,
+      stored.get(skillId) ?? 0
+    ) as SkillLevel;
   const counts: Record<SkillLevel, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
   const domains: DomainGlance[] = SKILL_DOMAINS.map((d) => ({
     id: d.id,

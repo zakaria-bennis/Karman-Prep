@@ -111,7 +111,7 @@ export default function StudentDashboardClient({
           right="Open"
         />
         <Row title="SAT Math" href={`${STUDENT_ROUTES.library}/math`} right="Open" />
-        {!diagnostic && <Row title="Diagnostic test" href="/diagnostic" right="Take it" />}
+        {!diagnostic && <Row title="Diagnostic test" href="/learn/diagnostic" right="Take it" />}
       </Card>
       <Card>
         <SectionHeader title="Earlier lessons" />

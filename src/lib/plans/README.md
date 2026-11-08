@@ -95,14 +95,17 @@ await revokeGrant({ grantId }); // refunds, admin removals
 ## Free usage
 
 `getUsage` counts distinct question ids answered across skill practice
-(`catalog_practice_sessions` / `catalog_practice_responses`) and the earlier
-node quizzes (`quiz_attempts` / `question_responses`), in
-`supabasePlanDataSource().answeredQuestionCount`. The Daily 10 and the
-diagnostic store no per-question answers, so they do not count.
+(`catalog_practice_sessions` / `catalog_practice_responses`), the earlier node
+quizzes (`quiz_attempts` / `question_responses`) and the quiz runs
+(`quiz_runs` / `quiz_run_responses`), in
+`supabasePlanDataSource().answeredQuestionCount`. Among quiz runs only the
+Daily 10, practice sets and Domain quizzes count (`COUNTED_RUN_KINDS`): the
+free full-length test and the diagnostic do not use up the 100 questions.
 
-Completed full-length tests: no table records them yet, so
-`completedFullLengthTests` returns 0. The full-length test flow must count its
-completed tests there when it lands.
+`completedFullLengthTests` counts finished full-length tests (`quiz_runs` with
+kind `full-test` and a `completed_at`). The quiz flows read all of this through
+`src/lib/assembler/plan-gate.ts`, which also stops a Free student from opening
+a second form while the first is unfinished.
 
 ## Decisions (2026-11-08)
 

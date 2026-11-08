@@ -77,7 +77,7 @@ Compact changelog of merged PRs since the previous sync. Use this as the diff ag
 
 6. **PDF processing jobs have no auto-refresh.** Admins import a PDF, then have to manually F5 the `/admin/jobs` page to watch progress. Add polling or live-status events.
 
-7. ~~**Diagnostic is one-and-done with no student retake path.**~~ **RESOLVED** — `users.diagnostic_retakes_remaining` column added. [src/app/diagnostic/page.tsx](src/app/diagnostic/page.tsx) gates the retake on a positive balance; [src/app/admin/users/actions.ts](src/app/admin/users/actions.ts) `actionGrantDiagnosticRetake` lets admins increment it; the submit route decrements on retake. Admin grants the retake from the user list when a student asks.
+7. ~~**Diagnostic is one-and-done with no student retake path.**~~ **RESOLVED** — `users.diagnostic_retakes_remaining` column added. The bank-fed diagnostic (`/learn/diagnostic`, `src/lib/assembler/diagnostic-record.ts`) uses one on a retake; [src/app/admin/users/actions.ts](src/app/admin/users/actions.ts) `actionGrantDiagnosticRetake` lets admins increment it; Admin grants the retake from the user list when a student asks.
 
 8. ~~**Tutor cannot reschedule or cancel their own sessions.**~~ **RESOLVED 2026-05-15 ([PR #40](https://github.com/zakaria-bennis/Karman-Prep/pull/40))** — `/tutor/schedule` now has self-serve cancel + reschedule with the 24-hour rule.
 
