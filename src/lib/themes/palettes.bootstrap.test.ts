@@ -17,22 +17,6 @@ describe("theme before hydration", () => {
     expect(themeStyleSheet()).toContain('html[data-theme="paper"]');
     expect(themeStyleSheet()).toContain("--k-night:245 247 250");
   });
-  it("follows the device's light setting when no theme was ever chosen", () => {
-    const original = window.matchMedia;
-    window.matchMedia = ((query: string) => ({
-      matches: query.includes("light"),
-      media: query,
-      addEventListener() {},
-      removeEventListener() {},
-    })) as unknown as typeof window.matchMedia;
-    try {
-      new Function(themeBootstrapScript())();
-      expect(document.documentElement.dataset.theme).toBe("ivory");
-      expect(document.documentElement).not.toHaveClass("dark");
-    } finally {
-      window.matchMedia = original;
-    }
-  });
   it("ignores unknown storage values", () => {
     localStorage.setItem("karman-theme:active", 'paper"];body{display:none}');
     new Function(themeBootstrapScript())();

@@ -5,6 +5,7 @@ import { saveThemePreference } from "@/app/appearance/actions";
 import { useUser } from "@clerk/nextjs";
 import { MotionConfig } from "framer-motion";
 import { applyTheme, findTheme, SITE_THEMES, type SiteTheme } from "@/lib/themes/palettes";
+import { DEVICE_LIGHT_THEME } from "@/lib/themes/device-mode";
 
 interface ThemeCtx {
   theme: string;
@@ -52,7 +53,7 @@ function writeStorage(key: string, value: string) {
 function deviceTheme(): SiteTheme {
   const light =
     typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches;
-  return (light ? findTheme("ivory") : undefined) ?? SITE_THEMES[0];
+  return (light ? findTheme(DEVICE_LIGHT_THEME) : undefined) ?? SITE_THEMES[0];
 }
 
 /** Only a cosmetic allowlisted ID is user-editable; never use this metadata for authorization. */
