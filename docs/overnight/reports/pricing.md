@@ -72,6 +72,24 @@ Stripe's test mode, and each one opens a real test checkout.
 skeleton prototype, the reference design mock (`.impeccable/mocks/decision/film/copy.js`) and the
 painted home mock.
 
+## Plan buttons go straight to checkout (your decision this morning)
+
+- Every plan button (Practice and Pro on the pricing page, the For tutors page, and onboarding's
+  Practice or Pro step) now goes to `/checkout/start`.
+  - Signed in: straight to Stripe Checkout for that plan. Checked on the local app as the Free
+    test student: Practice monthly, Pro for 3 months and Tutor affiliate each opened a Stripe
+    test checkout.
+  - Signed out: to sign-up first, with the plan carried along. After the account is made, the
+    visitor comes back to `/checkout/start` and goes to checkout. Checked up to the sign-up page.
+    I did not create a real account, so the very last hop (Clerk returning the new account to
+    checkout) still needs one click-through after you deploy.
+  - Can't pay here (already on a plan, or a cohort seat not held after the call): Billing opens
+    with the plan picked. Checked: the Pro test student was sent to Billing (already on a plan),
+    the cohort went to Billing (no seat held), a made-up plan went to Billing.
+- The free-test form now says: "We use your email for this test and its results, and we'll send
+  you occasional emails from Karman. Unsubscribe any time." Its "check your inbox for the Zoom
+  link" line now says to join from the Karman account on the day.
+
 ## The deposit fix
 
 The old numbers didn't add up: a $100 deposit plus 3 × $345 made $1,135, not $995. Now the deposit
