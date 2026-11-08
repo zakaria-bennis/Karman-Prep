@@ -18,6 +18,7 @@ const querySchema = z.object({
   plan: z.string().trim().max(40).optional(),
   term: z.string().trim().max(10).optional(),
   cohortId: z.string().trim().max(60).optional(),
+  payment: z.string().trim().max(20).optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
     plan: searchParams.get("plan") ?? undefined,
     term: searchParams.get("term") ?? undefined,
     cohortId: searchParams.get("cohortId") ?? undefined,
+    payment: searchParams.get("payment") ?? undefined,
   });
   const input = query.success ? query.data : {};
 

@@ -108,6 +108,7 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
     spec,
     userId,
     cohortId: parsed.data.cohortId,
+    payment: parsed.data.payment,
     // Tutors land back on billing; students go to their dashboard.
     successUrl:
       spec.planId === "tutor-affiliate"

@@ -21,6 +21,8 @@ describe("STRIPE_PRICES", () => {
       ["private_10", "private-10", "once", 1495, null],
       ["private_20", "private-20", "once", 2495, null],
       ["tutor_affiliate_monthly", "tutor-affiliate", "month", 199, 1],
+      ["cohort_deposit", "cohort", "deposit", 95, null],
+      ["cohort_installment", "cohort", "installment", 300, 1],
     ]);
   });
 

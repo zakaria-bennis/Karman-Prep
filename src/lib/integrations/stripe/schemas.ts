@@ -14,6 +14,7 @@
 
 import { z } from "zod";
 import { ONE_TIME_PLAN_IDS, SUBSCRIPTION_PLAN_IDS } from "@/lib/plans/catalog";
+import { COHORT_PAYMENT_OPTIONS } from "./cohort-installments";
 import { BILLING_TERMS, CHECKOUT_PLAN_IDS, hasTermChoice } from "./prices";
 
 export const checkoutPlanIdSchema = z.enum(CHECKOUT_PLAN_IDS);
@@ -47,6 +48,8 @@ export const createCheckoutBodySchema = z
     term: billingTermSchema.optional(),
     /** Cohort only: the cohort the seat is for. Ignored for other plans. */
     cohortId: z.uuid().optional(),
+    /** Cohort only: $995 at once ("full", the default) or the deposit and three payments. */
+    payment: z.enum(COHORT_PAYMENT_OPTIONS).optional(),
   })
   .refine((body) => !hasTermChoice(body.plan) || body.term !== undefined, {
     message: "term is required for practice and pro",

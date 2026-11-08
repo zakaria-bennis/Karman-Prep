@@ -11,6 +11,7 @@
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
+import { scheduleCohortInstallments } from "@/lib/integrations/stripe/installment-schedule";
 import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 import {
   chargeMetadataSchema,
@@ -162,6 +163,11 @@ export const POST = withWebhookInstrumentation(
             planId: meta.data.planId,
             checkoutSessionId: session.id,
           });
+          // The cohort's instalment plan: the deposit is in; schedule the three payments.
+          if (meta.data.planId === "cohort" && session.metadata?.term === "installments") {
+            const scheduleId = await scheduleCohortInstallments(session);
+            console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
+          }
           break;
         }
 
