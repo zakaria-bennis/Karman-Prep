@@ -90,8 +90,8 @@ export default function SourcePdfFilter({
         className={cn(
           "inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-semibold",
           current
-            ? "border-gold/40 bg-gold/40 text-gold-bright"
-            : "border-bronze bg-surface text-ivory hover:border-bronze"
+            ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--accent-text)]"
+            : "border-[color:var(--line)] bg-[color:var(--card)] text-[color:var(--ink)] hover:border-[color:var(--line)]"
         )}
       >
         <FileText className="h-3.5 w-3.5" />
@@ -112,7 +112,7 @@ export default function SourcePdfFilter({
                 applySelection(null);
               }
             }}
-            className="cursor-pointer rounded p-0.5 hover:bg-gold/15"
+            className="cursor-pointer rounded p-0.5 hover:bg-[color-mix(in_srgb,var(--accent)_15%,transparent)]"
           >
             <X className="h-3 w-3" />
           </span>
@@ -121,17 +121,17 @@ export default function SourcePdfFilter({
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-[320px] rounded-md border border-bronze bg-night shadow-xl">
-          <div className="border-b border-bronze p-2">
+        <div className="absolute z-30 mt-1 w-[320px] rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] shadow-xl">
+          <div className="border-b border-[color:var(--line)] p-2">
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-taupe" />
+              <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-[color:var(--mute)]" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search filename…"
                 autoFocus
-                className="w-full rounded border border-bronze bg-surface py-1 pl-7 pr-2 text-xs text-ivory placeholder:text-taupe focus:border-gold/40 focus:outline-none"
+                className="w-full rounded border border-[color:var(--line)] bg-[color:var(--card)] py-1 pl-7 pr-2 text-xs text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
               />
             </div>
           </div>
@@ -141,16 +141,16 @@ export default function SourcePdfFilter({
               type="button"
               onClick={() => applySelection(null)}
               className={cn(
-                "flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-surface",
-                !current && "bg-surface text-gold-bright"
+                "flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-[color:var(--card)]",
+                !current && "bg-[color:var(--card)] text-[color:var(--accent-text)]"
               )}
             >
               <span className="font-semibold">All files</span>
-              <span className="text-taupe">{totalActive} active</span>
+              <span className="text-[color:var(--mute)]">{totalActive} active</span>
             </button>
 
             {filtered.length === 0 && (
-              <div className="px-3 py-3 text-center text-xs text-taupe">
+              <div className="px-3 py-3 text-center text-xs text-[color:var(--mute)]">
                 No files match &ldquo;{query}&rdquo;.
               </div>
             )}
@@ -161,15 +161,15 @@ export default function SourcePdfFilter({
                 type="button"
                 onClick={() => applySelection(s.source_pdf)}
                 className={cn(
-                  "flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-surface",
-                  current === s.source_pdf && "bg-surface text-gold-bright"
+                  "flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-[color:var(--card)]",
+                  current === s.source_pdf && "bg-[color:var(--card)] text-[color:var(--accent-text)]"
                 )}
               >
                 <span className="max-w-[200px] truncate text-left">{s.source_pdf}</span>
-                <span className="flex items-center gap-2 text-taupe">
+                <span className="flex items-center gap-2 text-[color:var(--mute)]">
                   <span>{s.active_count}</span>
                   {showArchivedCounts && s.archived_count > 0 && (
-                    <span className="text-taupe">
+                    <span className="text-[color:var(--mute)]">
                       <span className="font-mono">+{s.archived_count}</span>
                       <span className="ml-0.5 text-[10px]">arc</span>
                     </span>

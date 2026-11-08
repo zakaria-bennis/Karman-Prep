@@ -1,0 +1,62 @@
+/*
+ * Staff tutor screens inside the painted shell: a wider box for the tables (like the
+ * admin's), and a wide table scrolls inside the box instead of spilling out of it.
+ */
+@media (min-width: 1100px) {
+  .kp-shell:has(.kp-staff) .kp-col {
+    max-width: min(1180px, calc(100vw - 260px));
+  }
+}
+
+.kp-staff {
+  color: var(--ink);
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.kp-staff {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.kp-staff-sort {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.kp-staff-sort:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.kp-staff-ringcell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.kp-staff-rings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  margin-block: 12px;
+}
+.kp-staff-booking {
+  padding-block: 10px;
+  border-top: 1px solid var(--line);
+}
+.kp-staff-booking:first-of-type {
+  border-top: 0;
+}
+.kp-staff-booking-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.kp-staff-booking-who {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

@@ -535,7 +535,7 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
     );
 
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] min-w-0 flex-col text-ivory">
+    <div className="flex min-h-[calc(100dvh-4rem)] min-w-0 flex-col text-[color:var(--ink)]">
       <PreviewToolbar
         filters={filters}
         pdfOptions={pdfOptions}
@@ -566,8 +566,8 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
           className={cn(
             "flex items-start gap-2 border-b px-4 py-1.5 text-xs",
             banner.kind === "ok"
-              ? "border-success/30 bg-success/[0.06] text-success-bright"
-              : "border-error/30 bg-error/[0.06] text-error-bright"
+              ? "border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] text-[color:var(--good)]"
+              : "border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]"
           )}
         >
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -627,7 +627,7 @@ export default function PreviewClient({ initial }: { initial: PreviewQuestionWit
             </div>
           </>
         ) : (
-          <div className="grid h-full place-items-center px-6 py-10 text-center text-sm text-taupe">
+          <div className="grid h-full place-items-center px-6 py-10 text-center text-sm text-[color:var(--mute)]">
             No question selected.
           </div>
         )}

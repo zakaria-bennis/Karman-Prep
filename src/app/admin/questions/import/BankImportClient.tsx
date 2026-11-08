@@ -11,14 +11,13 @@
 // ============================================================
 
 import { useRef, useState } from "react";
-import { Upload, AlertCircle, FileWarning, FileText, Clipboard, FileCheck2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   CSV_HEADERS,
   parseCsv,
   toBulkRows,
   ImportResultBanner,
 } from "@/components/admin/BulkImportPanel";
+import { WbPill } from "@/components/admin/workbench";
 import { actionBulkImport, type BulkImportRow, type BulkImportResult } from "@/app/admin/actions";
 
 type InputMode = "file" | "paste";
@@ -188,263 +187,231 @@ export default function BankImportClient() {
     : null;
 
   return (
-    <div>
-      <div className="rounded-xl border border-bronze bg-surface/60 p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-ivory">Routine output → bank</h2>
-            <p className="mt-1 text-xs text-taupe">
-              Upload the{" "}
-              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
-                questions.csv
-              </code>{" "}
-              and{" "}
-              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
-                questions_needs_review.csv
-              </code>{" "}
-              the PDF-ingestion routine writes to{" "}
-              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
-                question-imports/runs/&lt;timestamp&gt;/
-              </code>
-              . Rows land in the bank with no node assigned. Use{" "}
-              <a
-                href="/admin/questions/review"
-                className="text-gold-bright underline hover:text-gold-bright"
-              >
-                /admin/questions/review
-              </a>{" "}
-              to triage flagged rows; the Modify action lets you assign a curriculum node before
-              sending a question live.
-            </p>
-          </div>
-          <button
-            onClick={handleDownloadTemplate}
-            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-bright"
+    <section className="wb-section" aria-labelledby="bank-import-title">
+      <div className="wb-head" style={{ marginBottom: 12 }}>
+        <div>
+          <h2 id="bank-import-title" style={{ margin: 0, fontSize: "1rem", fontWeight: 600 }}>
+            Routine output to bank
+          </h2>
+          <p className="wb-note" style={{ marginTop: 4, maxWidth: "70ch" }}>
+            Upload the <code>questions.csv</code> and <code>questions_needs_review.csv</code> the
+            PDF-ingestion routine writes to <code>question-imports/runs/&lt;timestamp&gt;/</code>.
+            Rows land in the bank with no node. Triage flagged rows on{" "}
+            <a href="/admin/questions/review">the review page</a>; Modify there lets you assign a
+            curriculum node before a question goes live.
+          </p>
+        </div>
+        <button type="button" className="wb-btn" onClick={handleDownloadTemplate}>
+          CSV template
+        </button>
+      </div>
+
+      {/* Mode toggle: file vs paste */}
+      <div className="wb-tabs" role="group" aria-label="Input" style={{ marginBottom: 12 }}>
+        <ModeTab active={mode === "file"} onClick={() => setMode("file")} label="Choose file" />
+        <ModeTab active={mode === "paste"} onClick={() => setMode("paste")} label="Paste CSV" />
+      </div>
+
+      {mode === "file" ? (
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.json"
+            hidden
+            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+          />
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Choose or drop a CSV or JSON file"
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className="wb-empty"
+            style={{
+              cursor: "pointer",
+              borderColor: dragActive ? "var(--accent)" : filename ? "var(--good)" : undefined,
+              borderWidth: 2,
+            }}
           >
-            CSV template
-          </button>
-        </div>
-
-        {/* ── Mode toggle: file vs paste ───────────────── */}
-        <div className="-mx-1 mb-3 flex border-b border-bronze">
-          <ModeTab
-            active={mode === "file"}
-            onClick={() => setMode("file")}
-            icon={FileText}
-            label="Choose file"
-          />
-          <ModeTab
-            active={mode === "paste"}
-            onClick={() => setMode("paste")}
-            icon={Clipboard}
-            label="Paste CSV"
-          />
-        </div>
-
-        {mode === "file" ? (
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,.json"
-              className="hidden"
-              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-            />
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={cn(
-                "cursor-pointer rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors",
-                dragActive
-                  ? "border-gold/40 bg-gold/10"
-                  : filename
-                    ? "border-success/40 bg-success/5 hover:bg-success/10"
-                    : "border-bronze bg-night/40 hover:border-bronze hover:bg-surface/60"
-              )}
-            >
-              {filename ? (
-                <div className="flex flex-col items-center gap-2 text-sm">
-                  <FileCheck2 className="h-8 w-8 text-success" />
-                  <div className="font-semibold text-success-bright">{filename}</div>
-                  <div className="text-xs text-taupe">
-                    Drop a different file or click to replace
-                    {previewBreakdown && (
-                      <>
-                        {" "}
-                        · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
-                      </>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-sm">
-                  <Upload
-                    className={cn("h-8 w-8", dragActive ? "text-gold-bright" : "text-taupe")}
-                  />
-                  <div
-                    className={cn("font-semibold", dragActive ? "text-gold-bright" : "text-ivory")}
-                  >
-                    {dragActive ? "Drop the CSV to upload" : "Drag & drop a CSV here"}
-                  </div>
-                  <div className="text-xs text-taupe">
-                    or click anywhere in this box to choose a file · .csv or .json
-                  </div>
-                </div>
-              )}
-            </div>
+            {filename ? (
+              <>
+                <b style={{ color: "var(--good)" }}>{filename}</b>
+                Drop a different file or click to replace
+                {previewBreakdown && (
+                  <>
+                    {" "}
+                    · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <b>{dragActive ? "Drop the CSV to upload" : "Drag and drop a CSV here"}</b>
+                Or click to choose a file (.csv or .json)
+              </>
+            )}
           </div>
-        ) : (
-          <div>
+        </div>
+      ) : (
+        <div>
+          <label className="wb-field">
+            <span>CSV or JSON</span>
             <textarea
+              className="wb-textarea"
               value={pastedText}
               onChange={(e) => setPastedText(e.target.value)}
-              placeholder="Paste the CSV here — header row first, then data rows. Or paste a JSON array of question objects."
-              className="max-h-[24rem] min-h-[12rem] w-full resize-y rounded-lg border border-bronze bg-night/60 px-3 py-2 font-mono text-xs text-ivory focus:border-gold/60 focus:outline-none"
+              placeholder="Header row first, then data rows. Or a JSON array of question objects."
+              style={{
+                minHeight: "12rem",
+                maxHeight: "24rem",
+                fontFamily: "var(--font-mono, monospace)",
+              }}
             />
-            <div className="mt-2 flex items-center gap-3">
+          </label>
+          <div className="wb-toolbar" style={{ marginTop: 8 }}>
+            <button type="button" className="wb-btn" onClick={handleParsePasted}>
+              Parse pasted CSV
+            </button>
+            {pastedText && (
               <button
-                onClick={handleParsePasted}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised px-3 py-1.5 text-sm font-semibold text-ivory hover:bg-surface-raised"
+                type="button"
+                className="wb-btn"
+                onClick={() => {
+                  setPastedText("");
+                  setPreview(null);
+                  setParseError(null);
+                }}
               >
-                <Clipboard className="h-3.5 w-3.5" /> Parse pasted CSV
+                Clear
               </button>
-              {pastedText && (
-                <button
-                  onClick={() => {
-                    setPastedText("");
-                    setPreview(null);
-                    setParseError(null);
-                  }}
-                  className="text-xs text-taupe hover:text-ivory"
-                >
-                  Clear
-                </button>
-              )}
-              {previewBreakdown && (
-                <span className="text-xs text-taupe">
-                  · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
-                </span>
-              )}
-            </div>
+            )}
+            {previewBreakdown && (
+              <span className="wb-note">
+                {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
+              </span>
+            )}
           </div>
-        )}
+        </div>
+      )}
 
-        {parseError && (
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-xs text-error-bright">
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {parseError}
-          </div>
-        )}
+      {parseError && (
+        <p role="alert" className="wb-alert" style={{ marginTop: 12 }}>
+          {parseError}
+        </p>
+      )}
 
-        {result && <ImportResultBanner result={result} />}
+      {result && <ImportResultBanner result={result} />}
 
-        {preview && (
-          <div className="mt-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe">
-              Preview
-            </h4>
-            <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-bronze text-xs">
-              <table className="w-full">
-                <thead className="sticky top-0 bg-surface-raised text-taupe">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-semibold">Question</th>
-                    <th className="px-3 py-2 text-left font-semibold">Domain</th>
-                    <th className="px-3 py-2 text-left font-semibold">Slug</th>
-                    <th className="px-3 py-2 text-left font-semibold">Diff</th>
-                    <th className="px-3 py-2 text-left font-semibold">Source</th>
-                    <th className="px-3 py-2 text-left font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.map((r, i) => (
-                    <tr key={i} className="border-t border-bronze">
-                      <td className="max-w-[20rem] truncate px-3 py-2 text-ivory">
+      {preview && (
+        <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
+          <h3 style={{ margin: 0, fontSize: "0.9rem", fontWeight: 600 }}>
+            Preview: {preview.length} rows
+          </h3>
+          <div className="wb-table-wrap" style={{ maxHeight: "28rem", overflowY: "auto" }}>
+            <table className="wb-table">
+              <caption className="sr-only">Rows to import</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Question</th>
+                  <th scope="col">Domain</th>
+                  <th scope="col">Slug</th>
+                  <th scope="col" style={{ textAlign: "right" }}>
+                    Difficulty
+                  </th>
+                  <th scope="col">Source</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preview.map((r, i) => (
+                  <tr key={i}>
+                    <td data-label="Question">
+                      <span style={{ minWidth: 0, overflowWrap: "anywhere", textAlign: "left" }}>
                         {r.question_text}
-                      </td>
-                      <td className="px-3 py-2 text-taupe">{r.domain ?? "—"}</td>
-                      <td className="px-3 py-2 text-taupe">{r.concept_slug ?? "—"}</td>
-                      <td className="px-3 py-2 text-taupe">{r.difficulty}</td>
-                      <td className="max-w-[12rem] truncate px-3 py-2 text-taupe">
+                      </span>
+                    </td>
+                    <td data-label="Domain">{r.domain ?? "—"}</td>
+                    <td data-label="Slug">{r.concept_slug ?? "—"}</td>
+                    <td data-label="Difficulty" data-num="">
+                      {r.difficulty}
+                    </td>
+                    <td data-label="Source">
+                      <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
                         {r.source_pdf
                           ? `${r.source_pdf}${r.source_page ? `:${r.source_page}` : ""}`
                           : "—"}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={cn(
-                            "inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
-                            r.import_status === "needs_review"
-                              ? "bg-warning/15 text-warning-bright"
-                              : "bg-success/15 text-success-bright"
-                          )}
-                        >
-                          {r.import_status ?? "ok"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-3 flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setPreview(null);
-                  setFilename(null);
-                }}
-                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-taupe hover:bg-surface-raised"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={importing}
-                className={cn(
-                  "rounded-lg bg-gold px-4 py-1.5 text-sm font-bold text-night",
-                  importing ? "cursor-not-allowed opacity-50" : "hover:bg-gold-bright"
-                )}
-              >
-                {importing ? "Importing…" : `Import ${preview.length} questions`}
-              </button>
-            </div>
+                      </span>
+                    </td>
+                    <td data-label="Status">
+                      <WbPill tone={r.import_status === "needs_review" ? "warn" : "ok"}>
+                        {r.import_status ?? "ok"}
+                      </WbPill>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+          <div className="wb-toolbar" style={{ justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="wb-btn"
+              onClick={() => {
+                setPreview(null);
+                setFilename(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="wb-btn"
+              data-variant="primary"
+              onClick={handleConfirm}
+              disabled={importing}
+            >
+              {importing ? "Importing…" : `Import ${preview.length} questions`}
+            </button>
+          </div>
+        </div>
+      )}
 
-      <div className="mt-4 flex items-start gap-2 rounded-lg border border-bronze bg-surface/40 px-4 py-3 text-xs text-taupe">
-        <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-        <span>
-          Re-uploading the same file is safe — the importer skips rows whose (source_pdf,
-          content_hash) pair is already in the database. To force a re-import after editing the
-          source PDF, delete the affected rows in /admin/questions/review first.
-        </span>
-      </div>
-    </div>
+      <p className="wb-note" style={{ marginTop: 16 }}>
+        Uploading the same file again is safe: the importer skips rows whose source_pdf and
+        content_hash pair is already in the database. To force a re-import after editing the source
+        PDF, delete the affected rows on the review page first.
+      </p>
+    </section>
   );
 }
 
 function ModeTab({
   active,
   onClick,
-  icon: Icon,
   label,
 }: {
   active: boolean;
   onClick: () => void;
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
 }) {
   return (
     <button
+      type="button"
+      className="wb-tab"
+      aria-pressed={active}
+      aria-current={active ? "page" : undefined}
       onClick={onClick}
-      className={cn(
-        "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-xs font-semibold transition-colors",
-        active ? "border-gold/40 text-ivory" : "border-transparent text-taupe hover:text-ivory"
-      )}
     >
-      <Icon className="h-3 w-3" />
       {label}
     </button>
   );

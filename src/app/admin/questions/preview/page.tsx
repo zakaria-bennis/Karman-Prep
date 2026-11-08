@@ -60,7 +60,7 @@ export default async function AdminQuestionPreviewPage({ searchParams }: PagePro
 
   if (error) {
     return (
-      <div className="mx-auto max-w-5xl px-5 py-8 text-sm text-error-bright">
+      <div className="mx-auto max-w-5xl px-5 py-8 text-sm text-[color:var(--late)]">
         Failed to load questions: {error.message}
       </div>
     );
@@ -82,29 +82,29 @@ export default async function AdminQuestionPreviewPage({ searchParams }: PagePro
       <div className="px-5 pb-3 pt-5">
         <Link
           href="/admin/curriculum"
-          className="mb-2 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
+          className="mb-2 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="flex items-center gap-2 text-xl font-bold text-ivory">
+            <h1 className="flex items-center gap-2 text-xl font-bold text-[color:var(--ink)]">
               {archivedOnly ? (
                 <>
-                  <Archive className="h-5 w-5 text-warning" /> Archived questions
+                  <Archive className="h-5 w-5 text-[color:var(--warn)]" /> Archived questions
                 </>
               ) : (
                 <>
-                  <Eye className="h-5 w-5 text-gold" /> Question preview
+                  <Eye className="h-5 w-5 text-[color:var(--accent-text)]" /> Question preview
                 </>
               )}
             </h1>
-            <p className="mt-0.5 text-xs text-taupe">
+            <p className="mt-0.5 text-xs text-[color:var(--mute)]">
               {questions.length} question{questions.length === 1 ? "" : "s"}
               {sourcePdfParam ? (
                 <>
                   {" "}
-                  from <span className="font-mono text-ivory">{sourcePdfParam}</span>
+                  from <span className="font-mono text-[color:var(--ink)]">{sourcePdfParam}</span>
                 </>
               ) : archivedOnly ? (
                 " archived (hidden from students)"
@@ -114,7 +114,7 @@ export default async function AdminQuestionPreviewPage({ searchParams }: PagePro
               {includeArchived && !archivedOnly && (
                 <>
                   {" · "}
-                  <span className="text-warning">including archived</span>
+                  <span className="text-[color:var(--warn)]">including archived</span>
                 </>
               )}
               {" · use prev/next to step through; approve / flag / reject from the bottom toolbar."}
@@ -123,7 +123,7 @@ export default async function AdminQuestionPreviewPage({ searchParams }: PagePro
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/admin/questions/preview/rapid"
-              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface px-3 py-1.5 text-xs font-semibold text-ivory hover:border-bronze"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:border-[color:var(--line)]"
             >
               Rapid student view
             </Link>
@@ -134,7 +134,7 @@ export default async function AdminQuestionPreviewPage({ searchParams }: PagePro
                   ? `/admin/questions/preview${sourcePdfParam ? `?source_pdf=${encodeURIComponent(sourcePdfParam)}` : ""}`
                   : `/admin/questions/preview?include_archived=true${sourcePdfParam ? `&source_pdf=${encodeURIComponent(sourcePdfParam)}` : ""}`
               }
-              className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface px-3 py-1.5 text-xs font-semibold text-ivory hover:border-bronze"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:border-[color:var(--line)]"
             >
               <Archive className="h-3.5 w-3.5" />
               {includeArchived ? "Hide archived" : "Show archived"}

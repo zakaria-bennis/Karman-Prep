@@ -7,12 +7,13 @@
 // until an admin lands here and either approves (publishing to
 // Slack for chat, or making content visible for DMs) or rejects.
 //
-// Two tabs: Pending (status=flagged) and History (status=rejected).
+// Two tabs: Waiting for review (status=flagged) and Rejected
+// (status=rejected).
 // ============================================================
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, ShieldAlert } from "lucide-react";
+import { WbPage, WbStats, WbTabs } from "@/components/admin/workbench";
 import {
   listFlaggedChatMessages,
   listFlaggedDirectMessages,
@@ -24,7 +25,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/server";
 import ModerationQueueClient from "./ModerationQueueClient";
 
-export const metadata: Metadata = { title: "Admin — Moderation queue | Karman" };
+export const metadata: Metadata = { title: "Moderation queue" };
 
 const PAGE_LIMIT = 50;
 
@@ -182,63 +183,40 @@ export default async function ModerationQueuePage({ searchParams }: PageProps) {
     pendingCount = (chatCount.count ?? 0) + (dmCount.count ?? 0);
   }
 
-  return (
-    <div className="mx-auto max-w-6xl px-5 py-8">
-      <div className="mb-6">
-        <Link
-          href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
-        >
-          <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
-        </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
-          <ShieldAlert className="h-5 w-5 text-error" /> Moderation queue
-        </h1>
-        <p className="mt-1.5 text-sm text-taupe">
-          Flagged chat messages and DMs are held back until you approve or reject them. Senders see
-          their own message marked &ldquo;pending review&rdquo;; recipients see a placeholder.
-        </p>
-      </div>
+  const channelCount = items.filter((i) => i.kind === "chat").length;
 
-      <div className="mb-5 flex gap-2 border-b border-bronze">
-        <TabLink href="?tab=pending" active={tab === "pending"} count={pendingCount}>
-          Pending review
-        </TabLink>
-        <TabLink href="?tab=history" active={tab === "history"}>
-          History (rejected)
-        </TabLink>
-      </div>
+  return (
+    <WbPage
+      title="Moderation queue"
+      summary={
+        <>
+          Flagged channel messages and direct messages wait here until you approve or reject them.
+          Senders see their message marked &ldquo;pending review&rdquo;; recipients see a
+          placeholder.
+        </>
+      }
+      actions={<Link href="/admin/curriculum">Back to admin</Link>}
+    >
+      <WbStats
+        items={[
+          { label: "Waiting for review", value: pendingCount },
+          { label: "Channel messages shown", value: channelCount },
+          { label: "Direct messages shown", value: items.length - channelCount },
+        ]}
+      />
+
+      <WbTabs
+        label="Queue"
+        param="tab"
+        value={tab}
+        basePath="/admin/moderation"
+        options={[
+          { value: "pending", label: "Waiting for review", count: pendingCount },
+          { value: "history", label: "Rejected" },
+        ]}
+      />
 
       <ModerationQueueClient initialItems={items} tab={tab} initialQuery={q ?? ""} />
-    </div>
-  );
-}
-
-function TabLink({
-  href,
-  active,
-  count,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  count?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className={
-        "relative -mb-px border-b-2 px-3 py-2.5 text-sm transition-colors " +
-        (active ? "border-error/40 text-ivory" : "border-transparent text-taupe hover:text-ivory")
-      }
-    >
-      {children}
-      {typeof count === "number" && count > 0 ? (
-        <span className="ml-2 rounded-full bg-error/15 px-1.5 py-0.5 text-[11px] font-semibold text-error-bright">
-          {count}
-        </span>
-      ) : null}
-    </Link>
+    </WbPage>
   );
 }

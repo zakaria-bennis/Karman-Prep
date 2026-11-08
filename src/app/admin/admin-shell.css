@@ -3,11 +3,10 @@
  *
  * 1. A wider box: the admin is a work tool with dense tables, so its box may use more of
  *    the screen than the student portal's (the painting still shows on the right).
- * 2. A colour bridge for the older admin pages: their Tailwind colours (text-ivory,
- *    bg-surface, border-bronze...) follow the site's own theme switch, while the painted
- *    box follows the device. Inside the admin box those colours are mapped to the shell's
- *    ink, mute and line colours, in light and in dark.
- * 3. A wide older table scrolls inside the box instead of spilling out of it.
+ * 2. A wide table scrolls inside the box instead of spilling out of it.
+ *
+ * Colours come from the shell (--ink, --mute, --line...) plus the staff tokens in
+ * src/components/admin/workbench/tokens.css.
  */
 @media (min-width: 1100px) {
   .kp-shell:has(.kp-admin) .kp-col {
@@ -16,50 +15,7 @@
 }
 
 .kp-admin {
-  --k-night: 242 239 232;
-  --k-espresso: 236 232 224;
-  --k-charcoal: 226 221 211;
-  --k-surface: 255 255 255;
-  --k-surface-raised: 250 248 244;
-  --k-ivory: 22 24 29;
-  --k-taupe: 84 86 93;
-  --k-bronze: 176 168 152;
-  --k-gold: 128 86 14;
-  --k-gold-bright: 150 102 20;
-  --k-success: 47 107 69;
-  --k-success-bright: 47 107 69;
-  --k-warning: 138 90 0;
-  --k-warning-bright: 138 90 0;
-  --k-error: 165 44 24;
-  --k-error-bright: 165 44 24;
-  --k-info: 26 94 160;
-  --k-info-bright: 26 94 160;
-  --background: transparent;
-  --foreground: #16181d;
   color: var(--ink);
   min-width: 0;
   overflow-x: auto;
-}
-@media (prefers-color-scheme: dark) {
-  .kp-admin {
-    --k-night: 7 6 5;
-    --k-espresso: 13 10 8;
-    --k-charcoal: 18 17 13;
-    --k-surface: 23 22 17;
-    --k-surface-raised: 34 32 24;
-    --k-ivory: 243 236 221;
-    --k-taupe: 184 176 161;
-    --k-bronze: 74 66 50;
-    --k-gold: 200 171 106;
-    --k-gold-bright: 228 200 106;
-    --k-success: 139 168 106;
-    --k-success-bright: 166 196 134;
-    --k-warning: 224 162 74;
-    --k-warning-bright: 240 190 114;
-    --k-error: 240 106 140;
-    --k-error-bright: 240 106 140;
-    --k-info: 66 180 255;
-    --k-info-bright: 66 217 255;
-    --foreground: #eef0f4;
-  }
 }

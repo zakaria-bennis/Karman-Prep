@@ -5,7 +5,7 @@
 // map didn't include), so `map[stage]` was undefined and destructuring it
 // threw — taking the whole page down. JobsClient must now render ANY
 // stage (known v2 stage, or a totally unmapped/future one) without
-// crashing, falling back to a generic icon.
+// crashing, falling back to the runner's label or the raw stage name.
 
 import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";

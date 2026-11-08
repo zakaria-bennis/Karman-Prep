@@ -2,21 +2,15 @@
 
 // ============================================================
 // PaymentSettingsClient — drives the three-state UX (no
-// account / incomplete / ready) plus the just-returned banners.
+// account / incomplete / ready) plus the just-returned notes.
+// Rendered inside the page's `.wb` box in the painted shell.
 // ============================================================
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  CheckCircle2,
-  AlertTriangle,
-  Loader2,
-  ExternalLink,
-  CreditCard,
-  Banknote,
-  RefreshCw,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import type { CSSProperties, ReactNode } from "react";
+import { Card, Cta, Row, SectionHeader } from "@/components/portal";
+import { WbPill } from "@/components/admin/workbench";
 import {
   actionStartOnboarding,
   actionUpdatePaymentDetails,
@@ -34,6 +28,11 @@ interface State {
   justOnboarded: boolean;
   justUpdated: boolean;
 }
+
+const WARN_ALERT: CSSProperties = {
+  borderColor: "var(--warn)",
+  background: "color-mix(in srgb, var(--warn) 8%, transparent)",
+};
 
 export default function PaymentSettingsClient({ state }: { state: State }) {
   const router = useRouter();
@@ -63,187 +62,125 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
       ? ("ready" as const)
       : ("incomplete" as const);
 
+  const busy = (label: string) => (isPending ? "Working…" : label);
+
   return (
-    <div className="space-y-5">
+    <>
       {state.justOnboarded && status === "ready" && (
-        <Banner color="emerald" icon={<CheckCircle2 className="h-4 w-4" />}>
-          Onboarding complete — you can now request payouts.
-        </Banner>
+        <Alert tone="ok">Stripe is set up. You can now ask for payouts.</Alert>
       )}
       {state.justOnboarded && status === "incomplete" && (
-        <Banner color="amber" icon={<AlertTriangle className="h-4 w-4" />}>
-          Almost done — Stripe still needs a few details before you can receive payouts.
-        </Banner>
+        <Alert style={WARN_ALERT}>
+          Almost done. Stripe still needs a few details before it can pay you.
+        </Alert>
       )}
-      {state.justUpdated && (
-        <Banner color="emerald" icon={<CheckCircle2 className="h-4 w-4" />}>
-          Payment details updated.
-        </Banner>
-      )}
-      {error && (
-        <Banner color="rose" icon={<AlertTriangle className="h-4 w-4" />}>
-          {error}
-        </Banner>
-      )}
+      {state.justUpdated && <Alert tone="ok">Payment details updated.</Alert>}
+      {error && <Alert role="alert">{error}</Alert>}
 
-      {/* ── Status card ─────────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-bold text-ivory dark:text-ivory">Payment account</h2>
-          </div>
-          <StatusPill status={status} />
-        </div>
+      <Card>
+        <SectionHeader title="Payment account" note={<StatusPill status={status} />} />
 
         {status === "not_started" && (
-          <div className="mt-5 space-y-3">
-            <p className="text-sm text-taupe dark:text-ivory">
-              You haven&apos;t set up payouts yet. Stripe will ask for your name, address, date of
-              birth, and a bank account (or debit card for instant payouts). Takes about 3 minutes.
+          <>
+            <p className="kp-meta">
+              You haven&apos;t set up payouts yet. Stripe asks for your name, address, date of birth
+              and a bank account (or a debit card for instant payouts). It takes about 3 minutes.
             </p>
-            <button
+            <Cta
               onClick={() => call(actionStartOnboarding, (r) => go(r.url))}
               disabled={isPending}
-              className="inline-flex items-center gap-2 rounded-lg bg-info px-5 py-2.5 text-sm font-bold text-ivory hover:bg-info-bright disabled:opacity-40"
+              aria-busy={isPending}
             >
-              {isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ExternalLink className="h-4 w-4" />
-              )}
-              Set up payments with Stripe
-            </button>
-          </div>
+              {busy("Set up payments with Stripe")}
+            </Cta>
+          </>
         )}
 
         {status === "incomplete" && (
-          <div className="mt-5 space-y-3">
-            <p className="text-sm text-taupe dark:text-ivory">
-              Stripe still needs more information before you can receive payouts. Click below to
-              finish onboarding.
+          <>
+            <p className="kp-meta">
+              Stripe needs more information before it can pay you. Finish onboarding to carry on.
             </p>
             {state.requirements.length > 0 && (
-              <details className="text-xs text-taupe">
-                <summary className="cursor-pointer hover:text-taupe dark:hover:text-ivory">
-                  What does Stripe need? ({state.requirements.length})
+              <details className="wb-note" style={{ marginTop: 8 }}>
+                <summary style={{ cursor: "pointer" }}>
+                  What Stripe still needs ({state.requirements.length})
                 </summary>
-                <ul className="ml-4 mt-1 list-disc">
+                <ul style={{ margin: "4px 0 0 16px", listStyle: "disc" }}>
                   {state.requirements.map((r) => (
-                    <li key={r} className="font-mono text-[11px]">
-                      {r}
+                    <li key={r}>
+                      <code>{r}</code>
                     </li>
                   ))}
                 </ul>
               </details>
             )}
-            <div className="flex flex-wrap gap-2">
+            <Cta
+              onClick={() => call(actionStartOnboarding, (r) => go(r.url))}
+              disabled={isPending}
+              aria-busy={isPending}
+            >
+              {busy("Resume onboarding")}
+            </Cta>
+            <div style={{ marginTop: 12 }}>
               <button
-                onClick={() => call(actionStartOnboarding, (r) => go(r.url))}
-                disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg bg-info px-5 py-2.5 text-sm font-bold text-ivory hover:bg-info-bright disabled:opacity-40"
-              >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ExternalLink className="h-4 w-4" />
-                )}
-                Resume onboarding
-              </button>
-              <button
+                type="button"
+                className="wb-btn"
                 onClick={() => call(actionRefreshAccountStatus, () => router.refresh())}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg border border-bronze px-4 py-2.5 text-sm font-semibold text-ivory hover:bg-surface disabled:opacity-40 dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
               >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                Refresh status
+                {busy("Refresh status")}
               </button>
             </div>
-          </div>
+          </>
         )}
 
         {status === "ready" && (
-          <div className="mt-5 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Capability
-                icon={<Banknote className="h-4 w-4" />}
-                label="ACH (2-3 days)"
-                active={state.payoutsEnabled}
-              />
-              <Capability
-                icon={<CreditCard className="h-4 w-4" />}
-                label="Instant (debit card)"
-                active={state.instantPayoutsActive}
-                hint={
-                  !state.instantPayoutsActive ? "Add a debit card in Stripe to enable" : undefined
-                }
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <>
+            <Row title="ACH, 2 to 3 days" right={<OnOff active={state.payoutsEnabled} />} />
+            <Row
+              title="Instant, to a debit card"
+              sub={
+                !state.instantPayoutsActive ? "Add a debit card in Stripe to turn it on" : undefined
+              }
+              right={<OnOff active={state.instantPayoutsActive} />}
+            />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
               <button
+                type="button"
+                className="wb-btn"
                 onClick={() => call(actionUpdatePaymentDetails, (r) => go(r.url))}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory hover:bg-surface disabled:opacity-40 dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
               >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="h-4 w-4" />
-                )}
-                Update bank / card
+                {busy("Update bank or card")}
               </button>
               <button
+                type="button"
+                className="wb-btn"
                 onClick={() => call(actionGetExpressDashboardLink, (r) => go(r.url))}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory hover:bg-surface disabled:opacity-40 dark:border-bronze dark:text-ivory dark:hover:bg-surface-raised"
               >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ExternalLink className="h-4 w-4" />
-                )}
-                Open Stripe dashboard
+                {busy("Open Stripe dashboard")}
               </button>
             </div>
-          </div>
+          </>
         )}
-      </section>
+      </Card>
 
-      {/* ── Fee breakdown ───────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
-        <h2 className="mb-3 text-sm font-bold text-ivory dark:text-ivory">How payouts work</h2>
-        <div className="grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-lg border border-bronze p-3 dark:border-bronze">
-            <div className="flex items-center gap-2 font-bold text-ivory dark:text-ivory">
-              <Banknote className="h-4 w-4 text-success" />
-              ACH (Standard)
-            </div>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-taupe dark:text-taupe">
-              <li>Free — you receive 100% of your earnings</li>
-              <li>Arrives in 2–5 business days</li>
-              <li>Goes to your bank account</li>
-            </ul>
-          </div>
-          <div className="rounded-lg border border-bronze p-3 dark:border-bronze">
-            <div className="flex items-center gap-2 font-bold text-ivory dark:text-ivory">
-              <CreditCard className="h-4 w-4 text-info" />
-              Instant
-            </div>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-taupe dark:text-taupe">
-              <li>2.5% fee — you receive 97.5%</li>
-              <li>Arrives in seconds</li>
-              <li>Goes to your linked debit card</li>
-            </ul>
-          </div>
-        </div>
-        <p className="mt-3 text-xs text-taupe">
-          You pick the method when requesting a payout. No hidden fees, no minimum.
+      <Card>
+        <SectionHeader title="How payouts work" />
+        <p className="kp-meta">
+          <b>ACH (standard).</b> Free, so you get 100%. It reaches your bank account in 2 to 5
+          business days.
         </p>
-      </section>
-    </div>
+        <p className="kp-meta">
+          <b>Instant.</b> A 2.5% fee, so you get 97.5%. It reaches your debit card in seconds.
+        </p>
+        <p className="wb-note" style={{ marginTop: 8 }}>
+          You choose the method each time you ask for a payout. No hidden fees and no minimum.
+        </p>
+      </Card>
+    </>
   );
 }
 
@@ -251,81 +188,30 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
 // Sub-components
 // ──────────────────────────────────────────────────────────
 function StatusPill({ status }: { status: "not_started" | "incomplete" | "ready" }) {
-  const map = {
-    not_started: {
-      label: "Not set up",
-      cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-ivory",
-    },
-    incomplete: {
-      label: "Incomplete",
-      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
-    },
-    ready: {
-      label: "Ready",
-      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
-    },
-  } as const;
-  const m = map[status];
-  return (
-    <span
-      className={cn("rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", m.cls)}
-    >
-      {m.label}
-    </span>
-  );
+  if (status === "ready") return <WbPill tone="ok">Ready</WbPill>;
+  if (status === "incomplete") return <WbPill tone="warn">Incomplete</WbPill>;
+  return <WbPill tone="neutral">Not set up</WbPill>;
 }
 
-function Capability({
-  icon,
-  label,
-  active,
-  hint,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  active: boolean;
-  hint?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg border p-3",
-        active
-          ? "border-success/40 bg-success/40 dark:border-success/40 dark:bg-success/5"
-          : "border-bronze dark:border-bronze"
-      )}
-    >
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ivory dark:text-ivory">
-        {icon}
-        {label}
-        {active && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
-      </div>
-      {hint && <div className="mt-1 text-[11px] text-taupe">{hint}</div>}
-    </div>
-  );
+function OnOff({ active }: { active: boolean }) {
+  return active ? <WbPill tone="ok">On</WbPill> : <WbPill tone="neutral">Off</WbPill>;
 }
 
-function Banner({
-  color,
-  icon,
+function Alert({
+  tone,
+  role = "status",
+  style,
   children,
 }: {
-  color: "emerald" | "amber" | "rose";
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  tone?: "ok";
+  role?: "status" | "alert";
+  style?: CSSProperties;
+  children: ReactNode;
 }) {
-  const map = {
-    emerald:
-      "border-success/40 dark:border-success/40 bg-success/10 dark:bg-success/10 text-success dark:text-success-bright",
-    amber:
-      "border-warning/40 dark:border-warning/40 bg-warning/10 dark:bg-warning/10 text-warning dark:text-warning-bright",
-    rose: "border-error/40 dark:border-error/40 bg-error/10 dark:bg-error/10 text-error dark:text-error-bright",
-  };
   return (
-    <div className={cn("flex items-start gap-2 rounded-lg border px-4 py-3 text-sm", map[color])}>
-      <span className="mt-0.5">{icon}</span>
-      <span>{children}</span>
-    </div>
+    <p className="wb-alert" data-tone={tone} role={role} style={style}>
+      {children}
+    </p>
   );
 }
 

@@ -37,7 +37,7 @@ export default function ImpersonationMenu() {
       <button
         onClick={() => setOpen((o) => !o)}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised/60 px-2.5 py-1 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_60%,transparent)] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)] disabled:opacity-50"
       >
         {pending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -50,19 +50,19 @@ export default function ImpersonationMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-lg border border-bronze bg-surface shadow-2xl"
+          className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] shadow-2xl"
         >
           {(["student", "tutor", "parent"] as const).map((r) => (
             <button
               key={r}
               role="menuitem"
               onClick={() => viewAs(r)}
-              className="block w-full px-3 py-2 text-left text-xs capitalize text-ivory hover:bg-surface/5"
+              className="block w-full px-3 py-2 text-left text-xs capitalize text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--card)_5%,transparent)]"
             >
               {r}
             </button>
           ))}
-          <div className="border-t border-bronze px-3 py-2 text-[10px] text-taupe">
+          <div className="border-t border-[color:var(--line)] px-3 py-2 text-[10px] text-[color:var(--mute)]">
             Real role stays admin.
           </div>
         </div>

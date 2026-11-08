@@ -67,7 +67,7 @@ export function PreviewWorkspace({
           aria-expanded={listOpen}
           aria-controls={listId}
           onClick={() => setListOpen((open) => !open)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-bronze px-3 text-sm font-medium"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[color:var(--line)] px-3 text-sm font-medium"
         >
           {listOpen ? (
             <X className="h-4 w-4" aria-hidden />
@@ -79,7 +79,7 @@ export function PreviewWorkspace({
         {hasInspection && (
           <a
             href={`#${inspectionId}`}
-            className="inline-flex min-h-11 items-center rounded-lg border border-bronze px-3 text-sm"
+            className="inline-flex min-h-11 items-center rounded-lg border border-[color:var(--line)] px-3 text-sm"
           >
             Open inspection
           </a>
@@ -104,7 +104,7 @@ export function PreviewWorkspace({
           ref={question}
           tabIndex={-1}
           aria-label="Question workspace"
-          className="flex min-h-0 min-w-0 scroll-mt-20 flex-col overflow-hidden rounded-xl border border-bronze bg-night outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          className="flex min-h-0 min-w-0 scroll-mt-20 flex-col overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color:var(--sunk)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]"
         >
           {children}
         </section>
@@ -114,7 +114,7 @@ export function PreviewWorkspace({
             tabIndex={-1}
             id={inspectionId}
             aria-label="Question inspection"
-            className="min-h-0 min-w-0 scroll-mt-20 outline-none focus-visible:ring-2 focus-visible:ring-gold xl:col-start-2 2xl:sticky 2xl:top-20 2xl:col-start-auto 2xl:max-h-[80dvh] 2xl:overflow-y-auto"
+            className="min-h-0 min-w-0 scroll-mt-20 outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] xl:col-start-2 2xl:sticky 2xl:top-20 2xl:col-start-auto 2xl:max-h-[80dvh] 2xl:overflow-y-auto"
           >
             <button
               type="button"

@@ -7,7 +7,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { WbPage } from "@/components/admin/workbench";
 import { selectPdfJob } from "@/lib/supabase/queries/pdf-jobs";
 import JobDetailClient from "./JobDetailClient";
 
@@ -20,18 +20,16 @@ export default async function PdfJobDetailPage({ params }: { params: Promise<{ i
   if (!job) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-8">
-      <div className="mb-6">
-        <Link
-          href="/admin/pdf-pipeline/jobs"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
-        >
-          <ChevronRight className="h-3 w-3 rotate-180" /> All jobs
+    <WbPage
+      title={job.source_pdf}
+      summary={`Job ID: ${job.id}`}
+      actions={
+        <Link className="wb-btn" href="/admin/pdf-pipeline/jobs">
+          All jobs
         </Link>
-        <h1 className="text-2xl font-bold text-ivory">{job.source_pdf}</h1>
-        <p className="mt-1 text-xs text-taupe">Job ID: {job.id}</p>
-      </div>
+      }
+    >
       <JobDetailClient initialJob={job} />
-    </div>
+    </WbPage>
   );
 }

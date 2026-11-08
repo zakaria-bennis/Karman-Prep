@@ -9,6 +9,8 @@ export interface PieSlice {
   color: string;
 }
 
+const T = (fill: string) => ({ fill, fontFamily: "inherit" });
+
 export function PieChart({
   slices,
   total,
@@ -26,23 +28,28 @@ export function PieChart({
   const r = 90;
   if (total === 0) {
     return (
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        role="img"
+        aria-label="No revenue yet"
+      >
         <circle
           cx={cx}
           cy={cy}
           r={r}
-          fill="none"
-          stroke="rgba(255,255,255,0.08)"
           strokeWidth={28}
+          style={{ fill: "none", stroke: "var(--line)" }}
         />
         <text
           x={cx}
           y={cy}
           textAnchor="middle"
           dominantBaseline="middle"
-          fill="#B8B0A1"
           fontSize="12"
           fontWeight={600}
+          style={T("var(--mute)")}
         >
           No revenue yet
         </text>
@@ -51,7 +58,13 @@ export function PieChart({
   }
   let acc = 0;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label={`Revenue by plan, ${fmtMoney(total)} a month`}
+    >
       {slices
         .filter((s) => s.value > 0)
         .map((s) => {
@@ -70,20 +83,28 @@ export function PieChart({
             <path
               key={s.tier}
               d={d}
-              fill={s.color}
               opacity={hovered && hovered !== s.tier ? 0.5 : 1}
-              style={{ transition: "opacity 0.15s ease" }}
+              style={{ fill: s.color, transition: "opacity 0.15s ease" }}
               onMouseEnter={() => onHover(s.tier)}
               onMouseLeave={() => onHover(null)}
-            />
+            >
+              <title>{`${s.label}: ${fmtMoney(s.value)}`}</title>
+            </path>
           );
         })}
-      <circle cx={cx} cy={cy} r={50} fill="#070605" />
-      <text x={cx} y={cy - 6} textAnchor="middle" fill="#B8B0A1" fontSize="10" fontWeight={700}>
-        MONTHLY
-      </text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fill="#fff" fontSize="18" fontWeight={800}>
+      <circle cx={cx} cy={cy} r={50} style={{ fill: "var(--bg, Canvas)" }} />
+      <text
+        x={cx}
+        y={cy + 2}
+        textAnchor="middle"
+        fontSize="18"
+        fontWeight={600}
+        style={T("var(--ink)")}
+      >
         {fmtMoney(total)}
+      </text>
+      <text x={cx} y={cy + 20} textAnchor="middle" fontSize="11" style={T("var(--mute)")}>
+        a month
       </text>
     </svg>
   );

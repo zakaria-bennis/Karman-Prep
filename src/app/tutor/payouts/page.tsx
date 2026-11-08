@@ -1,8 +1,8 @@
 // ============================================================
 // /tutor/payouts — the actual money flow.
 //
-// Three sections:
-//   1. Hero — pending payout amount + 2 big buttons (Instant / ACH).
+// Three sections (the painted shell gives the heading and tabs):
+//   1. Pending payout amount + the Instant / ACH choice.
 //      If the tutor isn't onboarded with Stripe yet, link to settings.
 //   2. Sessions ready for payout — table of eligible bookings
 //      so the tutor sees exactly what's being bundled.
@@ -10,11 +10,9 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
-import { ChevronLeft, AlertCircle } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -24,6 +22,7 @@ import {
   type TutorEarningsSession,
 } from "@/lib/supabase/queries/earnings";
 import { fetchAccountStatus } from "@/lib/integrations/stripe/connect";
+import { Card, Cta, SectionHeader } from "@/components/portal";
 import PayoutsClient from "./PayoutsClient";
 
 export const metadata: Metadata = { title: "Payouts — Karman" };
@@ -126,53 +125,29 @@ export default async function TutorPayoutsPage() {
   }
 
   return (
-    <>
-      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-        <Link
-          href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory dark:hover:text-ivory"
-        >
-          <ChevronLeft className="h-4 w-4" /> My earnings
-        </Link>
-
-        <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
-          <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">Get paid</h1>
-          <p className="mt-1 text-sm text-taupe dark:text-taupe">
-            Pick instant or ACH. Money moves from KarmanPrep to your Stripe account, then to your
-            bank or debit card.
+    <div className="wb" style={{ paddingBlock: 0 }}>
+      <p className="wb-note">
+        Choose Instant or ACH. The money goes from Karman to your Stripe account, then to your bank
+        or debit card.
+      </p>
+      {!caller.stripe_connect_account_id || !caller.stripe_payouts_enabled ? (
+        <Card>
+          <SectionHeader title="Set up payments first" />
+          <p className="kp-meta">
+            Finish Stripe onboarding so we know where to send your money. Then you can ask for a
+            payout here.
           </p>
-        </header>
-
-        {!caller.stripe_connect_account_id || !caller.stripe_payouts_enabled ? (
-          <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-5 dark:border-warning/40 dark:bg-warning/10">
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-warning dark:text-warning-bright" />
-            <div className="flex-1">
-              <h2 className="text-sm font-bold text-warning dark:text-warning-bright">
-                Set up payments first
-              </h2>
-              <p className="mt-1 text-sm text-warning dark:text-warning-bright/90">
-                Before you can request a payout, finish Stripe onboarding so we know where to send
-                the money.
-              </p>
-              <Link
-                href="/tutor/settings/payment"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-warning px-4 py-2 text-sm font-semibold text-night hover:bg-warning-bright"
-              >
-                Go to payment settings
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <PayoutsClient
-            pendingAmount={summary.pending_amount}
-            eligibleSessions={eligible}
-            history={history}
-            instantAvailable={instantAvailable}
-            studentSessionCounts={studentCountsObj}
-          />
-        )}
-      </div>
-    </>
+          <Cta href="/tutor/settings/payment">Go to payment settings</Cta>
+        </Card>
+      ) : (
+        <PayoutsClient
+          pendingAmount={summary.pending_amount}
+          eligibleSessions={eligible}
+          history={history}
+          instantAvailable={instantAvailable}
+          studentSessionCounts={studentCountsObj}
+        />
+      )}
+    </div>
   );
 }
