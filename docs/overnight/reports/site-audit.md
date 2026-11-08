@@ -19,6 +19,27 @@ The list of changes, with before and after pictures, is in
   could not re-check are listed below as not fixed.
 - The freeze also cost about three hours, so some fixes are listed for later.
 
+## The founder's decisions of 8 November morning (done)
+
+- **Eyebrow labels:** removed from every site page, with their style and copy.
+- **Cookie Policy:** a new page at /cookies, linked from the footer's Legal
+  column, in the sitemap. It lists what the site really keeps: Clerk's
+  sign-in cookies, the session-recording consent cookie, and browser-storage
+  notes (light or dark choice, the film's pause, account display settings).
+  No advertising or analytics cookies.
+- **Study tools on the home page:** one column on phones, two by two below
+  1200 px, a row of four on wide screens. Nothing scrolls sideways.
+- **Free practice test form:** it now says we send occasional emails (with
+  unsubscribe), and the confirmation says to join on test day from the Karman
+  account, where the Join button opens Zoom.
+- **Theme follows the device**, on the site and in the portals, until a
+  visitor picks one with the toggle (design rule 33 as written). The portals
+  no longer save their default as if it were a choice.
+- **Photos:** both versions are kept. One sheet with every original beside its
+  device version: `docs/overnight/reports/site-audit/photos-before-after.jpg`.
+- **A type error I had introduced** in `src/middleware.ts` (caught by the full
+  type check after the first merge) is fixed.
+
 ## What is done
 
 **The pictures (the founder's main ask)**
@@ -98,6 +119,9 @@ The list of changes, with before and after pictures, is in
   hidden anti-bot field is named "company", which autofill might fill.
 - The onboarding page still carries on to checkout if the account sync fails.
   That file belongs to the pricing work tonight, so I left it.
+- Parents now get an account at sign-up, still as a student account. The
+  founder decided parents get their own account type and land in the parent
+  portal; that is the parent-school work, not built here.
 - Some secret checks compare with `!==` instead of a timing-safe compare;
   the Fireflies webhook takes its secret in the address. Low risk.
 - Some portal server actions don't check their inputs with Zod. Those files
@@ -139,16 +163,18 @@ The list of changes, with before and after pictures, is in
 3. Signed-out visitors who type an unknown address still go to sign-in rather
    than the 404 page. New portals are landing tonight, and this keeps them
    private by default. Signed-in visitors see the new 404 page.
-4. Dark stays the default theme. `docs/design-rules.md` rule 33 says dark is
-   the default on every device; the brief's "follows the device" disagrees.
-5. Eyebrow labels stay. They are part of the live words, and the design rules
-   only banned the tick line beside them.
-6. HSTS covers karmanprep.com only, not every subdomain, so mail links and
+4. HSTS covers karmanprep.com only, not every subdomain, so mail links and
    image hosts are never forced to HTTPS by surprise.
-7. Marketing pages skip Clerk only once the site is launched. Before launch
+5. Marketing pages skip Clerk only once the site is launched. Before launch
    the maintenance gate still needs Clerk.
-8. The films were re-encoded at a quality where a full-size frame shows no
+6. The films were re-encoded at a quality where a full-size frame shows no
    difference.
+7. The Cookie Policy describes what the code really stores, not the first
+   draft's "no cookies" (the draft was written for a mock page without
+   sign-in).
+8. The study tools make a 2 x 2 grid on tablets as well as stacking on phones,
+   because a row of four only fits from 1200 px.
+9. A device with no light or dark preference gets dark, as rule 33 says.
 
 ## For the founder to decide
 
@@ -159,23 +185,22 @@ The list of changes, with before and after pictures, is in
    `scripts/build/check-release-env.mjs` refuse `pk_test_` keys.
 2. **Turn on "Always Use HTTPS"** in Cloudflare (SSL/TLS, Edge Certificates).
    Today `http://karmanprep.com` serves pages, sign-in included, unencrypted.
-3. **The photos:** keep the devices, or go back to the originals (one line).
-4. The pricing page's "Start self-paced" button opens the free practice test
-   sign-up. Where should it go? (The pricing session owns that page.)
-5. The free-test form says "Nothing else unless you ask", but all three lead
-   forms add the email to the marketing list. Keep the list or the promise?
-6. The free-test form says "Check your inbox for the Zoom link", but nothing
-   is sent automatically; only the team gets an email.
-7. Parents who sign up now get an account, as a student account, like before.
-   Should parents get their own kind of account?
-8. The study-tools row on the home page scrolls sideways on phones by design.
-   Design rule 28 bans sideways scrolling. Keep it?
-9. /learn is open to any signed-in account on any plan. Intended for
+3. **The photos:** pick the left or right column of
+   `photos-before-after.jpg`. The site shows the right-hand versions now;
+   going back is one line (`DEVICE = ""` in `src/components/site/Photo.tsx`).
+4. /learn is open to any signed-in account on any plan. Intended for
    self-paced, or should it check the plan?
+5. The Privacy Policy says Karman uses PostHog analytics, but no PostHog code
+   is in the app, and the new Cookie Policy says no analytics cookies are set.
+   One of them should change (the legal copy is the pricing session's).
+6. The free practice test page still promises "a score range" in two places,
+   while tonight's brief says to show one predicted score, never a range.
+   CLAUDE.md asks for labelled ranges. Which rule wins on this page?
 
 ## Price and plan problems for the pricing session
 
-- "Start self-paced" on /pricing goes to the free practice test (item 4).
+- "Start self-paced" on /pricing goes to the free practice test. The founder
+  decided plan buttons create an account, then go straight to checkout.
 - The self-paced note says the guarantee "covers the cohort and Private 20";
   tonight's guarantee covers the Cohort, Private 10 and Private 20.
 - The pricing scholarship line describes a free seat for a family that can't
