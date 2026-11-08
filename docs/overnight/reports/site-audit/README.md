@@ -69,12 +69,14 @@ Before (left) and after (right), one sheet per photo:
 
 Before (live site, taken during the audit) and after (local build, headless):
 
-| What                              | Before                                                            | After                                                                                 |
-| --------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| /program form on a phone (390 px) | `before/program-form-390.jpg`: no date field, no send button      | `after/program-form-390.jpg`: full form, send button reachable                        |
-| Home opening on a slow phone      | `before/home-hero-slow-phone.jpg`: headline missing for about 8 s | `after/home-hero-no-scripts-390.jpg`: headline and buttons show even with scripts off |
-| /program steps at 1440 px         | `before/program-steps-1440.jpg`: steps over the heading           | fixed in CSS (heading pinned only in its own column)                                  |
-| Phone menu                        | `before/phone-menu-390.jpg`: Tab left the open menu               | the page behind is inert while the menu is open                                       |
-| A missing page                    | Next's bare "404" text                                            | `after/not-found-1440.jpg`: 404 status, site look, six links, noindex                 |
+| What                              | Before                                                            | After                                                                                           |
+| --------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| /program form on a phone (390 px) | `before/program-form-390.jpg`: no date field, no send button      | `after/program-form-390.jpg`: full form, send button reachable                                  |
+| Home opening on a slow phone      | `before/home-hero-slow-phone.jpg`: headline missing for about 8 s | `after/home-hero-no-scripts-390.jpg`: headline and buttons show even with scripts off           |
+| /program steps at 1440 px         | `before/program-steps-1440.jpg`: steps over the heading           | fixed in CSS (heading pinned only in its own column)                                            |
+| Phone menu                        | `before/phone-menu-390.jpg`: Tab left the open menu               | the page behind is inert while the menu is open                                                 |
+| A missing page                    | Next's bare "404" text                                            | `after/not-found-1440.jpg`: 404 status, site look, six links, noindex                           |
+| Cookie Policy (new)               | none                                                              | `after/cookies-768-light.jpg`: /cookies on a light-mode tablet, linked from the footer          |
+| Study tools on phones             | `before/`: the row scrolled sideways                              | measured on the local build: one column at 390 px, two at 768 px, nothing wider than the screen |
 
-Photo sheets (before left, after right): `photos/<name>.jpg`.
+Photo sheets (before left, after right): `photos/<name>.jpg`, and all 11 on one page: `photos-before-after.jpg`.

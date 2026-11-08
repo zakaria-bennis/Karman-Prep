@@ -132,7 +132,6 @@ headline: Small games between sets, built to make it stick.
 tools: Wordline = Today's SAT word in six tries. | Flashcards = Roots, prefixes and suffixes, so a new word can be worked out on test day. | Word Lab = One SAT word a day, used in a sentence of your own. | Daily Challenge = One hard question a day, with the full method after.
 
 ## 8 Guarantee
-eyebrow: The Karman guarantee
 headline: If your student does the work and the score doesn't rise, we pay you back.
 text: You may have paid for SAT prep before and watched the score sit still. Then the refund turned out to hang on a rule nobody mentioned. It happens a lot in this industry. Here is our whole deal, on one line.
 promise: ${PROMISE}
@@ -160,7 +159,6 @@ button: Take the free practice test
 button note: Free. No card needed.
 
 ## 12 Tutors
-eyebrow: Our tutors
 headline: Tutors you would hire for something harder than the SAT.
 credentials: PhD students = Doing research at university level | Quants = Building mathematical models for a living | Market analysts = Reading data against a deadline, every day | Published researchers = Peer-reviewed work in their own fields | University professors = Teaching is already their profession | Certified tutors = Certified by the Association of Test Preparation, Admissions, and Private Tutoring
 
@@ -168,7 +166,6 @@ credentials: PhD students = Doing research at university level | Quants = Buildi
 headline: The next session, what's due and how every skill is moving, on one screen.
 
 ## 21 Program: opening
-eyebrow: ${MP.name}
 headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.
 text: Classes grouped by score band (${MP.scoreBands.join(", ")}), ${w(MP.fullLengthTests)} full-length tests, and the guarantee printed in full. Classes start ${START_DAY}.
 button: Apply for a seat
@@ -213,7 +210,6 @@ headline: Can't start in ${monthOf(MP.startDate)}? ${MAY.startShort} or ${JUNE.s
 text: The next cohorts start ${MAY.startLabel} and ${JUNE.startLabel}. ${ENROLL_LATER}
 
 ## 31 Private: opening
-eyebrow: Private tutoring
 headline: One student, one tutor, every mistake worked through.
 text: Weekly 60-minute sessions. Each one starts from your student's latest full-length test and goes through every mistake. ${P10.hours} hours for ${$(P10.price)}, or ${P20.hours} hours for ${$(P20.price)}, both with the guarantee.
 button: Book a call with ${FOUNDER.firstName}
@@ -251,7 +247,6 @@ form done title: Request received.
 form done text: We'll email you times for the ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}.
 
 ## 41 Test: opening
-eyebrow: Free practice test
 headline: A proctored practice SAT, free, on ${FT.dateShort}.
 text: ${FT.minutes} minutes on Zoom with a live proctor. ${FT.questionCount} questions written by Karman: one Reading and Writing module, one Math module. Then a score range, a breakdown by domain and a ${FT.callMinutes}-minute call.
 facts: ${TEST_DAY} = ${FT.timeLabel} | ${FT.durationLabel} = ${FT.questionCount} questions | Live on Zoom = With a proctor | $0 = No card needed
@@ -266,9 +261,9 @@ form grade options: 9th | 10th | 11th | 12th
 form date: Which SAT are they planning to take?
 form date options: ${SAT_DATES.join(" | ")} | Not sure yet
 form button: Save the seat
-form privacy: We use your email for this test and its results, and we'll send you occasional emails from Karman. Unsubscribe any time.
+form privacy: We use your email for this test, its results and occasional emails from Karman. You can unsubscribe at any time.
 form done title: The seat is saved.
-form done text: On the day, join from your Karman account. Your results come by email from ${CONTACT.general}.
+form done text: On test day, join from your Karman account: the Join button there opens the Zoom room. Your results come by email from ${CONTACT.general}.
 
 ## 43 Test: what you get
 headline: What you get back.
@@ -284,7 +279,6 @@ text: It's half the length of the SAT and built from our own questions, so the r
 button: Save the seat
 
 ## 51 Guarantee: opening
-eyebrow: The Karman guarantee
 headline: ${PROMISE}, or money back or a free repeat.
 text: The cohort's whole deal is on this page and the home page, and nowhere else adds a rule. The private packages' rules are on the private tutoring page, in full.
 
@@ -306,7 +300,6 @@ text: Within ${G.claimDays} days of scores coming out, send the College Board sc
 button: Take the free practice test
 
 ## 61 About: opening
-eyebrow: About Karman
 headline: Test prep that shows its work.
 text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives.
 
@@ -329,12 +322,10 @@ text: The free practice test shows you our questions, our proctoring and our fee
 button: Take the free practice test
 
 ## 71 FAQ
-eyebrow: Questions
 headline: Straight answers.
 qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = On the cohort, any SAT taken within ${G.satWithinDays} days of the last class. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student is already at ${G.splitAt} or higher. Is that covered? = Yes. From a ${G.splitAt} start, the target is +${G.pointsFrom} points instead of +${G.pointsBelow}. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of scores coming out.
 
 ## 81 Research: opening
-eyebrow: The research
 headline: Why Karman is built the way it is.
 text: Every habit we ask of your student comes from studies you can read yourself. Here they are, what each one found, and where it shows up in the program.
 button: Take the free practice test
@@ -472,7 +463,6 @@ form error name: Add your student's first name, so the proctor can check them in
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form error server: That didn't go through on our side. Your answers are still here. Try again in a minute, or write to ${CONTACT.general}.
 form retry: Try again
-pricing eyebrow: Pricing
 pricing headline: The full price, before you talk to anyone.
 pricing text: Nothing is added later: no materials fee, no platform fee.
 pricing date question: When does your student want to start?

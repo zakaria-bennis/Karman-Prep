@@ -81,6 +81,7 @@ const isPublicRoute = createRouteMatcher([
   "/privacy",
   "/terms",
   "/refunds",
+  "/cookies",
   // old marketing addresses, redirected in next.config.mjs
   "/free-diagnostic",
   "/plans",

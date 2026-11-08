@@ -16,6 +16,7 @@ export const ROUTES = {
   terms: "/terms",
   privacy: "/privacy",
   refunds: "/refunds",
+  cookies: "/cookies",
   signIn: "/auth/sign-in",
   signUp: "/auth/sign-up",
   billing: "/billing",
@@ -40,4 +41,5 @@ export const SITE_PAGES = [
   ROUTES.terms,
   ROUTES.privacy,
   ROUTES.refunds,
+  ROUTES.cookies,
 ] as const;

@@ -24,8 +24,9 @@ const impact = Anton({
   preload: false,
 });
 
-/** Dark is the default (founder, 2026-10-26; design rule 33); the switch to light remembers the visitor's choice. */
-const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m==="dark"||m==="light")document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
+/** The theme follows the device (founder, 8 November, replacing the dark default); the switch remembers a
+ *  visitor's own choice, which then wins. Runs before paint. Without scripts the page stays dark. */
+const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m!=="dark"&&m!=="light")m=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
 
 const SUN = (
   <svg
@@ -114,6 +115,7 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.terms, "terms link"],
       [ROUTES.privacy, "privacy link"],
       [ROUTES.refunds, "refunds link"],
+      [ROUTES.cookies, "cookies link"],
     ],
   ],
 ];
