@@ -1,7 +1,27 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import('next').NextConfig} */
+// Security headers on every page and API response (the 2026-11-08 site audit). No Content-Security-Policy
+// yet: one that is safe for Clerk, Stripe, Sentry and the calculator needs a report-only trial first.
+// HSTS has no includeSubDomains, so other subdomains (mail links, image hosts) are never forced to HTTPS.
+const SECURITY_HEADERS = [
+  { key: "Strict-Transport-Security", value: "max-age=31536000" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+  },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+];
+
 const nextConfig = {
+  // No "x-powered-by: Next.js" on responses.
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+  },
   // Marketing pages replaced in the October 2026 rebuild: old links land on the page that replaced them.
   async redirects() {
     return [

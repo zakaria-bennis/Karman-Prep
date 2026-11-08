@@ -19,7 +19,7 @@ export default function GuaranteePage() {
   return (
     <SitePage kind="inner">
       <InnerHero n={51} href={ROUTES.test} side={<ArtDrawing name="report" style={delay(0.2)} />} />
-      <GuaranteeSection />
+      <GuaranteeSection linkHref="#s-52" />
       <section className="i-sec" data-light id="s-52">
         <div className="in">
           <div className="i-split i-withphoto">
