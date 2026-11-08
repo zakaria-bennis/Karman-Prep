@@ -183,11 +183,10 @@ export default function ReviewPanel(p: Props) {
         {p.status === "approved" && !refundDone && (
           <>
             <p className="wb-note">
-              Approved for {p.shareLabel}. First, refund the cohort payment ({p.refundLabel}) in
-              Stripe. It runs in test mode only, and it is safe to retry.{" "}
-              {p.bonusLabel === "$0"
-                ? "Nothing is left for a bank transfer."
-                : `Then send the ${p.bonusLabel} merit bonus by bank transfer and record it here.`}
+              Approved for {p.shareLabel}. First, refund what the family paid for the cohort, up to
+              that amount, in Stripe. It runs in test mode only, and it is safe to retry. Whatever
+              is left of the {p.shareLabel} is the merit bonus: you send it by bank transfer and
+              record it here.
             </p>
             {p.payoutError && <p className="wb-alert">Last attempt: {p.payoutError}</p>}
             <label className="wb-field">
@@ -213,7 +212,7 @@ export default function ReviewPanel(p: Props) {
                   )
                 }
               >
-                {pending ? "Refunding…" : `Refund ${p.refundLabel} in Stripe test mode`}
+                {pending ? "Refunding…" : "Refund the cohort payment in Stripe test mode"}
               </button>
               {canUndo && (
                 <button
