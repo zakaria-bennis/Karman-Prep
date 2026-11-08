@@ -1,0 +1,401 @@
+/*
+ * Admin workbench: dense tables, filters, search, status pills and clear empty states.
+ * Colors come from the painted portal tokens (--ink, --mute, --line, --accent, --good,
+ * --late, --card) with fallbacks, so the same markup reads well in the painted shell and
+ * in light and dark mode. Numbers use lining, tabular figures.
+ */
+.wb {
+  --wb-ink: var(--ink, var(--foreground, #16181d));
+  --wb-mute: var(--mute, #5a5c63);
+  --wb-line: var(--line, rgb(0 0 0 / 0.12));
+  --wb-card: var(--card, rgb(255 255 255 / 0.45));
+  --wb-accent: var(--accent, #2f5f8a);
+  --wb-accent-ink: var(--accent-ink, #fff);
+  --wb-good: var(--good, #2f6b45);
+  --wb-bad: var(--late, #a52c18);
+  --wb-warn: #8a5a00;
+  color: var(--wb-ink);
+  font-family: var(--font-sans, inherit);
+  font-variant-numeric: lining-nums tabular-nums;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding-block: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  .wb {
+    --wb-warn: #f2c46d;
+  }
+}
+:root[data-theme="dark"] .wb,
+.dark .wb {
+  --wb-warn: #f2c46d;
+}
+
+.wb-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.wb-head h1 {
+  margin: 0;
+  font-family: var(--font-serif, inherit);
+  font-size: 1.6rem;
+  font-weight: 400;
+  line-height: 1.15;
+}
+.wb-head p {
+  margin: 4px 0 0;
+  color: var(--wb-mute);
+  font-size: 0.9rem;
+  max-width: 62ch;
+}
+.wb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wb-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.wb-stat {
+  border: 1px solid var(--wb-line);
+  border-radius: 4px;
+  background: var(--wb-card);
+  padding: 10px 12px;
+}
+.wb-stat b {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+.wb-stat span {
+  color: var(--wb-mute);
+  font-size: 0.8rem;
+}
+
+.wb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.wb-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.wb-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--wb-line);
+  border-radius: 999px;
+  color: var(--wb-ink);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.wb-tab[aria-current="page"] {
+  border-color: var(--wb-ink);
+  font-weight: 600;
+}
+.wb-tab small {
+  color: var(--wb-mute);
+}
+.wb-search {
+  display: flex;
+  gap: 6px;
+  flex: 1 1 220px;
+  max-width: 420px;
+}
+.wb-input,
+.wb-select,
+.wb-textarea {
+  min-height: 40px;
+  width: 100%;
+  border: 1px solid var(--wb-line);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bg, #fff) 70%, transparent);
+  color: var(--wb-ink);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.wb-textarea {
+  min-height: 84px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+.wb-input:focus-visible,
+.wb-select:focus-visible,
+.wb-textarea:focus-visible,
+.wb-btn:focus-visible,
+.wb-tab:focus-visible,
+.wb a:focus-visible {
+  outline: 2px solid var(--wb-accent);
+  outline-offset: 2px;
+}
+.wb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+.wb-field > span {
+  color: var(--wb-mute);
+}
+
+.wb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--wb-line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wb-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wb-btn:hover {
+  border-color: var(--wb-ink);
+}
+.wb-btn[data-variant="primary"] {
+  border-color: var(--wb-accent);
+  background: var(--wb-accent);
+  color: var(--wb-accent-ink);
+}
+.wb-btn[data-variant="danger"] {
+  border-color: var(--wb-bad);
+  color: var(--wb-bad);
+}
+.wb-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.wb-pill[data-tone="ok"] {
+  color: var(--wb-good);
+}
+.wb-pill[data-tone="warn"] {
+  color: var(--wb-warn);
+}
+.wb-pill[data-tone="fail"] {
+  color: var(--wb-bad);
+}
+.wb-pill[data-tone="neutral"] {
+  color: var(--wb-mute);
+}
+.wb-pill[data-tone="info"] {
+  color: var(--wb-accent);
+}
+
+/* Dense table. Below 768px each row becomes a small card (no sideways scroll). */
+.wb-table-wrap {
+  border: 1px solid var(--wb-line);
+  border-radius: 4px;
+  background: var(--wb-card);
+}
+.wb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.wb-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--wb-mute);
+  font-size: 0.75rem;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--wb-line);
+}
+.wb-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--wb-line);
+  vertical-align: top;
+}
+.wb-table tr:last-child td {
+  border-bottom: 0;
+}
+.wb-table td[data-num] {
+  text-align: right;
+}
+.wb-table a {
+  color: inherit;
+  font-weight: 600;
+}
+.wb-table small {
+  display: block;
+  color: var(--wb-mute);
+}
+@media (max-width: 767px) {
+  .wb-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .wb-table,
+  .wb-table tbody,
+  .wb-table tr,
+  .wb-table td {
+    display: block;
+    width: 100%;
+  }
+  .wb-table tr {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--wb-line);
+  }
+  .wb-table tr:last-child {
+    border-bottom: 0;
+  }
+  .wb-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 3px 0;
+    border: 0;
+    text-align: right;
+  }
+  .wb-table td::before {
+    content: attr(data-label);
+    color: var(--wb-mute);
+    text-align: left;
+    flex: none;
+  }
+  .wb-table td[data-label=""]::before {
+    content: none;
+  }
+}
+
+.wb-empty {
+  border: 1px dashed var(--wb-line);
+  border-radius: 4px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--wb-mute);
+  font-size: 0.9rem;
+}
+.wb-empty b {
+  display: block;
+  color: var(--wb-ink);
+  margin-bottom: 4px;
+}
+
+.wb-section {
+  border: 1px solid var(--wb-line);
+  border-radius: 4px;
+  background: var(--wb-card);
+  padding: 14px 16px;
+  min-width: 0;
+}
+.wb-section h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.wb-grid {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 1100px) {
+  .wb-grid[data-columns="2"] {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.wb-dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+.wb-dl dt {
+  color: var(--wb-mute);
+}
+.wb-dl dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.wb-reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+.wb-reasons li {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+.wb-note {
+  font-size: 0.85rem;
+  color: var(--wb-mute);
+  margin: 0;
+}
+.wb-alert {
+  border-left: 3px solid var(--wb-bad);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  background: color-mix(in srgb, var(--wb-bad) 8%, transparent);
+}
+.wb-alert[data-tone="ok"] {
+  border-color: var(--wb-good);
+  background: color-mix(in srgb, var(--wb-good) 8%, transparent);
+}
+.wb-frame {
+  width: 100%;
+  height: min(78vh, 900px);
+  border: 1px solid var(--wb-line);
+  border-radius: 4px;
+  background: #fff;
+}
+@media (max-width: 767px) {
+  .wb-frame {
+    height: 60vh;
+  }
+}
+.wb-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wb-timeline time {
+  color: var(--wb-mute);
+  margin-right: 6px;
+}
