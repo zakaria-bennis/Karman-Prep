@@ -7,6 +7,14 @@
  * pages show the finished painting. Reduced motion shows the finished painting and holds still.
  */
 import { useEffect, useRef } from "react";
+import {
+  cachedNow,
+  cachedPainting,
+  drawCached,
+  paintingKey,
+  paintSize,
+  type CachedPainting,
+} from "@/lib/painting/cache";
 import { applyPaintingColors, type PaintingColors } from "@/lib/painting/colors";
 import type { PaintingChoice } from "@/lib/painting/schedule";
 
@@ -60,6 +68,23 @@ export default function PaintedBackdrop({
     let dispose: (() => void) | null = null;
     const session = store("session");
     const firstOpen = choice.replay || !session?.getItem(PAINTED_IN_KEY);
+    /* Later pages: today's finished painting, if kept, goes up at once, before the engine loads. */
+    const showKept = (hit: CachedPainting) => {
+      if (disposed || !drawn.current || host.current?.hasAttribute("data-painted")) return;
+      drawCached(drawn.current, hit);
+      drawn.current.style.transition = "none";
+      host.current?.setAttribute("data-painted", "");
+      if (hit.colors) applyPaintingColors(document.documentElement, hit.colors);
+      handlers.current.onTone?.(hit.tone);
+      handlers.current.onReady?.();
+    };
+    if (!firstOpen) {
+      const [w, h] = paintSize();
+      const key = paintingKey(choice, w, h);
+      const now = cachedNow(key);
+      if (now) showKept(now);
+      else void cachedPainting(key).then((hit) => hit && showKept(hit));
+    }
     /* After the first paint: idle time if the browser offers it, else a short timeout. */
     const schedule = (fn: () => void) => {
       const w = window as Window & {

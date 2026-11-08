@@ -6,6 +6,7 @@
  * data-paint-keepout: the greeting and the content panel). Holds still under reduced motion.
  * Ported from prototypes/today-directions/backdrops.js (founder approved, 2026-11-08).
  */
+import { cachedPainting, drawCached, paintingKey, paintSize, savePainting } from "./cache";
 import { pictureColors, pictureTone, type PaintingColors } from "./colors";
 import { drawLife, initLife } from "./life";
 import type { LifeState } from "./life/types";
@@ -76,15 +77,32 @@ export class PaintedScene {
    * for long.
    */
   async start(animate: boolean) {
+    const still = reducedMotion();
+    const playOpening = animate && !still;
+    const [cw, ch] = paintSize();
+    const key = paintingKey(this.choice, cw, ch);
+    /* A finished painting from earlier today shows at once: no landscape, no strokes. */
+    if (!playOpening) {
+      const hit = await cachedPainting(key);
+      if (this.disposed) return;
+      if (hit) {
+        drawCached(this.drawn, hit);
+        this.cb.onColors?.(hit.colors, hit.tone);
+        this.ready();
+        this.comeAlive(still);
+        this.run();
+        return;
+      }
+    }
     const t0 = performance.now();
     this.art = renderLandscape(this.choice.scene, this.choice.time);
     performance.measure("karman-paint-scene", { start: t0 });
     await new Promise((r) => setTimeout(r, 0));
     if (this.disposed) return;
-    const still = reducedMotion();
-    const playOpening = animate && !still;
     if (playOpening) this.cb.onPaintStart?.(PAINT_IN_MS);
     let finished = false;
+    let colors: PaintingColors | null = null;
+    let tone: "light" | "dark" | null = null;
     const handle = paintPicture(this.drawn, this.art, {
       animate: playOpening,
       nearlyDone: () => this.ready(),
@@ -92,13 +110,25 @@ export class PaintedScene {
         finished = true;
         this.painting = null;
         this.ready();
-        this.life = initLife(this.choice.scene, this.choice.time);
-        this.lifeFrom = performance.now();
-        if (still) this.drawStill();
+        this.comeAlive(still);
+        if (!this.disposed) savePainting(key, this.drawn, colors, tone);
       },
     });
     if (!finished) this.painting = handle;
-    this.cb.onColors?.(pictureColors(handle.final), pictureTone(handle.final));
+    colors = pictureColors(handle.final);
+    tone = pictureTone(handle.final);
+    this.cb.onColors?.(colors, tone);
+    this.run();
+  }
+
+  /** Wildlife and particles start once the painting is on. */
+  private comeAlive(still: boolean) {
+    this.life = initLife(this.choice.scene, this.choice.time);
+    this.lifeFrom = performance.now();
+    if (still) this.drawStill();
+  }
+
+  private run() {
     this.listen();
     this.resize();
     this.t0 = this.last = this.lastInput = performance.now();
@@ -128,7 +158,10 @@ export class PaintedScene {
     };
     const resize = () => {
       this.resize();
-      if (this.art && !this.painting) paintPicture(this.drawn, this.art, { animate: false });
+      if (!this.painting) {
+        this.art ??= renderLandscape(this.choice.scene, this.choice.time);
+        paintPicture(this.drawn, this.art, { animate: false });
+      }
       if (reducedMotion()) this.drawStill();
     };
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
