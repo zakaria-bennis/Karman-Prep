@@ -59,7 +59,7 @@ export default function OnboardingClient() {
   const [pace, setPace] = useState<LearningPace | "">("");
   const [priorPrep, setPriorPrep] = useState<PriorPrepResult | "">("");
 
-  const copy = COPY[role];
+  const copy = COPY.student;
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
