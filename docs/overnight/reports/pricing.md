@@ -1,7 +1,7 @@
 # Pricing session report (8 November 2026)
 
 Branch: `claude/overnight-pricing-938360`. It has `claude/overnight-ship` merged in (last merge
-`ba4828d2`, after merge-rest, site-audit and local-db landed). Nothing deployed, nothing pushed.
+`6aa8ec5e`, after merge-rest, site-audit, local-db and admin-scholarship landed). Nothing deployed, nothing pushed.
 Stripe was used in TEST mode only.
 
 ## In one paragraph
@@ -92,7 +92,18 @@ pages at 390 and 1440) and the live site, from different starting points.
   didn't match its scores, cohort checkout open to anyone, the quiz path not using the access
   rules, "official SAT" in a mock, and Platform/Plus in a prototype. All of these are fixed and
   committed.
-- **Round 2 (final)**: FINAL_PLACEHOLDER
+- **Round 2 (final)**: no wrong price anywhere. Every price and every sum is correct
+  on all 14 pages at both widths, in the money and access code, in the migrations and in the
+  docs. What it still found, and what happened:
+  - Fixed: Platform/Plus, the $100 deposit, the "1450" guarantee, $10 schools and office hours in
+    the reference mock's other pages and the portal prototypes; the guarantee page claiming to
+    show the private rules; "Four rules apply" on the pricing page; "official" in the merged
+    scholarship terms; two scholarship blocks in `offer.ts` (now one, `COHORT_SCHOLARSHIP`).
+  - Not fixed (listed under Not done): the cohort's $95 deposit and three $300 payments can't be
+    charged through the site yet; the "Classes start Monday, January 4" label while classes run
+    Tuesdays and Thursdays; the home page's demo calendar shows two tutors in one week and puts
+    full-length 4 on a Wednesday while its note says Saturday; "office hours" in four portal
+    prototype screens; the older exploration mocks (`fresh`, `motion`, `rebuild`, `redesign`).
 
 ## What the live site changes from when you deploy
 
@@ -121,11 +132,14 @@ After you deploy this branch, all of that becomes the table above.
   in the footer, both new pages' buttons).
 - Stripe test mode: created the eight prices, re-ran the script (nothing changed), and opened a test
   checkout for each of the eight (all test mode, `livemode=false`).
-- Checks: `npx tsc --noEmit` is clean on my work. After the last merge of `claude/overnight-ship`
-  it shows 4 errors in `src/middleware.ts`, which came from the site-audit merge, not from this
-  branch. Lint: 0 errors (2 old warnings) before the last merge; every file I changed after it lints clean. 297 targeted unit tests pass (marketing, plans,
-  onboarding, scheduling, Stripe, admin). `check:sizes` passes. I did not run the full test suite
-  again or `cf:build`, because the machine was overloaded and the team asked to keep it light.
+- Checks: `npx tsc --noEmit` is clean on my work. On the merged branch it shows 8 errors that are
+  not from this branch: 4 in `src/middleware.ts` (from the site-audit merge) and 4 because
+  `pdf-lib` and `pdf-parse`, added by the admin-scholarship merge, aren't installed in this
+  worktree yet (run `npm ci`; the scholarship PDF test fails for the same reason). Lint: 0 errors
+  (2 old warnings) before the last merges; every file I changed after them lints clean. 297
+  targeted unit tests pass (marketing, plans, onboarding, scheduling, Stripe, admin).
+  `check:sizes` passes. I did not run the full test suite or `cf:build` at the end, because the
+  machine was overloaded and the team asked to keep it light.
 
 ## Decisions I made
 
@@ -146,6 +160,8 @@ After you deploy this branch, all of that becomes the table above.
 - Cohort checkout only works for a student already added to that cohort (after the call). Until a
   page sends families there, the $95 deposit still goes through your Stripe Payment Link.
 - The Schools button opens an email to hello@karmanprep.com; there is no school sign-up flow yet.
+- The admin session and I both added a scholarship block to `offer.ts`; I kept theirs
+  (`COHORT_SCHOLARSHIP`, same numbers) and deleted mine.
 - `subscriptions.tier` stays (now optional) because the booking code still reads it as a class
   format; new subscriptions use `plan_id`.
 - I did not apply the three database changes to the shared local database: the other sessions'
@@ -174,6 +190,8 @@ After you deploy this branch, all of that becomes the table above.
   trials can't happen any more).
 - The Oct 30 ladder file `docs/business/plan-ladder-2026-10-30.md` never reached this branch, so
   there was nothing to delete.
+- The home page's demo calendar (two tutors in one week, full-length 4 on a Wednesday while the
+  note says Saturday) and "office hours" in four portal prototype screens.
 - Full test suite and `cf:build` not re-run at the end (machine overloaded).
 
 ## For you to decide
