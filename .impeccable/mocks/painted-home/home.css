@@ -94,7 +94,7 @@ img, video { display: block; max-width: 100%; height: auto; }
   transition: background-color 1.2s ease;
 }
 /* While the painting is being painted in, the panels are solid, so nothing moves behind the words */
-:root.painting .panel { background-color: var(--panel); }
+:root.painting .panel { background-color: var(--panel); transition: none; }
 @media (prefers-reduced-transparency: reduce) {
   .panel { background-color: var(--panel); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }

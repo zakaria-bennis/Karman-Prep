@@ -122,7 +122,7 @@
   }
   function paint(animate) {
     laidOut = { w: innerWidth, h: innerHeight };
-    if (animate) root.classList.add("painting");
+    root.classList.toggle("painting", animate);
     busy = true;
     window.paintPicture(paintCv, art, {
       animate,
@@ -135,7 +135,7 @@
     });
   }
   function start() {
-    if (!window.LANDSCAPES || !window.paintPicture || !window.LIFE) return;
+    if (!window.LANDSCAPES || !window.paintPicture || !window.LIFE) { root.classList.remove("painting"); return; }
     scene = sceneOfDay();
     time = timeOfDay();
     art = window.LANDSCAPES.render(scene, time);

@@ -14,6 +14,8 @@
     if (q === "light" || q === "dark") t = q;
     if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     document.documentElement.dataset.theme = t;
+    /* The panels stay solid until the painting is finished, so nothing ever moves behind the words. */
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !/[?&]still\b/.test(location.search)) document.documentElement.classList.add("painting");
   })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,8 +40,7 @@
     <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
     <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
   </button>
-  <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="menu">
-    <span class="vh">Menu</span>
+  <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg>
   </button>
   <ul class="menu" id="menu" hidden>
