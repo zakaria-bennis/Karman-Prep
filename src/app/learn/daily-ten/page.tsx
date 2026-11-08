@@ -6,6 +6,6 @@ export const metadata: Metadata = { title: "Daily 10" };
 export const dynamic = "force-dynamic";
 
 export default async function DailyTenPage() {
-  const { user } = await loadFlowUser("/learn/daily-ten");
+  const { user } = await loadFlowUser();
   return <DailyTenFlow user={user} />;
 }

@@ -25,7 +25,7 @@ export default async function PracticeSetPage({ params, searchParams }: Params) 
   const again = String((await searchParams)?.again ?? "").slice(0, 20);
   const skill = CATALOG_SKILLS.find((s) => s.id === decodeURIComponent(skillId));
   if (!skill) notFound();
-  const { user } = await loadFlowUser(`/learn/set/${skill.id}`);
+  const { user } = await loadFlowUser();
   // The skill's written lesson (no videos exist yet): the first legacy lesson it covers.
   const lesson = getCoveredLegacyNodes(skill.id)[0];
   return (

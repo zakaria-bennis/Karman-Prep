@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Card, Num, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
-import { STUDENT_MENU, STUDENT_NAV } from "@/components/dashboard/StudentDashboardClient";
-import { loadFlowUser } from "@/components/quiz-flows/load-user";
+import { Card, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import StudentPortal from "@/components/student-portal/StudentPortal";
+import { loadStudentContext } from "@/lib/student/context";
 import { SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { FULL_LENGTH_FORMS } from "@/lib/assembler/forms";
 import { loadQuizAccess } from "@/lib/assembler/plan-gate";
@@ -16,7 +16,8 @@ type Saved = { run_key: string; completed_at: string | null; result: RunResult |
 
 /** Full-length practice tests, the diagnostic and the Domain quizzes, with where each stands. */
 export default async function TestsPage() {
-  const { clerkId, user } = await loadFlowUser("/learn/tests");
+  const ctx = await loadStudentContext();
+  const clerkId = ctx.clerkId;
   const [access, saved] = await Promise.all([
     loadQuizAccess(clerkId).catch(() => null),
     (createAdminClient() as unknown as SupabaseClient)
@@ -37,16 +38,7 @@ export default async function TestsPage() {
   };
   const freeTestsLeft = access?.fullTestsLeft ?? null;
   return (
-    <PortalShell
-      portal="Student"
-      nav={STUDENT_NAV}
-      name={user.name}
-      accountDetail={user.email}
-      menu={STUDENT_MENU}
-      home="/dashboard/student"
-      title="Tests and quizzes"
-      streak={user.streak ? { days: user.streak, href: "/learn/daily-ten" } : undefined}
-    >
+    <StudentPortal ctx={ctx} title="Tests and quizzes">
       <Panel>
         <Card>
           <SectionHeader title="Full-length practice tests" note={`${FULL_LENGTH_FORMS}`} />
@@ -99,6 +91,6 @@ export default async function TestsPage() {
           </Card>
         ))}
       </Panel>
-    </PortalShell>
+    </StudentPortal>
   );
 }
