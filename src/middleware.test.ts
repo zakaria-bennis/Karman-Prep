@@ -126,3 +126,21 @@ it("keeps the maintenance gate on look-alike /api/cal paths", async () => {
   const lookAlike = await run(auth, new NextRequest("https://karmanprep.com/api/calx"));
   expect(lookAlike.headers.get("x-middleware-rewrite")).toBe("https://karmanprep.com/coming-soon");
 });
+it("lets calendar apps fetch a feed link without signing in, in both launch modes", async () => {
+  const feedPath = "/api/calendar/feed/" + "a".repeat(43) + ".ics";
+  for (const launched of ["true", "false"]) {
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", launched);
+    vi.stubEnv("NODE_ENV", "production");
+    const { default: middleware } = await import("./middleware");
+    const protect = vi.fn();
+    const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
+    const run = middleware as unknown as (
+      a: typeof auth,
+      request: NextRequest
+    ) => Promise<Response>;
+    const result = await run(auth, new NextRequest("https://karmanprep.com" + feedPath));
+    expect(result.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(protect).not.toHaveBeenCalled();
+  }
+});
