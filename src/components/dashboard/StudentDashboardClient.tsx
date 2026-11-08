@@ -30,6 +30,7 @@ export const STUDENT_MENU = [
   { label: "Messages", href: "/dashboard/student/chat" },
   { label: "Quiz history", href: "/dashboard/student/quizzes" },
   { label: "Plan and billing", href: "/billing" },
+  { label: "Tutor code", href: "/join" },
 ];
 
 interface Props {

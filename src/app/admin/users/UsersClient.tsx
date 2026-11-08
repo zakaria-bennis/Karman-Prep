@@ -27,6 +27,8 @@ const ROLE_COLOR: Record<AppRole, string> = {
   tutor: "bg-gold/10 text-gold-bright border-gold/20",
   parent: "bg-error/10 text-error-bright border-error/20",
   admin: "bg-warning/10 text-warning-bright border-warning/20",
+  // Set by the $199 tutor plan's checkout, not from this screen.
+  affiliate_tutor: "bg-success/10 text-success-bright border-success/20",
 };
 
 type SubPlan = NonNullable<AdminUserRow["plan_id"]>;
@@ -74,6 +76,7 @@ export default function UsersClient({ users, cohorts }: Props) {
       tutor: 0,
       parent: 0,
       admin: 0,
+      affiliate_tutor: 0,
     };
     for (const u of users) c[u.role]++;
     return c;

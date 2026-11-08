@@ -28,7 +28,7 @@ export default async function StudentDashboardLayout({ children }: { children: R
     .maybeSingle();
 
   if (user?.role === "parent") redirect("/dashboard/parent");
-  if (user?.role === "tutor") redirect("/tutor");
+  if (user?.role === "tutor" || user?.role === "affiliate_tutor") redirect("/tutor");
 
   // When impersonating, never bounce the admin to /onboarding — they
   // already have their own admin account and the target's onboarding
