@@ -396,6 +396,17 @@ describe("importQuestion — DB write shape", () => {
     const qInsert = calls.find((c) => c.table === "quiz_questions" && c.method === "insert");
     const payload = qInsert!.payload as Record<string, unknown>;
     expect(payload.content_hash_v2).toMatch(/^[a-f0-9]{64}$/);
+    expect(payload.content_hash).toBeNull();
+  });
+
+  it("uses the v2 hash for restart detection only when checkpoint recovery is enabled", async () => {
+    const { client, calls } = mockSupabase({
+      quiz_questions: { data: { id: "q-1" }, error: null },
+    });
+    await importQuestion(client, validRow(), { reconcileInterrupted: true });
+    const qInsert = calls.find((c) => c.table === "quiz_questions" && c.method === "insert");
+    const payload = qInsert!.payload as Record<string, unknown>;
+    expect(payload.content_hash).toBe(payload.content_hash_v2);
   });
 
   it("sets publish_status=draft for ok rows", async () => {
@@ -489,17 +500,17 @@ describe("importQuestion — DB write shape", () => {
     expect(sa).toBeUndefined();
   });
 
-  it("returns duplicate_skipped on 23505", async () => {
+  it("holds a duplicate when the existing row cannot be reconciled", async () => {
     const { client } = mockSupabase({
       quiz_questions: {
         data: null,
         error: { code: "23505", message: "duplicate key value violates unique constraint" },
       },
     });
-    const result = await importQuestion(client, validRow());
-    expect(result.duplicate_skipped).toBe(true);
+    const result = await importQuestion(client, validRow(), { reconcileInterrupted: true });
+    expect(result.duplicate_skipped).toBe(false);
     expect(result.inserted).toBe(false);
-    expect(result.errors).toEqual([]);
+    expect(result.errors.length).toBeGreaterThan(0);
   });
 
   it("skips an identical retry with a versioned source identity", async () => {

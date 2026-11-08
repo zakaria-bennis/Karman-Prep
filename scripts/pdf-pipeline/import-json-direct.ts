@@ -16,6 +16,14 @@ import {
   rowToReviewedImportInput,
   importQuestion,
 } from "./import-json-direct-row";
+import {
+  fingerprint,
+  openQueue,
+  queueCounts,
+  recordRow,
+  remainingRows,
+  saveQueue,
+} from "../lib/import-queue.mjs";
 import type { Database } from "@/types/supabase";
 import { REVIEWED_DIFFICULTY_IMPORT_POLICY } from "@/lib/question-bank/reviewed-difficulty";
 import { sha256Hex, verifyFrozenReviewedInput } from "./frozen-reviewed-input";
@@ -28,6 +36,7 @@ let dryRun = false;
 let requireSourceIdentity = false;
 let frozenInputsPath: string | undefined;
 let frozenInputsSha256: string | undefined;
+let checkpointPath: string | null = null;
 const seen = new Set<string>();
 for (let i = 0; i < flags.length; i++) {
   const flag = flags[i];
@@ -39,13 +48,18 @@ for (let i = 0; i < flags.length; i++) {
   if (flag === "--reviewed-difficulty") reviewedDifficulty = true;
   else if (flag === "--dry-run") dryRun = true;
   else if (flag === "--require-source-identity") requireSourceIdentity = true;
-  else if (flag === "--frozen-inputs" || flag === "--frozen-inputs-sha256") {
+  else if (
+    flag === "--checkpoint" ||
+    flag === "--frozen-inputs" ||
+    flag === "--frozen-inputs-sha256"
+  ) {
     const value = flags[++i];
     if (!value || value.startsWith("--")) {
       console.error(`Missing value for ${flag}. Aborting.`);
       process.exit(1);
     }
     if (flag === "--frozen-inputs") frozenInputsPath = value;
+    else if (flag === "--checkpoint") checkpointPath = resolve(value);
     else frozenInputsSha256 = value;
   } else {
     console.error(`Unknown flag ${flag}. Aborting.`);
@@ -158,6 +172,10 @@ if (frozenInputsPath || frozenInputsSha256 || (reviewedDifficulty && !dryRun)) {
     process.exit(2);
   }
 }
+if (dryRun && checkpointPath) {
+  console.error("--checkpoint cannot be combined with --dry-run");
+  process.exit(1);
+}
 if (dryRun) {
   console.log(
     JSON.stringify(
@@ -179,6 +197,8 @@ if (dryRun) {
   );
   process.exit(0);
 }
+
+const queue = openQueue(checkpointPath, fingerprint(raw, sourcePdfName), rows.length);
 
 // Construction happens only after reviewed preflight; dry runs need no DB credentials.
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -206,27 +226,33 @@ async function main() {
     errors: [] as Array<{ row: number; message: string }>,
   };
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const i of remainingRows(queue)) {
     const reviewedRow = reviewedRows?.[i];
     const normalized =
       reviewedRow && "input" in reviewedRow ? reviewedRow.input : preflight.inputs[i];
     try {
       const result = await importQuestion(supabase, normalized, {
         difficultyPolicy: reviewedDifficulty ? "reviewed" : "legacy",
+        reconcileInterrupted: Boolean(checkpointPath),
       });
       if (result.duplicate_skipped) {
         summary.skipped_duplicates++;
+        recordRow(queue, i, result.flagged_for_review ? "review_held" : "duplicate_verified");
       } else if (!result.inserted) {
         summary.errored++;
         summary.errors.push({
           row: i + 1,
           message: result.errors.join("; ") || "unknown error",
         });
+        recordRow(queue, i, "error", result.errors.join("; ") || "unknown error");
       } else if (result.flagged_for_review) {
         summary.flagged_for_review++;
+        recordRow(queue, i, "review_held");
       } else {
         summary.inserted++;
+        recordRow(queue, i, "inserted");
       }
+      saveQueue(checkpointPath, queue);
       // Non-fatal warnings (answer_key_entries / source_assets) still
       // get logged but don't bump the error count.
       if (result.errors.length > 0 && result.inserted) {
@@ -240,6 +266,8 @@ async function main() {
         row: i + 1,
         message: err instanceof Error ? err.message : String(err),
       });
+      recordRow(queue, i, "error", err instanceof Error ? err.message : String(err));
+      saveQueue(checkpointPath, queue);
     }
   }
 
@@ -249,6 +277,13 @@ async function main() {
   console.log(`flagged (review):    ${summary.flagged_for_review}`);
   console.log(`skipped (duplicate): ${summary.skipped_duplicates}`);
   console.log(`errored:             ${summary.errored}`);
+  if (checkpointPath) {
+    const counts = queueCounts(queue);
+    console.log(`checkpoint: ${checkpointPath}`);
+    console.log(
+      `queue: ${counts.pending} pending, ${counts.error} retryable errors, ${counts.review_held} review holds`
+    );
+  }
   if (summary.errors.length) {
     console.log("\nerrors:");
     for (const e of summary.errors.slice(0, 10)) console.log(`  row ${e.row}: ${e.message}`);
@@ -263,6 +298,11 @@ async function main() {
     .from("answer_choices")
     .select("id", { count: "exact", head: true });
   console.log(`\nbank now: ${qCount} questions, ${cCount} choices`);
+  const { count: approved, error: liveError } = await supabase
+    .from("quiz_questions_live")
+    .select("id", { count: "exact", head: true });
+  if (liveError) throw liveError;
+  console.log(`approved student view: ${approved}; imported rows are not publication proof`);
 
   // Exit non-zero if any row errored so the orchestrator can fail
   // the stage with a clear reason. Duplicates and flagged-for-review

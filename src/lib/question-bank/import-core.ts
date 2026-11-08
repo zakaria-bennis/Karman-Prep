@@ -45,6 +45,7 @@ import {
   type ReviewedAnswerProvenance,
 } from "./import-provenance";
 import { validateReviewedAnswer } from "./reviewed-answer";
+import { reconcileImport } from "./reconcile-import";
 import { validatePrivateDraftInput } from "./private-draft";
 import { validateNumericImport } from "./numeric-answer-set";
 import type { KeptSourceValue } from "./kept-source-identity";
@@ -156,6 +157,8 @@ export interface ImportQuestionOptions {
   difficultyPolicy?: "legacy" | "reviewed";
   /** Opt-in local private drafts remain invisible even to legacy is_live selectors. */
   privateDraft?: boolean;
+  /** Reconcile dependents after an interrupted checkpointed import. */
+  reconcileInterrupted?: boolean;
 }
 
 export interface ImportBatchSummary {
@@ -500,7 +503,7 @@ export async function importQuestion(
     source_question_number: row.source_question_number ?? null,
     source_occurrence: row.source_occurrence ?? null,
     source_regions: row.source_regions ?? null,
-    content_hash: row.content_hash || null,
+    content_hash: row.content_hash || (options.reconcileInterrupted ? content_hash_v2 : null),
     content_hash_v2,
     import_status: options.privateDraft ? "needs_review" : (row.import_status ?? null),
     import_flag_type: row.import_flag_type ?? null,
@@ -525,6 +528,7 @@ export async function importQuestion(
     // answer, and topic agree. Never silently discard a changed answer
     // or remapped topic under the same source identity.
     if (qErr.code === "23505" || /duplicate/i.test(qErr.message)) {
+      let existingId: string | null = null;
       if (row.source_version && row.source_section && row.source_module) {
         const { data: existing, error: lookupErr } = await supabase
           .from("quiz_questions")
@@ -562,6 +566,7 @@ export async function importQuestion(
             ],
           };
         }
+        existingId = existing.id;
         if (options.privateDraft) {
           const { data: key, error } = await supabase
             .from("answer_key_entries")
@@ -585,12 +590,49 @@ export async function importQuestion(
             };
         }
       }
+      if (!options.reconcileInterrupted) {
+        return {
+          inserted: false,
+          question_id: null,
+          duplicate_skipped: true,
+          flagged_for_review: false,
+          errors: [],
+        };
+      }
+      if (!existingId) {
+        if (!row.source_pdf) {
+          return {
+            inserted: false,
+            question_id: null,
+            duplicate_skipped: false,
+            flagged_for_review: false,
+            errors: ["duplicate without source_pdf cannot be reconciled"],
+          };
+        }
+        const { data: existing, error: lookupError } = await supabase
+          .from("quiz_questions")
+          .select("id")
+          .eq("source_pdf", row.source_pdf)
+          .eq("content_hash", row.content_hash || content_hash_v2)
+          .maybeSingle();
+        if (lookupError || !existing) {
+          return {
+            inserted: false,
+            question_id: null,
+            duplicate_skipped: false,
+            flagged_for_review: false,
+            errors: [`duplicate lookup: ${lookupError?.message ?? "row missing"}`],
+          };
+        }
+        existingId = existing.id;
+      }
+      const repairErrors = await reconcileImport(supabase, existingId, row, content_hash_v2);
       return {
         inserted: false,
-        question_id: null,
-        duplicate_skipped: true,
-        flagged_for_review: false,
-        errors: [],
+        question_id: existingId,
+        duplicate_skipped: repairErrors.length === 0,
+        flagged_for_review: Boolean(options.privateDraft) || row.import_status === "needs_review",
+        errors: repairErrors,
       };
     }
     return {
@@ -651,12 +693,16 @@ export async function importQuestion(
     if (saErr) errors.push(`source_assets insert (non-fatal): ${saErr.message}`);
   }
 
+  const unresolved =
+    options.reconcileInterrupted && errors.length
+      ? await reconcileImport(supabase, question_id, row, content_hash_v2)
+      : errors;
   return {
-    inserted: true,
+    inserted: options.reconcileInterrupted ? unresolved.length === 0 : true,
     question_id,
     duplicate_skipped: false,
     flagged_for_review: Boolean(options.privateDraft) || row.import_status === "needs_review",
-    errors,
+    errors: unresolved,
   };
 }
 
