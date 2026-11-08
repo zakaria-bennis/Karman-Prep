@@ -4,10 +4,9 @@
 // once decoded; if the file is missing the figure hides and the section keeps its drawing (photos.css).
 // With `clip`, a short silent loop of the same moment plays over it (public/site/clips), so the person
 // moves; reduced motion, a failed load or no autoplay leave the still photo.
-// Every person here uses a phone or laptop whose screen faces them, so each photo is served as its "-k" copy:
-// one of Karman's own code-drawn devices (the Cosmic Orange iPhone, a Space Black MacBook Pro) in the
-// foreground, showing a real Karman screen (scripts/site/device-photos.mjs). The originals stay beside them;
-// set DEVICE to "" to go back to them.
+// Every person here uses a phone or laptop whose screen faces them, so each photo carries one of Karman's
+// own code-drawn devices (the Cosmic Orange iPhone, a Space Black MacBook Pro) in the foreground, showing a
+// real Karman screen (scripts/site/device-photos.mjs; founder's choice, 8 November).
 import { useEffect, useRef, useState } from "react";
 import { section } from "@/lib/marketing/site-copy";
 
@@ -23,8 +22,6 @@ export type PhotoKey =
   | "start"
   | "call"
   | "bus";
-
-const DEVICE = "-k";
 
 export default function Photo({
   name,
@@ -66,8 +63,8 @@ export default function Photo({
         {/* eslint-disable-next-line @next/next/no-img-element -- pre-sized WebP pair; the Workers build serves images unoptimized */}
         <img
           ref={img}
-          src={`/site/photos/p-${name}${DEVICE}.webp`}
-          srcSet={`/site/photos/p-${name}${DEVICE}-800.webp 800w, /site/photos/p-${name}${DEVICE}.webp 1400w`}
+          src={`/site/photos/p-${name}.webp`}
+          srcSet={`/site/photos/p-${name}-800.webp 800w, /site/photos/p-${name}.webp 1400w`}
           sizes="(max-width: 900px) 100vw, 560px"
           alt={copy[`${name} alt`] ?? ""}
           width={1400}
@@ -82,8 +79,8 @@ export default function Photo({
           <video
             ref={vid}
             className="clip"
-            src={`/site/clips/c-${name}${DEVICE}.mp4`}
-            poster={`/site/photos/p-${name}${DEVICE}-800.webp`}
+            src={`/site/clips/c-${name}.mp4`}
+            poster={`/site/photos/p-${name}-800.webp`}
             muted
             loop
             playsInline
