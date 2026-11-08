@@ -1,0 +1,62 @@
+{
+  "source": "2025-12_ASIA_V3_MATH_M2_Q03 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "plane",
+    "parts": [
+      {
+        "kind": "text",
+        "id": "q1",
+        "x": 3,
+        "y": 3
+      },
+      {
+        "kind": "text",
+        "id": "q2",
+        "x": -3,
+        "y": 3
+      },
+      {
+        "kind": "text",
+        "id": "q3",
+        "x": -3,
+        "y": -3
+      },
+      {
+        "kind": "text",
+        "id": "q4",
+        "x": 3,
+        "y": -3
+      }
+    ],
+    "labels": [
+      {
+        "text": "I",
+        "on": "q1"
+      },
+      {
+        "text": "II",
+        "on": "q2"
+      },
+      {
+        "text": "III",
+        "on": "q3"
+      },
+      {
+        "text": "IV",
+        "on": "q4"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [-6, 6],
+      "y": [-6, 6],
+      "step": 20,
+      "originLabel": "O",
+      "grid": false,
+      "xLabel": "x",
+      "yLabel": "y",
+      "arrows": true
+    }
+  }
+}

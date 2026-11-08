@@ -16,6 +16,8 @@
  */
 import { HOUSE } from "./house";
 import { placeLabels, textWidth, type PendingLabel } from "./labels";
+import { dimensionItem, isShaded, shadeItem } from "./fills";
+import { freeTexts, noteBand, noteItems, specNote } from "./notes";
 import {
   add,
   cornersOf,
@@ -36,27 +38,6 @@ import type { FigureSpec, Label, Part } from "./spec";
 
 type Box = { width: number; height: number };
 type TwoPoint = Extract<Part, { kind: "segment" | "ray" | "line" }>;
-
-export const NOT_TO_SCALE = "Note: Figure not drawn to scale.";
-/** The note printed once under several figures (a list, or figures side by side in one). */
-export const NOT_TO_SCALE_PLURAL = "Note: Figures not drawn to scale.";
-
-/**
- * The note as one line, or as two broken at the space nearest the middle
- * when one line would not fit the box less the margin. Joined with one
- * space, the lines are always exactly the note: NOT_TO_SCALE, or
- * NOT_TO_SCALE_PLURAL when `which` is "figures".
- */
-export function noteLines(width: number, which: true | "figures" = true): string[] {
-  const note = which === "figures" ? NOT_TO_SCALE_PLURAL : NOT_TO_SCALE;
-  if (textWidth(note) <= width - 2 * HOUSE.margin) return [note];
-  const mid = note.length / 2;
-  let cut = -1;
-  for (let i = 0; i < note.length; i++) {
-    if (note[i] === " " && (cut < 0 || Math.abs(i - mid) < Math.abs(cut - mid))) cut = i;
-  }
-  return [note.slice(0, cut), note.slice(cut + 1)];
-}
 
 /** A traced angle this close to 90° is snapped when it is marked right_angle. */
 const RIGHT_ANGLE_WINDOW_DEG = 10;
@@ -100,6 +81,7 @@ function circleOf(
 function extentPoints(spec: FigureSpec, points: Map<string, Pt>): Pt[] {
   const out = [...points.values()];
   for (const p of spec.parts) {
+    if (p.kind === "text") out.push([p.x, p.y]);
     if (p.kind === "circle") {
       const k = circleOf(p, points);
       if (k) out.push(...[0, 1, 2, 3].map((q) => arcPoint(k.c, k.r, (q * Math.PI) / 2)));
@@ -295,10 +277,14 @@ function describe(spec: FigureSpec): string {
   const parts = new Map(spec.parts.map((p) => [p.id, p]));
   const out: string[] = [];
   for (const p of spec.parts) {
+    const shaded = "shade" in p && p.shade ? "shaded " : "";
     if (p.kind === "polygon") {
-      out.push(`${POLYGON_NAMES[p.points.length] ?? "Polygon"} ${p.points.map(name).join("")}`);
+      const what = POLYGON_NAMES[p.points.length] ?? "Polygon";
+      out.push(`${shaded}${shaded ? what.toLowerCase() : what} ${p.points.map(name).join("")}`);
     } else if (p.kind === "circle") {
-      out.push(`circle with center ${name(p.center)}`);
+      out.push(`${shaded}circle with center ${name(p.center)}`);
+    } else if (p.kind === "sector") {
+      out.push(`shaded sector ${name(p.from)}${name(p.center)}${name(p.to)}`);
     }
   }
   for (const m of spec.marks) {
@@ -308,6 +294,8 @@ function describe(spec: FigureSpec): string {
   for (const l of spec.labels) {
     const p = parts.get(l.on);
     if (p && isTwoPoint(p)) out.push(`${name(p.from)}${name(p.to)} = ${l.text}`);
+    if (p?.kind === "dimension") out.push(`a dimension marked ${l.text}`);
+    if (p?.kind === "text") out.push(`labelled "${l.text}"`);
     if (p?.kind === "angle")
       out.push(`angle ${name(p.from)}${name(p.vertex)}${name(p.to)} = ${l.text}`);
   }
@@ -426,8 +414,11 @@ function pendingLabels(ctx: LabelContext, issues: SceneIssue[]): PendingLabel[] 
   for (const label of ctx.spec.labels) {
     const part = ctx.parts.get(label.on);
     let spot: { anchor: Pt; preferred: Pt } | null = null;
+    if (part?.kind === "text") continue; // set at its spot (freeTexts)
     if (part?.kind === "point") spot = pointLabel(part.id, ctx);
-    else if (part && isTwoPoint(part)) spot = sideLabel(part, label, ctx);
+    else if (part?.kind === "dimension") {
+      spot = sideLabel({ ...part, kind: "segment" }, label, ctx);
+    } else if (part && isTwoPoint(part)) spot = sideLabel(part, label, ctx);
     else if (part?.kind === "angle") spot = angleLabel(part, label, ctx);
     else if (part?.kind === "circle") {
       const k = circleOf(part, ctx.points);
@@ -478,13 +469,19 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
 
   // Layout: the box less the margin, room for labels outside the shape, and the note band.
   const font = HOUSE.font;
-  const note = spec.notToScale ? noteLines(box.width, spec.notToScale) : [];
-  const noteBand = note.length ? note.length * 1.25 * font + HOUSE.labelOffset : 0;
-  const widest = Math.max(0, ...spec.labels.map((l) => textWidth(l.text)));
-  const roomX = spec.labels.length ? HOUSE.labelOffset + widest : 0;
-  const roomY = spec.labels.length ? HOUSE.labelOffset + 1.25 * font : 0;
+  const note = specNote(spec, box.width);
+  const band = noteBand(note);
+  // Labels at a text part's spot or on a dimension arrow sit inside the drawing, so
+  // they need no room kept outside it.
+  const spotted = new Set(
+    spec.parts.filter((p) => p.kind === "text" || p.kind === "dimension").map((p) => p.id)
+  );
+  const outside = spec.labels.filter((l) => !spotted.has(l.on));
+  const widest = Math.max(0, ...outside.map((l) => textWidth(l.text)));
+  const roomX = outside.length ? HOUSE.labelOffset + widest : 0;
+  const roomY = outside.length ? HOUSE.labelOffset + 1.25 * font : 0;
   const availW = Math.max(1, box.width - 2 * (HOUSE.margin + roomX));
-  const availH = Math.max(1, box.height - noteBand - 2 * (HOUSE.margin + roomY));
+  const availH = Math.max(1, box.height - band - 2 * (HOUSE.margin + roomY));
   const b = bounds(layoutPoints(spec, world));
   const bw = b.x1 - b.x0;
   const bh = b.y1 - b.y0;
@@ -499,12 +496,13 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
   // A shared scale (figure choices) maps world units to px the same for every figure in a set.
   const scale = opts.scale ?? fitScale;
   const ox = box.width / 2 - scale * ((b.x0 + b.x1) / 2);
-  const oy = (box.height - noteBand) / 2 - scale * ((b.y0 + b.y1) / 2);
+  const oy = (box.height - band) / 2 - scale * ((b.y0 + b.y1) / 2);
+  const toPx = ([x, y]: Pt): Pt => [ox + scale * x, oy + scale * y];
   const points = new Map<string, Pt>();
-  for (const [id, [x, y]] of world) points.set(id, [ox + scale * x, oy + scale * y]);
+  for (const [id, p] of world) points.set(id, toPx(p));
   const frame = {
     x: [HOUSE.margin, box.width - HOUSE.margin] as [number, number],
-    y: [HOUSE.margin, box.height - noteBand - HOUSE.margin] as [number, number],
+    y: [HOUSE.margin, box.height - band - HOUSE.margin] as [number, number],
   };
 
   const dashed = new Set(spec.marks.filter((m) => m.kind === "hidden_dashed").flatMap((m) => m.on));
@@ -517,8 +515,20 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
   const dirs = new Map<string, Pt[]>();
   const addDir = (id: string, d: Pt) => dirs.set(id, [...(dirs.get(id) ?? []), unit(d)]);
 
+  const fills: SceneItem[] = [];
   for (const part of spec.parts) {
-    if (part.kind === "polygon") {
+    if (isShaded(part)) {
+      const fill = shadeItem(part, world, toPx, issues);
+      if (fill) fills.push(fill);
+    }
+    if (part.kind === "dimension") {
+      const item = dimensionItem(part, world, toPx, issues);
+      if (item) items.push(item);
+      corners.add(part.from);
+      corners.add(part.to);
+    } else if (part.kind === "sector") {
+      [part.center, part.from, part.to].forEach((q) => corners.add(q));
+    } else if (part.kind === "polygon") {
       const pts = part.points.map((q) => points.get(q)!);
       part.points.forEach((q) => corners.add(q));
       items.push({
@@ -602,7 +612,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
       };
       proxies.set(item, { ...item, d: polyline(pts) });
       items.push(item);
-    } else if (part.kind !== "point" && part.kind !== "angle") {
+    } else if (part.kind !== "point" && part.kind !== "angle" && part.kind !== "text") {
       issues.push({
         code: "clipped",
         partId: part.id,
@@ -611,6 +621,8 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
     }
   }
 
+  // Fills sit under every line.
+  items.unshift(...fills);
   const geo: GeoScene = { points, parts };
   for (const mark of spec.marks) {
     if (mark.kind === "right_angle") {
@@ -638,17 +650,7 @@ export function buildGeometry2d(input: FigureSpec, box: Box, opts: ScaleOptions 
     items.push(pointDot(points.get(part.id)!, part.id));
   }
 
-  // The note's last line sits just above the bottom edge; earlier lines stack above it.
-  note.forEach((text, i) => {
-    items.push({
-      t: "text",
-      x: box.width / 2,
-      y: box.height - HOUSE.margin / 2 - (note.length - 1 - i) * 1.25 * font,
-      text,
-      role: "ink",
-      anchor: "middle",
-    });
-  });
+  items.push(...noteItems(note, box), ...freeTexts(spec, toPx));
 
   const ctx: LabelContext = {
     spec,

@@ -1,0 +1,27 @@
+{
+  "source": "2026-05_US_V2_RW_M2_Q11 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "bar",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "bar",
+        "values": [6, 7.2, 13]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [0, 3],
+      "y": [0, 14],
+      "yStep": 1,
+      "yLabelStep": 1,
+      "categories": ["Repeller with webcam", "Continuous repeller", "Control"],
+      "yTitle": "Damaged pears (percentage of total)",
+      "rotateCategories": true
+    },
+    "title": "Comparison of Bird Pecking Rates between Treatments"
+  }
+}

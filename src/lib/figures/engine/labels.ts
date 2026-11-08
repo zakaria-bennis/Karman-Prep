@@ -296,8 +296,11 @@ const rectsOverlap = (a: Rect, b: Rect) => a[0] < b[1] && b[0] < a[1] && a[2] < 
 /**
  * Place each label beside its anchor. Candidates go through 3 distances and
  * 8 angles starting at the preferred side; the first spot clear of lines,
- * other labels and the figure edge wins. A label with no free spot is left
- * out and reported as a `label_collision` issue.
+ * other labels and the figure edge wins. When none is, the label tries the
+ * four corners next to the anchor (its box's nearest corner one offset away
+ * diagonally, nearest the preferred side first), which clears two lines that
+ * cross at the anchor ("(s, t)" below and left of where two boundaries meet).
+ * A label with no free spot is left out and reported as a `label_collision` issue.
  */
 export function placeLabels(
   items: SceneItem[],
@@ -317,8 +320,39 @@ export function placeLabels(
     const w = textWidth(label.text);
     const hw = w / 2;
     const hh = (1.25 * HOUSE.font) / 2;
-    let found: TextItem | null = null;
 
+    /** The label centred near (x, y), slid inside the box, when that spot is free. */
+    const at = (x: number, y: number): TextItem | null => {
+      // Near an edge the box slides inward rather than leaving the figure.
+      const cx = clamp(x, hw, box.width - hw);
+      const cy = clamp(y, hh, box.height - hh);
+      const item: TextItem = {
+        t: "text",
+        x: cx,
+        y: cy + hh - 0.25 * HOUSE.font,
+        text: label.text,
+        role: "ink",
+        anchor: "middle",
+        partId: label.partId,
+      };
+      if (label.italic) item.italic = true;
+      const r = textBox(item);
+      if (r[0] < 0 || r[1] > box.width || r[2] < 0 || r[3] > box.height) return null;
+      const padded = pad(r, GAP);
+      if (
+        label.anchor.x > padded[0] &&
+        label.anchor.x < padded[1] &&
+        label.anchor.y > padded[2] &&
+        label.anchor.y < padded[3]
+      )
+        return null;
+      if (taken.some((o) => rectsOverlap(padded, o))) return null;
+      if (label.within && !label.within(r)) return null;
+      if (lines.some((sg) => segHitsRect(sg, padded))) return null;
+      return item;
+    };
+
+    let found: TextItem | null = null;
     search: for (const factor of DISTANCE_FACTORS) {
       for (let k = 0; k < ANGLE_STEPS; k++) {
         // 0, +45, -45, +90, -90, +135, -135, 180 degrees from the preferred side.
@@ -333,34 +367,27 @@ export function placeLabels(
           Math.abs(uy) < 1e-9 ? Infinity : hh / Math.abs(uy)
         );
         const dist = HOUSE.labelOffset * factor + inside;
-        // Near an edge the box slides inward rather than leaving the figure.
-        const cx = clamp(label.anchor.x + ux * dist, hw, box.width - hw);
-        const cy = clamp(label.anchor.y + uy * dist, hh, box.height - hh);
-        const item: TextItem = {
-          t: "text",
-          x: cx,
-          y: cy + hh - 0.25 * HOUSE.font,
-          text: label.text,
-          role: "ink",
-          anchor: "middle",
-          partId: label.partId,
-        };
-        if (label.italic) item.italic = true;
-        const r = textBox(item);
-        if (r[0] < 0 || r[1] > box.width || r[2] < 0 || r[3] > box.height) continue;
-        const padded = pad(r, GAP);
-        if (
-          label.anchor.x > padded[0] &&
-          label.anchor.x < padded[1] &&
-          label.anchor.y > padded[2] &&
-          label.anchor.y < padded[3]
-        )
-          continue;
-        if (taken.some((o) => rectsOverlap(padded, o))) continue;
-        if (label.within && !label.within(r)) continue;
-        if (lines.some((s) => segHitsRect(s, padded))) continue;
-        found = item;
-        break search;
+        found = at(label.anchor.x + ux * dist, label.anchor.y + uy * dist);
+        if (found) break search;
+      }
+    }
+    if (!found) {
+      const corners = [
+        [1, -1],
+        [-1, -1],
+        [1, 1],
+        [-1, 1],
+      ].sort(
+        (p, q) =>
+          Math.abs(angleBetween(Math.atan2(p[1], p[0]), base)) -
+          Math.abs(angleBetween(Math.atan2(q[1], q[0]), base))
+      );
+      corner: for (const factor of DISTANCE_FACTORS) {
+        const d = (HOUSE.labelOffset * factor) / Math.SQRT2 + GAP;
+        for (const [sx, sy] of corners) {
+          found = at(label.anchor.x + sx * (d + hw), label.anchor.y + sy * (d + hh));
+          if (found) break corner;
+        }
       }
     }
 
@@ -377,3 +404,6 @@ export function placeLabels(
   }
   return { items: [...items, ...placed], issues };
 }
+
+/** The signed difference a − b of two angles, in (−π, π]. */
+const angleBetween = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));

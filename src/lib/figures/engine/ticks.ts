@@ -46,9 +46,19 @@ function decimalsOf(step: number): number | null {
 /**
  * Multiples of `step` within [min, max] (with a 1e-9 tolerance), from integer
  * indices. A decimal step such as 0.1 is applied as n·1/10, so 3 steps give
- * 0.3 and not 0.30000000000000004.
+ * 0.3 and not 0.30000000000000004. With an `origin`, the values are
+ * origin + k·step instead ("3, 7, 11, 15" for step 4 from 3), rounded to the
+ * decimals of the step and the origin together.
  */
-export function tickValues(min: number, max: number, step: number): number[] {
+export function tickValues(min: number, max: number, step: number, origin = 0): number[] {
+  if (origin !== 0 && Number.isFinite(origin)) {
+    const d = Math.max(decimalsOf(step) ?? 12, decimalsOf(origin) ?? 12);
+    const k = 10 ** d;
+    return tickValues(min - origin, max - origin, step).map((v) => {
+      const out = Math.round((v + origin) * k) / k;
+      return out === 0 ? 0 : out;
+    });
+  }
   if (!(step > 0) || !Number.isFinite(step) || !(max >= min)) return [];
   const lo = Math.ceil(min / step - TOLERANCE);
   const hi = Math.floor(max / step + TOLERANCE);
