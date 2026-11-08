@@ -1,18 +1,19 @@
 // ============================================================
 // /tutor/* — role-gated layout.
-// Staff tutors and admins get the dashboard chrome. Affiliate tutors
-// (the $199 plan) pass too; their pages draw the painted portal shell
-// themselves (src/components/tutor-affiliate/).
+// Staff tutors and admins get the painted portal shell with the
+// staff tabs (src/components/tutor/staff/). Affiliate tutors (the
+// $199 plan) pass too; their pages draw the painted shell with
+// their own tabs (src/components/tutor-affiliate/).
 //
 // Protects every sub-route automatically (no need to repeat
 // the role check in each page component).
 // ============================================================
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { safeAuth } from "@/lib/auth/dev-auth";
-import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
-import { resolveEffectiveRole } from "@/lib/supabase/queries/admin";
+import TutorStaffShell from "@/components/tutor/staff/TutorStaffShell";
+import { safeAuth } from "@/lib/auth/dev-auth";
+import { resolveEffectiveClerkId, resolveEffectiveRole } from "@/lib/supabase/queries/admin";
+import { fetchUserNameAndEmail } from "@/lib/tutor-affiliate/profile";
 
 export default async function TutorLayout({ children }: { children: React.ReactNode }) {
   const { userId: realUserId } = await safeAuth();
@@ -25,5 +26,10 @@ export default async function TutorLayout({ children }: { children: React.ReactN
     redirect("/dashboard/student");
   }
 
-  return <DashboardLayout>{children}</DashboardLayout>;
+  const me = await fetchUserNameAndEmail(userId);
+  return (
+    <TutorStaffShell name={me.firstName} email={me.email} isAdmin={role === "admin"}>
+      {children}
+    </TutorStaffShell>
+  );
 }

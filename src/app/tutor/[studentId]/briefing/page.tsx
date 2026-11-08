@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Card, MoreLink, SectionHeader } from "@/components/portal";
 import { notFound } from "next/navigation";
 import { readStudentBriefing } from "@/lib/educator-briefing/server";
 import { BriefingAccessError } from "@/lib/educator-briefing/access";
@@ -8,7 +8,7 @@ import {
   StudentBriefingView,
 } from "@/components/tutor/briefing/BriefingViews";
 
-export const metadata: Metadata = { title: "Practice briefing — Tutor Portal" };
+export const metadata: Metadata = { title: "Practice briefing" };
 export const dynamic = "force-dynamic";
 export default async function StudentBriefingPage({
   params,
@@ -26,18 +26,10 @@ export default async function StudentBriefingPage({
   }
   if (!briefing && !unavailable) notFound();
   return (
-    <section className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-      <Link
-        href="/tutor/briefing"
-        className="inline-flex min-h-11 items-center text-sm text-[color:var(--info)] underline"
-      >
-        Daily briefing
-      </Link>
-      <header>
-        <h1 className="text-2xl font-bold text-[color:var(--ink)]">Saved practice briefing</h1>
-        {briefing && <p className="mt-2 break-words text-sm text-[color:var(--mute)]">{briefing.studentEmail}</p>}
-      </header>
+    <Card>
+      <SectionHeader title="Saved practice" note={briefing?.studentEmail} />
       {briefing ? <StudentBriefingView briefing={briefing} /> : <BriefingUnavailable />}
-    </section>
+      <MoreLink href="/tutor/briefing">Daily briefing</MoreLink>
+    </Card>
   );
 }

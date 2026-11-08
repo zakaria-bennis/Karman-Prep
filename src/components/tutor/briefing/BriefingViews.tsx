@@ -1,11 +1,12 @@
 import Link from "next/link";
+import "@/components/admin/workbench/workbench.css";
 import MathText from "@/components/learn/MathText";
 import type { DailyBriefing } from "@/lib/educator-briefing/daily";
 import type { readStudentBriefing } from "@/lib/educator-briefing/server";
 
 export function BriefingUnavailable() {
   return (
-    <p role="status" className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 text-[color:var(--mute)]">
+    <p role="status" className="wb-empty">
       The briefing is unavailable right now. No saved work has been changed. Reload this page to try
       again.
     </p>
@@ -15,9 +16,9 @@ export function BriefingUnavailable() {
 export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
   if (!briefing.timeZone)
     return (
-      <p role="status" className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 text-[color:var(--mute)]">
+      <p role="status" className="wb-empty">
         Your account timezone is unavailable, so a calendar-day briefing cannot be shown.{" "}
-        <Link className="text-[color:var(--info)] underline" href="/tutor/schedule">
+        <Link className="kp-link" href="/tutor/schedule">
           Open your schedule
         </Link>
         .
@@ -33,19 +34,16 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
             name="date"
             defaultValue={briefing.day ?? ""}
             required
-            className="mt-2 block min-h-11 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2 text-[color:var(--ink)]"
+            className="wb-input mt-2 block"
           />
         </label>
-        <button
-          type="submit"
-          className="min-h-11 rounded-lg border border-[color:var(--line)] px-4 py-2 text-sm font-semibold text-[color:var(--ink)]"
-        >
+        <button type="submit" className="wb-btn">
           Show day
         </button>
         <p className="text-sm text-[color:var(--mute)]">Times in {briefing.timeZone}</p>
       </form>
       {briefing.sessions.length === 0 ? (
-        <p className="rounded-xl border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
+        <p className="rounded border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
           No scheduled sessions with students in your current roster on this date.
         </p>
       ) : (
@@ -53,7 +51,7 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
           {briefing.sessions.map((session) => (
             <li
               key={session.bookingId}
-              className="min-w-0 rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5"
+              className="min-w-0 rounded border border-[color:var(--line)] bg-[color:var(--card)] p-5"
             >
               <h2 className="break-words text-lg font-semibold text-[color:var(--ink)]">
                 {session.studentLabel}
@@ -69,7 +67,7 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
               </p>
               <Link
                 href={`/tutor/${encodeURIComponent(session.studentClerkId)}/briefing`}
-                className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--info)] underline underline-offset-4"
+                className="kp-link mt-3 inline-flex min-h-11 items-center text-sm font-semibold"
               >
                 View practice briefing
               </Link>
@@ -89,18 +87,21 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
         The most recent 30 saved skill-practice sessions are shown. Earlier quizzes remain in the{" "}
         <Link
           href={`/tutor/${encodeURIComponent(briefing.studentClerkId)}?tab=quiz`}
-          className="text-[color:var(--info)] underline"
+          className="kp-link"
         >
           student record
         </Link>
         .
       </p>
-      <p role="note" className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-4 text-sm text-[color:var(--mute)]">
+      <p
+        role="note"
+        className="rounded border border-[color:var(--line)] bg-[color:var(--card)] p-4 text-sm text-[color:var(--mute)]"
+      >
         Assigned practice is not yet linked to individual tutoring sessions here. These records do
         not establish session-homework deadlines, lateness, or parent notices.
       </p>
       {briefing.attempts.length === 0 ? (
-        <p className="rounded-xl border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
+        <p className="rounded border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
           No saved skill-practice sessions were found.
         </p>
       ) : (
@@ -110,7 +111,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
             return (
               <li
                 key={attempt.id}
-                className="min-w-0 rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5"
+                className="min-w-0 rounded border border-[color:var(--line)] bg-[color:var(--card)] p-5"
               >
                 <p className="text-sm text-[color:var(--mute)]">
                   {attempt.assignmentId
@@ -165,7 +166,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                           </p>
                           <Link
                             href={`${href}#question-${miss.ordinal + 1}`}
-                            className="inline-flex min-h-11 items-center text-[color:var(--info)] underline underline-offset-4"
+                            className="kp-link inline-flex min-h-11 items-center"
                           >
                             Review question {miss.ordinal + 1} as student
                           </Link>
@@ -176,7 +177,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                 )}
                 <Link
                   href={href}
-                  className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--info)] underline underline-offset-4"
+                  className="kp-link mt-3 inline-flex min-h-11 items-center text-sm font-semibold"
                 >
                   Review this saved practice
                 </Link>

@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import "@/components/admin/workbench/workbench.css";
 import type { NodeStatusSnapshot } from "@/lib/supabase/queries/tutor";
 import type {
   QuizAttempt,
@@ -31,10 +31,10 @@ interface Props {
 }
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: "skills", label: "Skills Overview" },
-  { key: "controls", label: "Tutor Controls" },
-  { key: "flagged", label: "Flagged Questions" },
-  { key: "quiz", label: "Quiz History" },
+  { key: "skills", label: "Skills" },
+  { key: "controls", label: "Tutor controls" },
+  { key: "flagged", label: "Flagged questions" },
+  { key: "quiz", label: "Quiz history" },
 ];
 
 export default function StudentDetailTabs({
@@ -49,23 +49,27 @@ export default function StudentDetailTabs({
 
   return (
     <div>
-      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-[color:var(--line)] dark:border-[color:var(--line)]">
+      <div
+        className="wb-tabs"
+        role="tablist"
+        aria-label="Student detail"
+        style={{ marginBottom: 16 }}
+      >
         {TABS.map((t) => {
           const count =
             t.key === "flagged" ? flagged.length : t.key === "quiz" ? attempts.length : null;
           return (
             <button
               key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === t.key}
+              aria-current={activeTab === t.key ? "page" : undefined}
               onClick={() => setActiveTab(t.key)}
-              className={cn(
-                "whitespace-nowrap border-b-2 px-3 pb-3 text-sm font-semibold transition-colors",
-                activeTab === t.key
-                  ? "border-[color-mix(in_srgb,var(--info)_40%,transparent)] text-[color:var(--info)]"
-                  : "border-transparent text-[color:var(--mute)] hover:text-[color:var(--ink)] dark:hover:text-[color:var(--ink)]"
-              )}
+              className="wb-tab"
             >
               {t.label}
-              {count !== null ? ` (${count})` : ""}
+              {count !== null && <small>{count}</small>}
             </button>
           );
         })}

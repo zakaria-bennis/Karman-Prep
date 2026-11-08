@@ -7,8 +7,7 @@ import type { Metadata } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Card, MoreLink, Num, Ring, SectionHeader } from "@/components/portal";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { getTimingAccommodation } from "@/lib/supabase/queries/quiz/saved";
@@ -19,12 +18,12 @@ import {
   fetchFlaggedQuestionsForStudent,
   fetchResponsesForAttempt,
 } from "@/lib/supabase/queries/quiz";
-import { RW_NODES, MATH_NODES, currentAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
+import { RW_NODES, MATH_NODES, currentAtmosphere } from "@/data/curriculum";
 import StudentDetailTabs from "@/components/tutor/StudentDetailTabs";
 import AffiliateStudent from "@/components/tutor-affiliate/AffiliateStudent";
 import { fetchUserNameAndEmail } from "@/lib/tutor-affiliate/profile";
 
-export const metadata: Metadata = { title: "Student — Tutor Portal" };
+export const metadata: Metadata = { title: "Student" };
 
 interface Params {
   params: Promise<{ studentId: string }>;
@@ -98,7 +97,6 @@ export default async function StudentDetailPage({ params, searchParams }: Params
       ? 1
       : 0);
   const atmo = currentAtmosphere(tiersDone);
-  const atmoColor = ATMOSPHERE_COLORS[atmo].hex;
 
   const completedAttempts = attempts.filter((a) => a.score !== null);
   const avgScore = completedAttempts.length
@@ -114,73 +112,39 @@ export default async function StudentDetailPage({ params, searchParams }: Params
 
   const activeTab = (tabParam ?? "skills") as "skills" | "controls" | "flagged" | "quiz";
 
+  const name =
+    [student.first_name, student.last_name].filter(Boolean).join(" ").trim() || student.email;
+
   return (
     <>
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
-        <Link
-          href="/tutor"
-          className="mb-2 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)] dark:hover:text-[color:var(--ink)]"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> All students
-        </Link>
-
-        <Link
-          href={`/tutor/${encodeURIComponent(studentId)}/briefing`}
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--info)] underline underline-offset-4"
-        >
-          Saved practice briefing
-        </Link>
-
-        {/* Summary bar */}
-        <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 dark:border-[color:var(--line)] dark:bg-[color:var(--card)]">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
-                {student.email}
-              </h1>
-              <TimingAccommodationControl studentClerkId={studentId} value={timing} />
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span
-                  className="rounded-full px-2 py-0.5 text-xs font-bold"
-                  style={{
-                    color: atmoColor,
-                    background: atmoColor + "20",
-                    border: `1px solid ${atmoColor}40`,
-                  }}
-                >
-                  {atmo}
-                </span>
-                {lastActive && (
-                  <span className="text-xs text-[color:var(--mute)]">
-                    Last active: {new Date(lastActive).toLocaleString()}
-                  </span>
-                )}
-              </div>
+      <Card>
+        <SectionHeader title={name} note={atmo} />
+        {name !== student.email && <p className="kp-meta">{student.email}</p>}
+        <div className="kp-staff-rings">
+          <CourseRing label="Reading and Writing" mastered={readingMastered} total={50} />
+          <CourseRing label="Math" mastered={mathMastered} total={50} />
+          {avgScore !== null && (
+            <div className="kp-staff-ringcell">
+              <Ring value={avgScore / 100} label={`Average quiz score ${avgScore}%`}>
+                <Num>{avgScore}%</Num>
+              </Ring>
+              <span>Average quiz score</span>
             </div>
-            {avgScore !== null && (
-              <div className="text-right">
-                <div className="text-xs font-bold uppercase tracking-wide text-[color:var(--mute)]">
-                  Avg quiz score
-                </div>
-                <div className="text-2xl font-extrabold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
-                  {avgScore}%
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Progress bars */}
-          <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            <ProgressBar
-              label="Reading & Writing"
-              mastered={readingMastered}
-              total={50}
-              color="#F06A8C"
-            />
-            <ProgressBar label="Math" mastered={mathMastered} total={50} color="#42D9FF" />
-          </div>
+          )}
         </div>
+        {lastActive && (
+          <p className="kp-meta">Last active {new Date(lastActive).toLocaleString()}</p>
+        )}
+        <TimingAccommodationControl studentClerkId={studentId} value={timing} />
+        <p>
+          <MoreLink href={`/tutor/${encodeURIComponent(studentId)}/briefing`}>
+            Saved practice briefing
+          </MoreLink>{" "}
+          <MoreLink href="/tutor">All students</MoreLink>
+        </p>
+      </Card>
 
+      <Card>
         <StudentDetailTabs
           studentId={studentId}
           statuses={statuses}
@@ -189,37 +153,33 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           responsesByAttempt={responsesByAttempt}
           activeTab={activeTab}
         />
-      </div>
+      </Card>
     </>
   );
 }
 
-function ProgressBar({
+function CourseRing({
   label,
   mastered,
   total,
-  color,
 }: {
   label: string;
   mastered: number;
   total: number;
-  color: string;
 }) {
-  const pct = Math.round((mastered / total) * 100);
+  const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
   return (
-    <div>
-      <div className="mb-1.5 flex justify-between text-xs">
-        <span className="font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">{label}</span>
-        <span className="tabular-nums text-[color:var(--mute)]">
-          {mastered} / {total} · {pct}%
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-[color:var(--card)] dark:bg-[color:var(--raised)]">
-        <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${pct}%`, background: color }}
-        />
-      </div>
+    <div className="kp-staff-ringcell">
+      <Ring value={pct / 100} label={`${label}: ${mastered} of ${total} skills mastered`}>
+        <Num>{pct}%</Num>
+      </Ring>
+      <span>
+        {label}
+        <br />
+        <small className="kp-meta">
+          <Num>{mastered}</Num> of <Num>{total}</Num> mastered
+        </small>
+      </span>
     </div>
   );
 }
