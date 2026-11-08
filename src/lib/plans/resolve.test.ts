@@ -77,10 +77,13 @@ function fakeSource(
     grants?: PlanGrant[];
     answered?: number;
     fullLength?: number;
+    satTestDate?: string | null;
   } = {}
 ) {
   const subscriptions = [...(init.subscriptions ?? [])];
   const grants = [...(init.grants ?? [])];
+  /** The student's `users` row; set `satTestDate` to mimic a later edit. */
+  const user = { satTestDate: init.satTestDate ?? null };
   let n = 0;
   const matches = (g: PlanGrant, match: Parameters<PlanDataSource["revokeGrants"]>[0]) =>
     "grantId" in match
@@ -114,8 +117,9 @@ function fakeSource(
     },
     answeredQuestionCount: async () => init.answered ?? 0,
     completedFullLengthTests: async () => init.fullLength ?? 0,
+    satTestDate: async () => user.satTestDate,
   };
-  return { source, grants, subscriptions };
+  return { source, grants, subscriptions, user };
 }
 
 const planOf = (init: Parameters<typeof fakeSource>[0]) =>
@@ -192,7 +196,13 @@ describe("getPlan", () => {
       grant(STUDENT, "pro", "admin", { revokedAt: at(-1) }),
       grant(STUDENT, "practice", "school", { startsAt: at(2) }),
     ];
-    const plan = resolvePlan({ userId: STUDENT, subscriptions: [], grants, now: NOW });
+    const plan = resolvePlan({
+      userId: STUDENT,
+      subscriptions: [],
+      grants,
+      satTestDate: null,
+      now: NOW,
+    });
     expect(plan.planId).toBe("free");
     expect(plan.sources).toEqual([]);
   });
@@ -248,7 +258,7 @@ describe("getUsage", () => {
 });
 
 describe("purchase grants", () => {
-  it("records a one-time purchase for 12 months, once per checkout session", async () => {
+  it("records a one-time purchase with no expiry, once per checkout session", async () => {
     const { source, grants } = fakeSource();
     const input = { userId: STUDENT, planId: "cohort" as const, checkoutSessionId: "cs_test_1" };
     const first = await recordPurchaseGrant(input, source, NOW);
@@ -258,7 +268,7 @@ describe("purchase grants", () => {
       source: "purchase",
       sourceRef: "cs_test_1",
       startsAt: NOW.toISOString(),
-      expiresAt: "2027-11-08T12:00:00.000Z",
+      expiresAt: null,
     });
     const retry = await recordPurchaseGrant(input, source, NOW);
     expect(retry.status).toBe("existing");
@@ -278,7 +288,7 @@ describe("purchase grants", () => {
       source,
       NOW
     );
-    expect(result.grant.expiresAt).toBe("2027-10-01T00:00:00.000Z");
+    expect(result.grant).toMatchObject({ startsAt: "2026-10-01T00:00:00.000Z", expiresAt: null });
   });
 
   it.each(["pro", "practice", "free", "platinum", ""])(
@@ -305,6 +315,74 @@ describe("purchase grants", () => {
     expect(retry.status).toBe("existing");
     expect(retry.grant.revokedAt).not.toBeNull();
     expect((await getPlan(STUDENT, source, NOW)).planId).toBe("free");
+  });
+});
+
+describe("purchase access ends with the SAT date", () => {
+  const cohort = (extra: Partial<PlanGrant> = {}) => grant(STUDENT, "cohort", "purchase", extra);
+  const planAt = async (source: PlanDataSource, iso: string) =>
+    (await getPlan(STUDENT, source, new Date(iso))).planId;
+
+  it("stays open while the student has no SAT date", async () => {
+    const plan = await planOf({ grants: [cohort()], satTestDate: null });
+    expect(plan.planId).toBe("cohort");
+    expect(plan.sources[0]?.endsAt).toBeNull();
+  });
+
+  it("stays open through the SAT day itself", async () => {
+    const { source } = fakeSource({ grants: [cohort()], satTestDate: "2026-11-08" });
+    const plan = await getPlan(STUDENT, source, NOW);
+    expect(plan.planId).toBe("cohort");
+    expect(plan.sources[0]?.endsAt).toBe("2026-11-09T12:00:00.000Z");
+    // 11:59 pm in Hawaii on the SAT day.
+    expect(await planAt(source, "2026-11-09T09:59:00Z")).toBe("cohort");
+  });
+
+  it("closes the day after the SAT", async () => {
+    expect((await planOf({ grants: [cohort()], satTestDate: "2026-11-07" })).planId).toBe("free");
+    const { source } = fakeSource({ grants: [cohort()], satTestDate: "2026-11-08" });
+    expect(await planAt(source, "2026-11-09T12:00:00Z")).toBe("free");
+  });
+
+  it("ends access once a SAT date set later is over", async () => {
+    const { source, user } = fakeSource({ grants: [cohort()] });
+    expect(await planAt(source, NOW.toISOString())).toBe("cohort");
+    user.satTestDate = "2026-12-05";
+    expect(await planAt(source, NOW.toISOString())).toBe("cohort");
+    expect(await planAt(source, "2026-12-07T00:00:00Z")).toBe("free");
+    // A date already past ends access at once.
+    user.satTestDate = "2026-10-03";
+    expect(await planAt(source, NOW.toISOString())).toBe("free");
+  });
+
+  it("ends at the grant's own expiry when that comes first", async () => {
+    const plan = await planOf({
+      grants: [cohort({ expiresAt: at(3) })],
+      satTestDate: "2026-12-05",
+    });
+    expect(plan.sources[0]?.endsAt).toBe(at(3));
+  });
+
+  it("never ends school, tutor-affiliate or admin grants", async () => {
+    const plan = await planOf({
+      subscriptions: [sub(TUTOR, "tutor-affiliate")],
+      grants: [
+        cohort(),
+        grant(STUDENT, "practice", "school"),
+        grant(STUDENT, "practice", "tutor-affiliate"),
+        grant(STUDENT, "pro", "admin"),
+      ],
+      satTestDate: "2026-10-03",
+    });
+    expect(plan.planId).toBe("pro");
+    expect(plan.sources.map((s) => s.kind).sort()).toEqual(["admin", "school", "tutor-affiliate"]);
+  });
+
+  it("looks up the SAT date only for a user with a purchase", async () => {
+    const { source } = fakeSource({ grants: [grant(STUDENT, "practice", "school")] });
+    const lookup = vi.spyOn(source, "satTestDate");
+    expect((await getPlan(STUDENT, source, NOW)).planId).toBe("practice");
+    expect(lookup).not.toHaveBeenCalled();
   });
 });
 

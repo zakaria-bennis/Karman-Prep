@@ -52,9 +52,6 @@ export type OneTimePlanId = (typeof ONE_TIME_PLAN_IDS)[number];
 export const GRANT_PLAN_IDS = ["practice", "pro", ...ONE_TIME_PLAN_IDS] as const;
 export type GrantPlanId = (typeof GRANT_PLAN_IDS)[number];
 
-/** CONFIRM: one-time purchases open their plan for 12 months from the purchase. */
-export const ONE_TIME_ACCESS_MONTHS = 12;
-
 /** Highest difficulty in the core pool. Difficulty runs 1 to 7; 6 and 7 are the mastery pool. */
 export const CORE_MAX_DIFFICULTY = 5;
 export const MAX_DIFFICULTY = 7;

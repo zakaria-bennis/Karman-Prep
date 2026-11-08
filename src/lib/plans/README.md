@@ -55,7 +55,8 @@ rules (`./access`, `./catalog`) are safe anywhere.
 - `public.plan_grants` (migration `20261108110000_plan_grants.sql`): one-time
   purchases, school seats, tutor-affiliate seats, admin grants. A grant counts
   when started, not expired and not revoked. A tutor-affiliate grant also needs
-  its tutor's `tutor-affiliate` subscription to be active.
+  its tutor's `tutor-affiliate` subscription to be active. A purchase grant also
+  needs the student's SAT date (`users.sat_test_date`) not to be over yet.
 - A user can hold several. Access is the union, and `plan.planId` is the most
   generous: free < practice (= school and affiliate students) < pro (= cohort,
   private, tutor-affiliate).
@@ -110,5 +111,8 @@ completed tests there when it lands.
   50 active students.
 - Mastery = difficulty 6 and 7; core = 1 to 5.
 - Effective access is the most generous active source.
-- CONFIRM: one-time purchases open their plan for 12 months from purchase
-  (`ONE_TIME_ACCESS_MONTHS`).
+- One-time purchases (cohort, private-10, private-20) open their plan until the
+  student's SAT date, the one given at onboarding. The SAT date is the last day
+  of access: it ends once that day is over in every time zone (12:00 UTC the
+  next day). With no date, access stays open until the student sets one. The
+  grant itself has no expiry (`purchase-access.ts`).
