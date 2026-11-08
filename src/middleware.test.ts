@@ -85,3 +85,44 @@ it("retains an explicit maintenance rollback without hiding the sign-in flow", a
   const signIn = await run(auth, new NextRequest("https://karmanprep.com/auth/sign-in"));
   expect(signIn.headers.get("x-middleware-rewrite")).toBeNull();
 });
+it("keeps only the Cal OAuth routes open, not every path starting with /api/cal", async () => {
+  vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "true");
+  vi.stubEnv("NODE_ENV", "production");
+  const { default: middleware } = await import("./middleware");
+  const protect = vi.fn().mockResolvedValue(undefined);
+  const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
+  const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;
+  // Each OAuth route checks the signed-in tutor itself (401 JSON or sign-in redirect).
+  for (const path of [
+    "/api/cal/oauth/start",
+    "/api/cal/oauth/callback",
+    "/api/cal/oauth/disconnect",
+  ]) {
+    await run(auth, new NextRequest("https://karmanprep.com" + path));
+  }
+  expect(protect).not.toHaveBeenCalled();
+  for (const path of [
+    "/api/calx",
+    "/api/calls",
+    "/api/cal",
+    "/api/cal/other",
+    "/api/cal/oauth/new",
+  ]) {
+    await run(auth, new NextRequest("https://karmanprep.com" + path));
+  }
+  expect(protect).toHaveBeenCalledTimes(5);
+});
+it("keeps the maintenance gate on look-alike /api/cal paths", async () => {
+  vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "false");
+  vi.stubEnv("NODE_ENV", "production");
+  const { default: middleware } = await import("./middleware");
+  const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect: vi.fn() });
+  const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;
+  const callback = await run(
+    auth,
+    new NextRequest("https://karmanprep.com/api/cal/oauth/callback")
+  );
+  expect(callback.headers.get("x-middleware-rewrite")).toBeNull();
+  const lookAlike = await run(auth, new NextRequest("https://karmanprep.com/api/calx"));
+  expect(lookAlike.headers.get("x-middleware-rewrite")).toBe("https://karmanprep.com/coming-soon");
+});
