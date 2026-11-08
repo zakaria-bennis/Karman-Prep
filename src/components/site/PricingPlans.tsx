@@ -110,7 +110,7 @@ const COMPARE: [string, string, string, string][] = [
     `The guarantee: ${PROMISE}`,
     "",
     "Money back or the next cohort free",
-    "Free hours, then half back",
+    `${PRIVATE_PACKAGES[0].name}: half back. ${PRIVATE_PACKAGES[1].name}: free hours, then half back`,
   ],
 ];
 

@@ -108,7 +108,7 @@ second button: See pricing
 ## 2 Live classes
 headline: ${W(CLASS)} students, so nobody hides in the back row.
 feature title: ${W(MP.classesPerWeek)} live classes a week, cameras on.
-feature text: ${W(MP.totalClasses)} classes of ${MP.classMinutes} minutes, ${MP.classDaysLabel} from ${MP.classStart} to ${MP.classEnd}. Small enough that every student answers out loud.
+feature text: ${W(MP.totalClasses)} classes of ${MP.classMinutes} minutes, ${w(MP.classesPerWeek)} a week. Small enough that every student answers out loud.
 card title: Plus a weekly live session.
 card text: Pacing, Desmos and how the adaptive second module works, alternating with workshops on the skills students miss most.
 
@@ -145,7 +145,7 @@ we do title: Our side
 we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | Live progress for parents, and a weekly summary
 you do title: Your student's side
 you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the SAT within ${G.satWithinDays} days of the last class
-covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: free hours, then half back | A student's first Karman program, once per student | Paid in full, or every installment paid on time
+covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: half back on ${PRIVATE_PACKAGES[0].name}; free hours, then half back on ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
 claim: Within ${G.claimDays} days of scores coming out, email us the College Board score report. One email. Nothing is taken out of a refund.
 link: The guarantee, with worked examples
 
@@ -177,7 +177,7 @@ facts: ${$(MP.price)} = The whole program, all in | ${CLASS} = Students per clas
 
 ## 22 Program: a week
 headline: What a week looks like.
-rows: ${MP.classDays[0]}, ${MP.classStart} p.m. ET = Live class, ${MP.classMinutes} minutes | ${MP.classDays[1]}, ${MP.classStart} p.m. ET = Live class, ${MP.classMinutes} minutes | Once a week = The live session: test mechanics, or a workshop on the skills students miss most | Every day = The Daily 10, about ten minutes | Every week = Your update: skills, attendance, practice done, test scores
+rows: Twice a week = A live class, ${MP.classMinutes} minutes | Once a week = The live session: test mechanics, or a workshop on the skills students miss most | Every day = The Daily 10, about ten minutes | Every week = Your update: skills, attendance, practice done, test scores
 
 ## 23 Program: the nine weeks
 headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks.
@@ -225,7 +225,7 @@ rows: Before = Your student takes a full-length test, or we pick the skill holdi
 
 ## 33 Private: packages
 headline: Two packages, both with the guarantee.
-small package: ${P10.name} = ${P10.hours} hours, ${$(P10.price)}. For a focused push on one section. Comes with the guarantee: ${PROMISE}. If not, up to ${PRIVATE_BONUS[P10.id].bonusHours} more hours free, then half the price back.
+small package: ${P10.name} = ${P10.hours} hours, ${$(P10.price)}. For a focused push on one section. Comes with the guarantee: ${PROMISE}. If not, half the price back (${usd(P10.price / 2)}).
 large package: ${P20.name} = ${P20.hours} hours, ${$(P20.price)}. Comes with the guarantee: ${PROMISE}. If not, up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back.
 includes: Everything in ${PRO.name}: every question, with video explanations as they're recorded | The weekly live session | A note to parents after every session
 
@@ -298,7 +298,7 @@ list: A "good faith" clause we get to judge | A quota on answering polls in clas
 
 ## 54 Guarantee: private and exclusions
 headline: Private tutoring and what isn't covered.
-rows: ${P10.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P10.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${P20.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
+rows: ${P10.name} = ${PROMISE}. If not: half the price back (${usd(P10.price / 2)}) | ${P20.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
 
 ## 55 Guarantee: claim
 headline: Claiming takes one email.
