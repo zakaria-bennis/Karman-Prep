@@ -4,6 +4,8 @@ import "server-only";
  * the viewer's right to see each student first. Only skill ids, right or wrong, times and
  * seconds come back: never question ids, question text or the student's answers.
  */
+import { clampLevel, type SkillLevel } from "@/components/portal/skill-levels";
+import { decayedLevel } from "@/lib/levels/rules";
 import { untypedAdmin, type UntypedAdmin } from "@/lib/school/db";
 import type { PracticeAnswer } from "./levels";
 
@@ -13,9 +15,44 @@ export interface PracticeActivity {
   secondsSince: number;
   /** ISO time of the most recent completed practice, if any. */
   lastPracticedAt: string | null;
+  /** Levels the quiz flows saved (`student_skill_levels`), after decay. */
+  stored: Map<string, SkillLevel>;
 }
 
 type Admin = UntypedAdmin;
+
+/**
+ * Levels the quiz flows saved (Daily 10, practice sets, Domain quizzes), by student Clerk id and
+ * skill, with decay applied as of `now` (src/lib/levels/rules.ts). Empty when unreadable.
+ */
+export async function loadSavedLevels(
+  studentClerkIds: readonly string[],
+  now: Date,
+  supabase: Admin = untypedAdmin()
+): Promise<Map<string, Map<string, SkillLevel>>> {
+  const out = new Map<string, Map<string, SkillLevel>>();
+  if (!studentClerkIds.length) return out;
+  const { data, error } = await supabase
+    .from("student_skill_levels")
+    .select("student_id, skill_id, level, last_practiced_at")
+    .in("student_id", [...studentClerkIds])
+    .limit(20000);
+  if (error) {
+    console.error("[progress] saved skill levels could not be read", error.message);
+    return out;
+  }
+  for (const row of (data ?? []) as {
+    student_id: string;
+    skill_id: string;
+    level: number;
+    last_practiced_at: string | null;
+  }[]) {
+    const bySkill = out.get(row.student_id) ?? new Map<string, SkillLevel>();
+    out.set(row.student_id, bySkill);
+    bySkill.set(row.skill_id, decayedLevel(clampLevel(row.level), row.last_practiced_at, now));
+  }
+  return out;
+}
 
 /** Practice answers by student Clerk id. Every requested id gets an entry. */
 export async function loadPracticeActivity(
@@ -23,8 +60,12 @@ export async function loadPracticeActivity(
   since: Date,
   supabase: Admin = untypedAdmin()
 ): Promise<Map<string, PracticeActivity>> {
+  const saved = await loadSavedLevels(studentClerkIds, new Date(), supabase);
   const out = new Map<string, PracticeActivity>(
-    studentClerkIds.map((id) => [id, { answers: [], secondsSince: 0, lastPracticedAt: null }])
+    studentClerkIds.map((id) => [
+      id,
+      { answers: [], secondsSince: 0, lastPracticedAt: null, stored: saved.get(id) ?? new Map() },
+    ])
   );
   if (!studentClerkIds.length) return out;
   const { data: sessions, error } = await supabase

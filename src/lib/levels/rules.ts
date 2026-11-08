@@ -142,3 +142,49 @@ export function applyMeasured(stored: LevelState, count: number, at: Date): Leve
     lastPracticedAt: at.toISOString(),
   };
 }
+
+/** Days without practice before a skill drops one level (DECAY_WEEKS in days). */
+export const DECAY_DAYS = DECAY_WEEKS * 7;
+
+export type AnswerRecord = {
+  correct: boolean;
+  /** True when a hint was opened first; such an answer never counts toward a run. */
+  usedHint?: boolean;
+  /** When it was answered: an ISO string or epoch milliseconds. */
+  at: string | number;
+};
+
+const timeOf = (at: string | number) => (typeof at === "number" ? at : Date.parse(at));
+
+/**
+ * A skill's state from its saved answers, replayed oldest first through `applyAnswer`. For
+ * screens that only have answers (older catalog practice, the parent and school views).
+ */
+export function stateFromAnswers(answers: readonly AnswerRecord[]): LevelState {
+  return answers
+    .filter((a) => Number.isFinite(timeOf(a.at)))
+    .sort((a, b) => timeOf(a.at) - timeOf(b.at))
+    .reduce<LevelState>(
+      (state, a) =>
+        applyAnswer(state, {
+          correct: a.correct,
+          usedHint: a.usedHint === true,
+          at: new Date(timeOf(a.at)),
+        }).state,
+      NOT_STARTED
+    );
+}
+
+/** A skill's level at `now` from its saved answers, with decay applied. */
+export function levelFromAnswers(answers: readonly AnswerRecord[], now: Date): SkillLevel {
+  return effective(stateFromAnswers(answers), now).level;
+}
+
+/** A stored level as it stands at `now`, after decay. */
+export function decayedLevel(
+  level: SkillLevel,
+  lastPracticedAt: string | null,
+  now: Date
+): SkillLevel {
+  return effective({ level, run: 0, answered: 0, lastPracticedAt }, now).level;
+}

@@ -37,6 +37,18 @@ levels, and anyone who writes answers.
 - **Full-length tests and the diagnostic:** they measure; they never move levels. They mark a
   skill as tried (New) and as practised, so it does not decay.
 
+## One rule everywhere
+
+`rules.ts` is the only place the thresholds and decay live. Everything else calls it:
+
+- `src/lib/student/levels.ts` (the student portal) replays saved catalog-practice answers
+  through `levelFromAnswers` and decays stored levels with `decayedLevel`.
+- `src/lib/progress-glance/levels.ts` (parent and school views) and
+  `src/lib/tutor-affiliate/progress.ts` (tutor roster) use `levelFromAnswers` too, and take a
+  level saved in `student_skill_levels` when it is higher (`loadSavedLevels` in
+  `src/lib/progress-glance/server.ts`), so a parent, teacher or tutor sees the level the
+  student sees.
+
 ## One model with points and mastery
 
 - **Levels** are the only skill status a student sees. The older mastery bands
