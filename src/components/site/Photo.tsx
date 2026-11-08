@@ -37,10 +37,22 @@ export default function Photo({
 }) {
   const copy = section(90);
   const img = useRef<HTMLImageElement>(null);
+  const vid = useRef<HTMLVideoElement>(null);
   const [state, setState] = useState<"" | "ready" | "missing">("");
   useEffect(() => {
     const el = img.current;
     if (el?.complete) setState(el.naturalWidth ? "ready" : "missing");
+  }, []);
+  // the clip loads and plays only while it's near the screen (autoPlay would fetch it with the page)
+  useEffect(() => {
+    const v = vid.current;
+    if (!v || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const io = new IntersectionObserver(
+      ([e]) => (e.isIntersecting ? v.play().catch(() => {}) : v.pause()),
+      { rootMargin: "200px 0px" }
+    );
+    io.observe(v);
+    return () => io.disconnect();
   }, []);
   const hero = /ph-hero/.test(className) && !/only-wide/.test(className);
   return (
@@ -68,10 +80,10 @@ export default function Photo({
         />
         {clip ? (
           <video
+            ref={vid}
             className="clip"
             src={`/site/clips/c-${name}${DEVICE}.mp4`}
             poster={`/site/photos/p-${name}${DEVICE}-800.webp`}
-            autoPlay
             muted
             loop
             playsInline

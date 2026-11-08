@@ -53,6 +53,7 @@ export default function GlobalError({
             <button type="button" style={pill} onClick={() => reset()}>
               Try again
             </button>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- the root layout failed, so a full reload is the point */}
             <a href="/" style={pill}>
               Go to the home page
             </a>
