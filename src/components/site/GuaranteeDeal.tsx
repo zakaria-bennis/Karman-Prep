@@ -234,8 +234,8 @@ export default function GuaranteeDeal({
   );
 }
 
-/** One side of the deal: a title and its lines, each with a tick that draws in its turn. The two sides take
- *  turns (ours, theirs, ours...), like an exchange. */
+/** One side of the deal: a title and its lines, each marked with a small square, the portal's skill mark
+ *  (design rule 16: no checkmark bullets). The squares fill in turn (ours, theirs, ours...), like an exchange. */
 function Side({ title, items, cls }: { title?: string; items: string[]; cls: string }) {
   if (!items.length) return null;
   return (
@@ -244,9 +244,7 @@ function Side({ title, items, cls }: { title?: string; items: string[]; cls: str
       <ul>
         {items.map((x, k) => (
           <li key={x} style={{ "--k": k * 2 + (cls === "you" ? 1 : 0) } as CSSProperties}>
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M4 10.5 8.2 14.5 16 5.5" pathLength={1} />
-            </svg>
+            <i className="gx-sq" aria-hidden="true" />
             <span>{x}</span>
           </li>
         ))}

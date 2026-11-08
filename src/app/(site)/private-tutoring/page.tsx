@@ -41,7 +41,7 @@ export default function PrivatePage() {
   const packs = section(33);
   const rec = section(34);
   return (
-    <SitePage kind="inner" dock={[section(31).button, "#call"]}>
+    <SitePage kind="inner">
       <InnerHero
         n={31}
         href="#call"

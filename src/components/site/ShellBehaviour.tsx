@@ -1,12 +1,11 @@
 "use client";
 
 // What the frame does once the page is on screen (ported from the mock's site.js): the light and dark switch,
-// the header's colour over film or paper, the phone menu, the film's pause button, the phone dock, the
-// press feedback on links and buttons, the one reveal, and the alive layer. It renders nothing.
+// the opening's scroll cue, the phone menu, the film's pause button, the press feedback on links and
+// buttons, the one reveal, and the alive layer. It renders nothing.
 import { useEffect } from "react";
 import { SITE } from "@/lib/marketing/site-copy";
 import { startAlive } from "./live/alive";
-import { ARROW_SVG } from "./live/icons";
 import { busy, line } from "./live/kit";
 import { motionPaused, setMotionPaused } from "./live/motion";
 
@@ -15,8 +14,7 @@ const PAUSE =
 const PLAY =
   '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2v9.6c0 .6.6.9 1.1.6l7.2-4.8a.7.7 0 0 0 0-1.2L6.1 2.6C5.6 2.3 5 2.6 5 3.2Z"/></svg>';
 
-export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
-  const [dockLabel, dockHref] = dock;
+export default function ShellBehaviour() {
   useEffect(() => {
     const ks = document.getElementById("ks");
     if (!ks) return;
@@ -90,31 +88,10 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
       );
     }
 
-    /* ---------- header: white words over film or black, black words over paper ---------- */
-    const hd = ks.querySelector<HTMLElement>(".hd");
-    let ticking = false;
-    const runHeader = () => {
-      ticking = false;
-      if (!hd) return;
-      const y = 36;
-      const light = [...ks.querySelectorAll(".panel:not(.dark), [data-light]")].some((p) => {
-        const r = p.getBoundingClientRect();
-        return r.top <= y && r.bottom >= y;
-      });
-      const down = scrollY > 40;
-      hd.classList.toggle("light", light);
-      hd.classList.toggle("dim", down && !light);
-      ks.classList.toggle("scrolled", down);
-    };
-    const askHeader = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(runHeader);
-      }
-    };
-    on("scroll", askHeader);
-    on("resize", askHeader);
-    runHeader();
+    /* ---------- the header scrolls away with the page; once the reader is down, the opening's cue goes ---------- */
+    const runScrolled = () => ks.classList.toggle("scrolled", scrollY > 40);
+    on("scroll", runScrolled);
+    runScrolled();
 
     /* ---------- phone menu ---------- */
     const sheet = ks.querySelector<HTMLElement>("#menu");
@@ -175,45 +152,6 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
       line.done();
     });
 
-    /* ---------- phones: the dock. One button at the bottom, in thumb reach, only while no other main
-       button is on screen (design rule 35), and only on the way back up, never while reading down ---------- */
-    if (matchMedia("(max-width: 760px)").matches) {
-      const el = document.createElement("div");
-      el.className = "dock";
-      const a = document.createElement("a");
-      a.className = "btn";
-      a.href = dockHref;
-      a.innerHTML = `<span class="lb"></span><span class="go">${ARROW_SVG}</span>`;
-      (a.querySelector(".lb") as HTMLElement).textContent = dockLabel;
-      el.append(a);
-      ks.append(el);
-      const onScreen = new Set<Element>();
-      let lastY = scrollY,
-        up = false;
-      const sync = () => {
-        const show = up && onScreen.size === 0 && scrollY > innerHeight * 0.6;
-        el.classList.toggle("on", show);
-        ks.classList.toggle("docked", show);
-      };
-      const io = new IntersectionObserver((es) => {
-        es.forEach((x) => (x.isIntersecting ? onScreen.add(x.target) : onScreen.delete(x.target)));
-        sync();
-      });
-      ks.querySelectorAll(".btn").forEach((b) => b !== a && !b.closest(".sheet") && io.observe(b));
-      on("scroll", () => {
-        const y = scrollY;
-        if (Math.abs(y - lastY) > 6) {
-          up = y < lastY;
-          lastY = y;
-          sync();
-        }
-      });
-      offs.push(() => {
-        io.disconnect();
-        el.remove();
-      });
-    }
-
     /* ---------- one reveal everywhere: rise a little and fade in, once ---------- */
     const rio = new IntersectionObserver(
       (es) =>
@@ -231,6 +169,6 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
 
     offs.push(startAlive(ks));
     return () => offs.forEach((off) => off());
-  }, [dockLabel, dockHref]);
+  }, []);
   return null;
 }

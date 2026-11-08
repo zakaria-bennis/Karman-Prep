@@ -126,14 +126,11 @@ export default function SitePage({
   kind,
   children,
   stage,
-  dock,
 }: {
   kind: SiteKind;
   children: ReactNode;
   /** The home page's film, drawn behind everything. */
   stage?: ReactNode;
-  /** The phone dock's button: [label, href]. Default: the free practice test. */
-  dock?: [string, string];
 }) {
   return (
     <div
@@ -226,7 +223,7 @@ export default function SitePage({
         </div>
         {stage ? <p className="credit">{SITE.credits}</p> : null}
       </footer>
-      <ShellBehaviour dock={dock ?? [SITE["free test link"], ROUTES.test]} />
+      <ShellBehaviour />
     </div>
   );
 }

@@ -175,12 +175,11 @@ const PHOTOS = {
   },
 };
 
-/* Karman's product screens on the live site (src/components/site/live/screens.ts, home/DailyTenDemo.tsx).
-   The Daily 10 is captured in its question state, before any choice is picked. */
+/* Karman's product screens on the live site: the real portal captures on the home page's phones
+   (PortalShot.tsx, public/site/portal/) and the drawn class and review screens (live/screens.ts). */
 const SCREENS = {
-  daily10: { path: "/", sel: "#m-4 .turn .scr", kind: "phone" },
-  // design rule 47: no screen held by a person shows a score, so the parent view drops its score card here
-  parent: { path: "/", sel: "#m-5 .turn .scr", kind: "phone", hide: ".est" },
+  daily10: { path: "/", sel: "#m-4 .turn .pshot", kind: "phone" },
+  parent: { path: "/", sel: "#m-5 .turn .pshot", kind: "phone" },
   zoom: { path: "/program", sel: "#m-2 figure.wide .scr", kind: "wide" },
   review: { path: "/private-tutoring", sel: "#m-3 figure.wide .scr", kind: "wide" },
 };

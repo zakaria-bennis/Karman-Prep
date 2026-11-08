@@ -31,3 +31,8 @@
 /* the home indicator along the bottom of the screen */
 .ks .iphone .home { position: absolute; left: 50%; bottom: calc(var(--bez) + var(--pw) * 0.022); width: 34%; height: calc(var(--pw) * 0.013); transform: translateX(-50%); border-radius: 99px; background: rgba(255,255,255,.8); z-index: 2; }
 .ks:not([data-mode="dark"]) .iphone .home { background: rgba(10,10,10,.82); }
+
+/* a real portal capture (PortalShot.tsx) inside the phone or the laptop: it follows the page's own mode */
+.ks .pshot { display: block; width: 100%; height: 100%; }
+.ks .pshot img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.ks[data-mode="dark"] .pshot .ps-light, .ks:not([data-mode="dark"]) .pshot .ps-dark { display: none; }

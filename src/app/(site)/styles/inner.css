@@ -1,18 +1,18 @@
 /* The inner pages (pages.js): the SAT Program, private tutoring, the free practice test, the guarantee, About
    and the FAQ. Base tokens, header, buttons, the guarantee block and the footer are in film.css; loaders,
-   messages and form fields in kit.css. No film plays on these pages, so the header is solid. */
+   messages and form fields in kit.css. No film plays on these pages, so the header's words are ink. */
 .ks.page-inner { background: var(--paper); }
-.ks.page-inner .hd:not(.dim) { color: var(--ink); }
-.ks.page-inner .hd.dim { background: rgba(11,11,11,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-.ks.page-inner .hd.dim::before { display: none; }
+.ks.page-inner .hd { color: var(--ink); }
 .ks.page-inner main { background: var(--paper); }
+/* no film behind the inner pages: a panel (the guarantee) is a card on the paper, squared, with a hairline */
+:is(.ks.page-inner, .ks.page-pricing) .panel { max-width: var(--max); margin: 0 auto var(--gap); width: calc(100% - 2 * var(--gutter)); background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* ---------- the opening: words on one side, the drawing at the outer edge ---------- */
 .ks .i-hero { padding: clamp(130px, 14vw, 190px) var(--gutter) clamp(50px, 6vw, 90px); overflow: hidden; }
 .ks .i-hero > .in, .ks .i-sec > .in, .ks .i-close > .in { max-width: var(--max); margin: 0 auto; }
 .ks .i-hero > .in { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(30px, 5vw, 80px); align-items: center; }
 .ks .i-words { display: grid; gap: 22px; justify-items: start; }
-.ks .i-hero h1 { font-size: clamp(44px, 6.2vw, 100px); max-width: 13ch; }
+.ks .i-hero h1 { font-size: clamp(40px, 5vw, 76px); max-width: 13ch; }
 .ks .i-hero .lede { color: var(--ink2); }
 .ks .i-art { justify-self: end; width: min(100%, 520px); margin-right: calc(-1 * var(--gutter) * .6); }
 .ks .i-art.small { width: min(100%, 360px); margin-right: 0; }
@@ -70,14 +70,14 @@
 .ks .art .a-timer text { fill: #0b0b0b; font-family: var(--font-hanken), sans-serif; font-weight: 800; letter-spacing: -0.03em; }
 
 /* ---------- sections ---------- */
-.ks .i-sec { padding: clamp(70px, 8vw, 130px) var(--gutter); border-top: 1px solid var(--line); }
+.ks .i-sec { padding: clamp(56px, 6.4vw, 100px) var(--gutter); border-top: 1px solid var(--line); }
 .ks .i-head { display: grid; gap: 18px; max-width: 760px; }
-.ks .i-head h2 { font-size: clamp(34px, 4.2vw, 64px); }
+.ks .i-head h2 { font-size: clamp(30px, 3.4vw, 52px); }
 .ks .i-head .lede { color: var(--ink2); }
 .ks .i-split { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(30px, 5vw, 90px); align-items: start; }
 @media (max-width: 900px) { .ks .i-split { grid-template-columns: 1fr; } }
 .ks .i-proof { font-size: 15px; font-weight: 700; color: var(--marigold-ink); }
-.ks .i-card { display: grid; gap: 8px; padding: 26px; border-radius: 16px; background: var(--soft); }
+.ks .i-card { display: grid; gap: 8px; padding: 26px; border-radius: var(--r-panel); background: var(--soft); }
 .ks .i-card .k-ico { color: var(--marigold-ink); }
 .ks .i-card b { font-size: 19px; letter-spacing: -0.01em; }
 .ks .i-card p { color: var(--ink2); }
@@ -124,7 +124,8 @@
 .ks .i-list { display: grid; align-content: start; }
 .ks .i-list li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 16px 0; border-top: 1px solid var(--line); font-size: 17px; font-weight: 600; }
 .ks .i-list .k-ico { width: 22px; height: 22px; color: var(--marigold-ink); margin-top: 1px; }
-.ks .i-list .mk { width: 12px; height: 2px; border-radius: 2px; background: var(--marigold); margin-top: .75em; }
+/* the portal's skill square marks each line (a hint of the app, founder 8 November) */
+.ks .i-list .mk { width: 9px; height: 9px; border-radius: 2px; background: var(--marigold); margin-top: .5em; }
 .ks .i-list.no .k-ico { transform: rotate(45deg); color: #9c1f18; }
 .ks .i-list.no li span { text-decoration: line-through; text-decoration-color: rgba(156,31,24,.55); text-decoration-thickness: 1.5px; }
 .ks .i-list.inline { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 24px; margin-top: 28px; }
@@ -132,7 +133,7 @@
 
 /* private: packages and the record */
 .ks .i-packs { margin-top: clamp(30px, 4vw, 50px); display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.ks .i-pack { display: grid; gap: 12px; align-content: start; padding: clamp(26px, 3vw, 40px); border-radius: 18px; background: var(--soft); }
+.ks .i-pack { display: grid; gap: 12px; align-content: start; padding: clamp(26px, 3vw, 40px); border-radius: var(--r-panel); background: var(--soft); }
 .ks .i-pack.hot { background: var(--paper); box-shadow: 0 0 0 2px var(--marigold); }
 .ks .i-pack h3 { font-size: clamp(24px, 2vw, 30px); }
 .ks .i-price { display: flex; align-items: baseline; gap: 12px; }
@@ -141,7 +142,7 @@
 .ks .i-pack p:last-child { color: var(--ink2); }
 @media (max-width: 760px) { .ks .i-packs { grid-template-columns: 1fr; } }
 .ks .i-record .i-split { align-items: center; }
-.ks .i-big { font-size: clamp(110px, 16vw, 260px); font-weight: 800; letter-spacing: -0.07em; line-height: .85; color: var(--marigold-ink); order: 2; }
+.ks .i-big { font-size: clamp(72px, 9vw, 150px); font-weight: 800; letter-spacing: -0.05em; font-variant-numeric: lining-nums tabular-nums; line-height: .85; color: var(--marigold-ink); order: 2; }
 @media (max-width: 900px) { .ks .i-big { order: 0; } }
 
 /* About: three refusals, as rows: the icon, the refusal struck through, then what we do instead */
@@ -154,7 +155,7 @@
 
 /* the guarantee: four worked examples */
 .ks .i-ex { margin-top: clamp(30px, 4vw, 50px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.ks .i-ex > div { display: grid; gap: 10px; padding: 24px 26px; border-radius: 16px; background: var(--soft); }
+.ks .i-ex > div { display: grid; gap: 10px; padding: 24px 26px; border-radius: var(--r-panel); background: var(--soft); }
 .ks .i-ex .sc { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: clamp(18px, 1.5vw, 22px); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; flex-wrap: wrap; }
 .ks .i-ex .arrow { width: 18px; height: 18px; color: var(--marigold-ink); }
 .ks .i-ex .out { color: var(--ink2); font-size: 16.5px; }
@@ -172,7 +173,7 @@
 .ks .i-faq .ans p { padding: 0 0 22px; color: var(--ink2); font-size: 17px; max-width: 64ch; }
 
 /* forms in cards */
-.ks .i-formcard { padding: clamp(24px, 2.6vw, 36px); border-radius: 18px; background: var(--card); box-shadow: 0 0 0 1px var(--line); width: 100%; max-width: 480px; justify-self: end; }
+.ks .i-formcard { padding: clamp(24px, 2.6vw, 36px); border-radius: var(--r-panel); background: var(--card); box-shadow: 0 0 0 1px var(--line); width: 100%; max-width: 480px; justify-self: end; }
 .ks .i-formcard.i-formwide { max-width: 760px; margin-top: clamp(34px, 4vw, 56px); justify-self: start; }
 .ks .i-formcard .i-formh { font-size: clamp(26px, 2.2vw, 34px); margin: 0 0 18px; }
 .ks .i-formcard .btn { justify-self: start; }

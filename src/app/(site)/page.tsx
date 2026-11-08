@@ -2,9 +2,9 @@ import HomeFilm from "@/components/site/home/HomeFilm";
 import { Tutors } from "@/components/site/home/HomeSections";
 import Feature from "@/components/site/Feature";
 import GuaranteeDeal from "@/components/site/GuaranteeDeal";
-import ToolsCarousel from "@/components/site/home/ToolsCarousel";
+import StudyTools from "@/components/site/home/StudyTools";
 import SitePage from "@/components/site/SitePage";
-import WeekCalendar from "@/components/site/WeekCalendar";
+import PortalShot from "@/components/site/PortalShot";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, delay, Kinetic } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
@@ -94,11 +94,17 @@ export default function HomePage() {
               <h2>{cal.headline}</h2>
               {cal.text ? <p className="lede">{cal.text}</p> : null}
             </div>
-            <div className="cal-fig rv">
-              <WeekCalendar />
-            </div>
+            <figure className="cal-fig mbp rv">
+              <span className="notch" aria-hidden="true" />
+              <PortalShot
+                screen="today"
+                device="desk"
+                modes={["dark"]}
+                alt="The student's Today screen in the Karman app on a laptop: the Daily 10, homework with due times, live classes with David on Zoom, and practice"
+              />
+            </figure>
           </article>
-          <ToolsCarousel />
+          <StudyTools />
         </div>
       </section>
 
