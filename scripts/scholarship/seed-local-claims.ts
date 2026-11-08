@@ -120,10 +120,8 @@ function assertLocal(): void {
   }
 }
 
-async function ensureCohortPayment(stripe: Stripe, s: Sample): Promise<string> {
-  const query = `metadata['cohort_id']:'${COHORT_ID}' AND metadata['user_id']:'${s.userId}' AND status:'succeeded'`;
-  const found = await stripe.paymentIntents.search({ query, limit: 1 });
-  if (found.data[0]) return found.data[0].id;
+/** A fresh $995 cohort payment in Stripe TEST mode (earlier ones may already be refunded). */
+async function createCohortPayment(stripe: Stripe, s: Sample): Promise<string> {
   const customer = await stripe.customers.create({
     email: `${s.clerkId.replace("dev_seed_scholar_", "")}.parent@karman.local`,
     name: `${s.name.split(" ")[1]} family`,
@@ -177,10 +175,22 @@ async function main(): Promise<void> {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     httpClient: Stripe.createFetchHttpClient(),
   });
+  const { createAdminClient } = await import("../../src/lib/supabase/server");
+  const db = createAdminClient() as unknown as {
+    from: (t: string) => {
+      update: (v: Record<string, unknown>) => {
+        eq: (k: string, v: string) => { eq: (k: string, v: string) => Promise<{ error: unknown }> };
+      };
+    };
+  };
   for (const s of SAMPLES.filter((x) => x.pay)) {
-    console.log(
-      `${s.name}: cohort payment ${await ensureCohortPayment(stripe, s)} (Stripe test mode)`
-    );
+    const pi = await createCohortPayment(stripe, s);
+    await db
+      .from("scholarship_claims")
+      .update({ stripe_payment_intent_id: pi })
+      .eq("cohort_id", COHORT_ID)
+      .eq("user_id", s.userId);
+    console.log(`${s.name}: cohort payment ${pi} (Stripe test mode)`);
   }
 }
 

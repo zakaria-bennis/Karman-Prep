@@ -238,6 +238,7 @@ export function toRankInput(c: ClaimRow): RankInput {
     extractedTestDate: c.extracted_test_date,
     declaredTestDate: c.declared_test_date,
     submittedAt: c.submitted_at,
+    awardCents: c.award_cents,
   };
 }
 

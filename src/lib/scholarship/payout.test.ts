@@ -5,9 +5,9 @@ import {
   PayoutBlockedError,
   assertStripeTestMode,
   isStripeTestKey,
-  runScholarshipPayout,
-  type PayoutClaim,
-  type PayoutProgress,
+  runScholarshipRefund,
+  type RefundClaim,
+  type RefundProgress,
   type StripeLike,
 } from "./payout";
 
@@ -78,21 +78,18 @@ describe("test-mode guard", () => {
 });
 
 // ------------------------------------------------------------
-// A small in-memory Stripe for the payout flow.
+// A small in-memory Stripe for the refund.
 // ------------------------------------------------------------
 
-function fakeStripe(opts: { livemode?: boolean; failBonusOnce?: boolean; owner?: string } = {}) {
+function fakeStripe(opts: { livemode?: boolean; owner?: string } = {}) {
   const refunds: Stripe.Refund[] = [];
-  const txns: Stripe.CustomerBalanceTransaction[] = [];
-  const calls = { refundCreates: 0, bonusCreates: 0, searches: 0 };
-  let bonusFailures = opts.failBonusOnce ? 1 : 0;
+  const calls = { refundCreates: 0, searches: 0 };
   const pi = {
     id: "pi_cohort1",
     livemode: opts.livemode ?? false,
     status: "succeeded",
     amount_received: 99500,
     currency: "usd",
-    customer: "cus_family1",
     metadata: opts.owner ? { user_id: opts.owner } : {},
   };
   const stripe: StripeLike = {
@@ -125,50 +122,23 @@ function fakeStripe(opts: { livemode?: boolean; failBonusOnce?: boolean; owner?:
         return r as unknown as Stripe.Refund;
       },
     },
-    customers: {
-      async create() {
-        return { id: "cus_new" } as Stripe.Customer;
-      },
-      async listBalanceTransactions() {
-        return { data: txns };
-      },
-      async createBalanceTransaction(_id, params) {
-        if (bonusFailures > 0) {
-          bonusFailures -= 1;
-          throw new Error("card_declined");
-        }
-        calls.bonusCreates += 1;
-        const t = {
-          id: `cbtxn_${txns.length + 1}`,
-          amount: params.amount,
-          metadata: params.metadata,
-        };
-        txns.push(t as unknown as Stripe.CustomerBalanceTransaction);
-        return t as unknown as Stripe.CustomerBalanceTransaction;
-      },
-    },
   };
   return { stripe, calls };
 }
 
-const baseClaim: PayoutClaim = {
+const baseClaim: RefundClaim = {
   id: "11111111-1111-4111-8111-111111111111",
   cohortId: "22222222-2222-4222-8222-222222222222",
   userId: "33333333-3333-4333-8333-333333333333",
   clerkId: "user_abc",
-  studentEmail: "maya@example.com",
-  studentName: "Maya Thompson",
   stripePaymentIntentId: null,
-  stripeCustomerId: null,
   stripeRefundId: null,
   refundAmountCents: null,
-  stripeBonusId: null,
-  bonusAmountCents: null,
 };
 
-describe("runScholarshipPayout", () => {
-  const saved: PayoutProgress[] = [];
-  const save = async (p: PayoutProgress) => {
+describe("runScholarshipRefund", () => {
+  const saved: RefundProgress[] = [];
+  const save = async (p: RefundProgress) => {
     saved.push(p);
   };
   let previousKey: string | undefined;
@@ -182,106 +152,56 @@ describe("runScholarshipPayout", () => {
     process.env.STRIPE_SECRET_KEY = previousKey;
   });
 
-  it("finds the payment, refunds $995 and credits $505", async () => {
+  it("refunds $995 and leaves a $505 bonus for the bank transfer", async () => {
     const { stripe, calls } = fakeStripe();
-    const split = await runScholarshipPayout({
+    const split = await runScholarshipRefund({
       stripe,
       claim: baseClaim,
-      awardCents: 150000,
+      shareCents: 150000,
       cohortPriceCents: 99500,
       save,
     });
     expect(split).toEqual({ refundCents: 99500, bonusCents: 50500 });
-    expect(calls).toMatchObject({ searches: 1, refundCreates: 1, bonusCreates: 1 });
-    const merged = Object.assign({}, ...saved) as PayoutProgress;
-    expect(merged).toMatchObject({
+    expect(calls).toMatchObject({ searches: 1, refundCreates: 1 });
+    expect(Object.assign({}, ...saved)).toMatchObject({
       stripePaymentIntentId: "pi_cohort1",
       stripeRefundId: "re_1",
       refundAmountCents: 99500,
-      bonusMethod: "customer_balance",
-      stripeBonusId: "cbtxn_1",
-      bonusAmountCents: 50500,
-      stripeCustomerId: "cus_family1",
     });
   });
 
-  it("resumes after a failed bonus without refunding twice", async () => {
-    const { stripe, calls } = fakeStripe({ failBonusOnce: true });
-    await expect(
-      runScholarshipPayout({
-        stripe,
-        claim: baseClaim,
-        awardCents: 150000,
-        cohortPriceCents: 99500,
-        save,
-      })
-    ).rejects.toThrow("card_declined");
-    const progress = Object.assign({}, ...saved) as PayoutProgress;
-    const retried = await runScholarshipPayout({
+  it("refunds $750 and leaves no bonus for a two-way tie", async () => {
+    const { stripe } = fakeStripe();
+    const split = await runScholarshipRefund({
       stripe,
-      claim: {
-        ...baseClaim,
-        stripePaymentIntentId: progress.stripePaymentIntentId ?? null,
-        stripeRefundId: progress.stripeRefundId ?? null,
-        refundAmountCents: progress.refundAmountCents ?? null,
-      },
-      awardCents: 150000,
+      claim: baseClaim,
+      shareCents: 75000,
       cohortPriceCents: 99500,
       save,
     });
-    expect(retried).toEqual({ refundCents: 99500, bonusCents: 50500 });
-    expect(calls.refundCreates).toBe(1);
-    expect(calls.bonusCreates).toBe(1);
+    expect(split).toEqual({ refundCents: 75000, bonusCents: 0 });
   });
 
-  it("finds its own earlier refund in Stripe when the database missed it", async () => {
+  it("finds its own earlier refund instead of refunding twice", async () => {
     const { stripe, calls } = fakeStripe();
-    await runScholarshipPayout({
-      stripe,
-      claim: baseClaim,
-      awardCents: 150000,
-      cohortPriceCents: 99500,
-      save,
-    });
-    await runScholarshipPayout({
-      stripe,
-      claim: baseClaim,
-      awardCents: 150000,
-      cohortPriceCents: 99500,
-      save,
-    });
+    const args = { stripe, claim: baseClaim, shareCents: 150000, cohortPriceCents: 99500, save };
+    await runScholarshipRefund(args);
+    const again = await runScholarshipRefund(args);
+    expect(again).toEqual({ refundCents: 99500, bonusCents: 50500 });
     expect(calls.refundCreates).toBe(1);
-    expect(calls.bonusCreates).toBe(1);
   });
 
   it("refuses live payments, payments of another student, and live keys", async () => {
+    const args = { claim: baseClaim, shareCents: 150000, cohortPriceCents: 99500, save };
     await expect(
-      runScholarshipPayout({
-        stripe: fakeStripe({ livemode: true }).stripe,
-        claim: baseClaim,
-        awardCents: 150000,
-        cohortPriceCents: 99500,
-        save,
-      })
+      runScholarshipRefund({ ...args, stripe: fakeStripe({ livemode: true }).stripe })
     ).rejects.toThrow(PayoutBlockedError);
     await expect(
-      runScholarshipPayout({
-        stripe: fakeStripe({ owner: "someone-else" }).stripe,
-        claim: baseClaim,
-        awardCents: 150000,
-        cohortPriceCents: 99500,
-        save,
-      })
+      runScholarshipRefund({ ...args, stripe: fakeStripe({ owner: "someone-else" }).stripe })
     ).rejects.toThrow("different student");
     process.env.STRIPE_SECRET_KEY = "sk_live_nope";
-    await expect(
-      runScholarshipPayout({
-        stripe: fakeStripe().stripe,
-        claim: baseClaim,
-        awardCents: 150000,
-        cohortPriceCents: 99500,
-        save,
-      })
-    ).rejects.toThrow("test mode only");
+    await expect(runScholarshipRefund({ ...args, stripe: fakeStripe().stripe })).rejects.toThrow(
+      "test mode only"
+    );
   });
 });

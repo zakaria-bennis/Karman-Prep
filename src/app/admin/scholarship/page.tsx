@@ -24,7 +24,7 @@ import {
   WbToolbar,
   formatDate,
 } from "@/components/admin/workbench";
-import { STATUS_LABEL, STATUS_TONE, VERDICT_LABEL, VERDICT_TONE } from "./labels";
+import { STATUS_LABEL, STATUS_TONE, VERDICT_LABEL, VERDICT_TONE, claimStage } from "./labels";
 
 export const metadata: Metadata = { title: "Scholarship review | Karman admin" };
 export const dynamic = "force-dynamic";
@@ -46,10 +46,10 @@ export default async function ScholarshipQueuePage({
     loadError = err instanceof Error ? err.message : "Claims could not be loaded.";
   }
   const ranks = new Map(rankClaims(claims.map(toRankInput)).map((r) => [r.id, r]));
-  const count = (s: string) => claims.filter((c) => s === "all" || c.status === s).length;
+  const count = (s: string) => claims.filter((c) => s === "all" || claimStage(c) === s).length;
   const q = filter.q.toLowerCase();
   const rows: Item[] = claims
-    .filter((c) => filter.status === "all" || c.status === filter.status)
+    .filter((c) => filter.status === "all" || claimStage(c) === filter.status)
     .filter(
       (c) =>
         !q ||
@@ -67,9 +67,7 @@ export default async function ScholarshipQueuePage({
   return (
     <WbPage
       title="Scholarship review"
-      summary={`${formatPrice(COHORT_SCHOLARSHIP.amount)} to the top official SAT score in each cohort: the ${formatPrice(
-        COHORT_SCHOLARSHIP.refund
-      )} cohort price back plus a ${formatPrice(COHORT_SCHOLARSHIP.meritBonus)} merit bonus. Payouts run in Stripe test mode.`}
+      summary={`${formatPrice(COHORT_SCHOLARSHIP.amount)} to the top official SAT score in each cohort (split evenly in a tie): the cohort price back as a Stripe refund, in test mode, and the rest as a bank transfer you send by hand.`}
       actions={
         <Link className="kp-link" href="/terms#cohort-scholarship">
           The rules families see
@@ -79,9 +77,9 @@ export default async function ScholarshipQueuePage({
       <WbStats
         items={[
           { label: "Waiting for review", value: count("submitted") },
-          { label: "Approved, not paid", value: count("approved") },
+          { label: "Approved, refund next", value: count("approved") },
+          { label: "Bank transfer due", value: count("transfer") },
           { label: "Paid", value: count("paid") },
-          { label: "Rejected", value: count("rejected") },
         ]}
       />
       <WbToolbar>
@@ -94,6 +92,7 @@ export default async function ScholarshipQueuePage({
           options={[
             { value: "submitted", label: "Waiting", count: count("submitted") },
             { value: "approved", label: "Approved", count: count("approved") },
+            { value: "transfer", label: "Bank transfer due", count: count("transfer") },
             { value: "paid", label: "Paid", count: count("paid") },
             { value: "rejected", label: "Rejected", count: count("rejected") },
             { value: "all", label: "All", count: count("all") },
@@ -157,8 +156,12 @@ export default async function ScholarshipQueuePage({
             cell: (r) =>
               r.ranked?.rank ? (
                 <>
-                  {r.ranked.rank === 1 ? <WbPill tone="ok">Top score</WbPill> : `#${r.ranked.rank}`}
-                  {r.ranked.tied && <small>Tied</small>}
+                  {r.ranked.rank === 1 ? (
+                    <WbPill tone="ok">{r.ranked.tied ? "Top score, tied" : "Top score"}</WbPill>
+                  ) : (
+                    `#${r.ranked.rank}`
+                  )}
+                  {r.ranked.tied && r.ranked.rank !== 1 && <small>Tied</small>}
                 </>
               ) : (
                 "—"
@@ -180,7 +183,9 @@ export default async function ScholarshipQueuePage({
           {
             key: "status",
             label: "Status",
-            cell: (r) => <WbPill tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</WbPill>,
+            cell: (r) => (
+              <WbPill tone={STATUS_TONE[claimStage(r)]}>{STATUS_LABEL[claimStage(r)]}</WbPill>
+            ),
           },
         ]}
       />

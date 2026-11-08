@@ -6,15 +6,25 @@ export const VERDICT_LABEL: Record<string, string> = {
   warn: "Look closely",
   fail: "Failed",
 };
-export const STATUS_TONE: Record<string, Tone> = {
+export type Stage = "submitted" | "approved" | "transfer" | "paid" | "rejected";
+
+/** Where a claim stands: its status, and for an approved claim, which payout step is next. */
+export function claimStage(c: { status: string; payout_status: string }): Stage {
+  if (c.status === "approved") return c.payout_status === "refunded" ? "transfer" : "approved";
+  return c.status as Stage;
+}
+
+export const STATUS_TONE: Record<Stage, Tone> = {
   submitted: "info",
   approved: "warn",
+  transfer: "warn",
   paid: "ok",
   rejected: "neutral",
 };
-export const STATUS_LABEL: Record<string, string> = {
+export const STATUS_LABEL: Record<Stage, string> = {
   submitted: "Waiting",
-  approved: "Approved, not paid",
+  approved: "Approved, refund next",
+  transfer: "Bank transfer due",
   paid: "Paid",
   rejected: "Rejected",
 };
@@ -29,8 +39,8 @@ export const EVENT_LABEL: Record<string, string> = {
   rejected: "Rejected",
   reopened: "Decision undone",
   payout_started: "Payout started",
-  refund_succeeded: "Cohort price refunded",
-  bonus_succeeded: "Merit bonus credited",
-  payout_failed: "Payout stopped",
+  refund_succeeded: "Cohort payment refunded in Stripe",
+  payout_failed: "Refund stopped",
+  bonus_transfer_recorded: "Bank transfer recorded",
   paid: "Paid in full",
 };
