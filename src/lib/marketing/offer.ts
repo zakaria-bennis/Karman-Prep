@@ -304,6 +304,28 @@ export const SCHOLARSHIP = {
   contactEmail: "hello@karmanprep.com",
 } as const;
 
+/**
+ * The cohort scholarship (founder decision 2026-11-08): one award to the
+ * top-scoring student in each cohort, paid as a refund of the cohort price plus a
+ * merit bonus for the rest. The full rules are the "Cohort Scholarship" section of
+ * /terms (src/lib/scholarship/terms-section.ts). The app pays the refund of what
+ * the family actually paid and makes up the rest with the bonus.
+ * CONFIRM: lawyer review, and how the bonus reaches families in live mode.
+ */
+export const COHORT_SCHOLARSHIP = {
+  award: 1500,
+  /** The refund part: the cohort price. */
+  refund: MARCH_PROGRAM.price,
+  /** The merit bonus part: the award minus the refund. */
+  meritBonus: Math.max(0, 1500 - MARCH_PROGRAM.price),
+  /** The official SAT must be taken on or after the first class and within this many days of the last. */
+  satWithinDays: 60,
+  /** Days after official scores come out to upload the score report. */
+  claimDays: 30,
+  /** Days after approval to pay. */
+  payWithinDays: 30,
+} as const;
+
 export const CONTACT = {
   general: "hello@karmanprep.com",
   support: "support@karmanprep.com",
