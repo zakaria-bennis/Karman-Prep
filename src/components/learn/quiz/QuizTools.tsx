@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { Highlighter, Settings, X } from "lucide-react";
 import styles from "./workspace.module.css";
 
-const preferenceKey = "karman-quiz-animations";
+export const preferenceKey = "karman-quiz-animations";
 function subscribe(callback: () => void) {
   window.addEventListener("storage", callback);
   window.addEventListener("quiz-preferences", callback);
@@ -22,7 +22,7 @@ function preference(key: string) {
     return true;
   }
 }
-function savePreference(key: string, value: boolean) {
+export function savePreference(key: string, value: boolean) {
   memoryPreferences.set(key, value);
   try {
     localStorage.setItem(key, value ? "on" : "off");

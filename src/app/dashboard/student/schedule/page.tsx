@@ -28,6 +28,7 @@ import {
   shouldAlertAdminAboutMissingSetup,
 } from "@/lib/supabase/queries/cal-oauth";
 import { resend, FROM } from "@/lib/integrations/resend/client";
+import { CalendarSubscribe } from "@/components/dashboard/CalendarSubscribe";
 
 export const metadata: Metadata = { title: "Schedule" };
 export const dynamic = "force-dynamic";
@@ -258,6 +259,9 @@ export default async function StudentSchedulePage() {
             </p>
           </div>
         ) : null}
+
+        {/* The feed link always belongs to the signed-in student, so admins previewing see none. */}
+        {!isImpersonating ? <CalendarSubscribe audience="student" /> : null}
       </div>
     </DashboardLayout>
   );

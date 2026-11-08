@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { buildChart } from "@/lib/figures/engine/charts";
 import { checkSpec, checkSpecs } from "@/lib/figures/engine/checks";
-import { buildGeometry2d, NOT_TO_SCALE_PLURAL } from "@/lib/figures/engine/geometry2d";
+import { buildGeometry2d } from "@/lib/figures/engine/geometry2d";
+import { NOT_TO_SCALE_PLURAL } from "@/lib/figures/engine/notes";
 import {
   droppedLabels,
   labelDrift,
@@ -402,7 +403,7 @@ describe("gap 8: the plural note", () => {
 
   it("refuses a singular note on each of several figures", () => {
     const issues = checkSpecs([shape(true), shape(true)], []);
-    expect(issues.some((i) => /notToScale to "figures" on figure 2/.test(i.detail))).toBe(true);
+    expect(issues.some((i) => /set notToScale on figure 2 only/.test(i.detail))).toBe(true);
   });
 });
 

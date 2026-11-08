@@ -131,7 +131,7 @@ export function droppedLabels(
       code: "missing_label",
       partId: label.on,
       detail: chart
-        ? `label "${label.text}" is not drawn: a series is named only in a legend, which a chart draws for two or more series`
+        ? `label "${label.text}" is not drawn: a series is named only in a legend, which a chart draws for two or more series, or for one when the spec sets legend: true`
         : `label "${label.text}" is not drawn`,
     });
   }

@@ -131,6 +131,49 @@ Tonight's additions:
 - Also build a painted version of the home page as a separate mock for the
   founder to compare. It must not replace anything.
 
+## The question bank (from the question import session, 04:50 CST)
+
+- **The live bank:** about 9,950 questions, with more publishing tonight.
+  - Serve only through the catalog pools and their eligibility check:
+    `readCatalogQuestionScope` plus the `catalogQuestionPayloadHash` seal
+    (`src/lib/catalog-practice/session.ts`, `picker.ts`).
+  - Never use hard-coded lists like `src/data/diagnostic-questions.ts`.
+- **Serving tables:**
+  - Questions: `quiz_questions`, `answer_choices`, `answer_key_entries` (with
+    `approved_tags.catalog_skill_id` and evidence), and `source_assets` (image
+    figures).
+  - Practice: `catalog_practice_sessions` and `catalog_practice_responses`,
+    with the functions `catalog_practice_start`,
+    `catalog_practice_record_once`, `catalog_practice_complete` and
+    `catalog_practice_owned`.
+  - Legacy quiz: `quiz_attempts`, `question_responses`,
+    `start_quiz_attempt_atomic`, `record_quiz_response_once`,
+    `complete_quiz_attempt_atomic` and `learn_node_status`.
+  - The skill taxonomy lives in code (generated), not in a table.
+- **Explanations:** every question's step-by-step explanation is in
+  `explanation_text` (being written tonight), and every review screen shows
+  it. No video explanations exist yet.
+- **Pools:** there is no pool flag on rows. Mastery is difficulty 6–7
+  (difficulty is calibrated 1 to 7 within each skill), and core is 1–5. Core
+  must still cover every skill.
+- **One assembler** builds full-length tests, Domain quizzes and the
+  diagnostic. It draws from the catalog pools with the same eligibility check.
+  - Never put two rows of the same question family or text in one form, or
+    across the four forms.
+  - Module 2 is easier or harder by difficulty band.
+  - Skills are spread within each domain.
+  - SAT shape: Reading and Writing 27 + 27 questions (32 minutes each), Math
+    22 + 22 (35 minutes each).
+- **Legal** (the founder has an open question):
+  - Never present a test as "the official" or "actual" SAT form.
+  - Never name a source by its exam date in the UI.
+  - Never label any answer "official".
+- Question `bcdb21e4` fails to render and must stay unserved.
+- Questions are re-sealed in place tonight. The local copy is refreshed from
+  production (read only) before QA.
+- **Deploys:** the import session deploys `claude/musing-kare-59cd6e` to
+  production tonight. We deploy nothing.
+
 ## Rules that never bend
 
 - Never deploy (`cf:deploy`), never merge or push to `main`, never push any

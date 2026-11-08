@@ -159,16 +159,19 @@ describe("golden figures", () => {
         "angle",
         "arc",
         "circle",
+        "dimension",
         "function",
         "line",
         "point",
         "polygon",
         "ray",
         "region",
+        "sector",
         "segment",
         "series",
         "solid",
         "table",
+        "text",
       ].sort()
     );
     expect([...marks].sort()).toEqual(

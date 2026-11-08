@@ -72,10 +72,11 @@ export const MINUS = "\u2212";
 /**
  * A tick number as printed: fmt, with the true minus sign (U+2212, "−2") for a
  * negative, and with thousands grouped by commas when `group` ("1,200", "−1,200").
- * Path data keeps fmt and its ASCII "-".
+ * With `decimals`, every number but 0 keeps exactly that many ("1.0", "0.10"), as
+ * the SAT prints a fixed-decimal axis. Path data keeps fmt and its ASCII "-".
  */
-export function tickText(v: number, group = false): string {
-  const s = fmt(v);
+export function tickText(v: number, group = false, decimals?: number): string {
+  const s = decimals !== undefined && v !== 0 ? v.toFixed(decimals) : fmt(v);
   if (!/^-?\d+(\.\d+)?$/.test(s)) return s.replace(/^-/, MINUS);
   const [int, dec] = s.split(".");
   const neg = int.startsWith("-");
@@ -100,7 +101,22 @@ function steps(frame: PlaneFrame) {
   // labelStep spans both axes only while they share one step.
   const yLabel = frame.yLabelStep ?? (frame.yStep === undefined ? frame.labelStep : undefined);
   const yMinor = frame.yMinorStep ?? frame.minorStep;
-  return { x, y, xLabel: frame.labelStep, yLabel, xMinor: frame.minorStep, yMinor };
+  return {
+    x,
+    y,
+    xLabel: frame.labelStep,
+    yLabel,
+    xMinor: frame.minorStep,
+    yMinor,
+    xOrigin: frame.xTickOrigin ?? 0,
+    yOrigin: frame.yTickOrigin ?? 0,
+  };
+}
+
+/** The ticks on `range`: every `step` (else the automatic one) from `origin`. */
+function ticksOn(range: [number, number], step: number | undefined, length: number, origin = 0) {
+  const s = step ?? axisTicks(range[0], range[1], length).step;
+  return s ? tickValues(range[0], range[1], s, origin) : [];
 }
 
 /**
@@ -173,14 +189,8 @@ function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners): Scene
   const items: SceneItem[] = [];
   // Categories get no vertical lines; a number line (no y-axis) gets no grid at all.
   if (yMode === "none") return items;
-  const xs = frame.categories
-    ? []
-    : s.x
-      ? tickValues(frame.x[0], frame.x[1], s.x)
-      : axisTicks(frame.x[0], frame.x[1], w).major;
-  const ys = s.y
-    ? tickValues(frame.y[0], frame.y[1], s.y)
-    : axisTicks(frame.y[0], frame.y[1], h).major;
+  const xs = frame.categories ? [] : ticksOn(frame.x, s.x, w, s.xOrigin);
+  const ys = ticksOn(frame.y, s.y, h, s.yOrigin);
   for (const x of xs) {
     items.push({
       t: "path",
@@ -204,6 +214,8 @@ function grid(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners): Scene
 export const MIN_LABEL_SPACING_PX = 28;
 /** Clear space between neighbouring tick labels (Bluebook sets them tight). */
 const TICK_LABEL_GAP = 2;
+/** The least spacing of y tick labels: a label's box is 1.25 font tall, and neighbours keep a small gap. */
+export const Y_LABEL_PITCH = 1.25 * HOUSE.font + TICK_LABEL_GAP / 2;
 
 type AxisLabels = {
   /** The step between drawn labels; 0 means no labels. */
@@ -389,15 +401,18 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): 
     }
   } else {
     const group = groups(frame, "x");
+    const dec = frame.xDecimals;
     const widest = (step: number) =>
       Math.max(
         0,
-        ...tickValues(frame.x[0], frame.x[1], step).map((v) => numberWidth(tickText(v, group)))
+        ...tickValues(frame.x[0], frame.x[1], step, s.xOrigin).map((v) =>
+          numberWidth(tickText(v, group, dec))
+        )
       ) + TICK_LABEL_GAP;
     const l = labelStep(frame.x, w, widest, s.x, s.xLabel);
     report("x", l, "labelStep", (l.asked * w) / (frame.x[1] - frame.x[0]));
     xStep = l.step;
-    for (const x of xStep ? tickValues(frame.x[0], frame.x[1], xStep) : []) {
+    for (const x of xStep ? tickValues(frame.x[0], frame.x[1], xStep, s.xOrigin) : []) {
       if (sharedOrigin && Math.abs(x) < EPS) continue; // the origin is labeled once, below
       const X = px(x);
       const Y = py(ax);
@@ -407,7 +422,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): 
         role: "ink",
         weight: "line",
       });
-      const text = tickText(x, group);
+      const text = tickText(x, group, dec);
       // The digits center on the tick and a minus sign hangs to their left, as the SAT
       // sets negative numbers, which also keeps "−1" clear of the y labels by the origin.
       const hang = x < 0 ? textWidth(MINUS) / 2 : 0;
@@ -438,11 +453,10 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): 
   let yStep = 0;
   if (yAxis) {
     const group = groups(frame, "y");
-    // A label's box is 1.25 font tall; neighbours keep a small gap.
-    const l = labelStep(frame.y, h, () => 1.25 * font + TICK_LABEL_GAP / 2, s.y, s.yLabel);
+    const l = labelStep(frame.y, h, () => Y_LABEL_PITCH, s.y, s.yLabel);
     report("y", l, "yLabelStep", (l.asked * h) / (frame.y[1] - frame.y[0]));
     yStep = l.step;
-    const ys = yStep ? tickValues(frame.y[0], frame.y[1], yStep) : [];
+    const ys = yStep ? tickValues(frame.y[0], frame.y[1], yStep, s.yOrigin) : [];
     // A broken y-axis's corner reads 0, beside the x-axis.
     if (cy !== undefined && cornerZero && yStep) ys.unshift(cy);
     for (const y of ys) {
@@ -458,7 +472,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): 
           weight: "line",
         });
       }
-      const text = corner ? "0" : tickText(y, group);
+      const text = corner ? "0" : tickText(y, group, frame.yDecimals);
       const label: TextItem = {
         t: "text",
         x: X - tick - off / 2,
@@ -493,6 +507,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): 
         frame.x,
         s.xMinor,
         xStep,
+        s.xOrigin,
         ay,
         (v, d) => `M${fmt(px(v))} ${fmt(py(ax) - d)} L${fmt(px(v))} ${fmt(py(ax) + d)}`
       )
@@ -504,6 +519,7 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): 
         frame.y,
         s.yMinor,
         yStep,
+        s.yOrigin,
         ax,
         (v, d) => `M${fmt(px(ay) - d)} ${fmt(py(v))} L${fmt(px(ay) + d)} ${fmt(py(v))}`
       )
@@ -515,24 +531,26 @@ function axes(frame: PlaneFrame, m: Mapper, yMode: YAxisMode, c: Corners = {}): 
 }
 
 /**
- * Unlabelled tick marks every `step` along `range`, shorter than a labelled tick
- * (HOUSE.minorTickLength): none where a labelled tick (every `labelled`) or the
- * other axis (`cross`) already is. `path` draws one across the axis at a value.
+ * Unlabelled tick marks every `step` along `range` (counted from `origin`), shorter
+ * than a labelled tick (HOUSE.minorTickLength): none where a labelled tick (every
+ * `labelled`) or the other axis (`cross`) already is. `path` draws one across the
+ * axis at a value.
  */
 function minorTicks(
   range: [number, number],
   step: number | undefined,
   labelled: number,
+  origin: number,
   cross: number,
   path: (v: number, half: number) => string
 ): SceneItem[] {
   if (!step) return [];
   const onLabel = (v: number) => {
     if (!labelled) return false;
-    const k = v / labelled;
+    const k = (v - origin) / labelled;
     return Math.abs(k - Math.round(k)) < 1e-6;
   };
-  return tickValues(range[0], range[1], step)
+  return tickValues(range[0], range[1], step, origin)
     .filter((v) => !onLabel(v) && Math.abs(v - cross) > EPS)
     .map((v) => ({
       t: "path",
@@ -590,6 +608,32 @@ function labelInset(frame: PlaneFrame, c: Corners, box: Box, opts: AxesOptions):
 }
 
 /**
+ * With `equalUnits`, the inset grown on the long side so one unit is as long on x as
+ * on y: the plot shrinks along the axis with more px per unit and stays centered there.
+ * Labels only move inward, so everything that fitted still fits.
+ */
+function equalUnits(frame: PlaneFrame, c: Corners, box: Box, inset: Inset): Inset {
+  if (!frame.equalUnits || frame.categories) return inset;
+  const f = drawnFrame(frame, c);
+  const w = box.width - inset.left - inset.right;
+  const h = box.height - inset.top - inset.bottom;
+  const ux = w / (f.x[1] - f.x[0]);
+  const uy = h / (f.y[1] - f.y[0]);
+  if (!(w > 0 && h > 0) || Math.abs(ux - uy) < 1e-9) return inset;
+  const out = { ...inset };
+  if (ux > uy) {
+    const extra = (w - uy * (f.x[1] - f.x[0])) / 2;
+    out.left += extra;
+    out.right += extra;
+  } else {
+    const extra = (h - ux * (f.y[1] - f.y[0])) / 2;
+    out.top += extra;
+    out.bottom += extra;
+  }
+  return out;
+}
+
+/**
  * Grid, axes, tick labels and axis names for `frame` in `box`, and the
  * world-to-pixel map of the plot they frame. Charts and planes share it.
  * With categories the x range becomes [0, n], one band per category. A broken
@@ -612,7 +656,7 @@ export function planeAxes(
   const f: PlaneFrame = frame.categories ? { ...frame, x: [0, frame.categories.length] } : frame;
   const yMode = opts.y ?? "ticks";
   const c = breakCorners(f, box, yMode);
-  const map = mapper(drawnFrame(f, c), box, labelInset(f, c, box, opts));
+  const map = mapper(drawnFrame(f, c), box, equalUnits(f, c, box, labelInset(f, c, box, opts)));
   const drawn = axes(f, map, yMode, c);
   return {
     items: [...grid(f, map, yMode, c), ...drawn.items],

@@ -34,6 +34,15 @@ import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 const DEV_AUTH_BYPASS_ACTIVE =
   process.env.NODE_ENV !== "production" && (process.env.DEV_IMPERSONATE_CLERK_ID ?? "").length > 0;
 
+/** Cal.com OAuth routes. Listed exactly (not a /api/cal prefix) so look-alike
+ *  paths such as /api/calendar or /api/calls stay protected. Each route checks
+ *  the signed-in tutor itself. The Cal.com webhook is /api/webhooks/cal. */
+const CAL_OAUTH_ROUTES = [
+  "/api/cal/oauth/start",
+  "/api/cal/oauth/callback",
+  "/api/cal/oauth/disconnect",
+];
+
 /** Routes always exempt from the maintenance gate AND auth check.
  *  Used for: the coming-soon page itself, sign-in flows, webhooks,
  *  cron triggers, public APIs that need to keep functioning. */
@@ -42,10 +51,11 @@ const isMaintenanceExempt = createRouteMatcher([
   "/auth/sign-in(.*)",
   "/auth/sign-up(.*)",
   "/api/stripe/webhook", // Stripe webhooks
-  "/api/cal(.*)", // Cal.com webhooks
+  ...CAL_OAUTH_ROUTES,
   "/api/webhooks(.*)", // Slack/Zoom/etc.
   "/api/cron(.*)", // CF cron triggers (self-auth via CRON_SECRET)
   "/api/email/subscribe", // Coming-soon notify form posts here
+  "/api/calendar/feed/(.*)", // Calendar apps fetch it; the secret token is the credential
 ]);
 
 /** Routes that don't require auth in normal (post-launch) operation.
@@ -77,11 +87,12 @@ const isPublicRoute = createRouteMatcher([
   "/auth/sign-up(.*)",
   "/onboarding(.*)",
   "/api/stripe/webhook",
-  "/api/cal(.*)",
+  ...CAL_OAUTH_ROUTES,
   "/api/webhooks(.*)",
   "/api/email/subscribe",
   "/api/diagnostic/sample",
   "/api/cron(.*)",
+  "/api/calendar/feed/(.*)",
 ]);
 
 const LAUNCHED = process.env.NEXT_PUBLIC_KARMAN_LAUNCHED === "true";

@@ -161,9 +161,9 @@ test("TR-55 a tap selects one stem item with a 2 px solid outline offset 2 px an
   await expect(selected(page)).toHaveCount(1);
   await expect(item(page, BLOCK_SYSTEM)).toHaveAttribute("data-transfer-selected", "true");
   await page.goto(url("practice"));
-  await page.locator(".group > button").first().tap();
+  await page.locator("[data-quiz-frame]:not([data-exiting]) [role=radio]").first().tap();
   await expect(selected(page)).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Submit Answer" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Submit" })).toBeVisible();
 });
 
 test("TR-56 tapping the control transfers the selected item at once and tapping the selected item again deselects it", async ({
@@ -218,7 +218,7 @@ test("TR-57 selection clears on an outside tap, Escape, opening the calculator, 
   await expect(selected(page)).toHaveCount(0);
   await page.getByRole("button", { name: "Close calculator", exact: true }).tap();
   await tapItem(page, "y>2x+1");
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect(page.getByText("The function", { exact: false })).toBeVisible();
   await expect(selected(page)).toHaveCount(0);
 });

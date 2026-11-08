@@ -39,6 +39,12 @@ const line = z
   .object({ kind: z.literal("line"), id, from: id, to: id, arrows: z.literal(false).optional() })
   .strict();
 
+/**
+ * A shaded inside, in a theme role: "shade" (the SAT's mid gray, a pool in its path) or
+ * "faint". Shading never carries meaning alone: a label or the question names it.
+ */
+const shade = z.enum(["shade", "faint"]).optional();
+
 const circle = z
   .object({
     kind: z.literal("circle"),
@@ -46,6 +52,7 @@ const circle = z
     center: id,
     radius: num.positive().optional(),
     through: id.optional(),
+    shade,
   })
   .strict()
   .refine((c) => (c.radius === undefined) !== (c.through === undefined), {
@@ -56,7 +63,31 @@ const arc = z.object({ kind: z.literal("arc"), id, center: id, from: id, to: id 
 
 const angle = z.object({ kind: z.literal("angle"), id, vertex: id, from: id, to: id }).strict();
 
-const polygon = z.object({ kind: z.literal("polygon"), id, points: z.array(id).min(3) }).strict();
+const polygon = z
+  .object({ kind: z.literal("polygon"), id, points: z.array(id).min(3), shade })
+  .strict();
+
+/**
+ * A shaded sector: the wedge from `center` between `from` and `to` (the minor arc),
+ * filled in its shade (default "shade") with no outline of its own; the circle or arc
+ * and the radii that bound it are their own parts (2026-06_ASIA_V1_MATH_M1_Q16).
+ */
+const sector = z
+  .object({ kind: z.literal("sector"), id, center: id, from: id, to: id, shade })
+  .strict();
+
+/**
+ * A dimension arrow: a line from `from` to `to` with an arrowhead at each end, measuring
+ * a length ("x ft" across a pool's path); its label attaches with `on` like a side's.
+ */
+const dimension = z.object({ kind: z.literal("dimension"), id, from: id, to: id }).strict();
+
+/**
+ * A place for free-standing text, in the figure's own units: a label `on` it is centered
+ * there ("pool", "concrete path", the quadrant names I to IV, a point's "(8, 0)" where
+ * the original prints it). It draws nothing itself.
+ */
+const text = z.object({ kind: z.literal("text"), id, x: num, y: num }).strict();
 
 const fn = z
   .object({
@@ -202,6 +233,23 @@ const series = z
     // The series' own chart kind (bar, line, scatter, and so on).
     seriesKind: z.string().min(1).optional(),
     values: z.array(z.union([num, z.tuple([num, num])])),
+    /**
+     * A line series' own look, when the original's differs from the engine's choice by
+     * order (line-styles.ts): its line pattern, its marker ("dot" a plain dot, "none" no
+     * marker), the marker's fill ("solid", "open", or "shaded" in the muted role), and
+     * `muted`: the line in the muted role (the SAT's gray line).
+     */
+    style: z
+      .object({
+        line: z.enum(["solid", "dashed", "dotted", "dashdot"]).optional(),
+        marker: z
+          .enum(["triangle", "square", "circle", "diamond", "star", "dot", "none"])
+          .optional(),
+        fill: z.enum(["solid", "open", "shaded"]).optional(),
+        muted: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -214,6 +262,9 @@ export const PartSchema = z.discriminatedUnion("kind", [
   arc,
   angle,
   polygon,
+  sector,
+  dimension,
+  text,
   fn,
   region,
   solid,
@@ -268,6 +319,21 @@ export const PlaneFrameSchema = z
      */
     xBreak: z.boolean().optional(),
     yBreak: z.boolean().optional(),
+    /**
+     * Where the ticks count from: ticks, grid lines and tick labels sit at
+     * origin + k·step instead of at multiples of the step ("3, 7, 11, 15"; bins from 51
+     * every 4). The y-axis uses yTickOrigin.
+     */
+    xTickOrigin: num.optional(),
+    yTickOrigin: num.optional(),
+    /**
+     * Tick numbers printed with this many decimals ("1.0, 2.0", "0.10"), as the SAT
+     * prints them; 0 still prints "0".
+     */
+    xDecimals: z.number().int().min(0).max(6).optional(),
+    yDecimals: z.number().int().min(0).max(6).optional(),
+    /** One unit is the same length on both axes, so a circle stays a circle. */
+    equalUnits: z.boolean().optional(),
     /** Category names along x, one band each (bar charts). */
     categories: z.array(z.string()).optional(),
     /**
@@ -330,11 +396,18 @@ export const FigureSpecSchema = z
     marks: z.array(MarkSchema),
     frame: PlaneFrameSchema.optional(),
     /**
-     * The note under a shape or solid: true prints "Note: Figure not drawn to scale.";
+     * The note under a shape, solid or coordinate plane: true prints "Note: Figure not drawn to scale.";
      * "figures" prints the plural note once under the last of several figures.
      */
     notToScale: z.union([z.boolean(), z.literal("figures")]).optional(),
     title: z.string().optional(),
+    /**
+     * A caption printed just under a shape, solid or plane, above any note ("Cylinder A"
+     * under each of two figures, 2026-06_ASIA_V1_MATH_M2_Q21).
+     */
+    caption: z.string().optional(),
+    /** true: a chart draws its legend even for one named series, as the original does. */
+    legend: z.boolean().optional(),
   })
   .strict();
 
@@ -366,6 +439,8 @@ const POINT_REFS: Record<string, string[]> = {
   circle: ["center", "through"],
   arc: ["center", "from", "to"],
   angle: ["vertex", "from", "to"],
+  sector: ["center", "from", "to"],
+  dimension: ["from", "to"],
 };
 
 /** The parts a point can be declared `on`. */

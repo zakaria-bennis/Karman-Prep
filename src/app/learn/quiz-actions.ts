@@ -6,6 +6,7 @@
 // ============================================================
 
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { awardForAnswer } from "@/lib/quiz/points";
 import { revalidatePath } from "next/cache";
 import {
   fetchQuestionsForNode,
@@ -14,7 +15,6 @@ import {
   fetchQuizAttemptForStudent,
   completeQuizAttemptAtomic,
   recordQuestionResponse,
-  flagQuestion,
   updateWatchPercentage,
   fetchNodeStatusBundle,
 } from "@/lib/supabase/queries/quiz";
@@ -32,7 +32,6 @@ import {
   quizAttemptIdSchema,
   recordQuizResponseSchema,
   completeQuizSchema,
-  flagQuizQuestionSchema,
   watchPercentageSchema,
 } from "./quiz-action-schemas";
 
@@ -122,14 +121,28 @@ export async function actionRecordResponse(input: {
     is_correct: evaluateQuizAnswer(input.student_answer, question),
     difficulty_at_time: question.difficulty,
   });
-  return toStudentQuizReview(question, stored.is_correct, stored.student_answer);
+  const review = toStudentQuizReview(question, stored.is_correct, stored.student_answer);
+  const points = await awardForAnswer({
+    key: `lesson:${stored.id}`,
+    clerkId: userId,
+    correct: stored.is_correct,
+    difficulty: question.difficulty_level,
+    skillId: attempt.node_id,
+  });
+  return { ...review, points };
 }
 
 export async function actionCompleteQuiz(input: {
   attemptId: string;
   nodeId: string;
   subject: Subject;
-}): Promise<{ score: number; newStatus: string; confidenceBand: ConfidenceBand }> {
+}): Promise<{
+  score: number;
+  newStatus: string;
+  confidenceBand: ConfidenceBand;
+  /** The skill's band before this set, for the level-up card. */
+  bandBefore: ConfidenceBand | null;
+}> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
 
@@ -144,7 +157,7 @@ export async function actionCompleteQuiz(input: {
       adaptive_path: [],
     });
     revalidatePath(`/learn/${input.subject}`);
-    return completed;
+    return { ...completed, bandBefore: completed.confidenceBand };
   }
   const [questions, responses] = await Promise.all([
     fetchQuestionsForNode(input.nodeId),
@@ -154,6 +167,7 @@ export async function actionCompleteQuiz(input: {
   if (plan.targetLength === 0 || plan.responses.length < plan.targetLength) {
     throw new Error("Quiz is not complete yet");
   }
+  const bandBefore = (await fetchNodeStatusBundle(userId, input.nodeId)).confidence_band;
   const result = await completeQuizAttemptAtomic(input.attemptId, userId, input.nodeId, {
     expectedCount: plan.targetLength,
     adaptive_path: plan.responses.map((response, index) => ({
@@ -164,23 +178,7 @@ export async function actionCompleteQuiz(input: {
   });
 
   revalidatePath(`/learn/${input.subject}`);
-  return result;
-}
-
-export async function actionFlagQuestion(input: {
-  question_id: string;
-  node_id: string;
-  flag_note: string | null;
-}) {
-  const { userId } = await safeAuth();
-  if (!userId) throw new Error("Not authenticated");
-  input = flagQuizQuestionSchema.parse(input);
-  await flagQuestion({
-    question_id: input.question_id,
-    student_id: userId,
-    node_id: input.node_id,
-    flag_note: input.flag_note,
-  });
+  return { ...result, bandBefore };
 }
 
 export async function actionUpdateWatchPercentage(nodeId: string, percentage: number) {

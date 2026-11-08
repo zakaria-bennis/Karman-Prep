@@ -20,7 +20,7 @@
  * - Inner lines (a radius, a cone's or pyramid's height) are drawn when
  *   labeled, or when the solid lists them in `show`.
  */
-import { noteLines } from "./geometry2d";
+import { specNote } from "./notes";
 import { HOUSE } from "./house";
 import { placeLabels, textWidth, type PendingLabel } from "./labels";
 import { add, cross, mul, unit, type Pt } from "./marks";
@@ -302,7 +302,7 @@ export function buildSolid3d(spec: FigureSpec, box: Box, opts: ScaleOptions = {}
 
   // Layout: the box less the margin, room for labels around the solid, and the note band.
   const font = HOUSE.font;
-  const note = spec.notToScale ? noteLines(box.width, spec.notToScale) : [];
+  const note = specNote(spec, box.width);
   const noteBand = note.length ? note.length * 1.25 * font + HOUSE.labelOffset : 0;
   const widest = Math.max(0, ...[...labeled.values()].map(textWidth));
   const roomX = labeled.size ? HOUSE.labelOffset + widest : 0;

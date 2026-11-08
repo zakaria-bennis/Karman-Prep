@@ -74,7 +74,7 @@ test.describe("wide window", () => {
     // A new question: the window stays open and in place, its calculator clean.
     await row(page).focus();
     await page.keyboard.type("y=2x");
-    await press(page, "Skip this question");
+    await press(page, "Next");
     await expect(rowItem(page)).toBeVisible();
     expect(await latex(page)).toEqual([""]);
     expect(await box(page)).toEqual(placed);
@@ -149,7 +149,7 @@ test.describe("wide window", () => {
     await moveAndResize(page);
     const placed = await box(page);
     await trigger(page).click();
-    await press(page, "Skip this question");
+    await press(page, "Next");
     await trigger(page).click();
     await expect(frame(page)).not.toHaveAttribute("data-entering");
     expect(await box(page)).toEqual(placed);
@@ -177,7 +177,7 @@ test.describe("phone", () => {
     expect(await latex(page)).toEqual(["y=3x"]);
     await shot(page, "3-reopened", info.project.name);
     await page.getByRole("button", { name: "Close calculator", exact: true }).click();
-    await press(page, "Skip this question");
+    await press(page, "Next");
     await side(page).click();
     await expect(rowItem(page)).toBeVisible();
     expect(await latex(page)).toEqual([""]);

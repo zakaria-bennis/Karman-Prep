@@ -1,0 +1,34 @@
+{
+  "source": "2024-05_ASIA_V3_RW_M1_Q13 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "bar",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "bar",
+        "values": [3.1, 2.65, 2.85]
+      }
+    ],
+    "labels": [
+      {
+        "text": "group",
+        "on": "s1"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [0, 3],
+      "y": [0, 3.5],
+      "yStep": 0.5,
+      "yLabelStep": 0.5,
+      "yDecimals": 1,
+      "categories": ["mistake with learning", "mistake without learning", "control"],
+      "yTitle": "Average humility score (higher values = more humility)",
+      "rotateCategories": true
+    },
+    "title": "Humility Scores for Participants’ Scenario Responses",
+    "legend": true
+  }
+}

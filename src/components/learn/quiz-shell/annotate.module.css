@@ -1,0 +1,64 @@
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.mark {
+  position: absolute;
+  border-radius: 3px;
+  transform-origin: left center;
+  /* A marker's edge is never perfectly straight. */
+  clip-path: polygon(0 6%, 100% 0, 99% 94%, 1% 100%);
+}
+.noted {
+  box-shadow: inset 0 -2px 0 var(--quiz-text);
+}
+.menu {
+  position: absolute;
+  z-index: 8;
+  transform-origin: top left;
+  translate: 0 -100%;
+  pointer-events: auto;
+  padding: 6px;
+  border: 1px solid var(--quiz-line);
+  border-radius: 12px;
+}
+.menu[data-placement="below"] {
+  translate: 0 0;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.colour {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--quiz-line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.colour:focus-visible {
+  outline: 2px solid var(--quiz-accent);
+  outline-offset: 2px;
+}
+.noteForm {
+  width: min(300px, 78vw);
+}
+.noteLabel {
+  display: block;
+  margin: 2px 2px 6px;
+  font-size: 0.8rem;
+  color: var(--quiz-text-muted);
+}
+.note {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 8px;
+  border: 1px solid var(--quiz-line);
+  border-radius: 8px;
+  background: var(--quiz-bg);
+  color: var(--quiz-text);
+  font: inherit;
+}

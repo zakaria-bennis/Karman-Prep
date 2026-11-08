@@ -93,18 +93,15 @@ export const rows = (page: Page) =>
 /** What a transfer must never change: the answer, cross-outs, submit readiness and skip. */
 export const answerState = (page: Page) =>
   page.evaluate(() => ({
-    checked: [...document.querySelectorAll<HTMLInputElement>("input[type=radio]")].filter(
-      (r) => r.checked
-    ).length,
+    checked:
+      [...document.querySelectorAll<HTMLInputElement>("input[type=radio]")].filter((r) => r.checked)
+        .length + document.querySelectorAll('[role=radio][aria-checked="true"]').length,
     crossed: document.querySelectorAll('[aria-label^="Restore choice"]').length,
     ready: [...document.querySelectorAll<HTMLButtonElement>("button")].filter(
       (b) =>
-        /^(Submit Answer|Check answer|Next Question)/.test(b.textContent?.trim() ?? "") &&
-        !b.disabled
+        /^(Submit|Check answer|Next Question)$/.test(b.textContent?.trim() ?? "") && !b.disabled
     ).length,
-    skip: [...document.querySelectorAll("button")].some((b) =>
-      b.textContent?.includes("Skip this question")
-    ),
+    skip: [...document.querySelectorAll("button")].some((b) => b.textContent?.includes("Next")),
   }));
 export const touchOnly = (name: string) =>
   test.skip(!/ios|android/.test(name), "touch projects only");

@@ -309,6 +309,32 @@ export type Database = {
           },
         ];
       };
+      calendar_feed_tokens: {
+        Row: {
+          created_at: string;
+          token: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          token: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          token?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_feed_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       channel_mutes: {
         Row: {
           channel_id: string;
@@ -2709,8 +2735,54 @@ export type Database = {
           },
         ];
       };
+      student_point_awards: {
+        Row: {
+          award_key: string;
+          created_at: string;
+          points: number;
+          skill_id: string | null;
+          student_id: string;
+        };
+        Insert: {
+          award_key: string;
+          created_at?: string;
+          points: number;
+          skill_id?: string | null;
+          student_id: string;
+        };
+        Update: {
+          award_key?: string;
+          created_at?: string;
+          points?: number;
+          skill_id?: string | null;
+          student_id?: string;
+        };
+        Relationships: [];
+      };
+      student_saved_questions: {
+        Row: {
+          created_at: string;
+          question_id: string;
+          source: string;
+          student_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          question_id: string;
+          source: string;
+          student_id: string;
+        };
+        Update: {
+          created_at?: string;
+          question_id?: string;
+          source?: string;
+          student_id?: string;
+        };
+        Relationships: [];
+      };
       users: {
         Row: {
+          timing_accommodation: string;
           available_days: string[] | null;
           available_times: string[] | null;
           avatar_url: string | null;
@@ -2756,6 +2828,7 @@ export type Database = {
           zelle_phone: string | null;
         };
         Insert: {
+          timing_accommodation?: string;
           available_days?: string[] | null;
           available_times?: string[] | null;
           avatar_url?: string | null;
@@ -2801,6 +2874,7 @@ export type Database = {
           zelle_phone?: string | null;
         };
         Update: {
+          timing_accommodation?: string;
           available_days?: string[] | null;
           available_times?: string[] | null;
           avatar_url?: string | null;
@@ -3390,6 +3464,13 @@ export type Database = {
       };
     };
     Views: {
+      student_point_totals: {
+        Row: {
+          student_id: string | null;
+          total: number | null;
+        };
+        Relationships: [];
+      };
       quiz_questions_phase3_signals: {
         Row: {
           question_id: string;
