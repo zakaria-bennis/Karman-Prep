@@ -35,7 +35,11 @@ export const dynamic = "force-dynamic";
 /** Four full-length forms (the assembler's limit across forms). */
 const FORMS = [1, 2, 3, 4];
 
-const query = z.object({ subject: z.enum(["math", "reading-writing"]).optional() });
+const query = z.object({
+  subject: z.enum(["math", "reading-writing"]).optional(),
+  /* The painted versions of the course choice the founder is comparing (2026-11-08). */
+  hero: z.enum(["a", "b", "c"]).optional(),
+});
 
 export default async function LibraryPage({
   searchParams,
@@ -174,6 +178,7 @@ export default async function LibraryPage({
           }}
           initial={picked}
           waitForChallenge={challengeAnswered < 2}
+          hero={q.success ? (q.data.hero ?? null) : null}
         />
       </Panel>
       <ChallengeMoment href={CHALLENGE.path} day={challengeDay} answered={challengeAnswered} />
