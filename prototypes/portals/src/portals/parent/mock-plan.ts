@@ -49,7 +49,7 @@ export type Billing =
   | { kind: "school"; school: string; through: string }
   | { kind: "free" };
 
-const DEPOSIT = 100;
+const DEPOSIT = 95;
 const INSTALLMENTS = 3;
 
 function plusMonths(iso: string, months: number): string {

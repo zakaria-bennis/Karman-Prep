@@ -290,7 +290,7 @@ console.assert(
   mid.students.find((s) => s.id === "theo")?.classId === "period3",
   "Theo is in Period 3"
 );
-console.assert(PAID.paid[0].amount === 1200, "120 seats at $10 is $1,200 a year");
+console.assert(PAID.paid[0].amount === 960, "120 seats at $8 is $960 a year");
 console.assert(
   PERIODS.end.students.length <= SCHOOL.seats,
   "year-end seats never exceed the licence"

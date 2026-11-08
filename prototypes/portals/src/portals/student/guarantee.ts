@@ -11,9 +11,10 @@ import { SAT_MARCH, fmtDate } from "@/mock";
 import { takenTests } from "./mock";
 
 export const GUARANTEE_TERMS = {
+  /** +100 points from a start under 1400, +50 from 1400 (plan ladder, 2026-11-08). */
   points: 100,
-  orScore: 1450,
-  excludedFrom: 1450,
+  pointsFrom1400: 50,
+  splitAt: 1400,
   cohort: {
     classesNeeded: 15,
     classesTotal: 18,
@@ -21,6 +22,7 @@ export const GUARANTEE_TERMS = {
     practicePercent: 90,
     satWindowDays: 60,
   },
+  private10: { testsNeeded: 2, satWithinDays: 30 },
   private20: { testsNeeded: 4, satWithinDays: 30 },
 } as const;
 
@@ -69,12 +71,12 @@ export function guaranteeStatus(plan: PlanId, studentId: string): GuaranteeStatu
           value: `${COHORT_PROGRESS.practicePercent}%, ${t.practicePercent}% needed`,
           tone: practiceOk ? "positive" : "notice",
         },
-        { label: "Official SAT", value: sat, tone: "muted" },
+        { label: "The SAT", value: sat, tone: "muted" },
       ],
     };
   }
   if (p.bundles.includes("oneToOne")) {
-    const t = GUARANTEE_TERMS.private20;
+    const t = plan === "private10" ? GUARANTEE_TERMS.private10 : GUARANTEE_TERMS.private20;
     const tests = takenTests(studentId).length;
     const attendedAll = PRIVATE_PROGRESS.sessionsAttended === PRIVATE_PROGRESS.sessionsHeld;
     return {
@@ -92,7 +94,7 @@ export function guaranteeStatus(plan: PlanId, studentId: string): GuaranteeStatu
           tone: "muted",
         },
         {
-          label: `Official SAT within ${t.satWithinDays} days of the last session`,
+          label: `The SAT within ${t.satWithinDays} days of the last session`,
           value: sat,
           tone: "muted",
         },
@@ -106,6 +108,6 @@ console.assert(guaranteeStatus("cohort", "ava")?.onTrack === true, "the cohort d
 console.assert(guaranteeStatus("private20", "maya")?.rows.length === 3, "three Private 20 rows");
 console.assert(
   guaranteeStatus("plus", "sofia") === null,
-  "no guarantee outside cohort and Private 20"
+  "no guarantee on Pro"
 );
-console.assert(guaranteeStatus("private10", "maya") === null, "Private 10 has no guarantee");
+console.assert(guaranteeStatus("private10", "maya")?.rows.length === 3, "Private 10 carries the guarantee too");
