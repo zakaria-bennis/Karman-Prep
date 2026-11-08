@@ -19,21 +19,18 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function StudentDashboardPage() {
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
-  const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
+  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const supabase = createAdminClient();
 
-  // Check subscription status — redirect to billing if not subscribed.
-  // Skip the gate when impersonating: the admin is debugging a student
-  // and should see their dashboard regardless of subscription state.
+  // Every signed-in student has a plan, at least Free (100 questions and one
+  // full-length test), so nobody is sent to billing from here. What each plan
+  // may open is checked per feature on the server (src/lib/plans).
   const { data: sub } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("user_id", userId)
     .single();
-
-  const isActive = sub?.status === "active" || sub?.status === "trialing";
-  if (!isActive && !isImpersonating) redirect("/billing?required=1");
 
   // Fetch user info
   const { data: user } = await supabase.from("users").select("*").eq("clerk_id", userId).single();

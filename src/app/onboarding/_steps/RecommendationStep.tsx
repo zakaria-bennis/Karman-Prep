@@ -1,21 +1,22 @@
 "use client";
 
 import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
-import { tierLabel, type Recommendation } from "@/lib/onboarding/recommend-tier";
-import { isFreeTrialEligibleTier } from "@/lib/integrations/stripe/checkout-policy";
+import { planSummary, type Recommendation } from "@/lib/onboarding/recommend-plan";
 import type { Role } from "./shared";
 
 export function RecommendationStep({
   recommendation,
-  onPick,
+  onContinue,
   submitting,
   role,
 }: {
   recommendation: Recommendation;
-  onPick: (tier: string) => void;
+  /** Goes to the plan's real next step: Billing, the cohort application or a call. */
+  onContinue: (href: string) => void | Promise<void>;
   submitting: boolean;
   role: Role;
 }) {
+  const plan = planSummary(recommendation.planId);
   return (
     <div>
       <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-info">
@@ -29,9 +30,8 @@ export function RecommendationStep({
       <div className="mt-5 rounded-2xl border border-info/40 bg-info/60 p-5 dark:bg-info/10">
         <div className="mb-2 flex items-center gap-2 text-info dark:text-info-bright">
           <CheckCircle2 className="h-4 w-4" />
-          <span className="text-sm font-bold uppercase tracking-wider">
-            {tierLabel(recommendation.tier)}
-          </span>
+          <span className="text-sm font-bold uppercase tracking-wider">{plan.name}</span>
+          <span className="text-sm font-semibold">{plan.price}</span>
         </div>
         <p className="text-sm leading-relaxed text-ivory dark:text-ivory">{recommendation.why}</p>
       </div>
@@ -59,7 +59,7 @@ export function RecommendationStep({
           </p>
           <p className="mt-1 text-xs leading-relaxed text-taupe dark:text-ivory">
             <span className="font-semibold text-ivory dark:text-ivory">
-              {tierLabel(recommendation.alsoConsidered.tier)} —{" "}
+              {planSummary(recommendation.alsoConsidered.planId).name}:{" "}
             </span>
             {recommendation.alsoConsidered.reason}
           </p>
@@ -68,20 +68,18 @@ export function RecommendationStep({
 
       <button
         type="button"
-        onClick={() => onPick(recommendation.tier)}
+        onClick={() => void onContinue(plan.href)}
         disabled={submitting}
         className="btn-primary mt-6 w-full justify-center py-4 text-base"
       >
         {submitting ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Setting up checkout…
+            One moment
           </>
         ) : (
           <>
-            {isFreeTrialEligibleTier(recommendation.tier)
-              ? `Start 7-day trial — ${tierLabel(recommendation.tier)}`
-              : `Continue to checkout — ${tierLabel(recommendation.tier)}`}
+            {plan.action}
             <ArrowRight className="h-5 w-5" />
           </>
         )}
@@ -89,10 +87,10 @@ export function RecommendationStep({
 
       <button
         type="button"
-        onClick={() => onPick("group")}
+        onClick={() => void onContinue("/pricing")}
         className="mt-3 w-full text-xs font-semibold text-taupe hover:text-ivory dark:text-taupe dark:hover:text-ivory"
       >
-        Or browse all plans →
+        Or see every plan and price
       </button>
     </div>
   );
