@@ -43,6 +43,7 @@ export default function JoinForm({
   title = "Join your tutor's group",
   id,
   note,
+  submitLabel = "Join",
 }: {
   initialCode: string;
   title?: string;
@@ -50,6 +51,8 @@ export default function JoinForm({
   id?: string;
   /** A line under the heading. */
   note?: string;
+  /** The button ("Use code" in Settings). */
+  submitLabel?: string;
 }) {
   const router = useRouter();
   const [code, setCode] = useState(initialCode);
@@ -94,7 +97,7 @@ export default function JoinForm({
         </label>
         <div className="kp-cta-row">
           <Cta type="submit" disabled={pending}>
-            {pending ? "Checking…" : "Join"}
+            {pending ? "Checking…" : submitLabel}
           </Cta>
           {askSwitch && (
             <button
