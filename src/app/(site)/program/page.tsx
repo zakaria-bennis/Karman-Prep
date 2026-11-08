@@ -72,7 +72,7 @@ export default function ProgramPage() {
         after={
           <>
             <Seats label={section(25).seats} className="rv" />
-            <LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard wide rv" />
+            <LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard i-formwide rv" />
           </>
         }
       />

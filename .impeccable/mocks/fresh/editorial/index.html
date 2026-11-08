@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Karman Prep | SAT prep on a phone, with live tutors on Zoom</title>
+    <meta
+      name="description"
+      content="SAT prep without the nagging: real SAT questions on your student's phone, live classes with a Karman tutor on Zoom, and a weekly note to you. Free practice test on Saturday, December 12."
+    />
+    <link rel="canonical" href="https://karmanprep.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Karman Prep | SAT prep without the nagging" />
+    <meta
+      property="og:description"
+      content="Real SAT questions on your student's phone, live classes with a Karman tutor on Zoom, and a weekly note to you."
+    />
+    <!-- OG image made for this page (img/og-home.jpg, 1200 x 630). On ship, publish it at https://karmanprep.com/og/home.jpg and use that absolute URL. -->
+    <meta property="og:image" content="img/og-home.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The Karman mark and wordmark over a family kitchen at breakfast, a teenager reading her phone."
+    />
+    <meta property="og:url" content="https://karmanprep.com/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="color-scheme" content="dark light" />
+    <!-- Theme before first paint: the remembered choice, else the device, else dark (rule 33). -->
+    <script>
+      (function () {
+        var t = null;
+        try {
+          t = localStorage.getItem("karman-theme");
+        } catch (e) {}
+        if (t !== "light" && t !== "dark") {
+          t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+        var seen = null;
+        try {
+          seen = localStorage.getItem("karman-opening");
+        } catch (e) {}
+        if (!seen) document.documentElement.classList.add("is-opening");
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../redesign/engine/engine.css" />
+    <link rel="stylesheet" href="editorial.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23E9A11E'/%3E%3Crect width='32' height='11' fill='%23151514'/%3E%3C/svg%3E"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://karmanprep.com/#org",
+            "name": "Karman Prep",
+            "url": "https://karmanprep.com/",
+            "email": "hello@karmanprep.com"
+          },
+          {
+            "@type": "Course",
+            "name": "The March SAT Program",
+            "url": "https://karmanprep.com/program",
+            "description": "Live SAT classes on Zoom with a Karman tutor: two 90-minute classes a week for nine weeks, in a group of up to six, starting Monday, January 4, 2027.",
+            "provider": { "@id": "https://karmanprep.com/#org" },
+            "offers": {
+              "@type": "Offer",
+              "price": "995",
+              "priceCurrency": "USD",
+              "category": "Paid"
+            },
+            "hasCourseInstance": {
+              "@type": "CourseInstance",
+              "courseMode": "online",
+              "startDate": "2027-01-04"
+            }
+          },
+          {
+            "@type": "Course",
+            "name": "Private SAT tutoring",
+            "url": "https://karmanprep.com/private-tutoring",
+            "description": "One-to-one SAT tutoring on Zoom with a Karman tutor, in 60-minute sessions booked when it suits you. Private 10 is 10 hours, Private 20 is 20 hours.",
+            "provider": { "@id": "https://karmanprep.com/#org" },
+            "offers": [
+              {
+                "@type": "Offer",
+                "name": "Private 10",
+                "price": "1495",
+                "priceCurrency": "USD",
+                "category": "Paid"
+              },
+              {
+                "@type": "Offer",
+                "name": "Private 20",
+                "price": "2495",
+                "priceCurrency": "USD",
+                "category": "Paid"
+              }
+            ],
+            "hasCourseInstance": {
+              "@type": "CourseInstance",
+              "courseMode": "online",
+              "courseWorkload": "PT1H per session"
+            }
+          },
+          {
+            "@type": "Event",
+            "name": "Free SAT practice test",
+            "description": "One Reading and Writing module and one Math module, about 49 questions, live on Zoom with a proctor. About 75 minutes.",
+            "startDate": "2026-12-12T10:00:00-05:00",
+            "eventStatus": "https://schema.org/EventScheduled",
+            "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://karmanprep.com/free-practice-test"
+            },
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "url": "https://karmanprep.com/free-practice-test"
+            },
+            "organizer": { "@id": "https://karmanprep.com/#org" }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What does it cost after the free test?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Practice is free to start. Paid plans are billed monthly, and you can cancel any time."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "My student already scores 1500. Is it worth it?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "If your student already scores 1500 or higher, or the test is less than four weeks away, Karman will tell you honestly that a program probably isn't the best use of your money."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it work on a phone?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Practice runs on a phone or a laptop, and classes are live on Zoom."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#article" data-copy="header.skip"></a>
+
+    <!-- Opening: the mark and wordmark form, then land in the header. First visit only, any input skips it. -->
+    <div class="opening" aria-hidden="true">
+      <div class="opening__logo">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect class="mark__sun" x="0" y="0" width="32" height="32" />
+          <rect class="mark__sky" x="0" y="0" width="32" height="11" />
+        </svg>
+        <svg class="wordmark" viewBox="-1 2 129 31" aria-hidden="true">
+          <use href="#wordmark-paths" />
+        </svg>
+      </div>
+    </div>
+
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <!-- The Karman wordmark, drawn by hand as one monoline stroke family (no font). -->
+        <g
+          id="wordmark-paths"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3.3"
+          stroke-linecap="butt"
+          stroke-linejoin="miter"
+        >
+          <path pathLength="1" d="M1.7 4V30" />
+          <path pathLength="1" d="M1.7 21.5L17.2 4" />
+          <path pathLength="1" d="M8.1 14.4L18 30" />
+          <path pathLength="1" d="M38.6 22.3a7.3 7.6 0 1 1 0 -0.01M38.6 14.7V30" />
+          <path pathLength="1" d="M45.9 14.7V30M45.9 22.5C45.9 17.5 48.6 14.7 53.6 14.7" />
+          <path
+            pathLength="1"
+            d="M58.6 14.7V30M58.6 21C58.6 17 61 14.7 64.5 14.7S70.4 17 70.4 21V30M70.4 21C70.4 17 72.8 14.7 76.3 14.7S82.2 17 82.2 21V30"
+          />
+          <path pathLength="1" d="M103.6 22.3a7.3 7.6 0 1 1 0 -0.01M103.6 14.7V30" />
+          <path
+            pathLength="1"
+            d="M111 14.7V30M111 21.2C111 17 114 14.7 117.8 14.7S124.6 17 124.6 21.2V30"
+          />
+        </g>
+      </defs>
+    </svg>
+
+    <header class="masthead-bar" id="top">
+      <a class="brand" href="#top" data-copy-label="header.home">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect class="mark__sun" x="0" y="0" width="32" height="32" />
+          <rect class="mark__sky" x="0" y="0" width="32" height="11" />
+        </svg>
+        <svg class="wordmark" viewBox="-1 2 129 31" aria-hidden="true">
+          <use href="#wordmark-paths" />
+        </svg>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#method" data-copy="header.nav.method"></a>
+        <a href="#tutors" data-copy="header.nav.tutors"></a>
+        <a href="#results" data-copy="header.nav.results"></a>
+        <a href="#questions" data-copy="header.nav.questions"></a>
+      </nav>
+      <div class="bar-end">
+        <a class="bar-test" data-copy="header.nav.test" data-href="links.test.url"></a>
+        <div class="theme" role="radiogroup" data-copy-label="header.theme.label">
+          <!-- Segmented theme switch, ported from 21st.dev component 37721 (zweiundeins, Theme Switch), two options, remembered. -->
+          <button type="button" role="radio" data-theme-set="light">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <circle
+                cx="8"
+                cy="8"
+                r="5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              /></svg
+            ><span data-copy="header.theme.light"></span>
+          </button>
+          <button type="button" role="radio" data-theme-set="dark">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M8 3a5 5 0 0 1 0 10z" fill="currentColor" /></svg
+            ><span data-copy="header.theme.dark"></span>
+          </button>
+        </div>
+        <button
+          class="menu-open"
+          type="button"
+          aria-expanded="false"
+          aria-controls="sheet"
+          data-copy="header.menu"
+        ></button>
+      </div>
+    </header>
+
+    <div
+      class="sheet"
+      id="sheet"
+      role="dialog"
+      aria-modal="true"
+      data-copy-label="header.menu"
+      hidden
+    >
+      <div class="sheet__top">
+        <span class="sheet__brand"
+          ><svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+            <rect class="mark__sun" width="32" height="32" />
+            <rect class="mark__sky" width="32" height="11" /></svg
+        ></span>
+        <button class="sheet__close" type="button" data-copy="header.close"></button>
+      </div>
+      <nav aria-label="Sections">
+        <a href="#method" data-copy="header.nav.method"></a>
+        <a href="#tutors" data-copy="header.nav.tutors"></a>
+        <a href="#results" data-copy="header.nav.results"></a>
+        <a href="#questions" data-copy="header.nav.questions"></a>
+        <a data-copy="header.nav.test" data-href="links.test.url"></a>
+      </nav>
+    </div>
+
+    <main id="article">
+      <!-- Masthead. Composition ported from 21st.dev component 19077 (felipemenezes098, Editorial Image Hero): full-width landscape image above, headline and copy below. -->
+      <section class="hero" aria-labelledby="hero-title">
+        <figure class="hero__photo">
+          <img
+            src="img/hero.webp"
+            srcset="img/hero-800.webp 800w, img/hero.webp 1360w"
+            sizes="100vw"
+            width="1360"
+            height="768"
+            data-copy-alt="hero.photo.alt"
+            fetchpriority="high"
+          />
+        </figure>
+        <div class="hero__body grid">
+          <h1 id="hero-title" class="display reveal-lines" data-copy="hero.headline"></h1>
+          <div class="hero__talk">
+            <p class="lead" data-copy="hero.standfirst"></p>
+          </div>
+          <div class="hero__act">
+            <a class="button" data-copy="hero.button" data-href="links.test.url"></a>
+            <dl class="hero__facts">
+              <div>
+                <dt class="sr-only">Date</dt>
+                <dd data-copy="hero.facts.date"></dd>
+              </div>
+              <div>
+                <dt class="sr-only">Time</dt>
+                <dd data-copy="hero.facts.time"></dd>
+              </div>
+              <div>
+                <dt class="sr-only">Where</dt>
+                <dd data-copy="hero.facts.where"></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="method grid" id="method" aria-labelledby="method-title">
+        <div class="method__text">
+          <h2 id="method-title" class="head enter" data-copy="method.title"></h2>
+          <p class="body enter" data-copy="method.p1"></p>
+          <p class="body enter" data-copy="method.p2"></p>
+        </div>
+        <div class="demo">
+          <div class="demo__side enter">
+            <h3 class="subhead" data-copy="method.demo.title"></h3>
+            <p class="body" data-copy="method.demo.intro"></p>
+          </div>
+          <figure class="demo__figure enter">
+            <!-- Live fragment of the real Karman quiz engine (redesign/engine/fragments/alg-1.html), loaded by editorial.js. -->
+            <div
+              class="demo__frame"
+              data-ui
+              data-fragment="../../redesign/engine/fragments/alg-1.html"
+            >
+              <div class="skeleton" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <span class="sr-only" data-copy="method.demo.loading"></span>
+            </div>
+          </figure>
+          <div class="demo__after">
+            <p class="demo__result body" aria-live="polite"></p>
+            <button
+              class="text-link demo__again"
+              type="button"
+              data-copy="method.demo.again"
+              hidden
+            ></button>
+            <a
+              class="button demo__button"
+              data-secondary
+              data-copy="method.demo.button"
+              data-href="links.test.url"
+            ></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="tutors" id="tutors" aria-labelledby="tutors-title">
+        <div class="diptych">
+          <figure>
+            <img
+              src="img/zoom-student.webp"
+              srcset="img/zoom-student-800.webp 800w, img/zoom-student.webp 1024w"
+              sizes="50vw"
+              width="1024"
+              height="768"
+              loading="lazy"
+              data-copy-alt="tutors.student.alt"
+            />
+          </figure>
+          <figure>
+            <img
+              src="img/zoom-tutor.webp"
+              srcset="img/zoom-tutor-800.webp 800w, img/zoom-tutor.webp 1024w"
+              sizes="50vw"
+              width="1024"
+              height="768"
+              loading="lazy"
+              data-copy-alt="tutors.tutor.alt"
+            />
+          </figure>
+        </div>
+        <div class="tutors__body grid">
+          <h2 id="tutors-title" class="head enter" data-copy="tutors.title"></h2>
+          <div class="tutors__text">
+            <p class="body enter" data-copy="tutors.p1"></p>
+            <p class="body enter" data-copy="tutors.p2"></p>
+            <p class="links enter">
+              <a
+                class="text-link"
+                data-copy="tutors.link.program"
+                data-href="tutors.link.program.url"
+              ></a>
+              <a
+                class="text-link"
+                data-copy="tutors.link.private"
+                data-href="tutors.link.private.url"
+              ></a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="note grid" id="note" aria-labelledby="note-title">
+        <div class="note__text">
+          <h2 id="note-title" class="head enter" data-copy="note.title"></h2>
+          <p class="body enter" data-copy="note.p1"></p>
+          <p class="body enter" data-copy="note.p2"></p>
+          <p class="statement enter" data-copy="note.p3"></p>
+          <a
+            class="button note__button"
+            data-secondary
+            data-copy="note.button"
+            data-href="links.test.url"
+          ></a>
+        </div>
+        <figure class="note__photo enter">
+          <img
+            src="img/parent.webp"
+            srcset="img/parent-800.webp 800w, img/parent.webp 1020w"
+            sizes="(min-width: 1024px) 56vw, 100vw"
+            width="1020"
+            height="765"
+            loading="lazy"
+            data-copy-alt="note.photo.alt"
+          />
+        </figure>
+      </section>
+
+      <section class="results field-accent" id="results" aria-labelledby="results-title">
+        <div class="results__head grid">
+          <h2 id="results-title" class="head enter" data-copy="results.title"></h2>
+          <p class="body enter" data-copy="results.intro"></p>
+        </div>
+        <div class="grid">
+          <table class="scores enter">
+            <caption class="sr-only" data-copy="results.title"></caption>
+            <thead class="sr-only">
+              <tr>
+                <th scope="col" data-copy="results.col.student"></th>
+                <th scope="col" data-copy="results.col.score"></th>
+                <th scope="col" data-copy="results.col.college"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" data-copy="results.row1.name"></th>
+                <td class="num" data-copy="results.row1.score"></td>
+                <td data-copy="results.row1.college"></td>
+              </tr>
+              <tr>
+                <th scope="row" data-copy="results.row2.name"></th>
+                <td class="num" data-copy="results.row2.score"></td>
+                <td data-copy="results.row2.college"></td>
+              </tr>
+              <tr>
+                <th scope="row" data-copy="results.row3.name"></th>
+                <td class="num" data-copy="results.row3.score"></td>
+                <td data-copy="results.row3.college"></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="results__source" data-copy="results.source"></p>
+          <div class="promise enter">
+            <h3 class="subhead" data-copy="results.promise.title"></h3>
+            <p class="body" data-copy="results.promise.p"></p>
+            <a
+              class="text-link"
+              data-copy="results.promise.link"
+              data-href="results.promise.link.url"
+            ></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="questions grid" id="questions" aria-labelledby="questions-title">
+        <h2 id="questions-title" class="head enter" data-copy="questions.title"></h2>
+        <div class="answers">
+          <p class="enter">
+            <strong data-copy="questions.q1"></strong> <span data-copy="questions.a1"></span>
+          </p>
+          <p class="enter">
+            <strong data-copy="questions.q2"></strong> <span data-copy="questions.a2"></span>
+          </p>
+          <p class="enter">
+            <strong data-copy="questions.q3"></strong> <span data-copy="questions.a3"></span>
+          </p>
+          <a class="text-link enter" data-copy="questions.link" data-href="questions.link.url"></a>
+        </div>
+      </section>
+
+      <section class="close" id="close" aria-labelledby="close-title">
+        <figure class="close__photo">
+          <img
+            src="img/dinner.webp"
+            srcset="img/dinner-800.webp 800w, img/dinner.webp 1152w"
+            sizes="100vw"
+            width="1152"
+            height="768"
+            loading="lazy"
+            data-copy-alt="close.dinner.alt"
+          />
+        </figure>
+        <div class="close__band">
+          <div class="grid">
+            <h2 id="close-title" class="head" data-copy="close.title"></h2>
+            <div class="close__talk">
+              <p class="lead" data-copy="close.p1"></p>
+              <a class="button" data-copy="close.button" data-href="links.test.url"></a>
+              <p class="caption" data-copy="close.small"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__name" aria-hidden="true">
+        <svg class="wordmark" viewBox="-1 2 129 31"><use href="#wordmark-paths" /></svg>
+      </div>
+      <div class="footer__cols grid">
+        <div class="footer__contact">
+          <a data-copy="footer.contact" data-href="footer.contact.url"></a>
+        </div>
+        <nav class="footer__col" aria-labelledby="f-nav">
+          <h2 id="f-nav" data-copy="footer.nav.title"></h2>
+          <a href="#method" data-copy="header.nav.method"></a>
+          <a href="#tutors" data-copy="header.nav.tutors"></a>
+          <a href="#results" data-copy="header.nav.results"></a>
+          <a href="#questions" data-copy="header.nav.questions"></a>
+        </nav>
+        <nav class="footer__col" aria-labelledby="f-pages">
+          <h2 id="f-pages" data-copy="footer.pages.title"></h2>
+          <a data-copy="footer.pages.program" data-href="footer.pages.program.url"></a>
+          <a data-copy="footer.pages.private" data-href="footer.pages.private.url"></a>
+          <a data-copy="footer.pages.pricing" data-href="footer.pages.pricing.url"></a>
+          <a data-copy="footer.pages.guarantee" data-href="footer.pages.guarantee.url"></a>
+          <a data-copy="footer.pages.about" data-href="footer.pages.about.url"></a>
+        </nav>
+        <nav class="footer__col" aria-labelledby="f-legal">
+          <h2 id="f-legal" data-copy="footer.legal.title"></h2>
+          <a data-copy="footer.legal.terms" data-href="footer.legal.terms.url"></a>
+          <a data-copy="footer.legal.privacy" data-href="footer.legal.privacy.url"></a>
+          <a data-copy="footer.legal.cookies" data-href="footer.legal.cookies.url"></a>
+        </nav>
+      </div>
+      <div class="footer__end grid">
+        <p data-copy="footer.line"></p>
+        <a href="#top" data-copy="footer.top"></a>
+      </div>
+    </footer>
+
+    <script src="copy.js"></script>
+    <script src="editorial.js"></script>
+  </body>
+</html>

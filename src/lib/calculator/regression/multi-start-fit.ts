@@ -45,17 +45,29 @@ function affineIn(model: IndexedModel, n: number, k: number, set: number[]): boo
   return true;
 }
 
-/** The best parameters the multi-start search finds for y ≈ model, and their sum of squares. */
+/**
+ * The best parameters the multi-start search finds for y ≈ model, and their sum of squares. A
+ * restricted fit (restriction.ts) decides which parameters are linear on the model without its
+ * restriction, then searches the restricted ones whatever that decided and begins from its own
+ * start.
+ */
 export function fitMultiStart(
   model: IndexedModel,
   y: ArrayLike<number>,
   k: number,
   derivative?: IndexedGradient,
-  tie?: { relative: number; slack: number }
+  tie?: { relative: number; slack: number },
+  restricted?: { params: readonly number[]; start: readonly number[]; unrestricted?: IndexedModel }
 ): { params: Float64Array; sse: number } {
   const n = y.length;
   const linearSet: number[] = [];
-  for (let j = 0; j < k; j++) if (affineIn(model, n, k, [...linearSet, j])) linearSet.push(j);
+  const plain = restricted?.unrestricted ?? model;
+  for (let j = 0; j < k; j++) if (affineIn(plain, n, k, [...linearSet, j])) linearSet.push(j);
+  const searched = restricted?.params ?? [];
+  for (const j of searched) {
+    const at = linearSet.indexOf(j);
+    if (at >= 0) linearSet.splice(at, 1);
+  }
   const value = (p: readonly number[], i: number) => model(Float64Array.from(p), i);
   const fit = multiStartLm(
     {
@@ -74,7 +86,7 @@ export function fitMultiStart(
           return (value(up, i) - value(down, i)) / (2 * h);
         }),
     },
-    new Array<number>(k).fill(1),
+    restricted === undefined ? new Array<number>(k).fill(1) : [...restricted.start],
     tie && { relative: tie.relative, slack: tie.slack / n }
   );
   return { params: Float64Array.from(fit.params), sse: fit.mse * n };

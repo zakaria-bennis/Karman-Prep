@@ -458,6 +458,12 @@ play: Play the film
 dark mode: Dark mode
 light mode: Light mode
 loading film: The film is on its way.
+not found title: This page isn't here.
+not found text: The address may be mistyped, or the page has moved. These are the pages people look for most.
+not found home: Go to the home page
+error title: Something went wrong on our side.
+error text: The page didn't load. Try again, or come back in a minute.
+error retry: Try again
 form sending: Sending
 form error score: SAT and PSAT scores run from 320 to 1600, in steps of 10.
 form error target: Add the score they're aiming for, between 400 and 1600.

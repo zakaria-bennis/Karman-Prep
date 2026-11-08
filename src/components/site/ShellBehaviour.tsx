@@ -103,8 +103,14 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
     const sheet = ks.querySelector<HTMLElement>("#menu");
     const mbtn = ks.querySelector<HTMLButtonElement>(".hd .menu");
     if (sheet && mbtn) {
+      // while the menu is open, everything behind it is inert, so Tab stays inside the menu (aria-modal)
+      const behind = () =>
+        [...ks.children].filter(
+          (el): el is HTMLElement => el instanceof HTMLElement && el !== sheet
+        );
       const shut = () => {
         sheet.hidden = true;
+        behind().forEach((el) => (el.inert = false));
         document.documentElement.classList.remove("ks-lock");
         mbtn.setAttribute("aria-expanded", "false");
         mbtn.focus();
@@ -113,6 +119,7 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
         "click",
         () => {
           sheet.hidden = false;
+          behind().forEach((el) => (el.inert = true));
           document.documentElement.classList.add("ks-lock");
           mbtn.setAttribute("aria-expanded", "true");
           sheet.querySelector<HTMLElement>(".close")?.focus();
@@ -124,7 +131,10 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
         signal,
       });
       on("keydown", (e) => e.key === "Escape" && !sheet.hidden && shut());
-      offs.push(() => document.documentElement.classList.remove("ks-lock"));
+      offs.push(() => {
+        behind().forEach((el) => (el.inert = false));
+        document.documentElement.classList.remove("ks-lock");
+      });
     }
 
     /* ---------- presses: a button's orb only if the next page takes over 400 ms; any other link to a page

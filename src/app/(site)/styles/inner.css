@@ -141,7 +141,7 @@
 .ks .i-pack p:last-child { color: var(--ink2); }
 @media (max-width: 760px) { .ks .i-packs { grid-template-columns: 1fr; } }
 .ks .i-record .i-split { align-items: center; }
-.ks .i-big { font-size: clamp(110px, 16vw, 260px); font-weight: 800; letter-spacing: -0.07em; line-height: .85; color: var(--marigold); order: 2; }
+.ks .i-big { font-size: clamp(110px, 16vw, 260px); font-weight: 800; letter-spacing: -0.07em; line-height: .85; color: var(--marigold-ink); order: 2; }
 @media (max-width: 900px) { .ks .i-big { order: 0; } }
 
 /* About: three refusals, as rows: the icon, the refusal struck through, then what we do instead */
@@ -173,7 +173,7 @@
 
 /* forms in cards */
 .ks .i-formcard { padding: clamp(24px, 2.6vw, 36px); border-radius: 18px; background: var(--card); box-shadow: 0 0 0 1px var(--line); width: 100%; max-width: 480px; justify-self: end; }
-.ks .i-formcard.wide { max-width: 760px; margin-top: clamp(34px, 4vw, 56px); justify-self: start; }
+.ks .i-formcard.i-formwide { max-width: 760px; margin-top: clamp(34px, 4vw, 56px); justify-self: start; }
 .ks .i-formcard .i-formh { font-size: clamp(26px, 2.2vw, 34px); margin: 0 0 18px; }
 .ks .i-formcard .btn { justify-self: start; }
 .ks .k-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -219,13 +219,13 @@
   .ks .i-sec.rows .i-grid > div:first-child, .ks .i-sec.rows .i-time li:first-child { padding-top: 6px; }
   .ks .i-sec.rows .i-grid > div:first-child { border-top: 0; }
   .ks .i-sec.rows .i-grid > div { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
-  .ks .i-split .i-head { position: sticky; top: 120px; }
+  .ks .i-split > .i-head { position: sticky; top: 120px; }
 }
 @media (min-width: 1100px) {
-  .ks .i-formcard.wide { max-width: none; }
-  .ks .i-formcard.wide .k-form { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; }
-  .ks .i-formcard.wide .k-pair { display: contents; }
-  .ks .i-formcard.wide .k-form > .k-slot, .ks .i-formcard.wide .k-form > .btn, .ks .i-formcard.wide .k-form > .help { grid-column: 1 / -1; }
+  .ks .i-formcard.i-formwide { max-width: none; }
+  .ks .i-formcard.i-formwide .k-form { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; }
+  .ks .i-formcard.i-formwide .k-pair { display: contents; }
+  .ks .i-formcard.i-formwide .k-form > .k-slot, .ks .i-formcard.i-formwide .k-form > .btn, .ks .i-formcard.i-formwide .k-form > .help { grid-column: 1 / -1; }
 }
 
 /* a product screen on an inner page stays inside the page */
@@ -234,3 +234,8 @@
 /* rows with a photo beside them */
 .ks .i-sided { align-items: center; }
 .ks .rs-top { align-items: end; margin-bottom: clamp(28px, 4vw, 56px); }
+
+/* the 404 and error pages (src/app/not-found.tsx, (site)/error.tsx): the opening, with its links as pills */
+.ks .i-lost { min-height: 72svh; }
+.ks .i-lostlinks { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.ks .i-lostlinks button.lk { background: none; color: inherit; font: inherit; font-weight: 800; cursor: pointer; }

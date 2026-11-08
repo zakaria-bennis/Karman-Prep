@@ -1,0 +1,26 @@
+/* 21st.dev component 22433 (larsen66/admit-one-ticket, "Admit One Ticket"), ported to plain CSS and JS: the
+   ticket geometry only (a main part and a stub, and a half-round notch bitten out of the top and bottom edges
+   where they meet, drawn as a clip-path path from the element's size in components/ticket.js, the original's
+   ticketClipPath). The dithered canvas art, the 3D hover tilt, the glare and the dotted perforation line were
+   dropped: Karman's ticket is flat, night and bone, the two notches alone say ticket. */
+
+.ticket { position: relative; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); background: var(--night); color: var(--bone); border-radius: var(--radius); min-height: 300px; }
+.ticket .main { padding: clamp(24px, 3vw, 44px); display: flex; flex-direction: column; gap: 20px; }
+.ticket .main h3, .ticket .main h2 { font-size: clamp(28px, 3.6vw, 50px); letter-spacing: -0.035em; }
+.ticket .main .rows { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; font-size: 17px; line-height: 1.4; }
+.ticket .main .rows li { padding-left: 18px; position: relative; }
+.ticket .main .rows li::before { content: ""; position: absolute; left: 0; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--marigold); }
+.ticket .stub { position: relative; background: var(--bone); color: #12110f; padding: clamp(24px, 3vw, 40px) clamp(20px, 2.4vw, 32px); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 12px; border-radius: 0 var(--radius) var(--radius) 0; }
+.ticket .stub .price { font-size: clamp(40px, 3.6vw, 50px); font-weight: 800; letter-spacing: -0.045em; line-height: 1; font-variant-numeric: tabular-nums; }
+.ticket .stub .price-note, .ticket .stub .later { font-size: 15px; color: #57534b; text-wrap: pretty; }
+.ticket .stub .lk, .ticket .stub .btn { margin-top: 6px; }
+.ticket .stub .lk { color: #12110f; }
+.dates .wrap { display: grid; gap: 36px; }
+.dates .lede { max-width: 36em; }
+@media (max-width: 760px) {
+  .ticket { grid-template-columns: 1fr; }
+  .ticket .main .rows { grid-template-columns: 1fr; }
+  /* on a phone the stub (the price) is the top of the ticket, the main part under it */
+  .ticket .stub { order: 0; border-radius: var(--radius) var(--radius) 0 0; }
+  .ticket .main { order: 1; }
+}

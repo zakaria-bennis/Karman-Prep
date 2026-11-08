@@ -1,0 +1,38 @@
+/* 21st.dev component 28290 (shadcnui-blocks/navbar-02, "Navbar with Theme Toggle"), ported to plain HTML and
+   recoloured with Karman's tokens: a 64px bar with the lockup, horizontal links, the sign-in action, a theme
+   toggle button and a mobile sheet menu. The Radix navigation menu and sheet became plain markup; the Lucide
+   sun icon became Karman's own drawn sun and moon (components/theme-toggle.js). The bar hides while reading
+   down and returns on the way up. */
+
+.hd {
+  position: fixed; inset: 0 0 auto 0; z-index: 40; height: var(--hd);
+  background: var(--paper); color: var(--ink);
+  transition: transform .4s var(--ease);
+}
+.hd.away { transform: translateY(-100%); }
+.hd.away:focus-within { transform: none; }
+.hd .wrap { height: 100%; display: flex; align-items: center; gap: 12px; }
+.hd .spacer { flex: 1; }
+.hd nav { display: flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 600; }
+.hd nav a, .hd .signin, .hd .menu, .hd .theme {
+  min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; text-decoration: none; border-radius: 8px;
+}
+.hd nav a[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--marigold); text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.hd nav a:hover, .hd .signin:hover { background: var(--paper2); }
+.hd .signin { font-weight: 700; font-size: 15px; }
+.hd .theme { width: 44px; justify-content: center; padding: 0; }
+.hd .menu { display: none; font-weight: 700; font-size: 15px; gap: 8px; }
+@media (max-width: 900px) {
+  .hd nav, .hd .signin { display: none; }
+  .hd .menu { display: inline-flex; }
+}
+
+/* the sheet: a full-height solid page on phones; closes on Escape, a link or Close; focus stays inside */
+.sheet { position: fixed; inset: 0; z-index: 120; background: var(--paper); color: var(--ink); padding: 10px var(--gutter) 32px; display: flex; flex-direction: column; gap: 28px; overflow-y: auto; }
+.sheet[hidden] { display: none; }
+.sheet .top { display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
+.sheet .shut { min-height: 44px; padding: 0 16px; font-weight: 700; border-radius: 8px; background: var(--paper2); }
+.sheet nav { display: grid; gap: 2px; font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+.sheet nav a { min-height: 60px; display: flex; align-items: center; text-decoration: none; }
+.sheet .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.sheet .theme { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px; border-radius: 10px; background: var(--paper2); font-weight: 700; }

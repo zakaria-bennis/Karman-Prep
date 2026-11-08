@@ -1,0 +1,1631 @@
+/* Karman, "One day, in colour", round 2 (2026-11-01).
+   One student, one school day, six chapters. Each chapter is a rounded colour block holding the
+   feature she uses at that hour inside an iPhone 17 Pro Max (cosmic orange). Modern build per
+   docs/design/research/modern-ui-2026-11-01.md: floating pill nav, framed hero stage, pill above the
+   headline, one chip word, tabs that swap the phone screen, 20 to 32 px corners, pill buttons,
+   lighter display type (Funnel Display 400 to 560), soft light field and grain. */
+
+/* ---------- tokens ---------- */
+:root {
+  --ground: #f5f5f2;
+  --tone: #eceae3; /* cards one step off the ground */
+  --tone-2: #e2dfd6;
+  --ink: #12110f;
+  --mut: #686865; /* ink at 62%: 5.12:1 on ground, 4.66:1 on tone */
+  --line: rgba(18, 17, 15, 0.1);
+  --marigold: #eba21f;
+  --marigold-ink: #94600a;
+  --on-marigold: #12110f;
+  --pine: #1f4d45;
+  --clay: #9a3b26;
+  --night: #0e0d0c;
+  --bone: #f5f5f2;
+  --kw: var(--marigold-ink);
+  --bar-bg: rgba(245, 245, 242, 0.9);
+  --ind: #e2dfd6;
+  --f-display: "Funnel Display", "Funnel Sans", ui-sans-serif, system-ui, sans-serif;
+  --f-text: "Funnel Sans", ui-sans-serif, system-ui, sans-serif;
+  --m: clamp(12px, 2vw, 20px); /* page gutter around cards */
+  --pad: clamp(22px, 4.2vw, 64px); /* inside cards */
+  --r-card: clamp(20px, 2.2vw, 32px);
+  --r-tile: 20px;
+  --s-h1: clamp(40px, 5.2vw, 76px);
+  --s-h2: clamp(32px, 3.7vw, 54px);
+  --s-lead: clamp(17px, 1.35vw, 20px);
+  --s-small: 14px;
+  --s-clock: clamp(24px, 2.3vw, 32px);
+  --pw: clamp(200px, 21vw, 300px); /* phone width in a chapter */
+  color-scheme: light;
+}
+/* dark tokens: the device says dark, or says nothing (rule 33), or the toggle chose dark */
+:root:not([data-theme="light"]) {
+  --ground: #151412;
+  --tone: #1e1c19;
+  --tone-2: #2a2723;
+  --ink: #f1ede4;
+  --mut: #9a968f; /* 6.3:1 on ground, 5.9:1 on tone */
+  --line: rgba(241, 237, 228, 0.12);
+  --marigold-ink: #f0b545;
+  --kw: var(--marigold-ink);
+  --pine: #245a51;
+  --clay: #9a3b26;
+  --night: #0a0a09;
+  --bar-bg: rgba(21, 20, 18, 0.86);
+  --ind: #34312c;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ground: #f5f5f2;
+    --tone: #eceae3;
+    --tone-2: #e2dfd6;
+    --ink: #12110f;
+    --mut: #686865;
+    --line: rgba(18, 17, 15, 0.1);
+    --marigold-ink: #94600a;
+    --kw: var(--marigold-ink);
+    --pine: #1f4d45;
+    --night: #0e0d0c;
+    --bar-bg: rgba(245, 245, 242, 0.9);
+    --ind: #e2dfd6;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --ground: #f5f5f2;
+  --tone: #eceae3;
+  --tone-2: #e2dfd6;
+  --ink: #12110f;
+  --mut: #686865;
+  --line: rgba(18, 17, 15, 0.1);
+  --marigold-ink: #94600a;
+  --kw: var(--marigold-ink);
+  --pine: #1f4d45;
+  --night: #0e0d0c;
+  --bar-bg: rgba(245, 245, 242, 0.9);
+  --ind: #e2dfd6;
+  color-scheme: light;
+}
+
+/* ---------- base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 88px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 16px/1.5 var(--f-text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+/* fine grain over the whole ground (modern-UI 2.12): an SVG noise layer at 4% */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+:root:not([data-theme="light"]) body::after {
+  mix-blend-mode: screen;
+  opacity: 0.035;
+  filter: invert(1);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) body::after {
+    mix-blend-mode: multiply;
+    opacity: 0.04;
+    filter: none;
+  }
+}
+:root[data-theme="light"] body::after {
+  mix-blend-mode: multiply;
+  opacity: 0.04;
+  filter: none;
+}
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+h1,
+h2,
+h3,
+p,
+ul,
+figure {
+  margin: 0;
+}
+ul {
+  padding: 0;
+  list-style: none;
+}
+a {
+  color: inherit;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 2px solid var(--marigold);
+  outline-offset: 3px;
+}
+.defs {
+  position: absolute;
+}
+[hidden] {
+  display: none !important;
+}
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--marigold);
+  color: var(--on-marigold);
+  font-weight: 600;
+}
+.skip:focus {
+  top: 12px;
+}
+
+/* the mark and the wordmark: monoline strokes in the current ink, the K's long hand in marigold */
+#mark path,
+#word path,
+#chev path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#word path {
+  stroke-width: 2.1;
+}
+#chev path {
+  stroke-width: 1.6;
+}
+.mk-hand {
+  stroke: var(--marigold) !important;
+}
+
+/* ---------- type ---------- */
+.clock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.22em;
+  font: 400 var(--s-clock) / 1 var(--f-display);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-mut, var(--mut));
+  white-space: nowrap;
+}
+.clock .ap {
+  font-size: 0.56em;
+  letter-spacing: 0;
+}
+.h1,
+.h2 {
+  font-family: var(--f-display);
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.h1 {
+  font-size: var(--s-h1);
+  font-weight: 560;
+  max-width: 14ch;
+  margin-top: 14px;
+}
+.h2 {
+  font-size: var(--s-h2);
+  font-weight: 540;
+  letter-spacing: -0.03em;
+  max-width: 13ch;
+  margin-top: 14px;
+}
+.sub {
+  font-size: var(--s-lead);
+  line-height: 1.45;
+  max-width: 34ch;
+  margin-top: 20px;
+  color: var(--c-mut, var(--mut));
+  text-wrap: pretty;
+}
+.note {
+  font-size: var(--s-small);
+  color: var(--c-mut, var(--mut));
+  margin-top: 14px;
+}
+.textlink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.textlink:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* the one coloured phrase per headline, with its drawn underline (the Land move) */
+.kwrap {
+  white-space: nowrap;
+}
+.kw {
+  position: relative;
+  color: var(--kw);
+  transition: color 0.3s ease;
+}
+.kw-line {
+  position: absolute;
+  left: 0;
+  bottom: -0.12em;
+  width: 100%;
+  height: 0.14em;
+  overflow: visible;
+  pointer-events: none;
+}
+.kw-line path {
+  fill: none;
+  stroke: var(--kw-line, var(--marigold));
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.js-motion .kw:not(.landed) {
+  color: inherit;
+}
+.js-motion .kw:not(.landed) .kw-line {
+  clip-path: inset(0% 100% 0% 0%);
+}
+/* the hero's word is the page's one marigold chip (modern-UI 2.10); it has no underline */
+.h1 .kw {
+  color: var(--on-marigold);
+  background: var(--marigold);
+  border-radius: 0.22em;
+  padding: 0 0.16em 0.02em;
+  margin: 0 -0.04em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.h1 .kw-line {
+  display: none;
+}
+.js-motion .h1 .kw:not(.landed) {
+  color: var(--on-marigold);
+}
+.w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.h1 .kw .w {
+  overflow: visible;
+}
+.wi {
+  display: inline-block;
+}
+
+/* ---------- buttons: one marigold pill on screen at a time (rule 35) ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 999px;
+  font: 600 16px/1 var(--f-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-main {
+  background: var(--marigold);
+  color: var(--on-marigold);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.btn-main:hover {
+  background: #dc961a;
+}
+.btn:active,
+.pill-btn:active {
+  transform: scale(0.97);
+}
+.act {
+  margin-top: 32px;
+}
+
+/* ---------- floating pill navigation (modern-UI 2.1) ---------- */
+.bar {
+  position: fixed;
+  z-index: 50;
+  top: 12px;
+  left: 50%;
+  width: min(1180px, calc(100% - 24px));
+  height: 56px;
+  transform: translate(-50%, 0);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 8px 0 20px;
+  border-radius: 999px;
+  background: var(--bar-bg);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bar.away {
+  transform: translate(-50%, calc(-100% - 20px));
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.brand-mark {
+  width: 26px;
+  height: 26px;
+}
+.brand-word {
+  width: 86px;
+  height: auto;
+  aspect-ratio: 78 / 18.4;
+}
+.nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.nav ul {
+  display: flex;
+  gap: 2px;
+}
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav a:hover {
+  background: var(--line);
+}
+.bar-end {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.theme:hover {
+  background: var(--line);
+}
+.theme svg {
+  width: 18px;
+  height: 18px;
+}
+.th-ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.th-half {
+  fill: currentColor;
+}
+/* the header's button: a quiet text pill while another marigold button is on screen, marigold when none is */
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pill-btn:hover {
+  background: var(--line);
+}
+.pill-btn.on {
+  background: var(--marigold);
+  color: var(--on-marigold);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.pill-btn.on:hover {
+  background: #dc961a;
+}
+.pill-btn .short {
+  display: none;
+}
+.menu-btn {
+  display: none;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--ground);
+  padding: 18px 20px 40px;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-close {
+  align-self: flex-end;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-weight: 500;
+}
+.sheet ul {
+  margin-top: 32px;
+  display: grid;
+  gap: 4px;
+}
+.sheet a {
+  display: block;
+  padding: 10px 0;
+  font: 500 34px/1.1 var(--f-display);
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+/* ---------- the opening (first visit only) ---------- */
+
+/* ---------- the iPhone 17 Pro Max (frame: ../../motion/device, screen box from device.css) ---------- */
+.phone {
+  position: relative;
+  width: var(--pw);
+  aspect-ratio: 479 / 994;
+  flex: none;
+  filter: drop-shadow(
+    0 30px 40px rgba(18, 17, 15, 0.22)
+  ); /* the page's one shadow (modern-UI 2.11) */
+}
+.phone .frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.scr {
+  position: absolute;
+  left: 4.071%;
+  top: 1.9115%;
+  width: 91.858%;
+  height: 96.1771%;
+  border-radius: 14.0909% / 6.4854%;
+  overflow: hidden;
+  background: #0e1512;
+  isolation: isolate;
+}
+.scr > * {
+  position: absolute;
+}
+/* a still capture, 440 x 956 points, fills the screen */
+.shot {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+/* a feature clip (1080 x 1920, the phone screen at 1.62x from (183.6, 185.8)): only the screen shows */
+.fv {
+  width: 151.515%;
+  height: 123.97%;
+  left: -25.757%;
+  top: -11.996%;
+  max-width: none;
+}
+/* the question engine (its phone capture at 1.8x from (144, 100)): it has no status-bar inset, so it sits
+   54 pt down, under the Dynamic Island, on the engine's own page colour */
+.eng {
+  left: 2.823%;
+  top: 5.649%;
+  width: 94.354%;
+  height: 94.351%;
+  overflow: hidden;
+  background: #101c18;
+}
+.scr.on-engine {
+  background: #101c18;
+}
+.eng > * {
+  position: absolute;
+  max-width: none;
+}
+.eng .ev {
+  width: 136.364%;
+  height: 111.576%;
+  left: -18.182%;
+  top: -5.811%;
+}
+.eng .shot {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- media cards (modern-UI 2.3) ---------- */
+.media-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-card);
+  background: var(--tone-2);
+}
+.media-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cap {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(14, 13, 12, 0.72);
+  color: #f5f5f2;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---------- hero stage (modern-UI 2.4) ---------- */
+.hero {
+  padding: 80px var(--m) 0;
+}
+.stage {
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+  align-items: center;
+  gap: clamp(28px, 4vw, 64px);
+  padding: var(--pad);
+  border-radius: var(--r-card);
+  background: var(--tone);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* a warm light field behind the phone, with no edge you can point at (modern-UI 2.12) */
+
+.hero-copy {
+  padding: 8px 0;
+}
+/* the pill above the headline (21st.dev 983 Hero Pill): a text link, never filled marigold */
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 4px 12px 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--ground);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pill-link:hover {
+  background: var(--tone-2);
+}
+.pill-link .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pine);
+  flex: none;
+}
+:root:not([data-theme="light"]) .pill-link .dot {
+  background: #7fb8a6;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .pill-link .dot {
+    background: var(--pine);
+  }
+}
+:root[data-theme="light"] .pill-link .dot {
+  background: var(--pine);
+}
+.pill-link .chev {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+.hero .clock {
+  margin-top: 28px;
+}
+
+#hero-screens > .shot,
+#hero-screens > .eng {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#hero-screens .is-on {
+  opacity: 1;
+  transform: none;
+}
+
+/* the day's tabs (21st.dev 26923 Segmented Tabs: a sliding selected background) */
+.tabs {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 26px;
+  background: var(--ground); /* inactive tabs: --mut on ground is 5.12:1 light, 6.3:1 dark */
+  border: 1px solid var(--line);
+}
+.tab-ind {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 999px;
+  background: var(--ind);
+  border: 1px solid var(--line);
+  pointer-events: none;
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  height: 44px;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mut);
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tab:hover,
+.tab[aria-selected="true"] {
+  color: var(--ink);
+}
+.tab .t {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--mut);
+}
+
+/* ---------- chapters: one rounded colour block each ---------- */
+.ch {
+  padding: 16px var(--m) 0;
+}
+.card {
+  --c-ink: var(--ink);
+  --c-mut: var(--mut);
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(28px, 4vw, 64px);
+  padding: var(--pad);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  color: var(--c-ink);
+}
+.card.flip .ch-copy {
+  order: 2;
+}
+.ch-copy {
+  min-width: 0;
+}
+.ch-media {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+/* marigold: ink on marigold (8.74:1); the keyword stays ink, its underline is ink */
+.c-marigold {
+  background: var(--marigold);
+  --c-ink: #12110f;
+  --c-mut: #3b2c0c; /* 6.46:1 on marigold */
+  --kw: #12110f;
+  --kw-line: #12110f;
+}
+.c-marigold .phone {
+  filter: drop-shadow(0 30px 40px rgba(18, 17, 15, 0.28));
+}
+/* pine: bone on pine (8.72:1 light, 7.08:1 dark); the keyword in marigold (large text, 4.41:1 / 3.58:1) */
+.c-pine {
+  background: var(--pine);
+  --c-ink: #f5f5f2;
+  --c-mut: #cfdcd8; /* 6.6:1 on #1f4d45, 5.4:1 on #245a51 */
+  --kw: #eba21f;
+  --kw-line: #eba21f;
+}
+/* night: the evening; marigold keyword 8.9:1 */
+.c-night {
+  background: var(--night);
+  --c-ink: #f1ede4;
+  --c-mut: #a9a49b; /* 7.9:1 */
+  --kw: #f0b545;
+  --kw-line: #eba21f;
+  border: 1px solid rgba(241, 237, 228, 0.1);
+}
+/* the card tone: a quiet chapter between colours */
+.c-tone {
+  background: var(--tone);
+}
+/* clay: bone on clay (6.35:1); the keyword in a pale marigold (#ffd88a, 4.6:1) */
+.c-clay {
+  background: var(--clay);
+  --c-ink: #f5f5f2;
+  --c-mut: #f3ddd5; /* 5.2:1 */
+  --kw: #ffd88a;
+  --kw-line: #ffd88a;
+}
+.card .sub {
+  color: var(--c-mut);
+}
+.c-pine .phone,
+.c-night .phone,
+.c-clay .phone {
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.35));
+}
+.card .textlink {
+  margin-top: 18px;
+}
+
+/* a real place, with the phone floated over it (imagery system C) */
+.place {
+  display: grid;
+  width: 100%;
+}
+.place > * {
+  grid-area: 1 / 1;
+}
+.place-photo {
+  width: 92%;
+  aspect-ratio: 16 / 11;
+  align-self: start;
+}
+.place-photo img {
+  object-position: 18% 50%;
+}
+.place .phone {
+  justify-self: end;
+  align-self: end;
+  margin-top: 22%;
+  --pw: clamp(170px, 15vw, 224px);
+}
+.portrait .parent-photo {
+  width: 64%;
+  aspect-ratio: 3 / 4;
+  background: #8c3522;
+}
+.portrait .parent-photo img {
+  object-position: 50% 20%;
+}
+.portrait .phone {
+  margin-top: 20%;
+}
+
+/* the live class on Zoom: the shared screen, and two tiles, each person in their own room */
+.zoom {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 20px;
+  background: #1b1a18;
+  border: 1px solid rgba(241, 237, 228, 0.08);
+}
+.shared {
+  grid-column: 1 / -1;
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #101c18;
+}
+.shared > * {
+  position: absolute;
+  max-width: none;
+  width: 133.333%;
+  height: 112.5%;
+  left: -16.667%;
+  top: -6.25%;
+}
+.tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #2a2826;
+}
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+}
+.tile figcaption {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(14, 13, 12, 0.78);
+  color: #f1ede4;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* chips under the parent headline */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 26px;
+  max-width: 30rem;
+}
+.chips li {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 245, 242, 0.32);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* ---------- plans as cards ---------- */
+.plans {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(72px, 9vw, 128px) calc(var(--m) + var(--pad) * 0.5) 0;
+}
+.plans-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px 64px;
+  align-items: end;
+}
+.plans-head .sub {
+  margin-top: 20px;
+}
+.plans-photo {
+  aspect-ratio: 16 / 9;
+  background: var(--pine);
+}
+.plans-photo img {
+  object-position: 50% 42%;
+}
+.plans-head .textlink {
+  display: flex;
+  margin-top: 6px;
+  color: var(--ink);
+}
+.plan-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr 1fr;
+  gap: 14px;
+  margin-top: 40px;
+}
+.plan-more {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  max-width: 50%;
+}
+.plan {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 240px;
+  padding: 26px 24px 18px;
+  border-radius: var(--r-tile);
+  background: var(--tone);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.plan-more .plan {
+  min-height: 0;
+}
+.plan-name {
+  font: 540 20px/1.2 var(--f-display);
+  letter-spacing: -0.02em;
+}
+.plan-price {
+  font: 480 clamp(30px, 2.6vw, 40px) / 1 var(--f-display);
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+.plan-detail {
+  color: var(--mut);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.plan .textlink {
+  margin-top: auto;
+  font-size: 15px;
+}
+.plan.lead {
+  background: var(--pine);
+  color: #f5f5f2;
+  border-color: transparent;
+}
+.plan.lead .plan-detail {
+  color: #cfdcd8;
+}
+.plan.lead .plan-price {
+  color: var(--marigold);
+}
+.plan-tag {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(245, 245, 242, 0.14);
+  font-size: 13px;
+  font-weight: 500;
+}
+.plan-toggle {
+  margin-top: 12px;
+}
+/* spotlight on hover (21st.dev 35180): a soft marigold light that follows the pointer, desktop pointer only */
+.spot {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    300px circle at var(--x, 50%) var(--y, 50%),
+    rgba(235, 162, 31, 0.1),
+    transparent 70%
+  );
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .plan:hover .spot {
+    opacity: 1;
+  }
+}
+
+/* ---------- close: results strip and the night card ---------- */
+.close {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(72px, 9vw, 128px) var(--m) 0;
+}
+.results {
+  padding: 0 calc(var(--pad) * 0.5);
+}
+.result-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 22px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.result-strip li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 18px;
+  align-items: center;
+  padding: 22px 24px;
+}
+.result-strip li + li {
+  border-left: 1px solid var(--line);
+}
+.result-strip img {
+  grid-row: 1 / 3;
+  width: 64px;
+  height: 80px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+.r-score {
+  position: relative;
+  display: block;
+  font: 480 clamp(38px, 3.6vw, 54px) / 1 var(--f-display);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.r-who {
+  font-size: 15px;
+  color: var(--mut);
+  margin-top: 6px;
+}
+.r-who b {
+  color: var(--ink);
+  font-weight: 600;
+  margin-right: 6px;
+}
+.source {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--mut);
+}
+
+.close-card {
+  margin-top: 40px;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+  padding-block: clamp(56px, 8vw, 112px);
+}
+.close-card .h2,
+.close-card .sub {
+  margin-inline: auto;
+}
+.close-card .h2 {
+  max-width: 14ch;
+}
+
+/* ---------- footer card with the cropped wordmark (modern-UI 2.17) ---------- */
+.foot {
+  padding: clamp(72px, 9vw, 120px) var(--m) var(--m);
+}
+.foot-card {
+  max-width: 1400px;
+  margin: 0 auto;
+  border-radius: var(--r-card);
+  background: var(--pine);
+  color: #f5f5f2;
+  overflow: hidden;
+  padding: var(--pad) var(--pad) 0;
+}
+.foot-row {
+  display: grid;
+  grid-template-columns: 1.4fr auto auto;
+  gap: 18px 40px;
+  align-items: start;
+}
+.foot-line {
+  font: 480 clamp(22px, 2vw, 28px) / 1.2 var(--f-display);
+  letter-spacing: -0.02em;
+  max-width: 18ch;
+}
+.foot-links {
+  display: flex;
+  gap: 4px 20px;
+  flex-wrap: wrap;
+}
+.foot-links a,
+.foot-mail {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 500;
+  text-underline-offset: 4px;
+}
+.foot-controls {
+  grid-column: 2 / 4;
+  display: flex;
+  gap: 4px 20px;
+  flex-wrap: wrap;
+}
+.foot-controls .textlink {
+  font-size: 15px;
+}
+.foot-legal {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  font-size: 14px;
+  color: #cfdcd8;
+}
+.foot-word {
+  display: block;
+  margin-top: clamp(40px, 6vw, 80px);
+  color: #f5f5f2;
+  height: clamp(70px, 15vw, 230px);
+  overflow: hidden;
+}
+.foot-word svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 78 / 18.4;
+}
+
+/* ---------- entrances: hidden only while motion runs, so the page reads fully without script ---------- */
+/* entrances: nothing is ever hidden. Reveals move content up to 16 px only, so a heading, phone or picture
+   is readable the moment it is on screen (fix round 2, rule from the orchestrator). */
+
+/* ---------- smaller screens ---------- */
+@media (max-width: 1099px) {
+  .nav a {
+    padding: 0 12px;
+  }
+  .plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .plan-more {
+    max-width: none;
+  }
+}
+@media (max-width: 899px) {
+  .nav {
+    display: none;
+  }
+  .menu-btn {
+    display: inline-flex;
+    align-items: center;
+  }
+  .plans-head {
+    grid-template-columns: 1fr;
+  }
+  .foot-row {
+    grid-template-columns: 1fr;
+  }
+  .foot-controls,
+  .foot-legal {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .stage,
+  .card {
+    gap: 28px;
+  }
+
+  .tab {
+    height: 52px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 6px;
+    font-size: 14px;
+    line-height: 1.1;
+  }
+  .tab .t {
+    font-size: 12px;
+  }
+}
+@media (max-width: 759px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+  }
+  .card.flip .ch-copy {
+    order: 0;
+  }
+  .ch-media {
+    justify-content: center;
+  }
+  .card > .ch-media > .phone {
+    --pw: clamp(210px, 46vw, 300px);
+  }
+  .place .phone {
+    --pw: clamp(160px, 34vw, 250px);
+  }
+}
+@media (max-width: 599px) {
+  .bar {
+    padding-left: 16px;
+    gap: 6px;
+  }
+  .theme span {
+    display: none;
+  }
+  .theme {
+    width: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+  .pill-btn {
+    padding: 0 12px;
+  }
+  .pill-btn .long {
+    display: none;
+  }
+  .pill-btn .short {
+    display: inline;
+  }
+  .menu-btn {
+    padding: 0 10px;
+  }
+  .stage {
+    padding: 22px 16px 18px;
+  }
+
+  .card {
+    padding: 28px 20px 32px;
+  }
+  .place-photo {
+    width: 88%;
+  }
+  .plan-grid {
+    grid-template-columns: 1fr;
+  }
+  .plan-more {
+    grid-template-columns: 1fr;
+  }
+  .plan {
+    min-height: 0;
+  }
+  .result-strip {
+    grid-template-columns: 1fr;
+  }
+  .result-strip li + li {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .result-strip li {
+    padding: 16px 4px;
+  }
+  .btn {
+    width: 100%;
+    max-width: 360px;
+  }
+}
+@media (max-width: 380px) {
+  .brand-word {
+    display: none;
+  }
+}
+
+/* ---------- reduced motion: no travel ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bar,
+  #hero-screens > .shot,
+  #hero-screens > .eng,
+  .tab-ind {
+    transition: none;
+  }
+}
+
+/* ---------- empty picture slots (founder's device rules): the layout closes up ---------- */
+/* no portrait: the phone stands alone on the stage's light field (modern-UI 2.12) */
+
+.place-photo.empty,
+.plans-photo.empty,
+.tile.empty {
+  display: none;
+}
+.place:has(.place-photo.empty) .phone {
+  justify-self: center;
+  margin-top: 0;
+  --pw: clamp(210px, 21vw, 300px);
+}
+.zoom:has(.tile.empty) {
+  grid-template-columns: 1fr;
+}
+.plans-head:has(.plans-photo.empty) {
+  grid-template-columns: 1fr;
+}
+
+/* the class caption sits under the shared screen, inside the Zoom window, never over the screen */
+.zoom {
+  position: relative;
+}
+.zoom-cap {
+  position: static;
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin: 2px 0 2px 4px;
+  background: transparent;
+  padding: 4px 4px;
+  color: #c9c4ba; /* 9.6:1 on #1b1a18 */
+}
+
+@media (max-width: 599px) {
+  .hero .clock {
+    margin-top: 18px;
+  }
+  .hero .act {
+    margin-top: 22px;
+  }
+  .stage {
+    gap: 18px;
+  }
+}
+
+/* =====================================================================================
+   Fix round 2 (critic, 2 Nov): content under 1 s, colour in the first screen, a big readable phone,
+   the chip behind "prep", unbroken underlines, a camera-off Zoom tile.
+   ===================================================================================== */
+
+/* the chip sits behind the line above it, so it never paints over "prep" */
+.h1 {
+  position: relative;
+  z-index: 0;
+  line-height: 1.08;
+}
+.h1 .kw {
+  position: relative;
+  z-index: -1;
+}
+
+/* the hero's media: a marigold field holding the day's tabs, then the phone, cropped by the field's
+   bottom edge so it can be large */
+.hero-media {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  height: clamp(560px, calc(100svh - 120px), 780px);
+  padding: 22px 22px 0;
+  border-radius: var(--r-card);
+  background: var(--marigold);
+  overflow: hidden;
+}
+.hero-media .tabs {
+  flex: none;
+  max-width: 100%;
+}
+.hero-phone {
+  --pw: clamp(270px, 23vw, 350px);
+  flex: none;
+  filter: drop-shadow(0 30px 40px rgba(18, 17, 15, 0.28));
+}
+/* Arrive: from the first paint, no script needed; the phone rises 24 px in 0.6 s */
+@keyframes k-arrive {
+  from {
+    transform: translateY(16px);
+  }
+  to {
+    transform: none;
+  }
+}
+.js-motion .hero-phone {
+  animation: k-arrive 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+#hero-screens > .shot,
+#hero-screens > .eng,
+#hero-screens > .scrolls {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#hero-screens > .eng {
+  inset: auto;
+}
+#hero-screens > .is-on {
+  opacity: 1;
+  transform: none;
+}
+#hero-screens picture img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.tabs .tab .n {
+  white-space: nowrap;
+}
+
+/* a long screen scrolled in code: the band between its own top and bottom bars */
+.scrolls {
+  inset: 0;
+}
+.scrolls > .shot {
+  position: absolute;
+}
+.band {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+}
+.band .tall {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: none;
+  will-change: transform;
+}
+.eng > .shot + .shot {
+  position: absolute;
+}
+
+/* chapter phones: large, with the card's bottom edge cropping the phone */
+.card .ch-media.crop {
+  align-self: end;
+  height: clamp(480px, 66vh, 660px);
+  margin-bottom: calc(-1 * var(--pad));
+  overflow: hidden;
+  align-items: flex-start;
+}
+.card > .ch-media.crop > .phone {
+  --pw: clamp(270px, 24vw, 360px);
+}
+.place .phone {
+  --pw: clamp(240px, 20vw, 320px);
+}
+.place.crop {
+  align-content: start;
+}
+/* the rehearsal photo: the student is on the right, so the phone stands on the empty stage at the left */
+#calendar .place-photo {
+  justify-self: end;
+  aspect-ratio: 16 / 10;
+}
+#calendar .place-photo img {
+  object-position: 70% 50%;
+}
+#calendar .place .phone {
+  justify-self: start;
+  margin-top: 18%;
+}
+
+/* the Zoom class: Maya's tile, and David's tile with his camera off (a name and an initial, as Zoom shows it) */
+.tile.camoff {
+  display: grid;
+  place-items: center;
+  background: #24443d;
+}
+.tile .initial {
+  display: grid;
+  place-items: center;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #3d6b62;
+  color: #f1ede4;
+  font: 500 clamp(22px, 2.4vw, 34px) / 1 var(--f-display);
+}
+
+/* the day's tabs: equal cells, the time over the name, one row of five on wide screens */
+.hero-media .tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+  border-radius: 22px;
+}
+.hero-media .tab {
+  height: 52px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 6px;
+  font-size: 14px;
+  line-height: 1.1;
+}
+.hero-media .tab .t {
+  font-size: 12px;
+}
+@media (max-width: 1099px) {
+  .hero-media .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    border-radius: 22px;
+  }
+  .hero-media .tab {
+    height: 52px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 6px;
+    font-size: 14px;
+    line-height: 1.1;
+  }
+  .hero-media .tab .t {
+    font-size: 12px;
+  }
+}
+@media (max-width: 759px) {
+  .hero-media {
+    height: auto;
+    max-height: none;
+    padding: 16px 16px 0;
+  }
+  .hero-phone {
+    --pw: min(300px, 74vw);
+    margin-bottom: -38%;
+  }
+  .card .ch-media.crop {
+    height: auto;
+    max-height: 560px;
+  }
+  .card > .ch-media.crop > .phone {
+    --pw: min(300px, 72vw);
+  }
+  .place .phone {
+    --pw: min(240px, 56vw);
+  }
+}
+/* camera-off tile: the initial sits high, the name stays on one line, so they never touch */
+.tile figcaption {
+  max-width: calc(100% - 16px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tile.camoff {
+  align-content: start;
+  padding-top: 12%;
+}
+.tile .initial {
+  width: 26%;
+}
+@media (max-width: 759px) {
+  .tile figcaption {
+    font-size: 12px;
+  }
+  .portrait .parent-photo {
+    width: 62%;
+  }
+  .portrait .phone {
+    --pw: min(220px, 52vw);
+    margin-top: 46%;
+  }
+}

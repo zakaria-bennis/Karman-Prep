@@ -1,4 +1,3 @@
-import Link from "next/link";
 import SitePage from "@/components/site/SitePage";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -65,7 +64,7 @@ export default function RefundsPage() {
               After classes start, the guarantee decides any refund: half or all of the price back,
               or the next cohort free, depending on the SAT score. You choose.
             </p>
-            <Link href={ROUTES.guarantee}>Read the guarantee in full</Link>
+            <a href={ROUTES.guarantee}>Read the guarantee in full</a>
           </section>
 
           <section>
@@ -109,7 +108,7 @@ export default function RefundsPage() {
           </section>
 
           <div>
-            <Link href={ROUTES.terms}>Terms of Service</Link>
+            <a href={ROUTES.terms}>Terms of Service</a>
           </div>
         </div>
       </article>

@@ -6,6 +6,8 @@
 // on an accepted step, ×2 (floored at 1e-64) on a rejected one; a run stops when a step leaves the
 // parameters unchanged or the error is not finite. Pure TypeScript: no DOM.
 
+import { solveColumnOrder } from "./linear-fit";
+
 const START_CONSTANTS = [
   18.9, 0.105, 0.0113, 0.089, 4.414, 0.373, 0.06, 0.149, 1.84, 9.26, 5, 0.7, 0.2, 1.13, 2.61, 1,
   0.007, 30, 120, 1500, 4e-4, 7.23, -1, -0.0081, -0.03, -28.6, -1.71, -0.4, -6.94, -0.777, -500,
@@ -65,6 +67,23 @@ function normal(cols: number[][], v: ArrayLike<number>): { a: number[][]; b: num
   return { a, b };
 }
 
+/**
+ * The least-squares coefficients of `v` on `cols`: the normal equations, and where the columns
+ * are dependent (they have no unique solution) the column-order solve of linear-fit.ts, in which
+ * a dependent column's coefficient is 0, so `a+b+c\sim115` moves only b from the start (live
+ * Desmos 2026-10-28: `\left\{a>0\right\}` gives 1, 113, 1).
+ */
+function coefficients(cols: number[][], v: ArrayLike<number>): number[] {
+  const { a, b } = normal(cols, v);
+  const c = solve(a, b);
+  if (c.every(Number.isFinite)) return c;
+  const n = v.length,
+    k = cols.length;
+  const matrix = new Float64Array(n * k);
+  for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) matrix[i * k + j] = cols[j][i];
+  return Array.from(solveColumnOrder(matrix, n, k, v));
+}
+
 /** One LM run of at most `iterations` steps from `start`. */
 export function projectedLm(
   problem: ProjectedProblem,
@@ -84,8 +103,7 @@ export function projectedLm(
   // The linear parameters' least-squares correction at p.
   const relinearise = (p: readonly number[]): number[] => {
     if (lin.length === 0) return [...p];
-    const { a, b } = normal(columns(p, lin), residual(p));
-    const d = solve(a, b);
+    const d = coefficients(columns(p, lin), residual(p));
     const q = [...p];
     lin.forEach((j, k) => (q[j] -= d[k]));
     return q;
@@ -101,8 +119,7 @@ export function projectedLm(
       jl = lin.length === 0 ? [] : columns(p, lin);
     const project = (v: number[]): number[] => {
       if (jl.length === 0) return v;
-      const { a, b } = normal(jl, v);
-      const c = solve(a, b);
+      const c = coefficients(jl, v);
       return v.map((x, i) => x - jl.reduce((s, col, k) => s + col[i] * c[k], 0));
     };
     const pr = project(r),

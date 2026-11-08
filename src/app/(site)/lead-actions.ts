@@ -48,7 +48,16 @@ const SCHEMAS = {
   call: z.object({ email, latest, date: z.enum(options(36, "date")), company: trap }),
   seat: z.object({
     email,
-    name: z.string().trim().min(1, { message: SITE["form error name"] }).max(60),
+    // a first name on one line: control and invisible characters are dropped before the length checks
+    name: z
+      .string()
+      .transform((v) =>
+        v
+          .replace(/[\p{C}]/gu, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+      )
+      .pipe(z.string().min(1, { message: SITE["form error name"] }).max(60)),
     grade: z.enum(options(42, "grade")),
     date: z.enum(options(42, "date")),
     company: trap,
@@ -66,12 +75,16 @@ const LABELS: Record<LeadForm, string> = {
   seat: "Free practice test seat",
 };
 
+const FORMS = z.enum(["apply", "call", "seat"]) satisfies z.ZodType<LeadForm>;
+
 export async function submitLead(
   form: LeadForm,
   input: Record<string, string>
 ): Promise<LeadResult> {
-  const schema = SCHEMAS[form];
-  if (!schema) return { ok: false, error: "server" };
+  // the form name comes from the browser too: anything else (even "constructor") is refused calmly
+  const which = FORMS.safeParse(form);
+  if (!which.success) return { ok: false, error: "server" };
+  const schema = SCHEMAS[which.data];
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
     const fields: Partial<Record<string, string>> = {};
