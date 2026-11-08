@@ -26,7 +26,6 @@ test.describe("desktop", () => {
 
   test("exit asks first in a timed section", async ({ page }) => {
     await page.goto("/?set=end&length=3");
-    await page.getByRole("button", { name: "More" }).click();
     await page.getByRole("button", { name: "Exit" }).click();
     await expect(page.getByRole("dialog", { name: "Leave this section?" })).toBeVisible();
     await page.getByRole("button", { name: "Stay" }).click();
@@ -35,7 +34,6 @@ test.describe("desktop", () => {
 
   test("exit in practice leaves straight away", async ({ page }) => {
     await page.goto("/?set=instant&q=math");
-    await page.getByRole("button", { name: "More" }).click();
     await page.getByRole("button", { name: "Exit" }).click();
     await expect(page.locator("[data-fixture-done]")).toBeVisible();
   });

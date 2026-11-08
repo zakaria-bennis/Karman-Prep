@@ -11,7 +11,8 @@ import {
 } from "@/lib/quiz/timer";
 import styles from "./nav.module.css";
 import shell from "./quiz-shell.module.css";
-import { ClockIcon } from "./icons";
+import { ClockIcon, EyeIcon } from "./icons";
+import { BarButton } from "./TopBar";
 import { useShellMotion } from "./motion";
 
 const HIDE_KEY = "karman-quiz-timer";
@@ -85,47 +86,47 @@ export function Timer({
       <span className={shell.srOnly} role="status" aria-live="polite">
         {said}
       </span>
-      {shown ? (
-        <motion.span
-          className={`${styles.time} ${warning ? styles.warn : ""}`}
-          aria-label={
-            countdown
-              ? `Time remaining ${minutes} minutes ${secs} seconds`
-              : `Elapsed ${minutes} minutes ${secs} seconds`
-          }
-          role="timer"
-          animate={warning && !reduced ? { scale: [1, 1.12, 1] } : { scale: 1 }}
-          transition={{ duration: 1.2 }}
-          key={warning ? "warn" : "calm"}
-        >
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={minutes}
-              className={styles.digit}
-              initial={reduced ? { opacity: 0 } : { y: "-100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={reduced ? { opacity: 0 } : { y: "100%", opacity: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              {minutes}
-            </motion.span>
-          </AnimatePresence>
-          :{secs}
-        </motion.span>
-      ) : (
-        <ClockIcon />
-      )}
-      <button
-        type="button"
-        className={shell.tool}
+      <span className={styles.clock} data-hidden={shown ? undefined : "true"}>
+        <ClockIcon size={18} />
+        {shown && (
+          <motion.span
+            className={`${styles.time} ${warning ? styles.warn : ""}`}
+            aria-label={
+              countdown
+                ? `Time remaining ${minutes} minutes ${secs} seconds`
+                : `Elapsed ${minutes} minutes ${secs} seconds`
+            }
+            role="timer"
+            animate={warning && !reduced ? { scale: [1, 1.12, 1] } : { scale: 1 }}
+            transition={{ duration: 1.2 }}
+            key={warning ? "warn" : "calm"}
+          >
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={minutes}
+                className={styles.digit}
+                initial={reduced ? { opacity: 0 } : { y: "-100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={reduced ? { opacity: 0 } : { y: "100%", opacity: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                {minutes}
+              </motion.span>
+            </AnimatePresence>
+            :{secs}
+          </motion.span>
+        )}
+      </span>
+      <BarButton
+        icon={<EyeIcon state={hidden ? "off" : "on"} />}
+        word={hidden ? "Show" : "Hide"}
+        className={shell.barQuiet}
         aria-pressed={!hidden}
         onClick={() => {
           setHidden(!hidden);
           writeHidden(!hidden);
         }}
-      >
-        {hidden ? "Show" : "Hide"}
-      </button>
+      />
     </div>
   );
 }

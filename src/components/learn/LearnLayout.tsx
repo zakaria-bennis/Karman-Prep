@@ -28,9 +28,9 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
         className={cn(
           "fixed left-0 right-0 top-0 z-40 flex items-center gap-3 px-4 pb-1.5 pt-3",
           "pointer-events-none", // children re-enable interactions
-          // A quiz screen (its own top bar) or a painted portal screen (its own nav and account
-          // menu) hides this bar: it covered their titles, Back and tools (QA 2026-11-08).
-          "[:root:has(.kp-shell)_&]:hidden [:root:has([data-quiz-bar])_&]:hidden"
+          // A quiz screen (full screen, its own top bar and Exit) or a painted portal screen (its own
+          // nav and account menu) hides this bar, which would sit over them.
+          "[:root:has(.kp-shell)_&]:hidden [:root:has([data-quiz-bar])_&]:hidden [body:has([data-quiz-shell])_&]:hidden"
         )}
       >
         <div

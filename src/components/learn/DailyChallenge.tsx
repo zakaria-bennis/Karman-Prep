@@ -152,6 +152,7 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
           attemptKey={attemptKey}
           index={0}
           section="Challenge question"
+          backdrop="painting"
           topic={subjectName[subject]}
           reviews={review ? { [q.id]: review } : {}}
           saved={student.saved}

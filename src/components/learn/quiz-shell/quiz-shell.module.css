@@ -4,6 +4,9 @@
   inset: 0;
   z-index: 70;
   display: grid;
+  /* One column that may shrink: without it the bars' widest content sets the screen's width,
+     and on a phone the question slid off the right edge. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   /* One column, never wider than the screen: an auto column grew to its content (682px on a
      390px phone), pushing Submit and the passage off screen (QA 2026-11-08). */
@@ -32,7 +35,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 56px;
+  min-height: 64px;
   padding: 6px max(12px, env(safe-area-inset-left)) 6px max(12px, env(safe-area-inset-right));
 }
 .topBar {
@@ -44,9 +47,15 @@
   border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
   justify-content: space-between;
 }
+.barStart {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
 .barTitle {
   min-width: 0;
-  flex: 1;
 }
 .barTitle p {
   margin: 0;
@@ -55,15 +64,13 @@
   white-space: nowrap;
 }
 .section {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--quiz-text-muted);
+  font-size: 0.95rem;
+  font-weight: 650;
 }
 .topic {
-  font-size: 0.9rem;
-  font-weight: 650;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--quiz-text-muted);
 }
 .barCentre {
   display: flex;
@@ -74,7 +81,184 @@
   display: flex;
   flex: 1;
   justify-content: flex-end;
+  align-items: center;
   gap: 4px;
+}
+.navSlot {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Phones: two rows. Exit, the title and the clock on top; every tool, with its word, under. */
+.compact .topBar {
+  flex-wrap: wrap;
+  row-gap: 4px;
+  min-height: 0;
+  padding-bottom: 4px;
+}
+.compact .topic {
+  display: none;
+}
+.compact .tools {
+  flex: 1 0 100%;
+  justify-content: space-between;
+  gap: 0;
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 45%, transparent);
+}
+.compact .tools > * {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.compact .bottomBar {
+  min-height: 60px;
+  gap: 4px;
+}
+
+/* A springy press on every button: it squeezes on press and overshoots a touch on release.
+   CSS transitions pick up from wherever they are, so a quick second tap is never queued. */
+.barButton,
+.tool,
+.primary,
+.counter {
+  transition:
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.barButton:not(:disabled):active,
+.tool:not(:disabled):active,
+.primary:not(:disabled):active,
+.counter:active {
+  transform: scale(0.93);
+  transition-duration: 90ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .barButton,
+  .tool,
+  .primary,
+  .counter {
+    transition-property: background-color, color, border-color;
+  }
+  .barButton:not(:disabled):active,
+  .tool:not(:disabled):active,
+  .primary:not(:disabled):active,
+  .counter:active {
+    transform: none;
+  }
+}
+
+/* Bar tools: the icon over its word, a 48px target, no outline until hovered or on. */
+.barButton {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 56px;
+  min-height: 48px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--quiz-text);
+  font: inherit;
+  cursor: pointer;
+}
+.barButton[data-flow="row"] {
+  flex-direction: row;
+  gap: 6px;
+  padding: 0 14px 0 10px;
+}
+.barWord {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.barButton[data-flow="row"] .barWord {
+  font-size: 0.9rem;
+}
+.barButton[aria-pressed="true"],
+.barButton[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--quiz-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--quiz-accent) 55%, transparent);
+  color: var(--quiz-text);
+}
+/* Hide / Show says its state in its word and icon, so it carries no pressed fill. */
+.barQuiet[aria-pressed="true"] {
+  background: transparent;
+  border-color: transparent;
+}
+.barButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (hover: hover) {
+  .barButton:not(:disabled):hover {
+    background: color-mix(in srgb, var(--quiz-text) 7%, transparent);
+  }
+}
+.barButton:focus-visible {
+  outline: 2px solid var(--quiz-accent);
+  outline-offset: 2px;
+}
+.compact .barButton {
+  min-width: 48px;
+  padding: 4px 4px;
+}
+
+/* The calculator's own button, dressed as a bar tool from here (its file is unchanged). */
+.tools :global([data-calculator-trigger]) {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 56px;
+  min-height: 48px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--quiz-text);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 160ms ease;
+}
+.tools :global([data-calculator-trigger]) :global(svg) {
+  width: 20px;
+  height: 20px;
+}
+.tools :global([data-calculator-trigger][aria-pressed="true"]) {
+  background: color-mix(in srgb, var(--quiz-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--quiz-accent) 55%, transparent);
+  box-shadow: none;
+}
+.tools :global([data-calculator-trigger]:active) {
+  transform: scale(0.93);
+  transition-duration: 90ms;
+}
+@media (hover: hover) {
+  .tools :global([data-calculator-trigger]:hover) {
+    background: color-mix(in srgb, var(--quiz-text) 7%, transparent);
+  }
+}
+.compact .tools :global([data-calculator-trigger]) {
+  flex: 1;
+  min-width: 48px;
+  padding: 4px;
 }
 
 /* Tool buttons: 44 px targets, glass, hover changes colour only (rule 25). */
@@ -116,9 +300,13 @@
 
 /* The one highlighted button on screen (rule 35). */
 .primary {
-  min-height: 44px;
-  min-width: 96px;
-  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  min-width: 112px;
+  padding: 0 14px 0 22px;
   border: 0;
   border-radius: 10px;
   background: var(--quiz-accent);
@@ -132,8 +320,12 @@
   cursor: default;
 }
 .counter {
-  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
   padding: 0 14px;
+  font-variant-numeric: tabular-nums;
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -329,6 +521,7 @@
    bottom bar together), so the dock never covers Back, the counter or Next. */
 .body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
@@ -341,4 +534,61 @@
   background: color-mix(in srgb, var(--quiz-wrong) 16%, var(--quiz-panel));
   color: var(--quiz-text);
   font-weight: 650;
+}
+
+.saveNotice[data-tone="hint"] {
+  background: color-mix(in srgb, var(--quiz-accent) 14%, var(--quiz-panel));
+}
+
+/* The painting window (the Challenge questions): the day's painting, still, shows around the
+   question on wide screens and as a strip under the top bar elsewhere. The bars are solid and
+   tinted by the painting's hue, so the painting never sits behind text. */
+.painting {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 400ms ease;
+  pointer-events: none;
+}
+.painting[data-ready] {
+  opacity: 1;
+}
+.shell[data-backdrop="painting"] {
+  --window-bar: hsl(var(--hue, 208) 34% 95%);
+}
+@media (prefers-color-scheme: dark) {
+  .shell[data-backdrop="painting"] {
+    --window-bar: hsl(var(--hue, 208) 26% 12%);
+  }
+}
+.shell[data-backdrop="painting"] .barGroup,
+.shell[data-backdrop="painting"] .body {
+  position: relative;
+  z-index: 1;
+}
+.shell[data-backdrop="painting"] .topBar,
+.shell[data-backdrop="painting"] .bottomBar {
+  background: var(--window-bar);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.shell[data-backdrop="painting"] .sky {
+  display: none;
+}
+.shell[data-backdrop="painting"].wide [data-quiz-scroll] > [data-quiz-pane]:only-child {
+  max-width: calc(44rem + 98px);
+  margin: 0 auto;
+  border-left: 1px solid var(--quiz-line);
+  border-right: 1px solid var(--quiz-line);
+  box-shadow: 0 0 60px -20px rgb(0 0 0 / 0.35);
+}
+.shell[data-backdrop="painting"] .wide.split .frame {
+  max-width: 1280px;
+}
+.shell[data-backdrop="painting"]:not(.wide) .area {
+  margin-top: 10px;
+  border-top: 1px solid var(--quiz-line);
 }

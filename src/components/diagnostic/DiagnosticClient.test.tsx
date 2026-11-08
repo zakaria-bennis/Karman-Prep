@@ -119,7 +119,6 @@ describe("diagnostic on the shared shell", () => {
 
   it("asks before leaving, then leaves", () => {
     render(<DiagnosticClient questions={questions} isSubscribed />);
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("button", { name: "Exit" }));
     const dialog = screen.getByRole("dialog", { name: "Leave this section?" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Leave" }));
@@ -146,7 +145,6 @@ describe("diagnostic on the shared shell", () => {
   it("leaving and coming back starts a fresh diagnostic", () => {
     const first = render(<DiagnosticClient questions={questions} isSubscribed />);
     fireEvent.click(screen.getAllByRole("radio")[1]);
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("button", { name: "Exit" }));
     fireEvent.click(
       within(screen.getByRole("dialog", { name: "Leave this section?" })).getByRole("button", {
