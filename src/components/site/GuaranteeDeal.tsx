@@ -125,7 +125,6 @@ export default function GuaranteeDeal({
   return (
     <div className="gx" ref={root} data-pick={pick}>
       <div className="gx-head">
-        {g.eyebrow ? <p className="eyebrow rv">{g.eyebrow}</p> : null}
         {g.headline ? (
           <h2 className="rv kin" id={headId}>
             <Kinetic text={g.headline} />

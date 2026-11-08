@@ -29,7 +29,6 @@ export default function FaqPage() {
       <section className="i-hero i-faqhero" data-light id="s-71">
         <div className="in">
           <div className="i-words">
-            <p className="eyebrow rv">{f.eyebrow}</p>
             <h1 className="rv">{f.headline}</h1>
           </div>
         </div>

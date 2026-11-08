@@ -174,7 +174,6 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
       <section className="p-hero" data-light>
         <div className="in p-herogrid">
           <div className="p-words">
-            <p className="eyebrow rv">{S("eyebrow")}</p>
             <h1 className="rv" style={delay(0.05)}>
               {S("headline")}
             </h1>

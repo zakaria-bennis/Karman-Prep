@@ -128,7 +128,3 @@ export function Seats({ label, className = "" }: { label?: string; className?: s
     </p>
   );
 }
-
-export function Eyebrow({ children }: { children?: ReactNode }) {
-  return children ? <p className="eyebrow rv">{children}</p> : null;
-}

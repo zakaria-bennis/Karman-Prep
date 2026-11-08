@@ -15,7 +15,6 @@ export function Tutors() {
       <div className="in">
         <div className="t-top">
           <div className="h-head">
-            {f.eyebrow ? <p className="eyebrow rv">{f.eyebrow}</p> : null}
             <h2 className="rv kin" id="tutors-h">
               <Kinetic text={f.headline} />
             </h2>
