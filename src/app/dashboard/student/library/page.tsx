@@ -1,16 +1,18 @@
 /*
  * The Library (founder, 2026-11-07 and 2026-11-08): where the long study sessions happen.
- * The Challenge question banner, then one course at a time behind a Math / Reading and Writing
- * switch: what to practice next, then its Domains opening in place. Practice modes and
- * full-length tests sit beside it. Khan's function, Karman's look.
+ * The Challenge question opens full screen first (once a day, until it's done), then the student
+ * picks Math or Reading and Writing, and that choice becomes the small toggle at the top left of
+ * the box. Each course shows what to practice next, then its Domains opening in place. Practice
+ * modes and full-length tests sit beside it. Khan's function, Karman's look.
  */
 import type { Metadata } from "next";
 import { z } from "zod";
 import { Card, Legend, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
 import { SKILL_LEVELS } from "@/components/portal";
 import StudentPortal from "@/components/student-portal/StudentPortal";
-import ChallengeBanner from "@/components/student-portal/library/ChallengeBanner";
-import CourseView, { CourseSwitch } from "@/components/student-portal/library/CourseView";
+import ChallengeMoment from "@/components/student-portal/library/ChallengeMoment";
+import CourseChooser from "@/components/student-portal/library/CourseChooser";
+import CourseView from "@/components/student-portal/library/CourseView";
 import styles from "@/components/student-portal/library/library.module.css";
 import { buildCourse } from "@/lib/student/course";
 import { subSkillQuestionCount } from "@/lib/subskills/map";
@@ -24,7 +26,8 @@ import {
   levelsBySubSkill,
   withStored,
 } from "@/lib/student/skill-levels-server";
-import { dayKey } from "@/lib/student/streak";
+import { utcDayKey } from "@/lib/daily-challenge/selection";
+import { challengeAnsweredCount } from "@/lib/daily-ten/challenge";
 
 export const metadata: Metadata = { title: "Library" };
 export const dynamic = "force-dynamic";
@@ -41,23 +44,18 @@ export default async function LibraryPage({
 }) {
   const q = query.safeParse((await searchParams) ?? {});
   const ctx = await loadStudentContext();
-  const [answers, runAnswers, stored] = await Promise.all([
+  const challengeDay = utcDayKey(new Date());
+  const [answers, runAnswers, stored, challengeAnswered] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
     loadRunAnswers(ctx.clerkId),
     loadStoredLevels(ctx.clerkId),
+    challengeAnsweredCount(ctx.clerkId, challengeDay),
   ]);
   const levels = withStored(levelsBySubSkill([...answers, ...runAnswers]), stored);
   const math = buildCourse("math", levels, subSkillQuestionCount);
   const reading = buildCourse("reading", levels, subSkillQuestionCount);
-  /* Without a pick, open the course that is further behind. */
-  const picked = q.success ? q.data.subject : undefined;
-  const open = picked
-    ? picked === "math"
-      ? math
-      : reading
-    : math.progress <= reading.progress
-      ? math
-      : reading;
+  /* A link may pick the course; otherwise the student chooses first. */
+  const picked = q.success ? (q.data.subject ?? null) : null;
   const left = questionsLeft(ctx.plan, {
     questionsAnswered: answers.length,
     fullLengthTestsCompleted: 0,
@@ -68,6 +66,16 @@ export default async function LibraryPage({
     <>
       <Card label="Practice">
         <SectionHeader title="Practice" />
+        <Row
+          title="Challenge question"
+          sub={
+            challengeAnswered >= 2
+              ? "Both answered today. See how everyone did"
+              : "Two hard questions today, the same for everyone"
+          }
+          href={CHALLENGE.path}
+          right={challengeAnswered >= 2 ? "Done" : challengeAnswered === 1 ? "1 of 2" : "Start"}
+        />
         <Row
           title="Endless mode"
           sub="Untimed, adapts as you go, with your mistake log"
@@ -153,13 +161,22 @@ export default async function LibraryPage({
 
   return (
     <StudentPortal ctx={ctx} title="Library">
-      <Panel
-        banner={<ChallengeBanner href={CHALLENGE.path} today={dayKey(Date.now())} />}
-        side={side}
-      >
-        <CourseSwitch courses={[math, reading]} open={open.slug} />
-        <CourseView course={open} />
+      <Panel side={side}>
+        <CourseChooser
+          courses={[math, reading].map((c) => ({
+            slug: c.slug,
+            name: c.name,
+            progress: c.progress,
+          }))}
+          views={{
+            math: <CourseView course={math} />,
+            "reading-writing": <CourseView course={reading} />,
+          }}
+          initial={picked}
+          waitForChallenge={challengeAnswered < 2}
+        />
       </Panel>
+      <ChallengeMoment href={CHALLENGE.path} day={challengeDay} answered={challengeAnswered} />
     </StudentPortal>
   );
 }

@@ -60,3 +60,18 @@ export function othersLine(stats: ChallengeStats | null): string | null {
   const percent = Math.round((100 * stats.right) / stats.answered);
   return `${percent}% of the ${stats.answered} students who answered today got it right.`;
 }
+
+/**
+ * How many of today's two questions (Math, Reading and Writing) this student has answered, so the
+ * Library knows whether to open the Challenge. Never throws: on a failed read it says none.
+ */
+export async function challengeAnsweredCount(clerkId: string, day: string): Promise<number> {
+  const { data, error } = await db()
+    .from("daily_challenge_answers")
+    .select("subject")
+    .eq("day", day)
+    .eq("student_id", clerkId)
+    .limit(2);
+  if (error) return 0;
+  return new Set(((data ?? []) as { subject: string }[]).map((r) => r.subject)).size;
+}
