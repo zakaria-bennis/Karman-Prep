@@ -3,12 +3,15 @@
 /* Workshops and office hours, with a real "Save a spot" (and "Can't go" to give it back). */
 import { useState, useTransition } from "react";
 import type { LiveEvent } from "@/lib/student/calendar";
+import JoinButton from "../JoinButton";
 import { actionSetEventSpot } from "./actions";
 import styles from "./calendar.module.css";
 
 export interface EventRow extends LiveEvent {
   /** "Thu, Nov 12, 7:00 PM", in the student's zone. */
   when: string;
+  /** Starting within 30 minutes or under way, and the student may join. */
+  joinable: boolean;
 }
 
 function Item({ row }: { row: EventRow }) {
@@ -49,6 +52,9 @@ function Item({ row }: { row: EventRow }) {
         </small>
       </span>
       <span className={styles.actions}>
+        {row.joinable && row.joinUrl && (saved || row.kind === "office_hours") && (
+          <JoinButton href={row.joinUrl} what={row.title} />
+        )}
         {saved ? (
           <>
             <span className={styles.state}>Spot saved</span>

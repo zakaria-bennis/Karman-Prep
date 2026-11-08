@@ -5,6 +5,7 @@
  */
 import Link from "next/link";
 import { Banner, Card, Cta, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import JoinButton from "@/components/student-portal/JoinButton";
 import StudentPortal, { STUDENT_ROUTES } from "@/components/student-portal/StudentPortal";
 import type { LearnDashboardData } from "@/lib/learn/dashboard";
 import type { StudentContext } from "@/lib/student/context";
@@ -18,7 +19,11 @@ interface Props {
   /** Open homework due soonest (null: no tutor can assign work). */
   due?: { key: string; title: string; href: string | null; due: string; late: boolean }[] | null;
   /** The next sessions and live events (null: the plan books nothing). */
-  comingUp?: { key: string; title: string; sub: string; when: string }[] | null;
+  comingUp?:
+    | { key: string; title: string; sub: string; when: string; join: string | null }[]
+    | null;
+  /** The one main button: the Daily 10 until it's done today, then the next assignment. */
+  main: { title: string; meta: string; label: string; href: string };
 }
 
 export default function StudentDashboardClient({
@@ -29,6 +34,7 @@ export default function StudentDashboardClient({
   ctx,
   due = null,
   comingUp = null,
+  main,
 }: Props) {
   const trialEnds =
     subscription?.status === "trialing" && subscription.trial_end
@@ -99,15 +105,27 @@ export default function StudentDashboardClient({
       {comingUp && comingUp.length > 0 && (
         <Card label="Coming up">
           <SectionHeader title="Coming up" />
-          {comingUp.map((c) => (
-            <Row
-              key={c.key}
-              title={c.title}
-              sub={c.sub}
-              href={STUDENT_ROUTES.calendar}
-              right={c.when}
-            />
-          ))}
+          {comingUp.map((c) =>
+            c.join ? (
+              <div key={c.key} className="kp-row">
+                <span>
+                  <b>{c.title}</b>
+                  <small>
+                    {c.sub} · {c.when}
+                  </small>
+                </span>
+                <JoinButton href={c.join} what={c.title} />
+              </div>
+            ) : (
+              <Row
+                key={c.key}
+                title={c.title}
+                sub={c.sub}
+                href={STUDENT_ROUTES.calendar}
+                right={c.when}
+              />
+            )
+          )}
         </Card>
       )}
       <Card>
@@ -147,22 +165,15 @@ export default function StudentDashboardClient({
     <StudentPortal ctx={ctx}>
       <Panel banner={banner} side={side}>
         <section aria-labelledby="today-main">
-          {next ? (
-            <>
-              <h2 className="kp-title" id="today-main">
-                {next.title}
-              </h2>
-              <p className="kp-meta">{next.detail}</p>
-              <Cta href={next.href}>{next.label}</Cta>
-            </>
-          ) : (
-            <>
-              <h2 className="kp-title" id="today-main">
-                Daily practice
-              </h2>
-              <p className="kp-meta">Today&rsquo;s challenge questions and word lab</p>
-              <Cta href="/learn/daily">Open daily practice</Cta>
-            </>
+          <h2 className="kp-title" id="today-main">
+            {main.title}
+          </h2>
+          <p className="kp-meta">{main.meta}</p>
+          <Cta href={main.href}>{main.label}</Cta>
+          {next && next.href !== main.href && (
+            <MoreLink href={next.href}>
+              {next.label}: {next.title}
+            </MoreLink>
           )}
         </section>
         {dashboard.skillHistoryStatus === "unavailable" && (

@@ -15,15 +15,12 @@ import EventList, { type EventRow } from "@/components/student-portal/calendar/E
 import MonthGrid from "@/components/student-portal/calendar/MonthGrid";
 import styles from "@/components/student-portal/calendar/calendar.module.css";
 import { loadCalendar } from "@/components/student-portal/calendar/load";
-import { CHANGE_WINDOW_HOURS, dateText, dayIn, whenText } from "@/lib/student/calendar";
+import { CHANGE_WINDOW_HOURS, dateText, dayIn, joinOpen, whenText } from "@/lib/student/calendar";
 import { loadStudentContext } from "@/lib/student/context";
 import { canUse, upgradeFor } from "@/lib/student/plan-gate";
 
 export const metadata: Metadata = { title: "Calendar" };
 export const dynamic = "force-dynamic";
-
-/** The Join link shows from this long before a session starts until it ends. */
-const JOIN_EARLY_MS = 30 * 60_000;
 
 export default async function StudentCalendarPage() {
   const ctx = await loadStudentContext();
@@ -36,9 +33,15 @@ export default async function StudentCalendarPage() {
   const booked: BookedRow[] = data.booked.map((s) => ({
     ...s,
     when: whenText(s.start, now, tz),
-    joinable: Date.parse(s.start) - now <= JOIN_EARLY_MS && Date.parse(s.end) > now,
+    joinable: joinOpen(s.start, s.end, now),
   }));
-  const events: EventRow[] = data.events.map((e) => ({ ...e, when: whenText(e.start, now, tz) }));
+  // The list shows Join in the time window: always for drop-in office hours, and for a
+  // workshop once a spot is saved (it can be saved during the window too).
+  const events: EventRow[] = data.events.map((e) => ({
+    ...e,
+    when: whenText(e.start, now, tz),
+    joinable: joinOpen(e.start, e.end, now),
+  }));
   const hasOneToOnes = booked.some((b) => b.kind === "private");
 
   let booking: ReactNode = null;

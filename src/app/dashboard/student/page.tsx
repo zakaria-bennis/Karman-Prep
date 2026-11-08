@@ -6,10 +6,12 @@
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/server";
 import { loadCalendar } from "@/components/student-portal/calendar/load";
-import { whenText } from "@/lib/student/calendar";
+import { joinOpen, whenText } from "@/lib/student/calendar";
 import { loadStudentContext } from "@/lib/student/context";
+import { dailyTenDays, doneToday } from "@/lib/student/daily-ten";
 import { loadStudentHomework } from "@/lib/student/homework";
-import { dueText, groupHomework } from "@/lib/student/homework-model";
+import { dueText, groupHomework, mostUrgent, sizeText } from "@/lib/student/homework-model";
+import { DAILY_10 } from "@/lib/student/quiz-routes";
 import StudentDashboardClient from "@/components/dashboard/StudentDashboardClient";
 import { fetchLegacyLearningHistory } from "@/lib/supabase/queries/skill-catalog";
 import { fetchAllAttemptsForStudent } from "@/lib/supabase/queries/quiz/attempts";
@@ -36,8 +38,8 @@ export default async function StudentDashboardPage() {
     !ctx.hasTutor;
 
   const nowMs = Date.now();
-  const [history, attempts, diagnosticResult, skillHistory, homework, calendar] = await Promise.all(
-    [
+  const [history, attempts, diagnosticResult, skillHistory, homework, calendar, dailyDays] =
+    await Promise.all([
       fetchLegacyLearningHistory(userId),
       fetchAllAttemptsForStudent(userId),
       supabase
@@ -52,8 +54,42 @@ export default async function StudentDashboardPage() {
         ? loadStudentHomework({ userId: ctx.userId, clerkId: ctx.clerkId }, { withResults: false })
         : null,
       ctx.showCalendar ? loadCalendar(ctx, nowMs).catch(() => null) : null,
-    ]
-  );
+      dailyTenDays(ctx.clerkId),
+    ]);
+  const dashboard = buildLearnDashboard(history, attempts, skillHistory);
+
+  // The main button (founder, 2026-11-08): the Daily 10 until it's done for the day, then the
+  // next assignment. With neither, pick up where the student left off, or the Library.
+  const urgent = homework ? mostUrgent(homework.items, nowMs) : null;
+  const main = !doneToday(dailyDays, nowMs)
+    ? {
+        title: "Your Daily 10",
+        meta: "Ten questions picked for you today",
+        label: "Start Your Daily 10",
+        href: DAILY_10.path,
+      }
+    : urgent?.href
+      ? {
+          title: urgent.title,
+          meta: [sizeText(urgent.size, homework?.paceSeconds ?? 75), dueText(urgent, nowMs).text]
+            .filter(Boolean)
+            .join(" · "),
+          label: "Start this homework",
+          href: urgent.href,
+        }
+      : dashboard.next
+        ? {
+            title: dashboard.next.title,
+            meta: dashboard.next.detail,
+            label: dashboard.next.label,
+            href: dashboard.next.href,
+          }
+        : {
+            title: "Daily 10 done",
+            meta: "Nice. Pick a skill in the Library if you want more.",
+            label: "Open the Library",
+            href: "/dashboard/student/library",
+          };
 
   // Today shows the homework that is due soonest and the next two things on the calendar.
   const due = homework
@@ -74,12 +110,17 @@ export default async function StudentDashboardPage() {
           title: b.title,
           sub: b.tutorName ? `With ${b.tutorName}, on Zoom` : "On Zoom",
           start: b.start,
+          join: joinOpen(b.start, b.end, nowMs) ? b.joinUrl : null,
         })),
         ...calendar.events.map((e) => ({
           key: `e:${e.id}`,
           title: e.title,
           sub: e.hostName ? `With ${e.hostName}` : "Live",
           start: e.start,
+          join:
+            joinOpen(e.start, e.end, nowMs) && (e.saved || e.kind === "office_hours")
+              ? e.joinUrl
+              : null,
         })),
       ]
         .sort((a, b) => a.start.localeCompare(b.start))
@@ -89,7 +130,8 @@ export default async function StudentDashboardPage() {
 
   return (
     <StudentDashboardClient
-      dashboard={buildLearnDashboard(history, attempts, skillHistory)}
+      dashboard={dashboard}
+      main={main}
       diagnostic={diagnosticResult.data}
       subscription={sub}
       showPlacementBanner={showPlacementBanner}

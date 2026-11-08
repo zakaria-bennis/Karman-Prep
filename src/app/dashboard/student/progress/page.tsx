@@ -28,7 +28,12 @@ import {
   whatMoved,
   type TrialRun,
 } from "@/lib/student/progress";
-import { loadSkillAnswers, levelsBySkill } from "@/lib/student/skill-levels-server";
+import {
+  loadSkillAnswers,
+  loadStoredLevels,
+  levelsBySkill,
+  withStored,
+} from "@/lib/student/skill-levels-server";
 import { summarisePoints, type PointAward } from "@/lib/student/skill-points";
 import { createAdminClient } from "@/lib/supabase/server";
 
@@ -70,8 +75,9 @@ export default async function StudentProgressPage() {
   const db = createAdminClient() as unknown as SupabaseClient;
   const nowMs = Date.now();
 
-  const [answers, diagnostics, trials, awards] = await Promise.all([
+  const [answers, stored, diagnostics, trials, awards] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
+    loadStoredLevels(ctx.clerkId, nowMs),
     db
       .from("diagnostic_results")
       .select("taken_at, score_range_low, score_range_high")
@@ -87,7 +93,7 @@ export default async function StudentProgressPage() {
   ]);
 
   const history = scoreHistory((diagnostics.data ?? []) as DiagnosticRow[]);
-  const levels = levelsBySkill(answers, nowMs);
+  const levels = withStored(levelsBySkill(answers, nowMs), stored);
   const skillLevels = CATALOG_SKILLS.map((s) => levels.get(s.id) ?? 0);
   const labels = new Map(CATALOG_SKILLS.map((s) => [s.id, s.label]));
   const moves = whatMoved(answers, labels, nowMs);

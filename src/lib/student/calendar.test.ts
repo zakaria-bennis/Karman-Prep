@@ -5,6 +5,7 @@ import {
   dayIn,
   dayLabel,
   insideChangeWindow,
+  joinOpen,
   mark,
   minutesBetween,
   monthGrid,
@@ -61,5 +62,22 @@ describe("student calendar", () => {
     expect(dayLabel(grid.days[7], grid.label)).toBe("November 8, today: nothing booked");
     expect(monthGrid("2027-02-10", new Map()).days).toHaveLength(28);
     expect(monthGrid("2027-02-10", new Map()).lead).toBe(1); // Feb 1 2027 is a Monday
+  });
+});
+
+describe("joinOpen", () => {
+  const start = "2026-11-08T18:00:00Z";
+  const end = "2026-11-08T19:00:00Z";
+  const at = (iso: string) => Date.parse(iso);
+
+  it("opens 30 minutes before the start and closes at the end", () => {
+    expect(joinOpen(start, end, at("2026-11-08T17:29:00Z"))).toBe(false);
+    expect(joinOpen(start, end, at("2026-11-08T17:30:00Z"))).toBe(true);
+    expect(joinOpen(start, end, at("2026-11-08T18:45:00Z"))).toBe(true);
+    expect(joinOpen(start, end, at("2026-11-08T19:00:00Z"))).toBe(false);
+  });
+
+  it("stays closed for unreadable times", () => {
+    expect(joinOpen("soon", end, at(start))).toBe(false);
   });
 });

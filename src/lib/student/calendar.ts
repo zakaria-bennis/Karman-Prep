@@ -55,6 +55,17 @@ export interface Recording {
 
 export type MarkKind = "session" | "event" | "test";
 
+/** Join opens this many minutes before a session starts, and stays until it ends. */
+export const JOIN_EARLY_MINUTES = 30;
+
+/** Whether a session's Join button shows now (founder, 2026-11-08: join from the account). */
+export function joinOpen(startIso: string, endIso: string, nowMs: number): boolean {
+  const start = Date.parse(startIso);
+  const end = Date.parse(endIso);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return false;
+  return nowMs >= start - JOIN_EARLY_MINUTES * 60_000 && nowMs < end;
+}
+
 /** A valid IANA zone, or the default. */
 export function safeTimeZone(tz: string | null | undefined): string {
   if (!tz) return DEFAULT_TIME_ZONE;

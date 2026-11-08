@@ -10,6 +10,7 @@
 import { CATALOG_SKILLS, SKILL_DOMAINS, type CatalogSkill } from "@/data/curriculum/skill-catalog";
 import type { Subject } from "@/data/curriculum/types";
 import { levelProgress, strongCount, type SkillLevel } from "./levels";
+import { practiceSet } from "./quiz-routes";
 
 /** Approximate share of each section's questions by Domain (College Board test specs). */
 export const DOMAIN_SHARE: Record<string, number> = {
@@ -111,5 +112,9 @@ export function buildCourse(subject: Subject, levels: ReadonlyMap<string, SkillL
   };
 }
 
-/** Where a skill's practice set opens (the catalog practice route; links stay stable). */
-export const practiceHref = (skillId: string) => `/learn/practice/${encodeURIComponent(skillId)}`;
+/** Where a skill's practice set opens (the quiz flows' 10-question set; see quiz-routes.ts). */
+export const practiceHref = (skillId: string) => practiceSet(skillId).path;
+
+/** A tutor's assigned set with fixed questions opens in catalog practice, which serves them. */
+export const assignedSetHref = (skillId: string, assignmentId: string) =>
+  `/learn/practice/${encodeURIComponent(skillId)}?assignment=${encodeURIComponent(assignmentId)}`;

@@ -22,7 +22,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { catalogSessionHref } from "@/lib/catalog-practice/student-entry";
 import { createAdminClient } from "@/lib/supabase/server";
-import { courseSlug, practiceHref } from "./course";
+import { assignedSetHref, courseSlug, practiceHref } from "./course";
 import {
   COHORT_LATE_DAYS,
   FULL_LENGTH,
@@ -334,7 +334,7 @@ export async function loadStudentHomework(
       dueOn: null,
       dueAt: str(r.due_at),
       state: finished ? "done" : "open",
-      href: `${practiceHref(skill)}?assignment=${encodeURIComponent(id)}`,
+      href: assignedSetHref(skill, id),
       note: null,
       from: nameByClerk.get(r.educator_clerk_id as string) ?? null,
       completedAt: finished?.completedAt ?? null,

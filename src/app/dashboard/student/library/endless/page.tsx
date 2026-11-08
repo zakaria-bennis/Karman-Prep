@@ -12,7 +12,12 @@ import { buildCourse } from "@/lib/student/course";
 import { loadStudentContext } from "@/lib/student/context";
 import { mistakeLog, nextEndlessSkill } from "@/lib/student/endless";
 import { practiceSet } from "@/lib/student/quiz-routes";
-import { loadSkillAnswers, levelsBySkill } from "@/lib/student/skill-levels-server";
+import {
+  loadSkillAnswers,
+  loadStoredLevels,
+  levelsBySkill,
+  withStored,
+} from "@/lib/student/skill-levels-server";
 
 export const metadata: Metadata = { title: "Endless mode" };
 export const dynamic = "force-dynamic";
@@ -27,8 +32,11 @@ const when = (ms: number) =>
 
 export default async function EndlessPage() {
   const ctx = await loadStudentContext();
-  const answers = await loadSkillAnswers(ctx.clerkId);
-  const levels = levelsBySkill(answers);
+  const [answers, stored] = await Promise.all([
+    loadSkillAnswers(ctx.clerkId),
+    loadStoredLevels(ctx.clerkId),
+  ]);
+  const levels = withStored(levelsBySkill(answers), stored);
   const courses = [buildCourse("math", levels), buildCourse("reading", levels)];
   const log = mistakeLog(answers);
   const next = nextEndlessSkill(log, levels, courses, Date.now());

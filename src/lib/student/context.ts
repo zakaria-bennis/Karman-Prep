@@ -45,7 +45,7 @@ type Db = SupabaseClient;
 /** Days with practice: point awards (right answers) and saved practice answers. */
 async function practiceDaysFor(db: Db, clerkId: string): Promise<string[]> {
   const since = new Date(Date.now() - 400 * 86_400_000).toISOString();
-  const [awards, sessions] = await Promise.all([
+  const [awards, sessions, runs] = await Promise.all([
     db
       .from("student_point_awards")
       .select("created_at")
@@ -58,6 +58,14 @@ async function practiceDaysFor(db: Db, clerkId: string): Promise<string[]> {
       .eq("student_id", clerkId)
       .gte("started_at", since)
       .limit(2000),
+    // The quiz flows' runs (Daily 10, sets, quizzes, tests); absent before that merge.
+    db
+      .from("quiz_runs")
+      .select("completed_at")
+      .eq("student_id", clerkId)
+      .not("completed_at", "is", null)
+      .gte("completed_at", since)
+      .limit(2000),
   ]);
   const days = new Set<string>();
   for (const r of (awards.data ?? []) as { created_at: string }[]) days.add(dayKey(r.created_at));
@@ -65,6 +73,7 @@ async function practiceDaysFor(db: Db, clerkId: string): Promise<string[]> {
     days.add(dayKey(r.started_at));
     if (r.completed_at) days.add(dayKey(r.completed_at));
   }
+  for (const r of (runs.data ?? []) as { completed_at: string }[]) days.add(dayKey(r.completed_at));
   return [...days].sort();
 }
 

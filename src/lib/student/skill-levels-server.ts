@@ -1,13 +1,18 @@
 /*
- * Reads a student's saved practice answers and turns them into skill levels with
- * `levels.ts`. Source: catalog practice (catalog_practice_sessions + catalog_practice_responses),
- * which is what skill practice, Domain quizzes and check-ins write. The older lesson map
- * (learn_node_status) is keyed by legacy node ids, not catalog skills, so it is not mapped.
+ * A student's skill levels, from two places:
+ *   - `student_skill_levels`: the levels the quiz flows save as the Daily 10, practice sets and
+ *     Domain quizzes are answered (claude/overnight-quiz-7856ae, rules in src/lib/levels/).
+ *     Read when the table exists; decay is applied as of now.
+ *   - catalog practice answers saved before those flows (catalog_practice_sessions +
+ *     catalog_practice_responses), turned into levels with `levels.ts` (the same rule).
+ * Each skill shows the higher of the two. The older lesson map (learn_node_status) is keyed by
+ * legacy node ids, not catalog skills, so it is not mapped.
  */
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
-import { levelFromAnswers, type LevelAnswer, type SkillLevel } from "./levels";
+import { clampLevel } from "@/components/portal/skill-levels";
+import { decay, levelFromAnswers, type LevelAnswer, type SkillLevel } from "./levels";
 
 export interface SkillAnswer extends LevelAnswer {
   skillId: string;
@@ -72,6 +77,49 @@ export function levelsBySkill(
   return out;
 }
 
+/** Levels the quiz flows saved, with decay applied. Empty when the table isn't there yet. */
+export async function loadStoredLevels(
+  clerkId: string,
+  nowMs = Date.now()
+): Promise<Map<string, SkillLevel>> {
+  const out = new Map<string, SkillLevel>();
+  try {
+    const db = createAdminClient() as unknown as SupabaseClient;
+    const { data, error } = await db
+      .from("student_skill_levels")
+      .select("skill_id, level, last_practiced_at")
+      .eq("student_id", clerkId)
+      .limit(500);
+    if (error || !data) return out;
+    for (const r of data as {
+      skill_id: string;
+      level: number;
+      last_practiced_at: string | null;
+    }[]) {
+      const last = r.last_practiced_at ? Date.parse(r.last_practiced_at) : null;
+      out.set(r.skill_id, decay(clampLevel(r.level), Number.isFinite(last) ? last : null, nowMs));
+    }
+  } catch {
+    /* No table yet: only catalog practice counts. */
+  }
+  return out;
+}
+
+/** The higher level of each skill from the two sources. */
+export function withStored(
+  computed: ReadonlyMap<string, SkillLevel>,
+  stored: ReadonlyMap<string, SkillLevel>
+): Map<string, SkillLevel> {
+  const out = new Map(computed);
+  for (const [skill, level] of stored)
+    out.set(skill, Math.max(out.get(skill) ?? 0, level) as SkillLevel);
+  return out;
+}
+
 export async function loadSkillLevels(clerkId: string): Promise<Map<string, SkillLevel>> {
-  return levelsBySkill(await loadSkillAnswers(clerkId));
+  const [answers, stored] = await Promise.all([
+    loadSkillAnswers(clerkId),
+    loadStoredLevels(clerkId),
+  ]);
+  return withStored(levelsBySkill(answers), stored);
 }

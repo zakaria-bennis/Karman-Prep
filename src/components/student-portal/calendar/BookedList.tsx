@@ -12,6 +12,7 @@ import {
   changeFailedMessage,
   type BookedSession,
 } from "@/lib/student/calendar";
+import JoinButton from "../JoinButton";
 import SlotPicker from "./SlotPicker";
 import styles from "./calendar.module.css";
 
@@ -88,11 +89,7 @@ function Item({ row, preview }: { row: BookedRow; preview: boolean }) {
         </small>
       </span>
       <span className={styles.actions}>
-        {row.joinable && row.joinUrl && (
-          <a className="kp-link" href={row.joinUrl} target="_blank" rel="noopener noreferrer">
-            Join
-          </a>
-        )}
+        {row.joinable && row.joinUrl && <JoinButton href={row.joinUrl} what={row.title} />}
         {row.canMove && (
           <button
             type="button"

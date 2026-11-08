@@ -14,7 +14,12 @@ import { buildCourse } from "@/lib/student/course";
 import { loadStudentContext } from "@/lib/student/context";
 import { questionsLeft, upgradeFor } from "@/lib/student/plan-gate";
 import { CHALLENGE, ENDLESS, TIME_TRIAL, fullLengthTest } from "@/lib/student/quiz-routes";
-import { loadSkillAnswers, levelsBySkill } from "@/lib/student/skill-levels-server";
+import {
+  loadSkillAnswers,
+  loadStoredLevels,
+  levelsBySkill,
+  withStored,
+} from "@/lib/student/skill-levels-server";
 import { dayKey } from "@/lib/student/streak";
 
 export const metadata: Metadata = { title: "Library" };
@@ -25,8 +30,11 @@ const FORMS = [1, 2, 3, 4];
 
 export default async function LibraryPage() {
   const ctx = await loadStudentContext();
-  const answers = await loadSkillAnswers(ctx.clerkId);
-  const levels = levelsBySkill(answers);
+  const [answers, stored] = await Promise.all([
+    loadSkillAnswers(ctx.clerkId),
+    loadStoredLevels(ctx.clerkId),
+  ]);
+  const levels = withStored(levelsBySkill(answers), stored);
   const math = buildCourse("math", levels);
   const reading = buildCourse("reading", levels);
   const left = questionsLeft(ctx.plan, {
