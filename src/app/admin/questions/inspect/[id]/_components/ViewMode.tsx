@@ -86,7 +86,9 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
                 key={c.id}
                 className={cn(
                   "flex gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                  isCorrect ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)]" : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)]"
+                  isCorrect
+                    ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)]"
+                    : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)]"
                 )}
               >
                 <span
@@ -119,7 +121,9 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
           </span>{" "}
           <span className="text-[color:var(--good)]">{question.correct_answer}</span>
           {question.numeric_tolerance != null && (
-            <span className="ml-2 text-xs text-[color:var(--mute)]">± {String(question.numeric_tolerance)}</span>
+            <span className="ml-2 text-xs text-[color:var(--mute)]">
+              ± {String(question.numeric_tolerance)}
+            </span>
           )}
         </div>
       )}

@@ -560,12 +560,16 @@ export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail 
   // Normalize joined user rows.
   type RawMember = {
     joined_at: string;
-    user: CohortMemberRow | CohortMemberRow[] | null;
+    user: RawMemberUser | RawMemberUser[] | null;
   };
+  type RawMemberUser = Omit<CohortMemberRow, "user_id" | "joined_at"> & { id: string };
   const members: CohortMemberRow[] = ((membersRes.data ?? []) as unknown as RawMember[]).flatMap(
     (r) => {
       const u = Array.isArray(r.user) ? r.user[0] : r.user;
-      return u ? [{ ...u, joined_at: r.joined_at }] : [];
+      if (!u) return [];
+      // The users join returns `id`; callers key and act on `user_id`.
+      const { id, ...rest } = u;
+      return [{ ...rest, user_id: id, joined_at: r.joined_at }];
     }
   );
 

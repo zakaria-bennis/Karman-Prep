@@ -48,8 +48,8 @@ export function SourceLineageSection({ lineage }: Props) {
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-[color:var(--ink)]">Source lineage</h2>
           <p className="mt-0.5 text-[11px] text-[color:var(--mute)]">
-            Processed: <span className="font-mono text-[color:var(--ink)]">{processedAt}</span> - status:{" "}
-            <span className="font-mono text-[color:var(--ink)]">{status}</span>
+            Processed: <span className="font-mono text-[color:var(--ink)]">{processedAt}</span> -
+            status: <span className="font-mono text-[color:var(--ink)]">{status}</span>
           </p>
         </div>
         {open ? (
@@ -124,7 +124,8 @@ function SourceAssetRow({ asset }: { asset: SourceLineageAsset }) {
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-[color:var(--mute)]">
           {asset.validation_status && (
             <span>
-              validation: <span className="font-mono text-[color:var(--mute)]">{asset.validation_status}</span>
+              validation:{" "}
+              <span className="font-mono text-[color:var(--mute)]">{asset.validation_status}</span>
             </span>
           )}
           {asset.notes && <span className="truncate">notes: {asset.notes}</span>}
@@ -147,10 +148,14 @@ function RelevancePill({
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-        relevance === "required" && "border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)]",
-        relevance === "irrelevant" && "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_70%,transparent)] text-[color:var(--ink)]",
-        relevance === "uncertain" && "border-[color-mix(in_srgb,var(--warn)_30%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)]",
-        relevance === "optional" && "border-[color-mix(in_srgb,var(--info)_30%,transparent)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] text-[color:var(--info)]"
+        relevance === "required" &&
+          "border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)]",
+        relevance === "irrelevant" &&
+          "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_70%,transparent)] text-[color:var(--ink)]",
+        relevance === "uncertain" &&
+          "border-[color-mix(in_srgb,var(--warn)_30%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)]",
+        relevance === "optional" &&
+          "border-[color-mix(in_srgb,var(--info)_30%,transparent)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] text-[color:var(--info)]"
       )}
       title={[
         `relevance=${relevance}`,
@@ -185,6 +190,7 @@ function CropCompletePill({ complete }: { complete: boolean | null }) {
 }
 
 function AssetTypeIcon({ assetType }: { assetType: string }) {
-  if (assetType.includes("crop")) return <ImageIcon className="h-3.5 w-3.5 text-[color:var(--accent-text)]" />;
+  if (assetType.includes("crop"))
+    return <ImageIcon className="h-3.5 w-3.5 text-[color:var(--accent-text)]" />;
   return <FileText className="h-3.5 w-3.5 text-[color:var(--mute)]" />;
 }

@@ -64,7 +64,9 @@ export function QuestionCard({
     <article
       className={cn(
         "rounded-xl border bg-[color-mix(in_srgb,var(--card)_60%,transparent)] transition-colors",
-        selected ? "border-[color-mix(in_srgb,var(--late)_60%,transparent)] bg-[color-mix(in_srgb,var(--late)_4%,transparent)]" : "border-[color:var(--line)]"
+        selected
+          ? "border-[color-mix(in_srgb,var(--late)_60%,transparent)] bg-[color-mix(in_srgb,var(--late)_4%,transparent)]"
+          : "border-[color:var(--line)]"
       )}
     >
       {/* ── Header (always visible) — clicking toggles expansion ── */}
@@ -138,7 +140,9 @@ export function QuestionCard({
                   </>
                 )}
                 <span className="text-[color:var(--mute)]">·</span>
-                <span className="text-[color:var(--mute)]">{question.subject === "math" ? "Math" : "R&W"}</span>
+                <span className="text-[color:var(--mute)]">
+                  {question.subject === "math" ? "Math" : "R&W"}
+                </span>
               </div>
             )}
             {/* Question stem (truncated when collapsed) */}
@@ -164,7 +168,9 @@ export function QuestionCard({
               {correctChoice && (
                 <>
                   <span>·</span>
-                  <span className="font-mono text-[color:var(--good)]">answer {correctChoice.letter}</span>
+                  <span className="font-mono text-[color:var(--good)]">
+                    answer {correctChoice.letter}
+                  </span>
                 </>
               )}
             </div>
@@ -187,13 +193,17 @@ export function QuestionCard({
             <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
               {question.passage_a && (
                 <div className="whitespace-pre-wrap rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2.5 font-serif text-sm text-[color:var(--ink)]">
-                  <div className="mb-1 text-xs uppercase tracking-wide text-[color:var(--mute)]">Text 1</div>
+                  <div className="mb-1 text-xs uppercase tracking-wide text-[color:var(--mute)]">
+                    Text 1
+                  </div>
                   {question.passage_a}
                 </div>
               )}
               {question.passage_b && (
                 <div className="whitespace-pre-wrap rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2.5 font-serif text-sm text-[color:var(--ink)]">
-                  <div className="mb-1 text-xs uppercase tracking-wide text-[color:var(--mute)]">Text 2</div>
+                  <div className="mb-1 text-xs uppercase tracking-wide text-[color:var(--mute)]">
+                    Text 2
+                  </div>
                   {question.passage_b}
                 </div>
               )}
@@ -226,7 +236,9 @@ export function QuestionCard({
                     key={c.id}
                     className={cn(
                       "rounded border px-3 py-2 text-sm",
-                      c.is_correct ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_5%,transparent)]" : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)]"
+                      c.is_correct
+                        ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_5%,transparent)]"
+                        : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)]"
                     )}
                   >
                     <div
@@ -235,7 +247,9 @@ export function QuestionCard({
                         c.is_correct ? "text-[color:var(--good)]" : "text-[color:var(--ink)]"
                       )}
                     >
-                      <span className="shrink-0 font-mono text-xs text-[color:var(--mute)]">{c.letter}.</span>
+                      <span className="shrink-0 font-mono text-xs text-[color:var(--mute)]">
+                        {c.letter}.
+                      </span>
                       <div className="min-w-0 flex-1">
                         {c.choice_table_data ? (
                           <QuestionTable
@@ -267,7 +281,9 @@ export function QuestionCard({
               </span>
               <MathText text={question.correct_answer} />
               {question.numeric_tolerance != null && (
-                <span className="text-xs text-[color:var(--mute)]">±{question.numeric_tolerance}</span>
+                <span className="text-xs text-[color:var(--mute)]">
+                  ±{question.numeric_tolerance}
+                </span>
               )}
             </div>
           )}
@@ -293,7 +309,10 @@ export function QuestionCard({
                 <div className="mb-0.5 text-xs uppercase tracking-wide text-[color-mix(in_srgb,var(--warn)_70%,transparent)]">
                   Hint
                 </div>
-                <MathText text={question.hint} className="text-sm text-[color-mix(in_srgb,var(--warn)_90%,transparent)]" />
+                <MathText
+                  text={question.hint}
+                  className="text-sm text-[color-mix(in_srgb,var(--warn)_90%,transparent)]"
+                />
               </div>
             </div>
           )}
@@ -306,7 +325,10 @@ export function QuestionCard({
                 <div className="mb-0.5 text-xs uppercase tracking-wide text-[color-mix(in_srgb,var(--info)_70%,transparent)]">
                   Desmos strategy
                 </div>
-                <MathText text={question.desmos_strategy} className="text-sm text-[color-mix(in_srgb,var(--info)_90%,transparent)]" />
+                <MathText
+                  text={question.desmos_strategy}
+                  className="text-sm text-[color-mix(in_srgb,var(--info)_90%,transparent)]"
+                />
               </div>
             </div>
           )}
@@ -336,7 +358,7 @@ export function QuestionCard({
               "rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               pickerOpen
                 ? "border border-[color:var(--line)] text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--card)_5%,transparent)]"
-                : "bg-[color:var(--good)] text-[color:var(--accent-ink)] hover:bg-[color:var(--good)]"
+                : "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)]"
             )}
           >
             <Check className="mr-1 inline h-3 w-3" /> {pickerOpen ? "Close picker" : "Accept…"}

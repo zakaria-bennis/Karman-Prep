@@ -36,7 +36,7 @@ export async function fetchStudentById(clerkId: string): Promise<StudentRosterRo
   const supabase = createAdminClient();
   const { data } = await supabase
     .from("users")
-    .select("clerk_id, email, role, created_at, sat_test_date")
+    .select("clerk_id, email, first_name, last_name, role, created_at, sat_test_date")
     .eq("clerk_id", clerkId)
     .maybeSingle();
   return (data as StudentRosterRow | null) ?? null;

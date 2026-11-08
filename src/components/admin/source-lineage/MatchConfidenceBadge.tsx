@@ -50,10 +50,14 @@ export function MatchConfidenceBadge({ method, confidence, className }: Props) {
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold",
-        tone === "good" && "border-[color-mix(in_srgb,var(--good)_35%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)]",
-        tone === "warn" && "border-[color-mix(in_srgb,var(--warn)_35%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)]",
-        tone === "bad" && "border-[color-mix(in_srgb,var(--late)_35%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)]",
-        tone === "neutral" && "border-[color-mix(in_srgb,var(--line)_35%,transparent)] bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] text-[color:var(--ink)]",
+        tone === "good" &&
+          "border-[color-mix(in_srgb,var(--good)_35%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)]",
+        tone === "warn" &&
+          "border-[color-mix(in_srgb,var(--warn)_35%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)]",
+        tone === "bad" &&
+          "border-[color-mix(in_srgb,var(--late)_35%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)]",
+        tone === "neutral" &&
+          "border-[color-mix(in_srgb,var(--line)_35%,transparent)] bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] text-[color:var(--ink)]",
         className
       )}
       title={score ? `Matched via ${label} with confidence ${score}` : label}

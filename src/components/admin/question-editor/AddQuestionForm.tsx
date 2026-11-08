@@ -499,7 +499,9 @@ export function AddQuestionForm({
           disabled={!valid || submitting}
           className={cn(
             "rounded-lg bg-[color:var(--accent)] px-5 py-2 text-sm font-bold text-[color:var(--accent-ink)]",
-            !valid || submitting ? "cursor-not-allowed opacity-50" : "hover:bg-[color:var(--accent)]"
+            !valid || submitting
+              ? "cursor-not-allowed opacity-50"
+              : "hover:bg-[color:var(--accent)]"
           )}
         >
           {submitting ? "Adding…" : "Add question"}
@@ -520,8 +522,12 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--mute)]">{label}</span>
-      {helper && <span className="mb-1 mt-0.5 block text-[10px] text-[color:var(--mute)]">{helper}</span>}
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
+        {label}
+      </span>
+      {helper && (
+        <span className="mb-1 mt-0.5 block text-[10px] text-[color:var(--mute)]">{helper}</span>
+      )}
       <div className={helper ? "" : "mt-1"}>{children}</div>
     </label>
   );

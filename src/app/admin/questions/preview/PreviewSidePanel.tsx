@@ -168,14 +168,26 @@ export function PreviewSidePanel({
 type Tone = "sky" | "amber" | "indigo" | "slate";
 
 const TONE_CLASSES: Record<Tone, { border: string; bg: string; text: string }> = {
-  sky: { border: "border-[color-mix(in_srgb,var(--info)_30%,transparent)]", bg: "bg-[color-mix(in_srgb,var(--info)_4%,transparent)]", text: "text-[color:var(--info)]" },
-  amber: { border: "border-[color-mix(in_srgb,var(--warn)_30%,transparent)]", bg: "bg-[color-mix(in_srgb,var(--warn)_4%,transparent)]", text: "text-[color:var(--warn)]" },
+  sky: {
+    border: "border-[color-mix(in_srgb,var(--info)_30%,transparent)]",
+    bg: "bg-[color-mix(in_srgb,var(--info)_4%,transparent)]",
+    text: "text-[color:var(--info)]",
+  },
+  amber: {
+    border: "border-[color-mix(in_srgb,var(--warn)_30%,transparent)]",
+    bg: "bg-[color-mix(in_srgb,var(--warn)_4%,transparent)]",
+    text: "text-[color:var(--warn)]",
+  },
   indigo: {
     border: "border-[color-mix(in_srgb,var(--accent)_30%,transparent)]",
     bg: "bg-[color-mix(in_srgb,var(--accent)_4%,transparent)]",
     text: "text-[color:var(--accent-text)]",
   },
-  slate: { border: "border-[color:var(--line)]", bg: "bg-[color-mix(in_srgb,var(--card)_40%,transparent)]", text: "text-[color:var(--ink)]" },
+  slate: {
+    border: "border-[color:var(--line)]",
+    bg: "bg-[color-mix(in_srgb,var(--card)_40%,transparent)]",
+    text: "text-[color:var(--ink)]",
+  },
 };
 
 function PanelCard({
@@ -322,7 +334,9 @@ function PdfPanel({ question: q }: { question: PreviewQuestionWithLineage }) {
             alt={q.image_alt ?? ""}
             className="mx-auto block max-h-[480px] w-auto rounded object-contain"
           />
-          {q.image_alt && <p className="mt-2 px-2 text-[10px] italic text-[color:var(--mute)]">{q.image_alt}</p>}
+          {q.image_alt && (
+            <p className="mt-2 px-2 text-[10px] italic text-[color:var(--mute)]">{q.image_alt}</p>
+          )}
         </div>
       )}
 
@@ -377,7 +391,9 @@ function GraderBody({ question: q }: { question: PreviewQuestionWithLineage }) {
     <div className="space-y-2 text-xs text-[color:var(--ink)]">
       {pass1 && (
         <div className="space-y-1">
-          <div className="text-[10px] uppercase tracking-wider text-[color:var(--mute)]">Pass 1 voters</div>
+          <div className="text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
+            Pass 1 voters
+          </div>
           {Object.entries(pass1).map(([voter, value]) => (
             <div key={voter} className="flex items-center justify-between">
               <span className="font-mono text-[color:var(--mute)]">{voter}</span>

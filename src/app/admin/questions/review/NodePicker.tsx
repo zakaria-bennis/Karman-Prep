@@ -65,7 +65,9 @@ export function NodePicker({
             <span className="shrink-0 font-mono text-[color:var(--mute)]">{selected.nodeId}</span>
             <span className="truncate text-[color:var(--ink)]">{selected.label}</span>
             <span className="shrink-0 text-[color:var(--mute)]">·</span>
-            <span className="shrink-0 text-[color:var(--mute)]">{CLUSTER_BY_DOMAIN[selected.domain]}</span>
+            <span className="shrink-0 text-[color:var(--mute)]">
+              {CLUSTER_BY_DOMAIN[selected.domain]}
+            </span>
             {isAutoPick && (
               <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[color:var(--good)]">
                 <Sparkles className="h-3 w-3" /> auto-picked from slug
@@ -89,7 +91,10 @@ export function NodePicker({
           className="flex-1 bg-transparent text-xs text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:outline-none"
         />
         {query && (
-          <button onClick={() => setQuery("")} className="text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]">
+          <button
+            onClick={() => setQuery("")}
+            className="text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+          >
             ×
           </button>
         )}
@@ -114,7 +119,9 @@ export function NodePicker({
                 >
                   <span className="shrink-0 font-mono text-[color:var(--mute)]">{m.nodeId}</span>
                   <span className="flex-1 truncate text-[color:var(--ink)]">{m.label}</span>
-                  <span className="shrink-0 text-[color:var(--mute)]">{CLUSTER_BY_DOMAIN[m.domain]}</span>
+                  <span className="shrink-0 text-[color:var(--mute)]">
+                    {CLUSTER_BY_DOMAIN[m.domain]}
+                  </span>
                 </button>
               </li>
             );
@@ -122,7 +129,9 @@ export function NodePicker({
         </ul>
       )}
       {query.trim() && matches.length === 0 && (
-        <div className="px-1 text-xs italic text-[color:var(--mute)]">No nodes match &ldquo;{query}&rdquo;.</div>
+        <div className="px-1 text-xs italic text-[color:var(--mute)]">
+          No nodes match &ldquo;{query}&rdquo;.
+        </div>
       )}
 
       {/* Actions */}
@@ -134,13 +143,16 @@ export function NodePicker({
           Keep in bank
         </button>
         <div className="ml-auto flex items-center gap-2">
-          <button onClick={onCancel} className="px-3 py-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]">
+          <button
+            onClick={onCancel}
+            className="px-3 py-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+          >
             Cancel
           </button>
           <button
             onClick={() => onAccept(selectedNodeId)}
             disabled={busy}
-            className="rounded bg-[color:var(--good)] px-3 py-1 text-xs font-bold text-[color:var(--accent-ink)] hover:bg-[color:var(--good)] disabled:opacity-50"
+            className="rounded bg-[color-mix(in_srgb,var(--good)_28%,transparent)] px-3 py-1 text-xs font-bold text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)] disabled:opacity-50"
           >
             <Check className="mr-1 inline h-3 w-3" /> Accept
           </button>

@@ -100,7 +100,9 @@ export default function VideoUploader({
       {/* Current video preview */}
       <section>
         <h2 className="mb-1 text-base font-bold text-[color:var(--ink)]">Current video</h2>
-        <p className="mb-3 text-xs text-[color:var(--mute)]">Shown to students at the top of the lesson page.</p>
+        <p className="mb-3 text-xs text-[color:var(--mute)]">
+          Shown to students at the top of the lesson page.
+        </p>
 
         {currentUrl ? (
           <div className="overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)]">
@@ -134,7 +136,9 @@ export default function VideoUploader({
         ) : (
           <div className="rounded-xl border border-dashed border-[color:var(--line)] p-10 text-center">
             <Video className="mx-auto mb-2 h-7 w-7 text-[color:var(--mute)]" />
-            <p className="text-sm text-[color:var(--mute)]">No video yet. Upload one or paste a URL below.</p>
+            <p className="text-sm text-[color:var(--mute)]">
+              No video yet. Upload one or paste a URL below.
+            </p>
           </div>
         )}
       </section>
@@ -143,8 +147,8 @@ export default function VideoUploader({
       <section>
         <h3 className="mb-1 text-sm font-bold text-[color:var(--ink)]">Upload a file</h3>
         <p className="mb-3 text-xs text-[color:var(--mute)]">
-          MP4/WebM, up to <strong className="text-[color:var(--ink)]">{MAX_FILE_MB} MB</strong>. Larger files
-          should be hosted on Mux or YouTube and pasted as a URL below.
+          MP4/WebM, up to <strong className="text-[color:var(--ink)]">{MAX_FILE_MB} MB</strong>.
+          Larger files should be hosted on Mux or YouTube and pasted as a URL below.
         </p>
 
         <input

@@ -149,12 +149,19 @@ function HistoryBody({
     return <div className="px-1 py-2 text-xs text-[color:var(--late)]">{error}</div>;
   }
   if (!entries || entries.length === 0) {
-    return <div className="px-1 py-2 text-xs italic text-[color:var(--mute)]">No edits on this field yet.</div>;
+    return (
+      <div className="px-1 py-2 text-xs italic text-[color:var(--mute)]">
+        No edits on this field yet.
+      </div>
+    );
   }
   return (
     <ol className="space-y-2 text-[11px]">
       {entries.map((e) => (
-        <li key={e.id} className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] p-2">
+        <li
+          key={e.id}
+          className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] p-2"
+        >
           <div className="mb-1 flex items-center gap-2 text-[10px] text-[color:var(--mute)]">
             <span className="font-mono">
               {(e.createdAt ?? "").replace("T", " ").slice(0, 16)} UTC
@@ -181,7 +188,9 @@ function Diff({ label, tone, value }: { label: string; tone: "rose" | "emerald";
     <div
       className={cn(
         "rounded border px-1.5 py-1",
-        tone === "rose" ? "border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_4%,transparent)]" : "border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_4%,transparent)]"
+        tone === "rose"
+          ? "border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_4%,transparent)]"
+          : "border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_4%,transparent)]"
       )}
     >
       <span

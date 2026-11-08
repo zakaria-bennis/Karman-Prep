@@ -162,7 +162,8 @@ export default function SourcePdfFilter({
                 onClick={() => applySelection(s.source_pdf)}
                 className={cn(
                   "flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-[color:var(--card)]",
-                  current === s.source_pdf && "bg-[color:var(--card)] text-[color:var(--accent-text)]"
+                  current === s.source_pdf &&
+                    "bg-[color:var(--card)] text-[color:var(--accent-text)]"
                 )}
               >
                 <span className="max-w-[200px] truncate text-left">{s.source_pdf}</span>

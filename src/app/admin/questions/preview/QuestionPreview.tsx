@@ -75,7 +75,7 @@ export function QuestionPreview({
       >
         <button
           onClick={() => setIsSubmitted(true)}
-          className="rounded-xl bg-[color:var(--info)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--info)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
+          className="rounded-xl bg-[color:var(--accent)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--accent)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
         >
           Simulate submit
         </button>
@@ -98,7 +98,7 @@ export function QuestionPreview({
       </button>
       <button
         onClick={() => setShowExplanations(true)}
-        className="rounded-xl bg-[color:var(--info)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--info)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
+        className="rounded-xl bg-[color:var(--accent)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--accent)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
       >
         Show explanations
       </button>
@@ -163,11 +163,16 @@ export function QuestionPreview({
               className={cn(
                 "w-full rounded-xl border px-5 py-3.5 text-left transition-all",
                 "flex items-start gap-4",
-                !isSubmitted && "cursor-pointer hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--info)_5%,transparent)]",
-                isSelected && !isSubmitted && "border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)]",
+                !isSubmitted &&
+                  "cursor-pointer hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--info)_5%,transparent)]",
+                isSelected &&
+                  !isSubmitted &&
+                  "border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)]",
                 !isSelected && !isSubmitted && "border-[color:var(--line)] bg-[color:var(--card)]",
-                showCorrect && "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_15%,transparent)]",
-                showWrong && "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_15%,transparent)]",
+                showCorrect &&
+                  "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_15%,transparent)]",
+                showWrong &&
+                  "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_15%,transparent)]",
                 isSubmitted && !isSelected && !isCorrect && "border-[color:var(--line)] opacity-50"
               )}
             >
@@ -175,10 +180,17 @@ export function QuestionPreview({
                 className={cn(
                   "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
                   !isSubmitted && !isSelected && "bg-[color:var(--raised)] text-[color:var(--ink)]",
-                  !isSubmitted && isSelected && "bg-[color:var(--info)] text-[color:var(--accent-ink)]",
-                  showCorrect && "bg-[color:var(--good)] text-[color:var(--accent-ink)]",
-                  showWrong && "bg-[color:var(--late)] text-[color:var(--accent-ink)]",
-                  isSubmitted && !isSelected && !isCorrect && "bg-[color:var(--raised)] text-[color:var(--mute)]"
+                  !isSubmitted &&
+                    isSelected &&
+                    "bg-[color:var(--accent)] text-[color:var(--accent-ink)]",
+                  showCorrect &&
+                    "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)]",
+                  showWrong &&
+                    "bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]",
+                  isSubmitted &&
+                    !isSelected &&
+                    !isCorrect &&
+                    "bg-[color:var(--raised)] text-[color:var(--mute)]"
                 )}
               >
                 {showCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
@@ -257,17 +269,27 @@ export function QuestionPreview({
                 key={letter}
                 className={cn(
                   "flex items-start gap-3 rounded-xl border px-4 py-3",
-                  isCorrect && "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_5%,transparent)]",
-                  !isCorrect && isStudentChoice && "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)]",
-                  !isCorrect && !isStudentChoice && "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)]"
+                  isCorrect &&
+                    "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_5%,transparent)]",
+                  !isCorrect &&
+                    isStudentChoice &&
+                    "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)]",
+                  !isCorrect &&
+                    !isStudentChoice &&
+                    "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)]"
                 )}
               >
                 <span
                   className={cn(
                     "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                    isCorrect && "bg-[color:var(--good)] text-[color:var(--accent-ink)]",
-                    !isCorrect && isStudentChoice && "bg-[color:var(--late)] text-[color:var(--accent-ink)]",
-                    !isCorrect && !isStudentChoice && "bg-[color:var(--raised)] text-[color:var(--ink)]"
+                    isCorrect &&
+                      "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)]",
+                    !isCorrect &&
+                      isStudentChoice &&
+                      "bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]",
+                    !isCorrect &&
+                      !isStudentChoice &&
+                      "bg-[color:var(--raised)] text-[color:var(--ink)]"
                   )}
                 >
                   {letter}
@@ -443,7 +465,9 @@ export function QuestionPreview({
           {figureCard}
           {hasPassage && passageBlock}
           {inExplanationMode && (
-            <div className="mt-10 border-t border-[color-mix(in_srgb,var(--line)_50%,transparent)] pt-6">{questionPanel}</div>
+            <div className="mt-10 border-t border-[color-mix(in_srgb,var(--line)_50%,transparent)] pt-6">
+              {questionPanel}
+            </div>
           )}
         </div>
         {/* RIGHT */}

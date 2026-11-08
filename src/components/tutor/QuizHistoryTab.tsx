@@ -138,8 +138,8 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                             className={cn(
                               "flex h-5 w-5 items-center justify-center rounded",
                               step.was_correct
-                                ? "bg-[color:var(--good)] text-[color:var(--accent-ink)]"
-                                : "bg-[color:var(--late)] text-[color:var(--ink)]"
+                                ? "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)]"
+                                : "bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]"
                             )}
                           >
                             {step.was_correct ? (
