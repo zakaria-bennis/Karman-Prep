@@ -62,6 +62,7 @@ export default async function TutorCode({
       id={ID}
       initialCode=""
       title={TITLE}
+      submitLabel="Use code"
       note="Enter it here. You get the Practice plan free while your tutor's Karman plan is on."
     />
   );
