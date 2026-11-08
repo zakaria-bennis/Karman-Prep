@@ -27,6 +27,11 @@ served.
     colour (no marigold). It uses the quiz's first-round sounds.
 - **Skill levels**: Not started, New, Learning, Understanding, Conquered, saved per student.
   The rules are in `src/lib/levels/README.md` (written for the student-portal session).
+  **One rule everywhere:** the rule lived in four places (mine, the student portal's, the
+  parent and school view's, and the tutor roster's). The parent, school and tutor copies
+  counted differently: 5 right in a row from scratch showed Conquered, and the parent view
+  decayed after 3 weeks, not 4. All three now call `src/lib/levels/rules.ts`, so a parent, a
+  tutor and the student see the same level for the same answers.
 - **Practice set** (`/learn/set/<skill>`). Ten questions in one skill, adaptive: a right answer
   makes the next one harder, a miss makes it easier.
   - A level-up shows a small banner under the question: the square paints in, the fox hops,
@@ -139,6 +144,6 @@ served.
 ## Database
 
 One migration, applied to the local database only:
-`supabase/migrations/20261108120000_quiz_runs_levels_challenge.sql`. It adds `quiz_runs`,
+`supabase/migrations/20261108120100_quiz_runs_levels_challenge.sql`. It adds `quiz_runs`,
 `quiz_run_responses`, `student_skill_levels` and `daily_challenge_answers`, all closed to
 everyone but the server. A local reset from a branch without this file removes these tables.

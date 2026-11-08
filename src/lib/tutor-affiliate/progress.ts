@@ -6,7 +6,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import type { SkillLevel } from "@/components/portal/skill-levels";
-import { coursePercent, skillLevelFromAnswers } from "./progress-rules";
+import { levelFromHistory } from "@/lib/levels/rules";
+import { coursePercent } from "./progress-rules";
 
 export interface DomainGlance {
   id: string;
@@ -89,8 +90,13 @@ export async function fetchStudentGlances(
   for (const clerkId of clerkIds) {
     const levels = new Map<string, SkillLevel>();
     for (const [skillId, list] of answers.get(clerkId) ?? []) {
-      list.sort((a, b) => a.at.localeCompare(b.at));
-      levels.set(skillId, skillLevelFromAnswers(list.map((a) => a.right)));
+      levels.set(
+        skillId,
+        levelFromHistory(
+          list.map((a) => ({ correct: a.right, at: a.at })),
+          new Date()
+        ).level
+      );
     }
     result.set(clerkId, {
       math: course("math", "SAT Math", levels),

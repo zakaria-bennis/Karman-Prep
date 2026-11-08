@@ -57,11 +57,17 @@ const levels = await loadSkillLevels(clerkId);
 ```
 
 Pure rules (safe anywhere): `applyAnswer`, `applyQuizSkill`, `applyMeasured`, `effective`,
-`runToNext`, `nextDecayAt`, `DECAY_WEEKS` in `./rules.ts`.
+`runToNext`, `nextDecayAt`, `DECAY_WEEKS` / `DECAY_DAYS` in `./rules.ts`. For readers that only
+have raw answers: `levelFromHistory(answers, now)` (and `foldAnswers`).
+
+**This is the only copy of the rule.** The student portal (`src/lib/student/levels.ts`), the
+parent and school glance (`src/lib/progress-glance/levels.ts`) and the tutor roster
+(`src/lib/tutor-affiliate/progress.ts`) all call it, so every portal shows the same level for
+the same answers. Do not restate the thresholds or the decay anywhere else.
 
 Storage: `public.student_skill_levels` (student_id = Clerk id, skill_id = catalog skill id,
 level 0 to 4, run, answered, last_practiced_at). Migration
-`supabase/migrations/20261108120000_quiz_runs_levels_challenge.sql`.
+`supabase/migrations/20261108120100_quiz_runs_levels_challenge.sql`.
 
 ## Where the flows live (for links)
 

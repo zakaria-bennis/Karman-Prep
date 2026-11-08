@@ -22,6 +22,8 @@ export type { SkillLevel };
 
 /** Weeks without practice before a skill drops one level. Each further span drops another. */
 export const DECAY_WEEKS = 4;
+/** The same span in days, for readers that count days. */
+export const DECAY_DAYS = DECAY_WEEKS * 7;
 const DAY_MS = 86_400_000;
 const DECAY_MS = DECAY_WEEKS * 7 * DAY_MS;
 
@@ -141,4 +143,37 @@ export function applyMeasured(stored: LevelState, count: number, at: Date): Leve
     answered: before.answered + count,
     lastPracticedAt: at.toISOString(),
   };
+}
+
+/** One saved answer from any lane, for readers that only have raw history. */
+export type HistoryAnswer = {
+  correct: boolean;
+  /** Answers given with a hint never count toward a run. */
+  usedHint?: boolean;
+  /** When it was answered: an ISO string, epoch milliseconds or a Date. */
+  at: string | number | Date;
+};
+
+const msOf = (at: HistoryAnswer["at"]) =>
+  at instanceof Date ? at.getTime() : typeof at === "number" ? at : Date.parse(at);
+
+/** The state after every answer, oldest first, by `applyAnswer` (decay between answers included). */
+export function foldAnswers(answers: readonly HistoryAnswer[]): LevelState {
+  const ordered = answers
+    .map((a) => ({ ...a, ms: msOf(a.at) }))
+    .filter((a) => Number.isFinite(a.ms))
+    .sort((x, y) => x.ms - y.ms);
+  let state = NOT_STARTED;
+  for (const a of ordered)
+    state = applyAnswer(state, {
+      correct: a.correct,
+      usedHint: !!a.usedHint,
+      at: new Date(a.ms),
+    }).state;
+  return state;
+}
+
+/** A skill's state from its whole answer history, with decay applied up to `now`. */
+export function levelFromHistory(answers: readonly HistoryAnswer[], now: Date): LevelState {
+  return effective(foldAnswers(answers), now);
 }
