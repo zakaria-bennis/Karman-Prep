@@ -90,11 +90,32 @@ painted home mock.
   you occasional emails from Karman. Unsubscribe any time." Its "check your inbox for the Zoom
   link" line now says to join from the Karman account on the day.
 
+## Your four answers (8 November morning), built
+
+- **Cohort payments, now chargeable (Stripe test mode).** A family can pay $995 at once, or $95 now
+  and $300 a month three times. The $95 checkout saves the card; right after it, the webhook creates
+  a Stripe subscription schedule: $300 on the cohort's start date and the next two months, then it
+  ends by itself (checked in test mode: January 4 to April 4, three payments). The link is
+  `/checkout/start?plan=cohort&payment=installments&cohortId=…`, sent after the call.
+  - I first tried one checkout holding both the deposit and a later monthly start; Stripe refuses
+    that combination, so it's the deposit checkout plus the schedule.
+- **Buy now, pay later.** The one-payment checkouts (Cohort in full, Private 10, Private 20) now offer
+  card, Klarna, Affirm and Afterpay. All three opened on the Stripe test account for $995, $1,495
+  and $2,495. In live mode each must also be switched on in Stripe before launch. They don't apply
+  to the $95 deposit plan, which needs a saved card.
+- **Private 10:** if the guarantee is missed, half the price back ($747.50), no extra hours. Private
+  20 keeps up to 6 free hours, then half back. Site, terms, refunds and docs updated.
+- **Access until the SAT date:** Cohort and Private buyers keep Pro until the SAT date they gave at
+  onboarding (through the end of that day); with no date, until they set one. The 12-month rule is
+  gone.
+- **Cohort start:** "the week of January 4" (later cohorts: the weeks of March 1 and April 5);
+  enrollment closes "December 30". The site no longer names any class weekday or time.
+
 ## The deposit fix
 
 The old numbers didn't add up: a $100 deposit plus 3 × $345 made $1,135, not $995. Now the deposit
 is part of the price: **$95 deposit + 3 × $300 = $995**, all whole dollars, still three payments.
-If you'd rather keep a round $100 deposit, the payments would be $300, $300 and $295.
+You confirmed this on 8 November, and it can now be charged (see the next section).
 
 ## Checkers
 
@@ -118,9 +139,7 @@ pages at 390 and 1440) and the live site, from different starting points.
     the reference mock's other pages and the portal prototypes; the guarantee page claiming to
     show the private rules; "Four rules apply" on the pricing page; "official" in the merged
     scholarship terms; two scholarship blocks in `offer.ts` (now one, `COHORT_SCHOLARSHIP`).
-  - Not fixed (listed under Not done): the cohort's $95 deposit and three $300 payments can't be
-    charged through the site yet; the "Classes start Monday, January 4" label while classes run
-    Tuesdays and Thursdays; the home page's demo calendar shows two tutors in one week and puts
+  - Not fixed (listed under Not done): the home page's demo calendar shows two tutors in one week and puts
     full-length 4 on a Wednesday while its note says Saturday; "office hours" in four portal
     prototype screens; the older exploration mocks (`fresh`, `motion`, `rebuild`, `redesign`).
 
@@ -165,11 +184,9 @@ After you deploy this branch, all of that becomes the table above.
 - The deposit: $95 + 3 × $300 (see above).
 - The Cohort and both private packages include Pro on the platform (every question, videos).
 - A tutor on the affiliate plan gets Pro for themselves.
-- One-time purchases (Cohort, Private 10, Private 20) open their access for 12 months. Marked CONFIRM.
 - The guarantee's half-back line is half the target: +50 to +99 under 1400, +25 to +49 from 1400.
   A 1600 always counts as reaching the target (someone starting at 1560 can't gain 50).
-- Private 10 now carries the guarantee, so I scaled Private 20's remedy for it: up to 3 free hours
-  (Private 20: 6) and two full-length tests (Private 20: four).
+- Private 10 asks for two full-length tests (Private 20: four).
 - The merit scholarship replaces the old free "scholarship seat", so all six cohort seats are paid.
 - One cohort price ($995) for every cohort; the "founding price, later $1,495" line is gone.
 - The 3-month plans renew every 3 months until cancelled; no free trials anywhere.
@@ -200,8 +217,8 @@ After you deploy this branch, all of that becomes the table above.
   be counted. The quiz and student-portal sessions should call `src/lib/plans` (see its README).
 - Private 10 and Private 20 buyers: the booking system still decides who can book 1:1 hours by the
   old private/elite tier, so a buyer doesn't get the availability step or booking yet.
-- The cohort's $95 deposit and three $300 payments aren't charged through checkout: the deposit goes
-  through your Payment Link, and the three payments need a Stripe payment schedule.
+- The instalment schedule starts on the January cohort's date; later cohorts need their own start
+  date passed in (marked CONFIRM in the code).
 - I couldn't click through signed-in Billing to Stripe inside the running app, because the shared
   local database doesn't have the new columns yet (see Decisions). Each Stripe price was opened
   directly in test mode instead.
@@ -215,11 +232,6 @@ After you deploy this branch, all of that becomes the table above.
 
 ## For you to decide
 
-- The $95 deposit, or $100 with payments of $300, $300 and $295.
-- The Private 10 guarantee remedy (3 free hours, two full-length tests).
-- How long cohort and private buyers keep platform access (I put 12 months).
-- The cohort start label says "Monday, January 4" while classes run Tuesdays and Thursdays (a
-  CONFIRM value from before tonight).
 - Refund wording and the tutor affiliate terms need a lawyer's read before launch.
-- Production Stripe: the setup script only runs on a test key. Live prices, and a $95 deposit
-  Payment Link (the live one is set up for $100), need creating in live mode at launch.
+- Production Stripe: the setup script only runs on a test key. Live prices, and Klarna, Affirm
+  and Afterpay, need switching on in live mode at launch.

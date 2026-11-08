@@ -80,7 +80,7 @@ The Cohort, Private 10 and Private 20 carry it. Full terms in
 - **Cohort remedy:** half the price back, or the next cohort free, when the
   student reaches half the target or more; the full price back, or the next
   cohort free, below that. The family chooses.
-- **Private remedy:** free extra hours (3 on Private 10, 6 on Private 20),
+- **Private remedy:** Private 10, half the price back ($747.50); Private 20, up to 6 free hours,
   then half the price back if the next official SAT still falls short.
 - Honest intake: students already scoring 1500+, or fewer than ~4 weeks from
   their test, are told plainly that a program probably isn't worth it for them.
@@ -168,5 +168,5 @@ digest, Karman's own adaptive full-length tests, results page.
 - Class days/times, free practice test start time, and the enrollment
   deadline (placeholders in `offer.ts`, marked `CONFIRM:`).
 - Lawyer review of the guarantee, refund and affiliate terms.
-- The deposit: $95 keeps the three payments at a round $300. A round $100
-  deposit would make the payments $300, $300 and $295.
+- Decided 2026-11-08: the $95 deposit and three $300 payments; Private 10 half back; access until
+  the SAT date; cohorts start "the week of" a date.
