@@ -63,7 +63,7 @@ export default function RefundsPage() {
             </p>
             <p>
               After classes start, the guarantee decides any refund: half or all of the price back,
-              or the next cohort free, depending on the official score. You choose.
+              or the next cohort free, depending on the SAT score. You choose.
             </p>
             <Link href={ROUTES.guarantee}>Read the guarantee in full</Link>
           </section>
@@ -73,11 +73,11 @@ export default function RefundsPage() {
             <p>
               {P10.name} ({P10.hours} hours, {$(P10.price)}) and {P20.name} ({P20.hours} hours,{" "}
               {$(P20.price)}) are paid before the first session. Both carry the guarantee: if every
-              requirement is met and the official SAT misses the target, you get up to{" "}
+              requirement is met and the SAT misses the target, you get up to{" "}
               {bonus[P10.id].bonusHours} more hours free on {P10.name} or {bonus[P20.id].bonusHours}{" "}
-              on {P20.name}, then half the price back if the next official SAT still falls short. A
-              session cancelled with less than {G.private.cancelHours} hours&apos; notice counts as
-              a used hour.
+              on {P20.name}, then half the price back if the next SAT still falls short. A session
+              cancelled with less than {G.private.cancelHours} hours&apos; notice counts as a used
+              hour.
             </p>
           </section>
 

@@ -15,6 +15,15 @@ Server-side rules for what each plan opens. Prices and plan facts come from
 Mastery pool = `quiz_questions.difficulty_level` 6 or 7. Core = 1 to 5. The
 legacy label "mastery" maps to 6. An unreadable difficulty counts as mastery.
 
+Core must cover every skill (founder, 2026-11-08): when a skill has no core
+questions at all, core plans get that skill's easiest rows (its lowest
+difficulty). Pass the skill's lowest difficulty to
+`canSeeQuestion(plan, difficulty, usage, { skillMinDifficulty })`, or query with
+`difficultyRangeForSkill(plan, skillMinDifficulty)`.
+
+Videos: none are recorded yet. Pro's video explanations appear as they're
+recorded; the site says so ("video explanations, added as they're recorded").
+
 ## API
 
 ```ts

@@ -11,6 +11,8 @@ import {
   canAccess,
   canSeeQuestion,
   difficultyRangeFor,
+  difficultyRangeForSkill,
+  isCoreFallback,
   explanationTypes,
   poolFor,
   questionsLeft,
@@ -191,6 +193,38 @@ describe("canSeeQuestion", () => {
       expect(canSeeQuestion(plan(id), 7)).toBe(true);
       expect(canSeeQuestion(plan(id), "mastery")).toBe(true);
     }
+  });
+});
+
+describe("core covers every skill", () => {
+  it("serves a skill's easiest rows to core plans when the skill has no core questions", () => {
+    // A skill whose easiest question is difficulty 6: core plans get its 6s, never its 7s.
+    expect(canSeeQuestion(plan("practice"), 6, undefined, { skillMinDifficulty: 6 })).toBe(true);
+    expect(canSeeQuestion(plan("practice"), 7, undefined, { skillMinDifficulty: 6 })).toBe(false);
+    expect(canSeeQuestion(plan("free"), 6, usage(10), { skillMinDifficulty: 6 })).toBe(true);
+    expect(canSeeQuestion(plan("free"), 6, usage(100), { skillMinDifficulty: 6 })).toBe(false);
+  });
+
+  it("keeps mastery closed when the skill has core questions", () => {
+    expect(canSeeQuestion(plan("practice"), 6, undefined, { skillMinDifficulty: 2 })).toBe(false);
+    expect(isCoreFallback(6, 5)).toBe(false);
+    expect(isCoreFallback(6, null)).toBe(false);
+    expect(isCoreFallback(7, 7)).toBe(true);
+  });
+
+  it("narrows the query range to the skill's lowest difficulty only when needed", () => {
+    expect(difficultyRangeForSkill(plan("practice"), 2)).toEqual({
+      minimumDifficulty: 1,
+      maximumDifficulty: 5,
+    });
+    expect(difficultyRangeForSkill(plan("practice"), 6)).toEqual({
+      minimumDifficulty: 6,
+      maximumDifficulty: 6,
+    });
+    expect(difficultyRangeForSkill(plan("pro"), 6)).toEqual({
+      minimumDifficulty: 1,
+      maximumDifficulty: 7,
+    });
   });
 });
 

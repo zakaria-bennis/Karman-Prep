@@ -39,6 +39,8 @@ export {
   FEATURES,
   canAccess,
   canSeeQuestion,
+  isCoreFallback,
+  difficultyRangeForSkill,
   poolFor,
   difficultyLevel,
   difficultyRangeFor,

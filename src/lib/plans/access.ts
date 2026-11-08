@@ -98,10 +98,54 @@ export function canSeeQuestion(
   plan: PlanAccess,
   difficulty: unknown,
   usage?: PlanUsage,
-  options: { alreadyAnswered?: boolean } = {}
+  options: {
+    alreadyAnswered?: boolean;
+    /** The lowest difficulty this question's skill has; see `isCoreFallback`. */
+    skillMinDifficulty?: number | null;
+  } = {}
 ): boolean {
-  if (!canAccess(plan, poolFor(difficulty) === "core" ? "pool:core" : "pool:mastery")) return false;
+  const pool = poolFor(difficulty);
+  const open =
+    canAccess(plan, pool === "core" ? "pool:core" : "pool:mastery") ||
+    isCoreFallback(difficulty, options.skillMinDifficulty);
+  if (!open) return false;
   return options.alreadyAnswered === true || canAccess(plan, "question:new", usage);
+}
+
+/**
+ * Core must cover every skill (founder, 2026-11-08). When a skill has no core
+ * questions at all (its easiest question is above difficulty 5), core plans
+ * get that skill's easiest rows instead: the questions at its lowest
+ * difficulty.
+ */
+export function isCoreFallback(difficulty: unknown, skillMinDifficulty?: number | null): boolean {
+  const level = difficultyLevel(difficulty);
+  return (
+    level !== null &&
+    typeof skillMinDifficulty === "number" &&
+    skillMinDifficulty > CORE_MAX_DIFFICULTY &&
+    level === skillMinDifficulty
+  );
+}
+
+/**
+ * The difficulty range to query for one skill. Mastery plans get 1 to 7.
+ * Core plans get 1 to 5, or, for a skill with no core questions, just that
+ * skill's lowest difficulty (`isCoreFallback`).
+ */
+export function difficultyRangeForSkill(
+  plan: PlanAccess,
+  skillMinDifficulty: number | null
+): { minimumDifficulty: number; maximumDifficulty: number } {
+  const range = difficultyRangeFor(plan);
+  if (
+    plan.entitlements.pool === "core" &&
+    skillMinDifficulty !== null &&
+    skillMinDifficulty > CORE_MAX_DIFFICULTY
+  ) {
+    return { minimumDifficulty: skillMinDifficulty, maximumDifficulty: skillMinDifficulty };
+  }
+  return range;
 }
 
 /** Explanation types to show, in display order: ["written"] or ["written", "video"]. */

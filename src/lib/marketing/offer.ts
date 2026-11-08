@@ -98,7 +98,7 @@ export const MARCH_PROGRAM = {
     {
       title: "Five full-length practice tests",
       detail:
-        "Your week-1 baseline is an official Bluebook test, proctored live. So is the last one, in week nine.",
+        "Your week-1 baseline is a Bluebook practice test, proctored live. So is the last one, in week nine.",
     },
     {
       title: "A weekly live session",
@@ -113,7 +113,7 @@ export const MARCH_PROGRAM = {
     {
       title: "Everything in Pro",
       detail:
-        "10,000+ original practice questions across all 39 SAT skills, the hard mastery questions included, with video explanations.",
+        "10,000+ original practice questions across all 39 SAT skills, the hard mastery questions included, with video explanations added as they're recorded.",
     },
     {
       title: "Your cohort, between classes",
@@ -182,7 +182,7 @@ export const PRIVATE_INCLUDES: ProgramInclusion[] = [
   {
     title: "Everything in Pro",
     detail:
-      "Practice tests, Daily 10 and 10,000+ original questions, the mastery questions included, with video explanations.",
+      "Practice tests, Daily 10 and 10,000+ original questions, the mastery questions included, with video explanations added as they're recorded.",
   },
   {
     title: "The weekly live session",
@@ -247,7 +247,7 @@ export const PRO_PLAN = {
   explanations: "video",
   includes: [
     "Every question, including the hard mastery pool",
-    "Video explanations, as well as written ones",
+    "Video explanations, added as they're recorded",
     "The Daily 10, ten questions a day from the skills your student misses",
     "Full-length practice tests",
     "Progress for parents on their phone",
@@ -337,15 +337,15 @@ export const GUARANTEE = {
   minClassesAttended: 15,
   /** Share of the assigned weekly practice that must be done. */
   practicePct: 90,
-  /** The official SAT must be taken within this many days of the last class. */
+  /** The SAT must be taken within this many days of the last class. */
   satWithinDays: 60,
-  /** How recent an official SAT or PSAT must be to serve as the baseline. */
+  /** How recent an SAT or PSAT score must be to serve as the baseline. */
   baselineMonths: 6,
   /** Days after scores come out to send the claim. */
   claimDays: 30,
   baseline:
-    "an official SAT or PSAT from the last 6 months, or the week-1 Bluebook test, proctored live by Karman",
-  /** What the family gets, by official result. The family chooses money or a seat. */
+    "an SAT or PSAT score from the last 6 months, or the week-1 Bluebook practice test, proctored live by Karman",
+  /** What the family gets, by SAT result. The family chooses money or a seat. */
   outcomes: [
     { result: "The target or more, or a 1600", remedy: "Nothing back. The promise was kept." },
     {
@@ -361,14 +361,14 @@ export const GUARANTEE = {
     "Attend at least 15 of the 18 live classes, live.",
     "Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.",
     "Complete at least 90% of the assigned weekly practice.",
-    "Sit the official SAT within 60 days of the last class.",
+    "Sit the SAT within 60 days of the last class.",
   ],
   eligibility: [
     "A student's first Karman program, once per student.",
     "Paid in full, or every installment paid on time.",
   ],
   claim:
-    "Within 30 days of scores coming out, email the official College Board score report to guarantee@karmanprep.com.",
+    "Within 30 days of scores coming out, email the College Board score report to guarantee@karmanprep.com.",
   claimEmail: "guarantee@karmanprep.com",
   /** Private 10 and Private 20: the same targets, made good with free hours, then money. */
   private: {
@@ -381,10 +381,10 @@ export const GUARANTEE = {
     requirements: [
       "Attend every session. Cancelling with less than 24 hours' notice counts as a missed session.",
       "Take the full-length practice tests in your package: two on Private 10, four on Private 20.",
-      "Sit the official SAT within 30 days of the last session.",
+      "Sit the SAT within 30 days of the last session.",
     ],
     remedy:
-      "Free extra hours (3 on Private 10, 6 on Private 20). If the next official SAT still falls short, half the price back.",
+      "Free extra hours (3 on Private 10, 6 on Private 20). If the next SAT still falls short, half the price back.",
   },
 } as const;
 

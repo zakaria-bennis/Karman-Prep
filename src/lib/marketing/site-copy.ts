@@ -136,17 +136,17 @@ eyebrow: The Karman guarantee
 headline: If your student does the work and the score doesn't rise, we pay you back.
 text: You may have paid for SAT prep before and watched the score sit still. Then the refund turned out to hang on a rule nobody mentioned. It happens a lot in this industry. Here is our whole deal, on one line.
 promise: ${PROMISE}
-promise note: ${TARGETS} Measured from an official SAT or PSAT from the last ${G.baselineMonths} months, or from a week-1 Bluebook test we proctor live.
+promise note: ${TARGETS} Measured from an SAT or PSAT score from the last ${G.baselineMonths} months, or from a week-1 Bluebook practice test we proctor live.
 line start: Starting score
 line weeks: ${W(MP.weeks)} weeks of work
-line end: The official SAT
+line end: The SAT
 outcomes: The target or more = The promise was kept. Nothing back. | Half the target or more = Half the price back (${usd(MP.price / 2)}), or the next cohort free. You choose. | Under half the target = The full ${$(MP.price)} back, or the next cohort free. You choose.
 we do title: Our side
-we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations | Live progress for parents, and a weekly summary
+we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | Live progress for parents, and a weekly summary
 you do title: Your student's side
-you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the official SAT within ${G.satWithinDays} days of the last class
+you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the SAT within ${G.satWithinDays} days of the last class
 covers: The cohort, ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
-claim: Within ${G.claimDays} days of scores coming out, email us the official College Board score report. One email. Nothing is taken out of a refund.
+claim: Within ${G.claimDays} days of scores coming out, email us the College Board score report. One email. Nothing is taken out of a refund.
 link: The guarantee, with worked examples
 
 ## 9 Campus film
@@ -181,13 +181,13 @@ rows: ${MP.classDays[0]}, ${MP.classStart} p.m. ET = Live class, ${MP.classMinut
 
 ## 23 Program: the nine weeks
 headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks.
-rows: Week 1 = A baseline: an official Bluebook test, proctored live | Weeks 3 to 7 = Three more full-length tests, each in one timed sitting | Week ${MP.weeks} = The last full-length, proctored live, and a plan for test day
+rows: Week 1 = A baseline: a Bluebook practice test, proctored live | Weeks 3 to 7 = Three more full-length tests, each in one timed sitting | Week ${MP.weeks} = The last full-length, proctored live, and a plan for test day
 
 ## 24 Program: who it's for
 headline: Built for an 11th grader with room to grow.
 text: It fits a student with a score they want to raise and a few months before their SAT. If your student is already at ${INTAKE.scoreFrom}, or their SAT is less than ${w(INTAKE.minWeeks)} weeks away, we'll say so before you pay: a program probably isn't the best use of your money.
 card title: A ${$(SCH.amount)} scholarship in every cohort.
-card text: The student with the top official SAT score in each cohort gets ${$(SCH.amount)}: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
+card text: The student with the top SAT score in each cohort gets ${$(SCH.amount)}: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
 
 ## 25 Program: how to join
 headline: Every family starts with a call with ${FOUNDER.firstName}.
@@ -227,7 +227,7 @@ rows: Before = Your student takes a full-length test, or we pick the skill holdi
 headline: Two packages, both with the guarantee.
 small package: ${P10.name} = ${P10.hours} hours, ${$(P10.price)}. For a focused push on one section. Comes with the guarantee: ${PROMISE}. If not, up to ${PRIVATE_BONUS[P10.id].bonusHours} more hours free, then half the price back.
 large package: ${P20.name} = ${P20.hours} hours, ${$(P20.price)}. Comes with the guarantee: ${PROMISE}. If not, up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back.
-includes: Everything in ${PRO.name}: every question, with video explanations | The weekly live session | A note to parents after every session
+includes: Everything in ${PRO.name}: every question, with video explanations as they're recorded | The weekly live session | A note to parents after every session
 
 ## 34 Private: track record
 headline: This is how we have always tutored.
@@ -298,11 +298,11 @@ list: A "good faith" clause we get to judge | A quota on answering polls in clas
 
 ## 54 Guarantee: private and exclusions
 headline: Private tutoring and what isn't covered.
-rows: ${P10.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P10.id].bonusHours} more hours free, then half the price back if the next official SAT still falls short | ${P20.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next official SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
+rows: ${P10.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P10.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${P20.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
 
 ## 55 Guarantee: claim
 headline: Claiming takes one email.
-text: Within ${G.claimDays} days of scores coming out, send the official College Board score report to ${G.claimEmail}. No mailed paper reports, no fees.
+text: Within ${G.claimDays} days of scores coming out, send the College Board score report to ${G.claimEmail}. No mailed paper reports, no fees.
 button: Take the free practice test
 
 ## 61 About: opening
@@ -321,7 +321,7 @@ proof: ${PROOF}
 
 ## 64 About: our own rules
 headline: Rules we hold our own marketing to.
-list: No testimonials until real ones exist | Every result says where it came from | Score estimates are always ranges | No countdown timers or fake deadlines | Every cohort's results published, dropouts included, once 15 to 20 official scores exist
+list: No testimonials until real ones exist | Every result says where it came from | Score estimates are always ranges | No countdown timers or fake deadlines | Every cohort's results published, dropouts included, once 15 to 20 SAT scores exist
 
 ## 65 About: close
 headline: Start with one Saturday.
@@ -331,7 +331,7 @@ button: Take the free practice test
 ## 71 FAQ
 eyebrow: Questions
 headline: Straight answers.
-qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions and video explanations. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = Any official SAT within ${G.satWithinDays} days of the last class. | My student is already at ${G.splitAt} or higher. Is that covered? = Yes. From a ${G.splitAt} start, the target is +${G.pointsFrom} points instead of +${G.pointsBelow}. | Do you use real College Board questions? = The baseline is an official Bluebook test. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the official College Board score report to ${G.claimEmail} within ${G.claimDays} days of scores coming out.
+qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = Any SAT taken within ${G.satWithinDays} days of the last class. | My student is already at ${G.splitAt} or higher. Is that covered? = Yes. From a ${G.splitAt} start, the target is +${G.pointsFrom} points instead of +${G.pointsBelow}. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of scores coming out.
 
 ## 81 Research: opening
 eyebrow: The research
@@ -494,7 +494,7 @@ pricing schools: ${SCHOOL.name} = Free for the first year, then ${$(SCHOOL.price
 pricing tutors: ${TA.name} = ${$(TA.monthly)} a month. One code gives up to ${TA.maxStudents} of your students ${PP.name}, free while you subscribe.
 pricing guarantee link: The guarantee, with worked examples
 pricing honest note: If you're already scoring ${INTAKE.scoreFrom} or higher, or your test is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you honestly that a program probably isn't the best use of your money.
-pricing scholarship: The student with the top official SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
+pricing scholarship: The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
 credits: Night sky: International Gemini Observatory/NOIRLab/NSF/AURA (CC BY 4.0). Earth from orbit: NASA.
 `;
 
