@@ -1,181 +1,148 @@
 # Admin portal and cohort scholarship (admin-scholarship session)
 
 Branch: `claude/overnight-admin-028faa`. Nothing was deployed or pushed. All data work ran on
-the local database only. All Stripe calls were in test mode.
+the local database only. Every Stripe call was in test mode.
+
+Updated 8 November, about 10:30, for the founder's morning decisions:
+
+- the bonus is paid by bank transfer;
+- a tie splits the award;
+- admins see every student as a tutor does;
+- admins see each tutor's students.
 
 ## What is done
 
 ### The cohort scholarship, end to end
 
-- **Data.** Two new tables (migration `20261108103000_admin_scholarship_claims.sql`):
-  - `scholarship_claims`: one claim per student per cohort. It holds the uploaded report,
-    what the automatic check read, the review decision and the Stripe payout ids.
-  - `scholarship_claim_events`: a history of every step (upload, check, decision, payout).
-  - The database itself allows only one award per cohort.
-- **Upload.** Students upload their official score report at
-  `/dashboard/student/scholarship`. They also type their score and test date, and confirm the
-  file is unchanged. A rejected student can upload again.
-  - Files are private. They sit behind a small storage layer that can be swapped:
-    on the computer in development, Cloudflare R2 in production. Admins open them through a
-    page that checks the admin role first. There is never a public link.
-- **Automatic check** (pdf-lib and pdf-parse). It gives pass, warn or fail, with plain reasons.
-  - The file: which program made or last saved it (Word or Canva fails; PDF editors such as
-    Smallpdf or Acrobat warn), creation and change dates, later saves, text or shapes drawn on
-    top, form fields, scripts and attachments.
-  - The text: College Board and SAT wording, PSAT reports, practice tests and superscores, the
-    name, the test date, the total and both section scores (they must add up).
-  - The student's record: the name on file, the score and date they typed, the cohort's date
-    window, and the same file uploaded for another student.
-- **Ranking.** The top score in each cohort wins. Ties go to the earlier test date, then the
-  earlier upload. Only the top claim can be approved; reject it and the next one moves up.
-- **Admin review queue** at `/admin/scholarship`: tabs by status with counts, search, the
-  cohort rank and the check result. Each claim has its own screen with the PDF, every check
-  reason, what the report says, the file details, the cohort ranking and the history.
-  - Approve (a note is required when the check didn't pass), reject (the reason is shown to
-    the student), run the check again, or undo a decision that hasn't been paid.
-- **Payout, Stripe test mode only.** It refunds the student's cohort payment and pays the rest
-  of the $1,500 as a merit bonus.
-  - The bonus is a **credit on the family's Stripe customer balance**. A Stripe transfer needs
-    a Connect account for each family, and families don't have one. The credit works on every
-    account.
-  - Every step can be retried safely. A refund or credit is never made twice.
-  - The code refuses to run with a live Stripe key.
-- **Legal.** New section 12, "Cohort Scholarship", on `/terms`. Its numbers come from
-  `offer.ts`.
+- **Upload.** Students upload their official score report at `/dashboard/student/scholarship`.
+  They also type their score and test date, and confirm the file is unchanged. A rejected
+  student can upload again.
+  - Files are private. Development keeps them on the computer; production keeps them in
+    Cloudflare R2. Admins open them through a page that checks the admin role first. There
+    is never a public link.
+- **Automatic check** (pdf-lib and pdf-parse). It gives pass, warn or fail, with plain
+  reasons. It checks three things:
+  - the file: which program made or last saved it, its dates, later saves, anything drawn on
+    top;
+  - the text: the College Board and SAT wording, PSAT reports, practice tests, superscores,
+    the name, the test date and the scores (the sections must add up);
+  - the student's record: their name, the score they typed, the cohort's dates, and whether
+    the same file was uploaded for another student.
+- **Ranking and ties.** The top score wins. A tie for the top splits the $1,500 equally:
+  $750 each for two.
+  - Each claim stores its share.
+  - The database refuses any approval that would take a cohort's awards past $1,500.
+- **Review queue** at `/admin/scholarship`. It has tabs for Waiting, Approved, Bank transfer
+  due, Paid, Rejected and All, plus search, the cohort rank and the check result. Each claim
+  has its own screen with the PDF, the check's reasons, what the report says, the file
+  details, the cohort ranking and the full history.
+- **Paying, in three steps:**
+  1. **Approve.** The screen shows the share ($1,500, or $750 in a two-way tie). A note is
+     required when the check didn't pass.
+  2. **Refund in Stripe, test mode only.** It refunds what the family paid for the cohort, up
+     to the share. It is safe to retry and never refunds twice. Live keys are refused.
+  3. **Mark as paid by bank transfer.** You send the rest of the share (the $505 merit bonus
+     on a full award) by hand. Then you record the date sent and the bank reference. A
+     two-way tie needs no transfer, because $750 is less than the $995 refunded.
+- **Legal.** Section 12, "Cohort Scholarship", is on `/terms`, with the tie split and the bank
+  transfer. Its numbers come from `offer.ts`.
 
 ### The admin portal
 
-- The admin area now uses the painted portal shell. It has six tabs: Home, People, Plans,
-  Scholarship, Questions and Cohorts. Six fit a phone's tab bar.
-- **New admin home** (`/admin`): what needs a decision now, and links to every admin tool.
-- **New pages** (built with a shared admin kit: dense tables, filters, search, status pills
-  and clear empty states):
-  - `/admin/scholarship` and `/admin/scholarship/<claim>`: the review queue.
-  - `/admin/bank`: read-only views of the local question bank, plus a "flag for the import
-    team" form. Flags go in their own table (`question_import_flags`). Nothing is ever
-    written to the question bank.
-  - `/admin/plans`, `/admin/affiliates` and `/admin/schools`.
-- **Existing pages** (People, Cohorts, Revenue, Moderation, Jobs, Curriculum and the question
-  tools) now open inside the painted shell. Their own content kept its old styling. Each
-  returns a working page.
+- The admin area uses the painted portal shell. It has six tabs: Home, People, Plans,
+  Scholarship, Questions and Cohorts. The admin home links every other tool.
+- **New pages**, built on a shared admin kit (dense tables, filters, search, status pills and
+  clear empty states):
+  - **Scholarship:** the review queue and a screen for each claim.
+  - **Students** (`/admin/students`): every student, exactly as their tutor sees them.
+    Each student's page shows the tutor's own tabs: skills and levels, tutor controls,
+    flagged questions and quiz history. Admins see the answers to every attempt, not just
+    the last 20. The page also has totals and a Homework list covering tutor homework,
+    question sets, checkpoints, cohort homework and assigned tests.
+  - **Tutors** (`/admin/tutors`): how many students each tutor has, regular and affiliate,
+    with the list. On local data: David 6, Thomas 4, Priya 3 (affiliate, 3 of 50 seats) and
+    Dev Tutor 1.
+  - **Question bank** (`/admin/bank`): read only. It shows counts by Domain and skill, finds
+    a question, and has a "flag for the import team" form. Nothing is written to the bank.
+  - **Plans and subscriptions**, **Affiliate tutors** and **Schools.**
+- **Older pages** (People, Cohorts, Revenue, Moderation, Jobs, Curriculum, the question tools)
+  sit inside the painted shell. A colour bridge keeps them readable in light and dark. Their
+  redesign comes after the portals land, as the brief says.
 
 ## Not done
 
-- **Older admin pages.** People, Cohorts, Revenue, Moderation, Jobs, Curriculum and the
-  question tools now sit in the painted shell, and a colour bridge makes them readable in
-  light and dark. Their insides were not redesigned with the new admin kit. Each page loads,
-  but their buttons were not clicked one by one tonight.
-- **The student upload page** still uses the older student layout, not the painted student
-  shell, and nothing in the student portal links to it yet. Its upload flow was tested
-  through the real upload code and unit tests, but not clicked in a browser.
-- **Plans.** Comps (free Practice or Pro) and the schools page need the pricing session's
-  `plan_grants` table, which isn't on the local database yet:
-  - The comp controls are disabled and say why.
-  - The schools page shows its empty state.
-  - "Change plan" works only on real Stripe test subscriptions. The seeded ones use
-    made-up ids.
-- **Affiliate tutors** is a read-only page.
-- **The PDF viewer** was not seen working: headless Chrome has no PDF viewer. I checked
-  that the file route returns the PDF only to admins, with no caching.
-- **`npm run cf:build`** was not run (the brief keeps it for the end). `pdf-parse` adds
-  pdf.js to the Worker. Check the Worker's size before deploying. Reading PDF text inside
-  Cloudflare Workers is untested. If it fails there, the check says "no readable text,
-  check by eye" and never crashes.
+- **The older admin pages** were not redesigned (scheduled for after the portals land).
+- **The student upload page** still uses the older student layout. Nothing in the student
+  portal links to it yet.
+- **Plans:** comps and the schools page wait for the pricing session's `plan_grants` table.
+  Until it lands, the comp controls are disabled with a note, and Schools shows its empty
+  state. Comps have no reason notes, as decided.
+- **The PDF frame** was not seen working, because headless Chrome has no PDF viewer. The
+  file route was checked: admins only, no caching.
+- **`npm run cf:build`** was not run. `pdf-parse` adds pdf.js to the Worker, so check its
+  size before deploying.
+- **No browser test of a tie.** The tie split is covered by unit tests and a database test.
 
 ## How I checked it
 
-- **Unit tests:** 70 pass. They cover:
-  - the PDF check, including real PDFs made in the test (clean, edited, not a PDF);
-  - ranking and ties;
-  - the payout, with a fake Stripe (retries never refund or credit twice; live keys and
-    live payments are refused);
-  - the form checks and the private storage;
-  - the admin bank and plans helpers.
-- `npx tsc --noEmit`: no errors. `npm run lint`: no errors. Prettier on every file this
-  branch changed: clean. `npm run check:sizes`: OK.
-- **Full `npm test`:** 9,387 pass and 3 fail, all in calculator tests this branch never
-  touched (nothing in the calculator, the eslint config or `.prettierignore` changed since
-  the `claude/overnight-ship` merge):
-  - two hit the 5-second timeout on the overloaded machine (FunctionsPanel K-5, the engine
-    break-corpus recursion cases);
-  - one, AR-5, checks that the calculator's vendored MathQuill files are excluded from
-    eslint and Prettier. It fails on the ignore lists that came with that merge.
-- **Local database:**
-  - Both migrations applied.
-  - The demo seed made a finished cohort.
-  - The real upload code ran on three sample reports. Ella's passed. Omar's warned (saved
-    with Smallpdf, changed after it was made). Zoe's failed (she typed 1550, the report
-    says 1450).
+- **Unit tests** for the scholarship (PDF check, ranking and ties, refund, form checks,
+  storage, terms), the admin helpers (bank, plans, tutors, students) and the admin nav. All
+  pass.
+- **Database:** two $750 shares in one cohort are accepted; a third award is refused.
 - **Headless Chrome** (Playwright from the command line, never the app's Browser pane):
-  - 11 admin pages at 1440, 768 and 390 wide, in light and dark: all 66 loads worked, and
-    none scroll sideways.
-  - The scholarship flow, clicked through:
-    1. Approving Zoe was blocked, because she isn't the top score.
-    2. I rejected her with a reason.
-    3. I ran Ella's check again.
-    4. I approved Ella.
-    5. I paid in Stripe test mode: a $995 refund and a $505 credit, both recorded with their
-       Stripe ids.
-- **Problems found in other sessions' code:**
-  - The painted shell's start-up script causes a React warning ("Encountered a script
-    tag"), and sometimes a hydration warning, on every shell page. This is for
-    paint-foundation.
-  - The existing `/admin/questions/review` page hit a database timeout once while the
-    machine was overloaded.
+  - the full flow on Ella's claim: approve $1,500, refund $995 in Stripe test mode, record a
+    $505 bank transfer (date and reference), and the claim shows as paid;
+  - every admin page at 1440, 768 and 390 wide, in light and dark: each one loads, and none
+    scroll sideways.
+- **Final checks on this branch:**
+  - `npm test`: all 547 test files pass (9,441 tests, no failures).
+  - `npm run lint`: passes.
+  - `npm run check:sizes`: OK.
+  - `npx tsc --noEmit`: the only errors are the 4 in `src/middleware.ts`, from the
+    site-audit merge (see below).
 
 ## Decisions I made
 
-- The $505 bonus is a Stripe customer-balance credit tonight (see above). The terms say the
-  bonus is paid to the parent who paid. In live mode that needs a real payment method.
-- Ties: earlier official test date wins, then the earlier upload.
-- The admin tab bar has six tabs (Home, People, Plans, Scholarship, Questions, Cohorts),
-  so it fits a phone. Every other tool is linked from the admin home.
-- The admin box is wider than the student portal's, because admin tables are dense.
-- The older admin pages got a colour bridge, not a redesign, to fit the time left.
-- The automatic check never approves or pays on its own. An admin always decides, and must
-  write what they checked by hand when the check didn't pass.
-- The scholarship window: the test must be on or after the cohort's first day, and no later
-  than 60 days after its last class. That matches the guarantee's 60 days.
-- Scores the check reads from the PDF count as verified. A score the student only typed is
-  shown as "typed, not read".
-- A student who wins can't also claim the guarantee refund for the same cohort.
+- If a tied claim is rejected after its partner was approved for $750, undo that approval and
+  approve it again: the share then goes back to the full $1,500. If a third student ties
+  after one approval, the screen asks you to redo the approvals, so the award splits evenly.
+- The refund always returns what the family actually paid, up to the claim's share. Anything
+  left is paid by bank transfer.
+- The $1,500 cap is also written into the database, as a safety net. If the award ever
+  changes, change it in the migration too.
+- "Regular" students of a tutor are counted the way the tutor portal counts them: assigned
+  students, plus current members of a cohort the tutor leads.
 - Admin actions check the real role in the database, not the "view as" preview role.
 - I added `pdf-lib` and `pdf-parse` to `package.json`, because the brief asked for them.
 
 ## For the orchestrator (merging)
 
-- `offer.ts`: my block `COHORT_SCHOLARSHIP` sits right after the old `SCHOLARSHIP`. The
-  pricing branch rewrites `SCHOLARSHIP` as the $1,500 merit scholarship, with the same field
-  names (`amount`, `refund`, `meritBonus`). When you merge pricing:
+- **`offer.ts`:** my block `COHORT_SCHOLARSHIP` sits right after the old `SCHOLARSHIP`. The
+  pricing branch rewrites `SCHOLARSHIP` with the same field names (`amount`, `refund`,
+  `meritBonus`). When you merge pricing:
   1. Keep pricing's `SCHOLARSHIP`.
-  2. Add three fields to it: `satWithinDays: 60`, `claimDays: 30`, `payWithinDays: 30`.
-  3. Delete my `COHORT_SCHOLARSHIP` block.
+  2. Add `satWithinDays: 60`, `claimDays: 30` and `payWithinDays: 30` to it.
+  3. Delete my block.
   4. Rename `COHORT_SCHOLARSHIP` to `SCHOLARSHIP` in `src/lib/scholarship/terms-section.ts`,
      `src/lib/scholarship/service.ts`, `src/lib/scholarship/schemas-storage.test.ts`,
      `src/app/admin/scholarship/page.tsx`, `src/app/admin/scholarship/[id]/page.tsx` and
      `src/app/dashboard/student/scholarship/page.tsx`.
-     On this branch the price is still $1,295, so the pages read "$1,295 back plus a $205
-     bonus". After the pricing merge they read $995 and $505. The payout always refunds what was
-     actually paid.
-- Terms page: I only added `SCHOLARSHIP_TERMS_SECTION` as the last entry of `SECTIONS` (and
-  its import).
-- The old shared `src/components/shared/PortalShell.tsx` lost its admin tabs (admin moved
-  to the painted shell). Students still use it through `DashboardLayout`.
-- Local database: after a reset, apply my two migrations again
-  (`scripts/overnight/apply-migrations-local.sh <worktree>`). Then run
+     On this branch the cohort price is still $1,295, so some text reads "$1,295". After the
+     pricing merge it reads $995. The refund always uses what Stripe says was paid.
+- **The scholarship migration was edited in place** (`20261108103000_...`), because it has
+  never left this branch. On a local database that already has it, drop
+  `scholarship_claim_events` and `scholarship_claims`, delete that version from
+  `supabase_migrations.schema_migrations`, and apply it again. Then run
   `supabase/seeds/overnight/admin-scholarship.sql` and
-  `npx tsx --env-file=.env.local scripts/scholarship/seed-local-claims.ts`. That makes a
-  finished cohort with three sample claims and two $995 test payments.
+  `npx tsx --env-file=.env.local scripts/scholarship/seed-local-claims.ts`.
+- **`src/middleware.ts` (site-audit's merge) fails `npx tsc --noEmit`** with 4 type errors:
+  the `clerkMiddleware(karmanAuth, ...)` typing at lines 114 and 139. I didn't touch it: it
+  is security code owned by site-audit.
+- **The painted shell's start-up script** causes a React "script tag" warning and an
+  occasional hydration warning on every shell page. This is for paint-foundation.
+- **Headless checks:** wait for the network to go quiet before clicking. Clerk's
+  development handshake reloads each page once after it loads.
 
-## For the founder to decide
+## For the founder
 
-1. **How the $505 bonus reaches families in live mode.**
-   - Tonight it is a credit on the family's Stripe balance, which only lowers future Karman
-     bills.
-   - The new terms say the bonus is paid to the parent who paid.
-   - Options: a Stripe Connect payout, a check, or a bank transfer.
-   - Live payouts stay off until you choose.
-2. **A lawyer's review of the new terms section 12:** a merit award tied to a purchase,
-   taxes, and students who are minors.
-3. **The tie rule** (earlier test date, then earlier upload).
-4. **Whether comps should keep their reason.** That needs a note column on `plan_grants`.
+Nothing is waiting on you from this session. Your morning decisions are built.
