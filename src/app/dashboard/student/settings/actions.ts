@@ -1,9 +1,7 @@
 "use server";
 
 /*
- * The student's account page action: their test (SAT or PSAT) and its date. Inviting a parent
- * and adding a tutor's code have their own pages (/dashboard/student/invite-parent and /join).
- * Each one acts only on the signed-in student's own account. An admin previewing a student
+ * The student's Settings page action: their test (SAT or PSAT) and its date. Each one acts only on the signed-in student's own account. An admin previewing a student
  * can look but not change anything.
  */
 import { revalidatePath } from "next/cache";
@@ -17,7 +15,7 @@ import {
   describeTest,
   testDateProblem,
   type TestType,
-} from "@/components/student-portal/account/test-dates";
+} from "@/components/student-portal/settings/test-dates";
 
 type Failure = { ok: false; error: string };
 

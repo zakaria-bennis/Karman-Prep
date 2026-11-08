@@ -3,7 +3,7 @@
 /* Opens the Stripe customer portal for the student's billing. Free accounts never reach it. */
 import { useState } from "react";
 import { MoreLink } from "@/components/portal/primitives";
-import s from "./account.module.css";
+import s from "./settings.module.css";
 
 export default function PlanBilling() {
   const [pending, setPending] = useState(false);

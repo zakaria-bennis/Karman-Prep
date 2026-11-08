@@ -7,7 +7,7 @@
 import type { Metadata } from "next";
 import { Panel, PortalShell } from "@/components/portal";
 import { LinkStudentForm } from "@/components/parent/LinkStudentForm";
-import { parentNav } from "@/components/parent/ParentShell";
+import { PARENT_SETTINGS, parentNav } from "@/components/parent/ParentShell";
 import { ActionMessage } from "@/components/school/SchoolShell";
 import { requireParentContext } from "@/lib/parent/server";
 import "@/components/portal-extras/forms.css";
@@ -34,6 +34,7 @@ export default async function ParentLinkPage({
       name={ctx.viewer.firstName}
       accountDetail={ctx.viewer.email}
       home="/dashboard/parent"
+      settingsHref={PARENT_SETTINGS}
     >
       <Panel>
         <ActionMessage error={error} />

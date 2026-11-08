@@ -46,7 +46,7 @@ import { BaselineStep } from "./_steps/BaselineStep";
 import { HoursStep } from "./_steps/HoursStep";
 import { ChoiceStep } from "./_steps/ChoiceStep";
 import { RecommendationStep } from "./_steps/RecommendationStep";
-import type { TestType } from "@/components/student-portal/account/test-dates";
+import type { TestType } from "@/components/student-portal/settings/test-dates";
 
 export default function OnboardingClient({
   satDates,

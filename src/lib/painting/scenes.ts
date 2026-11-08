@@ -7,14 +7,21 @@ import { LIGHT, type TimeOfDay } from "./light";
 import { mix, rgb } from "./noise";
 import { Studio } from "./studio";
 
+/** The season a painting shows. Its falling particles follow it: snow in winter, leaves only in
+ *  autumn, petals in spring, slow motes in summer (founder, 2026-11-08: no autumn leaves over
+ *  the winter cabin). */
+export type Season = "fall" | "winter" | "spring" | "summer";
+
 interface Scene {
   title: string;
+  season: Season;
   paint(k: Studio): void;
 }
 
 const SCENES: Scene[] = [
   {
     title: "Evergreens by the mountain lake",
+    season: "summer",
     paint(k) {
       k.sky(0.6);
       k.clouds(4, 0.05, 0.3);
@@ -51,6 +58,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "River through the misty valley",
+    season: "spring",
     paint(k) {
       k.sky(0.5);
       k.clouds(5, 0.05, 0.28);
@@ -84,6 +92,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "Cabin in the winter woods",
+    season: "winter",
     paint(k) {
       k.sky(0.55);
       k.clouds(3, 0.05, 0.22);
@@ -120,6 +129,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "Autumn forest on the lake",
+    season: "fall",
     paint(k) {
       k.sky(0.55);
       k.clouds(4, 0.06, 0.3);
@@ -144,6 +154,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "Waves on the rocky shore",
+    season: "summer",
     paint(k) {
       k.sky(0.52);
       k.clouds(6, 0.05, 0.35);
@@ -206,6 +217,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "The old oak in the meadow",
+    season: "summer",
     paint(k) {
       k.sky(0.58);
       k.clouds(7, 0.05, 0.36);
@@ -234,6 +246,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "Waterfall in the deep forest",
+    season: "summer",
     paint(k) {
       k.sky(0.4);
       k.sun(0.025);
@@ -276,6 +289,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "Twin peaks over the glacier lake",
+    season: "summer",
     paint(k) {
       k.sky(0.55);
       k.clouds(3, 0.04, 0.2);
@@ -316,6 +330,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "Birches at the edge of the marsh",
+    season: "summer",
     paint(k) {
       k.sky(0.6);
       k.clouds(5, 0.06, 0.32);
@@ -365,6 +380,7 @@ const SCENES: Scene[] = [
   },
   {
     title: "Path through the pine forest",
+    season: "spring",
     paint(k) {
       k.sky(0.5);
       k.clouds(4, 0.04, 0.22);
@@ -402,6 +418,7 @@ const SCENES: Scene[] = [
 ];
 
 export const PAINTING_TITLES: readonly string[] = SCENES.map((s) => s.title);
+export const PAINTING_SEASONS: readonly Season[] = SCENES.map((s) => s.season);
 export const PAINTING_COUNT = SCENES.length;
 
 /** The picture is always painted at this size, then cropped to cover the screen. */

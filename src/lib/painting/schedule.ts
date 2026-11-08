@@ -3,14 +3,14 @@
  * the hour: dawn, day, sunset or night. In development, a query string forces both:
  *   ?paint-time=dawn|day|sunset|night   the light
  *   ?paint-scene=0..9                    the painting
- *   ?paint-season=fall|winter|spring|summer
+ *   ?paint-season=fall|winter|spring|summer   (otherwise the painting's own season)
  *   ?paint-weather=clear|rain|snow|fog
  *   ?paint-in=1                          plays the opening again
  */
 import type { TimeOfDay } from "./light";
-import { PAINTING_COUNT, PAINTING_TITLES } from "./scenes";
+import { PAINTING_COUNT, PAINTING_SEASONS, PAINTING_TITLES, type Season } from "./scenes";
 
-export type Season = "fall" | "winter" | "spring" | "summer";
+export type { Season };
 export type Weather = "clear" | "rain" | "snow" | "fog";
 /** The greeting's voice follows the hour: night, morning, day or evening. */
 export type Band = "night" | "morning" | "day" | "evening";
@@ -43,11 +43,6 @@ const BAND_OF: Record<TimeOfDay, Band> = {
   night: "night",
 };
 
-export function seasonOf(d: Date): Season {
-  const m = d.getMonth();
-  return m <= 1 || m === 11 ? "winter" : m <= 4 ? "spring" : m <= 7 ? "summer" : "fall";
-}
-
 /** The day of the year, so each day gets the next painting in turn. */
 export function sceneOfDay(d: Date): number {
   const day = Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 864e5);
@@ -75,7 +70,8 @@ export function choosePainting(now: Date, search = "", allowOverrides = false): 
     time,
     band,
     season:
-      pick(q.get("paint-season"), ["fall", "winter", "spring", "summer"] as const) ?? seasonOf(now),
+      pick(q.get("paint-season"), ["fall", "winter", "spring", "summer"] as const) ??
+      PAINTING_SEASONS[scene],
     weather: pick(q.get("paint-weather"), ["clear", "rain", "snow", "fog"] as const) ?? "clear",
     replay: q.get("paint-in") === "1",
   };

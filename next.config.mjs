@@ -26,6 +26,12 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/plans", destination: "/pricing", permanent: true },
+      // The student's Account page became Settings (2026-11-08). Old links still land.
+      {
+        source: "/dashboard/student/account",
+        destination: "/dashboard/student/settings",
+        permanent: false,
+      },
       { source: "/free-diagnostic", destination: "/free-practice-test", permanent: true },
       { source: "/diagnostic", destination: "/learn/diagnostic", permanent: true },
       { source: "/blog", destination: "/", permanent: true },

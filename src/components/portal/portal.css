@@ -284,144 +284,109 @@
     background: rgb(0 0 0 / 0.06);
   }
 }
-/* The account menu: a card that springs out of the fox. It lives in the shell, outside the app
-   bar, so it keeps the shell's own ink and its own solid background. */
+/* The account menu: a drop-down list that springs down from the fox. It lives in the shell,
+   outside the app bar, so it keeps the shell's own ink and its own solid background. */
 .kp-menu {
   position: fixed;
   z-index: 30;
-  width: 328px;
+  width: 272px;
   max-width: calc(100vw - 24px);
-  padding: 14px;
+  padding: 6px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 8px;
   color: var(--ink);
   background: color-mix(in srgb, var(--bg) 97%, hsl(var(--hue) var(--hs) 50%));
   box-shadow:
-    0 24px 60px rgb(0 0 0 / 0.38),
-    0 2px 8px rgb(0 0 0 / 0.18);
+    0 20px 50px rgb(0 0 0 / 0.32),
+    0 2px 8px rgb(0 0 0 / 0.16);
   transform-origin: calc(100% - 22px) -8px;
-  animation: kp-menu-in 0.5s
-    linear(0, 0.22 6%, 0.66 15%, 0.98 25%, 1.08 33%, 1.06 42%, 1.01 55%, 0.995 70%, 1);
+  animation: kp-menu-in 0.42s
+    linear(0, 0.25 7%, 0.7 17%, 0.98 27%, 1.04 35%, 1.03 45%, 1.005 60%, 1);
 }
 @keyframes kp-menu-in {
   from {
     opacity: 0;
-    transform: scale(0.6) translateY(-12px);
+    transform: translateY(-10px) scaleY(0.82);
   }
-  20% {
+  25% {
     opacity: 1;
   }
 }
 .kp-menu-who {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 2px 4px 14px;
-}
-.kp-menu-fox {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: hsl(var(--hue) var(--hs) 50% / 0.16);
+  padding: 10px 12px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
 }
 .kp-menu-who b {
   display: block;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 17px;
+  line-height: 22px;
   font-weight: 700;
 }
 .kp-menu-who small {
   display: block;
   color: var(--mute);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 20px;
   overflow-wrap: anywhere;
 }
-.kp-menu-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.kp-tile {
+.kp-menu-row {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 84px;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: hsl(var(--hue) var(--hs) 50% / 0.07);
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
   color: var(--ink);
   text-align: left;
-  font-size: 15px;
-  line-height: 18px;
-  font-weight: 600;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 500;
   cursor: pointer;
-  animation: kp-tile-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
-  animation-delay: calc(var(--i, 0) * 22ms + 60ms);
-  transition:
-    transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1),
-    background-color 0.2s;
+  animation: kp-row-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.1) backwards;
+  animation-delay: calc(var(--i, 0) * 18ms + 40ms);
 }
-@keyframes kp-tile-in {
+.kp-menu-row svg {
+  flex: none;
+  color: var(--mute);
+}
+@keyframes kp-row-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.94);
+    transform: translateY(-4px);
   }
 }
-/* An odd last tile runs the full width, as a row. */
-.kp-menu-grid > .kp-tile:last-child:nth-child(odd) {
-  grid-column: span 2;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 60px;
+.kp-menu-row:hover,
+.kp-menu-row:focus-visible {
+  background: hsl(var(--hue) var(--hs) 50% / 0.14);
 }
-.kp-tile-icon {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  color: #fff;
-  background: var(--accent);
+.kp-menu-row:focus-visible {
+  outline-offset: -2px;
 }
-.kp-tile:hover,
-.kp-tile:focus-visible {
-  background: hsl(var(--hue) var(--hs) 50% / 0.16);
+.kp-menu-rule {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line);
 }
-.kp-tile:active {
-  transform: scale(0.96);
-}
-.kp-tile-quiet {
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 52px;
-  margin-top: 8px;
-  padding: 6px 12px;
-  border-color: transparent;
-  background: none;
+.kp-menu-quiet {
   color: var(--mute);
-}
-.kp-tile-quiet .kp-tile-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--mute);
-  background: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .kp-menu,
-  .kp-tile {
+  .kp-menu-row {
     animation: none;
   }
+}
+/* Settings, Reduce motion: every spring, slide and fade in the portal finishes at once. */
+:root[data-kp-still] .kp-shell :is(*, *::before, *::after) {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* The Karman wordmark, as in the site header. */
@@ -450,10 +415,6 @@
   .kp-brand-m .kp-wordmark {
     font-size: 21px;
   }
-}
-.kp-shell[data-picture="light"] .kp-brand-m {
-  color: #14161b;
-  background: rgb(255 255 255 / 0.62);
 }
 
 /* ---------- Page ---------- */
@@ -496,21 +457,27 @@
     text-shadow: 0 1px 18px rgb(255 255 255 / 0.7);
   }
 }
-/* On a light picture, the greeting and the rail switch to dark ink so they stay readable. */
+/* On a light picture, the greeting switches to dark ink so it stays readable over the paint. */
 .kp-shell[data-picture="light"] .kp-top {
   color: #14161b;
   text-shadow: 0 1px 16px rgb(255 255 255 / 0.75);
 }
-.kp-shell[data-picture="light"] .kp-nav {
-  --ink: #14161b;
-  --mute: #3c3f46;
-  color: #14161b;
-  background: rgb(255 255 255 / 0.62);
+/* The rail, the app bar and the phone logo follow the device theme, whatever the picture
+   (founder, 2026-11-08: a white rail beside a dark box looked broken). In light mode over a
+   light picture they turn white with dark ink; in dark mode they stay dark and thicken their
+   glass so light ink keeps its contrast over bright paint. */
+@media (prefers-color-scheme: light) {
+  .kp-shell[data-picture="light"] :is(.kp-nav, .kp-appbar, .kp-brand-m) {
+    --ink: #14161b;
+    --mute: #3c3f46;
+    color: #14161b;
+    background: rgb(255 255 255 / 0.62);
+  }
 }
-.kp-shell[data-picture="light"] .kp-appbar {
-  --ink: #14161b;
-  color: #14161b;
-  background: rgb(255 255 255 / 0.62);
+@media (prefers-color-scheme: dark) {
+  .kp-shell[data-picture="light"] :is(.kp-nav, .kp-appbar, .kp-brand-m) {
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+  }
 }
 .kp-greet {
   margin: 0;

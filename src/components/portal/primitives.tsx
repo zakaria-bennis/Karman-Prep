@@ -48,13 +48,16 @@ export function Card({
   children,
   tone,
   label,
+  id,
 }: {
   children: ReactNode;
   tone?: "late";
   label?: string;
+  /** An anchor, so links can land on the card. */
+  id?: string;
 }) {
   return (
-    <section className="kp-card" data-tone={tone} aria-label={label}>
+    <section className="kp-card" data-tone={tone} aria-label={label} id={id}>
       {children}
     </section>
   );

@@ -37,6 +37,8 @@ export interface StudentContext {
   homeworkOpen: number;
   /** A tutor or cohort can assign this student work. */
   hasTutor: boolean;
+  /** In a cohort, so Messages has a group chat to open. */
+  hasChat: boolean;
   showCalendar: boolean;
 }
 
@@ -78,7 +80,7 @@ async function practiceDaysFor(db: Db, clerkId: string): Promise<string[]> {
   return [...days].sort();
 }
 
-async function hasTutorFor(db: Db, userId: string): Promise<boolean> {
+async function teachersFor(db: Db, userId: string): Promise<{ cohort: boolean; tutor: boolean }> {
   const [cohort, tutor] = await Promise.all([
     db
       .from("cohort_members")
@@ -91,7 +93,7 @@ async function hasTutorFor(db: Db, userId: string): Promise<boolean> {
       .eq("student_user_id", userId)
       .is("ended_at", null),
   ]);
-  return (cohort.count ?? 0) > 0 || (tutor.count ?? 0) > 0;
+  return { cohort: (cohort.count ?? 0) > 0, tutor: (tutor.count ?? 0) > 0 };
 }
 
 export async function loadStudentContext(): Promise<StudentContext> {
@@ -114,9 +116,9 @@ export async function loadStudentContext(): Promise<StudentContext> {
     return null;
   });
   const plan = resolved ? studentPlan(resolved.planId, resolved.entitlements) : studentPlan("free");
-  const [days, tutor, homeworkOpen] = await Promise.all([
+  const [days, teachers, homeworkOpen] = await Promise.all([
     practiceDaysFor(db, clerkId),
-    hasTutorFor(db, userId),
+    teachersFor(db, userId),
     countOpenHomework({ userId, clerkId }),
   ]);
   const testType = row.test_type === "psat" || row.test_type === "sat" ? row.test_type : null;
@@ -134,7 +136,8 @@ export async function loadStudentContext(): Promise<StudentContext> {
     streak: streaks(days, dayKey(Date.now())),
     practiceDays: days,
     homeworkOpen,
-    hasTutor: tutor || homeworkOpen > 0,
+    hasTutor: teachers.cohort || teachers.tutor || homeworkOpen > 0,
+    hasChat: teachers.cohort,
     showCalendar: showsCalendar(plan),
   };
 }

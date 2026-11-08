@@ -3,9 +3,9 @@
 /* SAT or PSAT, and the test date. SAT dates come from the list; a PSAT date is typed in. */
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
-import { actionSaveTest } from "@/app/dashboard/student/account/actions";
+import { actionSaveTest } from "@/app/dashboard/student/settings/actions";
 import { MAX_DAYS_AHEAD, addDays, formatTestDate, type TestType } from "./test-dates";
-import s from "./account.module.css";
+import s from "./settings.module.css";
 
 const NONE = "none";
 

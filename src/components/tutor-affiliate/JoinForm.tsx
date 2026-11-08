@@ -34,8 +34,23 @@ function message(result: Result): string {
   }
 }
 
-/** A student types their tutor's code to join the group and get Practice free. */
-export default function JoinForm({ initialCode }: { initialCode: string }) {
+/**
+ * A student types their tutor's code to join the group and get Practice free. Used on /join
+ * (the tutor's shared link) and in the student's Settings.
+ */
+export default function JoinForm({
+  initialCode,
+  title = "Join your tutor's group",
+  id,
+  note,
+}: {
+  initialCode: string;
+  title?: string;
+  /** An anchor for links into the card. */
+  id?: string;
+  /** A line under the heading. */
+  note?: string;
+}) {
   const router = useRouter();
   const [code, setCode] = useState(initialCode);
   const [result, setResult] = useState<Result | null>(null);
@@ -52,8 +67,9 @@ export default function JoinForm({ initialCode }: { initialCode: string }) {
   const askSwitch = result && !result.ok && result.reason === "linked_elsewhere";
 
   return (
-    <Card>
-      <SectionHeader title="Join your tutor's group" />
+    <Card id={id}>
+      <SectionHeader title={title} />
+      {note && <p className="kp-meta">{note}</p>}
       <form
         className="ka-stack"
         onSubmit={(event) => {

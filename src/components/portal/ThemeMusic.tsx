@@ -2,8 +2,8 @@
 
 /*
  * Wires the Background music choice to the theme engine (src/lib/audio/theme-music.ts).
- * Renders nothing. If the student turned music on earlier, it starts on the first pointer or key
- * press of the page (browsers block sound before a gesture), never before. It follows the
+ * Renders nothing. Music is on unless switched off in Settings; it starts on the first pointer or
+ * key press of the page (browsers block sound before a gesture), never before. It follows the
  * Background music switch through MUSIC_EVENT, other tabs through the storage event, and holds
  * the music while the tab is hidden.
  */

@@ -13,7 +13,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { PREFERS_STILL_JS, prefersStill } from "@/lib/painting/motion";
+import { MOTION_KEY, PREFERS_STILL_JS, STILL_ATTR, prefersStill } from "@/lib/painting/motion";
 import { choosePainting, type PaintingChoice } from "@/lib/painting/schedule";
 import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 import { portalFontVars } from "./fonts";
@@ -46,19 +46,22 @@ export interface PortalShellProps {
   satDate?: string | null;
   /** Days in a row, shown with a flame beside the fox. Leave out to hide it. */
   streak?: { days: number; href: string } | null;
-  /** Account menu items. "Profile" and "Sign out" are always added last. */
+  /** The portal's own account menu items, after Settings (or Account) and before Sign out. */
   menu?: AccountMenuItem[];
+  /** This portal's Settings page. With it, "Settings" heads the account menu; without it,
+   *  "Account" opens Clerk's own account window (name, email, password). */
+  settingsHref?: string;
   /** Where the Karman logo leads: this portal's home, never the public site (founder,
    *  2026-11-08: the logo must not leave the portal). Defaults to the first nav item. */
   home?: string;
 }
 
 /*
- * Runs while the HTML is parsed, before the first paint: if the opening will play, the box waits
- * for it; and the last colors of today's painting apply at once. If the opening never starts,
+ * Runs while the HTML is parsed, before the first paint: marks Reduce motion on the root; if the
+ * opening will play, the box waits for it; and the last colors of today's painting apply at once. If the opening never starts,
  * the box shows anyway after six seconds.
  */
-const BOOT = `(function(){try{var r=document.documentElement,m=${PREFERS_STILL_JS},s=sessionStorage.getItem("${PAINTED_IN_KEY}");if(!m&&(!s||/[?&]paint-in=1/.test(location.search))){r.setAttribute("data-paint-opening","");setTimeout(function(){r.removeAttribute("data-paint-opening")},6000)}var d=new Date(),h=d.getHours(),b=h>=22||h<5?"night":h<11?"morning":h<17?"day":"evening",c=JSON.parse(localStorage.getItem("${COLORS_KEY}")||"null");if(c&&c.k===d.toDateString()+":"+b){r.style.setProperty("--hue",c.hue);r.style.setProperty("--hs",c.sat+"%");r.style.setProperty("--accent",c.accent)}}catch(e){}})();`;
+const BOOT = `(function(){try{var r=document.documentElement,m=${PREFERS_STILL_JS};if(localStorage.getItem("${MOTION_KEY}")==="still")r.setAttribute("${STILL_ATTR}","");var s=sessionStorage.getItem("${PAINTED_IN_KEY}");if(!m&&(!s||/[?&]paint-in=1/.test(location.search))){r.setAttribute("data-paint-opening","");setTimeout(function(){r.removeAttribute("data-paint-opening")},6000)}var d=new Date(),h=d.getHours(),b=h>=22||h<5?"night":h<11?"morning":h<17?"day":"evening",c=JSON.parse(localStorage.getItem("${COLORS_KEY}")||"null");if(c&&c.k===d.toDateString()+":"+b){r.style.setProperty("--hue",c.hue);r.style.setProperty("--hs",c.sat+"%");r.style.setProperty("--accent",c.accent)}}catch(e){}})();`;
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -78,6 +81,7 @@ export default function PortalShell({
   satDate,
   streak,
   menu = [],
+  settingsHref,
   home,
 }: PortalShellProps) {
   const pathname = usePathname() ?? "";
@@ -160,8 +164,10 @@ export default function PortalShell({
   const active = activeHref(pathname, nav);
   const homeHref = home ?? nav[0]?.href ?? pathname;
   const items: AccountMenuItem[] = [
+    settingsHref
+      ? { label: "Settings", icon: "settings", href: settingsHref }
+      : { label: "Account", icon: "profile", onSelect: () => clerk.openUserProfile() },
     ...menu,
-    { label: "Profile", icon: "profile", onSelect: () => clerk.openUserProfile() },
     {
       label: "Sign out",
       icon: "signout",

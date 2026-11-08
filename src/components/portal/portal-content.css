@@ -112,6 +112,10 @@
   background: color-mix(in srgb, hsl(var(--hue) var(--hs) 55%) 7%, var(--card));
   min-width: 0;
 }
+/* A card with an anchor clears the app bar when a link lands on it. */
+.kp-card[id] {
+  scroll-margin-top: 96px;
+}
 .kp-card[data-tone="late"] {
   border-color: color-mix(in srgb, var(--late) 40%, transparent);
 }

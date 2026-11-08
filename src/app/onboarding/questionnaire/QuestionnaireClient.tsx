@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NOT_REGISTERED, SatScheduleStep, type SatDateOption } from "./_steps/SatSchedule";
-import type { TestType } from "@/components/student-portal/account/test-dates";
+import type { TestType } from "@/components/student-portal/settings/test-dates";
 import { BackgroundStep } from "./_steps/Background";
 import { AvailabilityStep } from "./_steps/Availability";
 import { FamilyStep } from "./_steps/Family";
