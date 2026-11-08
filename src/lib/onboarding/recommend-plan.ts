@@ -117,7 +117,7 @@ export function planSummary(planId: RecommendedPlanId): PlanSummary {
       return {
         name: plan.name,
         price: `${formatPrice(plan.monthly)} a month, or ${formatPrice(plan.threeMonths)} for 3 months`,
-        href: `/billing?plan=${plan.id}&term=month`,
+        href: `/checkout/start?plan=${plan.id}&term=month`,
         action: `Start ${plan.name}`,
       };
     }

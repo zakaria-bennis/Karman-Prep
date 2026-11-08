@@ -19,6 +19,8 @@ export const ROUTES = {
   signIn: "/auth/sign-in",
   signUp: "/auth/sign-up",
   billing: "/billing",
+  /** A plan button: sign-up if needed, then straight to Stripe Checkout. */
+  checkout: "/checkout/start",
   calculator: "/calculator",
 } as const;
 

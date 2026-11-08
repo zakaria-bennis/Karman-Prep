@@ -116,12 +116,12 @@ describe("planSummary", () => {
     expect(planSummary("practice")).toEqual({
       name: "Practice",
       price: "$39 a month, or $89 for 3 months",
-      href: "/billing?plan=practice&term=month",
+      href: "/checkout/start?plan=practice&term=month",
       action: "Start Practice",
     });
     expect(planSummary("pro")).toMatchObject({
       price: "$69 a month, or $149 for 3 months",
-      href: "/billing?plan=pro&term=month",
+      href: "/checkout/start?plan=pro&term=month",
     });
     expect(planSummary("cohort")).toMatchObject({
       name: "9-week Cohort",

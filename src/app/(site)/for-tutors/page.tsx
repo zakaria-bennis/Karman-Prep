@@ -12,8 +12,8 @@ export const metadata = pageMeta(
   `The Karman tutor affiliate plan: ${formatPrice(TA.monthly)} a month, one code for up to ${TA.maxStudents} students, who get the ${PRACTICE_PLAN.name} plan free while you subscribe. You see their progress, assign work and manage your roster.`
 );
 
-/** Signed-out tutors go through sign-in first, then land on Billing with this plan picked. */
-const START = `${ROUTES.billing}?plan=${TA.id}`;
+/** Signed-out tutors create an account first, then go straight to checkout for this plan. */
+const START = `${ROUTES.checkout}?plan=${TA.id}`;
 
 export default function ForTutorsPage() {
   return (

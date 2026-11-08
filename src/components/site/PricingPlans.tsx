@@ -260,7 +260,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   <li key={x}>{x}</li>
                 ))}
               </ul>
-              <a className="ghost" href={`${ROUTES.billing}?plan=${plan.id}&term=month`}>
+              <a className="ghost" href={`${ROUTES.checkout}?plan=${plan.id}&term=month`}>
                 {S(`${plan.id} button`)}
                 <Arrow />
               </a>
