@@ -7,7 +7,7 @@
       "/learn/practice/[skillId]/page": 277448,
       "/learn/daily/page": 231691,
       "/learn/earlier/[subject]/page": 301738,
-      "/diagnostic/page": 314798
+      "/learn/diagnostic/page": 314798
     }
   },
   "eagerAddedGzipBytes": {
@@ -15,7 +15,7 @@
     "/learn/practice/[skillId]/page": 3714,
     "/learn/daily/page": 5079,
     "/learn/earlier/[subject]/page": 5137,
-    "/diagnostic/page": 5594
+    "/learn/diagnostic/page": 5594
   },
   "lazyGzipBytes": 202724,
   "workerGzipBytes": 94879,

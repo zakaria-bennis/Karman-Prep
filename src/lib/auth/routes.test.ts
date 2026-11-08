@@ -4,7 +4,7 @@ import { KARMAN_AUTH_ROUTES } from "./routes";
 
 describe("Clerk's existing on-site authentication routes", () => {
   it.each([
-    "/diagnostic",
+    "/learn/diagnostic",
     "/learn/practice/rw-skill-central-ideas-and-details",
     "/learn/earlier/math?resume=saved-attempt",
     "/dashboard/parent/student-id",

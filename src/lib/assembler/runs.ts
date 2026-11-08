@@ -39,6 +39,7 @@ import {
   type Section,
 } from "./forms";
 import { PlanLimitError, loadQuizAccess } from "./plan-gate";
+import { nextDiagnosticRun, recordDiagnosticResult } from "./diagnostic-record";
 import {
   answeredInRuns,
   dailyTenDays,
@@ -49,6 +50,7 @@ import {
   openFullTest,
   insertResponses,
   insertRun,
+  latestRunOfKind,
   loadResponses,
   tokensForRun,
   updateRun,
@@ -446,13 +448,14 @@ export async function startFullTest(clerkId: string, formNumber: number): Promis
 
 /** The diagnostic, drawn from the bank: one timed module per section. Resumes or shows its report. */
 export async function startDiagnostic(clerkId: string): Promise<RunView> {
-  const latest = await findRunByKey(clerkId, "diagnostic:1");
-  if (latest) return view(latest);
+  const latest = await latestRunOfKind(clerkId, "diagnostic");
+  const runKey = await nextDiagnosticRun(clerkId, latest);
+  if (!runKey) return view(latest!);
   const bank = await loadAdmittedBank(
     [...skillsInSection("reading"), ...skillsInSection("math")],
     5
   );
-  const built = assembleDiagnostic(bank.items, { seed: `${clerkId}:diagnostic` });
+  const built = assembleDiagnostic(bank.items, { seed: `${clerkId}:${runKey}` });
   const parts = built.map((s) => ({
     section: s.section,
     first: s.items.map((i) => i.id),
@@ -464,7 +467,7 @@ export async function startDiagnostic(clerkId: string): Promise<RunView> {
     await insertRun({
       studentId: clerkId,
       kind: "diagnostic",
-      runKey: "diagnostic:1",
+      runKey,
       scope: null,
       form: { title: "Diagnostic", grading: "end", sections: timedSections(parts, false) },
       snapshots: ids.map((id) => bank.snapshots.get(id)!),
@@ -690,5 +693,7 @@ async function finishRun(run: RunRecord, responses: RunResponse[]): Promise<RunR
   }
   const completedAt = now.toISOString();
   await updateRun(run.id, run.studentId, { completed_at: completedAt, result });
+  if (run.kind === "diagnostic" && result.predicted)
+    await recordDiagnosticResult(run.studentId, result.predicted, completedAt);
   return { ...run, completedAt, result };
 }

@@ -121,7 +121,7 @@ export function workerUrl(origin, call) {
  * The entry JS and CSS of a route and its layouts, read from its client reference manifest
  * (page_client-reference-manifest.js): sorted, de-duplicated and relative to `_next/`.
  * @param {string} manifestSource
- * @param {string} route e.g. "/diagnostic/page"
+ * @param {string} route e.g. "/learn/diagnostic/page"
  * @returns {string[]}
  */
 export function eagerFiles(manifestSource, route) {

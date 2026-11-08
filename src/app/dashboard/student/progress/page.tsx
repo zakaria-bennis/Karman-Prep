@@ -41,7 +41,7 @@ export const metadata: Metadata = { title: "Progress" };
 export const dynamic = "force-dynamic";
 
 /** The diagnostic: where a first predicted score comes from. */
-const DIAGNOSTIC_HREF = "/diagnostic";
+const DIAGNOSTIC_HREF = "/learn/diagnostic";
 
 type DiagnosticRow = { taken_at: string; score_range_low: number; score_range_high: number };
 type AwardRow = { award_key: string; skill_id: string | null; points: number; created_at: string };

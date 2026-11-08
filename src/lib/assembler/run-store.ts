@@ -70,6 +70,20 @@ export async function findRunByKey(studentId: string, runKey: string): Promise<R
   return data ? toRecord(data) : null;
 }
 
+/** The student's most recent run of one kind (by start time), or null. */
+export async function latestRunOfKind(studentId: string, kind: RunKind): Promise<RunRecord | null> {
+  const { data, error } = await db()
+    .from("quiz_runs")
+    .select(RUN_COLUMNS)
+    .eq("student_id", studentId)
+    .eq("kind", kind)
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error("Saved run could not be loaded");
+  return data ? toRecord(data) : null;
+}
+
 export async function findOpenRun(
   studentId: string,
   kind: RunKind,

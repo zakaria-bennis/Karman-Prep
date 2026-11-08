@@ -15,7 +15,12 @@ import { createAdminClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Tests and quizzes" };
 
-type Saved = { run_key: string; completed_at: string | null; result: RunResult | null };
+type Saved = {
+  run_key: string;
+  started_at: string;
+  completed_at: string | null;
+  result: RunResult | null;
+};
 
 /** Full-length practice tests, the diagnostic and the Domain quizzes, with where each stands. */
 export default async function TestsPage() {
@@ -24,12 +29,16 @@ export default async function TestsPage() {
     loadQuizAccess(clerkId).catch(() => null),
     (createAdminClient() as unknown as SupabaseClient)
       .from("quiz_runs")
-      .select("run_key, completed_at, result")
+      .select("run_key, started_at, completed_at, result")
       .eq("student_id", clerkId)
       .in("kind", ["full-test", "diagnostic"])
       .then(({ data }) => (data ?? []) as Saved[]),
   ]);
   const byKey = new Map(saved.map((row) => [row.run_key, row]));
+  // The latest diagnostic (an admin can grant retakes: diagnostic:2, :3 ...).
+  const diagnostic = saved
+    .filter((row) => row.run_key.startsWith("diagnostic:"))
+    .sort((a, b) => b.started_at.localeCompare(a.started_at))[0];
   const status = (key: string, locked: boolean) => {
     const row = byKey.get(key);
     if (row?.completed_at && row.result?.predicted)
@@ -79,7 +88,7 @@ export default async function TestsPage() {
           <SectionHeader title="Diagnostic" />
           <Row
             title="Where to start"
-            right={status("diagnostic:1", false).right}
+            right={status(diagnostic?.run_key ?? "diagnostic:1", false).right}
             href="/learn/diagnostic"
           />
         </Card>

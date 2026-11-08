@@ -29,7 +29,7 @@ export const EAGER_ROUTES = Object.freeze([
   "/learn/practice/[skillId]/page",
   "/learn/daily/page",
   "/learn/earlier/[subject]/page",
-  "/diagnostic/page",
+  "/learn/diagnostic/page",
 ]);
 
 /** Gzip budgets in bytes (AR-33). */
