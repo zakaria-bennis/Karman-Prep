@@ -126,7 +126,7 @@ export async function linkStudentWithCodeAction(formData: FormData) {
       "error",
       result.reason === "self"
         ? "That code is for your own account."
-        : "That code was already used or has expired. Ask your student for a new one."
+        : "That code didn't work. Check it, or ask your student for a new one: each code works once."
     );
   redirect(`/dashboard/parent/${result.studentId}`);
 }
