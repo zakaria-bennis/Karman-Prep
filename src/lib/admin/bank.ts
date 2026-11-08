@@ -230,21 +230,31 @@ async function countRows(client: SupabaseClient, table: string): Promise<number>
   return count ?? 0;
 }
 
-/** Reads every row in parallel pages of 1000 (the API's per-request cap). */
+/** Pages read at once. More than a few at a time can hit the database's statement timeout. */
+const PARALLEL_PAGES = 3;
+
+/** Reads every row in pages of 1000 (the API's per-request cap), a few pages at a time,
+ *  retrying a page once if it fails (usually a statement timeout on a busy database). */
 async function readAll(client: SupabaseClient, table: string, columns: string, total: number) {
   const pages = Array.from({ length: Math.ceil(total / PAGE_SIZE) }, (_, i) => i * PAGE_SIZE);
-  const results = await Promise.all(
-    pages.map(async (from) => {
-      const { data, error } = await client
-        .from(table)
-        .select(columns)
-        .order("id", { ascending: true })
-        .range(from, from + PAGE_SIZE - 1);
-      if (error) throw new Error(`Could not read ${table}.`);
-      return asRows(data);
-    })
-  );
-  return results.flat();
+  const readPage = async (from: number, attempt = 1): Promise<Row[]> => {
+    const { data, error } = await client
+      .from(table)
+      .select(columns)
+      .order("id", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+    if (error && attempt < 2) return readPage(from, attempt + 1);
+    if (error) throw new Error(`Could not read ${table}.`);
+    return asRows(data);
+  };
+  const rows: Row[] = [];
+  for (let i = 0; i < pages.length; i += PARALLEL_PAGES) {
+    const batch = await Promise.all(
+      pages.slice(i, i + PARALLEL_PAGES).map((from) => readPage(from))
+    );
+    for (const page of batch) rows.push(...page);
+  }
+  return rows;
 }
 
 function tagMap(rows: Row[]): Map<string, string> {
