@@ -1,426 +1,103 @@
 // ============================================================
-// /dashboard/parent/[studentId] — parent's read-only view of a
-// linked student: profile, cohort, diagnostic, upcoming homework.
-//
-// Security: the parent must have a row in parent_student_links
-// for this student. Admins bypass this check (so they can debug
-// every parent's view).
+// /dashboard/parent/[studentId] — the child's week at a glance:
+// homework done and late, time practiced, the next sessions, the
+// predicted score and the guarantee. Counts only, never questions.
 // ============================================================
 
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { safeAuth } from "@/lib/auth/dev-auth";
-import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { ChevronLeft, Calendar, Users as UsersIcon, BookOpen } from "lucide-react";
-import { fetchUserRole } from "@/lib/supabase/queries/admin";
-import { createAdminClient } from "@/lib/supabase/server";
-import { buildParentFocusSummary } from "@/lib/parent/focus-summary";
-import { learningPlanCopy } from "@/lib/learning-plan/copy";
-import { cohortPlacementTitle } from "@/lib/learning-plan/cohort-presentation";
+import { Card, Cta, MoreLink, Num, Panel, Ring, Row, SectionHeader, TutorNote } from "@/components/portal";
+import { ParentShell } from "@/components/parent/ParentShell";
+import { GuaranteeCard, sessionWhen } from "@/components/parent/parts";
+import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
 
-export const metadata: Metadata = { title: "Student — Parent Portal | Karman" };
+export const metadata: Metadata = { title: "Week" };
 export const dynamic = "force-dynamic";
 
-interface PageProps {
-  params: Promise<{ studentId: string }>;
-}
+export default async function ParentWeekPage({ params }: { params: Promise<{ studentId: string }> }) {
+  const ctx = await requireParentContext();
+  const child = await requireChild(ctx, (await params).studentId);
+  const week = await loadChildWeek(child);
+  const base = `/dashboard/parent/${child.id}`;
+  const hw = week.homework;
+  const total = hw.done + hw.open.length;
 
-interface StudentRow {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  email: string;
-  avatar_url: string | null;
-  sat_test_date: string | null;
-  clerk_id: string;
-}
-
-interface CohortInfo {
-  id: string;
-  name: string;
-  tier: "group" | "small_group";
-  sat_date: string;
-  current_topic: string | null;
-  status: "forming" | "active" | "completed";
-}
-
-interface HomeworkItem {
-  id: string;
-  title: string;
-  body: string | null;
-  assigned_at: string;
-  due_at: string | null;
-}
-
-interface DiagnosticRow {
-  taken_at: string;
-  score_range_low: number;
-  score_range_high: number;
-  domain_scores: Record<string, number> | null;
-}
-
-async function loadStudentData(studentUuid: string) {
-  const supabase = createAdminClient();
-
-  const [student, memberRows, diagRows] = await Promise.all([
-    supabase
-      .from("users")
-      .select("id, first_name, last_name, email, avatar_url, sat_test_date, clerk_id")
-      .eq("id", studentUuid)
-      .maybeSingle(),
-    supabase
-      .from("cohort_members")
-      .select(
-        `
-        cohort_id,
-        cohort:cohorts!cohort_members_cohort_id_fkey (id, name, tier, sat_date, current_topic, status)
-      `
-      )
-      .eq("user_id", studentUuid)
-      .is("left_at", null)
-      .limit(1),
-    supabase
-      .from("diagnostic_results")
-      .select("taken_at, score_range_low, score_range_high, domain_scores")
-      .eq("user_id", studentUuid)
-      .order("taken_at", { ascending: false })
-      .limit(1),
-  ]);
-
-  const studentRow = (student.data as StudentRow | null) ?? null;
-  if (!studentRow)
-    return {
-      student: null,
-      cohort: null,
-      diagnostic: null,
-      homework: [] as HomeworkItem[],
-      nextHomework: null as HomeworkItem | null,
-    };
-
-  type MemberRow = {
-    cohort_id: string;
-    cohort: CohortInfo | CohortInfo[] | null;
-  };
-  const mRow = ((memberRows.data ?? []) as MemberRow[])[0] ?? null;
-  const cohortJoined = mRow ? (Array.isArray(mRow.cohort) ? mRow.cohort[0] : mRow.cohort) : null;
-
-  // Upcoming + recent homework (if they're in a cohort)
-  let homework: HomeworkItem[] = [];
-  let nextHomework: HomeworkItem | null = null;
-  if (cohortJoined) {
-    const today = new Date().toISOString().slice(0, 10);
-    const [recentResult, nextResult] = await Promise.all([
-      supabase
-        .from("cohort_homework")
-        .select("id, title, body, assigned_at, due_at")
-        .eq("cohort_id", cohortJoined.id)
-        .order("assigned_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("cohort_homework")
-        .select("id, title, body, assigned_at, due_at")
-        .eq("cohort_id", cohortJoined.id)
-        .gte("due_at", today)
-        .order("due_at", { ascending: true })
-        .limit(1)
-        .maybeSingle(),
-    ]);
-    homework = (recentResult.data ?? []) as HomeworkItem[];
-    nextHomework = (nextResult.data as HomeworkItem | null) ?? null;
-  }
-
-  const diag = ((diagRows.data ?? []) as DiagnosticRow[])[0] ?? null;
-
-  return { student: studentRow, cohort: cohortJoined, diagnostic: diag, homework, nextHomework };
-}
-
-async function assertParentCanSeeStudent(
-  parentClerkId: string,
-  studentUuid: string
-): Promise<boolean> {
-  const role = await fetchUserRole(parentClerkId);
-  if (role === "admin") return true; // admins can open anyone's view
-  if (role !== "parent") return false;
-
-  const supabase = createAdminClient();
-  const { data: parent } = await supabase
-    .from("users")
-    .select("id")
-    .eq("clerk_id", parentClerkId)
-    .maybeSingle();
-  if (!parent) return false;
-
-  const { data: link } = await supabase
-    .from("parent_student_links")
-    .select("student_user_id")
-    .eq("parent_user_id", (parent as { id: string }).id)
-    .eq("student_user_id", studentUuid)
-    .maybeSingle();
-
-  return Boolean(link);
-}
-
-export default async function ParentStudentDetailPage({ params }: PageProps) {
-  const { studentId } = await params;
-  const { userId: realUserId } = await safeAuth();
-  if (!realUserId) redirect("/auth/sign-in");
-  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
-
-  const allowed = await assertParentCanSeeStudent(userId, studentId);
-  if (!allowed) notFound();
-
-  const { student, cohort, diagnostic, homework, nextHomework } = await loadStudentData(studentId);
-  if (!student) notFound();
-
-  const fullName =
-    [student.first_name, student.last_name].filter(Boolean).join(" ") || student.email;
-  const today = new Date().toISOString().slice(0, 10);
-  const summary = buildParentFocusSummary(
-    cohort?.current_topic ?? null,
-    cohort?.status ?? null,
-    homework,
-    nextHomework,
-    today
-  );
-
-  return (
-    <div className="min-h-screen bg-night text-ivory">
-      <div className="mx-auto max-w-4xl px-5 py-10">
-        <Link
-          href="/dashboard/parent"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          All students
-        </Link>
-
-        {/* Student header */}
-        <header className="mb-8 flex items-center gap-4">
-          <Avatar name={fullName} avatarUrl={student.avatar_url} size="lg" />
-          <div>
-            <h1 className="text-2xl font-extrabold text-ivory">{fullName}</h1>
-            <p className="mt-0.5 text-sm text-taupe">
-              {student.sat_test_date ? (
-                <>Target SAT — {formatDate(student.sat_test_date)}</>
-              ) : (
-                "Target SAT date not set"
-              )}
-            </p>
-          </div>
-        </header>
-
-        <section
-          className="mb-8 rounded-xl border border-bronze bg-surface/40 p-5"
-          aria-labelledby="parent-focus-title"
-        >
-          <h2 id="parent-focus-title" className="text-lg font-bold text-ivory">
-            {learningPlanCopy.parentHeading}
-          </h2>
-          <p className="mt-3 text-sm text-ivory">
-            <span className="font-semibold">Current focus: </span>
-            {summary.focus ?? "No active cohort topic is posted."}
-          </p>
-          <p className="mt-2 text-sm text-ivory">
-            <span className="font-semibold">{learningPlanCopy.parentUpcomingLabel}</span>
-            {summary.nextAction ? (
-              <>
-                {summary.nextAction}
-                {summary.nextDueAt && <> · Due {formatDate(summary.nextDueAt.slice(0, 10))}</>}
-              </>
-            ) : (
-              "No assignment with an upcoming due date is posted."
-            )}
-          </p>
-          {summary.recentAssignment && !summary.nextAction && (
-            <p className="mt-2 text-sm text-taupe">
-              Most recently posted: {summary.recentAssignment}
-            </p>
-          )}
-          <p className="mt-3 text-xs text-taupe">{learningPlanCopy.parentEvidenceNote}</p>
-        </section>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Cohort */}
-          <Card icon={UsersIcon} title={cohort ? cohortPlacementTitle(cohort.status) : "Cohort"}>
-            {cohort ? (
-              <div className="space-y-2">
-                <div className="font-semibold text-ivory">{cohort.name}</div>
-                <div className="text-xs text-taupe">
-                  {cohort.tier === "small_group" ? "Small Group" : "Seminar"} · {cohort.status}
-                </div>
-                {cohort.status === "active" && cohort.current_topic && (
-                  <div className="border-t border-bronze pt-2 text-sm text-ivory">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-taupe">
-                      Current topic
-                    </span>
-                    {cohort.current_topic}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm italic text-taupe">Not in a cohort (private 1:1 tier).</p>
-            )}
-          </Card>
-
-          {/* Diagnostic */}
-          <Card icon={Calendar} title="Most recent diagnostic">
-            {diagnostic ? (
-              <div className="space-y-2">
-                <p className="text-sm leading-relaxed text-taupe">
-                  Performance on the sampled diagnostic domains. These are not official SAT scores
-                  or predictions.
-                </p>
-                <div className="text-xs text-taupe">
-                  Taken {formatDate(diagnostic.taken_at.slice(0, 10))}
-                </div>
-                {diagnostic.domain_scores && (
-                  <div className="space-y-1.5 border-t border-bronze pt-3">
-                    {Object.entries(diagnostic.domain_scores).map(([domain, pct]) => (
-                      <DomainBar key={domain} domain={domain} percentage={pct} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm italic text-taupe">No diagnostic taken yet.</p>
-            )}
-          </Card>
-        </div>
-
-        {/* Homework */}
-        {cohort && (
-          <section className="mt-8">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory">
-              <BookOpen className="h-5 w-5 text-taupe" />
-              Recent assignments
-            </h2>
-            {homework.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-bronze px-6 py-8 text-center text-sm text-taupe">
-                No assignments posted yet.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {homework.map((h) => (
-                  <li key={h.id} className="rounded-xl border border-bronze bg-surface/40 p-5">
-                    <div className="mb-1 flex items-start justify-between gap-4">
-                      <h3 className="font-semibold text-ivory">{h.title}</h3>
-                      {h.due_at && (
-                        <span className="shrink-0 text-xs text-taupe">
-                          Due {formatDate(h.due_at.slice(0, 10))}
-                        </span>
-                      )}
-                    </div>
-                    {h.body && (
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-taupe">
-                        {h.body}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+  const side = (
+    <>
+      {week.guarantee && <GuaranteeCard status={week.guarantee} childName={child.firstName} />}
+      <Card>
+        <SectionHeader title="Predicted score" />
+        {week.score.current !== null ? (
+          <>
+            <Num big>{week.score.current}</Num>
+            <p className="kp-meta">From {child.firstName}&rsquo;s latest full measure.</p>
+          </>
+        ) : (
+          <p className="kp-meta">Shows after {child.firstName}&rsquo;s first full practice test.</p>
         )}
-
-        <p className="mt-10 max-w-md text-xs text-taupe">
-          You&apos;re viewing a read-only summary. Detailed progress (per-concept mastery, chat
-          transcripts) is deliberately not shared — your student can still have a private workspace.
-        </p>
-      </div>
-    </div>
+        <MoreLink href={`${base}/progress`}>Progress and skills</MoreLink>
+      </Card>
+      {week.tutorNote && (
+        <Card>
+          <SectionHeader title="From the tutor" />
+          <TutorNote from={week.tutorNote.from ?? "Your tutor"}>{week.tutorNote.body}</TutorNote>
+        </Card>
+      )}
+    </>
   );
-}
 
-// ─── Presentation helpers ─────────────────────────────────
-
-function Card({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  children: React.ReactNode;
-}) {
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40 p-5">
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-taupe">
-        <Icon className="h-3.5 w-3.5" />
-        {title}
-      </div>
-      {children}
-    </div>
+    <ParentShell ctx={ctx} child={child} title={`${child.firstName}'s week`}>
+      <Panel side={side}>
+        <section aria-labelledby="week-main">
+          <h2 className="kp-title" id="week-main">
+            {hw.late
+              ? `${hw.late} ${hw.late === 1 ? "piece" : "pieces"} of homework past due`
+              : total
+                ? `${hw.done} of ${total} homework done`
+                : "No homework set yet"}
+          </h2>
+          <p className="kp-meta">
+            <Num>{week.minutesThisWeek}</Num> minutes of practice in the last 7 days.
+          </p>
+          <Cta href={`${base}/recap`}>Preview this week&rsquo;s email</Cta>
+        </section>
+        <Card tone={hw.late ? "late" : undefined}>
+          <SectionHeader title="Homework" note={total ? <Num>{total}</Num> : undefined} />
+          <div className="kp-ring-row">
+            <Ring value={total ? hw.done / total : 0} label={`Homework: ${hw.done} of ${total} done`}>
+              <Num>{hw.done}</Num>
+            </Ring>
+            <span className="kp-meta">
+              <Num>{hw.done}</Num> done, <Num>{hw.late}</Num> late, <Num>{hw.dueThisWeek}</Num> due this week
+            </span>
+          </div>
+          {hw.open.slice(0, 4).map((h) => (
+            <Row
+              key={`${h.title}-${h.dueOn}`}
+              title={h.title}
+              right={h.late ? "Past due" : `Due ${sessionWhen(`${h.dueOn}T12:00:00Z`, { date: true })}`}
+              rightTone={h.late ? "late" : undefined}
+            />
+          ))}
+        </Card>
+        <Card>
+          <SectionHeader title="Next sessions" />
+          {week.upcoming.length ? (
+            week.upcoming
+              .slice(0, 3)
+              .map((s) => (
+                <Row
+                  key={s.id}
+                  title={s.kind === "1:1" ? `1:1${s.with ? ` with ${s.with}` : ""}` : `Cohort class${s.with ? ` with ${s.with}` : ""}`}
+                  right={sessionWhen(s.startsAt)}
+                />
+              ))
+          ) : (
+            <p className="kp-meta">No sessions booked.</p>
+          )}
+          <MoreLink href={`${base}/sessions`}>Sessions and recordings</MoreLink>
+        </Card>
+      </Panel>
+    </ParentShell>
   );
-}
-
-function DomainBar({ domain, percentage }: { domain: string; percentage: number }) {
-  const label = domain.replace(/_/g, " ");
-  const pct = Math.max(0, Math.min(100, percentage));
-  return (
-    <div>
-      <div className="mb-0.5 flex justify-between text-xs text-taupe">
-        <span className="capitalize">{label}</span>
-        <span className="font-mono text-taupe">{pct}%</span>
-      </div>
-      <div className="h-1 overflow-hidden rounded-full bg-surface-raised">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-gold to-success"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function Avatar({
-  name,
-  avatarUrl,
-  size = "md",
-}: {
-  name: string;
-  avatarUrl: string | null;
-  size?: "md" | "lg";
-}) {
-  const cls = size === "lg" ? "w-14 h-14 text-base" : "w-10 h-10 text-sm";
-  const px = size === "lg" ? 56 : 40;
-  if (avatarUrl) {
-    return (
-      <Image
-        src={avatarUrl}
-        alt={name}
-        width={px}
-        height={px}
-        className={`${cls} rounded-full border border-bronze object-cover`}
-        unoptimized
-      />
-    );
-  }
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-  return (
-    <div
-      aria-hidden="true"
-      className={`${cls} flex items-center justify-center rounded-full border border-bronze bg-surface-raised font-bold text-ivory`}
-    >
-      {initials || "?"}
-    </div>
-  );
-}
-
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
 }
