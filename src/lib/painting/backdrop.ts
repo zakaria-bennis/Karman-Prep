@@ -76,7 +76,9 @@ export class PaintedScene {
    * for long.
    */
   async start(animate: boolean) {
+    const t0 = performance.now();
     this.art = renderLandscape(this.choice.scene, this.choice.time);
+    performance.measure("karman-paint-scene", { start: t0 });
     await new Promise((r) => setTimeout(r, 0));
     if (this.disposed) return;
     const still = reducedMotion();
