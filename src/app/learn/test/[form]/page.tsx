@@ -12,7 +12,7 @@ export default async function FullTestPage({ params }: { params: Promise<{ form:
   const { form } = await params;
   const number = Number(form);
   if (!Number.isInteger(number) || number < 1 || number > FULL_LENGTH_FORMS) notFound();
-  const { clerkId, user } = await loadFlowUser(`/learn/test/${number}`);
+  const { clerkId, user } = await loadFlowUser();
   const saved = await findRunByKey(clerkId, `full-test:${number}`).catch(() => null);
   return <FullTestFlow user={user} form={number} resumable={!!saved} />;
 }

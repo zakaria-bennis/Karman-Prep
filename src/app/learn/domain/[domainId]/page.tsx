@@ -16,7 +16,7 @@ export default async function DomainQuizPage({
   const { domainId } = await params;
   const domain = SKILL_DOMAINS.find((d) => d.id === domainId);
   if (!domain) notFound();
-  const { user } = await loadFlowUser(`/learn/domain/${domain.id}`);
+  const { user } = await loadFlowUser();
   return (
     <DomainQuizFlow user={user} domainId={domain.id} label={domain.label} exitHref="/learn/tests" />
   );
