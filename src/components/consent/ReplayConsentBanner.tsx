@@ -13,6 +13,8 @@
 //   - Choice persists "forever" (cookie max-age 100y) — see
 //     /api/consent/route.ts.
 //
+// Hidden on portal and quiz screens (see APP_PREFIXES).
+//
 // Visibility is driven by a server-resolved `ConsentState` passed
 // in as a prop: only renders when state === "banner_show". Once
 // the user picks, we POST /api/consent (which sets the cookie)
@@ -21,7 +23,29 @@
 // ============================================================
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Shield, X } from "lucide-react";
+
+/** Portal and quiz screens have a fixed Submit bar or phone tab bar at the bottom. The banner
+ *  never covers them (design rule 34), so it shows on the public site only. Without an answer
+ *  nothing is recorded: replay is opt-in. */
+const APP_PREFIXES = [
+  "/dashboard",
+  "/learn",
+  "/diagnostic",
+  "/tutor",
+  "/admin",
+  "/school",
+  "/onboarding",
+  "/calculator",
+  "/billing",
+  "/checkout",
+];
+
+function isAppScreen(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return APP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
 
 interface Props {
   /** Whether the banner should render. Server-rendered to avoid
@@ -34,8 +58,9 @@ interface Props {
 export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: Props) {
   const [dismissed, setDismissed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const pathname = usePathname();
 
-  if (!show || dismissed) return null;
+  if (!show || dismissed || isAppScreen(pathname)) return null;
 
   async function submit(choice: "yes" | "no") {
     setSubmitting(true);
