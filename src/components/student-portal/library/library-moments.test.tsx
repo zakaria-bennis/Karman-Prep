@@ -107,3 +107,32 @@ describe("Challenge moment", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
+
+describe("Library course choice, painted options (?hero=)", () => {
+  it.each(["a", "b", "c"] as const)(
+    "option %s always asks, and its pick still becomes the toggle",
+    async (hero) => {
+      /* A pick kept today does not skip the choice, so each option can be seen again. */
+      sessionStorage.setItem(COURSE_PICK_KEY, `${new Date().toDateString()}|math`);
+      render(
+        <CourseChooser
+          courses={courses}
+          views={views}
+          initial={null}
+          waitForChallenge={false}
+          hero={hero}
+        />
+      );
+      expect(screen.getByRole("heading", { name: "What are we studying?" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: /Math/ })).toBeTruthy();
+
+      fireEvent.click(screen.getByRole("button", { name: /Reading and Writing/ }));
+
+      await waitFor(() => expect(screen.getByRole("group", { name: "Course" })).toBeTruthy());
+      expect(
+        screen.getByRole("button", { name: /Reading and Writing/, pressed: true })
+      ).toBeTruthy();
+      expect(screen.getByText("Reading course").closest("[hidden]")).toBeNull();
+    }
+  );
+});

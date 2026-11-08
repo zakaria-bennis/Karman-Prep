@@ -26,6 +26,8 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { Num } from "@/components/portal/primitives";
 import { Ring } from "@/components/portal/Ring";
 import SubjectMark from "./SubjectMarks";
+import HeroOption from "./heroes/HeroOption";
+import type { HeroOption as HeroKind } from "./heroes/types";
 import { COURSE_PICK_KEY, challengeMoment, readStore, writeStore } from "./moment";
 import styles from "./chooser.module.css";
 
@@ -50,6 +52,7 @@ export default function CourseChooser({
   views,
   initial,
   waitForChallenge,
+  hero = null,
 }: {
   courses: ChooserCourse[];
   /** Each course's content, rendered on the server. */
@@ -58,6 +61,9 @@ export default function CourseChooser({
   initial: Slug | null;
   /** True when the Challenge moment may open first. */
   waitForChallenge: boolean;
+  /** One of the painted versions being compared (`?hero=a|b|c`). It always asks, so each
+   *  version can be seen again with a reload. */
+  hero?: HeroKind | null;
 }) {
   const reduce = useReducedMotion() ?? false;
   const [pick, setPick] = useState<Slug | null>(initial);
@@ -77,13 +83,14 @@ export default function CourseChooser({
       writeStore("session", COURSE_PICK_KEY, `${today()}|${initial}`);
       return;
     }
+    if (hero) return;
     const kept = readStore("session", COURSE_PICK_KEY);
     const prefix = `${today()}|`;
     if (kept?.startsWith(prefix)) {
       const slug = kept.slice(prefix.length);
       if (slug === "math" || slug === "reading-writing") setPick(slug);
     }
-  }, [initial]);
+  }, [initial, hero]);
 
   const choose = (slug: Slug, fromHero: boolean) => {
     if (fromHero) setTravelled(slug);
@@ -105,7 +112,7 @@ export default function CourseChooser({
     <MotionConfig reducedMotion="user">
       <LayoutGroup id="library-course">
         <div ref={rootRef} className={styles.root} suppressHydrationWarning>
-          <script dangerouslySetInnerHTML={{ __html: BOOT }} />
+          {!hero && <script dangerouslySetInnerHTML={{ __html: BOOT }} />}
           <AnimatePresence initial={false} mode="popLayout">
             {pick === null ? (
               <motion.section
@@ -123,43 +130,53 @@ export default function CourseChooser({
                 >
                   What are we studying?
                 </motion.h2>
-                <div className={styles.options}>
-                  {courses.map((c, i) => (
-                    <motion.button
-                      key={c.slug}
-                      type="button"
-                      className={styles.option}
-                      data-slug={c.slug}
-                      layoutId={reduce ? undefined : `course-${c.slug}`}
-                      style={{ borderRadius: 4 }}
-                      onClick={() => choose(c.slug, true)}
-                      initial={false}
-                      animate={
-                        ready
-                          ? { opacity: 1, y: 0, scale: 1 }
-                          : { opacity: 0, y: reduce ? 0 : 28, scale: reduce ? 1 : 0.97 }
-                      }
-                      transition={{ ...spring, delay: ready ? 0.12 + i * 0.1 : 0 }}
-                      whileHover={reduce ? undefined : { y: -4 }}
-                      whileTap={reduce ? undefined : { scale: 0.985 }}
-                    >
-                      <span className={styles.optionArt}>
-                        {ready && <SubjectMark slug={c.slug} still={reduce} />}
-                      </span>
-                      <span className={styles.optionFoot}>
-                        <span className={styles.optionName}>{SHORT[c.slug]}</span>
-                        <span className={styles.optionPct}>
-                          <span aria-hidden="true">
-                            <Ring value={c.progress} size={44} width={5} label="" />
-                          </span>
-                          <span>
-                            <Num>{pct(c)}%</Num> done
+                {hero ? (
+                  <HeroOption
+                    kind={hero}
+                    courses={courses}
+                    ready={ready}
+                    reduce={reduce}
+                    onPick={(slug) => choose(slug, true)}
+                  />
+                ) : (
+                  <div className={styles.options}>
+                    {courses.map((c, i) => (
+                      <motion.button
+                        key={c.slug}
+                        type="button"
+                        className={styles.option}
+                        data-slug={c.slug}
+                        layoutId={reduce ? undefined : `course-${c.slug}`}
+                        style={{ borderRadius: 4 }}
+                        onClick={() => choose(c.slug, true)}
+                        initial={false}
+                        animate={
+                          ready
+                            ? { opacity: 1, y: 0, scale: 1 }
+                            : { opacity: 0, y: reduce ? 0 : 28, scale: reduce ? 1 : 0.97 }
+                        }
+                        transition={{ ...spring, delay: ready ? 0.12 + i * 0.1 : 0 }}
+                        whileHover={reduce ? undefined : { y: -4 }}
+                        whileTap={reduce ? undefined : { scale: 0.985 }}
+                      >
+                        <span className={styles.optionArt}>
+                          {ready && <SubjectMark slug={c.slug} still={reduce} />}
+                        </span>
+                        <span className={styles.optionFoot}>
+                          <span className={styles.optionName}>{SHORT[c.slug]}</span>
+                          <span className={styles.optionPct}>
+                            <span aria-hidden="true">
+                              <Ring value={c.progress} size={44} width={5} label="" />
+                            </span>
+                            <span>
+                              <Num>{pct(c)}%</Num> done
+                            </span>
                           </span>
                         </span>
-                      </span>
-                    </motion.button>
-                  ))}
-                </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
               </motion.section>
             ) : (
               <motion.div

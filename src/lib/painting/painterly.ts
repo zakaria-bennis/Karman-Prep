@@ -60,7 +60,8 @@ interface CoarsePlan {
 function* plan(
   src: HTMLCanvasElement,
   scale: number,
-  aspect: number
+  aspect: number,
+  brush = 1
 ): Generator<CoarsePlan | null, Stroke[]> {
   const w = PLAN_W;
   const h = Math.max(1, Math.round(w * aspect));
@@ -152,7 +153,7 @@ function* plan(
     }
     const list: (Stroke & { y: number; kids: Stroke[] })[] = [];
     const fine = R < 1;
-    const step = R * U;
+    const step = R * U * brush;
     const d = fine ? 1 : U;
     for (let y = step / 2; y < h; y += step) {
       for (let x = step / 2; x < w; x += step) {
@@ -365,6 +366,9 @@ export interface PaintOptions {
   /** The canvas size in CSS pixels. Defaults to the window. */
   width?: number;
   height?: number;
+  /** Brush size, relative to the picture. Small pictures (the Library's subject art) use bigger
+   *  brushes so the strokes still read as paint. Defaults to 1. */
+  brush?: number;
 }
 
 export interface PaintHandle {
@@ -404,7 +408,7 @@ export function paintPicture(
   const ctx = ctx2d(canvas);
   const t0 = performance.now();
   const final = cover(src, W, H);
-  const steps = plan(src, W / PLAN_W, cssH / cssW);
+  const steps = plan(src, W / PLAN_W, cssH / cssW, opts.brush ?? 1);
   let r = steps.next();
   while (!r.done && r.value === null) r = steps.next();
   const { first, all } = r.value as CoarsePlan;
