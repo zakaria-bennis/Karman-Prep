@@ -127,23 +127,12 @@ export default function StudentDashboardClient({
     >
       <Panel banner={banner} side={side}>
         <section aria-labelledby="today-main">
-          {next ? (
-            <>
-              <h2 className="kp-title" id="today-main">
-                {next.title}
-              </h2>
-              <p className="kp-meta">{next.detail}</p>
-              <Cta href={next.href}>{next.label}</Cta>
-            </>
-          ) : (
-            <>
-              <h2 className="kp-title" id="today-main">
-                Daily practice
-              </h2>
-              <p className="kp-meta">Today&rsquo;s challenge questions and word lab</p>
-              <Cta href="/learn/daily">Open daily practice</Cta>
-            </>
-          )}
+          <h2 className="kp-title" id="today-main">
+            Your Daily 10
+          </h2>
+          <p className="kp-meta">Ten questions picked for you today</p>
+          <Cta href="/learn/daily-ten">Start Your Daily 10</Cta>
+          {next && <MoreLink href={next.href}>{next.label}</MoreLink>}
         </section>
         {dashboard.skillHistoryStatus === "unavailable" && (
           <p role="status" className="kp-meta">

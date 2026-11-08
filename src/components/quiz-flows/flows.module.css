@@ -1,0 +1,352 @@
+/* Quiz-flow screens in the painting style. Colors come from the portal shell's variables, so the
+   day's painting sets the accent and the four level shades; nothing here is marigold. */
+
+.message {
+  display: grid;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 8px;
+}
+
+.hero {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.hero .actions {
+  justify-content: center;
+}
+
+.ringText {
+  display: grid;
+  justify-items: center;
+  line-height: 1;
+  gap: 4px;
+}
+
+.bigScore {
+  margin: 0;
+}
+
+.split,
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 24px;
+  margin: 0;
+  color: var(--mute);
+}
+
+.split span,
+.facts span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.split :global(.kp-num),
+.facts :global(.kp-num) {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.tokens {
+  margin: 0;
+  color: var(--ink);
+}
+
+/* answer shapes: right is a filled circle, a miss an outlined square with a cross */
+.shapes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shapes svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.right {
+  fill: var(--accent);
+}
+
+.miss {
+  fill: none;
+  stroke: var(--mute);
+  stroke-width: 1.6;
+}
+
+.missMark {
+  stroke: var(--mute);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.skillList {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skillList li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.skillName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.skillLevel {
+  color: var(--mute);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.textButton {
+  margin-top: 12px;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sectionList {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sectionList li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review summary {
+  display: grid;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.review summary .shapes {
+  justify-content: flex-start;
+}
+
+.reviewList {
+  display: grid;
+  gap: 22px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reviewList li {
+  display: grid;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.reviewList p {
+  margin: 0;
+}
+
+.reviewHead {
+  color: var(--mute);
+  font-size: 14px;
+}
+
+.reviewText {
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+/* the level-up moment: a small banner under the question */
+.levelBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent, #2f6f5e) 10%, transparent);
+  color: inherit;
+}
+
+.levelBanner p {
+  margin: 0;
+}
+
+.fox {
+  display: inline-flex;
+  animation: fox-hop 700ms cubic-bezier(0.3, 1.6, 0.5, 1) 1;
+}
+
+.paintSquare {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1.5px solid var(--l4, #2f6f5e);
+  background: linear-gradient(to top, var(--sq) 0 0) bottom / 100% 0% no-repeat;
+  animation: paint-in 900ms ease-out 200ms forwards;
+  flex: none;
+}
+
+.paintSquare[data-level="1"] {
+  --sq: var(--l1, #9cc7b8);
+}
+.paintSquare[data-level="2"] {
+  --sq: var(--l2, #6aa894);
+}
+.paintSquare[data-level="3"] {
+  --sq: var(--l3, #3f8a74);
+}
+.paintSquare[data-level="4"] {
+  --sq: var(--l4, #2f6f5e);
+}
+
+@keyframes paint-in {
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+@keyframes fox-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px) rotate(-6deg);
+  }
+}
+
+/* the Daily 10 box: squared, flat, no machine, no shadow */
+.boxStage {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 300px;
+  align-content: center;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.box {
+  width: 180px;
+  height: auto;
+  animation: box-drop 600ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.boxBody {
+  fill: color-mix(in srgb, var(--accent, #2f6f5e) 82%, #fff);
+}
+
+.boxLidFill {
+  fill: var(--accent, #2f6f5e);
+}
+
+.boxRibbon {
+  stroke: color-mix(in srgb, var(--accent, #2f6f5e) 40%, #fff);
+  stroke-width: 8;
+}
+
+.boxLid {
+  transform-origin: 30px 60px;
+  transition: transform 380ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.box[data-open="true"] .boxLid {
+  transform: translate(-6px, -22px) rotate(-18deg);
+}
+
+.token {
+  fill: var(--l2, #6aa894);
+  stroke: var(--l4, #2f6f5e);
+  stroke-width: 2;
+  opacity: 0;
+}
+
+.box[data-open="true"] .token {
+  animation: token-rise 900ms ease-out forwards;
+}
+
+.boxText {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+@keyframes box-drop {
+  from {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(4px);
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes token-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-58px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fox,
+  .box,
+  .box[data-open="true"] .token {
+    animation: none;
+  }
+  .paintSquare {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  .boxLid {
+    transition: none;
+  }
+}

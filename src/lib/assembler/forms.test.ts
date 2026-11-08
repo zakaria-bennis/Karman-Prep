@@ -197,8 +197,8 @@ describe.skipIf(!existsSync(BANK))("coverage against the live bank export", () =
     expect(new Set(seen).size).toBe(seen.length);
     for (const form of forms)
       for (const section of form.sections)
-        for (const module of [section.module1, section.easier, section.harder])
-          expect(module).toHaveLength(SECTION_SHAPE[section.section].perModule);
+        for (const part of [section.module1, section.easier, section.harder])
+          expect(part).toHaveLength(SECTION_SHAPE[section.section].perModule);
   });
 
   it("fills a Domain quiz for every Domain on the core pool", () => {
