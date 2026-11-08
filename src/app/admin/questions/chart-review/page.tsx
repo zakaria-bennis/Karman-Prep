@@ -11,7 +11,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, LineChart, Microscope, BarChart3 } from "lucide-react";
+import { WbPage, WbTabs } from "@/components/admin/workbench";
 import {
   selectPendingChartReviews,
   selectLiveCharts,
@@ -35,92 +35,53 @@ export default async function ChartReviewPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-8">
-      <div className="mb-6">
-        <Link
-          href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-        >
-          <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
-        </Link>
-        <div className="flex items-start justify-between">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-[color:var(--ink)]">
-            <LineChart className="h-5 w-5 text-[color:var(--accent-text)]" /> Chart review
-          </h1>
-          <Link
-            href="/admin/questions/inspect"
-            className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
-          >
-            <Microscope className="h-3.5 w-3.5" /> Inspector worklist
+    <WbPage
+      title="Chart review"
+      summary="AI-extracted chart figures waiting for approval before they replace the screenshot students see."
+      actions={
+        <>
+          <Link className="wb-btn" href="/admin/questions/inspect">
+            Inspector worklist
           </Link>
-        </div>
-        <p className="mt-1.5 text-sm text-[color:var(--mute)]">
-          AI-extracted chart figures awaiting human approval before they replace the raster
-          screenshot for students.
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="mb-5 flex items-center gap-1 border-b border-[color:var(--line)]">
-        <TabLink
-          href="/admin/questions/chart-review"
-          active={tab === "pending"}
-          label="Pending review"
-          count={counts.pending}
-        />
-        <TabLink
-          href="/admin/questions/chart-review?tab=live"
-          active={tab === "live"}
-          label="Live charts"
-          count={counts.live}
-          icon={BarChart3}
-        />
-      </div>
+          <Link className="wb-btn" href="/admin/curriculum">
+            Back to admin
+          </Link>
+        </>
+      }
+    >
+      <WbTabs
+        label="Chart list"
+        param="tab"
+        value={tab}
+        basePath="/admin/questions/chart-review"
+        options={[
+          { value: "pending", label: "Pending review", count: counts.pending },
+          { value: "live", label: "Live charts", count: counts.live },
+        ]}
+      />
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-6 py-12 text-center text-sm text-[color:var(--mute)]">
-          {tab === "pending"
-            ? counts.pending === 0
-              ? "No charts pending review. The AI extractor either hasn't run yet, or every extraction so far cleared the auto-publish threshold."
-              : "Empty for the current filter."
-            : "No charts have been promoted to live yet. Once Sub-PR C's rollout runs, high-confidence extractions land here automatically."}
+        <div className="wb-empty">
+          {tab === "pending" ? (
+            counts.pending === 0 ? (
+              <>
+                <b>No charts pending review.</b>
+                The extractor hasn&apos;t run yet, or every extraction so far cleared the
+                auto-publish threshold.
+              </>
+            ) : (
+              <b>Empty for the current filter.</b>
+            )
+          ) : (
+            <>
+              <b>No live charts yet.</b>
+              High-confidence extractions land here once they are promoted.
+            </>
+          )}
         </div>
       ) : (
         <ChartReviewClient rows={rows} />
       )}
-    </div>
-  );
-}
-
-function TabLink({
-  href,
-  active,
-  label,
-  count,
-  icon: Icon,
-}: {
-  href: string;
-  active: boolean;
-  label: string;
-  count: number;
-  icon?: typeof BarChart3;
-}) {
-  return (
-    <Link
-      href={href}
-      className={
-        active
-          ? "border-b-2 border-[color-mix(in_srgb,var(--accent)_40%,transparent)] px-3 py-2 text-sm font-semibold text-[color:var(--ink)]"
-          : "border-b-2 border-transparent px-3 py-2 text-sm text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-      }
-    >
-      <span className="inline-flex items-center gap-1.5">
-        {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
-        {label}
-        <span className="rounded bg-[color:var(--raised)] px-1.5 py-0.5 font-mono text-[10px]">
-          {count}
-        </span>
-      </span>
-    </Link>
+    </WbPage>
   );
 }
