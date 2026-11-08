@@ -97,3 +97,18 @@ export const planGrants: AffiliateGrants = {
     if (error) throw new Error("Couldn't end this student's Practice plan.");
   },
 };
+
+/** The Stripe customer behind the tutor's tutor-affiliate subscription, for the billing portal. */
+export async function tutorStripeCustomerId(tutorClerkId: string): Promise<string | null> {
+  const { data, error } = await db()
+    .from("subscriptions")
+    .select("stripe_customer_id, created_at")
+    .eq("user_id", tutorClerkId)
+    .eq("plan_id", "tutor-affiliate")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (missingPlanTables(error)) return null;
+  if (error) throw new Error("Couldn't read the tutor plan's billing.");
+  return (data as { stripe_customer_id: string } | null)?.stripe_customer_id ?? null;
+}
