@@ -1,34 +1,39 @@
 "use client";
 
 // ============================================================
-// UsersClient — table of all users, role editor, parent-link
-// manager dialog.
+// UsersClient — the People list: role tabs, cohort filter,
+// search, and one dense table (stacked cards under 768px).
+// Each row: role editor, plan, parent links or diagnostic
+// retake, impersonate.
 // ============================================================
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { PRACTICE_PLAN, PRO_PLAN, TUTOR_AFFILIATE_PLAN } from "@/lib/marketing/offer";
-import { Eye, Link2, Loader2, Plus, RefreshCcw, Search, Trash2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { AdminCohortLite, AdminUserRow, LinkedStudentRow } from "@/lib/supabase/queries/users";
+import type { AdminCohortLite, AdminUserRow } from "@/lib/supabase/queries/users";
 import type { AppRole } from "@/lib/supabase/queries/admin";
-import {
-  actionGrantDiagnosticRetake,
-  actionSetUserRole,
-  actionLinkParentToStudent,
-  actionUnlinkParentFromStudent,
-} from "./actions";
+import { WbPill, WbTable, WbToolbar, type Tone } from "@/components/admin/workbench";
+import { actionGrantDiagnosticRetake, actionSetUserRole } from "./actions";
 import { actionImpersonateUser } from "@/app/admin/impersonation-actions";
 import { tierLabelOf } from "@/lib/scheduling/tiers";
+import ParentLinksDialog from "./ParentLinksDialog";
 
 const ROLE_OPTIONS: AppRole[] = ["student", "tutor", "parent", "admin"];
 
-const ROLE_COLOR: Record<AppRole, string> = {
-  student: "bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] text-[color:var(--ink)] border-[color-mix(in_srgb,var(--line)_20%,transparent)]",
-  tutor: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
-  parent: "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_20%,transparent)]",
-  admin: "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_20%,transparent)]",
+const ROLE_LABEL: Record<AppRole, string> = {
+  student: "Student",
+  tutor: "Tutor",
+  parent: "Parent",
+  admin: "Admin",
   // Set by the $199 tutor plan's checkout, not from this screen.
-  affiliate_tutor: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
+  affiliate_tutor: "Affiliate tutor",
+};
+
+const ROLE_TONE: Record<AppRole, Tone> = {
+  student: "neutral",
+  tutor: "info",
+  parent: "info",
+  admin: "warn",
+  affiliate_tutor: "ok",
 };
 
 type SubPlan = NonNullable<AdminUserRow["plan_id"]>;
@@ -37,16 +42,18 @@ const PLAN_LABEL: Record<SubPlan, string> = {
   pro: PRO_PLAN.name,
   "tutor-affiliate": TUTOR_AFFILIATE_PLAN.name,
 };
-const PLAN_COLOR: Record<SubPlan, string> = {
-  practice: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
-  pro: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
-  "tutor-affiliate": "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_20%,transparent)]",
-};
+
+const ROLE_TABS = ["all", "student", "tutor", "parent", "admin"] as const;
+
+const ACTIVE_TAB = { borderColor: "var(--wb-ink)", fontWeight: 600 } as const;
 
 interface Props {
   users: AdminUserRow[];
   cohorts: AdminCohortLite[];
 }
+
+const nameOf = (u: { first_name: string | null; last_name: string | null }) =>
+  [u.first_name, u.last_name].filter(Boolean).join(" ");
 
 export default function UsersClient({ users, cohorts }: Props) {
   const [roleFilter, setRoleFilter] = useState<"all" | AppRole>("all");
@@ -82,103 +89,124 @@ export default function UsersClient({ users, cohorts }: Props) {
     return c;
   }, [users]);
 
+  const filtersOn = roleFilter !== "all" || cohortFilter !== "all" || search.trim().length > 0;
+  function clearFilters() {
+    setRoleFilter("all");
+    setCohortFilter("all");
+    setSearch("");
+  }
+
   return (
-    <div>
-      <header className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-[color:var(--ink)]">Users</h1>
-          <p className="mt-1 text-sm text-[color:var(--mute)]">
-            Change role or link a parent to a student. Roles are enforced by the layout gate on each
-            portal.
-          </p>
-        </div>
-      </header>
-
-      {/* Filter bar — search + role pills + cohort dropdown */}
-      <div className="mb-4 space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--mute)]" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or email…"
-              className="w-full rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] py-2 pl-9 pr-3 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
-            />
-          </div>
-          <select
-            aria-label="Filter users by cohort"
-            value={cohortFilter}
-            onChange={(e) => setCohortFilter(e.target.value)}
-            className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
-          >
-            <option value="all">All cohorts ({cohorts.length})</option>
-            {cohorts.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({tierLabelOf(c.tier)})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {(["all", "student", "tutor", "parent", "admin"] as const).map((r) => (
+    <>
+      <WbToolbar>
+        <div className="wb-tabs" role="group" aria-label="Filter by role">
+          {ROLE_TABS.map((r) => (
             <button
               key={r}
+              type="button"
+              className="wb-tab"
+              aria-pressed={roleFilter === r}
+              style={roleFilter === r ? ACTIVE_TAB : undefined}
               onClick={() => setRoleFilter(r)}
-              className={cn(
-                "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
-                roleFilter === r
-                  ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color:var(--accent)] text-[color:var(--accent-ink)]"
-                  : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
-              )}
             >
-              {r === "all" ? "All" : r.charAt(0).toUpperCase() + r.slice(1)}
-              <span className="ml-1.5 text-[10px]">{counts[r]}</span>
+              {r === "all" ? "Everyone" : `${ROLE_LABEL[r]}s`}
+              <small>{counts[r]}</small>
             </button>
           ))}
-          <span className="ml-auto self-center text-xs text-[color:var(--mute)]">
-            {filtered.length} of {users.length} matching
-          </span>
         </div>
-      </div>
+        <div className="wb-search">
+          <input
+            className="wb-input"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Name or email"
+            aria-label="Search by name or email"
+          />
+        </div>
+        <select
+          className="wb-select"
+          style={{ width: "auto", maxWidth: "100%" }}
+          aria-label="Filter users by cohort"
+          value={cohortFilter}
+          onChange={(e) => setCohortFilter(e.target.value)}
+        >
+          <option value="all">All cohorts ({cohorts.length})</option>
+          {cohorts.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name} ({tierLabelOf(c.tier)})
+            </option>
+          ))}
+        </select>
+      </WbToolbar>
 
-      {/* Mobile (<md): stacked card layout. Each user is a self-
-          contained block — no horizontal scroll, action buttons
-          always reachable on a phone. Audit S1 Phase 2. */}
-      <ul className="space-y-2 md:hidden" aria-label="Users (mobile view)">
-        {filtered.map((u) => (
-          <li key={u.id}>
-            <UserCard user={u} onManageLinks={() => setLinkingParent(u)} />
-          </li>
-        ))}
-      </ul>
+      <p className="wb-note" aria-live="polite">
+        {filtered.length} of {users.length} shown
+      </p>
 
-      {/* Desktop (md+): full table with all columns. */}
-      <div className="hidden overflow-hidden rounded-xl border border-[color:var(--line)] md:block">
-        <table className="w-full text-sm">
-          <thead className="bg-[color-mix(in_srgb,var(--card)_60%,transparent)] text-xs uppercase tracking-wider text-[color:var(--mute)]">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold">Name</th>
-              <th className="px-4 py-3 text-left font-semibold">Email</th>
-              <th className="px-4 py-3 text-left font-semibold">Role</th>
-              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Plan</th>
-              <th className="hidden px-4 py-3 text-left font-semibold lg:table-cell">Links</th>
-              <th aria-hidden="true" className="w-10" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[color:var(--line)]" data-testid="admin-users-table-body">
-            {filtered.map((u) => (
-              <UserRow key={u.id} user={u} onManageLinks={() => setLinkingParent(u)} />
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {filtered.length === 0 && (
-        <p className="mt-4 text-sm text-[color:var(--mute)]">No users match the current filter.</p>
-      )}
+      <WbTable<AdminUserRow>
+        caption="People"
+        rows={filtered}
+        rowKey={(u) => u.id}
+        empty={
+          filtersOn ? (
+            <>
+              <b>No one matches these filters.</b>
+              <button type="button" className="wb-btn" onClick={clearFilters}>
+                Clear filters
+              </button>
+            </>
+          ) : (
+            <>
+              <b>No people yet.</b>
+              People show up here once they sign up.
+            </>
+          )
+        }
+        columns={[
+          {
+            key: "name",
+            label: "Name",
+            cell: (u) => (
+              <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+                {nameOf(u) || "—"}
+                <small>{u.email}</small>
+              </span>
+            ),
+          },
+          { key: "role", label: "Role", cell: (u) => <RoleCell user={u} /> },
+          {
+            key: "plan",
+            label: "Plan",
+            cell: (u) => (u.plan_id ? <WbPill tone="ok">{PLAN_LABEL[u.plan_id]}</WbPill> : "—"),
+          },
+          {
+            key: "links",
+            label: "Links",
+            cell: (u) =>
+              u.role === "parent" ? (
+                <button type="button" className="wb-btn" onClick={() => setLinkingParent(u)}>
+                  {u.linked_student_count} linked, manage
+                </button>
+              ) : u.role === "student" ? (
+                <DiagnosticRetakeButton
+                  userId={u.id}
+                  pendingRetakes={u.diagnostic_retakes_remaining}
+                />
+              ) : (
+                "—"
+              ),
+          },
+          {
+            key: "act",
+            label: "",
+            cell: (u) =>
+              u.role !== "admin" ? (
+                <ImpersonateButton userId={u.id} userName={nameOf(u) || "—"} />
+              ) : null,
+          },
+        ]}
+      />
 
       {linkingParent && (
         <ParentLinksDialog
@@ -187,15 +215,16 @@ export default function UsersClient({ users, cohorts }: Props) {
           onClose={() => setLinkingParent(null)}
         />
       )}
-    </div>
+    </>
   );
 }
 
-// ─── Shared row logic — used by both UserCard and UserRow ────
+// ─── Role editor ─────────────────────────────────────────────
 
-function useUserRowState(user: AdminUserRow) {
+function RoleCell({ user }: { user: AdminUserRow }) {
   const [pending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
+  const fullName = nameOf(user) || "—";
 
   function changeRole(next: AppRole) {
     if (next === user.role) return;
@@ -209,159 +238,30 @@ function useUserRowState(user: AdminUserRow) {
     });
   }
 
-  const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "—";
-  return { pending, err, changeRole, fullName };
-}
-
-// ─── Mobile card layout (audit S1 Phase 2) ───────────────────
-
-function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: () => void }) {
-  const { pending, err, changeRole, fullName } = useUserRowState(user);
-
   return (
-    <article className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] p-4">
-      {/* Identity */}
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-base font-medium text-[color:var(--ink)]">{fullName}</div>
-          <div className="mt-0.5 truncate font-mono text-xs text-[color:var(--mute)]">{user.email}</div>
-          {err && <div className="mt-1 text-xs text-[color:var(--late)]">{err}</div>}
-        </div>
-        {user.plan_id && (
-          <span
-            className={cn(
-              "shrink-0 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
-              PLAN_COLOR[user.plan_id]
-            )}
-          >
-            {PLAN_LABEL[user.plan_id]}
-          </span>
-        )}
-      </div>
-
-      {/* Role + Links (if parent/student) */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span
-          className={cn(
-            "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
-            ROLE_COLOR[user.role]
-          )}
-        >
-          {user.role}
-        </span>
-        <select
-          value={user.role}
-          onChange={(e) => changeRole(e.target.value as AppRole)}
-          disabled={pending}
-          aria-label={`Change role for ${fullName}`}
-          className="rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-2 py-1 text-xs text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)] disabled:opacity-50"
-        >
-          {ROLE_OPTIONS.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[color:var(--mute)]" />}
-        {user.role === "parent" && (
-          <button
-            onClick={onManageLinks}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
-          >
-            <Link2 className="h-3.5 w-3.5" />
-            {user.linked_student_count} linked
-          </button>
-        )}
-        {user.role === "student" && (
-          <DiagnosticRetakeButton
-            userId={user.id}
-            pendingRetakes={user.diagnostic_retakes_remaining}
-          />
-        )}
-      </div>
-
-      {/* Action — Impersonate button at the bottom, full width */}
-      {user.role !== "admin" && (
-        <ImpersonateButton userId={user.id} userName={fullName} fullWidth />
+    <span style={{ display: "inline-flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+      <WbPill tone={ROLE_TONE[user.role]}>{ROLE_LABEL[user.role]}</WbPill>
+      <select
+        className="wb-select"
+        style={{ width: "auto", minHeight: 32 }}
+        value={user.role}
+        onChange={(e) => changeRole(e.target.value as AppRole)}
+        disabled={pending}
+        aria-label={`Change role for ${fullName}`}
+      >
+        {ROLE_OPTIONS.map((r) => (
+          <option key={r} value={r}>
+            {r}
+          </option>
+        ))}
+      </select>
+      {pending && <small>Saving…</small>}
+      {err && (
+        <small role="alert" style={{ color: "var(--wb-bad)" }}>
+          {err}
+        </small>
       )}
-    </article>
-  );
-}
-
-// ─── Desktop table row ──────────────────────────────────────
-
-function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: () => void }) {
-  const { pending, err, changeRole, fullName } = useUserRowState(user);
-
-  return (
-    <tr className="transition-colors hover:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
-      <td className="px-4 py-3">
-        <div className="font-medium text-[color:var(--ink)]">{fullName}</div>
-        {err && <div className="mt-0.5 text-xs text-[color:var(--late)]">{err}</div>}
-      </td>
-      <td className="px-4 py-3 font-mono text-xs text-[color:var(--mute)]">{user.email}</td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
-              ROLE_COLOR[user.role]
-            )}
-          >
-            {user.role}
-          </span>
-          <select
-            value={user.role}
-            onChange={(e) => changeRole(e.target.value as AppRole)}
-            disabled={pending}
-            className="rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-2 py-1 text-xs text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)] disabled:opacity-50"
-            aria-label={`Change role for ${fullName}`}
-          >
-            {ROLE_OPTIONS.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-          {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[color:var(--mute)]" />}
-        </div>
-      </td>
-      <td className="hidden px-4 py-3 lg:table-cell">
-        {user.plan_id ? (
-          <span
-            className={cn(
-              "inline-block rounded-md border px-2 py-0.5 text-xs font-semibold",
-              PLAN_COLOR[user.plan_id]
-            )}
-          >
-            {PLAN_LABEL[user.plan_id]}
-          </span>
-        ) : (
-          <span className="text-xs text-[color:var(--mute)]">—</span>
-        )}
-      </td>
-      <td className="hidden px-4 py-3 lg:table-cell">
-        {user.role === "parent" ? (
-          <button
-            onClick={onManageLinks}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
-          >
-            <Link2 className="h-3.5 w-3.5" />
-            {user.linked_student_count} linked · manage
-          </button>
-        ) : user.role === "student" ? (
-          <DiagnosticRetakeButton
-            userId={user.id}
-            pendingRetakes={user.diagnostic_retakes_remaining}
-          />
-        ) : (
-          <span className="text-xs text-[color:var(--mute)]">—</span>
-        )}
-      </td>
-      <td className="px-2 py-3">
-        {user.role !== "admin" && <ImpersonateButton userId={user.id} userName={fullName} />}
-      </td>
-    </tr>
+    </span>
   );
 }
 
@@ -369,20 +269,12 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
 // Server-action call sets the role + user_id cookies and redirects
 // to the target's dashboard. Confirms before navigation since this
 // is a context switch the admin may not expect on a stray click.
-function ImpersonateButton({
-  userId,
-  userName,
-  fullWidth = false,
-}: {
-  userId: string;
-  userName: string;
-  /** Card layout passes true → button stretches to row width
-   *  for a comfortable thumb target on mobile. */
-  fullWidth?: boolean;
-}) {
+function ImpersonateButton({ userId, userName }: { userId: string; userName: string }) {
   const [pending, startTransition] = useTransition();
   return (
     <button
+      type="button"
+      className="wb-btn"
       onClick={() => {
         if (
           !confirm(
@@ -394,198 +286,9 @@ function ImpersonateButton({
       }}
       disabled={pending}
       title="Impersonate this user — see their dashboard with their data (read-only; mutations go to your admin row)."
-      className={cn(
-        "inline-flex items-center justify-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--warn)_40%,transparent)] px-2 py-1 text-xs font-semibold text-[color:var(--warn)] hover:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] disabled:opacity-50",
-        fullWidth && "w-full py-2 text-sm"
-      )}
     >
-      {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
       Impersonate
     </button>
-  );
-}
-
-// ─── Parent-link dialog ─────────────────────────────────────
-
-function ParentLinksDialog({
-  parent,
-  allStudents,
-  onClose,
-}: {
-  parent: AdminUserRow;
-  allStudents: AdminUserRow[];
-  onClose: () => void;
-}) {
-  // Seed the dialog's known-linked list from the table's count, then
-  // fetch the real list on open. For v1 simplicity, we re-render the
-  // whole page after any mutation (revalidatePath), so we re-fetch via
-  // a full list passed in as a prop on next render.
-  const [linked, setLinked] = useState<LinkedStudentRow[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [err, setErr] = useState<string | null>(null);
-  const [studentToAdd, setStudentToAdd] = useState("");
-
-  // Fetch current links when the dialog mounts.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/admin/users/${parent.id}/links`, { cache: "no-store" });
-        const data = res.ok
-          ? ((await res.json()) as { students: LinkedStudentRow[] })
-          : { students: [] as LinkedStudentRow[] };
-        if (!cancelled) {
-          setLinked(data.students);
-          setLoaded(true);
-        }
-      } catch {
-        if (!cancelled) {
-          setLinked([]);
-          setLoaded(true);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [parent.id]);
-
-  const eligible = allStudents.filter((s) => !linked.some((l) => l.id === s.id));
-
-  function add() {
-    if (!studentToAdd) return;
-    setErr(null);
-    startTransition(async () => {
-      try {
-        await actionLinkParentToStudent(parent.id, studentToAdd);
-        // Optimistic: add to list
-        const added = allStudents.find((s) => s.id === studentToAdd);
-        if (added) {
-          setLinked((prev) => [
-            ...prev,
-            {
-              id: added.id,
-              first_name: added.first_name,
-              last_name: added.last_name,
-              email: added.email,
-            },
-          ]);
-        }
-        setStudentToAdd("");
-      } catch (e) {
-        setErr(e instanceof Error ? e.message : "Failed");
-      }
-    });
-  }
-
-  function remove(studentId: string) {
-    setErr(null);
-    startTransition(async () => {
-      try {
-        await actionUnlinkParentFromStudent(parent.id, studentId);
-        setLinked((prev) => prev.filter((s) => s.id !== studentId));
-      } catch (e) {
-        setErr(e instanceof Error ? e.message : "Failed");
-      }
-    });
-  }
-
-  const parentName =
-    [parent.first_name, parent.last_name].filter(Boolean).join(" ") || parent.email;
-
-  return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-lg rounded-2xl border border-[color:var(--line)] bg-[color:var(--card)] p-6 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-          aria-label="Close"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <h2 className="text-lg font-bold text-[color:var(--ink)]">Linked students</h2>
-        <p className="mt-1 text-sm text-[color:var(--mute)]">
-          Choose which students <span className="font-semibold text-[color:var(--ink)]">{parentName}</span> can
-          see in their parent portal.
-        </p>
-
-        <div className="mt-5">
-          {!loaded ? (
-            <div className="text-sm text-[color:var(--mute)]">Loading…</div>
-          ) : linked.length === 0 ? (
-            <p className="text-sm italic text-[color:var(--mute)]">No students linked yet.</p>
-          ) : (
-            <ul className="space-y-2">
-              {linked.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_50%,transparent)] px-3 py-2"
-                >
-                  <div>
-                    <div className="text-sm text-[color:var(--ink)]">
-                      {[s.first_name, s.last_name].filter(Boolean).join(" ") || s.email}
-                    </div>
-                    <div className="font-mono text-xs text-[color:var(--mute)]">{s.email}</div>
-                  </div>
-                  <button
-                    onClick={() => remove(s.id)}
-                    disabled={pending}
-                    className="text-[color:var(--mute)] hover:text-[color:var(--late)] disabled:opacity-50"
-                    aria-label={`Unlink ${s.email}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="mt-5">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
-            Add a student
-          </label>
-          <div className="flex gap-2">
-            <select
-              value={studentToAdd}
-              onChange={(e) => setStudentToAdd(e.target.value)}
-              className="flex-1 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
-            >
-              <option value="">Select a student…</option>
-              {eligible.map((s) => {
-                const name = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email;
-                return (
-                  <option key={s.id} value={s.id}>
-                    {name} · {s.email}
-                  </option>
-                );
-              })}
-            </select>
-            <button
-              onClick={add}
-              disabled={!studentToAdd || pending}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--accent)] px-3 py-2 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:opacity-50"
-            >
-              {pending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
-              Link
-            </button>
-          </div>
-          {err && <p className="mt-2 text-xs text-[color:var(--late)]">{err}</p>}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -617,26 +320,26 @@ function DiagnosticRetakeButton({
   }
 
   return (
-    <div className="flex flex-col items-start gap-0.5">
+    <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start" }}>
       <button
+        type="button"
+        className="wb-btn"
         onClick={onGrant}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--good)] hover:text-[color:var(--good)] disabled:opacity-50"
         title="Grant this student one diagnostic retake"
       >
-        {pending ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <RefreshCcw className="h-3.5 w-3.5" />
-        )}
-        Allow retake
+        {pending ? "Saving…" : "Allow retake"}
       </button>
       {pendingRetakes > 0 ? (
-        <span className="text-[10px] text-[color-mix(in_srgb,var(--good)_80%,transparent)]">
+        <small>
           {pendingRetakes} pending grant{pendingRetakes === 1 ? "" : "s"}
-        </span>
+        </small>
       ) : null}
-      {err ? <span className="text-[11px] text-[color:var(--late)]">{err}</span> : null}
-    </div>
+      {err ? (
+        <small role="alert" style={{ color: "var(--wb-bad)" }}>
+          {err}
+        </small>
+      ) : null}
+    </span>
   );
 }
