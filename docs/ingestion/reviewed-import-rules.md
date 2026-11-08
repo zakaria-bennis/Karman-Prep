@@ -11,39 +11,6 @@ Related contracts in this folder:
 [`approved-package-import-readiness.md`](./approved-package-import-readiness.md),
 [`released-exam-figure-recreation.md`](./released-exam-figure-recreation.md).
 
-## Figures: the checked-spec route (founder, 2026-11-01)
-
-The founder decided: "All the figures should be updated to this new model...
-All the figure questions should have these new updated figures, and everything
-should now be uploaded to the live question bank." He does not review each
-figure. A figure drawn by the figure engine (FigureSpecs in `figure_spec` and
-`choice_figure_spec`) may go live, on a new question through stage and publish
-or on a live question through `k figures publish-specs`, only if (a) every
-automatic engine check passes with no issues (`scripts/figures/check-spec.ts`),
-(b) an independent visual comparison against the original exam image recorded
-the verdict "match" for exactly those specs (`visual-verdict.json`), and (c)
-the answer certification and lint gates pass, unchanged. Live tables and charts
-converted mechanically by the engine's own converters (what students already
-see) need no visual verdict. His own figure approval keeps working as before.
-Details: `scripts/import-tools/README.md` and `kimport/figure_gate.py`.
-
-## Spelling mistakes printed on the exam page (founder, 2026-11-02)
-
-This replaces the old rule "printed typos stay as printed". The founder
-decided: correct plain misspellings in passages and question text, but never
-touch a word a grammar question is testing, or answer-choice wording.
-
-- Correct a plain misspelling or a broken word (for example "Spatify",
-  "commnonly", "lackad aptations", "proent") to the obviously intended word,
-  checked against the page image, even when the page itself prints it.
-- Never change: words inside a tested span or blank (`<u>...</u>`, `______`),
-  the tested sentence of a Standard English Conventions question, answer-choice
-  wording, numbers, names you cannot verify, or the meaning.
-- When the intended word is not certain, leave it and list it for review.
-- The SAT prints no en dashes: a corrected sentence uses a hyphen or an em dash.
-- Live rows change only through the toolkit's routes (QA correction batches
-  through the autopilot), never by hand SQL.
-
 ## Released-exam ingestion
 
 The old paid AI extraction, grading, figure interpretation and orchestration
@@ -167,15 +134,3 @@ f(x) = (1/2)(x + 11).` (matching function/variable, positive integer
   - Left as typed: suffix notation (`-ly`, `-ti`, `-s`), minus signs in
     equations (`x - y`, `y -x`), and the hyphen as a word joiner (`well-known`).
 
-## Duplicate and publish tooling
-
-Duplicate sweeps, the comparison key backfill, the corpus count and guarded
-publish SQL come from `scripts/import-tools/`. Follow the runbook in
-[`scripts/import-tools/README.md`](../../scripts/import-tools/README.md). Every
-live write in it still needs the founder's go-ahead per batch.
-
-Publish gate: a reviewed row that fails any fail-level check of the live QA audit
-(broken structure, text that would show wrongly on main's question screen, a
-figure that cannot be drawn) is pulled at lint (`PF_QA`, with the check name)
-and refused at stage (`qa gate: <check>`), before any write. Fix the row and
-hand it in again. `k qa certify` re-checks every student-visible question.

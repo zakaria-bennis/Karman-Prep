@@ -113,7 +113,7 @@ export function gateSourceIdentity(q) {
     q.source_question_number > 0 &&
     Number.isInteger(q.source_occurrence) &&
     q.source_occurrence > 0 &&
-    (Boolean(q.concept_slug) || q.catalog_topic_verified === true);
+    Boolean(q.concept_slug);
   if (!complete) {
     return {
       reason: "missing_versioned_source_identity_or_topic",

@@ -15,14 +15,6 @@ not-to-scale notes. Length labels have equal perpendicular center offsets from
 their segments. An angle requires `at_vertex` and `between_vertices` identifying
 both rays; the renderer draws an arc and places the text on the bisector.
 
-The balanced layout centers side lengths on each side and offsets them outward so
-every label box keeps the same gap from its side, puts angle measures inside the angle
-on its bisector clear of both rays, and puts vertex letters just outside each vertex
-on the outward bisector. All figure text (reviewed SVGs, geometry, charts, tables)
-uses one shared serif, the bundled open-license STIX Two Text, set in `src/app/figure-font.css`.
-Charts can match printed figures with `frame: "square"`, `hide_origin_label` and an
-axis `label_step`; tables can group columns under a heading with `header_groups`.
-
 This version supports explicit points, line segments, triangles, quadrilaterals
 and polygons. It rejects missing coordinates, conflicting references, unresolved
 markings, unsupported shapes and falsely claimed right angles. Circles and curves

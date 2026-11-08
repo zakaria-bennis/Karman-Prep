@@ -33,12 +33,6 @@ export { parseDifficulty, parseReviewedDifficulty } from "./import-difficulty";
 import type { QuestionTableData } from "@/types/question-table";
 import { isValidChoiceTableData } from "./choice-table";
 import {
-  figureHashSuffix,
-  figureImportErrors,
-  figureInsertColumns,
-  type ImportFigureFields,
-} from "./import-figure";
-import {
   writeImportAnswerProvenance,
   importAnswerEvidence,
   canonicalEvidence,
@@ -47,7 +41,6 @@ import {
 import { validateReviewedAnswer } from "./reviewed-answer";
 import { validatePrivateDraftInput } from "./private-draft";
 import { validateNumericImport } from "./numeric-answer-set";
-import type { KeptSourceValue } from "./kept-source-identity";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import {
@@ -75,7 +68,7 @@ import {
  *
  * Optional fields default to null. Required fields throw at validation.
  */
-export interface ImportQuestionInput extends ImportFigureFields {
+export interface ImportQuestionInput {
   // ── Required ──
   question_text: string;
   raw_question_text?: string;
@@ -91,7 +84,8 @@ export interface ImportQuestionInput extends ImportFigureFields {
   choice_d?: string;
 
   choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
-  // figure_kind, figure_table_data / chart / geometry / svg, image_url, image_alt: ImportFigureFields
+  figure_kind?: "table" | null;
+  figure_table_data?: QuestionTableData | null;
 
   // ── Difficulty + format ──
   difficulty?: string | number; // 1-7 or legacy label; defaults to 4 / "intermediate"
@@ -107,9 +101,8 @@ export interface ImportQuestionInput extends ImportFigureFields {
   source_document_id?: string;
   source_provider_version_id?: string;
   source_version?: string;
-  source_section?: "reading" | "math" | KeptSourceValue;
-  source_module?: "M1" | "M2" | KeptSourceValue;
-  source_identity_kept?: boolean; // a QA correction keeps a live row's stored identity
+  source_section?: "reading" | "math";
+  source_module?: "M1" | "M2";
   source_question_number?: number;
   source_occurrence?: number;
   source_regions?: Json;
@@ -139,8 +132,10 @@ export interface ImportQuestionInput extends ImportFigureFields {
   import_flag_type?: ImportFlagType;
   import_flag_reason?: string;
 
-  // ── Raster figure (admin path materializes data URLs upstream; orchestrator passes the R2 URL) ──
+  // ── Figure (admin path materializes data URLs upstream; orchestrator path passes the R2 URL) ──
+  image_url?: string | null;
   image_storage_path?: string | null;
+  image_alt?: string;
 }
 
 export interface ImportQuestionResult {
@@ -187,24 +182,22 @@ export function subjectFromDomain(domain: SATDomain): "reading" | "math" {
  * Stable as long as the same canonical fields are passed; both callers
  * must compute it identically — that's what this helper ensures.
  */
-export function computeContentHashV2(
-  fields: Pick<ImportFigureFields, "figure_chart_data" | "figure_geometry_data" | "figure_svg"> & {
-    subject: string;
-    domain: string;
-    answer_format: string;
-    passage_intro?: string;
-    passage?: string;
-    passage_a?: string;
-    passage_b?: string;
-    question_text: string;
-    choice_a?: string;
-    choice_b?: string;
-    choice_c?: string;
-    choice_d?: string;
-    choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
-    figure_table_data?: QuestionTableData | null;
-  }
-): string {
+export function computeContentHashV2(fields: {
+  subject: string;
+  domain: string;
+  answer_format: string;
+  passage_intro?: string;
+  passage?: string;
+  passage_a?: string;
+  passage_b?: string;
+  question_text: string;
+  choice_a?: string;
+  choice_b?: string;
+  choice_c?: string;
+  choice_d?: string;
+  choice_tables?: Partial<Record<AnswerLetter, QuestionTableData>> | null;
+  figure_table_data?: QuestionTableData | null;
+}): string {
   const normalized = [
     fields.subject,
     fields.domain,
@@ -226,24 +219,16 @@ export function computeContentHashV2(
   const canonicalTable = (table: QuestionTableData | null | undefined) =>
     table == null
       ? null
-      : [
-          table.caption ?? null,
-          table.header_row ?? null,
-          table.rows,
-          table.footer_note ?? null,
-          // Appended only when present so existing content hashes stay unchanged.
-          ...(table.header_groups?.length ? [table.header_groups] : []),
-        ];
+      : [table.caption ?? null, table.header_row ?? null, table.rows, table.footer_note ?? null];
   const tables = [
     canonicalTable(fields.figure_table_data),
     ...(["A", "B", "C", "D"] as const).map((letter) =>
       canonicalTable(fields.choice_tables?.[letter])
     ),
   ];
-  const payload =
-    (tables.some((table) => table !== null)
-      ? normalized + "|native-tables:" + JSON.stringify(tables)
-      : normalized) + figureHashSuffix(fields);
+  const payload = tables.some((table) => table !== null)
+    ? normalized + "|native-tables:" + JSON.stringify(tables)
+    : normalized;
   return createHash("sha256").update(payload, "utf-8").digest("hex");
 }
 
@@ -313,12 +298,16 @@ export function validateImportRow(
     ) {
       errors.push("incomplete source question identity");
     } else if (isValidDomain(row.domain) && row.source_section !== subjectFromDomain(row.domain)) {
-      if (!row.source_identity_kept)
-        errors.push(`source_section "${row.source_section}" does not match domain "${row.domain}"`);
+      errors.push(`source_section "${row.source_section}" does not match domain "${row.domain}"`);
     }
   }
 
-  errors.push(...figureImportErrors(row));
+  if (row.figure_table_data != null && !isValidChoiceTableData(row.figure_table_data))
+    errors.push("invalid figure_table_data");
+  if (row.figure_kind === "table" && row.figure_table_data == null)
+    errors.push("table figure requires figure_table_data");
+  if (row.figure_table_data != null && row.figure_kind !== "table")
+    errors.push("figure_table_data requires figure_kind=table");
   if (row.choice_tables != null) {
     if (typeof row.choice_tables !== "object" || Array.isArray(row.choice_tables))
       errors.push("invalid choice_tables");
@@ -337,14 +326,7 @@ export function validateImportRow(
     // NONE of them being set is an extraction error.
     const choices = [row.choice_a, row.choice_b, row.choice_c, row.choice_d];
     const haveAny = choices.some((c) => c != null && c !== "");
-    // A question whose four choices are tables carries no choice text: the table is the choice.
-    const tables = row.choice_tables;
-    const allTables =
-      tables != null &&
-      typeof tables === "object" &&
-      !Array.isArray(tables) &&
-      ["A", "B", "C", "D"].every((l) => (tables as Record<string, unknown>)[l] != null);
-    if (!haveAny && !allTables) {
+    if (!haveAny) {
       errors.push("multiple_choice row has no choice_a/b/c/d text");
     }
     // The correct_answer letter must be a valid A-D.
@@ -452,9 +434,6 @@ export async function importQuestion(
     choice_d: row.choice_d,
     choice_tables: row.choice_tables,
     figure_table_data: row.figure_table_data,
-    figure_chart_data: row.figure_chart_data,
-    figure_geometry_data: row.figure_geometry_data,
-    figure_svg: row.figure_svg,
   });
 
   // ── 1. Insert quiz_questions ──
@@ -486,7 +465,7 @@ export async function importQuestion(
     concept_slug: row.concept_slug || null,
     answer_source:
       row.reviewed_answer?.kind === "independently_confirmed_generated"
-        ? null
+        ? "inferred"
         : (row.answer_source ?? null),
     source_pdf: row.source_pdf || null,
     source_page: Number.isFinite(source_page as number) ? (source_page as number) : null,
@@ -508,7 +487,8 @@ export async function importQuestion(
       row.import_flag_reason ||
       (options.privateDraft ? "private_draft_not_for_student_selection" : null),
     publish_status,
-    ...(figureInsertColumns(row) as Record<string, Json>),
+    figure_kind: row.figure_kind ?? null,
+    figure_table_data: (row.figure_table_data as unknown as Json) ?? null,
     image_url: row.image_url ?? null,
     image_storage_path: row.image_storage_path ?? null,
     image_alt: row.image_alt?.trim() || null,

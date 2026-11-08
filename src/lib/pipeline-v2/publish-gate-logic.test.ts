@@ -339,9 +339,6 @@ describe("new versioned source identity gate", () => {
 
   it("passes an identified new batch and leaves legacy behavior unchanged", () => {
     expect(gateSourceIdentity(identified)).toBeNull();
-    expect(
-      gateSourceIdentity({ ...identified, concept_slug: null, catalog_topic_verified: true })
-    ).toBeNull();
     expect(gateSourceIdentity(baseRow)).toBeNull();
   });
 });
