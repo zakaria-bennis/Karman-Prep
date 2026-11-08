@@ -1,0 +1,49 @@
+/* 21st.dev component 26630 (felipemenezes098/hero-14, "Product Hero with Demo Panel"), ported to plain CSS and
+   recoloured with Karman's tokens: a full-width photograph with a floating, working product panel over it. Here
+   the photograph is the opening still of Karman's film (the film plays behind it after first paint), the words
+   and the panel each sit on a solid card in the page's ground (rule 33: AA by calculation, not a scrim), the
+   panel is the real quiz engine showing a real Karman question, and the dual CTAs became one marigold button
+   with a note (rule 35). The rounded-2xl outline became the page's one 12px corner with no outline. */
+
+.hero { min-height: min(100svh, 920px); display: grid; align-items: center; padding: calc(var(--hd) + 24px) 0 48px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 760px; gap: 20px; align-items: stretch; }
+.hero .words, .hero .live { background: var(--paper); color: var(--ink); border-radius: var(--radius); }
+.hero .words { display: grid; gap: 22px; align-content: center; padding: clamp(24px, 3.4vw, 48px); }
+.hero .lede { max-width: 30em; }
+.hero .proof { font-size: 15px; line-height: 1.45; color: var(--ink2); max-width: 34em; text-wrap: pretty; }
+.hero .live { display: grid; gap: 14px; align-content: start; padding: 20px; }
+.hero .try { font-weight: 700; font-size: 17px; }
+.hero .result { font-weight: 700; font-size: 17px; }
+.hero .after { font-size: 17px; color: var(--ink2); max-width: 46em; text-wrap: pretty; }
+
+/* the panel: the engine's own screen at its own height, its own corner */
+.hero .panel-ui { position: relative; border-radius: var(--radius); overflow: hidden; background: var(--paper2); }
+.hero .panel-ui > img { width: 100%; height: auto; display: block; }
+.hero .karman-engine { width: 100% !important; height: auto !important; border-radius: var(--radius); }
+.hero .karman-engine > .absolute { position: relative; }
+
+/* Hidden on this page because they do nothing here (the engine's own stylesheet still draws what stays): the
+   tool cluster of the top bar (Calculator, scratch pad, Highlight, timer and Hide Timer, bookmark, the engine's
+   theme toggle, Settings, Menu), the Close button, the bottom bar (flag, Questions, Previous, Next), the
+   Transfer to Calculator controls in the stem and the choices, and the cross-out cluster on each choice. */
+.hero .karman-engine .min-h-14 .justify-end,
+.hero .karman-engine [aria-label="Close quiz"],
+.hero .karman-engine .h-16.bottom-0,
+.hero .karman-engine [data-transfer-control],
+.hero .karman-engine [data-calculator-cluster] { display: none !important; }
+/* the bar and the question area sit in the flow, so the panel is as tall as the question and nothing is clipped */
+.hero .karman-engine .min-h-14 { position: relative; }
+.hero .karman-engine .min-h-14 .truncate { overflow: visible; white-space: normal; text-overflow: clip; }
+.hero .karman-engine [data-question-content] { position: relative; inset: auto; overflow: visible; }
+.hero .karman-engine .group.relative > button { cursor: pointer; }
+.hero .karman-engine .k-mark { margin-left: auto; align-self: center; width: 22px; height: 22px; flex: none; }
+.hero .karman-engine .k-mark svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (max-width: 1359px) {
+  .hero { align-content: start; min-height: 0; }
+  .hero .wrap { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .hero { padding-top: calc(var(--hd) + 16px); }
+  .hero .live { padding: 14px; }
+}

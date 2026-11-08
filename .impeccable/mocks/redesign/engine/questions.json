@@ -1,0 +1,142 @@
+{
+  "generated": "2026-11-01",
+  "source": {
+    "file": "src/data/diagnostic-questions.ts",
+    "why": "The only Karman originals in the repo. A read-only count of the live question bank on 2026-11-01 found 9,780 live rows and every one of them carries a source_pdf (exam forms such as original_exam.pdf, 202506usv1.pdf), so no live bank row qualifies as a Karman original under design rule 45.",
+    "shape": "Each original is mapped to the quiz engine's row shape (QuizQuestionWithChoices) without changing a word: the 'A) ' prefix is stripped from choices the way the diagnostic's own AnswerChoiceButton does, craft-4's 'Text 1 / Text 2' passage is split into the engine's passage_a and passage_b, topic_cluster comes from CLUSTER_BY_DOMAIN and node_id from the curriculum node with the same concept_slug."
+  },
+  "states": {
+    "question": "Fresh screen, nothing chosen. PNG + WebP, phone 440 and desktop 1200, light and dark.",
+    "correct-explain": "The right answer chosen, Submit Answer pressed, Show explanations open, the question panel scrolled into view. PNG + WebP, all four device and mode combinations.",
+    "wrong": "A wrong answer chosen and submitted: the chosen choice in the error tint, the right one marked with a check, Show explanations still closed. PNG + WebP, all four combinations.",
+    "selected": "The right answer chosen, Submit Answer visible, not yet submitted. WebP, dark only, both devices.",
+    "tools": "Scratch pad open with a pen stroke (resized and moved on desktop the way a student would), a highlight on the passage for Reading and Writing, timer showing. WebP, dark only, both devices.",
+    "guide": "The Questions guide (the set indicator) open over the question. WebP, dark only, both devices."
+  },
+  "questions": [
+    {
+      "id": "info-2",
+      "subject": "reading",
+      "domain": "info_ideas",
+      "topic_cluster": "Information & Ideas",
+      "node": "Inference & implicit meaning",
+      "conceptId": "inference-and-implicit-meaning",
+      "difficulty_level": 2,
+      "answer_format": "multiple_choice",
+      "correct": "B",
+      "wrong_shown": "D",
+      "layout": "split view: intro line and passage left, question right",
+      "note": "Literary passage adapted in the style of Edith Wharton with an italic intro line."
+    },
+    {
+      "id": "craft-4",
+      "subject": "reading",
+      "domain": "craft_structure",
+      "topic_cluster": "Craft & Structure",
+      "node": "Cross-text synthesis",
+      "conceptId": "cross-text-synthesis",
+      "difficulty_level": 3,
+      "answer_format": "multiple_choice",
+      "correct": "B",
+      "wrong_shown": "C",
+      "layout": "split view: Text 1 and Text 2 left (engine labels), question right",
+      "note": "Cross-text pair on unstructured outdoor play."
+    },
+    {
+      "id": "expr-2",
+      "subject": "reading",
+      "domain": "expression_ideas",
+      "topic_cluster": "Expression of Ideas",
+      "node": "Rhetorical synthesis",
+      "conceptId": "rhetorical-synthesis",
+      "difficulty_level": 2,
+      "answer_format": "multiple_choice",
+      "correct": "B",
+      "wrong_shown": "A",
+      "layout": "split view: student notes with bullets left, question right",
+      "note": "Robotics team notes; the student wants to emphasize the achievement."
+    },
+    {
+      "id": "conv-2",
+      "subject": "reading",
+      "domain": "conventions",
+      "topic_cluster": "Standard English Conventions",
+      "node": "Pronouns & nouns",
+      "conceptId": "pronouns-and-nouns",
+      "difficulty_level": 2,
+      "answer_format": "multiple_choice",
+      "correct": "C",
+      "wrong_shown": "A",
+      "layout": "split view: one-sentence passage with a blank left, four one-word choices right",
+      "note": "Orchestra sentence; its / their / it's / there."
+    },
+    {
+      "id": "alg-1",
+      "subject": "math",
+      "domain": "algebra",
+      "topic_cluster": "Algebra",
+      "node": "Linear equations (one variable)",
+      "conceptId": "linear-equations-one-variable",
+      "difficulty_level": 1,
+      "answer_format": "multiple_choice",
+      "correct": "C",
+      "wrong_shown": "B",
+      "layout": "single centred column",
+      "note": "If 3x + 5 = 26, what is the value of x? The simplest stem of the eight."
+    },
+    {
+      "id": "adv-3",
+      "subject": "math",
+      "domain": "advanced_math",
+      "topic_cluster": "Advanced Math",
+      "node": "Exponential growth & decay",
+      "conceptId": "exponential-growth-and-decay",
+      "difficulty_level": 2,
+      "answer_format": "multiple_choice",
+      "correct": "C",
+      "wrong_shown": "A",
+      "layout": "single centred column",
+      "note": "Bacterial culture doubling every 4 hours; word problem with comma-grouped numbers in KaTeX."
+    },
+    {
+      "id": "data-4",
+      "subject": "math",
+      "domain": "data_analysis",
+      "topic_cluster": "Problem-Solving & Data Analysis",
+      "node": "Probability basics",
+      "conceptId": "probability-basics",
+      "difficulty_level": 2,
+      "answer_format": "multiple_choice",
+      "correct": "B",
+      "wrong_shown": "C",
+      "layout": "single centred column",
+      "note": "Spinner probability; the four choices are KaTeX display fractions."
+    },
+    {
+      "id": "geo-5",
+      "subject": "math",
+      "domain": "geometry",
+      "topic_cluster": "Geometry & Trigonometry",
+      "node": "Trigonometric ratios",
+      "conceptId": "trigonometric-ratios",
+      "difficulty_level": 3,
+      "answer_format": "multiple_choice",
+      "correct": "B",
+      "wrong_shown": "A",
+      "layout": "single centred column",
+      "note": "sin(theta) = 5/13, find cos(theta); fractions in the stem and the choices."
+    }
+  ],
+  "variant": {
+    "id": "alg-1-numeric",
+    "basedOn": "alg-1",
+    "answer_format": "numeric_entry",
+    "correct": "7",
+    "wrong_shown": "6",
+    "note": "The same stem and answer shown through the engine's numeric-entry input (NumericAnswerInput). The published original is multiple choice; no Karman original is numeric entry today. Kept apart from the eight so the founder can decide whether a format variant may appear on the site."
+  },
+  "notCovered": {
+    "figure": "No Karman original carries a figure (table, chart or geometry). Every figure question in the live bank traces to an exam PDF, so none was rendered. The engine's figure path (QuestionTable, ChartFigure, GeometryFigure) is untouched and unrepresented here.",
+    "numeric_entry": "No Karman original is numeric entry; see variant."
+  }
+}

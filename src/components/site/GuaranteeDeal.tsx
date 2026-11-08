@@ -52,9 +52,10 @@ export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: s
       route = paths;
       t0 = performance.now();
       const step = (now: number) => {
-        const k = Math.min(1, (now - t0) / ms);
+        // A frame timestamp can come before t0 when the walk starts from an event, so clamp at 0.
+        const k = Math.max(0, Math.min(1, (now - t0) / ms));
         const span = ease(k) * route.length;
-        const i = Math.min(route.length - 1, Math.floor(span));
+        const i = Math.max(0, Math.min(route.length - 1, Math.floor(span)));
         place(route[i], Math.min(1, span - i));
         if (k < 1) raf = requestAnimationFrame(step);
       };

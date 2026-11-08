@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-mark="ascent">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function () {
+    var t = null; try { t = localStorage.getItem("karman-theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    var seen = false; try { seen = sessionStorage.getItem("karman-intro") === "1"; } catch (e) {}
+    if (!seen && !/[?&]rec=/.test(location.search)) document.documentElement.setAttribute("data-intro", "");
+  })();
+</script>
+<title>Karman Prep pricing: six plans, every price</title>
+<meta name="description" content="Free, Platform at $29 a month, Plus at $49, the SAT Program at $995 for March, Private tutoring from $1,495, and School at $10 per student a year. Every price in full, and what the guarantee covers.">
+<link rel="canonical" href="https://karmanprep.com/pricing">
+<link rel="icon" href="../logo/favicon-ascent.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://karmanprep.com/pricing">
+<meta property="og:title" content="Karman Prep pricing: six plans, every price">
+<meta property="og:description" content="Free, Platform at $29 a month, Plus at $49, the SAT Program at $995 for March, Private tutoring from $1,495, and School at $10 per student a year. Every price in full, and what the guarantee covers.">
+<meta property="og:image" content="https://karmanprep.com/og/pricing.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="components/navbar.css">
+<link rel="stylesheet" href="components/segmented.css">
+<link rel="stylesheet" href="components/ticket.css">
+<link rel="stylesheet" href="components/tiers.css">
+<link rel="stylesheet" href="components/compare.css">
+<link rel="stylesheet" href="components/footer.css">
+<link rel="stylesheet" href="components/switch.css">
+<link rel="stylesheet" href="pricing.css">
+</head>
+<body>
+<div data-page="site">
+  <main id="main"></main>
+</div>
+<script src="copy.js"></script>
+<script src="components/theme-toggle.js"></script>
+<script src="components/segmented.js"></script>
+<script src="components/ticket.js"></script>
+<script type="module" src="pricing.js"></script>
+</body>
+</html>

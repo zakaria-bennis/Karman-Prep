@@ -1,0 +1,50 @@
+{
+  "about": "Temporary stand-ins for the 'One day, in colour' rebuild (2026-11-01), until the founder's Gemini batch 2 lands (assets/gemini-inbox/PROMPTS.md). Each still copies one batch-2 shot. Built by scripts/generate-assets.mjs --manifest assets/rebuild/day.manifest.json --state assets/rebuild/day.state.json --out .impeccable/mocks/rebuild/day/raw.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "16:9",
+    "suffix": "",
+    "stillSuffix": "Photorealistic editorial photograph, made to sit in one coordinated set. Colour grade: warm neutral, gentle contrast, shadows leaning toward deep pine green, skin tones natural, fine film grain. Real people with real skin texture, natural hands with five fingers, calm and focused, never laughing, never posed like a stock photo. No text, letters or numbers anywhere in the image. No logos on clothing, devices, bags or buildings. No paper, notebooks, worksheets, pencils or calculators. No purple, no neon colours, no glowing orbs, no lens flare, no sparkles. Any phone or laptop screen is turned away from the camera."
+  },
+  "cast": {},
+  "shots": [],
+  "plates": [],
+  "stills": [
+    {
+      "id": "cast-student-marigold",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Hero, 6:50 a.m. (stand-in for Gemini cast-student-marigold.png)",
+      "prompt": "Vertical studio portrait of a 17-year-old student, waist up, standing against a seamless paper backdrop in solid flat marigold yellow-orange (#EBA21F) that fills the whole frame edge to edge. Soft key light from above and slightly left, no harsh shadows on the backdrop. Plain charcoal crewneck sweater, over-ear headphones resting around the neck. Holding a smartphone low at chest height in both hands, the back of the phone toward the camera. Looking slightly off camera with quiet focus and the hint of a small smile. Camera at chest height, 85mm lens look. Clear empty marigold space above the head."
+    },
+    {
+      "id": "cast-parent-clay",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Parent chapter, 9:15 p.m. (stand-in for Gemini cast-parent-clay.png)",
+      "prompt": "Vertical studio portrait of a parent in their mid-forties, waist up, against a seamless paper backdrop in solid flat deep clay red (#9A3B26) that fills the whole frame edge to edge. Wearing a navy work jacket over a white shirt. Holding a phone loosely in one hand by their side, screen turned toward their body. Looking directly at the camera with a calm, reassured expression and a slight smile. Soft key light from the right, warm rim light on the shoulder. Camera at eye level, 85mm lens look."
+    },
+    {
+      "id": "pool-bleachers",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Afternoon chapter, 3:40 p.m. (stand-in for Gemini pool-bleachers.png)",
+      "prompt": "Wide horizontal photograph. Two 16-year-old swimmers in plain dark team parkas sitting on the empty bleachers beside an indoor pool between sessions, hair still damp. One holds a phone with the screen turned away from the camera; the other leans in to look at it, both focused and quiet. Teal water and lane ropes softly out of focus below. Cool overhead light mixed with warm daylight from high windows. The two students sit on the left third of the frame; the right half is calm, uncluttered pool hall, left empty. Camera at seat height, 35mm lens look."
+    },
+    {
+      "id": "cast-student-pine-floor",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Plans, beside the price list (stand-in for Gemini cast-student-pine-floor.png)",
+      "prompt": "Overhead studio photograph looking straight down at a 16-year-old student sitting cross-legged on a seamless paper floor in solid flat deep pine green (#1F4D45) that fills the whole frame edge to edge. An open laptop rests on their knees, the screen tilted toward their face so only the back of the lid and the keyboard edge are seen from above. Wearing a sand-coloured hoodie and white socks, small white earbuds in. Head tilted down toward the screen, concentrating. Even, soft top light, the student centred with generous flat green space around them."
+    }
+  ]
+}

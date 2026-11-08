@@ -1,0 +1,53 @@
+{
+  "brand": "Karman Prep",
+  "format": "landing_page",
+  "generated_on": "2026-11-01",
+  "point_a": "A parent of an 11th grader who doesn't know where the SAT score stands and doesn't want to pay for prep blind.",
+  "point_b": "Book the free practice test on Saturday, December 12, and know the score before spending anything.",
+  "enemy": { "type": "approach", "statement": "Paying for SAT prep before anyone has measured where your teen starts." },
+  "facts": [
+    { "fact": "Free practice test, Saturday, December 12, 2026, 10:00 a.m. ET, about 75 minutes, live on Zoom with a proctor.", "source": "founder", "used_in": "hero, close" },
+    { "fact": "Three official 1:1 results: Mateo 1570 Harvard, Priya 1540 Stanford, Ava 1520 UC Berkeley (Karman 1:1 tutoring, median 16 weeks).", "source": "founder", "used_in": "results" },
+    { "fact": "Missed questions come back after 2, 7 and 21 days in Your Daily 10 (not built yet, labelled coming).", "source": "founder", "used_in": "miss" },
+    { "fact": "The March class: 18 live classes of 90 minutes, up to six students, January 4 to the March 6 SAT, founding price $995.", "source": "founder", "used_in": "class" },
+    { "fact": "Guarantee: +100 points or a 1450, otherwise money back or the next cohort free (lawyer review pending).", "source": "founder", "used_in": "guarantee" },
+    { "fact": "The question shown (alg-1) is a Karman original, rendered in the real practice engine.", "source": "founder", "used_in": "try" }
+  ],
+  "copy": {
+    "landing_page": {
+      "headline": "Know the SAT score before you pay.",
+      "subhead": "A free practice test, live on Zoom, Saturday, December 12.",
+      "sections": [
+        { "h2": "Try one of our questions.", "body": "A Karman original, in the practice screen your teen uses." },
+        { "h2": "Official SAT scores.", "body": "1570 Mateo, Harvard. 1540 Priya, Stanford. 1520 Ava, UC Berkeley. Karman 1:1 tutoring, median 16 weeks." },
+        { "h2": "Every missed question comes back.", "body": "Your Daily 10 brings it back after 2, 7 and 21 days. Coming soon." },
+        { "h2": "Nine weeks to the March 6 SAT.", "body": "Up to six students on Zoom, from January 4. Founding price $995." },
+        { "h2": "A guarantee on the March class.", "body": "Short of it on the official SAT? Money back, or the next cohort free." },
+        { "h2": "Start with the free practice test.", "body": "Saturday, December 12, 10:00 a.m. ET. About 75 minutes, on Zoom." }
+      ],
+      "cta": "Book the free practice test",
+      "proof": ["1570, 1540, 1520 official scores, Karman 1:1 tutoring, median 16 weeks", "+100 points or a 1450, or money back"]
+    }
+  },
+  "ladders": [
+    { "line_id": "headline", "rungs": ["Better SAT prep", "Prep that starts with data", "Find out where your teen stands", "A free test first", "Know the SAT score before you pay."] },
+    { "line_id": "guarantee", "rungs": ["We stand behind our results", "Results guaranteed", "100 points or your money back", "+100 points or a 1450 (the numeral) / A guarantee on the March class."] }
+  ],
+  "alternates": [
+    { "line_id": "headline", "options": ["Know the SAT score before you pay.", "See the score first. Pay later, or never.", "A real SAT score, free, on December 12.", "Start with a number, not a contract."] },
+    { "line_id": "close", "options": ["Start with the free practice test.", "December 12 is the first number.", "Book a seat at the free test."] }
+  ],
+  "gate": [
+    { "line_id": "headline", "line": "Know the SAT score before you pay.", "visualize": true, "falsifiable": true, "only_us": false, "score": 2, "signed_by": "Any prep company with a free diagnostic could sign it; the December 12 date in the subline is what makes it Karman's.", "note": "Kept: the parent's fear is paying blind." },
+    { "line_id": "results", "line": "Official SAT scores. 1570 Mateo, Harvard.", "visualize": true, "falsifiable": true, "only_us": true, "score": 3, "signed_by": "Falls apart with any other name on it: these are Karman's three students.", "note": "The page's strongest line is a number." },
+    { "line_id": "class", "line": "Nine weeks to the March 6 SAT.", "visualize": true, "falsifiable": true, "only_us": true, "score": 3, "signed_by": "Only a cohort that ends on that test date can say it.", "note": "" },
+    { "line_id": "guarantee", "line": "A guarantee on the March class.", "visualize": false, "falsifiable": true, "only_us": true, "score": 2, "signed_by": "The +100 numeral above it carries the specifics.", "note": "Headline is plain because the number does the talking." }
+  ],
+  "cut": ["A paragraph on how classes are planned from the group's mistakes: the clip and the numbers say it.", "The 10,000+ question count: the brief caps counts at one band, and the live count is checked at release."],
+  "caveats": [
+    "Every specific in this copy traces to a fact you provided or a review you supplied — check them before you spend money behind them. This writes the copy; it doesn't verify your claims or clear them for compliance.",
+    "No customer reviews were available; the only proof is the three official 1:1 results.",
+    "The guarantee wording waits on the lawyer review marked CONFIRM in offer.ts.",
+    "Your Daily 10 is not built yet; it is labelled 'Coming soon' without a season."
+  ]
+}
