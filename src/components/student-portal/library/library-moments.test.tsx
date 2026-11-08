@@ -2,10 +2,10 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import ChallengeMoment from "./ChallengeMoment";
-import CourseChooser, { type ChooserCourse } from "./CourseChooser";
+import LibraryStage, { type StageCourse } from "./LibraryStage";
 import { CHALLENGE_CLOSED_KEY, COURSE_PICK_KEY, challengeMoment } from "./moment";
 
-const courses: ChooserCourse[] = [
+const courses: StageCourse[] = [
   { slug: "math", name: "SAT Math", progress: 0.25 },
   { slug: "reading-writing", name: "SAT Reading and Writing", progress: 0.5 },
 ];
@@ -28,47 +28,75 @@ beforeEach(() => {
   challengeMoment.reset();
 });
 
-describe("Library course choice", () => {
-  it("asks first, then turns the pick into the toggle and shows that course", async () => {
-    render(
-      <CourseChooser courses={courses} views={views} initial={null} waitForChallenge={false} />
-    );
-    expect(screen.getByRole("heading", { name: "What are we studying?" })).toBeTruthy();
+describe("Library opening: two paintings, then the box", () => {
+  const stage = (initial: "math" | "reading-writing" | null = null) => (
+    <LibraryStage
+      courses={courses}
+      views={views}
+      side={<p>Practice modes</p>}
+      initial={initial}
+      waitForChallenge={false}
+    />
+  );
+  const half = (name: RegExp) =>
+    screen.getAllByRole("button", { name }).find((b) => b.hasAttribute("data-slug")) as HTMLElement;
+
+  it("starts with the box closed, then a pick opens it with that course and the toggle", async () => {
+    render(stage());
     expect(screen.getByText("Math course").closest("[hidden]")).toBeTruthy();
+    expect(screen.getByText("Practice modes").closest("[hidden]")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /Reading and Writing/ }));
+    fireEvent.click(half(/Reading and Writing/));
 
-    await waitFor(() => expect(screen.getByRole("group", { name: "Course" })).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Reading course").closest("[hidden]")).toBeNull());
+    expect(screen.getByRole("group", { name: "Course" })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Reading and Writing/, pressed: true })).toBeTruthy();
-    expect(screen.getByText("Reading course").closest("[hidden]")).toBeNull();
-    expect(sessionStorage.getItem(COURSE_PICK_KEY)).toBe(
-      `${new Date().toDateString()}|reading-writing`
-    );
+    expect(screen.getByText("Practice modes").closest("[hidden]")).toBeNull();
+    expect(sessionStorage.getItem(COURSE_PICK_KEY)).toBe("reading-writing");
 
     fireEvent.click(screen.getByRole("button", { name: /Math/, pressed: false }));
     expect(screen.getByRole("button", { name: /Math/, pressed: true })).toBeTruthy();
     expect(screen.getByText("Math course").closest("[hidden]")).toBeNull();
+    expect(sessionStorage.getItem(COURSE_PICK_KEY)).toBe("math");
   });
 
-  it("skips the choice for a pick kept today, but asks again on a new day", async () => {
-    sessionStorage.setItem(COURSE_PICK_KEY, `${new Date().toDateString()}|math`);
-    const { unmount } = render(
-      <CourseChooser courses={courses} views={views} initial={null} waitForChallenge={false} />
-    );
-    await waitFor(() => expect(screen.getByRole("group", { name: "Course" })).toBeTruthy());
-    unmount();
+  it("the close button goes back to the paintings and forgets the pick", async () => {
+    sessionStorage.setItem(COURSE_PICK_KEY, "math");
+    render(stage());
+    await waitFor(() => expect(screen.getByText("Math course").closest("[hidden]")).toBeNull());
 
-    sessionStorage.setItem(COURSE_PICK_KEY, "Mon Jan 01 2001|math");
-    render(
-      <CourseChooser courses={courses} views={views} initial={null} waitForChallenge={false} />
-    );
-    expect(screen.getByRole("heading", { name: "What are we studying?" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Close the course/ }));
+
+    await waitFor(() => expect(screen.getByText("Math course").closest("[hidden]")).toBeTruthy());
+    expect(sessionStorage.getItem(COURSE_PICK_KEY)).toBeNull();
   });
 
-  it("a ?subject= link picks straight away", () => {
-    render(<CourseChooser courses={courses} views={views} initial="math" waitForChallenge />);
-    expect(screen.queryByRole("heading", { name: "What are we studying?" })).toBeNull();
+  it("on a touch screen the first tap shows a half and the second opens it", async () => {
+    render(stage());
+    const math = half(/Math/);
+    fireEvent.pointerDown(math, { pointerType: "touch" });
+    fireEvent.click(math);
+    expect(math.hasAttribute("data-on")).toBe(true);
+    expect(screen.getByText("Math course").closest("[hidden]")).toBeTruthy();
+
+    fireEvent.pointerDown(math, { pointerType: "touch" });
+    fireEvent.click(math);
+    await waitFor(() => expect(screen.getByText("Math course").closest("[hidden]")).toBeNull());
+  });
+
+  it("keyboard focus brings a half to life, like pointing at it", () => {
+    render(stage());
+    const reading = half(/Reading and Writing/);
+    act(() => reading.focus());
+    expect(reading.hasAttribute("data-on")).toBe(true);
+    act(() => reading.blur());
+    expect(reading.hasAttribute("data-on")).toBe(false);
+  });
+
+  it("a ?subject= link opens that course straight away", () => {
+    render(stage("math"));
     expect(screen.getByRole("button", { name: /Math/, pressed: true })).toBeTruthy();
+    expect(screen.getByText("Math course").closest("[hidden]")).toBeNull();
   });
 });
 
@@ -106,33 +134,4 @@ describe("Challenge moment", () => {
     await waitFor(() => expect(challengeMoment.settled()).toBe(true));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
-});
-
-describe("Library course choice, painted options (?hero=)", () => {
-  it.each(["a", "b", "c"] as const)(
-    "option %s always asks, and its pick still becomes the toggle",
-    async (hero) => {
-      /* A pick kept today does not skip the choice, so each option can be seen again. */
-      sessionStorage.setItem(COURSE_PICK_KEY, `${new Date().toDateString()}|math`);
-      render(
-        <CourseChooser
-          courses={courses}
-          views={views}
-          initial={null}
-          waitForChallenge={false}
-          hero={hero}
-        />
-      );
-      expect(screen.getByRole("heading", { name: "What are we studying?" })).toBeTruthy();
-      expect(screen.getByRole("button", { name: /Math/ })).toBeTruthy();
-
-      fireEvent.click(screen.getByRole("button", { name: /Reading and Writing/ }));
-
-      await waitFor(() => expect(screen.getByRole("group", { name: "Course" })).toBeTruthy());
-      expect(
-        screen.getByRole("button", { name: /Reading and Writing/, pressed: true })
-      ).toBeTruthy();
-      expect(screen.getByText("Reading course").closest("[hidden]")).toBeNull();
-    }
-  );
 });

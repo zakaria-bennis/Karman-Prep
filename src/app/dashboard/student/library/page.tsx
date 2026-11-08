@@ -1,18 +1,19 @@
 /*
  * The Library (founder, 2026-11-07 and 2026-11-08): where the long study sessions happen.
- * The Challenge question opens full screen first (once a day, until it's done), then the student
- * picks Math or Reading and Writing, and that choice becomes the small toggle at the top left of
- * the box. Each course shows what to practice next, then its Domains opening in place. Practice
- * modes and full-length tests sit beside it. Khan's function, Karman's look.
+ * The Challenge question opens full screen first (once a day, until it's done). Then the box is
+ * closed and two paintings, Math and Reading and Writing, meet on a diagonal across the screen.
+ * Choosing one opens the box out of it, with the small course toggle at its top left. Each course
+ * shows what to practice next, then its Domains opening in place. Practice modes and full-length
+ * tests sit beside it. Khan's function, Karman's look.
  */
 import type { Metadata } from "next";
 import { z } from "zod";
-import { Card, Legend, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import { Card, Legend, MoreLink, Num, Row, SectionHeader } from "@/components/portal";
 import { SKILL_LEVELS } from "@/components/portal";
 import StudentPortal from "@/components/student-portal/StudentPortal";
 import ChallengeMoment from "@/components/student-portal/library/ChallengeMoment";
-import CourseChooser from "@/components/student-portal/library/CourseChooser";
 import CourseView from "@/components/student-portal/library/CourseView";
+import LibraryStage from "@/components/student-portal/library/LibraryStage";
 import styles from "@/components/student-portal/library/library.module.css";
 import { buildCourse } from "@/lib/student/course";
 import { subSkillQuestionCount } from "@/lib/subskills/map";
@@ -37,8 +38,6 @@ const FORMS = [1, 2, 3, 4];
 
 const query = z.object({
   subject: z.enum(["math", "reading-writing"]).optional(),
-  /* The painted versions of the course choice the founder is comparing (2026-11-08). */
-  hero: z.enum(["a", "b", "c"]).optional(),
 });
 
 export default async function LibraryPage({
@@ -58,7 +57,7 @@ export default async function LibraryPage({
   const levels = withStored(levelsBySubSkill([...answers, ...runAnswers]), stored);
   const math = buildCourse("math", levels, subSkillQuestionCount);
   const reading = buildCourse("reading", levels, subSkillQuestionCount);
-  /* A link may pick the course; otherwise the student chooses first. */
+  /* A link may open the course; otherwise the student chooses from the paintings. */
   const picked = q.success ? (q.data.subject ?? null) : null;
   const left = questionsLeft(ctx.plan, {
     questionsAnswered: answers.length,
@@ -165,22 +164,20 @@ export default async function LibraryPage({
 
   return (
     <StudentPortal ctx={ctx} title="Library">
-      <Panel side={side}>
-        <CourseChooser
-          courses={[math, reading].map((c) => ({
-            slug: c.slug,
-            name: c.name,
-            progress: c.progress,
-          }))}
-          views={{
-            math: <CourseView course={math} />,
-            "reading-writing": <CourseView course={reading} />,
-          }}
-          initial={picked}
-          waitForChallenge={challengeAnswered < 2}
-          hero={q.success ? (q.data.hero ?? null) : null}
-        />
-      </Panel>
+      <LibraryStage
+        courses={[math, reading].map((c) => ({
+          slug: c.slug,
+          name: c.name,
+          progress: c.progress,
+        }))}
+        views={{
+          math: <CourseView course={math} />,
+          "reading-writing": <CourseView course={reading} />,
+        }}
+        side={side}
+        initial={picked}
+        waitForChallenge={challengeAnswered < 2}
+      />
       <ChallengeMoment href={CHALLENGE.path} day={challengeDay} answered={challengeAnswered} />
     </StudentPortal>
   );
