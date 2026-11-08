@@ -6,6 +6,7 @@ import CatalogPractice from "@/components/learn/catalog-practice/CatalogPractice
 import {
   catalogEntryQuerySchema,
   catalogPracticeError,
+  catalogSessionHref,
   requireEntrySkill,
   type CatalogStudentSession,
 } from "@/lib/catalog-practice/student-entry";
@@ -42,6 +43,10 @@ export default async function CatalogPracticePage({
     } catch (error) {
       initialSession = null;
       initialError = catalogPracticeError(error);
+    }
+    // A stale open session was closed and replaced with a fresh one: show its address.
+    if (initialSession && initialSession.id !== query.data.session) {
+      redirect(catalogSessionHref(skill.id, initialSession.id));
     }
   }
   let availableQuestions: StudentQuizQuestion[] | undefined;

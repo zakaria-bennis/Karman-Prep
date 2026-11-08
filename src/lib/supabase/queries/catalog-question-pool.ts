@@ -12,6 +12,13 @@ import {
 } from "@/lib/question-bank/numeric-answer-set";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 
+/** One bad row is left out with a log line; it never breaks the whole skill. */
+function skipQuestion(questionId: string | null, reason: string) {
+  console.error(`[catalog pool] skipped question ${questionId ?? "(no id)"}: ${reason}`);
+}
+
+const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
 /** Canonical catalog read lane; existing node/slug pools and histories are never rewritten. */
 export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQuestionWithChoices[]> {
   const scope = catalogPoolInputSchema.parse(input);
@@ -19,6 +26,7 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
   const db = createAdminClient();
   const evidence = new Map<string, unknown>();
   const seen = new Set<string>();
+  const ambiguous = new Set<string>();
   // The ID is selected from the fixed catalog before entering PostgREST filter syntax.
   const filter = [
     `raw_model_response->approved_tags->>catalog_skill_id.eq.${skill.id}`,
@@ -34,15 +42,33 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
       .range(offset, offset + pageSize - 1);
     if (error) throw new Error("Reviewed skill questions could not be loaded");
     for (const key of data ?? []) {
-      if (!key.question_id || seen.has(key.question_id)) {
-        throw new Error("Reviewed skill evidence is ambiguous");
+      if (!key.question_id) {
+        skipQuestion(null, "reviewed skill evidence has no question id");
+        continue;
+      }
+      if (seen.has(key.question_id)) {
+        ambiguous.add(key.question_id);
+        continue;
       }
       seen.add(key.question_id);
-      const tag = readCatalogQuestionScope(key.raw_model_response);
-      if (tag.skill.id !== skill.id) throw new Error("Reviewed skill scope differs");
+      let tag: ReturnType<typeof readCatalogQuestionScope>;
+      try {
+        tag = readCatalogQuestionScope(key.raw_model_response);
+      } catch (error) {
+        skipQuestion(key.question_id, message(error));
+        continue;
+      }
+      if (tag.skill.id !== skill.id) {
+        skipQuestion(key.question_id, "reviewed skill scope differs");
+        continue;
+      }
       if (tag.publicationAllowed) evidence.set(key.question_id, key.raw_model_response);
     }
     if ((data ?? []).length < pageSize) break;
+  }
+  for (const id of ambiguous) {
+    skipQuestion(id, "reviewed skill evidence is ambiguous");
+    evidence.delete(id);
   }
   const ids = [...evidence.keys()];
   const questions: QuizQuestionWithChoices[] = [];
@@ -62,20 +88,24 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
     if (error) throw new Error("Reviewed skill questions could not be loaded");
     for (const row of data ?? []) {
       const raw = evidence.get(row.id);
-      const tag = readCatalogQuestionScope(raw);
-      if (
-        tag.tags.question_payload_sha256 !==
-        catalogQuestionPayloadHash(row as QuizQuestionWithChoices)
-      ) {
-        throw new Error("Reviewed skill question snapshot differs from the approved delivery");
+      try {
+        const tag = readCatalogQuestionScope(raw);
+        if (
+          tag.tags.question_payload_sha256 !==
+          catalogQuestionPayloadHash(row as QuizQuestionWithChoices)
+        ) {
+          throw new Error("reviewed skill question snapshot differs from the approved delivery");
+        }
+        questions.push({
+          ...row,
+          reviewed_numeric_answers:
+            row.answer_format === "numeric_entry"
+              ? reviewedNumericAnswers(row, numericAnswerSetFromEvidence(raw))
+              : undefined,
+        } as QuizQuestionWithChoices);
+      } catch (error) {
+        skipQuestion(row.id, message(error));
       }
-      questions.push({
-        ...row,
-        reviewed_numeric_answers:
-          row.answer_format === "numeric_entry"
-            ? reviewedNumericAnswers(row, numericAnswerSetFromEvidence(raw))
-            : undefined,
-      } as QuizQuestionWithChoices);
     }
   }
   return questions.sort((left, right) => left.id.localeCompare(right.id));
