@@ -21,7 +21,15 @@ const ENDS = [
 const END_Y = [70, 200, 330];
 const WEEKS = 9;
 
-export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: string }) {
+export default function GuaranteeDeal({
+  g,
+  headId,
+  linkHref = ROUTES.guarantee,
+}: {
+  g: CopySection;
+  headId: string;
+  linkHref?: string;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const main = useRef<SVGPathElement>(null);
   const ends = useRef<(SVGPathElement | null)[]>([]);
@@ -219,7 +227,7 @@ export default function GuaranteeDeal({ g, headId }: { g: CopySection; headId: s
             </ul>
           ) : null}
           {g.claim ? <p className="claim">{g.claim}</p> : null}
-          {g.link ? <TextLink label={g.link} href={ROUTES.guarantee} /> : null}
+          {g.link ? <TextLink label={g.link} href={linkHref} /> : null}
         </div>
       </div>
     </div>

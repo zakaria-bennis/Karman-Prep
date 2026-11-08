@@ -194,15 +194,18 @@ export function Statements({ n, mark = "check" }: { n: number; mark?: "check" | 
 export function GuaranteeSection({
   id = "guarantee",
   override,
+  linkHref,
 }: {
   id?: string;
   override?: Partial<CopySection>;
+  /** Where "The guarantee, with worked examples" goes; the guarantee page points it at its own examples. */
+  linkHref?: string;
 }) {
   const g = { ...section(8), ...override } as CopySection;
   return (
     <section className="panel guarantee" id={id} aria-labelledby={`${id}-h`}>
       <div className="in">
-        <GuaranteeDeal g={g} headId={`${id}-h`} />
+        <GuaranteeDeal g={g} headId={`${id}-h`} linkHref={linkHref} />
       </div>
     </section>
   );
