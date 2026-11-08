@@ -17,6 +17,8 @@
 --   - one beaten Math time trial (6:12)
 -- Practice snapshots are {"seed": true}, like the other local seeds, so a
 -- seeded set's review screen can't reopen its questions.
+-- Ids are md5 hashes shaped as version-4 UUIDs: the practice history reader
+-- rejects ids that aren't valid RFC 4122 UUIDs.
 -- ============================================================
 
 DO $$
@@ -37,6 +39,20 @@ BEGIN
     RAISE NOTICE 'student-portal-progress seed: % not found, skipped', liam_clerk;
     RETURN;
   END IF;
+  -- Earlier runs of this seed used plain md5 ids, which the history reader rejects. Clear them.
+  DELETE FROM public.student_point_awards
+   WHERE student_id = liam_clerk AND award_key IN (
+     SELECT 'catalog:' || s.id::text || ':' || r.question_id::text
+       FROM public.catalog_practice_sessions s
+       JOIN public.catalog_practice_responses r ON r.session_id = s.id
+      WHERE s.student_id = liam_clerk
+        AND s.id::text !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
+  DELETE FROM public.catalog_practice_sessions
+   WHERE student_id = liam_clerk
+     AND id::text !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$';
+  DELETE FROM public.diagnostic_results WHERE id = md5('kp-progress-diag-1')::uuid;
+  DELETE FROM public.time_trial_runs WHERE id = md5('kp-progress-trial-1')::uuid;
+
   SELECT array_agg(id) INTO qids FROM (SELECT id FROM public.quiz_questions ORDER BY id LIMIT 10) q;
   IF qids IS NULL OR array_length(qids, 1) < 10 THEN
     RAISE NOTICE 'student-portal-progress seed: fewer than 10 questions, skipped';
@@ -45,7 +61,7 @@ BEGIN
 
   -- An earlier diagnostic, so the history line has three points.
   INSERT INTO public.diagnostic_results (id, user_id, taken_at, score_range_low, score_range_high, domain_scores)
-  VALUES (md5('kp-progress-diag-1')::uuid, liam_id, now() - interval '70 days', 1118, 1198, '{}'::jsonb)
+  VALUES (overlay(overlay(md5('kp-progress-diag-1') placing '4' from 13 for 1) placing '8' from 17 for 1)::uuid, liam_id, now() - interval '70 days', 1118, 1198, '{}'::jsonb)
   ON CONFLICT (id) DO NOTHING;
 
   FOR rec IN
@@ -63,7 +79,7 @@ BEGIN
       ('rw-skill-central-ideas-and-details', 18.0, '1111111')
     ) AS t(skill, days_ago, pattern)
   LOOP
-    sid := md5('kp-progress-' || rec.skill || '-' || rec.days_ago::text)::uuid;
+    sid := overlay(overlay(md5('kp-progress-' || rec.skill || '-' || rec.days_ago::text) placing '4' from 13 for 1) placing '8' from 17 for 1)::uuid;
     started := now() - make_interval(secs => (rec.days_ago * 86400)::double precision);
     right_count := length(replace(rec.pattern, '0', ''));
 
@@ -88,7 +104,7 @@ BEGIN
       INSERT INTO public.catalog_practice_responses
         (id, session_id, ordinal, question_id, student_answer, is_correct, response_time_seconds, answered_at)
       VALUES (
-        md5('kp-progress-r-' || sid::text || '-' || i::text)::uuid,
+        overlay(overlay(md5('kp-progress-r-' || sid::text || '-' || i::text) placing '4' from 13 for 1) placing '8' from 17 for 1)::uuid,
         sid,
         i - 1,
         qids[i],
@@ -117,7 +133,7 @@ BEGIN
     (id, student_id, section, target_seconds, goal_seconds, elapsed_seconds, questions, correct,
      finished, beat, reason, next_target_seconds, started_at, finished_at)
   VALUES (
-    md5('kp-progress-trial-1')::uuid, liam_clerk, 'math', 400, 350, 372, 10, 9,
+    overlay(overlay(md5('kp-progress-trial-1') placing '4' from 13 for 1) placing '8' from 17 for 1)::uuid, liam_clerk, 'math', 400, 350, 372, 10, 9,
     true, true, 'beat', 380, now() - interval '6 days', now() - interval '6 days' + interval '372 seconds'
   )
   ON CONFLICT (id) DO NOTHING;

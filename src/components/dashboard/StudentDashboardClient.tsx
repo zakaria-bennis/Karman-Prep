@@ -15,6 +15,10 @@ interface Props {
   subscription: { status: string; trial_end: string | null } | null;
   showPlacementBanner?: boolean;
   ctx: StudentContext;
+  /** Open homework due soonest (null: no tutor can assign work). */
+  due?: { key: string; title: string; href: string | null; due: string; late: boolean }[] | null;
+  /** The next sessions and live events (null: the plan books nothing). */
+  comingUp?: { key: string; title: string; sub: string; when: string }[] | null;
 }
 
 export default function StudentDashboardClient({
@@ -23,6 +27,8 @@ export default function StudentDashboardClient({
   subscription,
   showPlacementBanner,
   ctx,
+  due = null,
+  comingUp = null,
 }: Props) {
   const trialEnds =
     subscription?.status === "trialing" && subscription.trial_end
@@ -62,6 +68,48 @@ export default function StudentDashboardClient({
 
   const side = (
     <>
+      {due && (
+        <Card label="Homework">
+          <SectionHeader
+            title="Homework"
+            note={
+              ctx.homeworkOpen ? (
+                <>
+                  <Num>{ctx.homeworkOpen}</Num> open
+                </>
+              ) : undefined
+            }
+          />
+          {due.length === 0 ? (
+            <p className="kp-meta">Nothing due this week.</p>
+          ) : (
+            due.map((h) => (
+              <Row
+                key={h.key}
+                title={h.title}
+                href={h.href ?? undefined}
+                right={h.due}
+                rightTone={h.late ? "late" : undefined}
+              />
+            ))
+          )}
+          <MoreLink href={STUDENT_ROUTES.homework}>See all homework</MoreLink>
+        </Card>
+      )}
+      {comingUp && comingUp.length > 0 && (
+        <Card label="Coming up">
+          <SectionHeader title="Coming up" />
+          {comingUp.map((c) => (
+            <Row
+              key={c.key}
+              title={c.title}
+              sub={c.sub}
+              href={STUDENT_ROUTES.calendar}
+              right={c.when}
+            />
+          ))}
+        </Card>
+      )}
       <Card>
         <SectionHeader title="Practice" />
         <Row
