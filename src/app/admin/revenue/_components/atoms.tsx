@@ -1,108 +1,26 @@
 "use client";
 
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ACCENT_RING, fmtMoney } from "./format";
+import type { ReactNode } from "react";
 
-export function Kpi({
-  label,
-  value,
-  icon,
-  accent,
-  hint,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  accent: string;
-  hint?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-4">
-      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[color:var(--mute)]">
-        <span
-          className={cn("flex h-5 w-5 items-center justify-center rounded-md", ACCENT_RING[accent])}
-        >
-          {icon}
-        </span>
-        {label}
-      </p>
-      <p className="text-xl font-extrabold tabular-nums text-[color:var(--ink)]">{value}</p>
-      {hint && <p className="mt-1 text-[10px] text-[color:var(--mute)]">{hint}</p>}
-    </div>
-  );
-}
-
-export function MomentumCard({
-  label,
-  value,
-  direction,
-  color,
-  hint,
-}: {
-  label: string;
-  value: number;
-  direction: "up" | "down";
-  color: "emerald" | "rose" | "amber";
-  hint?: string;
-}) {
-  const Arrow = direction === "up" ? ArrowUpRight : ArrowDownRight;
-  return (
-    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--mute)]">{label}</p>
-      <div
-        className={cn(
-          "flex items-baseline gap-2",
-          color === "emerald"
-            ? "text-[color:var(--good)]"
-            : color === "rose"
-              ? "text-[color:var(--late)]"
-              : "text-[color:var(--warn)]"
-        )}
-      >
-        <span className="text-2xl font-extrabold tabular-nums">{value}</span>
-        <Arrow className="h-4 w-4" />
-      </div>
-      {hint && <p className="mt-1 text-[10px] text-[color:var(--mute)]">{hint}</p>}
-    </div>
-  );
-}
-
-export function ForecastTile({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-[color-mix(in_srgb,var(--info)_20%,transparent)] bg-[color-mix(in_srgb,var(--info)_5%,transparent)] p-4 text-center">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--info)]">{label}</p>
-      <p className="mt-1 text-xl font-extrabold tabular-nums text-[color:var(--ink)]">{fmtMoney(value)}</p>
-    </div>
-  );
-}
-
-export function StatusPill({
-  label,
-  count,
-  color,
-}: {
-  label: string;
-  count: number;
-  color: string;
-}) {
-  return (
-    <div className={cn("rounded-lg border px-3 py-2.5 text-center", ACCENT_RING[color])}>
-      <p className="text-2xl font-extrabold tabular-nums">{count}</p>
-      <p className="mt-1 text-[10px] font-bold uppercase tracking-widest opacity-80">{label}</p>
-    </div>
-  );
-}
-
+/** A retention count with its share of the cohort, coloured by how much is left. */
 export function CohortCell({ active, total }: { active: number; total: number }) {
   const pct = total > 0 ? active / total : 0;
-  // Color band: deep green when ≥80% retained, amber 50-80%, rose <50%.
-  const color =
-    pct >= 0.8 ? "text-[color:var(--good)]" : pct >= 0.5 ? "text-[color:var(--warn)]" : "text-[color:var(--late)]";
+  // Colour band: green when 80% or more stayed, amber 50 to 80%, red under 50%.
+  const color = pct >= 0.8 ? "var(--good)" : pct >= 0.5 ? "var(--warn)" : "var(--late)";
   return (
-    <div className="inline-flex flex-col items-end">
-      <span className={cn("font-semibold tabular-nums", color)}>{active}</span>
-      <span className="text-[9px] tabular-nums text-[color:var(--mute)]">{Math.round(pct * 100)}%</span>
-    </div>
+    <span>
+      <span style={{ color, fontWeight: 600 }}>{active}</span>
+      <small>{Math.round(pct * 100)}%</small>
+    </span>
+  );
+}
+
+/** A signed number in green (zero or more) or red (below zero). */
+export function Signed({ value, children }: { value: number; children: ReactNode }) {
+  return (
+    <b style={{ color: value >= 0 ? "var(--good)" : "var(--late)" }}>
+      {value >= 0 ? "+" : ""}
+      {children}
+    </b>
   );
 }
