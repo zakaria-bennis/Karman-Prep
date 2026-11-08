@@ -20,7 +20,7 @@ import {
   levelName,
 } from "@/components/portal";
 import StudentPortal from "@/components/student-portal/StudentPortal";
-import { courseHref } from "@/components/student-portal/library/CourseCard";
+import { courseHref } from "@/components/student-portal/library/CourseView";
 import styles from "@/components/student-portal/library/library.module.css";
 import { buildCourse, subjectFromSlug } from "@/lib/student/course";
 import { loadStudentContext } from "@/lib/student/context";

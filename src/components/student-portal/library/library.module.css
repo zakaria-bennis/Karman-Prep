@@ -1,9 +1,164 @@
 /* The Library's own parts. Colors come from the shell's variables (portal.css). */
 
-.course {
+/* The switch between Math and Reading and Writing: two big tabs, the open one filled. */
+.switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+.switchTab {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-height: 60px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--mute);
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background-color 0.25s,
+    color 0.25s;
+}
+.switchTab small {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.switchTab[aria-current="page"] {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.switchTab:not([aria-current]):hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+/* What to do next: the course ring, the skill in big type, one main button. */
+.next {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--l2) 30%, transparent),
+    color-mix(in srgb, var(--accent) 10%, transparent)
+  );
+}
+.nextText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.nextTitle {
+  margin: 0;
+  font: 700 clamp(24px, 2.4vw, 30px) / 1.15 var(--font-sans);
+  letter-spacing: -0.015em;
+}
+.nextSub {
+  margin: 0 0 6px;
+  color: var(--mute);
+  font-size: 16px;
+  line-height: 23px;
+}
+.next > :first-child {
+  grid-column: 2;
+  grid-row: 1;
+}
+.next > .nextText {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.domainsTitle {
+  margin: 8px 0 -4px;
+  font: 700 22px/28px var(--font-sans);
+}
+.domains {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.domainSum {
+  display: grid;
+  gap: 8px;
+}
+.domainHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.domainHead b {
+  font-size: 18px;
+  line-height: 24px;
+}
+.domainHead small {
+  color: var(--mute);
+  font-size: 14px;
+  white-space: nowrap;
+}
+.skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.skill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.skill > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.skill b {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.skill small {
+  display: block;
+  color: var(--mute);
+  font-size: 14px;
+}
+.skill:hover b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dot {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.domainLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
 }
 
 .head {
@@ -23,66 +178,9 @@
   margin-top: 2px;
 }
 
-.upnext {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 8px 0 6px;
-  padding: 12px 14px;
-  border-radius: 4px;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: inherit;
-  text-decoration: none;
-}
-.upnext:hover {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-}
-.upnext:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.upnext small {
-  display: block;
-  color: var(--mute);
-  font-size: 12.5px;
-}
-.upnext b {
-  display: block;
-  font-size: 15.5px;
-}
 .go {
   font-weight: 650;
   font-size: 14px;
-  white-space: nowrap;
-}
-
-.domain {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  padding: 11px 0;
-  border-top: 1px solid var(--line);
-  color: inherit;
-  text-decoration: none;
-}
-.domain:hover b {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.domain:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.domainHead {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 14.5px;
-}
-.domainHead small {
-  color: var(--mute);
   white-space: nowrap;
 }
 

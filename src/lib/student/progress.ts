@@ -164,52 +164,46 @@ export interface TimedAnswer {
 export const activeSeconds = (seconds: number) =>
   Math.min(ANSWER_CAP_SECONDS, Math.max(0, Number.isFinite(seconds) ? seconds : 0));
 
-/** The Monday that starts the week of a YYYY-MM-DD day. */
-export function weekStart(day: string): string {
-  const d = new Date(`${day}T12:00:00Z`);
-  const back = (d.getUTCDay() + 6) % 7;
-  return new Date(d.getTime() - back * DAY_MS).toISOString().slice(0, 10);
-}
-
-export interface WeekEffort {
-  /** Monday of the week (YYYY-MM-DD). */
-  start: string;
+export interface DayEffort {
+  /** The day (YYYY-MM-DD, Central time). */
+  day: string;
+  /** "Today", or the weekday ("Mon"). */
   label: string;
   seconds: number;
-  /** This week's share of the busiest week, from 0 to 1 (the ring's fill). */
+  /** This day's share of the busiest day, from 0 to 1 (the bar's height). */
   share: number;
 }
 
-/** Active time in each of the last `weeks` weeks (Monday to Sunday, Central time), oldest first. */
-export function weeklyEffort(
+/**
+ * Active time on each of the last `days` days (Central time), oldest first. One bar per day, so
+ * days compare at a glance (founder, 2026-11-08: bars, not rings).
+ */
+export function dailyEffort(
   answers: readonly TimedAnswer[],
   nowMs = Date.now(),
-  weeks = 5
-): WeekEffort[] {
-  const thisWeek = weekStart(dayKey(nowMs, TIME_ZONE));
-  const starts = Array.from({ length: weeks }, (_, i) =>
-    new Date(Date.parse(`${thisWeek}T12:00:00Z`) - (weeks - 1 - i) * 7 * DAY_MS)
-      .toISOString()
-      .slice(0, 10)
+  days = 7
+): DayEffort[] {
+  const today = dayKey(nowMs, TIME_ZONE);
+  const keys = Array.from({ length: days }, (_, i) =>
+    new Date(Date.parse(`${today}T12:00:00Z`) - (days - 1 - i) * DAY_MS).toISOString().slice(0, 10)
   );
-  const totals = new Map(starts.map((s) => [s, 0]));
+  const totals = new Map(keys.map((k) => [k, 0]));
   for (const a of answers) {
     const t = timeOf(a.at);
     if (!Number.isFinite(t)) continue;
-    const start = weekStart(dayKey(t, TIME_ZONE));
-    if (totals.has(start)) totals.set(start, (totals.get(start) ?? 0) + activeSeconds(a.seconds));
+    const key = dayKey(t, TIME_ZONE);
+    if (totals.has(key)) totals.set(key, (totals.get(key) ?? 0) + activeSeconds(a.seconds));
   }
   const busiest = Math.max(0, ...totals.values());
-  return starts.map((start) => {
-    const seconds = totals.get(start) ?? 0;
+  return keys.map((day) => {
+    const seconds = totals.get(day) ?? 0;
     return {
-      start,
+      day,
       label:
-        start === thisWeek
-          ? "This week"
-          : new Date(`${start}T12:00:00Z`).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
+        day === today
+          ? "Today"
+          : new Date(`${day}T12:00:00Z`).toLocaleDateString("en-US", {
+              weekday: "short",
               timeZone: "UTC",
             }),
       seconds,

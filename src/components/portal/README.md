@@ -29,7 +29,10 @@ render its content straight into the shell. The working example is the student T
 
 - **One main button per screen.** `Cta` is the only highlighted button. Every other action is a
   text link (`MoreLink`, a `Row` link, or `className="kp-link"`).
-- **Progress is always a ring.** Use `Ring` or `LevelRing`. No bars, no filling boxes.
+- **Progress is a ring.** Use `Ring` or `LevelRing`. The one exception is time and effort, which
+  is one labelled bar per day so days compare at a glance (founder, 2026-11-08).
+- **Open in place.** A card that has more to show uses `Expand`: it slides open where it is
+  instead of jumping to a new page, and the opened part links to the full page if one exists.
 - **Skills are always squares.** Use `SkillSquares`. Outline for not started, then New,
   Learning, Understanding, Conquered in the painting's four shades.
 - **Numbers are Hanken Grotesk** with lining, even-width figures: wrap them in `Num`.
@@ -86,6 +89,12 @@ painting, then slides down.
 `<Cta href="...">Start Your Daily 10</Cta>`, or `<Cta onClick={...}>` / `type="submit"` inside a
 client component. It always carries the chevron: white text on the painting's accent, which is
 darkened until the text passes 4.5:1.
+
+## Expand
+
+`<Expand summary={<b>Algebra</b>} tint="var(--l3)" label="Algebra">...details...</Expand>`. The
+summary is a button (`aria-expanded`); the details slide open with grid rows (no measuring).
+`tint` colors the card's wash and its left edge. `defaultOpen` opens it on arrival.
 
 ## Ring and LevelRing
 

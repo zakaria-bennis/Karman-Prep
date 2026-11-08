@@ -2,7 +2,7 @@
  * The cards of the student's Progress tab (founder, 2026-11-07, prototype
  * prototypes/today-directions/screens.js). Server-safe: the page hands in plain numbers.
  * One predicted score (never a range, never a goal), skills by level in a ring, what moved,
- * time and effort as rings, personal bests, and streak and rewards at the bottom. Tokens
+ * time and effort as one bar per day, personal bests, and streak and rewards at the bottom. Tokens
  * appear here and on Rewards only.
  */
 import {
@@ -30,7 +30,7 @@ import {
   type PersonalBest,
   type ScorePoint,
   type SkillMove,
-  type WeekEffort,
+  type DayEffort,
 } from "@/lib/student/progress";
 import styles from "./progress.module.css";
 
@@ -176,30 +176,31 @@ export function MovedCard({ moves }: { moves: SkillMove[] }) {
 }
 
 export function TimeCard({
-  weeks,
+  days,
   questions,
   paceSeconds,
 }: {
-  weeks: WeekEffort[];
+  days: DayEffort[];
   questions: number;
   paceSeconds: number | null;
 }) {
   return (
     <Card>
-      <SectionHeader title="Time and effort" note="Active time per week" />
-      <ul className={styles.weeks}>
-        {weeks.map((w) => (
-          <li key={w.start}>
-            <Ring
-              value={w.share}
-              size={46}
-              width={5}
-              label={`${w.label}: ${formatEffort(w.seconds)} of active time`}
-            />
-            <small>{w.label}</small>
-            <span className={styles.hours}>
-              <Num>{formatEffort(w.seconds)}</Num>
+      <SectionHeader title="Time and effort" note="Last 7 days" />
+      <ul className={styles.days}>
+        {days.map((d) => (
+          <li key={d.day} aria-label={`${d.label}: ${formatEffort(d.seconds)} of active time`}>
+            <span className={styles.amount}>
+              <Num>{d.seconds > 0 ? formatEffort(d.seconds) : "–"}</Num>
             </span>
+            <span className={styles.track}>
+              <span
+                className={styles.bar}
+                data-today={d.label === "Today" ? "" : undefined}
+                style={{ height: `${d.seconds > 0 ? Math.max(4, Math.round(d.share * 100)) : 0}%` }}
+              />
+            </span>
+            <small>{d.label}</small>
           </li>
         ))}
       </ul>

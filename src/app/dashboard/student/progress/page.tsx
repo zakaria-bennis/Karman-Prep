@@ -24,7 +24,7 @@ import {
   personalBests,
   practiceSets,
   scoreHistory,
-  weeklyEffort,
+  dailyEffort,
   whatMoved,
   type TrialRun,
 } from "@/lib/student/progress";
@@ -102,7 +102,7 @@ export default async function StudentProgressPage() {
   const skillLevels = CATALOG_SKILLS.map((s) => levels.get(s.id) ?? 0);
   const labels = new Map(CATALOG_SKILLS.map((s) => [s.id, s.label]));
   const moves = whatMoved(everyAnswer, labels, nowMs);
-  const weeks = weeklyEffort(everyAnswer, nowMs);
+  const days = dailyEffort(everyAnswer, nowMs);
   const month = monthEffort(everyAnswer, nowMs);
   const bests = personalBests({
     sets: practiceSets(everyAnswer),
@@ -112,7 +112,7 @@ export default async function StudentProgressPage() {
 
   const side = (
     <>
-      <TimeCard weeks={weeks} questions={month.questions} paceSeconds={month.paceSeconds} />
+      <TimeCard days={days} questions={month.questions} paceSeconds={month.paceSeconds} />
       {bests.length > 0 && <BestsCard bests={bests} />}
       <RewardsCard current={ctx.streak.current} longest={ctx.streak.longest} tokens={tokens} />
     </>

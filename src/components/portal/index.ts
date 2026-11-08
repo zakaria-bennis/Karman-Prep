@@ -23,3 +23,4 @@ export type { SkillLevel, SkillLevelInfo } from "./skill-levels";
 export { PortalIcon, PORTAL_ICONS, Chevron } from "./icons";
 export type { PortalIconName } from "./icons";
 export { Fox } from "./Fox";
+export { Expand } from "./Expand";

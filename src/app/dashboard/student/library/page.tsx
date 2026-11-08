@@ -1,14 +1,16 @@
 /*
  * The Library (founder, 2026-11-07 and 2026-11-08): where the long study sessions happen.
- * The Challenge question banner, the two courses with their rings, squares and Up next, then
- * practice modes and full-length tests. Khan's function, Karman's look.
+ * The Challenge question banner, then one course at a time behind a Math / Reading and Writing
+ * switch: what to practice next, then its Domains opening in place. Practice modes and
+ * full-length tests sit beside it. Khan's function, Karman's look.
  */
 import type { Metadata } from "next";
+import { z } from "zod";
 import { Card, Legend, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
 import { SKILL_LEVELS } from "@/components/portal";
 import StudentPortal from "@/components/student-portal/StudentPortal";
 import ChallengeBanner from "@/components/student-portal/library/ChallengeBanner";
-import CourseCard from "@/components/student-portal/library/CourseCard";
+import CourseView, { CourseSwitch } from "@/components/student-portal/library/CourseView";
 import styles from "@/components/student-portal/library/library.module.css";
 import { buildCourse } from "@/lib/student/course";
 import { loadStudentContext } from "@/lib/student/context";
@@ -28,7 +30,14 @@ export const dynamic = "force-dynamic";
 /** Four full-length forms (the assembler's limit across forms). */
 const FORMS = [1, 2, 3, 4];
 
-export default async function LibraryPage() {
+const query = z.object({ subject: z.enum(["math", "reading-writing"]).optional() });
+
+export default async function LibraryPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const q = query.safeParse((await searchParams) ?? {});
   const ctx = await loadStudentContext();
   const [answers, stored] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
@@ -37,6 +46,15 @@ export default async function LibraryPage() {
   const levels = withStored(levelsBySkill(answers), stored);
   const math = buildCourse("math", levels);
   const reading = buildCourse("reading", levels);
+  /* Without a pick, open the course that is further behind. */
+  const picked = q.success ? q.data.subject : undefined;
+  const open = picked
+    ? picked === "math"
+      ? math
+      : reading
+    : math.progress <= reading.progress
+      ? math
+      : reading;
   const left = questionsLeft(ctx.plan, {
     questionsAnswered: answers.length,
     fullLengthTestsCompleted: 0,
@@ -136,8 +154,8 @@ export default async function LibraryPage() {
         banner={<ChallengeBanner href={CHALLENGE.path} today={dayKey(Date.now())} />}
         side={side}
       >
-        <CourseCard course={math} />
-        <CourseCard course={reading} />
+        <CourseSwitch courses={[math, reading]} open={open.slug} />
+        <CourseView course={open} />
       </Panel>
     </StudentPortal>
   );
