@@ -90,7 +90,8 @@ fox's menu.
   touched is formatted.
 - Unit tests for the portal (levels, streak, courses, endless mode, plan gates, homework,
   notes, calendar, progress, onboarding schemas, the Learn redirects): 19 files, 132 tests pass.
-  Full suite: still running when this was written (see the last commit of this report).
+  Full suite (`NODE_OPTIONS=--no-experimental-webstorage npm test`): 542 files, 9,360 tests pass,
+  0 fail (254 are marked "expected to fail", as before).
 - Headless browser (Playwright from the command line, never the app's browser pane), signed in
   as the local Pro persona (Liam):
   - Every tab (Today, Homework, Library, a course page, Endless mode, Calendar, Progress,
