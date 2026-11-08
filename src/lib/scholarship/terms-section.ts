@@ -11,7 +11,7 @@ import { COHORT_SCHOLARSHIP as S, formatPrice } from "@/lib/marketing/offer";
 export const SCHOLARSHIP_TERMS_SECTION = {
   id: "cohort-scholarship",
   title: "12. Cohort Scholarship",
-  content: `Every 9-week cohort awards one merit scholarship of ${formatPrice(S.award)} to the eligible student with the highest official SAT total score. It is paid as a refund of the cohort price (${formatPrice(S.refund)}) plus a merit bonus for the rest (${formatPrice(S.meritBonus)}).`,
+  content: `Every 9-week cohort awards one merit scholarship of ${formatPrice(S.amount)} to the eligible student with the highest official SAT total score. It is paid as a refund of the cohort price (${formatPrice(S.refund)}) plus a merit bonus for the rest (${formatPrice(S.meritBonus)}).`,
   list: [
     "Who can win: a student enrolled in the cohort whose family paid the cohort price in full, or every installment on time, and who did not withdraw or receive a refund for that cohort.",
     `Which score counts: one official SAT total score from a single test date, taken on or after the cohort's first class and no later than ${S.satWithinDays} days after its last class. Superscores, PSAT scores and practice tests, including Karman's, do not count.`,

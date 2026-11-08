@@ -77,7 +77,7 @@ export default async function ScholarshipPage() {
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold text-foreground">Cohort scholarship</h1>
           <p className="text-sm leading-6 text-taupe">
-            The top official SAT score in each cohort wins {formatPrice(COHORT_SCHOLARSHIP.award)}:
+            The top official SAT score in each cohort wins {formatPrice(COHORT_SCHOLARSHIP.amount)}:
             the {formatPrice(COHORT_SCHOLARSHIP.refund)} cohort price back, plus a{" "}
             {formatPrice(COHORT_SCHOLARSHIP.meritBonus)} merit bonus. Upload your official College
             Board score report within {COHORT_SCHOLARSHIP.claimDays} days of your scores coming out.{" "}

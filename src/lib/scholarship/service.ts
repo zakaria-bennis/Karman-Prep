@@ -317,7 +317,7 @@ export async function payClaim(
         stripeBonusId: claim.stripe_bonus_id,
         bonusAmountCents: claim.bonus_amount_cents,
       },
-      awardCents: COHORT_SCHOLARSHIP.award * 100,
+      awardCents: COHORT_SCHOLARSHIP.amount * 100,
       cohortPriceCents: COHORT_SCHOLARSHIP.refund * 100,
       paymentIntentOverride: paymentIntentOverride ?? null,
       save: async (p) => {

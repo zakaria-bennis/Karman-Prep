@@ -313,7 +313,7 @@ export const SCHOLARSHIP = {
  * CONFIRM: lawyer review, and how the bonus reaches families in live mode.
  */
 export const COHORT_SCHOLARSHIP = {
-  award: 1500,
+  amount: 1500,
   /** The refund part: the cohort price. */
   refund: MARCH_PROGRAM.price,
   /** The merit bonus part: the award minus the refund. */

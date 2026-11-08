@@ -67,7 +67,7 @@ export default async function ScholarshipQueuePage({
   return (
     <WbPage
       title="Scholarship review"
-      summary={`${formatPrice(COHORT_SCHOLARSHIP.award)} to the top official SAT score in each cohort: the ${formatPrice(
+      summary={`${formatPrice(COHORT_SCHOLARSHIP.amount)} to the top official SAT score in each cohort: the ${formatPrice(
         COHORT_SCHOLARSHIP.refund
       )} cohort price back plus a ${formatPrice(COHORT_SCHOLARSHIP.meritBonus)} merit bonus. Payouts run in Stripe test mode.`}
       actions={

@@ -125,7 +125,7 @@ describe("storage", () => {
 
 describe("terms section", () => {
   it("states the award and its split from offer.ts", () => {
-    expect(COHORT_SCHOLARSHIP.award).toBe(1500);
+    expect(COHORT_SCHOLARSHIP.amount).toBe(1500);
     expect(COHORT_SCHOLARSHIP.refund + COHORT_SCHOLARSHIP.meritBonus).toBe(1500);
     expect(SCHOLARSHIP_TERMS_SECTION.content).toContain("$1,500");
     expect(SCHOLARSHIP_TERMS_SECTION.list.join(" ")).toContain("PSAT");

@@ -80,7 +80,7 @@ export default async function ScholarshipClaimPage({
     )
   );
   const split = computePayoutSplit({
-    awardCents: COHORT_SCHOLARSHIP.award * 100,
+    awardCents: COHORT_SCHOLARSHIP.amount * 100,
     cohortPriceCents: COHORT_SCHOLARSHIP.refund * 100,
     paidCents: COHORT_SCHOLARSHIP.refund * 100,
     refundedElsewhereCents: 0,
