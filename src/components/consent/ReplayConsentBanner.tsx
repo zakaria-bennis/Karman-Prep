@@ -118,7 +118,7 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
             type="button"
             onClick={() => submit("yes")}
             disabled={submitting}
-            className="rounded-lg bg-info px-4 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright disabled:opacity-50"
+            className="rounded-lg bg-info px-4 py-1.5 text-xs font-semibold text-black hover:bg-info-bright disabled:opacity-50"
           >
             Allow
           </button>

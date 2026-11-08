@@ -5,6 +5,9 @@
   z-index: 70;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  /* One column, never wider than the screen: an auto column grew to its content (682px on a
+     390px phone), pushing Submit and the passage off screen (QA 2026-11-08). */
+  grid-template-columns: minmax(0, 1fr);
   background: var(--quiz-bg);
   color: var(--quiz-text);
   font-size: calc(1rem * var(--quiz-text-scale, 1));
@@ -327,6 +330,7 @@
 .body {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   min-width: 0;
 }
