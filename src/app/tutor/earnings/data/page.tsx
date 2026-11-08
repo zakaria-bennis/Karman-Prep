@@ -3,15 +3,13 @@
 //
 // Time-range dropdown + sessions table + analytics chart +
 // payout history. Lives on its own URL so the main /tutor/earnings
-// stays slim.
+// stays slim. The shell gives the heading and tabs.
 // ============================================================
 
 import type { Metadata } from "next";
-import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -69,32 +67,13 @@ export default async function TutorEarningsDataPage({ searchParams }: PageProps)
   for (const [k, v] of studentCounts) studentCountsObj[k] = v;
 
   return (
-    <>
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
-        <Link
-          href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-[color:var(--mute)] hover:text-[color:var(--ink)] dark:hover:text-[color:var(--ink)]"
-        >
-          <ChevronLeft className="h-4 w-4" /> My earnings
-        </Link>
-
-        <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--info)]">Tutor Portal</p>
-          <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">Earning data</h1>
-          <p className="mt-1 text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
-            Filter sessions by time range. Bottom chart shows trends across the last 12 weeks.
-          </p>
-        </header>
-
-        <EarningsDataClient
-          summary={summary}
-          sessions={sessions}
-          payouts={payouts}
-          weekly={weekly}
-          range={range}
-          studentSessionCounts={studentCountsObj}
-        />
-      </div>
-    </>
+    <EarningsDataClient
+      summary={summary}
+      sessions={sessions}
+      payouts={payouts}
+      weekly={weekly}
+      range={range}
+      studentSessionCounts={studentCountsObj}
+    />
   );
 }
