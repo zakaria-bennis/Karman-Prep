@@ -186,6 +186,13 @@ async function notifyAdminOfPlacementFailure(args: {
     student?.email ||
     args.studentUuid;
 
+  // the name comes from the sign-up form, so it is escaped before it goes into the email's HTML
+  const esc = (v: string) => v.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+  const safeName = esc(name);
+  const safeEmail = esc(student?.email ?? "no email");
+  const safeReason = esc(String(args.reason));
+  const safeTier = esc(String(args.tier));
+
   const { resend, FROM } = await import("@/lib/integrations/resend/client");
   await resend.emails.send({
     from: FROM,
@@ -195,10 +202,10 @@ async function notifyAdminOfPlacementFailure(args: {
       <div style="font-family: Inter, sans-serif; max-width: 560px; margin: auto; padding: 24px; color: #0f172a;">
         <h2 style="margin:0 0 12px 0;">Onboarding placement needs admin attention</h2>
         <p style="color:#334155;">
-          <strong>${name}</strong> (${student?.email ?? "no email"}) just finished onboarding on the
-          <strong>${args.tier}</strong> tier, but auto-placement failed:
+          <strong>${safeName}</strong> (${safeEmail}) just finished onboarding on the
+          <strong>${safeTier}</strong> tier, but auto-placement failed:
         </p>
-        <pre style="background:#f1f5f9; padding:12px; border-radius:8px; font-size:12px; color:#1e293b; white-space:pre-wrap;">${args.reason}</pre>
+        <pre style="background:#f1f5f9; padding:12px; border-radius:8px; font-size:12px; color:#1e293b; white-space:pre-wrap;">${safeReason}</pre>
         <p style="color:#334155;">
           Next step: open <a href="https://karmanprep.com/admin/users">/admin/users</a>, find this
           student, and either
