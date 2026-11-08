@@ -1,12 +1,13 @@
 /* A parent opens a student's invite link, signed in, and accepts it. */
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card, Cta, Panel, PortalShell, SectionHeader } from "@/components/portal";
 import { ActionMessage } from "@/components/school/SchoolShell";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { lookupInvite } from "@/lib/parent/invites";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { createAdminClient } from "@/lib/supabase/server";
+import { untypedAdmin } from "@/lib/school/db";
 import { acceptParentInviteAction } from "./actions";
 import "@/components/portal-extras/forms.css";
 
@@ -31,7 +32,7 @@ export default async function JoinParentPage({
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect(`/auth/sign-in?redirect_url=/join/parent/${encodeURIComponent(token)}`);
   const { clerkId } = await resolveEffectiveClerkId(realUserId);
-  const supabase = createAdminClient();
+  const supabase = untypedAdmin();
   const [{ data: me }, invite] = await Promise.all([
     supabase.from("users").select("first_name, email").eq("clerk_id", clerkId).maybeSingle(),
     lookupInvite(token, supabase),
@@ -70,9 +71,9 @@ export default async function JoinParentPage({
                 ? "If it was you, your student is already in your parent portal."
                 : "It may have expired. Ask your student to make a new one from Invite a parent."}
             </p>
-            <a className="kp-link" href="/dashboard/parent">
+            <Link className="kp-link" href="/dashboard/parent">
               Open the parent portal
-            </a>
+            </Link>
           </Card>
         )}
       </Panel>

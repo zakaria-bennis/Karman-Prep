@@ -108,58 +108,6 @@ export default async function SchoolClassPage({
       <Panel side={side}>
         <ActionMessage done={done} error={error} />
         <Card>
-          <SectionHeader title="Students" note={<Num>{roster.students.length}</Num>} />
-          {roster.students.length ? (
-            <ul className="kp-roster">
-              {roster.students.map((s) => (
-                <li key={s.seatId}>
-                  <div className="kp-roster-head">
-                    <Ring value={s.percent / 100} label={`${s.name}: ${s.percent}% of the way to Conquered`}>
-                      <Num>{s.percent}%</Num>
-                    </Ring>
-                    <span>
-                      <b>{s.name}</b>
-                      <small>
-                        {s.lastPracticedAt ? `Practiced ${shortDate(s.lastPracticedAt)}` : "Not practiced yet"}
-                        {roster.assignments.length
-                          ? ` · ${s.assignmentsDone} of ${roster.assignments.length} assignments done`
-                          : ""}
-                      </small>
-                    </span>
-                  </div>
-                  <div className="kp-domains">
-                    {s.glance.domains.map((d) => (
-                      <span className="kp-domain" key={d.id}>
-                        <small>{d.label}</small>
-                        <SkillSquares
-                          skills={d.skills.map((k) => ({ level: k.level, name: k.label }))}
-                          label={`${d.label}: ${strongCount(d)} of ${d.skills.length} at Understanding or above`}
-                        />
-                      </span>
-                    ))}
-                  </div>
-                  <details className="kp-details">
-                    <summary>Remove from class</summary>
-                    <form action={removeStudentAction} className="kp-form">
-                      <input type="hidden" name="classId" value={cls.id} />
-                      <input type="hidden" name="seatId" value={s.seatId} />
-                      <p className="kp-meta">
-                        {s.name} leaves {cls.name}. The Practice plan from {ctx.school.name} ends unless
-                        they are in another of its classes. Their own practice history stays theirs.
-                      </p>
-                      <button type="submit" className="kp-textbtn" data-tone="danger">
-                        Remove {s.name.split(" ")[0]}
-                      </button>
-                    </form>
-                  </details>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="kp-meta">No students yet. Share the join code to fill the class.</p>
-          )}
-        </Card>
-        <Card>
           <SectionHeader title="Assign work" />
           <form action={assignWorkAction} className="kp-form">
             <input type="hidden" name="classId" value={cls.id} />
@@ -205,6 +153,58 @@ export default async function SchoolClassPage({
               <Cta type="submit">Assign to {cls.name}</Cta>
             </div>
           </form>
+        </Card>
+        <Card>
+          <SectionHeader title="Students" note={<Num>{roster.students.length}</Num>} />
+          {roster.students.length ? (
+            <ul className="kp-roster">
+              {roster.students.map((s) => (
+                <li key={s.seatId}>
+                  <div className="kp-roster-head">
+                    <Ring value={s.percent / 100} label={`${s.name}: ${s.percent}% of the way to Conquered`}>
+                      <Num>{s.percent}%</Num>
+                    </Ring>
+                    <span className="kp-roster-who">
+                      <b>{s.name}</b>
+                      <small>
+                        {s.lastPracticedAt ? `Practiced ${shortDate(s.lastPracticedAt)}` : "Not practiced yet"}
+                        {roster.assignments.length
+                          ? ` · ${s.assignmentsDone} of ${roster.assignments.length} assignments done`
+                          : ""}
+                      </small>
+                    </span>
+                  </div>
+                  <div className="kp-domains">
+                    {s.glance.domains.map((d) => (
+                      <span className="kp-domain" key={d.id}>
+                        <small>{d.label}</small>
+                        <SkillSquares
+                          skills={d.skills.map((k) => ({ level: k.level, name: k.label }))}
+                          label={`${d.label}: ${strongCount(d)} of ${d.skills.length} at Understanding or above`}
+                        />
+                      </span>
+                    ))}
+                  </div>
+                  <details className="kp-details">
+                    <summary>Remove from class</summary>
+                    <form action={removeStudentAction} className="kp-form">
+                      <input type="hidden" name="classId" value={cls.id} />
+                      <input type="hidden" name="seatId" value={s.seatId} />
+                      <p className="kp-meta">
+                        {s.name} leaves {cls.name}. The Practice plan from {ctx.school.name} ends unless
+                        they are in another of its classes. Their own practice history stays theirs.
+                      </p>
+                      <button type="submit" className="kp-textbtn" data-tone="danger">
+                        Remove {s.name.split(" ")[0]}
+                      </button>
+                    </form>
+                  </details>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="kp-meta">No students yet. Share the join code to fill the class.</p>
+          )}
         </Card>
       </Panel>
     </SchoolShell>

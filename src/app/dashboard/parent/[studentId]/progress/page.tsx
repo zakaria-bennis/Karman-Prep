@@ -72,7 +72,7 @@ export default async function ParentProgressPage({ params }: { params: Promise<{
                 <div className="kp-history" role="list" aria-label="Score history">
                   {score.history.map((h) => (
                     <span key={h.takenAt} role="listitem">
-                      <Ring value={h.score / 1600} size={44} width={5} label={`${h.score} on ${sessionWhen(h.takenAt, { date: true })}`}>
+                      <Ring value={h.score / 1600} size={64} width={5} label={`${h.score} on ${sessionWhen(h.takenAt, { date: true })}`}>
                         <Num>{h.score}</Num>
                       </Ring>
                       {sessionWhen(h.takenAt, { date: true })}

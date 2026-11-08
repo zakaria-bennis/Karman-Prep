@@ -117,9 +117,12 @@
   align-items: center;
   gap: 14px;
 }
-.kp-roster-head > span {
+.kp-roster-who {
   flex: 1;
   min-width: 0;
+}
+.kp-roster-head .kp-ring {
+  flex: none;
 }
 .kp-roster-head b {
   display: block;
@@ -131,7 +134,7 @@
 }
 .kp-domains {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 8px 14px;
 }
 .kp-domain {

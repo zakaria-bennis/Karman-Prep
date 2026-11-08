@@ -13,7 +13,6 @@ import {
   isPlaceholderCustomer,
   mayCreateTestCustomer,
 } from "@/lib/billing-portal/stripe";
-import { FROM, resend } from "@/lib/integrations/resend/client";
 import { recapHtml, recapSubject } from "@/lib/parent/recap";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -86,6 +85,8 @@ export async function sendRecapAction(formData: FormData) {
     });
     back(page, "done", "Email is switched off on this computer, so the send was logged instead.");
   }
+  // Loaded only here: the client refuses to start without a key, and email is off locally.
+  const { FROM, resend } = await import("@/lib/integrations/resend/client");
   const { error } = await resend.emails.send({
     from: FROM,
     to: ctx.viewer.email,
