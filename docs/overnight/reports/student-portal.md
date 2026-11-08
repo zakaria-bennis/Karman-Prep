@@ -87,6 +87,46 @@ fox's menu.
   levels the quiz flows save (`student_skill_levels`). Each skill shows the higher of the
   saved level and the level from older practice. Finished quiz runs count toward the streak.
 
+## Merged with claude/overnight-ship (10:20 CST)
+
+`claude/overnight-ship` (pricing, parent-school, tutor, admin, site-audit) is merged into this
+branch. Six conflicts, resolved keeping both sides:
+
+- **Today** (page and its client): the painted Today stays (Daily 10 first, Join, homework,
+  coming up). Ship's only change there was dropping the bounce to billing, which this branch
+  already does.
+- **Calendar page:** the painted Calendar stays, with ship's wording for an empty cohort list.
+- **Onboarding:** the SAT or PSAT step and its date props stay. Ship's changes win elsewhere:
+  parents no longer take the questionnaire, and the old `tier` link is gone.
+- **The painting:** both the motion switch and ship's "pause when the tab is hidden" are kept.
+
+Also changed so the pieces fit together:
+
+- **Plans:** the portal now reads the plan from the pricing session's `getPlan`
+  (`src/lib/plans`), so school seats, tutor codes and purchases count. My stand-in reader is
+  deleted; `src/lib/student/plan-gate.ts` keeps only what the portal adds (live sessions,
+  workshops, which tabs show, where to upgrade).
+- **Invite a parent and tutor codes:** ship built the real pages (`/dashboard/student/invite-parent`
+  and `/join`). The fox's menu and the Account page now lead there, and my stand-in forms for
+  both are deleted. Those two pages and "Join a class" (`/join/class`) now use the same student
+  frame as every other tab.
+- The tutor-code page titles no longer say "Karman" twice.
+
+Checked after the merge:
+
+- `npx tsc --noEmit` passes, `npx eslint` on every touched folder passes, and the 26 test files
+  around the merged code pass (300 tests).
+- Headless browser: Today, Homework, Library, a course page, Endless mode, Calendar, Progress,
+  Account, Invite a parent, Tutor code and Join a class, at 1440 light and 390 dark: all open,
+  no sideways scroll, at most one main button, tokens only on Progress. The 36 links on the five
+  tabs answer, except 10 that open the quiz flows' pages (`/learn/daily-ten`, `/learn/set/...`),
+  which arrive with the quiz-flows merge. The fox's menu items open the right pages.
+- **The local database lacks the pricing session's two migrations**
+  (`20261108100000_subscriptions_plan_ids.sql`, `20261108110000_plan_grants.sql`), so locally
+  every student reads as Free and each page logs "plan lookup failed". I didn't apply them: the
+  first drops `subscriptions.tier` on the database every session shares. Apply them with
+  `scripts/overnight/apply-migrations-local.sh <ship worktree>` when that's safe.
+
 ## What is not done
 
 - **Time trials** aren't built by the quiz flows yet, so the Library shows them as "Not open
