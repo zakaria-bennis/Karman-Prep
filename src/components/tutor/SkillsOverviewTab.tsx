@@ -169,13 +169,15 @@ export default function SkillsOverviewTab({ statuses }: Props) {
           onChange={setFCluster}
           options={[["all", "All"], ...clusters.map((c) => [c, c] as [string, string])]}
         />
-        <span className="ml-auto self-end text-xs text-[color:var(--mute)]">{sorted.length} rows</span>
+        <span className="ml-auto self-end text-xs text-[color:var(--mute)]">
+          {sorted.length} rows
+        </span>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-[color:var(--line)] dark:border-[color:var(--line)]">
+      <div className="overflow-x-auto rounded-lg border border-[color:var(--line)]">
         <table className="w-full text-sm">
-          <thead className="bg-[color:var(--card)] dark:bg-[color:var(--card)]">
-            <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)] dark:text-[color:var(--mute)]">
+          <thead className="bg-[color:var(--card)]">
+            <tr className="text-left text-[11px] font-semibold text-[color:var(--mute)]">
               <Th onClick={h("topic")}>Skill</Th>
               <th className="px-3 py-2">Subject</th>
               <Th onClick={h("tier")}>Tier</Th>
@@ -198,25 +200,29 @@ export default function SkillsOverviewTab({ statuses }: Props) {
               const band = r.confidence_band;
               const bandBg =
                 band === "struggling"
-                  ? "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--late)_10%,transparent)]"
+                  ? "bg-[color-mix(in_srgb,var(--late)_10%,transparent)]"
                   : band === "developing"
-                    ? "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)]"
+                    ? "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)]"
                     : band === "proficient"
-                      ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
+                      ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
                       : band === "mastered"
-                        ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
+                        ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
                         : "";
               return (
-                <tr key={r.id} className={cn("border-t border-[color:var(--line)] dark:border-[color:var(--line)]", bandBg)}>
-                  <td className="px-3 py-2 text-[color:var(--ink)] dark:text-[color:var(--ink)]">{r.topic}</td>
+                <tr key={r.id} className={cn("border-t border-[color:var(--line)]", bandBg)}>
+                  <td className="px-3 py-2 text-[color:var(--ink)]">{r.topic}</td>
                   <td className="px-3 py-2 capitalize text-[color:var(--mute)]">{r.subject}</td>
                   <td className="px-3 py-2 text-[color:var(--mute)]">{TIER_LABELS[r.tier]}</td>
-                  <td className="max-w-[16rem] truncate px-3 py-2 text-[color:var(--mute)]">{r.topic_cluster}</td>
-                  <td className="px-3 py-2 text-xs font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+                  <td className="max-w-[16rem] truncate px-3 py-2 text-[color:var(--mute)]">
+                    {r.topic_cluster}
+                  </td>
+                  <td className="px-3 py-2 text-xs font-semibold text-[color:var(--ink)]">
                     {r.status.replace(/_/g, " ")}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.best_quiz_score ?? "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--mute)]">{r.attempts}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--mute)]">
+                    {r.attempts}
+                  </td>
                   <td className="px-3 py-2 text-right tabular-nums text-[color:var(--mute)]">
                     {r.watch_percentage ?? 0}%
                   </td>
@@ -257,10 +263,7 @@ function Th({
   return (
     <th
       onClick={onClick}
-      className={cn(
-        "cursor-pointer select-none px-3 py-2 hover:bg-[color:var(--card)] dark:hover:bg-[color:var(--raised)]",
-        className
-      )}
+      className={cn("cursor-pointer select-none px-3 py-2 hover:bg-[color:var(--card)]", className)}
     >
       <span className="inline-flex items-center gap-1">
         {children}
@@ -283,11 +286,11 @@ function Select({
 }) {
   return (
     <label className="flex items-center gap-1.5 text-xs text-[color:var(--mute)]">
-      <span className="font-semibold uppercase tracking-wide">{label}:</span>
+      <span className="font-semibold">{label}:</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-[color:var(--line)] px-2 py-1 text-xs dark:border-[color:var(--line)] dark:bg-[color:var(--card)]"
+        className="rounded border border-[color:var(--line)] px-2 py-1 text-xs"
       >
         {options.map(([v, l]) => (
           <option key={v} value={v}>

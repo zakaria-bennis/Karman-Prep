@@ -27,7 +27,7 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
 
   if (sorted.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-[color:var(--line)] p-10 text-center dark:border-[color:var(--line)]">
+      <div className="rounded-lg border border-dashed border-[color:var(--line)] p-10 text-center">
         <p className="text-sm text-[color:var(--mute)]">No quiz attempts yet.</p>
       </div>
     );
@@ -57,15 +57,15 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
         return (
           <article
             key={a.id}
-            className="rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] dark:border-[color:var(--line)] dark:bg-[color:var(--card)]"
+            className="rounded-lg border border-[color:var(--line)] bg-[color:var(--card)]"
           >
             <header
-              className="flex cursor-pointer items-center gap-4 p-4 hover:bg-[color:var(--card)] dark:hover:bg-[color-mix(in_srgb,var(--raised)_50%,transparent)]"
+              className="flex cursor-pointer items-center gap-4 p-4 hover:bg-[color:var(--card)]"
               onClick={() => setOpenId(isOpen ? null : a.id)}
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="truncate font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">{nodeTopic}</h3>
+                  <h3 className="truncate font-semibold text-[color:var(--ink)]">{nodeTopic}</h3>
                   <span className="text-xs text-[color:var(--mute)]">#{a.attempt_number}</span>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color:var(--mute)]">
@@ -121,10 +121,8 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
             </header>
 
             {isOpen && (
-              <div className="border-t border-[color:var(--line)] bg-[color:var(--card)] p-4 dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_50%,transparent)]">
-                <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-[color:var(--mute)]">
-                  Adaptive path
-                </h4>
+              <div className="border-t border-[color:var(--line)] bg-[color:var(--card)] p-4">
+                <h4 className="mb-2 text-xs font-bold text-[color:var(--mute)]">Adaptive path</h4>
                 {a.adaptive_path.length === 0 ? (
                   <p className="text-xs text-[color:var(--mute)]">No steps recorded.</p>
                 ) : (
@@ -133,13 +131,15 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                       const r = responses.find((x) => x.question_id === step.question_id);
                       return (
                         <li key={i} className="flex items-center gap-3 text-xs">
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--card)] text-[10px] font-bold text-[color:var(--mute)] dark:bg-[color:var(--raised)] dark:text-[color:var(--ink)]">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--card)] text-[10px] font-bold text-[color:var(--mute)]">
                             {i + 1}
                           </span>
                           <span
                             className={cn(
                               "flex h-5 w-5 items-center justify-center rounded",
-                              step.was_correct ? "bg-[color:var(--good)] text-[color:var(--accent-ink)]" : "bg-[color:var(--late)] text-[color:var(--ink)]"
+                              step.was_correct
+                                ? "bg-[color:var(--good)] text-[color:var(--accent-ink)]"
+                                : "bg-[color:var(--late)] text-[color:var(--ink)]"
                             )}
                           >
                             {step.was_correct ? (
@@ -148,7 +148,7 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                               <XIcon className="h-3 w-3" />
                             )}
                           </span>
-                          <span className="font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+                          <span className="font-semibold text-[color:var(--ink)]">
                             {step.difficulty}
                           </span>
                           {r && (

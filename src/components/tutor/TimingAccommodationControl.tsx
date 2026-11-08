@@ -34,7 +34,9 @@ export function TimingAccommodationControl({
             aria-checked={current === o.value}
             disabled={pending}
             className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${
-              current === o.value ? "border-[color:var(--info)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] text-[color:var(--ink)]" : "border-[color:var(--line)] text-[color:var(--mute)]"
+              current === o.value
+                ? "border-[color:var(--info)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] text-[color:var(--ink)]"
+                : "border-[color:var(--line)] text-[color:var(--mute)]"
             }`}
             onClick={() =>
               start(async () => {

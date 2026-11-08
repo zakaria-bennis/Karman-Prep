@@ -9,7 +9,10 @@ export default function SavedPracticeReview({ review }: { review: Review }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   return (
     <div className="space-y-6">
-      <p role="note" className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-4 text-sm text-[color:var(--mute)]">
+      <p
+        role="note"
+        className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-4 text-sm text-[color:var(--mute)]"
+      >
         This shows the question version saved with the student&apos;s practice. Your selections stay
         on this page; they are not graded or saved. Original student answers remain unchanged.
       </p>

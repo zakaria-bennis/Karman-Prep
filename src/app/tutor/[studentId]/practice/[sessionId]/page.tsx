@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Card, MoreLink, SectionHeader } from "@/components/portal";
 import { notFound } from "next/navigation";
 import { readEducatorPracticeReview } from "@/lib/educator-briefing/server";
 import { BriefingAccessError } from "@/lib/educator-briefing/access";
@@ -24,23 +24,19 @@ export default async function EducatorPracticeReviewPage({
   }
   if (!review && !unavailable) notFound();
   return (
-    <section className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-      <Link
-        href={`/tutor/${encodeURIComponent(studentId)}/briefing`}
-        className="inline-flex min-h-11 items-center text-sm text-[color:var(--info)] underline"
-      >
-        Back to practice briefing
-      </Link>
-      <header>
-        <h1 className="text-2xl font-bold text-[color:var(--ink)]">Review as student</h1>
-        {review && (
-          <p className="mt-2 text-sm text-[color:var(--mute)]">
-            {review.skillLabel} ·{" "}
-            {review.completedAt ? "Completed practice" : "Practice in progress"}
-          </p>
-        )}
-      </header>
+    <Card>
+      <SectionHeader
+        title="Review as student"
+        note={
+          review
+            ? `${review.skillLabel}, ${review.completedAt ? "completed" : "in progress"}`
+            : undefined
+        }
+      />
       {review ? <SavedPracticeReview review={review} /> : <BriefingUnavailable />}
-    </section>
+      <MoreLink href={`/tutor/${encodeURIComponent(studentId)}/briefing`}>
+        Back to practice briefing
+      </MoreLink>
+    </Card>
   );
 }
