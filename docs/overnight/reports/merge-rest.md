@@ -108,8 +108,13 @@ branches, `claude/calendar-ics-feed` and `claude/cal-route-matcher`.
 
 ## Not done yet
 
-- `npm run test:calculator` (the browser calculator tests) was still running
-  when I wrote this. I'll add the result here.
+- `npm run test:calculator` (3,130 browser tests, one worker) was still
+  running at 07:15. About 1,500 had passed and 8 had failed: layout checks
+  (R-5, R-6, a fraction toggle) and Firefox clipboard and typing tests. The
+  only calculator code merged tonight changes regression maths, which those
+  tests don't touch. So these failures are likely already on main or caused by
+  machine load, but I have not proved that. The full log is in my session's
+  scratchpad.
 - I have not yet replayed all migrations on a fresh local database. The
   local-db guide wasn't committed yet, and I won't reset the shared local
   database.
