@@ -27,6 +27,23 @@ converted mechanically by the engine's own converters (what students already
 see) need no visual verdict. His own figure approval keeps working as before.
 Details: `scripts/import-tools/README.md` and `kimport/figure_gate.py`.
 
+## Spelling mistakes printed on the exam page (founder, 2026-11-02)
+
+This replaces the old rule "printed typos stay as printed". The founder
+decided: correct plain misspellings in passages and question text, but never
+touch a word a grammar question is testing, or answer-choice wording.
+
+- Correct a plain misspelling or a broken word (for example "Spatify",
+  "commnonly", "lackad aptations", "proent") to the obviously intended word,
+  checked against the page image, even when the page itself prints it.
+- Never change: words inside a tested span or blank (`<u>...</u>`, `______`),
+  the tested sentence of a Standard English Conventions question, answer-choice
+  wording, numbers, names you cannot verify, or the meaning.
+- When the intended word is not certain, leave it and list it for review.
+- The SAT prints no en dashes: a corrected sentence uses a hyphen or an em dash.
+- Live rows change only through the toolkit's routes (QA correction batches
+  through the autopilot), never by hand SQL.
+
 ## Released-exam ingestion
 
 The old paid AI extraction, grading, figure interpretation and orchestration
