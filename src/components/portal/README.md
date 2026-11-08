@@ -121,6 +121,12 @@ doesn't count) and the colors.
 - The heavy work runs after the first paint, in its own code chunk, so the page is usable at
   once. The painting's hue sets `--hue`, `--hs` and `--accent`; the four level shades `--l1` to
   `--l4` are derived from them in `portal.css`.
+- Detail (2026-11-08): strokes are planned from the picture at 960 pixels wide, with five
+  brushes; the finest only follows edges. Big strokes carry bristle streaks, colors drift a
+  little warm and cool, and a soft canvas grain goes over the finished painting. When the
+  painting appears finished, the big brushes go on at once and the small ones in idle slices
+  (about half a second), so no single task holds the page for long. Timing marks
+  `karman-paint-scene`, `-plan`, `-draw` and `-finish` show in the browser's Performance panel.
 - Development only: force the light and the painting with query strings:
   `?paint-time=dawn|day|sunset|night`, `?paint-scene=0..9`,
   `?paint-season=fall|winter|spring|summer`, `?paint-weather=clear|rain|snow|fog`,
