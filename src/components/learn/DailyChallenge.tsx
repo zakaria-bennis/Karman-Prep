@@ -95,7 +95,9 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
   const { question: q, subject, day } = value;
   const attemptKey = makeQuestionKey(`daily-${day}`, q.id);
   const [open, setOpen] = useState(false);
-  const [review, setReview] = useState<StudentQuizReview | null>(null);
+  const [review, setReview] = useState<(StudentQuizReview & { others?: string | null }) | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [student, setStudent] = useState<{
@@ -133,6 +135,7 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
           {review.isCorrect ? "Correct." : `Not quite. The answer is ${review.correct_answer}.`}
         </p>
       ) : null}
+      {review?.others ? <p className="mt-2 text-sm text-taupe">{review.others}</p> : null}
       <button
         type="button"
         onClick={openShell}
@@ -175,6 +178,10 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
             error ? (
               <p role="alert" className="mt-4 text-sm">
                 {error}
+              </p>
+            ) : review?.others ? (
+              <p role="status" className="mt-4 text-sm">
+                {review.others}
               </p>
             ) : null
           }
