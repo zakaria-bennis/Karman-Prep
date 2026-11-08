@@ -48,7 +48,7 @@ export default function FreeTestPage() {
   const form = section(42);
   const note = section(45);
   return (
-    <SitePage kind="inner" dock={[form["form button"], "#seat"]}>
+    <SitePage kind="inner">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(EVENT)} />
       <InnerHero
         n={41}

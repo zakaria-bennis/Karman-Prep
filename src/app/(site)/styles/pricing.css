@@ -12,7 +12,7 @@
 .ks.page-pricing {
   background: var(--paper);
 }
-.ks.page-pricing .hd:not(.dim) {
+.ks.page-pricing .hd {
   color: var(--ink);
 }
 .ks .p-hero {
@@ -439,15 +439,6 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--ink2);
-}
-/* no film on this page: the header is solid white over white, solid black over the guarantee */
-.ks.page-pricing .hd.dim {
-  background: rgba(11, 11, 11, 0.94);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-}
-.ks.page-pricing .hd.dim::before {
-  display: none;
 }
 /* phones: each comparison row becomes its label over three short cells, no sideways scrolling */
 @media (max-width: 700px) {

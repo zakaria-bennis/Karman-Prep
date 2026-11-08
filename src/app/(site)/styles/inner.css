@@ -1,10 +1,8 @@
 /* The inner pages (pages.js): the SAT Program, private tutoring, the free practice test, the guarantee, About
    and the FAQ. Base tokens, header, buttons, the guarantee block and the footer are in film.css; loaders,
-   messages and form fields in kit.css. No film plays on these pages, so the header is solid. */
+   messages and form fields in kit.css. No film plays on these pages, so the header's words are ink. */
 .ks.page-inner { background: var(--paper); }
-.ks.page-inner .hd:not(.dim) { color: var(--ink); }
-.ks.page-inner .hd.dim { background: rgba(11,11,11,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-.ks.page-inner .hd.dim::before { display: none; }
+.ks.page-inner .hd { color: var(--ink); }
 .ks.page-inner main { background: var(--paper); }
 
 /* ---------- the opening: words on one side, the drawing at the outer edge ---------- */

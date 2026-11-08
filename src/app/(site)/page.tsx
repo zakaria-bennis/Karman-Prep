@@ -2,7 +2,7 @@ import HomeFilm from "@/components/site/home/HomeFilm";
 import { Tutors } from "@/components/site/home/HomeSections";
 import Feature from "@/components/site/Feature";
 import GuaranteeDeal from "@/components/site/GuaranteeDeal";
-import ToolsCarousel from "@/components/site/home/ToolsCarousel";
+import StudyTools from "@/components/site/home/StudyTools";
 import SitePage from "@/components/site/SitePage";
 import WeekCalendar from "@/components/site/WeekCalendar";
 import { jsonLd, pageMeta } from "@/components/site/meta";
@@ -98,7 +98,7 @@ export default function HomePage() {
               <WeekCalendar />
             </div>
           </article>
-          <ToolsCarousel />
+          <StudyTools />
         </div>
       </section>
 

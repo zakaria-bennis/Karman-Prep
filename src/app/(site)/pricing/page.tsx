@@ -20,7 +20,7 @@ export const metadata = pageMeta(
 
 export default function PricingPage() {
   return (
-    <SitePage kind="pricing" dock={[SITE["pricing program button"], `${ROUTES.program}#apply`]}>
+    <SitePage kind="pricing">
       <PricingPlans
         guarantee={
           <GuaranteeSection

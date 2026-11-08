@@ -4,7 +4,6 @@ import { Close, InnerHero, Rows } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT, formatPrice, PRACTICE_PLAN, SCHOOL_PLAN } from "@/lib/marketing/offer";
-import { section } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.schools,
@@ -17,7 +16,7 @@ const EMAIL = `mailto:${CONTACT.general}?subject=${encodeURIComponent("School li
 
 export default function SchoolsPage() {
   return (
-    <SitePage kind="inner" dock={[section(101).button, EMAIL]}>
+    <SitePage kind="inner">
       <InnerHero n={101} href={EMAIL} side={<Photo name="start" className="ph-hero" />} />
       <Rows n={102} />
       <Rows n={103} style="steps" />

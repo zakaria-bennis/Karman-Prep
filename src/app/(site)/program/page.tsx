@@ -48,7 +48,7 @@ const COURSE = {
 export default function ProgramPage() {
   const price = section(26);
   return (
-    <SitePage kind="inner" dock={[section(21).button, "#apply"]}>
+    <SitePage kind="inner">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(COURSE)} />
       <InnerHero
         n={21}

@@ -4,7 +4,6 @@ import { Close, InnerHero, Rows } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import { formatPrice, PRACTICE_PLAN, TUTOR_AFFILIATE_PLAN as TA } from "@/lib/marketing/offer";
-import { section } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.tutors,
@@ -17,7 +16,7 @@ const START = `${ROUTES.checkout}?plan=${TA.id}`;
 
 export default function ForTutorsPage() {
   return (
-    <SitePage kind="inner" dock={[section(111).button, START]}>
+    <SitePage kind="inner">
       <InnerHero n={111} href={START} side={<Photo name="lin" className="ph-hero" />} />
       <Rows n={112} />
       <Rows n={113} style="steps" />
