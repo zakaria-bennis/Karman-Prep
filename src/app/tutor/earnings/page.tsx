@@ -1,30 +1,27 @@
 // ============================================================
-// /tutor/earnings — slim home dashboard.
+// /tutor/earnings — the staff tutor's money at a glance.
 //
-// What's here (intentionally minimal):
-//   · 3 lifetime metric cards
-//   · "Request payout" CTA → /tutor/payouts (disabled if pending=$0)
-//   · "View earning data" CTA → /tutor/earnings/data
-//      (time-range dropdown + sessions table + analytics chart
-//       all live on that detailed page now)
+// Lifetime totals, the way to a payout (the one main button,
+// only when something is pending), and a link to the detailed
+// earnings data. The shell gives the heading and tabs.
 // ============================================================
 
 import type { Metadata } from "next";
-import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
-import { Wallet, Clock, DollarSign, ArrowRight, BarChart3 } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchTutorEarningsSummary } from "@/lib/supabase/queries/earnings";
-import { cn } from "@/lib/utils";
+import { Card, Cta, MoreLink, Num, SectionHeader } from "@/components/portal";
+import { WbStats } from "@/components/admin/workbench";
 
 export const metadata: Metadata = { title: "My Earnings — Karman" };
 export const dynamic = "force-dynamic";
 
 const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const fmtHours = (n: number) => `${n.toFixed(2)}h`;
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export default async function TutorEarningsPage() {
   const { userId: realUserId } = await safeAuth();
@@ -44,131 +41,58 @@ export default async function TutorEarningsPage() {
 
   const summary = await fetchTutorEarningsSummary(caller.id as string);
   const canRequestPayout = summary.pending_amount > 0;
+  const readySessions = summary.sessions_with_recap - summary.sessions_paid;
 
   return (
-    <>
-      <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
-        {/* ── Header ────────────────────────────────── */}
-        <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--info)]">Tutor Portal</p>
-          <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">My earnings</h1>
-          <p className="mt-1 text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
-            Refreshed {timeSince(summary.last_refreshed_at)} ago
-          </p>
-        </header>
-
-        {/* ── 3 lifetime cards ──────────────────────── */}
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-          <MetricCard
-            icon={<Clock className="h-4 w-4" />}
-            label="Total hours (lifetime)"
-            value={fmtHours(summary.total_hours_worked)}
-            tone="slate"
-          />
-          <MetricCard
-            icon={<DollarSign className="h-4 w-4" />}
-            label="Lifetime earned"
-            value={fmt.format(summary.total_earnings)}
-            tone="emerald"
-            footer={`${fmt.format(summary.paid_amount)} paid · ${summary.sessions_paid} session${summary.sessions_paid === 1 ? "" : "s"}`}
-          />
-          <MetricCard
-            icon={<Wallet className="h-4 w-4" />}
-            label="Pending payout"
-            value={fmt.format(summary.pending_amount)}
-            tone={summary.pending_amount > 0 ? "blue" : "slate"}
-            footer={`${summary.sessions_with_recap - summary.sessions_paid} session${summary.sessions_with_recap - summary.sessions_paid === 1 ? "" : "s"} ready`}
-          />
-        </section>
-
-        {/* ── Two CTAs — primary = Request payout, secondary = View data ── */}
-        <section className="grid gap-3 sm:grid-cols-2">
-          <Link
-            href="/tutor/payouts"
-            aria-disabled={!canRequestPayout}
-            className={cn(
-              "flex items-start justify-between gap-3 rounded-xl border-2 p-5 transition",
-              canRequestPayout
-                ? "border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color:var(--info)] text-[color:var(--ink)] hover:bg-[color:var(--info)]"
-                : "pointer-events-none cursor-not-allowed border-[color:var(--line)] bg-[color:var(--card)] text-[color:var(--mute)] dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]"
-            )}
-          >
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider opacity-80">
-                <Wallet className="h-4 w-4" /> Request payout
-              </div>
-              <div className="mt-1 text-2xl font-extrabold tabular-nums">
-                {fmt.format(summary.pending_amount)}
-              </div>
-              <div className="mt-1 text-xs opacity-80">
-                {canRequestPayout
-                  ? `${summary.sessions_with_recap - summary.sessions_paid} session${summary.sessions_with_recap - summary.sessions_paid === 1 ? "" : "s"} ready · pick Instant or ACH`
-                  : "No pending earnings — send recaps to mark sessions as eligible."}
-              </div>
-            </div>
-            <ArrowRight className="mt-1 h-5 w-5 shrink-0" />
-          </Link>
-
-          <Link
-            href="/tutor/earnings/data"
-            className="group flex items-start justify-between gap-3 rounded-xl border-2 border-[color:var(--line)] bg-[color:var(--card)] p-5 transition hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)] dark:hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)]"
-          >
-            <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[color:var(--mute)]">
-                <BarChart3 className="h-4 w-4" /> View earning data
-              </div>
-              <div className="mt-1 text-lg font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
-                Sessions, history, trends
-              </div>
-              <div className="mt-1 text-xs text-[color:var(--mute)] dark:text-[color:var(--mute)]">
-                Filter by today, week, month, or any range. See per-session earnings + a 12-week
-                chart.
-              </div>
-            </div>
-            <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[color:var(--mute)] transition group-hover:text-[color:var(--info)]" />
-          </Link>
-        </section>
-
-        {/* ── Light footer guidance ──────────────────── */}
-        <p className="text-center text-xs text-[color:var(--mute)] dark:text-[color:var(--mute)]">
-          Pay = $35/hour, rounded down to 15-min increments. Same rate for 1:1 and group sessions.
+    <div className="wb" style={{ paddingBlock: 0 }}>
+      <Card>
+        <SectionHeader
+          title="All time"
+          note={`Updated ${timeSince(summary.last_refreshed_at)} ago`}
+        />
+        <WbStats
+          items={[
+            { label: "Hours taught", value: <Num>{fmtHours(summary.total_hours_worked)}</Num> },
+            { label: "Earned", value: <Num>{fmt.format(summary.total_earnings)}</Num> },
+            { label: "Waiting to be paid", value: <Num>{fmt.format(summary.pending_amount)}</Num> },
+          ]}
+        />
+        <p className="kp-meta">
+          <Num>{fmt.format(summary.paid_amount)}</Num> paid for{" "}
+          <Num>{plural(summary.sessions_paid, "session")}</Num>.
         </p>
-      </div>
-    </>
-  );
-}
+      </Card>
 
-// ──────────────────────────────────────────────────────────
-// Components
-// ──────────────────────────────────────────────────────────
-function MetricCard({
-  icon,
-  label,
-  value,
-  tone,
-  footer,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  tone: "slate" | "blue" | "emerald";
-  footer?: string;
-}) {
-  const tones = {
-    slate: "border-[color:var(--line)] dark:border-[color:var(--line)]",
-    blue: "border-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--info)_5%,transparent)]",
-    emerald: "border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_5%,transparent)]",
-  };
-  return (
-    <div className={cn("rounded-xl border bg-[color:var(--card)] px-4 py-4 dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]", tones[tone])}>
-      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)] dark:text-[color:var(--mute)]">
-        {icon}
-        {label}
-      </div>
-      <div className="mt-1.5 text-xl font-extrabold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)] sm:text-2xl">
-        {value}
-      </div>
-      {footer && <div className="mt-1 text-xs text-[color:var(--mute)] dark:text-[color:var(--mute)]">{footer}</div>}
+      <Card>
+        <SectionHeader title="Payout" />
+        {canRequestPayout ? (
+          <>
+            <p className="kp-meta">
+              <Num>{fmt.format(summary.pending_amount)}</Num> from{" "}
+              <Num>{plural(readySessions, "session")}</Num> is ready. Choose Instant or ACH on the
+              next screen.
+            </p>
+            <Cta href="/tutor/payouts">Request a payout</Cta>
+          </>
+        ) : (
+          <p className="kp-meta">
+            Nothing to pay out yet. Send the recap after each session and it becomes ready here.
+          </p>
+        )}
+      </Card>
+
+      <Card>
+        <SectionHeader title="Earnings data" />
+        <p className="kp-meta">
+          Every session by date range, payout history, and the last 12 weeks.
+        </p>
+        <MoreLink href="/tutor/earnings/data">See earnings data</MoreLink>
+      </Card>
+
+      <p className="wb-note">
+        Pay is $35 an hour, rounded down to the nearest 15 minutes. The rate is the same for 1:1 and
+        group sessions.
+      </p>
     </div>
   );
 }
