@@ -91,8 +91,15 @@ the local database only. All Stripe calls were in test mode.
     live payments are refused);
   - the form checks and the private storage;
   - the admin bank and plans helpers.
-- `npx tsc --noEmit`: no errors. Eslint and Prettier on every file this branch changed:
-  clean. `npm run check:sizes`: OK.
+- `npx tsc --noEmit`: no errors. `npm run lint`: no errors. Prettier on every file this
+  branch changed: clean. `npm run check:sizes`: OK.
+- **Full `npm test`:** 9,387 pass and 3 fail, all in calculator tests this branch never
+  touched (nothing in the calculator, the eslint config or `.prettierignore` changed since
+  the `claude/overnight-ship` merge):
+  - two hit the 5-second timeout on the overloaded machine (FunctionsPanel K-5, the engine
+    break-corpus recursion cases);
+  - one, AR-5, checks that the calculator's vendored MathQuill files are excluded from
+    eslint and Prettier. It fails on the ignore lists that came with that merge.
 - **Local database:**
   - Both migrations applied.
   - The demo seed made a finished cohort.
