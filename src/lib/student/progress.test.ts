@@ -12,8 +12,7 @@ import {
   scoreChange,
   scoreHistory,
   trendGeometry,
-  weekStart,
-  weeklyEffort,
+  dailyEffort,
   whatMoved,
 } from "./progress";
 
@@ -102,29 +101,23 @@ describe("time and effort", () => {
     expect(activeSeconds(-5)).toBe(0);
   });
 
-  it("weeks start on Monday", () => {
-    expect(weekStart("2026-11-08")).toBe("2026-11-02");
-    expect(weekStart("2026-11-02")).toBe("2026-11-02");
-    expect(weekStart("2026-11-01")).toBe("2026-10-26");
-  });
-
-  it("sums active time per week, oldest first, with the busiest week full", () => {
-    const weeks = weeklyEffort(
+  it("sums active time per day for the last week, oldest first, with the busiest day full", () => {
+    const days = dailyEffort(
       [
-        { at: NOW - DAY, seconds: 100 }, // this week
-        { at: NOW - DAY, seconds: 100 },
-        { at: NOW - 2 * DAY, seconds: 100 },
-        { at: NOW - 8 * DAY, seconds: 60 }, // last week
-        { at: NOW - 8 * DAY, seconds: 5000 }, // a pause: counts 120
-        { at: NOW - 60 * DAY, seconds: 60 }, // too old
+        { at: NOW, seconds: 100 }, // today
+        { at: NOW, seconds: 100 },
+        { at: NOW - DAY, seconds: 60 }, // yesterday
+        { at: NOW - DAY, seconds: 5000 }, // a pause: counts 120
+        { at: NOW - 30 * DAY, seconds: 60 }, // too old
       ],
       NOW
     );
-    expect(weeks).toHaveLength(5);
-    expect(weeks[4]).toMatchObject({ label: "This week", seconds: 300, share: 1 });
-    expect(weeks[3]).toMatchObject({ start: "2026-10-26", label: "Oct 26", seconds: 180 });
-    expect(weeks[3].share).toBeCloseTo(0.6);
-    expect(weeks[0].seconds).toBe(0);
+    expect(days).toHaveLength(7);
+    expect(days[6]).toMatchObject({ label: "Today", seconds: 200, share: 1 });
+    expect(days[5].seconds).toBe(180);
+    expect(days[5].share).toBeCloseTo(0.9);
+    expect(days[5].label).toMatch(/^[A-Z][a-z]{2}$/);
+    expect(days[0].seconds).toBe(0);
   });
 
   it("formats effort and the month", () => {

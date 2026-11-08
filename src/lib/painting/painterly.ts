@@ -444,7 +444,7 @@ export function paintPicture(
           }
           break;
         }
-        for (let n = 0; n < 200 && i < queue.length; n++, i++)
+        for (let n = 0; n < 24 && i < queue.length; n++, i++)
           drawSeg(ctx, queue[i], 0, queue[i].pts.length - 1);
       }
       if (i < queue.length || queue === all) {

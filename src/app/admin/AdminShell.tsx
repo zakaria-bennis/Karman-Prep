@@ -32,8 +32,8 @@ export default function AdminShell({
       accountDetail={email}
       home="/admin"
       menu={[
-        { label: "Student view", href: "/dashboard/student" },
-        { label: "Public site", href: "/" },
+        { label: "Student view", icon: "child", href: "/dashboard/student" },
+        { label: "Public site", icon: "site", href: "/" },
       ]}
     >
       <Panel label="Admin">

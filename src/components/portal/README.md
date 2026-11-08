@@ -29,7 +29,10 @@ render its content straight into the shell. The working example is the student T
 
 - **One main button per screen.** `Cta` is the only highlighted button. Every other action is a
   text link (`MoreLink`, a `Row` link, or `className="kp-link"`).
-- **Progress is always a ring.** Use `Ring` or `LevelRing`. No bars, no filling boxes.
+- **Progress is a ring.** Use `Ring` or `LevelRing`. The one exception is time and effort, which
+  is one labelled bar per day so days compare at a glance (founder, 2026-11-08).
+- **Open in place.** A card that has more to show uses `Expand`: it slides open where it is
+  instead of jumping to a new page, and the opened part links to the full page if one exists.
 - **Skills are always squares.** Use `SkillSquares`. Outline for not started, then New,
   Learning, Understanding, Conquered in the painting's four shades.
 - **Numbers are Hanken Grotesk** with lining, even-width figures: wrap them in `Num`.
@@ -44,20 +47,21 @@ render its content straight into the shell. The working example is the student T
 
 ## PortalShell
 
-| Prop            | What it does                                                                                                                                        |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `portal`        | Who it is for, read by screen readers on the nav ("Student", "Parent").                                                                             |
-| `nav`           | The portal's tabs: `{ href, label, icon, badge? }[]`. Rail on desktop, tab bar on phone. The active tab is the longest `href` the path starts with. |
-| `title`         | The page heading, typed in. Leave it out on a home page to get a rotating greeting for the hour.                                                    |
-| `name`          | First name, for the greeting and the account menu.                                                                                                  |
-| `accountDetail` | Second line in the account menu, usually the email.                                                                                                 |
-| `satDate`       | ISO date. Adds the milestone greetings at 100, 60, 30, 14 and 7 days.                                                                               |
-| `streak`        | `{ days, href }`. Shows the flame and count beside the fox. Leave out to hide.                                                                      |
-| `menu`          | Extra account menu items: `{ label, href }` (or `onSelect` from a client component). "Profile and security" and "Sign out" are always added.        |
-| `home`          | Where the Karman mark at the top of the rail leads.                                                                                                 |
+| Prop            | What it does                                                                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `portal`        | Who it is for, read by screen readers on the nav ("Student", "Parent").                                                                                      |
+| `nav`           | The portal's tabs: `{ href, label, icon, badge? }[]`. Rail on desktop, tab bar on phone. The active tab is the longest `href` the path starts with.          |
+| `title`         | The page heading, typed in. Leave it out on a home page to get a rotating greeting for the hour.                                                             |
+| `name`          | First name, for the greeting and the account menu.                                                                                                           |
+| `accountDetail` | Second line in the account menu, usually the email.                                                                                                          |
+| `satDate`       | ISO date. Adds the milestone greetings at 100, 60, 30, 14 and 7 days.                                                                                        |
+| `streak`        | `{ days, href }`. Shows the flame and count beside the fox. Leave out to hide.                                                                               |
+| `menu`          | Extra account menu items: `{ label, icon, href }` (or `onSelect` from a client component). One or two words each. "Profile" and "Sign out" are always added. |
+| `home`          | Where the Karman logo leads. Defaults to the first nav item: the logo never leaves the portal.                                                               |
 
-The fox avatar opens the account menu. Escape or a click outside closes it, and focus returns
-to the avatar. Arrow keys move between items.
+The fox avatar springs open the account menu: who is signed in, a grid of big tiles (an icon and
+one or two words each), then Sign out on its own line. Escape, a click outside or a scroll closes
+it, and focus returns to the avatar. Arrow keys move between items.
 
 Icons for `nav[].icon`: `today`, `homework`, `library`, `calendar`, `progress`, `students`,
 `child`, `messages`, `money`, `settings`, `school`, `questions`, `review`, `upload`, `code`,
@@ -85,6 +89,12 @@ painting, then slides down.
 `<Cta href="...">Start Your Daily 10</Cta>`, or `<Cta onClick={...}>` / `type="submit"` inside a
 client component. It always carries the chevron: white text on the painting's accent, which is
 darkened until the text passes 4.5:1.
+
+## Expand
+
+`<Expand summary={<b>Algebra</b>} tint="var(--l3)" label="Algebra">...details...</Expand>`. The
+summary is a button (`aria-expanded`); the details slide open with grid rows (no measuring).
+`tint` colors the card's wash and its left edge. `defaultOpen` opens it on arrival.
 
 ## Ring and LevelRing
 

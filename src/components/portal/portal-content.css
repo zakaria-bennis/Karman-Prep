@@ -103,11 +103,13 @@
 }
 
 /* ---------- Cards, rows and headers ---------- */
+/* Cards carry a little of the painting's hue, so the box is not grey on grey (founder,
+   2026-11-08: "more color inside the box"). */
 .kp-card {
-  padding: 16px 18px 14px;
-  border: 1px solid var(--line);
+  padding: 18px 20px 16px;
+  border: 1px solid color-mix(in srgb, hsl(var(--hue) var(--hs) 50%) 18%, var(--line));
   border-radius: 4px;
-  background: var(--card);
+  background: color-mix(in srgb, hsl(var(--hue) var(--hs) 55%) 7%, var(--card));
   min-width: 0;
 }
 .kp-card[data-tone="late"] {
@@ -122,7 +124,8 @@
 }
 .kp-sec-h > :first-child {
   margin: 0;
-  font: 700 19px/26px var(--font-sans);
+  font: 700 22px/28px var(--font-sans);
+  letter-spacing: -0.01em;
 }
 .kp-sec-h small {
   color: var(--mute);
@@ -131,7 +134,7 @@
 }
 .kp-title {
   margin: 0;
-  font: 700 22px/28px var(--font-sans);
+  font: 700 26px/32px var(--font-sans);
   letter-spacing: -0.01em;
 }
 .kp-meta {
@@ -156,14 +159,16 @@
 }
 .kp-row b {
   display: block;
+  font-size: 17px;
+  line-height: 24px;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 .kp-row small {
   display: block;
   color: var(--mute);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 15px;
+  line-height: 21px;
 }
 .kp-row > span:last-child:not(:first-child) {
   flex: none;
@@ -430,5 +435,78 @@
   .kp-shell *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* ---------- Expand: a card that opens in place (founder, 2026-11-08) ---------- */
+.kp-expand {
+  --tint: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--tint) 32%, var(--line));
+  border-left: 4px solid var(--tint);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--tint) 8%, var(--card));
+  transition: background-color 0.25s;
+}
+.kp-expand[data-open] {
+  background: color-mix(in srgb, var(--tint) 13%, var(--card));
+}
+.kp-expand-sum {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 14px 14px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.kp-expand-body {
+  flex: 1;
+  min-width: 0;
+}
+.kp-expand-chev {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.kp-expand[data-open] .kp-expand-chev {
+  transform: rotate(180deg);
+}
+/* Grid rows from 0fr to 1fr slide the panel open to its own height, with no measuring. */
+.kp-expand-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.kp-expand[data-open] .kp-expand-panel {
+  grid-template-rows: 1fr;
+}
+.kp-expand-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 16px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.25s,
+    transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+    padding 0.38s;
+}
+.kp-expand[data-open] .kp-expand-inner {
+  padding-bottom: 14px;
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kp-expand-panel,
+  .kp-expand-inner,
+  .kp-expand-chev {
+    transition: none;
   }
 }
