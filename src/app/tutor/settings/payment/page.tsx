@@ -18,7 +18,6 @@ import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchAccountStatus } from "@/lib/integrations/stripe/connect";
@@ -87,36 +86,25 @@ export default async function PaymentSettingsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <>
-      <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
-        <Link
-          href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-[color:var(--mute)] hover:text-[color:var(--ink)] dark:hover:text-[color:var(--ink)]"
-        >
-          <ChevronLeft className="h-4 w-4" /> My earnings
+    <div className="wb" style={{ paddingBlock: 0 }}>
+      <p className="wb-note">Set up how Karman pays you.</p>
+      <PaymentSettingsClient
+        state={{
+          hasConnectAccount: !!caller.stripe_connect_account_id,
+          payoutsEnabled,
+          chargesEnabled,
+          detailsSubmitted,
+          instantPayoutsActive,
+          requirements,
+          justOnboarded: sp.onboarded === "1",
+          justUpdated: sp.updated === "1",
+        }}
+      />
+      <p className="wb-note">
+        <Link className="kp-link" href="/tutor/settings/booking">
+          Booking settings
         </Link>
-
-        <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--info)]">Tutor Portal</p>
-          <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">Payment settings</h1>
-          <p className="mt-1 text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
-            Set up how you receive payouts from KarmanPrep.
-          </p>
-        </header>
-
-        <PaymentSettingsClient
-          state={{
-            hasConnectAccount: !!caller.stripe_connect_account_id,
-            payoutsEnabled,
-            chargesEnabled,
-            detailsSubmitted,
-            instantPayoutsActive,
-            requirements,
-            justOnboarded: sp.onboarded === "1",
-            justUpdated: sp.updated === "1",
-          }}
-        />
-      </div>
-    </>
+      </p>
+    </div>
   );
 }

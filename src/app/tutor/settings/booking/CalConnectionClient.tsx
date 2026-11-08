@@ -3,12 +3,13 @@
 // ============================================================
 // Client island for /tutor/settings/booking. Renders the three
 // connection states + the "pick event-type" dropdown + the
-// disconnect action.
+// disconnect action. Rendered inside the page's `.wb` box.
 // ============================================================
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, CheckCircle2, Link2, Unlink } from "lucide-react";
+import { Card, Chevron, SectionHeader } from "@/components/portal";
+import { WbPill } from "@/components/admin/workbench";
 import type { CalConnectionStatus } from "@/lib/supabase/queries/cal-oauth";
 import type { CalEventType } from "@/lib/integrations/cal/oauth";
 import { pickCalEventTypeAction } from "./actions";
@@ -29,22 +30,18 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
 
   if (!status.connected) {
     return (
-      <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] px-6 py-8 text-center dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
-        <Link2 className="mx-auto mb-3 h-6 w-6 text-[color:var(--info)]" />
-        <h2 className="text-lg font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
-          Connect your Cal.com account
-        </h2>
-        <p className="mx-auto mt-1 max-w-md text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
-          We&rsquo;ll read your event-types and point your Karman students at the right one. You can
-          disconnect anytime.
+      <Card>
+        <SectionHeader title="Connect your Cal.com account" />
+        <p className="kp-meta">
+          We&rsquo;ll read your event types and point your Karman students at the right one. You can
+          disconnect at any time.
         </p>
-        <a
-          href="/api/cal/oauth/start"
-          className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--info)] px-4 py-2 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--info)]"
-        >
-          <CalendarPlus className="h-4 w-4" /> Connect Cal.com
+        {/* A plain link, not next/link: this starts the Cal OAuth flow and must not be prefetched. */}
+        <a className="kp-cta" href="/api/cal/oauth/start">
+          <span>Connect Cal.com</span>
+          <Chevron />
         </a>
-      </div>
+      </Card>
     );
   }
 
@@ -74,75 +71,92 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
   }
 
   return (
-    <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] px-6 py-6">
-      <div className="flex items-center gap-2 text-sm">
-        <CheckCircle2 className="h-4 w-4 text-[color:var(--good)]" />
-        <span className="font-semibold text-[color:var(--ink)]">Cal.com connected</span>
-        {status.connectedAt ? (
-          <span className="text-xs text-[color:var(--mute)]">
-            since {new Date(status.connectedAt).toLocaleDateString()}
-          </span>
-        ) : null}
-      </div>
+    <Card>
+      <SectionHeader title="Cal.com" note={<WbPill tone="ok">Connected</WbPill>} />
+      {status.connectedAt ? (
+        <p className="kp-meta">
+          Connected since{" "}
+          <span className="kp-num">{new Date(status.connectedAt).toLocaleDateString()}</span>.
+        </p>
+      ) : null}
 
       {status.eventTypeTitle ? (
-        <p className="mt-2 text-sm text-[color:var(--mute)]">
-          Karman students book against{" "}
-          <span className="font-semibold text-[color:var(--ink)]">{status.eventTypeTitle}</span>.
+        <p className="kp-meta">
+          Karman students book <b style={{ color: "var(--ink)" }}>{status.eventTypeTitle}</b>.
         </p>
       ) : (
-        <p className="mt-2 text-sm text-[color:var(--warn)]">
-          Almost done — pick which of your event-types is the Karman session below.
+        <p className="kp-meta" style={{ color: "var(--warn)" }}>
+          Almost done. Pick which of your event types is the Karman session.
         </p>
       )}
 
       {eventTypesError ? (
-        <p className="mt-3 text-sm text-[color:var(--late)]">{eventTypesError}</p>
+        <p className="wb-alert" role="alert" style={{ marginTop: 12 }}>
+          {eventTypesError}
+        </p>
       ) : eventTypes.length === 0 ? (
-        <p className="mt-3 text-sm text-[color:var(--mute)]">
-          You don&rsquo;t have any event-types in your Cal account yet. Create one (60 min works
-          well) on cal.com and refresh this page.
+        <p className="kp-meta">
+          Your Cal account has no event types yet. Make one on cal.com (60 minutes works well), then
+          refresh this page.
         </p>
       ) : (
-        <div className="mt-4 space-y-2">
-          <label className="block text-xs font-semibold text-[color:var(--mute)]">
-            {status.eventTypeId
-              ? "Change which event-type is the Karman session"
-              : "Pick the Karman session event-type"}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "flex-end",
+            gap: 8,
+            marginTop: 12,
+          }}
+        >
+          <label className="wb-field" style={{ flex: "1 1 240px", minWidth: 0 }}>
+            <span>
+              {status.eventTypeId
+                ? "Change which event type is the Karman session"
+                : "Pick the Karman session event type"}
+            </span>
+            <select
+              className="wb-select"
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value === "" ? "" : Number(e.target.value))}
+              disabled={busy}
+            >
+              {eventTypes.map((ev) => (
+                <option key={ev.id} value={ev.id}>
+                  {ev.title} · {ev.lengthInMinutes} min
+                </option>
+              ))}
+            </select>
           </label>
-          <select
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value === "" ? "" : Number(e.target.value))}
-            disabled={busy}
-            className="w-full rounded-md border border-[color:var(--line)] bg-[color:var(--card)] px-2 py-1.5 text-sm text-[color:var(--ink)]"
-          >
-            {eventTypes.map((ev) => (
-              <option key={ev.id} value={ev.id}>
-                {ev.title} · {ev.lengthInMinutes} min
-              </option>
-            ))}
-          </select>
           <button
+            type="button"
+            className="wb-btn"
+            data-variant={status.eventTypeId ? undefined : "primary"}
             onClick={onPick}
             disabled={busy || typeof selectedId !== "number"}
-            className="rounded-md bg-[color:var(--info)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--info)] disabled:opacity-50"
           >
-            {busy ? "Saving…" : status.eventTypeId ? "Save change" : "Save event-type"}
+            {busy ? "Saving…" : status.eventTypeId ? "Save change" : "Save event type"}
           </button>
         </div>
       )}
 
-      <div className="mt-6 border-t border-[color:var(--line)] pt-4">
+      <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
         <button
+          type="button"
+          className="wb-btn"
+          data-variant="danger"
           onClick={onDisconnect}
           disabled={busy}
-          className="inline-flex items-center gap-1 text-xs text-[color:var(--late)] hover:underline disabled:opacity-50"
         >
-          <Unlink className="h-3 w-3" /> Disconnect Cal account
+          Disconnect Cal account
         </button>
       </div>
 
-      {err ? <p className="mt-3 text-sm text-[color:var(--late)]">{err}</p> : null}
-    </div>
+      {err ? (
+        <p className="wb-alert" role="alert" style={{ marginTop: 12 }}>
+          {err}
+        </p>
+      ) : null}
+    </Card>
   );
 }
