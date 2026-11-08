@@ -32,12 +32,27 @@ function readStorage(key: string) {
     return null;
   }
 }
+function removeStorage(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* nothing stored to clear */
+  }
+}
 function writeStorage(key: string, value: string) {
   try {
     localStorage.setItem(key, value);
   } catch {
     /* Account save still works when storage is unavailable. */
   }
+}
+
+/** With no theme chosen yet, the device's light or dark setting decides (founder, 8 November). Without
+ *  matchMedia (tests, very old browsers) the default stays dark. */
+function deviceTheme(): SiteTheme {
+  const light =
+    typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches;
+  return (light ? findTheme("ivory") : undefined) ?? SITE_THEMES[0];
 }
 
 /** Only a cosmetic allowlisted ID is user-editable; never use this metadata for authorization. */
@@ -49,6 +64,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const account = useRef<string | undefined>(undefined);
   const initialized = useRef<string | null>(null);
   const pendingBeforeIdentity = useRef<SiteTheme | null>(null);
+  const followDevice = useRef(true);
+  // until a theme is chosen, follow the device's light or dark setting live
+  useEffect(() => {
+    if (typeof matchMedia !== "function") return;
+    const device = matchMedia("(prefers-color-scheme: light)");
+    const onChange = () => {
+      if (!followDevice.current) return;
+      const next = deviceTheme();
+      setPalette(next);
+      applyTheme(next);
+    };
+    device.addEventListener("change", onChange);
+    return () => device.removeEventListener("change", onChange);
+  }, []);
   useEffect(() => {
     const boot = findTheme(document.documentElement.dataset.theme);
     if (boot) setPalette(boot);
@@ -61,17 +90,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     initialized.current = key;
     const pending = pendingBeforeIdentity.current;
     pendingBeforeIdentity.current = null;
-    const saved =
+    const chosen =
       pending ??
       findTheme(readStorage(key)) ??
       findTheme(user?.unsafeMetadata?.karmanTheme) ??
-      (!user ? findTheme(readStorage("karman-theme")) : undefined) ??
-      SITE_THEMES[0];
+      (!user ? findTheme(readStorage("karman-theme")) : undefined);
+    followDevice.current = !chosen;
+    const saved = chosen ?? deviceTheme();
     setPalette(saved);
     applyTheme(saved);
     if (pending) writeStorage(key, saved.id);
-    writeStorage("karman-theme:active", saved.id);
-    writeStorage(modeKey(saved.dark, user?.id), saved.id);
+    if (chosen) {
+      writeStorage("karman-theme:active", saved.id);
+      writeStorage(modeKey(saved.dark, user?.id), saved.id);
+    } else {
+      // nothing chosen: the next page load follows the device too, before React runs
+      removeStorage("karman-theme:active");
+    }
     setNotice("");
     setSaving(false);
     if (pending && user) {
@@ -95,6 +130,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = (id: string) => {
     const next = findTheme(id);
     if (!next || saving) return;
+    followDevice.current = false;
     if (!isLoaded) pendingBeforeIdentity.current = next;
     setPalette(next);
     applyTheme(next);

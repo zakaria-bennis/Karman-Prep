@@ -289,7 +289,7 @@ export function themeStyleSheet(): string {
 
 export function themeBootstrapScript(): string {
   const modes = Object.fromEntries(SITE_THEMES.map(({ id, dark }) => [id, dark]));
-  return `(()=>{try{const modes=${JSON.stringify(modes)};const stored=localStorage.getItem("karman-theme:active")||localStorage.getItem("karman-theme:visitor")||localStorage.getItem("karman-theme");const id=stored==="dark"?"observatory":stored==="light"?"ivory":stored;if(Object.prototype.hasOwnProperty.call(modes,id)){const root=document.documentElement;root.dataset.theme=id;root.classList.toggle("dark",modes[id]);}}catch{}})();`;
+  return `(()=>{try{const modes=${JSON.stringify(modes)};const stored=localStorage.getItem("karman-theme:active")||localStorage.getItem("karman-theme:visitor")||localStorage.getItem("karman-theme")||(typeof matchMedia==="function"&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");const id=stored==="dark"?"observatory":stored==="light"?"ivory":stored;if(Object.prototype.hasOwnProperty.call(modes,id)){const root=document.documentElement;root.dataset.theme=id;root.classList.toggle("dark",modes[id]);}}catch{}})();`;
 }
 
 export function applyTheme(theme: SiteTheme) {
