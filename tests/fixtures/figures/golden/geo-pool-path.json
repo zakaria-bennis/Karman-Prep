@@ -1,0 +1,136 @@
+{
+  "source": "2025-10_ASIA_V1_MATH_M2_Q14 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "geometry2d",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "O1",
+        "x": 319,
+        "y": 60
+      },
+      {
+        "kind": "point",
+        "id": "O2",
+        "x": 814,
+        "y": 60
+      },
+      {
+        "kind": "point",
+        "id": "O3",
+        "x": 814,
+        "y": 443
+      },
+      {
+        "kind": "point",
+        "id": "O4",
+        "x": 319,
+        "y": 443
+      },
+      {
+        "kind": "point",
+        "id": "I1",
+        "x": 387,
+        "y": 130
+      },
+      {
+        "kind": "point",
+        "id": "I2",
+        "x": 746,
+        "y": 130
+      },
+      {
+        "kind": "point",
+        "id": "I3",
+        "x": 746,
+        "y": 373
+      },
+      {
+        "kind": "point",
+        "id": "I4",
+        "x": 387,
+        "y": 373
+      },
+      {
+        "kind": "point",
+        "id": "d1",
+        "x": 704,
+        "y": 60
+      },
+      {
+        "kind": "point",
+        "id": "d2",
+        "x": 704,
+        "y": 130
+      },
+      {
+        "kind": "point",
+        "id": "d3",
+        "x": 319,
+        "y": 263
+      },
+      {
+        "kind": "point",
+        "id": "d4",
+        "x": 387,
+        "y": 263
+      },
+      {
+        "kind": "polygon",
+        "id": "out",
+        "points": ["O1", "O2", "O3", "O4"]
+      },
+      {
+        "kind": "polygon",
+        "id": "pool",
+        "points": ["I1", "I2", "I3", "I4"],
+        "shade": "shade"
+      },
+      {
+        "kind": "dimension",
+        "id": "dx1",
+        "from": "d1",
+        "to": "d2"
+      },
+      {
+        "kind": "dimension",
+        "id": "dx2",
+        "from": "d3",
+        "to": "d4"
+      },
+      {
+        "kind": "text",
+        "id": "path",
+        "x": 567,
+        "y": 90
+      },
+      {
+        "kind": "text",
+        "id": "poolName",
+        "x": 566.5,
+        "y": 251.5
+      }
+    ],
+    "labels": [
+      {
+        "text": "concrete path",
+        "on": "path"
+      },
+      {
+        "text": "pool",
+        "on": "poolName"
+      },
+      {
+        "text": "x ft",
+        "on": "dx1"
+      },
+      {
+        "text": "x ft",
+        "on": "dx2"
+      }
+    ],
+    "marks": [],
+    "notToScale": true
+  }
+}

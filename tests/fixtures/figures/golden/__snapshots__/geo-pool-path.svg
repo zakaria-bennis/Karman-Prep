@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Quadrilateral O1O2O3O4, shaded quadrilateral I1I2I3I4, labelled &quot;concrete path&quot;, labelled &quot;pool&quot;, a dimension marked x ft, a dimension marked x ft, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M86 60.46 L314 60.46 L314 214.79 L86 214.79 Z" fill="var(--figure-fill-shade)" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="pool">
+</path>
+<path d="M42.81 16 L357.19 16 L357.19 259.25 L42.81 259.25 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="out">
+</path>
+<path d="M86 60.46 L314 60.46 L314 214.79 L86 214.79 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="pool">
+</path>
+<path d="M287.33 16 L287.33 60.46" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="dx1">
+</path>
+<path d="M42.81 144.93 L86 144.93" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-start="url(#figure-arrow-_R_0_)" marker-end="url(#figure-arrow-_R_0_)" data-part="dx2">
+</path>
+<text x="200" y="292" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+<text x="200.32" y="40.68" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="path">concrete path</text>
+<text x="200" y="143.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="poolName">pool</text>
+<text x="311.33" y="43.85" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="dx1">x ft</text>
+<text x="64.4" y="165.93" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="dx2">x ft</text>
+</svg>

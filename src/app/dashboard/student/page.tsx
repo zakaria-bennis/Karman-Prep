@@ -77,6 +77,8 @@ export default async function StudentDashboardPage() {
       diagnostic={diagnosticResult.data}
       subscription={sub}
       showPlacementBanner={showPlacementBanner}
+      name={(user as { first_name?: string | null } | null)?.first_name ?? null}
+      email={(user as { email?: string | null } | null)?.email ?? null}
     />
   );
 }

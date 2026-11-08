@@ -34,7 +34,7 @@ export default async function DiagnosticPage() {
 
   const { data: user } = await supabase
     .from("users")
-    .select("id, diagnostic_retakes_remaining")
+    .select("id, diagnostic_retakes_remaining, timing_accommodation")
     .eq("clerk_id", userId)
     .maybeSingle();
 
@@ -65,6 +65,11 @@ export default async function DiagnosticPage() {
       questions={DIAGNOSTIC_QUESTIONS}
       isSubscribed={isSubscribed}
       isRetake={isRetake}
+      accommodation={
+        user?.timing_accommodation === "time_and_half" || user?.timing_accommodation === "double"
+          ? user.timing_accommodation
+          : "standard"
+      }
     />
   );
 }

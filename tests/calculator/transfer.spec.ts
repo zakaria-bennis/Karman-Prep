@@ -71,8 +71,8 @@ test("TR-4 controls render only where useCalculator() returns a bridge: Math que
   await expect(page.getByText(/^Question 1:/).first()).toBeVisible();
   await expect(allControls(page)).toHaveCount(0);
   await page.goto(url());
-  await press(page, "Skip this question");
-  await press(page, "Skip this question");
+  await press(page, "Next");
+  await press(page, "Next");
   await expect(page.getByText("is quoted", { exact: false })).toBeVisible();
   await expect(allControls(page)).toHaveCount(0);
 });

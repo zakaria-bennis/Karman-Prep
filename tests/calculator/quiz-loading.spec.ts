@@ -64,7 +64,7 @@ test("AR-56 a runaway row leaves the diagnostic timer and Skip responsive and sh
         });
         watch.observe(document.body, { childList: true, subtree: true });
         [...document.querySelectorAll("button")]
-          .find((b) => b.textContent?.includes("Skip this question"))!
+          .find((b) => b.textContent?.includes("Next"))!
           .click();
       })
   );
@@ -162,7 +162,7 @@ test("AR-53 a window render error shows a window-sized fallback with Retry and C
   const box = (await fallback.boundingBox())!;
   expect(box.width).toBeLessThanOrEqual(880);
   expect(box.height).toBeLessThan(400);
-  const skip = page.getByRole("button", { name: "Skip this question" });
+  const skip = page.getByRole("button", { name: "Next" });
   await expect(page.getByText(/^Question \d+/).first()).toBeVisible();
   // A trial click runs every actionability check, the hit test included, without skipping.
   await skip.click({ trial: true });

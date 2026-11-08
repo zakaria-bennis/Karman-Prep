@@ -113,15 +113,18 @@ function harness(
         );
     },
   };
+  const award = vi.fn(async (input: { correct: boolean }) => (input.correct ? 10 : 0));
   const service = createCatalogPracticeService({
     fetchPool: async () => items.map((item) => item.question),
     loadEvidence: async () => new Map(items.map((item) => [item.question.id, item.evidence])),
     loadOwnedAssignment,
     store,
     now: () => new Date("2026-11-08T12:00:00Z"),
+    award,
   });
   return {
     service,
+    award,
     sessions,
     abandoned,
     setItems: (next: typeof items) => {
@@ -338,5 +341,28 @@ describe("canonical practice session", () => {
     await expect(service.resume(started.id, "student-1")).rejects.toThrow(
       "Assignment is unavailable"
     );
+  });
+
+  it("awards points through the award hook with the session, skill and difficulty", async () => {
+    const { service, award } = harness();
+    const started = await service.start(startInput, "student-1");
+    await service.submit(
+      { sessionId: started.id, questionId: ids[0], answer: "B", responseTimeSeconds: 3 },
+      "student-1"
+    );
+    const second = await service.submit(
+      { sessionId: started.id, questionId: ids[1], answer: "A", responseTimeSeconds: 4 },
+      "student-1"
+    );
+    expect(award).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        key: `catalog:${started.id}:${ids[1]}`,
+        clerkId: "student-1",
+        correct: true,
+        skillId: catalogSkillId,
+      })
+    );
+    expect(second.points).toBe(10);
+    expect(JSON.stringify(second)).not.toMatch(/difficulty/);
   });
 });

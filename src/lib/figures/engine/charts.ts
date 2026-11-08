@@ -19,7 +19,15 @@
 import { chartDetail } from "./describe-detail";
 import { HOUSE } from "./house";
 import { textWidth } from "./labels";
-import { lineStyle, marker, STYLED_SWATCH, type LineStyle } from "./line-styles";
+import {
+  FILLS,
+  legendHeight,
+  legendItems,
+  legendRows,
+  seg,
+  type LegendEntry,
+} from "./chart-legend";
+import { lineRole, lineStyle, marker } from "./line-styles";
 import { dotAt, functionItems } from "./plane";
 import { LINE_HEIGHT, wrapText } from "./axis-names";
 import {
@@ -29,8 +37,9 @@ import {
   type Mapper,
   type Rect as Box4,
   type YAxisMode,
+  Y_LABEL_PITCH,
 } from "./plane-axes";
-import type { Role, Scene, SceneIssue, SceneItem, Weight } from "./scene";
+import type { Scene, SceneIssue, SceneItem, Weight } from "./scene";
 import type { FigureSpec, Part, PlaneFrame } from "./spec";
 import { CHART_TYPES, type ChartKind } from "./spec-types";
 import { niceStep } from "./ticks";
@@ -46,10 +55,7 @@ const BAR_SHARE = 0.4;
 const GROUP_SHARE = 0.6;
 /** No bar is wider than this share of the plot. */
 const MAX_BAR_SHARE = 1 / 8;
-/** Opaque fills, one per series in turn: grid lines never show through. */
-const FILLS: Role[] = ["ink-muted", "ink", "highlight"];
 const BOX_HEIGHT = 40;
-const SWATCH = 12;
 
 /** A clean [min, max] covering lo..hi, on multiples of the automatic tick step. */
 export function niceRange(lo: number, hi: number): [number, number] {
@@ -232,17 +238,18 @@ function points(s: Series, c: Ctx): Pair[] {
  */
 function line(s: Series, c: Ctx): SceneItem[] {
   const pts = points(s, c);
-  const style = lineStyle(c.index, c.count);
+  const style = lineStyle(c.index, c.count, s.style);
   const weight: Weight = style ? style.weight : c.index % 2 ? "dashed" : "line";
   const items: SceneItem[] = [];
   if (pts.length > 1) {
     const d = pts.map(([x, y], i) => `${i ? "L" : "M"}${fmt(c.m.px(x))} ${fmt(c.m.py(y))}`);
-    items.push({ t: "path", d: d.join(" "), role: "ink", weight, partId: s.id });
+    items.push({ t: "path", d: d.join(" "), role: lineRole(style), weight, partId: s.id });
   }
   for (const [x, y] of pts) {
     const X = c.m.px(x);
     const Y = c.m.py(y);
-    items.push(style ? marker(X, Y, style, s.id) : dotAt(X, Y, s.id));
+    const m = style ? marker(X, Y, style, s.id) : dotAt(X, Y, s.id);
+    if (m) items.push(m);
   }
   return items;
 }
@@ -281,9 +288,6 @@ function dotPlot(s: Series, c: Ctx): SceneItem[] {
   }
   return items;
 }
-
-const seg = (x1: number, y1: number, x2: number, y2: number) =>
-  `M${fmt(x1)} ${fmt(y1)} L${fmt(x2)} ${fmt(y2)}`;
 
 function boxPlot(s: Series, c: Ctx, name: string | undefined): SceneItem[] {
   const v = s.values.filter((x): x is number => !isPair(x));
@@ -350,116 +354,6 @@ function numberLineHeight(
     tallest = Math.max(tallest, ...counts.values());
   }
   return (tallest + 1) * pitch + HOUSE.dotPlotGap;
-}
-
-type LegendEntry = {
-  id: string;
-  name: string;
-  kind: ChartKind;
-  index: number;
-  /** A line series' own pattern and marker, when the chart has three or more. */
-  style?: LineStyle | null;
-  /** The name as drawn: one line, or wrapped when it is wider than the figure (a phone). */
-  lines?: string[];
-};
-
-/** Legend rows packed within `width`: each entry is a swatch and its series name. */
-function legendRows(entries: LegendEntry[], width: number): LegendEntry[][] {
-  const rows: LegendEntry[][] = [];
-  let used = 0;
-  for (const entry of entries) {
-    // A name too wide for the figure wraps beside its swatch.
-    const room = width - swatchWidth(entry) - 4 * HOUSE.labelOffset;
-    const e = { ...entry, lines: wrapText(entry.name, room) };
-    const w = legendWidth(e);
-    const row = rows[rows.length - 1];
-    if (row && used + w <= width) {
-      row.push(e);
-      used += w;
-    } else {
-      rows.push([e]);
-      used = w;
-    }
-  }
-  return rows;
-}
-
-const swatchWidth = (e: LegendEntry) => (e.style ? STYLED_SWATCH : SWATCH);
-
-const nameLines = (e: LegendEntry) => e.lines ?? [e.name];
-
-const legendWidth = (e: LegendEntry) =>
-  swatchWidth(e) +
-  HOUSE.labelOffset +
-  Math.max(...nameLines(e).map(textWidth)) +
-  3 * HOUSE.labelOffset;
-
-/** Text lines in each legend row: its most wrapped name. */
-const rowLines = (row: LegendEntry[]) => Math.max(...row.map((e) => nameLines(e).length));
-
-/** The legend's height: its text lines, with room above and below. */
-const legendHeight = (rows: LegendEntry[][]) =>
-  rows.length
-    ? rows.reduce((sum, row) => sum + rowLines(row), 0) * LINE_HEIGHT + 2 * HOUSE.labelOffset
-    : 0;
-
-function legendItems(rows: LegendEntry[][], width: number, top: number): SceneItem[] {
-  const items: SceneItem[] = [];
-  const off = HOUSE.labelOffset;
-  let before = 0; // text lines in the rows above
-  rows.forEach((row) => {
-    const rowW = row.reduce((sum, e) => sum + legendWidth(e), 0) - 2 * off;
-    let x = (width - rowW) / 2;
-    const y = top + off + HOUSE.font + before * LINE_HEIGHT;
-    before += rowLines(row);
-    const mid = y - HOUSE.font / 3;
-    for (const e of row) {
-      if (e.kind === "bar" || e.kind === "histogram") {
-        items.push({
-          t: "rect",
-          x,
-          y: mid - SWATCH / 2,
-          width: SWATCH,
-          height: SWATCH,
-          role: "ink",
-          fill: FILLS[e.index % FILLS.length],
-          partId: "legend",
-        });
-      } else if (e.kind === "line" && e.style) {
-        items.push({
-          t: "path",
-          d: seg(x, mid, x + STYLED_SWATCH, mid),
-          role: "ink",
-          weight: e.style.weight,
-          partId: "legend",
-        });
-        items.push(marker(x + STYLED_SWATCH / 2, mid, e.style, "legend"));
-      } else if (e.kind === "line") {
-        items.push({
-          t: "path",
-          d: seg(x, mid, x + SWATCH, mid),
-          role: "ink",
-          weight: e.index % 2 ? "dashed" : "line",
-          partId: "legend",
-        });
-      } else {
-        items.push(dotAt(x + SWATCH / 2, mid, "legend", HOUSE.pointRadius + 1, e.index % 2 === 1));
-      }
-      nameLines(e).forEach((text, k) => {
-        items.push({
-          t: "text",
-          x: x + swatchWidth(e) + off,
-          y: y + k * LINE_HEIGHT,
-          text,
-          role: "ink",
-          anchor: "start",
-          partId: "legend",
-        });
-      });
-      x += legendWidth(e);
-    }
-  });
-  return items;
 }
 
 const WHAT: Record<ChartKind, string> = {
@@ -545,7 +439,7 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
             const kind = kinds.get(s.id)!;
             const same = ofKind(kind);
             const index = same.indexOf(s);
-            const style = kind === "line" ? lineStyle(index, same.length) : null;
+            const style = kind === "line" ? lineStyle(index, same.length, s.style) : null;
             return name ? [{ id: s.id, name, kind, index, style }] : [];
           }),
           // Graphed functions show as line swatches in their own style.
@@ -554,8 +448,10 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
             return name ? [{ id: f.id, name, kind: "line" as const, index }] : [];
           }),
         ];
+  // One named series draws a legend only when the spec asks for it, as its original does.
   const drawn = series.length + fns.length;
-  const rows = drawn > 1 && entries.length ? legendRows(entries, box.width - 2 * margin) : [];
+  const keyed = drawn > 1 || spec.legend === true;
+  const rows = keyed && entries.length ? legendRows(entries, box.width - 2 * margin) : [];
   const legendH = legendHeight(rows);
   const rowNames = type === "box_plot" ? series.map((s) => names.get(s.id) ?? "") : [];
   const left = Math.max(0, ...rowNames.map((n) => (n ? textWidth(n) + HOUSE.labelOffset : 0)));
@@ -579,6 +475,19 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
   if (need !== null && axes.map.h > need) {
     full.height -= axes.map.h - need;
     axes = planeAxes(frame, full, opts);
+  }
+  // A y label step the spec sets is kept: the chart grows taller until its labels fit,
+  // as it does for a title or legend (2026-05_US_V2_RW_M2_Q11 labels every 1 to 14).
+  const yAsked = frame.yLabelStep ?? (frame.yStep === undefined ? frame.labelStep : undefined);
+  const yTick = frame.yStep ?? frame.step;
+  // Labels sit on ticks: the step snaps to a whole number of ticks, as plane-axes.ts does.
+  const yEvery = yAsked && yTick ? yTick * Math.max(1, Math.round(yAsked / yTick)) : yAsked;
+  if (yMode === "ticks" && yEvery) {
+    const spacing = Math.abs(axes.map.py(frame.y[0]) - axes.map.py(frame.y[0] + yEvery));
+    if (spacing > 0 && spacing < Y_LABEL_PITCH) {
+      full.height += Math.ceil(axes.map.h * (Y_LABEL_PITCH / spacing - 1));
+      axes = planeAxes(frame, full, opts);
+    }
   }
   const m = axes.map;
   issues.push(...axes.issues);

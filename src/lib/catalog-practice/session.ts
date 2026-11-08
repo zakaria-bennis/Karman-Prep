@@ -62,6 +62,14 @@ export type CatalogPracticeDependencies = {
   ) => Promise<{ skillId: string; items: CatalogQuestionBinding[] }>;
   store: CatalogSessionStore;
   now?: () => Date;
+  /** Awards points for a graded answer (instant modes); returns the points awarded now. */
+  award?: (input: {
+    key: string;
+    clerkId: string;
+    correct: boolean;
+    difficulty: number;
+    skillId: string | null;
+  }) => Promise<0 | 10 | 15>;
 };
 
 /** A saved question was re-sealed or left the pool. The session can be closed and replaced. */
@@ -335,7 +343,16 @@ export function createCatalogPracticeService(deps: CatalogPracticeDependencies) 
           responseTimeSeconds: input.responseTimeSeconds,
         },
       });
-      return { questionId: response.questionId, ...review(snapshot, response) };
+      const points = deps.award
+        ? await deps.award({
+            key: `catalog:${session.id}:${response.questionId}`,
+            clerkId: studentId,
+            correct: response.isCorrect,
+            difficulty: snapshot.student.difficulty_level,
+            skillId: snapshot.binding.catalogSkillId,
+          })
+        : 0;
+      return { questionId: response.questionId, ...review(snapshot, response), points };
     },
     async complete(sessionId: string, studentId: string) {
       const session = await deps.store.getOwned(uuid.parse(sessionId), studentId);

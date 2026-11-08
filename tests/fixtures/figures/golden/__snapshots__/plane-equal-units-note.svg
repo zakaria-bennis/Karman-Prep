@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="A coordinate plane with x from -11 to 13 and y from -12 to 12: a circle with center (0, 0) and radius 8; the points (3, k) (3, 7.42) and (8, 0)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M111.38 233.63 L532.63 233.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-end="url(#figure-arrow-_R_0_)" data-part="axis">
+</path>
+<path d="M299.86 439.25 L299.86 18" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-end="url(#figure-arrow-_R_0_)" data-part="axis">
+</path>
+<text x="293.86" y="251.63" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit" font-style="italic">O</text>
+<text x="535.63" y="238.63" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">x</text>
+<text x="299.86" y="15" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">y</text>
+<path d="M436.95 233.63 L436.29 220.19 L434.31 206.88 L431.05 193.83 L426.51 181.17 L420.76 169 L413.85 157.47 L405.83 146.66 L396.8 136.69 L386.83 127.66 L376.02 119.64 L364.49 112.73 L352.32 106.98 L339.66 102.44 L326.61 99.18 L313.3 97.2 L299.86 96.54 L286.43 97.2 L273.12 99.18 L260.07 102.44 L247.41 106.98 L235.24 112.73 L223.71 119.64 L212.9 127.66 L202.93 136.69 L193.9 146.66 L185.88 157.47 L178.97 169 L173.22 181.17 L168.68 193.83 L165.42 206.88 L163.44 220.19 L162.78 233.62 L163.44 247.06 L165.42 260.37 L168.68 273.42 L173.22 286.08 L178.97 298.25 L185.88 309.78 L193.9 320.59 L202.93 330.56 L212.9 339.59 L223.71 347.61 L235.24 354.52 L247.41 360.27 L260.07 364.81 L273.12 368.07 L286.43 370.05 L299.86 370.71 L313.3 370.05 L326.61 368.07 L339.66 364.81 L352.32 360.27 L364.49 354.52 L376.02 347.61 L386.83 339.59 L396.8 330.56 L405.83 320.59 L413.85 309.78 L420.76 298.25 L426.51 286.08 L431.05 273.42 L434.31 260.37 L436.29 247.06 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="c">
+</path>
+<path d="M348.27 106.48 A3 3 0 1 0 354.27 106.48 A3 3 0 1 0 348.27 106.48 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="P">
+</path>
+<path d="M433.95 233.63 A3 3 0 1 0 439.95 233.63 A3 3 0 1 0 433.95 233.63 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="Q">
+</path>
+<text x="474.65" y="215.26" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="qText">(8, 0)</text>
+<text x="368.28" y="95.09" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="P">(3, k)</text>
+<text x="320" y="472" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+</svg>
