@@ -9,14 +9,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { tierLabel } from "@/lib/scheduling/tiers";
 import type { CohortTier, CohortStatus } from "@/lib/supabase/queries/cohorts";
 
 export type TabKey = "members" | "notes" | "homework";
-
-export const TIER_LABEL: Record<CohortTier, string> = {
-  small_group: "Small Group",
-  group: "Seminar",
-};
 
 export function TabLink({
   cohortId,
@@ -103,7 +99,7 @@ export function TierBadge({ tier }: { tier: CohortTier }) {
     <span
       className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
     >
-      {TIER_LABEL[tier]}
+      {tierLabel(tier)}
     </span>
   );
 }

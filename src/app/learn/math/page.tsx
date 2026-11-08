@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
-import SkillCatalogPage from "@/components/learn/SkillCatalogPage";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Math — Learn | Karman" };
-
+/** The old Math skill map is now the Library's SAT Math course (2026-11-08). */
 export default function Page() {
-  return <SkillCatalogPage subject="math" />;
+  redirect("/dashboard/student/library/math");
 }

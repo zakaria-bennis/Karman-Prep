@@ -21,6 +21,8 @@ import {
 } from "@/lib/supabase/queries/quiz";
 import { RW_NODES, MATH_NODES, currentAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
 import StudentDetailTabs from "@/components/tutor/StudentDetailTabs";
+import AffiliateStudent from "@/components/tutor-affiliate/AffiliateStudent";
+import { fetchUserNameAndEmail } from "@/lib/tutor-affiliate/profile";
 
 export const metadata: Metadata = { title: "Student — Tutor Portal" };
 
@@ -34,9 +36,21 @@ export default async function StudentDetailPage({ params, searchParams }: Params
 
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
-  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
+  const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
 
   const role = await fetchUserRole(userId);
+  if (role === "affiliate_tutor") {
+    const me = await fetchUserNameAndEmail(userId);
+    return (
+      <AffiliateStudent
+        actorClerkId={userId}
+        studentClerkId={decodeURIComponent(studentId)}
+        tutorFirstName={me.firstName}
+        tutorEmail={me.email}
+        readOnly={isImpersonating}
+      />
+    );
+  }
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");
 
   if (!(await canTutorAccessStudent(userId, studentId))) notFound();

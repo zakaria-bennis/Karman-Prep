@@ -31,6 +31,10 @@ import {
   cohortTopicPresentation,
 } from "@/lib/learning-plan/cohort-presentation";
 import { CalendarPlus, AlertCircle } from "lucide-react";
+import { tierLabel } from "@/lib/scheduling/tiers";
+import { fetchUserRole } from "@/lib/supabase/queries/admin";
+import { fetchUserNameAndEmail } from "@/lib/tutor-affiliate/profile";
+import AffiliateHome from "@/components/tutor-affiliate/AffiliateHome";
 
 export const metadata: Metadata = { title: "Tutor Portal — Karman" };
 export const dynamic = "force-dynamic";
@@ -38,7 +42,19 @@ export const dynamic = "force-dynamic";
 export default async function TutorPage() {
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
-  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
+  const { clerkId: userId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
+
+  if ((await fetchUserRole(userId)) === "affiliate_tutor") {
+    const me = await fetchUserNameAndEmail(userId);
+    return (
+      <AffiliateHome
+        clerkId={userId}
+        firstName={me.firstName}
+        email={me.email}
+        readOnly={isImpersonating}
+      />
+    );
+  }
 
   const scope = await fetchTutorScope(userId);
   const rows = await fetchStudentDashboardRows(scope.studentClerkIds);
@@ -227,7 +243,7 @@ function CalSetupBanner({
 }
 
 function TierPill({ tier }: { tier: "group" | "small_group" }) {
-  const label = tier === "small_group" ? "Small Group" : "Seminar";
+  const label = tierLabel(tier);
   const cls =
     tier === "small_group"
       ? "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border border-success/40 dark:border-success/20"

@@ -3,6 +3,10 @@
 --
 -- $1,500 to the top-scoring student in each cohort, paid as a
 -- refund of the cohort price plus a merit bonus for the rest.
+-- A tie for the top score splits the $1,500 equally (founder,
+-- 8 Nov): each tied claim carries its share in award_cents.
+-- The refund runs in Stripe; the bonus is a bank transfer sent
+-- by hand and recorded by an admin (date and reference).
 --
 -- scholarship_claims        one claim per student per cohort:
 --                           the uploaded official score report,
@@ -55,22 +59,28 @@ CREATE TABLE IF NOT EXISTS public.scholarship_claims (
   reviewed_at             TIMESTAMPTZ,
   review_reason           TEXT         CHECK (review_reason IS NULL OR char_length(review_reason) <= 2000),
 
-  -- Payout through Stripe. Test mode only until the founder turns
-  -- on live payouts (src/lib/scholarship/payout.ts).
+  -- The claim's share of the award, set when it is approved
+  -- ($1,500, or an equal part of it in a tie).
+  award_cents             INTEGER      CHECK (award_cents > 0 AND award_cents <= 150000),
+
+  -- Refund through Stripe (test mode only until the founder turns
+  -- on live payouts, src/lib/scholarship/payout.ts).
   payout_status           TEXT         NOT NULL DEFAULT 'none'
                                        CHECK (payout_status IN ('none', 'processing', 'refunded', 'paid', 'failed')),
   stripe_livemode         BOOLEAN,
   stripe_payment_intent_id TEXT        CHECK (stripe_payment_intent_id IS NULL OR stripe_payment_intent_id ~ '^pi_[A-Za-z0-9]+$'),
-  stripe_customer_id      TEXT         CHECK (stripe_customer_id IS NULL OR stripe_customer_id ~ '^cus_[A-Za-z0-9]+$'),
   stripe_refund_id        TEXT         UNIQUE,
   refund_amount_cents     INTEGER      CHECK (refund_amount_cents >= 0),
   refunded_at             TIMESTAMPTZ,
-  bonus_method            TEXT         CHECK (bonus_method IN ('transfer', 'customer_balance')),
-  stripe_bonus_id         TEXT         UNIQUE,
-  bonus_amount_cents      INTEGER      CHECK (bonus_amount_cents >= 0),
-  bonus_paid_at           TIMESTAMPTZ,
   payout_error            TEXT         CHECK (payout_error IS NULL OR char_length(payout_error) <= 2000),
   payout_attempts         SMALLINT     NOT NULL DEFAULT 0 CHECK (payout_attempts >= 0),
+
+  -- The merit bonus: a bank transfer sent by hand, then recorded.
+  bonus_amount_cents      INTEGER      CHECK (bonus_amount_cents >= 0),
+  bonus_paid_on           DATE,
+  bonus_transfer_reference TEXT        CHECK (bonus_transfer_reference IS NULL OR char_length(bonus_transfer_reference) BETWEEN 2 AND 120),
+  bonus_recorded_by       UUID         REFERENCES public.users(id) ON DELETE SET NULL,
+  bonus_recorded_at       TIMESTAMPTZ,
   paid_at                 TIMESTAMPTZ,
 
   created_at              TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -87,16 +97,52 @@ CREATE TABLE IF NOT EXISTS public.scholarship_claims (
   CONSTRAINT scholarship_claims_reject_has_reason CHECK (
     status <> 'rejected' OR (review_reason IS NOT NULL AND char_length(btrim(review_reason)) > 0)
   ),
+  -- An approved or paid claim always knows its share.
+  CONSTRAINT scholarship_claims_award_set CHECK (
+    status NOT IN ('approved', 'paid') OR award_cents IS NOT NULL
+  ),
+  -- A recorded bank transfer always has its date and reference.
+  CONSTRAINT scholarship_claims_bonus_recorded CHECK (
+    (bonus_paid_on IS NULL) = (bonus_transfer_reference IS NULL)
+  ),
   -- A claim is only "paid" once the payout finished.
   CONSTRAINT scholarship_claims_paid_is_paid CHECK (
     status <> 'paid' OR (payout_status = 'paid' AND paid_at IS NOT NULL)
   )
 );
 
--- One award per cohort, enforced by the database.
-CREATE UNIQUE INDEX IF NOT EXISTS scholarship_claims_one_award_per_cohort
-  ON public.scholarship_claims (cohort_id)
-  WHERE status IN ('approved', 'paid');
+-- The awards in one cohort never add up to more than $1,500 (a tie
+-- splits it), enforced by the database. The lock serialises two
+-- approvals in the same cohort.
+CREATE OR REPLACE FUNCTION public.scholarship_claims_award_cap()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_total BIGINT;
+BEGIN
+  IF NEW.status NOT IN ('approved', 'paid') THEN
+    RETURN NEW;
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('scholarship:' || NEW.cohort_id::text));
+  SELECT COALESCE(SUM(award_cents), 0) INTO v_total
+    FROM public.scholarship_claims
+   WHERE cohort_id = NEW.cohort_id
+     AND status IN ('approved', 'paid')
+     AND id <> NEW.id;
+  IF v_total + COALESCE(NEW.award_cents, 0) > 150000 THEN
+    RAISE EXCEPTION 'scholarship_award_cap: this cohort''s awards would exceed $1,500'
+      USING ERRCODE = 'check_violation';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS scholarship_claims_award_cap ON public.scholarship_claims;
+CREATE TRIGGER scholarship_claims_award_cap
+  BEFORE INSERT OR UPDATE ON public.scholarship_claims
+  FOR EACH ROW
+  EXECUTE FUNCTION public.scholarship_claims_award_cap();
 
 CREATE INDEX IF NOT EXISTS scholarship_claims_status_idx
   ON public.scholarship_claims (status, submitted_at DESC);
@@ -133,7 +179,7 @@ CREATE TABLE IF NOT EXISTS public.scholarship_claim_events (
   kind            TEXT         NOT NULL CHECK (kind IN (
                                  'submitted', 'resubmitted', 'checked', 'approved', 'rejected',
                                  'reopened', 'payout_started', 'refund_succeeded',
-                                 'bonus_succeeded', 'payout_failed', 'paid'
+                                 'payout_failed', 'bonus_transfer_recorded', 'paid'
                                )),
   detail          JSONB        NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(detail) = 'object'),
   created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()

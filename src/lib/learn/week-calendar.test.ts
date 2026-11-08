@@ -52,8 +52,8 @@ describe("student calendar projection", () => {
       "session:second-130",
     ]);
     expect(week.days[0].items.map((item) => item.title)).toEqual([
-      "Seminar session",
-      "Small-group session",
+      "Weekly live session",
+      "Cohort class",
     ]);
     expect(week.days[0].items[0].href).toBe("/dashboard/student/schedule");
     expect(week.days[0].items[1].href).toBeNull();

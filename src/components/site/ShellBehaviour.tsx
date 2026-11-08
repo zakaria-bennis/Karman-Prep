@@ -28,7 +28,7 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
       addEventListener(type, fn, { passive: true, signal });
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    /* ---------- light and dark (design rule 33): remembered, one cross-fade ---------- */
+    /* ---------- light and dark: the device's setting until the visitor picks one, then remembered ---------- */
     const themes = [...ks.querySelectorAll<HTMLButtonElement>(".theme")];
     const paintTheme = () => {
       const word = ks.dataset.mode === "dark" ? SITE["light mode"] : SITE["dark mode"];
@@ -50,6 +50,23 @@ export default function ShellBehaviour({ dock }: { dock: [string, string] }) {
     };
     themes.forEach((b) => b.addEventListener("click", flip, { signal }));
     paintTheme();
+    // until the visitor picks one, the theme follows the device, live
+    const device = matchMedia("(prefers-color-scheme: light)");
+    device.addEventListener(
+      "change",
+      (e) => {
+        let chosen: string | null = null;
+        try {
+          chosen = localStorage.getItem("karman-site-theme");
+        } catch {
+          /* no storage: keep following the device */
+        }
+        if (chosen === "dark" || chosen === "light") return;
+        ks.dataset.mode = e.matches ? "light" : "dark";
+        paintTheme();
+      },
+      { signal }
+    );
 
     /* ---------- the pause button (home only): stops every film on the page, remembered ---------- */
     const motion = ks.querySelector<HTMLButtonElement>(".motion");

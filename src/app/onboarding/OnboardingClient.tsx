@@ -5,40 +5,39 @@
 // plan recommendation.
 //
 // Replaces the old "Are you a Student / Tutor / Parent?" picker.
-// Runs BEFORE the user picks a tier, so its job is to learn
-// enough about the student to recommend the right tier — and
-// explain WHY that tier — without asking the obvious "would
-// you like a small group or 1-on-1?" question (which just
-// hands the student the answer).
+// Runs BEFORE the family picks a plan, so its job is to learn
+// enough about the student to recommend the right plan, and
+// explain why, without asking the obvious "would you like a
+// group or 1-on-1?" question (which just hands over the answer).
 //
 // Step flow:
 //   1. Role             (Student / Parent — re-frames every later
 //                        question's wording)
-//   2. SAT date         (test date OR "not registered yet")
+//   2. Test and date    (SAT or PSAT, then the date OR "not registered yet")
 //   3. Goal score       (target)
 //   4. Baseline         (most recent SAT/PSAT, or "haven't taken")
 //   5. Hours/week       (study time available)
 //   6. Independence     (can the student stay on track alone?)
 //   7. Learning pace    (how fast does new material click?)
 //   8. Prior prep       (have they tried prep before, did it work?)
-//   9. Billing          (subscription vs per-session)
-//  10. Recommendation   (tier + reasoning + signals + CTA)
+//   9. Recommendation   (plan, price, reasoning, signals and the
+//                        plan's next step: checkout for Practice
+//                        and Pro, the application for the Cohort,
+//                        a call for Private)
 //
 // Tutors come in through a separate URL — they don't need this
 // recommendation flow.
 // ============================================================
 
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ArrowRight, Target, Compass, Gauge, History, CreditCard } from "lucide-react";
+import { ArrowLeft, ArrowRight, Target, Compass, Gauge, History } from "lucide-react";
 import {
-  recommendTier,
+  recommendPlan,
   type Recommendation,
   type Independence,
   type LearningPace,
   type PriorPrepResult,
-  type BillingPreference,
-} from "@/lib/onboarding/recommend-tier";
+} from "@/lib/onboarding/recommend-plan";
 import { COPY, type Role } from "./_steps/shared";
 import { RoleStep } from "./_steps/RoleStep";
 import { SatStep } from "./_steps/SatStep";
@@ -47,14 +46,20 @@ import { BaselineStep } from "./_steps/BaselineStep";
 import { HoursStep } from "./_steps/HoursStep";
 import { ChoiceStep } from "./_steps/ChoiceStep";
 import { RecommendationStep } from "./_steps/RecommendationStep";
+import type { TestType } from "@/components/student-portal/account/test-dates";
 
-export default function OnboardingClient() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const tierOverride = searchParams.get("tier");
-
+export default function OnboardingClient({
+  satDates,
+  today,
+}: {
+  /** Upcoming SAT dates (YYYY-MM-DD) from the sat_dates table. */
+  satDates: string[];
+  /** Today (YYYY-MM-DD), the earliest PSAT date. */
+  today: string;
+}) {
   // ─── Form state ──────────────────────────────────────────
   const [role, setRole] = useState<Role>("student");
+  const [testType, setTestType] = useState<TestType>("sat");
   const [satDate, setSatDate] = useState<string>("");
   const [goalScore, setGoalScore] = useState<number>(1300);
   const [hasBaseline, setHasBaseline] = useState<"" | "yes" | "no">("");
@@ -63,9 +68,8 @@ export default function OnboardingClient() {
   const [independence, setIndependence] = useState<Independence | "">("");
   const [pace, setPace] = useState<LearningPace | "">("");
   const [priorPrep, setPriorPrep] = useState<PriorPrepResult | "">("");
-  const [billing, setBilling] = useState<BillingPreference | "">("");
 
-  const copy = COPY[role];
+  const copy = COPY.student;
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
@@ -80,7 +84,6 @@ export default function OnboardingClient() {
         "independence",
         "pace",
         "prior",
-        "billing",
         "recommendation",
       ] as const,
     []
@@ -109,8 +112,6 @@ export default function OnboardingClient() {
         return !!pace;
       case "prior":
         return !!priorPrep;
-      case "billing":
-        return !!billing;
       default:
         return true;
     }
@@ -118,7 +119,7 @@ export default function OnboardingClient() {
 
   // ─── Compute recommendation ──────────────────────────────
   const recommendation: Recommendation | null = useMemo(() => {
-    if (!independence || !pace || !priorPrep || !billing || !satDate) return null;
+    if (!independence || !pace || !priorPrep || !satDate) return null;
     const weeksToTest =
       satDate === "not_registered"
         ? null
@@ -126,7 +127,7 @@ export default function OnboardingClient() {
             1,
             Math.round((new Date(satDate).getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000))
           );
-    return recommendTier({
+    return recommendPlan({
       weeksToTest,
       goalScore,
       baselineScore: hasBaseline === "yes" ? baselineScore : null,
@@ -134,19 +135,8 @@ export default function OnboardingClient() {
       independence,
       pace,
       priorPrep,
-      billingPreference: billing,
     });
-  }, [
-    satDate,
-    goalScore,
-    hasBaseline,
-    baselineScore,
-    hoursPerWeek,
-    independence,
-    pace,
-    priorPrep,
-    billing,
-  ]);
+  }, [satDate, goalScore, hasBaseline, baselineScore, hoursPerWeek, independence, pace, priorPrep]);
 
   function next() {
     if (canAdvance && step < totalSteps - 1) setStep(step + 1);
@@ -155,27 +145,15 @@ export default function OnboardingClient() {
     if (step > 0) setStep(step - 1);
   }
 
-  async function startCheckout(tier: string) {
+  /** Saves the account (role included), then opens the plan's next step. */
+  async function continueTo(href: string) {
     setSubmitting(true);
-    try {
-      await fetch("/api/auth/sync-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role }),
-      }).catch(() => {});
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier }),
-      });
-      const { url } = await res.json();
-      if (url) window.location.href = url;
-      else router.push(`/billing?tier=${tier}`);
-    } catch (err) {
-      console.error("[onboarding] checkout failed:", err);
-      setSubmitting(false);
-      router.push(`/billing?tier=${tier}`);
-    }
+    await fetch("/api/auth/sync-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    }).catch(() => {});
+    window.location.assign(href);
   }
 
   return (
@@ -200,7 +178,15 @@ export default function OnboardingClient() {
           {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}
 
           {currentStep === "sat" && (
-            <SatStep prompt={copy.sat} value={satDate} onChange={setSatDate} />
+            <SatStep
+              prompt={copy.sat}
+              testType={testType}
+              onTestType={setTestType}
+              value={satDate}
+              onChange={setSatDate}
+              satDates={satDates}
+              today={today}
+            />
           )}
 
           {currentStep === "goal" && (
@@ -270,34 +256,10 @@ export default function OnboardingClient() {
             />
           )}
 
-          {currentStep === "billing" && (
-            <ChoiceStep
-              icon={<CreditCard className="h-5 w-5 text-info" />}
-              prompt="How would you prefer to pay?"
-              hint="All plans come with live tutoring — this just changes how billing works."
-              options={[
-                {
-                  id: "subscription",
-                  label: "Predictable monthly subscription — same charge every month.",
-                },
-                {
-                  id: "per_session",
-                  label: "Pay per session — only billed when I actually book one.",
-                },
-              ]}
-              value={billing}
-              onChange={(v) => setBilling(v as BillingPreference)}
-            />
-          )}
-
           {currentStep === "recommendation" && recommendation && (
             <RecommendationStep
-              recommendation={
-                tierOverride
-                  ? { ...recommendation, tier: tierOverride as Recommendation["tier"] }
-                  : recommendation
-              }
-              onPick={startCheckout}
+              recommendation={recommendation}
+              onContinue={continueTo}
               submitting={submitting}
               role={role}
             />

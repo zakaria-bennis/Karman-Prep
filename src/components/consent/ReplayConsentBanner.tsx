@@ -40,13 +40,16 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
   async function submit(choice: "yes" | "no") {
     setSubmitting(true);
     try {
-      await fetch("/api/consent", {
+      const res = await fetch("/api/consent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ choice }),
       });
+      // An answer that isn't OK means the choice wasn't saved (the 2026-11-08 audit found
+      // signed-out visitors were refused): keep the banner up so they can try again.
+      if (!res.ok) throw new Error(`consent not saved (${res.status})`);
     } catch {
-      // Network failure — keep banner up so they can retry. Don't
+      // Network failure or refusal — keep banner up so they can retry. Don't
       // silently capture; that's the whole point.
       setSubmitting(false);
       return;

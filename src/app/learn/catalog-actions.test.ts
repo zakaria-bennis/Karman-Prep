@@ -4,6 +4,11 @@ const mocks = vi.hoisted(() => ({ auth: vi.fn(), role: vi.fn(), access: vi.fn(),
 vi.mock("@/lib/auth/dev-auth", () => ({ safeAuth: mocks.auth }));
 vi.mock("@/lib/supabase/queries/admin", () => ({ fetchUserRole: mocks.role }));
 vi.mock("@/lib/auth/tutor-access", () => ({ canTutorAccessStudent: mocks.access }));
+// The plan lookup reads the database; these tests are about payload shape, so act as Pro.
+vi.mock("@/lib/plans", () => ({
+  getPlan: vi.fn(async () => ({ entitlements: { pool: "mastery" } })),
+  difficultyRangeFor: () => ({ minimumDifficulty: 1, maximumDifficulty: 7 }),
+}));
 vi.mock("@/lib/supabase/queries/catalog-question-pool", () => ({
   fetchCatalogQuestionPool: mocks.pool,
 }));

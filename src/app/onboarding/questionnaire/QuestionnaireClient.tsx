@@ -27,7 +27,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SatScheduleStep, type SatDateOption } from "./_steps/SatSchedule";
+import { NOT_REGISTERED, SatScheduleStep, type SatDateOption } from "./_steps/SatSchedule";
+import type { TestType } from "@/components/student-portal/account/test-dates";
 import { BackgroundStep } from "./_steps/Background";
 import { AvailabilityStep } from "./_steps/Availability";
 import { FamilyStep } from "./_steps/Family";
@@ -41,15 +42,17 @@ interface Props {
   firstName: string;
   tier: "group" | "small_group" | "private" | "elite";
   satDates: SatDateOption[];
+  /** Today (YYYY-MM-DD), the earliest PSAT date. */
+  today: string;
 }
 
-export default function QuestionnaireClient({ firstName, tier, satDates }: Props) {
+export default function QuestionnaireClient({ firstName, tier, satDates, today }: Props) {
   const router = useRouter();
   const isOneToOne = tier === "private" || tier === "elite";
 
   // ─── Form state ──────────────────────────────────────────
+  const [testType, setTestType] = useState<TestType>("sat");
   const [satTestDate, setSatTestDate] = useState<string>("");
-  const [goalSatScore, setGoalSatScore] = useState<number>(1300);
   const [hsYear, setHsYear] = useState<string>("");
   const [satTaken, setSatTaken] = useState<"yes" | "no" | "">("");
   const [recentSatMath, setRecentSatMath] = useState<number>(500);
@@ -78,7 +81,7 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   // ─── Step list (depends on tier) ─────────────────────────
   const steps = useMemo(() => {
     const all = [
-      { key: "sat", label: "SAT", icon: CalendarCheck },
+      { key: "sat", label: "Test date", icon: CalendarCheck },
       { key: "bg", label: "Background", icon: GraduationCap },
       ...(isOneToOne ? [{ key: "avail", label: "Availability", icon: Clock }] : []),
       { key: "family", label: "Family", icon: Users },
@@ -93,9 +96,12 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
   // ─── Per-step validation ─────────────────────────────────
   function canAdvance(): { ok: boolean; reason?: string } {
     if (currentStep.key === "sat") {
-      if (!satTestDate) return { ok: false, reason: "Pick your SAT date." };
-      if (goalSatScore < 400 || goalSatScore > 1600)
-        return { ok: false, reason: "Goal score must be 400–1600." };
+      if (!satTestDate) {
+        return {
+          ok: false,
+          reason: testType === "sat" ? "Pick your SAT date." : "Pick your PSAT date.",
+        };
+      }
     }
     if (currentStep.key === "bg") {
       if (!hsYear) return { ok: false, reason: "Pick your high school year." };
@@ -136,8 +142,8 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          satTestDate,
-          goalSatScore,
+          testType,
+          satTestDate: satTestDate === NOT_REGISTERED ? null : satTestDate,
           hsYear,
           recentSatMath: satTaken === "yes" ? recentSatMath : null,
           recentSatReading: satTaken === "yes" ? recentSatReading : null,
@@ -252,10 +258,11 @@ export default function QuestionnaireClient({ firstName, tier, satDates }: Props
         {currentStep.key === "sat" && (
           <SatScheduleStep
             satDates={satDates}
+            today={today}
+            testType={testType}
+            setTestType={setTestType}
             satTestDate={satTestDate}
             setSatTestDate={setSatTestDate}
-            goalSatScore={goalSatScore}
-            setGoalSatScore={setGoalSatScore}
           />
         )}
 

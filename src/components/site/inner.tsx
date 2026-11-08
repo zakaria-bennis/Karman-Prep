@@ -59,7 +59,6 @@ export function InnerHero({
     <section className={`i-hero ${faq ? "i-faqhero" : ""}`} data-light id={`s-${n}`}>
       <div className="in">
         <div className="i-words">
-          {f.eyebrow ? <p className="eyebrow rv">{f.eyebrow}</p> : null}
           <h1>
             <Kinetic text={f.headline} />
           </h1>

@@ -61,8 +61,24 @@ export const payClaimSchema = z.object({
     .or(z.literal("").transform(() => undefined)),
 });
 
+/** The admin records the merit bonus once the bank transfer is sent. */
+export const markBonusPaidSchema = z.object({
+  claimId: z.guid(),
+  paidOn: isoDate.refine(
+    (s) => s <= new Date().toISOString().slice(0, 10),
+    "The transfer date can't be in the future"
+  ),
+  reference: z
+    .string()
+    .trim()
+    .min(2, "Add the bank transfer reference")
+    .max(120, "Keep the reference under 120 characters"),
+});
+
 export const claimListFilterSchema = z.object({
-  status: z.enum(["all", "submitted", "approved", "rejected", "paid"]).catch("submitted"),
+  status: z
+    .enum(["all", "submitted", "approved", "transfer", "rejected", "paid"])
+    .catch("submitted"),
   q: z.string().trim().max(100).catch(""),
 });
 
@@ -97,19 +113,20 @@ export const claimRowSchema = z.object({
   reviewed_by: z.string().nullable(),
   reviewed_at: z.string().nullable(),
   review_reason: z.string().nullable(),
+  award_cents: z.number().nullable(),
   payout_status: z.enum(["none", "processing", "refunded", "paid", "failed"]),
   stripe_livemode: z.boolean().nullable(),
   stripe_payment_intent_id: z.string().nullable(),
-  stripe_customer_id: z.string().nullable(),
   stripe_refund_id: z.string().nullable(),
   refund_amount_cents: z.number().nullable(),
   refunded_at: z.string().nullable(),
-  bonus_method: z.enum(["transfer", "customer_balance"]).nullable(),
-  stripe_bonus_id: z.string().nullable(),
-  bonus_amount_cents: z.number().nullable(),
-  bonus_paid_at: z.string().nullable(),
   payout_error: z.string().nullable(),
   payout_attempts: z.number(),
+  bonus_amount_cents: z.number().nullable(),
+  bonus_paid_on: z.string().nullable(),
+  bonus_transfer_reference: z.string().nullable(),
+  bonus_recorded_by: z.string().nullable(),
+  bonus_recorded_at: z.string().nullable(),
   paid_at: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string(),

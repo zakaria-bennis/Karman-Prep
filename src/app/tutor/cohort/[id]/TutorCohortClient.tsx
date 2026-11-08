@@ -27,6 +27,7 @@ import type {
   TutorHomework,
 } from "@/lib/supabase/queries/tutor";
 import type { CohortTier, CohortStatus } from "@/lib/supabase/queries/cohorts";
+import { tierLabel } from "@/lib/scheduling/tiers";
 import { actionSaveCohortNote, actionCreateHomework, actionDeleteHomework } from "./actions";
 
 type TabKey = "members" | "notes" | "homework";
@@ -508,7 +509,7 @@ function TierBadge({ tier }: { tier: CohortTier }) {
     <span
       className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
     >
-      {tier === "small_group" ? "Small Group" : "Seminar"}
+      {tierLabel(tier)}
     </span>
   );
 }

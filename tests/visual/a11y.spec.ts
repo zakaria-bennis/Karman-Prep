@@ -57,16 +57,6 @@ const PAGES_TO_SCAN = [
     email: "dev-seed-mid@karman.local",
   },
   { persona: "student_mid", url: "/dashboard/student/chat", email: "dev-seed-mid@karman.local" },
-  {
-    persona: "student_mid",
-    url: "/dashboard/student/mastered",
-    email: "dev-seed-mid@karman.local",
-  },
-  {
-    persona: "student_mid",
-    url: "/dashboard/student/predicted-sat",
-    email: "dev-seed-mid@karman.local",
-  },
   { persona: "student_mid", url: "/learn", email: "dev-seed-mid@karman.local" },
   { persona: "student_mid", url: "/learn/math", email: "dev-seed-mid@karman.local" },
   { persona: "student_mid", url: "/learn/reading", email: "dev-seed-mid@karman.local" },

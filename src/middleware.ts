@@ -16,7 +16,11 @@
 // become public again.
 // ============================================================
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import {
+  clerkMiddleware,
+  createRouteMatcher,
+  type ClerkMiddlewareAuth,
+} from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 import { SITE_PAGES } from "@/components/site/routes";
@@ -63,6 +67,7 @@ const isMaintenanceExempt = createRouteMatcher([
 /** Routes that don't require auth in normal (post-launch) operation.
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
+  "/checkout/start", // pricing plan buttons: signed out goes to sign-up, then back here
   // the marketing site (src/components/site/routes.ts)
   "/",
   "/program",
@@ -76,6 +81,7 @@ const isPublicRoute = createRouteMatcher([
   "/privacy",
   "/terms",
   "/refunds",
+  "/cookies",
   // old marketing addresses, redirected in next.config.mjs
   "/free-diagnostic",
   "/plans",
@@ -111,7 +117,7 @@ function bypassMiddleware(_request: NextRequest) {
 const isMarketingPage = createRouteMatcher([...SITE_PAGES, "/robots.txt", "/sitemap.xml"]);
 
 /** The auth rules: maintenance gate, public routes, then Clerk protection. Exported for the tests. */
-export const karmanAuth: Parameters<typeof clerkMiddleware>[0] = async (auth, request) => {
+export const karmanAuth = async (auth: ClerkMiddlewareAuth, request: NextRequest) => {
   // ── Pre-launch maintenance gate ────────────────────────────
   if (!LAUNCHED && !isMaintenanceExempt(request)) {
     const { userId } = await auth();

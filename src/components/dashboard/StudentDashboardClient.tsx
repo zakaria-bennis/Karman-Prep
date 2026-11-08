@@ -4,41 +4,26 @@
  * skills on Today: they live in Progress and the Library. The data comes from the page as before.
  */
 import Link from "next/link";
-import {
-  Banner,
-  Card,
-  Cta,
-  MoreLink,
-  Num,
-  Panel,
-  PortalShell,
-  Row,
-  SectionHeader,
-  type PortalNavItem,
-} from "@/components/portal";
+import { Banner, Card, Cta, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import JoinButton from "@/components/student-portal/JoinButton";
+import StudentPortal, { STUDENT_ROUTES } from "@/components/student-portal/StudentPortal";
 import type { LearnDashboardData } from "@/lib/learn/dashboard";
-
-/** The student portal's tabs. Homework joins once its page exists. */
-export const STUDENT_NAV: PortalNavItem[] = [
-  { href: "/dashboard/student", label: "Today", icon: "today" },
-  { href: "/learn", label: "Library", icon: "library" },
-  { href: "/dashboard/student/schedule", label: "Calendar", icon: "calendar" },
-  { href: "/dashboard/student/progress", label: "Progress", icon: "progress" },
-];
-
-export const STUDENT_MENU = [
-  { label: "Messages", href: "/dashboard/student/chat" },
-  { label: "Quiz history", href: "/dashboard/student/quizzes" },
-  { label: "Plan and billing", href: "/billing" },
-];
+import type { StudentContext } from "@/lib/student/context";
 
 interface Props {
   dashboard: LearnDashboardData;
   diagnostic: { score_range_low: number; score_range_high: number } | null;
   subscription: { status: string; trial_end: string | null } | null;
   showPlacementBanner?: boolean;
-  name?: string | null;
-  email?: string | null;
+  ctx: StudentContext;
+  /** Open homework due soonest (null: no tutor can assign work). */
+  due?: { key: string; title: string; href: string | null; due: string; late: boolean }[] | null;
+  /** The next sessions and live events (null: the plan books nothing). */
+  comingUp?:
+    | { key: string; title: string; sub: string; when: string; join: string | null }[]
+    | null;
+  /** The one main button: the Daily 10 until it's done today, then the next assignment. */
+  main: { title: string; meta: string; label: string; href: string };
 }
 
 export default function StudentDashboardClient({
@@ -46,8 +31,10 @@ export default function StudentDashboardClient({
   diagnostic,
   subscription,
   showPlacementBanner,
-  name,
-  email,
+  ctx,
+  due = null,
+  comingUp = null,
+  main,
 }: Props) {
   const trialEnds =
     subscription?.status === "trialing" && subscription.trial_end
@@ -87,10 +74,68 @@ export default function StudentDashboardClient({
 
   const side = (
     <>
+      {due && (
+        <Card label="Homework">
+          <SectionHeader
+            title="Homework"
+            note={
+              ctx.homeworkOpen ? (
+                <>
+                  <Num>{ctx.homeworkOpen}</Num> open
+                </>
+              ) : undefined
+            }
+          />
+          {due.length === 0 ? (
+            <p className="kp-meta">Nothing due this week.</p>
+          ) : (
+            due.map((h) => (
+              <Row
+                key={h.key}
+                title={h.title}
+                href={h.href ?? undefined}
+                right={h.due}
+                rightTone={h.late ? "late" : undefined}
+              />
+            ))
+          )}
+          <MoreLink href={STUDENT_ROUTES.homework}>See all homework</MoreLink>
+        </Card>
+      )}
+      {comingUp && comingUp.length > 0 && (
+        <Card label="Coming up">
+          <SectionHeader title="Coming up" />
+          {comingUp.map((c) =>
+            c.join ? (
+              <div key={c.key} className="kp-row">
+                <span>
+                  <b>{c.title}</b>
+                  <small>
+                    {c.sub} · {c.when}
+                  </small>
+                </span>
+                <JoinButton href={c.join} what={c.title} />
+              </div>
+            ) : (
+              <Row
+                key={c.key}
+                title={c.title}
+                sub={c.sub}
+                href={STUDENT_ROUTES.calendar}
+                right={c.when}
+              />
+            )
+          )}
+        </Card>
+      )}
       <Card>
         <SectionHeader title="Practice" />
-        <Row title="Reading and Writing" href="/learn/reading" right="Open" />
-        <Row title="Math" href="/learn/math" right="Open" />
+        <Row
+          title="SAT Reading and Writing"
+          href={`${STUDENT_ROUTES.library}/reading-writing`}
+          right="Open"
+        />
+        <Row title="SAT Math" href={`${STUDENT_ROUTES.library}/math`} right="Open" />
         {!diagnostic && <Row title="Diagnostic test" href="/diagnostic" right="Take it" />}
       </Card>
       <Card>
@@ -117,22 +162,19 @@ export default function StudentDashboardClient({
   );
 
   return (
-    <PortalShell
-      portal="Student"
-      nav={STUDENT_NAV}
-      name={name}
-      accountDetail={email}
-      menu={STUDENT_MENU}
-      home="/dashboard/student"
-    >
+    <StudentPortal ctx={ctx}>
       <Panel banner={banner} side={side}>
         <section aria-labelledby="today-main">
           <h2 className="kp-title" id="today-main">
-            Your Daily 10
+            {main.title}
           </h2>
-          <p className="kp-meta">Ten questions picked for you today</p>
-          <Cta href="/learn/daily-ten">Start Your Daily 10</Cta>
-          {next && <MoreLink href={next.href}>{next.label}</MoreLink>}
+          <p className="kp-meta">{main.meta}</p>
+          <Cta href={main.href}>{main.label}</Cta>
+          {next && next.href !== main.href && (
+            <MoreLink href={next.href}>
+              {next.label}: {next.title}
+            </MoreLink>
+          )}
         </section>
         {dashboard.skillHistoryStatus === "unavailable" && (
           <p role="status" className="kp-meta">
@@ -167,6 +209,6 @@ export default function StudentDashboardClient({
           <MoreLink href="/dashboard/student/quizzes">Quiz history</MoreLink>
         </Card>
       </Panel>
-    </PortalShell>
+    </StudentPortal>
   );
 }

@@ -1,20 +1,21 @@
 "use client";
 
 // Pricing (ported from the mock's pricing.js): every paid option and every promise on one page. Pick when the
-// student wants to start and the cohort card, its dates and its price change to match; self-paced and private
-// tutoring start any day. The guarantee sits right under the plans with its whole terms; then everything side
-// by side. Numbers come from offer.ts, words from site-copy.ts.
+// student wants to start and the cohort card and its dates change to match; Practice, Pro and private tutoring
+// start any day. The guarantee sits right under the plans with its whole terms; then everything side by side,
+// then schools and tutors. Numbers come from offer.ts, words from site-copy.ts.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   formatPrice as money,
   GUARANTEE as G,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
-  PRIVATE_HOURLY_RATE,
+  PRACTICE_PLAN,
   PRIVATE_PACKAGES,
-  SELF_PACED as SP,
+  PRO_PLAN,
+  pricePerHour,
 } from "@/lib/marketing/offer";
-import { numberWord, SITE } from "@/lib/marketing/site-copy";
+import { numberWord, pairs, SITE } from "@/lib/marketing/site-copy";
 import { Btn, delay, Icon } from "./parts";
 import Photo from "./Photo";
 import { ROUTES } from "./routes";
@@ -28,9 +29,6 @@ type Cohort = {
   short: string;
   start: string;
   closes: string;
-  price: number;
-  was?: number;
-  split?: { count: number; amount: number };
   name: string;
 };
 const DATES: Cohort[] = [
@@ -39,9 +37,6 @@ const DATES: Cohort[] = [
     short: MP.startShort,
     start: noYear(MP.startLabel),
     closes: noYear(MP.enrollmentClosesLabel),
-    price: MP.price,
-    was: MP.regularPrice,
-    split: MP.installments,
     name: `The ${month(MP.startDate)} cohort`,
   },
   ...NEXT_PROGRAMS.map((p) => ({
@@ -49,37 +44,57 @@ const DATES: Cohort[] = [
     short: p.startShort,
     start: p.startLabel,
     closes: p.enrollmentClosesLabel,
-    price: MP.regularPrice,
     name: `The ${month(p.startDate)} cohort`,
   })),
 ];
 
-const CLASS = MP.paidSeats + MP.scholarshipSeats;
+/** Practice and Pro share one card: pick the plan, the price and the list change. */
+const SELF = [PRACTICE_PLAN, PRO_PLAN] as const;
+
+const CLASS = MP.paidSeats;
 const INCLUDES = {
   program: [
-    `Two live classes a week, up to ${numberWord(CLASS)} students`,
+    `Two live classes a week, up to ${numberWord(CLASS)} students in one score band`,
     `${numberWord(MP.fullLengthTests, true)} full-length practice tests`,
-    `A ${MP.reviewMinutes}-minute one-on-one after every full-length`,
     "A weekly live session",
-    "Daily 10 and our own practice questions",
+    `Everything in ${PRO_PLAN.name}: every question, with video explanations as they're recorded`,
     "Your cohort's group chat, answered daily",
     "Live progress for parents, and a weekly summary",
   ],
   private: [
     "Weekly 60-minute sessions with a Karman tutor",
     "Scheduled around your week",
-    "Practice tests, Daily 10 and our own questions",
+    `Everything in ${PRO_PLAN.name}: every question, with video explanations as they're recorded`,
     "The weekly live session",
     "A note to parents after every session",
   ],
 };
-// what each option includes, side by side: self-paced, cohort, private ("" = not included)
+const PROMISE = `+${G.pointsBelow} points, or +${G.pointsFrom} from ${G.splitAt}`;
+// what each option includes, side by side: Practice and Pro, cohort, private ("" = not included)
 const COMPARE: [string, string, string, string][] = [
   [
     `Live classes in a group of up to ${numberWord(CLASS)}`,
     "",
-    `Two a week, ${MP.totalClasses} in all`,
+    `Two a week, ${MP.totalClasses} in all, ${MP.classMinutes} minutes each`,
     "",
+  ],
+  [
+    "One-on-one time with a Karman tutor",
+    "",
+    "",
+    `Every session, ${PRIVATE_PACKAGES.map((p) => p.hours).join(" or ")} hours`,
+  ],
+  [
+    "Questions",
+    `${PRACTICE_PLAN.name}: the core pool. ${PRO_PLAN.name}: every question, mastery included`,
+    "Every question, mastery included",
+    "Every question, mastery included",
+  ],
+  [
+    "Explanations",
+    `${PRACTICE_PLAN.name}: written. ${PRO_PLAN.name}: written, plus video as it's recorded`,
+    "Written, plus video as it's recorded",
+    "Written, plus video as it's recorded",
   ],
   [
     "Full-length practice tests",
@@ -87,21 +102,15 @@ const COMPARE: [string, string, string, string][] = [
     "Five, the first and the last proctored live",
     "On the platform",
   ],
-  [
-    "One-on-one time with a Karman tutor",
-    "",
-    `${MP.reviewMinutes} minutes after every full-length`,
-    "Every session",
-  ],
-  ["Office hours and skill workshops", "When your student wants them", "yes", "yes"],
-  ["Daily 10 and our own practice questions", "yes", "yes", "yes"],
+  ["The weekly live session", "", "yes", "yes"],
+  ["The Daily 10", "yes", "yes", "yes"],
   ["Cohort group chat, answered by a tutor every day", "", "yes", ""],
   ["Progress for parents", "On their phone", "Every week", "After every session"],
   [
-    `The guarantee: +${G.points} points or a ${G.orScore}`,
+    `The guarantee: ${PROMISE}`,
     "",
     "Money back or the next cohort free",
-    `On ${PRIVATE_PACKAGES[1].hours} hours: free hours, then half back`,
+    `${PRIVATE_PACKAGES[0].name}: half back. ${PRIVATE_PACKAGES[1].name}: free hours, then half back`,
   ],
 ];
 
@@ -158,15 +167,29 @@ function Roll({ text }: { text: string }) {
   );
 }
 
+const Arrow = () => (
+  <svg viewBox="0 0 16 16" aria-hidden="true">
+    <path
+      d="M3 8h9.5M8.5 4 12.5 8l-4 4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
   const [key, setKey] = useState(DATES[0].key);
   const [split, setSplit] = useState(false);
   const [hours, setHours] = useState(0);
+  const [self, setSelf] = useState(0);
   const [compareOpen, setCompareOpen] = useState(true);
   useEffect(() => setCompareOpen(!matchMedia("(max-width: 700px)").matches), []);
   const other = key === "other";
   const d = DATES.find((x) => x.key === key) ?? DATES[0];
-  const paySplit = Boolean(d.split) && split;
+  const plan = SELF[self];
   const S = (k: string) => SITE[`pricing ${k}`];
 
   return (
@@ -174,7 +197,6 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
       <section className="p-hero" data-light>
         <div className="in p-herogrid">
           <div className="p-words">
-            <p className="eyebrow rv">{S("eyebrow")}</p>
             <h1 className="rv" style={delay(0.05)}>
               {S("headline")}
             </h1>
@@ -212,50 +234,53 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
           </p>
           <div className="cards">
             <article className={`plan self rv ${other ? "lift" : ""}`}>
-              <h2>{SP.name}</h2>
-              <p className="price">
-                <b className="amt">{money(SP.price)}</b>
-                <span className="per">for {SP.months} months</span>
+              <h2>{S("plans title")}</h2>
+              <div className="pay" role="radiogroup" aria-label={S("plans title")}>
+                {SELF.map((p, i) => (
+                  <label key={p.id}>
+                    <input
+                      type="radio"
+                      name="self"
+                      value={p.id}
+                      checked={self === i}
+                      onChange={() => setSelf(i)}
+                    />
+                    <span>{p.name}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="price" aria-live="polite">
+                <Roll text={money(plan.monthly)} />
+                <span className="per">a month, or {money(plan.threeMonths)} for 3 months</span>
               </p>
-              <p className="meta">{S("self note")}</p>
+              <p className="meta">{S("plans note")}</p>
               <ul>
-                {SP.includes.map((x) => (
+                {plan.includes.map((x) => (
                   <li key={x}>{x}</li>
                 ))}
               </ul>
-              <a className="ghost" href={ROUTES.test}>
-                {S("self button")}
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path
-                    d="M3 8h9.5M8.5 4 12.5 8l-4 4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.9"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+              <a className="ghost" href={`${ROUTES.checkout}?plan=${plan.id}&term=month`}>
+                {S(`${plan.id} button`)}
+                <Arrow />
               </a>
+              <p className="meta">
+                <a href={ROUTES.signUp}>{S("free note")}</a>
+              </p>
             </article>
 
             <article className={`plan program rv ${other ? "dim" : ""}`} style={delay(0.06)}>
               <a className="badge" href="#guarantee">
-                <b>+{G.points}</b>
+                <b>+{G.pointsBelow}</b>
                 <span>{S("badge")}</span>
               </a>
               <h2 className="pname">{d.name}</h2>
-              <div
-                className="pay"
-                role="radiogroup"
-                aria-label={`${S("full")} / ${S("split")}`}
-                hidden={!d.split}
-              >
+              <div className="pay" role="radiogroup" aria-label={`${S("full")} / ${S("split")}`}>
                 <label>
                   <input
                     type="radio"
                     name="pay"
                     value="full"
-                    checked={!paySplit}
+                    checked={!split}
                     onChange={() => setSplit(false)}
                   />
                   <span>{S("full")}</span>
@@ -265,17 +290,16 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                     type="radio"
                     name="pay"
                     value="split"
-                    checked={paySplit}
+                    checked={split}
                     onChange={() => setSplit(true)}
                   />
                   <span>{S("split")}</span>
                 </label>
               </div>
               <p className="price" aria-live="polite">
-                <Roll text={paySplit && d.split ? money(d.split.amount) : money(d.price)} />
-                <s className="was">{d.was && !paySplit ? money(d.was) : ""}</s>
+                <Roll text={split ? money(MP.installments.amount) : money(MP.price)} />
                 <span className="per">
-                  {paySplit && d.split ? `× ${d.split.count} payments` : ""}
+                  {split ? `× ${MP.installments.count} payments. ${S("split note")}` : ""}
                 </span>
               </p>
               <dl className="when">
@@ -317,14 +341,11 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               </div>
               <p className="price" aria-live="polite">
                 <Roll text={money(PRIVATE_PACKAGES[hours].price)} />
-                <span className="per">{money(PRIVATE_HOURLY_RATE)} an hour</span>
+                <span className="per">{pricePerHour(PRIVATE_PACKAGES[hours])} an hour</span>
               </p>
-              <a className="badge g20" href="#guarantee" hidden={hours !== 1}>
-                <b>+{G.private20.points}</b>
-                <span>
-                  On {PRIVATE_PACKAGES[1].hours} hours: +{G.private20.points} points or a{" "}
-                  {G.private20.orScore}.
-                </span>
+              <a className="badge g20" href="#guarantee">
+                <b>+{G.pointsBelow}</b>
+                <span>Both packages: {PROMISE}.</span>
               </a>
               <p className="meta">Start any time.</p>
               <ul>
@@ -334,16 +355,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               </ul>
               <a className="ghost" href={`${ROUTES.private}#call`}>
                 {S("private button")}
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path
-                    d="M3 8h9.5M8.5 4 12.5 8l-4 4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.9"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <Arrow />
               </a>
             </article>
           </div>
@@ -374,7 +386,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                     <th scope="col">
                       <span className="sr">Feature</span>
                     </th>
-                    <th scope="col">{SP.name}</th>
+                    <th scope="col">{S("plans title")}</th>
                     <th scope="col" className="hot">
                       {SITE["program link"]}
                     </th>
@@ -399,10 +411,15 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   <tr className="cost">
                     <th scope="row">Price</th>
                     <td>
-                      {money(SP.price)} for {SP.months} months
+                      {SELF.map((p) => (
+                        <span key={p.id} className="cost-line">
+                          {p.name}: {money(p.monthly)} a month
+                          <small> or {money(p.threeMonths)} for 3 months</small>
+                        </span>
+                      ))}
                     </td>
-                    <td className="hot prog-cost">{money(d.price)}</td>
-                    <td>{money(PRIVATE_HOURLY_RATE)} an hour</td>
+                    <td className="hot prog-cost">{money(MP.price)}</td>
+                    <td>{PRIVATE_PACKAGES.map((p) => money(p.price)).join(" or ")}</td>
                   </tr>
                 </tbody>
               </table>
@@ -414,6 +431,16 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               {S("scholarship")}
             </p>
           </div>
+          <h3 className="more rv">{S("more")}</h3>
+          <div className="honest">
+            {pairs(`${S("schools")} | ${S("tutors")}`).map(([name, text], k) => (
+              <p className="rv" style={delay(k * 0.08)} key={name}>
+                <a href={k === 0 ? ROUTES.schools : ROUTES.tutors}>{name}</a>
+                {`. ${text}`}
+              </p>
+            ))}
+          </div>
+          <p className="renew rv">{S("renewal")}</p>
         </div>
       </section>
     </>

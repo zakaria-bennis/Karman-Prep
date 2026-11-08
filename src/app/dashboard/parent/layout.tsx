@@ -1,15 +1,12 @@
 // ============================================================
-// /dashboard/parent/* — role-gated layout.
-// Only users with role in {'parent','admin'} can pass.
-// Students and tutors who wander in are bounced to their
-// own dashboard.
+// /dashboard/parent/* — role-gated layout. Only parents and admins
+// pass; students and tutors who wander in go to their own dashboard.
+// The pages draw the painted portal shell themselves.
 // ============================================================
 
-import { ThemeSelector } from "@/components/shared/ThemeSelector";
 import { safeAuth } from "@/lib/auth/dev-auth";
-import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
+import { resolveEffectiveClerkId, resolveEffectiveRole } from "@/lib/supabase/queries/admin";
 import { redirect } from "next/navigation";
-import { resolveEffectiveRole } from "@/lib/supabase/queries/admin";
 
 export default async function ParentDashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId: realUserId } = await safeAuth();
@@ -21,12 +18,5 @@ export default async function ParentDashboardLayout({ children }: { children: Re
     redirect("/dashboard/student");
   }
 
-  return (
-    <>
-      <div className="flex justify-end border-b border-bronze bg-surface px-4 py-1">
-        <ThemeSelector />
-      </div>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

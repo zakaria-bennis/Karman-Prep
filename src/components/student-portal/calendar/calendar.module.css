@@ -1,0 +1,241 @@
+/* The student Calendar inside the painted shell. Colors come from the shell's variables only. */
+
+.session {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 58px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+.list > .session:first-child {
+  border-top: 0;
+}
+.what {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+.what b {
+  display: block;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.what small {
+  display: block;
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: center;
+}
+.quiet {
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.quiet:hover {
+  text-decoration-color: currentColor;
+}
+.quiet:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.quiet:focus-visible,
+.slot:focus-visible,
+.confirm:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.state {
+  color: var(--mute);
+  font-size: 14px;
+}
+.panelBox {
+  flex-basis: 100%;
+  margin: 6px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--card);
+}
+.panelBox p {
+  margin: 0;
+}
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 6px;
+}
+.message {
+  flex-basis: 100%;
+  margin: 2px 0 4px;
+  color: var(--mute);
+  font-size: 14px;
+}
+.message[data-tone="late"] {
+  color: var(--late);
+}
+.note {
+  margin: 10px 0 0;
+  color: var(--mute);
+  font-size: 14px;
+}
+.cta {
+  margin-top: 14px;
+}
+
+/* Slot picker */
+.days {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+.dayName {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.slot {
+  min-height: 44px;
+  min-width: 88px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-variant-numeric: lining-nums tabular-nums;
+  cursor: pointer;
+}
+.slot[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.confirm {
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.confirm:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Month grid */
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+.weekdays {
+  margin-top: 4px;
+  color: var(--mute);
+  font-size: 12px;
+}
+.grid {
+  margin-top: 6px;
+}
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  max-height: 46px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.cell[data-today] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.dots {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  margin-top: 2px;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.dot[data-kind="session"] {
+  background: var(--l4);
+}
+.dot[data-kind="event"] {
+  background: var(--l2);
+}
+.dot[data-kind="test"] {
+  background: var(--late);
+}
+.cell[data-today] .dot {
+  box-shadow: 0 0 0 1px var(--accent-ink);
+}
+
+/* The calendar feed control keeps its own markup; this maps its colors onto the shell's. */
+.feed {
+  margin-top: 4px;
+  color: var(--ink);
+}
+.feed :global(.text-ivory),
+.feed :global(.text-white) {
+  color: var(--ink) !important;
+}
+.feed :global(.text-taupe) {
+  color: var(--mute) !important;
+}
+.feed :global(.border-bronze) {
+  border-color: var(--line) !important;
+}
+.feed :global(.bg-surface),
+.feed :global(.bg-surface-raised) {
+  background: var(--card) !important;
+}
+.feed :global(.rounded-md),
+.feed :global(.rounded-xl),
+.feed :global(.rounded-lg) {
+  border-radius: 4px !important;
+}
+.feed input {
+  max-width: 100%;
+  color: var(--ink);
+  background: transparent;
+  border-color: var(--line);
+}

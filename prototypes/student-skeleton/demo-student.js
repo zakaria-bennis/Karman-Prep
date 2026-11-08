@@ -4,17 +4,17 @@
  * originals written for this demo, not College Board material.
  */
 window.PLANS = {
-  free: { label: "Free", daily: false, tests: false, questions: 100, used: 37, upgrade: "Platform" },
-  platform: { label: "Platform", daily: true, tests: true, questions: 500, used: 212, upgrade: "Plus" },
-  plus: { label: "Plus", daily: true, tests: true, live: { tab: "Workshops", row: "Live workshop: Command of Evidence", when: "Wed, Nov 11", cta: "Save your spot", rows: [["Office hours with David", "Thu, Nov 12"], ["Live workshop: Nonlinear functions", "Wed, Nov 18"], ["Office hours with David", "Thu, Nov 19"]] } },
-  cohort: { label: "Cohort", daily: true, tests: true, guarantee: true, homework: true, rank: { place: "1st of 5", average: 1244 }, live: { tab: "Classes", row: "First class with David", when: "Mon, Jan 4", cta: "See class details", rows: [["Class with David", "Mon, Jan 4"], ["Class with David", "Wed, Jan 6"], ["Proctored full-length test", "Sat, Jan 9"]] } },
+  free: { label: "Free", daily: false, tests: true, questions: 100, used: 37, upgrade: "Practice" },
+  practice: { label: "Practice", daily: true, tests: true, upgrade: "Pro" },
+  pro: { label: "Pro", daily: true, tests: true },
+  cohort: { label: "Cohort", daily: true, tests: true, guarantee: true, homework: true, rank: { place: "1st of 6", average: 1244 }, live: { tab: "Classes", row: "First class with David", when: "Tue, Jan 5", cta: "See class details", rows: [["Class with David", "Tue, Jan 5"], ["Class with David", "Thu, Jan 7"], ["Proctored full-length test", "Sat, Jan 9"]] } },
   private: { label: "Private 1:1", daily: true, tests: true, guarantee: true, homework: true, schedule: true, live: { tab: "Schedule" } },
-  school: { label: "School", daily: true, tests: true, questions: 2000, used: 412 },
+  school: { label: "School", daily: true, tests: true, upgrade: "Pro" },
 };
 
 window.ADDS = {
-  Platform: ["Your Daily 10", "Built-in graphing calculator", "Full-length tests and a Karman predicted score", "Planning tools", "Parent account and updates"],
-  Plus: ["All questions", "Live workshops and office hours", "Recordings and video lessons"],
+  Practice: ["Your Daily 10", "The core question pool, with written explanations", "Full-length tests and a Karman predicted score", "Parent account and updates"],
+  Pro: ["Every question, including the hard mastery pool", "Video explanations, added as they're recorded"],
 };
 
 window.MAYA = {

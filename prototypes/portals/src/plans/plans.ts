@@ -1,10 +1,12 @@
 /**
- * The plan ladder as data (docs/business/plan-ladder-2026-10-30.md). Prices,
- * billing and question counts are mirrored from src/lib/marketing/offer.ts
- * (PRACTICE_PLANS, MARCH_PROGRAM, PRIVATE_PACKAGES, SCHOOL_PLAN) on
- * 2026-10-31; Phase 2 reads offer.ts directly and deletes the copies here.
+ * The plan ladder as data (docs/business/plan-ladder-2026-11-08.md). Names and
+ * prices mirror src/lib/marketing/offer.ts (PRACTICE_PLAN, PRO_PLAN,
+ * MARCH_PROGRAM, PRIVATE_PACKAGES, SCHOOL_PLAN) as of 2026-11-08; Phase 2 reads
+ * offer.ts and src/lib/plans directly and deletes the copies here. The ids
+ * "platform" and "plus" are this prototype's old keys for Practice and Pro; the
+ * app's plan ids are practice, pro, private-10 and private-20.
  * Every screen reads this through usePlan(); no plan name is hard-coded in a
- * component. "Platform" and "Plus" are working names (CONFIRM in offer.ts).
+ * component.
  */
 export type PlanId = "free" | "platform" | "plus" | "cohort" | "private10" | "private20" | "school";
 export type BundleId =
@@ -79,8 +81,8 @@ export const BUNDLES: Record<BundleId, Bundle> = {
   },
   workshops: {
     id: "workshops",
-    name: "Live workshops and office hours",
-    description: "With recordings and video lessons.",
+    name: "The weekly live session",
+    description: "Test mechanics and skill workshops, for the cohort and private students.
   },
   liveClasses: {
     id: "liveClasses",
@@ -100,7 +102,8 @@ export const BUNDLES: Record<BundleId, Bundle> = {
   guarantee: {
     id: "guarantee",
     name: "Score guarantee",
-    description: "+100 points or 1450, or money back. Cohort and Private 20 only.",
+    description:
+      "+100 points (+50 from a 1400 start), or money back or a free repeat. Cohort, Private 10 and Private 20.",
   },
   school: {
     id: "school",
@@ -134,31 +137,33 @@ export const PLANS: Record<PlanId, Plan> = {
   },
   platform: {
     id: "platform",
-    name: "Platform",
+    name: "Practice",
     description:
-      "The practice platform: 500 questions, Your Daily 10, full-length tests, the calculator.",
-    price: 29,
+      "The core question pool with written explanations, Your Daily 10, full-length tests, the calculator.",
+    price: 39,
     billing: "month",
-    priceLabel: "$29 a month",
-    questions: 500,
+    priceLabel: "$39 a month, or $89 for 3 months",
+    questions: "all",
     guarantee: false,
     bundles: PRACTICE,
   },
   plus: {
     id: "plus",
-    name: "Plus",
-    description: "All questions, plus live workshops and office hours.",
-    price: 49,
+    name: "Pro",
+    description:
+      "Every question, including the hard mastery pool, and video explanations as they're recorded.",
+    price: 69,
     billing: "month",
-    priceLabel: "$49 a month",
+    priceLabel: "$69 a month, or $149 for 3 months",
     questions: "all",
     guarantee: false,
-    bundles: [...PRACTICE, "workshops"],
+    bundles: PRACTICE,
   },
   cohort: {
     id: "cohort",
-    name: "The March SAT Program",
-    description: "Five students, two live classes a week, ending on the March 6 SAT.",
+    name: "9-week Cohort",
+    description:
+      "At most six students by score band, 18 live 60-minute classes twice a week, no 1:1s.",
     price: 995,
     billing: "once",
     priceLabel: "$995",
@@ -169,13 +174,13 @@ export const PLANS: Record<PlanId, Plan> = {
   private10: {
     id: "private10",
     name: "Private 10",
-    description: "Ten hours of 1:1 sessions with a Karman tutor, booked when it suits you.",
+    description: "Ten hours of 1:1 sessions with a Karman tutor, with the guarantee.",
     price: 1495,
     billing: "once",
     priceLabel: "$1,495",
     questions: "all",
-    guarantee: false,
-    bundles: [...PRACTICE, "workshops", "oneToOne"],
+    guarantee: true,
+    bundles: [...PRACTICE, "workshops", "oneToOne", "guarantee"],
   },
   private20: {
     id: "private20",
@@ -191,11 +196,12 @@ export const PLANS: Record<PlanId, Plan> = {
   school: {
     id: "school",
     name: "School",
-    description: "A school seat: 2,000 questions and the school tools, $10 per student a year.",
-    price: 10,
+    description:
+      "Each student's own Practice plan and the school tools. First year free, then $8 per student a year.",
+    price: 8,
     billing: "student-year",
-    priceLabel: "$10 per student a year",
-    questions: 2000,
+    priceLabel: "$8 per student a year, first year free",
+    questions: "all",
     guarantee: false,
     bundles: [...PRACTICE, "school"],
   },
@@ -221,14 +227,14 @@ export function upgradeFor(plan: PlanId, bundle: BundleId): PlanId | null {
 console.assert(BUNDLE_IDS.length === 13, "13 bundles");
 console.assert(PLAN_IDS.length === 7, "seven plan ids (six plans, Private in two sizes)");
 console.assert(
-  PLAN_IDS.filter((p) => PLANS[p].guarantee).join() === "cohort,private20",
-  "guarantee: cohort and Private 20 only"
+  PLAN_IDS.filter((p) => PLANS[p].guarantee).join() === "cohort,private10,private20",
+  "guarantee: the cohort and both private packages"
 );
 console.assert(
   PLAN_IDS.every((p) => has(p, "quiz") && has(p, "challenge") && has(p, "progress")),
   "every plan has the quiz engine, the challenge and progress"
 );
 console.assert(
-  upgradeFor("free", "daily10") === "platform" && upgradeFor("platform", "workshops") === "plus",
+  upgradeFor("free", "daily10") === "platform" && upgradeFor("platform", "workshops") === "cohort",
   "ladder order"
 );

@@ -1,8 +1,19 @@
 "use client";
 
 // The last resort, shown only when the root layout itself fails (so no fonts, providers or site styles are
-// available): the site's dark default colours, one sentence, try again and the way home.
+// available): the site's colours, following the device's light or dark setting, one sentence, try again
+// and the way home.
 import { useEffect } from "react";
+
+const CSS = `
+body{margin:0;min-height:100svh;display:grid;place-items:center;padding:24px;background:#0e0d0c;color:#f1ede4;font:17px/1.55 system-ui,sans-serif}
+main{max-width:560px;display:grid;gap:22px;justify-items:start}
+h1{margin:0;font-size:clamp(34px,6vw,56px);line-height:1.05}
+p{margin:0}.mark{font-weight:800;letter-spacing:-0.01em}.sub{color:#b6b0a4}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+.pill{display:inline-flex;align-items:center;min-height:52px;padding:0 22px;border-radius:999px;border:1.5px solid currentColor;background:transparent;color:inherit;font:800 17px/1 system-ui,sans-serif;text-decoration:none;cursor:pointer}
+@media (prefers-color-scheme: light){body{background:#f5f5f2;color:#12110f}.sub{color:#57534b}}
+`;
 
 export default function GlobalError({
   error,
@@ -14,47 +25,22 @@ export default function GlobalError({
   useEffect(() => {
     console.error("[app] root layout failed:", error.digest ?? error.message);
   }, [error]);
-  const pill = {
-    display: "inline-flex",
-    alignItems: "center",
-    minHeight: 52,
-    padding: "0 22px",
-    borderRadius: 999,
-    border: "1.5px solid #f1ede4",
-    background: "transparent",
-    color: "#f1ede4",
-    font: "800 17px/1 system-ui, sans-serif",
-    textDecoration: "none",
-    cursor: "pointer",
-  } as const;
   return (
     <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          minHeight: "100svh",
-          display: "grid",
-          placeItems: "center",
-          background: "#0e0d0c",
-          color: "#f1ede4",
-          font: "17px/1.55 system-ui, sans-serif",
-          padding: "24px",
-        }}
-      >
-        <main style={{ maxWidth: 560, display: "grid", gap: 22, justifyItems: "start" }}>
-          <p style={{ margin: 0, fontWeight: 800, letterSpacing: "-0.01em" }}>Karman</p>
-          <h1 style={{ margin: 0, fontSize: "clamp(34px, 6vw, 56px)", lineHeight: 1.05 }}>
-            Something went wrong on our side.
-          </h1>
-          <p style={{ margin: 0, color: "#b6b0a4" }}>
-            The page didn&apos;t load. Try again, or come back in a minute.
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <button type="button" style={pill} onClick={() => reset()}>
+      <head>
+        <style>{CSS}</style>
+      </head>
+      <body>
+        <main>
+          <p className="mark">Karman</p>
+          <h1>Something went wrong on our side.</h1>
+          <p className="sub">The page didn&apos;t load. Try again, or come back in a minute.</p>
+          <div className="row">
+            <button type="button" className="pill" onClick={() => reset()}>
               Try again
             </button>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- the root layout failed, so a full reload is the point */}
-            <a href="/" style={pill}>
+            <a href="/" className="pill">
               Go to the home page
             </a>
           </div>

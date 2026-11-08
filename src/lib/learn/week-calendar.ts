@@ -91,9 +91,9 @@ function addDays(day: string, count: number): string {
 function sessionTitle(tier: string): string {
   switch (tier) {
     case "group":
-      return "Seminar session";
+      return "Weekly live session";
     case "small_group":
-      return "Small-group session";
+      return "Cohort class";
     case "private":
     case "elite":
       return "Private tutor session";

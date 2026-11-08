@@ -133,12 +133,12 @@ export const POST = withWebhookInstrumentation("seminar-overflow", async (req: R
       await resend.emails.send({
         from: FROM,
         to: adminEmails,
-        subject: `Seminar overflow — "${c.name}" passed ${SEMINAR_CAP} members`,
+        subject: `Weekly live session overflow: "${c.name}" passed ${SEMINAR_CAP} members`,
         html: `
           <div style="font-family: Inter, sans-serif; max-width: 560px; margin: auto; padding: 24px;">
-            <h2 style="color: #0f172a;">Seminar overflow triggered</h2>
+            <h2 style="color: #0f172a;">Weekly live session overflow</h2>
             <p style="color: #334155;">
-              The seminar cohort <strong>${c.name}</strong> just exceeded the ${SEMINAR_CAP}-student cap (now at ${count}).
+              The weekly live session group <strong>${c.name}</strong> just exceeded the ${SEMINAR_CAP}-student cap (now at ${count}).
               We've automatically created a sibling cohort named <strong>${newCohort?.name ?? overflowName}</strong>.
             </p>
             <p style="color: #334155;">
@@ -146,9 +146,9 @@ export const POST = withWebhookInstrumentation("seminar-overflow", async (req: R
             </p>
             <ol style="color: #334155;">
               <li>Rebalance students by moving some from <em>${c.name}</em> to <em>${newCohort?.name ?? overflowName}</em>.</li>
-              <li>Configure the new cohort's seminar event in Cal.com (event-type, schedule, Zoom location).</li>
+              <li>Configure the new group's live session event in Cal.com (event-type, schedule, Zoom location).</li>
               <li>Open the new cohort at <a href="https://karmanprep.com/admin/cohorts/${newCohort?.id ?? ""}">/admin/cohorts/${newCohort?.id ?? ""}</a> and click <strong>Mark setup complete</strong> when done &mdash; otherwise you&rsquo;ll get a daily reminder.</li>
-              <li>Resume normal admin push flow once both seminars are scheduled.</li>
+              <li>Resume the normal admin push flow once both groups are scheduled.</li>
             </ol>
           </div>
         `,

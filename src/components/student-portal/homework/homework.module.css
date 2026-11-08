@@ -1,0 +1,60 @@
+/* Homework rows and cards, ported from prototypes/today-directions (founder approved 2026-11-08). */
+
+.row {
+  align-items: flex-start;
+}
+
+.right {
+  padding-top: 2px;
+}
+
+/* One line under a row: a tutor's note, or David's note on finished work. */
+.note {
+  display: block;
+  margin-top: 4px;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.note span {
+  color: var(--mute);
+}
+
+/* The one gentle nudge in Past due. */
+.nudge {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--late);
+}
+
+.week {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  margin: 6px 0 4px;
+}
+
+.week > :last-child {
+  margin-left: auto;
+}
+
+.stat b {
+  display: block;
+  font: 600 20px/26px var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.stat span {
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.calm {
+  margin: 4px 0 0;
+  color: var(--mute);
+}

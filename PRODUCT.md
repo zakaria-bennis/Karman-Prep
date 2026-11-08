@@ -22,11 +22,15 @@ web
 ## Product Purpose
 
 Karman Prep helps students raise their SAT scores, measurably. It sells a
-ladder of plans: Free, Platform ($29 a month) and Plus ($49 a month) practice
-plans, a small live cohort that ends on an SAT date, Private 1:1 packages on
-top, and School licenses at $10 per student a year (plan ladder, 2026-10-30).
-Only the cohort and Private 20 carry the guarantee. Success is an official
-score that went up, and a family that understood what it was buying.
+ladder of plans (founder, 2026-11-08; `docs/business/plan-ladder-2026-11-08.md`):
+Free (100 questions and one full-length test), Practice ($39 a month or $89 for
+3 months), Pro ($69 a month or $149 for 3 months), a 9-week live Cohort ($995,
+at most six students, by score band), Private 10 ($1,495) and Private 20
+($2,495), Schools ($8 per student a year, first year free) and a Tutor
+affiliate plan ($199 a month for up to 50 students). Only the Cohort and both
+Private packages carry the guarantee (+100 points under a 1400 start, +50 from
+1400). Success is an SAT score that went up, and a family that understood what
+it was buying.
 
 ## Positioning
 
@@ -39,9 +43,9 @@ student's SAT date.
 
 ## Operating Context
 
-- Enrollment for the first cohort opens November 2026. The March SAT Program
-  runs January 4 to the Saturday, March 6, 2027 SAT. Later cohorts: May 1 and
-  June 5, 2027.
+- Enrollment for the first cohort opens November 2026. The first 9-week cohort
+  starts January 4, 2027; later cohorts start March 1 and April 5, 2027. Cohorts
+  are no longer tied to an SAT date.
 - Classes are live on Zoom. Free practice tests are proctored live monthly,
   first on December 12, 2026.
 - Parents receive a weekly progress update.
