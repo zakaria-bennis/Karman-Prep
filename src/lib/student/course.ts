@@ -62,7 +62,7 @@ export interface Course {
   progress: number;
   strong: number;
   total: number;
-  upNext: (CourseSkill & { domainId: string; title: string }) | null;
+  upNext: (CourseSkill & { domainId: string; title: string; official: string }) | null;
 }
 
 /** How much a sub-skill weighs inside its Domain; the page passes question counts. */
@@ -110,13 +110,19 @@ export function buildCourse(
   let best = 0;
   for (const d of domains) {
     const total = d.skills.reduce((n, s) => n + Math.max(0, weight(s.id)), 0) || 1;
-    for (const s of d.skills) {
-      const gain = scoreGain(d.id, Math.max(0, weight(s.id)) / total, s.level);
-      if (gain > best + 1e-9) {
-        best = gain;
-        upNext = { ...s, domainId: d.id, title: subSkillTitle(s.id) ?? s.label };
+    for (const o of d.officials)
+      for (const s of o.skills) {
+        const gain = scoreGain(d.id, Math.max(0, weight(s.id)) / total, s.level);
+        if (gain > best + 1e-9) {
+          best = gain;
+          upNext = {
+            ...s,
+            domainId: d.id,
+            title: subSkillTitle(s.id) ?? s.label,
+            official: o.label,
+          };
+        }
       }
-    }
   }
   const lv = domains.flatMap((d) => d.skills.map((s) => s.level));
   return {

@@ -27,6 +27,7 @@ import { loadStudentContext } from "@/lib/student/context";
 import { canUse, upgradeFor } from "@/lib/student/plan-gate";
 import { domainQuiz, practiceSet } from "@/lib/student/quiz-routes";
 import { loadSkillLevels } from "@/lib/student/skill-levels-server";
+import { subSkillQuestionCount } from "@/lib/subskills/map";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +57,7 @@ export default async function CoursePage({
   const q = query.safeParse((await searchParams) ?? {});
 
   const ctx = await loadStudentContext();
-  const course = buildCourse(subject, await loadSkillLevels(ctx.clerkId));
+  const course = buildCourse(subject, await loadSkillLevels(ctx.clerkId), subSkillQuestionCount);
   const wanted = q.success ? q.data.domain : undefined;
   const open =
     course.domains.find((d) => d.id === wanted) ??
@@ -79,7 +80,7 @@ export default async function CoursePage({
                 <Num>{course.strong}</Num> of <Num>{course.total}</Num> skills at Understanding or
                 above
               </b>
-              {course.upNext && <small>Up next: {course.upNext.label}</small>}
+              {course.upNext && <small>Up next: {course.upNext.title}</small>}
             </span>
           </div>
           {course.upNext && (
@@ -112,20 +113,25 @@ export default async function CoursePage({
                 </>
               }
             />
-            {open.skills.map((s) => (
-              <div key={s.id} className={styles.skill}>
-                <SkillSquares
-                  skills={[{ level: s.level, name: s.label }]}
-                  label={`${s.label}: ${levelName(s.level)}`}
-                />
-                <span>
-                  <b>{s.label}</b>
-                  <small>{levelName(s.level)}</small>
-                </span>
-                <Link className="kp-link" href={practiceSet(s.id).path}>
-                  {s.level === 0 ? "Start" : "Practice"}
-                </Link>
-              </div>
+            {open.officials.map((o) => (
+              <section key={o.id} className={styles.official} aria-label={o.label}>
+                {!(o.skills.length === 1 && o.skills[0].label === o.label) && <h3>{o.label}</h3>}
+                {o.skills.map((s) => (
+                  <div key={s.id} className={styles.skill}>
+                    <SkillSquares
+                      skills={[{ level: s.level, name: s.label }]}
+                      label={`${s.label}: ${levelName(s.level)}`}
+                    />
+                    <span>
+                      <b>{s.label}</b>
+                      <small>{levelName(s.level)}</small>
+                    </span>
+                    <Link className="kp-link" href={practiceSet(s.id).path}>
+                      {s.level === 0 ? "Start" : "Practice"}
+                    </Link>
+                  </div>
+                ))}
+              </section>
             ))}
             {quiz.ready ? (
               <MoreLink href={quiz.path}>Domain quiz: {open.label}</MoreLink>

@@ -113,6 +113,20 @@
   font-size: 14px;
   white-space: nowrap;
 }
+/* The official skills' squares sit in small groups, so the Domain reads like the College Board. */
+.groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.official + .official {
+  margin-top: 6px;
+}
+.official h3 {
+  margin: 8px 0 2px;
+  font: 700 15px/20px var(--font-sans);
+  color: var(--mute);
+}
 .skills {
   margin: 0;
   padding: 0;

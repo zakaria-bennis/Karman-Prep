@@ -8,7 +8,8 @@ import { notFound } from "next/navigation";
 import { Card, Cta, Num, Panel, Ring, Row, SectionHeader, SkillSquares } from "@/components/portal";
 import { CopyButton } from "@/components/portal-extras/CopyButton";
 import { ActionMessage, SchoolShell } from "@/components/school/SchoolShell";
-import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { SUB_SKILLS, subSkillTitle } from "@/lib/subskills/taxonomy";
 import { strongCount } from "@/lib/progress-glance/levels";
 import { classForMember, requireSchoolContext } from "@/lib/school/access";
 import { loadClassRoster } from "@/lib/school/roster";
@@ -125,9 +126,9 @@ export default async function SchoolClassPage({
                 <option value="">Choose a skill</option>
                 {SKILL_DOMAINS.map((d) => (
                   <optgroup key={d.id} label={d.label}>
-                    {CATALOG_SKILLS.filter((k) => k.domainId === d.id).map((k) => (
+                    {SUB_SKILLS.filter((k) => k.domainId === d.id).map((k) => (
                       <option key={k.id} value={k.id}>
-                        {k.label}
+                        {subSkillTitle(k.id) ?? k.label}
                       </option>
                     ))}
                   </optgroup>

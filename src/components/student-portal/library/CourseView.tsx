@@ -1,8 +1,9 @@
 /*
  * One Library course at a time (founder, 2026-11-08): picking Math shows only Math, and the
  * same for Reading and Writing, with a clear switch between them. The course leads with one
- * thing to do next (its Up next skill, the screen's only main button), then each Domain as a
- * card that opens in place to show every skill, its level, practice, and the Domain quiz.
+ * thing to do next (its Up next sub-skill, the screen's only main button), then each Domain as a
+ * card that opens in place. Inside, the official College Board skills are headings and their
+ * sub-skills are the squares, each with its level and its own practice set.
  */
 import Link from "next/link";
 import {
@@ -65,7 +66,7 @@ export default function CourseView({ course }: { course: Course }) {
                 {next.label}
               </h2>
               <p className={styles.nextSub}>
-                Your next {course.slug === "math" ? "Math" : "Reading and Writing"} skill.{" "}
+                {next.official !== next.label && <>In {next.official}. </>}
                 <Num>{course.strong}</Num> of <Num>{course.total}</Num> skills at Understanding or
                 above.
               </p>
@@ -98,33 +99,43 @@ export default function CourseView({ course }: { course: Course }) {
                     <Num>{d.strong}</Num> of <Num>{d.skills.length}</Num> strong
                   </small>
                 </span>
-                <SkillSquares
-                  skills={d.skills.map((s) => ({ level: s.level, name: s.label }))}
-                  label={`${d.label}: ${d.skills.map((s) => `${s.label} ${levelName(s.level)}`).join(", ")}`}
-                />
+                <span className={styles.groups}>
+                  {d.officials.map((o) => (
+                    <SkillSquares
+                      key={o.id}
+                      skills={o.skills.map((s) => ({ level: s.level, name: s.label }))}
+                      label={`${o.label}: ${o.skills.map((s) => `${s.label} ${levelName(s.level)}`).join(", ")}`}
+                    />
+                  ))}
+                </span>
               </span>
             }
           >
-            <ul className={styles.skills}>
-              {d.skills.map((s) => (
-                <li key={s.id}>
-                  <Link className={styles.skill} href={practiceSet(s.id).path}>
-                    <i
-                      className={styles.dot}
-                      style={{
-                        background: SKILL_LEVELS[s.level].color ?? "transparent",
-                      }}
-                      aria-hidden="true"
-                    />
-                    <span>
-                      <b>{s.label}</b>
-                      <small>{levelName(s.level)}</small>
-                    </span>
-                    <span className={styles.go}>Practice</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {d.officials.map((o) => (
+              <section key={o.id} className={styles.official} aria-label={o.label}>
+                {!(o.skills.length === 1 && o.skills[0].label === o.label) && <h3>{o.label}</h3>}
+                <ul className={styles.skills}>
+                  {o.skills.map((s) => (
+                    <li key={s.id}>
+                      <Link className={styles.skill} href={practiceSet(s.id).path}>
+                        <i
+                          className={styles.dot}
+                          style={{
+                            background: SKILL_LEVELS[s.level].color ?? "transparent",
+                          }}
+                          aria-hidden="true"
+                        />
+                        <span>
+                          <b>{s.label}</b>
+                          <small>{levelName(s.level)}</small>
+                        </span>
+                        <span className={styles.go}>Practice</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
             <div className={styles.domainLinks}>
               <MoreLink href={domainQuiz(d.id).path}>Domain quiz</MoreLink>
               <MoreLink href={courseHref(course, d.id)}>Open {d.label}</MoreLink>
