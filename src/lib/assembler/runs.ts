@@ -8,7 +8,6 @@ import { z } from "zod";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { awardForAnswer } from "@/lib/quiz/points";
 import type { CatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-contract";
-import { estimateSkill } from "@/lib/student/mastery";
 import {
   NOT_STARTED,
   applyAnswer,
@@ -22,7 +21,7 @@ import { subSkillOfQuestion } from "@/lib/subskills/map";
 import { getSubSkill, subSkillTitle, subSkillsOfSkill } from "@/lib/subskills/taxonomy";
 import { dayKeyIn, safeTimeZone, streakDays } from "@/lib/daily-ten/day";
 import { selectDailyTen, skillsToLoad, targetDifficulty } from "@/lib/daily-ten/select";
-import type { QuizDifficultyLevel, QuizQuestionWithChoices } from "@/types/quiz";
+import type { QuizQuestionWithChoices } from "@/types/quiz";
 import {
   catalogSkill,
   loadAdmittedBank,
@@ -41,6 +40,8 @@ import {
   type Section,
 } from "./forms";
 import { PlanLimitError, loadQuizAccess } from "./plan-gate";
+import { practiceSetPool } from "./set-pool";
+import { masteryBySkill } from "./mastery-by-skill";
 import { nextDiagnosticRun, recordDiagnosticResult } from "./diagnostic-record";
 import {
   answeredInRuns,
@@ -72,7 +73,6 @@ import {
 } from "./run-view";
 
 export const PRACTICE_SET_SIZE = 10;
-const SET_POOL_LIMIT = 42;
 const title: Record<Section, string> = { reading: "Reading and Writing", math: "Math" };
 
 const familyOf = (snap: CatalogDeliverySnapshot) =>
@@ -87,46 +87,6 @@ async function requireQuestionsLeft(clerkId: string) {
   if (access.questionsLeft === 0)
     throw new PlanLimitError("You have used the Free plan's 100 questions.");
   return access;
-}
-
-/** Mastery estimates per skill from the student's run answers (for weak skills first). */
-async function masteryBySkill(clerkId: string, now: Date): Promise<Map<string, number>> {
-  const levels = await loadStoredLevels(clerkId);
-  const out = new Map<string, number>();
-  const history = await answeredInRuns(clerkId);
-  if (!history.size) return out;
-  // Observations come from saved run answers, with difficulty, newest first.
-  const { createAdminClient } = await import("@/lib/supabase/server");
-  const { data } = await createAdminClient()
-    .from("quiz_run_responses" as never)
-    .select("skill_id, difficulty, is_correct, answered_at, run_id, quiz_runs!inner(student_id)")
-    .eq("quiz_runs.student_id", clerkId)
-    .order("answered_at", { ascending: false })
-    .limit(800);
-  const bySkill = new Map<string, { correct: boolean; difficulty: number; ageDays: number }[]>();
-  for (const row of (data ?? []) as {
-    skill_id: string;
-    difficulty: number;
-    is_correct: boolean;
-    answered_at: string;
-  }[]) {
-    const list = bySkill.get(row.skill_id) ?? [];
-    list.push({
-      correct: row.is_correct,
-      difficulty: row.difficulty,
-      ageDays: (now.getTime() - Date.parse(row.answered_at)) / 86_400_000,
-    });
-    bySkill.set(row.skill_id, list);
-  }
-  for (const [skillId, obs] of bySkill) {
-    if (!subSkillsOfSkill(skillId).some((s) => levels.has(s.id)) && !levels.has(skillId)) continue;
-    out.set(
-      skillId,
-      estimateSkill(obs.map((o) => ({ ...o, difficulty: o.difficulty as QuizDifficultyLevel })))
-        .mastery
-    );
-  }
-  return out;
 }
 
 /** Today's Daily 10: the same ten all day (saved), counted in the streak once finished. */
@@ -250,26 +210,7 @@ export async function startPracticeSet(clerkId: string, setId: string): Promise<
       : bank.items;
   if (!items.length) throw new Error("No distinct approved questions are available");
   // Freeze a pool spread across difficulty, never-answered questions first.
-  const byDifficulty = new Map<number, string[]>();
-  const usedFamilies = new Set<string>();
-  const sorted = [...items].sort(
-    (a, b) => (history.has(a.id) ? 1 : 0) - (history.has(b.id) ? 1 : 0) || a.id.localeCompare(b.id)
-  );
-  for (const item of sorted) {
-    if (usedFamilies.has(item.family)) continue;
-    usedFamilies.add(item.family);
-    byDifficulty.set(item.difficulty, [...(byDifficulty.get(item.difficulty) ?? []), item.id]);
-  }
-  const pool: string[] = [];
-  for (let round = 0; pool.length < SET_POOL_LIMIT; round++) {
-    let added = false;
-    for (const ids of byDifficulty.values())
-      if (ids[round] && pool.length < SET_POOL_LIMIT) {
-        pool.push(ids[round]);
-        added = true;
-      }
-    if (!added) break;
-  }
+  const pool = practiceSetPool(items, history);
   const state = effective(
     sub ? (levels.get(sub.id) ?? NOT_STARTED) : skillStateOf(levels, skill.id),
     new Date()

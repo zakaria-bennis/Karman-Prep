@@ -163,6 +163,87 @@ Also noticed: several reading passages appear more than once under different que
 For example, about 21 Rhetorical Synthesis items start from the same notes. Some of that is
 normal for that question type, but it is worth a duplicate check.
 
+## Sub-skills (second round, after your choice)
+
+You chose to make every sub-skill its own square. That is now built: **92 sub-skills**, 52 in
+Math and 40 in Reading and Writing.
+
+### How it reads
+
+- **Headings:** in the Library, each Domain card shows the official College Board skills as
+  headings, with their sub-skills as the squares beneath. It still reads like the College
+  Board.
+  - Example: Algebra, then "Linear functions", then "Slope and intercept", "From a graph or
+    table", "Evaluate and write f(x)".
+- **Math and Reading and Writing stay separate.**
+- **Standard English Conventions:** its 12 are the sub-skills, under the two official skills,
+  Boundaries and Form, Structure, and Sense.
+- **The final list:** it follows my earlier table with small changes, so no square is too thin
+  to practice.
+  - Folded in:
+    - "Exponents and radicals" (13 questions) joins Polynomials.
+    - "Circumference and area" (13) joins Arcs and angles.
+    - Probability stays one square (only 48 questions).
+  - Two Transitions types are renamed: "Time and place", and "Clarify and emphasize".
+  - The full list, with the rule for each, is in `src/lib/subskills/rules.ts`.
+
+### How each question finds its square
+
+- **The rule:** a fixed rule reads each question's own words (for Transitions, the first words
+  of the right answer) and puts it in exactly one sub-skill.
+  - Each skill's last sub-skill takes whatever the others don't, so there's no "Other" square.
+  - It ran once, read only, over the 10,096 live questions on the local copy of the bank.
+- **Stored in code:** the result is in `src/data/curriculum/sub-skill-map.json` (about 150 KB,
+  server only).
+- **The bank and the import tools are unchanged.**
+- **Rebuilding:** after new questions publish, run `scripts/subskills/export-questions.sh` and
+  then `scripts/subskills/build-map.ts`. Until then, a new question counts in its skill's
+  last sub-skill.
+- **Smallest squares:** "Studies and experiments" (13 questions, a small skill on its own),
+  "Systems: Word problems" (14) and "Linear and exponential models" (18). These sets can run
+  a little short of 10 questions.
+- **Rough edges:** the sorting rule reads words, so a few questions will land in a neighbouring
+  sub-skill. A reviewed tag per question would make it exact.
+
+### What works per sub-skill
+
+- **Levels:** each sub-skill has its own level.
+  - Past answers are placed by their question, so a student's history fills the new squares.
+  - Levels saved from now on are saved per sub-skill.
+  - The 15 skills that are a single square keep their old saved levels.
+- **Practice sets:** `/learn/set/<sub-skill>` serves only that sub-skill's questions. The title
+  reads, for example, "Transitions: Contrast".
+  - Checked: the first question of a Contrast set had "That said," as its answer.
+  - Answering it saved a level under that sub-skill.
+- **Domain quizzes:** they raise each sub-skill they touch, and the result screen names
+  sub-skills.
+- **Up next:** it weighs each sub-skill by its Domain's share of the test, times its share of
+  that Domain's questions in the bank (how often that type comes up), times the levels left to
+  climb.
+- **The Daily 10:** it reads a skill's weakest sub-skill, so weak types come back.
+- **Endless mode** and its mistake log work per sub-skill.
+- **Progress:** it counts 92 squares, and "What moved" names sub-skills.
+- **Parent and school views, and the affiliate tutor's student view:** they count the new
+  squares.
+- **Homework:** school and tutor homework pickers assign a sub-skill practice set. Assignments
+  already given for a whole skill still open.
+- **Not changed:** the regular tutor (David) and the admin student page still show the older
+  lesson map, as before. They never used these skills.
+
+### Repeated reading passages, for the import team
+
+- **The list:** 85 passages open three or more live Reading and Writing questions each, 357
+  questions in all.
+  - Some repetition is normal: Rhetorical Synthesis notes are often reused with a new goal.
+  - Others look like the same question imported more than once.
+- **Biggest groups:**
+  - the Mohs hardness notes (15 questions)
+  - Victoria Villasana (10)
+  - the economics student and 1950 (8)
+  - Puerto Rico town nicknames (8)
+- **Where:** the full list, with every question id, is in
+  `docs/overnight/reports/portal-polish-duplicate-passages.md`. I changed nothing.
+
 ## How I checked
 
 - **Headless browser** (Playwright from the command line, never the app's browser pane), one
@@ -189,8 +270,30 @@ normal for that question type, but it is worth a duplicate check.
     branch.
   - Full test suite (`NODE_OPTIONS=--no-experimental-webstorage npm test`): 569 files,
     9,759 tests pass, 0 fail (254 are marked "expected to fail", as before).
+- **After the sub-skills** (merged with `claude/overnight-ship` first):
+  - Every tab of every portal again, each at 1440 and 390 wide in light and dark: 100 page
+    loads.
+    - Every page opened, with no sideways scroll and no console errors.
+    - I also opened a school class (its homework picker lists all 92 sub-skills), an affiliate
+      tutor's student, and a parent's Progress page.
+  - Library: Math shows 52 squares and Reading and Writing 40.
+  - A Transitions: Contrast practice set served a contrast question. One answer saved its level
+    under that sub-skill.
+    - Liam's local account now has that set open with one answer.
+  - `npx tsc --noEmit`, `npm run lint` (0 errors), `npm run check:sizes` and
+    `npm run sync:taxonomy` (no change) all pass.
+    - `runs.ts` had grown past 700 lines. I moved its practice-set pool and mastery helpers into
+      two small files.
+  - `npm run format:check` fails only on the same older docs (and the BRIEF).
+  - Full test suite: 570 files, 9,765 tests pass.
+    - One calculator test failed once under load and passes when run alone. The calculator
+      isn't touched by this work.
 
 ## Before and after pictures
+
+Sub-skills: `subskills-library-math-1440-light.jpg` (full page),
+`subskills-library-rw-1440-light.jpg`, `subskills-library-math-390-dark.jpg`,
+`subskills-practice-set-1440-light.jpg`.
 
 All in `docs/overnight/screens/portal-polish/`:
 
@@ -212,7 +315,6 @@ All in `docs/overnight/screens/portal-polish/`:
 - **The first painting of the day** still takes the same time (the 3.8-second opening, or about
   0.12 s of drawing when it appears finished). Moving that work off the main thread would need
   a rewrite of the painting engine.
-- **Sub-skills** wait for your choice above.
 
 ## Decisions I made
 
