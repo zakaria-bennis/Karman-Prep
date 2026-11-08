@@ -525,3 +525,8 @@
     margin-top: 14px;
   }
 }
+
+/* the comparison price cell: one line per plan */
+.ks .compare .cost .cost-line {
+  display: block;
+}

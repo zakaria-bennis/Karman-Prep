@@ -252,7 +252,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
               </div>
               <p className="price" aria-live="polite">
                 <Roll text={money(plan.monthly)} />
-                <span className="per">a month</span>
+                <span className="per">a month, or {money(plan.threeMonths)} for 3 months</span>
               </p>
               <p className="meta">{S("plans note")}</p>
               <ul>
@@ -412,11 +412,12 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                   <tr className="cost">
                     <th scope="row">Price</th>
                     <td>
-                      {SELF.map((p) => `${money(p.monthly)} a month`).join(" or ")}
-                      <br />
-                      <small>
-                        or {SELF.map((p) => money(p.threeMonths)).join(" or ")} for 3 months
-                      </small>
+                      {SELF.map((p) => (
+                        <span key={p.id} className="cost-line">
+                          {p.name}: {money(p.monthly)} a month
+                          <small> or {money(p.threeMonths)} for 3 months</small>
+                        </span>
+                      ))}
                     </td>
                     <td className="hot prog-cost">{money(MP.price)}</td>
                     <td>{PRIVATE_PACKAGES.map((p) => money(p.price)).join(" or ")}</td>

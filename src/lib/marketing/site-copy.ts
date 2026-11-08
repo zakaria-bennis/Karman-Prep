@@ -145,7 +145,7 @@ we do title: Our side
 we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | Live progress for parents, and a weekly summary
 you do title: Your student's side
 you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the SAT within ${G.satWithinDays} days of the last class
-covers: The cohort, ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
+covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: free hours, then half back | A student's first Karman program, once per student | Paid in full, or every installment paid on time
 claim: Within ${G.claimDays} days of scores coming out, email us the College Board score report. One email. Nothing is taken out of a refund.
 link: The guarantee, with worked examples
 
@@ -170,7 +170,7 @@ headline: The next session, what's due and how every skill is moving, on one scr
 ## 21 Program: opening
 eyebrow: ${MP.name}
 headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.
-text: Classes grouped by score band, ${w(MP.fullLengthTests)} full-length tests, and the guarantee printed in full. Classes start ${START_DAY}.
+text: Classes grouped by score band (${MP.scoreBands.join(", ")}), ${w(MP.fullLengthTests)} full-length tests, and the guarantee printed in full. Classes start ${START_DAY}.
 button: Apply for a seat
 button note: Enrollment closes ${CLOSES}.
 facts: ${$(MP.price)} = The whole program, all in | ${CLASS} = Students per class, at most | ${MP.totalClasses} = Live classes of ${MP.classMinutes} minutes | ${MP.fullLengthTests} = Full-length practice tests
@@ -285,8 +285,8 @@ button: Save the seat
 
 ## 51 Guarantee: opening
 eyebrow: The Karman guarantee
-headline: ${PROMISE}, or your money back.
-text: This page and the home page say the same thing. Nothing on any other page adds a rule.
+headline: ${PROMISE}, or money back or a free repeat.
+text: This page and the home page say the same thing. The private packages' own terms are below, in full. Nothing on any other page adds a rule.
 
 ## 52 Guarantee: examples
 headline: Five students, worked through.
@@ -331,7 +331,7 @@ button: Take the free practice test
 ## 71 FAQ
 eyebrow: Questions
 headline: Straight answers.
-qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = Any SAT taken within ${G.satWithinDays} days of the last class. | My student is already at ${G.splitAt} or higher. Is that covered? = Yes. From a ${G.splitAt} start, the target is +${G.pointsFrom} points instead of +${G.pointsBelow}. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of scores coming out.
+qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = On the cohort, any SAT taken within ${G.satWithinDays} days of the last class. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student is already at ${G.splitAt} or higher. Is that covered? = Yes. From a ${G.splitAt} start, the target is +${G.pointsFrom} points instead of +${G.pointsBelow}. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of scores coming out.
 
 ## 81 Research: opening
 eyebrow: The research
@@ -472,7 +472,7 @@ pricing text: Nothing is added later: no materials fee, no platform fee.
 pricing date question: When does your student want to start?
 pricing other date: Another time
 pricing guarantee headline: What you get back, by score.
-pricing badge: ${PROMISE}, or your money back.
+pricing badge: ${PROMISE}, or money back or the next cohort free.
 pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the score. You choose. Four rules apply, all listed below.
 pricing compare title: What each option includes
 pricing compare open: Compare everything, line by line
@@ -481,7 +481,7 @@ pricing program deposit: Apply, then a ${CALL_MINUTES}-minute call with ${FOUNDE
 pricing plans title: ${PP.name} and ${PRO.name}
 pricing practice button: Start ${PP.name}
 pricing pro button: Start ${PRO.name}
-pricing plans note: ${$(PP.threeMonths)} or ${$(PRO.threeMonths)} for 3 months. No guarantee: it covers the cohort and private tutoring, where a tutor teaches every week.
+pricing plans note: No guarantee: it covers the cohort and private tutoring, where a tutor teaches every week.
 pricing renewal: ${PLAN_RENEWAL}
 pricing free note: Or start free: ${FREE.questionLimit} questions and ${w(FREE.fullLengthTests)} full-length test, no card.
 pricing private button: Book a call with ${FOUNDER.firstName}

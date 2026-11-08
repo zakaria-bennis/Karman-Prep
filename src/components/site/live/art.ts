@@ -122,7 +122,7 @@ const ART: Record<
       flat(24, 20, 1.3, "After", 2.4) +
       flat(5, 32, 1.3, "Score report", 3.2, "a-tx b") +
       flat(5, 39, 1.3, "Baseline 1180", 2.7) +
-      flat(5, 45, 1.3, "SAT 1300", 2.7, "a-tx b");
+      flat(5, 45, 1.3, "SAT 1280", 2.7, "a-tx b");
     const [cx, cy] = P(46, 8, 14);
     const seal = `<g class="a-seal"><circle cx="${cx}" cy="${cy}" r="${10 * K}"/><text x="${cx}" y="${cy + 4 * K * 0.45}" text-anchor="middle" font-size="${7.5 * K}">+100</text></g>`;
     return [

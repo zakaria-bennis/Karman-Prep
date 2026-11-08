@@ -157,7 +157,7 @@ function parent() {
     <div class="nums">
       <div><b>2 of 2</b><span>Live classes</span></div>
       <div><b>96%</b><span>Practice done</span></div>
-      <div><b>1 of 1</b><span>Reviews</span></div>
+      <div><b>1 of 1</b><span>Live session</span></div>
     </div>
     <div class="tnote"><b>Note from David</b>Maya fixed every quadratic system from test 3. Next: evidence questions, and full-length 4 on Saturday.</div>
     <nav class="tabs"><span class="on">${I.check}Progress</span><span>${I.cal}Schedule</span><span>${I.chat}Messages</span></nav>

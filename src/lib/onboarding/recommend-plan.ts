@@ -293,7 +293,7 @@ function selfPacedRecommendation(
       why: `${opener} ${PRACTICE_PLAN.name} gives you the core question pool with written explanations, the Daily 10 and full-length practice tests, on your own schedule.`,
       alsoConsidered: {
         planId: "pro",
-        reason: `${PRO_PLAN.name} adds the hard mastery questions and video explanations, for ${formatPrice(PRO_PLAN.monthly)} a month. Move up if the goal climbs to ${MASTERY_GOAL} or higher.`,
+        reason: `${PRO_PLAN.name} adds the hard mastery questions, and video explanations as they're recorded, for ${formatPrice(PRO_PLAN.monthly)} a month. Move up if the goal climbs to ${MASTERY_GOAL} or higher.`,
       },
       signals,
     };
@@ -301,7 +301,7 @@ function selfPacedRecommendation(
   return {
     planId,
     headline: `${PRO_PLAN.name} is the right fit.`,
-    why: `${opener} ${PRO_PLAN.name} opens every question, the hard mastery pool included, with video explanations as well as written ones.`,
+    why: `${opener} ${PRO_PLAN.name} opens every question, the hard mastery pool included, with written explanations, and video explanations added as they're recorded.`,
     alsoConsidered: {
       planId: "practice",
       reason: `${PRACTICE_PLAN.name} is the core question pool with written explanations, for ${formatPrice(PRACTICE_PLAN.monthly)} a month, if you'd rather leave out the hardest questions.`,
@@ -321,7 +321,7 @@ function cohort(selfPaced: "practice" | "pro", signals: string[]): Recommendatio
       `in a group of at most ${MARCH_PROGRAM.paidSeats} students at your score level. Everything in ${PRO_PLAN.name} is included.`,
     alsoConsidered: {
       planId: alternative.id,
-      reason: `If you'd rather set your own schedule, ${alternative.name} is self-paced, from ${formatPrice(alternative.monthly)} a month.`,
+      reason: `If you'd rather set your own schedule, ${alternative.name} is ${formatPrice(alternative.monthly)} a month, or ${formatPrice(alternative.threeMonths)} for 3 months, with no live classes.`,
     },
     signals,
   };
