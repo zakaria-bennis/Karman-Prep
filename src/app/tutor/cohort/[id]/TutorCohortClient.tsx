@@ -10,15 +10,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { learningPlanCopy } from "@/lib/learning-plan/copy";
 import { cohortTopicPresentation } from "@/lib/learning-plan/cohort-presentation";
-import {
-  BookOpen,
-  ClipboardList,
-  Users as UsersIcon,
-  Plus,
-  Trash2,
-  Loader2,
-  X,
-} from "lucide-react";
+import { Plus, Trash2, Loader2, X } from "lucide-react";
+import { Card, SectionHeader } from "@/components/portal";
+import "@/components/admin/workbench/workbench.css";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
 import type {
@@ -42,58 +36,50 @@ export default function TutorCohortClient({ detail }: Props) {
   const topic = cohortTopicPresentation(cohort.status, cohort.current_topic);
 
   return (
-    <div>
-      {/* Header */}
-      <header className="mb-6">
-        <div className="mb-2 flex flex-wrap items-center gap-3">
-          <TierBadge tier={cohort.tier} />
-          <StatusBadge status={cohort.status} />
-          <span className="text-sm text-[color:var(--mute)]">{formatDate(cohort.sat_date)} SAT</span>
-          <span className="text-[color:var(--mute)]">·</span>
-          <span className="font-mono text-sm text-[color:var(--mute)]">
-            {members.length}/{cohort.max_size} seats
-          </span>
-        </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-[color:var(--ink)]">{cohort.name}</h1>
+    <>
+      <Card>
+        <SectionHeader title={cohort.name} note={`${members.length} of ${cohort.max_size} seats`} />
+        <p className="kp-meta">
+          <TierBadge tier={cohort.tier} /> <StatusBadge status={cohort.status} /> SAT{" "}
+          {formatDate(cohort.sat_date)}
+        </p>
         {topic && (
-          <p className="mt-2 text-sm text-[color:var(--mute)]">
-            <span className="font-semibold text-[color:var(--ink)]">{topic.label} —</span> {topic.topic}
+          <p className="kp-meta">
+            {topic.label}: {topic.topic}
           </p>
         )}
-      </header>
+      </Card>
 
-      {/* Tabs */}
-      <div className="mb-6 flex gap-1 border-b border-[color:var(--line)] text-sm">
-        <TabButton
-          tab="members"
-          activeTab={activeTab}
-          onClick={setActiveTab}
-          icon={UsersIcon}
-          label="Members"
-          count={members.length}
-        />
-        <TabButton
-          tab="notes"
-          activeTab={activeTab}
-          onClick={setActiveTab}
-          icon={ClipboardList}
-          label="Notes"
-          count={noteBody ? 1 : 0}
-        />
-        <TabButton
-          tab="homework"
-          activeTab={activeTab}
-          onClick={setActiveTab}
-          icon={BookOpen}
-          label="Homework"
-          count={homework.length}
-        />
-      </div>
+      <Card>
+        <div className="wb-tabs" role="tablist" aria-label="Cohort" style={{ marginBottom: 16 }}>
+          <TabButton
+            tab="members"
+            activeTab={activeTab}
+            onClick={setActiveTab}
+            label="Members"
+            count={members.length}
+          />
+          <TabButton
+            tab="notes"
+            activeTab={activeTab}
+            onClick={setActiveTab}
+            label="Notes"
+            count={noteBody ? 1 : 0}
+          />
+          <TabButton
+            tab="homework"
+            activeTab={activeTab}
+            onClick={setActiveTab}
+            label="Homework"
+            count={homework.length}
+          />
+        </div>
 
-      {activeTab === "members" && <MembersTab members={members} />}
-      {activeTab === "notes" && <NotesTab cohortId={cohort.id} initialBody={noteBody} />}
-      {activeTab === "homework" && <HomeworkTab cohortId={cohort.id} homework={homework} />}
-    </div>
+        {activeTab === "members" && <MembersTab members={members} />}
+        {activeTab === "notes" && <NotesTab cohortId={cohort.id} initialBody={noteBody} />}
+        {activeTab === "homework" && <HomeworkTab cohortId={cohort.id} homework={homework} />}
+      </Card>
+    </>
   );
 }
 
@@ -103,33 +89,27 @@ function TabButton({
   tab,
   activeTab,
   onClick,
-  icon: Icon,
   label,
   count,
 }: {
   tab: TabKey;
   activeTab: TabKey;
   onClick: (t: TabKey) => void;
-  icon: React.ComponentType<{ className?: string }>;
   label: string;
   count: number;
 }) {
   const active = activeTab === tab;
   return (
     <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      aria-current={active ? "page" : undefined}
       onClick={() => onClick(tab)}
-      className={cn(
-        "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
-        active ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--accent-text)]" : "border-transparent text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-      )}
+      className="wb-tab"
     >
-      <Icon className="h-4 w-4" />
       {label}
-      {count > 0 && (
-        <span className={cn("font-mono text-xs", active ? "text-[color:var(--accent-text)]" : "text-[color:var(--mute)]")}>
-          {count}
-        </span>
-      )}
+      {count > 0 && <small>{count}</small>}
     </button>
   );
 }
@@ -146,26 +126,29 @@ function MembersTab({ members }: { members: TutorCohortMember[] }) {
     );
   }
   return (
-    <div className="overflow-hidden rounded-xl border border-[color:var(--line)]">
-      <table className="w-full text-sm">
-        <thead className="bg-[color-mix(in_srgb,var(--card)_60%,transparent)] text-xs uppercase tracking-wider text-[color:var(--mute)]">
+    <div className="wb-table-wrap">
+      <table className="wb-table">
+        <caption className="sr-only">Cohort members</caption>
+        <thead>
           <tr>
-            <th className="px-4 py-3 text-left font-semibold">Name</th>
-            <th className="px-4 py-3 text-left font-semibold">Email</th>
-            <th className="px-4 py-3 text-left font-semibold">Joined</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Joined</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[color:var(--line)]">
+        <tbody>
           {members.map((m) => (
-            <tr key={m.user_id} className="transition-colors hover:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
+            <tr key={m.user_id}>
+              <td data-label="Name">
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                   <Avatar name={fullName(m) || m.email} avatarUrl={m.avatar_url} />
-                  <span className="font-medium text-[color:var(--ink)]">{fullName(m) || m.email}</span>
-                </div>
+                  {fullName(m) || m.email}
+                </span>
               </td>
-              <td className="px-4 py-3 font-mono text-xs text-[color:var(--mute)]">{m.email}</td>
-              <td className="px-4 py-3 text-xs text-[color:var(--mute)]">{formatDateTime(m.joined_at)}</td>
+              <td data-label="Email" style={{ overflowWrap: "anywhere" }}>
+                {m.email}
+              </td>
+              <td data-label="Joined">{formatDateTime(m.joined_at)}</td>
             </tr>
           ))}
         </tbody>
@@ -197,8 +180,8 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
   }
 
   return (
-    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
-      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
+    <div className="rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+      <label className="mb-2 block text-sm font-semibold text-[color:var(--ink)]">
         Progress notes — only you and admin see these
       </label>
       <textarea
@@ -206,7 +189,7 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
         onChange={(e) => setBody(e.target.value)}
         rows={10}
         placeholder="How is the cohort doing? What are you focused on this week?"
-        className="w-full resize-y rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
+        className="wb-textarea w-full"
       />
       {err && <p className="mt-2 text-xs text-[color:var(--late)]">{err}</p>}
       <div className="mt-3 flex items-center justify-between">
@@ -216,7 +199,8 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
         <button
           onClick={save}
           disabled={!dirty || pending}
-          className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--accent)] px-4 py-2 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="wb-btn"
+          data-variant="primary"
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           Save notes
@@ -238,10 +222,7 @@ function HomeworkTab({ cohortId, homework }: { cohortId: string; homework: Tutor
           Assignments you post here appear in each student&apos;s cohort page and on the admin view.
         </p>
         {!composerOpen && (
-          <button
-            onClick={() => setComposerOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--accent)] px-3 py-1.5 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]"
-          >
+          <button onClick={() => setComposerOpen(true)} className="wb-btn" data-variant="primary">
             <Plus className="h-4 w-4" />
             {learningPlanCopy.cohortPostButton}
           </button>
@@ -308,7 +289,10 @@ function HomeworkComposer({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+    <form
+      onSubmit={submit}
+      className="space-y-3 rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5"
+    >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-[color:var(--ink)]">Post new homework</h3>
         <button
@@ -328,24 +312,24 @@ function HomeworkComposer({
         placeholder="Title (e.g. Linear Functions — Practice Set B)"
         required
         maxLength={140}
-        className="w-full rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
+        className="w-full rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
       />
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={4}
         placeholder="Instructions (optional) — describe the task, link to resources, etc."
-        className="w-full resize-y rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
+        className="wb-textarea w-full"
       />
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
+        <label className="mb-1 block text-sm font-semibold text-[color:var(--ink)]">
           Due date (optional)
         </label>
         <input
           type="datetime-local"
           value={dueAt}
           onChange={(e) => setDueAt(e.target.value)}
-          className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
+          className="wb-input"
         />
       </div>
       {err && <p className="text-xs text-[color:var(--late)]">{err}</p>}
@@ -354,14 +338,15 @@ function HomeworkComposer({
           type="button"
           onClick={onCancel}
           disabled={pending}
-          className="rounded-lg border border-[color:var(--line)] px-3 py-1.5 text-sm text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
+          className="rounded border border-[color:var(--line)] px-3 py-1.5 text-sm text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending || !title.trim()}
-          className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--accent)] px-3 py-1.5 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:opacity-50"
+          className="wb-btn"
+          data-variant="primary"
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           Post
@@ -398,7 +383,7 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
   }
 
   return (
-    <li className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+    <li className="rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
       <div className="mb-2 flex items-start justify-between gap-4">
         <h3 className="font-semibold text-[color:var(--ink)]">{h.title}</h3>
         <div className="flex items-center gap-2">
@@ -418,7 +403,9 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
         </div>
       </div>
       {h.body && (
-        <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--mute)]">{h.body}</p>
+        <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--mute)]">
+          {h.body}
+        </p>
       )}
       <div className="text-xs text-[color:var(--mute)]">
         Assigned {formatDateTime(h.assigned_at)}
@@ -441,16 +428,20 @@ function DueBadge({ dueAt }: { dueAt: string | null }) {
   let classes: string;
   if (ms < 0) {
     label = days <= -1 ? `${Math.abs(days)}d overdue` : "due earlier";
-    classes = "bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] text-[color:var(--mute)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]";
+    classes =
+      "bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] text-[color:var(--mute)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]";
   } else if (days <= 1) {
     label = days === 0 ? "due today" : "due tomorrow";
-    classes = "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_20%,transparent)]";
+    classes =
+      "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_20%,transparent)]";
   } else if (days <= 3) {
     label = `due in ${days}d`;
-    classes = "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_20%,transparent)]";
+    classes =
+      "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_20%,transparent)]";
   } else {
     label = `due in ${days}d`;
-    classes = "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]";
+    classes =
+      "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]";
   }
   return (
     <span
@@ -463,7 +454,7 @@ function DueBadge({ dueAt }: { dueAt: string | null }) {
 
 function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-[color:var(--line)] px-8 py-10 text-center">
+    <div className="rounded border border-dashed border-[color:var(--line)] px-8 py-10 text-center">
       <h3 className="text-base font-semibold text-[color:var(--ink)]">{title}</h3>
       <p className="mx-auto mt-2 max-w-md text-sm text-[color:var(--mute)]">{subtitle}</p>
     </div>
@@ -516,9 +507,12 @@ function TierBadge({ tier }: { tier: CohortTier }) {
 
 function StatusBadge({ status }: { status: CohortStatus }) {
   const map: Record<CohortStatus, string> = {
-    forming: "bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] text-[color:var(--ink)] border-[color-mix(in_srgb,var(--line)_20%,transparent)]",
-    active: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
-    completed: "bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] text-[color:var(--mute)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]",
+    forming:
+      "bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] text-[color:var(--ink)] border-[color-mix(in_srgb,var(--line)_20%,transparent)]",
+    active:
+      "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
+    completed:
+      "bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] text-[color:var(--mute)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]",
   };
   return (
     <span
