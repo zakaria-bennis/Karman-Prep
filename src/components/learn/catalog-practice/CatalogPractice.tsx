@@ -87,6 +87,10 @@ export default function CatalogPractice({
 
   function accept(next: CatalogStudentSession) {
     requireEntrySkill(next, skill.id);
+    // A session whose questions changed is closed and replaced by the server; follow it.
+    if (session && session.id !== next.id) {
+      router.replace(catalogSessionHref(skill.id, next.id), { scroll: false });
+    }
     setSession(next);
     setReviewIndex(null);
     if (next.question)
@@ -253,8 +257,12 @@ export default function CatalogPractice({
             ) : session.completedAt ? (
               <section className="space-y-6 rounded-2xl border border-bronze bg-surface p-6">
                 <div>
-                  <h2 className="text-xl font-semibold">Practice complete</h2>
-                  <p className="mt-3 text-3xl font-semibold">{session.score}%</p>
+                  <h2 className="text-xl font-semibold">
+                    {session.score === null ? "Practice closed" : "Practice complete"}
+                  </h2>
+                  {session.score !== null && (
+                    <p className="mt-3 text-3xl font-semibold">{session.score}%</p>
+                  )}
                   <p className="mt-2 text-sm text-taupe">
                     This practice only · {session.answered} of {session.total} questions answered
                   </p>

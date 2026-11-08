@@ -29,6 +29,11 @@ describe("historical student display projection", () => {
   it("does not treat missing completed response data as zero misses", () => {
     expect(() => presentSavedSession(saved(), [])).toThrow("answer details are unavailable");
   });
+  it("shows a session closed early with only the answers saved before it closed", () => {
+    const result = presentSavedSession(saved({ score: null }), []);
+    expect(result).toMatchObject({ answered: 0, total: 1, score: null });
+    expect(result.completedAt).not.toBeNull();
+  });
   it.each([
     { ordinal: 1 },
     { question_id: "77777777-7777-4777-8777-777777777777" },
