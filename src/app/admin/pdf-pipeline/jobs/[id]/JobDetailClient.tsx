@@ -14,40 +14,28 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  CheckCircle2,
-  XCircle,
-  Activity,
-  Clock,
-  FileText,
-  Database,
-  Sparkles,
-  Image as ImageIcon,
-  FileSearch,
-  AlertCircle,
-  ExternalLink,
-} from "lucide-react";
+import { WbPill, WbSection, WbTable, type Tone } from "@/components/admin/workbench";
 import type { PdfProcessingJob } from "@/types/pdf-job";
 import { STAGE_LABEL } from "@/types/pdf-job";
 
 // ── Pipeline stage definitions for the v2 (Gemini) flow ──
-//   Order matters: rendered top-to-bottom as a vertical checklist.
+//   Order matters: rendered top-to-bottom as a checklist.
 const V2_STAGES = [
-  { key: "extracting", icon: FileSearch, label: "Extract questions" },
-  { key: "figures", icon: ImageIcon, label: "Crop figures" },
-  { key: "csv", icon: FileText, label: "Generate CSV" },
-  { key: "importing", icon: Database, label: "Write to database" },
-  { key: "filling", icon: Sparkles, label: "Generate explanations" },
-  { key: "grading", icon: CheckCircle2, label: "Validate answer keys" },
+  { key: "extracting", label: "Extract questions" },
+  { key: "figures", label: "Crop figures" },
+  { key: "csv", label: "Generate CSV" },
+  { key: "importing", label: "Write to database" },
+  { key: "filling", label: "Generate explanations" },
+  { key: "grading", label: "Validate answer keys" },
 ] as const;
+
+type Stage = (typeof V2_STAGES)[number];
 
 const V2_STAGE_ORDER = V2_STAGES.map((s) => s.key) as readonly string[];
 
-function stageStatus(
-  rowStage: string,
-  rowStatus: string,
-  targetStage: string
-): "pending" | "active" | "complete" | "failed" {
+type StageState = "pending" | "active" | "complete" | "failed";
+
+function stageStatus(rowStage: string, rowStatus: string, targetStage: string): StageState {
   if (rowStatus === "failed" && rowStage === targetStage) return "failed";
   if (rowStatus === "complete" || rowStage === "done") return "complete";
   const rowIdx = V2_STAGE_ORDER.indexOf(rowStage);
@@ -58,61 +46,24 @@ function stageStatus(
   return "pending";
 }
 
-function StageRow({
-  stage,
-  rowStage,
-  rowStatus,
-  job,
-}: {
-  stage: (typeof V2_STAGES)[number];
-  rowStage: string;
-  rowStatus: string;
-  job: PdfProcessingJob;
-}) {
-  const s = stageStatus(rowStage, rowStatus, stage.key);
-  const Icon = stage.icon;
-  const tone =
-    s === "complete"
-      ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_30%,transparent)] text-[color:var(--good)]"
-      : s === "active"
-        ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_30%,transparent)] text-[color:var(--accent-text)]"
-        : s === "failed"
-          ? "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_30%,transparent)] text-[color:var(--late)]"
-          : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_30%,transparent)] text-[color:var(--mute)]";
-  const dot =
-    s === "complete" ? (
-      <CheckCircle2 className="h-4 w-4" />
-    ) : s === "active" ? (
-      <Activity className="h-4 w-4 animate-pulse" />
-    ) : s === "failed" ? (
-      <XCircle className="h-4 w-4" />
-    ) : (
-      <Clock className="h-4 w-4" />
-    );
+const STAGE_PILL: Record<StageState, { label: string; tone: Tone }> = {
+  pending: { label: "Waiting", tone: "neutral" },
+  active: { label: "Running", tone: "info" },
+  complete: { label: "Done", tone: "ok" },
+  failed: { label: "Failed", tone: "fail" },
+};
 
-  // Stats lookup based on stage.
-  let detail: string | null = null;
+function stageDetail(stage: Stage, s: StageState, job: PdfProcessingJob): string | null {
   const stats = job.progress?.stats ?? {};
+  const parts: string[] = [];
   if (stage.key === "extracting" && typeof stats.questions_extracted === "number") {
-    detail = `${stats.questions_extracted} questions`;
+    parts.push(`${stats.questions_extracted} questions`);
   }
   if (stage.key === "figures" && typeof stats.figures_extracted === "number") {
-    detail = `${stats.figures_extracted} figures`;
+    parts.push(`${stats.figures_extracted} figures`);
   }
-
-  return (
-    <div className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${tone}`}>
-      <div className="border-current/30 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border">
-        {dot}
-      </div>
-      <Icon className="h-4 w-4 shrink-0 opacity-70" />
-      <div className="flex-1 text-sm font-medium">{stage.label}</div>
-      {detail && <div className="text-xs tabular-nums opacity-80">{detail}</div>}
-      {s === "active" && job.progress?.message && (
-        <div className="hidden text-xs italic opacity-70 sm:block">{job.progress.message}</div>
-      )}
-    </div>
-  );
+  if (s === "active" && job.progress?.message) parts.push(job.progress.message);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 export default function JobDetailClient({ initialJob }: { initialJob: PdfProcessingJob }) {
@@ -140,120 +91,134 @@ export default function JobDetailClient({ initialJob }: { initialJob: PdfProcess
 
   const percent = job.progress?.percent ?? 0;
   const rowStage = job.progress?.stage ?? "queued";
+  const statusTone: Tone =
+    job.status === "complete" ? "ok" : job.status === "failed" ? "fail" : "info";
+  const bar =
+    job.status === "failed"
+      ? "var(--late)"
+      : job.status === "complete"
+        ? "var(--good)"
+        : "var(--accent)";
 
   return (
-    <div className="space-y-5">
-      {/* Top: status badge + progress bar */}
-      <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] p-5">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                job.status === "complete"
-                  ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_40%,transparent)] text-[color:var(--good)]"
-                  : job.status === "failed"
-                    ? "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_40%,transparent)] text-[color:var(--late)]"
-                    : "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--accent-text)]"
-              }`}
-            >
-              {job.status === "complete" ? (
-                <CheckCircle2 className="h-3.5 w-3.5" />
-              ) : job.status === "failed" ? (
-                <XCircle className="h-3.5 w-3.5" />
-              ) : (
-                <Activity className="h-3.5 w-3.5 animate-pulse" />
-              )}
-              {job.status}
-            </span>
-            <span className="text-xs text-[color:var(--mute)]">{STAGE_LABEL[rowStage] ?? rowStage}</span>
-          </div>
-          <div className="text-xl font-bold tabular-nums text-[color:var(--ink)]">{percent}%</div>
+    <>
+      {/* Top: status pill + progress bar */}
+      <WbSection title="Progress">
+        <div className="wb-toolbar" style={{ justifyContent: "space-between" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <WbPill tone={statusTone}>{job.status}</WbPill>
+            <span className="wb-note">{STAGE_LABEL[rowStage] ?? rowStage}</span>
+          </span>
+          <b style={{ fontSize: "1.25rem" }}>{percent}%</b>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-[color:var(--raised)]">
+        <div
+          role="progressbar"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Job progress"
+          style={{
+            height: 8,
+            marginTop: 10,
+            borderRadius: 4,
+            overflow: "hidden",
+            background: "var(--sunk, var(--line))",
+          }}
+        >
           <div
-            className={`h-full transition-all duration-500 ${
-              job.status === "failed"
-                ? "bg-[color:var(--late)]"
-                : job.status === "complete"
-                  ? "bg-[color:var(--good)]"
-                  : "bg-[color:var(--accent)]"
-            }`}
-            style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
+            style={{
+              height: "100%",
+              width: `${Math.max(0, Math.min(100, percent))}%`,
+              background: bar,
+              transition: "width 500ms",
+            }}
           />
         </div>
         {job.progress?.message && (
-          <div className="mt-2 text-xs text-[color:var(--mute)]">{job.progress.message}</div>
+          <p className="wb-note" style={{ marginTop: 8 }}>
+            {job.progress.message}
+          </p>
         )}
-      </div>
+      </WbSection>
 
       {/* Error panel */}
       {job.status === "failed" && job.error_message && (
-        <div className="rounded-xl border border-[color-mix(in_srgb,var(--late)_60%,transparent)] bg-[color-mix(in_srgb,var(--late)_30%,transparent)] p-4 text-sm text-[color:var(--late)]">
-          <div className="mb-1 flex items-center gap-2 font-semibold">
-            <AlertCircle className="h-4 w-4" /> Failed at stage:{" "}
-            <code className="rounded bg-[color-mix(in_srgb,var(--late)_15%,transparent)] px-1.5 py-0.5 text-xs">
-              {job.progress?.error_stage ?? job.progress?.stage ?? "unknown"}
-            </code>
-          </div>
-          <div className="whitespace-pre-wrap font-mono text-xs text-[color-mix(in_srgb,var(--late)_90%,transparent)]">
+        <div className="wb-alert" role="alert">
+          <b>
+            Failed at stage:{" "}
+            <code>{job.progress?.error_stage ?? job.progress?.stage ?? "unknown"}</code>
+          </b>
+          <pre
+            style={{
+              margin: "6px 0 0",
+              whiteSpace: "pre-wrap",
+              overflowWrap: "anywhere",
+              fontSize: "0.75rem",
+            }}
+          >
             {job.error_message}
-          </div>
+          </pre>
           {job.progress?.github_run_url && (
             <a
               href={job.progress.github_run_url}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--late)] hover:text-[color:var(--late)]"
+              style={{ display: "inline-block", marginTop: 8, fontWeight: 600 }}
             >
-              View full logs on GitHub Actions <ExternalLink className="h-3 w-3" />
+              View full logs on GitHub Actions
             </a>
           )}
         </div>
       )}
 
       {/* Pipeline stage checklist */}
-      <div className="space-y-2">
-        {V2_STAGES.map((s) => (
-          <StageRow key={s.key} stage={s} rowStage={rowStage} rowStatus={job.status} job={job} />
-        ))}
-      </div>
+      <WbTable<Stage>
+        caption="Pipeline stages"
+        rows={[...V2_STAGES]}
+        rowKey={(s) => s.key}
+        empty="No stages."
+        columns={[
+          { key: "stage", label: "Stage", cell: (s) => s.label },
+          {
+            key: "status",
+            label: "Status",
+            cell: (s) => {
+              const pill = STAGE_PILL[stageStatus(rowStage, job.status, s.key)];
+              return <WbPill tone={pill.tone}>{pill.label}</WbPill>;
+            },
+          },
+          {
+            key: "detail",
+            label: "Detail",
+            cell: (s) => stageDetail(s, stageStatus(rowStage, job.status, s.key), job) ?? "—",
+          },
+        ]}
+      />
 
       {/* Footer: result links when complete */}
       {job.status === "complete" && (
-        <div className="rounded-xl border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_20%,transparent)] p-4 text-sm">
-          <div className="mb-2 flex items-center gap-2 font-semibold text-[color:var(--good)]">
-            <CheckCircle2 className="h-4 w-4" /> Pipeline complete
-          </div>
-          <div className="space-y-1 text-xs text-[color-mix(in_srgb,var(--good)_90%,transparent)]">
-            {typeof job.progress?.stats?.questions_extracted === "number" && (
-              <div>
-                {job.progress.stats.questions_extracted} questions extracted,{" "}
-                {job.progress?.stats?.figures_extracted ?? 0} figures.
-              </div>
-            )}
-            <Link
-              href={`/admin/questions/review?source_pdf=${encodeURIComponent(job.source_pdf)}`}
-              className="inline-flex items-center gap-1 font-semibold text-[color:var(--good)] hover:text-[color:var(--good)]"
-            >
-              View extracted questions in review queue →
-            </Link>
-          </div>
+        <div className="wb-alert" data-tone="ok" role="status">
+          <b>Pipeline complete.</b>{" "}
+          {typeof job.progress?.stats?.questions_extracted === "number" && (
+            <>
+              {job.progress.stats.questions_extracted} questions extracted,{" "}
+              {job.progress?.stats?.figures_extracted ?? 0} figures.{" "}
+            </>
+          )}
+          <Link href={`/admin/questions/review?source_pdf=${encodeURIComponent(job.source_pdf)}`}>
+            View extracted questions in the review queue
+          </Link>
         </div>
       )}
 
       {/* Footer: live run link */}
       {polling && job.progress?.github_run_url && (
-        <div className="text-center text-xs text-[color:var(--mute)]">
-          <a
-            href={job.progress.github_run_url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 hover:text-[color:var(--ink)]"
-          >
-            Watching GitHub Actions run <ExternalLink className="h-3 w-3" />
+        <p className="wb-note">
+          <a href={job.progress.github_run_url} target="_blank" rel="noreferrer">
+            Watching GitHub Actions run
           </a>
-        </div>
+        </p>
       )}
-    </div>
+    </>
   );
 }
