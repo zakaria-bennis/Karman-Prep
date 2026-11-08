@@ -39,9 +39,18 @@ function countOccurrences(hay: string, needle: string): number {
   return n;
 }
 
+let workerReady = false;
+
 async function readText(bytes: Uint8Array): Promise<{ text: string; error: string | null }> {
   try {
     const { PDFParse } = await import("pdf-parse");
+    if (!workerReady) {
+      // Bundlers move pdf.js away from its worker file ("Setting up fake worker failed").
+      // Loading the worker module here registers globalThis.pdfjsWorker, which pdf.js
+      // uses in place of a file lookup.
+      await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+      workerReady = true;
+    }
     // A copy: pdf.js may transfer (detach) the buffer it is given.
     const parser = new PDFParse({ data: new Uint8Array(bytes) });
     try {

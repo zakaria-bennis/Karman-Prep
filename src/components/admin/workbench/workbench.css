@@ -22,15 +22,12 @@
   gap: 16px;
   min-width: 0;
   padding-block: 18px;
+  container-type: inline-size;
 }
 @media (prefers-color-scheme: dark) {
   .wb {
     --wb-warn: #f2c46d;
   }
-}
-:root[data-theme="dark"] .wb,
-.dark .wb {
-  --wb-warn: #f2c46d;
 }
 
 .wb-head {
@@ -40,7 +37,7 @@
   justify-content: space-between;
   gap: 12px;
 }
-.wb-head h1 {
+.wb-head h2 {
   margin: 0;
   font-family: var(--font-serif, inherit);
   font-size: 1.6rem;
@@ -212,7 +209,7 @@
   color: var(--wb-mute);
 }
 .wb-pill[data-tone="info"] {
-  color: var(--wb-accent);
+  color: var(--wb-ink);
 }
 
 /* Dense table. Below 768px each row becomes a small card (no sideways scroll). */
@@ -324,7 +321,7 @@
   display: grid;
   gap: 16px;
 }
-@media (min-width: 1100px) {
+@container (min-width: 980px) {
   .wb-grid[data-columns="2"] {
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     align-items: start;

@@ -26,7 +26,7 @@ export function WbPage({
     <div className="wb">
       <header className="wb-head">
         <div>
-          <h1>{title}</h1>
+          <h2>{title}</h2>
           {summary && <p>{summary}</p>}
         </div>
         {actions && <div className="wb-actions">{actions}</div>}

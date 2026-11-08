@@ -31,7 +31,7 @@ import { KarmanLogo } from "./KarmanLogo";
 import { ThemeSelector } from "./ThemeSelector";
 import { cn } from "@/lib/utils";
 
-type Area = "student" | "tutor" | "admin";
+type Area = "student" | "tutor";
 interface Destination {
   href: string;
   label: string;
@@ -68,25 +68,10 @@ const DESTINATIONS: Record<Area, Destination[]> = {
     },
     { href: "/tutor/settings/payment", label: "Payment settings", icon: CreditCard },
   ],
-  admin: [
-    { href: "/admin/questions/dashboard", label: "Question overview", icon: LayoutDashboard },
-    { href: "/admin/curriculum", label: "Curriculum", icon: BookOpen },
-    { href: "/admin/questions/review", label: "Review questions", icon: ClipboardCheck },
-    { href: "/admin/questions/preview", label: "Question preview", icon: Eye },
-    { href: "/admin/questions/preview/rapid", label: "Rapid student view", icon: CheckCheck },
-    { href: "/admin/questions/import", label: "Import questions", icon: Upload },
-    { href: "/admin/users", label: "People", icon: Users, group: "Manage" },
-    { href: "/admin/cohorts", label: "Cohorts", icon: FolderOpen },
-    { href: "/admin/revenue", label: "Revenue", icon: ChartNoAxesCombined },
-    { href: "/admin/moderation", label: "Moderation", icon: ShieldCheck },
-    { href: "/admin/jobs", label: "Background jobs", icon: ListChecks },
-    { href: "/admin/pdf-pipeline/jobs", label: "Import jobs", icon: Upload },
-  ],
 };
 const AREA_LABEL: Record<Area, string> = {
   student: "Student workspace",
   tutor: "Educator workspace",
-  admin: "Admin workspace",
 };
 
 export default function PortalShell({

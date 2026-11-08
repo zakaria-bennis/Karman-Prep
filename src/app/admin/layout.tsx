@@ -1,32 +1,28 @@
 // ============================================================
-// /admin — Dark-themed role-gated (admin only) layout.
+// /admin — role-gated (admin only) layout in the painted portal
+// shell. Server actions and route handlers check the admin role
+// again on their own (src/lib/auth/admin-guard.ts).
 // ============================================================
 
-import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
-import { ThemedUserButton as UserButton } from "@/components/shared/ThemedClerkWidgets";
-import PortalShell from "@/components/shared/PortalShell";
-import { fetchUserRole } from "@/lib/supabase/queries/admin";
-import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
+import { safeAuth } from "@/lib/auth/dev-auth";
+import { createAdminClient } from "@/lib/supabase/server";
+import AdminShell from "./AdminShell";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await safeAuth();
   if (!userId) redirect("/auth/sign-in");
 
-  const role = await fetchUserRole(userId);
-  if (role !== "admin") redirect("/dashboard/student");
+  const { data: me } = await createAdminClient()
+    .from("users")
+    .select("role, first_name, email")
+    .eq("clerk_id", userId)
+    .maybeSingle();
+  if (me?.role !== "admin") redirect("/dashboard/student");
 
   return (
-    <PortalShell
-      area="admin"
-      actions={
-        <>
-          <ImpersonationMenu />
-          <UserButton />
-        </>
-      }
-    >
+    <AdminShell name={me.first_name ?? null} email={me.email ?? null}>
       {children}
-    </PortalShell>
+    </AdminShell>
   );
 }
