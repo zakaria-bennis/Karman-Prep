@@ -210,7 +210,7 @@ export default async function StudentSchedulePage() {
             <p className="mt-2 text-sm text-taupe dark:text-taupe">
               {canSelfBook
                 ? "You have no upcoming sessions yet. Pick a time below to book one with your tutor."
-                : "You have no upcoming sessions yet. Your tutor will post seminar / small-group sessions here as they're scheduled."}
+                : "You have no upcoming sessions yet. Your tutor will post your cohort classes and live sessions here as they're scheduled."}
             </p>
           ) : null}
         </header>

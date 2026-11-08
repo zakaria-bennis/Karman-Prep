@@ -18,6 +18,7 @@ import {
   actionUnlinkParentFromStudent,
 } from "./actions";
 import { actionImpersonateUser } from "@/app/admin/impersonation-actions";
+import { tierLabelOf } from "@/lib/scheduling/tiers";
 
 const ROLE_OPTIONS: AppRole[] = ["student", "tutor", "parent", "admin"];
 
@@ -112,7 +113,7 @@ export default function UsersClient({ users, cohorts }: Props) {
             <option value="all">All cohorts ({cohorts.length})</option>
             {cohorts.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} ({c.tier === "small_group" ? "Small Group" : "Seminar"})
+                {c.name} ({tierLabelOf(c.tier)})
               </option>
             ))}
           </select>

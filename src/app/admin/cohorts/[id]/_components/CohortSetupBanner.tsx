@@ -37,7 +37,7 @@ export function CohortSetupBanner({ cohortId }: { cohortId: string }) {
       <div className="min-w-[15rem] flex-1">
         <p className="font-semibold text-warning-bright">This cohort still needs Cal/Zoom setup</p>
         <p className="mt-0.5 text-xs text-warning-bright/80">
-          Configure the seminar event in Cal.com (event-type, schedule, Zoom location) for this
+          Configure the class event in Cal.com (event-type, schedule, Zoom location) for this
           cohort, then click the button to dismiss this banner. You&apos;ll get a daily reminder
           email until it&apos;s marked complete.
         </p>

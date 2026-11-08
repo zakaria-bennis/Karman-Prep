@@ -22,7 +22,6 @@ import {
   Users,
   DollarSign,
   Calculator,
-  AlertTriangle,
   Info,
   RefreshCw,
   Activity,
@@ -84,8 +83,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             Revenue
           </h1>
           <p className="mt-1 text-xs text-taupe">
-            Computed from active + trialing subscriptions and bookings in the trailing 30 days. As
-            of{" "}
+            Computed from active subscriptions and one-time purchases in the trailing 30 days. As of{" "}
             {new Date(data.asOf).toLocaleString("en-US", {
               dateStyle: "medium",
               timeStyle: "short",
@@ -265,7 +263,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                   <th className="py-2 text-left font-semibold">Tier</th>
                   <th className="py-2 text-right font-semibold">Students</th>
                   <th className="py-2 text-right font-semibold">Revenue / mo</th>
-                  <th className="py-2 text-right font-semibold">% of MRR</th>
+                  <th className="py-2 text-right font-semibold">% of revenue</th>
                 </tr>
               </thead>
               <tbody>
@@ -298,8 +296,8 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                             </p>
                             <p className="text-[10px] text-taupe">
                               {t.model === "subscription"
-                                ? `$${t.price}/mo subscription`
-                                : `$${t.price}/session`}
+                                ? `${fmtMoney(t.price)}/mo subscription`
+                                : `${fmtMoney(t.price)} one-time`}
                             </p>
                           </div>
                         </div>
@@ -310,7 +308,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                         <p className="text-[10px] text-taupe">{t.unitsLabel}</p>
                       </td>
                       <td className="text-right tabular-nums text-ivory">
-                        {fmtPct(t.revenue, data.totalMrr)}
+                        {fmtPct(t.revenue, data.monthRevenue)}
                       </td>
                     </tr>
                   );
@@ -320,10 +318,10 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                 <tr>
                   <td className="pt-3 text-sm font-bold text-ivory">Total</td>
                   <td className="pt-3 text-right font-bold tabular-nums text-ivory">
-                    {data.totalStudents}
+                    {data.tiers.reduce((sum, t) => sum + t.studentCount, 0)}
                   </td>
                   <td className="pt-3 text-right font-bold tabular-nums text-success-bright">
-                    {fmtMoney(data.totalMrr)}
+                    {fmtMoney(data.monthRevenue)}
                   </td>
                   <td className="pt-3 text-right tabular-nums text-taupe">100%</td>
                 </tr>
@@ -331,17 +329,6 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             </table>
           </div>
         </div>
-        {data.usedBookingFallback && (
-          <div className="mt-4 flex items-start gap-2 rounded-lg border border-warning/20 bg-warning/5 p-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-bright" />
-            <p className="text-xs text-warning-bright">
-              <span className="font-semibold">Per-session revenue is estimated.</span> No bookings
-              on file in the last 30 days for one or more per-session tiers, so we assumed{" "}
-              <span className="font-mono">{data.estimatedSessionsPerStudent}</span>{" "}
-              sessions/student/month.
-            </p>
-          </div>
-        )}
       </section>
 
       {/* ─── Cohort retention ─────────────────────────────── */}
@@ -470,7 +457,6 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <StatusPill label="Active" count={data.statusCounts.active ?? 0} color="emerald" />
-          <StatusPill label="Trialing" count={data.statusCounts.trialing ?? 0} color="blue" />
           <StatusPill label="Past due" count={data.statusCounts.past_due ?? 0} color="amber" />
           <StatusPill label="Canceled" count={data.statusCounts.canceled ?? 0} color="rose" />
           <StatusPill label="Incomplete" count={data.statusCounts.incomplete ?? 0} color="slate" />

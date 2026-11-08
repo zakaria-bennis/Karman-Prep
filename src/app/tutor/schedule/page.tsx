@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 import { CalendarClock, Video } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/server";
 import { TutorBookingActions } from "./TutorBookingActions";
+import { tierLabel as schedulingTierLabel } from "@/lib/scheduling/tiers";
 import {
   getBookingsForTutor,
   getUserUuidByClerkId,
@@ -43,23 +44,23 @@ function tierLabel(t: BookingRow["plan_tier"]): { label: string; cls: string } {
   switch (t) {
     case "private":
       return {
-        label: "Private",
+        label: schedulingTierLabel("private"),
         cls: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning-bright border-warning/40 dark:border-warning/20",
       };
     case "elite":
       return {
-        label: "Elite",
+        label: schedulingTierLabel("elite"),
         cls: "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
       };
     case "small_group":
       return {
-        label: "Small Group",
+        label: schedulingTierLabel("small_group"),
         cls: "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border-success/40 dark:border-success/20",
       };
     case "group":
     default:
       return {
-        label: "Seminar",
+        label: schedulingTierLabel("group"),
         cls: "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
       };
   }
@@ -119,8 +120,8 @@ function formatTime(iso: string, tz: string): string {
 type TabKey = "upcoming" | "seminars" | "small-groups";
 const ALL_TABS: { key: TabKey; label: string }[] = [
   { key: "upcoming", label: "Upcoming" },
-  { key: "seminars", label: "Seminars" },
-  { key: "small-groups", label: "Small Groups" },
+  { key: "seminars", label: "Live sessions" },
+  { key: "small-groups", label: "Cohorts" },
 ];
 
 function parseTab(input: string | string[] | undefined): TabKey {
@@ -254,8 +255,8 @@ export default async function TutorSchedulePage({
               {tab === "upcoming"
                 ? "Nothing scheduled. New bookings will show up here as students book in."
                 : tab === "seminars"
-                  ? "No seminar sessions yet. They'll appear here once admin pushes a session to one of your seminar cohorts."
-                  : "No small-group sessions yet. They'll appear here once admin pushes a session to one of your small-group cohorts."}
+                  ? "No weekly live sessions yet. They'll appear here once an admin schedules one for your group."
+                  : "No cohort classes yet. They'll appear here once an admin schedules a class for one of your cohorts."}
             </p>
           </div>
         ) : (

@@ -134,15 +134,7 @@ export async function POST(req: NextRequest) {
     }
     const tokensAvailable = await getAvailableTokenCount(studentUuid);
     if (tokensAvailable < 1) {
-      return NextResponse.json(
-        {
-          error:
-            sub.tier === "elite"
-              ? "No session credits remaining this month."
-              : "No session credits available — purchase a session to book.",
-        },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "No hours left in your package." }, { status: 403 });
     }
 
     const clerkUser = await currentUser();

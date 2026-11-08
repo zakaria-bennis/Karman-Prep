@@ -1,10 +1,10 @@
 // ============================================================
-// /admin/revenue — Revenue dashboard.
+// /admin/revenue: Revenue dashboard.
 //
-// Pulls subscription, booking, refund, and snapshot data from
-// Supabase and computes:
-//   · MRR + ARR
-//   · ARPU
+// Pulls subscription, one-time purchase, booking, refund and
+// snapshot data from Supabase and computes:
+//   · MRR + ARR (renewing plans at their monthly value)
+//   · ARPU (MRR per subscriber)
 //   · Monthly churn rate (from subscriptions.canceled_at)
 //   · LTV (= ARPU / monthly churn)
 //   · New / cancelled subscribers (trailing 30d)
@@ -13,8 +13,11 @@
 //   · 3 / 6 / 12-month forecast (current MRR + net-add rate)
 //   · Cohort retention matrix (rows = signup month, cols = months later)
 //   · Dunning queue (past_due subscriptions with student names)
-//   · Per-tutor revenue attribution (last 30d bookings × per-session price)
-//   · Tier breakdown (count + revenue per tier)
+//   · Per-tutor revenue (last 30d private sessions at the package's hourly price)
+//   · Plan breakdown: Practice, Pro and Tutor affiliate from
+//     subscriptions; the Cohort, Private 10 and Private 20 from
+//     plan_grants purchases (prices in src/lib/marketing/offer.ts,
+//     rules in ./_economics.ts)
 //   · Subscription status breakdown
 //
 // PRODUCTION SWAP-IN POINT: when going live we should swap the
@@ -27,121 +30,89 @@ import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/server";
 import RevenueClient, {
   type RevenueData,
-  type TierBreakdown,
   type CohortRow,
   type DunningEntry,
   type TutorRevenueRow,
   type MrrSnapshot,
 } from "./RevenueClient";
 import { snapshotRevenueAction } from "./actions";
+import {
+  ONE_TIME_PLANS,
+  RENEWING_PLANS,
+  isOneTimePlan,
+  isRenewingPlan,
+  paymentFor,
+  planBreakdown,
+  renewingMrr,
+} from "./_economics";
 
-export const metadata: Metadata = { title: "Admin — Revenue | Karman" };
+export const metadata: Metadata = { title: "Admin: Revenue | Karman" };
 export const dynamic = "force-dynamic";
 
-// Single source of truth for plan economics.
-const TIER_ECONOMICS: Record<
-  TierBreakdown["tier"],
-  { label: string; price: number; model: "subscription" | "per_session"; color: string }
-> = {
-  group: { label: "Seminar", price: 40, model: "subscription", color: "#2FA8FF" },
-  small_group: { label: "Small Group", price: 60, model: "per_session", color: "#E0A24A" },
-  private: { label: "Private", price: 135, model: "per_session", color: "#C8AB6A" },
-  elite: { label: "Elite", price: 800, model: "subscription", color: "#8BA86A" },
-};
-
-const ESTIMATED_SESSIONS_PER_MONTH = 4;
-const SUBSCRIPTION_TIERS = ["group", "elite"] as const;
+const ACTIVE_STATUSES = ["active", "trialing"];
 
 async function getRevenueMetrics(): Promise<RevenueData> {
   const supabase = createAdminClient();
   const now = Date.now();
+  const nowIso = new Date(now).toISOString();
   const since30d = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // ─── Active + trialing subs per tier ─────────────────────
+  // ─── Renewing plans (subscriptions) ──────────────────────
   const { data: subRows } = await supabase
     .from("subscriptions")
-    .select("tier, status, created_at, canceled_at, user_id");
+    .select("plan_id, billing_term, status, created_at, canceled_at, user_id");
   const allSubs = (subRows ?? []) as Array<{
-    tier: string;
+    plan_id: string;
+    billing_term: string;
     status: string;
     created_at: string;
     canceled_at: string | null;
     user_id: string;
   }>;
+  const activeSubs = allSubs.filter((r) => ACTIVE_STATUSES.includes(r.status));
 
-  const activeSubs = allSubs.filter((r) => r.status === "active" || r.status === "trialing");
-  const activeByTier: Record<TierBreakdown["tier"], number> = {
-    group: 0,
-    small_group: 0,
-    private: 0,
-    elite: 0,
-  };
-  for (const r of activeSubs) {
-    if (r.tier in activeByTier) activeByTier[r.tier as TierBreakdown["tier"]] += 1;
-  }
+  // ─── One-time plans (plan_grants purchases) ──────────────
+  const { data: grantRows } = await supabase
+    .from("plan_grants")
+    .select("plan_id, user_id, created_at, expires_at, revoked_at")
+    .eq("source", "purchase")
+    .is("revoked_at", null);
+  const purchases = (
+    (grantRows ?? []) as Array<{
+      plan_id: string;
+      user_id: string;
+      created_at: string;
+      expires_at: string | null;
+    }>
+  ).filter((g) => isOneTimePlan(g.plan_id));
+  const activeGrants = purchases.filter((g) => g.expires_at === null || g.expires_at > nowIso);
+  const purchases30d = purchases.filter((g) => g.created_at >= since30d);
 
-  // ─── Bookings in last 30d per tier ────────────────────────
+  // ─── Plan breakdown ──────────────────────────────────────
+  const tiers = planBreakdown(activeSubs, activeGrants, purchases30d);
+  const totalMrr = renewingMrr(activeSubs);
+  const monthRevenue = tiers.reduce((s, t) => s + t.revenue, 0);
+  const subscriberCount = activeSubs.length;
+  const totalStudents = subscriberCount + new Set(activeGrants.map((g) => g.user_id)).size;
+  const arpu = subscriberCount > 0 ? Math.round(totalMrr / subscriberCount) : 0;
+
+  // ─── Sessions in the last 30d (per-tutor attribution) ────
   const { data: bookingRows } = await supabase
     .from("bookings")
-    .select("plan_tier, tutor_id, status")
+    .select("plan_tier, tutor_id, student_id, duration_minutes, status")
     .gte("scheduled_start", since30d)
     .in("status", ["scheduled", "completed"]);
   const bookings30d = (bookingRows ?? []) as Array<{
     plan_tier: string;
     tutor_id: string;
+    student_id: string;
+    duration_minutes: number | null;
     status: string;
   }>;
-  const bookingsByTier: Record<TierBreakdown["tier"], number> = {
-    group: 0,
-    small_group: 0,
-    private: 0,
-    elite: 0,
-  };
-  for (const r of bookings30d) {
-    if (r.plan_tier in bookingsByTier) bookingsByTier[r.plan_tier as TierBreakdown["tier"]] += 1;
-  }
-
-  // ─── Tier breakdown ───────────────────────────────────────
-  let usedBookingFallback = false;
-  const tiers: TierBreakdown[] = (Object.keys(activeByTier) as TierBreakdown["tier"][]).map((t) => {
-    const econ = TIER_ECONOMICS[t];
-    const studentCount = activeByTier[t];
-    let revenue = 0;
-    let unitsLabel: string;
-    if (econ.model === "subscription") {
-      revenue = studentCount * econ.price;
-      unitsLabel = `${studentCount} subs × $${econ.price}/mo`;
-    } else {
-      const realBookings = bookingsByTier[t];
-      const usedBookings =
-        realBookings > 0 ? realBookings : studentCount * ESTIMATED_SESSIONS_PER_MONTH;
-      if (realBookings === 0 && studentCount > 0) usedBookingFallback = true;
-      revenue = usedBookings * econ.price;
-      unitsLabel =
-        realBookings > 0
-          ? `${realBookings} sessions × $${econ.price}`
-          : `~${usedBookings} est. sessions × $${econ.price}`;
-    }
-    return {
-      tier: t,
-      label: econ.label,
-      color: econ.color,
-      model: econ.model,
-      price: econ.price,
-      studentCount,
-      revenue,
-      unitsLabel,
-    };
-  });
-
-  const totalMrr = tiers.reduce((s, t) => s + t.revenue, 0);
-  const totalStudents = tiers.reduce((s, t) => s + t.studentCount, 0);
-  const arpu = totalStudents > 0 ? Math.round(totalMrr / totalStudents) : 0;
 
   // ─── Subscription status breakdown ────────────────────────
   const statusCounts: Record<string, number> = {
     active: 0,
-    trialing: 0,
     past_due: 0,
     canceled: 0,
     incomplete: 0,
@@ -162,7 +133,7 @@ async function getRevenueMetrics(): Promise<RevenueData> {
   // + cancellations during the window (since canceled subs WERE
   // active at the start). This is reasonable for steady-state
   // but undercounts for fast-growing businesses.
-  const startActive = totalStudents + cancellations30d;
+  const startActive = subscriberCount + cancellations30d;
   const monthlyChurnRate = startActive > 0 ? cancellations30d / startActive : 0;
   const ltv = monthlyChurnRate > 0 && arpu > 0 ? Math.round(arpu / monthlyChurnRate) : null; // null = "not computable yet"
 
@@ -176,8 +147,8 @@ async function getRevenueMetrics(): Promise<RevenueData> {
     (s, r) => s + ((r as { amount_cents: number }).amount_cents ?? 0),
     0
   );
-  // Refund rate = refund $ / MRR (rough — refunds are one-offs).
-  const refundRate = totalMrr > 0 ? refunds30dCents / 100 / totalMrr : 0;
+  // Refund rate = refund $ / the month's revenue (rough: refunds are one-offs).
+  const refundRate = monthRevenue > 0 ? refunds30dCents / 100 / monthRevenue : 0;
 
   // ─── MRR snapshots (last 30 captures) ─────────────────────
   const { data: snapRows } = await supabase
@@ -210,7 +181,7 @@ async function getRevenueMetrics(): Promise<RevenueData> {
       0.25,
       (now - new Date(oldest.capturedAt).getTime()) / (30 * 24 * 60 * 60 * 1000)
     );
-    monthlyNetNewSubs = (totalStudents - oldest.activeStudents) / monthsSpan;
+    monthlyNetNewSubs = (subscriberCount - oldest.activeStudents) / monthsSpan;
   } else {
     monthlyNetNewSubs = newSubs30d - cancellations30d;
   }
@@ -276,26 +247,55 @@ async function getRevenueMetrics(): Promise<RevenueData> {
       .filter((r) => r.status === "past_due")
       .map((r) => {
         const u = userByClerk.get(r.user_id);
-        const econ = TIER_ECONOMICS[r.tier as TierBreakdown["tier"]] ?? TIER_ECONOMICS.group;
+        const renewing = isRenewingPlan(r.plan_id) ? r.plan_id : null;
         return {
           name: u ? [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email : r.user_id,
           email: u?.email ?? null,
-          tier: econ.label,
-          amountOwed:
-            econ.model === "subscription" ? econ.price : econ.price * ESTIMATED_SESSIONS_PER_MONTH,
+          tier: renewing ? RENEWING_PLANS[renewing].label : r.plan_id,
+          amountOwed: renewing ? paymentFor(renewing, r.billing_term) : 0,
         };
       });
   }
 
   // ─── Per-tutor revenue attribution (last 30d) ─────────────
+  // Private sessions count at the hourly price of the student's latest
+  // private package (Private 10 or Private 20). Cohort classes are sold
+  // as one cohort price, so they count as sessions without revenue.
+  const privateStudentIds = Array.from(
+    new Set(
+      bookings30d
+        .filter((b) => b.plan_tier === "private" || b.plan_tier === "elite")
+        .map((b) => b.student_id)
+    )
+  );
+  const clerkByStudent = new Map<string, string>();
+  if (privateStudentIds.length > 0) {
+    const { data: studentRows } = await supabase
+      .from("users")
+      .select("id, clerk_id")
+      .in("id", privateStudentIds);
+    for (const u of (studentRows ?? []) as Array<{ id: string; clerk_id: string }>) {
+      clerkByStudent.set(u.id, u.clerk_id);
+    }
+  }
+  const hourlyByClerk = new Map<string, { hourly: number; boughtAt: string }>();
+  for (const g of purchases) {
+    if (!isOneTimePlan(g.plan_id)) continue;
+    const plan = ONE_TIME_PLANS[g.plan_id];
+    if (plan.hours === null) continue;
+    const current = hourlyByClerk.get(g.user_id);
+    if (!current || g.created_at > current.boughtAt) {
+      hourlyByClerk.set(g.user_id, { hourly: plan.price / plan.hours, boughtAt: g.created_at });
+    }
+  }
   const tutorBookings = new Map<string, { sessions: number; revenue: number }>();
   for (const b of bookings30d) {
-    const econ = TIER_ECONOMICS[b.plan_tier as TierBreakdown["tier"]];
-    if (!econ) continue;
-    const rev = econ.model === "per_session" ? econ.price : 0;
+    const isPrivate = b.plan_tier === "private" || b.plan_tier === "elite";
+    const clerkId = isPrivate ? clerkByStudent.get(b.student_id) : undefined;
+    const hourly = clerkId ? (hourlyByClerk.get(clerkId)?.hourly ?? 0) : 0;
     const cur = tutorBookings.get(b.tutor_id) ?? { sessions: 0, revenue: 0 };
     cur.sessions += 1;
-    cur.revenue += rev;
+    cur.revenue += Math.round((hourly * (b.duration_minutes ?? 60)) / 60);
     tutorBookings.set(b.tutor_id, cur);
   }
   let tutorRevenue: TutorRevenueRow[] = [];
@@ -339,12 +339,11 @@ async function getRevenueMetrics(): Promise<RevenueData> {
     refunds30dCount,
     refunds30dDollars: Math.round(refunds30dCents / 100),
     refundRate,
+    monthRevenue,
     tiers,
     statusCounts,
     newSubs30d,
     cancellations30d,
-    usedBookingFallback,
-    estimatedSessionsPerStudent: ESTIMATED_SESSIONS_PER_MONTH,
     snapshots,
     forecast,
     cohorts,
@@ -357,8 +356,3 @@ export default async function AdminRevenuePage() {
   const data = await getRevenueMetrics();
   return <RevenueClient data={data} snapshotAction={snapshotRevenueAction} />;
 }
-
-// Dummy reference so SUBSCRIPTION_TIERS isn't tree-shaken into a
-// "declared but never used" warning — it's there to make the
-// model split readable for future maintainers.
-void SUBSCRIPTION_TIERS;

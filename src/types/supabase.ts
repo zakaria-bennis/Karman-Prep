@@ -2443,6 +2443,45 @@ export type Database = {
           },
         ];
       };
+      plan_grants: {
+        Row: {
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          plan_id: string;
+          revoked_at: string | null;
+          source: string;
+          source_ref: string | null;
+          sponsor_user_id: string | null;
+          starts_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          plan_id: string;
+          revoked_at?: string | null;
+          source: string;
+          source_ref?: string | null;
+          sponsor_user_id?: string | null;
+          starts_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          plan_id?: string;
+          revoked_at?: string | null;
+          source?: string;
+          source_ref?: string | null;
+          sponsor_user_id?: string | null;
+          starts_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       subscriptions: {
         Row: {
           billing_term: string;
