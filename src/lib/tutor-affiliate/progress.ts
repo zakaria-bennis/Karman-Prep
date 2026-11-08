@@ -1,10 +1,13 @@
 // Progress at a glance for a tutor's students: a ring per course and a
-// square per skill, built from each student's practice answers.
+// square per sub-skill (founder, 2026-11-08), built from each student's
+// practice answers and the levels the quiz flows saved.
 
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
-import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { subSkillOfQuestion } from "@/lib/subskills/map";
+import { officialSkillsIn } from "@/lib/subskills/taxonomy";
 import type { SkillLevel } from "@/components/portal/skill-levels";
 import { levelFromHistory } from "@/lib/levels/rules";
 import { coursePercent } from "@/lib/progress-glance/levels";
@@ -33,7 +36,9 @@ export interface StudentGlance {
 type SessionRow = {
   student_id: string;
   skill_id: string;
-  catalog_practice_responses: { is_correct: boolean; answered_at: string }[] | null;
+  catalog_practice_responses:
+    | { question_id: string | null; is_correct: boolean; answered_at: string }[]
+    | null;
 };
 
 function db(): SupabaseClient {
@@ -46,11 +51,13 @@ function course(
   levels: Map<string, SkillLevel>
 ): CourseGlance {
   const domains = SKILL_DOMAINS.filter((d) => d.subject === subject).map((domain) => {
-    const skills = CATALOG_SKILLS.filter((s) => s.domainId === domain.id).map((s) => ({
-      id: s.id,
-      name: s.label,
-      level: levels.get(s.id) ?? (0 as SkillLevel),
-    }));
+    const skills = officialSkillsIn(domain.id)
+      .flatMap((o) => o.subSkills)
+      .map((s) => ({
+        id: s.id,
+        name: s.label,
+        level: levels.get(s.id) ?? (0 as SkillLevel),
+      }));
     const avg = skills.length ? skills.reduce((n, s) => n + s.level, 0) / skills.length : 0;
     return { id: domain.id, label: domain.label, level: Math.round(avg) as SkillLevel, skills };
   });
@@ -68,7 +75,9 @@ export async function fetchStudentGlances(
   if (!clerkIds.length) return result;
   const { data, error } = await db()
     .from("catalog_practice_sessions")
-    .select("student_id, skill_id, catalog_practice_responses(is_correct, answered_at)")
+    .select(
+      "student_id, skill_id, catalog_practice_responses(question_id, is_correct, answered_at)"
+    )
     .in("student_id", [...clerkIds])
     .limit(5000);
   if (error) throw new Error("Student progress could not be loaded.");
@@ -78,9 +87,10 @@ export async function fetchStudentGlances(
   for (const row of (data ?? []) as SessionRow[]) {
     const bySkill = answers.get(row.student_id) ?? new Map();
     answers.set(row.student_id, bySkill);
-    const list = bySkill.get(row.skill_id) ?? [];
-    bySkill.set(row.skill_id, list);
     for (const r of row.catalog_practice_responses ?? []) {
+      const key = subSkillOfQuestion(r.question_id ?? "", row.skill_id);
+      const list = bySkill.get(key) ?? [];
+      bySkill.set(key, list);
       list.push({ right: r.is_correct, at: r.answered_at });
       if (r.answered_at > (lastActive.get(row.student_id) ?? "")) {
         lastActive.set(row.student_id, r.answered_at);

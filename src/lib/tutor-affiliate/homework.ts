@@ -5,6 +5,7 @@
 // tutor's rights through resolveAffiliateManagement.
 // ============================================================
 
+import { subSkillTitle } from "@/lib/subskills/taxonomy";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { removeAffiliateStudent, resolveAffiliateManagement } from "./service";
 import type { AffiliateDeps } from "./types";
@@ -56,8 +57,14 @@ export function homeworkTarget(
     return targetId === null ? { title: "Full-length practice test" } : null;
   }
   if (kind === "skill_practice") {
+    // A sub-skill (founder, 2026-11-08), or a whole catalog skill for older assignments.
+    const title = targetId ? subSkillTitle(targetId) : undefined;
     const skill = CATALOG_SKILLS.find((s) => s.id === targetId);
-    return skill ? { title: `Practice: ${skill.label}` } : null;
+    return title
+      ? { title: `Practice: ${title}` }
+      : skill
+        ? { title: `Practice: ${skill.label}` }
+        : null;
   }
   const domain = SKILL_DOMAINS.find((d) => d.id === targetId);
   return domain ? { title: `Domain quiz: ${domain.label}` } : null;

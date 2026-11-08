@@ -26,16 +26,16 @@ those tables.
 
 One row in `public.tutor_homework` is one piece of work for one student:
 
-| Column                | Meaning                                                                                                          |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `student_user_id`     | `users.id` of the student                                                                                        |
-| `assigned_by_user_id` | `users.id` of whoever assigned it                                                                                |
-| `kind`                | `skill_practice`, `domain_quiz` or `full_length_test`                                                            |
-| `target_id`           | catalog skill id (`CATALOG_SKILLS`), SAT Domain id (`SKILL_DOMAINS`), or null for a full-length test             |
-| `title`               | ready to show: "Practice: Linear equations in one variable", "Domain quiz: Algebra", "Full-length practice test" |
-| `note`                | optional, up to 500 characters                                                                                   |
-| `due_on`              | a date (YYYY-MM-DD), today or later, within a year                                                               |
-| `status`              | `assigned`, `completed` or `cancelled` (with `completed_at` / `cancelled_at`)                                    |
+| Column                | Meaning                                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `student_user_id`     | `users.id` of the student                                                                                                  |
+| `assigned_by_user_id` | `users.id` of whoever assigned it                                                                                          |
+| `kind`                | `skill_practice`, `domain_quiz` or `full_length_test`                                                                      |
+| `target_id`           | sub-skill id (`SUB_SKILLS`, or an older catalog skill id), SAT Domain id (`SKILL_DOMAINS`), or null for a full-length test |
+| `title`               | ready to show: "Practice: Linear equations in one variable", "Domain quiz: Algebra", "Full-length practice test"           |
+| `note`                | optional, up to 500 characters                                                                                             |
+| `due_on`              | a date (YYYY-MM-DD), today or later, within a year                                                                         |
+| `status`              | `assigned`, `completed` or `cancelled` (with `completed_at` / `cancelled_at`)                                              |
 
 - **Student Homework** (student-portal): list a student's work with
   `supabaseHomeworkStore.listForStudent(studentUserId)` and order it with

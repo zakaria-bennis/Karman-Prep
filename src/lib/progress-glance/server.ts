@@ -1,4 +1,5 @@
 import "server-only";
+import { subSkillOfQuestion } from "@/lib/subskills/map";
 /*
  * Reads practice for the people around a student (parents, school staff). Callers must check
  * the viewer's right to see each student first. Only skill ids, right or wrong, times and
@@ -95,11 +96,12 @@ export async function loadPracticeActivity(
   for (let i = 0; i < ids.length; i += 200) {
     const { data: responses, error: responseError } = await supabase
       .from("catalog_practice_responses")
-      .select("session_id, is_correct, answered_at, response_time_seconds")
+      .select("session_id, question_id, is_correct, answered_at, response_time_seconds")
       .in("session_id", ids.slice(i, i + 200));
     if (responseError) throw responseError;
     for (const r of (responses ?? []) as {
       session_id: string;
+      question_id: string | null;
       is_correct: boolean;
       answered_at: string;
       response_time_seconds: number | null;
@@ -107,7 +109,12 @@ export async function loadPracticeActivity(
       const session = byId.get(r.session_id);
       const entry = session ? out.get(session.student_id) : undefined;
       if (!session || !entry) continue;
-      entry.answers.push({ skillId: session.skill_id, correct: r.is_correct, at: r.answered_at });
+      entry.answers.push({
+        skillId: session.skill_id,
+        subSkillId: subSkillOfQuestion(r.question_id ?? "", session.skill_id),
+        correct: r.is_correct,
+        at: r.answered_at,
+      });
       if (r.answered_at >= sinceIso) entry.secondsSince += r.response_time_seconds ?? 0;
     }
   }

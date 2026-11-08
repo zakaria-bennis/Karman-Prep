@@ -6,7 +6,25 @@ import { z } from "zod";
 import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { createAdminClient } from "@/lib/supabase/server";
 import { clampLevel } from "@/components/portal/skill-levels";
+import { subSkillsOfSkill } from "@/lib/subskills/taxonomy";
 import { NOT_STARTED, effective, nextDecayAt, type LevelState, type SkillLevel } from "./rules";
+
+/**
+ * A catalog skill's state from its sub-skills (founder, 2026-11-08: levels live per sub-skill).
+ * The weakest practiced sub-skill speaks for the skill, so the Daily 10 brings it back. A level
+ * saved against the whole skill before sub-skills existed counts when no sub-skill has one.
+ */
+export function skillStateOf(
+  stored: ReadonlyMap<string, LevelState>,
+  skillId: string,
+  now = new Date()
+): LevelState {
+  const states = subSkillsOfSkill(skillId)
+    .map((s) => stored.get(s.id))
+    .filter((s): s is LevelState => !!s);
+  if (!states.length) return stored.get(skillId) ?? NOT_STARTED;
+  return states.reduce((a, b) => (effective(b, now).level < effective(a, now).level ? b : a));
+}
 
 const rowSchema = z.object({
   skill_id: z.string(),
@@ -81,7 +99,7 @@ export async function loadSkillLevels(
 ): Promise<SkillLevelView[]> {
   const stored = await loadStoredLevels(clerkId);
   return CATALOG_SKILLS.map((skill) => {
-    const state = effective(stored.get(skill.id) ?? NOT_STARTED, now);
+    const state = effective(skillStateOf(stored, skill.id, now), now);
     return {
       skillId: skill.id,
       label: skill.label,

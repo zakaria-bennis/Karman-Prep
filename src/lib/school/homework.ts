@@ -13,6 +13,7 @@ import "server-only";
  * skill after it was assigned (catalog practice or the adaptive set), a Domain quiz item when
  * they finished that Domain's quiz. Full-length tests show as open.
  */
+import { subSkillTitle } from "@/lib/subskills/taxonomy";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { domainQuiz, practiceSet } from "@/lib/student/quiz-routes";
 import { untypedAdmin, type UntypedAdmin } from "@/lib/school/db";
@@ -40,8 +41,10 @@ export interface SchoolHomeworkItem {
 export function homeworkTitle(kind: SchoolHomeworkKind, targetId: string | null): string | null {
   if (kind === "full_length_test") return targetId === null ? "Full-length practice test" : null;
   if (kind === "skill_practice") {
+    // A sub-skill (founder, 2026-11-08), or a whole catalog skill for older assignments.
+    const title = targetId ? subSkillTitle(targetId) : undefined;
     const skill = CATALOG_SKILLS.find((s) => s.id === targetId);
-    return skill ? `Practice: ${skill.label}` : null;
+    return title ? `Practice: ${title}` : skill ? `Practice: ${skill.label}` : null;
   }
   const domain = SKILL_DOMAINS.find((d) => d.id === targetId);
   return domain ? `Domain quiz: ${domain.label}` : null;

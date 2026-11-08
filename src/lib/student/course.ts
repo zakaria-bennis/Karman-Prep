@@ -1,14 +1,18 @@
 /*
  * The two Library courses, SAT Math and SAT Reading and Writing, each split into the College
- * Board's Domains, with every skill's level (founder, 2026-11-08). Pure: the page passes the
- * levels in, so the server, the tests and any preview share one rule.
+ * Board's Domains. Inside each Domain the official skills are headings and their sub-skills are
+ * the squares (founder, 2026-11-08: about 90 sub-skills, see src/lib/subskills/). Pure: the page
+ * passes the levels (by sub-skill id) and the weights in, so the server, the tests and any
+ * preview share one rule.
  *
- * "Up next" is the skill with the biggest expected score gain: the skill's share of its section
- * (the Domain's share of the test, split evenly over its skills) times the levels it has left
- * to climb. No reason line is shown for it.
+ * "Up next" is the sub-skill with the biggest expected score gain: its Domain's share of the
+ * test, times the sub-skill's share of the Domain (by how many questions of that type the bank
+ * holds, a stand-in for how often the test asks it), times the levels it has left to climb.
+ * No reason line is shown for it.
  */
-import { CATALOG_SKILLS, SKILL_DOMAINS, type CatalogSkill } from "@/data/curriculum/skill-catalog";
+import { SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import type { Subject } from "@/data/curriculum/types";
+import { officialSkillsIn, subSkillTitle } from "@/lib/subskills/taxonomy";
 import { levelProgress, strongCount, type SkillLevel } from "./levels";
 import { practiceSet } from "./quiz-routes";
 
@@ -24,17 +28,27 @@ export const DOMAIN_SHARE: Record<string, number> = {
   conventions: 0.26,
 };
 
+/** One square: a sub-skill. */
 export interface CourseSkill {
   id: string;
   label: string;
   level: SkillLevel;
 }
 
-export interface CourseDomain {
+/** An official College Board skill, shown as a heading over its sub-skills. */
+export interface CourseOfficial {
   id: string;
   label: string;
   skills: CourseSkill[];
-  /** Skills at Understanding or above. */
+}
+
+export interface CourseDomain {
+  id: string;
+  label: string;
+  officials: CourseOfficial[];
+  /** Every sub-skill in the Domain, in order. */
+  skills: CourseSkill[];
+  /** Sub-skills at Understanding or above. */
   strong: number;
   progress: number;
 }
@@ -44,12 +58,15 @@ export interface Course {
   slug: "math" | "reading-writing";
   name: string;
   domains: CourseDomain[];
-  /** From 0 to 1: the share of the way to every skill Conquered. */
+  /** From 0 to 1: the share of the way to every sub-skill Conquered. */
   progress: number;
   strong: number;
   total: number;
-  upNext: (CourseSkill & { domainId: string }) | null;
+  upNext: (CourseSkill & { domainId: string; title: string; official: string }) | null;
 }
+
+/** How much a sub-skill weighs inside its Domain; the page passes question counts. */
+export type SubSkillWeight = (subSkillId: string) => number;
 
 export const COURSE_NAMES: Record<Subject, string> = {
   math: "SAT Math",
@@ -62,44 +79,52 @@ export const courseSlug = (subject: Subject): Course["slug"] =>
 export const subjectFromSlug = (slug: string): Subject | null =>
   slug === "math" ? "math" : slug === "reading-writing" ? "reading" : null;
 
-function skillsIn(domainId: string): CatalogSkill[] {
-  return CATALOG_SKILLS.filter((s) => s.domainId === domainId);
+/** Expected score gain from taking a sub-skill to Conquered, in comparable units. */
+export function scoreGain(domainId: string, share: number, level: SkillLevel): number {
+  return (DOMAIN_SHARE[domainId] ?? 0.2) * share * (4 - level);
 }
 
-/** Expected score gain from taking a skill to Conquered, in arbitrary but comparable units. */
-export function scoreGain(domainId: string, level: SkillLevel): number {
-  const share = DOMAIN_SHARE[domainId] ?? 0.2;
-  const count = Math.max(1, skillsIn(domainId).length);
-  return (share / count) * (4 - level);
-}
-
-export function buildCourse(subject: Subject, levels: ReadonlyMap<string, SkillLevel>): Course {
+export function buildCourse(
+  subject: Subject,
+  levels: ReadonlyMap<string, SkillLevel>,
+  weight: SubSkillWeight = () => 1
+): Course {
   const domains: CourseDomain[] = SKILL_DOMAINS.filter((d) => d.subject === subject).map((d) => {
-    const skills = skillsIn(d.id).map((s) => ({
-      id: s.id,
-      label: s.label,
-      level: levels.get(s.id) ?? 0,
+    const officials = officialSkillsIn(d.id).map((o) => ({
+      id: o.id,
+      label: o.label,
+      skills: o.subSkills.map((s) => ({ id: s.id, label: s.label, level: levels.get(s.id) ?? 0 })),
     }));
+    const skills = officials.flatMap((o) => o.skills);
     const lv = skills.map((s) => s.level);
     return {
       id: d.id,
       label: d.label,
+      officials,
       skills,
       strong: strongCount(lv),
       progress: levelProgress(lv),
     };
   });
-  const all = domains.flatMap((d) => d.skills.map((s) => ({ ...s, domainId: d.id })));
-  const lv = all.map((s) => s.level);
   let upNext: Course["upNext"] = null;
   let best = 0;
-  for (const s of all) {
-    const gain = scoreGain(s.domainId, s.level);
-    if (gain > best + 1e-9) {
-      best = gain;
-      upNext = s;
-    }
+  for (const d of domains) {
+    const total = d.skills.reduce((n, s) => n + Math.max(0, weight(s.id)), 0) || 1;
+    for (const o of d.officials)
+      for (const s of o.skills) {
+        const gain = scoreGain(d.id, Math.max(0, weight(s.id)) / total, s.level);
+        if (gain > best + 1e-9) {
+          best = gain;
+          upNext = {
+            ...s,
+            domainId: d.id,
+            title: subSkillTitle(s.id) ?? s.label,
+            official: o.label,
+          };
+        }
+      }
   }
+  const lv = domains.flatMap((d) => d.skills.map((s) => s.level));
   return {
     subject,
     slug: courseSlug(subject),
@@ -107,7 +132,7 @@ export function buildCourse(subject: Subject, levels: ReadonlyMap<string, SkillL
     domains,
     progress: levelProgress(lv),
     strong: strongCount(lv),
-    total: all.length,
+    total: lv.length,
     upNext,
   };
 }

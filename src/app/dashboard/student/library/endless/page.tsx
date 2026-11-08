@@ -5,8 +5,9 @@
  */
 import type { Metadata } from "next";
 import { Card, Cta, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import { subSkillQuestionCount } from "@/lib/subskills/map";
+import { subSkillTitle } from "@/lib/subskills/taxonomy";
 import StudentPortal from "@/components/student-portal/StudentPortal";
-import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { buildCourse } from "@/lib/student/course";
 import { loadStudentContext } from "@/lib/student/context";
 import { mistakeLog, nextEndlessSkill } from "@/lib/student/endless";
@@ -15,7 +16,7 @@ import {
   loadRunAnswers,
   loadSkillAnswers,
   loadStoredLevels,
-  levelsBySkill,
+  levelsBySubSkill,
   withStored,
 } from "@/lib/student/skill-levels-server";
 
@@ -37,12 +38,17 @@ export default async function EndlessPage() {
     loadRunAnswers(ctx.clerkId),
     loadStoredLevels(ctx.clerkId),
   ]);
-  const levels = withStored(levelsBySkill(answers), stored);
-  const courses = [buildCourse("math", levels), buildCourse("reading", levels)];
-  // Misses from catalog practice and from the quiz flows' sets, Daily 10s and Domain quizzes.
-  const log = mistakeLog([...answers, ...runAnswers]);
+  const everyAnswer = [...answers, ...runAnswers];
+  const levels = withStored(levelsBySubSkill(everyAnswer), stored);
+  const courses = [
+    buildCourse("math", levels, subSkillQuestionCount),
+    buildCourse("reading", levels, subSkillQuestionCount),
+  ];
+  // Misses from catalog practice and from the quiz flows' sets, Daily 10s and Domain quizzes,
+  // by sub-skill (each sub-skill has its own practice set).
+  const log = mistakeLog(everyAnswer.map((a) => ({ ...a, skillId: a.subSkillId })));
   const next = nextEndlessSkill(log, levels, courses, Date.now());
-  const nextLabel = CATALOG_SKILLS.find((s) => s.id === next)?.label;
+  const nextLabel = next ? subSkillTitle(next) : undefined;
 
   return (
     <StudentPortal ctx={ctx} title="Endless mode">

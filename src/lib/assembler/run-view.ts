@@ -9,11 +9,13 @@ import {
   type CatalogDeliverySnapshot,
 } from "@/lib/catalog-practice/delivery-contract";
 import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
+import { subSkillTitle } from "@/lib/subskills/taxonomy";
 import type { QuizQuestionWithChoices, StudentQuizQuestion } from "@/types/quiz";
 import type { RunRecord, RunResponse, RunResult, RunReview, RunView, SkillMove } from "./run-types";
 
 const skillLabel = new Map(CATALOG_SKILLS.map((s) => [s.id, s.label]));
-export const labelForSkill = (skillId: string) => skillLabel.get(skillId) ?? "Skill";
+/** A sub-skill's or catalog skill's name for results. */
+export const labelForSkill = (id: string) => subSkillTitle(id) ?? skillLabel.get(id) ?? "Skill";
 
 export function gradeAgainst(answer: string, snapshot: CatalogDeliverySnapshot): boolean {
   if (!answer.trim()) return false;
@@ -169,11 +171,15 @@ export function nextAdaptive(
   return best?.id ?? null;
 }
 
-/** Right of total per section, the skills touched (most moved first), and the tokens. */
+/**
+ * Right of total per section, the skills touched (most moved first), and the tokens. `keyOf`
+ * groups answers by where their level lives (the sub-skill; see src/lib/subskills/map.ts).
+ */
 export function summarise(
   run: RunRecord,
   responses: readonly RunResponse[],
-  tokens: number
+  tokens: number,
+  keyOf: (r: RunResponse) => string = (r) => r.skillId
 ): RunResult {
   const sections = run.form.sections.map((section, index) => {
     const ids = new Set(sectionQuestionIds(run, index));
@@ -187,7 +193,7 @@ export function summarise(
     };
   });
   const bySkill = new Map<string, RunResponse[]>();
-  for (const r of responses) bySkill.set(r.skillId, [...(bySkill.get(r.skillId) ?? []), r]);
+  for (const r of responses) bySkill.set(keyOf(r), [...(bySkill.get(keyOf(r)) ?? []), r]);
   const skills: SkillMove[] = [...bySkill].map(([skillId, rows]) => {
     const first = rows.find((r) => r.levelBefore !== null);
     const last = [...rows].reverse().find((r) => r.levelAfter !== null);

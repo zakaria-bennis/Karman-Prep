@@ -14,7 +14,8 @@ import {
   SectionHeader,
   SkillSquares,
 } from "@/components/portal";
-import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { SUB_SKILLS, subSkillTitle } from "@/lib/subskills/taxonomy";
 import { affiliateDeps } from "@/lib/tutor-affiliate/server";
 import { resolveAffiliateManagement } from "@/lib/tutor-affiliate/service";
 import { sortHomework } from "@/lib/tutor-affiliate/homework";
@@ -170,10 +171,10 @@ export default async function AffiliateStudent({
           <AssignForm
             studentClerkId={student.clerkId}
             firstName={first}
-            skills={CATALOG_SKILLS.map((s) => ({
+            skills={SUB_SKILLS.map((s) => ({
               id: s.id,
-              label: s.label,
-              group: `${SUBJECT_LABEL[s.subject]}: ${s.domainLabel}`,
+              label: subSkillTitle(s.id) ?? s.label,
+              group: `${SUBJECT_LABEL[s.subject]}: ${SKILL_DOMAINS.find((d) => d.id === s.domainId)?.label ?? ""}`,
             }))}
             domains={SKILL_DOMAINS.map((d) => ({
               id: d.id,
