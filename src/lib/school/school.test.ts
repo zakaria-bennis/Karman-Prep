@@ -48,8 +48,10 @@ describe("school homework", () => {
     expect(homeworkTitle("skill_practice", "nope")).toBeNull();
     expect(homeworkTitle("full_length_test", "algebra")).toBeNull();
     expect(homeworkHref("skill_practice", "ma-skill-percentages")).toBe(
-      "/learn/practice/ma-skill-percentages"
+      "/learn/set/ma-skill-percentages"
     );
+    expect(homeworkHref("domain_quiz", "algebra")).toBe("/learn/domain/algebra");
+    expect(homeworkHref("full_length_test", null)).toBe("/learn/tests");
   });
 
   it("counts a practice set on the skill finished after the assignment", () => {
@@ -68,6 +70,18 @@ describe("school homework", () => {
     expect(
       completionFor({ ...assignment, kind: "domain_quiz", target_id: "algebra" }, [])
     ).toBeNull();
+  });
+
+  it("counts a finished Domain quiz on that Domain, never a practice set with the same id", () => {
+    const quiz = { ...assignment, kind: "domain_quiz" as const, target_id: "algebra" };
+    expect(
+      completionFor(quiz, [{ skill_id: "algebra", completed_at: "2026-11-09T10:00:00Z" }])
+    ).toBeNull();
+    expect(
+      completionFor(quiz, [
+        { skill_id: "algebra", completed_at: "2026-11-09T10:00:00Z", kind: "domain_quiz" },
+      ])
+    ).toBe("2026-11-09T10:00:00Z");
   });
 });
 

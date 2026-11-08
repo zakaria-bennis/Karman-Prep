@@ -61,6 +61,42 @@ export async function loadSkillAnswers(clerkId: string): Promise<SkillAnswer[]> 
     .sort((a, b) => Date.parse(a.at as string) - Date.parse(b.at as string));
 }
 
+type RunAnswerRow = {
+  run_id: string;
+  skill_id: string;
+  is_correct: boolean;
+  used_hint: boolean;
+  answered_at: string;
+  response_time_seconds: number;
+};
+
+/**
+ * Answers from the quiz flows' practice sets, Daily 10s and Domain quizzes (`quiz_run_responses`),
+ * oldest first, each run as one session. For the mistake log, time spent and personal bests.
+ * Levels don't read these: the quiz flows already saved them to `student_skill_levels`.
+ */
+export async function loadRunAnswers(clerkId: string): Promise<SkillAnswer[]> {
+  const db = createAdminClient() as unknown as SupabaseClient;
+  const { data, error } = await db
+    .from("quiz_run_responses")
+    .select(
+      "run_id, skill_id, is_correct, used_hint, answered_at, response_time_seconds, quiz_runs!inner(student_id, kind)"
+    )
+    .eq("quiz_runs.student_id", clerkId)
+    .in("quiz_runs.kind", ["daily-ten", "practice-set", "domain-quiz"])
+    .order("answered_at", { ascending: true })
+    .limit(5000);
+  if (error || !data) return [];
+  return (data as unknown as RunAnswerRow[]).map((r) => ({
+    skillId: r.skill_id,
+    sessionId: r.run_id,
+    correct: r.is_correct,
+    hint: r.used_hint,
+    at: r.answered_at,
+    seconds: r.response_time_seconds,
+  }));
+}
+
 /** Levels by catalog skill id. Skills with no answers are absent (read them as 0). */
 export function levelsBySkill(
   answers: readonly SkillAnswer[],

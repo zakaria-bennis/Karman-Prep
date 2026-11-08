@@ -1,18 +1,18 @@
 /*
  * Endless mode: untimed, adaptive practice that keeps going, with the mistake log inside
  * (founder, 2026-11-07). Each round is a 10-question practice set on the skill the rule in
- * `src/lib/student/endless.ts` picks; the mistake log reopens the review of any missed set.
+ * `src/lib/student/endless.ts` picks; each mistake-log row opens a new adaptive set on that skill.
  */
 import type { Metadata } from "next";
 import { Card, Cta, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
 import StudentPortal from "@/components/student-portal/StudentPortal";
-import { catalogSessionHref } from "@/lib/catalog-practice/student-entry";
 import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { buildCourse } from "@/lib/student/course";
 import { loadStudentContext } from "@/lib/student/context";
 import { mistakeLog, nextEndlessSkill } from "@/lib/student/endless";
 import { practiceSet } from "@/lib/student/quiz-routes";
 import {
+  loadRunAnswers,
   loadSkillAnswers,
   loadStoredLevels,
   levelsBySkill,
@@ -32,13 +32,15 @@ const when = (ms: number) =>
 
 export default async function EndlessPage() {
   const ctx = await loadStudentContext();
-  const [answers, stored] = await Promise.all([
+  const [answers, runAnswers, stored] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
+    loadRunAnswers(ctx.clerkId),
     loadStoredLevels(ctx.clerkId),
   ]);
   const levels = withStored(levelsBySkill(answers), stored);
   const courses = [buildCourse("math", levels), buildCourse("reading", levels)];
-  const log = mistakeLog(answers);
+  // Misses from catalog practice and from the quiz flows' sets, Daily 10s and Domain quizzes.
+  const log = mistakeLog([...answers, ...runAnswers]);
   const next = nextEndlessSkill(log, levels, courses, Date.now());
   const nextLabel = CATALOG_SKILLS.find((s) => s.id === next)?.label;
 
@@ -66,8 +68,8 @@ export default async function EndlessPage() {
                       {when(e.lastMissMs)}
                     </>
                   }
-                  href={catalogSessionHref(e.skillId, e.sessionId)}
-                  right="Review"
+                  href={practiceSet(e.skillId).path}
+                  right="Practice"
                 />
               ))
             )}

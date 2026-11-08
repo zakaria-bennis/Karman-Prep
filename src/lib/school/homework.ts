@@ -10,10 +10,11 @@ import "server-only";
  * targetId, title, dueOn, status), so the Homework tab can list both side by side.
  *
  * Completion: a skill practice item is done when the student finished a practice set on that
- * skill after it was assigned. Domain quizzes and full-length tests show as open until the
- * quiz flows record them against an assignment.
+ * skill after it was assigned (catalog practice or the adaptive set), a Domain quiz item when
+ * they finished that Domain's quiz. Full-length tests show as open.
  */
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { domainQuiz, practiceSet } from "@/lib/student/quiz-routes";
 import { untypedAdmin, type UntypedAdmin } from "@/lib/school/db";
 
 export const SCHOOL_HOMEWORK_KINDS = ["skill_practice", "domain_quiz", "full_length_test"] as const;
@@ -46,9 +47,11 @@ export function homeworkTitle(kind: SchoolHomeworkKind, targetId: string | null)
   return domain ? `Domain quiz: ${domain.label}` : null;
 }
 
-/** A practice set opens its skill; Domain quizzes and full-length tests start from the Library. */
+/** A practice set opens the adaptive set, a Domain quiz its quiz, a full-length test the tests page. */
 export function homeworkHref(kind: SchoolHomeworkKind, targetId: string | null): string {
-  return kind === "skill_practice" && targetId ? `/learn/practice/${targetId}` : "/learn";
+  if (kind === "skill_practice" && targetId) return practiceSet(targetId).path;
+  if (kind === "domain_quiz" && targetId) return domainQuiz(targetId).path;
+  return "/learn/tests";
 }
 
 export interface AssignmentRow {
@@ -62,8 +65,11 @@ export interface AssignmentRow {
 }
 
 export interface FinishedPractice {
+  /** The skill (practice set) or Domain (Domain quiz) that was finished. */
   skill_id: string;
   completed_at: string | null;
+  /** Which homework kind it completes; a practice set when absent. */
+  kind?: "skill_practice" | "domain_quiz";
 }
 
 /** When a student finished the assignment, or null while it is open. Pure. */
@@ -71,9 +77,15 @@ export function completionFor(
   a: AssignmentRow,
   finished: readonly FinishedPractice[]
 ): string | null {
-  if (a.kind !== "skill_practice") return null;
+  if (a.kind === "full_length_test") return null;
   const done = finished
-    .filter((p) => p.skill_id === a.target_id && p.completed_at && p.completed_at >= a.created_at)
+    .filter(
+      (p) =>
+        (p.kind ?? "skill_practice") === a.kind &&
+        p.skill_id === a.target_id &&
+        p.completed_at &&
+        p.completed_at >= a.created_at
+    )
     .map((p) => p.completed_at as string)
     .sort();
   return done[0] ?? null;
@@ -105,23 +117,43 @@ export async function listSchoolHomeworkForStudent(
     if (c && !c.archived_at) classes.set(c.id, c.name);
   }
   if (!classes.size) return [];
-  const [{ data: rows, error }, { data: finished, error: finishedError }] = await Promise.all([
-    supabase
-      .from("school_assignments")
-      .select("id, class_id, kind, target_id, title, due_on, created_at")
-      .in("class_id", [...classes.keys()])
-      .is("cancelled_at", null),
-    supabase
-      .from("catalog_practice_sessions")
-      .select("skill_id, completed_at")
-      .eq("student_id", student.clerkId)
-      .not("completed_at", "is", null),
-  ]);
+  const [{ data: rows, error }, { data: finished, error: finishedError }, runs] = await Promise.all(
+    [
+      supabase
+        .from("school_assignments")
+        .select("id, class_id, kind, target_id, title, due_on, created_at")
+        .in("class_id", [...classes.keys()])
+        .is("cancelled_at", null),
+      supabase
+        .from("catalog_practice_sessions")
+        .select("skill_id, completed_at")
+        .eq("student_id", student.clerkId)
+        .not("completed_at", "is", null),
+      // The quiz flows' adaptive practice sets and Domain quizzes.
+      supabase
+        .from("quiz_runs")
+        .select("kind, scope, completed_at")
+        .eq("student_id", student.clerkId)
+        .in("kind", ["practice-set", "domain-quiz"])
+        .not("completed_at", "is", null),
+    ]
+  );
   if (error) throw error;
   if (finishedError) throw finishedError;
+  if (runs.error) throw runs.error;
+  const done: FinishedPractice[] = [
+    ...((finished ?? []) as FinishedPractice[]),
+    ...((runs.data ?? []) as { kind: string; scope: string | null; completed_at: string }[]).map(
+      (r) => ({
+        skill_id: r.scope ?? "",
+        completed_at: r.completed_at,
+        kind: r.kind === "domain-quiz" ? ("domain_quiz" as const) : ("skill_practice" as const),
+      })
+    ),
+  ];
   return ((rows ?? []) as AssignmentRow[])
     .map((a) => {
-      const completedAt = completionFor(a, (finished ?? []) as FinishedPractice[]);
+      const completedAt = completionFor(a, done);
       return {
         id: a.id,
         classId: a.class_id,
