@@ -46,6 +46,8 @@ export class Studio {
   readonly c: HTMLCanvasElement;
   readonly g: CanvasRenderingContext2D;
   readonly r: () => number;
+  /** A second generator for fine detail, so adding detail never moves the composition. */
+  readonly d: () => number;
   readonly C: LightColors;
 
   constructor(
@@ -57,6 +59,7 @@ export class Studio {
     this.c = makeCanvas(W, H);
     this.g = ctx2d(this.c);
     this.r = rng(seed);
+    this.d = rng(seed + 7919);
     this.C = toColors(L);
   }
 
@@ -100,6 +103,12 @@ export class Studio {
         g.fillStyle = gr;
         g.beginPath();
         g.ellipse(x, y, rr * 1.6, rr, 0, 0, TAU);
+        g.fill();
+        /* The side facing the sun catches a brighter rim. */
+        const toSun = C.sunAt[0] * W > x ? 1 : -1;
+        g.fillStyle = rgb(mix(C.cloud, [255, 255, 255], 0.35), 0.35);
+        g.beginPath();
+        g.ellipse(x + toSun * rr * 0.5, y - rr * 0.45, rr * 0.7, rr * 0.28, 0, 0, TAU);
         g.fill();
       }
     }
@@ -276,6 +285,18 @@ export class Studio {
       const w = 8 + r() * 50;
       g.fillRect(x - w / 2, y, w, 1);
     }
+    /* Ripples: thin light and dark lines, longer toward the viewer. */
+    const d = this.d;
+    for (let i = 0; i < 220; i++) {
+      const t = Math.pow(d(), 1.3);
+      const y = y0 + 3 + t * (H - y0 - 3);
+      const w = 6 + d() * 40 * (0.3 + t);
+      const light = d() < 0.55;
+      g.fillStyle = light
+        ? rgb(mix(C.low, [255, 255, 255], 0.25), 0.12 + d() * 0.14)
+        : rgb(C.deep, 0.1 + d() * 0.12);
+      g.fillRect(d() * W, y, w, 1);
+    }
     g.fillStyle = rgb(mix(C.haze, [255, 255, 255], 0.4), 0.5);
     g.fillRect(0, y0, W, 1.5);
   }
@@ -346,6 +367,21 @@ export class Studio {
       const w = (HH * 0.3 * t) / 9;
       g.fillRect(X + w * 0.15, yy, w * 0.6, HH * 0.02);
     }
+    const sunSide = C.sunAt[0] > x ? 1 : -1;
+    g.strokeStyle = rgb(mix(C.land, C.lit, 0.5 - L.dark * 0.35), 0.5);
+    g.lineWidth = Math.max(0.8, HH * 0.006);
+    for (let t = 2; t <= 9; t++) {
+      const yy = Y - HH + (HH * t) / 9;
+      const w = (HH * 0.3 * t) / 9;
+      for (let j = 0; j < 5; j++) {
+        const sx = X + sunSide * w * (0.1 + this.d() * 0.75);
+        const sy = yy + HH * (this.d() * 0.04);
+        g.beginPath();
+        g.moveTo(sx, sy);
+        g.lineTo(sx + sunSide * HH * 0.025, sy + HH * 0.018);
+        g.stroke();
+      }
+    }
     if (snowy) {
       g.fillStyle = rgb(C.snow, 0.9);
       for (let t = 1; t <= 8; t++) {
@@ -368,17 +404,20 @@ export class Studio {
     g.quadraticCurveTo(X - HH * 0.04, Y - HH * 0.4, X, Y - HH * 0.7);
     g.stroke();
     const cs = colors.map(hex);
-    for (let i = 0; i < 60; i++) {
-      const a = r() * TAU;
-      const d = Math.sqrt(r());
+    for (let i = 0; i < 120; i++) {
+      const q = i < 60 ? r : this.d;
+      const a = q() * TAU;
+      const d = Math.sqrt(q());
       const px = X + Math.cos(a) * d * HH * 0.38;
       const py = Y - HH * 0.72 + Math.sin(a) * d * HH * 0.26;
       const lit = (px - X) * (C.sunAt[0] > x ? 1 : -1) > 0;
+      /* Later leaves sit on top and on the outside, so they catch more light. */
+      const top = i > 80 && lit;
       g.fillStyle = rgb(
-        mix(mix(cs[i % cs.length], lit ? C.lit : C.deep, 0.3), C.deep, L.dark * 0.6)
+        mix(mix(cs[i % cs.length], lit ? C.lit : C.deep, top ? 0.45 : 0.3), C.deep, L.dark * 0.6)
       );
       g.beginPath();
-      g.arc(px, py, HH * (0.04 + r() * 0.05), 0, TAU);
+      g.arc(px, py, HH * (i > 80 ? 0.02 + q() * 0.03 : 0.04 + q() * 0.05), 0, TAU);
       g.fill();
     }
   }
@@ -419,6 +458,22 @@ export class Studio {
     gr.addColorStop(1, rgb(mix(base, C.lit, 0.45 * (1 - L.dark))));
     g.fillStyle = gr;
     g.fill();
+    /* A lit edge along the top toward the sun, and a few cracks across the face. */
+    g.strokeStyle = rgb(mix(base, C.lit, 0.7 * (1 - L.dark)), 0.6);
+    g.lineWidth = Math.max(1, R * 0.06);
+    g.beginPath();
+    g.arc(X + sunRight * R * 0.3, Y - R * 0.1, R * 0.75, -Math.PI * 0.85, -Math.PI * 0.35);
+    g.stroke();
+    g.strokeStyle = rgb(mix(base, C.deep, 0.7), 0.45);
+    g.lineWidth = Math.max(0.8, R * 0.035);
+    for (let i = 0; i < 3; i++) {
+      const cx = X + (this.d() - 0.5) * R * 1.4;
+      const cy = Y - R * (0.15 + this.d() * 0.45);
+      g.beginPath();
+      g.moveTo(cx, cy);
+      g.lineTo(cx + (this.d() - 0.5) * R * 0.5, cy + R * (0.15 + this.d() * 0.25));
+      g.stroke();
+    }
     g.fillStyle = rgb(C.deep, 0.5);
     g.fillRect(X - R * 1.3, Y - 1, R * 2.6, 3);
   }
@@ -431,9 +486,10 @@ export class Studio {
     const R = size * H;
     const cs = colors.map(hex);
     const sunRight = C.sunAt[0] > x ? 1 : -1;
-    for (let i = 0; i < 70; i++) {
-      const a = Math.PI + r() * Math.PI;
-      const d = Math.sqrt(r());
+    for (let i = 0; i < 110; i++) {
+      const q = i < 70 ? r : this.d;
+      const a = Math.PI + q() * Math.PI;
+      const d = Math.sqrt(q());
       const px = X + Math.cos(a) * d * R * 1.4;
       const py = Y + Math.sin(a) * d * R * 0.9;
       const lit = (px - X) * sunRight > 0 && py < Y - R * 0.3;
@@ -441,7 +497,8 @@ export class Studio {
         mix(mix(cs[i % cs.length], lit ? C.lit : C.deep, lit ? 0.35 : 0.3), C.deep, L.dark * 0.65)
       );
       g.beginPath();
-      g.ellipse(px, py, R * (0.06 + r() * 0.06), R * (0.04 + r() * 0.04), r() * 3, 0, TAU);
+      const k = i < 70 ? 1 : 0.6;
+      g.ellipse(px, py, R * k * (0.06 + q() * 0.06), R * k * (0.04 + q() * 0.04), q() * 3, 0, TAU);
       g.fill();
     }
   }

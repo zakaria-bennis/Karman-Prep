@@ -3,14 +3,22 @@
  *   1. One coat of color goes on first, wet and even, never a black canvas.
  *   2. The sky goes in with big criss-cross strokes.
  *   3. Shapes are painted back to front: far away first, then nearer, then the foreground.
- *   4. Smaller strokes add texture and depth on top.
+ *   4. Smaller strokes add texture and depth on top, and the finest brush follows every edge.
  *   5. The brightest highlights are tapped on last.
  * Stroke colors come from the picture and their direction follows its edges (after
  * Hertzmann, "Painterly Rendering with Curved Brush Strokes of Multiple Sizes", 1998).
- * Karman's landscapes take 3.8 seconds, use a fine fourth brush, and end as brushwork.
+ * Large strokes carry bristle streaks, colors drift gently warm and cool across the picture,
+ * and a soft canvas grain sits over the finished painting.
+ * Karman's landscapes take 3.8 seconds, use five brushes, and end as brushwork.
+ * Kept in step with src/lib/painting/painterly.ts (detail pass, 2026-11-08).
  */
 (() => {
-  let DUR = 2000;
+  /* The picture is read at 960 pixels wide. Brush sizes below are in 480-wide units (U each). */
+  const PLAN_W = 960, U = PLAN_W / 480;
+  const hash = (x, y, s) => { let h = (x * 374761393 + y * 668265263 + s * 982451653) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const smooth = (t) => t * t * (3 - 2 * t);
+  function vnoise(x, y, s) { const xi = Math.floor(x), yi = Math.floor(y), xf = smooth(x - xi), yf = smooth(y - yi); const a = hash(xi, yi, s), b = hash(xi + 1, yi, s), c = hash(xi, yi + 1, s), d = hash(xi + 1, yi + 1, s); return a + (b - a) * xf + (c - a) * yf + (a - b - c + d) * xf * yf; }
+  const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
   /* Draws the source into a canvas of size w x h, cropped to cover like object-fit, focused at fx, fy. */
   function cover(src, w, h, fx = 0.7, fy = 0.4) {
     const c = document.createElement("canvas"); c.width = w; c.height = h;
@@ -19,63 +27,95 @@
     c.getContext("2d").drawImage(src, (w - dw) * fx, (h - dh) * fy, dw, dh);
     return c;
   }
-  function plan(src, scale, fine) {
-    const w = fine ? 480 : 300, h = Math.round((w * innerHeight) / innerWidth), base = cover(src, w, h);
-    const px = base.getContext("2d").getImageData(0, 0, w, h).data;
+  /* Plans every stroke. Times are written for a 2-second painting and stretched later. */
+  function plan(src, scale) {
+    const w = PLAN_W, h = Math.max(1, Math.round((w * innerHeight) / innerWidth)), base = cover(src, w, h);
+    const px = base.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, w, h).data;
     const lum = new Float32Array(w * h);
     for (let i = 0; i < w * h; i++) lum[i] = px[i * 4] * 0.3 + px[i * 4 + 1] * 0.59 + px[i * 4 + 2] * 0.11;
     const at = (x, y) => { const X = Math.max(0, Math.min(w - 1, x | 0)), Y = Math.max(0, Math.min(h - 1, y | 0)); return X + Y * w; };
-    const grad = (x, y) => [lum[at(x + 1, y)] - lum[at(x - 1, y)], lum[at(x, y + 1)] - lum[at(x, y - 1)]];
+    const grad = (x, y, d = U) => [lum[at(x + d, y)] - lum[at(x - d, y)], lum[at(x, y + d)] - lum[at(x, y - d)]];
     const color = (x, y, r) => { let R = 0, G = 0, B = 0, n = 0; const st = Math.max(1, r >> 1); for (let j = -r; j <= r; j += st) for (let i = -r; i <= r; i += st) { const k = at(x + i, y + j) * 4; R += px[k]; G += px[k + 1]; B += px[k + 2]; n++; } return [R / n, G / n, B / n]; };
-    const rgb = (c, j = 8) => `rgb(${c.map((v) => Math.round(v + (Math.random() - 0.5) * j)).join(",")})`;
+    /* Paint is never mixed perfectly: broad patches drift a little warm or cool, smaller ones a
+       little lighter or darker, and every stroke differs slightly from its neighbour. */
+    const tone = (c, x, y, j = 8) => { const warm = vnoise(x / 70, y / 70, 41) - 0.5, val = (vnoise(x / 16, y / 16, 43) - 0.5) * 10, r = (Math.random() - 0.5) * j; return [c[0] + warm * 16 + val + r, c[1] + warm * 5 + val + r, c[2] - warm * 12 + val + r]; };
+    const css = (c, a = 1) => (a < 1 ? `rgba(${c.map(clamp).join(",")},${a})` : `rgb(${c.map(clamp).join(",")})`);
     const S = (pts) => pts.map(([a, b]) => [a * scale, b * scale]);
+    const stroke = (pts, width, c, t0 = 0, dur = 0) => ({ pts: S(pts), w: width, c, t0, dur, done: -1 });
+    /* A gentle direction field, so strokes in open areas are not all laid the same way. */
+    const drift = (x, y) => (vnoise(x / 120, y / 120, 47) - 0.5) * 0.9;
+    /* Big brushes leave streaks: a lighter and a darker bristle line inside the stroke. */
+    const bristles = (s, c, R) => {
+      if (R < 3 || s.pts.length < 2) return [];
+      const out = [];
+      for (let b = 0; b < (R >= 6 ? 2 : 1); b++) {
+        const side = (b === 0 ? 1 : -1) * (0.18 + Math.random() * 0.16) * s.w, lift = b === 0 ? 16 : -14;
+        const pts = s.pts.map((p, i) => { const a = s.pts[Math.max(0, i - 1)], z = s.pts[Math.min(s.pts.length - 1, i + 1)], tx = z[0] - a[0], ty = z[1] - a[1], l = Math.hypot(tx, ty) || 1; return [p[0] - (ty / l) * side, p[1] + (tx / l) * side]; });
+        out.push({ pts, w: s.w * (0.1 + Math.random() * 0.08), c: css([c[0] + lift, c[1] + lift, c[2] + lift], 0.24), t0: 0, dur: 0, done: -1 });
+      }
+      return out;
+    };
     /* 1. The base coat: the picture's colors, row by row, laid on in wide sweeps. */
     const rows = 7, coat = [];
     for (let i = 0; i < rows; i++) {
       const y = ((i + 0.5) / rows) * h, c = color(w / 2, y, Math.round(h / rows));
-      coat.push({ pts: S(Array.from({ length: 13 }, (_, k) => [(-0.05 + (k / 12) * 1.1) * w, y + Math.sin(k * 0.9 + i) * 3])), w: (h / rows) * scale * 1.5, c: rgb(c, 4), t0: i * 40, dur: 260 });
+      coat.push(stroke(Array.from({ length: 13 }, (_, k) => [(-0.05 + (k / 12) * 1.1) * w, y + Math.sin(k * 0.9 + i) * 3 * U]), (h / rows) * scale * 1.5, css(tone(c, w / 2, y, 4)), i * 40, 260));
     }
-    const first = color(w / 2, h * 0.05, 6);
-    /* 2 to 4. Strokes in three brush sizes, painted back to front: top of the picture first. */
-    /* Stroke times are written for a 2-second painting and stretched to the real length. */
-    const strokes = [], layers = fine ? [[12, 200, 760], [6, 560, 1200], [3, 1000, 1600], [1.6, 1350, 1800]] : [[8, 220, 1050], [4, 650, 1500], [2, 1100, 1780]];
-    for (const [R, t0, t1] of layers) {
-      const list = [];
-      for (let y = R / 2; y < h; y += R) for (let x = R / 2; x < w; x += R) {
-        const sx = x + (Math.random() - 0.5) * R, sy = y + (Math.random() - 0.5) * R, c = color(sx, sy, Math.max(1, Math.round(R / 2)));
-        /* The finest brush only goes where there is detail to paint. */
-        if (fine && R < 2 && Math.hypot(...grad(sx, sy)) < 6) continue;
-        const [gx0, gy0] = grad(sx, sy), flat = Math.hypot(gx0, gy0) < 1.5;
+    const first = color(w / 2, h * 0.05, 6 * U);
+    /* 2 to 4. Strokes in five brush sizes, painted back to front: top of the picture first.
+       [radius, start, end, edge threshold (0 paints everywhere), share of flat areas painted] */
+    const strokes = [], layers = [[12, 200, 760, 0, 1], [6, 560, 1180, 0, 1], [3, 960, 1520, 0, 1], [1.6, 1260, 1760, 6, 0.22], [0.9, 1480, 1900, 9, 0]];
+    for (const [R, t0, t1, edge, flatShare] of layers) {
+      const list = [], fine = R < 1, step = R * U, d = fine ? 1 : U;
+      for (let y = step / 2; y < h; y += step) for (let x = step / 2; x < w; x += step) {
+        const sx = x + (Math.random() - 0.5) * step, sy = y + (Math.random() - 0.5) * step, [gx0, gy0] = grad(sx, sy, d), g0 = Math.hypot(gx0, gy0);
+        /* The small brushes go where there is detail to paint, plus a little texture elsewhere. */
+        if (edge && g0 < edge && Math.random() >= flatShare) continue;
+        const c = color(sx, sy, Math.max(1, Math.round(step / 2)));
         /* Flat areas like sky get Bob Ross's criss-cross: short strokes on alternating diagonals. */
-        if (flat && R > 2) {
-          const a = (Math.random() < 0.5 ? 0.7 : -0.7) + (Math.random() - 0.5) * 0.3, l = R * 1.4;
-          list.push({ pts: S([[sx - Math.cos(a) * l, sy - Math.sin(a) * l], [sx, sy], [sx + Math.cos(a) * l, sy + Math.sin(a) * l]]), w: R * scale * 1.5, c: rgb(c), y: sy, L: lum[at(sx, sy)] });
+        if (g0 < 1.5 && R > 2) {
+          const a = (Math.random() < 0.5 ? 0.7 : -0.7) + drift(sx, sy) + (Math.random() - 0.5) * 0.3, l = step * 1.4;
+          const s = stroke([[sx - Math.cos(a) * l, sy - Math.sin(a) * l], [sx, sy], [sx + Math.cos(a) * l, sy + Math.sin(a) * l]], step * scale * 1.5, css(tone(c, sx, sy)));
+          list.push({ s, y: sy, kids: bristles(s, c, R) });
           continue;
         }
         const pts = [[sx, sy]]; let dx = 0, dy = 0, cx = sx, cy = sy;
-        for (let i = 0; i < 6; i++) {
-          const [gx, gy] = grad(cx, cy), m = Math.hypot(gx, gy);
+        for (let i = 0; i < (fine ? 5 : 6); i++) {
+          const [gx, gy] = grad(cx, cy, d), m = Math.hypot(gx, gy);
           if (m < 1.5 && i > 1) break;
           let nx = -gy / (m || 1), ny = gx / (m || 1);
-          if (m < 1.5) { nx = 1; ny = 0.15; }
+          if (m < 1.5) { const a = drift(cx, cy); nx = Math.cos(a); ny = Math.sin(a); }
           if (nx * dx + ny * dy < 0) { nx = -nx; ny = -ny; }
           if (i) { nx = 0.6 * nx + 0.4 * dx; ny = 0.6 * ny + 0.4 * dy; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l; }
-          cx += nx * R; cy += ny * R; dx = nx; dy = ny;
+          cx += nx * step; cy += ny * step; dx = nx; dy = ny;
           const k = at(cx, cy) * 4, diff = Math.abs(px[k] - c[0]) + Math.abs(px[k + 1] - c[1]) + Math.abs(px[k + 2] - c[2]);
-          if (i > 1 && diff > 70) break;
+          /* Fine strokes stop sooner at a color change, so edges stay clean. */
+          if (i > 1 && diff > (fine ? 45 : 70)) break;
           pts.push([cx, cy]);
         }
-        list.push({ pts: S(pts), w: R * scale * (1.5 + Math.random() * 0.4), c: rgb(c), y: sy, L: lum[at(sx, sy)] });
+        const s = stroke(pts, step * scale * (fine ? 1.3 + Math.random() * 0.3 : 1.5 + Math.random() * 0.4), css(tone(c, sx, sy, fine ? 5 : 8)));
+        list.push({ s, y: sy, kids: bristles(s, c, R) });
       }
       /* Back to front: far away (higher up) before near (lower down), with a little looseness. */
-      list.sort((a, b) => a.y + Math.random() * h * 0.18 - (b.y + Math.random() * h * 0.18));
-      list.forEach((s, i) => { s.t0 = t0 + ((t1 - t0 - 140) * i) / list.length; s.dur = 140; strokes.push(s); });
+      const keyed = list.map((e) => ({ e, k: e.y + Math.random() * h * 0.18 }));
+      keyed.sort((a, b) => a.k - b.k);
+      keyed.forEach(({ e }, i) => { e.s.t0 = t0 + ((t1 - t0 - 140) * i) / keyed.length; e.s.dur = 140; strokes.push(e.s); for (const kid of e.kids) { kid.t0 = e.s.t0; kid.dur = 140; strokes.push(kid); } });
     }
-    /* 5. Highlights: the brightest spots, tapped on last with a small brush. */
-    const lights = [];
-    for (let i = 0; i < 260; i++) { const x = Math.random() * w, y = Math.random() * h, k = at(x, y); if (lum[k] > 175) lights.push(x, y); }
-    for (let i = 0; i < lights.length; i += 2) { const x = lights[i], y = lights[i + 1], c = color(x, y, 1), a = Math.random() * 6.28; strokes.push({ pts: S([[x, y], [x + Math.cos(a) * 2, y + Math.sin(a) * 2]]), w: 2 * scale, c: rgb(c, 4), t0: 1600 + Math.random() * 180, dur: 60 }); }
-    return { first: rgb(first, 0), coat, strokes };
+    /* 5. Highlights: the brightest spots, tapped on last with a small brush along the edge. */
+    let lights = 0;
+    for (let i = 0; i < 3000 && lights < 800; i++) {
+      const x = Math.random() * w, y = Math.random() * h, L = lum[at(x, y)];
+      if (L <= 175) continue;
+      const near = (lum[at(x - 3, y)] + lum[at(x + 3, y)] + lum[at(x, y - 3)] + lum[at(x, y + 3)]) / 4;
+      if (L < 215 && L < near + 6) continue;
+      const [gx, gy] = grad(x, y, 1), a = Math.hypot(gx, gy) > 2 ? Math.atan2(gx, -gy) : Math.random() * 6.28, l = 1.2 * U;
+      const lit = color(x, y, 1).map((v) => v + (255 - v) * 0.25);
+      strokes.push(stroke([[x - Math.cos(a) * l, y - Math.sin(a) * l], [x + Math.cos(a) * l, y + Math.sin(a) * l]], 1.1 * U * scale, css(lit), 1780 + Math.random() * 150, 60));
+      lights++;
+    }
+    /* Stable sort: strokes start in time order, and a stroke's bristles follow it. */
+    const all = [...coat, ...strokes].sort((a, b) => a.t0 - b.t0);
+    return { first: css(first), all };
   }
   function drawSeg(ctx, s, i0, i1) {
     ctx.strokeStyle = s.c; ctx.lineWidth = s.w;
@@ -84,8 +124,23 @@
     if (i1 === i0) ctx.lineTo(s.pts[i0][0] + 0.1, s.pts[i0][1]);
     ctx.stroke();
   }
-  /* Paints `src` (an image or canvas) into `canvas`. Animated unless told otherwise. */
-  /* ms: how long the painting takes. It ends as brushwork, never as the smooth source picture. */
+  /* A soft canvas grain: fine noise with a faint woven thread, laid over the finished paint. */
+  let grainTile = null;
+  function canvasGrain(ctx, W, H) {
+    if (!grainTile) {
+      const n = 192; grainTile = document.createElement("canvas"); grainTile.width = grainTile.height = n;
+      const g = grainTile.getContext("2d"), img = g.createImageData(n, n);
+      const rowT = Array.from({ length: n }, () => (Math.random() - 0.5) * 18), colT = Array.from({ length: n }, () => (Math.random() - 0.5) * 18);
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+        const v = 128 + (Math.random() - 0.5) * 46 + Math.sin((x * Math.PI) / 2) * Math.sin((y * Math.PI) / 2) * 10 + (rowT[y] + colT[x]) / 2, i = (x + y * n) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = clamp(v); img.data[i + 3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+    }
+    const pattern = ctx.createPattern(grainTile, "repeat");
+    if (!pattern) return;
+    ctx.save(); ctx.globalCompositeOperation = "soft-light"; ctx.globalAlpha = 0.28; ctx.fillStyle = pattern; ctx.fillRect(0, 0, W, H); ctx.restore();
+  }
   /* One hue per painting (founder, 2026-11-08). The skill levels, rings and main button all take
      their color from the day's picture. The hue is the most common strongly colored hue in it. */
   function pictureColors(pic) {
@@ -115,7 +170,15 @@
     for (let L = 46; L > 15; L--) if (1.05 / (lum(L) + 0.05) >= 4.6) return L;
     return 16;
   }
+  /* Without the opening, the big brushes go on at once and the small ones in short slices after,
+     so the page never waits long for the painting. A new paint on the same canvas stops the old. */
+  const idle = (f) => (window.requestIdleCallback ? requestIdleCallback(f, { timeout: 120 }) : setTimeout(f, 16));
+  const cancelIdle = (id) => (window.cancelIdleCallback ? cancelIdleCallback(id) : clearTimeout(id));
+  const running = new WeakMap();
+  /* Paints `src` (an image or canvas) into `canvas`. Animated unless told otherwise.
+     ms: how long the painting takes. It ends as brushwork, never as the smooth source picture. */
   window.paintPicture = (canvas, src, { animate = true, nearlyDone, done, focus, ms = 3800 } = {}) => {
+    if (running.has(canvas)) { running.get(canvas)(); running.delete(canvas); }
     const dpr = Math.min(devicePixelRatio, 1.5), W = (canvas.width = Math.round(innerWidth * dpr)), H = (canvas.height = Math.round(innerHeight * dpr));
     const ctx = canvas.getContext("2d"), final = cover(src, W, H, ...(focus || []));
     /* Is the picture light or dark where the greeting and menus sit? The page picks its text color from this. */
@@ -125,23 +188,40 @@
       document.documentElement.dataset.picture = L / n > 150 ? "light" : "dark";
     } catch { /* keep the current text color */ }
     pictureColors(final);
-    const { first, coat, strokes } = plan(src, W / 480, true), all = [...coat, ...strokes];
-    const paintAll = () => { ctx.fillStyle = first; ctx.fillRect(0, 0, W, H); ctx.lineCap = "round"; ctx.lineJoin = "round"; all.forEach((s) => drawSeg(ctx, s, 0, s.pts.length - 1)); };
-    if (!animate) { paintAll(); if (done) done(); return { stop() {} }; }
-    const k = ms / 2000; DUR = ms; all.forEach((s) => { s.t0 *= k; s.dur *= k; });
+    const { first, all } = plan(src, W / PLAN_W);
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.fillStyle = first; ctx.fillRect(0, 0, W, H);
-    const start = performance.now(), prog = new Map(); let raf = 0, told = false;
+    if (!animate) {
+      let i = 0, id = 0, stopped = false;
+      while (i < all.length && all[i].t0 < 960) { drawSeg(ctx, all[i], 0, all[i].pts.length - 1); i++; }
+      const slice = () => {
+        if (stopped) return;
+        const end = performance.now() + 8;
+        while (i < all.length && performance.now() < end) for (let k = 0; k < 200 && i < all.length; k++, i++) drawSeg(ctx, all[i], 0, all[i].pts.length - 1);
+        if (i < all.length) { id = idle(slice); return; }
+        canvasGrain(ctx, W, H); running.delete(canvas);
+        if (done) done();
+      };
+      id = idle(slice);
+      const stop = () => { stopped = true; cancelIdle(id); };
+      running.set(canvas, stop);
+      return { stop };
+    }
+    const k = ms / 2000; all.forEach((s) => { s.t0 *= k; s.dur *= k; });
+    const start = performance.now(); let raf = 0, told = false, lo = 0;
     const frame = (now) => {
-      const t = now - start;
-      for (const s of all) {
-        if (t < s.t0) continue;
-        const n = s.pts.length - 1, to = Math.min(n, Math.ceil(((t - s.t0) / s.dur) * n)), was = prog.has(s) ? prog.get(s) : -1;
-        if (to > was) { drawSeg(ctx, s, Math.max(0, was), to); prog.set(s, to); }
+      const t = Math.min(now - start, ms);
+      /* Strokes are in start order: everything before `lo` is finished. */
+      for (let i = lo; i < all.length; i++) {
+        const s = all[i];
+        if (t < s.t0) break;
+        const n = s.pts.length - 1, to = Math.min(n, Math.ceil(((t - s.t0) / (s.dur || 1)) * n));
+        if (to > s.done) { drawSeg(ctx, s, Math.max(0, s.done), to); s.done = to; }
       }
+      while (lo < all.length && all[lo].done >= all[lo].pts.length - 1) lo++;
       if (!told && t > ms * 0.75) { told = true; if (nearlyDone) nearlyDone(); }
-      if (t < DUR) raf = requestAnimationFrame(frame);
-      else if (done) done();
+      if (now - start < ms) raf = requestAnimationFrame(frame);
+      else { canvasGrain(ctx, W, H); if (done) done(); }
     };
     raf = requestAnimationFrame(frame);
     return { stop() { cancelAnimationFrame(raf); } };
