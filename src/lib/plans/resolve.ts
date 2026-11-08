@@ -481,14 +481,23 @@ const answerRow = z.object({ question_id: z.string() });
 const satDateRow = z.object({ sat_test_date: z.string().regex(SAT_DATE_PATTERN).nullable() });
 
 /**
- * Where answers are recorded: skill practice (catalog_practice_*) and the
- * earlier node quizzes (quiz_attempts / question_responses). The Daily 10
- * records nothing, so it does not count.
+ * Where answers are recorded: skill practice (catalog_practice_*), the earlier
+ * node quizzes (quiz_attempts / question_responses) and the quiz runs
+ * (quiz_runs / quiz_run_responses). Among runs only the Daily 10, practice
+ * sets and Domain quizzes count: the free full-length test and the diagnostic
+ * do not use up the 100 questions.
  */
-const ANSWER_TABLES = [
+export const COUNTED_RUN_KINDS = ["daily-ten", "practice-set", "domain-quiz"] as const;
+const ANSWER_TABLES: readonly {
+  parent: string;
+  answers: string;
+  key: string;
+  kinds?: readonly string[];
+}[] = [
   { parent: "catalog_practice_sessions", answers: "catalog_practice_responses", key: "session_id" },
   { parent: "quiz_attempts", answers: "question_responses", key: "attempt_id" },
-] as const;
+  { parent: "quiz_runs", answers: "quiz_run_responses", key: "run_id", kinds: COUNTED_RUN_KINDS },
+];
 
 type Page = PromiseLike<{ data: unknown; error: unknown }>;
 async function readAll<T>(
@@ -611,13 +620,12 @@ export function supabasePlanDataSource(
       for (const table of ANSWER_TABLES) {
         const parents = await readAll(
           idRow,
-          (from, to) =>
-            db
-              .from(table.parent)
-              .select("id")
-              .eq("student_id", userId)
+          (from, to) => {
+            const query = db.from(table.parent).select("id").eq("student_id", userId);
+            return (table.kinds ? query.in("kind", [...table.kinds]) : query)
               .order("id", { ascending: true })
-              .range(from, to),
+              .range(from, to);
+          },
           "Answered questions"
         );
         for (let i = 0; i < parents.length; i += 100) {
@@ -638,12 +646,16 @@ export function supabasePlanDataSource(
       }
       return questionIds.size;
     },
-    // No full-length test records exist yet (2026-11-08: no table stores a
-    // completed full-length test). When the full-length test flow lands, count
-    // its completed tests for the user here. Until then nobody has used their
-    // free test.
-    async completedFullLengthTests() {
-      return 0;
+    // A full-length test counts once it is finished (quiz_runs.completed_at).
+    async completedFullLengthTests(userId) {
+      const { count, error } = await db
+        .from("quiz_runs")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", userId)
+        .eq("kind", "full-test")
+        .not("completed_at", "is", null);
+      if (error) throw new Error("Full-length tests could not be counted");
+      return count ?? 0;
     },
     async satTestDate(userId) {
       const { data, error } = await db

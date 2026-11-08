@@ -218,6 +218,18 @@ export async function answeredInRuns(studentId: string): Promise<Map<string, str
 }
 
 /** Families of questions in the student's earlier full-length tests (both Module 2 variants). */
+/** Whether the student has a full-length test started and not yet finished. */
+export async function openFullTest(studentId: string): Promise<boolean> {
+  const { count, error } = await db()
+    .from("quiz_runs")
+    .select("id", { count: "exact", head: true })
+    .eq("student_id", studentId)
+    .eq("kind", "full-test")
+    .is("completed_at", null);
+  if (error) throw new Error("Saved tests could not be loaded");
+  return (count ?? 0) > 0;
+}
+
 export async function fullTestQuestionIds(studentId: string): Promise<string[]> {
   const { data, error } = await db()
     .from("quiz_runs")

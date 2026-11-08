@@ -46,6 +46,7 @@ import {
   findRunByKey,
   fullTestQuestionIds,
   getOwnedRun,
+  openFullTest,
   insertResponses,
   insertRun,
   loadResponses,
@@ -394,8 +395,11 @@ export async function startFullTest(clerkId: string, formNumber: number): Promis
   const saved = await findRunByKey(clerkId, `full-test:${form}`);
   if (saved) return view(saved);
   const access = await loadQuizAccess(clerkId);
-  if (access.fullTestsLeft === 0)
+  if (!access.canStartFullTest)
     throw new PlanLimitError("The Free plan includes one full-length test.");
+  // A limited plan finishes the test it started before opening another form.
+  if (access.limited && (await openFullTest(clerkId)))
+    throw new PlanLimitError("Finish the full-length test you started first.");
   const bank = await loadAdmittedBank(
     [...skillsInSection("reading"), ...skillsInSection("math")],
     access.maxDifficulty

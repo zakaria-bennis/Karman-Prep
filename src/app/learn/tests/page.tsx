@@ -38,7 +38,6 @@ export default async function TestsPage() {
     if (locked) return { right: "Practice plan", href: false };
     return { right: "Start", href: true };
   };
-  const freeTestsLeft = access?.fullTestsLeft ?? null;
   return (
     <PortalShell
       portal="Student"
@@ -55,25 +54,23 @@ export default async function TestsPage() {
           <SectionHeader title="Full-length practice tests" note={`${FULL_LENGTH_FORMS}`} />
           {Array.from({ length: FULL_LENGTH_FORMS }, (_, i) => i + 1).map((form) => {
             const key = `full-test:${form}`;
-            const locked = freeTestsLeft === 0 && !byKey.has(key);
-            const st = status(key, locked);
+            const openOther = saved.some(
+              (row) =>
+                row.run_key.startsWith("full-test:") && !row.completed_at && row.run_key !== key
+            );
+            const waiting = !byKey.has(key) && access?.limited === true && openOther;
+            const locked = !byKey.has(key) && access?.canStartFullTest === false;
+            const st = waiting
+              ? { right: "Finish your open test first", href: false }
+              : status(key, locked);
+            const plain = st.right === "Start" || st.right === "Resume" || locked || waiting;
             return (
               <Row
                 key={form}
                 title={`Practice test ${form}`}
-                sub={
-                  st.right === "Start" || st.right === "Resume" || locked
-                    ? undefined
-                    : "Predicted score"
-                }
-                right={
-                  st.right === "Start" || st.right === "Resume" || locked ? (
-                    st.right
-                  ) : (
-                    <Num>{st.right}</Num>
-                  )
-                }
-                href={st.href ? `/learn/test/${form}` : "/billing"}
+                sub={plain ? undefined : "Predicted score"}
+                right={plain ? st.right : <Num>{st.right}</Num>}
+                href={st.href ? `/learn/test/${form}` : waiting ? undefined : "/billing"}
               />
             );
           })}
