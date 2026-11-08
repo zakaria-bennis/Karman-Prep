@@ -358,7 +358,7 @@ export function QuestionCard({
               "rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               pickerOpen
                 ? "border border-[color:var(--line)] text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--card)_5%,transparent)]"
-                : "bg-[color:var(--good)] text-[color:var(--accent-ink)] hover:bg-[color:var(--good)]"
+                : "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)]"
             )}
           >
             <Check className="mr-1 inline h-3 w-3" /> {pickerOpen ? "Close picker" : "Accept…"}

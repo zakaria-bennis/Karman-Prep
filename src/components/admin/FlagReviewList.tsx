@@ -101,7 +101,7 @@ export default function FlagReviewList({ flagged }: Props) {
                 </button>
                 <button
                   onClick={() => resolve(flag.id)}
-                  className="rounded bg-[color:var(--good)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--good)]"
+                  className="rounded bg-[color-mix(in_srgb,var(--good)_28%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)]"
                 >
                   Mark resolved
                 </button>
@@ -194,7 +194,7 @@ function InlineEditor({
         </button>
         <button
           onClick={() => onSave({ question_text: qText, explanation_text: exp })}
-          className="rounded bg-[color:var(--info)] px-4 py-1.5 text-xs font-bold text-[color:var(--ink)] hover:bg-[color:var(--info)]"
+          className="rounded bg-[color:var(--accent)] px-4 py-1.5 text-xs font-bold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]"
         >
           Save edits
         </button>

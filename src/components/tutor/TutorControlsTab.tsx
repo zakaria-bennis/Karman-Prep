@@ -154,7 +154,7 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
                         className={cn(
                           "inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-semibold",
                           curLocked
-                            ? "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color:var(--late)] text-[color:var(--ink)]"
+                            ? "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]"
                             : "border-[color:var(--line)] text-[color:var(--mute)] hover:text-[color:var(--ink)]"
                         )}
                       >
@@ -204,7 +204,7 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
                               checkpoint_id: cp,
                             }).catch(console.error)
                           }
-                          className="inline-flex items-center gap-1 rounded bg-[color:var(--info)] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--info)]"
+                          className="inline-flex items-center gap-1 rounded bg-[color:var(--accent)] px-2.5 py-1 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]"
                         >
                           <Check className="h-3 w-3" /> Assign retake
                         </button>

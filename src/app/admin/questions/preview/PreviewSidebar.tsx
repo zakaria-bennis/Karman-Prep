@@ -119,7 +119,7 @@ export function PreviewSidebar({
               disabled={bulkPending.approving || bulkPending.rejecting}
               className={cn(
                 "inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold disabled:opacity-50",
-                "bg-[color:var(--good)] text-[color:var(--accent-ink)] hover:bg-[color:var(--good)]"
+                "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)]"
               )}
             >
               {bulkPending.approving ? (
@@ -134,7 +134,7 @@ export function PreviewSidebar({
               disabled={bulkPending.approving || bulkPending.rejecting}
               className={cn(
                 "inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold disabled:opacity-50",
-                "bg-[color:var(--late)] text-[color:var(--ink)] hover:bg-[color:var(--late)]"
+                "bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--late)_36%,transparent)]"
               )}
             >
               {bulkPending.rejecting ? (

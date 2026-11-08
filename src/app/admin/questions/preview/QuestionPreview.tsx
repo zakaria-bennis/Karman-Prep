@@ -75,7 +75,7 @@ export function QuestionPreview({
       >
         <button
           onClick={() => setIsSubmitted(true)}
-          className="rounded-xl bg-[color:var(--info)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--info)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
+          className="rounded-xl bg-[color:var(--accent)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--accent)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
         >
           Simulate submit
         </button>
@@ -98,7 +98,7 @@ export function QuestionPreview({
       </button>
       <button
         onClick={() => setShowExplanations(true)}
-        className="rounded-xl bg-[color:var(--info)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--info)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
+        className="rounded-xl bg-[color:var(--accent)] px-8 py-3 text-sm font-semibold text-[color:var(--accent-ink)] underline-offset-4 transition-colors hover:bg-[color:var(--accent)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ink)]"
       >
         Show explanations
       </button>
@@ -182,9 +182,11 @@ export function QuestionPreview({
                   !isSubmitted && !isSelected && "bg-[color:var(--raised)] text-[color:var(--ink)]",
                   !isSubmitted &&
                     isSelected &&
-                    "bg-[color:var(--info)] text-[color:var(--accent-ink)]",
-                  showCorrect && "bg-[color:var(--good)] text-[color:var(--accent-ink)]",
-                  showWrong && "bg-[color:var(--late)] text-[color:var(--accent-ink)]",
+                    "bg-[color:var(--accent)] text-[color:var(--accent-ink)]",
+                  showCorrect &&
+                    "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)]",
+                  showWrong &&
+                    "bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]",
                   isSubmitted &&
                     !isSelected &&
                     !isCorrect &&
@@ -280,10 +282,11 @@ export function QuestionPreview({
                 <span
                   className={cn(
                     "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold",
-                    isCorrect && "bg-[color:var(--good)] text-[color:var(--accent-ink)]",
+                    isCorrect &&
+                      "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)]",
                     !isCorrect &&
                       isStudentChoice &&
-                      "bg-[color:var(--late)] text-[color:var(--accent-ink)]",
+                      "bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]",
                     !isCorrect &&
                       !isStudentChoice &&
                       "bg-[color:var(--raised)] text-[color:var(--ink)]"

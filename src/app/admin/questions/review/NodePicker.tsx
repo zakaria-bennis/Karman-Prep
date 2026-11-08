@@ -152,7 +152,7 @@ export function NodePicker({
           <button
             onClick={() => onAccept(selectedNodeId)}
             disabled={busy}
-            className="rounded bg-[color:var(--good)] px-3 py-1 text-xs font-bold text-[color:var(--accent-ink)] hover:bg-[color:var(--good)] disabled:opacity-50"
+            className="rounded bg-[color-mix(in_srgb,var(--good)_28%,transparent)] px-3 py-1 text-xs font-bold text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)] disabled:opacity-50"
           >
             <Check className="mr-1 inline h-3 w-3" /> Accept
           </button>

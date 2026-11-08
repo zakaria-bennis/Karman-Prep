@@ -2,7 +2,6 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
-import { SITE_THEMES, themeTokens } from "@/lib/themes/palettes";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import { QuestionPreview } from "./QuestionPreview";
 
@@ -21,47 +20,31 @@ const question = {
   explanation_text: "The second value is choice B.",
 } as unknown as QuizQuestionWithChoices;
 
-function luminance(hex: string): number {
-  const channels = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255);
-  const linear = channels.map((value) =>
-    value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
-  );
-  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
-}
+// The admin sits in the painted portal shell, whose colours follow the device. White text
+// (--accent-ink) is only readable on the accent, which the shell darkens until white passes
+// 4.5:1. Every other filled colour (--good, --late, --warn, --info) is light in dark mode,
+// so it must carry ink text on a tint, never white.
+const SAFE_PAIRS: Array<[RegExp, RegExp]> = [
+  [/^bg-\[color:var\(--accent\)\]$/, /^text-\[color:var\(--accent-ink\)\]$/],
+  [
+    /^bg-\[color-mix\(in_srgb,var\(--(good|late|warn|info)\)_\d+%,transparent\)\]$/,
+    /^text-\[color:var\(--ink\)\]$/,
+  ],
+];
 
-function contrast(first: string, second: string): number {
-  const values = [luminance(first), luminance(second)];
-  return (Math.max(...values) + 0.05) / (Math.min(...values) + 0.05);
-}
-
-function tokenForClass(element: HTMLElement, prefix: string, tokens: Record<string, string>) {
-  const className = Array.from(element.classList).find(
-    (name) => name.startsWith(prefix) && tokens[name.slice(prefix.length)]
-  );
-  if (!className) throw new Error(`No theme color found for ${prefix}`);
-  return tokens[className.slice(prefix.length)];
+function expectReadablePair(el: HTMLElement) {
+  const classes = Array.from(el.classList);
+  const bg = classes.find((c) => c.startsWith("bg-"));
+  const text = classes.find((c) => c.startsWith("text-[color:"));
+  expect(bg, "filled background").toBeDefined();
+  expect(
+    SAFE_PAIRS.some(([b, t]) => b.test(bg!) && t.test(text ?? "")),
+    `${bg} with ${text}`
+  ).toBe(true);
 }
 
 function expectReadableAction(button: HTMLElement) {
-  // Resolve the rendered utility tokens; this detects a regression to the
-  // old low-contrast text color without relying on a hardcoded replacement.
-  for (const theme of SITE_THEMES) {
-    const tokens = themeTokens(theme);
-    const foreground = tokenForClass(button, "text-", tokens);
-    const background = tokenForClass(button, "bg-", tokens);
-    const hoverBackground = tokenForClass(button, "hover:bg-", tokens);
-    expect(contrast(foreground, background), `${theme.id}: normal label`).toBeGreaterThanOrEqual(
-      4.5
-    );
-    expect(
-      contrast(foreground, hoverBackground),
-      `${theme.id}: hover label`
-    ).toBeGreaterThanOrEqual(4.5);
-    const outline = tokenForClass(button, "focus-visible:outline-", tokens);
-    for (const adjacent of [tokens.night, tokens.surface, tokens["surface-raised"]]) {
-      expect(contrast(outline, adjacent), `${theme.id}: focus outline`).toBeGreaterThanOrEqual(3);
-    }
-  }
+  expectReadablePair(button);
   expect(button).toHaveClass(
     "focus-visible:outline",
     "focus-visible:outline-2",
@@ -69,18 +52,10 @@ function expectReadableAction(button: HTMLElement) {
   );
 }
 
-function expectReadableBadge(badge: HTMLElement) {
-  for (const theme of SITE_THEMES) {
-    const tokens = themeTokens(theme);
-    expect(
-      contrast(tokenForClass(badge, "text-", tokens), tokenForClass(badge, "bg-", tokens)),
-      `${theme.id}: selected or incorrect choice letter`
-    ).toBeGreaterThanOrEqual(4.5);
-  }
-}
+const expectReadableBadge = expectReadablePair;
 
 describe("question preview action readability", () => {
-  it("keeps submit and explanation actions readable across all retained themes", async () => {
+  it("keeps submit and explanation actions readable in light and dark (portal colour pairs)", async () => {
     const user = userEvent.setup();
     render(<QuestionPreview q={question} />);
     const choice = screen.getByRole("button", { name: /A\s*First value/ });

@@ -6,7 +6,8 @@ describe("adminTitle", () => {
     expect(adminTitle("/admin")).toBe("Admin");
     expect(adminTitle("/admin/scholarship/123")).toBe("Scholarship");
     expect(adminTitle("/admin/questions/preview/rapid")).toBe("Question preview");
-    expect(adminTitle("/admin/questions/inspect/9")).toBe("Questions");
+    expect(adminTitle("/admin/questions/inspect/9")).toBe("Question inspector");
+    expect(adminTitle("/admin/questions/archive")).toBe("Questions");
     expect(adminTitle("/admin/plans")).toBe("Plans and subscriptions");
     expect(adminTitle("/admin/students/user_abc")).toBe("Students");
     expect(adminTitle("/admin/tutors")).toBe("Tutors");

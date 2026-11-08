@@ -270,7 +270,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             <button
               onClick={handleManualTranscript}
               disabled={isPending || !pendingTranscript.trim()}
-              className="inline-flex items-center gap-2 rounded bg-[color:var(--info)] px-4 py-2 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--info)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded bg-[color:var(--accent)] px-4 py-2 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -331,7 +331,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   <button
                     onClick={handleSaveDraft}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--good)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--good)] disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--good)_28%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)] disabled:opacity-40"
                   >
                     {isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -464,7 +464,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           <button
             onClick={handleSend}
             disabled={isPending || !allFieldsFilled || recipientIds.size === 0 || !isOneOnOne}
-            className="inline-flex items-center gap-2 rounded bg-[color:var(--info)] px-6 py-3 text-sm font-bold text-[color:var(--ink)] hover:bg-[color:var(--info)] disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded bg-[color:var(--accent)] px-6 py-3 text-sm font-bold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

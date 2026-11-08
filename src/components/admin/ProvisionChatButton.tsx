@@ -76,7 +76,7 @@ export function ProvisionChatButton({ cohortId, alreadyProvisioned }: Props) {
         type="button"
         onClick={provision}
         disabled={state === "running"}
-        className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--info)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--info)] disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--accent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:opacity-50"
       >
         {state === "running" ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
