@@ -26,6 +26,8 @@ const TOOLS: Array<{ title: string; links: Array<[string, string]> }> = [
     title: "People and money",
     links: [
       ["/admin/users", "People and roles"],
+      ["/admin/students", "Students, as their tutor sees them"],
+      ["/admin/tutors", "Tutors and their students"],
       ["/admin/plans", "Plans and subscriptions"],
       ["/admin/affiliates", "Affiliate tutors"],
       ["/admin/schools", "Schools"],
