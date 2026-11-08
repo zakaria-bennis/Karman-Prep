@@ -124,11 +124,11 @@
 .kp-roster-head .kp-ring {
   flex: none;
 }
-.kp-roster-head b {
+.kp-roster-who b {
   display: block;
   color: var(--ink);
 }
-.kp-roster-head small {
+.kp-roster-who small {
   color: var(--mute);
   font-size: 13px;
 }
