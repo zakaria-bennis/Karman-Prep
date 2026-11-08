@@ -69,6 +69,7 @@ vi.mock("@/lib/supabase/server", () => ({
 import { fetchCatalogQuestionPool } from "./catalog-question-pool";
 
 beforeEach(() => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
   fixture.keys = [];
   fixture.questions = [];
   fixture.calls = [];
@@ -113,32 +114,60 @@ describe("canonical skill pool query", () => {
     );
   });
 
-  it("keeps private pilot tags out of playable pools and rejects duplicate evidence", async () => {
+  it("keeps private pilot tags out of playable pools and drops only the duplicated question", async () => {
     fixture.keys = [
       { question_id: "held", raw_model_response: approvedCatalogEvidence("held", false) },
     ];
     expect(await fetchCatalogQuestionPool({ skillId: catalogSkillId })).toEqual([]);
     expect(fixture.calls).not.toContainEqual(["from", "quiz_questions"]);
-    fixture.keys.push(...fixture.keys);
-    await expect(fetchCatalogQuestionPool({ skillId: catalogSkillId })).rejects.toThrow(
-      /ambiguous/
-    );
+    fixture.keys = [
+      { question_id: "q1", raw_model_response: approvedCatalogEvidence("first") },
+      { question_id: "q1", raw_model_response: approvedCatalogEvidence("first") },
+      { question_id: "q2", raw_model_response: approvedCatalogEvidence("second") },
+    ];
+    fixture.questions = [catalogQuestion("q2")];
+    const pool = await fetchCatalogQuestionPool({ skillId: catalogSkillId });
+    expect(pool.map((row) => row.id)).toEqual(["q2"]);
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/q1.*ambiguous/));
+    expect(fixture.calls).toContainEqual(["in", "id", ["q2"]]);
   });
 
-  it("rejects an edited delivered question or an absent frozen delivery seal", async () => {
+  it("skips unreadable or out-of-scope evidence without losing the rest of the skill", async () => {
+    const otherSkill = JSON.parse(JSON.stringify(approvedCatalogEvidence("other")));
+    otherSkill.approved_tags.catalog_skill_id = "ma-skill-linear-equations-in-two-variables";
+    otherSkill.approved_tags.skill_label = "Linear equations in two variables";
+    otherSkill.D_original_record.selectable_skill = "Linear equations in two variables";
+    fixture.keys = [
+      { question_id: "bad", raw_model_response: { approved_tags: { catalog_skill_id: "x" } } },
+      { question_id: "other", raw_model_response: otherSkill },
+      { question_id: "q1", raw_model_response: approvedCatalogEvidence() },
+    ];
+    fixture.questions = [catalogQuestion("q1")];
+    const pool = await fetchCatalogQuestionPool({ skillId: catalogSkillId });
+    expect(pool.map((row) => row.id)).toEqual(["q1"]);
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/bad/));
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/other/));
+  });
+
+  it("skips an edited delivered question or an absent frozen delivery seal, keeping the rest", async () => {
     const evidence = approvedCatalogEvidence();
-    fixture.keys = [{ question_id: "q1", raw_model_response: evidence }];
-    fixture.questions = [{ ...catalogQuestion("q1"), question_text: "Changed after review" }];
-    await expect(fetchCatalogQuestionPool({ skillId: catalogSkillId })).rejects.toThrow(
-      /snapshot differs/
-    );
+    fixture.keys = [
+      { question_id: "q1", raw_model_response: evidence },
+      { question_id: "q2", raw_model_response: approvedCatalogEvidence("second") },
+    ];
+    fixture.questions = [
+      { ...catalogQuestion("q1"), question_text: "Changed after review" },
+      catalogQuestion("q2"),
+    ];
+    expect((await fetchCatalogQuestionPool({ skillId: catalogSkillId })).map((q) => q.id)).toEqual([
+      "q2",
+    ]);
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/q1.*snapshot differs/));
     fixture.questions = [catalogQuestion("q1")];
     const unsealed = JSON.parse(JSON.stringify(evidence));
     delete unsealed.approved_tags.question_payload_sha256;
     fixture.keys = [{ question_id: "q1", raw_model_response: unsealed }];
-    await expect(fetchCatalogQuestionPool({ skillId: catalogSkillId })).rejects.toThrow(
-      /snapshot differs/
-    );
+    expect(await fetchCatalogQuestionPool({ skillId: catalogSkillId })).toEqual([]);
   });
 
   it("filters the cluster by every accepted spelling of its label, not one exact string", async () => {

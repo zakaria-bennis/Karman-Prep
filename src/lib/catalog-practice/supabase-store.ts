@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { CatalogSession, CatalogSessionStore, CatalogResponse } from "./session";
@@ -28,6 +29,17 @@ async function rpc(name: string, args: Record<string, unknown>): Promise<unknown
   const { data, error } = await call(name, args);
   if (error) throw new Error(error.message);
   return data;
+}
+
+const answeredSchema = z.object({
+  question_id: z.string().uuid(),
+  answered_at: z.string(),
+});
+const PAGE = 1000;
+
+/** The catalog practice tables are not in the generated types; read them untyped. */
+function tables(): SupabaseClient {
+  return createAdminClient() as unknown as SupabaseClient;
 }
 
 function session(value: unknown): CatalogSession {
@@ -72,13 +84,67 @@ export const supabaseCatalogSessionStore: CatalogSessionStore = {
       })
     );
   },
+  async abandon(sessionId, studentId) {
+    // Closing frees the one-open-session slot. The score stays empty: it was never finished.
+    // catalog_practice_record_once refuses answers once completed_at is set.
+    const { error } = await tables()
+      .from("catalog_practice_sessions")
+      .update({ completed_at: new Date().toISOString() })
+      .eq("id", sessionId)
+      .eq("student_id", studentId)
+      .is("completed_at", null);
+    if (error) throw new Error("Practice session could not be closed");
+  },
+  async answeredQuestions(studentId, skillId) {
+    const db = tables();
+    const sessionIds: string[] = [];
+    for (let offset = 0; ; offset += PAGE) {
+      const { data, error } = await db
+        .from("catalog_practice_sessions")
+        .select("id")
+        .eq("student_id", studentId)
+        .eq("skill_id", skillId)
+        .order("id", { ascending: true })
+        .range(offset, offset + PAGE - 1);
+      if (error) throw new Error("Saved practice could not be loaded");
+      sessionIds.push(
+        ...z
+          .array(z.object({ id: z.string().uuid() }))
+          .parse(data ?? [])
+          .map((row) => row.id)
+      );
+      if ((data ?? []).length < PAGE) break;
+    }
+    const answers: { questionId: string; answeredAt: string }[] = [];
+    for (let chunk = 0; chunk < sessionIds.length; chunk += 100) {
+      for (let offset = 0; ; offset += PAGE) {
+        const { data, error } = await db
+          .from("catalog_practice_responses")
+          .select("question_id, answered_at")
+          .in("session_id", sessionIds.slice(chunk, chunk + 100))
+          .order("id", { ascending: true })
+          .range(offset, offset + PAGE - 1);
+        if (error) throw new Error("Saved practice could not be loaded");
+        for (const row of z.array(answeredSchema).parse(data ?? [])) {
+          answers.push({ questionId: row.question_id, answeredAt: row.answered_at });
+        }
+        if ((data ?? []).length < PAGE) break;
+      }
+    }
+    return answers;
+  },
 };
 
-/** Read private approved evidence separately; never send it to the browser. */
+/**
+ * Read private approved evidence separately; never send it to the browser.
+ * A question with no evidence row, or more than one, is left out with a log line, so one
+ * bad row never breaks the whole skill (the session then skips that question).
+ */
 export async function loadCatalogQuestionEvidence(
   questionIds: string[]
 ): Promise<Map<string, unknown>> {
   const result = new Map<string, unknown>();
+  const ambiguous = new Set<string>();
   const db = createAdminClient();
   for (let offset = 0; offset < questionIds.length; offset += 200) {
     const { data, error } = await db
@@ -87,12 +153,23 @@ export async function loadCatalogQuestionEvidence(
       .in("question_id", questionIds.slice(offset, offset + 200));
     if (error) throw new Error("Reviewed question evidence could not be loaded");
     for (const row of data ?? []) {
-      if (!row.question_id || result.has(row.question_id)) {
-        throw new Error("Reviewed question evidence is ambiguous");
-      }
+      if (!row.question_id) continue;
+      if (result.has(row.question_id)) ambiguous.add(row.question_id);
       result.set(row.question_id, row.raw_model_response);
     }
   }
-  if (result.size !== questionIds.length) throw new Error("Reviewed question evidence is missing");
+  for (const id of ambiguous) {
+    console.error(
+      `[catalog practice] skipped question ${id}: reviewed question evidence is ambiguous`
+    );
+    result.delete(id);
+  }
+  for (const id of questionIds) {
+    if (!result.has(id) && !ambiguous.has(id)) {
+      console.error(
+        `[catalog practice] skipped question ${id}: reviewed question evidence is missing`
+      );
+    }
+  }
   return result;
 }

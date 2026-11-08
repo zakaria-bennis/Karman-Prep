@@ -9,6 +9,7 @@ import {
   type CatalogDeliverySnapshot,
   type CatalogQuestionBinding,
 } from "./delivery-contract";
+import { pickPracticeQuestions, type AnsweredQuestion } from "./picker";
 
 const uuid = z.string().uuid();
 export const startCatalogPracticeSchema = catalogPoolInputSchema.extend({
@@ -43,6 +44,10 @@ export interface CatalogSessionStore {
     response: CatalogResponse;
   }): Promise<CatalogResponse>;
   complete(sessionId: string, studentId: string): Promise<CatalogSession>;
+  /** Closes an open session without a score so a fresh one can start. No-op once closed. */
+  abandon(sessionId: string, studentId: string): Promise<void>;
+  /** Every saved answer this student has given in this skill, across all sessions. */
+  answeredQuestions(studentId: string, skillId: string): Promise<AnsweredQuestion[]>;
 }
 export type CatalogPracticeDependencies = {
   fetchPool: (input: {
@@ -56,7 +61,16 @@ export type CatalogPracticeDependencies = {
     studentId: string
   ) => Promise<{ skillId: string; items: CatalogQuestionBinding[] }>;
   store: CatalogSessionStore;
+  now?: () => Date;
 };
+
+/** A saved question was re-sealed or left the pool. The session can be closed and replaced. */
+class StaleSessionError extends Error {}
+
+/** One bad row is dropped from the pool with a log line; it never breaks the whole skill. */
+function skipQuestion(questionId: string, reason: string) {
+  console.error(`[catalog practice] skipped question ${questionId}: ${reason}`);
+}
 
 function grade(answer: string, snapshot: CatalogDeliverySnapshot): boolean {
   return evaluateQuizAnswer(answer, {
@@ -96,6 +110,42 @@ function present(session: CatalogSession) {
   };
 }
 
+/**
+ * The eligibility check every student-facing lane shares: each question's private evidence
+ * and delivered payload must agree, sit in the requested skill, and be unique by question
+ * and canonical id. A row that fails is dropped with a log line; the rest of the skill stays.
+ */
+export function admitCatalogPool(
+  skillId: string,
+  pool: readonly QuizQuestionWithChoices[],
+  evidence: ReadonlyMap<string, unknown>
+): CatalogDeliverySnapshot[] {
+  const snapshots: CatalogDeliverySnapshot[] = [];
+  const questionIds = new Set<string>();
+  const stableIds = new Set<string>();
+  for (const question of pool) {
+    let item: CatalogDeliverySnapshot;
+    try {
+      item = buildCatalogDeliverySnapshot(question, evidence.get(question.id));
+    } catch (error) {
+      skipQuestion(question.id, error instanceof Error ? error.message : String(error));
+      continue;
+    }
+    if (item.binding.catalogSkillId !== skillId) {
+      skipQuestion(question.id, "reviewed question is outside requested skill");
+    } else if (questionIds.has(item.binding.questionId)) {
+      skipQuestion(question.id, "duplicate question in approved pool");
+    } else if (stableIds.has(item.binding.stableQuestionId)) {
+      skipQuestion(question.id, "duplicate canonical question exposure");
+    } else {
+      questionIds.add(item.binding.questionId);
+      stableIds.add(item.binding.stableQuestionId);
+      snapshots.push(item);
+    }
+  }
+  return snapshots;
+}
+
 export function createCatalogPracticeService(deps: CatalogPracticeDependencies) {
   async function admittedSnapshots(
     skillId: string,
@@ -103,20 +153,7 @@ export function createCatalogPracticeService(deps: CatalogPracticeDependencies) 
     maximumDifficulty: number
   ) {
     const pool = await deps.fetchPool({ skillId, minimumDifficulty, maximumDifficulty });
-    const evidence = await deps.loadEvidence(pool.map((question) => question.id));
-    const snapshots = pool.map((question) =>
-      buildCatalogDeliverySnapshot(question, evidence.get(question.id))
-    );
-    if (snapshots.some((item) => item.binding.catalogSkillId !== skillId)) {
-      throw new Error("Reviewed question is outside requested skill");
-    }
-    if (new Set(snapshots.map((item) => item.binding.questionId)).size !== snapshots.length) {
-      throw new Error("Duplicate question in approved pool");
-    }
-    if (new Set(snapshots.map((item) => item.binding.stableQuestionId)).size !== snapshots.length) {
-      throw new Error("Duplicate canonical question exposure");
-    }
-    return snapshots;
+    return admitCatalogPool(skillId, pool, await deps.loadEvidence(pool.map((q) => q.id)));
   }
 
   async function verifyCurrent(session: CatalogSession) {
@@ -136,8 +173,12 @@ export function createCatalogPracticeService(deps: CatalogPracticeDependencies) 
     const byId = new Map(current.map((item) => [item.binding.questionId, item]));
     for (const saved of session.snapshots) {
       const item = byId.get(saved.binding.questionId);
-      if (!item) throw new Error("Saved question is no longer available");
-      requireMatchingBinding(item, saved.binding);
+      if (!item) throw new StaleSessionError("Saved question is no longer available");
+      try {
+        requireMatchingBinding(item, saved.binding);
+      } catch (error) {
+        throw new StaleSessionError(error instanceof Error ? error.message : String(error));
+      }
     }
     if (!session.snapshots.length || session.responses.length > session.snapshots.length) {
       throw new Error("Saved practice session is invalid");
@@ -145,63 +186,118 @@ export function createCatalogPracticeService(deps: CatalogPracticeDependencies) 
     return session;
   }
 
-  return {
-    async start(raw: StartCatalogPracticeInput, studentId: string) {
-      const input = startCatalogPracticeSchema.parse(raw);
-      const assignment = input.assignmentId
-        ? await deps.loadOwnedAssignment?.(input.assignmentId, studentId)
-        : null;
-      if (input.assignmentId && (!assignment || assignment.skillId !== input.skillId)) {
-        throw new Error("Assignment is unavailable");
-      }
-      const available = await admittedSnapshots(
-        input.skillId,
-        input.minimumDifficulty,
-        input.maximumDifficulty
+  /**
+   * A saved question was re-sealed or left the pool. Close the session so the student is
+   * never stuck: a fully answered one is scored (each answer was graded against its sealed
+   * snapshot when saved); a partial one is closed without a score.
+   */
+  async function closeStale(session: CatalogSession, studentId: string, reason: string) {
+    console.error(`[catalog practice] closing stale session ${session.id}: ${reason}`);
+    if (session.responses.length === session.snapshots.length) {
+      return deps.store.complete(session.id, studentId);
+    }
+    await deps.store.abandon(session.id, studentId);
+    return null;
+  }
+
+  async function start(raw: StartCatalogPracticeInput, studentId: string) {
+    const input = startCatalogPracticeSchema.parse(raw);
+    const assignment = input.assignmentId
+      ? await deps.loadOwnedAssignment?.(input.assignmentId, studentId)
+      : null;
+    if (input.assignmentId && (!assignment || assignment.skillId !== input.skillId)) {
+      throw new Error("Assignment is unavailable");
+    }
+    const available = await admittedSnapshots(
+      input.skillId,
+      input.minimumDifficulty,
+      input.maximumDifficulty
+    );
+    const byId = new Map(available.map((item) => [item.binding.questionId, item]));
+    let selected: CatalogDeliverySnapshot[];
+    if (assignment) {
+      selected = assignment.items.map((binding) => {
+        const item = byId.get(binding.questionId);
+        if (!item) throw new Error("Assigned question is unavailable");
+        requireMatchingBinding(item, binding);
+        return item;
+      });
+    } else {
+      const picked = pickPracticeQuestions(
+        available.map((item) => ({
+          questionId: item.binding.questionId,
+          difficulty: item.student.difficulty_level,
+        })),
+        await deps.store.answeredQuestions(studentId, input.skillId),
+        { studentId, day: (deps.now?.() ?? new Date()).toISOString().slice(0, 10) }
       );
-      const byId = new Map(available.map((item) => [item.binding.questionId, item]));
-      const selected = assignment
-        ? assignment.items.map((binding) => {
-            const item = byId.get(binding.questionId);
-            if (!item) throw new Error("Assigned question is unavailable");
-            requireMatchingBinding(item, binding);
-            return item;
-          })
-        : available.slice(0, 10);
-      if (
-        !selected.length ||
-        new Set(selected.map((item) => item.binding.stableQuestionId)).size !== selected.length
-      ) {
-        throw new Error("No distinct approved questions are available");
-      }
-      const session = await deps.store.start({
+      selected = picked.map((id) => byId.get(id)!);
+    }
+    if (
+      !selected.length ||
+      new Set(selected.map((item) => item.binding.stableQuestionId)).size !== selected.length
+    ) {
+      throw new Error("No distinct approved questions are available");
+    }
+    const allocate = () =>
+      deps.store.start({
         studentId,
         skillId: input.skillId,
         assignmentId: input.assignmentId ?? null,
         snapshots: selected,
       });
+    // The database returns the student's existing open session when there is one.
+    let session = await allocate();
+    try {
       await verifyCurrent(session);
-      if (
-        assignment &&
-        (session.assignmentId !== input.assignmentId ||
-          session.snapshots.length !== selected.length ||
-          session.snapshots.some((saved, index) => {
-            try {
-              requireMatchingBinding(saved, selected[index].binding);
-              return false;
-            } catch {
-              return true;
-            }
-          }))
-      )
-        throw new Error("Assigned practice session differs from current assignment");
-      return present(session);
-    },
+    } catch (error) {
+      if (!(error instanceof StaleSessionError)) throw error;
+      await closeStale(session, studentId, error.message);
+      session = await verifyCurrent(await allocate());
+    }
+    if (
+      assignment &&
+      (session.assignmentId !== input.assignmentId ||
+        session.snapshots.length !== selected.length ||
+        session.snapshots.some((saved, index) => {
+          try {
+            requireMatchingBinding(saved, selected[index].binding);
+            return false;
+          } catch {
+            return true;
+          }
+        }))
+    )
+      throw new Error("Assigned practice session differs from current assignment");
+    return present(session);
+  }
+
+  /** A finished session is shown from its frozen snapshot, without re-checking today's pool. */
+  function presentFinished(session: CatalogSession) {
+    if (!session.snapshots.length || session.responses.length > session.snapshots.length) {
+      throw new Error("Saved practice session is invalid");
+    }
+    return present(session);
+  }
+
+  return {
+    start,
     async resume(sessionId: string, studentId: string) {
       const session = await deps.store.getOwned(uuid.parse(sessionId), studentId);
       if (!session) throw new Error("Practice session is unavailable");
-      await verifyCurrent(session);
-      return present(session);
+      if (session.completedAt) return presentFinished(session);
+      try {
+        return present(await verifyCurrent(session));
+      } catch (error) {
+        if (!(error instanceof StaleSessionError)) throw error;
+        const finished = await closeStale(session, studentId, error.message);
+        if (finished) return presentFinished(finished);
+      }
+      // The stale session is closed; open a fresh one for the same skill and assignment.
+      return start(
+        { skillId: session.skillId, assignmentId: session.assignmentId ?? undefined },
+        studentId
+      );
     },
     async submit(
       raw: { sessionId: string; questionId: string; answer: string; responseTimeSeconds: number },
@@ -244,9 +340,15 @@ export function createCatalogPracticeService(deps: CatalogPracticeDependencies) 
     async complete(sessionId: string, studentId: string) {
       const session = await deps.store.getOwned(uuid.parse(sessionId), studentId);
       if (!session) throw new Error("Practice session is unavailable");
-      await verifyCurrent(session);
+      if (session.completedAt) return presentFinished(session);
       if (session.responses.length !== session.snapshots.length)
         throw new Error("Practice session is incomplete");
+      try {
+        await verifyCurrent(session);
+      } catch (error) {
+        // Scoring only tallies answers already graded against their sealed snapshots.
+        if (!(error instanceof StaleSessionError)) throw error;
+      }
       return present(await deps.store.complete(session.id, studentId));
     },
   };

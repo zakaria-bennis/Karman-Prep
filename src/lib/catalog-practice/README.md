@@ -12,3 +12,19 @@ seal. Grading and answer evidence remain server-side until a response is saved.
 Assigned practice rechecks active ownership and immutable question bindings. Existing
 canonical backend tables/functions were deployed separately; this UI integration
 contains no SQL migrations, grant changes or educator write actions.
+
+## Choosing questions
+
+`picker.ts` chooses each new session from the whole skill pool: questions the student
+has not answered come first, spread across difficulty levels, ordered by a stable hash
+of (student, question, UTC day); when fewer than ten are unseen, the least recently
+answered fill the rest. The daily challenge reuses the same admission check
+(`admitCatalogPool`) over the difficulty 5–7 pools.
+
+## When questions change
+
+A bad row is dropped from the pool with a `console.error` naming the question; it never
+breaks the whole skill. If a saved question in an open session is re-sealed or leaves
+the pool, the session is closed (scored if every answer was saved, otherwise closed with
+no score) and a fresh one starts. Completed sessions are shown from their frozen
+snapshot without re-checking today's pool.

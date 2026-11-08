@@ -43,7 +43,13 @@ export function presentSavedSession(session: SavedSession, responses: SavedRespo
   ) {
     throw new Error("Saved answer order is invalid");
   }
-  if (session.completed_at && ordered.length !== session.snapshots.length) {
+  // A session closed early (its questions were re-sealed) is completed with no score and
+  // keeps only the answers saved before it closed.
+  if (
+    session.completed_at &&
+    session.score !== null &&
+    ordered.length !== session.snapshots.length
+  ) {
     throw new Error("Completed practice answer details are unavailable");
   }
   const seen = new Set<string>();
