@@ -1,6 +1,6 @@
 /*
  * One Library course at a time (founder, 2026-11-08): picking Math shows only Math, and the
- * same for Reading and Writing, with a clear switch between them. The course leads with one
+ * same for Reading and Writing (the choice and toggle are CourseChooser). The course leads with one
  * thing to do next (its Up next sub-skill, the screen's only main button), then each Domain as a
  * card that opens in place. Inside, the official College Board skills are headings and their
  * sub-skills are the squares, each with its level and its own practice set.
@@ -23,30 +23,6 @@ import styles from "./library.module.css";
 export const courseHref = (course: Pick<Course, "slug">, domainId?: string) =>
   `/dashboard/student/library/${course.slug}${domainId ? `?domain=${encodeURIComponent(domainId)}` : ""}`;
 
-export const librarySubjectHref = (slug: Course["slug"]) =>
-  `/dashboard/student/library?subject=${slug}`;
-
-/** The switch between the two courses: two big tabs, the open one filled. */
-export function CourseSwitch({ courses, open }: { courses: Course[]; open: Course["slug"] }) {
-  return (
-    <nav className={styles.switch} aria-label="Course">
-      {courses.map((c) => (
-        <Link
-          key={c.slug}
-          href={librarySubjectHref(c.slug)}
-          aria-current={c.slug === open ? "page" : undefined}
-          className={styles.switchTab}
-        >
-          <span>{c.slug === "math" ? "Math" : "Reading and Writing"}</span>
-          <small>
-            <Num>{Math.round(c.progress * 100)}%</Num>
-          </small>
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
 /** A Domain's wash: the level shade it has reached, never lighter than the second. */
 const tintFor = (d: CourseDomain) => `var(--l${Math.min(4, 2 + Math.floor(d.progress * 3))})`;
 
@@ -55,14 +31,14 @@ export default function CourseView({ course }: { course: Course }) {
   const next = course.upNext;
   return (
     <>
-      <section className={styles.next} aria-labelledby="next-skill">
+      <section className={styles.next} aria-labelledby={`next-skill-${course.slug}`}>
         <Ring value={course.progress} size={64} width={6} label={`${course.name}: ${pct}%`}>
           <Num>{pct}%</Num>
         </Ring>
         <div className={styles.nextText}>
           {next ? (
             <>
-              <h2 id="next-skill" className={styles.nextTitle}>
+              <h2 id={`next-skill-${course.slug}`} className={styles.nextTitle}>
                 {next.label}
               </h2>
               <p className={styles.nextSub}>
@@ -74,7 +50,7 @@ export default function CourseView({ course }: { course: Course }) {
             </>
           ) : (
             <>
-              <h2 id="next-skill" className={styles.nextTitle}>
+              <h2 id={`next-skill-${course.slug}`} className={styles.nextTitle}>
                 Every skill Conquered
               </h2>
               <p className={styles.nextSub}>Keep it that way with a Domain quiz below.</p>
