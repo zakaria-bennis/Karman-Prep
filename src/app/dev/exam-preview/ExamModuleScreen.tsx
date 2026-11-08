@@ -164,7 +164,6 @@ export default function ExamModuleScreen({
                   onClose={noop}
                   onSelectAnswer={(answer) => onAnswer(item.questionId, answer)}
                   onSubmit={next}
-                  submitLabel={last ? "Check your work" : "Next"}
                   onFlagClick={noop}
                   showExplanations={false}
                   onToggleExplanations={noop}
