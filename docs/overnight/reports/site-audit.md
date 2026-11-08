@@ -148,10 +148,22 @@ The list of changes, with before and after pictures, is in
     buttons are fully shown.
   - A missing public address (/blog/an-old-post) answers 404 with the site's
     look, six links, noindex, and no stray floating theme button.
-- Not run: the full test suite, the full type check and `npm run cf:build`.
-  Five sessions were type-checking at once and the machine was at load 21;
-  my type check had not finished by the deadline. The QA sweep should run
-  them on the merged branch.
+  - After this morning's changes: on a light-mode phone the site opens light,
+    on a dark-mode phone dark; the study tools are one column at 390 px and two
+    at 768 px, with nothing wider than the screen; /cookies answers 200 and the
+    footer links to it; the free-test form says "occasional emails" and no
+    longer says "Nothing else"; no eyebrow label is left on the home page,
+    /faq, /pricing, /program or /free-practice-test.
+- Full type check (after merging the shared branch at 09:39): clean except
+  four errors in the scholarship work's files, which import `pdf-lib` and
+  `pdf-parse`. Both are in package.json but not installed in this worktree;
+  `npm ci` on the merged branch fixes them. My own earlier type error in the
+  middleware is fixed.
+- Theme tests (86), middleware and calculator route tests (12), copy, lead
+  form, sign-in and email tests: all pass. Lint, Prettier and file sizes are
+  clean on every file changed today.
+- Not run: `npm run cf:build` (the brief allows one, at the end, and the
+  machine was at load 20 or more all morning).
 - I did not use the app's built-in browser after the freeze.
 
 ## Decisions I made
