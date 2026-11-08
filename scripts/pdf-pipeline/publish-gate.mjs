@@ -32,6 +32,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { computePublishStatus } from "../lib/publish-gate-logic.mjs";
+import { verifiedCatalogTopic } from "../lib/catalog-topic-validation.mjs";
 import { hydrateBlockingFindings } from "../lib/findings.mjs";
 import { CONCEPT_SLUG_VALUES } from "../lib/taxonomy.generated.mjs";
 
@@ -118,7 +119,7 @@ async function main() {
   // etc. without an N+1 join.
   let query = supabase.from("quiz_questions").select(
     "id, source_pdf, source_page, publish_status, import_status, import_flag_type, " +
-      "import_flag_reason, concept_slug, question_text, correct_answer, answer_format, " +
+      "import_flag_reason, concept_slug, question_text, correct_answer, answer_format, subject, domain, topic_cluster, " +
       "source_identity_required, source_version, source_section, source_module, " +
       "source_question_number, source_occurrence, source_provider, source_document_id, source_provider_version_id, " +
       "explanation_text, image_url, grader_votes, " +
@@ -138,6 +139,21 @@ async function main() {
 
   const { data: baseRows, error } = await query;
   if (error) throw error;
+
+  const catalogEvidence = new Map();
+  for (const idChunk of chunk(
+    baseRows.filter((r) => r.source_identity_required && !r.concept_slug).map((r) => r.id)
+  )) {
+    const { data, error: keyError } = await supabase
+      .from("answer_key_entries")
+      .select("question_id, raw_model_response")
+      .in("question_id", idChunk);
+    if (keyError) throw keyError;
+    for (const entry of data ?? []) {
+      if (catalogEvidence.has(entry.question_id)) catalogEvidence.set(entry.question_id, null);
+      else catalogEvidence.set(entry.question_id, entry.raw_model_response);
+    }
+  }
 
   // Hydrate each row with the Phase 3 view's signals. We could fetch
   // from the view directly, but the view doesn't include answer_choices
@@ -203,6 +219,7 @@ async function main() {
     const blocking = blockingFindings.get(r.id);
     return {
       ...r,
+      catalog_topic_verified: verifiedCatalogTopic(r, catalogEvidence.get(r.id)),
       // Merge Phase 3 view signals (have_question_crop, match_method, etc.)
       ...(signalsByQid.get(r.id) ?? {}),
       // Merge Phase 4 source-asset visual relevance counts.
