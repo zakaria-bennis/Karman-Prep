@@ -1,0 +1,176 @@
+/* The Progress tab's own pieces. Colors come from the painted shell's variables only. */
+
+.scoreRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin: 6px 0 2px;
+}
+.scoreRow :global(.kp-meta) {
+  margin: 0;
+}
+
+.trend {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  margin: 10px 0 2px;
+  overflow: visible;
+  color: var(--ink);
+}
+.trend text {
+  font-family: var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 12px;
+  fill: var(--mute);
+}
+.trend .value {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--ink);
+}
+.dot {
+  fill: var(--l3);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.legendColumn {
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.moveSquare {
+  flex: none;
+}
+
+.weeks {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.weeks li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+.weeks small {
+  color: var(--mute);
+  font-size: 12px;
+  line-height: 16px;
+}
+.weeks .hours {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.stats > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.stats b {
+  font: 700 22px/28px var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.stats > div > span {
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.bests {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 20px;
+  margin-top: 6px;
+}
+.bests > div {
+  display: flex;
+  flex-direction: column;
+}
+.bests b {
+  font: 700 22px/28px var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.bests > div > span {
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* The anchor for #streak: keeps the last card stretching to the bottom of the box. */
+.anchor {
+  display: flex;
+  flex-direction: column;
+  scroll-margin-top: 88px;
+}
+@media (min-width: 768px) {
+  .anchor {
+    flex: 1;
+  }
+  .anchor > :global(.kp-card) {
+    flex: 1;
+  }
+}
+
+.streaks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+}
+.streaks > div {
+  display: flex;
+  flex-direction: column;
+}
+.streaks b {
+  font: 600 40px/1.1 var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.02em;
+}
+.streaks > div > span {
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.reward {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.reward > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.reward b {
+  font-weight: 600;
+}
+.reward small {
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 20px;
+}
