@@ -1,0 +1,180 @@
+/*
+ * Forms, codes and rosters for the parent and school portals, on the painted shell's
+ * variables (--ink, --mute, --line, --accent, --l1..--l4), so light and dark follow the device.
+ */
+.kp-form {
+  display: grid;
+  gap: 12px;
+}
+.kp-field {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--mute);
+}
+.kp-field > span {
+  color: var(--ink);
+  font-weight: 600;
+}
+.kp-input,
+.kp-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+.kp-input:focus-visible,
+.kp-select:focus-visible,
+.kp-textbtn:focus-visible,
+.kp-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.kp-select option {
+  color: #111;
+}
+.kp-textbtn {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.kp-textbtn[data-tone="danger"] {
+  color: color-mix(in srgb, #c2410c 70%, var(--ink));
+}
+.kp-msg {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--ink);
+  font-size: 15px;
+}
+.kp-msg[data-tone="error"] {
+  border-left-color: #c2410c;
+  background: color-mix(in srgb, #c2410c 10%, transparent);
+}
+.kp-code {
+  font-family: var(--font-hanken, "Hanken Grotesk"), system-ui, sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+.kp-copyline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.kp-copy {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.kp-linkbox {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  color: var(--mute);
+}
+.kp-roster {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kp-roster > li {
+  display: grid;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+.kp-roster > li:first-child {
+  border-top: 0;
+}
+.kp-roster-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.kp-roster-head > span {
+  flex: 1;
+  min-width: 0;
+}
+.kp-roster-head b {
+  display: block;
+  color: var(--ink);
+}
+.kp-roster-head small {
+  color: var(--mute);
+  font-size: 13px;
+}
+.kp-domains {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px 14px;
+}
+.kp-domain {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.kp-domain small {
+  color: var(--mute);
+  font-size: 12px;
+  line-height: 1.3;
+}
+.kp-details > summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.kp-details[open] > summary {
+  margin-bottom: 8px;
+}
+.kp-history {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.kp-history > span {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--mute);
+  font-size: 12px;
+}
+.kp-email {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: #1c1917;
+  padding: 0;
+  overflow: hidden;
+}
