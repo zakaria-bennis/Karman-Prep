@@ -3,44 +3,45 @@
 Branch: `claude/overnight-merge-rest-f41847`, cut from `claude/overnight-ship`
 at `bbe7e094`. Nothing pushed, nothing deployed, no database touched.
 
+Updated 08:15 CST: at the question import session's request, the import tool
+merges are reverted (commit `3e8c4a9f`). Everything else below stays merged.
+
 ## What is done
 
-I merged every remaining work channel except the ones merge-ui owns (quiz
-engine, student dashboard, figures, display fixes, grading, calendar).
+I merged every remaining work channel except the import tools and the ones
+merge-ui owns (quiz engine, student dashboard, figures, display fixes, grading,
+calendar).
 
 ### Merged
 
-| Branch                                                                                                 | What it brings                                                                                                                                                                                                                                                |
-| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `claude/import-dedup-spec` (newest import line, includes `claude/new-exams-import`)                    | The question import tools in `scripts/import-tools`, the duplicate and publish gates, `k qa certify`, and four dev-only review pages under `/dev` (they return 404 in production). Adds one database migration, `20261021000000_question_comparison_key.sql`. |
-| `origin/zakaria/calculator-regression-release`                                                         | Nothing new: main already had its one fix. Merged so the branch shows as done.                                                                                                                                                                                |
-| `claude/regression-desmos-parity`                                                                      | Calculator regressions now match Desmos when a fit is underdetermined or restricted.                                                                                                                                                                          |
-| PR #215 `origin/claude/vibrant-hamilton-trk66e`                                                        | A failed lead-table insert no longer blocks a signup.                                                                                                                                                                                                         |
-| PR #214 `origin/claude/project-thread-et6pn8`                                                          | `docs/import.md`, an index that points to the import rules.                                                                                                                                                                                                   |
-| PR #211 `origin/claude/laughing-cray-mi7t23`                                                           | Three October import-process docs.                                                                                                                                                                                                                            |
-| PR #205 `zakaria/r2-cors-config`                                                                       | `config/r2-cors.json`, the upload bucket's CORS policy.                                                                                                                                                                                                       |
-| `claude/first-pass` (includes `claude/site-redesign` and `claude/fable-portals-prompt-extract-f56cd4`) | The portal prototypes (`prototypes/`), the Daily 10 end screen, the redesign mocks (`.impeccable/`), the asset manifests, the docs, and your newest design rules (1 November). Also `npm run portals` and `npm run copy`.                                     |
-| `claude/bluebook-difficulty-research`                                                                  | Nothing new: its research note already came in with first-pass.                                                                                                                                                                                               |
-| `refs/remotes/release-snapshot/main`, one commit (`68be05d4`)                                          | The publish gate now checks each question's skill tag against the approved list.                                                                                                                                                                              |
+| Branch                                                                                                 | What it brings                                                                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `origin/zakaria/calculator-regression-release`                                                         | Nothing new: main already had its one fix. Merged so the branch shows as done.                                                                                                                                            |
+| `claude/regression-desmos-parity`                                                                      | Calculator regressions now match Desmos when a fit is underdetermined or restricted.                                                                                                                                      |
+| PR #215 `origin/claude/vibrant-hamilton-trk66e`                                                        | A failed lead-table insert no longer blocks a signup.                                                                                                                                                                     |
+| PR #214 `origin/claude/project-thread-et6pn8`                                                          | `docs/import.md`, an index that points to the import rules.                                                                                                                                                               |
+| PR #211 `origin/claude/laughing-cray-mi7t23`                                                           | Three October import-process docs.                                                                                                                                                                                        |
+| PR #205 `zakaria/r2-cors-config`                                                                       | `config/r2-cors.json`, the upload bucket's CORS policy.                                                                                                                                                                   |
+| `claude/first-pass` (includes `claude/site-redesign` and `claude/fable-portals-prompt-extract-f56cd4`) | The portal prototypes (`prototypes/`), the Daily 10 end screen, the redesign mocks (`.impeccable/`), the asset manifests, the docs, and your newest design rules (1 November). Also `npm run portals` and `npm run copy`. |
+| `claude/bluebook-difficulty-research`                                                                  | Nothing new: its research note already came in with first-pass.                                                                                                                                                           |
 
 ### Skipped, with the reason
 
-| Branch                                                                                                                                                                                                       | Why not                                                                                                                                                                                                                                  |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `zakaria/karman-calculator-design`                                                                                                                                                                           | Superseded. Main already has the integrated version of this calculator and everything built on it since.                                                                                                                                 |
-| `claude/cv2-desmos-colours`                                                                                                                                                                                  | Superseded. Main redid all 10 commits after the calculator folders were renamed. Merging would bring back the deleted `calculator-v2` folder.                                                                                            |
-| `origin/codex/restart-safe-import-20261013` and the restart-safe commit in `release-snapshot` (`68f6c1d2`)                                                                                                   | Your current import tools stage SQL for your OK and never use this resume feature. It only serves the older direct-write path. I tried the snapshot version, then took it back out because it also pushed `import-core.ts` to 756 lines. |
-| `release-snapshot` commit `11ec7aa8` (older Reading and Writing PDFs with section numbers only)                                                                                                              | It edits the same lines of `import-core.ts` as tonight's "kept source identity" rule. Combining them means rewriting import logic, which tonight's rules forbid.                                                                         |
-| The rest of `release-snapshot/main`                                                                                                                                                                          | Superseded: old pinned calculator builds, migration copies, layout tools.                                                                                                                                                                |
-| `zakaria/dev`, plus `claude/intelligent-burnell-11bdc1`, `zakaria/dev-shadow`, `claude/wonderful-chandrasekhar-c13cf8`, `claude/eloquent-sinoussi-2369bf`                                                    | Already in main: PR #1 has the same files. Its migrations have no timestamps and would break the database deploy.                                                                                                                        |
-| `zakaria/extractor-gemini-3-5-flash-swap`                                                                                                                                                                    | Paid AI extraction, which is retired.                                                                                                                                                                                                    |
-| `zakaria/pipeline-v2-phase3-impl`, `zakaria/geometry-render-gate`, `origin/zakaria/cal-oauth-tutor-event-types`                                                                                              | Already in main.                                                                                                                                                                                                                         |
-| `zakaria/inspector-batch2-figure-uploader`                                                                                                                                                                   | Main redid it as PR #137.                                                                                                                                                                                                                |
-| `origin/zakaria/fix-clerk-proxy-rename`                                                                                                                                                                      | It would break the Cloudflare build: the build tool stops on Next 16's `proxy.ts`.                                                                                                                                                       |
-| `origin/zakaria/remove-coming-soon-fix-jobs`                                                                                                                                                                 | The jobs fix is already in main. Main keeps the launch switch on purpose.                                                                                                                                                                |
-| `claude/gracious-dirac-148d1f` (its 3 extra commits)                                                                                                                                                         | Static mocks of six site pages that main has since built for real.                                                                                                                                                                       |
-| `zakaria/catalog-evidence-format-compat`, `zakaria/status-draft-deepseek`, `zakaria/admin-geometry-review`, `origin/zakaria/fix-learn-revalidate-during-render`, `origin/claude/question-calibration-fields` | Already in main.                                                                                                                                                                                                                         |
-| `origin/zakaria/portal-reviewed-current-release`, `origin/zakaria/portal-vocabulary-next-release`                                                                                                            | Student calendar and parent portal work from 8 October: merge-ui's area. They conflict in 5 files, and tonight's painting rebuild replaces both views. I told merge-ui in the shared notes.                                              |
+| Branch                                                                                                                                                                                                       | Why not                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claude/import-dedup-spec`, `claude/new-exams-import`, and the `release-snapshot` publish-gate commit `68be05d4`                                                                                             | The import session asked to keep them off the product branch. Its toolkit is still being committed, and that session merges it to main itself. new-exams-import is stale. I had merged them, then reverted them. That also takes out their migration (`20261021000000_question_comparison_key.sql`) and the four `/dev` review pages. |
+| `zakaria/karman-calculator-design`                                                                                                                                                                           | Superseded. Main already has the integrated version of this calculator and everything built on it since.                                                                                                                                                                                                                              |
+| `claude/cv2-desmos-colours`                                                                                                                                                                                  | Superseded. Main redid all 10 commits after the calculator folders were renamed. Merging would bring back the deleted `calculator-v2` folder.                                                                                                                                                                                         |
+| `origin/codex/restart-safe-import-20261013` and the rest of `refs/remotes/release-snapshot/main`                                                                                                             | Import pipeline code (resume after interruption, older section-only PDFs), plus old pinned calculator builds and migration copies. Superseded, or the import session's to decide.                                                                                                                                                     |
+| `zakaria/dev`, plus `claude/intelligent-burnell-11bdc1`, `zakaria/dev-shadow`, `claude/wonderful-chandrasekhar-c13cf8`, `claude/eloquent-sinoussi-2369bf`                                                    | Already in main: PR #1 has the same files. Its migrations have no timestamps and would break the database deploy.                                                                                                                                                                                                                     |
+| `zakaria/extractor-gemini-3-5-flash-swap`                                                                                                                                                                    | Paid AI extraction, which is retired.                                                                                                                                                                                                                                                                                                 |
+| `zakaria/pipeline-v2-phase3-impl`, `zakaria/geometry-render-gate`, `origin/zakaria/cal-oauth-tutor-event-types`                                                                                              | Already in main.                                                                                                                                                                                                                                                                                                                      |
+| `zakaria/inspector-batch2-figure-uploader`                                                                                                                                                                   | Main redid it as PR #137.                                                                                                                                                                                                                                                                                                             |
+| `origin/zakaria/fix-clerk-proxy-rename`                                                                                                                                                                      | It would break the Cloudflare build: the build tool stops on Next 16's `proxy.ts`.                                                                                                                                                                                                                                                    |
+| `origin/zakaria/remove-coming-soon-fix-jobs`                                                                                                                                                                 | The jobs fix is already in main. Main keeps the launch switch on purpose.                                                                                                                                                                                                                                                             |
+| `claude/gracious-dirac-148d1f` (its 3 extra commits)                                                                                                                                                         | Static mocks of six site pages that main has since built for real.                                                                                                                                                                                                                                                                    |
+| `zakaria/catalog-evidence-format-compat`, `zakaria/status-draft-deepseek`, `zakaria/admin-geometry-review`, `origin/zakaria/fix-learn-revalidate-during-render`, `origin/claude/question-calibration-fields` | Already in main.                                                                                                                                                                                                                                                                                                                      |
+| `origin/zakaria/portal-reviewed-current-release`, `origin/zakaria/portal-vocabulary-next-release`                                                                                                            | Student calendar and parent portal work from 8 October: merge-ui's area. They conflict in 5 files, and tonight's painting rebuild replaces both views. I told merge-ui in the shared notes.                                                                                                                                           |
 
 Left to merge-ui: `claude/quiz-engine`, `claude/quiz-engine-spec`,
 `claude/student-dashboard-13d0a0`, the figure branches, the display-fix
@@ -48,11 +49,6 @@ branches, `claude/calendar-ics-feed` and `claude/cal-route-matcher`.
 
 ## Conflicts I settled by judgment
 
-- **Import branch vs main's figures.** The import branch carried 21–22 October
-  drafts of 18 figure, quiz and display files. Main has newer versions (the
-  figure engine), so I kept main's. Two draft files that nothing used any more
-  were deleted. The import rules doc kept both new sections. No import logic
-  was changed.
 - **first-pass and the live site.** first-pass rebuilt the site and moved every
   app page into a new `src/app/(app)` folder so the site could have its own
   layout. I kept all of `src/`, `public/` and `tests/` exactly as main has them.
@@ -77,17 +73,27 @@ branches, `claude/calendar-ics-feed` and `claude/cal-route-matcher`.
 
 ## Fixes the merges needed
 
-- ESLint now ignores `.wrangler/`, `tmp/`, `prototypes/` and `.impeccable/`. The
-  mocks include CommonJS scripts that crashed lint.
+- ESLint now ignores `.wrangler/`, `tmp/`, `prototypes/` and `.impeccable/`.
+  The mocks include CommonJS scripts that crashed lint.
 - Prettier now ignores `prototypes/`, `.impeccable/` and `assets/`. Four merged
   design docs were reformatted.
-- TypeScript skips `prototypes/`. One dev page lost a prop that only the import
-  branch's draft quiz screen had.
-- File sizes: some catalog-tag tests moved to their own file.
-  `import-core.ts` (709 lines, as the import branch has it) is now on the size
-  check's known-offenders list. Splitting it is import work.
+- TypeScript skips `prototypes/`, which is a separate Vite project.
 
-## How I checked it
+## What the branch changes in the product
+
+Outside prototypes, mocks and docs, only these files differ from
+`claude/overnight-ship`:
+
+- the regression-parity calculator files;
+- `src/app/api/email/subscribe/route.ts` (PR #215);
+- `src/components/site/GuaranteeDeal.tsx` and the two home films;
+- `config/r2-cors.json`;
+- the lint, format and TypeScript settings;
+- the two npm scripts.
+
+`supabase/` is unchanged.
+
+## How I checked it (after the revert)
 
 - `npx tsc --noEmit`: passes.
 - `npm run lint`: passes.
@@ -96,40 +102,39 @@ branches, `claude/calendar-ics-feed` and `claude/cal-route-matcher`.
   `claude/overnight-ship` before my work: `docs/overnight/BRIEF.md`,
   `docs/design/student-portal-laws.md` and
   `docs/design/student-portal-research-2026-11-07.md`.
-- `npm test`: 9,104 tests pass and 25 fail.
-  - 21 of the failures are timeouts while about ten sessions shared the
-    machine.
-  - The other 4 are timing-sensitive calculator tests.
-  - Run again on their own, all 9 failing files I re-ran pass (83 tests).
-  - All 940 import tests pass.
-- Migrations: 73 files, all names unique and in order. The new one (adds an
-  empty column and an index; safe to re-run) sorts between 18 and
-  26 October. The production deploy uses `--include-all`, so that order is fine.
+- `npm test`: all 505 test files pass (9,035 tests, plus 254 marked as
+  expected failures by design), with no timeouts. Before the revert, while
+  about ten sessions shared the machine, 25 tests timed out. They passed when
+  run again on their own.
+- `npm run test:calculator` (browser tests, run before the revert, which
+  touches no calculator code): 2,525 passed, 25 failed and 580 skipped, in
+  49 minutes.
+  - Two layout checks fail in every browser: R-5 (the value box under the
+    math) and R-6 (the "add slider" row).
+  - The other 21 failures are Firefox-only (clipboard, paste, tab order, theme
+    repaint) or iOS-only (a tap test and a table transfer).
+  - The only calculator code merged tonight changes regression maths, which
+    those tests don't drive. So the failures are likely already on main or
+    caused by load, but I have not proved that.
+- Migrations: `supabase/migrations` is the same 72 files as
+  `claude/overnight-ship`. The local-db session replayed those 72 on a fresh
+  local database tonight, so they apply cleanly.
 
-## Not done yet
+## Not done
 
-- `npm run test:calculator` (3,130 browser tests, one worker) was still
-  running at 07:15. About 1,500 had passed and 8 had failed: layout checks
-  (R-5, R-6, a fraction toggle) and Firefox clipboard and typing tests. The
-  only calculator code merged tonight changes regression maths, which those
-  tests don't touch. So these failures are likely already on main or caused by
-  machine load, but I have not proved that. The full log is in my session's
-  scratchpad.
-- I have not yet replayed all migrations on a fresh local database. The
-  local-db guide wasn't committed yet, and I won't reset the shared local
-  database.
 - `npm run cf:build` was not run.
-- Not clicked in a browser: I changed no screens beyond the two site fixes.
+- No screens were clicked in a browser. The app's Browser pane froze the app,
+  and the only screen changes are the two site fixes above.
 
 ## Decisions I made
 
 - Kept main's app layout and the live site files over first-pass's rebuild.
 - Took the first-pass prototypes and docs, about 240 MB. The largest file is
   14.5 MB, so the branch can still be pushed to GitHub.
-- Took one importer fix from a stray snapshot ref and left its other commits
-  out.
-- Merging hands-off branches with "taking one side" kept import logic as the
-  import branch wrote it.
+- Reverted the import tool merges as one commit, together with their
+  follow-ups: two deleted draft figure files, a moved test, a size-check entry
+  and a dev page fix. The tree now matches `claude/overnight-ship` in every
+  import path.
 - During `git fetch --prune`, a few remote branches that GitHub had already
   deleted were removed from the local list (among them
   `zakaria/kimi-stage1-official` and `zakaria/phase-9b-charts`). Their commits
@@ -137,9 +142,6 @@ branches, `claude/calendar-ics-feed` and `claude/cal-route-matcher`.
 
 ## For the founder
 
-- When this reaches `main`, the database deploy will add the new migration to
-  production: an empty `comparison_key` column on `quiz_questions`, plus an
-  index.
 - PR #215 means a signup succeeds even if the lead can't be saved. Such a lead
   then goes only to the email list. The original code chose to fail the signup
   instead. Keep #215?
@@ -149,3 +151,5 @@ branches, `claude/calendar-ics-feed` and `claude/cal-route-matcher`.
   left that fix to the pricing session, which owns that page tonight.
 - The home page speed work in first-pass (Lighthouse 36–45 to 100, by its own
   claim) needs its own session: it moves the app's layout.
+- The calculator's browser tests have 25 failures to check against main. Two
+  of them fail in every browser.
