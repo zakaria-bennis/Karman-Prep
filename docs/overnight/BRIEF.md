@@ -343,3 +343,11 @@ report instead.
 - **Old branches:** delete the Oct 8 weekly parent portal branches and the
   "studio" figure style branch.
 - **Home page speed work** (from Nov 1) gets its own session after the portals.
+- **Cohort payments:** a $95 deposit plus 3 × $300 (founder, 8 Nov). He's also
+  looking at buy now, pay later (Klarna, Affirm, Afterpay).
+- **Private 10 remedy:** half the price back ($747.50) if the guarantee is
+  missed.
+- **Access:** Cohort and Private buyers keep platform access until their SAT
+  date.
+- **Cohort start:** no fixed date. Show "starts the week of …", never a
+  weekday.
