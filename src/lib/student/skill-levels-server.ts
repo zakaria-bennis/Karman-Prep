@@ -5,6 +5,7 @@
  * (learn_node_status) is keyed by legacy node ids, not catalog skills, so it is not mapped.
  */
 import "server-only";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import { levelFromAnswers, type LevelAnswer, type SkillLevel } from "./levels";
 
@@ -24,7 +25,8 @@ type ResponseRow = {
 
 /** Every saved catalog practice answer for a student (Clerk id), oldest first. */
 export async function loadSkillAnswers(clerkId: string): Promise<SkillAnswer[]> {
-  const db = createAdminClient();
+  // The generated types predate the catalog practice tables, so read them untyped.
+  const db = createAdminClient() as unknown as SupabaseClient;
   const { data: sessions, error } = await db
     .from("catalog_practice_sessions")
     .select("id, skill_id")

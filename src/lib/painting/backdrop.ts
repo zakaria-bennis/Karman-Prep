@@ -13,6 +13,7 @@ import { paintPicture, PAINT_IN_MS, type PaintHandle } from "./painterly";
 import { PICTURE_H, PICTURE_W, renderLandscape } from "./scenes";
 import type { PaintingChoice } from "./schedule";
 import { SeasonLayer, type Box } from "./weather";
+import { MOTION_EVENT, prefersStill } from "./motion";
 
 export interface SceneCallbacks {
   /** The opening starts; it lasts `ms`. Not called when the painting appears finished. */
@@ -27,8 +28,8 @@ const PARALLAX_X = 10;
 const PARALLAX_Y = 5;
 const KEEP_OUT = "[data-paint-keepout]";
 
-const reducedMotion = () =>
-  typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* Reduced motion on the device, or "Keep the painting still" in Sound and motion. */
+const reducedMotion = prefersStill;
 
 /** Picks up the keep-out boxes, with a 12px margin, in viewport pixels. */
 function keepOut(): Box[] {
@@ -124,10 +125,12 @@ export class PaintedScene {
     addEventListener("pointerdown", down, { passive: true });
     addEventListener("resize", resize);
     motion.addEventListener("change", motionChange);
+    addEventListener(MOTION_EVENT, motionChange);
     this.cleanups.push(() => {
       removeEventListener("pointermove", move);
       removeEventListener("pointerdown", down);
       removeEventListener("resize", resize);
+      removeEventListener(MOTION_EVENT, motionChange);
       motion.removeEventListener("change", motionChange);
     });
   }

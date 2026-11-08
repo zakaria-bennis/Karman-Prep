@@ -6,6 +6,7 @@
  * readers get the whole line at once. Reduced motion shows it whole.
  */
 import { useEffect, useRef, useState } from "react";
+import { prefersStill } from "@/lib/painting/motion";
 
 const weight = (ch: string) => (/[.,?!:]/.test(ch) ? 5 : ch === " " ? 1.4 : 1);
 
@@ -32,7 +33,7 @@ export default function Greeting({
       setShown("");
       return;
     }
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (prefersStill()) {
       setShown(text);
       setDone(true);
       return;

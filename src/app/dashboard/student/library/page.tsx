@@ -87,7 +87,9 @@ export default async function LibraryPage() {
               href={route.ready && !locked ? route.path : undefined}
               right={
                 locked ? (
-                  <span className={styles.soon}>In {upgradeFor("full-length-test:new").plan}</span>
+                  <span className={styles.soon}>
+                    {upgradeFor("full-length-test:new").plan} plan
+                  </span>
                 ) : route.ready ? (
                   "Start"
                 ) : (
@@ -108,7 +110,7 @@ export default async function LibraryPage() {
         <Legend
           items={[...SKILL_LEVELS].reverse().map((l) => ({
             label: l.name,
-            color: l.color ?? "transparent",
+            color: l.color ?? "color-mix(in srgb, var(--ink) 14%, transparent)",
           }))}
         />
         <p className="kp-meta">

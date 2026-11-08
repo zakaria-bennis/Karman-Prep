@@ -12,11 +12,11 @@
   gap: 16px;
   margin: 6px 0 4px;
 }
-.head b {
+.head > span > b {
   display: block;
   font-size: 16px;
 }
-.head small {
+.head > span > small {
   display: block;
   color: var(--mute);
   font-size: 13.5px;

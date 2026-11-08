@@ -6,6 +6,7 @@
  * (founder ladder, 2026-11-08). Admins previewing a student see that student's portal.
  */
 import "server-only";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
@@ -38,7 +39,8 @@ export interface StudentContext {
   showCalendar: boolean;
 }
 
-type Db = ReturnType<typeof createAdminClient>;
+/** Untyped: the generated types predate the catalog practice tables. */
+type Db = SupabaseClient;
 
 /** Days with practice: point awards (right answers) and saved practice answers. */
 async function practiceDaysFor(db: Db, clerkId: string): Promise<string[]> {
@@ -86,7 +88,7 @@ export async function loadStudentContext(): Promise<StudentContext> {
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
-  const db = createAdminClient();
+  const db = createAdminClient() as unknown as Db;
 
   const [{ data: user }, { data: sub }] = await Promise.all([
     db.from("users").select("*").eq("clerk_id", clerkId).maybeSingle(),

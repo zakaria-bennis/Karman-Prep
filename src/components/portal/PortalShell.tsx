@@ -13,6 +13,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { PREFERS_STILL_JS, prefersStill } from "@/lib/painting/motion";
 import { choosePainting, type PaintingChoice } from "@/lib/painting/schedule";
 import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 import { portalFontVars } from "./fonts";
@@ -55,7 +56,7 @@ export interface PortalShellProps {
  * for it; and the last colors of today's painting apply at once. If the opening never starts,
  * the box shows anyway after six seconds.
  */
-const BOOT = `(function(){try{var r=document.documentElement,m=matchMedia("(prefers-reduced-motion: reduce)").matches,s=sessionStorage.getItem("${PAINTED_IN_KEY}");if(!m&&(!s||/[?&]paint-in=1/.test(location.search))){r.setAttribute("data-paint-opening","");setTimeout(function(){r.removeAttribute("data-paint-opening")},6000)}var d=new Date(),h=d.getHours(),b=h>=22||h<5?"night":h<11?"morning":h<17?"day":"evening",c=JSON.parse(localStorage.getItem("${COLORS_KEY}")||"null");if(c&&c.k===d.toDateString()+":"+b){r.style.setProperty("--hue",c.hue);r.style.setProperty("--hs",c.sat+"%");r.style.setProperty("--accent",c.accent)}}catch(e){}})();`;
+const BOOT = `(function(){try{var r=document.documentElement,m=${PREFERS_STILL_JS},s=sessionStorage.getItem("${PAINTED_IN_KEY}");if(!m&&(!s||/[?&]paint-in=1/.test(location.search))){r.setAttribute("data-paint-opening","");setTimeout(function(){r.removeAttribute("data-paint-opening")},6000)}var d=new Date(),h=d.getHours(),b=h>=22||h<5?"night":h<11?"morning":h<17?"day":"evening",c=JSON.parse(localStorage.getItem("${COLORS_KEY}")||"null");if(c&&c.k===d.toDateString()+":"+b){r.style.setProperty("--hue",c.hue);r.style.setProperty("--hs",c.sat+"%");r.style.setProperty("--accent",c.accent)}}catch(e){}})();`;
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -98,7 +99,7 @@ export default function PortalShell({
     }
     if (!willOpen) {
       try {
-        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const reduce = prefersStill();
         if (!reduce && !sessionStorage.getItem(PAINTED_IN_KEY)) {
           root.setAttribute("data-paint-opening", "");
           willOpen = true;
@@ -117,7 +118,6 @@ export default function PortalShell({
       if (safety.current) clearTimeout(safety.current);
     };
     // The painting is chosen once per mount; the heading follows `title` below.
-     
   }, []);
 
   /* A new page title types in again. */
@@ -129,7 +129,7 @@ export default function PortalShell({
     const root = document.documentElement;
     if (!root.hasAttribute("data-paint-opening")) return;
     root.removeAttribute("data-paint-opening");
-    if (slide && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (slide && !prefersStill()) {
       document.querySelectorAll(".kp-panel").forEach((el) => el.setAttribute("data-arrive", ""));
     }
     setOpening(false);
