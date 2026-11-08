@@ -20,26 +20,14 @@ import { Chevron } from "@/components/portal/icons";
 import { choosePainting } from "@/lib/painting/schedule";
 import type { TimeOfDay } from "@/lib/painting/light";
 import ChallengeArt from "./ChallengeArt";
-import { CHALLENGE_CLOSED_KEY, challengeMoment, readStore, writeStore } from "./moment";
+import {
+  CHALLENGE_CLOSED_KEY,
+  afterPaintingOpening,
+  challengeMoment,
+  readStore,
+  writeStore,
+} from "./moment";
 import styles from "./challenge.module.css";
-
-const OPENING_ATTR = "data-paint-opening";
-
-/** Resolves once the painting's opening has finished (or at once if it isn't playing). */
-function afterPaintingOpening(): Promise<void> {
-  const root = document.documentElement;
-  if (!root.hasAttribute(OPENING_ATTR)) return Promise.resolve();
-  return new Promise((resolve) => {
-    const done = () => {
-      observer.disconnect();
-      clearTimeout(timer);
-      resolve();
-    };
-    const observer = new MutationObserver(() => !root.hasAttribute(OPENING_ATTR) && done());
-    observer.observe(root, { attributes: true, attributeFilter: [OPENING_ATTR] });
-    const timer = setTimeout(done, 6000);
-  });
-}
 
 export default function ChallengeMoment({
   href,

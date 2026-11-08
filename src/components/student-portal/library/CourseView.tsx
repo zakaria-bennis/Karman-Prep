@@ -1,6 +1,6 @@
 /*
  * One Library course at a time (founder, 2026-11-08): picking Math shows only Math, and the
- * same for Reading and Writing (the choice and toggle are CourseChooser). The course leads with one
+ * same for Reading and Writing (the paintings and the toggle are LibraryStage). The course leads with one
  * thing to do next (its Up next sub-skill, the screen's only main button), then each Domain as a
  * card that opens in place. Inside, the official College Board skills are headings and their
  * sub-skills are the squares, each with its level and its own practice set.
