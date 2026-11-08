@@ -1,9 +1,8 @@
 /* Karman's product screens, drawn in code (2026-10-26). They match the white, black and marigold site and
  stay sharp at every size. Every word on them is the product's own interface text, not marketing copy, so it
  lives here rather than in site-copy.ts. The screens move (CSS only, in screens.css): a speaker changes in the
- class, the worked method writes itself out, the parent's bars fill. The Daily 10 is its own answerable
- demo (home/DailyTenDemo.tsx). Reduced motion
- shows each one at its settled frame.
+ class, the worked method writes itself out. The home page's phones show real portal captures instead
+ (PortalShot.tsx). Reduced motion shows each one at its settled frame.
  Only features in the offer appear. The students, the tutor and the questions are fictional Karman originals:
  the hard question is our own, written in the style of the SAT's advanced math, never copied from a test.
  SCREENS[name]() returns the screen's markup: constant strings with no visitor input. */
@@ -133,37 +132,6 @@ function review() {
   </div>`;
 }
 
-/* ---------- the parent's view (the parent's phone): live, skill mastery first, out of 6 ---------- */
-function parent() {
-  const sk = (name: string, lvl: number, word: string, k: number) =>
-    `<div class="sk" style="--k:${k}"><div class="skt"><b>${name}</b><span class="${lvl > 4 ? "up" : ""}">${word}</span></div><div class="dots">${Array.from({ length: 6 }, (_, i) => `<i class="${i < lvl ? "on" : ""}" style="--i:${i}"></i>`).join("")}</div></div>`;
-  return `<div class="scr ph par">${status}
-    <div class="sh"><span class="x">${I.back}</span><b>Maya's progress</b><span class="bell">${I.bell}</span></div>
-    <p class="live"><i></i>Live. Updated 2 minutes ago</p>
-    <div class="feed"><div class="feed-in">
-      <p><b>${I.check}</b>Daily 10 done: 9 of 10</p>
-      <p><b>${I.check}</b>Transitions set handed in, on time</p>
-      <p><b>${I.check}</b>Attended Thursday's live class</p>
-      <p><b>${I.check}</b>Daily 10 done: 9 of 10</p>
-    </div></div>
-    <div class="est">
-      <div><span>Reading and Writing</span><b>640</b><em>+40 since week 1</em></div>
-      <div><span>Math</span><b>690</b><em>+60 since week 1</em></div>
-    </div>
-    <h4>Skills that moved</h4>
-    ${sk("Nonlinear functions", 6, "Mastered", 0)}
-    ${sk("Transitions", 5, "Up one level", 1)}
-    ${sk("Command of evidence", 3, "Next week's focus", 2)}
-    <div class="nums">
-      <div><b>2 of 2</b><span>Live classes</span></div>
-      <div><b>96%</b><span>Practice done</span></div>
-      <div><b>1 of 1</b><span>Live session</span></div>
-    </div>
-    <div class="tnote"><b>Note from David</b>Maya fixed every quadratic system from test 3. Next: evidence questions, and full-length 4 on Saturday.</div>
-    <nav class="tabs"><span class="on">${I.check}Progress</span><span>${I.cal}Schedule</span><span>${I.chat}Messages</span></nav>
-  </div>`;
-}
-
 /* ---------- the study tools, small cards for the carousel ---------- */
 function wordline() {
   const rows = [
@@ -188,5 +156,5 @@ function challenge() {
   return `<div class="tool-ui dc"><p class="t">Today's challenge <span>Hard</span></p><p class="s">If f(x) = 3ˣ⁺², what is f(x + 1) ÷ f(x)?</p><div class="o"><span>2</span><span class="ok">3</span><span>9</span></div></div>`;
 }
 
-export const SCREENS = { zoom, review, parent };
+export const SCREENS = { zoom, review };
 export const TOOLS = { wordline, flashcards, wordlab, challenge };

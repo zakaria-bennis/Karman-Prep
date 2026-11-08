@@ -107,74 +107,14 @@
 .ks .ph .sh .of { font-weight: 700; color: var(--s-ink2); font-size: 3.8cqw; min-width: 9.5cqw; text-align: right; }
 
 /* Daily 10 */
-.ks .d10 .steps { display: grid; grid-template-columns: repeat(10, 1fr); gap: 1.2cqw; }
-.ks .d10 .steps i { height: 1.4cqw; border-radius: 99px; background: var(--s-line); }
-.ks .d10 .steps i.done { background: var(--s-ink); }
-.ks .d10 .steps i.now { background: var(--s-mari); animation: ks-pulse 2.2s ease-in-out infinite; }
 @keyframes ks-pulse { 50% { opacity: .45; } }
 @keyframes ks-tick { 50% { opacity: 1; } }
 @keyframes ks-tock { 50% { opacity: 0; } }
-.ks .d10 .back { align-self: flex-start; display: inline-flex; align-items: center; gap: 1.6cqw; font-size: 3.3cqw; font-weight: 800; color: var(--s-mari-ink); background: var(--s-mari-soft); padding: 1.1cqw 2.8cqw; border-radius: 99px; }
-.ks .d10 .back i { width: 1.8cqw; height: 1.8cqw; border-radius: 50%; background: var(--s-mari); }
-.ks .d10 .stem { font-size: 5.4cqw; line-height: 1.38; font-weight: 500; letter-spacing: -0.01em; }
-.ks .d10 .stem u { display: inline-block; width: 24cqw; border-bottom: 2px solid var(--s-ink); vertical-align: baseline; text-decoration: none; }
-.ks .d10 .ask { color: var(--s-ink2); font-size: 3.6cqw; line-height: 1.4; }
-.ks .d10 .ch { display: grid; gap: 2.2cqw; }
-.ks .d10 .ch button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 3cqw; padding: 2.6cqw 3cqw; border-radius: 3.4cqw; border: 1.5px solid var(--s-line); font-weight: 600; font-size: 4.3cqw; cursor: pointer; transition: border-color .2s, background .2s, transform .35s var(--spring); }
-.ks .d10 .ch button:focus-visible, .ks .d10 .go:focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; }
 @media (hover: hover) and (pointer: fine) { .ks .d10 .ch button:not(:disabled):hover { border-color: var(--s-ink2); } }
-.ks .d10 .ch button:active:not(:disabled) { transform: scale(.98); }
-.ks .d10 .ch button:disabled { cursor: default; }
-.ks .d10 .ch .pick { border-color: var(--s-ink); box-shadow: inset 0 0 0 1px var(--s-ink); }
-.ks .d10 .ch .pick i { background: var(--s-ink); color: var(--s-bg); border-color: var(--s-ink); }
-.ks .d10 .ch .ok { border-color: var(--s-ok); background: var(--s-ok-bg); }
-.ks .d10 .ch .ok i { background: var(--s-ok); border-color: var(--s-ok); color: #fff; }
-.ks .d10 .ch .no { border-color: #b3261e; background: var(--s-bad-bg); }
-.ks .d10 .ch .no i { background: #b3261e; border-color: #b3261e; color: #fff; }
-.ks .d10 .fb { display: grid; gap: 1cqw; padding: 2.6cqw 3cqw; border-radius: 3.4cqw; font-size: 3.6cqw; line-height: 1.4; animation: d10-in .45s var(--spring) both; }
-.ks .d10 .fb.ok { background: var(--s-ok-bg); } .ks .d10 .fb.no { background: var(--s-bad-bg); }
-.ks .d10 .fb b { font-size: 4.2cqw; } .ks .d10 .fb.ok b { color: var(--s-ok); } .ks .d10 .fb.no b { color: #b3261e; }
-.ks .d10 .steps i.miss { background: #b3261e; }
 @keyframes d10-in { from { opacity: 0; transform: translateY(2cqw); } }
-.ks .d10 .ch i { width: 7cqw; height: 7cqw; font-size: 3.3cqw; }
 /* the student's pick lands on C a moment after the screen arrives */
-.ks .d10 .go { all: unset; box-sizing: border-box; cursor: pointer; margin-top: auto; display: grid; place-items: center; color: #0b0b0b; height: 13cqw; border-radius: 99px; background: var(--s-mari); font-weight: 800; font-size: 4.6cqw; }
 
 /* the parent's live view */
-.ks .par .live { display: flex; align-items: center; justify-content: center; gap: 1.6cqw; color: var(--s-ink2); font-weight: 600; font-size: 3.5cqw; margin-top: -1.4cqw; }
-.ks .par .live i { width: 2cqw; height: 2cqw; border-radius: 50%; background: var(--s-ok); animation: ks-pulse 1.8s ease-in-out infinite; }
-.ks .par .feed { height: 10.5cqw; overflow: hidden; border-radius: 3cqw; background: var(--s-soft); }
-.ks .par .feed-in { animation: ks-feed 12s infinite; }
-.ks .par .feed p { height: 10.5cqw; display: flex; align-items: center; gap: 2cqw; padding: 0 3cqw; font-size: 3.6cqw; font-weight: 600; }
-.ks .par .feed b { display: grid; width: 5cqw; height: 5cqw; padding: 0.8cqw; border-radius: 50%; background: var(--s-ok); color: #fff; flex: none; box-sizing: border-box; }
-@keyframes ks-feed { 0%, 28% { transform: none; } 33%, 61% { transform: translateY(-10.5cqw); } 66%, 94% { transform: translateY(-21cqw); } 100% { transform: translateY(-31.5cqw); } }
-.ks .par h4 { font-size: 4.6cqw; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.6cqw; }
-.ks .par .sk { display: grid; gap: 1.6cqw; padding: 2.6cqw 3.2cqw; border-radius: 3.4cqw; border: 1.5px solid var(--s-line); }
-.ks .par .skt { display: flex; justify-content: space-between; gap: 2cqw; font-size: 3.9cqw; }
-.ks .par .skt b { font-weight: 700; }
-.ks .par .skt span { color: var(--s-ink2); font-weight: 600; font-size: 3.4cqw; white-space: nowrap; }
-.ks .par .skt span.up { color: var(--s-mari-ink); font-weight: 800; }
-/* six levels, as on the SAT's own skill bands; they fill in one by one when the phone arrives */
-.ks .par .dots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.2cqw; }
-.ks .par .dots i { height: 1.6cqw; border-radius: 99px; background: var(--s-line); }
-.ks .par .dots i.on { background: var(--s-ink); animation: ks-fill .5s ease-out both; animation-delay: calc(var(--k) * .35s + var(--i) * .09s + .3s); }
-.ks .par .sk:first-of-type .dots i.on { background: var(--s-mari); }
-@keyframes ks-fill { from { background: var(--s-line); transform: scaleX(.3); } }
-.ks .par .nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2cqw; }
-.ks .par .nums div { background: var(--s-soft); border-radius: 3cqw; padding: 2.6cqw 2.4cqw; display: grid; gap: 0.6cqw; }
-.ks .par .nums b { font-size: 5.2cqw; font-weight: 800; letter-spacing: -0.03em; }
-.ks .par .nums span { font-size: 3.1cqw; color: var(--s-ink2); font-weight: 600; }
-.ks .par .est { display: grid; grid-template-columns: 1fr 1fr; gap: 2cqw; }
-.ks .par .est div { border: 1.5px solid var(--s-line); border-radius: 3cqw; padding: 2.4cqw 3cqw; display: grid; gap: 0.4cqw; }
-.ks .par .est span { font-size: 3.1cqw; color: var(--s-ink2); font-weight: 600; }
-.ks .par .est b { font-size: 5.6cqw; font-weight: 800; letter-spacing: -0.03em; }
-.ks .par .est em { font-style: normal; font-size: 3.1cqw; font-weight: 800; color: var(--s-ok); }
-.ks .par .tabs { margin: auto -5.5cqw -9cqw; padding: 2.4cqw 6cqw 10cqw; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--s-line); background: var(--s-bg); }
-.ks .par .tabs span { display: grid; justify-items: center; gap: 0.8cqw; font-size: 2.9cqw; font-weight: 700; color: var(--s-mute); }
-.ks .par .tabs svg { width: 6cqw; height: 6cqw; }
-.ks .par .tabs .on { color: var(--s-mari-ink); }
-.ks .tnote { background: var(--s-mari-soft); border-radius: 3cqw; padding: 2.6cqw 3cqw; font-size: 3.5cqw; line-height: 1.4; }
-.ks .tnote b { display: block; font-weight: 800; margin-bottom: 0.4cqw; }
 
 .ks .wide > .scr { border-radius: inherit; }
 
@@ -190,4 +130,3 @@
   .ks .zt.z-david { box-shadow: 0 0 0 0.25cqw #2ecc71; }
 }
 
-.ks .d10 .go:disabled { opacity: .45; cursor: default; }
