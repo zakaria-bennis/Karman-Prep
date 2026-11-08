@@ -26,9 +26,19 @@ with several picks one, and can switch from the account menu.
   cancel.
 - **Weekly email:** a preview of the exact email. "Send it to me now" logs instead of sending,
   because email is switched off on this computer.
-- **Invite a parent:** the student opens `/dashboard/student/invite-parent` and makes a link (it
-  works once and lasts 14 days). The parent opens it, signs in, presses "Accept and link" and lands
-  on the child's week. A used or expired link says so.
+- **Parents have their own account** (founder decision, 8 November morning). At sign-up,
+  "I'm a parent" makes a parent account at once and opens the parent portal; the student
+  questions and checkout are for students only now. The new parent is asked for their child's
+  code.
+- **Invite a parent:** the student opens `/dashboard/student/invite-parent` and gets a link and a
+  short code (like DCJS-XDNX). Both work once and last 14 days. The parent opens the link and
+  presses "Accept and link", or types the code under "Link a student". Either way they land on
+  the child's week. A used, expired or mistyped code or link says so. A parent can link more
+  children from the account menu.
+- **Join on Zoom** (founder decision, 8 November morning): each upcoming session and cohort class
+  gets a "Join" button for its Zoom meeting, from 10 minutes before the start until the end. When
+  a session is on, the parent's week leads with "On now: 1:1 with David" and "Join on Zoom". Only
+  real Zoom links (https, zoom.us) are offered.
 - **Parents never see questions.** The parent pages read only skill names, levels, counts, minutes
   and dates: never a question, a question id or an answer. The student's invite page does not
   describe what the parent will see.
@@ -78,10 +88,17 @@ For a teacher or school admin. Two tabs: Classes and Billing.
   the student making an invite, copying it, the parent accepting it and landing on the child's
   week, the two-children list, a used link saying so, and the student seeing the linked parent.
   I also read the rows back from the database after each change.
+- The founder's two morning decisions, 12 more checks, all pass: a session on now leads the week
+  with "Join on Zoom" (it opens the meeting in a new tab, still one main button), Join shows only
+  for the session that is on, the student sees a short code, "I'm a parent" at sign-up opens the
+  parent portal, a wrong code is refused, the right code (typed in lower case) links the child,
+  "Link another student" in the menu, and a used code is refused. I set one of Maya's local
+  sessions to "now" for the test and put it back afterwards, along with the test accounts.
 - I found and fixed four bugs on the way: billing and the email preview crashed while email is
   off, roster rings were squashed, numbers sat outside their rings, and the assign form was
   below a long roster.
-- 19 new unit tests (skill levels, guarantee, weekly email, school terms and homework): all pass.
+- 19 new unit tests (skill levels, guarantee, weekly email, school terms and homework, the Join
+  window and Zoom links): all pass.
 - Code checks on this branch: `npx tsc --noEmit` passes, `npm run lint` passes,
   `npm run check:sizes` passes, and the full unit test suite passes (540 files, 9,336 tests, 0
   failures; 254 are written to fail on purpose). `npm run format:check` lists 21 files, all from
@@ -109,6 +126,9 @@ For a teacher or school admin. Two tabs: Classes and Billing.
 - **The weekly email is not scheduled.** The preview and "send now" work; nothing sends it every
   week yet.
 - **Adding teachers and signing up a school** have no screens. A school is created by Karman.
+- **Zoom in the school portal:** school classes have no live sessions in this build, so there is
+  nothing to join there yet. The student's own Join button belongs to the student portal's
+  Calendar (student-portal session).
 
 ## Decisions I made
 
@@ -122,8 +142,12 @@ For a teacher or school admin. Two tabs: Classes and Billing.
   see their own classes; admins see every class.
 - **One Practice grant per student per school.** It ends when they leave the school's last class.
 - **Times** show in Central time, marked "CT", until families can pick their own zone.
-- **Invites:** a brand-new account that never set up as a student becomes a parent account when
-  it accepts. A set-up student or tutor account is refused. A new link retires the old one.
+- **Parent accounts:** only a new account becomes a parent (at sign-up, or by accepting an invite
+  link). A student who has set up their account, a tutor or an admin is never changed; they are
+  asked to use another email for the parent account. A new invite retires the old one.
+- **Link codes** are 8 characters without look-alikes (no I, O, 0 or 1), shown as two groups of
+  four, typed in any case.
+- **Join** appears 10 minutes before a session and stays until it ends.
 - **Deleted:** the old parent page's "focus summary" helper, unused since the parent pages were
   rebuilt (replace, don't accumulate).
 
@@ -137,6 +161,11 @@ For a teacher or school admin. Two tabs: Classes and Billing.
 - Add "Invite a parent" (`/dashboard/student/invite-parent`) and "Join a class" (`/join/class`)
   to the student's account menu. I left `StudentDashboardClient.tsx` alone to avoid a conflict.
 - Run `supabase/seeds/overnight/parent-school.sql` after a local reset.
+- Onboarding: the pricing session rewrote `OnboardingClient.tsx` and `RecommendationStep.tsx`, so I
+  changed only one line there. Parents no longer reach the questionnaire, so after the merge
+  delete its leftover parent wording ("Parent intake" and "your child").
+- The parent role test (`tests/e2e/local-role-audit.spec.ts`) now expects a one-child parent to
+  land on that child's week.
 
 ## For the founder to decide
 
