@@ -90,8 +90,9 @@ pages at 390 and 1440) and the live site, from different starting points.
   money back" where the remedy can be a free repeat, the score bands never shown, the home page's
   week showing office hours and 1:1 reviews for a cohort student, a guarantee drawing whose +100
   didn't match its scores, cohort checkout open to anyone, the quiz path not using the access
-  rules, "official SAT" in a mock, and Platform/Plus in a prototype. All of these are fixed and
-  committed.
+  rules, "official SAT" in a mock, and Platform/Plus in a prototype. These are fixed and
+  committed. It also raised the private-booking, Daily Challenge, trial-banner and deposit-payment
+  gaps, which are still open (see Not done).
 - **Round 2 (final)**: no wrong price anywhere. Every price and every sum is correct
   on all 14 pages at both widths, in the money and access code, in the migrations and in the
   docs. What it still found, and what happened:
