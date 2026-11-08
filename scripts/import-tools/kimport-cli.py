@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # -I drops the script dir
 
-from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, fetch, figure_live, figures, lane, lint, pairs_page, publish, qa_certify, qa_correct, qa_run, stage, sweep, writer  # noqa: E402
+from kimport import autopairs, autopilot, autopilot_live, autopilot_state, backfill, bulk, corpus, explain_live, fetch, figure_live, figures, lane, lint, pairs_page, publish, qa_certify, qa_correct, qa_run, stage, sweep, writer  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -635,6 +635,32 @@ def _register_qa(sub) -> None:
     nz.add_argument("--dry", action="store_true", help="export, build, run only the .dryrun.sql; write nothing")
     nz.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_run.run_normalize(
         Path(a.pipe), a.now, a.dry, a.export, a.live_rows, a.violations, _qa_deps()))))
+    ex = qsub.add_parser("explain", help="replace explanation_text on LIVE questions in place, resealed (rows stay "
+                                         "live); every line passes kimport.explanation_rules and ts/explain-check.ts")
+    ex.add_argument("--lines", required=True, help="JSON lines {question_id, stable_question_id, explanation_text, "
+                                                   "explanation_sha256_before, explanation_per_choice (optional)}")
+    ex.add_argument("--pipe", required=True, help="the pipeline folder (writer.lock, intents.jsonl, qa/)")
+    ex.add_argument("--now", required=True, help="ISO-8601 time")
+    ex.add_argument("--export", help="use this saved export (for the fingerprint guard) instead of a fresh one")
+    ex.add_argument("--live-rows", help="use this saved full live export (qa export) instead of a fresh one")
+    ex.add_argument("--batch", type=int, help="change at most this many rows this run (first by id); the rest wait")
+    ex.add_argument("--max-file-kb", type=int, help=f"SQL file size before a new file starts (default "
+                                                    f"{qe_max_kb()} kB, one transaction each)")
+    ex.add_argument("--dry", action="store_true", help="take the lock, export, build, run only the .dryrun.sql; "
+                                                       "write nothing, release the lock")
+    ex.set_defaults(func=lambda a: _guard(lambda: _qa_print(explain_live.run_explain(
+        Path(a.pipe), a.lines, a.now, a.dry, a.export, a.live_rows, a.batch, a.max_file_kb,
+        explain_live.Deps(log=lambda m: print(m, file=sys.stderr, flush=True))))))
+    ec = qsub.add_parser("explain-check", help="read-only: every `k qa explain` check on a lines file, no SQL, no "
+                                               "lock -> plan.json and refused.jsonl")
+    ec.add_argument("--lines", required=True, help="the explanation lines")
+    ec.add_argument("--pipe", required=True, help="the pipeline folder (the run folder goes in qa/)")
+    ec.add_argument("--now", required=True, help="ISO-8601 time")
+    ec.add_argument("--live-rows", help="use this saved full live export (qa export) instead of a fresh one")
+    ec.add_argument("--export", help="a saved export to compare with, as the real run does")
+    ec.set_defaults(func=lambda a: _guard(lambda: _qa_print(explain_live.run_check(
+        Path(a.pipe), a.lines, a.now, a.live_rows, a.export,
+        explain_live.Deps(log=lambda m: print(m, file=sys.stderr, flush=True))))))
     fc = qsub.add_parser("record-fix-corrections",
                          help="record in qa/corrections.jsonl the QA corrections a run published through the fix path")
     fc.add_argument("--pipe", required=True, help="the pipeline folder")
@@ -652,6 +678,11 @@ def _register_qa(sub) -> None:
     ce.set_defaults(func=lambda a: _guard(lambda: _qa_print(qa_certify.run_certify(
         Path(a.pipe), a.now, Path(a.export) if a.export else None,
         log=lambda m: print(m, file=sys.stderr, flush=True), reuse=Path(a.reuse) if a.reuse else None))))
+
+
+def qe_max_kb() -> int:
+    from kimport import qa_explain
+    return qa_explain.MAX_FILE_BYTES // 1000
 
 
 def _qa_deps():
