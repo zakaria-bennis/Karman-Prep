@@ -2419,35 +2419,44 @@ export type Database = {
       };
       subscriptions: {
         Row: {
+          billing_term: string;
           canceled_at: string | null;
           created_at: string;
+          current_period_end: string | null;
           id: string;
+          plan_id: string;
           status: string;
           stripe_customer_id: string;
           stripe_subscription_id: string;
-          tier: string;
+          tier: string | null;
           trial_end: string | null;
           user_id: string;
         };
         Insert: {
+          billing_term?: string;
           canceled_at?: string | null;
           created_at?: string;
+          current_period_end?: string | null;
           id?: string;
+          plan_id: string;
           status: string;
           stripe_customer_id: string;
           stripe_subscription_id: string;
-          tier: string;
+          tier?: string | null;
           trial_end?: string | null;
           user_id: string;
         };
         Update: {
+          billing_term?: string;
           canceled_at?: string | null;
           created_at?: string;
+          current_period_end?: string | null;
           id?: string;
+          plan_id?: string;
           status?: string;
           stripe_customer_id?: string;
           stripe_subscription_id?: string;
-          tier?: string;
+          tier?: string | null;
           trial_end?: string | null;
           user_id?: string;
         };

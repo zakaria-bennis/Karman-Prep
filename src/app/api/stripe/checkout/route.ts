@@ -1,25 +1,26 @@
 // ============================================================
 // POST /api/stripe/checkout
-// Creates a Stripe Checkout Session for the selected tier.
-// Requires the user to be authenticated via Clerk.
+// Body: { plan, term?, cohortId? } (see createCheckoutBodySchema). Creates a
+// Stripe Checkout Session for that plan, with the price found by
+// its lookup key. Requires a signed-in Clerk user.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { createCheckoutSession, getOrCreateCustomer } from "@/lib/integrations/stripe/client";
+import { findStripePrice, isSubscriptionPlan } from "@/lib/integrations/stripe/prices";
 import { createCheckoutBodySchema } from "@/lib/integrations/stripe/schemas";
 import { createAdminClient } from "@/lib/supabase/server";
+
+/** Subscription statuses that still hold a plan. A second renewing plan
+ *  would bill twice, so those users change plan in the Stripe portal. */
+const LIVE_STATUSES = new Set(["active", "trialing", "past_due", "incomplete"]);
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const clerkUser = await currentUser();
-    if (!clerkUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const parsed = createCheckoutBodySchema.safeParse(await req.json().catch(() => ({})));
@@ -29,32 +30,52 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const { tier } = parsed.data;
+    const spec = findStripePrice(parsed.data.plan, parsed.data.term);
+    if (!spec) {
+      return NextResponse.json({ error: "That plan is not sold here" }, { status: 400 });
+    }
 
-    const email = clerkUser.emailAddresses[0]?.emailAddress;
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    const email =
+      clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress;
     if (!email) {
       return NextResponse.json({ error: "No email address found" }, { status: 400 });
     }
 
-    // Look up existing Stripe customer ID from Supabase
     const supabase = createAdminClient();
-    const { data: sub } = await supabase
+    const { data: subs, error: subsError } = await supabase
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, status")
       .eq("user_id", userId)
-      .single();
+      .order("created_at", { ascending: false });
+    if (subsError) throw subsError;
 
-    const customer = await getOrCreateCustomer(userId, email);
+    if (isSubscriptionPlan(spec.planId) && subs?.some((s) => LIVE_STATUSES.has(s.status))) {
+      return NextResponse.json(
+        { error: "You already have a plan. Change it with Manage plan on the billing page." },
+        { status: 409 }
+      );
+    }
+
+    const customerId =
+      subs?.find((s) => s.stripe_customer_id)?.stripe_customer_id ??
+      (await getOrCreateCustomer(userId, email)).id;
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
     const session = await createCheckoutSession({
-      customerId: sub?.stripe_customer_id || customer.id,
-      tier,
+      customerId,
+      spec,
       userId,
-      email,
-      successUrl: `${appUrl}/dashboard/student?welcome=1`,
-      cancelUrl: `${appUrl}/#pricing`,
+      cohortId: parsed.data.cohortId,
+      // Tutors land back on billing; students go to their dashboard.
+      successUrl:
+        spec.planId === "tutor-affiliate"
+          ? `${appUrl}/billing`
+          : `${appUrl}/dashboard/student?welcome=1`,
+      cancelUrl: `${appUrl}/pricing`,
     });
 
     return NextResponse.json({ url: session.url });
