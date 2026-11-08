@@ -1,78 +1,80 @@
 "use client";
 
 // ============================================================
-// Homework tab — read-only display of the tutor's assignments
-// + a due-date badge that colours by proximity. CRUD lives in
-// the tutor portal.
-// Carved out of the old monolithic CohortDetailClient.tsx
-// (audit M1).
+// Homework tab: the tutor's assignments, read-only, with a due
+// pill coloured by how close the due date is. Tutors post and
+// edit homework in the tutor portal.
 // ============================================================
 
-import { cn } from "@/lib/utils";
+import { WbPill, WbTable, type Tone } from "@/components/admin/workbench";
 import type { HomeworkRow } from "@/lib/supabase/queries/cohorts";
-import { EmptyBlock, formatDateTime, tutorDisplay } from "./shared";
+import { formatDay, tutorDisplay } from "./shared";
 
 export function HomeworkTab({ homework }: { homework: HomeworkRow[] }) {
-  if (homework.length === 0) {
-    return (
-      <EmptyBlock
-        title="No homework posted yet"
-        subtitle="Assignments the tutor posts from the tutor portal will appear here."
-      />
-    );
-  }
   return (
-    <ul className="space-y-3">
-      {homework.map((h) => (
-        <li key={h.id} className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
-          <div className="mb-2 flex items-start justify-between gap-4">
-            <h3 className="font-semibold text-[color:var(--ink)]">{h.title}</h3>
-            <DueBadge dueAt={h.due_at} />
-          </div>
-          {h.body && (
-            <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--mute)]">{h.body}</p>
-          )}
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[color:var(--mute)]">
-            <span>Assigned {formatDateTime(h.assigned_at)}</span>
-            {h.due_at && <span>· Due {formatDateTime(h.due_at)}</span>}
-            <span>· by {tutorDisplay(h.created_by)}</span>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <WbTable<HomeworkRow>
+      caption="Homework for this cohort"
+      rows={homework}
+      rowKey={(h) => h.id}
+      empty={
+        <>
+          <b>No homework yet.</b>
+          Homework the tutor posts in the tutor portal shows up here.
+        </>
+      }
+      columns={[
+        {
+          key: "title",
+          label: "Homework",
+          cell: (h) => (
+            <span style={{ minWidth: 0, overflowWrap: "anywhere", textAlign: "left" }}>
+              <b>{h.title}</b>
+              {h.body && <small style={{ whiteSpace: "pre-wrap", marginTop: 2 }}>{h.body}</small>}
+            </span>
+          ),
+        },
+        { key: "assigned", label: "Assigned", cell: (h) => formatDay(h.assigned_at) },
+        {
+          key: "due",
+          label: "Due",
+          cell: (h) =>
+            h.due_at ? (
+              <span>
+                {formatDay(h.due_at)}
+                <DuePill dueAt={h.due_at} />
+              </span>
+            ) : (
+              "No due date"
+            ),
+        },
+        { key: "by", label: "Posted by", cell: (h) => tutorDisplay(h.created_by) },
+      ]}
+    />
   );
 }
 
-function DueBadge({ dueAt }: { dueAt: string | null }) {
-  if (!dueAt) return null;
-  const due = new Date(dueAt);
-  const now = new Date();
-  const ms = due.getTime() - now.getTime();
+function DuePill({ dueAt }: { dueAt: string }) {
+  const ms = new Date(dueAt).getTime() - Date.now();
   const days = Math.round(ms / (1000 * 60 * 60 * 24));
 
   let label: string;
-  let classes: string;
+  let tone: Tone;
   if (ms < 0) {
-    label = days <= -1 ? `${Math.abs(days)}d overdue` : "due earlier";
-    classes = "bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] text-[color:var(--mute)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]";
+    label = days <= -1 ? `${Math.abs(days)}d overdue` : "Due earlier";
+    tone = "neutral";
   } else if (days <= 1) {
-    label = days === 0 ? "due today" : "due tomorrow";
-    classes = "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_20%,transparent)]";
+    label = days === 0 ? "Due today" : "Due tomorrow";
+    tone = "fail";
   } else if (days <= 3) {
-    label = `due in ${days}d`;
-    classes = "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_20%,transparent)]";
+    label = `Due in ${days}d`;
+    tone = "warn";
   } else {
-    label = `due in ${days}d`;
-    classes = "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]";
+    label = `Due in ${days}d`;
+    tone = "ok";
   }
   return (
-    <span
-      className={cn(
-        "inline-block shrink-0 rounded-md border px-2 py-0.5 text-xs font-semibold",
-        classes
-      )}
-    >
-      {label}
+    <span style={{ display: "block", marginTop: 2 }}>
+      <WbPill tone={tone}>{label}</WbPill>
     </span>
   );
 }

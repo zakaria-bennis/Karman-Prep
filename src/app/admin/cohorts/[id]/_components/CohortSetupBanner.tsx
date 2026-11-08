@@ -1,17 +1,13 @@
 "use client";
 
 // ============================================================
-// Banner shown when a group/small_group cohort hasn't been
-// marked setup-complete. The "Mark setup complete" button calls
-// the server action; on success the banner goes away after the
-// page revalidates. While clicked we show a tiny spinner.
-// Carved out of the old monolithic CohortDetailClient.tsx
-// (audit M1).
+// Shown while a cohort hasn't been marked setup-complete (Cal
+// event and Zoom still to wire up). "Mark setup complete" calls
+// the server action; the banner goes away once the page refreshes.
 // ============================================================
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { actionMarkCohortSetupComplete } from "../setup-actions";
 
 export function CohortSetupBanner({ cohortId }: { cohortId: string }) {
@@ -32,28 +28,31 @@ export function CohortSetupBanner({ cohortId }: { cohortId: string }) {
   }
 
   return (
-    <div className="mb-6 flex flex-wrap items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--warn)_30%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-4 py-3 text-sm">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--warn)]" />
-      <div className="min-w-[15rem] flex-1">
-        <p className="font-semibold text-[color:var(--warn)]">This cohort still needs Cal/Zoom setup</p>
-        <p className="mt-0.5 text-xs text-[color-mix(in_srgb,var(--warn)_80%,transparent)]">
-          Configure the class event in Cal.com (event-type, schedule, Zoom location) for this
-          cohort, then click the button to dismiss this banner. You&apos;ll get a daily reminder
-          email until it&apos;s marked complete.
+    <div
+      className="wb-alert"
+      style={{
+        borderColor: "var(--warn)",
+        background: "color-mix(in srgb, var(--warn) 8%, transparent)",
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: 12,
+      }}
+    >
+      <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+        <b>This cohort still needs Cal and Zoom setup.</b>
+        <p className="wb-note" style={{ marginTop: 2 }}>
+          Set up the class in Cal.com (event type, schedule, Zoom link), then mark it done.
+          You&apos;ll get a reminder email each day until then.
         </p>
-        {err ? <p className="mt-1.5 text-xs text-[color:var(--late)]">{err}</p> : null}
-      </div>
-      <button
-        onClick={onMarkComplete}
-        disabled={pending}
-        className="inline-flex items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--good)] hover:bg-[color-mix(in_srgb,var(--good)_20%,transparent)] disabled:opacity-50"
-      >
-        {pending ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <CheckCircle2 className="h-3.5 w-3.5" />
+        {err && (
+          <p role="alert" style={{ margin: "4px 0 0", color: "var(--late)" }}>
+            {err}
+          </p>
         )}
-        Mark setup complete
+      </div>
+      <button type="button" className="wb-btn" onClick={onMarkComplete} disabled={pending}>
+        {pending ? "Saving…" : "Mark setup complete"}
       </button>
     </div>
   );

@@ -1,29 +1,24 @@
 "use client";
 
 // ============================================================
-// Notes tab — read-only display of the tutor's progress notes.
-// Note authoring lives in the tutor portal; admin just sees them.
-// Carved out of the old monolithic CohortDetailClient.tsx
-// (audit M1).
+// Notes tab: the tutor's progress notes, read-only. Tutors write
+// them in the tutor portal.
 // ============================================================
 
-import { EmptyBlock } from "./shared";
+import { WbEmpty, WbSection } from "@/components/admin/workbench";
 
 export function NotesTab({ note, tutorName }: { note: string | null; tutorName: string }) {
   if (!note) {
     return (
-      <EmptyBlock
-        title="No notes yet"
-        subtitle={`${tutorName} hasn't written any progress notes for this cohort. Notes are authored in the tutor portal.`}
-      />
+      <WbEmpty title="No notes yet.">
+        {tutorName} hasn&apos;t written notes for this cohort. Tutors write them in the tutor
+        portal.
+      </WbEmpty>
     );
   }
   return (
-    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-6">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
-        Notes by {tutorName}
-      </div>
-      <div className="whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--ink)]">{note}</div>
-    </div>
+    <WbSection title={`Notes by ${tutorName}`}>
+      <div style={{ whiteSpace: "pre-wrap", fontSize: "0.9rem", lineHeight: 1.6 }}>{note}</div>
+    </WbSection>
   );
 }
