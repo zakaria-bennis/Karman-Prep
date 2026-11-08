@@ -270,3 +270,45 @@ export function CrossIcon(p: IconProps) {
     </Svg>
   );
 }
+
+/** Exit: a plain close mark. */
+export function ExitIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+    </Svg>
+  );
+}
+
+/** Highlighter: a chisel marker over a stroke of colour. */
+export function HighlightIcon(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M14.5 4.5l5 5-7.5 7.5H7v-5z" />
+      <path d="M7 17l-2.5 2.5M4 21h9" />
+    </Svg>
+  );
+}
+
+/** Hide the clock: an eye, struck through once hidden. */
+export function EyeIcon({ state = "on", ...p }: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+      <circle cx="12" cy="12" r="3" />
+      {state === "off" && <path d="M4 4l16 16" />}
+    </Svg>
+  );
+}
+
+export function ChevronIcon({
+  dir = "right",
+  ...p
+}: IconProps & { dir?: "left" | "right" | "up" }) {
+  const d = dir === "left" ? "M15 5l-7 7 7 7" : dir === "up" ? "M5 15l7-7 7 7" : "M9 5l7 7-7 7";
+  return (
+    <Svg {...p}>
+      <path d={d} />
+    </Svg>
+  );
+}

@@ -20,7 +20,7 @@ import { AnnotationContext } from "./annotation-context";
 import { BottomBar } from "./BottomBar";
 import { CALC_SLOT_ID, CalculatorFrame } from "./CalculatorSlot";
 import { FigureSlot } from "./FigureSlot";
-import { PenIcon, ReferenceIcon } from "./icons";
+import { ChevronIcon, ExitIcon, HighlightIcon, PenIcon, ReferenceIcon } from "./icons";
 import { MoreMenu } from "./MoreMenu";
 import { NavigatorDialog, NavigatorGrid, squaresFor } from "./Navigator";
 import { PassageBlock, hasPassage } from "./PassageBlock";
@@ -30,7 +30,9 @@ import { QuestionArea } from "./QuestionArea";
 import { QuestionContent } from "./QuestionContent";
 import { ReferenceSheet } from "./ReferenceSheet";
 import { Timer } from "./Timer";
-import { TopBar } from "./TopBar";
+import { BarButton, TopBar } from "./TopBar";
+import { PaintingWindow } from "./PaintingWindow";
+import { rangesFromSelection } from "@/lib/quiz/annotations/ranges";
 import { FeedbackBar, ProgressDots } from "./Rewards";
 import { LevelUpCard } from "./LevelUpCard";
 import { DRAWING_NAMES } from "./drawings";
@@ -73,6 +75,8 @@ export type QuizShellProps = {
   /** A completed skill set moved the skill's band (skill practice only). */
   levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
   onLevelUpDone?(): void;
+  /** The day's painting, still, around the question (the Challenge questions only). */
+  backdrop?: "painting";
 };
 
 function seedOf(text: string): number {
@@ -147,6 +151,28 @@ export function QuizShell(props: QuizShellProps) {
     props.onSelectAnswer?.(q.id, value);
   };
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
+  useEffect(() => {
+    if (!hint) return;
+    const t = setTimeout(() => setHint(null), 3200);
+    return () => clearTimeout(t);
+  }, [hint]);
+  // Highlight: marks the words already selected in the question or passage (Bluebook's way).
+  const highlightSelection = () => {
+    const sel = window.getSelection();
+    let added = 0;
+    if (s.annotations.enabled)
+      document
+        .querySelectorAll<HTMLElement>("[data-quiz-shell] [data-quiz-pane]")
+        .forEach((pane) => {
+          for (const r of rangesFromSelection(pane, sel)) {
+            s.annotations.add(r, 1);
+            added++;
+          }
+        });
+    if (added) sel?.removeAllRanges();
+    else setHint("Select some words in the question, then tap Highlight.");
+  };
   useEffect(() => {
     if (!saveNotice) return;
     const t = setTimeout(() => setSaveNotice(null), 5000);
@@ -219,6 +245,7 @@ export function QuizShell(props: QuizShellProps) {
       <ProgressDots
         states={dots}
         label={`Question ${index + 1} of ${total}`}
+        count={`${index + 1} of ${total}`}
         onOpen={() => setDialog("nav")}
       />
     ) : undefined);
@@ -241,6 +268,7 @@ export function QuizShell(props: QuizShellProps) {
   const primary = checking ? (
     <button type="button" className={styles.primary} onClick={() => props.onFinish?.()}>
       Submit section
+      <ChevronIcon />
     </button>
   ) : mode.grading === "instant" && !review ? (
     <button
@@ -250,10 +278,12 @@ export function QuizShell(props: QuizShellProps) {
       onClick={() => answer && props.onSubmit?.(q.id, answer)}
     >
       Submit
+      <ChevronIcon />
     </button>
   ) : (
     <button type="button" className={styles.primary} onClick={goNext}>
       {last ? (mode.grading === "end" ? "Review" : "Finish") : "Next"}
+      <ChevronIcon />
     </button>
   );
 
@@ -282,13 +312,16 @@ export function QuizShell(props: QuizShellProps) {
           data-drawing={s.drawing || undefined}
           data-pencil={s.pencilOn || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
+          data-backdrop={props.backdrop}
           className={`${styles.shell} ${styles[layout]}`}
           style={{ "--quiz-text-scale": s.textSize / 100 } as React.CSSProperties}
         >
+          {props.backdrop === "painting" && <PaintingWindow />}
           <div ref={header} className={styles.barGroup}>
             <TopBar
               section={props.section}
               topic={props.topic ?? q.topic_cluster}
+              exit={props.onExit && <BarButton icon={<ExitIcon />} word="Exit" onClick={exit} />}
               centre={
                 mode.clock.kind !== "none" &&
                 !props.hideClock && (
@@ -303,26 +336,29 @@ export function QuizShell(props: QuizShellProps) {
               tools={
                 <>
                   <span id={CALC_SLOT_ID} className={styles.slot} />
-                  {math && (
-                    <button
-                      type="button"
-                      className={styles.tool}
-                      aria-label="Reference"
-                      aria-haspopup="dialog"
-                      onClick={() => setDialog("reference")}
-                    >
-                      <ReferenceIcon />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.tool}
-                    aria-label="Pencil"
+                  <BarButton
+                    icon={<HighlightIcon />}
+                    word="Highlight"
+                    // Keeps the selection: pressing a button would otherwise clear it first.
+                    onPointerDown={(e) => e.preventDefault()}
+                    onClick={highlightSelection}
+                  />
+                  <BarButton
+                    icon={
+                      <PenIcon state={s.pencilOn ? "on" : "off"} tip={`var(--quiz-pen-${s.pen})`} />
+                    }
+                    word="Pencil"
                     aria-pressed={s.pencilOn}
                     onClick={togglePencil}
-                  >
-                    <PenIcon state={s.pencilOn ? "on" : "off"} tip={`var(--quiz-pen-${s.pen})`} />
-                  </button>
+                  />
+                  {math && (
+                    <BarButton
+                      icon={<ReferenceIcon />}
+                      word="Reference"
+                      aria-haspopup="dialog"
+                      onClick={() => setDialog("reference")}
+                    />
+                  )}
                   <MoreMenu
                     textSize={s.textSize}
                     onTextSize={s.setTextSize}
@@ -331,7 +367,6 @@ export function QuizShell(props: QuizShellProps) {
                       props.onReportProblem &&
                       ((note) => Promise.resolve(props.onReportProblem!(q.id, note)))
                     }
-                    onExit={props.onExit && exit}
                   />
                 </>
               }
@@ -404,6 +439,11 @@ export function QuizShell(props: QuizShellProps) {
                   after={props.levelUp.after}
                   onDone={() => props.onLevelUpDone?.()}
                 />
+              )}
+              {hint && (
+                <p role="status" className={styles.saveNotice} data-tone="hint">
+                  {hint}
+                </p>
               )}
               {saveNotice && (
                 <p role="alert" className={styles.saveNotice}>

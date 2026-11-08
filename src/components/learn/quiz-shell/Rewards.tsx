@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import type { ConfidenceBand } from "@/types/quiz";
 import type { DotState } from "@/lib/quiz/rewards";
 import styles from "./rewards.module.css";
-import { FlameIcon, TickIcon } from "./icons";
+import { ChevronIcon, CrossIcon, FlameIcon, TickIcon } from "./icons";
 import { BOUNCE, useShellMotion } from "./motion";
 import { RewardDrawing } from "./drawings";
 
@@ -90,10 +90,13 @@ export function FeedbackBar({
 export function ProgressDots({
   states,
   label,
+  count,
   onOpen,
 }: {
   states: DotState[];
   label: string;
+  /** The short visible count, "3 of 10"; the full label stays the button's name. */
+  count?: string;
   onOpen(): void;
 }) {
   const { reduced } = useShellMotion();
@@ -115,8 +118,15 @@ export function ProgressDots({
           transition={{ duration: 0.35 }}
         >
           {s === "correct" && <TickIcon size={10} />}
+          {s === "wrong" && <CrossIcon size={9} />}
         </motion.span>
       ))}
+      {count && (
+        <span className={styles.count} aria-hidden="true">
+          {count}
+          <ChevronIcon dir="up" size={14} />
+        </span>
+      )}
     </button>
   );
 }

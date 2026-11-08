@@ -27,7 +27,9 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
       <header
         className={cn(
           "fixed left-0 right-0 top-0 z-40 flex items-center gap-3 px-4 pb-1.5 pt-3",
-          "pointer-events-none" // children re-enable interactions
+          "pointer-events-none", // children re-enable interactions
+          // The quiz screen is full screen with its own Exit: this bar would sit over its top bar.
+          "[body:has([data-quiz-shell])_&]:hidden"
         )}
       >
         <div

@@ -6,6 +6,7 @@ import { preferenceKey, savePreference, useQuizAnimations } from "../quiz/QuizTo
 import styles from "./more.module.css";
 import shell from "./quiz-shell.module.css";
 import { MoreIcon } from "./icons";
+import { BarButton } from "./TopBar";
 import { SPRING, useShellMotion } from "./motion";
 
 export const TEXT_SIZES = [100, 125, 150, 175, 200] as const;
@@ -21,19 +22,17 @@ const SHORTCUTS: [string, string][] = [
   ["Esc", "Close a menu"],
 ];
 
-/** Text size, report a problem, animations, sounds, shortcuts, exit (spec: More menu). */
+/** Text size, report a problem, animations, sounds, shortcuts (spec: More menu). Exit is in the bar. */
 export function MoreMenu({
   textSize,
   onTextSize,
   showSounds,
   onReport,
-  onExit,
 }: {
   textSize: number;
   onTextSize(size: number): void;
   showSounds: boolean;
   onReport?(note: string): Promise<unknown>;
-  onExit?(): void;
 }) {
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<"menu" | "report" | "shortcuts">("menu");
@@ -60,19 +59,16 @@ export function MoreMenu({
       className={styles.anchor}
       onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
     >
-      <button
-        type="button"
-        className={shell.tool}
-        aria-label="More"
+      <BarButton
+        icon={<MoreIcon />}
+        word="More"
         aria-expanded={open}
         onClick={() => {
           setOpen(!open);
           setPanel("menu");
           setSent(false);
         }}
-      >
-        <MoreIcon />
-      </button>
+      />
       <AnimatePresence>
         {open && (
           <motion.div
@@ -144,11 +140,6 @@ export function MoreMenu({
                     onClick={() => setPanel("shortcuts")}
                   >
                     Keyboard shortcuts
-                  </button>
-                )}
-                {onExit && (
-                  <button type="button" className={styles.item} onClick={onExit}>
-                    Exit
                   </button>
                 )}
               </>
