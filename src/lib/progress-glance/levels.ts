@@ -1,14 +1,15 @@
 /*
  * Progress at a glance, for the people around a student: parents and school staff.
- * Levels follow the founder's rule (src/components/portal/skill-levels.ts): New on the first
- * answer, then a run of 3, 4 and 5 right answers in a row for Learning, Understanding and
- * Conquered. A skill drops one level for every three weeks without practice, never below New.
- * Practice answers carry no hint flag yet, so every right answer counts toward the run.
+ * Levels follow the one rule in `src/lib/levels/rules.ts` (the same the student sees): New on
+ * the first answer, then runs of 3, then 4 more, then 5 more right answers in a row; a level is
+ * lost for every 4 weeks without practice, never below New. Practice answers carry no hint
+ * flag yet, so every right answer counts toward the run.
  *
  * Only skill names, levels and counts leave this module. Never questions or answers.
  */
 import type { SkillLevel } from "@/components/portal/skill-levels";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
+import { levelFromHistory } from "@/lib/levels/rules";
 
 export interface PracticeAnswer {
   skillId: string;
@@ -38,31 +39,6 @@ export interface ProgressGlance {
   coursePercent: { math: number; reading: number };
 }
 
-export const DECAY_DAYS = 21;
-const DAY_MS = 86_400_000;
-
-/** Longest run of right answers in a row: 3 Learning, 4 Understanding, 5 Conquered. */
-export function skillLevelFromAnswers(answers: readonly boolean[]): SkillLevel {
-  if (!answers.length) return 0;
-  let run = 0;
-  let best = 0;
-  for (const right of answers) {
-    run = right ? run + 1 : 0;
-    best = Math.max(best, run);
-  }
-  if (best >= 5) return 4;
-  if (best >= 4) return 3;
-  if (best >= 3) return 2;
-  return 1;
-}
-
-/** One level down for every DECAY_DAYS since the last answer, never below New. */
-export function decayed(level: SkillLevel, lastAt: string | null, now: Date): SkillLevel {
-  if (level <= 1 || !lastAt) return level;
-  const idle = Math.floor((now.getTime() - Date.parse(lastAt)) / (DECAY_DAYS * DAY_MS));
-  return Math.max(1, level - Math.max(0, idle)) as SkillLevel;
-}
-
 /** Share of the way to Conquered across a course's skills, 0 to 100. */
 export function coursePercent(levels: readonly number[]): number {
   if (!levels.length) return 0;
@@ -80,11 +56,11 @@ export function buildProgressGlance(
     list.push(a);
     bySkill.set(a.skillId, list);
   }
-  const levelOf = (skillId: string): SkillLevel => {
-    const list = (bySkill.get(skillId) ?? []).slice().sort((x, y) => x.at.localeCompare(y.at));
-    const raw = skillLevelFromAnswers(list.map((a) => a.correct));
-    return decayed(raw, list.at(-1)?.at ?? null, now);
-  };
+  const levelOf = (skillId: string): SkillLevel =>
+    levelFromHistory(
+      (bySkill.get(skillId) ?? []).map((a) => ({ correct: a.correct, at: a.at })),
+      now
+    ).level;
   const counts: Record<SkillLevel, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
   const domains: DomainGlance[] = SKILL_DOMAINS.map((d) => ({
     id: d.id,

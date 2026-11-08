@@ -1,34 +1,31 @@
 import { describe, expect, it } from "vitest";
-import {
-  buildProgressGlance,
-  coursePercent,
-  decayed,
-  predictedScore,
-  skillLevelFromAnswers,
-} from "./levels";
+import { buildProgressGlance, coursePercent, predictedScore } from "./levels";
 
-describe("skillLevelFromAnswers", () => {
-  it("is not started with no answers and New after any answer", () => {
-    expect(skillLevelFromAnswers([])).toBe(0);
-    expect(skillLevelFromAnswers([false])).toBe(1);
-    expect(skillLevelFromAnswers([true, true])).toBe(1);
-  });
-
-  it("moves up on runs of 3, 4 and 5 right answers in a row", () => {
-    expect(skillLevelFromAnswers([true, true, true])).toBe(2);
-    expect(skillLevelFromAnswers([true, false, true, true, true, true])).toBe(3);
-    expect(skillLevelFromAnswers([false, true, true, true, true, true])).toBe(4);
-  });
-});
-
-describe("decayed", () => {
+describe("levels follow the one rule (src/lib/levels/rules.ts)", () => {
   const now = new Date("2026-11-08T12:00:00Z");
-  it("drops one level per three idle weeks, never below New", () => {
-    expect(decayed(4, "2026-11-01T12:00:00Z", now)).toBe(4);
-    expect(decayed(4, "2026-10-17T12:00:00Z", now)).toBe(3);
-    expect(decayed(4, "2026-09-01T12:00:00Z", now)).toBe(1);
-    expect(decayed(2, "2025-01-01T12:00:00Z", now)).toBe(1);
-    expect(decayed(0, null, now)).toBe(0);
+  const answers = (skillId: string, pattern: string, day = "2026-11-07") =>
+    [...pattern].map((ch, i) => ({
+      skillId,
+      correct: ch === "1",
+      at: `${day}T10:${String(i).padStart(2, "0")}:00Z`,
+    }));
+  const levelOf = (list: ReturnType<typeof answers>, at = now) =>
+    buildProgressGlance(list, at)
+      .domains.flatMap((d) => d.skills)
+      .find((s) => s.id === list[0].skillId)?.level;
+
+  it("needs 3, then 4 more, then 5 more right in a row", () => {
+    expect(levelOf(answers("ma-skill-percentages", "0"))).toBe(1);
+    expect(levelOf(answers("ma-skill-percentages", "111"))).toBe(2);
+    expect(levelOf(answers("ma-skill-percentages", "11111"))).toBe(2);
+    expect(levelOf(answers("ma-skill-percentages", "1111111"))).toBe(3);
+    expect(levelOf(answers("ma-skill-percentages", "111111111111"))).toBe(4);
+  });
+
+  it("drops one level per 4 idle weeks, never below New", () => {
+    const learning = answers("ma-skill-percentages", "111", "2026-10-01");
+    expect(levelOf(learning, new Date("2026-10-20T12:00:00Z"))).toBe(2);
+    expect(levelOf(learning, new Date("2026-11-08T12:00:00Z"))).toBe(1);
   });
 });
 
@@ -43,8 +40,8 @@ describe("buildProgressGlance", () => {
     const glance = buildProgressGlance(answers, now);
     expect(glance.domains).toHaveLength(8);
     const all = glance.domains.flatMap((d) => d.skills);
-    expect(all.find((s) => s.id === "ma-skill-percentages")?.level).toBe(4);
-    expect(glance.counts[4]).toBe(1);
+    expect(all.find((s) => s.id === "ma-skill-percentages")?.level).toBe(2);
+    expect(glance.counts[2]).toBe(1);
     expect(glance.counts[0]).toBe(all.length - 1);
     expect(glance.coursePercent.math).toBeGreaterThan(0);
     expect(glance.coursePercent.reading).toBe(0);
