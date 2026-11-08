@@ -33,8 +33,40 @@ LANE_REASON = {
 _CODE_ORDER = ("PF_FIGURE", "PF_QA", "PF_BINDING", "PF_ENVELOPE", "PF_DIFFICULTY", "PF_DEDUP_STALE")
 
 
+def js_number(value: float) -> str:
+    """A number as JavaScript's JSON.stringify prints it (ECMAScript Number::toString).
+
+    Python's repr gives the same shortest round-trip digits but places them differently
+    (7e-05 where JavaScript writes 0.00007, 1e+16 where it writes 10000000000000000), so
+    a hash over repr() differs from canonicalJson's for small and large numbers."""
+    if value != value or value in (float("inf"), float("-inf")):
+        raise ValueError("row contains a non-JSON number")
+    if value == 0:
+        return "0"  # JSON.stringify(-0) is "0"
+    if value < 0:
+        return "-" + js_number(-value)
+    mantissa, _, exp = repr(value).partition("e")
+    whole, _, frac = mantissa.partition(".")
+    digits = whole + frac
+    n = len(whole) + (int(exp) if exp else 0)  # value = 0.<digits> * 10**n
+    stripped = digits.lstrip("0")
+    n -= len(digits) - len(stripped)
+    digits = stripped.rstrip("0")
+    k = len(digits)
+    if k <= n <= 21:
+        return digits + "0" * (n - k)
+    if 0 < n <= 21:
+        return digits[:n] + "." + digits[n:]
+    if -6 < n <= 0:
+        return "0." + "0" * -n + digits
+    e = n - 1
+    sign = "+" if e >= 0 else "-"
+    head = digits if k == 1 else digits[0] + "." + digits[1:]
+    return f"{head}e{sign}{abs(e)}"
+
+
 def canonical_json(value) -> str:
-    """Mirror canonicalJson in reviewed-input-hash.ts (sorted keys, no spaces)."""
+    """Mirror canonicalJson in reviewed-input-hash.ts (sorted keys, no spaces, JS number format)."""
     if value is None:
         return "null"
     if value is True:
@@ -42,13 +74,10 @@ def canonical_json(value) -> str:
     if value is False:
         return "false"
     if isinstance(value, float):
-        if value != value or value in (float("inf"), float("-inf")):
-            raise ValueError("row contains a non-JSON number")
-        if value == int(value):
-            return str(int(value))
-        return repr(value)
+        return js_number(value)
     if isinstance(value, int):
-        return str(value)
+        # JSON.parse reads every integer as a double
+        return str(value) if abs(value) <= 2**53 else js_number(float(value))
     if isinstance(value, str):
         return json.dumps(value, ensure_ascii=False)
     if isinstance(value, list):
