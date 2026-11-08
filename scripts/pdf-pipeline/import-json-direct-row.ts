@@ -22,6 +22,7 @@ import {
   type ReviewedDifficulty,
 } from "@/lib/question-bank/reviewed-difficulty";
 import { validateImportRow } from "@/lib/question-bank/import-core";
+import { keptIdentityFor, type KeptSourceIdentity } from "@/lib/question-bank/kept-source-identity";
 
 export { importQuestion };
 
@@ -29,7 +30,12 @@ export { importQuestion };
 export function rowToReviewedImportInput(
   row: Record<string, unknown>,
   defaultSourcePdf: string,
-  options: { allowPreview?: boolean; sourceVersion?: string } = {}
+  options: {
+    allowPreview?: boolean;
+    sourceVersion?: string;
+    /** Stored identities of QA-hidden live rows a correction may keep (kept-source-identity.ts). */
+    kept?: readonly KeptSourceIdentity[];
+  } = {}
 ): { input: ImportQuestionInput; assessment: ReviewedDifficulty } | { error: string } {
   const rating = validateReviewedDifficulty(row);
   if (!rating.ok) return { error: rating.error };
@@ -39,7 +45,8 @@ export function rowToReviewedImportInput(
   const input = rowToImportInput(
     { ...row, difficulty: rating.assessment.difficulty_level },
     defaultSourcePdf,
-    options.sourceVersion
+    options.sourceVersion,
+    options.kept
   );
   if ("error" in input) return input;
   const validated = validateImportRow(input, { difficultyPolicy: "reviewed" });
@@ -50,7 +57,8 @@ export function rowToReviewedImportInput(
 export function rowToImportInput(
   row: Record<string, any>,
   defaultSourcePdf: string,
-  sourceVersion?: string
+  sourceVersion?: string,
+  kept?: readonly KeptSourceIdentity[]
 ): ImportQuestionInput | { error: string } {
   if (!row.domain || !isValidDomain(String(row.domain))) {
     return { error: `unknown or missing domain "${row.domain}"` };
@@ -64,7 +72,7 @@ export function rowToImportInput(
   const sectionRaw = String(
     row.source_section ?? row.occurrence?.section ?? row.section ?? ""
   ).toLowerCase();
-  const source_section =
+  const strictSection =
     sectionRaw === "math"
       ? "math"
       : ["reading", "reading_writing", "reading and writing", "rw"].includes(sectionRaw)
@@ -73,11 +81,16 @@ export function rowToImportInput(
   const moduleRaw = String(
     row.source_module ?? row.occurrence?.module ?? row.module ?? row.module_number ?? ""
   ).toUpperCase();
-  const source_module = ["1", "M1", "MODULE 1"].includes(moduleRaw)
+  const strictModule = ["1", "M1", "MODULE 1"].includes(moduleRaw)
     ? "M1"
     : ["2", "M2", "MODULE 2"].includes(moduleRaw)
       ? "M2"
       : undefined;
+  // An identity the strict rule cannot read survives only as a QA correction
+  // naming a live row's stored identity exactly; it is then kept verbatim.
+  const keep = strictSection && strictModule ? null : keptIdentityFor(row, sourceVersion, kept);
+  const source_section = keep ? keep.section : strictSection;
+  const source_module = keep ? keep.module : strictModule;
   const source_question_number = Number(
     row.source_question_number ?? row.occurrence?.visibleQuestionNumber ?? row.question_number
   );
@@ -107,6 +120,10 @@ export function rowToImportInput(
     choice_tables: row.choice_tables,
     figure_kind: row.figure_kind,
     figure_table_data: row.figure_table_data,
+    // Founder-approved chart / geometry / hand-drawn SVG figures (validated in import-figure.ts).
+    figure_chart_data: row.figure_chart_data,
+    figure_geometry_data: row.figure_geometry_data,
+    figure_svg: row.figure_svg,
     difficulty: row.difficulty,
     question_format: row.question_format,
     numeric_tolerance: row.numeric_tolerance,
@@ -124,6 +141,7 @@ export function rowToImportInput(
     content_hash: row.content_hash,
     source_provider: row.source_provider ?? row.sourceDocument?.provider,
     source_identity_required: Boolean(sourceVersion),
+    source_identity_kept: hasIdentity && keep ? true : undefined,
     source_document_id: row.source_document_id ?? row.sourceDocument?.fileId,
     source_provider_version_id: row.source_provider_version_id ?? row.sourceVersion?.boxVersionId,
     source_version: hasIdentity ? sourceVersion : undefined,
@@ -170,7 +188,8 @@ export function preflightImportRows(
   rows: Array<Record<string, any>>,
   sourcePdf: string,
   sourceVersion: string,
-  requireIdentity = false
+  requireIdentity = false,
+  kept?: readonly KeptSourceIdentity[]
 ): { inputs: ImportQuestionInput[]; errors: string[] } {
   const inputs: ImportQuestionInput[] = [];
   const errors: string[] = [];
@@ -182,7 +201,7 @@ export function preflightImportRows(
     ) {
       errors.push(`row ${index + 1}: source version checksum differs from source file`);
     }
-    const input = rowToImportInput(row, sourcePdf, sourceVersion);
+    const input = rowToImportInput(row, sourcePdf, sourceVersion, kept);
     if ("error" in input) {
       errors.push(`row ${index + 1}: ${input.error}`);
       return;

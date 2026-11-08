@@ -1,0 +1,586 @@
+"""QA corrections: a corrected version of a question QA took off the site goes
+back on the site IN PLACE, on the same quiz_questions row.
+
+Why in place, not a new row next to the archived one: the database has a
+unique index on the source question (quiz_questions_source_identity_unique:
+source_version, section, module, number, occurrence) that also covers archived
+rows, and a unique (source_pdf, content_hash) index, so a second row for the
+same source question cannot be inserted while the hidden one exists (the
+whole stage chunk would abort). Student history (question_responses,
+catalog_practice_responses, catalog_assignment_items) points at
+quiz_questions.id without cascade, so the row must not be deleted either.
+Updating it in place keeps the id, keeps that history attached, and leaves one
+row per source question, so nothing else has to learn about replacements.
+
+A row is a QA-hidden row when `k qa hide` took it off: archived_at set,
+import_flag_reason starting 'qa:', publish_status needs_human_review,
+import_status needs_review (so not live). A batch whose every row's source
+question is a QA-hidden row is a QA correction batch (the reviewer rebuilt the
+rows with the normal builders, same stable ids). A batch that mixes QA-hidden
+and other rows is refused whole.
+
+Per row, at build time (from a fresh read-only readback of the hidden row):
+exactly one export row and one snapshot for its source question, the same id,
+still QA-hidden, one answer key row naming the same stable id (read through
+answer_evidence.stable_question_id, so a generated-key envelope counts), the same
+source_occurrence, no source assets in the corrected payload (the row keeps
+its own), the founder's figure gate passes (kimport.figure_gate, as stage and
+publish apply it: a row that went live before the figure lane needs an
+approved figure folder first), and the correction changes something: the question, the choices,
+or the accepted answers its key evidence lists (otherwise `k qa restore` is the tool). Then the same duplicate checks as stage, against the bank without
+this row and against every other row of the run; except that a QA-hidden row
+(qa_hide.currently_hidden and still QA-hidden in the export) sharing the
+corrected content hash, normalized text or comparison key is the duplicate
+twin QA hid on purpose and does not block the correction; nor does a row the
+duplicate sweep un-published ("duplicate of <id>; un-published by sweep") when
+no row of that duplicate group is live. The SQL guards let exactly those rows
+through, only while each is still in that state. `k qa restore` then refuses to bring the
+twin back while the corrected copy is live.
+
+qa-NN.sql: one BEGIN ... COMMIT per chunk, the run fingerprint guard first
+(leaving out this run's staged rows and these rows), then per row: lock the
+row, require it, its choices and its answer key to equal the snapshot exactly
+and still be QA-hidden, the stage guards against every OTHER row, then turn
+it back into a private draft exactly as stage would have inserted it: every
+column from the corrected payload (question and mirror), every other column
+back to its default (archived_at NULL, explanation and grader columns
+cleared), comparison_key set; choices and the answer key replaced. Each has a
+.dryrun.sql twin; qa-rollback-NN.sql puts the old row back (only while the
+corrected content is still in place and not yet published). The rows then go
+through readback, seal and publish with the run's staged rows, and after
+publish the autopilot appends one line per row to pipeline/qa/corrections.jsonl.
+
+Nothing here connects to a database; the SQL is text the autopilot runs only
+after its dry-run twin passed.
+"""
+
+import json
+import re
+from pathlib import Path
+
+from kimport import bank_gate, bulk, qa_hide
+from kimport import qa_dupes as qd
+from kimport import stage as st
+from kimport.answer_evidence import GENERATED, stable_question_id
+from kimport.export import fingerprint
+from kimport.fix import _blob
+from kimport.publish import STAGED_IMPORT, STAGED_STATUS, RefuseToBuild, duplicate_check, twin_skip
+from kimport.sqlutil import do_block, dryrun_variant, lit
+from kimport.sweep import UNPUBLISHED_IMPORT, UNPUBLISHED_STATUS
+
+QA_PREFIX = "qa:"
+KEEP_COLS = ("id", "created_at", "is_live", "comparison_key")  # is_live is generated; comparison_key set apart
+CORRECTIONS = "corrections.jsonl"
+NEW_TEXT = "v->'new'->'question'->>'question_text'"
+
+
+def is_qa_hidden(q: dict) -> bool:
+    return (q.get("archived_at") is not None and str(q.get("import_flag_reason") or "").startswith(QA_PREFIX)
+            and q.get("publish_status") == STAGED_STATUS and q.get("import_status") == STAGED_IMPORT
+            and q.get("is_live") is not True)
+
+
+def hidden_sources(export_rows: list[dict]) -> set:
+    return {st._source(r) for r in export_rows if is_qa_hidden(r)}
+
+
+def _held_qa_draft(q: dict, hidden_ids: frozenset) -> bool:
+    """A QA correction held at seal: the QA-hidden row (still in qa/hidden.jsonl, never published
+    as corrected) was rewritten in place as a private draft (archived_at cleared, the stage flag
+    reason), so it no longer looks QA-hidden, but it is the same row and identity; its next
+    correction comes back as an evidence fix batch. The export's evidence is cut down, so the
+    row is matched by its id."""
+    return (q.get("id") in hidden_ids and q.get("publish_status") == STAGED_STATUS
+            and q.get("import_status") == STAGED_IMPORT and q.get("is_live") is not True
+            and q.get("archived_at") is None)
+
+
+def kept_identities(export_rows: list[dict], hidden_ids: frozenset = frozenset()) -> list[dict]:
+    """The stored source tuples of the QA-hidden rows, and of the private drafts a QA correction
+    left when it was held at seal (rows of `hidden_ids`, qa_hide.currently_hidden), for
+    ts/stage-rows.ts <keep-identities.json>.
+
+    A correction rewrites the hidden row in place, so it never creates an identity: a row
+    whose identity the strict rule (math/reading, M1/M2) cannot read, such as the 2023-03 and
+    2023-05 imports (module UNSPECIFIED, section writing), may keep one of these verbatim when
+    it names it exactly (src/lib/question-bank/kept-source-identity.ts). The stable id is then
+    checked against the hidden row's evidence by check_row; new rows stay strict."""
+    names = ("source_version", "source_section", "source_module", "source_question_number")
+    rows = [r for r in export_rows if is_qa_hidden(r) or _held_qa_draft(r, hidden_ids)]
+    tuples = {st._source(r) for r in rows}
+    tuples = {s for s in tuples if all(v not in (None, "") for v in s)}
+    return [dict(zip(names, s)) for s in sorted(tuples, key=lambda s: tuple(map(str, s)))]
+
+
+def read_corrections(qa_dir: Path) -> dict[str, dict]:
+    """{question id: its latest line} from qa/corrections.jsonl (the QA corrections published)."""
+    out: dict[str, dict] = {}
+    for e in qa_hide.read_log(Path(qa_dir) / CORRECTIONS):
+        if e.get("question_id"):
+            out[e["question_id"]] = e
+    return out
+
+
+def already_corrected(it: dict, export_rows: list[dict], done: dict) -> str | None:
+    """The live row id when this batch row was already published as its QA correction (a batch
+    taken again with --retry after some of its rows went through): one live bank row for its
+    source question, recorded in corrections.jsonl under the same stable id, still holding the
+    corrected content (content_hash_v2 as recorded)."""
+    if len(export_rows) != 1:
+        return None
+    r = export_rows[0]
+    line = done.get(r["id"])
+    if (line and r.get("is_live") is True and line.get("stable_question_id") == it["id"]
+            and line.get("after_content_hash_v2") == r.get("content_hash_v2")):
+        return r["id"]
+    return None
+
+
+def split(dirs: list[Path], export_rows: list[dict], exams_dir: Path, rows_runner,
+          done: dict | None = None) -> tuple[list, list, dict]:
+    """(QA correction batch folders, every other folder, {folder: reason} for batches that mix both).
+    `done` (read_corrections): a batch whose other rows were already published as its corrections
+    is still a QA correction batch for the rows QA still hides."""
+    hidden = hidden_sources(export_rows)
+    if not hidden or not dirs:
+        return [], list(dirs), {}
+    by_source: dict = {}
+    for r in export_rows:
+        by_source.setdefault(st._source(r), []).append(r)
+    loaded, _ = bulk.load_batches(dirs, exams_dir, None, rows_runner)
+    qa, mixed = set(), {}
+    for b in loaded:
+        hits = sum(1 for it in b["items"] if it["source"] in hidden)
+        done_rows = sum(1 for it in b["items"] if it["source"] not in hidden
+                        and already_corrected(it, by_source.get(it["source"], []), done or {}))
+        name = Path(b["dir"]).name
+        if b["items"] and hits and hits + done_rows == len(b["items"]):
+            qa.add(name)
+        elif hits:
+            mixed[name] = (f"{hits} of {len(b['items'])} rows correct questions QA hid; a QA correction batch "
+                           "must hold only corrected rows")
+    return ([d for d in dirs if d.name in qa],
+            [d for d in dirs if d.name not in qa and d.name not in mixed], mixed)
+
+
+def check_row(it: dict, export_rows: list[dict], snaps: list[dict]) -> tuple[dict | None, list[str]]:
+    """(the hidden row's snapshot, reasons to refuse)."""
+    if len(export_rows) != 1 or len(snaps) != 1:
+        return None, [f"{len(export_rows)} bank rows and {len(snaps)} readback rows for its source question; "
+                      "expected one"]
+    snap, row = snaps[0], it["row"]
+    q, out = snap.get("question") or {}, []
+    if export_rows[0]["id"] != q.get("id"):
+        out.append("the export and the readback name different rows")
+    if not is_qa_hidden(q):
+        out.append("the bank row is not a row QA hid (archived, qa: reason, private)")
+    keys = snap.get("keys") or []
+    if len(keys) != 1:
+        out.append(f"{len(keys)} answer key rows on the hidden row; expected one")
+    elif stable_question_id(keys[0].get("raw_model_response")) != it["id"]:
+        out.append("the hidden row's evidence names another stable question id (or none: a legacy row is "
+                   "fixed with k qa fix-legacy)")
+    if row["question"].get("source_occurrence") != q.get("source_occurrence"):
+        out.append("source_occurrence differs from the hidden row")
+    if row.get("source_assets"):
+        out.append("the corrected row carries source assets; a QA correction keeps the row's own")
+    want = {**row["question"], **row["mirror"]}
+    same_q = all(q.get(c) == v for c, v in want.items() if c not in ("import_status", "import_flag_reason",
+                                                                       "publish_status"))
+    have = sorted((c.get("letter"), c.get("choice_text"), c.get("is_correct")) for c in snap.get("choices") or [])
+    same_c = have == sorted((c["letter"], c["choice_text"], c.get("is_correct")) for c in row["choices"])
+    same_k = len(keys) != 1 or key_answers(keys[0].get("raw_model_response")) == key_answers(
+        row["key"].get("raw_model_response"))
+    if same_q and same_c and same_k:
+        out.append("the corrected row equals the hidden row; nothing was corrected (use k qa restore)")
+    return snap, out
+
+
+def key_answers(raw) -> list | None:
+    """The accepted answers an answer key's evidence lists (the reviewed numeric answer set, under
+    either envelope), or None. A correction that changes only this list is a real correction: the
+    site grades against it (k qa restore would put the old list back)."""
+    if not isinstance(raw, dict):
+        return None
+    for root in (raw.get("evidence") if isinstance(raw.get("evidence"), dict) else None, raw):
+        s = (root or {}).get("numeric_answer_set")
+        if isinstance(s, dict):
+            return sorted(map(str, s.get("answers") or []))
+    return None
+
+
+def _set_list(cols: list[str], payload_cols: set, keep: tuple) -> str:
+    return ",".join(f"{c}=r.{c}" if c in payload_cols else f"{c}=DEFAULT" for c in cols if c not in keep)
+
+
+def _norm_sql(expr: str) -> str:
+    return (f"regexp_replace(translate(lower({expr}),'{st._SUPSUB_FROM}','{st._SUPSUB_TO}'),'[^a-z0-9]+','','g')")
+
+
+def _lock_and_match(v: str, which: str, still: str) -> list[str]:
+    """Lock the row and require it (question, choices, the one key) to equal v->which."""
+    return [
+        f" SELECT * INTO q FROM public.quiz_questions WHERE id=({v}->'{which}'->'question'->>'id')::uuid FOR UPDATE;",
+        " IF NOT FOUND THEN RAISE EXCEPTION 'QA row missing: %',v->>'stable_question_id'; END IF;",
+        f" IF to_jsonb(q) IS DISTINCT FROM {v}->'{which}'->'question' OR NOT ({still})",
+        "  OR coalesce((SELECT jsonb_agg(to_jsonb(c) ORDER BY c.letter) FROM public.answer_choices c"
+        f" WHERE c.question_id=q.id),'null'::jsonb) IS DISTINCT FROM {v}->'{which}'->'choices'",
+        "  OR (SELECT count(*) FROM public.answer_key_entries k WHERE k.question_id=q.id)<>1",
+        "  OR (SELECT to_jsonb(k) FROM public.answer_key_entries k WHERE k.question_id=q.id)"
+        f" IS DISTINCT FROM {v}->'{which}'->'keys'->0",
+        " THEN RAISE EXCEPTION 'QA row changed since the readback: %',v->>'stable_question_id'; END IF;",
+    ]
+
+
+def correct_block(tag: str, it: dict) -> list[str]:
+    snap, row = it["snap"], it["row"]
+    old_q = snap["question"]
+    new_q = {**row["question"], **row["mirror"]}
+    qcols = sorted(old_q)
+    unknown = sorted(set(new_q) - set(qcols))
+    if unknown:
+        raise RefuseToBuild(f"{it['id']}: the corrected row writes columns the readback does not have: {unknown}")
+    v = {"stable_question_id": it["id"], "key": it["key"],
+         "old": {"question": old_q, "choices": snap.get("choices"), "keys": snap["keys"]},
+         "new": {"question": new_q, "choices": row["choices"], "key": row["key"]}}
+    still = (f"q.archived_at IS NOT NULL AND q.import_flag_reason LIKE '{QA_PREFIX}%'"
+             f" AND q.publish_status='{STAGED_STATUS}' AND q.import_status='{STAGED_IMPORT}'")
+    body = [f"DECLARE v jsonb:={_blob(v)}; q public.quiz_questions%rowtype; n int;", "BEGIN"]
+    body += _lock_and_match("v", "old", still)
+    src = ("o.id<>q.id AND o.source_version IS NOT DISTINCT FROM q.source_version AND o.source_section IS NOT DISTINCT"
+           " FROM q.source_section AND o.source_module IS NOT DISTINCT FROM q.source_module"
+           " AND o.source_question_number IS NOT DISTINCT FROM q.source_question_number")
+    skip = twin_skip(it.get("twin_rows") or {})
+    body += [
+        f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE {src})"
+        " THEN RAISE EXCEPTION 'source question already in the bank on another row: %',v->>'stable_question_id'; END IF;",
+        f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.id<>q.id{skip}"
+        " AND o.content_hash_v2::text=v->'new'->'question'->>'content_hash_v2')"
+        " THEN RAISE EXCEPTION 'content_hash_v2 already in the bank: %',v->>'stable_question_id'; END IF;",
+    ]
+    if it["key"]:
+        body.append(f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.id<>q.id{skip} AND o.comparison_key="
+                    f"{lit(it['key'])} AND o.archived_at IS NULL) THEN RAISE EXCEPTION 'duplicate comparison key: %',"
+                    "v->>'stable_question_id'; END IF;")
+    body += [
+        f" IF EXISTS (SELECT 1 FROM public.quiz_questions o WHERE o.id<>q.id{skip} AND {_norm_sql('o.question_text')}"
+        f"={_norm_sql(NEW_TEXT)})"
+        " THEN RAISE EXCEPTION 'normalized question text already in the bank: %',v->>'stable_question_id'; END IF;",
+        f" UPDATE public.quiz_questions t SET {_set_list(qcols, set(new_q), KEEP_COLS)},comparison_key=v->>'key'",
+        "  FROM jsonb_populate_record(NULL::public.quiz_questions,v->'new'->'question') r WHERE t.id=q.id;",
+        " GET DIAGNOSTICS n=ROW_COUNT;",
+        " IF n<>1 THEN RAISE EXCEPTION 'QA row update count: %',v->>'stable_question_id'; END IF;",
+        " DELETE FROM public.answer_choices WHERE question_id=q.id;",
+    ]
+    if row["choices"]:
+        ccols = list(row["choices"][0])
+        body += [
+            f" INSERT INTO public.answer_choices(question_id,{','.join(ccols)})",
+            f"  SELECT q.id,{','.join(ccols)} FROM jsonb_populate_recordset(NULL::public.answer_choices,v->'new'->'choices');",
+            " GET DIAGNOSTICS n=ROW_COUNT;",
+            f" IF n<>{len(row['choices'])} THEN RAISE EXCEPTION 'choice count: %',v->>'stable_question_id'; END IF;",
+        ]
+    nk = list(row["key"])
+    body += [
+        " DELETE FROM public.answer_key_entries WHERE question_id=q.id;",
+        f" INSERT INTO public.answer_key_entries(question_id,{','.join(nk)})",
+        f"  SELECT q.id,{','.join(nk)} FROM jsonb_populate_record(NULL::public.answer_key_entries,v->'new'->'key');",
+    ]
+    return do_block(tag, body)
+
+
+def rollback_block(tag: str, it: dict) -> list[str]:
+    """Put the hidden row back exactly as the readback had it, only while the corrected private draft is in place."""
+    snap, row = it["snap"], it["row"]
+    old_q = snap["question"]
+    new_q = {**row["question"], **row["mirror"]}
+    v = {"stable_question_id": it["id"], "key": it["key"],
+         "old": {"question": old_q, "choices": snap.get("choices"), "keys": snap["keys"]}, "new": new_q,
+         "new_choices": len(row["choices"])}
+    want = " AND ".join(
+        [f"q.archived_at IS NULL AND q.publish_status='{STAGED_STATUS}' AND q.import_status='{STAGED_IMPORT}'",
+         "q.content_hash_v2 IS NOT DISTINCT FROM v->'new'->>'content_hash_v2'",
+         "q.question_text IS NOT DISTINCT FROM v->'new'->>'question_text'",
+         "q.correct_answer IS NOT DISTINCT FROM v->'new'->>'correct_answer'",
+         "(SELECT count(*) FROM public.answer_choices c WHERE c.question_id=q.id)=(v->>'new_choices')::int",
+         "(SELECT count(*) FROM public.answer_key_entries k WHERE k.question_id=q.id)=1",
+         # sealed = published: either envelope (a generated key keeps approved_tags under "evidence");
+         # coalesce so an envelope without approved_tags reads as unsealed, never as NULL (which IF NOT skips)
+         "NOT coalesce((SELECT CASE WHEN k.raw_model_response->>'kind'="
+         f"'{GENERATED}' THEN k.raw_model_response->'evidence'->'approved_tags' ELSE"
+         " k.raw_model_response->'approved_tags' END ? 'question_payload_sha256'"
+         " FROM public.answer_key_entries k WHERE k.question_id=q.id),false)"])
+    old_cols = sorted(old_q)
+    body = [f"DECLARE v jsonb:={_blob(v)}; q public.quiz_questions%rowtype; n int;", "BEGIN",
+            " SELECT * INTO q FROM public.quiz_questions WHERE id=(v->'old'->'question'->>'id')::uuid FOR UPDATE;",
+            " IF NOT FOUND THEN RAISE EXCEPTION 'QA row missing: %',v->>'stable_question_id'; END IF;",
+            f" IF NOT ({want}) THEN RAISE EXCEPTION 'QA row is not the corrected private draft: %',"
+            "v->>'stable_question_id'; END IF;",
+            f" UPDATE public.quiz_questions t SET {_set_list(old_cols, set(old_cols), ('id', 'is_live'))}",
+            "  FROM jsonb_populate_record(NULL::public.quiz_questions,v->'old'->'question') r WHERE t.id=q.id;",
+            " DELETE FROM public.answer_choices WHERE question_id=q.id;"]
+    if snap.get("choices"):
+        ccols = sorted(snap["choices"][0])
+        body.append(f" INSERT INTO public.answer_choices({','.join(ccols)}) SELECT {','.join(ccols)}"
+                    " FROM jsonb_populate_recordset(NULL::public.answer_choices,v->'old'->'choices');")
+    kcols = sorted(snap["keys"][0])
+    body += [" DELETE FROM public.answer_key_entries WHERE question_id=q.id;",
+             f" INSERT INTO public.answer_key_entries({','.join(kcols)}) SELECT {','.join(kcols)}"
+             " FROM jsonb_populate_record(NULL::public.answer_key_entries,v->'old'->'keys'->0);"]
+    return do_block(tag, body)
+
+
+def _chunk_sql(kind: str, name: str, k: int, total: int, rows_total: int, items: list, start: int, doc,
+               fp_rows: tuple[int, str], exclude: str) -> str:
+    slug = name.replace("-", "_")
+    head = {"qa": f"-- kimport QA correction: run {name}, chunk {k} of {total} ({len(items)} of {rows_total} rows).\n"
+                  "-- Turns questions QA hid back into private drafts with the reviewer's corrected content, in place"
+                  " (same id).",
+            "qa-rollback": f"-- kimport QA correction rollback: run {name}, chunk {k} of {total} ({len(items)} rows).\n"
+                           "-- Puts the hidden rows back as they were, only while the correction is unpublished."}[kind]
+    out = [head, "-- One transaction: any failed guard aborts every row of this chunk. Nothing is published.",
+           "BEGIN;", ""]
+    if kind == "qa":
+        out.append(f"-- export {doc.exported_at}: {doc.row_count} rows, fingerprint {doc.fingerprint}; "
+                   f"without this run's QA rows: {fp_rows[0]} rows, fingerprint {fp_rows[1]}")
+        out += bulk.run_fingerprint_block(f"kimport_qa_{slug}_c{k:02d}_fingerprint", fp_rows[0], fp_rows[1],
+                                          exclude)
+    for n, it in enumerate(items, start):
+        sec, mod, num = it["source"][1:]
+        out.append(f"-- row {n}: {it['id']} (batch {it['batch']}; {sec} {mod} Q{num}); QA correction of "
+                   f"{it['snap']['question']['id']}")
+        tag = f"kimport_{kind.replace('-', '_')}_{slug}_{n:04d}"
+        out += correct_block(tag, it) if kind == "qa" else rollback_block(tag, it)
+    return "\n".join(out + ["COMMIT;", ""])
+
+
+SWEEP_REASON = re.compile(r"^duplicate of ([0-9a-f-]{36}); un-published by sweep$")
+
+
+def allowed_twins(qa_precheck: Path) -> dict[str, dict]:
+    """{stable id: {twin id: twin}} from a run's qa/qa-precheck.json hidden_twins_allowed, for the
+    publish guards (kimport.publish twin_skip). A run built before the sweep allowance listed QA
+    twins only, as a plain id list. No file: {}."""
+    try:
+        raw = json.loads(Path(qa_precheck).read_text(encoding="utf-8")).get("hidden_twins_allowed") or {}
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for sid, twins in raw.items():
+        if isinstance(twins, list):
+            twins = {t: {"kind": "qa"} for t in twins}
+        out[sid] = {t: (v if isinstance(v, dict) else {"kind": v}) for t, v in twins.items()}
+        bad = [t for t, v in out[sid].items() if v.get("kind") not in ("qa", "sweep", "not_live")
+               or (v["kind"] == "sweep" and not (v.get("reason") and v.get("canonical")))]
+        if bad:
+            raise RefuseToBuild(f"{qa_precheck}: hidden_twins_allowed for {sid} is incomplete ({', '.join(bad)})")
+    return out
+
+
+def twin_candidates(rows: list[dict], hidden_ids: frozenset) -> tuple[dict, dict]:
+    """({id: twin} rows that may be a correction's duplicate twin, {id: why not} sweep rows whose
+    duplicate group has a live row). A twin is a row QA still hides (`hidden_ids`) that is
+    QA-hidden in the export ("qa"); a row the duplicate sweep un-published ("duplicate of <id>;
+    un-published by sweep", private, not archived) when no row of its group is live ("sweep");
+    or any other row that is not live ("not_live"). A live row is never a twin: it still blocks."""
+    live = {r["id"] for r in rows if r.get("is_live") is True}
+    swept: dict[str, list[str]] = {}
+    for r in rows:
+        m = SWEEP_REASON.match(str(r.get("import_flag_reason") or ""))
+        if m:
+            swept.setdefault(m.group(1), []).append(r["id"])
+    out, blocked = {}, {}
+    for r in rows:
+        m = SWEEP_REASON.match(str(r.get("import_flag_reason") or ""))
+        if r["id"] in hidden_ids and is_qa_hidden(r):
+            out[r["id"]] = {"kind": "qa"}
+        elif (m and r.get("is_live") is not True and r.get("archived_at") is None
+              and r.get("publish_status") == UNPUBLISHED_STATUS and r.get("import_status") == UNPUBLISHED_IMPORT):
+            group_live = sorted(i for i in [m.group(1), *swept[m.group(1)]] if i in live)
+            if group_live:
+                blocked[r["id"]] = (f"{r['id']} was un-published by the sweep as a duplicate of {m.group(1)}, and "
+                                    f"its group has a live row ({', '.join(group_live)})")
+            else:
+                out[r["id"]] = {"kind": "sweep", "reason": r["import_flag_reason"], "canonical": m.group(1)}
+        elif not qd.is_live(r):
+            # any other row students cannot see (not is_live, or not publish_ready, or archived) (an old never-published draft, "No answer key entry",
+            # "Certified duplicate of ..."): it cannot become a visible copy, since publish refuses a row
+            # that is the same question as a live one (kimport.publish _live_duplicates)
+            out[r["id"]] = {"kind": "not_live"}
+    return out, blocked
+
+
+def hidden_twins(it: dict, index: dict, rep: dict, candidates: dict) -> dict:
+    """The twins (twin_candidates) the correction now matches on content hash, normalized text,
+    comparison key or at typo level: the duplicate QA or the sweep took off on purpose. They do
+    not block it, in this precheck and in its SQL; a live or otherwise hidden row still does."""
+    q = it["row"]["question"]
+    hits = (index["hash"].get(q.get("content_hash_v2"), []) + index["text"].get(st._norm_text(q.get("question_text")), [])
+            + list(rep.get("exact_matches") or []) + list(rep.get("typo_matches") or []))
+    return {i: candidates[i] for i in sorted(set(hits)) if i in candidates}
+
+
+def build_correct(qa_dirs: list[Path], doc, name: str, snaps: list[dict], exams_dir: Path = bulk.EXAMS,
+                  staged: list[dict] = (), chunk_size: int = 0, rows_docs: dict | None = None,
+                  rows_runner=st.stage_rows, hidden_ids: frozenset = frozenset(), done: dict | None = None) -> dict:
+    """Returns {"files", "preview_rows", "items", "refused", "refused_batches", "precheck"}.
+
+    `snaps` is a fresh read-only readback (st.readback_sql over the batches' sources);
+    `staged` are the run's newly staged items (checked against these rows and left out
+    of the fingerprint, as are these rows). `hidden_ids`: the rows QA still hides
+    (qa_hide.currently_hidden); one of them that is QA-hidden in the export and shares the
+    correction's text or hash is its hidden duplicate twin and does not block it. `done`
+    (read_corrections): batch rows already published as their correction are left out (listed
+    under already_corrected), so a batch can be taken again for its rows still hidden."""
+    batches, refused_batches = bulk.load_batches(qa_dirs, exams_dir, rows_docs, rows_runner)
+    by_export, by_snap = {}, {}
+    for r in doc.rows:
+        by_export.setdefault(st._source(r), []).append(r)
+    skipped = {}
+    for b in batches:
+        keep = []
+        for it in b["items"]:
+            live_id = already_corrected(it, by_export.get(it["source"], []), done or {})
+            if live_id:
+                skipped[it["id"]] = live_id
+            else:
+                keep.append(it)
+        b["items"] = keep
+    items = [it for b in batches for it in b["items"]]
+    for s in snaps:
+        by_snap.setdefault(st._source(s.get("question") or {}), []).append(s)
+    refused: dict[str, list[str]] = {}
+    for it in items:
+        it["snap"], why = check_row(it, by_export.get(it["source"], []), by_snap.get(it["source"], []))
+        why = why + it.get("figure_gate", [])  # the founder's figure gate, as stage and publish apply it
+        why = why + it.get("qa_gate", [])  # the import publish gate (QA audit fail-level checks), as stage applies it
+        if why:
+            refused[it["id"]] = why
+    ok = [it for it in items if it["id"] not in refused]
+    own = {it["snap"]["question"]["id"] for it in ok}
+    others = [r for r in doc.rows if r["id"] not in own]
+    report, _ = duplicate_check(ok, others) if ok else ({"rows": []}, None)
+    index = st.export_index(others)
+    candidates, blocked = twin_candidates(others, hidden_ids)
+    # the same question as a live row, or a printed-key twin keying another choice (kimport.bank_gate);
+    # the hidden twins are not live, so they never count here
+    live = bank_gate.staged_reasons(ok, doc.rows, lambda it: [it["snap"]["question"]["id"]])
+    run = list(staged) + ok
+    inside = bulk._run_conflicts(run)
+    for n, (it, rep) in enumerate(zip(ok, report["rows"])):
+        it["twin_rows"] = hidden_twins(it, index, rep, candidates)
+        it["hidden_twins"] = sorted(it["twin_rows"])
+        skip = frozenset(it["hidden_twins"])
+        exact = [i for i in rep["exact_matches"] if i not in skip]
+        typo = [i for i in rep["typo_matches"] if i not in skip]
+        why = (([f"same comparison key as {', '.join(exact)}"] if exact else [])
+               + ([f"typo-level match with {', '.join(typo)}"] if typo else [])
+               + st._export_conflicts(it, index, skip) + inside.get(len(staged) + n, []) + live.get(it["id"], []))
+        if why:
+            q = it["row"]["question"]
+            hits = set(rep["exact_matches"]) | set(rep["typo_matches"]) | set(
+                index["hash"].get(q.get("content_hash_v2"), [])) | set(index["text"].get(st._norm_text(q.get("question_text")), []))
+            why += [blocked[i] for i in sorted(hits) if i in blocked]
+        if why:
+            refused[it["id"]] = why
+    ok = [it for it in ok if it["id"] not in refused]
+    # The fingerprint covers the bank without this run's rows: the staged ones (not in the export, left out
+    # by source) and these (in the export, left out by id, so the fingerprint is over the export without them).
+    own = sorted(it["snap"]["question"]["id"] for it in ok)
+    rest = [r for r in doc.rows if r["id"] not in set(own)]
+    fp_rows = (len(rest), fingerprint(rest))
+    exclude = " AND ".join(([bulk._source_exclude([it["source"] for it in staged])] if staged else [])
+                           + ([bulk._id_exclude(own)] if own else [])) or "true"
+    files: dict[str, str] = {}
+    chunks = []
+    parts = bulk._chunks(ok, chunk_size) if ok else []
+    try:
+        for kind in ("qa-rollback", "qa"):
+            start = 1
+            for k, (fname, part) in enumerate(zip(bulk._names(kind, len(parts)), parts), 1):
+                sql = _chunk_sql(kind, name, k, len(parts), len(ok), part, start, doc, fp_rows, exclude)
+                start += len(part)
+                files[fname.replace(".sql", ".dryrun.sql")] = dryrun_variant(sql)
+                files[fname] = sql
+                if kind == "qa":
+                    chunks.append({"file": fname, "rows": len(part), "sha256": bulk._sha(sql)})
+    except ValueError as e:
+        raise RefuseToBuild(str(e)) from None
+    rb_parts = bulk._chunks(ok, bulk.READBACK_ROWS) if ok else []
+    rb_names = [f"qa-{n}" for n in bulk._names("readback", len(rb_parts))] if ok else []
+    for k, (fname, part) in enumerate(zip(rb_names, rb_parts), 1):
+        files[fname] = st.readback_sql(f"{name} QA corrections, part {k} of {len(rb_parts)}",
+                                       [it["source"] for it in part])
+    corrections = [{"question_id": it["snap"]["question"]["id"], "stable_question_id": it["id"],
+                    "batch": it["batch"], "qa_reason": it["snap"]["question"].get("import_flag_reason"),
+                    "before_content_hash_v2": it["snap"]["question"].get("content_hash_v2"),
+                    "after_content_hash_v2": it["row"]["question"].get("content_hash_v2"),
+                    "before_correct_answer": it["snap"]["question"].get("correct_answer"),
+                    "after_correct_answer": it["row"]["question"].get("correct_answer")} for it in ok]
+    precheck = {"batch": name, "qa_correction": True, "chunks": chunks, "readback_files": rb_names,
+                "hidden_twins_allowed": {it["id"]: it["twin_rows"] for it in ok if it.get("twin_rows")},
+                "qa_sql_sha256": bulk._sha("".join(files[c["file"]] for c in chunks)),
+                "corrected_ids": [it["id"] for it in ok], "corrections": corrections,
+                "already_corrected": skipped,
+                "refused": [{"id": k, "batch": next((i["batch"] for i in items if i["id"] == k), None),
+                             "reasons": v} for k, v in refused.items()],
+                "refused_batches": [{"folder": k, "reason": v} for k, v in sorted(refused_batches.items())],
+                "batches": {b["batch"]: {"folder": Path(b["dir"]).name, "rows": len(b["items"]),
+                                         "corrected": sum(1 for it in ok if it["batch"] == b["batch"])}
+                            for b in batches}}
+    preview_rows = [{**st.preview_row(it["row"], it["key"]), "kimport_batch": it["batch"], "kimport_qa": True}
+                    for it in ok]
+    files = {"qa-precheck.json": st._dump(precheck), **files}
+    return {"files": files, "preview_rows": preview_rows, "items": ok, "refused": refused,
+            "refused_batches": refused_batches, "precheck": precheck}
+
+
+def fix_path_corrections(seal_dir: Path, hidden: dict[str, dict]) -> list[dict]:
+    """Correction lines for QA corrections published through the fix path: a QA correction held at
+    seal left a private draft on the QA-hidden row, and its evidence fix batch published that row
+    (sealed-preview rows marked kimport_fix whose row is still in qa/hidden.jsonl, `hidden` =
+    qa_hide.currently_hidden). Same shape as build_correct's lines; "before" is the row as it was
+    when QA hid it (hidden.jsonl keeps no key), "after" the published row; "via": "fix"."""
+    seal_dir = Path(seal_dir)
+    sealed = json.loads((seal_dir / "sealed-preview.json").read_text(encoding="utf-8"))["rows"]
+    snaps = [r["snapshot"] for r in json.loads((seal_dir / "private-readback.json").read_text(encoding="utf-8"))["rows"]]
+    by_source = {st._source(s["question"]): s["question"] for s in snaps}
+    out = []
+    for p in sealed:
+        q = by_source.get(st._source(p))
+        if not p.get("kimport_fix") or q is None or q.get("id") not in hidden:
+            continue
+        h = hidden[q["id"]]
+        out.append({"question_id": q["id"], "stable_question_id": p["stable_question_id"], "batch": p.get("kimport_batch"),
+                    "qa_reason": h.get("reason"), "before_content_hash_v2": h.get("content_hash_v2"),
+                    "after_content_hash_v2": q.get("content_hash_v2"), "before_correct_answer": None,
+                    "after_correct_answer": q.get("correct_answer"), "via": "fix"})
+    return out
+
+
+def backfill_fix_corrections(pipe: Path, run: str, now: str) -> dict:
+    """`k qa record-fix-corrections`: record the QA corrections an earlier autopilot run published through
+    the fix path (before the autopilot recorded them itself). Idempotent: a row already recorded is no
+    longer currently hidden, so it is not written again."""
+    pipe = Path(pipe)
+    result = json.loads((pipe / run / "result.json").read_text(encoding="utf-8"))
+    if result.get("result") != "published":
+        raise ValueError(f"{run} did not publish (result {result.get('result')!r}); nothing to record")
+    lines = fix_path_corrections(pipe / run / "seal", qa_hide.currently_hidden(pipe / "qa"))
+    n = record_corrections(pipe / "qa", lines, {c["stable_question_id"] for c in lines}, run, now)
+    return {"run": run, "recorded": n, "ids": [c["question_id"] for c in lines]}
+
+
+def record_corrections(qa_dir: Path, corrections: list[dict], published_ids: set, run: str, at: str) -> int:
+    """Append one line per published correction to pipeline/qa/corrections.jsonl (the row keeps its id),
+    then rewrite qa/restore.sql, which no longer lists the corrected rows (kimport.qa_hide.currently_hidden)."""
+    rows = [{**c, "run": run, "at": at} for c in corrections if c["stable_question_id"] in published_ids]
+    if not rows:
+        return 0
+    Path(qa_dir).mkdir(parents=True, exist_ok=True)
+    with open(Path(qa_dir) / CORRECTIONS, "a", encoding="utf-8") as f:
+        for r in rows:
+            f.write(json.dumps(r, sort_keys=True, ensure_ascii=False) + "\n")
+    if (Path(qa_dir) / "hidden.jsonl").exists():
+        qa_hide.write_undo(Path(qa_dir))
+    return len(rows)

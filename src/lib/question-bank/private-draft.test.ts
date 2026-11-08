@@ -82,7 +82,7 @@ describe("private draft write boundary", () => {
       import_status: "needs_review",
       publish_status: "needs_human_review",
       verified_answer: "B",
-      answer_source: "inferred",
+      answer_source: null,
     });
     expect((c.writes[0].payload as Record<string, unknown>).is_live).toBeUndefined();
     expect(c.writes.find((w) => w.table === "answer_key_entries")?.payload).toMatchObject({

@@ -1,0 +1,798 @@
+{
+  "exported_at": "2026-10-20T12:00:00+00:00",
+  "row_count": 14,
+  "fingerprint": "7ca919e6c480f7a393d7eb468f8678ce",
+  "rows": [
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000001",
+      "question_text": "A bakery packs muffins in boxes of 6. If the bakery packs 24 muffins, how many boxes does it fill?",
+      "correct_answer": "B",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 1,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000001",
+      "created_at": "2026-01-10T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "2"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "4"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "6"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "8"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000002",
+      "question_text": "A bakery packs muffins in boxes of 6. If the bakery packs 24 muffins, how many boxes does it fill?",
+      "correct_answer": "B",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 2,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000002",
+      "created_at": "2026-01-20T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "2"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "4"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "6"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "8"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000003",
+      "question_text": "A bakery packs muffins in boxes of 6. If the bakery packs 24 muffins, how many boxes does it fill?",
+      "correct_answer": "B",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "needs_human_review",
+      "import_status": "needs_review",
+      "import_flag_reason": "synthetic held row",
+      "is_live": false,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 3,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000003",
+      "created_at": "2025-12-01T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "2"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "4"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "6"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "8"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": false,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000011",
+      "question_text": "Which choice best describes the main purpose of the text about the lighthouse keeper's daily routine?",
+      "correct_answer": "B",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 11,
+      "content_hash_v2": "000000000000000000000000000000000000000000000000000000000000000b",
+      "created_at": "2026-02-15T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "To praise a tradition"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "To describe a routine"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "To criticize a policy"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "To compare two places"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000012",
+      "question_text": "Which choice best describes the main purpose of the text about the lighthouse keeper's daily routine?",
+      "correct_answer": "A",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 12,
+      "content_hash_v2": "000000000000000000000000000000000000000000000000000000000000000c",
+      "created_at": "2026-02-01T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "To describe a routine"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "To compare two places"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "To praise a tradition"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "To criticize a policy"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000021",
+      "question_text": "The gardener planted rows of beans along the fence. According to the text, why did the gardner pick that spot?",
+      "correct_answer": "A",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 21,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000015",
+      "created_at": "2026-03-01T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "It was sunny"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "It was shaded"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "It was near water"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "It was sheltered"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000022",
+      "question_text": "The gardener planted rows of beans along the fence. According to the text, why did the gardener pick that spot?",
+      "correct_answer": "A",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 22,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000016",
+      "created_at": "2026-03-05T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "It was sunny"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "It was shaded"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "It was near water"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "It was sheltered"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000023",
+      "question_text": "The gardener planted rows of beans along the fence. According to the text, why did the gardener pick that spot?",
+      "correct_answer": "A",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 23,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000017",
+      "created_at": "2026-03-09T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "It was sunny"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "It was shaded"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "It was near water"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "It was sheltered"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000024",
+      "question_text": "A store tracks its weekly sales of lamps. If x - 3 = 7, what is the value of 2x?",
+      "correct_answer": "C",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 24,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000018",
+      "created_at": "2026-04-01T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "8"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "14"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "20"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "26"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000025",
+      "question_text": "A store tracks its weekly sales of lamps. If x + 3 = 7, what is the value of 2x?",
+      "correct_answer": "C",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 25,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000019",
+      "created_at": "2026-04-02T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "8"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "14"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "20"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "26"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000026",
+      "question_text": "If 3n = 12, what is the value of n?",
+      "correct_answer": "4",
+      "question_format": "numeric_entry",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 26,
+      "content_hash_v2": "000000000000000000000000000000000000000000000000000000000000001a",
+      "created_at": "2026-04-03T09:00:00+00:00",
+      "choices": [],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000031",
+      "question_text": "The graph shows the height of a plant over 5 weeks. What was the height of the plant at week 3?",
+      "correct_answer": "B",
+      "question_format": "multiple_choice",
+      "figure_kind": "graph",
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "reading",
+      "source_module": "M1",
+      "source_question_number": 31,
+      "content_hash_v2": "000000000000000000000000000000000000000000000000000000000000001f",
+      "created_at": "2026-05-01T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "4 cm"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "6 cm"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "8 cm"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "10 cm"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000032",
+      "question_text": "The graph shows the height of a plant over 5 weeks. What was the height of the plant at week 3?",
+      "correct_answer": "B",
+      "question_format": "multiple_choice",
+      "figure_kind": "graph",
+      "figure_table_data": null,
+      "publish_status": "publish_ready",
+      "import_status": "ok",
+      "import_flag_reason": null,
+      "is_live": true,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "reading",
+      "source_module": "M1",
+      "source_question_number": 32,
+      "content_hash_v2": "0000000000000000000000000000000000000000000000000000000000000020",
+      "created_at": "2026-05-02T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "4 cm"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "6 cm"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "8 cm"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "10 cm"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": true,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    },
+    {
+      "image_url": null,
+      "image_storage_path": null,
+      "figure_svg": null,
+      "figure_graph_data": null,
+      "figure_chart_data": null,
+      "figure_geometry_data": null,
+      "passage_intro": null,
+      "passage": null,
+      "passage_a": null,
+      "passage_b": null,
+      "id": "00000000-0000-4000-8000-000000000027",
+      "question_text": "A gardener sells 12 tomatoes at the market. How many are left after 5 are sold?",
+      "correct_answer": "B",
+      "question_format": "multiple_choice",
+      "figure_kind": null,
+      "figure_table_data": null,
+      "publish_status": "needs_human_review",
+      "import_status": "needs_review",
+      "import_flag_reason": "synthetic held row",
+      "is_live": false,
+      "archived_at": null,
+      "source_version": "synthetic-v1",
+      "source_section": "math",
+      "source_module": "M1",
+      "source_question_number": 27,
+      "content_hash_v2": "000000000000000000000000000000000000000000000000000000000000001b",
+      "created_at": "2025-11-01T09:00:00+00:00",
+      "choices": [
+        {
+          "choice_table_data": null,
+          "letter": "A",
+          "choice_text": "5"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "B",
+          "choice_text": "7"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "C",
+          "choice_text": "12"
+        },
+        {
+          "choice_table_data": null,
+          "letter": "D",
+          "choice_text": "17"
+        }
+      ],
+      "raw_model_response": {
+        "student_publication_allowed": false,
+        "approved_tags": {
+          "skill_label": "Synthetic"
+        }
+      },
+      "answer_key_count": 1
+    }
+  ]
+}
