@@ -56,6 +56,9 @@ The list of changes, with before and after pictures, is in
   log that no email went out.
 - The lead form could be crashed with a made-up form name, and names could
   carry hidden characters into the admin email. Fixed.
+- The email sign-up accepted a 10,000-character address. It now stops at 254.
+- One admin email (a failed class placement) put the student's name into its
+  HTML as typed, so a name could carry a link. It is now escaped.
 - The consent banner could not save a signed-out visitor's choice. Fixed.
 - /coming-soon still said "not ready" after launch. It now sends people home.
 - www.karmanprep.com served a second copy of the site. It now redirects to
@@ -92,7 +95,6 @@ The list of changes, with before and after pictures, is in
 - Two header links over the opening film are a little faint at 1440 and 1920.
 - Several API routes send raw error details to the browser; the onboarding
   questionnaire doesn't check the parent email's shape or answer lengths; the
-  placement-failure admin email doesn't escape the student's name; the
   hidden anti-bot field is named "company", which autofill might fill.
 - The onboarding page still carries on to checkout if the account sync fails.
   That file belongs to the pricing work tonight, so I left it.
@@ -111,11 +113,21 @@ The list of changes, with before and after pictures, is in
 - Every photo and clip: zoomed in at full size on the frame edges, screen
   text, glare and shadow, and on the crops the site uses.
 - Unit tests: the middleware (6, including a new one for the launched site),
-  the lead forms and the sign-in routes (19). All pass.
+  the lead forms and the sign-in routes (19), the email sign-up rules (9).
+  All pass.
 - Lint and Prettier on every file I changed: clean. File sizes: OK.
-- Local server (port 3104, local database): /pricing loads with no Clerk
-  redirect; the 404 page answers 404; the after-checks in
-  `docs/overnight/reports/site-audit/README.md` were run headless.
+- Local server (port 3104, local database), headless Chromium:
+  - /pricing loads with no Clerk redirect and no Clerk headers.
+  - /program at 390 px: the form card is 553 px tall with nothing hidden; the
+    date field is there; a tap on "Send the application" lands on the button.
+  - Home at 390 px with scripts turned off: the headline words and both
+    buttons are fully shown.
+  - A missing public address (/blog/an-old-post) answers 404 with the site's
+    look, six links, noindex, and no stray floating theme button.
+- Not run: the full test suite, the full type check and `npm run cf:build`.
+  Five sessions were type-checking at once and the machine was at load 21;
+  my type check had not finished by the deadline. The QA sweep should run
+  them on the merged branch.
 - I did not use the app's built-in browser after the freeze.
 
 ## Decisions I made

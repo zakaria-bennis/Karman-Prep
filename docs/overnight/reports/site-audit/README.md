@@ -39,29 +39,31 @@ Before (left) and after (right), one sheet per photo:
 
 ## Bugs fixed
 
-| What was wrong                                                                     | Where                                  | Fix                                                         |
-| ---------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------- |
-| The /program application form was cut off on phones: no date field, no send button | `program/page.tsx`, `inner.css`        | The card no longer shares the laptop pictures' `wide` class |
-| On /program at 1100 px and wider, the steps scrolled over their own heading        | `inner.css`                            | Only headings in their own column stay pinned               |
-| "+285" on /private-tutoring failed contrast in light mode (2.0:1)                  | `inner.css`                            | Darker marigold: 4.9:1                                      |
-| Mistyped addresses showed Next's bare "404" page                                   | `src/app/not-found.tsx`                | A 404 page in the site's look, with links                   |
-| A failing page showed Next's bare error                                            | `(site)/error.tsx`, `global-error.tsx` | Error pages in the site's look, with "Try again"            |
-| Tab walked out of the open phone menu                                              | `ShellBehaviour.tsx`                   | The page behind the menu is inert while it's open           |
-| The study-tools arrows did nothing on wide screens                                 | `ToolsCarousel.tsx`                    | Shown only when the cards overflow; rest at each end        |
-| Legal-page links lost the visitor's light/dark choice                              | terms, privacy, refunds                | Plain links (full page loads)                               |
-| "The guarantee, with worked examples" reloaded the same page                       | guarantee page                         | Jumps to the worked examples                                |
-| Crawlers and link previews looped through Clerk's development sign-in              | `src/middleware.ts`                    | Marketing pages skip Clerk after launch                     |
-| www.karmanprep.com served a second copy of the site                                | `src/middleware.ts`                    | Permanent redirect to karmanprep.com                        |
-| /coming-soon still said "not ready" after launch                                   | `src/middleware.ts`                    | Sends visitors home                                         |
-| The consent banner couldn't save a signed-out visitor's choice                     | `src/middleware.ts`                    | `/api/consent` is public                                    |
-| No security headers; `x-powered-by: Next.js`                                       | `next.config.mjs`                      | HSTS, nosniff, framing, referrer, permissions, COOP         |
-| Built files and photos re-downloaded on every visit                                | `public/_headers`                      | Built files cached for a year, photos and films a day       |
-| Parents who signed up never got an account row                                     | `src/app/api/auth/schemas.ts`          | "parent" is accepted at sign-up                             |
-| With email switched off, every lead form failed                                    | `resend/client.ts`                     | Sends return an error result and log instead                |
-| The lead form crashed on a made-up form name; names could hide control characters  | `lead-actions.ts`                      | Both checked with Zod                                       |
-| The home films used a format iPhones can't play (H.264 4:4:4), 31 MB in all        | `public/site/film/`                    | Standard H.264, 20 MB, same frames                          |
-| The opening headline waited about 8 s for scripts on a slow phone                  | `film.css`                             | Rises from CSS at first paint                               |
-| Photo clips downloaded with the page, far below the fold                           | `Photo.tsx`                            | Load and play only near the screen                          |
+| What was wrong                                                                     | Where                                    | Fix                                                         |
+| ---------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------- |
+| The /program application form was cut off on phones: no date field, no send button | `program/page.tsx`, `inner.css`          | The card no longer shares the laptop pictures' `wide` class |
+| On /program at 1100 px and wider, the steps scrolled over their own heading        | `inner.css`                              | Only headings in their own column stay pinned               |
+| "+285" on /private-tutoring failed contrast in light mode (2.0:1)                  | `inner.css`                              | Darker marigold: 4.9:1                                      |
+| Mistyped addresses showed Next's bare "404" page                                   | `src/app/not-found.tsx`                  | A 404 page in the site's look, with links                   |
+| A failing page showed Next's bare error                                            | `(site)/error.tsx`, `global-error.tsx`   | Error pages in the site's look, with "Try again"            |
+| Tab walked out of the open phone menu                                              | `ShellBehaviour.tsx`                     | The page behind the menu is inert while it's open           |
+| The study-tools arrows did nothing on wide screens                                 | `ToolsCarousel.tsx`                      | Shown only when the cards overflow; rest at each end        |
+| Legal-page links lost the visitor's light/dark choice                              | terms, privacy, refunds                  | Plain links (full page loads)                               |
+| "The guarantee, with worked examples" reloaded the same page                       | guarantee page                           | Jumps to the worked examples                                |
+| Crawlers and link previews looped through Clerk's development sign-in              | `src/middleware.ts`                      | Marketing pages skip Clerk after launch                     |
+| www.karmanprep.com served a second copy of the site                                | `src/middleware.ts`                      | Permanent redirect to karmanprep.com                        |
+| /coming-soon still said "not ready" after launch                                   | `src/middleware.ts`                      | Sends visitors home                                         |
+| The consent banner couldn't save a signed-out visitor's choice                     | `src/middleware.ts`                      | `/api/consent` is public                                    |
+| No security headers; `x-powered-by: Next.js`                                       | `next.config.mjs`                        | HSTS, nosniff, framing, referrer, permissions, COOP         |
+| Built files and photos re-downloaded on every visit                                | `public/_headers`                        | Built files cached for a year, photos and films a day       |
+| Parents who signed up never got an account row                                     | `src/app/api/auth/schemas.ts`            | "parent" is accepted at sign-up                             |
+| With email switched off, every lead form failed                                    | `resend/client.ts`                       | Sends return an error result and log instead                |
+| The lead form crashed on a made-up form name; names could hide control characters  | `lead-actions.ts`                        | Both checked with Zod                                       |
+| The email sign-up accepted a 10,000-character address                              | `src/app/api/email/schemas.ts`           | Capped at 254                                               |
+| A placement-failure admin email put the typed name into its HTML                   | `src/app/api/onboarding/submit/route.ts` | Escaped                                                     |
+| The home films used a format iPhones can't play (H.264 4:4:4), 31 MB in all        | `public/site/film/`                      | Standard H.264, 20 MB, same frames                          |
+| The opening headline waited about 8 s for scripts on a slow phone                  | `film.css`                               | Rises from CSS at first paint                               |
+| Photo clips downloaded with the page, far below the fold                           | `Photo.tsx`                              | Load and play only near the screen                          |
 
 ## Screenshots
 
