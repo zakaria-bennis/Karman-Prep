@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Panel, PortalShell } from "@/components/portal";
 import { ADMIN_NAV, adminTitle } from "./admin-nav";
+import "./admin-shell.css";
 
 export default function AdminShell({
   name,
@@ -34,7 +35,9 @@ export default function AdminShell({
         { label: "Public site", href: "/" },
       ]}
     >
-      <Panel label="Admin">{children}</Panel>
+      <Panel label="Admin">
+        <div className="kp-admin">{children}</div>
+      </Panel>
     </PortalShell>
   );
 }
