@@ -80,7 +80,8 @@ The list of changes, with before and after pictures, is in
 - The email sign-up accepted a 10,000-character address. It now stops at 254.
 - One admin email (a failed class placement) put the student's name into its
   HTML as typed, so a name could carry a link. It is now escaped.
-- The consent banner could not save a signed-out visitor's choice. Fixed.
+- The consent banner could not save a signed-out visitor's choice, and it
+  hid itself even when the save failed. Both fixed.
 - /coming-soon still said "not ready" after launch. It now sends people home.
 - www.karmanprep.com served a second copy of the site. It now redirects to
   karmanprep.com.
@@ -159,9 +160,12 @@ The list of changes, with before and after pictures, is in
   `pdf-parse`. Both are in package.json but not installed in this worktree;
   `npm ci` on the merged branch fixes them. My own earlier type error in the
   middleware is fixed.
-- Theme tests (86), middleware and calculator route tests (12), copy, lead
-  form, sign-in and email tests: all pass. Lint, Prettier and file sizes are
-  clean on every file changed today.
+- Full unit test suite: 9,397 tests pass. My first theme change broke one
+  calculator guard test (it requires `palettes.ts` to stay exactly as the
+  calculator expects); I moved the device fallback into its own file and the
+  guard passes again. One test file (the scholarship PDF check) can't load
+  here for the same missing `pdf-lib` package. Lint, Prettier and file sizes
+  are clean on every file changed today.
 - Not run: `npm run cf:build` (the brief allows one, at the end, and the
   machine was at load 20 or more all morning).
 - I did not use the app's built-in browser after the freeze.
