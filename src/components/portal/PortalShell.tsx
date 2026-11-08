@@ -117,7 +117,6 @@ export default function PortalShell({
       if (safety.current) clearTimeout(safety.current);
     };
     // The painting is chosen once per mount; the heading follows `title` below.
-     
   }, []);
 
   /* A new page title types in again. */

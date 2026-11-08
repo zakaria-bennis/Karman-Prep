@@ -51,3 +51,8 @@ vendor/
 
 # Golden figure snapshots are compared byte for byte (tests/unit/figures/engine/golden.test.ts).
 tests/fixtures/figures/golden/__snapshots__/
+# Reviewed design prototypes (vanilla JS references, not product code)
+prototypes/
+# Design mocks (vanilla JS references) and image-generation manifests, not product code
+.impeccable/
+assets/

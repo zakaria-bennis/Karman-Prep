@@ -1,0 +1,12 @@
+/* 21st.dev component 37311 (bysages/switch), ported to plain HTML and recoloured with Karman's tokens, the same
+   port the logo gallery (../logo/index.html) uses: a track that rests in the night's raised tone and fills flat
+   with bone when on, the thumb sliding on a spring. Here it is the footer's film control (rule 38: nothing
+   visible sits over the background film): aria-checked true means the film plays. */
+.sw { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 700; font-size: 15px; color: var(--bone); }
+/* the button is 46 by 44 (the hit area); the track it draws is 46 by 28 */
+.sw-control { position: relative; width: 46px; height: 44px; flex: none; border: 0; padding: 0; cursor: pointer; background: none; }
+.sw-control::before { content: ""; position: absolute; left: 0; top: 8px; width: 46px; height: 28px; border-radius: 999px; background: var(--night2); transition: background .2s var(--ease); }
+.sw-thumb { position: absolute; top: 11px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--bone2); transition: transform .35s var(--spring), background-color .2s var(--ease); }
+.sw-control[aria-checked="true"]::before { background: var(--bone); }
+.sw-control[aria-checked="true"] .sw-thumb { background: var(--night); transform: translateX(18px); }
+@media (prefers-reduced-motion: reduce) { .sw-thumb, .sw-control { transition: none; } }

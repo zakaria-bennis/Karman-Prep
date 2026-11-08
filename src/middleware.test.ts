@@ -25,7 +25,7 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
   vi.stubEnv("NODE_ENV", "production");
   // An accidentally configured development bypass must not remove protection.
   vi.stubEnv("DEV_IMPERSONATE_CLERK_ID", "dev_seed_admin");
-  const { default: middleware } = await import("./middleware");
+  const { karmanAuth: middleware } = await import("./middleware");
   expect(captured.middlewareOptions).toEqual(KARMAN_AUTH_ROUTES);
   const protect = vi.fn().mockResolvedValue(undefined);
   const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
@@ -73,7 +73,7 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
 it("retains an explicit maintenance rollback without hiding the sign-in flow", async () => {
   vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "false");
   vi.stubEnv("NODE_ENV", "production");
-  const { default: middleware } = await import("./middleware");
+  const { karmanAuth: middleware } = await import("./middleware");
   const protect = vi.fn();
   const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
   const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;
@@ -88,7 +88,7 @@ it("retains an explicit maintenance rollback without hiding the sign-in flow", a
 it("keeps only the Cal OAuth routes open, not every path starting with /api/cal", async () => {
   vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "true");
   vi.stubEnv("NODE_ENV", "production");
-  const { default: middleware } = await import("./middleware");
+  const { karmanAuth: middleware } = await import("./middleware");
   const protect = vi.fn().mockResolvedValue(undefined);
   const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
   const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;
@@ -115,7 +115,7 @@ it("keeps only the Cal OAuth routes open, not every path starting with /api/cal"
 it("keeps the maintenance gate on look-alike /api/cal paths", async () => {
   vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "false");
   vi.stubEnv("NODE_ENV", "production");
-  const { default: middleware } = await import("./middleware");
+  const { karmanAuth: middleware } = await import("./middleware");
   const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect: vi.fn() });
   const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;
   const callback = await run(
@@ -132,7 +132,7 @@ it("lets calendar apps fetch a feed link without signing in, in both launch mode
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", launched);
     vi.stubEnv("NODE_ENV", "production");
-    const { default: middleware } = await import("./middleware");
+    const { karmanAuth: middleware } = await import("./middleware");
     const protect = vi.fn();
     const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
     const run = middleware as unknown as (
@@ -143,4 +143,26 @@ it("lets calendar apps fetch a feed link without signing in, in both launch mode
     expect(result.headers.get("x-middleware-rewrite")).toBeNull();
     expect(protect).not.toHaveBeenCalled();
   }
+});
+
+it("after launch, serves marketing pages without Clerk, sends www home and retires /coming-soon", async () => {
+  vi.stubEnv("NEXT_PUBLIC_KARMAN_LAUNCHED", "true");
+  vi.stubEnv("NODE_ENV", "production");
+  const { default: middleware } = await import("./middleware");
+  const run = middleware as unknown as (request: NextRequest, event: unknown) => Promise<Response>;
+  for (const path of ["/", "/pricing", "/program", "/terms", "/sitemap.xml"]) {
+    const res = await run(new NextRequest(`https://karmanprep.com${path}`), {});
+    expect(res.headers.get("x-middleware-next"), path).toBe("1");
+  }
+  const www = await run(
+    new NextRequest("https://www.karmanprep.com/pricing?x=1", {
+      headers: { host: "www.karmanprep.com" },
+    }),
+    {}
+  );
+  expect(www.status).toBe(308);
+  expect(www.headers.get("location")).toBe("https://karmanprep.com/pricing?x=1");
+  const soon = await run(new NextRequest("https://karmanprep.com/coming-soon"), {});
+  expect(soon.status).toBe(307);
+  expect(soon.headers.get("location")).toBe("https://karmanprep.com/");
 });

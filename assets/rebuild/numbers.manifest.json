@@ -1,0 +1,41 @@
+{
+  "about": "Numbers direction (rebuild round, 2026-11-01): temporary stand-ins for Gemini batch 2 slots in .impeccable/mocks/rebuild/numbers. Founder approved all image creation in chat on 2026-11-01.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "4:5",
+    "suffix": "",
+    "stillSuffix": "Photorealistic editorial studio photograph. Colour grade: warm neutral, gentle contrast, shadows leaning toward deep pine green, natural skin tones, fine film grain. Real skin texture, calm and focused, never laughing. No text, letters or numbers anywhere. No logos on clothing or devices. No paper, notebooks, pencils or calculators. No purple, no neon, no glowing orbs, no lens flare, no gradients in the backdrop. Device screens face away from the camera. Hands have five fingers."
+  },
+  "cast": {},
+  "shots": [],
+  "plates": [],
+  "stills": [
+    {
+      "id": "numbers-pine-floor",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "hero (stand-in for cast-student-pine-floor.png)",
+      "prompt": "Overhead studio photograph looking straight down at a 16-year-old student sitting cross-legged on a seamless paper floor in solid deep pine green (#1F4D45) that fills the whole frame edge to edge. An open silver laptop rests on their knees, the lid seen from above so the screen is not visible. Sand-coloured hoodie, white socks, small white earbuds. Head tilted down toward the laptop, concentrating. Even soft top light, the student centred with generous flat pine green space around them."
+    },
+    {
+      "id": "numbers-parent-clay",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "guarantee (stand-in for cast-parent-clay.png)",
+      "prompt": "Studio portrait of a parent in their mid-forties, waist up, against a seamless paper backdrop in solid deep clay red (#9A3B26) that fills the whole frame. Navy work jacket over a white shirt. Holding a phone loosely in one hand by their side, screen turned toward their body. Looking directly at the camera, calm and reassured, a slight smile. Soft key light from the right, warm rim light on the shoulder. Eye level, 85mm lens look. The subject sits slightly right of centre."
+    },
+    {
+      "id": "numbers-student-marigold",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "class section student tile (stand-in for zoom-student-tile.png until it lands)",
+      "prompt": "A frame that looks like a laptop webcam view on a video call: a 17-year-old student seen straight on from screen height, head and shoulders, centred, at her desk in her own bedroom in the evening. A warm desk lamp lights her face from the side; behind her a softly blurred bookshelf. She leans slightly toward the camera, listening hard, small wired earbuds in. Slight webcam softness, no interface, no other people."
+    }
+  ]
+}

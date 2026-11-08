@@ -4,7 +4,7 @@
 // (`Q.y\sim mQ.x+b`), Desmos evaluates both sides whole, numbers broadcast and lists cut to the
 // shortest, and minimises the sum of (L − M)². With parameters on the left the observed values are
 // 0 and the model is M − L, so the residuals are still L − M and the statistic is RMSE; otherwise L
-// is the data as usual. The multi-start search runs too (multi-start-fit.ts). Pure TypeScript.
+// is the data as usual. Pure TypeScript.
 
 import type { Deadline } from "../deadline";
 import { compileExpression, type CompileScope } from "../eval/compile";
@@ -16,6 +16,7 @@ import { exactOf, exactValue, literalValue } from "../eval/exact-values";
 import type { Fraction } from "../lib/rational";
 import { fitRegression, type RegressionResult } from "../../regression/fit";
 import { hasIndex, type RegressionAnalysis } from "./regression-analysis";
+import { restrictionOf, withoutRestrictions } from "./regression-restriction";
 
 const real = (v: Value | undefined): number =>
   v !== undefined && v.type === "number" && Number.isFinite(v.value) ? v.value : NaN;
@@ -64,9 +65,9 @@ export function fitWholeValues(
     const list = scope.values.get(name);
     if (list !== undefined) vars[name] = list;
   }
-  const sides = (p: ArrayLike<number>) => {
+  const sides = (p: ArrayLike<number>, rightSide: typeof right = right) => {
     r.params.forEach((name, j) => (vars[name] = numberValue(p[j])));
-    return [left(vars, deadline), right(vars, deadline)].map(elements);
+    return [left(vars, deadline), rightSide(vars, deadline)].map(elements);
   };
   // The length is fixed by the shapes at the starting values (a parameter is never a list).
   const start = sides(new Float64Array(r.params.length).fill(1));
@@ -75,18 +76,28 @@ export function fitWholeValues(
   const at = (s: { values: number[]; length: number | null } | null, i: number) =>
     s === null ? NaN : s.length === null ? s.values[0] : (s.values[i] ?? NaN);
   // One evaluation of both sides per parameter vector; model(p, i) is called for i = 0..n-1.
-  let key = "",
-    cached: number[] = [];
-  const values = (p: ArrayLike<number>): number[] => {
-    const k = Array.prototype.join.call(p, ",");
-    if (k !== key || cached.length === 0) {
-      deadline.check();
-      const [l, m] = sides(p);
-      cached = Array.from({ length: n }, (_, i) => (r.leftParams ? at(m, i) - at(l, i) : at(m, i)));
-      key = k;
-    }
-    return cached;
+  const valuesOf = (rightSide: typeof right) => {
+    let key = "",
+      cached: number[] = [];
+    return (p: ArrayLike<number>): number[] => {
+      const k = Array.prototype.join.call(p, ",");
+      if (k !== key || cached.length === 0) {
+        deadline.check();
+        const [l, m] = sides(p, rightSide);
+        cached = Array.from({ length: n }, (_, i) =>
+          r.leftParams ? at(m, i) - at(l, i) : at(m, i)
+        );
+        key = k;
+      }
+      return cached;
+    };
   };
+  const values = valuesOf(right);
+  const restriction = restrictionOf(r, scope, deadline);
+  if (restriction !== undefined) {
+    const plain = valuesOf(compileExpression(withoutRestrictions(r.model), scope));
+    restriction.unrestricted = (p, i) => plain(p)[i];
+  }
   const gradient = derivatives(r, scope, deadline, vars, n, at);
   // Both sides in exact fractions (exact-values.ts), a list's untagged data read as typed.
   const exactModel = (p: readonly Fraction[]): (Fraction | null)[] => {
@@ -128,6 +139,7 @@ export function fitWholeValues(
     plainLeft: !r.leftParams && r.observed.kind === "id",
     uniquePredictor: false,
     multiStart: true,
+    restriction,
     gradient: gradient ?? undefined,
     exactModel,
   });
