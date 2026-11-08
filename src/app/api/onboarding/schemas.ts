@@ -32,15 +32,20 @@ const optionalPsatScore = z.number().int().min(320).max(1520).nullable().optiona
 const optionalNullableString = z.string().nullable().optional();
 
 export const onboardingPayloadSchema = z.object({
-  // Always required
+  // The test (SAT or PSAT) and its date. null = not registered yet. Clients from before the
+  // test question send no testType; their date is an SAT date.
+  testType: z.enum(["sat", "psat"]).optional(),
   satTestDate: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "satTestDate must be YYYY-MM-DD" }),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "satTestDate must be YYYY-MM-DD" })
+    .nullable(),
+  // No longer asked (founder rule, 2026-11-08: never a score goal). Older clients may still send it.
   goalSatScore: z
     .number()
     .int({ message: "goalSatScore must be an integer" })
     .min(400, { message: "goalSatScore must be 400-1600" })
-    .max(1600, { message: "goalSatScore must be 400-1600" }),
+    .max(1600, { message: "goalSatScore must be 400-1600" })
+    .optional(),
   hsYear: z.enum(VALID_HS_YEARS),
 
   // Optional academic background

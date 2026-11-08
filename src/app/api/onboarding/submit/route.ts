@@ -7,13 +7,16 @@
 // tutor info to the client for confirmation.
 //
 // Required fields per tier:
-//   ALL                 sat_test_date, goal_sat_score, hs_year
+//   ALL                 hs_year, and the test: test_type (SAT or PSAT) with
+//                       sat_test_date (null = not registered yet)
 //   Private + Elite     available_days, available_times, time_zone
+// A cohort student without an SAT date is flagged for an admin to place.
 // Other fields are optional. Optional fields with a value are
 // validated for shape (range, enum) but not for presence.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { auth } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getActiveSubscription, getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
@@ -32,6 +35,13 @@ export async function POST(req: NextRequest) {
     );
   }
   const body = parsed.data;
+  const testType = body.testType ?? "sat";
+
+  // A test date that has already passed (a day of leeway for time zones) is a mistake.
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+  if (body.satTestDate && body.satTestDate < yesterday) {
+    return NextResponse.json({ error: "Pick an upcoming test date." }, { status: 400 });
+  }
 
   const sub = await getActiveSubscription(userId);
   if (!sub) {
@@ -69,11 +79,13 @@ export async function POST(req: NextRequest) {
   const supa = createAdminClient();
 
   // Persist all answers first.
-  const { error: updErr } = await supa
+  // users.test_type is newer than the generated types (migration 20261108084000).
+  const { error: updErr } = await (supa as unknown as SupabaseClient)
     .from("users")
     .update({
       sat_test_date: body.satTestDate,
-      goal_sat_score: body.goalSatScore,
+      test_type: testType,
+      goal_sat_score: body.goalSatScore ?? null,
       hs_year: body.hsYear,
       recent_sat_math: body.recentSatMath ?? null,
       recent_sat_reading: body.recentSatReading ?? null,
@@ -102,11 +114,19 @@ export async function POST(req: NextRequest) {
   let placementFailed = false;
   let placementFailureReason: string | null = null;
   try {
-    if (sub.tier === "group" || sub.tier === "small_group") {
+    if (
+      (sub.tier === "group" || sub.tier === "small_group") &&
+      (testType !== "sat" || !body.satTestDate)
+    ) {
+      // Cohorts are grouped by SAT date. Without one, an admin places the student by hand.
+      placementSummary = { warning: "No SAT date yet — admin will place in a cohort" };
+      placementFailed = true;
+      placementFailureReason = `No SAT date given (test: ${testType}, tier=${sub.tier})`;
+    } else if (sub.tier === "group" || sub.tier === "small_group") {
       const r = await placeInCohort({
         studentUuid,
         tier: sub.tier,
-        satTestDate: body.satTestDate,
+        satTestDate: body.satTestDate as string,
       });
       placementSummary = {
         cohortId: r.cohortId,

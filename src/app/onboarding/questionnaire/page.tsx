@@ -17,6 +17,7 @@ import { KarmanLogo } from "@/components/shared/KarmanLogo";
 import AuthBackdrop from "@/components/shared/AuthBackdrop";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getActiveSubscription } from "@/lib/supabase/queries/bookings";
+import { dayKey } from "@/lib/student/streak";
 import QuestionnaireClient, { type SatDateOption } from "./QuestionnaireClient";
 
 export const metadata: Metadata = { title: "Tell us about your prep" };
@@ -42,22 +43,20 @@ export default async function OnboardingQuestionnairePage() {
     redirect("/dashboard/student");
   }
 
-  // Pull upcoming SAT dates from sat_dates table; fall back to a
-  // sane hardcoded set if the table is empty (e.g. early dev).
+  // Upcoming SAT dates from the sat_dates table. When it is empty, the student can still answer
+  // "Not registered yet" (or pick PSAT); a stale hard-coded list would offer past dates.
+  const today = dayKey(Date.now());
   const { data: satRows } = await supa
     .from("sat_dates")
     .select("test_date")
-    .gte("test_date", new Date().toISOString().slice(0, 10))
+    .gte("test_date", today)
     .order("test_date", { ascending: true })
     .limit(10);
 
-  const satDates: SatDateOption[] =
-    satRows && satRows.length > 0
-      ? satRows.map((r) => ({
-          iso: r.test_date as string,
-          label: formatSatDate(r.test_date as string),
-        }))
-      : FALLBACK_SAT_DATES;
+  const satDates: SatDateOption[] = (satRows ?? []).map((r) => ({
+    iso: r.test_date as string,
+    label: formatSatDate(r.test_date as string),
+  }));
 
   const clerkUser = await currentUser();
   const firstName = clerkUser?.firstName ?? existing?.first_name ?? "there";
@@ -73,18 +72,11 @@ export default async function OnboardingQuestionnairePage() {
         firstName={firstName}
         tier={sub.tier as "group" | "small_group" | "private" | "elite"}
         satDates={satDates}
+        today={today}
       />
     </div>
   );
 }
-
-const FALLBACK_SAT_DATES: SatDateOption[] = [
-  { iso: "2026-08-23", label: "Aug 23, 2026" },
-  { iso: "2026-09-13", label: "Sep 13, 2026" },
-  { iso: "2026-10-04", label: "Oct 4, 2026" },
-  { iso: "2026-11-07", label: "Nov 7, 2026" },
-  { iso: "2026-12-06", label: "Dec 6, 2026" },
-];
 
 function formatSatDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);

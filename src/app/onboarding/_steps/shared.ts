@@ -4,7 +4,7 @@ export type Role = "student" | "parent";
 // role step and goes to the parent portal (founder, 2026-11-08).
 export const COPY = {
   student: {
-    sat: "When are you planning to take the SAT?",
+    sat: "Which test are you taking, and when?",
     goal: "What's your goal SAT score?",
     baselineQ: "Have you taken the SAT or PSAT recently?",
     baselineYes: "Yes — I'll enter my score",

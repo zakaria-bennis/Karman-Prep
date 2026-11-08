@@ -1,12 +1,11 @@
 /* A student types their class code and gets a Practice plan of their own from the school. */
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Card, Cta, Panel, PortalShell, SectionHeader } from "@/components/portal";
-import { STUDENT_MENU, STUDENT_NAV } from "@/components/dashboard/StudentDashboardClient";
+import { Card, Cta, Panel, SectionHeader } from "@/components/portal";
+import StudentPortal from "@/components/student-portal/StudentPortal";
 import { ActionMessage } from "@/components/school/SchoolShell";
 import { safeAuth } from "@/lib/auth/dev-auth";
-import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { createAdminClient } from "@/lib/supabase/server";
+import { loadStudentContext } from "@/lib/student/context";
 import { joinClassAction } from "./actions";
 import "@/components/portal-extras/forms.css";
 
@@ -20,25 +19,12 @@ export default async function JoinClassPage({
 }) {
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in?redirect_url=/join/class");
-  const { clerkId } = await resolveEffectiveClerkId(realUserId);
-  const { data: user } = await createAdminClient()
-    .from("users")
-    .select("first_name, email")
-    .eq("clerk_id", clerkId)
-    .maybeSingle();
+  const ctx = await loadStudentContext();
   const { code, joined, error } = await searchParams;
   const prefill = (code ?? "").toUpperCase().slice(0, 12);
 
   return (
-    <PortalShell
-      portal="Student"
-      nav={STUDENT_NAV}
-      title="Join a class"
-      name={(user?.first_name as string | null) ?? null}
-      accountDetail={(user?.email as string | null) ?? null}
-      menu={STUDENT_MENU}
-      home="/dashboard/student"
-    >
+    <StudentPortal ctx={ctx} title="Join a class">
       <Panel>
         {joined ? (
           <section aria-labelledby="joined">
@@ -76,6 +62,6 @@ export default async function JoinClassPage({
           </Card>
         )}
       </Panel>
-    </PortalShell>
+    </StudentPortal>
   );
 }

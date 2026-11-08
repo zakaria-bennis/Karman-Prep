@@ -3,9 +3,10 @@
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Banner, Card, MoreLink, Panel, PortalShell, SectionHeader } from "@/components/portal";
-import { STUDENT_MENU, STUDENT_NAV } from "@/components/dashboard/StudentDashboardClient";
+import { Banner, Card, MoreLink, Panel, SectionHeader } from "@/components/portal";
+import StudentPortal from "@/components/student-portal/StudentPortal";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { loadStudentContext } from "@/lib/student/context";
 import { affiliateDeps } from "@/lib/tutor-affiliate/server";
 import { getStudentAffiliateStatus } from "@/lib/tutor-affiliate/service";
 import JoinForm from "./JoinForm";
@@ -20,18 +21,12 @@ export default async function JoinPage({ code }: { code: string }) {
   const me = await affiliateDeps.store.userByClerkId(userId);
   if (me?.role === "affiliate_tutor") redirect("/tutor");
   if (!me) redirect("/onboarding");
+  const ctx = await loadStudentContext();
 
   const shell = (body: React.ReactNode, banner?: React.ReactNode) => (
-    <PortalShell
-      portal="Student"
-      nav={STUDENT_NAV}
-      menu={STUDENT_MENU}
-      title="Tutor code"
-      name={me.firstName ?? undefined}
-      accountDetail={me.email}
-    >
+    <StudentPortal ctx={ctx} title="Tutor code">
       <Panel banner={banner}>{body}</Panel>
-    </PortalShell>
+    </StudentPortal>
   );
 
   if (me.role !== "student") {

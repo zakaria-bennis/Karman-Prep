@@ -1,0 +1,205 @@
+/* The Library's own parts. Colors come from the shell's variables (portal.css). */
+
+.course {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 6px 0 4px;
+}
+.headText > b {
+  display: block;
+  font-size: 16px;
+}
+.headText > small {
+  display: block;
+  color: var(--mute);
+  font-size: 13.5px;
+  margin-top: 2px;
+}
+
+.upnext {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 6px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: inherit;
+  text-decoration: none;
+}
+.upnext:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.upnext:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.upnext small {
+  display: block;
+  color: var(--mute);
+  font-size: 12.5px;
+}
+.upnext b {
+  display: block;
+  font-size: 15.5px;
+}
+.go {
+  font-weight: 650;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.domain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.domain:hover b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.domain:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.domainHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14.5px;
+}
+.domainHead small {
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+/* Course page: Khan's side list, Domains on the left, the open Domain on the right. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sideLink {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 14.5px;
+  border: 1px solid transparent;
+}
+.sideLink:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.sideLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.sideLink[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 650;
+}
+.sideLink small {
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+.skill {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+}
+.skill b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.skill small {
+  display: block;
+  color: var(--mute);
+  font-size: 13px;
+}
+.skill a {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.locked {
+  color: var(--mute);
+  font-size: 14px;
+  margin: 6px 0 2px;
+}
+
+.bannerText b {
+  display: block;
+}
+.bannerText span {
+  display: block;
+  color: var(--mute);
+  font-size: 14px;
+}
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.dismiss {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--mute);
+  cursor: pointer;
+}
+.dismiss:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+}
+.dismiss:focus-visible {
+  outline: 2px solid var(--accent);
+}
+@media (max-width: 560px) {
+  .banner {
+    flex-wrap: wrap;
+  }
+}
+
+.soon {
+  color: var(--mute);
+  font-size: 13.5px;
+  white-space: nowrap;
+}

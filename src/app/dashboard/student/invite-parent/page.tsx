@@ -6,12 +6,13 @@
  */
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Card, Cta, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
-import { STUDENT_MENU, STUDENT_NAV } from "@/components/dashboard/StudentDashboardClient";
+import { Card, Cta, Panel, Row, SectionHeader } from "@/components/portal";
+import StudentPortal from "@/components/student-portal/StudentPortal";
 import { CopyButton } from "@/components/portal-extras/CopyButton";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { appUrl } from "@/lib/billing-portal/stripe";
 import { currentInvite, formatLinkCode, linkedParents } from "@/lib/parent/invites";
+import { loadStudentContext } from "@/lib/student/context";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { createParentInviteAction } from "./actions";
@@ -34,7 +35,8 @@ export default async function InviteParentPage({
     .eq("clerk_id", clerkId)
     .maybeSingle();
   if (!user || user.role !== "student") redirect("/dashboard/student");
-  const [{ made }, invite, parents] = await Promise.all([
+  const [ctx, { made }, invite, parents] = await Promise.all([
+    loadStudentContext(),
     searchParams,
     currentInvite(user.id as string),
     linkedParents(user.id as string),
@@ -45,15 +47,7 @@ export default async function InviteParentPage({
     : null;
 
   return (
-    <PortalShell
-      portal="Student"
-      nav={STUDENT_NAV}
-      title="Invite a parent"
-      name={(user.first_name as string | null) ?? null}
-      accountDetail={(user.email as string | null) ?? null}
-      menu={STUDENT_MENU}
-      home="/dashboard/student"
-    >
+    <StudentPortal ctx={ctx} title="Invite a parent">
       <Panel>
         <section aria-labelledby="invite-main">
           <h2 className="kp-title" id="invite-main">
@@ -98,6 +92,6 @@ export default async function InviteParentPage({
           )}
         </Card>
       </Panel>
-    </PortalShell>
+    </StudentPortal>
   );
 }
