@@ -47,7 +47,8 @@ export function TestReport({
             </>
           )}
           <p className="kp-meta">
-            Our estimate from this practice test, built from Karman&rsquo;s question bank.
+            Our estimate from this {run.kind === "diagnostic" ? "diagnostic" : "practice test"},
+            built from Karman&rsquo;s question bank.
           </p>
           <div className={s.actions}>
             {next && (

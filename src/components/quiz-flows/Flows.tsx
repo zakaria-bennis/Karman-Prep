@@ -18,7 +18,7 @@ export function DailyTenFlow({ user }: { user: ShellUser }) {
     () => actionOpenDailyTen({ timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
     []
   );
-  return <RunPlayer user={user} open={open} exitHref="/dashboard/student" />;
+  return <RunPlayer user={user} title="Daily 10" open={open} exitHref="/dashboard/student" />;
 }
 
 export function PracticeSetFlow({
@@ -36,6 +36,7 @@ export function PracticeSetFlow({
   return (
     <RunPlayer
       user={user}
+      title="Practice set"
       open={open}
       exitHref={exitHref}
       lessonHref={lessonHref}
@@ -59,6 +60,7 @@ export function DomainQuizFlow({
   return (
     <RunPlayer
       user={user}
+      title={`${label} quiz`}
       open={open}
       exitHref={exitHref}
       intro={(start, pending) => (
@@ -86,6 +88,7 @@ export function FullTestFlow({
   return (
     <RunPlayer
       user={user}
+      title={`Practice test ${form}`}
       open={open}
       exitHref="/learn/tests"
       intro={
@@ -112,6 +115,7 @@ export function DiagnosticFlow({ user, resumable }: { user: ShellUser; resumable
   return (
     <RunPlayer
       user={user}
+      title="Diagnostic"
       open={open}
       exitHref="/dashboard/student"
       intro={

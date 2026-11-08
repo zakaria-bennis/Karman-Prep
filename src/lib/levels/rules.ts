@@ -110,7 +110,7 @@ export function applyQuizSkill(
   if (!answers.length) return { state: stored, change: null };
   const before = effective(stored, at);
   const clean = answers.every((a) => a.correct && !a.usedHint);
-  let level = before.level === 0 ? 1 : before.level;
+  let level: SkillLevel = before.level === 0 ? 1 : before.level;
   let run = clean ? before.run : 0;
   if (clean && answers.length >= QUIZ_MIN_QUESTIONS && level < 4) {
     level = clampLevel(level + 1);

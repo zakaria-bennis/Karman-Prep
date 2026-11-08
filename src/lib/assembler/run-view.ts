@@ -108,7 +108,9 @@ export function buildView(run: RunRecord, responses: readonly RunResponse[]): Ru
     };
   });
   const reviews: Record<string, RunReview> = {};
-  for (const response of responses) {
+  // Timed tests keep every key and explanation back until the whole test is submitted.
+  const showReviews = run.form.grading === "instant" || !!run.completedAt;
+  for (const response of showReviews ? responses : []) {
     const snap = snapshots.get(response.questionId);
     if (snap) reviews[response.questionId] = reviewOf(snap, response);
   }

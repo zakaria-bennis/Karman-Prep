@@ -7,7 +7,10 @@ import { loadFlowUser } from "@/components/quiz-flows/load-user";
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ skillId: string }> };
+type Params = {
+  params: Promise<{ skillId: string }>;
+  searchParams?: Promise<{ again?: string }>;
+};
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { skillId } = await params;
@@ -16,8 +19,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 /** A 10-question practice set in one skill, adaptive within the set. */
-export default async function PracticeSetPage({ params }: Params) {
+export default async function PracticeSetPage({ params, searchParams }: Params) {
   const { skillId } = await params;
+  // "Try again" links carry a fresh `again` value, so the player remounts and starts a new set.
+  const again = String((await searchParams)?.again ?? "").slice(0, 20);
   const skill = CATALOG_SKILLS.find((s) => s.id === decodeURIComponent(skillId));
   if (!skill) notFound();
   const { user } = await loadFlowUser(`/learn/set/${skill.id}`);
@@ -25,7 +30,7 @@ export default async function PracticeSetPage({ params }: Params) {
   const lesson = getCoveredLegacyNodes(skill.id)[0];
   return (
     <PracticeSetFlow
-      key={skill.id}
+      key={`${skill.id}:${again}`}
       user={user}
       skillId={skill.id}
       exitHref={`/learn/${skill.subject}`}

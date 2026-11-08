@@ -34,8 +34,11 @@ export function RunPlayer({
   exitHref,
   lessonHref = null,
   againHref,
+  title,
 }: {
   user: ShellUser;
+  /** The heading on loading and error screens. */
+  title: string;
   /** Starts or resumes the run (a server action bound to this flow). */
   open: () => Promise<RunActionResult<RunView>>;
   initial?: RunView | null;
@@ -85,10 +88,14 @@ export function RunPlayer({
   }, []);
 
   if (!started && intro)
-    return <FlowFrame user={user}>{intro(() => void begin(), pending)}</FlowFrame>;
+    return (
+      <FlowFrame user={user} title={title}>
+        {intro(() => void begin(), pending)}
+      </FlowFrame>
+    );
   if (!run)
     return (
-      <FlowFrame user={user}>
+      <FlowFrame user={user} title={title}>
         {error ? (
           <Message
             title={error.limit ? "That is the end of the Free plan" : "Something went wrong"}
@@ -311,7 +318,7 @@ function TimedRun({
 
   if (onBreak)
     return (
-      <FlowFrame user={user}>
+      <FlowFrame user={user} title={run.title}>
         <Message
           title="Take a break"
           text={`You finished ${run.sections[sectionIndex - 1].title.replace(/, Module \d/, "")}. Stand up, drink some water, and come back when you are ready. ${section.title} is next.`}

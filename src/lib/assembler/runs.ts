@@ -148,7 +148,21 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
     };
   });
   const seed = `${clerkId}:${day}`;
-  const bank = await loadAdmittedBank(skillsToLoad(skills, now, seed), access.maxDifficulty);
+  const first = skillsToLoad(skills, now, seed);
+  let bank = await loadAdmittedBank(first, access.maxDifficulty);
+  // Too few questions in the first skills (small pools, a failed read): widen to every skill.
+  const perSection = (section: Section) =>
+    bank.items.filter((item) => item.section === section).length;
+  if (perSection("reading") < 10 || perSection("math") < 10) {
+    const more = await loadAdmittedBank(
+      CATALOG_SKILLS.map((skill) => skill.id).filter((id) => !first.includes(id)),
+      access.maxDifficulty
+    );
+    bank = {
+      items: [...bank.items, ...more.items],
+      snapshots: new Map([...bank.snapshots, ...more.snapshots]),
+    };
+  }
   const candidates = new Map<
     string,
     {
@@ -628,7 +642,11 @@ async function finishRun(run: RunRecord, responses: RunResponse[]): Promise<RunR
       const from = effective(before, now).level;
       const state =
         run.kind === "domain-quiz"
-          ? applyQuizSkill(before, rows, now).state
+          ? applyQuizSkill(
+              before,
+              rows.map((r) => ({ correct: r.isCorrect, usedHint: r.usedHint })),
+              now
+            ).state
           : applyMeasured(before, rows.length, now);
       changed.set(skillId, state);
       moves.set(skillId, { from, to: state.level });

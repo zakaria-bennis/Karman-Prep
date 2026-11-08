@@ -15,6 +15,7 @@ import type { BankItem, Section } from "./forms";
 
 /** Known bad rows that must stay unserved (brief: bcdb21e4 fails to render). */
 const HELD_BACK_PREFIXES = ["bcdb21e4"];
+const LOAD_AT_ONCE = 4;
 
 const normalise = (text: string | null | undefined) =>
   (text ?? "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -43,29 +44,40 @@ export async function loadAdmittedBank(
   const items: BankItem[] = [];
   const snapshots = new Map<string, CatalogDeliverySnapshot>();
   const skills = CATALOG_SKILLS.filter((skill) => skillIds.includes(skill.id));
-  const loaded = await Promise.all(
-    skills.map(async (skill) => {
-      try {
-        const pool = (
-          await fetchCatalogQuestionPool({
-            skillId: skill.id,
-            minimumDifficulty: 1,
-            maximumDifficulty: maxDifficulty,
-          })
-        ).filter((row) => !HELD_BACK_PREFIXES.some((prefix) => row.id.startsWith(prefix)));
-        const admitted = admitCatalogPool(
-          skill.id,
-          pool,
-          await loadCatalogQuestionEvidence(pool.map((row) => row.id))
-        );
-        const byId = new Map(pool.map((row) => [row.id, row]));
-        return { skill, admitted, byId };
-      } catch (error) {
-        console.error(`[assembler] skill ${skill.id} could not be loaded`, error);
-        return { skill, admitted: [], byId: new Map<string, QuizQuestionWithChoices>() };
-      }
-    })
-  );
+  const loadSkill = async (skill: CatalogSkill) => {
+    const pool = (
+      await fetchCatalogQuestionPool({
+        skillId: skill.id,
+        minimumDifficulty: 1,
+        maximumDifficulty: maxDifficulty,
+      })
+    ).filter((row) => !HELD_BACK_PREFIXES.some((prefix) => row.id.startsWith(prefix)));
+    const admitted = admitCatalogPool(
+      skill.id,
+      pool,
+      await loadCatalogQuestionEvidence(pool.map((row) => row.id))
+    );
+    return { skill, admitted, byId: new Map(pool.map((row) => [row.id, row])) };
+  };
+  // A few skills at a time, each retried once: a busy database must not empty a whole section.
+  const loaded: Awaited<ReturnType<typeof loadSkill>>[] = [];
+  for (let i = 0; i < skills.length; i += LOAD_AT_ONCE) {
+    loaded.push(
+      ...(await Promise.all(
+        skills.slice(i, i + LOAD_AT_ONCE).map(async (skill) => {
+          for (let attempt = 1; ; attempt++) {
+            try {
+              return await loadSkill(skill);
+            } catch (error) {
+              if (attempt < 2) continue;
+              console.error(`[assembler] skill ${skill.id} could not be loaded`, error);
+              return { skill, admitted: [], byId: new Map<string, QuizQuestionWithChoices>() };
+            }
+          }
+        })
+      ))
+    );
+  }
   for (const { skill, admitted, byId } of loaded) {
     for (const snapshot of admitted) {
       const row = byId.get(snapshot.binding.questionId);

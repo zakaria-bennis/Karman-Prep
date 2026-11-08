@@ -47,7 +47,8 @@ function db(): SupabaseClient {
 async function planFor(clerkId: string): Promise<QuizAccess["plan"]> {
   const { data, error } = await db()
     .from("subscriptions")
-    .select("plan_id, tier, status")
+    // Whole rows: the plan_id column only exists once the pricing migration has run.
+    .select("*")
     .eq("user_id", clerkId);
   if (error) {
     console.error("[quiz access] subscriptions could not be read", error.message);
@@ -72,7 +73,12 @@ async function planFor(clerkId: string): Promise<QuizAccess["plan"]> {
 async function answeredCount(clerkId: string): Promise<number> {
   const ids = new Set<string>();
   const client = db();
-  const { data: runs } = await client.from("quiz_runs").select("id").eq("student_id", clerkId);
+  // The free full-length test (and the diagnostic) do not count toward the 100 questions.
+  const { data: runs } = await client
+    .from("quiz_runs")
+    .select("id")
+    .eq("student_id", clerkId)
+    .in("kind", ["daily-ten", "practice-set", "domain-quiz"]);
   const runIds = (runs ?? []).map((r: { id: string }) => r.id);
   for (let i = 0; i < runIds.length; i += 100) {
     const { data } = await client
