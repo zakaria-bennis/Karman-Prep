@@ -1,0 +1,64 @@
+{
+  "source": "2025-12_ASIA_V2_MATH_M1_Q20 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "plane",
+    "parts": [
+      {
+        "kind": "point",
+        "id": "C0",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "kind": "circle",
+        "id": "c",
+        "center": "C0",
+        "radius": 8
+      },
+      {
+        "kind": "point",
+        "id": "P",
+        "x": 3,
+        "y": 7.42,
+        "on": ["c"]
+      },
+      {
+        "kind": "point",
+        "id": "Q",
+        "x": 8,
+        "y": 0,
+        "on": ["c"]
+      },
+      {
+        "kind": "text",
+        "id": "qText",
+        "x": 10.2,
+        "y": 1.4
+      }
+    ],
+    "labels": [
+      {
+        "text": "(3, k)",
+        "on": "P"
+      },
+      {
+        "text": "(8, 0)",
+        "on": "qText"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [-11, 13],
+      "y": [-12, 12],
+      "step": 20,
+      "equalUnits": true,
+      "originLabel": "O",
+      "grid": false,
+      "xLabel": "x",
+      "yLabel": "y",
+      "arrows": true
+    },
+    "notToScale": true
+  }
+}

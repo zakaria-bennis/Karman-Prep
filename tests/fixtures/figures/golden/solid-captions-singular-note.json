@@ -1,0 +1,42 @@
+{
+  "source": "2026-06_ASIA_V1_MATH_M2_Q21 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": [
+    {
+      "version": "figure-spec/1",
+      "type": "solid3d",
+      "parts": [
+        {
+          "kind": "solid",
+          "id": "c",
+          "shape": "cylinder",
+          "dims": {
+            "radius": 1,
+            "height": 2.2
+          }
+        }
+      ],
+      "labels": [],
+      "marks": [],
+      "caption": "Cylinder A"
+    },
+    {
+      "version": "figure-spec/1",
+      "type": "solid3d",
+      "parts": [
+        {
+          "kind": "solid",
+          "id": "c",
+          "shape": "cylinder",
+          "dims": {
+            "radius": 1,
+            "height": 2.2
+          }
+        }
+      ],
+      "labels": [],
+      "marks": [],
+      "notToScale": true,
+      "caption": "Cylinder B"
+    }
+  ]
+}

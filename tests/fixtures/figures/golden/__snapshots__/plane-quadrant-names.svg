@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="A coordinate plane with x from -6 to 6 and y from -6 to 6, showing 4 texts." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M16 246 L628 246" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-end="url(#figure-arrow-_R_0_)" data-part="axis">
+</path>
+<path d="M317 464 L317 18" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" marker-end="url(#figure-arrow-_R_0_)" data-part="axis">
+</path>
+<text x="311" y="264" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit" font-style="italic">O</text>
+<text x="631" y="251" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">x</text>
+<text x="317" y="15" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" font-style="italic">y</text>
+<text x="467.5" y="142.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="q1">I</text>
+<text x="166.5" y="142.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="q2">II</text>
+<text x="166.5" y="360.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="q3">III</text>
+<text x="467.5" y="360.63" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="q4">IV</text>
+</svg>

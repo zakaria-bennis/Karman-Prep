@@ -136,7 +136,12 @@ function spotFor(
   if (part.kind === "point") {
     return { anchor: toPx([part.x, part.y]), preferred: [Math.SQRT1_2, -Math.SQRT1_2] };
   }
-  if (part.kind === "segment" || part.kind === "ray" || part.kind === "line") {
+  if (
+    part.kind === "segment" ||
+    part.kind === "ray" ||
+    part.kind === "line" ||
+    part.kind === "dimension"
+  ) {
     const pts = vertices(own[0].d);
     const a = pts[0];
     const b = pts[pts.length - 1];
@@ -229,6 +234,7 @@ export function planeLabels(
   for (const label of spec.labels) {
     if (!label.text.trim()) continue;
     const part = parts.get(label.on);
+    if (part?.kind === "text") continue; // set at its spot (notes.ts freeTexts)
     const spot = part ? spotFor(label, part, items, toPx, points) : null;
     if (!spot) {
       issues.push({

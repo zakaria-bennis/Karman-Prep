@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 454" role="img" aria-label="Humility Scores for Participants’ Scenario Responses. Bar chart with 3 categories. Y-axis: y. Mistake with learning 3.1, mistake without learning 2.65, control 2.85." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M90 262.72 L584 262.72" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 231.87 L584 231.87" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 201.01 L584 201.01" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 170.16 L584 170.16" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 139.31 L584 139.31" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 108.46 L584 108.46" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 77.6 L584 77.6" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 46.75 L584 46.75" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M90 262.72 L584 262.72" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M90 262.72 L90 46.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<text x="177.58" y="279.22" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 177.58 279.22)">mistake with learning</text>
+<text x="342.25" y="279.22" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 342.25 279.22)">mistake without learning</text>
+<text x="506.92" y="279.22" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 506.92 279.22)">control</text>
+<path d="M87 262.72 L93 262.72" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="267.72" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M87 231.87 L93 231.87" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="236.87" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0.5</text>
+<path d="M87 201.01 L93 201.01" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="206.01" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1.0</text>
+<path d="M87 170.16 L93 170.16" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="175.16" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1.5</text>
+<path d="M87 139.31 L93 139.31" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="144.31" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2.0</text>
+<path d="M87 108.46 L93 108.46" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="113.46" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2.5</text>
+<path d="M87 77.6 L93 77.6" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="82.6" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">3.0</text>
+<path d="M87 46.75 L93 46.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="84" y="51.75" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">3.5</text>
+<text x="15" y="154.73" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-90 15 154.73)">Average humility</text>
+<text x="33" y="154.73" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-90 33 154.73)">score (higher values</text>
+<text x="51" y="154.73" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-90 51 154.73)">= more humility)</text>
+<rect x="141.46" y="71.43" width="61.75" height="191.29" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="306.13" y="99.2" width="61.75" height="163.52" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<rect x="470.79" y="86.86" width="61.75" height="175.86" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="s1">
+</rect>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Humility Scores for Participants’ Scenario Responses</text>
+<rect x="265.5" y="434" width="12" height="12" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-width="1.5" data-part="legend">
+</rect>
+<text x="283.5" y="445" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">group</text>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Circle with center O, shaded sector AOB, right angle at O, not drawn to scale." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M200 137.63 L103.13 137.63 L103.59 128.13 L104.99 118.73 L107.3 109.5 L110.5 100.55 L114.56 91.96 L119.45 83.8 L125.11 76.17 L131.5 69.12 L138.54 62.74 L146.18 57.08 L154.33 52.19 L162.93 48.12 L171.88 44.92 L181.1 42.61 L190.5 41.22 L200 40.75 Z" fill="var(--figure-fill-shade)" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="shaded">
+</path>
+<path d="M103.13 137.63 A96.88 96.88 0 1 0 296.88 137.63 A96.88 96.88 0 1 0 103.13 137.63 Z" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="c">
+</path>
+<path d="M200 137.63 L103.13 137.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="OA">
+</path>
+<path d="M200 137.63 L200 40.75" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="OB">
+</path>
+<path d="M190 137.63 L190 127.63 L200 127.63" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="AOB">
+</path>
+<text x="200" y="292" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Note: Figure not drawn to scale.</text>
+<text x="92.63" y="143.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="A">A</text>
+<text x="200" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="B">B</text>
+<text x="208.74" y="151.99" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="O">O</text>
+</svg>

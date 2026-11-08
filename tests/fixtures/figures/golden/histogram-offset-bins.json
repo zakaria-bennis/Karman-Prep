@@ -1,0 +1,31 @@
+{
+  "source": "2026-10_ASIA_V5_MATH_M1_Q02 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "histogram",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "values": [
+          [51, 4],
+          [55, 6],
+          [59, 5],
+          [63, 8],
+          [67, 2]
+        ]
+      }
+    ],
+    "labels": [],
+    "marks": [],
+    "frame": {
+      "x": [51, 71],
+      "y": [0, 8],
+      "step": 4,
+      "yStep": 1,
+      "xTickOrigin": 51,
+      "xLabel": "Height (in)",
+      "yLabel": "Frequency"
+    }
+  }
+}
