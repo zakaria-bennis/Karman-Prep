@@ -46,6 +46,36 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createAdminClient();
+
+    // Families join a call before any cohort seat. Karman adds the student to a
+    // cohort after the call; only then can that seat be paid here.
+    if (spec.planId === "cohort") {
+      const { data: me } = await supabase
+        .from("users")
+        .select("id")
+        .eq("clerk_id", userId)
+        .maybeSingle();
+      const { data: seat } =
+        me && parsed.data.cohortId
+          ? await supabase
+              .from("cohort_members")
+              .select("cohort_id")
+              .eq("cohort_id", parsed.data.cohortId)
+              .eq("user_id", me.id)
+              .is("left_at", null)
+              .maybeSingle()
+          : { data: null };
+      if (!seat) {
+        return NextResponse.json(
+          {
+            error:
+              "Cohort seats are held after a call with Karman. Apply on the program page, and we'll send the payment link.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     const { data: subs, error: subsError } = await supabase
       .from("subscriptions")
       .select("stripe_customer_id, status")
