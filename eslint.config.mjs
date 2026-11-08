@@ -81,6 +81,7 @@ export default [
       "build/**",
       "scripts/**",
       "prototypes/**",
+      ".impeccable/**", // design mocks and their helper scripts, not product code
       "supabase/**",
       "*.config.js",
       "*.config.mjs",
