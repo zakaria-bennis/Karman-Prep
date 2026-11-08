@@ -1,5 +1,11 @@
 # Student dashboard, Time Trial, mastery and skill points
 
+> **Superseded (2026-11-08).** The screens in this spec (the `/student-preview` dashboard, its Time
+> Trials and tests screens) were replaced by the painted student portal; see
+> `docs/design/student-portal-decisions-2026-11-07.md` and `docs/overnight/reports/student-portal.md`.
+> Its data rules live on in `src/lib/student/` (`mastery.ts`, `skill-points.ts`, `time-trial.ts`,
+> `unlocks.ts`, `assemble.ts`); skill levels now come from `src/lib/student/levels.ts`.
+
 Date: 2026-10-27. Status: built for founder review. Branch `claude/student-dashboard-13d0a0`
 (cut from `claude/quiz-engine`).
 
