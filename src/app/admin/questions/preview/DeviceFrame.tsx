@@ -81,7 +81,9 @@ export function DeviceFrameToggle({
             onClick={() => onChange(o.value)}
             className={cn(
               "min-h-11 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
-              active ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+              active
+                ? "bg-[color:var(--raised)] text-[color:var(--ink)]"
+                : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             )}
             aria-pressed={active}
             title={`${o.label} (${o.px}px)`}

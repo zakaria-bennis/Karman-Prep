@@ -140,7 +140,9 @@ export default function HistoryPane({ questionId, history }: Props) {
                   <div className="mt-0.5 text-[color:var(--mute)]">
                     Changed:{" "}
                     {entry.changed_fields.length > 0 ? (
-                      <code className="text-[color:var(--ink)]">{entry.changed_fields.join(", ")}</code>
+                      <code className="text-[color:var(--ink)]">
+                        {entry.changed_fields.join(", ")}
+                      </code>
                     ) : (
                       <span className="italic">no fields</span>
                     )}
@@ -170,7 +172,10 @@ export default function HistoryPane({ questionId, history }: Props) {
                     const beforeVal = formatValue(entry.before_state[field]);
                     const afterVal = formatValue(entry.after_state[field]);
                     return (
-                      <div key={field} className="rounded bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-2">
+                      <div
+                        key={field}
+                        className="rounded bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-2"
+                      >
                         <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                           {field}
                         </div>

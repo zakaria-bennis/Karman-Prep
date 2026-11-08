@@ -122,8 +122,13 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
           <h2 className="text-base font-bold text-[color:var(--ink)]">Textbook page</h2>
           <p className="mt-0.5 text-xs text-[color:var(--mute)]">
             Markdown + KaTeX. Use{" "}
-            <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">$…$</code> for inline
-            math and <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">$$…$$</code>{" "}
+            <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
+              $…$
+            </code>{" "}
+            for inline math and{" "}
+            <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
+              $$…$$
+            </code>{" "}
             for block math.
           </p>
         </div>
@@ -134,7 +139,9 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
               onClick={() => setMobileView("edit")}
               className={cn(
                 "flex items-center gap-1 px-3 py-1.5 font-semibold",
-                mobileView === "edit" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)]"
+                mobileView === "edit"
+                  ? "bg-[color:var(--raised)] text-[color:var(--ink)]"
+                  : "text-[color:var(--mute)]"
               )}
             >
               <Edit3 className="h-3 w-3" /> Edit
@@ -143,7 +150,9 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
               onClick={() => setMobileView("preview")}
               className={cn(
                 "flex items-center gap-1 px-3 py-1.5 font-semibold",
-                mobileView === "preview" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)]"
+                mobileView === "preview"
+                  ? "bg-[color:var(--raised)] text-[color:var(--ink)]"
+                  : "text-[color:var(--mute)]"
               )}
             >
               <Eye className="h-3 w-3" /> Preview
@@ -200,9 +209,14 @@ and drops a markdown image at your cursor."
             <Info className="h-3 w-3 shrink-0" />
             <span>
               KaTeX backslashes need to be escaped once: write{" "}
-              <code className="mx-1 rounded bg-[color:var(--raised)] px-1 text-[color:var(--mute)]">\\frac</code> not{" "}
-              <code className="mx-1 rounded bg-[color:var(--raised)] px-1 text-[color:var(--mute)]">\frac</code>. Paste
-              an image (Cmd+V) to upload it inline.
+              <code className="mx-1 rounded bg-[color:var(--raised)] px-1 text-[color:var(--mute)]">
+                \\frac
+              </code>{" "}
+              not{" "}
+              <code className="mx-1 rounded bg-[color:var(--raised)] px-1 text-[color:var(--mute)]">
+                \frac
+              </code>
+              . Paste an image (Cmd+V) to upload it inline.
             </span>
           </div>
           {pasteUploading && (
@@ -255,7 +269,9 @@ and drops a markdown image at your cursor."
             style={{ minHeight: "32rem", maxHeight: "60rem" }}
           >
             {markdown.trim().length === 0 ? (
-              <p className="text-sm italic text-[color:var(--mute)]">Preview appears here as you type.</p>
+              <p className="text-sm italic text-[color:var(--mute)]">
+                Preview appears here as you type.
+              </p>
             ) : (
               <TextbookContent markdown={markdown} />
             )}

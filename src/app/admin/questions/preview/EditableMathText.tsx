@@ -166,8 +166,8 @@ export function EditableMathText({
         ) : (
           <span>
             <kbd className="rounded bg-[color:var(--raised)] px-1 font-mono">⌘↵</kbd> save ·{" "}
-            <kbd className="rounded bg-[color:var(--raised)] px-1 font-mono">Esc</kbd> cancel · raw markup
-            (LaTeX renders on save)
+            <kbd className="rounded bg-[color:var(--raised)] px-1 font-mono">Esc</kbd> cancel · raw
+            markup (LaTeX renders on save)
           </span>
         )}
         {error && <span className="text-[color:var(--late)]">{error}</span>}

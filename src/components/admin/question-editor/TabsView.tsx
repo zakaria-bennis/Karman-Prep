@@ -55,7 +55,9 @@ export function TabsView({
               onClick={() => onActiveChange(q.id)}
               className={cn(
                 "flex min-w-[3.25rem] items-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs font-bold tabular-nums transition-colors",
-                isActive ? "text-[color:var(--ink)]" : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+                isActive
+                  ? "text-[color:var(--ink)]"
+                  : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
               style={
                 isActive

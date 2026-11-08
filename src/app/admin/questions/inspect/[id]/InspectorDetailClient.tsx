@@ -70,13 +70,15 @@ const SEVERITY_META: Record<
     label: "Blocking",
     icon: AlertOctagon,
     cls: "text-[color:var(--late)]",
-    rowCls: "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)]",
+    rowCls:
+      "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)]",
   },
   WARNING: {
     label: "Warning",
     icon: AlertTriangle,
     cls: "text-[color:var(--warn)]",
-    rowCls: "border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_5%,transparent)]",
+    rowCls:
+      "border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_5%,transparent)]",
   },
   NOTICE: {
     label: "Notice",
@@ -568,7 +570,9 @@ export default function InspectorDetailClient({
                           </code>
                           <span className="text-[10px] text-[color:var(--mute)]">{f.category}</span>
                         </div>
-                        <div className="mt-1 leading-relaxed text-[color:var(--ink)]">{f.message}</div>
+                        <div className="mt-1 leading-relaxed text-[color:var(--ink)]">
+                          {f.message}
+                        </div>
                         {f.value && (
                           <div className="mt-1 rounded bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-2 py-1 font-mono text-[11px] text-[color:var(--ink)]">
                             {f.value}
@@ -636,9 +640,9 @@ export default function InspectorDetailClient({
         <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-4 py-3 text-xs text-[color:var(--mute)]">
           <ExternalLink className="mr-1.5 inline-block h-3.5 w-3.5" /> Source:{" "}
           <span className="font-mono text-[color:var(--ink)]">{question.source_pdf}</span>, page{" "}
-          <span className="font-mono text-[color:var(--ink)]">{question.source_page}</span>. Original PDFs live
-          in R2 (<code>pdf-inbox/&lt;job-id&gt;/</code>); ask backend to render the page if needed
-          for manual diff.
+          <span className="font-mono text-[color:var(--ink)]">{question.source_page}</span>.
+          Original PDFs live in R2 (<code>pdf-inbox/&lt;job-id&gt;/</code>); ask backend to render
+          the page if needed for manual diff.
         </div>
       )}
     </div>

@@ -291,14 +291,20 @@ function ResultRow({
       onClick={onClick}
       className={cn(
         "flex cursor-pointer items-start gap-2 px-3 py-2 text-sm",
-        active ? "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]" : "hover:bg-[color-mix(in_srgb,var(--raised)_60%,transparent)]"
+        active
+          ? "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]"
+          : "hover:bg-[color-mix(in_srgb,var(--raised)_60%,transparent)]"
       )}
     >
       <span className="mt-0.5 shrink-0">{icon}</span>
       <span className="min-w-0 flex-1">
         <div className="truncate text-[color:var(--ink)]">{primary}</div>
-        {secondary && <div className="truncate font-mono text-[11px] text-[color:var(--mute)]">{secondary}</div>}
-        {tertiary && <div className="truncate text-[11px] text-[color:var(--mute)]">{tertiary}</div>}
+        {secondary && (
+          <div className="truncate font-mono text-[11px] text-[color:var(--mute)]">{secondary}</div>
+        )}
+        {tertiary && (
+          <div className="truncate text-[11px] text-[color:var(--mute)]">{tertiary}</div>
+        )}
       </span>
     </li>
   );

@@ -119,7 +119,9 @@ export function PreviewActionBar({
             disabled={anyBusy || (flagMode && !note.trim())}
             className={cn(
               "min-h-11 rounded-lg px-3 py-1.5 text-xs font-bold text-[color:var(--ink)] disabled:opacity-50",
-              flagMode ? "bg-[color:var(--warn)] hover:bg-[color:var(--warn)]" : "bg-[color:var(--late)] hover:bg-[color:var(--late)]"
+              flagMode
+                ? "bg-[color:var(--warn)] hover:bg-[color:var(--warn)]"
+                : "bg-[color:var(--late)] hover:bg-[color:var(--late)]"
             )}
           >
             {flagMode ? "Flag" : "Reject"}

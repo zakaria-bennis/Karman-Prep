@@ -162,7 +162,10 @@ export function PreviewToolbar({
       </form>
 
       {anyFilterSet && (
-        <button onClick={onClearFilters} className="text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]">
+        <button
+          onClick={onClearFilters}
+          className="text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+        >
           Clear filters
         </button>
       )}

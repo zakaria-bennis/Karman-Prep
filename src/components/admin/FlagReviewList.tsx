@@ -53,7 +53,10 @@ export default function FlagReviewList({ flagged }: Props) {
         const q = flag.question;
         const diffStyle = DIFFICULTY_COLORS[q.difficulty];
         return (
-          <article key={flag.id} className="rounded-xl border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)] p-5">
+          <article
+            key={flag.id}
+            className="rounded-xl border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)] p-5"
+          >
             <header className="mb-3 flex items-start gap-3">
               <Flag className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--late)]" />
               <div className="min-w-0 flex-1">

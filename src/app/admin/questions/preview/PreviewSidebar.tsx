@@ -87,7 +87,9 @@ export function PreviewSidebar({
       {/* ── Scrollable list ───────────────────────────────── */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {questions.length === 0 ? (
-          <div className="p-6 text-xs italic text-[color:var(--mute)]">No questions match these filters.</div>
+          <div className="p-6 text-xs italic text-[color:var(--mute)]">
+            No questions match these filters.
+          </div>
         ) : (
           <ul className="divide-y divide-[color:var(--line)]">
             {questions.map((q, i) => (
@@ -167,7 +169,12 @@ function SidebarRow({
   const q = question;
   const hasOrphans = hasOrphanCropsOnPage(q.sourceLineage);
   return (
-    <li className={cn("flex items-start gap-2 px-2.5 py-2", active && "bg-[color-mix(in_srgb,var(--raised)_70%,transparent)]")}>
+    <li
+      className={cn(
+        "flex items-start gap-2 px-2.5 py-2",
+        active && "bg-[color-mix(in_srgb,var(--raised)_70%,transparent)]"
+      )}
+    >
       {/* Checkbox sits OUTSIDE the click-to-select button so toggling
           a checkbox doesn't move the preview pane to that row. */}
       <input
@@ -195,12 +202,18 @@ function SidebarRow({
               <Badge tone="slate">{q.subject}</Badge>
               <Badge tone="slate">L{q.difficulty_level ?? "—"}</Badge>
               {q.image_url && (
-                <span title="Has figure" className="inline-flex items-center text-[color:var(--mute)]">
+                <span
+                  title="Has figure"
+                  className="inline-flex items-center text-[color:var(--mute)]"
+                >
                   <ImageIcon className="h-3 w-3" />
                 </span>
               )}
               {q.import_status === "needs_review" && (
-                <span title="Flagged for review" className="inline-flex items-center text-[color:var(--warn)]">
+                <span
+                  title="Flagged for review"
+                  className="inline-flex items-center text-[color:var(--warn)]"
+                >
                   <AlertTriangle className="h-3 w-3" />
                 </span>
               )}
@@ -226,7 +239,10 @@ function SidebarRow({
 function Badge({ tone, children }: { tone: "slate"; children: React.ReactNode }) {
   return (
     <span
-      className={cn("rounded px-1.5 font-mono", tone === "slate" && "bg-[color:var(--raised)] text-[color:var(--ink)]")}
+      className={cn(
+        "rounded px-1.5 font-mono",
+        tone === "slate" && "bg-[color:var(--raised)] text-[color:var(--ink)]"
+      )}
     >
       {children}
     </span>

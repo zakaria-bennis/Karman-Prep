@@ -53,7 +53,10 @@ export function OrphanWarningBanner({ lineage, questionId, href, className }: Pr
         {href && (
           <>
             {" "}
-            <Link href={href} className="font-semibold underline decoration-[color-mix(in_srgb,var(--warn)_50%,transparent)]">
+            <Link
+              href={href}
+              className="font-semibold underline decoration-[color-mix(in_srgb,var(--warn)_50%,transparent)]"
+            >
               Open inspector
             </Link>
             .

@@ -159,7 +159,9 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
       <p className="mb-4 max-w-2xl text-xs text-[color:var(--mute)]">
         Upload a CSV or JSON file. Accepts the legacy 15-column template AND the 30-column routine
         template (PDF-ingestion output). Required:
-        <code className="mx-1 rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">question_text</code>
+        <code className="mx-1 rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
+          question_text
+        </code>
         ,
         <code className="mx-1 rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
           correct_answer
@@ -189,7 +191,9 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
         >
           <Upload className="h-3.5 w-3.5" /> Choose file
         </button>
-        {preview && <span className="text-xs text-[color:var(--mute)]">{preview.length} rows parsed</span>}
+        {preview && (
+          <span className="text-xs text-[color:var(--mute)]">{preview.length} rows parsed</span>
+        )}
       </div>
 
       {parseError && (
@@ -202,7 +206,9 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
 
       {preview && (
         <div className="mt-4">
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--mute)]">Preview</h4>
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--mute)]">
+            Preview
+          </h4>
           <div className="max-h-80 overflow-y-auto rounded-lg border border-[color:var(--line)] text-xs">
             <table className="w-full">
               <thead className="sticky top-0 bg-[color:var(--raised)] text-[color:var(--mute)]">
@@ -276,7 +282,9 @@ export function ImportResultBanner({ result }: { result: BulkImportResult }) {
         <li>· {result.inserted} live</li>
         <li>· {result.flagged_for_review} flagged for review</li>
         <li>· {result.skipped_duplicates} skipped (duplicate)</li>
-        {result.errored > 0 && <li className="text-[color:var(--late)]">· {result.errored} errored</li>}
+        {result.errored > 0 && (
+          <li className="text-[color:var(--late)]">· {result.errored} errored</li>
+        )}
       </ul>
       {result.errors.length > 0 && (
         <details className="mt-2 cursor-pointer text-[color:var(--late)]">

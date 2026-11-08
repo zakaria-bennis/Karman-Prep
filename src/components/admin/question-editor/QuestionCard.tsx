@@ -70,7 +70,9 @@ export function QuestionCard({
 
   return (
     <article
-      className={cn("overflow-hidden rounded-xl border border-l-4 border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)]")}
+      className={cn(
+        "overflow-hidden rounded-xl border border-l-4 border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)]"
+      )}
       style={{ borderLeftColor: levelHex }}
     >
       <header className="flex items-start gap-3 p-4">
@@ -113,7 +115,8 @@ export function QuestionCard({
               </span>
             )}
             <span className="text-[color:var(--mute)]">
-              Correct: <strong className="text-[color:var(--ink)]">{question.correct_answer}</strong>
+              Correct:{" "}
+              <strong className="text-[color:var(--ink)]">{question.correct_answer}</strong>
               {isNumeric && question.numeric_tolerance !== null && (
                 <span className="text-[color:var(--mute)]"> (± {question.numeric_tolerance})</span>
               )}
@@ -124,7 +127,9 @@ export function QuestionCard({
                 <Lightbulb className="h-3 w-3" /> hint
               </span>
             )}
-            {question.flag_count > 0 && <span className="text-[color:var(--late)]">⚑ {question.flag_count}</span>}
+            {question.flag_count > 0 && (
+              <span className="text-[color:var(--late)]">⚑ {question.flag_count}</span>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -179,7 +184,9 @@ export function QuestionCard({
             <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--info)]">
               Correct value
             </p>
-            <p className="mt-0.5 font-mono text-sm text-[color:var(--ink)]">{question.correct_answer}</p>
+            <p className="mt-0.5 font-mono text-sm text-[color:var(--ink)]">
+              {question.correct_answer}
+            </p>
           </div>
         </div>
       ) : (
@@ -189,7 +196,9 @@ export function QuestionCard({
               key={c.letter}
               className={cn(
                 "flex items-start gap-2 rounded border px-2.5 py-1.5",
-                c.is_correct ? "border-[color-mix(in_srgb,var(--good)_50%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)]" : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
+                c.is_correct
+                  ? "border-[color-mix(in_srgb,var(--good)_50%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
+                  : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
               )}
             >
               <span
@@ -229,7 +238,9 @@ export function QuestionCard({
             <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
               Explanation:
             </span>
-            <p className="mt-1 whitespace-pre-wrap text-[color:var(--ink)]">{question.explanation_text}</p>
+            <p className="mt-1 whitespace-pre-wrap text-[color:var(--ink)]">
+              {question.explanation_text}
+            </p>
           </div>
           {question.explanation_per_choice && (
             <div>
@@ -252,7 +263,9 @@ export function QuestionCard({
               <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
                 Desmos strategy:
               </span>
-              <p className="mt-1 whitespace-pre-wrap text-[color:var(--ink)]">{question.desmos_strategy}</p>
+              <p className="mt-1 whitespace-pre-wrap text-[color:var(--ink)]">
+                {question.desmos_strategy}
+              </p>
             </div>
           )}
         </div>
@@ -312,7 +325,9 @@ function ImageAttachment({
     <div>
       <div className="mb-1 flex items-center gap-2">
         <ImageIcon className="h-3 w-3 text-[color:var(--mute)]" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">Image</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
+          Image
+        </span>
       </div>
       <input
         ref={fileRef}

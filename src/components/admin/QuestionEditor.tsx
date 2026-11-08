@@ -115,7 +115,9 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
               onClick={() => setViewMode("list")}
               className={cn(
                 "px-3 py-1.5 font-semibold",
-                viewMode === "list" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+                viewMode === "list"
+                  ? "bg-[color:var(--raised)] text-[color:var(--ink)]"
+                  : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
             >
               List
@@ -124,7 +126,9 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
               onClick={() => setViewMode("tabs")}
               className={cn(
                 "border-l border-[color:var(--line)] px-3 py-1.5 font-semibold",
-                viewMode === "tabs" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+                viewMode === "tabs"
+                  ? "bg-[color:var(--raised)] text-[color:var(--ink)]"
+                  : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
             >
               Tabs
@@ -153,7 +157,9 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
       {/* Difficulty filter chips */}
       {questions.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-semibold uppercase tracking-wider text-[color:var(--mute)]">Filter:</span>
+          <span className="font-semibold uppercase tracking-wider text-[color:var(--mute)]">
+            Filter:
+          </span>
           <FilterChip
             label={`All ${questions.length}`}
             active={filter === "all"}
@@ -276,7 +282,9 @@ function FilterChip({
       onClick={onClick}
       className={cn(
         "rounded-full border px-2.5 py-1 font-semibold capitalize transition-colors",
-        active ? "text-[color:var(--ink)]" : "border-[color:var(--line)] text-[color:var(--mute)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
+        active
+          ? "text-[color:var(--ink)]"
+          : "border-[color:var(--line)] text-[color:var(--mute)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
       )}
       style={
         active

@@ -59,7 +59,9 @@ export default function PrivateStudentQuestionView({
       <aside className="absolute inset-x-0 bottom-0 z-[73] flex h-20 items-center justify-between gap-3 border-t border-[color:var(--line)] bg-[color:var(--sunk)] px-3 text-xs sm:px-6">
         <p>
           Private review · unanswered student rendering · controls disabled
-          <span className="block text-[color:var(--mute)]">Practice previews do not show question numbers.</span>
+          <span className="block text-[color:var(--mute)]">
+            Practice previews do not show question numbers.
+          </span>
         </p>
         <Link
           href={`/admin/questions/inspect/${question.id}`}

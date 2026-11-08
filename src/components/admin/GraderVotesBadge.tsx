@@ -22,15 +22,24 @@ interface Props {
 }
 
 const VERDICT_TONE: Record<GraderVerdict, string> = {
-  verified: "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
-  verified_pro: "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
-  verified_opus: "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
-  likely_wrong: "border-[color-mix(in_srgb,var(--late)_60%,transparent)] bg-[color-mix(in_srgb,var(--late)_50%,transparent)] text-[color:var(--late)]",
-  pass1_split: "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
-  pass1_disagree: "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
-  pass2_disagree: "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
-  uncertain_parse: "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--mute)]",
-  error: "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--mute)]",
+  verified:
+    "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
+  verified_pro:
+    "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
+  verified_opus:
+    "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
+  likely_wrong:
+    "border-[color-mix(in_srgb,var(--late)_60%,transparent)] bg-[color-mix(in_srgb,var(--late)_50%,transparent)] text-[color:var(--late)]",
+  pass1_split:
+    "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
+  pass1_disagree:
+    "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
+  pass2_disagree:
+    "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
+  uncertain_parse:
+    "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--mute)]",
+  error:
+    "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--mute)]",
 };
 
 const VERDICT_LABEL: Record<GraderVerdict, string> = {

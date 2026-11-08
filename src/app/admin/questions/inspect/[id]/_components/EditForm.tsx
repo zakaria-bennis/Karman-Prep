@@ -116,7 +116,10 @@ export default function EditForm({
               const key = `choice_${letter.toLowerCase()}` as keyof EditFormShape;
               const isCorrect = form.correct_answer === letter;
               return (
-                <div key={letter} className="rounded-lg border border-[color-mix(in_srgb,var(--line)_60%,transparent)] p-2">
+                <div
+                  key={letter}
+                  className="rounded-lg border border-[color-mix(in_srgb,var(--line)_60%,transparent)] p-2"
+                >
                   <div className="flex items-start gap-2">
                     <button
                       type="button"
@@ -303,7 +306,9 @@ function FieldGroup({
     <div>
       <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[color:var(--ink)]">
         {label}
-        {hint && <span className="ml-1.5 font-normal normal-case text-[color:var(--mute)]">— {hint}</span>}
+        {hint && (
+          <span className="ml-1.5 font-normal normal-case text-[color:var(--mute)]">— {hint}</span>
+        )}
       </label>
       {children}
     </div>

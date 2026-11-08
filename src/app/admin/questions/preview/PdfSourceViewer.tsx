@@ -62,7 +62,9 @@ export function PdfSourceViewer({ sourcePdf, sourcePage }: Props) {
           >
             <ChevronLeft className="h-3 w-3 text-[color:var(--ink)]" />
           </button>
-          <span className="min-w-[3rem] text-center font-mono text-[11px] text-[color:var(--ink)]">p{page}</span>
+          <span className="min-w-[3rem] text-center font-mono text-[11px] text-[color:var(--ink)]">
+            p{page}
+          </span>
           <button
             onClick={() => setPage((p) => p + 1)}
             className="rounded border border-[color:var(--line)] bg-[color:var(--raised)] p-1 hover:bg-[color:var(--raised)]"
@@ -105,7 +107,9 @@ export function PdfSourceViewer({ sourcePdf, sourcePage }: Props) {
         {error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4 text-center text-xs text-[color:var(--late)]">
             <div className="font-semibold">Failed to load PDF</div>
-            <div className="text-[11px] text-[color-mix(in_srgb,var(--late)_70%,transparent)]">{error}</div>
+            <div className="text-[11px] text-[color-mix(in_srgb,var(--late)_70%,transparent)]">
+              {error}
+            </div>
             <div className="mt-1 text-[10px] italic text-[color:var(--mute)]">
               The PDF may have been imported via the older CSV path, which doesn&rsquo;t store
               source PDFs in R2.
