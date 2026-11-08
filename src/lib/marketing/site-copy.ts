@@ -22,6 +22,7 @@
 
 import {
   CALL_MINUTES,
+  COHORT_SCHOLARSHIP as SCH,
   CONTACT,
   FREE_PLAN as FREE,
   FREE_PRACTICE_TEST as FT,
@@ -37,7 +38,6 @@ import {
   PRO_PLAN as PRO,
   QUESTION_BANK as QB,
   SAT_DATES,
-  SCHOLARSHIP as SCH,
   SCHOOL_PLAN as SCHOOL,
   TRACK_RECORD as TR,
   TUTOR_AFFILIATE_PLAN as TA,
@@ -286,7 +286,7 @@ button: Save the seat
 ## 51 Guarantee: opening
 eyebrow: The Karman guarantee
 headline: ${PROMISE}, or money back or a free repeat.
-text: This page and the home page say the same thing. The private packages' own terms are below, in full. Nothing on any other page adds a rule.
+text: The cohort's whole deal is on this page and the home page, and nowhere else adds a rule. The private packages' rules are on the private tutoring page, in full.
 
 ## 52 Guarantee: examples
 headline: Five students, worked through.
@@ -479,7 +479,7 @@ pricing date question: When does your student want to start?
 pricing other date: Another time
 pricing guarantee headline: What you get back, by score.
 pricing badge: ${PROMISE}, or money back or the next cohort free.
-pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the score. You choose. Four rules apply, all listed below.
+pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the score. You choose. Every rule is listed below.
 pricing compare title: What each option includes
 pricing compare open: Compare everything, line by line
 pricing program button: Apply for a seat

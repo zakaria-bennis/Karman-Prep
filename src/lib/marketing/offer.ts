@@ -400,20 +400,6 @@ export const INTAKE_NOTE =
   "If you're already scoring 1500 or higher, or your SAT is less than four weeks away, we'll tell you honestly that a program probably isn't the best use of your money.";
 
 /**
- * The scholarship (founder, 2026-11-08): $1,500 to the top-scoring student in
- * each cohort, paid as a refund of the cohort price plus a merit bonus.
- * The upload, check, review queue and payout are built in the admin portal.
- */
-export const SCHOLARSHIP = {
-  amount: 1500,
-  /** The cohort price, refunded. */
-  refund: MARCH_PROGRAM.price,
-  /** Paid on top of the refund: 995 + 505 = 1,500. */
-  meritBonus: 1500 - MARCH_PROGRAM.price,
-  contactEmail: "hello@karmanprep.com",
-} as const;
-
-/**
  * The cohort scholarship (founder decision 2026-11-08): one award to the
  * top-scoring student in each cohort, paid as a refund of the cohort price plus a
  * merit bonus for the rest. The full rules are the "Cohort Scholarship" section of
