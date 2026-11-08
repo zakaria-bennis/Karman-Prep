@@ -5,7 +5,7 @@ import type { readStudentBriefing } from "@/lib/educator-briefing/server";
 
 export function BriefingUnavailable() {
   return (
-    <p role="status" className="rounded-xl border border-bronze bg-surface p-5 text-taupe">
+    <p role="status" className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 text-[color:var(--mute)]">
       The briefing is unavailable right now. No saved work has been changed. Reload this page to try
       again.
     </p>
@@ -15,9 +15,9 @@ export function BriefingUnavailable() {
 export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
   if (!briefing.timeZone)
     return (
-      <p role="status" className="rounded-xl border border-bronze bg-surface p-5 text-taupe">
+      <p role="status" className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 text-[color:var(--mute)]">
         Your account timezone is unavailable, so a calendar-day briefing cannot be shown.{" "}
-        <Link className="text-info underline" href="/tutor/schedule">
+        <Link className="text-[color:var(--info)] underline" href="/tutor/schedule">
           Open your schedule
         </Link>
         .
@@ -26,26 +26,26 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
   return (
     <>
       <form method="get" className="flex flex-wrap items-end gap-3">
-        <label className="text-sm font-semibold text-ivory">
+        <label className="text-sm font-semibold text-[color:var(--ink)]">
           Briefing date
           <input
             type="date"
             name="date"
             defaultValue={briefing.day ?? ""}
             required
-            className="mt-2 block min-h-11 rounded-lg border border-bronze bg-surface px-3 py-2 text-ivory"
+            className="mt-2 block min-h-11 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2 text-[color:var(--ink)]"
           />
         </label>
         <button
           type="submit"
-          className="min-h-11 rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory"
+          className="min-h-11 rounded-lg border border-[color:var(--line)] px-4 py-2 text-sm font-semibold text-[color:var(--ink)]"
         >
           Show day
         </button>
-        <p className="text-sm text-taupe">Times in {briefing.timeZone}</p>
+        <p className="text-sm text-[color:var(--mute)]">Times in {briefing.timeZone}</p>
       </form>
       {briefing.sessions.length === 0 ? (
-        <p className="rounded-xl border border-bronze p-5 text-taupe">
+        <p className="rounded-xl border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
           No scheduled sessions with students in your current roster on this date.
         </p>
       ) : (
@@ -53,12 +53,12 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
           {briefing.sessions.map((session) => (
             <li
               key={session.bookingId}
-              className="min-w-0 rounded-xl border border-bronze bg-surface p-5"
+              className="min-w-0 rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5"
             >
-              <h2 className="break-words text-lg font-semibold text-ivory">
+              <h2 className="break-words text-lg font-semibold text-[color:var(--ink)]">
                 {session.studentLabel}
               </h2>
-              <p className="mt-2 text-sm text-taupe">
+              <p className="mt-2 text-sm text-[color:var(--mute)]">
                 <time dateTime={session.scheduledStart}>
                   {new Intl.DateTimeFormat("en-US", {
                     timeZone: briefing.timeZone!,
@@ -69,7 +69,7 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
               </p>
               <Link
                 href={`/tutor/${encodeURIComponent(session.studentClerkId)}/briefing`}
-                className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-info underline underline-offset-4"
+                className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--info)] underline underline-offset-4"
               >
                 View practice briefing
               </Link>
@@ -85,22 +85,22 @@ type StudentBriefing = NonNullable<Awaited<ReturnType<typeof readStudentBriefing
 export function StudentBriefingView({ briefing }: { briefing: StudentBriefing }) {
   return (
     <>
-      <p className="text-sm text-taupe">
+      <p className="text-sm text-[color:var(--mute)]">
         The most recent 30 saved skill-practice sessions are shown. Earlier quizzes remain in the{" "}
         <Link
           href={`/tutor/${encodeURIComponent(briefing.studentClerkId)}?tab=quiz`}
-          className="text-info underline"
+          className="text-[color:var(--info)] underline"
         >
           student record
         </Link>
         .
       </p>
-      <p role="note" className="rounded-xl border border-bronze bg-surface p-4 text-sm text-taupe">
+      <p role="note" className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-4 text-sm text-[color:var(--mute)]">
         Assigned practice is not yet linked to individual tutoring sessions here. These records do
         not establish session-homework deadlines, lateness, or parent notices.
       </p>
       {briefing.attempts.length === 0 ? (
-        <p className="rounded-xl border border-bronze p-5 text-taupe">
+        <p className="rounded-xl border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
           No saved skill-practice sessions were found.
         </p>
       ) : (
@@ -110,19 +110,19 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
             return (
               <li
                 key={attempt.id}
-                className="min-w-0 rounded-xl border border-bronze bg-surface p-5"
+                className="min-w-0 rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5"
               >
-                <p className="text-sm text-taupe">
+                <p className="text-sm text-[color:var(--mute)]">
                   {attempt.assignmentId
                     ? attempt.assignment
                       ? `Assigned practice · ${attempt.assignment.status}`
                       : "Assigned practice · details unavailable"
                     : "Independent practice"}
                 </p>
-                <h2 className="mt-1 break-words text-lg font-semibold text-ivory">
+                <h2 className="mt-1 break-words text-lg font-semibold text-[color:var(--ink)]">
                   {attempt.assignment?.title ?? attempt.skillLabel}
                 </h2>
-                <p className="mt-2 text-sm text-taupe">
+                <p className="mt-2 text-sm text-[color:var(--mute)]">
                   {attempt.answered} of {attempt.total} answers saved ·{" "}
                   {attempt.completedAt ? "Completed" : "In progress"}
                   {attempt.completedAt
@@ -131,7 +131,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                       : ` · ${attempt.score}% on this practice`
                     : ""}
                 </p>
-                <p className="mt-1 text-xs text-taupe">
+                <p className="mt-1 text-xs text-[color:var(--mute)]">
                   Started{" "}
                   {new Date(attempt.startedAt).toLocaleString("en-US", {
                     timeZone: "UTC",
@@ -141,31 +141,31 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                   (UTC)
                 </p>
                 {attempt.missed.length === 0 ? (
-                  <p className="mt-3 text-sm text-taupe">
+                  <p className="mt-3 text-sm text-[color:var(--mute)]">
                     No missed answers among the responses saved so far.
                   </p>
                 ) : (
                   <>
-                    <h3 className="mt-4 text-sm font-semibold text-ivory">
+                    <h3 className="mt-4 text-sm font-semibold text-[color:var(--ink)]">
                       Recorded misses ({attempt.missed.length})
                     </h3>
                     <ul className="mt-2 space-y-3">
                       {attempt.missed.map((miss) => (
                         <li
                           key={miss.ordinal}
-                          className="min-w-0 border-l-2 border-bronze pl-3 text-sm text-ivory"
+                          className="min-w-0 border-l-2 border-[color:var(--line)] pl-3 text-sm text-[color:var(--ink)]"
                         >
                           <p className="font-semibold">Question {miss.ordinal + 1}</p>
                           <MathText
                             text={miss.questionText}
                             className="block whitespace-pre-wrap break-words"
                           />
-                          <p className="mt-1 break-words text-taupe">
+                          <p className="mt-1 break-words text-[color:var(--mute)]">
                             Saved answer: {miss.originalAnswer}
                           </p>
                           <Link
                             href={`${href}#question-${miss.ordinal + 1}`}
-                            className="inline-flex min-h-11 items-center text-info underline underline-offset-4"
+                            className="inline-flex min-h-11 items-center text-[color:var(--info)] underline underline-offset-4"
                           >
                             Review question {miss.ordinal + 1} as student
                           </Link>
@@ -176,7 +176,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                 )}
                 <Link
                   href={href}
-                  className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-info underline underline-offset-4"
+                  className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--info)] underline underline-offset-4"
                 >
                   Review this saved practice
                 </Link>
@@ -186,7 +186,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
         </ul>
       )}
       {briefing.hasMore && (
-        <p className="text-sm text-taupe">
+        <p className="text-sm text-[color:var(--mute)]">
           Older skill-practice sessions are outside this briefing. Their saved history is preserved.
         </p>
       )}

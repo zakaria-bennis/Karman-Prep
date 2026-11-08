@@ -41,12 +41,12 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> All nodes
         </Link>
-        <h1 className="text-2xl font-extrabold text-ivory">{node.topic}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-taupe">
+        <h1 className="text-2xl font-extrabold text-[color:var(--ink)]">{node.topic}</h1>
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[color:var(--mute)]">
           <span
             className="rounded-full px-2 py-0.5 font-bold uppercase tracking-[0.18em]"
             style={{
@@ -57,15 +57,15 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
           >
             {nodeAtmosphere(node.tier)}
           </span>
-          <code className="font-mono text-taupe">{node.id}</code>
+          <code className="font-mono text-[color:var(--mute)]">{node.id}</code>
           <span>·</span>
           <span>{node.subject === "reading" ? "Reading & Writing" : "Math"}</span>
           <span>·</span>
           <span>
-            Topic: <span className="text-ivory">{node.topic_cluster}</span>
+            Topic: <span className="text-[color:var(--ink)]">{node.topic_cluster}</span>
           </span>
         </div>
-        <p className="mt-3 max-w-2xl text-sm text-taupe">{node.description}</p>
+        <p className="mt-3 max-w-2xl text-sm text-[color:var(--mute)]">{node.description}</p>
       </div>
 
       <NodeTabs

@@ -58,12 +58,12 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
 
   if (initialJobs.length === 0) {
     return (
-      <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
-        <FileText className="mx-auto mb-2 h-6 w-6 text-taupe" />
+      <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-6 py-12 text-center text-sm text-[color:var(--mute)]">
+        <FileText className="mx-auto mb-2 h-6 w-6 text-[color:var(--mute)]" />
         No PDFs uploaded yet. Upload one from{" "}
         <a
           href="/admin/questions/import"
-          className="text-gold-bright underline hover:text-gold-bright"
+          className="text-[color:var(--accent-text)] underline hover:text-[color:var(--accent-text)]"
         >
           /admin/questions/import
         </a>
@@ -78,16 +78,16 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
       <div className="mb-3 flex items-center gap-3 text-xs">
         <button
           onClick={() => startTransition(() => router.refresh())}
-          className="inline-flex items-center gap-1 text-taupe hover:text-ivory"
+          className="inline-flex items-center gap-1 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
         >
           <RefreshCw className="h-3 w-3" /> Refresh
         </button>
-        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-taupe">
+        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-[color:var(--mute)]">
           <input
             type="checkbox"
             checked={autoRefresh}
             onChange={(e) => setAutoRefresh(e.target.checked)}
-            className="accent-gold"
+            className="accent-[color:var(--accent)]"
           />
           Auto-refresh while jobs are running
         </label>
@@ -115,27 +115,27 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
     stage !== "complete" && stage !== "failed" && stage !== "queued" && stage !== "done";
 
   return (
-    <article className="rounded-lg border border-bronze bg-surface/60 px-4 py-3">
+    <article className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-4 py-3">
       <div className="flex items-start gap-3">
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-taupe" />
+        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--mute)]" />
         <div className="min-w-0 flex-1">
           {/* ── Title row ───────────────────────────────────── */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate text-sm font-semibold text-ivory">{job.source_pdf}</span>
+            <span className="truncate text-sm font-semibold text-[color:var(--ink)]">{job.source_pdf}</span>
             <JobStatusBadge status={job.status} />
-            <span className="text-[11px] text-taupe">
+            <span className="text-[11px] text-[color:var(--mute)]">
               {new Date(job.uploaded_at).toLocaleString()}
             </span>
             {job.pdf_size_bytes != null && (
-              <span className="text-[11px] text-taupe">
+              <span className="text-[11px] text-[color:var(--mute)]">
                 {(job.pdf_size_bytes / 1024 / 1024).toFixed(1)} MB
               </span>
             )}
             {job.pdf_page_count != null && (
-              <span className="text-[11px] text-taupe">{job.pdf_page_count} pages</span>
+              <span className="text-[11px] text-[color:var(--mute)]">{job.pdf_page_count} pages</span>
             )}
             {totalImported > 0 && (
-              <span className="text-[11px] text-success">{totalImported} questions imported</span>
+              <span className="text-[11px] text-[color:var(--good)]">{totalImported} questions imported</span>
             )}
           </div>
 
@@ -143,15 +143,15 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
           <div className="mt-2.5">
             <div className="mb-1 flex items-center gap-2 text-[11px]">
               <StageIcon stage={stage} />
-              <span className="font-medium text-ivory">
+              <span className="font-medium text-[color:var(--ink)]">
                 {STAGE_LABEL[stage] ?? job.progress?.stage_label ?? stage}
               </span>
               {isActive && job.started_at && <ElapsedTime startedAt={job.started_at} />}
               {job.progress?.message && (
-                <span className="truncate text-taupe">— {job.progress.message}</span>
+                <span className="truncate text-[color:var(--mute)]">— {job.progress.message}</span>
               )}
               {job.progress?.updated_at && (
-                <span className="ml-auto shrink-0 text-taupe">
+                <span className="ml-auto shrink-0 text-[color:var(--mute)]">
                   updated {timeAgo(job.progress.updated_at)}
                 </span>
               )}
@@ -173,7 +173,7 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
           </div>
 
           {job.error_message && (
-            <div className="mt-2 flex items-start gap-1.5 text-xs text-error-bright">
+            <div className="mt-2 flex items-start gap-1.5 text-xs text-[color:var(--late)]">
               <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
               {job.error_message}
             </div>
@@ -216,37 +216,37 @@ function StageIcon({ stage }: { stage: PdfJobStage }) {
       { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
     >
   > = {
-    queued: { icon: Clock, className: "text-taupe" },
+    queued: { icon: Clock, className: "text-[color:var(--mute)]" },
     // v1 — old daemon
-    pulled: { icon: Download, className: "text-taupe" },
-    processing: { icon: Sparkles, className: "text-gold", spin: false },
-    finalizing: { icon: UploadIcon, className: "text-info" },
-    ingesting: { icon: Database, className: "text-gold" },
+    pulled: { icon: Download, className: "text-[color:var(--mute)]" },
+    processing: { icon: Sparkles, className: "text-[color:var(--accent-text)]", spin: false },
+    finalizing: { icon: UploadIcon, className: "text-[color:var(--info)]" },
+    ingesting: { icon: Database, className: "text-[color:var(--accent-text)]" },
     // v2 — Gemini pipeline (full 14-stage orchestrator)
-    extracting: { icon: Sparkles, className: "text-gold" },
-    figures: { icon: Sparkles, className: "text-info" },
-    csv: { icon: UploadIcon, className: "text-info" },
-    importing: { icon: Database, className: "text-gold" },
-    answer_key: { icon: Download, className: "text-success" },
-    crops: { icon: FileText, className: "text-info" },
-    visuals: { icon: Sparkles, className: "text-gold" },
-    figure_structure: { icon: Sparkles, className: "text-info" },
-    math_repair: { icon: Sparkles, className: "text-warning" },
-    fill_gate: { icon: Clock, className: "text-taupe" },
-    filling: { icon: Sparkles, className: "text-gold" },
-    qa_filling: { icon: Sparkles, className: "text-gold" },
-    grading: { icon: Sparkles, className: "text-warning" },
-    auditing: { icon: AlertTriangle, className: "text-warning" },
-    validating: { icon: CheckCircle2, className: "text-info" },
-    publishing: { icon: UploadIcon, className: "text-success" },
-    done: { icon: CheckCircle2, className: "text-success" },
+    extracting: { icon: Sparkles, className: "text-[color:var(--accent-text)]" },
+    figures: { icon: Sparkles, className: "text-[color:var(--info)]" },
+    csv: { icon: UploadIcon, className: "text-[color:var(--info)]" },
+    importing: { icon: Database, className: "text-[color:var(--accent-text)]" },
+    answer_key: { icon: Download, className: "text-[color:var(--good)]" },
+    crops: { icon: FileText, className: "text-[color:var(--info)]" },
+    visuals: { icon: Sparkles, className: "text-[color:var(--accent-text)]" },
+    figure_structure: { icon: Sparkles, className: "text-[color:var(--info)]" },
+    math_repair: { icon: Sparkles, className: "text-[color:var(--warn)]" },
+    fill_gate: { icon: Clock, className: "text-[color:var(--mute)]" },
+    filling: { icon: Sparkles, className: "text-[color:var(--accent-text)]" },
+    qa_filling: { icon: Sparkles, className: "text-[color:var(--accent-text)]" },
+    grading: { icon: Sparkles, className: "text-[color:var(--warn)]" },
+    auditing: { icon: AlertTriangle, className: "text-[color:var(--warn)]" },
+    validating: { icon: CheckCircle2, className: "text-[color:var(--info)]" },
+    publishing: { icon: UploadIcon, className: "text-[color:var(--good)]" },
+    done: { icon: CheckCircle2, className: "text-[color:var(--good)]" },
     // terminal (shared)
-    complete: { icon: CheckCircle2, className: "text-success" },
-    failed: { icon: XCircle, className: "text-error" },
+    complete: { icon: CheckCircle2, className: "text-[color:var(--good)]" },
+    failed: { icon: XCircle, className: "text-[color:var(--late)]" },
   };
   // Fallback for any stage without a bespoke icon (keeps the page from
   // crashing on an unmapped/new stage — the original bug).
-  const entry = map[stage] ?? { icon: Sparkles, className: "text-taupe" };
+  const entry = map[stage] ?? { icon: Sparkles, className: "text-[color:var(--mute)]" };
   const { icon: Icon, className } = entry;
   // Active (non-terminal, non-queued) stages get a soft pulse.
   const active =
@@ -257,14 +257,14 @@ function StageIcon({ stage }: { stage: PdfJobStage }) {
 function ProgressBar({ percent, stage }: { percent: number; stage: PdfJobStage }) {
   const barColor =
     stage === "failed"
-      ? "bg-error/70"
+      ? "bg-[color-mix(in_srgb,var(--late)_70%,transparent)]"
       : stage === "complete"
-        ? "bg-success/70"
+        ? "bg-[color-mix(in_srgb,var(--good)_70%,transparent)]"
         : stage === "queued"
-          ? "bg-surface-raised"
-          : "bg-gold/70";
+          ? "bg-[color:var(--raised)]"
+          : "bg-[color-mix(in_srgb,var(--accent)_70%,transparent)]";
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised">
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--raised)]">
       <div
         className={cn("h-full transition-all duration-700 ease-out", barColor)}
         style={{ width: `${percent}%` }}
@@ -281,7 +281,7 @@ function ElapsedTime({ startedAt }: { startedAt: string }) {
     return () => clearInterval(t);
   }, []);
   const elapsedSec = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
-  return <span className="font-mono text-taupe">({formatDuration(elapsedSec)})</span>;
+  return <span className="font-mono text-[color:var(--mute)]">({formatDuration(elapsedSec)})</span>;
 }
 
 function formatDuration(sec: number): string {
@@ -309,19 +309,19 @@ function JobStatusBadge({ status }: { status: PdfJobStatus }) {
     PdfJobStatus,
     { label: string; className: string; icon: React.ComponentType<{ className?: string }> }
   > = {
-    queued: { label: "Queued", className: "bg-surface-raised text-ivory", icon: Clock },
-    running: { label: "Running", className: "bg-gold/20 text-gold-bright", icon: Loader2 },
+    queued: { label: "Queued", className: "bg-[color:var(--raised)] text-[color:var(--ink)]", icon: Clock },
+    running: { label: "Running", className: "bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-[color:var(--accent-text)]", icon: Loader2 },
     partial: {
       label: "Partial",
-      className: "bg-warning/20 text-warning-bright",
+      className: "bg-[color-mix(in_srgb,var(--warn)_20%,transparent)] text-[color:var(--warn)]",
       icon: AlertTriangle,
     },
     complete: {
       label: "Complete",
-      className: "bg-success/20 text-success-bright",
+      className: "bg-[color-mix(in_srgb,var(--good)_20%,transparent)] text-[color:var(--good)]",
       icon: CheckCircle2,
     },
-    failed: { label: "Failed", className: "bg-error/20 text-error-bright", icon: XCircle },
+    failed: { label: "Failed", className: "bg-[color-mix(in_srgb,var(--late)_20%,transparent)] text-[color:var(--late)]", icon: XCircle },
   };
   const { label, className, icon: Icon } = map[status];
   const isAnimated = status === "running";
@@ -347,10 +347,10 @@ function ModulePill({
   imported?: number;
 }) {
   const cls = {
-    pending: "border-bronze text-taupe",
-    in_progress: "border-gold/50 text-gold-bright bg-gold/10",
-    complete: "border-success/40 text-success-bright bg-success/10",
-    failed: "border-error/40 text-error-bright bg-error/10",
+    pending: "border-[color:var(--line)] text-[color:var(--mute)]",
+    in_progress: "border-[color-mix(in_srgb,var(--accent)_50%,transparent)] text-[color:var(--accent-text)] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]",
+    complete: "border-[color-mix(in_srgb,var(--good)_40%,transparent)] text-[color:var(--good)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)]",
+    failed: "border-[color-mix(in_srgb,var(--late)_40%,transparent)] text-[color:var(--late)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)]",
   }[status];
   return (
     <span
@@ -361,7 +361,7 @@ function ModulePill({
     >
       {label}
       {imported != null && status === "complete" && (
-        <span className="text-success/80">· {imported}</span>
+        <span className="text-[color-mix(in_srgb,var(--good)_80%,transparent)]">· {imported}</span>
       )}
     </span>
   );

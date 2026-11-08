@@ -37,13 +37,13 @@ export function TabLink({
       href={href}
       className={cn(
         "inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold transition-colors",
-        active ? "border-gold/40 text-gold" : "border-transparent text-taupe hover:text-ivory"
+        active ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--accent-text)]" : "border-transparent text-[color:var(--mute)] hover:text-[color:var(--ink)]"
       )}
     >
       <Icon className="h-4 w-4" />
       {label}
       {count > 0 && (
-        <span className={cn("font-mono text-xs", active ? "text-gold-bright" : "text-taupe")}>
+        <span className={cn("font-mono text-xs", active ? "text-[color:var(--accent-text)]" : "text-[color:var(--mute)]")}>
           {count}
         </span>
       )}
@@ -53,9 +53,9 @@ export function TabLink({
 
 export function EmptyBlock({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-bronze px-8 py-12 text-center">
-      <h3 className="text-base font-semibold text-ivory">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm text-taupe">{subtitle}</p>
+    <div className="rounded-xl border border-dashed border-[color:var(--line)] px-8 py-12 text-center">
+      <h3 className="text-base font-semibold text-[color:var(--ink)]">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-[color:var(--mute)]">{subtitle}</p>
     </div>
   );
 }
@@ -68,7 +68,7 @@ export function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | 
         alt={name}
         width={28}
         height={28}
-        className="h-7 w-7 rounded-full border border-bronze object-cover"
+        className="h-7 w-7 rounded-full border border-[color:var(--line)] object-cover"
         unoptimized
       />
     );
@@ -82,7 +82,7 @@ export function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | 
     .toUpperCase();
   return (
     <div
-      className="flex h-7 w-7 items-center justify-center rounded-full border border-bronze bg-surface-raised text-xs font-semibold text-ivory"
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--line)] bg-[color:var(--raised)] text-xs font-semibold text-[color:var(--ink)]"
       aria-hidden="true"
     >
       {initials || "?"}
@@ -93,8 +93,8 @@ export function Avatar({ name, avatarUrl }: { name: string; avatarUrl: string | 
 export function TierBadge({ tier }: { tier: CohortTier }) {
   const classes =
     tier === "small_group"
-      ? "bg-success/10 text-success-bright border-success/20"
-      : "bg-gold/10 text-gold-bright border-gold/20";
+      ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]"
+      : "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_20%,transparent)]";
   return (
     <span
       className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
@@ -106,9 +106,9 @@ export function TierBadge({ tier }: { tier: CohortTier }) {
 
 export function StatusBadge({ status }: { status: CohortStatus }) {
   const map: Record<CohortStatus, string> = {
-    forming: "bg-surface-raised/10 text-ivory border-bronze/20",
-    active: "bg-success/10 text-success-bright border-success/20",
-    completed: "bg-surface-raised/20 text-taupe border-bronze/30",
+    forming: "bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] text-[color:var(--ink)] border-[color-mix(in_srgb,var(--line)_20%,transparent)]",
+    active: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
+    completed: "bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] text-[color:var(--mute)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]",
   };
   return (
     <span

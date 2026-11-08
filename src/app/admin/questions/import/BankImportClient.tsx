@@ -189,27 +189,27 @@ export default function BankImportClient() {
 
   return (
     <div>
-      <div className="rounded-xl border border-bronze bg-surface/60 p-5">
+      <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] p-5">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-ivory">Routine output → bank</h2>
-            <p className="mt-1 text-xs text-taupe">
+            <h2 className="text-sm font-bold text-[color:var(--ink)]">Routine output → bank</h2>
+            <p className="mt-1 text-xs text-[color:var(--mute)]">
               Upload the{" "}
-              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
+              <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
                 questions.csv
               </code>{" "}
               and{" "}
-              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
+              <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
                 questions_needs_review.csv
               </code>{" "}
               the PDF-ingestion routine writes to{" "}
-              <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">
+              <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
                 question-imports/runs/&lt;timestamp&gt;/
               </code>
               . Rows land in the bank with no node assigned. Use{" "}
               <a
                 href="/admin/questions/review"
-                className="text-gold-bright underline hover:text-gold-bright"
+                className="text-[color:var(--accent-text)] underline hover:text-[color:var(--accent-text)]"
               >
                 /admin/questions/review
               </a>{" "}
@@ -219,14 +219,14 @@ export default function BankImportClient() {
           </div>
           <button
             onClick={handleDownloadTemplate}
-            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-bright"
+            className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
           >
             CSV template
           </button>
         </div>
 
         {/* ── Mode toggle: file vs paste ───────────────── */}
-        <div className="-mx-1 mb-3 flex border-b border-bronze">
+        <div className="-mx-1 mb-3 flex border-b border-[color:var(--line)]">
           <ModeTab
             active={mode === "file"}
             onClick={() => setMode("file")}
@@ -259,17 +259,17 @@ export default function BankImportClient() {
               className={cn(
                 "cursor-pointer rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors",
                 dragActive
-                  ? "border-gold/40 bg-gold/10"
+                  ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]"
                   : filename
-                    ? "border-success/40 bg-success/5 hover:bg-success/10"
-                    : "border-bronze bg-night/40 hover:border-bronze hover:bg-surface/60"
+                    ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_5%,transparent)] hover:bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
+                    : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] hover:border-[color:var(--line)] hover:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]"
               )}
             >
               {filename ? (
                 <div className="flex flex-col items-center gap-2 text-sm">
-                  <FileCheck2 className="h-8 w-8 text-success" />
-                  <div className="font-semibold text-success-bright">{filename}</div>
-                  <div className="text-xs text-taupe">
+                  <FileCheck2 className="h-8 w-8 text-[color:var(--good)]" />
+                  <div className="font-semibold text-[color:var(--good)]">{filename}</div>
+                  <div className="text-xs text-[color:var(--mute)]">
                     Drop a different file or click to replace
                     {previewBreakdown && (
                       <>
@@ -282,14 +282,14 @@ export default function BankImportClient() {
               ) : (
                 <div className="flex flex-col items-center gap-2 text-sm">
                   <Upload
-                    className={cn("h-8 w-8", dragActive ? "text-gold-bright" : "text-taupe")}
+                    className={cn("h-8 w-8", dragActive ? "text-[color:var(--accent-text)]" : "text-[color:var(--mute)]")}
                   />
                   <div
-                    className={cn("font-semibold", dragActive ? "text-gold-bright" : "text-ivory")}
+                    className={cn("font-semibold", dragActive ? "text-[color:var(--accent-text)]" : "text-[color:var(--ink)]")}
                   >
                     {dragActive ? "Drop the CSV to upload" : "Drag & drop a CSV here"}
                   </div>
-                  <div className="text-xs text-taupe">
+                  <div className="text-xs text-[color:var(--mute)]">
                     or click anywhere in this box to choose a file · .csv or .json
                   </div>
                 </div>
@@ -302,12 +302,12 @@ export default function BankImportClient() {
               value={pastedText}
               onChange={(e) => setPastedText(e.target.value)}
               placeholder="Paste the CSV here — header row first, then data rows. Or paste a JSON array of question objects."
-              className="max-h-[24rem] min-h-[12rem] w-full resize-y rounded-lg border border-bronze bg-night/60 px-3 py-2 font-mono text-xs text-ivory focus:border-gold/60 focus:outline-none"
+              className="max-h-[24rem] min-h-[12rem] w-full resize-y rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 font-mono text-xs text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_60%,transparent)] focus:outline-none"
             />
             <div className="mt-2 flex items-center gap-3">
               <button
                 onClick={handleParsePasted}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised px-3 py-1.5 text-sm font-semibold text-ivory hover:bg-surface-raised"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--raised)] px-3 py-1.5 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
               >
                 <Clipboard className="h-3.5 w-3.5" /> Parse pasted CSV
               </button>
@@ -318,13 +318,13 @@ export default function BankImportClient() {
                     setPreview(null);
                     setParseError(null);
                   }}
-                  className="text-xs text-taupe hover:text-ivory"
+                  className="text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
                 >
                   Clear
                 </button>
               )}
               {previewBreakdown && (
-                <span className="text-xs text-taupe">
+                <span className="text-xs text-[color:var(--mute)]">
                   · {previewBreakdown.ok} ok / {previewBreakdown.flagged} flagged
                 </span>
               )}
@@ -333,7 +333,7 @@ export default function BankImportClient() {
         )}
 
         {parseError && (
-          <div className="mt-3 flex items-start gap-2 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-xs text-error-bright">
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-3 py-2 text-xs text-[color:var(--late)]">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {parseError}
           </div>
         )}
@@ -342,12 +342,12 @@ export default function BankImportClient() {
 
         {preview && (
           <div className="mt-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe">
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--mute)]">
               Preview
             </h4>
-            <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-bronze text-xs">
+            <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-[color:var(--line)] text-xs">
               <table className="w-full">
-                <thead className="sticky top-0 bg-surface-raised text-taupe">
+                <thead className="sticky top-0 bg-[color:var(--raised)] text-[color:var(--mute)]">
                   <tr>
                     <th className="px-3 py-2 text-left font-semibold">Question</th>
                     <th className="px-3 py-2 text-left font-semibold">Domain</th>
@@ -359,14 +359,14 @@ export default function BankImportClient() {
                 </thead>
                 <tbody>
                   {preview.map((r, i) => (
-                    <tr key={i} className="border-t border-bronze">
-                      <td className="max-w-[20rem] truncate px-3 py-2 text-ivory">
+                    <tr key={i} className="border-t border-[color:var(--line)]">
+                      <td className="max-w-[20rem] truncate px-3 py-2 text-[color:var(--ink)]">
                         {r.question_text}
                       </td>
-                      <td className="px-3 py-2 text-taupe">{r.domain ?? "—"}</td>
-                      <td className="px-3 py-2 text-taupe">{r.concept_slug ?? "—"}</td>
-                      <td className="px-3 py-2 text-taupe">{r.difficulty}</td>
-                      <td className="max-w-[12rem] truncate px-3 py-2 text-taupe">
+                      <td className="px-3 py-2 text-[color:var(--mute)]">{r.domain ?? "—"}</td>
+                      <td className="px-3 py-2 text-[color:var(--mute)]">{r.concept_slug ?? "—"}</td>
+                      <td className="px-3 py-2 text-[color:var(--mute)]">{r.difficulty}</td>
+                      <td className="max-w-[12rem] truncate px-3 py-2 text-[color:var(--mute)]">
                         {r.source_pdf
                           ? `${r.source_pdf}${r.source_page ? `:${r.source_page}` : ""}`
                           : "—"}
@@ -376,8 +376,8 @@ export default function BankImportClient() {
                           className={cn(
                             "inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
                             r.import_status === "needs_review"
-                              ? "bg-warning/15 text-warning-bright"
-                              : "bg-success/15 text-success-bright"
+                              ? "bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)]"
+                              : "bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-[color:var(--good)]"
                           )}
                         >
                           {r.import_status ?? "ok"}
@@ -394,7 +394,7 @@ export default function BankImportClient() {
                   setPreview(null);
                   setFilename(null);
                 }}
-                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-taupe hover:bg-surface-raised"
+                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-[color:var(--mute)] hover:bg-[color:var(--raised)]"
               >
                 Cancel
               </button>
@@ -402,8 +402,8 @@ export default function BankImportClient() {
                 onClick={handleConfirm}
                 disabled={importing}
                 className={cn(
-                  "rounded-lg bg-gold px-4 py-1.5 text-sm font-bold text-night",
-                  importing ? "cursor-not-allowed opacity-50" : "hover:bg-gold-bright"
+                  "rounded-lg bg-[color:var(--accent)] px-4 py-1.5 text-sm font-bold text-[color:var(--accent-ink)]",
+                  importing ? "cursor-not-allowed opacity-50" : "hover:bg-[color:var(--accent)]"
                 )}
               >
                 {importing ? "Importing…" : `Import ${preview.length} questions`}
@@ -413,8 +413,8 @@ export default function BankImportClient() {
         )}
       </div>
 
-      <div className="mt-4 flex items-start gap-2 rounded-lg border border-bronze bg-surface/40 px-4 py-3 text-xs text-taupe">
-        <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+      <div className="mt-4 flex items-start gap-2 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-4 py-3 text-xs text-[color:var(--mute)]">
+        <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--warn)]" />
         <span>
           Re-uploading the same file is safe — the importer skips rows whose (source_pdf,
           content_hash) pair is already in the database. To force a re-import after editing the
@@ -441,7 +441,7 @@ function ModeTab({
       onClick={onClick}
       className={cn(
         "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-xs font-semibold transition-colors",
-        active ? "border-gold/40 text-ivory" : "border-transparent text-taupe hover:text-ivory"
+        active ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--ink)]" : "border-transparent text-[color:var(--mute)] hover:text-[color:var(--ink)]"
       )}
     >
       <Icon className="h-3 w-3" />

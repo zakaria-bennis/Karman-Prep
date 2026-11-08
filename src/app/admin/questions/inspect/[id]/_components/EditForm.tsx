@@ -52,12 +52,12 @@ export default function EditForm({
 }: Props) {
   return (
     <div className="space-y-4">
-      <p className="rounded-md bg-gold/[0.06] px-3 py-2 text-[11px] leading-relaxed text-gold-bright">
+      <p className="rounded-md bg-[color-mix(in_srgb,var(--accent)_6%,transparent)] px-3 py-2 text-[11px] leading-relaxed text-[color:var(--accent-text)]">
         Edit any field below and click <b>Save edits</b>. The page rerenders to the student view
         afterward. Findings stay until you resolve them — fixing the underlying issue doesn&apos;t
         auto-clear flags, since the audit script needs to re-scan to confirm. Wrap math in{" "}
-        <code className="rounded bg-surface px-1">$…$</code> for KaTeX (e.g.{" "}
-        <code className="rounded bg-surface px-1">$x^2$</code>).
+        <code className="rounded bg-[color:var(--card)] px-1">$…$</code> for KaTeX (e.g.{" "}
+        <code className="rounded bg-[color:var(--card)] px-1">$x^2$</code>).
       </p>
 
       {/* Passage block — show all four sub-fields for R&W */}
@@ -116,7 +116,7 @@ export default function EditForm({
               const key = `choice_${letter.toLowerCase()}` as keyof EditFormShape;
               const isCorrect = form.correct_answer === letter;
               return (
-                <div key={letter} className="rounded-lg border border-bronze/60 p-2">
+                <div key={letter} className="rounded-lg border border-[color-mix(in_srgb,var(--line)_60%,transparent)] p-2">
                   <div className="flex items-start gap-2">
                     <button
                       type="button"
@@ -124,8 +124,8 @@ export default function EditForm({
                       className={cn(
                         "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-colors",
                         isCorrect
-                          ? "border-success/40 bg-success/20 text-success-bright"
-                          : "border-bronze text-taupe hover:border-bronze hover:text-ivory"
+                          ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_20%,transparent)] text-[color:var(--good)]"
+                          : "border-[color:var(--line)] text-[color:var(--mute)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
                       )}
                       title="Mark this as the correct answer"
                     >
@@ -156,7 +156,7 @@ export default function EditForm({
                             }) as EditFormShape[typeof tableKey]
                       );
                     }}
-                    className="mt-2 text-xs font-semibold text-gold-bright"
+                    className="mt-2 text-xs font-semibold text-[color:var(--accent-text)]"
                   >
                     {form[`choice_table_${letter.toLowerCase()}` as keyof EditFormShape]
                       ? "Remove table"
@@ -180,7 +180,7 @@ export default function EditForm({
               );
             })}
           </div>
-          <p className="mt-1.5 text-[10px] text-taupe">
+          <p className="mt-1.5 text-[10px] text-[color:var(--mute)]">
             Click the A/B/C/D circle to mark the correct answer.
           </p>
         </FieldGroup>
@@ -191,7 +191,7 @@ export default function EditForm({
               type="text"
               value={form.correct_answer}
               onChange={(e) => setForm("correct_answer", e.target.value)}
-              className="w-full rounded-md border border-bronze bg-night px-3 py-1.5 text-sm text-ivory focus:border-gold/40 focus:outline-none"
+              className="w-full rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-3 py-1.5 text-sm text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
             />
           </FieldGroup>
           <FieldGroup label="Numeric tolerance" hint="± range (blank = exact match)">
@@ -200,7 +200,7 @@ export default function EditForm({
               inputMode="decimal"
               value={form.numeric_tolerance}
               onChange={(e) => setForm("numeric_tolerance", e.target.value)}
-              className="w-full rounded-md border border-bronze bg-night px-3 py-1.5 text-sm text-ivory focus:border-gold/40 focus:outline-none"
+              className="w-full rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-3 py-1.5 text-sm text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
               placeholder="e.g. 0.01"
             />
           </FieldGroup>
@@ -237,8 +237,8 @@ export default function EditForm({
                     className={cn(
                       "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold",
                       isCorrect
-                        ? "border-success/60 bg-success/15 text-success-bright"
-                        : "border-bronze text-taupe"
+                        ? "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-[color:var(--good)]"
+                        : "border-[color:var(--line)] text-[color:var(--mute)]"
                     )}
                     title={isCorrect ? "Correct answer" : `Distractor ${letter}`}
                   >
@@ -277,7 +277,7 @@ export default function EditForm({
           type="text"
           value={form.concept_slug}
           onChange={(e) => setForm("concept_slug", e.target.value)}
-          className="w-full rounded-md border border-bronze bg-night px-3 py-1.5 font-mono text-xs text-ivory focus:border-gold/40 focus:outline-none"
+          className="w-full rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-3 py-1.5 font-mono text-xs text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
           placeholder="e.g. linear-equations-one-variable"
         />
         <datalist id="concept-slug-options">
@@ -301,9 +301,9 @@ function FieldGroup({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-ivory">
+      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[color:var(--ink)]">
         {label}
-        {hint && <span className="ml-1.5 font-normal normal-case text-taupe">— {hint}</span>}
+        {hint && <span className="ml-1.5 font-normal normal-case text-[color:var(--mute)]">— {hint}</span>}
       </label>
       {children}
     </div>
@@ -324,7 +324,7 @@ function Textarea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={rows}
-      className="w-full resize-y rounded-md border border-bronze bg-night px-3 py-2 font-mono text-[12px] leading-snug text-ivory focus:border-gold/40 focus:outline-none"
+      className="w-full resize-y rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-3 py-2 font-mono text-[12px] leading-snug text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
     />
   );
 }
@@ -418,7 +418,7 @@ function FigureReplaceBlock({
           maxHeightClass="max-h-64"
         />
       ) : (
-        <div className="rounded-md border border-dashed border-bronze bg-night/40 p-6 text-center text-xs text-taupe">
+        <div className="rounded-md border border-dashed border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] p-6 text-center text-xs text-[color:var(--mute)]">
           No figure attached
         </div>
       )}
@@ -436,7 +436,7 @@ function FigureReplaceBlock({
           type="button"
           onClick={openFilePicker}
           disabled={busy !== null}
-          className="inline-flex items-center gap-1.5 rounded-md bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold-bright hover:bg-gold/25 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:bg-[color-mix(in_srgb,var(--accent)_25%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy === "uploading" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -450,7 +450,7 @@ function FigureReplaceBlock({
             type="button"
             onClick={handleRemove}
             disabled={busy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-error/15 px-3 py-1.5 text-xs font-semibold text-error-bright hover:bg-error/25 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--late)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--late)] hover:bg-[color-mix(in_srgb,var(--late)_25%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy === "removing" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -467,15 +467,15 @@ function FigureReplaceBlock({
           className={cn(
             "rounded-md border px-3 py-2 text-xs",
             feedback.kind === "success"
-              ? "border-success/40 bg-success/[0.06] text-success-bright"
-              : "border-error/40 bg-error/[0.06] text-error-bright"
+              ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] text-[color:var(--good)]"
+              : "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]"
           )}
         >
           {feedback.message}
         </div>
       )}
 
-      <p className="text-[10px] text-taupe">
+      <p className="text-[10px] text-[color:var(--mute)]">
         Replacing the figure clears any extracted table data. PNG / JPEG / WebP supported.
       </p>
     </div>

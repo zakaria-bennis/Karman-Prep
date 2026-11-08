@@ -53,21 +53,21 @@ export function PreviewSidebar({
   const selectedCount = selectedIds.size;
 
   return (
-    <aside className="flex h-full min-h-0 min-w-0 flex-col rounded-xl border border-bronze bg-surface/30">
+    <aside className="flex h-full min-h-0 min-w-0 flex-col rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_30%,transparent)]">
       {/* ── Header: select-all + count ────────────────────── */}
-      <header className="flex items-center gap-2 border-b border-bronze px-3 py-2 text-xs">
-        <label className="inline-flex cursor-pointer items-center gap-1.5 text-taupe hover:text-ivory">
+      <header className="flex items-center gap-2 border-b border-[color:var(--line)] px-3 py-2 text-xs">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 text-[color:var(--mute)] hover:text-[color:var(--ink)]">
           <input
             type="checkbox"
             checked={allSelected}
             onChange={onToggleSelectAll}
-            className="h-3.5 w-3.5 cursor-pointer accent-gold"
+            className="h-3.5 w-3.5 cursor-pointer accent-[color:var(--accent)]"
             aria-label="Select all visible questions"
           />
           {selectedCount > 0 ? (
-            <span className="text-ivory">
+            <span className="text-[color:var(--ink)]">
               {selectedCount} selected
-              <span className="text-taupe"> / {questions.length}</span>
+              <span className="text-[color:var(--mute)]"> / {questions.length}</span>
             </span>
           ) : (
             <span>{questions.length} visible</span>
@@ -76,7 +76,7 @@ export function PreviewSidebar({
         {selectedCount > 0 && (
           <button
             onClick={onClearSelection}
-            className="ml-auto text-taupe hover:text-ivory"
+            className="ml-auto text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             disabled={bulkPending.approving || bulkPending.rejecting}
           >
             Clear
@@ -87,9 +87,9 @@ export function PreviewSidebar({
       {/* ── Scrollable list ───────────────────────────────── */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {questions.length === 0 ? (
-          <div className="p-6 text-xs italic text-taupe">No questions match these filters.</div>
+          <div className="p-6 text-xs italic text-[color:var(--mute)]">No questions match these filters.</div>
         ) : (
-          <ul className="divide-y divide-bronze">
+          <ul className="divide-y divide-[color:var(--line)]">
             {questions.map((q, i) => (
               <SidebarRow
                 key={q.id}
@@ -107,8 +107,8 @@ export function PreviewSidebar({
 
       {/* ── Bulk action bar (only when something selected) ── */}
       {selectedCount > 0 && (
-        <div className="flex flex-col gap-2 border-t border-bronze bg-surface/60 p-2">
-          <div className="text-[10px] uppercase tracking-wider text-taupe">
+        <div className="flex flex-col gap-2 border-t border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] p-2">
+          <div className="text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
             Bulk · {selectedCount}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -117,7 +117,7 @@ export function PreviewSidebar({
               disabled={bulkPending.approving || bulkPending.rejecting}
               className={cn(
                 "inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold disabled:opacity-50",
-                "bg-success text-night hover:bg-success-bright"
+                "bg-[color:var(--good)] text-[color:var(--accent-ink)] hover:bg-[color:var(--good)]"
               )}
             >
               {bulkPending.approving ? (
@@ -132,7 +132,7 @@ export function PreviewSidebar({
               disabled={bulkPending.approving || bulkPending.rejecting}
               className={cn(
                 "inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold disabled:opacity-50",
-                "bg-error text-ivory hover:bg-error-bright"
+                "bg-[color:var(--late)] text-[color:var(--ink)] hover:bg-[color:var(--late)]"
               )}
             >
               {bulkPending.rejecting ? (
@@ -167,7 +167,7 @@ function SidebarRow({
   const q = question;
   const hasOrphans = hasOrphanCropsOnPage(q.sourceLineage);
   return (
-    <li className={cn("flex items-start gap-2 px-2.5 py-2", active && "bg-surface-raised/70")}>
+    <li className={cn("flex items-start gap-2 px-2.5 py-2", active && "bg-[color-mix(in_srgb,var(--raised)_70%,transparent)]")}>
       {/* Checkbox sits OUTSIDE the click-to-select button so toggling
           a checkbox doesn't move the preview pane to that row. */}
       <input
@@ -175,44 +175,44 @@ function SidebarRow({
         checked={selected}
         onChange={onToggleSelected}
         onClick={(e) => e.stopPropagation()}
-        className="mt-1.5 h-3.5 w-3.5 shrink-0 cursor-pointer accent-gold"
+        className="mt-1.5 h-3.5 w-3.5 shrink-0 cursor-pointer accent-[color:var(--accent)]"
         aria-label={`Select question ${index + 1}`}
       />
       <button
         onClick={onClick}
         aria-current={active ? "true" : undefined}
-        className="min-h-11 min-w-0 flex-1 rounded-md text-left hover:bg-surface-raised/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+        className="min-h-11 min-w-0 flex-1 rounded-md text-left hover:bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--accent)]"
       >
         <div className="flex items-start gap-2">
-          <span className="mt-0.5 w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-taupe">
+          <span className="mt-0.5 w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-[color:var(--mute)]">
             {index + 1}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="line-clamp-2 text-[12px] leading-snug text-ivory">
+            <div className="line-clamp-2 text-[12px] leading-snug text-[color:var(--ink)]">
               {q.question_text || "(no question text)"}
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-taupe">
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-[color:var(--mute)]">
               <Badge tone="slate">{q.subject}</Badge>
               <Badge tone="slate">L{q.difficulty_level ?? "—"}</Badge>
               {q.image_url && (
-                <span title="Has figure" className="inline-flex items-center text-taupe">
+                <span title="Has figure" className="inline-flex items-center text-[color:var(--mute)]">
                   <ImageIcon className="h-3 w-3" />
                 </span>
               )}
               {q.import_status === "needs_review" && (
-                <span title="Flagged for review" className="inline-flex items-center text-warning">
+                <span title="Flagged for review" className="inline-flex items-center text-[color:var(--warn)]">
                   <AlertTriangle className="h-3 w-3" />
                 </span>
               )}
               {hasOrphans && (
                 <span
                   title="Orphan crops exist on this PDF page"
-                  className="inline-flex items-center text-warning-bright"
+                  className="inline-flex items-center text-[color:var(--warn)]"
                 >
                   <AlertTriangle className="h-3 w-3" />
                 </span>
               )}
-              <span className="max-w-[7rem] truncate text-taupe">
+              <span className="max-w-[7rem] truncate text-[color:var(--mute)]">
                 {q.concept_slug ?? "(no slug)"}
               </span>
             </div>
@@ -226,7 +226,7 @@ function SidebarRow({
 function Badge({ tone, children }: { tone: "slate"; children: React.ReactNode }) {
   return (
     <span
-      className={cn("rounded px-1.5 font-mono", tone === "slate" && "bg-surface-raised text-ivory")}
+      className={cn("rounded px-1.5 font-mono", tone === "slate" && "bg-[color:var(--raised)] text-[color:var(--ink)]")}
     >
       {children}
     </span>

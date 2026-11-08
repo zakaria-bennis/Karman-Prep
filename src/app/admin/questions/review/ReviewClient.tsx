@@ -233,7 +233,7 @@ export default function ReviewClient({
   return (
     <>
       {/* ── Tab toggle ─────────────────────────────────────── */}
-      <div className="mb-5 flex border-b border-bronze">
+      <div className="mb-5 flex border-b border-[color:var(--line)]">
         <TabButton
           active={activeTab === "flagged"}
           onClick={() => setTab("flagged")}
@@ -284,7 +284,7 @@ export default function ReviewClient({
           {(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf) && (
             <button
               onClick={() => router.push("/admin/questions/review")}
-              className="ml-auto text-taupe hover:text-ivory"
+              className="ml-auto text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             >
               Clear filters
             </button>
@@ -294,7 +294,7 @@ export default function ReviewClient({
 
       {/* ── Bulk-accept result banner (Bank tab only, after a run) ─ */}
       {bulkResult && activeTab === "bank" && (
-        <div className="mb-3 flex items-start gap-2 rounded-lg border border-success/30 bg-success/[0.06] px-3 py-2 text-xs text-success-bright">
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] px-3 py-2 text-xs text-[color:var(--good)]">
           <CheckCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <div className="flex-1">
             Auto-accepted <span className="font-semibold">{bulkResult.accepted}</span> question
@@ -302,21 +302,21 @@ export default function ReviewClient({
             {bulkResult.skipped > 0 && (
               <>
                 {" "}
-                <span className="text-warning-bright">{bulkResult.skipped} skipped</span> (no slug
+                <span className="text-[color:var(--warn)]">{bulkResult.skipped} skipped</span> (no slug
                 match — assign manually).
               </>
             )}
             {bulkResult.errored > 0 && (
               <>
                 {" "}
-                <span className="text-error-bright">{bulkResult.errored} errored</span> (see
+                <span className="text-[color:var(--late)]">{bulkResult.errored} errored</span> (see
                 console).
               </>
             )}
           </div>
           <button
             onClick={() => setBulkResult(null)}
-            className="text-success-bright/70 hover:text-success-bright"
+            className="text-[color-mix(in_srgb,var(--good)_70%,transparent)] hover:text-[color:var(--good)]"
           >
             <X className="h-3 w-3" />
           </button>
@@ -342,7 +342,7 @@ export default function ReviewClient({
                   disabled={bulkAccepting || bank.length === 0}
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-                    "bg-success text-night hover:bg-success-bright disabled:hover:bg-success-bright"
+                    "bg-[color:var(--good)] text-[color:var(--accent-ink)] hover:bg-[color:var(--good)] disabled:hover:bg-[color:var(--good)]"
                   )}
                 >
                   <CheckCheck className="h-3 w-3" />
@@ -352,26 +352,26 @@ export default function ReviewClient({
               {/* Flagged tab — bulk-reject controls (audit issue #15) */}
               {showBulkSelect && (
                 <>
-                  <label className="inline-flex cursor-pointer items-center gap-1.5 text-taupe hover:text-ivory">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 text-[color:var(--mute)] hover:text-[color:var(--ink)]">
                     <input
                       type="checkbox"
                       checked={allVisibleSelected}
                       onChange={toggleSelectAllVisible}
-                      className="h-3.5 w-3.5 cursor-pointer accent-error"
+                      className="h-3.5 w-3.5 cursor-pointer accent-[color:var(--late)]"
                     />
                     Select all{" "}
                     {visibleQuestions.length > 0 && <span>({visibleQuestions.length})</span>}
                   </label>
                   {selectedCount > 0 && (
                     <>
-                      <span className="text-taupe">·</span>
-                      <span className="text-ivory">{selectedCount} selected</span>
+                      <span className="text-[color:var(--mute)]">·</span>
+                      <span className="text-[color:var(--ink)]">{selectedCount} selected</span>
                       <button
                         onClick={handleBulkReject}
                         disabled={bulkRejecting}
                         className={cn(
                           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-                          "bg-error text-ivory hover:bg-error-bright disabled:hover:bg-error-bright"
+                          "bg-[color:var(--late)] text-[color:var(--ink)] hover:bg-[color:var(--late)] disabled:hover:bg-[color:var(--late)]"
                         )}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -382,7 +382,7 @@ export default function ReviewClient({
                       <button
                         onClick={() => setSelectedIds(new Set())}
                         disabled={bulkRejecting}
-                        className="text-taupe hover:text-ivory disabled:opacity-50"
+                        className="text-[color:var(--mute)] hover:text-[color:var(--ink)] disabled:opacity-50"
                       >
                         Clear
                       </button>
@@ -393,7 +393,7 @@ export default function ReviewClient({
             </div>
             <button
               onClick={toggleAllExpanded}
-              className="inline-flex items-center gap-1 text-taupe hover:text-ivory"
+              className="inline-flex items-center gap-1 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             >
               {allExpanded ? (
                 <>
@@ -449,17 +449,17 @@ function TabButton({
   count: number;
   tone: "amber" | "indigo";
 }) {
-  const accent = tone === "amber" ? "text-warning-bright" : "text-gold-bright";
+  const accent = tone === "amber" ? "text-[color:var(--warn)]" : "text-[color:var(--accent-text)]";
   return (
     <button
       onClick={onClick}
       className={cn(
         "-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition-colors",
-        active ? "border-ivory text-ivory" : "border-transparent text-taupe hover:text-ivory"
+        active ? "border-[color:var(--ink)] text-[color:var(--ink)]" : "border-transparent text-[color:var(--mute)] hover:text-[color:var(--ink)]"
       )}
     >
       {label}
-      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-taupe")}>{count}</span>
+      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-[color:var(--mute)]")}>{count}</span>
     </button>
   );
 }
@@ -475,7 +475,7 @@ function EmptyState({ tab, hasFilters }: { tab: Tab; hasFilters: boolean }) {
       "No questions in the bank. Imported PDF-routine questions land here with no curriculum node assigned — accept one with a node picked to send it live.";
   }
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
+    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-6 py-12 text-center text-sm text-[color:var(--mute)]">
       {copy}
     </div>
   );
@@ -493,12 +493,12 @@ function FilterSelect({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="inline-flex items-center gap-1.5 text-taupe">
+    <label className="inline-flex items-center gap-1.5 text-[color:var(--mute)]">
       <span>{label}:</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-bronze bg-surface px-2 py-1 text-xs text-ivory"
+        className="rounded border border-[color:var(--line)] bg-[color:var(--card)] px-2 py-1 text-xs text-[color:var(--ink)]"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

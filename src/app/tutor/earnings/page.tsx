@@ -50,9 +50,9 @@ export default async function TutorEarningsPage() {
       <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
         {/* ── Header ────────────────────────────────── */}
         <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
-          <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">My earnings</h1>
-          <p className="mt-1 text-sm text-taupe dark:text-taupe">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--info)]">Tutor Portal</p>
+          <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">My earnings</h1>
+          <p className="mt-1 text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
             Refreshed {timeSince(summary.last_refreshed_at)} ago
           </p>
         </header>
@@ -89,8 +89,8 @@ export default async function TutorEarningsPage() {
             className={cn(
               "flex items-start justify-between gap-3 rounded-xl border-2 p-5 transition",
               canRequestPayout
-                ? "border-info/40 bg-info text-ivory hover:bg-info-bright"
-                : "pointer-events-none cursor-not-allowed border-bronze bg-surface text-taupe dark:border-bronze dark:bg-surface/40"
+                ? "border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color:var(--info)] text-[color:var(--ink)] hover:bg-[color:var(--info)]"
+                : "pointer-events-none cursor-not-allowed border-[color:var(--line)] bg-[color:var(--card)] text-[color:var(--mute)] dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]"
             )}
           >
             <div>
@@ -111,26 +111,26 @@ export default async function TutorEarningsPage() {
 
           <Link
             href="/tutor/earnings/data"
-            className="group flex items-start justify-between gap-3 rounded-xl border-2 border-bronze bg-surface p-5 transition hover:border-info/40 dark:border-bronze dark:bg-surface/60 dark:hover:border-info/40"
+            className="group flex items-start justify-between gap-3 rounded-xl border-2 border-[color:var(--line)] bg-[color:var(--card)] p-5 transition hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)] dark:hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)]"
           >
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-taupe">
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[color:var(--mute)]">
                 <BarChart3 className="h-4 w-4" /> View earning data
               </div>
-              <div className="mt-1 text-lg font-bold text-ivory dark:text-ivory">
+              <div className="mt-1 text-lg font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                 Sessions, history, trends
               </div>
-              <div className="mt-1 text-xs text-taupe dark:text-taupe">
+              <div className="mt-1 text-xs text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                 Filter by today, week, month, or any range. See per-session earnings + a 12-week
                 chart.
               </div>
             </div>
-            <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-taupe transition group-hover:text-info" />
+            <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[color:var(--mute)] transition group-hover:text-[color:var(--info)]" />
           </Link>
         </section>
 
         {/* ── Light footer guidance ──────────────────── */}
-        <p className="text-center text-xs text-taupe dark:text-taupe">
+        <p className="text-center text-xs text-[color:var(--mute)] dark:text-[color:var(--mute)]">
           Pay = $35/hour, rounded down to 15-min increments. Same rate for 1:1 and group sessions.
         </p>
       </div>
@@ -155,20 +155,20 @@ function MetricCard({
   footer?: string;
 }) {
   const tones = {
-    slate: "border-bronze dark:border-bronze",
-    blue: "border-info/40 dark:border-info/40 bg-info/40 dark:bg-info/5",
-    emerald: "border-success/40 dark:border-success/40 bg-success/40 dark:bg-success/5",
+    slate: "border-[color:var(--line)] dark:border-[color:var(--line)]",
+    blue: "border-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--info)_5%,transparent)]",
+    emerald: "border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_5%,transparent)]",
   };
   return (
-    <div className={cn("rounded-xl border bg-surface px-4 py-4 dark:bg-surface/60", tones[tone])}>
-      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
+    <div className={cn("rounded-xl border bg-[color:var(--card)] px-4 py-4 dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]", tones[tone])}>
+      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)] dark:text-[color:var(--mute)]">
         {icon}
         {label}
       </div>
-      <div className="mt-1.5 text-xl font-extrabold tabular-nums text-ivory dark:text-ivory sm:text-2xl">
+      <div className="mt-1.5 text-xl font-extrabold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)] sm:text-2xl">
         {value}
       </div>
-      {footer && <div className="mt-1 text-xs text-taupe dark:text-taupe">{footer}</div>}
+      {footer && <div className="mt-1 text-xs text-[color:var(--mute)] dark:text-[color:var(--mute)]">{footer}</div>}
     </div>
   );
 }

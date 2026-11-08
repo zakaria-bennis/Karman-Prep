@@ -132,8 +132,8 @@ export default function ChartReviewClient({ rows }: Props) {
           className={cn(
             "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
             feedback.kind === "success"
-              ? "border-success/40 bg-success/[0.06] text-success-bright"
-              : "border-error/40 bg-error/[0.06] text-error-bright"
+              ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] text-[color:var(--good)]"
+              : "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]"
           )}
         >
           {feedback.kind === "success" ? (
@@ -194,37 +194,37 @@ function ReviewCard({
 }) {
   const conf = row.chart_data.confidence;
   return (
-    <article className="rounded-xl border border-bronze bg-surface/40 p-5">
+    <article className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
       {/* Metadata strip — most-prominent: source PDF + page */}
-      <header className="mb-4 flex flex-wrap items-center gap-3 border-b border-bronze pb-3">
+      <header className="mb-4 flex flex-wrap items-center gap-3 border-b border-[color:var(--line)] pb-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
             Source
           </span>
-          <code className="rounded bg-night px-2 py-0.5 font-mono text-xs text-ivory">
+          <code className="rounded bg-[color:var(--sunk)] px-2 py-0.5 font-mono text-xs text-[color:var(--ink)]">
             {row.source_pdf ?? "(no pdf)"}
           </code>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
             Page
           </span>
-          <code className="rounded bg-night px-2 py-0.5 font-mono text-xs text-ivory">
+          <code className="rounded bg-[color:var(--sunk)] px-2 py-0.5 font-mono text-xs text-[color:var(--ink)]">
             {row.source_page ?? "?"}
           </code>
         </div>
-        <span className="text-taupe">·</span>
-        <span className="rounded bg-surface-raised px-2 py-0.5 text-[11px] font-semibold uppercase text-ivory">
+        <span className="text-[color:var(--mute)]">·</span>
+        <span className="rounded bg-[color:var(--raised)] px-2 py-0.5 text-[11px] font-semibold uppercase text-[color:var(--ink)]">
           {row.subject}
         </span>
         {row.domain && (
-          <span className="text-[11px] text-taupe">{row.domain.replace(/_/g, " ")}</span>
+          <span className="text-[11px] text-[color:var(--mute)]">{row.domain.replace(/_/g, " ")}</span>
         )}
-        <span className="text-taupe">·</span>
+        <span className="text-[color:var(--mute)]">·</span>
         <ConfidencePill confidence={conf} />
         <Link
           href={row.inspect_href}
-          className="ml-auto inline-flex items-center gap-1 text-[11px] text-taupe hover:text-ivory"
+          className="ml-auto inline-flex items-center gap-1 text-[11px] text-[color:var(--mute)] hover:text-[color:var(--ink)]"
         >
           <ExternalLink className="h-3 w-3" /> Inspector detail
         </Link>
@@ -232,12 +232,12 @@ function ReviewCard({
 
       {/* Question stem preview — helps the admin know what the chart
           is supposed to show without leaving the page. */}
-      <p className="mb-3 line-clamp-2 text-xs text-taupe">{row.question_text}</p>
+      <p className="mb-3 line-clamp-2 text-xs text-[color:var(--mute)]">{row.question_text}</p>
 
       {/* Side-by-side: original screenshot vs AI re-render */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div>
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
             Original screenshot
           </div>
           {row.image_url ? (
@@ -247,13 +247,13 @@ function ReviewCard({
               maxHeightClass="max-h-72"
             />
           ) : (
-            <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-bronze text-xs text-taupe">
+            <div className="flex h-48 items-center justify-center rounded-md border border-dashed border-[color:var(--line)] text-xs text-[color:var(--mute)]">
               No image_url on this question
             </div>
           )}
         </div>
         <div>
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
             AI re-render
           </div>
           <ChartFigure data={row.chart_data} subject={row.subject} />
@@ -261,19 +261,19 @@ function ReviewCard({
       </div>
 
       {row.chart_data.extractor_note && (
-        <p className="mt-3 rounded bg-night/60 px-3 py-2 text-[11px] italic text-taupe">
+        <p className="mt-3 rounded bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-[11px] italic text-[color:var(--mute)]">
           Extractor note: {row.chart_data.extractor_note}
         </p>
       )}
 
       {/* Action bar */}
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-bronze pt-3">
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[color:var(--line)] pt-3">
         {row.is_live ? (
-          <span className="rounded bg-success/15 px-2 py-0.5 text-[11px] font-semibold text-success-bright">
+          <span className="rounded bg-[color-mix(in_srgb,var(--good)_15%,transparent)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--good)]">
             Live to students
           </span>
         ) : (
-          <span className="rounded bg-warning/15 px-2 py-0.5 text-[11px] font-semibold text-warning-bright">
+          <span className="rounded bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--warn)]">
             Pending — screenshot still showing
           </span>
         )}
@@ -282,7 +282,7 @@ function ReviewCard({
           type="button"
           onClick={onEdit}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-md bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold-bright hover:bg-gold/25 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:bg-[color-mix(in_srgb,var(--accent)_25%,transparent)] disabled:opacity-40"
         >
           <Pencil className="h-3.5 w-3.5" /> Edit
         </button>
@@ -291,7 +291,7 @@ function ReviewCard({
             type="button"
             onClick={onApprove}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-md bg-success/15 px-3 py-1.5 text-xs font-semibold text-success-bright hover:bg-success/25 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--good)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--good)] hover:bg-[color-mix(in_srgb,var(--good)_25%,transparent)] disabled:opacity-40"
           >
             {busy ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -305,7 +305,7 @@ function ReviewCard({
           type="button"
           onClick={onReject}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-md bg-error/15 px-3 py-1.5 text-xs font-semibold text-error-bright hover:bg-error/25 disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--late)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--late)] hover:bg-[color-mix(in_srgb,var(--late)_25%,transparent)] disabled:opacity-40"
         >
           <XCircle className="h-3.5 w-3.5" /> Reject
         </button>
@@ -318,10 +318,10 @@ function ConfidencePill({ confidence }: { confidence: number }) {
   const pct = Math.round(confidence * 100);
   const cls =
     confidence >= 0.8
-      ? "bg-success/15 text-success-bright"
+      ? "bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-[color:var(--good)]"
       : confidence >= 0.5
-        ? "bg-warning/15 text-warning-bright"
-        : "bg-error/15 text-error-bright";
+        ? "bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)]"
+        : "bg-[color-mix(in_srgb,var(--late)_15%,transparent)] text-[color:var(--late)]";
   return (
     <span className={cn("rounded px-2 py-0.5 font-mono text-[11px]", cls)}>AI conf {pct}%</span>
   );
@@ -342,17 +342,17 @@ function EditModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-night/70 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[color-mix(in_srgb,var(--sunk)_70%,transparent)] p-6 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
-        className="my-8 w-full max-w-6xl rounded-2xl border border-bronze bg-night p-6"
+        className="my-8 w-full max-w-6xl rounded-2xl border border-[color:var(--line)] bg-[color:var(--sunk)] p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="mb-4 flex items-center justify-between border-b border-bronze pb-3">
+        <header className="mb-4 flex items-center justify-between border-b border-[color:var(--line)] pb-3">
           <div>
-            <h2 className="text-base font-semibold text-ivory">Edit chart</h2>
-            <p className="mt-0.5 text-[11px] text-taupe">
+            <h2 className="text-base font-semibold text-[color:var(--ink)]">Edit chart</h2>
+            <p className="mt-0.5 text-[11px] text-[color:var(--mute)]">
               {row.source_pdf ?? "(no pdf)"} · page {row.source_page ?? "?"}
             </p>
           </div>
@@ -360,7 +360,7 @@ function EditModal({
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="rounded-md p-1.5 text-taupe hover:bg-surface-raised hover:text-ivory"
+            className="rounded-md p-1.5 text-[color:var(--mute)] hover:bg-[color:var(--raised)] hover:text-[color:var(--ink)]"
             aria-label="Close editor"
           >
             <X className="h-4 w-4" />

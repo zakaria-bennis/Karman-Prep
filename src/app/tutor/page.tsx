@@ -79,11 +79,11 @@ export default async function TutorPage() {
         ) : null}
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">
+            <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--info)]">
               Tutor Portal
             </p>
-            <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">My students</h1>
-            <p className="mt-1 text-sm text-taupe dark:text-taupe">
+            <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">My students</h1>
+            <p className="mt-1 text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
               {scope.cohorts.length} cohort{scope.cohorts.length !== 1 ? "s" : ""}
               {" · "}
               {rows.length} student{rows.length !== 1 ? "s" : ""} across cohorts + 1:1
@@ -92,27 +92,27 @@ export default async function TutorPage() {
           <nav className="flex flex-wrap items-center gap-2">
             <Link
               href="/tutor/briefing"
-              className="inline-flex min-h-11 items-center rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-info hover:border-info/40"
+              className="inline-flex min-h-11 items-center rounded-lg border border-[color:var(--line)] px-3 py-1.5 text-sm font-semibold text-[color:var(--info)] hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)]"
             >
               Daily briefing
             </Link>
             <Link
               href="/tutor/schedule"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] px-3 py-1.5 text-sm font-semibold text-[color:var(--ink)] hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color:var(--line)] dark:text-[color:var(--ink)]"
             >
-              <CalendarClock className="h-4 w-4 text-taupe" /> Schedule
+              <CalendarClock className="h-4 w-4 text-[color:var(--mute)]" /> Schedule
             </Link>
             <Link
               href="/tutor/earnings"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] px-3 py-1.5 text-sm font-semibold text-[color:var(--ink)] hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color:var(--line)] dark:text-[color:var(--ink)]"
             >
-              <Wallet className="h-4 w-4 text-taupe" /> Earnings
+              <Wallet className="h-4 w-4 text-[color:var(--mute)]" /> Earnings
             </Link>
             <Link
               href="/tutor/settings/booking"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-bronze px-3 py-1.5 text-sm font-semibold text-ivory hover:border-info/40 dark:border-bronze dark:text-ivory"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] px-3 py-1.5 text-sm font-semibold text-[color:var(--ink)] hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color:var(--line)] dark:text-[color:var(--ink)]"
             >
-              <Settings className="h-4 w-4 text-taupe" /> Booking
+              <Settings className="h-4 w-4 text-[color:var(--mute)]" /> Booking
             </Link>
           </nav>
         </header>
@@ -120,17 +120,17 @@ export default async function TutorPage() {
         {/* ── My Cohorts ───────────────────────────────────── */}
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
-              <UsersIcon className="h-5 w-5 text-taupe" />
+            <h2 className="flex items-center gap-2 text-lg font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+              <UsersIcon className="h-5 w-5 text-[color:var(--mute)]" />
               My cohorts
             </h2>
           </div>
 
           {scope.cohorts.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-bronze px-6 py-10 text-center dark:border-bronze">
-              <p className="text-sm text-taupe dark:text-taupe">
+            <div className="rounded-xl border border-dashed border-[color:var(--line)] px-6 py-10 text-center dark:border-[color:var(--line)]">
+              <p className="text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                 No cohorts yet. An admin assigns cohorts to tutors from{" "}
-                <span className="font-semibold text-ivory dark:text-ivory">Admin → Cohorts</span>.
+                <span className="font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">Admin → Cohorts</span>.
               </p>
             </div>
           ) : (
@@ -142,35 +142,35 @@ export default async function TutorPage() {
                   <li key={c.id}>
                     <Link
                       href={`/tutor/cohort/${c.id}`}
-                      className="block rounded-xl border border-bronze bg-surface p-4 transition hover:border-info/40 hover:shadow-sm dark:border-bronze dark:bg-surface/40"
+                      className="block rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-4 transition hover:border-[color-mix(in_srgb,var(--info)_40%,transparent)] hover:shadow-sm dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]"
                     >
                       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
                         <TierPill tier={c.tier} />
                         <StatusPill status={c.status} />
-                        <span className="text-taupe">{satDate} SAT</span>
+                        <span className="text-[color:var(--mute)]">{satDate} SAT</span>
                       </div>
-                      <div className="mt-2 text-base font-bold text-ivory dark:text-ivory">
+                      <div className="mt-2 text-base font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                         {c.name}
                       </div>
-                      <div className="mt-1 text-xs text-taupe dark:text-taupe">
+                      <div className="mt-1 text-xs text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                         {topic
                           ? `${topic.label}: ${topic.topic}`
                           : cohortTopicEmptyMessage(c.status)}
                       </div>
-                      <div className="mt-3 flex items-center justify-between text-xs text-taupe">
+                      <div className="mt-3 flex items-center justify-between text-xs text-[color:var(--mute)]">
                         <span>
-                          <span className="font-mono text-ivory dark:text-ivory">
+                          <span className="font-mono text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                             {c.member_count}
                           </span>
-                          <span className="text-taupe dark:text-taupe">/{c.max_size}</span>
+                          <span className="text-[color:var(--mute)] dark:text-[color:var(--mute)]">/{c.max_size}</span>
                           {" members"}
                           {" · "}
-                          <span className="font-mono text-ivory dark:text-ivory">
+                          <span className="font-mono text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                             {c.homework_count}
                           </span>
                           {" homework"}
                         </span>
-                        <span className="inline-flex items-center gap-1 font-semibold text-info">
+                        <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--info)]">
                           Open <ArrowRight className="h-3 w-3" />
                         </span>
                       </div>
@@ -184,13 +184,13 @@ export default async function TutorPage() {
 
         {/* ── Student roster (scoped) ─────────────────────── */}
         <section>
-          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
-            <UserSquare className="h-5 w-5 text-taupe" />
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+            <UserSquare className="h-5 w-5 text-[color:var(--mute)]" />
             Students ({rows.length})
           </h2>
           {rows.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-bronze px-6 py-10 text-center dark:border-bronze">
-              <p className="text-sm text-taupe dark:text-taupe">
+            <div className="rounded-xl border border-dashed border-[color:var(--line)] px-6 py-10 text-center dark:border-[color:var(--line)]">
+              <p className="text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                 No students assigned yet. You&apos;ll see them here once admin places students in
                 one of your cohorts or assigns a 1:1.
               </p>
@@ -225,15 +225,15 @@ function CalSetupBanner({
     ? "Your students need a way to book sessions with you. Connect your Cal.com account once and we'll point them at the right event-type."
     : "We connected your Cal account but couldn't auto-pick which of your event-types is for Karman. Pick it once and you're done.";
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-xl border border-warning/40 bg-warning/10 px-5 py-4 dark:border-warning/30 dark:bg-warning/10">
-      <AlertCircle className="h-5 w-5 shrink-0 text-warning dark:text-warning" />
+    <div className="flex flex-wrap items-center gap-4 rounded-xl border border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-5 py-4 dark:border-[color-mix(in_srgb,var(--warn)_30%,transparent)] dark:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)]">
+      <AlertCircle className="h-5 w-5 shrink-0 text-[color:var(--warn)] dark:text-[color:var(--warn)]" />
       <div className="min-w-[15rem] flex-1">
-        <p className="text-sm font-semibold text-warning dark:text-warning-bright">{title}</p>
-        <p className="mt-0.5 text-xs text-warning/80 dark:text-warning-bright/80">{body}</p>
+        <p className="text-sm font-semibold text-[color:var(--warn)] dark:text-[color:var(--warn)]">{title}</p>
+        <p className="mt-0.5 text-xs text-[color-mix(in_srgb,var(--warn)_80%,transparent)] dark:text-[color-mix(in_srgb,var(--warn)_80%,transparent)]">{body}</p>
       </div>
       <Link
         href="/tutor/settings/booking"
-        className="inline-flex items-center gap-1.5 rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-night hover:bg-warning-bright"
+        className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--warn)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--warn)]"
       >
         <CalendarPlus className="h-3.5 w-3.5" />
         {!connected ? "Connect Cal" : "Pick event-type"}
@@ -246,18 +246,18 @@ function TierPill({ tier }: { tier: "group" | "small_group" }) {
   const label = tierLabel(tier);
   const cls =
     tier === "small_group"
-      ? "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border border-success/40 dark:border-success/20"
-      : "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border border-gold/40 dark:border-gold/20";
+      ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:text-[color:var(--good)] border border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--good)_20%,transparent)]"
+      : "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] dark:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:text-[color:var(--accent-text)] border border-[color-mix(in_srgb,var(--accent)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--accent)_20%,transparent)]";
   return <span className={`rounded-md px-2 py-0.5 ${cls}`}>{label}</span>;
 }
 
 function StatusPill({ status }: { status: "forming" | "active" | "completed" }) {
   const cls =
     status === "active"
-      ? "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border border-success/40 dark:border-success/20"
+      ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:text-[color:var(--good)] border border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--good)_20%,transparent)]"
       : status === "completed"
-        ? "bg-surface text-taupe dark:bg-surface-raised/20 dark:text-taupe border border-bronze dark:border-bronze/30"
-        : "bg-surface text-taupe dark:bg-surface-raised/10 dark:text-ivory border border-bronze dark:border-bronze/20";
+        ? "bg-[color:var(--card)] text-[color:var(--mute)] dark:bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] dark:text-[color:var(--mute)] border border-[color:var(--line)] dark:border-[color-mix(in_srgb,var(--line)_30%,transparent)]"
+        : "bg-[color:var(--card)] text-[color:var(--mute)] dark:bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] dark:text-[color:var(--ink)] border border-[color:var(--line)] dark:border-[color-mix(in_srgb,var(--line)_20%,transparent)]";
   return <span className={`rounded-md px-2 py-0.5 ${cls}`}>{status}</span>;
 }
 

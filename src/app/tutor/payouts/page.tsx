@@ -130,34 +130,34 @@ export default async function TutorPayoutsPage() {
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor/earnings"
-          className="inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory dark:hover:text-ivory"
+          className="inline-flex items-center gap-1.5 text-sm text-[color:var(--mute)] hover:text-[color:var(--ink)] dark:hover:text-[color:var(--ink)]"
         >
           <ChevronLeft className="h-4 w-4" /> My earnings
         </Link>
 
         <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
-          <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">Get paid</h1>
-          <p className="mt-1 text-sm text-taupe dark:text-taupe">
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--info)]">Tutor Portal</p>
+          <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">Get paid</h1>
+          <p className="mt-1 text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
             Pick instant or ACH. Money moves from KarmanPrep to your Stripe account, then to your
             bank or debit card.
           </p>
         </header>
 
         {!caller.stripe_connect_account_id || !caller.stripe_payouts_enabled ? (
-          <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-5 dark:border-warning/40 dark:bg-warning/10">
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-warning dark:text-warning-bright" />
+          <div className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] p-5 dark:border-[color-mix(in_srgb,var(--warn)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)]">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--warn)] dark:text-[color:var(--warn)]" />
             <div className="flex-1">
-              <h2 className="text-sm font-bold text-warning dark:text-warning-bright">
+              <h2 className="text-sm font-bold text-[color:var(--warn)] dark:text-[color:var(--warn)]">
                 Set up payments first
               </h2>
-              <p className="mt-1 text-sm text-warning dark:text-warning-bright/90">
+              <p className="mt-1 text-sm text-[color:var(--warn)] dark:text-[color-mix(in_srgb,var(--warn)_90%,transparent)]">
                 Before you can request a payout, finish Stripe onboarding so we know where to send
                 the money.
               </p>
               <Link
                 href="/tutor/settings/payment"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-warning px-4 py-2 text-sm font-semibold text-night hover:bg-warning-bright"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--warn)] px-4 py-2 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--warn)]"
               >
                 Go to payment settings
               </Link>

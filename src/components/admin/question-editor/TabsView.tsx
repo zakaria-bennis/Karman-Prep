@@ -35,7 +35,7 @@ export function TabsView({
 
   if (questions.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-bronze p-8 text-center text-sm text-taupe">
+      <div className="rounded-xl border border-dashed border-[color:var(--line)] p-8 text-center text-sm text-[color:var(--mute)]">
         No questions at this filter.
       </div>
     );
@@ -44,7 +44,7 @@ export function TabsView({
   return (
     <div className="space-y-4">
       {/* Tab strip */}
-      <div className="flex flex-wrap gap-1.5 rounded-xl border border-bronze bg-surface/40 p-2">
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-2">
         {questions.map((q) => {
           const n = questionNumberMap.get(q.id) ?? 0;
           const hex = DIFFICULTY_LEVEL_HEX[(q.difficulty_level ?? 1) as QuizDifficultyLevel];
@@ -55,7 +55,7 @@ export function TabsView({
               onClick={() => onActiveChange(q.id)}
               className={cn(
                 "flex min-w-[3.25rem] items-center gap-1.5 rounded-lg border px-2 py-1.5 text-xs font-bold tabular-nums transition-colors",
-                isActive ? "text-ivory" : "text-taupe hover:text-ivory"
+                isActive ? "text-[color:var(--ink)]" : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
               style={
                 isActive

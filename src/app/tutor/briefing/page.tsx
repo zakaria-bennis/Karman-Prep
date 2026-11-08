@@ -20,12 +20,12 @@ export default async function DailyBriefingPage({
   }
   return (
     <section className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-      <Link href="/tutor" className="inline-flex min-h-11 items-center text-sm text-info underline">
+      <Link href="/tutor" className="inline-flex min-h-11 items-center text-sm text-[color:var(--info)] underline">
         All students
       </Link>
       <header>
-        <h1 className="text-2xl font-bold text-ivory">Daily session briefing</h1>
-        <p className="mt-2 text-sm text-taupe">
+        <h1 className="text-2xl font-bold text-[color:var(--ink)]">Daily session briefing</h1>
+        <p className="mt-2 text-sm text-[color:var(--mute)]">
           Open a student&apos;s saved practice before your session.
         </p>
       </header>

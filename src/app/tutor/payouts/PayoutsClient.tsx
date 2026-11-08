@@ -80,18 +80,18 @@ export default function PayoutsClient({
   // ── Already-succeeded confirmation ──────────────────
   if (result) {
     return (
-      <div className="rounded-xl border border-success/40 bg-success/10 p-6 dark:border-success/40 dark:bg-success/10">
+      <div className="rounded-xl border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] p-6 dark:border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)]">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="h-6 w-6 shrink-0 text-success dark:text-success" />
+          <CheckCircle2 className="h-6 w-6 shrink-0 text-[color:var(--good)] dark:text-[color:var(--good)]" />
           <div className="flex-1">
-            <h2 className="text-lg font-bold text-success dark:text-success-bright">
+            <h2 className="text-lg font-bold text-[color:var(--good)] dark:text-[color:var(--good)]">
               Payout {result.method === "instant" ? "sent instantly" : "scheduled"}
             </h2>
-            <p className="mt-1 text-sm text-success dark:text-success-bright/90">
+            <p className="mt-1 text-sm text-[color:var(--good)] dark:text-[color-mix(in_srgb,var(--good)_90%,transparent)]">
               {fmt.format(result.net_amount)} {result.arrival_estimate}.
               {result.fee_amount > 0 && <> A 2.5% fee was applied.</>}
             </p>
-            <ul className="mt-3 space-y-0.5 text-xs text-success dark:text-success-bright/80">
+            <ul className="mt-3 space-y-0.5 text-xs text-[color:var(--good)] dark:text-[color-mix(in_srgb,var(--good)_80%,transparent)]">
               <li>
                 {result.booking_count} session{result.booking_count === 1 ? "" : "s"}
               </li>
@@ -107,21 +107,21 @@ export default function PayoutsClient({
   return (
     <div className="space-y-6">
       {/* ── Hero — pending + 2 buttons ─────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface p-6 dark:border-bronze dark:bg-surface/60">
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-6 dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]">
         <div className="flex flex-wrap items-baseline gap-3">
-          <div className="text-xs font-bold uppercase tracking-wider text-taupe">Pending</div>
-          <div className="text-4xl font-extrabold tabular-nums text-ivory dark:text-ivory">
+          <div className="text-xs font-bold uppercase tracking-wider text-[color:var(--mute)]">Pending</div>
+          <div className="text-4xl font-extrabold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
             {fmt.format(pendingAmount)}
           </div>
         </div>
-        <div className="mt-1 text-sm text-taupe">
+        <div className="mt-1 text-sm text-[color:var(--mute)]">
           {eligibleSessions.length} session{eligibleSessions.length === 1 ? "" : "s"} ·{" "}
           {totalHours.toFixed(2)} hours
         </div>
 
         {pendingAmount === 0 ? (
-          <div className="mt-5 rounded-lg border border-dashed border-bronze p-4 text-center dark:border-bronze">
-            <p className="text-sm text-taupe">
+          <div className="mt-5 rounded-lg border border-dashed border-[color:var(--line)] p-4 text-center dark:border-[color:var(--line)]">
+            <p className="text-sm text-[color:var(--mute)]">
               No pending earnings. Send recap emails to mark sessions for payout.
             </p>
           </div>
@@ -132,7 +132,7 @@ export default function PayoutsClient({
               <button
                 onClick={() => request("instant")}
                 disabled={isPending}
-                className="group rounded-xl border-2 border-info/40 bg-info p-4 text-left text-ivory transition hover:bg-info-bright disabled:cursor-not-allowed disabled:opacity-40"
+                className="group rounded-xl border-2 border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color:var(--info)] p-4 text-left text-[color:var(--ink)] transition hover:bg-[color:var(--info)] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider opacity-80">
                   <CreditCard className="h-4 w-4" />
@@ -145,18 +145,18 @@ export default function PayoutsClient({
                 {isPending ? <Loader2 className="mt-3 h-4 w-4 animate-spin" /> : null}
               </button>
             ) : (
-              <div className="rounded-xl border border-dashed border-bronze bg-surface p-4 dark:border-bronze dark:bg-surface/40">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-taupe">
+              <div className="rounded-xl border border-dashed border-[color:var(--line)] bg-[color:var(--card)] p-4 dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[color:var(--mute)]">
                   <CreditCard className="h-4 w-4" />
                   Instant — locked
                 </div>
-                <div className="mt-2 text-sm leading-snug text-taupe dark:text-taupe">
+                <div className="mt-2 text-sm leading-snug text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                   Instant payouts require a debit card on file. Add one in Payment Settings to
                   unlock.
                 </div>
                 <Link
                   href="/tutor/settings/payment"
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-info hover:underline dark:text-info"
+                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--info)] hover:underline dark:text-[color:var(--info)]"
                 >
                   Add debit card →
                 </Link>
@@ -167,23 +167,23 @@ export default function PayoutsClient({
             <button
               onClick={() => request("standard")}
               disabled={isPending}
-              className="group rounded-xl border border-bronze bg-surface p-4 text-left transition hover:border-success/40 disabled:cursor-not-allowed disabled:opacity-40 dark:border-bronze dark:bg-surface"
+              className="group rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-4 text-left transition hover:border-[color-mix(in_srgb,var(--good)_40%,transparent)] disabled:cursor-not-allowed disabled:opacity-40 dark:border-[color:var(--line)] dark:bg-[color:var(--card)]"
             >
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-success dark:text-success">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[color:var(--good)] dark:text-[color:var(--good)]">
                 <Banknote className="h-4 w-4" />
                 ACH — to bank account
               </div>
-              <div className="mt-2 text-2xl font-extrabold tabular-nums text-ivory dark:text-ivory">
+              <div className="mt-2 text-2xl font-extrabold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                 {fmt.format(pendingAmount)}
               </div>
-              <div className="mt-1 text-xs text-taupe">No fee · arrives in 2-3 business days</div>
-              {isPending ? <Loader2 className="mt-3 h-4 w-4 animate-spin text-taupe" /> : null}
+              <div className="mt-1 text-xs text-[color:var(--mute)]">No fee · arrives in 2-3 business days</div>
+              {isPending ? <Loader2 className="mt-3 h-4 w-4 animate-spin text-[color:var(--mute)]" /> : null}
             </button>
           </div>
         )}
 
         {error && (
-          <div className="mt-4 flex items-start gap-2 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error dark:border-error/40 dark:bg-error/10 dark:text-error-bright">
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-4 py-3 text-sm text-[color:var(--late)] dark:border-[color-mix(in_srgb,var(--late)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--late)_10%,transparent)] dark:text-[color:var(--late)]">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
           </div>
@@ -193,34 +193,34 @@ export default function PayoutsClient({
       {/* ── Eligible sessions ─────────────────────────── */}
       {eligibleSessions.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-bold text-ivory dark:text-ivory">
+          <h2 className="mb-3 text-sm font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
             Sessions in this payout ({eligibleSessions.length})
           </h2>
-          <div className="overflow-hidden rounded-xl border border-bronze dark:border-bronze">
+          <div className="overflow-hidden rounded-xl border border-[color:var(--line)] dark:border-[color:var(--line)]">
             <table className="w-full text-sm">
-              <thead className="bg-surface dark:bg-surface">
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
+              <thead className="bg-[color:var(--card)] dark:bg-[color:var(--card)]">
+                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                   <th className="px-4 py-2.5">Date</th>
                   <th className="px-4 py-2.5">Student</th>
                   <th className="px-4 py-2.5 text-right">Hours</th>
                   <th className="px-4 py-2.5 text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="bg-surface dark:bg-night">
+              <tbody className="bg-[color:var(--card)] dark:bg-[color:var(--sunk)]">
                 {eligibleSessions.map((s) => (
-                  <tr key={s.id} className="border-t border-bronze dark:border-bronze">
-                    <td className="whitespace-nowrap px-4 py-2.5 text-ivory dark:text-ivory">
-                      <Calendar className="mr-1.5 inline h-3 w-3 text-taupe" />
+                  <tr key={s.id} className="border-t border-[color:var(--line)] dark:border-[color:var(--line)]">
+                    <td className="whitespace-nowrap px-4 py-2.5 text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+                      <Calendar className="mr-1.5 inline h-3 w-3 text-[color:var(--mute)]" />
                       {formatDate(s.scheduled_start)}
                     </td>
-                    <td className="max-w-[16rem] truncate px-4 py-2.5 font-medium text-ivory dark:text-ivory">
+                    <td className="max-w-[16rem] truncate px-4 py-2.5 font-medium text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                       {studentName(s, studentSessionCounts)}
                     </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-taupe dark:text-taupe">
-                      <Clock className="mr-1 inline h-3 w-3 text-taupe" />
+                    <td className="px-4 py-2.5 text-right tabular-nums text-[color:var(--mute)] dark:text-[color:var(--mute)]">
+                      <Clock className="mr-1 inline h-3 w-3 text-[color:var(--mute)]" />
                       {s.tutor_hours?.toFixed(2) ?? "—"}h
                     </td>
-                    <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-ivory dark:text-ivory">
+                    <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                       {s.payout_amount != null ? fmt.format(s.payout_amount) : "—"}
                     </td>
                   </tr>
@@ -234,20 +234,20 @@ export default function PayoutsClient({
       {/* ── History ───────────────────────────────────── */}
       {history.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-bold text-ivory dark:text-ivory">Payout history</h2>
+          <h2 className="mb-3 text-sm font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">Payout history</h2>
           <ul className="space-y-2">
             {history.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/60"
+                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-4 py-3 dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <HistoryStatusPill status={p.status} />
                   <div className="min-w-0">
-                    <div className="font-bold tabular-nums text-ivory dark:text-ivory">
+                    <div className="font-bold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                       {fmt.format(p.net_amount ?? p.total_amount)}
                     </div>
-                    <div className="text-xs text-taupe">
+                    <div className="text-xs text-[color:var(--mute)]">
                       {p.booking_count ?? 0} session{p.booking_count === 1 ? "" : "s"} ·{" "}
                       {p.total_hours.toFixed(2)}h
                       {p.payout_method && (
@@ -265,7 +265,7 @@ export default function PayoutsClient({
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-xs text-taupe">
+                <div className="shrink-0 text-right text-xs text-[color:var(--mute)]">
                   {formatDate(p.requested_at)}
                 </div>
               </li>
@@ -328,23 +328,23 @@ function HistoryStatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     pending_approval: {
       label: "In progress",
-      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
+      cls: "bg-[color-mix(in_srgb,var(--info)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--info)_15%,transparent)] text-[color:var(--info)] dark:text-[color:var(--info)]",
     },
     approved: {
       label: "Payment in flight",
-      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
+      cls: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-[color:var(--accent-text)] dark:text-[color:var(--accent-text)]",
     },
     paid: {
       label: "Paid",
-      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
+      cls: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-[color:var(--good)] dark:text-[color:var(--good)]",
     },
-    cancelled: { label: "Cancelled", cls: "bg-surface dark:bg-surface-raised text-taupe" },
+    cancelled: { label: "Cancelled", cls: "bg-[color:var(--card)] dark:bg-[color:var(--raised)] text-[color:var(--mute)]" },
     failed: {
       label: "Failed",
-      cls: "bg-error/10 dark:bg-error/15 text-error dark:text-error-bright",
+      cls: "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--late)_15%,transparent)] text-[color:var(--late)] dark:text-[color:var(--late)]",
     },
   };
-  const m = map[status] ?? { label: status, cls: "bg-surface dark:bg-surface-raised text-taupe" };
+  const m = map[status] ?? { label: status, cls: "bg-[color:var(--card)] dark:bg-[color:var(--raised)] text-[color:var(--mute)]" };
   return (
     <span
       className={cn(

@@ -109,7 +109,7 @@ export default function RejectedClient({ rows }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
+      <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-6 py-12 text-center text-sm text-[color:var(--mute)]">
         Nothing rejected yet. Questions removed via the preview page land here for safekeeping.
       </div>
     );
@@ -122,8 +122,8 @@ export default function RejectedClient({ rows }: Props) {
           className={cn(
             "mb-3 flex items-start gap-2 rounded-lg border px-3 py-2 text-xs",
             banner.kind === "ok"
-              ? "border-success/30 bg-success/[0.06] text-success-bright"
-              : "border-error/30 bg-error/[0.06] text-error-bright"
+              ? "border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] text-[color:var(--good)]"
+              : "border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]"
           )}
         >
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -132,7 +132,7 @@ export default function RejectedClient({ rows }: Props) {
             onClick={() => setBanner(null)}
             className={cn(
               "text-xs hover:opacity-100",
-              banner.kind === "ok" ? "text-success-bright/70" : "text-error-bright/70"
+              banner.kind === "ok" ? "text-[color-mix(in_srgb,var(--good)_70%,transparent)]" : "text-[color-mix(in_srgb,var(--late)_70%,transparent)]"
             )}
           >
             dismiss
@@ -180,17 +180,17 @@ function RejectedCard({
   const passage = snapshot.passage as string | null | undefined;
 
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40">
+    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
       {/* ── Collapsed header (always visible) ─────────────── */}
       <button
         onClick={onToggleExpanded}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-surface/60"
+        className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]"
       >
-        <div className="mt-0.5 text-taupe">
+        <div className="mt-0.5 text-[color:var(--mute)]">
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="line-clamp-2 text-sm text-ivory">
+          <div className="line-clamp-2 text-sm text-[color:var(--ink)]">
             {row.question_preview || "(no preview captured)"}
           </div>
           <MetaRow row={row} />
@@ -199,32 +199,32 @@ function RejectedCard({
 
       {/* ── Expanded body ─────────────────────────────────── */}
       {expanded && (
-        <div className="border-t border-bronze px-4 py-3">
+        <div className="border-t border-[color:var(--line)] px-4 py-3">
           {passage && (
             <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                 Passage
               </div>
-              <div className="whitespace-pre-wrap rounded border border-bronze/60 bg-night/40 px-3 py-2 text-xs text-ivory">
+              <div className="whitespace-pre-wrap rounded border border-[color-mix(in_srgb,var(--line)_60%,transparent)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] px-3 py-2 text-xs text-[color:var(--ink)]">
                 {passage}
               </div>
             </div>
           )}
           <div className="mb-3">
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
               Question
             </div>
-            <div className="whitespace-pre-wrap text-sm text-ivory">{questionText}</div>
+            <div className="whitespace-pre-wrap text-sm text-[color:var(--ink)]">{questionText}</div>
           </div>
           {row.choices_snapshot.length > 0 && (
             <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                 Choices
               </div>
-              <ol className="space-y-1 text-xs text-ivory">
+              <ol className="space-y-1 text-xs text-[color:var(--ink)]">
                 {row.choices_snapshot.map((c) => (
                   <li key={c.letter}>
-                    <span className="font-mono font-bold text-taupe">{c.letter}.</span>{" "}
+                    <span className="font-mono font-bold text-[color:var(--mute)]">{c.letter}.</span>{" "}
                     {c.choice_text}
                   </li>
                 ))}
@@ -233,10 +233,10 @@ function RejectedCard({
           )}
           {row.rejected_reason && (
             <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                 Reason given at reject time
               </div>
-              <div className="rounded border border-warning/20 bg-warning/[0.04] px-3 py-2 text-xs text-warning-bright">
+              <div className="rounded border border-[color-mix(in_srgb,var(--warn)_20%,transparent)] bg-[color-mix(in_srgb,var(--warn)_4%,transparent)] px-3 py-2 text-xs text-[color:var(--warn)]">
                 {row.rejected_reason}
               </div>
             </div>
@@ -252,32 +252,32 @@ function RejectedCard({
 function MetaRow({ row }: { row: RejectedQuestionRow }) {
   const when = (row.rejected_at ?? "").replace("T", " ").slice(0, 16);
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-taupe">
+    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[color:var(--mute)]">
       <span className="inline-flex items-center gap-1">
-        <span className="text-taupe">rejected</span>
-        <span className="font-mono text-taupe">{when} UTC</span>
+        <span className="text-[color:var(--mute)]">rejected</span>
+        <span className="font-mono text-[color:var(--mute)]">{when} UTC</span>
       </span>
       {row.source_pdf && (
         <span className="inline-flex items-center gap-1">
           <FileText className="h-3 w-3" />
-          <span className="font-mono text-taupe">
+          <span className="font-mono text-[color:var(--mute)]">
             {row.source_pdf}
             {row.source_page != null ? ` p${row.source_page}` : ""}
           </span>
         </span>
       )}
       {row.domain && (
-        <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ivory">
+        <span className="rounded bg-[color:var(--raised)] px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]">
           {row.domain}
         </span>
       )}
       {row.subject && (
-        <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ivory">
+        <span className="rounded bg-[color:var(--raised)] px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]">
           {row.subject}
         </span>
       )}
       {row.rejected_reason && (
-        <span className="inline-flex items-center gap-1 text-warning/80">
+        <span className="inline-flex items-center gap-1 text-[color-mix(in_srgb,var(--warn)_80%,transparent)]">
           <AlertCircle className="h-3 w-3" />
           <span className="italic">reason on file</span>
         </span>
@@ -302,7 +302,7 @@ function ActionRow({
         disabled={busy}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-          "bg-success text-night hover:bg-success-bright disabled:hover:bg-success-bright"
+          "bg-[color:var(--good)] text-[color:var(--accent-ink)] hover:bg-[color:var(--good)] disabled:hover:bg-[color:var(--good)]"
         )}
       >
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
@@ -313,7 +313,7 @@ function ActionRow({
         disabled={busy}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-          "bg-error text-ivory hover:bg-error-bright disabled:hover:bg-error-bright"
+          "bg-[color:var(--late)] text-[color:var(--ink)] hover:bg-[color:var(--late)] disabled:hover:bg-[color:var(--late)]"
         )}
       >
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}

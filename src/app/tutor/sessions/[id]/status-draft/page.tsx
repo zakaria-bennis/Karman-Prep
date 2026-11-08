@@ -143,11 +143,11 @@ export default async function StatusDraftPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-night text-ivory">
+    <div className="min-h-screen bg-[color:var(--sunk)] text-[color:var(--ink)]">
       <div className="mx-auto max-w-7xl px-5 py-8">
         <Link
           href="/tutor/schedule"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-[color:var(--mute)] hover:text-[color:var(--ink)]"
         >
           <ChevronLeft className="h-4 w-4" />
           My schedule

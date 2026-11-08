@@ -40,7 +40,7 @@ export default async function AdminCohortDetailPage({ params, searchParams }: Pa
     <div className="mx-auto max-w-6xl px-5 py-8">
       <Link
         href="/admin/cohorts"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-[color:var(--mute)] hover:text-[color:var(--ink)]"
       >
         <ChevronLeft className="h-4 w-4" />
         All cohorts

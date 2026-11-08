@@ -63,17 +63,17 @@ const SEVERITY_CHIPS: Record<
   BLOCKING: {
     label: "Blocking",
     icon: AlertOctagon,
-    cls: "bg-error/15 text-error-bright border-error/30",
+    cls: "bg-[color-mix(in_srgb,var(--late)_15%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_30%,transparent)]",
   },
   WARNING: {
     label: "Warning",
     icon: AlertTriangle,
-    cls: "bg-warning/15 text-warning-bright border-warning/30",
+    cls: "bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_30%,transparent)]",
   },
   NOTICE: {
     label: "Notice",
     icon: Info,
-    cls: "bg-surface-raised/15 text-ivory border-bronze/30",
+    cls: "bg-[color-mix(in_srgb,var(--raised)_15%,transparent)] text-[color:var(--ink)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]",
   },
 };
 
@@ -226,7 +226,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
   return (
     <div className="space-y-4">
       {/* Filter bar */}
-      <div className="rounded-xl border border-bronze bg-surface/50 p-4">
+      <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_50%,transparent)] p-4">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
           <FilterSelect
             label="Severity"
@@ -277,7 +277,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
             ]}
           />
           <div className="flex flex-col">
-            <label className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+            <label className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
               Search
             </label>
             <input
@@ -287,7 +287,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
               onKeyDown={(e) => {
                 if (e.key === "Enter") setFilter("q", (e.target as HTMLInputElement).value);
               }}
-              className="rounded-md border border-bronze bg-night px-2.5 py-1.5 text-xs text-ivory placeholder-taupe/70 focus:border-gold/40 focus:outline-none"
+              className="rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-2.5 py-1.5 text-xs text-[color:var(--ink)] placeholder-[color-mix(in_srgb,var(--mute)_70%,transparent)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
             />
           </div>
         </div>
@@ -295,16 +295,16 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
           <div className="mt-3 flex items-center gap-2">
             <button
               onClick={clearAll}
-              className="rounded-md border border-bronze px-2.5 py-1 text-xs font-medium text-ivory hover:bg-surface-raised"
+              className="rounded-md border border-[color:var(--line)] px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
             >
               Clear all filters
             </button>
-            <label className="ml-auto flex items-center gap-1.5 text-xs text-taupe">
+            <label className="ml-auto flex items-center gap-1.5 text-xs text-[color:var(--mute)]">
               <input
                 type="checkbox"
                 checked={!!activeFilters.include_resolved}
                 onChange={(e) => setFilter("include_resolved", e.target.checked ? "true" : "")}
-                className="h-3.5 w-3.5 rounded border-bronze bg-night"
+                className="h-3.5 w-3.5 rounded border-[color:var(--line)] bg-[color:var(--sunk)]"
               />
               Include resolved findings
             </label>
@@ -314,15 +314,15 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
 
       {/* Bulk action bar — visible only when at least one row is selected */}
       {selectedIds.size > 0 && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gold/30 bg-gold/[0.06] px-4 py-3">
-          <span className="text-sm font-semibold text-gold-bright">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_6%,transparent)] px-4 py-3">
+          <span className="text-sm font-semibold text-[color:var(--accent-text)]">
             {selectedIds.size} selected
           </span>
-          <span className="text-xs text-taupe">·</span>
+          <span className="text-xs text-[color:var(--mute)]">·</span>
           <button
             onClick={bulkResolve}
             disabled={bulkBusy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-surface-raised/20 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised/30 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--raised)_30%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {bulkBusy === "resolving" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -334,7 +334,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
           <button
             onClick={bulkAccept}
             disabled={bulkBusy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-success/15 px-3 py-1.5 text-xs font-semibold text-success-bright hover:bg-success/25 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--good)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--good)] hover:bg-[color-mix(in_srgb,var(--good)_25%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {bulkBusy === "accepting" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -346,7 +346,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
           <button
             onClick={bulkFlag}
             disabled={bulkBusy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-warning/15 px-3 py-1.5 text-xs font-semibold text-warning-bright hover:bg-warning/25 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--warn)] hover:bg-[color-mix(in_srgb,var(--warn)_25%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {bulkBusy === "flagging" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -357,7 +357,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
           </button>
           <button
             onClick={clearSelection}
-            className="ml-auto inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
+            className="ml-auto inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
           >
             <X className="h-3 w-3" /> Clear selection
           </button>
@@ -369,8 +369,8 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
           className={cn(
             "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
             bulkFeedback.kind === "success"
-              ? "border-success/40 bg-success/[0.06] text-success-bright"
-              : "border-error/40 bg-error/[0.06] text-error-bright"
+              ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] text-[color:var(--good)]"
+              : "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]"
           )}
         >
           {bulkFeedback.kind === "success" ? (
@@ -390,19 +390,19 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
 
       {/* Table */}
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-bronze bg-surface/30 p-12 text-center">
-          <p className="text-sm font-semibold text-ivory">No findings match the current filter.</p>
-          <p className="mt-1 text-xs text-taupe">
+        <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_30%,transparent)] p-12 text-center">
+          <p className="text-sm font-semibold text-[color:var(--ink)]">No findings match the current filter.</p>
+          <p className="mt-1 text-xs text-[color:var(--mute)]">
             {anyFilterActive
               ? "Try clearing filters to see everything."
               : "Run the audit + grader scripts and ingest-findings to populate."}
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-bronze bg-surface/40">
+        <div className="overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
           <table className="w-full text-sm">
-            <thead className="border-b border-bronze bg-surface/60">
-              <tr className="text-left text-[10px] font-semibold uppercase tracking-wider text-taupe">
+            <thead className="border-b border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)]">
+              <tr className="text-left text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                 <th className="w-8 px-3 py-2.5">
                   <input
                     type="checkbox"
@@ -412,7 +412,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                       if (el) el.indeterminate = someVisibleSelected && !allVisibleSelected;
                     }}
                     onChange={toggleAllVisible}
-                    className="h-3.5 w-3.5 cursor-pointer rounded border-bronze bg-night"
+                    className="h-3.5 w-3.5 cursor-pointer rounded border-[color:var(--line)] bg-[color:var(--sunk)]"
                   />
                 </th>
                 <th className="px-4 py-2.5">Question</th>
@@ -423,7 +423,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                 <th className="px-4 py-2.5 text-right"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-bronze">
+            <tbody className="divide-y divide-[color:var(--line)]">
               {rows.map((r) => {
                 const worst = SEVERITY_CHIPS[r.worst_severity];
                 const WorstIcon = worst.icon;
@@ -432,8 +432,8 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                   <tr
                     key={r.question_id}
                     className={cn(
-                      "transition-colors hover:bg-surface-raised/40",
-                      isSelected && "bg-gold/[0.04]"
+                      "transition-colors hover:bg-[color-mix(in_srgb,var(--raised)_40%,transparent)]",
+                      isSelected && "bg-[color-mix(in_srgb,var(--accent)_4%,transparent)]"
                     )}
                   >
                     <td className="px-3 py-3">
@@ -442,10 +442,10 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                         aria-label={`Select row ${r.question_id}`}
                         checked={isSelected}
                         onChange={() => toggleRow(r.question_id)}
-                        className="h-3.5 w-3.5 cursor-pointer rounded border-bronze bg-night"
+                        className="h-3.5 w-3.5 cursor-pointer rounded border-[color:var(--line)] bg-[color:var(--sunk)]"
                       />
                     </td>
-                    <td className="px-4 py-3 text-ivory">
+                    <td className="px-4 py-3 text-[color:var(--ink)]">
                       <div
                         className={cn(
                           "max-w-xl truncate text-sm",
@@ -456,22 +456,22 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                         {r.question_text.slice(0, 140)}
                         {r.question_text.length > 140 && "…"}
                       </div>
-                      <div className="mt-0.5 text-[11px] text-taupe">
+                      <div className="mt-0.5 text-[11px] text-[color:var(--mute)]">
                         {r.concept_slug ?? "(no concept)"}
                         {r.latest_category ? ` · last: ${r.latest_category}` : ""}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-taupe">
+                    <td className="px-4 py-3 text-xs text-[color:var(--mute)]">
                       {r.source_pdf ? (
                         <>
                           <div className="font-mono">{r.source_pdf}</div>
-                          <div className="text-taupe">p {r.source_page ?? "?"}</div>
+                          <div className="text-[color:var(--mute)]">p {r.source_page ?? "?"}</div>
                         </>
                       ) : (
-                        <span className="text-taupe">unknown</span>
+                        <span className="text-[color:var(--mute)]">unknown</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-ivory">{r.domain ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-[color:var(--ink)]">{r.domain ?? "—"}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <span
@@ -484,25 +484,25 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                           {r.total_count}
                         </span>
                         {r.blocking_count > 0 && r.worst_severity !== "BLOCKING" && (
-                          <span className="text-[10px] text-error">{r.blocking_count}🔴</span>
+                          <span className="text-[10px] text-[color:var(--late)]">{r.blocking_count}🔴</span>
                         )}
                         {r.warning_count > 0 && r.worst_severity === "BLOCKING" && (
-                          <span className="text-[10px] text-warning-bright">
+                          <span className="text-[10px] text-[color:var(--warn)]">
                             {r.warning_count}🟡
                           </span>
                         )}
                         {r.notice_count > 0 && r.worst_severity !== "NOTICE" && (
-                          <span className="text-[10px] text-taupe">{r.notice_count}⚪</span>
+                          <span className="text-[10px] text-[color:var(--mute)]">{r.notice_count}⚪</span>
                         )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs">
                       {r.is_live ? (
-                        <span className="rounded bg-success/10 px-1.5 py-0.5 text-success-bright">
+                        <span className="rounded bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-1.5 py-0.5 text-[color:var(--good)]">
                           live
                         </span>
                       ) : (
-                        <span className="rounded bg-warning/10 px-1.5 py-0.5 text-warning-bright">
+                        <span className="rounded bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-1.5 py-0.5 text-[color:var(--warn)]">
                           {r.import_status ?? "draft"}
                         </span>
                       )}
@@ -510,7 +510,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/admin/questions/inspect/${r.question_id}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-gold hover:text-gold-bright"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
                       >
                         Inspect →
                       </Link>
@@ -539,13 +539,13 @@ function FilterSelect({
 }) {
   return (
     <div className="flex flex-col">
-      <label className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+      <label className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
         {label}
       </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value || undefined)}
-        className="rounded-md border border-bronze bg-night px-2.5 py-1.5 text-xs text-ivory focus:border-gold/40 focus:outline-none"
+        className="rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-2.5 py-1.5 text-xs text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

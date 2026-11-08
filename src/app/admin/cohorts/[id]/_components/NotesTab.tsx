@@ -19,11 +19,11 @@ export function NotesTab({ note, tutorName }: { note: string | null; tutorName: 
     );
   }
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40 p-6">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-taupe">
+    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-6">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
         Notes by {tutorName}
       </div>
-      <div className="whitespace-pre-wrap text-sm leading-relaxed text-ivory">{note}</div>
+      <div className="whitespace-pre-wrap text-sm leading-relaxed text-[color:var(--ink)]">{note}</div>
     </div>
   );
 }

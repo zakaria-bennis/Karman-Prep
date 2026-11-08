@@ -29,13 +29,13 @@ export default async function StudentBriefingPage({
     <section className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
       <Link
         href="/tutor/briefing"
-        className="inline-flex min-h-11 items-center text-sm text-info underline"
+        className="inline-flex min-h-11 items-center text-sm text-[color:var(--info)] underline"
       >
         Daily briefing
       </Link>
       <header>
-        <h1 className="text-2xl font-bold text-ivory">Saved practice briefing</h1>
-        {briefing && <p className="mt-2 break-words text-sm text-taupe">{briefing.studentEmail}</p>}
+        <h1 className="text-2xl font-bold text-[color:var(--ink)]">Saved practice briefing</h1>
+        {briefing && <p className="mt-2 break-words text-sm text-[color:var(--mute)]">{briefing.studentEmail}</p>}
       </header>
       {briefing ? <StudentBriefingView briefing={briefing} /> : <BriefingUnavailable />}
     </section>

@@ -18,8 +18,8 @@ export function Kpi({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40 p-4">
-      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-taupe">
+    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-4">
+      <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[color:var(--mute)]">
         <span
           className={cn("flex h-5 w-5 items-center justify-center rounded-md", ACCENT_RING[accent])}
         >
@@ -27,8 +27,8 @@ export function Kpi({
         </span>
         {label}
       </p>
-      <p className="text-xl font-extrabold tabular-nums text-ivory">{value}</p>
-      {hint && <p className="mt-1 text-[10px] text-taupe">{hint}</p>}
+      <p className="text-xl font-extrabold tabular-nums text-[color:var(--ink)]">{value}</p>
+      {hint && <p className="mt-1 text-[10px] text-[color:var(--mute)]">{hint}</p>}
     </div>
   );
 }
@@ -48,31 +48,31 @@ export function MomentumCard({
 }) {
   const Arrow = direction === "up" ? ArrowUpRight : ArrowDownRight;
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40 p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-taupe">{label}</p>
+    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-4">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[color:var(--mute)]">{label}</p>
       <div
         className={cn(
           "flex items-baseline gap-2",
           color === "emerald"
-            ? "text-success-bright"
+            ? "text-[color:var(--good)]"
             : color === "rose"
-              ? "text-error-bright"
-              : "text-warning-bright"
+              ? "text-[color:var(--late)]"
+              : "text-[color:var(--warn)]"
         )}
       >
         <span className="text-2xl font-extrabold tabular-nums">{value}</span>
         <Arrow className="h-4 w-4" />
       </div>
-      {hint && <p className="mt-1 text-[10px] text-taupe">{hint}</p>}
+      {hint && <p className="mt-1 text-[10px] text-[color:var(--mute)]">{hint}</p>}
     </div>
   );
 }
 
 export function ForecastTile({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-info/20 bg-info/5 p-4 text-center">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-info-bright">{label}</p>
-      <p className="mt-1 text-xl font-extrabold tabular-nums text-ivory">{fmtMoney(value)}</p>
+    <div className="rounded-xl border border-[color-mix(in_srgb,var(--info)_20%,transparent)] bg-[color-mix(in_srgb,var(--info)_5%,transparent)] p-4 text-center">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--info)]">{label}</p>
+      <p className="mt-1 text-xl font-extrabold tabular-nums text-[color:var(--ink)]">{fmtMoney(value)}</p>
     </div>
   );
 }
@@ -98,11 +98,11 @@ export function CohortCell({ active, total }: { active: number; total: number })
   const pct = total > 0 ? active / total : 0;
   // Color band: deep green when ≥80% retained, amber 50-80%, rose <50%.
   const color =
-    pct >= 0.8 ? "text-success-bright" : pct >= 0.5 ? "text-warning-bright" : "text-error-bright";
+    pct >= 0.8 ? "text-[color:var(--good)]" : pct >= 0.5 ? "text-[color:var(--warn)]" : "text-[color:var(--late)]";
   return (
     <div className="inline-flex flex-col items-end">
       <span className={cn("font-semibold tabular-nums", color)}>{active}</span>
-      <span className="text-[9px] tabular-nums text-taupe">{Math.round(pct * 100)}%</span>
+      <span className="text-[9px] tabular-nums text-[color:var(--mute)]">{Math.round(pct * 100)}%</span>
     </div>
   );
 }

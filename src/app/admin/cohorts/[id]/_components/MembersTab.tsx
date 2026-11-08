@@ -39,7 +39,7 @@ export function MembersTab({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-taupe">
+        <p className="text-sm text-[color:var(--mute)]">
           {seatsOpen > 0 ? (
             <>
               {seatsOpen} open seat{seatsOpen === 1 ? "" : "s"}.
@@ -51,7 +51,7 @@ export function MembersTab({
         <button
           onClick={() => setAdding(true)}
           disabled={fullCapacity || eligibleStudents.length === 0}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-1.5 text-sm font-semibold text-night hover:bg-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--accent)] px-3 py-1.5 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
           title={
             fullCapacity
               ? "Cohort is at capacity"
@@ -71,9 +71,9 @@ export function MembersTab({
           subtitle="Click Add member to place a student in this cohort."
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-bronze">
+        <div className="overflow-hidden rounded-xl border border-[color:var(--line)]">
           <table className="w-full text-sm">
-            <thead className="bg-surface/60 text-xs uppercase tracking-wider text-taupe">
+            <thead className="bg-[color-mix(in_srgb,var(--card)_60%,transparent)] text-xs uppercase tracking-wider text-[color:var(--mute)]">
               <tr>
                 <th className="px-4 py-3 text-left font-semibold">Name</th>
                 <th className="px-4 py-3 text-left font-semibold">Email</th>
@@ -81,14 +81,14 @@ export function MembersTab({
                 <th aria-hidden="true" className="w-12" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-bronze">
+            <tbody className="divide-y divide-[color:var(--line)]">
               {members.map((m) => (
                 <MemberRow key={m.user_id} cohortId={cohortId} member={m} onError={setRowError} />
               ))}
             </tbody>
           </table>
           {rowError && (
-            <div className="border-t border-bronze bg-error/5 px-4 py-2 text-xs text-error-bright">
+            <div className="border-t border-[color:var(--line)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)] px-4 py-2 text-xs text-[color:var(--late)]">
               {rowError}
             </div>
           )}
@@ -143,20 +143,20 @@ function MemberRow({
   }
 
   return (
-    <tr className="transition-colors hover:bg-surface/40">
+    <tr className="transition-colors hover:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <Avatar name={studentDisplay(member)} avatarUrl={member.avatar_url} />
-          <span className="font-medium text-ivory">{studentDisplay(member)}</span>
+          <span className="font-medium text-[color:var(--ink)]">{studentDisplay(member)}</span>
         </div>
       </td>
-      <td className="px-4 py-3 font-mono text-xs text-taupe">{member.email}</td>
-      <td className="px-4 py-3 text-xs text-taupe">{formatDateTime(member.joined_at)}</td>
+      <td className="px-4 py-3 font-mono text-xs text-[color:var(--mute)]">{member.email}</td>
+      <td className="px-4 py-3 text-xs text-[color:var(--mute)]">{formatDateTime(member.joined_at)}</td>
       <td className="px-2 py-3">
         <button
           onClick={remove}
           disabled={pending}
-          className="text-taupe hover:text-error-bright disabled:opacity-50"
+          className="text-[color:var(--mute)] hover:text-[color:var(--late)] disabled:opacity-50"
           aria-label={`Remove ${studentDisplay(member)} from cohort`}
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -209,35 +209,35 @@ function AddMemberDialog({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-night/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-bronze bg-surface p-6 shadow-2xl"
+        className="relative w-full max-w-lg rounded-2xl border border-[color:var(--line)] bg-[color:var(--card)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-taupe hover:text-ivory"
+          className="absolute right-4 top-4 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
-        <h2 className="text-lg font-bold text-ivory">Add member</h2>
-        <p className="mt-1 text-sm text-taupe">
+        <h2 className="text-lg font-bold text-[color:var(--ink)]">Add member</h2>
+        <p className="mt-1 text-sm text-[color:var(--mute)]">
           Only students not currently in another active cohort are shown.
         </p>
 
         <form onSubmit={submit} className="mt-5 space-y-3">
           <label className="block">
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
               Student
             </span>
             <select
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               required
-              className="w-full rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
+              className="w-full rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
             >
               <option value="">Select a student…</option>
               {sorted.map((s) => {
@@ -256,7 +256,7 @@ function AddMemberDialog({
           </label>
 
           {tierMismatch && (
-            <p className="rounded-lg border border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning-bright">
+            <p className="rounded-lg border border-[color-mix(in_srgb,var(--warn)_20%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-3 py-2 text-xs text-[color:var(--warn)]">
               Heads up — this student&apos;s subscription tier is{" "}
               <span className="font-semibold">{selected?.subscription_tier ?? "none"}</span>, not{" "}
               <span className="font-semibold">{cohortTier}</span>. You can still place them (admin
@@ -265,7 +265,7 @@ function AddMemberDialog({
           )}
 
           {err && (
-            <p className="rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-sm text-error-bright">
+            <p className="rounded-lg border border-[color-mix(in_srgb,var(--late)_20%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-3 py-2 text-sm text-[color:var(--late)]">
               {err}
             </p>
           )}
@@ -275,14 +275,14 @@ function AddMemberDialog({
               type="button"
               onClick={onClose}
               disabled={pending}
-              className="rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory hover:bg-surface-raised disabled:opacity-50"
+              className="rounded-lg border border-[color:var(--line)] px-4 py-2 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)] disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!studentId || pending}
-              className="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-night hover:bg-gold-bright disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--accent)] px-4 py-2 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:opacity-50"
             >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               Add to cohort

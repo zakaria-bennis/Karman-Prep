@@ -119,23 +119,23 @@ export default async function StudentDetailPage({ params, searchParams }: Params
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6">
         <Link
           href="/tutor"
-          className="mb-2 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:hover:text-ivory"
+          className="mb-2 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)] dark:hover:text-[color:var(--ink)]"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> All students
         </Link>
 
         <Link
           href={`/tutor/${encodeURIComponent(studentId)}/briefing`}
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-info underline underline-offset-4"
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--info)] underline underline-offset-4"
         >
           Saved practice briefing
         </Link>
 
         {/* Summary bar */}
-        <div className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface">
+        <div className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 dark:border-[color:var(--line)] dark:bg-[color:var(--card)]">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">
+              <h1 className="text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                 {student.email}
               </h1>
               <TimingAccommodationControl studentClerkId={studentId} value={timing} />
@@ -151,7 +151,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
                   {atmo}
                 </span>
                 {lastActive && (
-                  <span className="text-xs text-taupe">
+                  <span className="text-xs text-[color:var(--mute)]">
                     Last active: {new Date(lastActive).toLocaleString()}
                   </span>
                 )}
@@ -159,10 +159,10 @@ export default async function StudentDetailPage({ params, searchParams }: Params
             </div>
             {avgScore !== null && (
               <div className="text-right">
-                <div className="text-xs font-bold uppercase tracking-wide text-taupe">
+                <div className="text-xs font-bold uppercase tracking-wide text-[color:var(--mute)]">
                   Avg quiz score
                 </div>
-                <div className="text-2xl font-extrabold tabular-nums text-ivory dark:text-ivory">
+                <div className="text-2xl font-extrabold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                   {avgScore}%
                 </div>
               </div>
@@ -209,12 +209,12 @@ function ProgressBar({
   return (
     <div>
       <div className="mb-1.5 flex justify-between text-xs">
-        <span className="font-semibold text-ivory dark:text-ivory">{label}</span>
-        <span className="tabular-nums text-taupe">
+        <span className="font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">{label}</span>
+        <span className="tabular-nums text-[color:var(--mute)]">
           {mastered} / {total} · {pct}%
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
+      <div className="h-2 overflow-hidden rounded-full bg-[color:var(--card)] dark:bg-[color:var(--raised)]">
         <div
           className="h-full rounded-full transition-all"
           style={{ width: `${pct}%`, background: color }}

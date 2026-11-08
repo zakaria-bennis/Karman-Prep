@@ -22,33 +22,33 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
   return (
     <>
       {hasPassage && (
-        <div className="mb-4 rounded-lg border border-bronze bg-night/40 p-4">
+        <div className="mb-4 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] p-4">
           {question.passage_intro && (
-            <p className="mb-2 text-xs italic text-taupe">
+            <p className="mb-2 text-xs italic text-[color:var(--mute)]">
               <MathText text={question.passage_intro} />
             </p>
           )}
           {question.passage && (
-            <div className="text-sm leading-relaxed text-ivory">
+            <div className="text-sm leading-relaxed text-[color:var(--ink)]">
               <MathText text={question.passage} />
             </div>
           )}
           {question.passage_a && (
             <div className="space-y-3">
               <div>
-                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                   Passage A
                 </div>
-                <div className="text-sm text-ivory">
+                <div className="text-sm text-[color:var(--ink)]">
                   <MathText text={question.passage_a} />
                 </div>
               </div>
               {question.passage_b && (
                 <div>
-                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                     Passage B
                   </div>
-                  <div className="text-sm text-ivory">
+                  <div className="text-sm text-[color:var(--ink)]">
                     <MathText text={question.passage_b} />
                   </div>
                 </div>
@@ -73,7 +73,7 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
         )
       )}
 
-      <div className="mb-4 text-base leading-relaxed text-ivory">
+      <div className="mb-4 text-base leading-relaxed text-[color:var(--ink)]">
         <MathText text={question.question_text} />
       </div>
 
@@ -86,18 +86,18 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
                 key={c.id}
                 className={cn(
                   "flex gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                  isCorrect ? "border-success/40 bg-success/[0.06]" : "border-bronze bg-night/40"
+                  isCorrect ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)]" : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)]"
                 )}
               >
                 <span
                   className={cn(
                     "shrink-0 font-semibold",
-                    isCorrect ? "text-success-bright" : "text-taupe"
+                    isCorrect ? "text-[color:var(--good)]" : "text-[color:var(--mute)]"
                   )}
                 >
                   {c.letter}
                 </span>
-                <div className="min-w-0 flex-1 text-ivory">
+                <div className="min-w-0 flex-1 text-[color:var(--ink)]">
                   {c.choice_table_data ? (
                     <QuestionTable
                       data={c.choice_table_data}
@@ -113,38 +113,38 @@ export default function ViewMode({ question, hasPassage, choices }: Props) {
           })}
         </div>
       ) : (
-        <div className="rounded-lg border border-bronze bg-night/40 px-3 py-2.5 text-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe">
+        <div className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] px-3 py-2.5 text-sm">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
             SPR answer
           </span>{" "}
-          <span className="text-success-bright">{question.correct_answer}</span>
+          <span className="text-[color:var(--good)]">{question.correct_answer}</span>
           {question.numeric_tolerance != null && (
-            <span className="ml-2 text-xs text-taupe">± {String(question.numeric_tolerance)}</span>
+            <span className="ml-2 text-xs text-[color:var(--mute)]">± {String(question.numeric_tolerance)}</span>
           )}
         </div>
       )}
 
-      <details className="mt-4 rounded-lg border border-bronze bg-night/40">
-        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-ivory">
+      <details className="mt-4 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)]">
+        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-[color:var(--ink)]">
           Hint &amp; explanation
         </summary>
-        <div className="space-y-3 border-t border-bronze px-3 py-3 text-xs">
+        <div className="space-y-3 border-t border-[color:var(--line)] px-3 py-3 text-xs">
           {question.hint && (
             <div>
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                 Hint
               </div>
-              <div className="text-ivory">
+              <div className="text-[color:var(--ink)]">
                 <MathText text={question.hint} />
               </div>
             </div>
           )}
           {question.explanation_text && (
             <div>
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                 Explanation
               </div>
-              <div className="leading-relaxed text-ivory">
+              <div className="leading-relaxed text-[color:var(--ink)]">
                 <MathText text={question.explanation_text} />
               </div>
             </div>

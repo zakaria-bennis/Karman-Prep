@@ -32,21 +32,21 @@ export function CohortSetupBanner({ cohortId }: { cohortId: string }) {
   }
 
   return (
-    <div className="mb-6 flex flex-wrap items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+    <div className="mb-6 flex flex-wrap items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--warn)_30%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-4 py-3 text-sm">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--warn)]" />
       <div className="min-w-[15rem] flex-1">
-        <p className="font-semibold text-warning-bright">This cohort still needs Cal/Zoom setup</p>
-        <p className="mt-0.5 text-xs text-warning-bright/80">
+        <p className="font-semibold text-[color:var(--warn)]">This cohort still needs Cal/Zoom setup</p>
+        <p className="mt-0.5 text-xs text-[color-mix(in_srgb,var(--warn)_80%,transparent)]">
           Configure the class event in Cal.com (event-type, schedule, Zoom location) for this
           cohort, then click the button to dismiss this banner. You&apos;ll get a daily reminder
           email until it&apos;s marked complete.
         </p>
-        {err ? <p className="mt-1.5 text-xs text-error-bright">{err}</p> : null}
+        {err ? <p className="mt-1.5 text-xs text-[color:var(--late)]">{err}</p> : null}
       </div>
       <button
         onClick={onMarkComplete}
         disabled={pending}
-        className="inline-flex items-center gap-1 rounded-md border border-success/40 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success-bright hover:bg-success/20 disabled:opacity-50"
+        className="inline-flex items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--good)] hover:bg-[color-mix(in_srgb,var(--good)_20%,transparent)] disabled:opacity-50"
       >
         {pending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />

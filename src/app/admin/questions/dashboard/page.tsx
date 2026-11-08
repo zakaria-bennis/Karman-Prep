@@ -33,9 +33,9 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = { title: "Admin — Quality Dashboard | Karman" };
 
 const SEVERITY_CLASSES = {
-  BLOCKING: "border-error/40 bg-error/[0.08] text-error-bright",
-  WARNING: "border-warning/40 bg-warning/[0.08] text-warning-bright",
-  NOTICE: "border-bronze bg-surface-raised/40 text-ivory",
+  BLOCKING: "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_8%,transparent)] text-[color:var(--late)]",
+  WARNING: "border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_8%,transparent)] text-[color:var(--warn)]",
+  NOTICE: "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--ink)]",
 } as const;
 
 export default async function QualityDashboardPage() {
@@ -56,19 +56,19 @@ export default async function QualityDashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-bronze pb-4">
+      <div className="mb-6 flex items-center justify-between border-b border-[color:var(--line)] pb-4">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-ivory">
-            <BarChart3 className="h-5 w-5 text-gold" />
+          <h1 className="flex items-center gap-2 text-xl font-semibold text-[color:var(--ink)]">
+            <BarChart3 className="h-5 w-5 text-[color:var(--accent-text)]" />
             Quality dashboard
           </h1>
-          <p className="mt-1 text-xs text-taupe">
+          <p className="mt-1 text-xs text-[color:var(--mute)]">
             Aggregate view of every open audit + grader finding across the question bank.
           </p>
         </div>
         <Link
           href="/admin/questions/inspect"
-          className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface/60 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
+          className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
         >
           <Microscope className="h-3.5 w-3.5" /> Open inspector worklist
         </Link>
@@ -120,15 +120,15 @@ export default async function QualityDashboardPage() {
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     <SeverityIcon severity={c.severity} />
-                    <code className="rounded bg-night/60 px-1.5 py-0.5 font-mono text-[10px] text-ivory">
+                    <code className="rounded bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]">
                       {c.code}
                     </code>
-                    <span className="truncate text-[10px] text-taupe">{c.category}</span>
+                    <span className="truncate text-[10px] text-[color:var(--mute)]">{c.category}</span>
                   </div>
                   <div className="ml-2 flex items-center gap-3">
                     <span className="font-semibold">{c.open}</span>
                     {c.resolved > 0 && (
-                      <span className="text-[10px] text-taupe">+{c.resolved} resolved</span>
+                      <span className="text-[10px] text-[color:var(--mute)]">+{c.resolved} resolved</span>
                     )}
                   </div>
                 </li>
@@ -146,19 +146,19 @@ export default async function QualityDashboardPage() {
               {data.by_source.map((s) => (
                 <li
                   key={s.source}
-                  className="flex items-center justify-between rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
+                  className="flex items-center justify-between rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-3 py-2 text-xs"
                 >
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/admin/questions/inspect?source=${s.source}`}
-                      className="font-semibold text-ivory hover:underline"
+                      className="font-semibold text-[color:var(--ink)] hover:underline"
                     >
                       {s.source === "auditor" ? "Deterministic auditor" : "LLM grader"}
                     </Link>
                   </div>
                   <div className="flex items-center gap-3 text-[11px]">
-                    <span className="text-ivory">{s.open} open</span>
-                    {s.resolved > 0 && <span className="text-taupe">+{s.resolved} resolved</span>}
+                    <span className="text-[color:var(--ink)]">{s.open} open</span>
+                    {s.resolved > 0 && <span className="text-[color:var(--mute)]">+{s.resolved} resolved</span>}
                   </div>
                 </li>
               ))}
@@ -182,19 +182,19 @@ export default async function QualityDashboardPage() {
                 return (
                   <li
                     key={p.source_pdf}
-                    className="rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
+                    className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-3 py-2 text-xs"
                   >
                     <div className="flex items-center justify-between">
                       <Link
                         href={`/admin/questions/inspect?source_pdf=${encodeURIComponent(p.source_pdf)}`}
-                        className="truncate font-mono text-[11px] text-ivory hover:underline"
+                        className="truncate font-mono text-[11px] text-[color:var(--ink)] hover:underline"
                         title={p.source_pdf}
                       >
                         {p.source_pdf}
                       </Link>
-                      <span className="ml-2 shrink-0 font-semibold text-ivory">{p.open}</span>
+                      <span className="ml-2 shrink-0 font-semibold text-[color:var(--ink)]">{p.open}</span>
                     </div>
-                    <div className="mt-1 flex items-center gap-3 text-[10px] text-taupe">
+                    <div className="mt-1 flex items-center gap-3 text-[10px] text-[color:var(--mute)]">
                       <span>{p.questions_affected} questions affected</span>
                       <span>·</span>
                       <span>{p.total_questions} total</span>
@@ -203,7 +203,7 @@ export default async function QualityDashboardPage() {
                       {p.blocking > 0 && (
                         <>
                           <span>·</span>
-                          <span className="font-semibold text-error-bright">
+                          <span className="font-semibold text-[color:var(--late)]">
                             {p.blocking} blocking
                           </span>
                         </>
@@ -225,23 +225,23 @@ export default async function QualityDashboardPage() {
               {data.by_domain.map((d) => (
                 <li
                   key={d.domain}
-                  className="rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
+                  className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-3 py-2 text-xs"
                 >
                   <div className="flex items-center justify-between">
                     <Link
                       href={`/admin/questions/inspect?domain=${encodeURIComponent(d.domain)}`}
-                      className="font-semibold text-ivory hover:underline"
+                      className="font-semibold text-[color:var(--ink)] hover:underline"
                     >
                       {d.domain}
                     </Link>
-                    <span className="ml-2 font-semibold text-ivory">{d.open}</span>
+                    <span className="ml-2 font-semibold text-[color:var(--ink)]">{d.open}</span>
                   </div>
-                  <div className="mt-1 flex items-center gap-3 text-[10px] text-taupe">
+                  <div className="mt-1 flex items-center gap-3 text-[10px] text-[color:var(--mute)]">
                     <span>{d.questions_affected} questions affected</span>
                     {d.blocking > 0 && (
                       <>
                         <span>·</span>
-                        <span className="font-semibold text-error-bright">
+                        <span className="font-semibold text-[color:var(--late)]">
                           {d.blocking} blocking
                         </span>
                       </>
@@ -255,8 +255,8 @@ export default async function QualityDashboardPage() {
       </div>
 
       {data.totals.open === 0 && (
-        <div className="mt-6 rounded-xl border border-success/40 bg-success/[0.06] p-5 text-center text-sm text-success-bright">
-          <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-success" />
+        <div className="mt-6 rounded-xl border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] p-5 text-center text-sm text-[color:var(--good)]">
+          <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-[color:var(--good)]" />
           No open findings. The bank is clean.
         </div>
       )}
@@ -276,10 +276,10 @@ function StatCard({
   tone: "default" | "rose" | "amber" | "violet";
 }) {
   const tones: Record<typeof tone, string> = {
-    default: "border-bronze bg-surface/50 text-ivory",
-    rose: "border-error/30 bg-error/[0.06] text-error-bright",
-    amber: "border-warning/30 bg-warning/[0.06] text-warning-bright",
-    violet: "border-gold/30 bg-gold/[0.06] text-gold-bright",
+    default: "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_50%,transparent)] text-[color:var(--ink)]",
+    rose: "border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]",
+    amber: "border-[color-mix(in_srgb,var(--warn)_30%,transparent)] bg-[color-mix(in_srgb,var(--warn)_6%,transparent)] text-[color:var(--warn)]",
+    violet: "border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_6%,transparent)] text-[color:var(--accent-text)]",
   };
   return (
     <div className={cn("rounded-xl border p-4", tones[tone])}>
@@ -300,9 +300,9 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-bronze bg-surface/30 p-5">
-      <div className="mb-3 flex items-center gap-2 border-b border-bronze pb-2 text-sm font-semibold text-ivory">
-        <Icon className="h-4 w-4 text-taupe" />
+    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_30%,transparent)] p-5">
+      <div className="mb-3 flex items-center gap-2 border-b border-[color:var(--line)] pb-2 text-sm font-semibold text-[color:var(--ink)]">
+        <Icon className="h-4 w-4 text-[color:var(--mute)]" />
         {title}
       </div>
       {children}
@@ -311,13 +311,13 @@ function Card({
 }
 
 function EmptyState({ message }: { message: string }) {
-  return <p className="py-6 text-center text-xs text-taupe">{message}</p>;
+  return <p className="py-6 text-center text-xs text-[color:var(--mute)]">{message}</p>;
 }
 
 function SeverityIcon({ severity }: { severity: "BLOCKING" | "WARNING" | "NOTICE" }) {
   if (severity === "BLOCKING")
-    return <AlertOctagon className="h-3.5 w-3.5 shrink-0 text-error-bright" />;
+    return <AlertOctagon className="h-3.5 w-3.5 shrink-0 text-[color:var(--late)]" />;
   if (severity === "WARNING")
-    return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning-bright" />;
-  return <Info className="h-3.5 w-3.5 shrink-0 text-taupe" />;
+    return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-[color:var(--warn)]" />;
+  return <Info className="h-3.5 w-3.5 shrink-0 text-[color:var(--mute)]" />;
 }

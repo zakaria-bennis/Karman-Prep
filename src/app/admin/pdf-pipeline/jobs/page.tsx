@@ -13,11 +13,11 @@ export const metadata: Metadata = { title: "Admin — PDF jobs | Karman" };
 export const dynamic = "force-dynamic";
 
 const STATUS_TONE = {
-  queued: "border-bronze bg-surface-raised/40 text-ivory",
-  running: "border-gold/40 bg-gold/40 text-gold-bright",
-  partial: "border-warning/40 bg-warning/40 text-warning-bright",
-  complete: "border-success/40 bg-success/40 text-success-bright",
-  failed: "border-error/40 bg-error/40 text-error-bright",
+  queued: "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--ink)]",
+  running: "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--accent-text)]",
+  partial: "border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_40%,transparent)] text-[color:var(--warn)]",
+  complete: "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_40%,transparent)] text-[color:var(--good)]",
+  failed: "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_40%,transparent)] text-[color:var(--late)]",
 } as const;
 
 function statusIcon(status: string) {
@@ -53,18 +53,18 @@ export default async function PdfJobsPage() {
         <div>
           <Link
             href="/admin/curriculum"
-            className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
+            className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
           >
             <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
           </Link>
-          <h1 className="text-2xl font-bold text-ivory">PDF processing jobs</h1>
-          <p className="mt-1 text-sm text-taupe">
+          <h1 className="text-2xl font-bold text-[color:var(--ink)]">PDF processing jobs</h1>
+          <p className="mt-1 text-sm text-[color:var(--mute)]">
             Every PDF uploaded for the automated pipeline. Click a row for live progress.
           </p>
         </div>
         <Link
           href="/admin/questions/import"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-gold px-3 py-2 text-sm font-semibold text-night hover:bg-gold-bright"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[color:var(--accent)] px-3 py-2 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]"
         >
           <Upload className="h-4 w-4" /> Upload PDF
         </Link>
@@ -80,16 +80,16 @@ export default async function PdfJobsPage() {
             ["total", counts.total],
           ] as const
         ).map(([k, n]) => (
-          <div key={k} className="rounded-lg border border-bronze bg-surface/60 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-wide text-taupe">{k}</div>
-            <div className="text-lg font-bold text-ivory">{n}</div>
+          <div key={k} className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-3 py-2">
+            <div className="text-[11px] uppercase tracking-wide text-[color:var(--mute)]">{k}</div>
+            <div className="text-lg font-bold text-[color:var(--ink)]">{n}</div>
           </div>
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-bronze bg-surface/40">
+      <div className="overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
         <table className="w-full text-sm">
-          <thead className="border-b border-bronze bg-night/40 text-left text-xs uppercase tracking-wide text-taupe">
+          <thead className="border-b border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] text-left text-xs uppercase tracking-wide text-[color:var(--mute)]">
             <tr>
               <th className="px-4 py-2 font-medium">PDF</th>
               <th className="px-4 py-2 font-medium">Status</th>
@@ -102,9 +102,9 @@ export default async function PdfJobsPage() {
           <tbody>
             {jobs.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-taupe">
+                <td colSpan={6} className="px-4 py-6 text-center text-[color:var(--mute)]">
                   No PDF jobs yet. Upload one at{" "}
-                  <Link href="/admin/questions/import" className="text-gold hover:text-gold-bright">
+                  <Link href="/admin/questions/import" className="text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]">
                     /admin/questions/import
                   </Link>
                   .
@@ -120,12 +120,12 @@ export default async function PdfJobsPage() {
               return (
                 <tr
                   key={job.id}
-                  className="border-b border-bronze last:border-b-0 hover:bg-surface/60"
+                  className="border-b border-[color:var(--line)] last:border-b-0 hover:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]"
                 >
                   <td className="px-4 py-2.5">
                     <Link
                       href={`/admin/pdf-pipeline/jobs/${job.id}`}
-                      className="font-medium text-ivory hover:text-ivory"
+                      className="font-medium text-[color:var(--ink)] hover:text-[color:var(--ink)]"
                     >
                       {job.source_pdf}
                     </Link>
@@ -138,28 +138,28 @@ export default async function PdfJobsPage() {
                       {job.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-taupe">{stageLabel}</td>
+                  <td className="px-4 py-2.5 text-xs text-[color:var(--mute)]">{stageLabel}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-surface-raised">
+                      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-[color:var(--raised)]">
                         <div
                           className={`h-full rounded-full transition-all ${
                             job.status === "failed"
-                              ? "bg-error"
+                              ? "bg-[color:var(--late)]"
                               : job.status === "complete"
-                                ? "bg-success"
-                                : "bg-gold"
+                                ? "bg-[color:var(--good)]"
+                                : "bg-[color:var(--accent)]"
                           }`}
                           style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
                         />
                       </div>
-                      <span className="text-xs tabular-nums text-taupe">{percent}%</span>
+                      <span className="text-xs tabular-nums text-[color:var(--mute)]">{percent}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-taupe">
+                  <td className="px-4 py-2.5 text-xs text-[color:var(--mute)]">
                     {formatBytes(job.pdf_size_bytes)}
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-taupe">{formatAgo(job.uploaded_at)}</td>
+                  <td className="px-4 py-2.5 text-xs text-[color:var(--mute)]">{formatAgo(job.uploaded_at)}</td>
                 </tr>
               );
             })}

@@ -79,24 +79,24 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
     <div className="mx-auto max-w-2xl px-5 py-8">
       <Link
         href="/tutor"
-        className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:text-taupe dark:hover:text-ivory"
+        className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)] dark:text-[color:var(--mute)] dark:hover:text-[color:var(--ink)]"
       >
         <ChevronRight className="h-3 w-3 rotate-180" /> Back to tutor home
       </Link>
-      <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory dark:text-ivory">
-        <CalendarCheck className="h-5 w-5 text-info" /> Booking settings
+      <h1 className="flex items-center gap-2 text-2xl font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+        <CalendarCheck className="h-5 w-5 text-[color:var(--info)]" /> Booking settings
       </h1>
-      <p className="mt-1.5 text-sm text-taupe dark:text-taupe">
+      <p className="mt-1.5 text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
         Connect your Cal.com account so your students can book sessions on your real calendar.
       </p>
 
       {errorMessage ? (
-        <div className="mt-5 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
+        <div className="mt-5 rounded-lg border border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-4 py-3 text-sm text-[color:var(--late)]">
           {errorMessage}
         </div>
       ) : null}
       {successMessage ? (
-        <div className="mt-5 rounded-lg border border-success/40 bg-success/10 px-4 py-3 text-sm text-success">
+        <div className="mt-5 rounded-lg border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-4 py-3 text-sm text-[color:var(--good)]">
           {successMessage}
         </div>
       ) : null}
@@ -109,15 +109,15 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
         />
       </div>
 
-      <div className="mt-8 rounded-lg border border-bronze bg-surface px-4 py-3 text-xs text-ivory dark:border-bronze dark:bg-surface/40 dark:text-ivory">
-        <p className="font-semibold text-ivory dark:text-ivory">Need a Cal account?</p>
+      <div className="mt-8 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-4 py-3 text-xs text-[color:var(--ink)] dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)] dark:text-[color:var(--ink)]">
+        <p className="font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">Need a Cal account?</p>
         <p className="mt-1">
           Sign up at{" "}
           <a
             href="https://cal.com"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-0.5 text-info hover:underline dark:text-info"
+            className="inline-flex items-center gap-0.5 text-[color:var(--info)] hover:underline dark:text-[color:var(--info)]"
           >
             cal.com <ExternalLink className="h-3 w-3" />
           </a>{" "}

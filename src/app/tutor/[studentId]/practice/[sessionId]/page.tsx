@@ -27,14 +27,14 @@ export default async function EducatorPracticeReviewPage({
     <section className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
       <Link
         href={`/tutor/${encodeURIComponent(studentId)}/briefing`}
-        className="inline-flex min-h-11 items-center text-sm text-info underline"
+        className="inline-flex min-h-11 items-center text-sm text-[color:var(--info)] underline"
       >
         Back to practice briefing
       </Link>
       <header>
-        <h1 className="text-2xl font-bold text-ivory">Review as student</h1>
+        <h1 className="text-2xl font-bold text-[color:var(--ink)]">Review as student</h1>
         {review && (
-          <p className="mt-2 text-sm text-taupe">
+          <p className="mt-2 text-sm text-[color:var(--mute)]">
             {review.skillLabel} ·{" "}
             {review.completedAt ? "Completed practice" : "Practice in progress"}
           </p>

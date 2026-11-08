@@ -77,12 +77,12 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       {/* ─── Header ─────────────────────────────────────── */}
       <header className="flex items-start justify-between gap-4">
         <div>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-success">Admin</p>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ivory">
-            <DollarSign className="h-6 w-6 text-success" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--good)]">Admin</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-[color:var(--ink)]">
+            <DollarSign className="h-6 w-6 text-[color:var(--good)]" />
             Revenue
           </h1>
-          <p className="mt-1 text-xs text-taupe">
+          <p className="mt-1 text-xs text-[color:var(--mute)]">
             Computed from active subscriptions and one-time purchases in the trailing 30 days. As of{" "}
             {new Date(data.asOf).toLocaleString("en-US", {
               dateStyle: "medium",
@@ -96,7 +96,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             type="button"
             onClick={handleSnapshot}
             disabled={pending}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-success/40 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success-bright hover:bg-success/15 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--good)] hover:bg-[color-mix(in_srgb,var(--good)_15%,transparent)] disabled:opacity-50"
           >
             {pending ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -105,7 +105,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             )}
             Snapshot now
           </button>
-          {snapMsg && <span className="text-[10px] text-success-bright">{snapMsg}</span>}
+          {snapMsg && <span className="text-[10px] text-[color:var(--good)]">{snapMsg}</span>}
         </div>
       </header>
 
@@ -193,29 +193,29 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       </div>
 
       {/* ─── MRR trend sparkline ─────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-ivory">
-            <Activity className="h-4 w-4 text-success" />
+          <h2 className="inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-[color:var(--ink)]">
+            <Activity className="h-4 w-4 text-[color:var(--good)]" />
             MRR trend
           </h2>
-          <span className="text-[10px] text-taupe">Last {data.snapshots.length} snapshots</span>
+          <span className="text-[10px] text-[color:var(--mute)]">Last {data.snapshots.length} snapshots</span>
         </div>
         <MrrSparkline snapshots={data.snapshots} />
       </section>
 
       {/* ─── Forecast band ────────────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
-        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-ivory">
-          <TrendingUp className="h-4 w-4 text-info" />
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-[color:var(--ink)]">
+          <TrendingUp className="h-4 w-4 text-[color:var(--info)]" />
           Forecast at current pace
         </h2>
-        <p className="mb-3 text-[10px] text-taupe">
+        <p className="mb-3 text-[10px] text-[color:var(--mute)]">
           Net new MRR/mo:{" "}
           <span
             className={cn(
               "font-semibold",
-              data.forecast.monthlyNetNewMrr >= 0 ? "text-success-bright" : "text-error-bright"
+              data.forecast.monthlyNetNewMrr >= 0 ? "text-[color:var(--good)]" : "text-[color:var(--late)]"
             )}
           >
             {data.forecast.monthlyNetNewMrr >= 0 ? "+" : ""}
@@ -225,7 +225,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
           <span
             className={cn(
               "font-semibold",
-              data.forecast.monthlyNetNewSubs >= 0 ? "text-success-bright" : "text-error-bright"
+              data.forecast.monthlyNetNewSubs >= 0 ? "text-[color:var(--good)]" : "text-[color:var(--late)]"
             )}
           >
             {data.forecast.monthlyNetNewSubs >= 0 ? "+" : ""}
@@ -240,12 +240,12 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       </section>
 
       {/* ─── Pie + tier breakdown ─────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-ivory">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-[color:var(--ink)]">
             Where the revenue comes from
           </h2>
-          <span className="text-[10px] text-taupe">Hover a slice to highlight</span>
+          <span className="text-[10px] text-[color:var(--mute)]">Hover a slice to highlight</span>
         </div>
         <div className="grid items-center gap-6 md:grid-cols-[260px_1fr]">
           <div className="flex justify-center">
@@ -259,7 +259,7 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
           <div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-bronze text-[10px] uppercase tracking-wider text-taupe">
+                <tr className="border-b border-[color:var(--line)] text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
                   <th className="py-2 text-left font-semibold">Tier</th>
                   <th className="py-2 text-right font-semibold">Students</th>
                   <th className="py-2 text-right font-semibold">Revenue / mo</th>
@@ -275,8 +275,8 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                       onMouseEnter={() => setHovered(t.tier)}
                       onMouseLeave={() => setHovered(null)}
                       className={cn(
-                        "border-b border-bronze/60 transition-colors",
-                        isHovered ? "bg-surface/[0.04]" : ""
+                        "border-b border-[color-mix(in_srgb,var(--line)_60%,transparent)] transition-colors",
+                        isHovered ? "bg-[color-mix(in_srgb,var(--card)_4%,transparent)]" : ""
                       )}
                     >
                       <td className="py-2.5">
@@ -289,12 +289,12 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                             <p
                               className={cn(
                                 "text-sm font-semibold",
-                                isHovered ? "text-ivory" : "text-ivory"
+                                isHovered ? "text-[color:var(--ink)]" : "text-[color:var(--ink)]"
                               )}
                             >
                               {t.label}
                             </p>
-                            <p className="text-[10px] text-taupe">
+                            <p className="text-[10px] text-[color:var(--mute)]">
                               {t.model === "subscription"
                                 ? `${fmtMoney(t.price)}/mo subscription`
                                 : `${fmtMoney(t.price)} one-time`}
@@ -302,12 +302,12 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
                           </div>
                         </div>
                       </td>
-                      <td className="text-right tabular-nums text-ivory">{t.studentCount}</td>
+                      <td className="text-right tabular-nums text-[color:var(--ink)]">{t.studentCount}</td>
                       <td className="text-right tabular-nums">
-                        <p className="font-semibold text-ivory">{fmtMoney(t.revenue)}</p>
-                        <p className="text-[10px] text-taupe">{t.unitsLabel}</p>
+                        <p className="font-semibold text-[color:var(--ink)]">{fmtMoney(t.revenue)}</p>
+                        <p className="text-[10px] text-[color:var(--mute)]">{t.unitsLabel}</p>
                       </td>
-                      <td className="text-right tabular-nums text-ivory">
+                      <td className="text-right tabular-nums text-[color:var(--ink)]">
                         {fmtPct(t.revenue, data.monthRevenue)}
                       </td>
                     </tr>
@@ -316,14 +316,14 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
               </tbody>
               <tfoot>
                 <tr>
-                  <td className="pt-3 text-sm font-bold text-ivory">Total</td>
-                  <td className="pt-3 text-right font-bold tabular-nums text-ivory">
+                  <td className="pt-3 text-sm font-bold text-[color:var(--ink)]">Total</td>
+                  <td className="pt-3 text-right font-bold tabular-nums text-[color:var(--ink)]">
                     {data.tiers.reduce((sum, t) => sum + t.studentCount, 0)}
                   </td>
-                  <td className="pt-3 text-right font-bold tabular-nums text-success-bright">
+                  <td className="pt-3 text-right font-bold tabular-nums text-[color:var(--good)]">
                     {fmtMoney(data.monthRevenue)}
                   </td>
-                  <td className="pt-3 text-right tabular-nums text-taupe">100%</td>
+                  <td className="pt-3 text-right tabular-nums text-[color:var(--mute)]">100%</td>
                 </tr>
               </tfoot>
             </table>
@@ -332,21 +332,21 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       </section>
 
       {/* ─── Cohort retention ─────────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
-        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-ivory">
-          <Users className="h-4 w-4 text-gold" />
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-[color:var(--ink)]">
+          <Users className="h-4 w-4 text-[color:var(--accent-text)]" />
           Cohort retention
         </h2>
-        <p className="mb-4 text-[10px] text-taupe">
+        <p className="mb-4 text-[10px] text-[color:var(--mute)]">
           Each row is a signup-month cohort. Cells show how many of that cohort were still active at
           month 0 / 1 / 3 / 6 since signup. Future months show &ldquo;—&rdquo;.
         </p>
         {data.cohorts.length === 0 ? (
-          <div className="py-8 text-center text-xs text-taupe">No cohorts yet.</div>
+          <div className="py-8 text-center text-xs text-[color:var(--mute)]">No cohorts yet.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-bronze text-[10px] uppercase tracking-wider text-taupe">
+              <tr className="border-b border-[color:var(--line)] text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
                 <th className="py-2 text-left font-semibold">Cohort</th>
                 <th className="py-2 text-right font-semibold">Size</th>
                 <th className="py-2 text-right font-semibold">M0</th>
@@ -357,13 +357,13 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             </thead>
             <tbody>
               {data.cohorts.map((c) => (
-                <tr key={c.month} className="border-b border-bronze/60">
-                  <td className="py-2.5 font-semibold text-ivory">{fmtMonth(c.month)}</td>
-                  <td className="text-right tabular-nums text-ivory">{c.size}</td>
+                <tr key={c.month} className="border-b border-[color-mix(in_srgb,var(--line)_60%,transparent)]">
+                  <td className="py-2.5 font-semibold text-[color:var(--ink)]">{fmtMonth(c.month)}</td>
+                  <td className="text-right tabular-nums text-[color:var(--ink)]">{c.size}</td>
                   {c.counts.map((cnt, i) => (
                     <td key={i} className="text-right tabular-nums">
                       {cnt === null ? (
-                        <span className="text-taupe">—</span>
+                        <span className="text-[color:var(--mute)]">—</span>
                       ) : (
                         <CohortCell active={cnt} total={c.size} />
                       )}
@@ -377,22 +377,22 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       </section>
 
       {/* ─── Dunning queue ────────────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
-        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-ivory">
-          <BookmarkX className="h-4 w-4 text-warning" />
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-[color:var(--ink)]">
+          <BookmarkX className="h-4 w-4 text-[color:var(--warn)]" />
           Dunning queue
-          <span className="text-[10px] font-normal text-taupe">
+          <span className="text-[10px] font-normal text-[color:var(--mute)]">
             ({data.dunning.length} past-due)
           </span>
         </h2>
         {data.dunning.length === 0 ? (
-          <div className="py-6 text-center text-xs text-success-bright">
+          <div className="py-6 text-center text-xs text-[color:var(--good)]">
             No past-due subscriptions.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-bronze text-[10px] uppercase tracking-wider text-taupe">
+              <tr className="border-b border-[color:var(--line)] text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
                 <th className="py-2 text-left font-semibold">Student</th>
                 <th className="py-2 text-left font-semibold">Tier</th>
                 <th className="py-2 text-right font-semibold">Amount at risk</th>
@@ -400,13 +400,13 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             </thead>
             <tbody>
               {data.dunning.map((d, i) => (
-                <tr key={i} className="border-b border-bronze/60">
+                <tr key={i} className="border-b border-[color-mix(in_srgb,var(--line)_60%,transparent)]">
                   <td className="py-2.5">
-                    <p className="text-sm font-semibold text-ivory">{d.name}</p>
-                    {d.email && <p className="text-[10px] text-taupe">{d.email}</p>}
+                    <p className="text-sm font-semibold text-[color:var(--ink)]">{d.name}</p>
+                    {d.email && <p className="text-[10px] text-[color:var(--mute)]">{d.email}</p>}
                   </td>
-                  <td className="text-xs text-ivory">{d.tier}</td>
-                  <td className="text-right font-semibold tabular-nums text-warning-bright">
+                  <td className="text-xs text-[color:var(--ink)]">{d.tier}</td>
+                  <td className="text-right font-semibold tabular-nums text-[color:var(--warn)]">
                     {fmtMoney(d.amountOwed)}
                   </td>
                 </tr>
@@ -417,19 +417,19 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       </section>
 
       {/* ─── Per-tutor revenue ────────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
-        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-ivory">
-          <Receipt className="h-4 w-4 text-info" />
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+        <h2 className="mb-3 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-[color:var(--ink)]">
+          <Receipt className="h-4 w-4 text-[color:var(--info)]" />
           Per-tutor revenue (last 30d)
         </h2>
         {data.tutorRevenue.length === 0 ? (
-          <div className="py-6 text-center text-xs text-taupe">
+          <div className="py-6 text-center text-xs text-[color:var(--mute)]">
             No tutor-attributed revenue in the last 30 days.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-bronze text-[10px] uppercase tracking-wider text-taupe">
+              <tr className="border-b border-[color:var(--line)] text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
                 <th className="py-2 text-left font-semibold">Tutor</th>
                 <th className="py-2 text-right font-semibold">Sessions</th>
                 <th className="py-2 text-right font-semibold">Attributed revenue</th>
@@ -437,10 +437,10 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
             </thead>
             <tbody>
               {data.tutorRevenue.map((t) => (
-                <tr key={t.tutorId} className="border-b border-bronze/60">
-                  <td className="py-2.5 font-semibold text-ivory">{t.name}</td>
-                  <td className="text-right tabular-nums text-ivory">{t.sessions}</td>
-                  <td className="text-right font-semibold tabular-nums text-success-bright">
+                <tr key={t.tutorId} className="border-b border-[color-mix(in_srgb,var(--line)_60%,transparent)]">
+                  <td className="py-2.5 font-semibold text-[color:var(--ink)]">{t.name}</td>
+                  <td className="text-right tabular-nums text-[color:var(--ink)]">{t.sessions}</td>
+                  <td className="text-right font-semibold tabular-nums text-[color:var(--good)]">
                     {fmtMoney(t.revenue)}
                   </td>
                 </tr>
@@ -451,8 +451,8 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       </section>
 
       {/* ─── Subscription status breakdown ─────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-ivory">
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-widest text-[color:var(--ink)]">
           Subscription status
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -464,15 +464,15 @@ export default function RevenueClient({ data, snapshotAction }: Props) {
       </section>
 
       {/* ─── Footer note ──────────────────────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface/40 p-5">
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
         <div className="flex items-start gap-2">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-info-bright" />
-          <div className="text-xs leading-relaxed text-ivory">
-            <p className="mb-1 font-semibold text-ivory">Production swap-in</p>
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--info)]" />
+          <div className="text-xs leading-relaxed text-[color:var(--ink)]">
+            <p className="mb-1 font-semibold text-[color:var(--ink)]">Production swap-in</p>
             <p>
               Numbers come from Supabase. When the customer base grows, swap the queries inside{" "}
-              <span className="font-mono text-taupe">getRevenueMetrics()</span> for{" "}
-              <span className="font-mono text-taupe">stripe.subscriptions.list()</span> grouped by
+              <span className="font-mono text-[color:var(--mute)]">getRevenueMetrics()</span> for{" "}
+              <span className="font-mono text-[color:var(--mute)]">stripe.subscriptions.list()</span> grouped by
               Stripe price id — the return shape doesn&apos;t change. Snapshots populate from the
               &ldquo;Snapshot now&rdquo; button (or wire it to a Vercel Cron / pg_cron nightly).
             </p>

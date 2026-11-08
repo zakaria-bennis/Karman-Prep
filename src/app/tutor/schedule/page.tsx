@@ -45,23 +45,23 @@ function tierLabel(t: BookingRow["plan_tier"]): { label: string; cls: string } {
     case "private":
       return {
         label: schedulingTierLabel("private"),
-        cls: "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning-bright border-warning/40 dark:border-warning/20",
+        cls: "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] dark:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] dark:text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--warn)_20%,transparent)]",
       };
     case "elite":
       return {
         label: schedulingTierLabel("elite"),
-        cls: "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
+        cls: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] dark:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
       };
     case "small_group":
       return {
         label: schedulingTierLabel("small_group"),
-        cls: "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border-success/40 dark:border-success/20",
+        cls: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
       };
     case "group":
     default:
       return {
         label: schedulingTierLabel("group"),
-        cls: "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
+        cls: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] dark:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
       };
   }
 }
@@ -71,22 +71,22 @@ function statusLabel(s: BookingRow["status"]): { label: string; cls: string } {
     case "scheduled":
       return {
         label: "Scheduled",
-        cls: "bg-info/10 text-info dark:bg-info/10 dark:text-info-bright",
+        cls: "bg-[color-mix(in_srgb,var(--info)_10%,transparent)] text-[color:var(--info)] dark:bg-[color-mix(in_srgb,var(--info)_10%,transparent)] dark:text-[color:var(--info)]",
       };
     case "completed":
       return {
         label: "Completed",
-        cls: "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright",
+        cls: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:text-[color:var(--good)]",
       };
     case "cancelled":
       return {
         label: "Cancelled",
-        cls: "bg-surface text-taupe dark:bg-surface-raised/20 dark:text-taupe",
+        cls: "bg-[color:var(--card)] text-[color:var(--mute)] dark:bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] dark:text-[color:var(--mute)]",
       };
     case "no_show":
       return {
         label: "No-show",
-        cls: "bg-error/10 text-error dark:bg-error/10 dark:text-error-bright",
+        cls: "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)] dark:bg-[color-mix(in_srgb,var(--late)_10%,transparent)] dark:text-[color:var(--late)]",
       };
   }
 }
@@ -202,15 +202,15 @@ export default async function TutorSchedulePage({
     <>
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
         <header>
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Tutor Portal</p>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ivory dark:text-ivory">
-            <CalendarClock className="h-6 w-6 text-taupe" />
+          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-[color:var(--info)]">Tutor Portal</p>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+            <CalendarClock className="h-6 w-6 text-[color:var(--mute)]" />
             My schedule
           </h1>
         </header>
 
         {/* Tab nav */}
-        <nav className="-mb-2 border-b border-bronze dark:border-bronze">
+        <nav className="-mb-2 border-b border-[color:var(--line)] dark:border-[color:var(--line)]">
           <ul className="-mb-px flex gap-1">
             {ALL_TABS.map((t) => {
               const count =
@@ -227,8 +227,8 @@ export default async function TutorSchedulePage({
                     className={[
                       "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
                       active
-                        ? "border-info/40 text-info dark:text-info"
-                        : "border-transparent text-taupe hover:border-bronze hover:text-ivory dark:text-taupe dark:hover:border-bronze dark:hover:text-ivory",
+                        ? "border-[color-mix(in_srgb,var(--info)_40%,transparent)] text-[color:var(--info)] dark:text-[color:var(--info)]"
+                        : "border-transparent text-[color:var(--mute)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)] dark:text-[color:var(--mute)] dark:hover:border-[color:var(--line)] dark:hover:text-[color:var(--ink)]",
                     ].join(" ")}
                   >
                     {t.label}
@@ -236,8 +236,8 @@ export default async function TutorSchedulePage({
                       className={[
                         "inline-flex h-5 min-w-[20px] items-center justify-center rounded px-1.5 text-[11px] font-bold",
                         active
-                          ? "bg-info/10 text-info dark:bg-info/15 dark:text-info-bright"
-                          : "bg-surface text-taupe dark:bg-surface-raised dark:text-taupe",
+                          ? "bg-[color-mix(in_srgb,var(--info)_10%,transparent)] text-[color:var(--info)] dark:bg-[color-mix(in_srgb,var(--info)_15%,transparent)] dark:text-[color:var(--info)]"
+                          : "bg-[color:var(--card)] text-[color:var(--mute)] dark:bg-[color:var(--raised)] dark:text-[color:var(--mute)]",
                       ].join(" ")}
                     >
                       {count}
@@ -250,8 +250,8 @@ export default async function TutorSchedulePage({
         </nav>
 
         {visible.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-bronze px-6 py-10 text-center dark:border-bronze">
-            <p className="text-sm text-taupe dark:text-taupe">
+          <div className="rounded-xl border border-dashed border-[color:var(--line)] px-6 py-10 text-center dark:border-[color:var(--line)]">
+            <p className="text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">
               {tab === "upcoming"
                 ? "Nothing scheduled. New bookings will show up here as students book in."
                 : tab === "seminars"
@@ -301,10 +301,10 @@ function ScheduleGrouped({
         const heading = formatDay(dayBookings[0]!.scheduled_start, tz);
         return (
           <div key={k}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-taupe">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
               {heading}
             </p>
-            <ul className="divide-y divide-bronze overflow-hidden rounded-xl border border-bronze dark:divide-bronze dark:border-bronze">
+            <ul className="divide-y divide-[color:var(--line)] overflow-hidden rounded-xl border border-[color:var(--line)] dark:divide-[color:var(--line)] dark:border-[color:var(--line)]">
               {dayBookings.map((b) => {
                 const student = studentsById.get(b.student_id);
                 const tier = tierLabel(b.plan_tier);
@@ -320,14 +320,14 @@ function ScheduleGrouped({
                 return (
                   <li
                     key={b.id}
-                    className="bg-surface px-4 py-3 transition-colors hover:bg-surface dark:bg-surface/40 dark:hover:bg-surface/70"
+                    className="bg-[color:var(--card)] px-4 py-3 transition-colors hover:bg-[color:var(--card)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-20 shrink-0 font-mono text-sm text-ivory dark:text-ivory">
+                      <span className="w-20 shrink-0 font-mono text-sm text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                         {formatTime(b.scheduled_start, tz)}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-semibold text-ivory dark:text-ivory">
+                        <span className="block truncate font-semibold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                           {studentDisplay(student)}
                         </span>
                         <span
@@ -346,7 +346,7 @@ function ScheduleGrouped({
                           href={b.zoom_join_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-lg bg-info px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright"
+                          className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--info)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--info)]"
                         >
                           <Video className="h-3.5 w-3.5" />
                           Join

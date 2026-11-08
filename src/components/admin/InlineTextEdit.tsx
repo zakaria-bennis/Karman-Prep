@@ -143,8 +143,8 @@ export function InlineTextEdit({
         className={cn(
           viewClassName,
           !readOnly &&
-            "cursor-text rounded-sm decoration-dotted underline-offset-2 hover:bg-surface-raised/30 focus:bg-surface-raised/40 focus:outline-none",
-          empty && !readOnly && "italic text-taupe"
+            "cursor-text rounded-sm decoration-dotted underline-offset-2 hover:bg-[color-mix(in_srgb,var(--raised)_30%,transparent)] focus:bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] focus:outline-none",
+          empty && !readOnly && "italic text-[color:var(--mute)]"
         )}
         aria-label={readOnly ? undefined : ariaLabel}
       >
@@ -176,8 +176,8 @@ export function InlineTextEdit({
           placeholder={placeholder}
           aria-label={ariaLabel}
           className={cn(
-            "w-full rounded-md border border-gold/60 bg-night px-2 py-1 text-inherit",
-            error && "border-error/40",
+            "w-full rounded-md border border-[color-mix(in_srgb,var(--accent)_60%,transparent)] bg-[color:var(--sunk)] px-2 py-1 text-inherit",
+            error && "border-[color-mix(in_srgb,var(--late)_40%,transparent)]",
             editClassName
           )}
         />
@@ -202,27 +202,27 @@ export function InlineTextEdit({
           aria-label={ariaLabel}
           rows={1}
           className={cn(
-            "w-full resize-none overflow-hidden rounded-md border border-gold/60 bg-night px-2 py-1 text-inherit",
-            error && "border-error/40",
+            "w-full resize-none overflow-hidden rounded-md border border-[color-mix(in_srgb,var(--accent)_60%,transparent)] bg-[color:var(--sunk)] px-2 py-1 text-inherit",
+            error && "border-[color-mix(in_srgb,var(--late)_40%,transparent)]",
             editClassName
           )}
         />
       )}
-      <span className="mt-1 flex items-center gap-2 text-[10px] text-taupe">
+      <span className="mt-1 flex items-center gap-2 text-[10px] text-[color:var(--mute)]">
         {saving && (
-          <span className="inline-flex items-center gap-1 text-gold-bright">
+          <span className="inline-flex items-center gap-1 text-[color:var(--accent-text)]">
             <Loader2 className="h-3 w-3 animate-spin" /> saving…
           </span>
         )}
         {!saving && (
           <span>
-            <kbd className="rounded bg-surface-raised px-1 font-mono">
+            <kbd className="rounded bg-[color:var(--raised)] px-1 font-mono">
               {mode === "line" ? "Enter" : "⌘↵"}
             </kbd>{" "}
-            save · <kbd className="rounded bg-surface-raised px-1 font-mono">Esc</kbd> cancel
+            save · <kbd className="rounded bg-[color:var(--raised)] px-1 font-mono">Esc</kbd> cancel
           </span>
         )}
-        {error && <span className="text-error-bright">{error}</span>}
+        {error && <span className="text-[color:var(--late)]">{error}</span>}
       </span>
     </span>
   );

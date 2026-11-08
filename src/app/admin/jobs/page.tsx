@@ -35,7 +35,7 @@ export default async function AdminJobsPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-5xl px-5 py-8 text-sm text-error-bright">
+      <div className="mx-auto max-w-5xl px-5 py-8 text-sm text-[color:var(--late)]">
         Failed to load jobs: {error.message}
       </div>
     );
@@ -48,14 +48,14 @@ export default async function AdminJobsPage() {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
-          <ListChecks className="h-5 w-5 text-gold" /> PDF processing queue
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-[color:var(--ink)]">
+          <ListChecks className="h-5 w-5 text-[color:var(--accent-text)]" /> PDF processing queue
         </h1>
-        <p className="mt-1 text-sm text-taupe">
+        <p className="mt-1 text-sm text-[color:var(--mute)]">
           Each row tracks one uploaded SAT PDF through the four-module extraction pipeline. CSVs
           auto-import into the bank when complete.
         </p>

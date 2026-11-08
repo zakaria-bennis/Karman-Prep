@@ -81,13 +81,13 @@ export default function EarningsDataClient({
   return (
     <div className="space-y-8">
       {/* ── Time-range selector + period summary ─────────── */}
-      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)] dark:text-[color:var(--mute)]">
               Time range
             </div>
-            <div className="mt-1 text-base font-bold text-ivory dark:text-ivory">
+            <div className="mt-1 text-base font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
               {TIME_RANGE_LABELS[range]}
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function EarningsDataClient({
             value={range}
             disabled={isPending}
             onChange={(e) => changeRange(e.target.value as TimeRange)}
-            className="rounded-md border border-bronze bg-surface px-3 py-2 text-sm text-ivory focus:border-info/40 focus:outline-none dark:border-bronze dark:bg-surface dark:text-ivory"
+            className="rounded-md border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2 text-sm text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--info)_40%,transparent)] focus:outline-none dark:border-[color:var(--line)] dark:bg-[color:var(--card)] dark:text-[color:var(--ink)]"
           >
             {RANGE_ORDER.map((r) => (
               <option key={r} value={r}>
@@ -133,21 +133,21 @@ export default function EarningsDataClient({
       </section>
 
       {/* ── Always-visible analytics chart ────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
+      <section className="rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]">
         <div className="mb-3 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-info" />
-          <h2 className="text-lg font-bold text-ivory dark:text-ivory">Earnings trend</h2>
-          <span className="text-xs text-taupe">last 12 weeks</span>
+          <BarChart3 className="h-5 w-5 text-[color:var(--info)]" />
+          <h2 className="text-lg font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">Earnings trend</h2>
+          <span className="text-xs text-[color:var(--mute)]">last 12 weeks</span>
         </div>
         <WeeklyChart points={weekly} />
       </section>
 
       {/* ── Sessions table ───────────────────────────────── */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
-          <CalendarClock className="h-5 w-5 text-taupe" />
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+          <CalendarClock className="h-5 w-5 text-[color:var(--mute)]" />
           Sessions in this period
-          <span className="text-xs font-normal text-taupe">({sessions.length})</span>
+          <span className="text-xs font-normal text-[color:var(--mute)]">({sessions.length})</span>
         </h2>
 
         {sessions.length === 0 ? (
@@ -155,10 +155,10 @@ export default function EarningsDataClient({
             text={`No sessions in this range (${TIME_RANGE_LABELS[range]}). Try a wider window.`}
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-bronze dark:border-bronze">
+          <div className="overflow-hidden rounded-xl border border-[color:var(--line)] dark:border-[color:var(--line)]">
             <table className="w-full text-sm">
-              <thead className="bg-surface dark:bg-surface">
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
+              <thead className="bg-[color:var(--card)] dark:bg-[color:var(--card)]">
+                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                   <th className="px-4 py-2.5">Date</th>
                   <th className="px-4 py-2.5">For</th>
                   <th className="px-4 py-2.5">Tier</th>
@@ -168,7 +168,7 @@ export default function EarningsDataClient({
                   <th className="px-4 py-2.5">Payout</th>
                 </tr>
               </thead>
-              <tbody className="bg-surface dark:bg-night">
+              <tbody className="bg-[color:var(--card)] dark:bg-[color:var(--sunk)]">
                 {sessions.map((s) => (
                   <SessionRow key={s.id} session={s} counts={studentSessionCounts} />
                 ))}
@@ -180,8 +180,8 @@ export default function EarningsDataClient({
 
       {/* ── Recent payouts ─────────────────────────────── */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
-          <Wallet className="h-5 w-5 text-taupe" />
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-[color:var(--ink)] dark:text-[color:var(--ink)]">
+          <Wallet className="h-5 w-5 text-[color:var(--mute)]" />
           Recent payouts ({payouts.length})
         </h2>
 
@@ -192,21 +192,21 @@ export default function EarningsDataClient({
             {payouts.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/60"
+                className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-4 py-3 dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_60%,transparent)]"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <PayoutStatusPill status={p.status} />
                   <div className="min-w-0">
-                    <div className="font-bold tabular-nums text-ivory dark:text-ivory">
+                    <div className="font-bold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                       {fmt.format(p.net_amount ?? p.total_amount)}
                     </div>
-                    <div className="truncate text-xs text-taupe">
+                    <div className="truncate text-xs text-[color:var(--mute)]">
                       {p.booking_count ?? 0} session{p.booking_count === 1 ? "" : "s"} ·{" "}
                       {fmtHours(p.total_hours)}
                       {p.payout_method && (
                         <>
                           <span className="mx-1.5">·</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe dark:text-taupe">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)] dark:text-[color:var(--mute)]">
                             {p.payout_method === "instant"
                               ? "Instant"
                               : p.payout_method === "standard"
@@ -218,9 +218,9 @@ export default function EarningsDataClient({
                     </div>
                   </div>
                 </div>
-                <div className="shrink-0 text-right text-xs text-taupe">
+                <div className="shrink-0 text-right text-xs text-[color:var(--mute)]">
                   Requested {timeSince(p.requested_at)} ago
-                  {p.paid_at && <div className="text-success">Paid {timeSince(p.paid_at)} ago</div>}
+                  {p.paid_at && <div className="text-[color:var(--good)]">Paid {timeSince(p.paid_at)} ago</div>}
                 </div>
               </li>
             ))}
@@ -246,8 +246,8 @@ function PeriodCard({
   tone?: "slate" | "emerald";
 }) {
   const tones = {
-    slate: "bg-surface dark:bg-surface-raised/40 text-ivory dark:text-ivory",
-    emerald: "bg-success/10 dark:bg-success/10 text-success dark:text-success-bright",
+    slate: "bg-[color:var(--card)] dark:bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--ink)] dark:text-[color:var(--ink)]",
+    emerald: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] dark:text-[color:var(--good)]",
   };
   return (
     <div className={cn("rounded-lg px-3 py-2.5", tones[tone])}>
@@ -282,40 +282,40 @@ function SessionRow({
   const forCol = isGroup ? (
     <div>
       <div className="flex items-center gap-1.5">
-        <UsersIcon className="h-3.5 w-3.5 text-taupe" />
-        <span className="max-w-[18rem] truncate font-medium text-ivory dark:text-ivory">
+        <UsersIcon className="h-3.5 w-3.5 text-[color:var(--mute)]" />
+        <span className="max-w-[18rem] truncate font-medium text-[color:var(--ink)] dark:text-[color:var(--ink)]">
           {s.cohort?.name ?? "(cohort missing)"}
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-taupe">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
           {enrolled.length} enrolled
         </span>
       </div>
       {enrolled.length > 0 && (
-        <div className="mt-0.5 max-w-[18rem] truncate text-[11px] text-taupe">
+        <div className="mt-0.5 max-w-[18rem] truncate text-[11px] text-[color:var(--mute)]">
           {enrolled.slice(0, 3).map(nameWithCount).join(", ")}
           {enrolled.length > 3 ? ` +${enrolled.length - 3}` : ""}
         </div>
       )}
     </div>
   ) : (
-    <span className="max-w-[16rem] truncate font-medium text-ivory dark:text-ivory">
+    <span className="max-w-[16rem] truncate font-medium text-[color:var(--ink)] dark:text-[color:var(--ink)]">
       {enrolled.length > 0 ? nameWithCount(enrolled[0]) : "—"}
     </span>
   );
 
   return (
-    <tr className="border-t border-bronze dark:border-bronze">
-      <td className="whitespace-nowrap px-4 py-2.5 align-top text-ivory dark:text-ivory">
+    <tr className="border-t border-[color:var(--line)] dark:border-[color:var(--line)]">
+      <td className="whitespace-nowrap px-4 py-2.5 align-top text-[color:var(--ink)] dark:text-[color:var(--ink)]">
         {formatDate(s.scheduled_start)}
       </td>
       <td className="px-4 py-2.5 align-top">{forCol}</td>
       <td className="px-4 py-2.5 align-top">
         <PlanTierBadge tier={s.tier} />
       </td>
-      <td className="px-4 py-2.5 text-right align-top tabular-nums text-taupe dark:text-taupe">
+      <td className="px-4 py-2.5 text-right align-top tabular-nums text-[color:var(--mute)] dark:text-[color:var(--mute)]">
         {s.tutor_hours != null ? fmtHours(s.tutor_hours) : "—"}
       </td>
-      <td className="px-4 py-2.5 text-right align-top font-semibold tabular-nums text-ivory dark:text-ivory">
+      <td className="px-4 py-2.5 text-right align-top font-semibold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
         {s.payout_amount != null ? fmt.format(s.payout_amount) : "—"}
       </td>
       <td className="px-4 py-2.5 align-top">
@@ -332,24 +332,24 @@ function PlanTierBadge({ tier }: { tier: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     private: {
       label: tierLabel("private"),
-      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
+      cls: "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)] dark:text-[color:var(--warn)]",
     },
     elite: {
       label: tierLabel("elite"),
-      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
+      cls: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-[color:var(--accent-text)] dark:text-[color:var(--accent-text)]",
     },
     small_group: {
       label: tierLabel("small_group"),
-      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
+      cls: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-[color:var(--good)] dark:text-[color:var(--good)]",
     },
     group: {
       label: tierLabel("group"),
-      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
+      cls: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-[color:var(--accent-text)] dark:text-[color:var(--accent-text)]",
     },
   };
   const m = map[tier] ?? {
     label: tier,
-    cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-ivory",
+    cls: "bg-[color:var(--card)] dark:bg-[color:var(--raised)] text-[color:var(--mute)] dark:text-[color:var(--ink)]",
   };
   return (
     <span
@@ -366,13 +366,13 @@ function PlanTierBadge({ tier }: { tier: string }) {
 function RecapPill({ sent }: { sent: boolean }) {
   if (sent) {
     return (
-      <span className="inline-flex items-center gap-1 rounded bg-success/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success dark:bg-success/15 dark:text-success-bright">
+      <span className="inline-flex items-center gap-1 rounded bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--good)] dark:bg-[color-mix(in_srgb,var(--good)_15%,transparent)] dark:text-[color:var(--good)]">
         <Mail className="h-3 w-3" /> Sent
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded bg-surface px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-taupe dark:bg-surface-raised dark:text-taupe">
+    <span className="inline-flex items-center gap-1 rounded bg-[color:var(--card)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)] dark:bg-[color:var(--raised)] dark:text-[color:var(--mute)]">
       <AlertCircle className="h-3 w-3" /> Not sent
     </span>
   );
@@ -382,35 +382,35 @@ function PayoutStatusPill({ status, compact }: { status: string; compact?: boole
   const map: Record<string, { label: string; cls: string }> = {
     not_eligible: {
       label: "—",
-      cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-taupe",
+      cls: "bg-[color:var(--card)] dark:bg-[color:var(--raised)] text-[color:var(--mute)] dark:text-[color:var(--mute)]",
     },
     pending: {
       label: "Pending",
-      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
+      cls: "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)] dark:text-[color:var(--warn)]",
     },
     requested: {
       label: "Requested",
-      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
+      cls: "bg-[color-mix(in_srgb,var(--info)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--info)_15%,transparent)] text-[color:var(--info)] dark:text-[color:var(--info)]",
     },
     pending_approval: {
       label: "Awaiting review",
-      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
+      cls: "bg-[color-mix(in_srgb,var(--info)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--info)_15%,transparent)] text-[color:var(--info)] dark:text-[color:var(--info)]",
     },
     approved: {
       label: "Payment in flight",
-      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
+      cls: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-[color:var(--accent-text)] dark:text-[color:var(--accent-text)]",
     },
     paid: {
       label: "Paid",
-      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
+      cls: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-[color:var(--good)] dark:text-[color:var(--good)]",
     },
-    cancelled: { label: "Cancelled", cls: "bg-surface dark:bg-surface-raised text-taupe" },
+    cancelled: { label: "Cancelled", cls: "bg-[color:var(--card)] dark:bg-[color:var(--raised)] text-[color:var(--mute)]" },
     failed: {
       label: "Failed",
-      cls: "bg-error/10 dark:bg-error/15 text-error dark:text-error-bright",
+      cls: "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] dark:bg-[color-mix(in_srgb,var(--late)_15%,transparent)] text-[color:var(--late)] dark:text-[color:var(--late)]",
     },
   };
-  const m = map[status] ?? { label: status, cls: "bg-surface dark:bg-surface-raised text-taupe" };
+  const m = map[status] ?? { label: status, cls: "bg-[color:var(--card)] dark:bg-[color:var(--raised)] text-[color:var(--mute)]" };
   return (
     <span
       className={cn(
@@ -426,8 +426,8 @@ function PayoutStatusPill({ status, compact }: { status: string; compact?: boole
 
 function EmptyCard({ text }: { text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-bronze px-6 py-8 text-center dark:border-bronze">
-      <p className="text-sm text-taupe dark:text-taupe">{text}</p>
+    <div className="rounded-xl border border-dashed border-[color:var(--line)] px-6 py-8 text-center dark:border-[color:var(--line)]">
+      <p className="text-sm text-[color:var(--mute)] dark:text-[color:var(--mute)]">{text}</p>
     </div>
   );
 }
@@ -453,11 +453,11 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-baseline gap-3">
-        <div className="text-xs font-bold uppercase tracking-wider text-taupe">12-week total</div>
-        <div className="text-lg font-extrabold tabular-nums text-ivory dark:text-ivory">
+        <div className="text-xs font-bold uppercase tracking-wider text-[color:var(--mute)]">12-week total</div>
+        <div className="text-lg font-extrabold tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
           {fmt.format(total)}
         </div>
-        <div className="text-xs text-taupe">· {fmtHours(totalHours)}</div>
+        <div className="text-xs text-[color:var(--mute)]">· {fmtHours(totalHours)}</div>
       </div>
 
       <div className="overflow-x-auto">
@@ -473,7 +473,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                   y1={y}
                   y2={y}
                   stroke="currentColor"
-                  className="text-ivory dark:text-ivory"
+                  className="text-[color:var(--ink)] dark:text-[color:var(--ink)]"
                   strokeWidth="1"
                   strokeDasharray={frac === 0 ? "none" : "2,3"}
                 />
@@ -481,7 +481,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                   x={PAD.left - 8}
                   y={y + 4}
                   textAnchor="end"
-                  className="fill-taupe text-[10px]"
+                  className="fill-[color:var(--mute)] text-[10px]"
                   fontFamily="system-ui"
                 >
                   {fmt.format(frac * niceMax)}
@@ -504,8 +504,8 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                   width={barW * 0.7}
                   height={h}
                   className={cn(
-                    "fill-info dark:fill-info",
-                    p.amount === 0 && "fill-ivory dark:fill-ivory"
+                    "fill-[color:var(--info)] dark:fill-[color:var(--info)]",
+                    p.amount === 0 && "fill-[color:var(--ink)] dark:fill-[color:var(--ink)]"
                   )}
                   rx="2"
                 >
@@ -516,7 +516,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
                     x={x + barW / 2}
                     y={H - 14}
                     textAnchor="middle"
-                    className="fill-taupe text-[10px]"
+                    className="fill-[color:var(--mute)] text-[10px]"
                     fontFamily="system-ui"
                   >
                     {shortWeek(p.weekStart)}
@@ -528,7 +528,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
         </svg>
       </div>
 
-      <div className="mt-3 text-xs text-taupe">
+      <div className="mt-3 text-xs text-[color:var(--mute)]">
         Hover bars for week details. Bars represent gross earnings (pre-fee).
       </div>
     </div>

@@ -119,22 +119,22 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-bold text-ivory">Textbook page</h2>
-          <p className="mt-0.5 text-xs text-taupe">
+          <h2 className="text-base font-bold text-[color:var(--ink)]">Textbook page</h2>
+          <p className="mt-0.5 text-xs text-[color:var(--mute)]">
             Markdown + KaTeX. Use{" "}
-            <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">$…$</code> for inline
-            math and <code className="rounded bg-surface-raised px-1 py-0.5 text-ivory">$$…$$</code>{" "}
+            <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">$…$</code> for inline
+            math and <code className="rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">$$…$$</code>{" "}
             for block math.
           </p>
         </div>
         <div className="flex items-center gap-2">
           {/* Mobile view toggle */}
-          <div className="flex overflow-hidden rounded-lg border border-bronze bg-surface text-xs md:hidden">
+          <div className="flex overflow-hidden rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] text-xs md:hidden">
             <button
               onClick={() => setMobileView("edit")}
               className={cn(
                 "flex items-center gap-1 px-3 py-1.5 font-semibold",
-                mobileView === "edit" ? "bg-surface-raised text-ivory" : "text-taupe"
+                mobileView === "edit" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)]"
               )}
             >
               <Edit3 className="h-3 w-3" /> Edit
@@ -143,7 +143,7 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
               onClick={() => setMobileView("preview")}
               className={cn(
                 "flex items-center gap-1 px-3 py-1.5 font-semibold",
-                mobileView === "preview" ? "bg-surface-raised text-ivory" : "text-taupe"
+                mobileView === "preview" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)]"
               )}
             >
               <Eye className="h-3 w-3" /> Preview
@@ -155,8 +155,8 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold",
               saved
-                ? "cursor-default bg-success/20 text-success-bright"
-                : "bg-gold text-night hover:bg-gold-bright",
+                ? "cursor-default bg-[color-mix(in_srgb,var(--good)_20%,transparent)] text-[color:var(--good)]"
+                : "bg-[color:var(--accent)] text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]",
               pending && "cursor-wait opacity-60"
             )}
           >
@@ -176,7 +176,7 @@ export default function TextbookEditor({ nodeId, initial }: Props) {
             onChange={(e) => handleChange(e.target.value)}
             onPaste={handlePaste}
             rows={30}
-            className="w-full resize-none rounded-lg border border-bronze bg-surface px-4 py-3 font-mono text-[13px] leading-relaxed text-ivory focus:border-gold/40 focus:outline-none"
+            className="w-full resize-none rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-4 py-3 font-mono text-[13px] leading-relaxed text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
             style={{ minHeight: "32rem" }}
             placeholder="# Section heading
 
@@ -196,30 +196,30 @@ $$\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
 Paste a screenshot anywhere in this editor — it auto-uploads
 and drops a markdown image at your cursor."
           />
-          <div className="mt-2 flex items-center gap-1 text-[11px] text-taupe">
+          <div className="mt-2 flex items-center gap-1 text-[11px] text-[color:var(--mute)]">
             <Info className="h-3 w-3 shrink-0" />
             <span>
               KaTeX backslashes need to be escaped once: write{" "}
-              <code className="mx-1 rounded bg-surface-raised px-1 text-taupe">\\frac</code> not{" "}
-              <code className="mx-1 rounded bg-surface-raised px-1 text-taupe">\frac</code>. Paste
+              <code className="mx-1 rounded bg-[color:var(--raised)] px-1 text-[color:var(--mute)]">\\frac</code> not{" "}
+              <code className="mx-1 rounded bg-[color:var(--raised)] px-1 text-[color:var(--mute)]">\frac</code>. Paste
               an image (Cmd+V) to upload it inline.
             </span>
           </div>
           {pasteUploading && (
-            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-gold-bright">
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[color:var(--accent-text)]">
               <Loader2 className="h-3 w-3 animate-spin" />
               Uploading pasted image…
             </div>
           )}
           {pasteError && (
-            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-error-bright">
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[color:var(--late)]">
               <Info className="h-3 w-3 shrink-0" />
               Paste-upload failed: {pasteError}
             </div>
           )}
           {pastedThisSession.length > 0 && (
             <div className="mt-3">
-              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-taupe">
+              <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
                 Pasted this session ({pastedThisSession.length}) — click to re-insert at cursor
               </div>
               <div className="flex flex-wrap gap-2">
@@ -229,7 +229,7 @@ and drops a markdown image at your cursor."
                     type="button"
                     onClick={() => insertAtCursor(`\n\n![Pasted image](${url})\n\n`)}
                     title="Click to re-insert markdown reference at cursor"
-                    className="overflow-hidden rounded border border-bronze bg-surface transition-colors hover:border-gold/40"
+                    className="overflow-hidden rounded border border-[color:var(--line)] bg-[color:var(--card)] transition-colors hover:border-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
                   >
                     <Image
                       src={url}
@@ -251,11 +251,11 @@ and drops a markdown image at your cursor."
         <div className={cn("md:block", mobileView === "preview" ? "block" : "hidden")}>
           <Header icon={Eye} label="Live preview" />
           <div
-            className="overflow-y-auto rounded-lg border border-bronze bg-surface px-6 py-6 text-ivory"
+            className="overflow-y-auto rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-6 py-6 text-[color:var(--ink)]"
             style={{ minHeight: "32rem", maxHeight: "60rem" }}
           >
             {markdown.trim().length === 0 ? (
-              <p className="text-sm italic text-taupe">Preview appears here as you type.</p>
+              <p className="text-sm italic text-[color:var(--mute)]">Preview appears here as you type.</p>
             ) : (
               <TextbookContent markdown={markdown} />
             )}
@@ -274,7 +274,7 @@ function Header({
   label: string;
 }) {
   return (
-    <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-taupe">
+    <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
       <Icon className="h-3 w-3" />
       {label}
     </div>

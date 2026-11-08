@@ -79,7 +79,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
     <>
       <div className="mb-4">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-taupe" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--mute)]" />
           <input
             type="search"
             placeholder="Search content..."
@@ -88,7 +88,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
             onKeyDown={(e) => {
               if (e.key === "Enter") submitQuery(query);
             }}
-            className="w-full max-w-md rounded-lg border border-bronze bg-night/60 py-2 pl-9 pr-9 text-sm text-ivory placeholder:text-taupe focus:border-bronze focus:outline-none"
+            className="w-full max-w-md rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] py-2 pl-9 pr-9 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:border-[color:var(--line)] focus:outline-none"
           />
           {query ? (
             <button
@@ -97,7 +97,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                 submitQuery("");
               }}
               aria-label="Clear search"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-taupe hover:text-ivory"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -106,10 +106,10 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-16 text-center text-sm text-taupe">
+        <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-6 py-16 text-center text-sm text-[color:var(--mute)]">
           {tab === "pending" ? (
             <>
-              <ShieldX className="mx-auto mb-3 h-6 w-6 text-success/80" />
+              <ShieldX className="mx-auto mb-3 h-6 w-6 text-[color-mix(in_srgb,var(--good)_80%,transparent)]" />
               {initialQuery ? "No matches for that search." : "No messages awaiting review."}
             </>
           ) : initialQuery ? (
@@ -123,10 +123,10 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
           {items.map((it) => (
             <li
               key={`${it.kind}:${it.id}`}
-              className="rounded-xl border border-bronze bg-surface/40 p-4 text-sm"
+              className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-4 text-sm"
             >
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-md bg-surface-raised/80 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-ivory">
+                <span className="inline-flex items-center gap-1 rounded-md bg-[color-mix(in_srgb,var(--raised)_80%,transparent)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--ink)]">
                   {it.kind === "chat" ? (
                     <>
                       <MessageSquare className="h-3 w-3" /> Channel
@@ -139,34 +139,34 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                 </span>
                 <button
                   onClick={() => setSenderFor(it)}
-                  className="text-ivory hover:underline"
+                  className="text-[color:var(--ink)] hover:underline"
                   title="Open sender history"
                 >
                   {it.sender.display_name}
                 </button>
-                <span className="text-xs text-taupe">{it.sender.email}</span>
+                <span className="text-xs text-[color:var(--mute)]">{it.sender.email}</span>
                 {it.sender.warning_count > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-1.5 py-0.5 text-[11px] font-semibold text-warning-bright">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] px-1.5 py-0.5 text-[11px] font-semibold text-[color:var(--warn)]">
                     <AlertTriangle className="h-3 w-3" />
                     {it.sender.warning_count} prior{" "}
                     {it.sender.warning_count === 1 ? "warning" : "warnings"}
                   </span>
                 ) : null}
                 {it.channel ? (
-                  <span className="text-xs text-taupe">
-                    in <span className="text-ivory">#{it.channel.name ?? "channel"}</span>
+                  <span className="text-xs text-[color:var(--mute)]">
+                    in <span className="text-[color:var(--ink)]">#{it.channel.name ?? "channel"}</span>
                   </span>
                 ) : null}
                 {it.recipient ? (
-                  <span className="text-xs text-taupe">
-                    to <span className="text-ivory">{it.recipient.display_name}</span>
+                  <span className="text-xs text-[color:var(--mute)]">
+                    to <span className="text-[color:var(--ink)]">{it.recipient.display_name}</span>
                   </span>
                 ) : null}
-                <span className="ml-auto text-xs text-taupe">{fmtDate(it.created_at)}</span>
+                <span className="ml-auto text-xs text-[color:var(--mute)]">{fmtDate(it.created_at)}</span>
               </div>
 
-              <div className="mb-3 whitespace-pre-wrap rounded-lg border border-bronze bg-night/60 px-3 py-2 text-ivory">
-                {it.content || <span className="italic text-taupe">(no text content)</span>}
+              <div className="mb-3 whitespace-pre-wrap rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-[color:var(--ink)]">
+                {it.content || <span className="italic text-[color:var(--mute)]">(no text content)</span>}
                 {it.media_urls.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {it.media_urls.map((u) => (
@@ -175,7 +175,7 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                         href={u}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[11px] text-info-bright underline-offset-2 hover:underline"
+                        className="text-[11px] text-[color:var(--info)] underline-offset-2 hover:underline"
                       >
                         {u.split("/").pop() ?? "attachment"}
                       </a>
@@ -186,17 +186,17 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
 
               <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
                 {it.keyword_flagged ? (
-                  <span className="rounded-md bg-warning/10 px-2 py-0.5 text-warning-bright">
+                  <span className="rounded-md bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-2 py-0.5 text-[color:var(--warn)]">
                     Keyword
                   </span>
                 ) : null}
                 {it.ai_flagged ? (
-                  <span className="rounded-md bg-error/10 px-2 py-0.5 text-error-bright">
+                  <span className="rounded-md bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-2 py-0.5 text-[color:var(--late)]">
                     AI {it.ai_flag_reason ? `· ${it.ai_flag_reason}` : ""}
                   </span>
                 ) : null}
                 {tab === "history" && it.rejection_message ? (
-                  <span className="italic text-taupe">&ldquo;{it.rejection_message}&rdquo;</span>
+                  <span className="italic text-[color:var(--mute)]">&ldquo;{it.rejection_message}&rdquo;</span>
                 ) : null}
               </div>
 
@@ -205,26 +205,26 @@ export default function ModerationQueueClient({ initialItems, tab, initialQuery 
                   <button
                     onClick={() => act(it, "approve")}
                     disabled={pending}
-                    className="inline-flex items-center gap-1 rounded-md border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success-bright transition-colors hover:bg-success/20 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--good)] transition-colors hover:bg-[color-mix(in_srgb,var(--good)_20%,transparent)] disabled:opacity-50"
                   >
                     <Check className="h-3.5 w-3.5" /> Approve &amp; deliver
                   </button>
                   <button
                     onClick={() => act(it, "reject")}
                     disabled={pending}
-                    className="inline-flex items-center gap-1 rounded-md border border-error/30 bg-error/10 px-3 py-1.5 text-xs font-semibold text-error-bright transition-colors hover:bg-error/20 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--late)] transition-colors hover:bg-[color-mix(in_srgb,var(--late)_20%,transparent)] disabled:opacity-50"
                   >
                     <ShieldX className="h-3.5 w-3.5" /> Reject
                   </button>
                   <button
                     onClick={() => setWarnFor(it)}
                     disabled={pending}
-                    className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning-bright transition-colors hover:bg-warning/20 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--warn)_30%,transparent)] bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--warn)] transition-colors hover:bg-[color-mix(in_srgb,var(--warn)_20%,transparent)] disabled:opacity-50"
                   >
                     <AlertTriangle className="h-3.5 w-3.5" /> Warn sender
                   </button>
                   {errorById[it.id] ? (
-                    <span className="text-xs text-error">{errorById[it.id]}</span>
+                    <span className="text-xs text-[color:var(--late)]">{errorById[it.id]}</span>
                   ) : null}
                 </div>
               ) : null}
@@ -299,32 +299,32 @@ function WarnModal({
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-night/60 p-4">
-      <div className="w-full max-w-md rounded-xl border border-bronze bg-surface p-5 shadow-2xl">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-4">
+      <div className="w-full max-w-md rounded-xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 shadow-2xl">
         <div className="mb-3 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-warning" />
-          <h2 className="text-base font-semibold text-ivory">Warn {item.sender.display_name}</h2>
+          <AlertTriangle className="h-4 w-4 text-[color:var(--warn)]" />
+          <h2 className="text-base font-semibold text-[color:var(--ink)]">Warn {item.sender.display_name}</h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="ml-auto rounded p-1 text-taupe hover:text-ivory"
+            className="ml-auto rounded p-1 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <label className="mb-3 block text-xs text-taupe">
+        <label className="mb-3 block text-xs text-[color:var(--mute)]">
           Severity
           <select
             value={severity}
             onChange={(e) => setSeverity(e.target.value as "low" | "medium" | "high")}
-            className="mt-1 w-full rounded-md border border-bronze bg-night px-2 py-1.5 text-sm text-ivory"
+            className="mt-1 w-full rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-2 py-1.5 text-sm text-[color:var(--ink)]"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select>
         </label>
-        <label className="mb-3 block text-xs text-taupe">
+        <label className="mb-3 block text-xs text-[color:var(--mute)]">
           Reason
           <textarea
             ref={inputRef}
@@ -332,22 +332,22 @@ function WarnModal({
             onChange={(e) => setReason(e.target.value)}
             rows={4}
             placeholder="Why is this user being warned? Sender will see this..."
-            className="mt-1 w-full rounded-md border border-bronze bg-night px-2 py-1.5 text-sm text-ivory placeholder:text-taupe"
+            className="mt-1 w-full rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-2 py-1.5 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--mute)]"
           />
         </label>
-        {err ? <p className="mb-3 text-xs text-error">{err}</p> : null}
+        {err ? <p className="mb-3 text-xs text-[color:var(--late)]">{err}</p> : null}
         <div className="flex items-center justify-end gap-2">
           <button
             onClick={onClose}
             disabled={busy}
-            className="rounded-md border border-bronze bg-surface-raised/60 px-3 py-1.5 text-xs text-ivory hover:bg-surface-raised disabled:opacity-50"
+            className="rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_60%,transparent)] px-3 py-1.5 text-xs text-[color:var(--ink)] hover:bg-[color:var(--raised)] disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={submit}
             disabled={busy || !reason.trim()}
-            className="rounded-md border border-warning/40 bg-warning/15 px-3 py-1.5 text-xs font-semibold text-warning-bright hover:bg-warning/25 disabled:opacity-50"
+            className="rounded-md border border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--warn)] hover:bg-[color-mix(in_srgb,var(--warn)_25%,transparent)] disabled:opacity-50"
           >
             {busy ? "Issuing..." : "Issue warning"}
           </button>
@@ -399,31 +399,31 @@ function SenderDrawer({ item, onClose }: { item: QueueItem; onClose: () => void 
   }, [item.sender.uuid]);
 
   return (
-    <div className="fixed inset-0 z-30 flex justify-end bg-night/60">
-      <div className="h-full w-full max-w-md overflow-y-auto border-l border-bronze bg-surface p-5">
+    <div className="fixed inset-0 z-30 flex justify-end bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)]">
+      <div className="h-full w-full max-w-md overflow-y-auto border-l border-[color:var(--line)] bg-[color:var(--card)] p-5">
         <div className="mb-4 flex items-center gap-2">
-          <User2 className="h-4 w-4 text-taupe" />
-          <h2 className="text-base font-semibold text-ivory">{item.sender.display_name}</h2>
+          <User2 className="h-4 w-4 text-[color:var(--mute)]" />
+          <h2 className="text-base font-semibold text-[color:var(--ink)]">{item.sender.display_name}</h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="ml-auto rounded p-1 text-taupe hover:text-ivory"
+            className="ml-auto rounded p-1 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="mb-4 text-xs text-taupe">{item.sender.email}</p>
+        <p className="mb-4 text-xs text-[color:var(--mute)]">{item.sender.email}</p>
 
-        {err ? <p className="text-xs text-error">{err}</p> : null}
-        {!history && !err ? <p className="text-xs text-taupe">Loading...</p> : null}
+        {err ? <p className="text-xs text-[color:var(--late)]">{err}</p> : null}
+        {!history && !err ? <p className="text-xs text-[color:var(--mute)]">Loading...</p> : null}
 
         {history ? (
           <>
             <Section title={`Warnings (${history.warningCount})`}>
               {history.warningCount === 0 ? (
-                <p className="text-xs text-taupe">No prior warnings.</p>
+                <p className="text-xs text-[color:var(--mute)]">No prior warnings.</p>
               ) : (
-                <p className="text-xs text-warning-bright/80">
+                <p className="text-xs text-[color-mix(in_srgb,var(--warn)_80%,transparent)]">
                   {history.warningCount} prior {history.warningCount === 1 ? "warning" : "warnings"}{" "}
                   on record.
                 </p>
@@ -431,21 +431,21 @@ function SenderDrawer({ item, onClose }: { item: QueueItem; onClose: () => void 
             </Section>
             <Section title="Recent flagged / rejected messages">
               {history.recentFlagged.length === 0 ? (
-                <p className="text-xs text-taupe">No flagged or rejected messages on record.</p>
+                <p className="text-xs text-[color:var(--mute)]">No flagged or rejected messages on record.</p>
               ) : (
                 <ul className="space-y-2 text-xs">
                   {history.recentFlagged.map((m) => (
-                    <li key={`${m.kind}:${m.id}`} className="rounded-md bg-night/60 p-2">
-                      <div className="mb-0.5 flex items-center gap-2 text-[11px] text-taupe">
+                    <li key={`${m.kind}:${m.id}`} className="rounded-md bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-2">
+                      <div className="mb-0.5 flex items-center gap-2 text-[11px] text-[color:var(--mute)]">
                         <span className="uppercase">{m.kind}</span>
                         <span>{m.moderation_status}</span>
                         <span className="ml-auto">{fmtDate(m.created_at)}</span>
                       </div>
-                      <p className="whitespace-pre-wrap text-ivory">
-                        {m.content || <em className="text-taupe">(no text content)</em>}
+                      <p className="whitespace-pre-wrap text-[color:var(--ink)]">
+                        {m.content || <em className="text-[color:var(--mute)]">(no text content)</em>}
                       </p>
                       {m.ai_flag_reason ? (
-                        <p className="mt-1 text-[11px] text-error-bright/80">{m.ai_flag_reason}</p>
+                        <p className="mt-1 text-[11px] text-[color-mix(in_srgb,var(--late)_80%,transparent)]">{m.ai_flag_reason}</p>
                       ) : null}
                     </li>
                   ))}
@@ -454,17 +454,17 @@ function SenderDrawer({ item, onClose }: { item: QueueItem; onClose: () => void 
             </Section>
             <Section title="Recent admin actions">
               {history.recentActions.length === 0 ? (
-                <p className="text-xs text-taupe">No prior admin actions.</p>
+                <p className="text-xs text-[color:var(--mute)]">No prior admin actions.</p>
               ) : (
                 <ul className="space-y-1 text-xs">
                   {history.recentActions.map((a) => (
-                    <li key={a.id} className="rounded-md bg-night/60 px-2 py-1.5">
+                    <li key={a.id} className="rounded-md bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-2 py-1.5">
                       <div className="flex items-center gap-2 text-[11px]">
-                        <span className="font-semibold text-ivory">{a.action_type}</span>
-                        {a.severity ? <span className="text-taupe">({a.severity})</span> : null}
-                        <span className="ml-auto text-taupe">{fmtDate(a.created_at)}</span>
+                        <span className="font-semibold text-[color:var(--ink)]">{a.action_type}</span>
+                        {a.severity ? <span className="text-[color:var(--mute)]">({a.severity})</span> : null}
+                        <span className="ml-auto text-[color:var(--mute)]">{fmtDate(a.created_at)}</span>
                       </div>
-                      {a.reason ? <p className="mt-0.5 text-taupe">{a.reason}</p> : null}
+                      {a.reason ? <p className="mt-0.5 text-[color:var(--mute)]">{a.reason}</p> : null}
                     </li>
                   ))}
                 </ul>
@@ -480,7 +480,7 @@ function SenderDrawer({ item, onClose }: { item: QueueItem; onClose: () => void 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-taupe">
+      <h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)]">
         {title}
       </h3>
       {children}

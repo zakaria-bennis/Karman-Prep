@@ -6,10 +6,10 @@ import type { MrrSnapshot } from "../_types";
 export function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
   if (snapshots.length < 2) {
     return (
-      <div className="py-12 text-center text-xs text-taupe">
+      <div className="py-12 text-center text-xs text-[color:var(--mute)]">
         Need at least 2 snapshots to draw a trend.
         <br />
-        <span className="text-taupe">
+        <span className="text-[color:var(--mute)]">
           Hit &ldquo;Snapshot now&rdquo; to capture today&apos;s MRR.
         </span>
       </div>
@@ -46,11 +46,11 @@ export function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
           </circle>
         ))}
       </svg>
-      <div className="mt-2 flex items-center justify-between text-[10px] text-taupe">
+      <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--mute)]">
         <span>{new Date(snapshots[0].capturedAt).toLocaleDateString()}</span>
         <span>
           Latest:{" "}
-          <span className="font-semibold tabular-nums text-ivory">{fmtMoney(last.mrr)}</span>
+          <span className="font-semibold tabular-nums text-[color:var(--ink)]">{fmtMoney(last.mrr)}</span>
         </span>
         <span>{new Date(last.capturedAt).toLocaleDateString()}</span>
       </div>

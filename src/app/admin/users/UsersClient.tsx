@@ -23,12 +23,12 @@ import { tierLabelOf } from "@/lib/scheduling/tiers";
 const ROLE_OPTIONS: AppRole[] = ["student", "tutor", "parent", "admin"];
 
 const ROLE_COLOR: Record<AppRole, string> = {
-  student: "bg-surface-raised/10 text-ivory border-bronze/20",
-  tutor: "bg-gold/10 text-gold-bright border-gold/20",
-  parent: "bg-error/10 text-error-bright border-error/20",
-  admin: "bg-warning/10 text-warning-bright border-warning/20",
+  student: "bg-[color-mix(in_srgb,var(--raised)_10%,transparent)] text-[color:var(--ink)] border-[color-mix(in_srgb,var(--line)_20%,transparent)]",
+  tutor: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
+  parent: "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_20%,transparent)]",
+  admin: "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_20%,transparent)]",
   // Set by the $199 tutor plan's checkout, not from this screen.
-  affiliate_tutor: "bg-success/10 text-success-bright border-success/20",
+  affiliate_tutor: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
 };
 
 type SubPlan = NonNullable<AdminUserRow["plan_id"]>;
@@ -38,9 +38,9 @@ const PLAN_LABEL: Record<SubPlan, string> = {
   "tutor-affiliate": TUTOR_AFFILIATE_PLAN.name,
 };
 const PLAN_COLOR: Record<SubPlan, string> = {
-  practice: "bg-success/10 text-success-bright border-success/20",
-  pro: "bg-gold/10 text-gold-bright border-gold/20",
-  "tutor-affiliate": "bg-warning/10 text-warning-bright border-warning/20",
+  practice: "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
+  pro: "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
+  "tutor-affiliate": "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_20%,transparent)]",
 };
 
 interface Props {
@@ -86,8 +86,8 @@ export default function UsersClient({ users, cohorts }: Props) {
     <div>
       <header className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-ivory">Users</h1>
-          <p className="mt-1 text-sm text-taupe">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[color:var(--ink)]">Users</h1>
+          <p className="mt-1 text-sm text-[color:var(--mute)]">
             Change role or link a parent to a student. Roles are enforced by the layout gate on each
             portal.
           </p>
@@ -98,20 +98,20 @@ export default function UsersClient({ users, cohorts }: Props) {
       <div className="mb-4 space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-taupe" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--mute)]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or email…"
-              className="w-full rounded-lg border border-bronze bg-night/60 py-2 pl-9 pr-3 text-sm text-ivory placeholder:text-taupe focus:outline-none focus:ring-2 focus:ring-gold/40"
+              className="w-full rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] py-2 pl-9 pr-3 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
             />
           </div>
           <select
             aria-label="Filter users by cohort"
             value={cohortFilter}
             onChange={(e) => setCohortFilter(e.target.value)}
-            className="rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
+            className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
           >
             <option value="all">All cohorts ({cohorts.length})</option>
             {cohorts.map((c) => (
@@ -130,15 +130,15 @@ export default function UsersClient({ users, cohorts }: Props) {
               className={cn(
                 "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors",
                 roleFilter === r
-                  ? "border-gold/40 bg-gold text-night"
-                  : "border-bronze bg-night/40 text-ivory hover:bg-surface-raised"
+                  ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color:var(--accent)] text-[color:var(--accent-ink)]"
+                  : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
               )}
             >
               {r === "all" ? "All" : r.charAt(0).toUpperCase() + r.slice(1)}
               <span className="ml-1.5 text-[10px]">{counts[r]}</span>
             </button>
           ))}
-          <span className="ml-auto self-center text-xs text-taupe">
+          <span className="ml-auto self-center text-xs text-[color:var(--mute)]">
             {filtered.length} of {users.length} matching
           </span>
         </div>
@@ -156,9 +156,9 @@ export default function UsersClient({ users, cohorts }: Props) {
       </ul>
 
       {/* Desktop (md+): full table with all columns. */}
-      <div className="hidden overflow-hidden rounded-xl border border-bronze md:block">
+      <div className="hidden overflow-hidden rounded-xl border border-[color:var(--line)] md:block">
         <table className="w-full text-sm">
-          <thead className="bg-surface/60 text-xs uppercase tracking-wider text-taupe">
+          <thead className="bg-[color-mix(in_srgb,var(--card)_60%,transparent)] text-xs uppercase tracking-wider text-[color:var(--mute)]">
             <tr>
               <th className="px-4 py-3 text-left font-semibold">Name</th>
               <th className="px-4 py-3 text-left font-semibold">Email</th>
@@ -168,7 +168,7 @@ export default function UsersClient({ users, cohorts }: Props) {
               <th aria-hidden="true" className="w-10" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-bronze" data-testid="admin-users-table-body">
+          <tbody className="divide-y divide-[color:var(--line)]" data-testid="admin-users-table-body">
             {filtered.map((u) => (
               <UserRow key={u.id} user={u} onManageLinks={() => setLinkingParent(u)} />
             ))}
@@ -177,7 +177,7 @@ export default function UsersClient({ users, cohorts }: Props) {
       </div>
 
       {filtered.length === 0 && (
-        <p className="mt-4 text-sm text-taupe">No users match the current filter.</p>
+        <p className="mt-4 text-sm text-[color:var(--mute)]">No users match the current filter.</p>
       )}
 
       {linkingParent && (
@@ -219,13 +219,13 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
   const { pending, err, changeRole, fullName } = useUserRowState(user);
 
   return (
-    <article className="rounded-xl border border-bronze bg-night/40 p-4">
+    <article className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] p-4">
       {/* Identity */}
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-base font-medium text-ivory">{fullName}</div>
-          <div className="mt-0.5 truncate font-mono text-xs text-taupe">{user.email}</div>
-          {err && <div className="mt-1 text-xs text-error-bright">{err}</div>}
+          <div className="truncate text-base font-medium text-[color:var(--ink)]">{fullName}</div>
+          <div className="mt-0.5 truncate font-mono text-xs text-[color:var(--mute)]">{user.email}</div>
+          {err && <div className="mt-1 text-xs text-[color:var(--late)]">{err}</div>}
         </div>
         {user.plan_id && (
           <span
@@ -254,7 +254,7 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
           onChange={(e) => changeRole(e.target.value as AppRole)}
           disabled={pending}
           aria-label={`Change role for ${fullName}`}
-          className="rounded-md border border-bronze bg-night/60 px-2 py-1 text-xs text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-50"
+          className="rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-2 py-1 text-xs text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)] disabled:opacity-50"
         >
           {ROLE_OPTIONS.map((r) => (
             <option key={r} value={r}>
@@ -262,11 +262,11 @@ function UserCard({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: 
             </option>
           ))}
         </select>
-        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-taupe" />}
+        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[color:var(--mute)]" />}
         {user.role === "parent" && (
           <button
             onClick={onManageLinks}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-bright hover:text-gold-bright"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
           >
             <Link2 className="h-3.5 w-3.5" />
             {user.linked_student_count} linked
@@ -294,12 +294,12 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
   const { pending, err, changeRole, fullName } = useUserRowState(user);
 
   return (
-    <tr className="transition-colors hover:bg-surface/40">
+    <tr className="transition-colors hover:bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
       <td className="px-4 py-3">
-        <div className="font-medium text-ivory">{fullName}</div>
-        {err && <div className="mt-0.5 text-xs text-error-bright">{err}</div>}
+        <div className="font-medium text-[color:var(--ink)]">{fullName}</div>
+        {err && <div className="mt-0.5 text-xs text-[color:var(--late)]">{err}</div>}
       </td>
-      <td className="px-4 py-3 font-mono text-xs text-taupe">{user.email}</td>
+      <td className="px-4 py-3 font-mono text-xs text-[color:var(--mute)]">{user.email}</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <span
@@ -314,7 +314,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             value={user.role}
             onChange={(e) => changeRole(e.target.value as AppRole)}
             disabled={pending}
-            className="rounded-md border border-bronze bg-night/60 px-2 py-1 text-xs text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:opacity-50"
+            className="rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-2 py-1 text-xs text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)] disabled:opacity-50"
             aria-label={`Change role for ${fullName}`}
           >
             {ROLE_OPTIONS.map((r) => (
@@ -323,7 +323,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
               </option>
             ))}
           </select>
-          {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-taupe" />}
+          {pending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[color:var(--mute)]" />}
         </div>
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
@@ -337,14 +337,14 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             {PLAN_LABEL[user.plan_id]}
           </span>
         ) : (
-          <span className="text-xs text-taupe">—</span>
+          <span className="text-xs text-[color:var(--mute)]">—</span>
         )}
       </td>
       <td className="hidden px-4 py-3 lg:table-cell">
         {user.role === "parent" ? (
           <button
             onClick={onManageLinks}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-bright hover:text-gold-bright"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
           >
             <Link2 className="h-3.5 w-3.5" />
             {user.linked_student_count} linked · manage
@@ -355,7 +355,7 @@ function UserRow({ user, onManageLinks }: { user: AdminUserRow; onManageLinks: (
             pendingRetakes={user.diagnostic_retakes_remaining}
           />
         ) : (
-          <span className="text-xs text-taupe">—</span>
+          <span className="text-xs text-[color:var(--mute)]">—</span>
         )}
       </td>
       <td className="px-2 py-3">
@@ -395,7 +395,7 @@ function ImpersonateButton({
       disabled={pending}
       title="Impersonate this user — see their dashboard with their data (read-only; mutations go to your admin row)."
       className={cn(
-        "inline-flex items-center justify-center gap-1 rounded-md border border-warning/40 px-2 py-1 text-xs font-semibold text-warning-bright hover:bg-warning/10 disabled:opacity-50",
+        "inline-flex items-center justify-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--warn)_40%,transparent)] px-2 py-1 text-xs font-semibold text-[color:var(--warn)] hover:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] disabled:opacity-50",
         fullWidth && "w-full py-2 text-sm"
       )}
     >
@@ -496,49 +496,49 @@ function ParentLinksDialog({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-night/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-bronze bg-surface p-6 shadow-2xl"
+        className="relative w-full max-w-lg rounded-2xl border border-[color:var(--line)] bg-[color:var(--card)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-taupe hover:text-ivory"
+          className="absolute right-4 top-4 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-lg font-bold text-ivory">Linked students</h2>
-        <p className="mt-1 text-sm text-taupe">
-          Choose which students <span className="font-semibold text-ivory">{parentName}</span> can
+        <h2 className="text-lg font-bold text-[color:var(--ink)]">Linked students</h2>
+        <p className="mt-1 text-sm text-[color:var(--mute)]">
+          Choose which students <span className="font-semibold text-[color:var(--ink)]">{parentName}</span> can
           see in their parent portal.
         </p>
 
         <div className="mt-5">
           {!loaded ? (
-            <div className="text-sm text-taupe">Loading…</div>
+            <div className="text-sm text-[color:var(--mute)]">Loading…</div>
           ) : linked.length === 0 ? (
-            <p className="text-sm italic text-taupe">No students linked yet.</p>
+            <p className="text-sm italic text-[color:var(--mute)]">No students linked yet.</p>
           ) : (
             <ul className="space-y-2">
               {linked.map((s) => (
                 <li
                   key={s.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-bronze bg-night/50 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_50%,transparent)] px-3 py-2"
                 >
                   <div>
-                    <div className="text-sm text-ivory">
+                    <div className="text-sm text-[color:var(--ink)]">
                       {[s.first_name, s.last_name].filter(Boolean).join(" ") || s.email}
                     </div>
-                    <div className="font-mono text-xs text-taupe">{s.email}</div>
+                    <div className="font-mono text-xs text-[color:var(--mute)]">{s.email}</div>
                   </div>
                   <button
                     onClick={() => remove(s.id)}
                     disabled={pending}
-                    className="text-taupe hover:text-error-bright disabled:opacity-50"
+                    className="text-[color:var(--mute)] hover:text-[color:var(--late)] disabled:opacity-50"
                     aria-label={`Unlink ${s.email}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -550,14 +550,14 @@ function ParentLinksDialog({
         </div>
 
         <div className="mt-5">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[color:var(--mute)]">
             Add a student
           </label>
           <div className="flex gap-2">
             <select
               value={studentToAdd}
               onChange={(e) => setStudentToAdd(e.target.value)}
-              className="flex-1 rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
+              className="flex-1 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
             >
               <option value="">Select a student…</option>
               {eligible.map((s) => {
@@ -572,7 +572,7 @@ function ParentLinksDialog({
             <button
               onClick={add}
               disabled={!studentToAdd || pending}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-2 text-sm font-semibold text-night hover:bg-gold-bright disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--accent)] px-3 py-2 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:opacity-50"
             >
               {pending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -582,7 +582,7 @@ function ParentLinksDialog({
               Link
             </button>
           </div>
-          {err && <p className="mt-2 text-xs text-error-bright">{err}</p>}
+          {err && <p className="mt-2 text-xs text-[color:var(--late)]">{err}</p>}
         </div>
       </div>
     </div>
@@ -621,7 +621,7 @@ function DiagnosticRetakeButton({
       <button
         onClick={onGrant}
         disabled={pending}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-success-bright hover:text-success-bright disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--good)] hover:text-[color:var(--good)] disabled:opacity-50"
         title="Grant this student one diagnostic retake"
       >
         {pending ? (
@@ -632,11 +632,11 @@ function DiagnosticRetakeButton({
         Allow retake
       </button>
       {pendingRetakes > 0 ? (
-        <span className="text-[10px] text-success/80">
+        <span className="text-[10px] text-[color-mix(in_srgb,var(--good)_80%,transparent)]">
           {pendingRetakes} pending grant{pendingRetakes === 1 ? "" : "s"}
         </span>
       ) : null}
-      {err ? <span className="text-[11px] text-error-bright">{err}</span> : null}
+      {err ? <span className="text-[11px] text-[color:var(--late)]">{err}</span> : null}
     </div>
   );
 }

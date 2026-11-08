@@ -37,25 +37,25 @@ export default async function GeometryReviewPage() {
       <div className="mb-6">
         <Link
           href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
+          className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
         >
           <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
         </Link>
         <div className="flex items-start justify-between">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
-            <Shapes className="h-5 w-5 text-warning" /> Geometry &amp; 3D review
-            <span className="rounded bg-surface-raised px-2 py-0.5 font-mono text-xs text-ivory">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-[color:var(--ink)]">
+            <Shapes className="h-5 w-5 text-[color:var(--warn)]" /> Geometry &amp; 3D review
+            <span className="rounded bg-[color:var(--raised)] px-2 py-0.5 font-mono text-xs text-[color:var(--ink)]">
               {rows.length}
             </span>
           </h1>
           <Link
             href="/admin/questions/chart-review"
-            className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface/60 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
+            className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
           >
             <Microscope className="h-3.5 w-3.5" /> Chart review
           </Link>
         </div>
-        <p className="mt-1.5 text-sm text-taupe">
+        <p className="mt-1.5 text-sm text-[color:var(--mute)]">
           Structured extractions stored for admin verification. Students keep seeing the screenshot
           in v1 — clean-looking wrong geometry is more dangerous than a real screenshot. Use this to
           judge whether extraction is reliable enough to promote to a rendered figure later.
@@ -63,7 +63,7 @@ export default async function GeometryReviewPage() {
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
+        <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-6 py-12 text-center text-sm text-[color:var(--mute)]">
           No geometry or 3D extractions yet. They appear here after the figure-structure pass (Stage
           6.5) runs on a PDF with geometry/3D figures.
         </div>
@@ -81,29 +81,29 @@ export default async function GeometryReviewPage() {
 function GeometryCard({ row }: { row: GeometryReviewRow }) {
   const is3d = row.kind === "3d_shape";
   return (
-    <article className="rounded-xl border border-bronze bg-surface/50 p-4">
+    <article className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_50%,transparent)] p-4">
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
         <span
           className={
             is3d
-              ? "inline-flex items-center gap-1 rounded bg-info/15 px-2 py-0.5 font-semibold text-info-bright"
-              : "inline-flex items-center gap-1 rounded bg-warning/15 px-2 py-0.5 font-semibold text-warning-bright"
+              ? "inline-flex items-center gap-1 rounded bg-[color-mix(in_srgb,var(--info)_15%,transparent)] px-2 py-0.5 font-semibold text-[color:var(--info)]"
+              : "inline-flex items-center gap-1 rounded bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] px-2 py-0.5 font-semibold text-[color:var(--warn)]"
           }
         >
           {is3d ? <Box className="h-3 w-3" /> : <Triangle className="h-3 w-3" />}
           {is3d ? "3D shape" : "Geometry"}
         </span>
-        <span className="text-taupe">
+        <span className="text-[color:var(--mute)]">
           {row.source_pdf ?? "(no pdf)"} · p{row.source_page ?? "?"}
         </span>
-        <span className="text-taupe">·</span>
-        <span className="text-taupe">{row.subject}</span>
+        <span className="text-[color:var(--mute)]">·</span>
+        <span className="text-[color:var(--mute)]">{row.subject}</span>
         {row.confidence != null && (
-          <span className="text-taupe">· conf {row.confidence.toFixed(2)}</span>
+          <span className="text-[color:var(--mute)]">· conf {row.confidence.toFixed(2)}</span>
         )}
         <Link
           href={row.inspect_href}
-          className="ml-auto inline-flex items-center gap-1 rounded border border-bronze px-2 py-0.5 text-ivory hover:bg-surface-raised"
+          className="ml-auto inline-flex items-center gap-1 rounded border border-[color:var(--line)] px-2 py-0.5 text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
         >
           <Microscope className="h-3 w-3" /> Inspect
         </Link>
@@ -112,7 +112,7 @@ function GeometryCard({ row }: { row: GeometryReviewRow }) {
       <div className="grid gap-4 md:grid-cols-2">
         {/* Original screenshot (what students actually see) */}
         <div>
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-taupe">
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)]">
             Screenshot (student-facing)
           </div>
           {row.image_url ? (
@@ -120,16 +120,16 @@ function GeometryCard({ row }: { row: GeometryReviewRow }) {
             <img
               src={row.image_url}
               alt={row.image_alt ?? "figure"}
-              className="max-h-72 w-auto rounded border border-bronze bg-[#F3ECDD] p-2"
+              className="max-h-72 w-auto rounded border border-[color:var(--line)] bg-[#F3ECDD] p-2"
             />
           ) : (
-            <div className="text-xs text-taupe">(no screenshot)</div>
+            <div className="text-xs text-[color:var(--mute)]">(no screenshot)</div>
           )}
         </div>
 
         {/* Extracted structure */}
         <div>
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-taupe">
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)]">
             Extracted structure
           </div>
           <GeometryStructure data={row.geometry_data} />
@@ -141,8 +141,8 @@ function GeometryCard({ row }: { row: GeometryReviewRow }) {
 
 function GeometryStructure({ data }: { data: GeometryData }) {
   return (
-    <div className="space-y-2 text-sm text-ivory">
-      {data.notes && <p className="italic text-ivory">{data.notes}</p>}
+    <div className="space-y-2 text-sm text-[color:var(--ink)]">
+      {data.notes && <p className="italic text-[color:var(--ink)]">{data.notes}</p>}
 
       {data.kind === "3d_shape" ? (
         <>
@@ -196,10 +196,10 @@ function GeometryStructure({ data }: { data: GeometryData }) {
       )}
 
       <details className="mt-1">
-        <summary className="cursor-pointer text-[11px] text-taupe hover:text-taupe">
+        <summary className="cursor-pointer text-[11px] text-[color:var(--mute)] hover:text-[color:var(--mute)]">
           raw JSON
         </summary>
-        <pre className="mt-1 max-h-48 overflow-auto rounded bg-night/60 p-2 text-[11px] text-taupe">
+        <pre className="mt-1 max-h-48 overflow-auto rounded bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-2 text-[11px] text-[color:var(--mute)]">
           {JSON.stringify(data, null, 2)}
         </pre>
       </details>
@@ -210,10 +210,10 @@ function GeometryStructure({ data }: { data: GeometryData }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-2">
-      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-taupe">
+      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)]">
         {label}
       </span>
-      <span className="text-ivory">{children}</span>
+      <span className="text-[color:var(--ink)]">{children}</span>
     </div>
   );
 }

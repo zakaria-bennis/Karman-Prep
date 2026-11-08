@@ -76,17 +76,17 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-6xl px-5 py-8">
       {/* Page header — total counts at a glance */}
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-ivory">Curriculum</h1>
-        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-taupe">
+        <h1 className="text-2xl font-bold text-[color:var(--ink)]">Curriculum</h1>
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-[color:var(--mute)]">
           <span>
-            <span className="text-base font-bold text-ivory">{totalAttached.toLocaleString()}</span>
+            <span className="text-base font-bold text-[color:var(--ink)]">{totalAttached.toLocaleString()}</span>
             <span className="ml-1.5">
               question{totalAttached === 1 ? "" : "s"} across all nodes
             </span>
           </span>
           {bankCount > 0 && (
             <span>
-              <span className="text-sm font-semibold text-gold-bright">
+              <span className="text-sm font-semibold text-[color:var(--accent-text)]">
                 {bankCount.toLocaleString()}
               </span>
               <span className="ml-1.5">in bank</span>
@@ -94,7 +94,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
           )}
           {flaggedCount > 0 && (
             <span>
-              <span className="text-sm font-semibold text-warning-bright">
+              <span className="text-sm font-semibold text-[color:var(--warn)]">
                 {flaggedCount.toLocaleString()}
               </span>
               <span className="ml-1.5">flagged</span>
@@ -104,22 +104,22 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
       </header>
 
       {/* Tabs row + search bar (top-right) */}
-      <div className="mb-6 flex items-center gap-1 border-b border-bronze text-sm">
+      <div className="mb-6 flex items-center gap-1 border-b border-[color:var(--line)] text-sm">
         <Link
           href="/admin/curriculum"
-          className={`border-b-2 px-4 pb-3 font-semibold ${activeTab === "nodes" ? "border-gold/40 text-gold" : "border-transparent text-taupe hover:text-ivory"}`}
+          className={`border-b-2 px-4 pb-3 font-semibold ${activeTab === "nodes" ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--accent-text)]" : "border-transparent text-[color:var(--mute)] hover:text-[color:var(--ink)]"}`}
         >
           Nodes
         </Link>
         <Link
           href="/admin/curriculum?tab=flagged"
-          className={`inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold ${activeTab === "flagged" ? "border-gold/40 text-gold" : "border-transparent text-taupe hover:text-ivory"}`}
+          className={`inline-flex items-center gap-2 border-b-2 px-4 pb-3 font-semibold ${activeTab === "flagged" ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] text-[color:var(--accent-text)]" : "border-transparent text-[color:var(--mute)] hover:text-[color:var(--ink)]"}`}
         >
           Flagged
           {flaggedCount > 0 && (
             <span
               aria-label={`${flaggedCount} unresolved flag${flaggedCount === 1 ? "" : "s"}`}
-              className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-info px-1.5 text-[11px] font-bold leading-none text-ivory"
+              className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[color:var(--info)] px-1.5 text-[11px] font-bold leading-none text-[color:var(--ink)]"
             >
               {flaggedCount}
             </span>
@@ -135,14 +135,14 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
       {bankCount > 0 && activeTab === "nodes" && (
         <Link
           href="/admin/questions/review?tab=bank"
-          className="mb-5 inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/[0.06] px-3 py-2 text-xs text-gold-bright transition-colors hover:bg-gold/[0.12]"
+          className="mb-5 inline-flex items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_6%,transparent)] px-3 py-2 text-xs text-[color:var(--accent-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--accent)_12%,transparent)]"
         >
           <Inbox className="h-3.5 w-3.5" />
           <span>
             <span className="font-semibold">
               {bankCount} question{bankCount === 1 ? "" : "s"} in bank
             </span>
-            <span className="text-gold-bright/70">
+            <span className="text-[color-mix(in_srgb,var(--accent)_70%,transparent)]">
               {" "}
               — click to triage and assign curriculum nodes
             </span>
@@ -154,7 +154,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
         <div className="space-y-10">
           {(["reading", "math"] as const).map((subject) => (
             <section key={subject}>
-              <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-taupe">
+              <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--mute)]">
                 {SUBJECT_LABELS[subject]}
               </h2>
               <div className="space-y-4">
@@ -172,7 +172,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                   return (
                     <div
                       key={tier}
-                      className="overflow-hidden rounded-xl border border-bronze bg-surface/40"
+                      className="overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)]"
                     >
                       <div
                         className="flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em]"
@@ -187,14 +187,14 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                           style={{ background: atmoHex }}
                         />
                         {atmo}
-                        <span className="ml-1 font-normal normal-case tracking-normal text-taupe">
+                        <span className="ml-1 font-normal normal-case tracking-normal text-[color:var(--mute)]">
                           · {atmoSubtitle}
                         </span>
                       </div>
-                      <div className="divide-y divide-bronze">
+                      <div className="divide-y divide-[color:var(--line)]">
                         {Object.entries(clusters).map(([cluster, nodes]) => (
                           <div key={cluster}>
-                            <div className="bg-surface/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-taupe">
+                            <div className="bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--mute)]">
                               {cluster}
                             </div>
                             <ul>
@@ -202,32 +202,32 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                                 const count = counts.get(n.id) ?? 0;
                                 const countClass =
                                   count === 0
-                                    ? "bg-error/10 text-error-bright border-error/30"
+                                    ? "bg-[color-mix(in_srgb,var(--late)_10%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_30%,transparent)]"
                                     : count < 10
-                                      ? "bg-warning/10 text-warning-bright border-warning/30"
+                                      ? "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_30%,transparent)]"
                                       : count >= 100
-                                        ? "bg-success/10 text-success-bright border-success/30"
-                                        : "bg-gold/10 text-gold-bright border-gold/30";
+                                        ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_30%,transparent)]"
+                                        : "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_30%,transparent)]";
                                 return (
                                   <li key={n.id}>
                                     <Link
                                       href={`/admin/curriculum/${n.id}`}
-                                      className="group flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-surface/5"
+                                      className="group flex items-center gap-4 px-4 py-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--card)_5%,transparent)]"
                                     >
-                                      <code className="w-14 shrink-0 font-mono text-xs text-taupe">
+                                      <code className="w-14 shrink-0 font-mono text-xs text-[color:var(--mute)]">
                                         {n.id}
                                       </code>
-                                      <span className="flex-1 truncate text-sm font-medium text-ivory group-hover:text-ivory">
+                                      <span className="flex-1 truncate text-sm font-medium text-[color:var(--ink)] group-hover:text-[color:var(--ink)]">
                                         {n.topic}
                                       </span>
-                                      <span className="flex items-center gap-3 text-xs text-taupe">
+                                      <span className="flex items-center gap-3 text-xs text-[color:var(--mute)]">
                                         <span>Diff {n.difficulty}</span>
                                         <span
                                           className={`rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums ${countClass}`}
                                         >
                                           {count} / 100
                                         </span>
-                                        <ChevronRight className="h-3.5 w-3.5 text-taupe group-hover:text-ivory" />
+                                        <ChevronRight className="h-3.5 w-3.5 text-[color:var(--mute)] group-hover:text-[color:var(--ink)]" />
                                       </span>
                                     </Link>
                                   </li>

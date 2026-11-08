@@ -70,23 +70,23 @@ export function QuestionCard({
 
   return (
     <article
-      className={cn("overflow-hidden rounded-xl border border-l-4 border-bronze bg-surface/60")}
+      className={cn("overflow-hidden rounded-xl border border-l-4 border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)]")}
       style={{ borderLeftColor: levelHex }}
     >
       <header className="flex items-start gap-3 p-4">
         {dragDisabled ? (
           <div className="w-4 shrink-0" />
         ) : (
-          <GripVertical className="mt-1 h-4 w-4 shrink-0 cursor-grab text-taupe active:cursor-grabbing" />
+          <GripVertical className="mt-1 h-4 w-4 shrink-0 cursor-grab text-[color:var(--mute)] active:cursor-grabbing" />
         )}
         {/* Question number badge */}
-        <span className="mt-0.5 shrink-0 rounded-md bg-surface-raised px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-ivory">
+        <span className="mt-0.5 shrink-0 rounded-md bg-[color:var(--raised)] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[color:var(--ink)]">
           Q{questionNumber}
         </span>
         <div className="min-w-0 flex-1">
           {/* Image thumbnail */}
           {question.image_url && (
-            <div className="mb-2 inline-block max-w-xs overflow-hidden rounded-lg border border-bronze bg-surface">
+            <div className="mb-2 inline-block max-w-xs overflow-hidden rounded-lg border border-[color:var(--line)] bg-[color:var(--card)]">
               <Image
                 src={question.image_url}
                 alt={question.image_alt ?? ""}
@@ -97,7 +97,7 @@ export function QuestionCard({
               />
             </div>
           )}
-          <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-ivory">
+          <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-[color:var(--ink)]">
             {question.question_text}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
@@ -108,23 +108,23 @@ export function QuestionCard({
               Lv {level}
             </span>
             {isNumeric && (
-              <span className="rounded-full border border-info/30 bg-info/10 px-2 py-0.5 font-semibold text-info-bright">
+              <span className="rounded-full border border-[color-mix(in_srgb,var(--info)_30%,transparent)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] px-2 py-0.5 font-semibold text-[color:var(--info)]">
                 numeric
               </span>
             )}
-            <span className="text-taupe">
-              Correct: <strong className="text-ivory">{question.correct_answer}</strong>
+            <span className="text-[color:var(--mute)]">
+              Correct: <strong className="text-[color:var(--ink)]">{question.correct_answer}</strong>
               {isNumeric && question.numeric_tolerance !== null && (
-                <span className="text-taupe"> (± {question.numeric_tolerance})</span>
+                <span className="text-[color:var(--mute)]"> (± {question.numeric_tolerance})</span>
               )}
             </span>
-            <span className="text-taupe">{question.topic_cluster}</span>
+            <span className="text-[color:var(--mute)]">{question.topic_cluster}</span>
             {question.hint && (
-              <span className="inline-flex items-center gap-1 text-warning/80">
+              <span className="inline-flex items-center gap-1 text-[color-mix(in_srgb,var(--warn)_80%,transparent)]">
                 <Lightbulb className="h-3 w-3" /> hint
               </span>
             )}
-            {question.flag_count > 0 && <span className="text-error">⚑ {question.flag_count}</span>}
+            {question.flag_count > 0 && <span className="text-[color:var(--late)]">⚑ {question.flag_count}</span>}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -146,7 +146,7 @@ export function QuestionCard({
               // a new write happens on the next card render via quiz query)
               actionUpdateQuestionDifficultyLevel(question.id, lv).catch(console.error);
             }}
-            className="rounded border border-bronze bg-surface-raised px-2 py-1 text-xs tabular-nums text-ivory"
+            className="rounded border border-[color:var(--line)] bg-[color:var(--raised)] px-2 py-1 text-xs tabular-nums text-[color:var(--ink)]"
           >
             {[1, 2, 3, 4, 5, 6, 7].map((n) => (
               <option key={n} value={n}>
@@ -157,14 +157,14 @@ export function QuestionCard({
           {!forceExpanded && (
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="rounded p-1.5 text-taupe hover:bg-surface-raised"
+              className="rounded p-1.5 text-[color:var(--mute)] hover:bg-[color:var(--raised)]"
             >
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
           )}
           <button
             onClick={onDelete}
-            className="rounded p-1.5 text-error hover:bg-error/15"
+            className="rounded p-1.5 text-[color:var(--late)] hover:bg-[color-mix(in_srgb,var(--late)_15%,transparent)]"
             aria-label="Delete"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -175,11 +175,11 @@ export function QuestionCard({
       {/* For numeric questions, show a single answer box instead of the 4-choice grid */}
       {isNumeric ? (
         <div className="px-4 pb-4">
-          <div className="rounded-lg border border-info/30 bg-info/5 px-3 py-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-info-bright">
+          <div className="rounded-lg border border-[color-mix(in_srgb,var(--info)_30%,transparent)] bg-[color-mix(in_srgb,var(--info)_5%,transparent)] px-3 py-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--info)]">
               Correct value
             </p>
-            <p className="mt-0.5 font-mono text-sm text-ivory">{question.correct_answer}</p>
+            <p className="mt-0.5 font-mono text-sm text-[color:var(--ink)]">{question.correct_answer}</p>
           </div>
         </div>
       ) : (
@@ -189,25 +189,25 @@ export function QuestionCard({
               key={c.letter}
               className={cn(
                 "flex items-start gap-2 rounded border px-2.5 py-1.5",
-                c.is_correct ? "border-success/50 bg-success/10" : "border-bronze bg-surface/70"
+                c.is_correct ? "border-[color-mix(in_srgb,var(--good)_50%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)]" : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_70%,transparent)]"
               )}
             >
               <span
                 className={cn(
                   "shrink-0 font-bold",
-                  c.is_correct ? "text-success-bright" : "text-taupe"
+                  c.is_correct ? "text-[color:var(--good)]" : "text-[color:var(--mute)]"
                 )}
               >
                 {c.letter}.
               </span>
-              <span className="line-clamp-2 text-ivory">{c.choice_text}</span>
+              <span className="line-clamp-2 text-[color:var(--ink)]">{c.choice_text}</span>
             </div>
           ))}
         </div>
       )}
 
       {expanded && (
-        <div className="space-y-3 border-t border-bronze px-4 pb-4 pt-3 text-xs">
+        <div className="space-y-3 border-t border-[color:var(--line)] px-4 pb-4 pt-3 text-xs">
           <ImageAttachment
             questionId={question.id}
             nodeId={nodeId}
@@ -219,29 +219,29 @@ export function QuestionCard({
 
           {question.hint && (
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-warning/80">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[color-mix(in_srgb,var(--warn)_80%,transparent)]">
                 Hint:
               </span>
-              <p className="mt-1 whitespace-pre-wrap text-ivory">{question.hint}</p>
+              <p className="mt-1 whitespace-pre-wrap text-[color:var(--ink)]">{question.hint}</p>
             </div>
           )}
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-taupe">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
               Explanation:
             </span>
-            <p className="mt-1 whitespace-pre-wrap text-ivory">{question.explanation_text}</p>
+            <p className="mt-1 whitespace-pre-wrap text-[color:var(--ink)]">{question.explanation_text}</p>
           </div>
           {question.explanation_per_choice && (
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-taupe">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
                 Per-choice:
               </span>
               {LETTERS.map((l) => {
                 const exp = question.explanation_per_choice?.[l];
                 if (!exp) return null;
                 return (
-                  <p key={l} className="mt-1 text-ivory">
-                    <strong className="text-ivory">{l}:</strong> {exp}
+                  <p key={l} className="mt-1 text-[color:var(--ink)]">
+                    <strong className="text-[color:var(--ink)]">{l}:</strong> {exp}
                   </p>
                 );
               })}
@@ -249,10 +249,10 @@ export function QuestionCard({
           )}
           {question.desmos_strategy && (
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-taupe">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
                 Desmos strategy:
               </span>
-              <p className="mt-1 whitespace-pre-wrap text-ivory">{question.desmos_strategy}</p>
+              <p className="mt-1 whitespace-pre-wrap text-[color:var(--ink)]">{question.desmos_strategy}</p>
             </div>
           )}
         </div>
@@ -311,8 +311,8 @@ function ImageAttachment({
   return (
     <div>
       <div className="mb-1 flex items-center gap-2">
-        <ImageIcon className="h-3 w-3 text-taupe" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-taupe">Image</span>
+        <ImageIcon className="h-3 w-3 text-[color:var(--mute)]" />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--mute)]">Image</span>
       </div>
       <input
         ref={fileRef}
@@ -325,7 +325,7 @@ function ImageAttachment({
         <button
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="inline-flex items-center gap-1 rounded border border-bronze bg-surface-raised px-2 py-1 text-[11px] font-semibold text-ivory hover:bg-surface-raised disabled:opacity-60"
+          className="inline-flex items-center gap-1 rounded border border-[color:var(--line)] bg-[color:var(--raised)] px-2 py-1 text-[11px] font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)] disabled:opacity-60"
         >
           {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
           {imageUrl ? "Replace" : "Attach"}
@@ -334,7 +334,7 @@ function ImageAttachment({
           <button
             onClick={handleRemove}
             disabled={busy}
-            className="inline-flex items-center gap-1 rounded border border-error/30 bg-error/10 px-2 py-1 text-[11px] font-semibold text-error-bright hover:bg-error/20 disabled:opacity-60"
+            className="inline-flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-2 py-1 text-[11px] font-semibold text-[color:var(--late)] hover:bg-[color-mix(in_srgb,var(--late)_20%,transparent)] disabled:opacity-60"
           >
             <X className="h-3 w-3" /> Remove
           </button>

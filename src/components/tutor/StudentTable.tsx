@@ -58,15 +58,15 @@ const PLAN_LABEL: Record<Plan, string> = {
 };
 const PLAN_COLOR: Record<Plan, string> = {
   group:
-    "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
+    "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] dark:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
   small_group:
-    "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border-success/40 dark:border-success/20",
+    "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
   private:
-    "bg-warning/10 text-warning dark:bg-warning/10 dark:text-warning-bright border-warning/40 dark:border-warning/20",
+    "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] text-[color:var(--warn)] dark:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] dark:text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--warn)_20%,transparent)]",
   elite:
-    "bg-gold/10 text-gold dark:bg-gold/10 dark:text-gold-bright border-gold/40 dark:border-gold/20",
+    "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[color:var(--accent-text)] dark:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] dark:text-[color:var(--accent-text)] border-[color-mix(in_srgb,var(--accent)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--accent)_20%,transparent)]",
   annual:
-    "bg-success/10 text-success dark:bg-success/10 dark:text-success-bright border-success/40 dark:border-success/20",
+    "bg-[color-mix(in_srgb,var(--good)_10%,transparent)] text-[color:var(--good)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:text-[color:var(--good)] border-[color-mix(in_srgb,var(--good)_40%,transparent)] dark:border-[color-mix(in_srgb,var(--good)_20%,transparent)]",
 };
 
 function fullName(r: StudentDashboardRow): string {
@@ -129,9 +129,9 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-bronze p-12 text-center dark:border-bronze">
-        <AlertCircle className="mx-auto mb-3 h-8 w-8 text-taupe" />
-        <p className="text-sm text-taupe">No students assigned yet.</p>
+      <div className="rounded-lg border border-dashed border-[color:var(--line)] p-12 text-center dark:border-[color:var(--line)]">
+        <AlertCircle className="mx-auto mb-3 h-8 w-8 text-[color:var(--mute)]" />
+        <p className="text-sm text-[color:var(--mute)]">No students assigned yet.</p>
       </div>
     );
   }
@@ -141,13 +141,13 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
       {/* Search + cohort filter bar */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-taupe" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--mute)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search students by name or email…"
-            className="w-full rounded-lg border border-bronze bg-surface py-2 pl-9 pr-3 text-sm text-ivory placeholder:text-taupe focus:outline-none focus:ring-2 focus:ring-info/40 dark:border-bronze dark:bg-surface/40 dark:text-ivory"
+            className="w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] py-2 pl-9 pr-3 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)] dark:text-[color:var(--ink)]"
           />
         </div>
         {cohorts.length > 0 ? (
@@ -155,7 +155,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
             value={cohortFilter}
             onChange={(e) => setCohortFilter(e.target.value)}
             aria-label="Filter students by cohort"
-            className="rounded-lg border border-bronze bg-surface px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-info/40 dark:border-bronze dark:bg-surface/40 dark:text-ivory"
+            className="rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--info)_40%,transparent)] dark:border-[color:var(--line)] dark:bg-[color-mix(in_srgb,var(--card)_40%,transparent)] dark:text-[color:var(--ink)]"
           >
             <option value="all">All cohorts ({cohorts.length})</option>
             {cohorts.map((c) => (
@@ -165,23 +165,23 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
             ))}
           </select>
         ) : null}
-        <span className="shrink-0 self-center text-xs text-taupe sm:ml-2">
+        <span className="shrink-0 self-center text-xs text-[color:var(--mute)] sm:ml-2">
           {sorted.length} of {rows.length} matching
         </span>
       </div>
 
       <div
-        className="overflow-hidden rounded-lg border border-bronze dark:border-bronze"
+        className="overflow-hidden rounded-lg border border-[color:var(--line)] dark:border-[color:var(--line)]"
         data-testid="student-table"
       >
         <table className="w-full text-sm">
-          <thead className="bg-surface dark:bg-surface">
+          <thead className="bg-[color:var(--card)] dark:bg-[color:var(--card)]">
             <tr>
               {COLS.map((c) => (
                 <th
                   key={c.key}
                   className={cn(
-                    "cursor-pointer px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-taupe hover:bg-surface dark:text-taupe dark:hover:bg-surface-raised",
+                    "cursor-pointer px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--mute)] hover:bg-[color:var(--card)] dark:text-[color:var(--mute)] dark:hover:bg-[color:var(--raised)]",
                     c.className
                   )}
                   onClick={() => toggleSort(c.key)}
@@ -212,17 +212,17 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
               return (
                 <tr
                   key={r.clerk_id}
-                  className="border-t border-bronze hover:bg-surface dark:border-bronze dark:hover:bg-surface/50"
+                  className="border-t border-[color:var(--line)] hover:bg-[color:var(--card)] dark:border-[color:var(--line)] dark:hover:bg-[color-mix(in_srgb,var(--card)_50%,transparent)]"
                 >
                   <td className="px-4 py-3">
                     <Link
                       href={`/tutor/${r.clerk_id}`}
-                      className="font-semibold text-ivory hover:text-info dark:text-ivory"
+                      className="font-semibold text-[color:var(--ink)] hover:text-[color:var(--info)] dark:text-[color:var(--ink)]"
                     >
                       {display}
                     </Link>
                     {display !== r.email && (
-                      <div className="font-mono text-[11px] text-taupe">{r.email}</div>
+                      <div className="font-mono text-[11px] text-[color:var(--mute)]">{r.email}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -236,7 +236,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                         {PLAN_LABEL[r.plan_tier]}
                       </span>
                     ) : (
-                      <span className="text-xs text-taupe">—</span>
+                      <span className="text-xs text-[color:var(--mute)]">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -251,37 +251,37 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                       {atmo}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-ivory dark:text-ivory">
+                  <td className="px-4 py-3 text-right tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                     {readingPct}%{" "}
-                    <span className="text-xs text-taupe">
+                    <span className="text-xs text-[color:var(--mute)]">
                       ({r.reading_mastered}/{r.reading_total})
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-ivory dark:text-ivory">
+                  <td className="px-4 py-3 text-right tabular-nums text-[color:var(--ink)] dark:text-[color:var(--ink)]">
                     {mathPct}%{" "}
-                    <span className="text-xs text-taupe">
+                    <span className="text-xs text-[color:var(--mute)]">
                       ({r.math_mastered}/{r.math_total})
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-taupe" data-testid="last-active-cell">
+                  <td className="px-4 py-3 text-xs text-[color:var(--mute)]" data-testid="last-active-cell">
                     {r.last_active ? new Date(r.last_active).toLocaleString() : "Never"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.flagged_open > 0 ? (
-                      <span className="inline-flex items-center gap-1 font-semibold text-error dark:text-error">
+                      <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--late)] dark:text-[color:var(--late)]">
                         <Flag className="h-3 w-3" /> {r.flagged_open}
                       </span>
                     ) : (
-                      <span className="text-taupe">0</span>
+                      <span className="text-[color:var(--mute)]">0</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {r.struggling_count > 0 ? (
-                      <span className="font-semibold tabular-nums text-error dark:text-error">
+                      <span className="font-semibold tabular-nums text-[color:var(--late)] dark:text-[color:var(--late)]">
                         {r.struggling_count}
                       </span>
                     ) : (
-                      <span className="text-taupe">0</span>
+                      <span className="text-[color:var(--mute)]">0</span>
                     )}
                   </td>
                 </tr>

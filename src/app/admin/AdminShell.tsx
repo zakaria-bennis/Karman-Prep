@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Panel, PortalShell } from "@/components/portal";
 import { ADMIN_NAV, adminTitle } from "./admin-nav";
+import "@/components/admin/workbench/tokens.css";
 import "./admin-shell.css";
 
 export default function AdminShell({

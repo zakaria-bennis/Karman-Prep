@@ -47,18 +47,18 @@ export default function CohortDetailClient({
         <div className="mb-2 flex flex-wrap items-center gap-3">
           <TierBadge tier={cohort.tier} />
           <StatusBadge status={cohort.status} />
-          <span className="text-sm text-taupe">{formatDate(cohort.sat_date)} SAT</span>
-          <span className="text-taupe">·</span>
-          <span className="text-sm text-taupe">{tutorDisplay(cohort.tutor)}</span>
-          <span className="text-taupe">·</span>
-          <span className="font-mono text-sm text-taupe">
+          <span className="text-sm text-[color:var(--mute)]">{formatDate(cohort.sat_date)} SAT</span>
+          <span className="text-[color:var(--mute)]">·</span>
+          <span className="text-sm text-[color:var(--mute)]">{tutorDisplay(cohort.tutor)}</span>
+          <span className="text-[color:var(--mute)]">·</span>
+          <span className="font-mono text-sm text-[color:var(--mute)]">
             {cohort.member_count}/{cohort.max_size} seats
           </span>
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-ivory">{cohort.name}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-[color:var(--ink)]">{cohort.name}</h1>
         {cohort.current_topic && (
-          <p className="mt-2 text-sm text-taupe">
-            <span className="font-semibold text-ivory">Current topic —</span> {cohort.current_topic}
+          <p className="mt-2 text-sm text-[color:var(--mute)]">
+            <span className="font-semibold text-[color:var(--ink)]">Current topic —</span> {cohort.current_topic}
           </p>
         )}
         <div className="mt-3">
@@ -72,7 +72,7 @@ export default function CohortDetailClient({
       ) : null}
 
       {/* ── Tab nav ────────────────────────────────────────── */}
-      <div className="mb-6 flex gap-1 border-b border-bronze text-sm">
+      <div className="mb-6 flex gap-1 border-b border-[color:var(--line)] text-sm">
         <TabLink
           cohortId={cohort.id}
           tab="members"
