@@ -1,7 +1,7 @@
-// Quiz top bar lab: the real quiz shell (unchanged) with three restyled top bars and margins
-// laid over it from options.css. Same setup as tests/quiz-shell/fixture/server.mjs.
+// Quiz bars lab: the real quiz shell, with the phone tool-row variant laid over it
+// from options.css. Same setup as tests/quiz-shell/fixture/server.mjs.
 // Run from the repo root:  node .impeccable/mocks/quiz-topbar/lab/server.mjs
-// Then open http://127.0.0.1:4324/?option=a  (options: today, a, b, c; q=math|rw; set=end)
+// Then open http://127.0.0.1:4324/?variant=top  (or variant=thumb; q=math|rw)
 import { createViteServer as createServer } from "vitest/node";
 import path from "node:path";
 const root = process.cwd();
