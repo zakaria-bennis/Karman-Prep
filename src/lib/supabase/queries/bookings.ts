@@ -7,15 +7,13 @@
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";
+import { getPlan, type PlanId } from "@/lib/plans";
 
 /** The four delivery tiers (from `bookings.plan_tier` CHECK). */
 export type BookingPlanTier = "group" | "small_group" | "private" | "elite";
 
 /** Booking state machine. */
 export type BookingStatus = "scheduled" | "completed" | "cancelled" | "no_show";
-
-/** Subscription status values we treat as currently-paying. */
-const ACTIVE_STATUSES = ["active", "trialing"] as const;
 
 /** Plain-shape mirror of the bookings row. Matches migration 009. */
 export interface BookingRow {
@@ -43,10 +41,15 @@ export interface BookingRow {
   updated_at: string;
 }
 
+/** A student's current paid plan, plus the delivery tier it books under. */
 export interface ActiveSubscription {
-  tier: BookingPlanTier;
-  status: string;
+  /** The most generous active plan (`src/lib/plans`). */
+  planId: PlanId;
+  /** "private" for Private 10 and 20, "group" for the Cohort, null otherwise. */
+  tier: BookingPlanTier | null;
 }
+
+const PRIVATE_PLAN_IDS: readonly PlanId[] = ["private-10", "private-20"];
 
 // ─────────────────────────────────────────────────────────────
 // Lookups
@@ -65,20 +68,17 @@ export async function getUserUuidByClerkId(clerkId: string): Promise<string | nu
   return (data?.id as string | undefined) ?? null;
 }
 
-/** Most-recent active or trialing subscription for a Clerk user.
- *  Subscriptions.user_id stores the Clerk text id directly. */
+/** The student's paid plan, from `getPlan` (subscriptions and one-time
+ *  purchase grants alike). Null on the Free plan. */
 export async function getActiveSubscription(clerkId: string): Promise<ActiveSubscription | null> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .select("tier, status")
-    .eq("user_id", clerkId)
-    .in("status", ACTIVE_STATUSES as unknown as string[])
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as ActiveSubscription | null) ?? null;
+  const plan = await getPlan(clerkId);
+  if (plan.planId === "free") return null;
+  const tier: BookingPlanTier | null = plan.planIds.some((id) => PRIVATE_PLAN_IDS.includes(id))
+    ? "private"
+    : plan.planIds.includes("cohort")
+      ? "group"
+      : null;
+  return { planId: plan.planId, tier };
 }
 
 export async function findBookingById(id: string): Promise<BookingRow | null> {
@@ -215,8 +215,8 @@ export function shouldForfeitCredit(tier: BookingPlanTier, withinWindow: boolean
   return tier === "private" || tier === "elite";
 }
 
-/** Tiers allowed to self-book through the API. Group + small_group
- *  bookings come from the admin cohort-push flow (P8). */
-export function canSelfBook(tier: BookingPlanTier): boolean {
-  return tier === "private" || tier === "elite";
+/** Only Private 10 and 20 self-book. Cohort classes come from the admin
+ *  cohort-push flow. */
+export function canSelfBook(tier: BookingPlanTier | null): tier is "private" {
+  return tier === "private";
 }
