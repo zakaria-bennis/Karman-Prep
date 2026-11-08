@@ -16,7 +16,11 @@
 // become public again.
 // ============================================================
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import {
+  clerkMiddleware,
+  createRouteMatcher,
+  type ClerkMiddlewareAuth,
+} from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 import { SITE_PAGES } from "@/components/site/routes";
@@ -111,7 +115,7 @@ function bypassMiddleware(_request: NextRequest) {
 const isMarketingPage = createRouteMatcher([...SITE_PAGES, "/robots.txt", "/sitemap.xml"]);
 
 /** The auth rules: maintenance gate, public routes, then Clerk protection. Exported for the tests. */
-export const karmanAuth: Parameters<typeof clerkMiddleware>[0] = async (auth, request) => {
+export const karmanAuth = async (auth: ClerkMiddlewareAuth, request: NextRequest) => {
   // ── Pre-launch maintenance gate ────────────────────────────
   if (!LAUNCHED && !isMaintenanceExempt(request)) {
     const { userId } = await auth();
