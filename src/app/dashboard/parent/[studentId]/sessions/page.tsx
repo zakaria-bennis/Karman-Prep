@@ -1,5 +1,6 @@
 // ============================================================
-// /dashboard/parent/[studentId]/sessions — booked sessions, past
+// /dashboard/parent/[studentId]/sessions — booked sessions (each
+// with a Join button for its Zoom meeting at session time), past
 // sessions with their recordings, and the family calendar feed.
 // ============================================================
 
@@ -8,6 +9,7 @@ import { Card, Panel, Row, SectionHeader } from "@/components/portal";
 import { CalendarSubscribe } from "@/components/dashboard/CalendarSubscribe";
 import { ParentShell } from "@/components/parent/ParentShell";
 import { sessionWhen } from "@/components/parent/parts";
+import { JoinButton } from "@/components/portal-extras/JoinButton";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
 
 export const metadata: Metadata = { title: "Sessions" };
@@ -42,7 +44,18 @@ export default async function ParentSessionsPage({
           <SectionHeader title="Coming up" />
           {week.upcoming.length ? (
             week.upcoming.map((s) => (
-              <Row key={s.id} title={who(s)} right={sessionWhen(s.startsAt)} />
+              <Row
+                key={s.id}
+                title={who(s)}
+                right={
+                  <>
+                    {sessionWhen(s.startsAt)}
+                    {s.joinUrl && (
+                      <JoinButton joinUrl={s.joinUrl} startsAt={s.startsAt} endsAt={s.endsAt} />
+                    )}
+                  </>
+                }
+              />
             ))
           ) : (
             <p className="kp-meta">Nothing booked right now.</p>

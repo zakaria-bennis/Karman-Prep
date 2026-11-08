@@ -37,6 +37,7 @@ export function ParentShell({
       menu={[
         { label: "Weekly email", href: `/dashboard/parent/${child.id}/recap` },
         ...others.map((c) => ({ label: `See ${c.firstName}`, href: `/dashboard/parent/${c.id}` })),
+        { label: "Link another student", href: "/dashboard/parent/link" },
       ]}
     >
       {children}

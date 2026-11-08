@@ -1,7 +1,8 @@
 /*
- * Invite a parent (from the student's account menu). The student makes a link and sends it
- * however they like; the parent opens it signed in and is linked. Nothing here describes what
- * the parent will or will not see (founder, 2026-11-07).
+ * Invite a parent (from the student's account menu). The student makes a link and a short
+ * code and sends either however they like; the parent opens the link, or types the code in the
+ * parent portal, and is linked. Nothing here describes what the parent will or will not see
+ * (founder, 2026-11-07).
  */
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -10,7 +11,7 @@ import { STUDENT_MENU, STUDENT_NAV } from "@/components/dashboard/StudentDashboa
 import { CopyButton } from "@/components/portal-extras/CopyButton";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { appUrl } from "@/lib/billing-portal/stripe";
-import { currentInvite, linkedParents } from "@/lib/parent/invites";
+import { currentInvite, formatLinkCode, linkedParents } from "@/lib/parent/invites";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { createParentInviteAction } from "./actions";
@@ -56,7 +57,7 @@ export default async function InviteParentPage({
       <Panel>
         <section aria-labelledby="invite-main">
           <h2 className="kp-title" id="invite-main">
-            {link ? "Send this link to your parent" : "Make a link for your parent"}
+            {link ? "Send this to your parent" : "Make a link for your parent"}
           </h2>
           {link ? (
             <>
@@ -64,19 +65,23 @@ export default async function InviteParentPage({
               <div className="kp-copyline">
                 <CopyButton text={link} label="Copy link" />
               </div>
+              <p className="kp-meta">Or they type this code in their parent account:</p>
+              <p className="kp-code" aria-label={`Code ${invite?.code.split("").join(" ")}`}>
+                {invite ? formatLinkCode(invite.code) : null}
+              </p>
               <p className="kp-meta">
-                {made ? "New link made. " : ""}It works once and lasts until {expires}.
+                {made ? "New link made. " : ""}The link and code work once and last until {expires}.
               </p>
               <form action={createParentInviteAction}>
                 <button type="submit" className="kp-textbtn">
-                  Make a new link
+                  Make a new link and code
                 </button>
               </form>
             </>
           ) : (
             <>
               <p className="kp-meta">
-                Your parent opens it and signs in to link their account to yours.
+                Your parent opens it, or types its code, to link their account to yours.
               </p>
               <form action={createParentInviteAction}>
                 <Cta type="submit">Make the link</Cta>

@@ -17,6 +17,7 @@ import { listSchoolHomeworkForStudent } from "@/lib/school/homework";
 import { resolveEffectiveClerkId, resolveEffectiveRole } from "@/lib/supabase/queries/admin";
 import { untypedAdmin, type UntypedAdmin } from "@/lib/school/db";
 import { guaranteeFor, type GuaranteeStatus } from "./guarantee";
+import { safeZoomUrl } from "./join-window";
 
 export interface Child {
   id: string;
@@ -119,6 +120,9 @@ export interface SessionGlance {
   with: string | null;
   status: string;
   recordingUrl: string | null;
+  /** The Zoom meeting, joined from the account at session time. */
+  joinUrl: string | null;
+  endsAt: string;
 }
 
 export interface ChildWeek {
@@ -165,12 +169,18 @@ function homeworkGlance(
   };
 }
 
+/** When a session ends: its stored end, else its length, else an hour after it starts. */
+function sessionEnd(start: string, end: string | null, minutes: number | null): string {
+  if (end) return new Date(end).toISOString();
+  return new Date(Date.parse(start) + (minutes ?? 60) * 60_000).toISOString();
+}
+
 async function sessionsFor(supabase: Admin, child: Child, now: Date) {
   const [{ data: bookings }, { data: member }] = await Promise.all([
     supabase
       .from("bookings")
       .select(
-        "id, scheduled_start, status, session_id, tutor:users!bookings_tutor_id_fkey (first_name), session:sessions!bookings_session_id_fkey (zoom_recording_url)"
+        "id, scheduled_start, scheduled_end, duration_minutes, status, zoom_join_url, tutor:users!bookings_tutor_id_fkey (first_name), session:sessions!bookings_session_id_fkey (zoom_recording_url)"
       )
       .eq("student_id", child.id)
       .order("scheduled_start", { ascending: true }),
@@ -188,7 +198,10 @@ async function sessionsFor(supabase: Admin, child: Child, now: Date) {
     (bookings ?? []) as {
       id: string;
       scheduled_start: string;
+      scheduled_end: string | null;
+      duration_minutes: number | null;
       status: string;
+      zoom_join_url: string | null;
       tutor: One<{ first_name: string | null }>;
       session: One<{ zoom_recording_url: string | null }>;
     }[]
@@ -199,19 +212,24 @@ async function sessionsFor(supabase: Admin, child: Child, now: Date) {
     with: pick(b.tutor)?.first_name ?? null,
     status: b.status,
     recordingUrl: pick(b.session)?.zoom_recording_url ?? null,
+    joinUrl: safeZoomUrl(b.zoom_join_url),
+    endsAt: sessionEnd(b.scheduled_start, b.scheduled_end, b.duration_minutes),
   }));
   if (member?.cohort_id) {
     const { data: classes } = await supabase
       .from("sessions")
       .select(
-        "id, scheduled_start, status, zoom_recording_url, tutor:users!sessions_tutor_id_fkey (first_name)"
+        "id, scheduled_start, scheduled_end, duration_minutes, status, zoom_join_url, zoom_recording_url, tutor:users!sessions_tutor_id_fkey (first_name)"
       )
       .eq("cohort_id", member.cohort_id)
       .order("scheduled_start", { ascending: true });
     for (const s of (classes ?? []) as {
       id: string;
       scheduled_start: string;
+      scheduled_end: string | null;
+      duration_minutes: number | null;
       status: string | null;
+      zoom_join_url: string | null;
       zoom_recording_url: string | null;
       tutor: One<{ first_name: string | null }>;
     }[]) {
@@ -222,17 +240,20 @@ async function sessionsFor(supabase: Admin, child: Child, now: Date) {
         with: pick(s.tutor)?.first_name ?? null,
         status: s.status ?? "scheduled",
         recordingUrl: s.zoom_recording_url,
+        joinUrl: safeZoomUrl(s.zoom_join_url),
+        endsAt: sessionEnd(s.scheduled_start, s.scheduled_end, s.duration_minutes),
       });
     }
   }
+  // A session stays in "coming up" until it ends, so it can be joined while it runs.
   const nowIso = now.toISOString();
   const live = all.filter((s) => s.status !== "cancelled");
   return {
     upcoming: live
-      .filter((s) => s.startsAt >= nowIso)
+      .filter((s) => s.endsAt >= nowIso)
       .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
     past: live
-      .filter((s) => s.startsAt < nowIso)
+      .filter((s) => s.endsAt < nowIso)
       .sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
   };
 }

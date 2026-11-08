@@ -10,7 +10,7 @@
 -- * Skill practice (catalog practice sessions) for Maya Johnson and the
 --   four school students, so the progress rings and skill squares show
 --   real rows. Seeded sessions carry {"seed": true} in their snapshots.
--- * An open parent invite from Ava Patel (dev_seed_student_practice).
+-- * An open parent invite from Ava Patel (dev_seed_student_practice), code AVA2PATE.
 -- ============================================================
 
 DO $$
@@ -56,8 +56,8 @@ BEGIN
   SELECT id INTO v_ava FROM public.users WHERE clerk_id = 'dev_seed_student_practice';
   IF v_ava IS NOT NULL THEN
     DELETE FROM public.parent_invites WHERE student_user_id = v_ava;
-    INSERT INTO public.parent_invites (student_user_id, token)
-    VALUES (v_ava, 'seed-invite-ava-patel-0000000001');
+    INSERT INTO public.parent_invites (student_user_id, token, code)
+    VALUES (v_ava, 'seed-invite-ava-patel-0000000001', 'AVA2PATE');
   END IF;
 END $$;
 

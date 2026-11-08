@@ -1,13 +1,14 @@
 // ============================================================
 // /dashboard/parent — opens the child's week. With one linked
 // student it goes straight there; with several it lists them; with
-// none it explains the invite (the student sends it).
+// none it asks for the code from the student's invite page.
 // ============================================================
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Card, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
+import { Card, MoreLink, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
 import { CalendarSubscribe } from "@/components/dashboard/CalendarSubscribe";
+import { LinkStudentForm } from "@/components/parent/LinkStudentForm";
 import { requireParentContext } from "@/lib/parent/server";
 
 export const metadata: Metadata = { title: "Parent portal" };
@@ -21,7 +22,7 @@ export default async function ParentHomePage() {
     <PortalShell
       portal="Parent"
       nav={[{ href: "/dashboard/parent", label: "Students", icon: "child" }]}
-      title={ctx.children.length ? "Your students" : "Almost there"}
+      title={ctx.children.length ? "Your students" : "Welcome"}
       name={ctx.viewer.firstName}
       accountDetail={ctx.viewer.email}
       home="/dashboard/parent"
@@ -34,6 +35,7 @@ export default async function ParentHomePage() {
               {ctx.children.map((c) => (
                 <Row key={c.id} title={c.name} href={`/dashboard/parent/${c.id}`} right="Open" />
               ))}
+              <MoreLink href="/dashboard/parent/link">Link another student</MoreLink>
             </Card>
             {!ctx.isAdmin && (
               <Card>
@@ -42,13 +44,16 @@ export default async function ParentHomePage() {
             )}
           </>
         ) : (
-          <Card>
-            <SectionHeader title="No student linked yet" />
+          <section aria-labelledby="link-main">
+            <h2 className="kp-title" id="link-main">
+              Link your student
+            </h2>
             <p className="kp-meta">
-              Your student sends you a link from their account menu, under Invite a parent. Open it
-              while signed in here and you are linked.
+              Type the code from your student&rsquo;s account menu, under Invite a parent. Or open
+              the link they send you.
             </p>
-          </Card>
+            <LinkStudentForm />
+          </section>
         )}
       </Panel>
     </PortalShell>

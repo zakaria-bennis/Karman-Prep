@@ -7,6 +7,7 @@
 import type { Metadata } from "next";
 import {
   Card,
+  Chevron,
   Cta,
   MoreLink,
   Num,
@@ -18,6 +19,8 @@ import {
 } from "@/components/portal";
 import { ParentShell } from "@/components/parent/ParentShell";
 import { GuaranteeCard, sessionWhen } from "@/components/parent/parts";
+import { JoinButton } from "@/components/portal-extras/JoinButton";
+import { joinOpen } from "@/lib/parent/join-window";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
 
 export const metadata: Metadata = { title: "Week" };
@@ -34,6 +37,10 @@ export default async function ParentWeekPage({
   const base = `/dashboard/parent/${child.id}`;
   const hw = week.homework;
   const total = hw.done + hw.open.length;
+  const who = (s: { kind: string; with: string | null }) =>
+    `${s.kind === "1:1" ? "1:1" : "Cohort class"}${s.with ? ` with ${s.with}` : ""}`;
+  // A session on now (or starting within 10 minutes) leads the page with its Join button.
+  const onNow = week.upcoming.find((s) => s.joinUrl && joinOpen(s.startsAt, s.endsAt));
 
   const side = (
     <>
@@ -62,19 +69,33 @@ export default async function ParentWeekPage({
   return (
     <ParentShell ctx={ctx} child={child} title={`${child.firstName}'s week`}>
       <Panel side={side}>
-        <section aria-labelledby="week-main">
-          <h2 className="kp-title" id="week-main">
-            {hw.late
-              ? `${hw.late} ${hw.late === 1 ? "piece" : "pieces"} of homework past due`
-              : total
-                ? `${hw.done} of ${total} homework done`
-                : "No homework set yet"}
-          </h2>
-          <p className="kp-meta">
-            <Num>{week.minutesThisWeek}</Num> minutes of practice in the last 7 days.
-          </p>
-          <Cta href={`${base}/recap`}>Preview this week&rsquo;s email</Cta>
-        </section>
+        {onNow?.joinUrl ? (
+          <section aria-labelledby="week-main">
+            <h2 className="kp-title" id="week-main">
+              On now: {who(onNow)}
+            </h2>
+            <p className="kp-meta">Starts {sessionWhen(onNow.startsAt)}.</p>
+            <a className="kp-cta" href={onNow.joinUrl} target="_blank" rel="noreferrer">
+              <span>Join on Zoom</span>
+              <Chevron />
+            </a>
+            <MoreLink href={`${base}/recap`}>Preview this week&rsquo;s email</MoreLink>
+          </section>
+        ) : (
+          <section aria-labelledby="week-main">
+            <h2 className="kp-title" id="week-main">
+              {hw.late
+                ? `${hw.late} ${hw.late === 1 ? "piece" : "pieces"} of homework past due`
+                : total
+                  ? `${hw.done} of ${total} homework done`
+                  : "No homework set yet"}
+            </h2>
+            <p className="kp-meta">
+              <Num>{week.minutesThisWeek}</Num> minutes of practice in the last 7 days.
+            </p>
+            <Cta href={`${base}/recap`}>Preview this week&rsquo;s email</Cta>
+          </section>
+        )}
         <Card tone={hw.late ? "late" : undefined}>
           <SectionHeader title="Homework" note={total ? <Num>{total}</Num> : undefined} />
           <div className="kp-ring-row">
@@ -103,19 +124,20 @@ export default async function ParentWeekPage({
         <Card>
           <SectionHeader title="Next sessions" />
           {week.upcoming.length ? (
-            week.upcoming
-              .slice(0, 3)
-              .map((s) => (
-                <Row
-                  key={s.id}
-                  title={
-                    s.kind === "1:1"
-                      ? `1:1${s.with ? ` with ${s.with}` : ""}`
-                      : `Cohort class${s.with ? ` with ${s.with}` : ""}`
-                  }
-                  right={sessionWhen(s.startsAt)}
-                />
-              ))
+            week.upcoming.slice(0, 3).map((s) => (
+              <Row
+                key={s.id}
+                title={who(s)}
+                right={
+                  <>
+                    {sessionWhen(s.startsAt)}
+                    {s.joinUrl && s.id !== onNow?.id && (
+                      <JoinButton joinUrl={s.joinUrl} startsAt={s.startsAt} endsAt={s.endsAt} />
+                    )}
+                  </>
+                }
+              />
+            ))
           ) : (
             <p className="kp-meta">No sessions booked.</p>
           )}

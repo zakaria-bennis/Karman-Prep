@@ -13,6 +13,7 @@ import {
   isPlaceholderCustomer,
   mayCreateTestCustomer,
 } from "@/lib/billing-portal/stripe";
+import { acceptInvite, LINK_CODE_PATTERN, normalizeLinkCode } from "@/lib/parent/invites";
 import { recapHtml, recapSubject } from "@/lib/parent/recap";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -102,4 +103,30 @@ export async function sendRecapAction(formData: FormData) {
     back(page, "error", "The email could not be sent. Try again later.");
   }
   back(page, "done", `Sent to ${ctx.viewer.email}.`);
+}
+
+const linkCodeSchema = z
+  .string()
+  .max(20)
+  .transform(normalizeLinkCode)
+  .refine((code) => LINK_CODE_PATTERN.test(code));
+
+const LINK_PAGE = "/dashboard/parent/link";
+
+/** A parent types the code from their student's "Invite a parent" page and is linked. */
+export async function linkStudentWithCodeAction(formData: FormData) {
+  const ctx = await requireParentContext();
+  if (ctx.isAdmin) back(LINK_PAGE, "error", "An admin account can't be linked to a student.");
+  const parsed = linkCodeSchema.safeParse(String(formData.get("code") ?? ""));
+  if (!parsed.success) back(LINK_PAGE, "error", "Codes are 8 letters and numbers, like K7Q2-MP4X.");
+  const result = await acceptInvite({ code: parsed.data }, ctx.viewer.userId);
+  if (!result.ok)
+    back(
+      LINK_PAGE,
+      "error",
+      result.reason === "self"
+        ? "That code is for your own account."
+        : "That code was already used or has expired. Ask your student for a new one."
+    );
+  redirect(`/dashboard/parent/${result.studentId}`);
 }

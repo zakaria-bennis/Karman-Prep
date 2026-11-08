@@ -18,7 +18,6 @@ const ERRORS: Record<string, string> = {
   invite: "This link was already used or has expired. Ask for a new one.",
   role: "This account is set up as a student or tutor. Sign in with a parent account to accept.",
   self: "You can't link your own account as your parent.",
-  account: "Finish setting up your account, then open the link again.",
 };
 
 export default async function JoinParentPage({
@@ -35,7 +34,7 @@ export default async function JoinParentPage({
   const supabase = untypedAdmin();
   const [{ data: me }, invite] = await Promise.all([
     supabase.from("users").select("first_name, email").eq("clerk_id", clerkId).maybeSingle(),
-    lookupInvite(token, supabase),
+    lookupInvite({ token }, supabase),
   ]);
 
   return (

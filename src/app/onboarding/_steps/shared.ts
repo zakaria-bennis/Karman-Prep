@@ -1,6 +1,7 @@
 export type Role = "student" | "parent";
 
-// Re-framing labels — same prompt, different subject.
+// The questionnaire's wording. Only students take it: a parent gets a parent account at the
+// role step and goes to the parent portal (founder, 2026-11-08).
 export const COPY = {
   student: {
     sat: "When are you planning to take the SAT?",
@@ -21,25 +22,5 @@ export const COPY = {
     priorFirst: "First time prepping for the SAT.",
     priorWorked: "Yes — and my score moved.",
     priorFlat: "Yes — but my score didn't really move.",
-  },
-  parent: {
-    sat: "When is your child planning to take the SAT?",
-    goal: "What's your child's goal SAT score?",
-    baselineQ: "Has your child taken the SAT or PSAT recently?",
-    baselineYes: "Yes — I'll enter their score",
-    baselineNo: "Not yet",
-    hours: "How many hours per week can your child commit to studying?",
-    indeQ: "How well does your child stay on track when studying alone?",
-    indeOnOwn: "They finish what they start without anyone checking on them.",
-    indeCheckins: "They do best when someone checks in regularly.",
-    indeStructure: "They tend to procrastinate without scheduled time and accountability.",
-    paceQ: "When your child learns something new, how does it usually go?",
-    paceQuick: "They usually get it on the first explanation.",
-    paceAvg: "They get it after a couple of practice rounds.",
-    paceSlow: "They prefer to work through it multiple ways before it sticks.",
-    priorQ: "Has your child tried test prep before for the SAT?",
-    priorFirst: "First time prepping for the SAT.",
-    priorWorked: "Yes — and their score moved.",
-    priorFlat: "Yes — but their score didn't really move.",
   },
 } as const;

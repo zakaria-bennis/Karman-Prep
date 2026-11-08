@@ -1,8 +1,9 @@
 -- ============================================================
 -- Parent invites and the school portal (overnight build, 2026-11-08)
 --
--- parent_invites   A student makes a link; the parent opens it, signs in
---                  and accepts. Accepting writes parent_student_links.
+-- parent_invites   A student makes a link and a short code; the parent opens
+--                  the link (or types the code), signs in and accepts.
+--                  Accepting writes parent_student_links.
 -- schools          A school customer. The first year is free, then
 --                  $8 per student a year (SCHOOL_PLAN in offer.ts).
 -- school_members   Who runs the school: admin or teacher. Teachers and
@@ -25,6 +26,8 @@ CREATE TABLE IF NOT EXISTS public.parent_invites (
   id                   uuid         PRIMARY KEY DEFAULT gen_random_uuid(),
   student_user_id      uuid         NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   token                text         NOT NULL UNIQUE CHECK (token ~ '^[A-Za-z0-9_-]{24,64}$'),
+  -- The short code a parent can type instead of opening the link (8 characters, no look-alikes).
+  code                 text         NOT NULL UNIQUE CHECK (code ~ '^[A-HJ-NP-Z2-9]{8}$'),
   created_at           timestamptz  NOT NULL DEFAULT now(),
   expires_at           timestamptz  NOT NULL DEFAULT (now() + interval '14 days'),
   accepted_at          timestamptz,

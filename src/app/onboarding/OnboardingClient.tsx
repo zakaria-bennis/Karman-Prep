@@ -65,7 +65,7 @@ export default function OnboardingClient() {
   const [priorPrep, setPriorPrep] = useState<PriorPrepResult | "">("");
   const [billing, setBilling] = useState<BillingPreference | "">("");
 
-  const copy = COPY[role];
+  const copy = COPY.student;
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 

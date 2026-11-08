@@ -182,3 +182,10 @@
   padding: 0;
   overflow: hidden;
 }
+.kp-join {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-left: 12px;
+  font-weight: 700;
+}
