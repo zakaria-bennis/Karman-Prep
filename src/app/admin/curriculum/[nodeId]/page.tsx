@@ -6,8 +6,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { getNodes, nodeAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
+import { WbPage } from "@/components/admin/workbench";
+import { getNodes, nodeAtmosphere } from "@/data/curriculum";
 import { fetchQuestionsForNode } from "@/lib/supabase/queries/quiz";
 import { fetchNodeContent } from "@/lib/supabase/queries/content";
 import NodeTabs from "@/components/admin/NodeTabs";
@@ -35,38 +35,30 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
     fetchNodeContent(nodeId),
   ]);
 
+  const atmo = nodeAtmosphere(node.tier);
+
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8">
-      {/* Header */}
-      <div className="mb-6">
-        <Link
-          href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> All nodes
+    <WbPage
+      title={node.topic}
+      summary={node.description}
+      actions={
+        <Link className="wb-btn" href="/admin/curriculum">
+          All nodes
         </Link>
-        <h1 className="text-2xl font-extrabold text-[color:var(--ink)]">{node.topic}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[color:var(--mute)]">
-          <span
-            className="rounded-full px-2 py-0.5 font-bold uppercase tracking-[0.18em]"
-            style={{
-              background: ATMOSPHERE_COLORS[nodeAtmosphere(node.tier)].hex + "15",
-              color: ATMOSPHERE_COLORS[nodeAtmosphere(node.tier)].hex,
-              border: `1px solid ${ATMOSPHERE_COLORS[nodeAtmosphere(node.tier)].hex}30`,
-            }}
-          >
-            {nodeAtmosphere(node.tier)}
-          </span>
-          <code className="font-mono text-[color:var(--mute)]">{node.id}</code>
-          <span>·</span>
-          <span>{node.subject === "reading" ? "Reading & Writing" : "Math"}</span>
-          <span>·</span>
-          <span>
-            Topic: <span className="text-[color:var(--ink)]">{node.topic_cluster}</span>
-          </span>
-        </div>
-        <p className="mt-3 max-w-2xl text-sm text-[color:var(--mute)]">{node.description}</p>
-      </div>
+      }
+    >
+      <dl className="wb-dl">
+        <dt>Node</dt>
+        <dd>
+          <code>{node.id}</code>
+        </dd>
+        <dt>Tier</dt>
+        <dd>{atmo}</dd>
+        <dt>Subject</dt>
+        <dd>{node.subject === "reading" ? "Reading & Writing" : "Math"}</dd>
+        <dt>Topic</dt>
+        <dd>{node.topic_cluster}</dd>
+      </dl>
 
       <NodeTabs
         nodeId={node.id}
@@ -81,6 +73,6 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
           content?.video_duration_seconds ?? node.estimated_video_length_seconds ?? null
         }
       />
-    </div>
+    </WbPage>
   );
 }
