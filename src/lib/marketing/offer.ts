@@ -61,23 +61,18 @@ export const MARCH_PROGRAM = {
   /** The plan's name on the price list. */
   planName: "9-week Cohort",
   startDate: "2027-01-04",
-  startLabel: "Monday, January 4, 2027",
+  /** No fixed first-class day (founder, 2026-11-08): name the week, never a weekday. */
+  startLabel: "the week of January 4, 2027",
   startShort: "January 4",
   weeks: 9,
   classesPerWeek: 2,
   classMinutes: 60,
   totalClasses: 18,
   fullLengthTests: 5,
-  // CONFIRM: class days and times.
-  scheduleLabel: "Tuesdays and Thursdays, 7:00–8:00 p.m. ET",
-  classDays: ["Tuesday", "Thursday"],
-  classDaysLabel: "Tuesdays and Thursdays",
-  classStart: "7:00",
-  classEnd: "8:00 p.m. ET",
   /** Each cohort is grouped by starting score, so a class works on the same level. */
   scoreBands: ["1000 to 1200", "1200 to 1400", "1400 to 1600"],
   // CONFIRM: enrollment deadline.
-  enrollmentClosesLabel: "Wednesday, December 30, 2026",
+  enrollmentClosesLabel: "December 30, 2026",
   /** At most six students in a cohort, every seat paid. */
   paidSeats: 6,
   /** Paid seats already held with a deposit. The site shows the seats still open.
@@ -127,23 +122,23 @@ export const MARCH_PROGRAM = {
 } as const;
 
 /**
- * Later cohorts, named by the week they start. Classes start on a Monday and
- * applications close the Wednesday before. CONFIRM: start and close dates.
+ * Later cohorts, named by the week they start (never a weekday; founder, 2026-11-08).
+ * Applications close the week before. CONFIRM: start and close dates.
  */
 export const NEXT_PROGRAMS = [
   {
     id: "cohort-may-2027",
     startDate: "2027-03-01",
-    startLabel: "Monday, March 1",
+    startLabel: "the week of March 1",
     startShort: "March 1",
-    enrollmentClosesLabel: "Wednesday, February 24",
+    enrollmentClosesLabel: "February 24",
   },
   {
     id: "cohort-june-2027",
     startDate: "2027-04-05",
-    startLabel: "Monday, April 5",
+    startLabel: "the week of April 5",
     startShort: "April 5",
-    enrollmentClosesLabel: "Wednesday, March 31",
+    enrollmentClosesLabel: "March 31",
   },
 ] as const;
 /** Official SAT dates families can name on the call and test forms (College Board 2026-27 calendar,
@@ -350,7 +345,8 @@ export const GUARANTEE = {
     { result: "The target or more, or a 1600", remedy: "Nothing back. The promise was kept." },
     {
       result: "Half the target or more",
-      remedy: "Half the price back, or the next cohort free. You choose.",
+      remedy:
+        "Private 10: half the price back. Private 20: up to 6 more hours free, then half the price back if the next SAT still falls short.",
     },
     {
       result: "Under half the target",
@@ -375,7 +371,8 @@ export const GUARANTEE = {
     cancelHours: 24,
     satWithinDays: 30,
     packages: {
-      "private-10": { bonusHours: 3, fullLengthTests: 2 },
+      /** Founder, 2026-11-08: half the price back, no extra hours. */
+      "private-10": { bonusHours: 0, fullLengthTests: 2 },
       "private-20": { bonusHours: 6, fullLengthTests: 4 },
     },
     requirements: [

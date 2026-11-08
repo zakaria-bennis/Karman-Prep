@@ -23,14 +23,17 @@ access rules are in `src/lib/plans/` (see its README); Stripe test prices are cr
 - **Monthly and 3-month plans** (Practice, Pro, Tutor affiliate) renew until cancelled. Cancelling
   stops the next payment; the plan runs to the end of the time paid for. No free trials: the Free
   plan is the way to try Karman.
-- **Cohort payment:** $995 in full, or a $95 refundable deposit and three payments of $300.
+- **Cohort payment:** $995 in full (card, Klarna, Affirm or Afterpay), or a $95 refundable deposit
+  and three monthly payments of $300, charged by a Stripe subscription schedule from the cohort's
+  start week.
   $95 + 3 × $300 = $995. The deposit is part of the price, not extra, and is refunded in full if the
   family cancels before the first class.
 - **Private packages** are paid in full before the first session. A session cancelled with less than
   24 hours' notice counts as a used hour.
 - **Guarantee** (Cohort, Private 10, Private 20): +100 points from a baseline under 1400, +50 from a
   baseline of 1400 or higher; a 1600 always counts. Cohort: half or all of the price back, or the next
-  cohort free. Private: free extra hours (3 or 6), then half the price back. Full terms:
+  cohort free. Private 10: half the price back ($747.50). Private 20: up to 6 free hours, then half
+  the price back. Full terms:
   `docs/business/guarantee.md`.
 - **Scholarship:** $1,500 to the top-scoring student in each cohort: the $995 refunded plus a $505
   merit bonus. Built in the admin portal (upload, automatic PDF check, review queue, payout).
@@ -39,10 +42,15 @@ access rules are in `src/lib/plans/` (see its README); Stripe test prices are cr
   affiliates see every question (mastery = difficulty 6 and 7) with video explanations. Free stops at
   100 questions answered and one full-length test.
 
+- **Platform access for one-time buyers** (Cohort, Private 10, Private 20): Pro until the SAT date
+  the student gave at onboarding; with no date, until they set one (founder, 2026-11-08).
+- **Cohort dates:** a cohort starts "the week of" a date; the site never names a weekday.
+
 ## Stripe (test mode) lookup keys
 
 `practice_monthly`, `practice_3_months`, `pro_monthly`, `pro_3_months`, `cohort`, `private_10`,
-`private_20`, `tutor_affiliate_monthly`. Schools are invoiced by hand and have no checkout price.
+`private_20`, `tutor_affiliate_monthly`, plus `cohort_deposit` ($95) and `cohort_installment`
+($300 a month, three times). Schools are invoiced by hand and have no checkout price.
 
 ## What changed from 30 October
 

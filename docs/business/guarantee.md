@@ -36,22 +36,23 @@ proctored live by Karman.
 - Attend at least 15 of the 18 live classes, live. A recording doesn't count.
 - Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.
 - Complete at least 90% of the assigned weekly practice.
-- Sit the official SAT within 60 days of the last class.
+- Sit the SAT within 60 days of the last class.
 
 The old rule "complete all five one-on-one reviews" is gone: the cohort has no 1:1s.
 
-## Private 10 and Private 20: free hours, then money
+## Private 10 and Private 20
 
 Same targets as the cohort.
 - The student attends every session. Cancelling with less than 24 hours' notice counts as a missed session.
 - Full-length practice tests: two on Private 10, four on Private 20.
-- The student sits the official SAT within 30 days of the last session.
-- If the score falls short: free extra hours first (up to 3 on Private 10, 6 on Private 20). If the
-  next official SAT still falls short, half the price back.
+- The student sits the SAT within 30 days of the last session.
+- If the score falls short on Private 10: half the price back ($747.50) (founder, 2026-11-08).
+- If the score falls short on Private 20: up to 6 free extra hours first. If the
+  next SAT still falls short, half the price back.
 
 ## How to claim
 
-Within 30 days of scores coming out, email the official College Board score report to
+Within 30 days of scores coming out, email the College Board score report to
 guarantee@karmanprep.com. One email. No mailed paper reports, no fees taken out of the refund.
 
 **What Karman will not add:** a "good faith" clause, quotas on answering polls, a same-device rule,
@@ -68,5 +69,5 @@ miss by half (+25), so the 1400+ band mostly lands on "kept" or "half back".
 
 - Lawyer review of the final wording.
 - Make-up plan for missed classes (the 15-of-18 rule needs one).
-- The private remedy for Private 10 (3 free hours, two full-length tests) was scaled down from
-  Private 20's (6 hours, four tests) by the pricing session. Confirm or change.
+- Private 10's two full-length tests (half of Private 20's four) were set by the pricing session.
+  Confirm or change.

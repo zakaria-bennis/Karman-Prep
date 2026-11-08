@@ -3,7 +3,15 @@
 // ============================================================
 
 import Stripe from "stripe";
-import { priceLabel, type StripePriceSpec } from "./prices";
+import { type CohortPayment } from "./cohort-installments";
+import { cohortInstallmentSpecs, priceLabel, type StripePriceSpec } from "./prices";
+
+/**
+ * Card plus buy now, pay later on one-payment checkouts (Cohort, Private 10, Private 20).
+ * Founder, 2026-11-08. Checked on the Stripe test account on 8 Nov: Klarna, Affirm and
+ * Afterpay all open on $995, $1,495 and $2,495. Each must also be on in live mode at launch.
+ */
+export const ONE_PAYMENT_METHODS = ["card", "klarna", "affirm", "afterpay_clearpay"] as const;
 
 /** Server-side Stripe client. Never import in browser code.
  *
@@ -61,6 +69,7 @@ export async function createCheckoutSession({
   spec,
   userId,
   cohortId,
+  payment,
   successUrl,
   cancelUrl,
 }: {
@@ -69,12 +78,32 @@ export async function createCheckoutSession({
   userId: string;
   /** The cohort a Cohort seat is for, when the family picked one. */
   cohortId?: string;
+  /** Cohort only: "installments" for the $95 deposit and three monthly payments. */
+  payment?: CohortPayment;
   successUrl: string;
   cancelUrl: string;
 }) {
-  const price = await getCheckoutPrice(spec);
   const cohort: Record<string, string> =
     spec.planId === "cohort" && cohortId ? { cohort_id: cohortId } : {};
+
+  // The cohort's instalment plan: the $95 deposit now, with the card saved for the three
+  // monthly $300 payments that the webhook schedules from the cohort's start.
+  if (spec.planId === "cohort" && payment === "installments") {
+    const deposit = await getCheckoutPrice(cohortInstallmentSpecs().deposit);
+    const metadata = { userId, planId: spec.planId, term: "installments", ...cohort };
+    return stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [{ price: deposit.id, quantity: 1 }],
+      payment_intent_data: { setup_future_usage: "off_session", metadata },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata,
+    });
+  }
+
+  const price = await getCheckoutPrice(spec);
   const metadata = { userId, planId: spec.planId, term: spec.term, ...cohort };
   const shared: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
@@ -95,6 +124,7 @@ export async function createCheckoutSession({
   }
   return stripe.checkout.sessions.create({
     ...shared,
+    payment_method_types: [...ONE_PAYMENT_METHODS],
     mode: "payment",
     // The admin scholarship payout refunds the cohort price by cohort_id.
     payment_intent_data: { metadata: { userId, planId: spec.planId, ...cohort } },

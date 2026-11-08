@@ -38,8 +38,8 @@ export type BillingTerm = (typeof BILLING_TERMS)[number];
 export interface StripePriceSpec {
   lookupKey: string;
   planId: CheckoutPlanId;
-  /** The billing term, or "once" for a one-time payment. */
-  term: BillingTerm | "once";
+  /** The billing term, "once" for a one-time payment, or the cohort instalment plan's parts. */
+  term: BillingTerm | "once" | "deposit" | "installment";
   /** The Stripe product name (one product per plan). */
   productName: string;
   /** Whole US dollars. */
@@ -119,7 +119,37 @@ export const STRIPE_PRICES: readonly StripePriceSpec[] = [
     amount: TUTOR_AFFILIATE_PLAN.monthly,
     intervalMonths: 1,
   },
+  // The cohort's instalment plan: the deposit, then three monthly payments
+  // (see cohort-installments.ts). Listed after "cohort" so findStripePrice
+  // still returns the $995 price for the cohort.
+  {
+    lookupKey: "cohort_deposit",
+    planId: "cohort",
+    term: "deposit",
+    productName: MARCH_PROGRAM.planName,
+    amount: MARCH_PROGRAM.depositAmount,
+    intervalMonths: null,
+  },
+  {
+    lookupKey: "cohort_installment",
+    planId: "cohort",
+    term: "installment",
+    productName: MARCH_PROGRAM.planName,
+    amount: MARCH_PROGRAM.installments.amount,
+    intervalMonths: 1,
+  },
 ];
+
+/** The instalment plan's two prices, by lookup key. */
+export function cohortInstallmentSpecs(): {
+  deposit: StripePriceSpec;
+  installment: StripePriceSpec;
+} {
+  const deposit = STRIPE_PRICES.find((p) => p.lookupKey === "cohort_deposit");
+  const installment = STRIPE_PRICES.find((p) => p.lookupKey === "cohort_installment");
+  if (!deposit || !installment) throw new Error("The cohort instalment prices are missing");
+  return { deposit, installment };
+}
 
 export function isSubscriptionPlan(planId: string): planId is SubscriptionPlanId {
   return (SUBSCRIPTION_PLAN_IDS as readonly string[]).includes(planId);

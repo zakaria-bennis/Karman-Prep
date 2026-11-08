@@ -12,7 +12,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 import type { PlanAccess, PlanUsage } from "./access";
 import {
   GRANT_PLAN_IDS,
-  ONE_TIME_ACCESS_MONTHS,
   ONE_TIME_PLAN_IDS,
   SUBSCRIPTION_PLAN_IDS,
   compareGenerosity,
@@ -21,6 +20,7 @@ import {
   type PlanEntitlements,
   type SubscriptionPlanId,
 } from "./catalog";
+import { SAT_DATE_PATTERN, isPurchaseAccessOpen, purchaseAccessEndsAt } from "./purchase-access";
 
 export const GRANT_SOURCES = ["purchase", "school", "tutor-affiliate", "admin"] as const;
 export type GrantSource = (typeof GRANT_SOURCES)[number];
@@ -73,6 +73,8 @@ export interface PlanDataSource {
   answeredQuestionCount(userId: string): Promise<number>;
   /** Full-length tests the user has completed. */
   completedFullLengthTests(userId: string): Promise<number>;
+  /** The user's `users.sat_test_date` (YYYY-MM-DD), or null when none is set. */
+  satTestDate(userId: string): Promise<string | null>;
 }
 
 /** One active source of access. */
@@ -82,7 +84,7 @@ export interface PlanSource {
   planId: PlanId;
   /** `stripe_subscription_id`, or `plan_grants.id`. */
   id: string;
-  /** When it stops counting: period end or expiry. Null = open-ended. */
+  /** When it stops counting: period end, expiry, or a purchase's SAT day end. Null = open-ended. */
   endsAt: string | null;
   /** The tutor paying for a tutor-affiliate grant. */
   sponsorUserId?: string;
@@ -139,17 +141,23 @@ const hasActiveAffiliate = (subs: readonly SubscriptionRecord[], tutorId: string
     (s) => s.userId === tutorId && s.planId === "tutor-affiliate" && isSubscriptionActive(s, now)
   );
 
+const earlier = (a: string | null, b: string | null) =>
+  a === null ? b : b === null || Date.parse(a) <= Date.parse(b) ? a : b;
+
 /**
  * Turn loaded rows into a user's access. `subscriptions` holds the user's own
- * rows plus their affiliate sponsors' rows; the rest are ignored.
+ * rows plus their affiliate sponsors' rows; the rest are ignored. A purchase
+ * grant also counts only until the user's SAT date is over (purchase-access.ts).
  */
 export function resolvePlan(input: {
   userId: string;
   subscriptions: readonly SubscriptionRecord[];
   grants: readonly PlanGrant[];
+  /** The user's `sat_test_date` (YYYY-MM-DD); null when none is set. */
+  satTestDate: string | null;
   now?: Date;
 }): ResolvedPlan {
-  const { userId, subscriptions, grants } = input;
+  const { userId, subscriptions, grants, satTestDate } = input;
   const now = input.now ?? new Date();
   const sources: PlanSource[] = [];
   for (const sub of subscriptions) {
@@ -176,11 +184,15 @@ export function resolvePlan(input: {
       !(sponsor && hasActiveAffiliate(subscriptions, sponsor, now))
     )
       continue;
+    const purchase = grant.source === "purchase";
+    if (purchase && !isPurchaseAccessOpen(satTestDate, now)) continue;
     sources.push({
       kind: grant.source,
       planId: grant.planId,
       id: grant.id,
-      endsAt: grant.expiresAt,
+      endsAt: purchase
+        ? earlier(grant.expiresAt, purchaseAccessEndsAt(satTestDate))
+        : grant.expiresAt,
       ...(sponsor ? { sponsorUserId: sponsor } : {}),
     });
   }
@@ -268,13 +280,24 @@ export async function getPlan(
 ): Promise<ResolvedPlan> {
   const id = clerkIdSchema.parse(userId);
   const [own, grants] = await Promise.all([source.subscriptions([id]), source.grants(id)]);
+  const current = grants.filter((grant) => isGrantCurrent(grant, now));
   const sponsorIds = new Set<string>();
-  for (const grant of grants) {
-    if (grant.source === "tutor-affiliate" && grant.sponsorUserId && isGrantCurrent(grant, now))
+  for (const grant of current) {
+    if (grant.source === "tutor-affiliate" && grant.sponsorUserId)
       sponsorIds.add(grant.sponsorUserId);
   }
-  const sponsors = sponsorIds.size ? await source.subscriptions([...sponsorIds]) : [];
-  return resolvePlan({ userId: id, subscriptions: [...own, ...sponsors], grants, now });
+  // The SAT date only matters to a purchase, so skip the lookup without one.
+  const [sponsors, satTestDate] = await Promise.all([
+    sponsorIds.size ? source.subscriptions([...sponsorIds]) : [],
+    current.some((grant) => grant.source === "purchase") ? source.satTestDate(id) : null,
+  ]);
+  return resolvePlan({
+    userId: id,
+    subscriptions: [...own, ...sponsors],
+    grants,
+    satTestDate,
+    now,
+  });
 }
 
 /** Free-plan usage. Only needed when the plan has a limit (`questionLimit` or `fullLengthTestLimit`). */
@@ -346,8 +369,8 @@ export async function grantPlan(
 
 /**
  * The Stripe webhook's call after a one-time payment (cohort, private-10,
- * private-20). Idempotent on the checkout session id. The plan runs for
- * ONE_TIME_ACCESS_MONTHS from the purchase.
+ * private-20). Idempotent on the checkout session id. The grant has no
+ * expiry: `getPlan` keeps it open until the student's SAT date is over.
  */
 export async function recordPurchaseGrant(
   input: PurchaseGrantInput,
@@ -355,17 +378,13 @@ export async function recordPurchaseGrant(
   now: Date = new Date()
 ): Promise<GrantResult> {
   const p = purchaseGrantInputSchema.parse(input);
-  const startsAt = p.purchasedAt ?? now;
-  const expiresAt = new Date(startsAt.getTime());
-  expiresAt.setUTCMonth(expiresAt.getUTCMonth() + ONE_TIME_ACCESS_MONTHS);
   return grantPlan(
     {
       userId: p.userId,
       planId: p.planId,
       source: "purchase",
       sourceRef: p.checkoutSessionId,
-      startsAt,
-      expiresAt,
+      startsAt: p.purchasedAt ?? now,
     },
     source,
     now
@@ -459,6 +478,7 @@ const subscriptionRowSchema = z.object({
 });
 const idRow = z.object({ id: z.string() });
 const answerRow = z.object({ question_id: z.string() });
+const satDateRow = z.object({ sat_test_date: z.string().regex(SAT_DATE_PATTERN).nullable() });
 
 /**
  * Where answers are recorded: skill practice (catalog_practice_*) and the
@@ -624,6 +644,15 @@ export function supabasePlanDataSource(
     // free test.
     async completedFullLengthTests() {
       return 0;
+    },
+    async satTestDate(userId) {
+      const { data, error } = await db
+        .from("users")
+        .select("sat_test_date")
+        .eq("clerk_id", userId)
+        .maybeSingle();
+      if (error) throw new Error("SAT date could not be loaded");
+      return data ? satDateRow.parse(data).sat_test_date : null;
     },
   };
 }
