@@ -9,7 +9,7 @@ import { stripe } from "@/lib/integrations/stripe/client";
 import { CHECK_VERSION, runScoreReportCheck } from "./pdf-check";
 import { looksLikePdf, readPdfFacts } from "./pdf-read";
 import { APPROVE_BLOCK_MESSAGES, canApprove } from "./ranking";
-import { PayoutBlockedError, runScholarshipPayout, type PayoutProgress } from "./payout";
+import { PayoutBlockedError, runScholarshipRefund, type RefundProgress } from "./payout";
 import { getPrivateFileStore, scholarshipReportKey, type PrivateFileStore } from "./storage";
 import {
   addEvent,
@@ -206,25 +206,34 @@ export async function approveClaim(
   if (claim.check_verdict !== "pass" && note.trim().length < 3) {
     throw new ScholarshipError("The automatic check didn't pass. Write what you checked by hand.");
   }
-  const block = canApprove(claimId, (await cohortClaims(claim.cohort_id)).map(toRankInput));
-  if (!block.ok) throw new ScholarshipError(APPROVE_BLOCK_MESSAGES[block.reason]);
+  const check = canApprove(
+    claimId,
+    (await cohortClaims(claim.cohort_id)).map(toRankInput),
+    COHORT_SCHOLARSHIP.amount * 100
+  );
+  if (!check.ok) throw new ScholarshipError(APPROVE_BLOCK_MESSAGES[check.reason]);
   const row = await updateClaim(
     claimId,
     {
       status: "approved",
+      award_cents: check.shareCents,
       reviewed_by: adminUserId,
       reviewed_at: new Date().toISOString(),
       review_reason: note.trim() || null,
     },
     { status: ["submitted"] }
   ).catch((err: Error) => {
-    if (/one_award_per_cohort/.test(err.message)) {
-      throw new ScholarshipError(APPROVE_BLOCK_MESSAGES.already_awarded);
+    if (/scholarship_award_cap/.test(err.message)) {
+      throw new ScholarshipError(APPROVE_BLOCK_MESSAGES.uneven_split);
     }
     throw err;
   });
   if (!row) throw new ScholarshipError("Someone else changed this claim. Reload and try again.");
-  await addEvent(claimId, "approved", adminUserId, { note: note.trim() || null });
+  await addEvent(claimId, "approved", adminUserId, {
+    note: note.trim() || null,
+    share_cents: check.shareCents,
+    tied_with: check.tiedWith,
+  });
   return row;
 }
 
@@ -237,6 +246,7 @@ export async function rejectClaim(
     claimId,
     {
       status: "rejected",
+      award_cents: null,
       reviewed_by: adminUserId,
       reviewed_at: new Date().toISOString(),
       review_reason: reason,
@@ -251,7 +261,13 @@ export async function rejectClaim(
 export async function reopenClaim(claimId: string, adminUserId: string): Promise<ClaimRow> {
   const row = await updateClaim(
     claimId,
-    { status: "submitted", reviewed_by: null, reviewed_at: null, review_reason: null },
+    {
+      status: "submitted",
+      award_cents: null,
+      reviewed_by: null,
+      reviewed_at: null,
+      review_reason: null,
+    },
     { status: ["approved", "rejected"], payoutStatus: ["none"] }
   );
   if (!row) throw new ScholarshipError("Only an unpaid decision can be undone.");
@@ -259,26 +275,25 @@ export async function reopenClaim(claimId: string, adminUserId: string): Promise
   return row;
 }
 
-function progressColumns(p: PayoutProgress): Record<string, unknown> {
-  const map: Record<keyof PayoutProgress, string> = {
+function progressColumns(p: RefundProgress): Record<string, unknown> {
+  const map: Record<keyof RefundProgress, string> = {
     stripePaymentIntentId: "stripe_payment_intent_id",
-    stripeCustomerId: "stripe_customer_id",
     stripeLivemode: "stripe_livemode",
     stripeRefundId: "stripe_refund_id",
     refundAmountCents: "refund_amount_cents",
     refundedAt: "refunded_at",
-    bonusMethod: "bonus_method",
-    stripeBonusId: "stripe_bonus_id",
-    bonusAmountCents: "bonus_amount_cents",
-    bonusPaidAt: "bonus_paid_at",
   };
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(p)) {
-    if (v !== undefined) out[map[k as keyof PayoutProgress]] = v;
+    if (v !== undefined) out[map[k as keyof RefundProgress]] = v;
   }
   return out;
 }
 
+/**
+ * The Stripe step: refund the cohort payment (test mode only). What is left of the claim's
+ * share is the merit bonus, due by bank transfer. With nothing left, the claim is paid.
+ */
 export async function payClaim(
   claimId: string,
   adminUserId: string,
@@ -286,80 +301,95 @@ export async function payClaim(
 ): Promise<ClaimRow> {
   const claim = await getClaim(claimId);
   if (!claim) throw new ScholarshipError("This claim no longer exists.");
-  if (claim.status !== "approved")
+  if (claim.status !== "approved" || !claim.award_cents) {
     throw new ScholarshipError("Approve the claim before paying it.");
+  }
 
-  // Take the payout lock: only one payout runs per claim.
   const locked = await updateClaim(
     claimId,
     { payout_status: "processing", payout_error: null, payout_attempts: claim.payout_attempts + 1 },
-    { status: ["approved"], payoutStatus: ["none", "failed", "refunded"] }
+    { status: ["approved"], payoutStatus: ["none", "failed"] }
   );
-  if (!locked) throw new ScholarshipError("A payout is already running for this claim.");
+  if (!locked) throw new ScholarshipError("The refund is already done or running for this claim.");
   await addEvent(claimId, "payout_started", adminUserId, { attempt: locked.payout_attempts });
 
   const student = await getUserById(claim.user_id);
-  let refunded = Boolean(claim.stripe_refund_id);
   try {
-    const split = await runScholarshipPayout({
+    const split = await runScholarshipRefund({
       stripe,
       claim: {
         id: claim.id,
         cohortId: claim.cohort_id,
         userId: claim.user_id,
         clerkId: student?.clerkId ?? "",
-        studentEmail: student?.email ?? null,
-        studentName: [student?.firstName, student?.lastName].filter(Boolean).join(" ") || null,
         stripePaymentIntentId: claim.stripe_payment_intent_id,
-        stripeCustomerId: claim.stripe_customer_id,
         stripeRefundId: claim.stripe_refund_id,
         refundAmountCents: claim.refund_amount_cents,
-        stripeBonusId: claim.stripe_bonus_id,
-        bonusAmountCents: claim.bonus_amount_cents,
       },
-      awardCents: COHORT_SCHOLARSHIP.amount * 100,
+      shareCents: claim.award_cents,
       cohortPriceCents: COHORT_SCHOLARSHIP.refund * 100,
       paymentIntentOverride: paymentIntentOverride ?? null,
       save: async (p) => {
         await updateClaim(claimId, progressColumns(p));
         if (p.stripeRefundId) {
-          if (!refunded)
-            await addEvent(claimId, "refund_succeeded", adminUserId, {
-              refund: p.stripeRefundId,
-              cents: p.refundAmountCents,
-            });
-          refunded = true;
-        }
-        if (p.stripeBonusId) {
-          await addEvent(claimId, "bonus_succeeded", adminUserId, {
-            bonus: p.stripeBonusId,
-            cents: p.bonusAmountCents,
-            method: p.bonusMethod,
+          await addEvent(claimId, "refund_succeeded", adminUserId, {
+            refund: p.stripeRefundId,
+            cents: p.refundAmountCents,
           });
         }
       },
     });
-    const done = await updateClaim(claimId, {
-      status: "paid",
-      payout_status: "paid",
-      paid_at: new Date().toISOString(),
+    const done = split.bonusCents === 0;
+    const row = await updateClaim(claimId, {
+      payout_status: done ? "paid" : "refunded",
+      bonus_amount_cents: split.bonusCents,
+      ...(done ? { status: "paid", paid_at: new Date().toISOString() } : {}),
     });
-    await addEvent(claimId, "paid", adminUserId, {
-      refund_cents: split.refundCents,
-      bonus_cents: split.bonusCents,
-    });
-    if (!done) throw new ScholarshipError("This claim no longer exists.");
-    return done;
+    if (done) await addEvent(claimId, "paid", adminUserId, { refund_cents: split.refundCents });
+    if (!row) throw new ScholarshipError("This claim no longer exists.");
+    return row;
   } catch (err) {
     const message =
       err instanceof PayoutBlockedError || err instanceof ScholarshipError
         ? err.message
         : `Stripe said: ${err instanceof Error ? err.message : "unknown error"}`;
-    await updateClaim(claimId, {
-      payout_status: refunded ? "refunded" : "failed",
-      payout_error: message.slice(0, 2000),
-    });
+    await updateClaim(claimId, { payout_status: "failed", payout_error: message.slice(0, 2000) });
     await addEvent(claimId, "payout_failed", adminUserId, { error: message.slice(0, 500) });
     throw new ScholarshipError(message);
   }
+}
+
+/** The admin records the merit bonus once the bank transfer has been sent by hand. */
+export async function markBonusPaid(
+  claimId: string,
+  adminUserId: string,
+  transfer: { paidOn: string; reference: string }
+): Promise<ClaimRow> {
+  const now = new Date().toISOString();
+  const row = await updateClaim(
+    claimId,
+    {
+      bonus_paid_on: transfer.paidOn,
+      bonus_transfer_reference: transfer.reference,
+      bonus_recorded_by: adminUserId,
+      bonus_recorded_at: now,
+      payout_status: "paid",
+      status: "paid",
+      paid_at: now,
+    },
+    { status: ["approved"], payoutStatus: ["refunded"] }
+  );
+  if (!row) {
+    throw new ScholarshipError("Refund the cohort payment first. Then record the bank transfer.");
+  }
+  await addEvent(claimId, "bonus_transfer_recorded", adminUserId, {
+    paid_on: transfer.paidOn,
+    reference: transfer.reference,
+    cents: row.bonus_amount_cents,
+  });
+  await addEvent(claimId, "paid", adminUserId, {
+    refund_cents: row.refund_amount_cents,
+    bonus_cents: row.bonus_amount_cents,
+  });
+  return row;
 }

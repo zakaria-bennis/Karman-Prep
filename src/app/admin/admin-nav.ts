@@ -18,6 +18,8 @@ const TITLES: Array<[string, string]> = [
   ["/admin/schools", "Schools"],
   ["/admin/bank", "Question bank"],
   ["/admin/users", "People"],
+  ["/admin/students", "Students"],
+  ["/admin/tutors", "Tutors"],
   ["/admin/cohorts", "Cohorts"],
   ["/admin/revenue", "Revenue"],
   ["/admin/moderation", "Moderation"],

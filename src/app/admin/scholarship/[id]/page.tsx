@@ -18,7 +18,7 @@ import {
   listEvents,
   toRankInput,
 } from "@/lib/scholarship/queries";
-import { rankClaims } from "@/lib/scholarship/ranking";
+import { canApprove, rankClaims } from "@/lib/scholarship/ranking";
 import {
   WbPage,
   WbPill,
@@ -33,6 +33,7 @@ import {
   REASON_TONE,
   STATUS_LABEL,
   STATUS_TONE,
+  claimStage,
   VERDICT_LABEL,
   VERDICT_TONE,
 } from "../labels";
@@ -79,12 +80,17 @@ export default async function ScholarshipClaimPage({
       siblings.map(async (s) => [s.id, fullName(await getUserById(s.user_id))] as const)
     )
   );
+  // The claim's share: set at approval, or what approving it now would give (a tie splits it).
+  const awardCents = COHORT_SCHOLARSHIP.amount * 100;
+  const approval = canApprove(claim.id, siblings.map(toRankInput), awardCents);
+  const shareCents = claim.award_cents ?? (approval.ok ? approval.shareCents : awardCents);
   const split = computePayoutSplit({
-    awardCents: COHORT_SCHOLARSHIP.amount * 100,
+    awardCents: shareCents,
     cohortPriceCents: COHORT_SCHOLARSHIP.refund * 100,
     paidCents: COHORT_SCHOLARSHIP.refund * 100,
     refundedElsewhereCents: 0,
   });
+  const stageOf = new Map(siblings.map((x) => [x.id, claimStage(x)]));
   const name = fullName(student);
   const m = claim.check_metadata;
 
@@ -99,13 +105,17 @@ export default async function ScholarshipClaimPage({
       }
     >
       <div className="wb-toolbar">
-        <WbPill tone={STATUS_TONE[claim.status]}>{STATUS_LABEL[claim.status]}</WbPill>
+        <WbPill tone={STATUS_TONE[claimStage(claim)]}>{STATUS_LABEL[claimStage(claim)]}</WbPill>
         {claim.check_verdict && (
           <WbPill tone={VERDICT_TONE[claim.check_verdict]}>
             Check: {VERDICT_LABEL[claim.check_verdict]}
           </WbPill>
         )}
-        {mine?.rank === 1 && <WbPill tone="ok">Top score in the cohort</WbPill>}
+        {mine?.rank === 1 && (
+          <WbPill tone="ok">
+            {mine.tied ? "Tied for the top score" : "Top score in the cohort"}
+          </WbPill>
+        )}
         {mine?.tied && <WbPill tone="warn">Tied score</WbPill>}
       </div>
 
@@ -119,25 +129,21 @@ export default async function ScholarshipClaimPage({
             payoutError={claim.payout_error}
             reviewReason={claim.review_reason}
             isTop={mine?.rank === 1}
-            refundLabel={centsToDollars(split.refundCents)}
-            bonusLabel={centsToDollars(split.bonusCents)}
-            paid={
-              claim.status === "paid"
+            approveBlock={approval.ok ? null : approval.reason}
+            shareLabel={centsToDollars(shareCents)}
+            tiedWith={approval.ok ? approval.tiedWith : 0}
+            refundLabel={centsToDollars(claim.refund_amount_cents ?? split.refundCents)}
+            bonusLabel={centsToDollars(claim.bonus_amount_cents ?? split.bonusCents)}
+            refundId={claim.stripe_refund_id}
+            transfer={
+              claim.bonus_paid_on
                 ? {
-                    refund:
-                      claim.refund_amount_cents !== null
-                        ? centsToDollars(claim.refund_amount_cents)
-                        : "—",
-                    bonus:
-                      claim.bonus_amount_cents !== null
-                        ? centsToDollars(claim.bonus_amount_cents)
-                        : "—",
-                    refundId: claim.stripe_refund_id,
-                    bonusId: claim.stripe_bonus_id,
-                    paidAt: formatDateTime(claim.paid_at),
+                    paidOn: formatDate(claim.bonus_paid_on),
+                    reference: claim.bonus_transfer_reference ?? "",
                   }
                 : null
             }
+            paidAt={claim.paid_at ? formatDateTime(claim.paid_at) : null}
           />
 
           <WbSection title="Automatic check">
@@ -251,7 +257,10 @@ export default async function ScholarshipClaimPage({
             {
               key: "status",
               label: "Status",
-              cell: (r) => <WbPill tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</WbPill>,
+              cell: (r) => {
+                const stage = stageOf.get(r.id) ?? "submitted";
+                return <WbPill tone={STATUS_TONE[stage]}>{STATUS_LABEL[stage]}</WbPill>;
+              },
             },
           ]}
         />

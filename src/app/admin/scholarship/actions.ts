@@ -11,12 +11,14 @@ import { AdminRequiredError, requireAdmin } from "@/lib/auth/admin-guard";
 import {
   approveClaimSchema,
   claimIdSchema,
+  markBonusPaidSchema,
   payClaimSchema,
   rejectClaimSchema,
 } from "@/lib/scholarship/schemas";
 import {
   ScholarshipError,
   approveClaim,
+  markBonusPaid,
   payClaim,
   rejectClaim,
   reopenClaim,
@@ -75,4 +77,12 @@ export async function actionPayScholarship(input: unknown): Promise<ActionResult
   const v = payClaimSchema.safeParse(input);
   if (!v.success) return invalid(v.error);
   return run(v.data.claimId, (admin) => payClaim(v.data.claimId, admin, v.data.paymentIntentId));
+}
+
+export async function actionMarkScholarshipBonusPaid(input: unknown): Promise<ActionResult> {
+  const v = markBonusPaidSchema.safeParse(input);
+  if (!v.success) return invalid(v.error);
+  return run(v.data.claimId, (admin) =>
+    markBonusPaid(v.data.claimId, admin, { paidOn: v.data.paidOn, reference: v.data.reference })
+  );
 }

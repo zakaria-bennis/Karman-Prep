@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   approveClaimSchema,
   claimListFilterSchema,
+  markBonusPaidSchema,
   payClaimSchema,
   rejectClaimSchema,
   reportFileSchema,
@@ -76,6 +77,20 @@ describe("schemas", () => {
     );
   });
 
+  it("records a bank transfer only with a past date and a reference", () => {
+    expect(
+      markBonusPaidSchema.safeParse({ claimId: ID, paidOn: "2026-11-08", reference: "WIRE-0042" })
+        .success
+    ).toBe(true);
+    expect(
+      markBonusPaidSchema.safeParse({ claimId: ID, paidOn: "2999-01-01", reference: "WIRE-0042" })
+        .success
+    ).toBe(false);
+    expect(
+      markBonusPaidSchema.safeParse({ claimId: ID, paidOn: "2026-11-08", reference: " " }).success
+    ).toBe(false);
+  });
+
   it("falls back to safe list filters", () => {
     expect(claimListFilterSchema.parse({ status: "weird", q: 5 })).toEqual({
       status: "submitted",
@@ -129,5 +144,7 @@ describe("terms section", () => {
     expect(COHORT_SCHOLARSHIP.refund + COHORT_SCHOLARSHIP.meritBonus).toBe(1500);
     expect(SCHOLARSHIP_TERMS_SECTION.content).toContain("$1,500");
     expect(SCHOLARSHIP_TERMS_SECTION.list.join(" ")).toContain("PSAT");
+    expect(SCHOLARSHIP_TERMS_SECTION.list.join(" ")).toContain("$750 each when two students tie");
+    expect(SCHOLARSHIP_TERMS_SECTION.list.join(" ")).toContain("by bank transfer");
   });
 });

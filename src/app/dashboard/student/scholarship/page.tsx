@@ -35,7 +35,7 @@ function ClaimStatus({ claim, cohortName }: { claim: ClaimRow; cohortName: strin
     },
     approved: {
       title: "You won the scholarship",
-      body: `Congratulations. Your payment goes out within ${COHORT_SCHOLARSHIP.payWithinDays} days.`,
+      body: `Congratulations. Your refund and the bank transfer for the bonus go out within ${COHORT_SCHOLARSHIP.payWithinDays} days.`,
     },
     rejected: {
       title: "We couldn't accept this report",
@@ -43,9 +43,11 @@ function ClaimStatus({ claim, cohortName }: { claim: ClaimRow; cohortName: strin
     },
     paid: {
       title: "Your scholarship is paid",
-      body: `${centsToDollars(claim.refund_amount_cents ?? 0)} refunded to your original payment method and a ${centsToDollars(
-        claim.bonus_amount_cents ?? 0
-      )} merit bonus credited to your Karman account.`,
+      body: `${centsToDollars(claim.refund_amount_cents ?? 0)} refunded to your original payment method${
+        claim.bonus_amount_cents
+          ? ` and a ${centsToDollars(claim.bonus_amount_cents)} merit bonus sent by bank transfer`
+          : ""
+      }.`,
     },
   };
   const line = lines[claim.status];

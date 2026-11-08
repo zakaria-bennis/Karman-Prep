@@ -1,11 +1,11 @@
 // ============================================================
-// Ranking: who has the top score in each cohort.
+// Ranking: who has the top score in each cohort, and their share.
 //
-// Order (the tie rule in the terms): higher total score first,
-// then the earlier official test date, then the earlier upload.
-// Rejected claims are left out. A score read from the PDF counts
-// as verified; a score the student only typed does not, and is
-// shown as such so the admin checks it by eye.
+// The highest total score wins. Equal scores share a rank, and a
+// tie for the top splits the award equally (founder, 8 Nov: two
+// students tied at the top get $750 each). Rejected claims are
+// left out. A score read from the PDF counts as verified; a score
+// the student only typed does not, and is shown as such.
 // ============================================================
 
 export type ClaimStatus = "submitted" | "approved" | "rejected" | "paid";
@@ -19,10 +19,12 @@ export interface RankInput {
   extractedTestDate: string | null;
   declaredTestDate: string | null;
   submittedAt: string;
+  /** The share an approved or paid claim was given. */
+  awardCents?: number | null;
 }
 
 export interface Ranked extends RankInput {
-  /** 1 = top of the cohort. Null for rejected claims. */
+  /** 1 = top of the cohort; equal scores share a rank. Null for rejected claims. */
   rank: number | null;
   score: number | null;
   scoreVerified: boolean;
@@ -34,16 +36,13 @@ function scoreOf(c: RankInput): number | null {
   return c.extractedTotal ?? c.declaredTotal;
 }
 
-function dateOf(c: RankInput): string | null {
-  return c.extractedTestDate ?? c.declaredTestDate;
-}
-
+/** Display order: score, then earlier test date, then earlier upload. */
 export function compareClaims(a: RankInput, b: RankInput): number {
   const sa = scoreOf(a) ?? -1;
   const sb = scoreOf(b) ?? -1;
   if (sa !== sb) return sb - sa;
-  const da = dateOf(a) ?? "9999-12-31";
-  const db = dateOf(b) ?? "9999-12-31";
+  const da = a.extractedTestDate ?? a.declaredTestDate ?? "9999-12-31";
+  const db = b.extractedTestDate ?? b.declaredTestDate ?? "9999-12-31";
   if (da !== db) return da < db ? -1 : 1;
   return a.submittedAt < b.submittedAt ? -1 : a.submittedAt > b.submittedAt ? 1 : 0;
 }
@@ -64,11 +63,15 @@ export function rankClaims(claims: RankInput[]): Ranked[] {
       const s = scoreOf(c);
       if (s !== null) counts.set(s, (counts.get(s) ?? 0) + 1);
     }
+    let rank = 0;
+    let previous: number | null | undefined;
     eligible.forEach((c, i) => {
       const s = scoreOf(c);
+      if (s === null || s !== previous) rank = i + 1;
+      previous = s;
       out.push({
         ...c,
-        rank: i + 1,
+        rank,
         score: s,
         scoreVerified: c.extractedTotal !== null,
         tied: s !== null && (counts.get(s) ?? 0) > 1,
@@ -87,28 +90,48 @@ export function rankClaims(claims: RankInput[]): Ranked[] {
   return out;
 }
 
-export type ApproveBlock =
-  | { ok: true }
-  | { ok: false; reason: "not_found" | "not_submitted" | "already_awarded" | "not_top" };
+export type ApproveCheck =
+  | { ok: true; shareCents: number; tiedWith: number }
+  | {
+      ok: false;
+      reason: "not_found" | "not_submitted" | "already_awarded" | "not_top" | "uneven_split";
+    };
 
-/** Only the top-ranked claim of a cohort with no award yet can be approved. */
-export function canApprove(claimId: string, cohortClaims: RankInput[]): ApproveBlock {
+/**
+ * Only a claim with the cohort's top score can be approved. A tie splits the award equally
+ * among the tied claims that aren't rejected. If an earlier approval in the tie was given a
+ * different share (for example before a third student tied), undo it first.
+ */
+export function canApprove(
+  claimId: string,
+  cohortClaims: RankInput[],
+  awardCents: number
+): ApproveCheck {
   const claim = cohortClaims.find((c) => c.id === claimId);
   if (!claim) return { ok: false, reason: "not_found" };
   if (claim.status !== "submitted") return { ok: false, reason: "not_submitted" };
-  if (cohortClaims.some((c) => c.status === "approved" || c.status === "paid")) {
+  const ranked = rankClaims(cohortClaims);
+  const mine = ranked.find((c) => c.id === claimId);
+  if (!mine || mine.rank !== 1 || mine.score === null) return { ok: false, reason: "not_top" };
+  const group = ranked.filter((c) => c.rank === 1 && c.score === mine.score);
+  const awarded = cohortClaims.filter((c) => c.status === "approved" || c.status === "paid");
+  if (awarded.some((c) => !group.some((g) => g.id === c.id))) {
     return { ok: false, reason: "already_awarded" };
   }
-  const ranked = rankClaims(cohortClaims).find((c) => c.id === claimId);
-  if (!ranked || ranked.rank !== 1) return { ok: false, reason: "not_top" };
-  return { ok: true };
+  const shareCents = Math.floor(awardCents / group.length);
+  if (awarded.some((c) => (c.awardCents ?? shareCents) !== shareCents)) {
+    return { ok: false, reason: "uneven_split" };
+  }
+  return { ok: true, shareCents, tiedWith: group.length - 1 };
 }
 
-export const APPROVE_BLOCK_MESSAGES: Record<Exclude<ApproveBlock, { ok: true }>["reason"], string> =
+export const APPROVE_BLOCK_MESSAGES: Record<Exclude<ApproveCheck, { ok: true }>["reason"], string> =
   {
     not_found: "This claim no longer exists.",
     not_submitted: "Only a claim waiting for review can be approved.",
-    already_awarded: "This cohort's scholarship has already been awarded.",
+    already_awarded: "This cohort's scholarship has already been awarded to another student.",
     not_top:
       "Another claim in this cohort has a higher score. Reject it first if it doesn't qualify.",
+    uneven_split:
+      "Another tied claim was approved with a different share. Undo that approval, then approve the tied claims again so the award splits evenly.",
   };

@@ -1,16 +1,22 @@
 "use client";
 
 // ============================================================
-// The decision box on a scholarship claim: approve (with a note
-// when the automatic check didn't pass), reject with a reason,
-// re-run the check, undo a decision, and pay in Stripe test mode.
+// The decision box on a scholarship claim:
+//   1. approve (a note is required when the automatic check didn't
+//      pass) or reject with a reason; re-run the check; undo;
+//   2. refund the cohort payment in Stripe test mode;
+//   3. record the merit bonus once the bank transfer is sent by
+//      hand: the date and the bank's reference.
+// A tie splits the award, so the share is shown before approving.
 // ============================================================
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { WbSection } from "@/components/admin/workbench";
+import { APPROVE_BLOCK_MESSAGES, type ApproveCheck } from "@/lib/scholarship/ranking";
 import {
   actionApproveScholarship,
+  actionMarkScholarshipBonusPaid,
   actionPayScholarship,
   actionRejectScholarship,
   actionReopenScholarship,
@@ -18,6 +24,7 @@ import {
 } from "../actions";
 
 type Result = { ok: true } | { ok: false; error: string };
+type BlockReason = Exclude<ApproveCheck, { ok: true }>["reason"];
 
 interface Props {
   claimId: string;
@@ -27,15 +34,14 @@ interface Props {
   payoutError: string | null;
   reviewReason: string | null;
   isTop: boolean;
+  approveBlock: BlockReason | null;
+  shareLabel: string;
+  tiedWith: number;
   refundLabel: string;
   bonusLabel: string;
-  paid: {
-    refund: string;
-    bonus: string;
-    refundId: string | null;
-    bonusId: string | null;
-    paidAt: string;
-  } | null;
+  refundId: string | null;
+  transfer: { paidOn: string; reference: string } | null;
+  paidAt: string | null;
 }
 
 export default function ReviewPanel(p: Props) {
@@ -46,6 +52,8 @@ export default function ReviewPanel(p: Props) {
   const [reason, setReason] = useState("");
   const [rejecting, setRejecting] = useState(false);
   const [paymentId, setPaymentId] = useState("");
+  const [paidOn, setPaidOn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reference, setReference] = useState("");
 
   function run(fn: () => Promise<Result>, done: string) {
     setMessage(null);
@@ -62,15 +70,22 @@ export default function ReviewPanel(p: Props) {
   }
 
   const needsNote = p.verdict !== "pass";
+  const refundDone = p.status === "approved" && p.payoutStatus === "refunded";
+  const canUndo =
+    p.status === "approved" && (p.payoutStatus === "none" || p.payoutStatus === "failed");
 
   return (
     <WbSection title="Decision">
       <div className="wb-grid">
         {p.status === "submitted" && (
           <>
-            {!p.isTop && (
+            {p.approveBlock ? (
+              <p className="wb-note">{APPROVE_BLOCK_MESSAGES[p.approveBlock]}</p>
+            ) : (
               <p className="wb-note">
-                Another claim in this cohort has a higher score. Only the top claim can be approved.
+                {p.tiedWith > 0
+                  ? `Tied for the top score with ${p.tiedWith} other ${p.tiedWith === 1 ? "student" : "students"}: the award splits, so this claim gets ${p.shareLabel}.`
+                  : `Top score in the cohort: this claim gets ${p.shareLabel}.`}
               </p>
             )}
             <label className="wb-field">
@@ -90,15 +105,17 @@ export default function ReviewPanel(p: Props) {
                 type="button"
                 className="wb-btn"
                 data-variant="primary"
-                disabled={pending || !p.isTop || (needsNote && note.trim().length < 3)}
+                disabled={
+                  pending || Boolean(p.approveBlock) || (needsNote && note.trim().length < 3)
+                }
                 onClick={() =>
                   run(
                     () => actionApproveScholarship({ claimId: p.claimId, note }),
-                    "Approved. The payout is next."
+                    "Approved. The refund is next."
                   )
                 }
               >
-                Approve the scholarship
+                Approve {p.shareLabel}
               </button>
               <button
                 type="button"
@@ -125,7 +142,7 @@ export default function ReviewPanel(p: Props) {
           </>
         )}
 
-        {(rejecting || (p.status === "approved" && rejecting)) && (
+        {rejecting && (
           <form
             className="wb-grid"
             onSubmit={(e) => {
@@ -163,18 +180,14 @@ export default function ReviewPanel(p: Props) {
           </form>
         )}
 
-        {p.status === "approved" && (
+        {p.status === "approved" && !refundDone && (
           <>
             <p className="wb-note">
-              The payout refunds the cohort payment ({p.refundLabel}) and credits a {p.bonusLabel}{" "}
-              merit bonus to the family&apos;s Stripe balance. It runs in Stripe test mode only, and
-              every step is safe to retry.
+              Approved for {p.shareLabel}. First, refund what the family paid for the cohort, up to
+              that amount, in Stripe. It runs in test mode only, and it is safe to retry. Whatever
+              is left of the {p.shareLabel} is the merit bonus: you send it by bank transfer and
+              record it here.
             </p>
-            {p.payoutStatus === "refunded" && (
-              <p className="wb-alert">
-                The refund went through; the bonus didn&apos;t. Pay again to finish.
-              </p>
-            )}
             {p.payoutError && <p className="wb-alert">Last attempt: {p.payoutError}</p>}
             <label className="wb-field">
               <span>Cohort payment id (only if it isn&apos;t found automatically)</span>
@@ -195,13 +208,13 @@ export default function ReviewPanel(p: Props) {
                 onClick={() =>
                   run(
                     () => actionPayScholarship({ claimId: p.claimId, paymentIntentId: paymentId }),
-                    "Paid in Stripe test mode."
+                    "Refunded in Stripe test mode."
                   )
                 }
               >
-                {pending ? "Paying…" : "Pay in Stripe test mode"}
+                {pending ? "Refunding…" : "Refund the cohort payment in Stripe test mode"}
               </button>
-              {p.payoutStatus === "none" && (
+              {canUndo && (
                 <button
                   type="button"
                   className="wb-btn"
@@ -213,7 +226,7 @@ export default function ReviewPanel(p: Props) {
                   Undo the approval
                 </button>
               )}
-              {p.payoutStatus === "none" && !rejecting && (
+              {canUndo && !rejecting && (
                 <button
                   type="button"
                   className="wb-btn"
@@ -225,6 +238,59 @@ export default function ReviewPanel(p: Props) {
               )}
             </div>
           </>
+        )}
+
+        {refundDone && (
+          <form
+            className="wb-grid"
+            onSubmit={(e) => {
+              e.preventDefault();
+              run(
+                () => actionMarkScholarshipBonusPaid({ claimId: p.claimId, paidOn, reference }),
+                "Recorded. The scholarship is paid."
+              );
+            }}
+          >
+            <p className="wb-note">
+              The cohort payment is refunded ({p.refundLabel}, {p.refundId ?? "no refund needed"}).
+              Send the {p.bonusLabel} merit bonus to the parent or guardian by bank transfer, then
+              record it here.
+            </p>
+            <div className="wb-grid" data-columns="2">
+              <label className="wb-field">
+                <span>Date sent</span>
+                <input
+                  className="wb-input"
+                  type="date"
+                  value={paidOn}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setPaidOn(e.target.value)}
+                  required
+                />
+              </label>
+              <label className="wb-field">
+                <span>Bank reference</span>
+                <input
+                  className="wb-input"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  minLength={2}
+                  maxLength={120}
+                  required
+                />
+              </label>
+            </div>
+            <div className="wb-actions">
+              <button
+                type="submit"
+                className="wb-btn"
+                data-variant="primary"
+                disabled={pending || reference.trim().length < 2}
+              >
+                Mark as paid by bank transfer
+              </button>
+            </div>
+          </form>
         )}
 
         {p.status === "rejected" && (
@@ -245,18 +311,22 @@ export default function ReviewPanel(p: Props) {
           </>
         )}
 
-        {p.status === "paid" && p.paid && (
+        {p.status === "paid" && (
           <dl className="wb-dl">
-            <dt>Refunded</dt>
+            <dt>Award</dt>
+            <dd>{p.shareLabel}</dd>
+            <dt>Refunded in Stripe</dt>
             <dd>
-              {p.paid.refund} <small>{p.paid.refundId}</small>
+              {p.refundLabel} <small>{p.refundId ?? "none needed"}</small>
             </dd>
-            <dt>Merit bonus</dt>
+            <dt>Bank transfer</dt>
             <dd>
-              {p.paid.bonus} as a customer balance credit <small>{p.paid.bonusId}</small>
+              {p.transfer
+                ? `${p.bonusLabel} sent ${p.transfer.paidOn}, reference ${p.transfer.reference}`
+                : "None needed"}
             </dd>
             <dt>Paid</dt>
-            <dd>{p.paid.paidAt}</dd>
+            <dd>{p.paidAt ?? "—"}</dd>
           </dl>
         )}
 

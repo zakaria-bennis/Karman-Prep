@@ -8,6 +8,8 @@ describe("adminTitle", () => {
     expect(adminTitle("/admin/questions/preview/rapid")).toBe("Question preview");
     expect(adminTitle("/admin/questions/inspect/9")).toBe("Questions");
     expect(adminTitle("/admin/plans")).toBe("Plans and subscriptions");
+    expect(adminTitle("/admin/students/user_abc")).toBe("Students");
+    expect(adminTitle("/admin/tutors")).toBe("Tutors");
   });
 
   it("keeps the tab bar to six tabs so it fits a phone", () => {
