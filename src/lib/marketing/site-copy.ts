@@ -246,16 +246,16 @@ facts: ${TEST_DAY} = ${FT.timeLabel} | ${FT.durationLabel} = ${FT.questionCount}
 ## 42 Test: the form
 headline: Save your student's seat.
 form email: Your email
-form email help: The Zoom link and the results go here.
+form email help: The results go here.
 form name: Student's first name
 form grade: Grade
 form grade options: 9th | 10th | 11th | 12th
 form date: Which SAT are they planning to take?
 form date options: ${SAT_DATES.join(" | ")} | Not sure yet
 form button: Save the seat
-form privacy: We use your email for this test and its results. Nothing else unless you ask.
+form privacy: We use your email for this test, its results and occasional emails from Karman. You can unsubscribe at any time.
 form done title: The seat is saved.
-form done text: Check your inbox for the Zoom link. It comes from ${CONTACT.general}.
+form done text: On test day, join from your Karman account: the Join button there opens the Zoom room.
 
 ## 43 Test: what you get
 headline: What you get back.
