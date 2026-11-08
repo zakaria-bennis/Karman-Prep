@@ -16,7 +16,10 @@ export interface RecapInput {
 const LEVEL_NAMES = ["Not started", "New", "Learning", "Understanding", "Conquered"] as const;
 
 function esc(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c);
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c
+  );
 }
 
 export function recapSubject(input: RecapInput): string {
@@ -45,7 +48,9 @@ export function recapLines(input: RecapInput): string[] {
   ];
   if (week.score.current !== null) lines.push(`Predicted score: ${week.score.current}.`);
   const strong = week.glance.counts[3] + week.glance.counts[4];
-  lines.push(`Skills: ${strong} at Understanding or Conquered, ${week.glance.counts[2]} at Learning.`);
+  lines.push(
+    `Skills: ${strong} at Understanding or Conquered, ${week.glance.counts[2]} at Learning.`
+  );
   if (week.guarantee?.needed)
     lines.push(
       week.guarantee.met

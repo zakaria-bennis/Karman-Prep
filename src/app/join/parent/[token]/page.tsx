@@ -55,8 +55,8 @@ export default async function JoinParentPage({
               Link your account to {invite.student.firstName}
             </h2>
             <p className="kp-meta">
-              You will see {invite.student.firstName}&rsquo;s week, progress, sessions and billing in
-              the parent portal.
+              You will see {invite.student.firstName}&rsquo;s week, progress, sessions and billing
+              in the parent portal.
             </p>
             <form action={acceptParentInviteAction}>
               <input type="hidden" name="token" value={token} />
@@ -65,7 +65,11 @@ export default async function JoinParentPage({
           </section>
         ) : (
           <Card>
-            <SectionHeader title={invite.state === "used" ? "This link was already used" : "This link doesn't work"} />
+            <SectionHeader
+              title={
+                invite.state === "used" ? "This link was already used" : "This link doesn't work"
+              }
+            />
             <p className="kp-meta">
               {invite.state === "used"
                 ? "If it was you, your student is already in your parent portal."

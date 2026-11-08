@@ -17,7 +17,11 @@ function who(s: { kind: string; with: string | null }) {
   return `${s.kind === "1:1" ? "1:1" : "Cohort class"}${s.with ? ` with ${s.with}` : ""}`;
 }
 
-export default async function ParentSessionsPage({ params }: { params: Promise<{ studentId: string }> }) {
+export default async function ParentSessionsPage({
+  params,
+}: {
+  params: Promise<{ studentId: string }>;
+}) {
   const ctx = await requireParentContext();
   const child = await requireChild(ctx, (await params).studentId);
   const week = await loadChildWeek(child);
@@ -37,7 +41,9 @@ export default async function ParentSessionsPage({ params }: { params: Promise<{
         <Card>
           <SectionHeader title="Coming up" />
           {week.upcoming.length ? (
-            week.upcoming.map((s) => <Row key={s.id} title={who(s)} right={sessionWhen(s.startsAt)} />)
+            week.upcoming.map((s) => (
+              <Row key={s.id} title={who(s)} right={sessionWhen(s.startsAt)} />
+            ))
           ) : (
             <p className="kp-meta">Nothing booked right now.</p>
           )}
@@ -51,7 +57,12 @@ export default async function ParentSessionsPage({ params }: { params: Promise<{
                   <b>{who(s)}</b>
                   <small>{sessionWhen(s.startsAt)}</small>
                 </span>
-                <a className="kp-link" href={s.recordingUrl ?? undefined} target="_blank" rel="noreferrer">
+                <a
+                  className="kp-link"
+                  href={s.recordingUrl ?? undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   Watch
                 </a>
               </p>
@@ -63,14 +74,22 @@ export default async function ParentSessionsPage({ params }: { params: Promise<{
         <Card>
           <SectionHeader title="Past sessions" />
           {week.past.length ? (
-            week.past.slice(0, 8).map((s) => (
-              <Row
-                key={s.id}
-                title={who(s)}
-                right={s.status === "completed" ? "Attended" : s.status === "no_show" ? "Missed" : "Held"}
-                sub={sessionWhen(s.startsAt)}
-              />
-            ))
+            week.past
+              .slice(0, 8)
+              .map((s) => (
+                <Row
+                  key={s.id}
+                  title={who(s)}
+                  right={
+                    s.status === "completed"
+                      ? "Attended"
+                      : s.status === "no_show"
+                        ? "Missed"
+                        : "Held"
+                  }
+                  sub={sessionWhen(s.startsAt)}
+                />
+              ))
           ) : (
             <p className="kp-meta">No sessions yet.</p>
           )}

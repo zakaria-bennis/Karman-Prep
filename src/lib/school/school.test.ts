@@ -4,12 +4,20 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createAdminClient: () => ({}) }));
 
 const { completionFor, homeworkHref, homeworkTitle } = await import("./homework");
-const { JOIN_CODE_PATTERN, makeJoinCode, normalizeJoinCode, planStatusLine, trialEndFor, yearlyCost } =
-  await import("./terms");
+const {
+  JOIN_CODE_PATTERN,
+  makeJoinCode,
+  normalizeJoinCode,
+  planStatusLine,
+  trialEndFor,
+  yearlyCost,
+} = await import("./terms");
 
 describe("school terms", () => {
   it("states the plan the founder set", () => {
-    expect(planStatusLine("2027-08-31")).toBe("Free until August 31, 2027, then $8 per student a year");
+    expect(planStatusLine("2027-08-31")).toBe(
+      "Free until August 31, 2027, then $8 per student a year"
+    );
     expect(yearlyCost(120)).toBe(960);
     expect(yearlyCost(-3)).toBe(0);
   });
@@ -39,13 +47,17 @@ describe("school homework", () => {
     expect(homeworkTitle("full_length_test", null)).toBe("Full-length practice test");
     expect(homeworkTitle("skill_practice", "nope")).toBeNull();
     expect(homeworkTitle("full_length_test", "algebra")).toBeNull();
-    expect(homeworkHref("skill_practice", "ma-skill-percentages")).toBe("/learn/practice/ma-skill-percentages");
+    expect(homeworkHref("skill_practice", "ma-skill-percentages")).toBe(
+      "/learn/practice/ma-skill-percentages"
+    );
   });
 
   it("counts a practice set on the skill finished after the assignment", () => {
     expect(completionFor(assignment, [])).toBeNull();
     expect(
-      completionFor(assignment, [{ skill_id: "ma-skill-percentages", completed_at: "2026-11-07T10:00:00Z" }])
+      completionFor(assignment, [
+        { skill_id: "ma-skill-percentages", completed_at: "2026-11-07T10:00:00Z" },
+      ])
     ).toBeNull();
     expect(
       completionFor(assignment, [
@@ -53,7 +65,9 @@ describe("school homework", () => {
         { skill_id: "ma-skill-percentages", completed_at: "2026-11-09T11:00:00Z" },
       ])
     ).toBe("2026-11-09T11:00:00Z");
-    expect(completionFor({ ...assignment, kind: "domain_quiz", target_id: "algebra" }, [])).toBeNull();
+    expect(
+      completionFor({ ...assignment, kind: "domain_quiz", target_id: "algebra" }, [])
+    ).toBeNull();
   });
 });
 

@@ -11,7 +11,13 @@ describe("guaranteeFor", () => {
 
   it("asks +100 under a 1400 baseline and +50 from 1400", () => {
     const low = guaranteeFor("private", [{ score: 1190 }, { score: 1300 }]);
-    expect(low).toMatchObject({ baseline: 1190, needed: 100, target: 1290, gained: 110, met: true });
+    expect(low).toMatchObject({
+      baseline: 1190,
+      needed: 100,
+      target: 1290,
+      gained: 110,
+      met: true,
+    });
     const high = guaranteeFor("cohort", [{ score: 1400 }, { score: 1430 }]);
     expect(high).toMatchObject({ needed: 50, target: 1450, gained: 30, met: false });
   });

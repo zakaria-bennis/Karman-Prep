@@ -25,7 +25,11 @@ import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/
 export const metadata: Metadata = { title: "Progress" };
 export const dynamic = "force-dynamic";
 
-export default async function ParentProgressPage({ params }: { params: Promise<{ studentId: string }> }) {
+export default async function ParentProgressPage({
+  params,
+}: {
+  params: Promise<{ studentId: string }>;
+}) {
   const ctx = await requireParentContext();
   const child = await requireChild(ctx, (await params).studentId);
   const week = await loadChildWeek(child);
@@ -40,7 +44,10 @@ export default async function ParentProgressPage({ params }: { params: Promise<{
       <Card>
         <SectionHeader title="Courses" />
         <div className="kp-ring-row">
-          <Ring value={glance.coursePercent.math / 100} label={`SAT Math: ${glance.coursePercent.math}%`}>
+          <Ring
+            value={glance.coursePercent.math / 100}
+            label={`SAT Math: ${glance.coursePercent.math}%`}
+          >
             <Num>{glance.coursePercent.math}%</Num>
           </Ring>
           <span className="kp-meta">SAT Math</span>
@@ -72,7 +79,12 @@ export default async function ParentProgressPage({ params }: { params: Promise<{
                 <div className="kp-history" role="list" aria-label="Score history">
                   {score.history.map((h) => (
                     <span key={h.takenAt} role="listitem">
-                      <Ring value={h.score / 1600} size={64} width={5} label={`${h.score} on ${sessionWhen(h.takenAt, { date: true })}`}>
+                      <Ring
+                        value={h.score / 1600}
+                        size={64}
+                        width={5}
+                        label={`${h.score} on ${sessionWhen(h.takenAt, { date: true })}`}
+                      >
                         <Num>{h.score}</Num>
                       </Ring>
                       {sessionWhen(h.takenAt, { date: true })}
@@ -91,12 +103,21 @@ export default async function ParentProgressPage({ params }: { params: Promise<{
               </p>
             </>
           ) : (
-            <p className="kp-meta">Shows after {child.firstName}&rsquo;s first full practice test.</p>
+            <p className="kp-meta">
+              Shows after {child.firstName}&rsquo;s first full practice test.
+            </p>
           )}
           <Cta href={`/dashboard/parent/${child.id}/recap`}>See this week&rsquo;s email</Cta>
         </section>
         <Card>
-          <SectionHeader title="Skills by level" note={<><Num>{started}</Num> of <Num>{total}</Num> started</>} />
+          <SectionHeader
+            title="Skills by level"
+            note={
+              <>
+                <Num>{started}</Num> of <Num>{total}</Num> started
+              </>
+            }
+          />
           <div className="kp-ring-row">
             <LevelRing counts={glance.counts}>
               <Num>{started}</Num>

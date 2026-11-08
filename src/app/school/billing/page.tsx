@@ -59,7 +59,10 @@ export default async function SchoolBillingPage({
         <Card>
           <SectionHeader title="Your first paid year" />
           <Row title="Students with a seat today" right={<Num>{students}</Num>} />
-          <Row title="Price per student" right={<Num>${SCHOOL_TERMS.pricePerStudentPerYear} a year</Num>} />
+          <Row
+            title="Price per student"
+            right={<Num>${SCHOOL_TERMS.pricePerStudentPerYear} a year</Num>}
+          />
           <Row title="At today's size" right={<Num>${yearlyCost(students)} a year</Num>} />
           <p className="kp-meta">
             {renewalSet

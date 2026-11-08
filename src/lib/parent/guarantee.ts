@@ -34,9 +34,18 @@ export function guaranteeFor(
   const plan = guaranteedPlan(tier);
   if (!plan) return null;
   const baseline = history[0]?.score ?? null;
-  if (baseline === null) return { plan, baseline: null, target: null, gained: 0, needed: null, met: false };
-  const needed = baseline < GUARANTEE_RULE.splitAt ? GUARANTEE_RULE.pointsBelow : GUARANTEE_RULE.pointsFrom;
+  if (baseline === null)
+    return { plan, baseline: null, target: null, gained: 0, needed: null, met: false };
+  const needed =
+    baseline < GUARANTEE_RULE.splitAt ? GUARANTEE_RULE.pointsBelow : GUARANTEE_RULE.pointsFrom;
   const latest = history.at(-1)?.score ?? baseline;
   const gained = Math.max(0, latest - baseline);
-  return { plan, baseline, target: Math.min(1600, baseline + needed), gained, needed, met: gained >= needed };
+  return {
+    plan,
+    baseline,
+    target: Math.min(1600, baseline + needed),
+    gained,
+    needed,
+    met: gained >= needed,
+  };
 }

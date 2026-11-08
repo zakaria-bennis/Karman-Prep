@@ -53,7 +53,7 @@ export default async function SchoolClassPage({
         <p className="kp-code" aria-label={`Join code ${cls.joinCode.split("").join(" ")}`}>
           {cls.joinCode}
         </p>
-        <p className="kp-meta">Students type it at Join a class, or open this link.</p>
+        <p className="kp-meta">Share the link, or students type the code at /join/class.</p>
         <p className="kp-linkbox">{joinUrl}</p>
         <div className="kp-copyline">
           <CopyButton text={cls.joinCode} label="Copy code" />
@@ -147,7 +147,14 @@ export default async function SchoolClassPage({
             </label>
             <label className="kp-field">
               <span>Due</span>
-              <input className="kp-input" type="date" name="dueOn" required min={today} defaultValue={inWeek} />
+              <input
+                className="kp-input"
+                type="date"
+                name="dueOn"
+                required
+                min={today}
+                defaultValue={inWeek}
+              />
             </label>
             <div>
               <Cta type="submit">Assign to {cls.name}</Cta>
@@ -161,13 +168,18 @@ export default async function SchoolClassPage({
               {roster.students.map((s) => (
                 <li key={s.seatId}>
                   <div className="kp-roster-head">
-                    <Ring value={s.percent / 100} label={`${s.name}: ${s.percent}% of the way to Conquered`}>
+                    <Ring
+                      value={s.percent / 100}
+                      label={`${s.name}: ${s.percent}% of the way to Conquered`}
+                    >
                       <Num>{s.percent}%</Num>
                     </Ring>
                     <span className="kp-roster-who">
                       <b>{s.name}</b>
                       <small>
-                        {s.lastPracticedAt ? `Practiced ${shortDate(s.lastPracticedAt)}` : "Not practiced yet"}
+                        {s.lastPracticedAt
+                          ? `Practiced ${shortDate(s.lastPracticedAt)}`
+                          : "Not practiced yet"}
                         {roster.assignments.length
                           ? ` · ${s.assignmentsDone} of ${roster.assignments.length} assignments done`
                           : ""}
@@ -191,8 +203,9 @@ export default async function SchoolClassPage({
                       <input type="hidden" name="classId" value={cls.id} />
                       <input type="hidden" name="seatId" value={s.seatId} />
                       <p className="kp-meta">
-                        {s.name} leaves {cls.name}. The Practice plan from {ctx.school.name} ends unless
-                        they are in another of its classes. Their own practice history stays theirs.
+                        {s.name} leaves {cls.name}. The Practice plan from {ctx.school.name} ends
+                        unless they are in another of its classes. Their own practice history stays
+                        theirs.
                       </p>
                       <button type="submit" className="kp-textbtn" data-tone="danger">
                         Remove {s.name.split(" ")[0]}

@@ -5,7 +5,17 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { Card, Cta, MoreLink, Num, Panel, Ring, Row, SectionHeader, TutorNote } from "@/components/portal";
+import {
+  Card,
+  Cta,
+  MoreLink,
+  Num,
+  Panel,
+  Ring,
+  Row,
+  SectionHeader,
+  TutorNote,
+} from "@/components/portal";
 import { ParentShell } from "@/components/parent/ParentShell";
 import { GuaranteeCard, sessionWhen } from "@/components/parent/parts";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
@@ -13,7 +23,11 @@ import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/
 export const metadata: Metadata = { title: "Week" };
 export const dynamic = "force-dynamic";
 
-export default async function ParentWeekPage({ params }: { params: Promise<{ studentId: string }> }) {
+export default async function ParentWeekPage({
+  params,
+}: {
+  params: Promise<{ studentId: string }>;
+}) {
   const ctx = await requireParentContext();
   const child = await requireChild(ctx, (await params).studentId);
   const week = await loadChildWeek(child);
@@ -64,18 +78,24 @@ export default async function ParentWeekPage({ params }: { params: Promise<{ stu
         <Card tone={hw.late ? "late" : undefined}>
           <SectionHeader title="Homework" note={total ? <Num>{total}</Num> : undefined} />
           <div className="kp-ring-row">
-            <Ring value={total ? hw.done / total : 0} label={`Homework: ${hw.done} of ${total} done`}>
+            <Ring
+              value={total ? hw.done / total : 0}
+              label={`Homework: ${hw.done} of ${total} done`}
+            >
               <Num>{hw.done}</Num>
             </Ring>
             <span className="kp-meta">
-              <Num>{hw.done}</Num> done, <Num>{hw.late}</Num> late, <Num>{hw.dueThisWeek}</Num> due this week
+              <Num>{hw.done}</Num> done, <Num>{hw.late}</Num> late, <Num>{hw.dueThisWeek}</Num> due
+              this week
             </span>
           </div>
           {hw.open.slice(0, 4).map((h) => (
             <Row
               key={`${h.title}-${h.dueOn}`}
               title={h.title}
-              right={h.late ? "Past due" : `Due ${sessionWhen(`${h.dueOn}T12:00:00Z`, { date: true })}`}
+              right={
+                h.late ? "Past due" : `Due ${sessionWhen(`${h.dueOn}T12:00:00Z`, { date: true })}`
+              }
               rightTone={h.late ? "late" : undefined}
             />
           ))}
@@ -88,7 +108,11 @@ export default async function ParentWeekPage({ params }: { params: Promise<{ stu
               .map((s) => (
                 <Row
                   key={s.id}
-                  title={s.kind === "1:1" ? `1:1${s.with ? ` with ${s.with}` : ""}` : `Cohort class${s.with ? ` with ${s.with}` : ""}`}
+                  title={
+                    s.kind === "1:1"
+                      ? `1:1${s.with ? ` with ${s.with}` : ""}`
+                      : `Cohort class${s.with ? ` with ${s.with}` : ""}`
+                  }
                   right={sessionWhen(s.startsAt)}
                 />
               ))

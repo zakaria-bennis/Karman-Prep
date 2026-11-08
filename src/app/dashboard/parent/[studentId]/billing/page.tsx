@@ -52,7 +52,9 @@ export default async function ParentBillingPage({
         <ActionMessage done={done} error={error} />
         <section aria-labelledby="billing-main">
           <h2 className="kp-title" id="billing-main">
-            {planName ? `${child.firstName}'s plan: ${planName}` : `${child.firstName} is on the free plan`}
+            {planName
+              ? `${child.firstName}'s plan: ${planName}`
+              : `${child.firstName} is on the free plan`}
           </h2>
           {planName ? (
             <>
@@ -66,7 +68,9 @@ export default async function ParentBillingPage({
             </>
           ) : (
             <>
-              <p className="kp-meta">Practice, Pro, the Cohort and private tutoring are on the pricing page.</p>
+              <p className="kp-meta">
+                Practice, Pro, the Cohort and private tutoring are on the pricing page.
+              </p>
               <Cta href="/pricing">See plans</Cta>
             </>
           )}
@@ -74,7 +78,10 @@ export default async function ParentBillingPage({
         {planName && (
           <Card>
             <SectionHeader title="Plan" />
-            <Row title={planName} right={plan.status ? (STATUS[plan.status] ?? plan.status) : "Active"} />
+            <Row
+              title={planName}
+              right={plan.status ? (STATUS[plan.status] ?? plan.status) : "Active"}
+            />
             {week.guarantee && <Row title="Score guarantee" right="Included" />}
             <MoreLink href="/refunds">Refunds and the guarantee</MoreLink>
           </Card>

@@ -67,7 +67,10 @@ export interface FinishedPractice {
 }
 
 /** When a student finished the assignment, or null while it is open. Pure. */
-export function completionFor(a: AssignmentRow, finished: readonly FinishedPractice[]): string | null {
+export function completionFor(
+  a: AssignmentRow,
+  finished: readonly FinishedPractice[]
+): string | null {
   if (a.kind !== "skill_practice") return null;
   const done = finished
     .filter((p) => p.skill_id === a.target_id && p.completed_at && p.completed_at >= a.created_at)
@@ -91,7 +94,10 @@ export async function listSchoolHomeworkForStudent(
   if (seatError) throw seatError;
   type SeatRow = {
     class_id: string;
-    class: { id: string; name: string; archived_at: string | null } | { id: string; name: string; archived_at: string | null }[] | null;
+    class:
+      | { id: string; name: string; archived_at: string | null }
+      | { id: string; name: string; archived_at: string | null }[]
+      | null;
   };
   const classes = new Map<string, string>();
   for (const s of (seats ?? []) as SeatRow[]) {

@@ -27,7 +27,12 @@ async function insertClassWithCode(schoolId: string, name: string, teacherUserId
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const { data, error } = await supabase
       .from("school_classes")
-      .insert({ school_id: schoolId, name, teacher_user_id: teacherUserId, join_code: makeJoinCode() })
+      .insert({
+        school_id: schoolId,
+        name,
+        teacher_user_id: teacherUserId,
+        join_code: makeJoinCode(),
+      })
       .select("id")
       .single();
     if (!error) return data.id as string;
@@ -82,7 +87,11 @@ const assignSchema = z
   .transform((v) => ({
     ...v,
     targetId:
-      v.kind === "skill_practice" ? (v.skillId ?? "") : v.kind === "domain_quiz" ? (v.domainId ?? "") : null,
+      v.kind === "skill_practice"
+        ? (v.skillId ?? "")
+        : v.kind === "domain_quiz"
+          ? (v.domainId ?? "")
+          : null,
   }));
 
 export async function assignWorkAction(formData: FormData) {
@@ -94,7 +103,8 @@ export async function assignWorkAction(formData: FormData) {
     domainId: formData.get("domainId") || undefined,
     dueOn: formData.get("dueOn"),
   });
-  const classId = typeof formData.get("classId") === "string" ? String(formData.get("classId")) : "";
+  const classId =
+    typeof formData.get("classId") === "string" ? String(formData.get("classId")) : "";
   const page = uuid.safeParse(classId).success ? `/school/classes/${classId}` : "/school";
   if (!parsed.success) back(page, "error", "Pick the work and a due date.");
   const cls = await classForMember(ctx, parsed.data.classId);
@@ -148,7 +158,10 @@ const seatSchema = z.object({ classId: uuid, seatId: uuid });
 
 export async function removeStudentAction(formData: FormData) {
   const ctx = await requireSchoolContext();
-  const parsed = seatSchema.safeParse({ classId: formData.get("classId"), seatId: formData.get("seatId") });
+  const parsed = seatSchema.safeParse({
+    classId: formData.get("classId"),
+    seatId: formData.get("seatId"),
+  });
   if (!parsed.success) back("/school", "error", "That student was not found.");
   const cls = await classForMember(ctx, parsed.data.classId);
   if (!cls) back("/school", "error", "That class was not found.");
@@ -160,13 +173,18 @@ export async function removeStudentAction(formData: FormData) {
     .eq("class_id", cls.id)
     .eq("school_id", ctx.school.id)
     .is("removed_at", null)
-    .select("student_user_id, student:users!school_seats_student_user_id_fkey (clerk_id, first_name)");
+    .select(
+      "student_user_id, student:users!school_seats_student_user_id_fkey (clerk_id, first_name)"
+    );
   if (error) throw error;
   const page = `/school/classes/${cls.id}`;
   if (!data?.length) back(page, "error", "That student had already left the class.");
   type Removed = {
     student_user_id: string;
-    student: { clerk_id: string; first_name: string | null } | { clerk_id: string; first_name: string | null }[] | null;
+    student:
+      | { clerk_id: string; first_name: string | null }
+      | { clerk_id: string; first_name: string | null }[]
+      | null;
   };
   const row = data[0] as Removed;
   const student = Array.isArray(row.student) ? row.student[0] : row.student;

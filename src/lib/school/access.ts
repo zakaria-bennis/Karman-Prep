@@ -109,13 +109,15 @@ export async function visibleClasses(ctx: SchoolContext): Promise<ClassRecord[]>
   if (ctx.role === "teacher") query = query.eq("teacher_user_id", ctx.viewer.userId);
   const { data, error } = await query;
   if (error) throw error;
-  return ((data ?? []) as {
-    id: string;
-    name: string;
-    join_code: string;
-    teacher_user_id: string | null;
-    created_at: string;
-  }[]).map((c) => ({
+  return (
+    (data ?? []) as {
+      id: string;
+      name: string;
+      join_code: string;
+      teacher_user_id: string | null;
+      created_at: string;
+    }[]
+  ).map((c) => ({
     id: c.id,
     name: c.name,
     joinCode: c.join_code,
@@ -125,7 +127,10 @@ export async function visibleClasses(ctx: SchoolContext): Promise<ClassRecord[]>
 }
 
 /** The class if this member may manage it, else null. */
-export async function classForMember(ctx: SchoolContext, classId: string): Promise<ClassRecord | null> {
+export async function classForMember(
+  ctx: SchoolContext,
+  classId: string
+): Promise<ClassRecord | null> {
   const classes = await visibleClasses(ctx);
   return classes.find((c) => c.id === classId) ?? null;
 }

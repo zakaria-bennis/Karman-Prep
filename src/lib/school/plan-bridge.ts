@@ -20,7 +20,9 @@ export type GrantOutcome = "granted" | "revoked" | "kept" | "plans-not-installed
 
 function missingTable(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
-  return error.code === "PGRST205" || error.code === "42P01" || /plan_grants/.test(error.message ?? "");
+  return (
+    error.code === "PGRST205" || error.code === "42P01" || /plan_grants/.test(error.message ?? "")
+  );
 }
 
 export async function grantSchoolPractice(

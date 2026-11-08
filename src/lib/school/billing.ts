@@ -70,11 +70,16 @@ export async function renewalCheckoutUrl(ctx: SchoolContext): Promise<string> {
 }
 
 /** Records a finished renewal checkout. Returns false if the session is not this school's. */
-export async function recordRenewal(ctx: SchoolContext, checkoutSessionId: string): Promise<boolean> {
+export async function recordRenewal(
+  ctx: SchoolContext,
+  checkoutSessionId: string
+): Promise<boolean> {
   const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
   if (session.metadata?.school_id !== ctx.school.id || session.status !== "complete") return false;
   const subscriptionId =
-    typeof session.subscription === "string" ? session.subscription : (session.subscription?.id ?? null);
+    typeof session.subscription === "string"
+      ? session.subscription
+      : (session.subscription?.id ?? null);
   const { error } = await untypedAdmin()
     .from("schools")
     .update({

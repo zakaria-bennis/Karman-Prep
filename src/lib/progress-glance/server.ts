@@ -42,7 +42,11 @@ export async function loadPracticeActivity(
   const byId = new Map(sessionRows.map((s) => [s.id, s]));
   for (const s of sessionRows) {
     const entry = out.get(s.student_id);
-    if (entry && s.completed_at && (!entry.lastPracticedAt || s.completed_at > entry.lastPracticedAt))
+    if (
+      entry &&
+      s.completed_at &&
+      (!entry.lastPracticedAt || s.completed_at > entry.lastPracticedAt)
+    )
       entry.lastPracticedAt = s.completed_at;
   }
   const ids = sessionRows.map((s) => s.id);

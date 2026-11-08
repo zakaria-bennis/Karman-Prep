@@ -31,7 +31,11 @@ export default async function ParentRecapPage({
     parentFirstName: ctx.viewer.firstName,
     week,
     portalUrl: `${appUrl()}/dashboard/parent/${child.id}`,
-    weekOf: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "America/Chicago" }),
+    weekOf: new Date().toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      timeZone: "America/Chicago",
+    }),
   };
 
   return (

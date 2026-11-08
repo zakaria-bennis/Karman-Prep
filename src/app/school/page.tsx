@@ -31,8 +31,8 @@ export default async function SchoolHomePage({
       <Card>
         <SectionHeader title="Your plan" />
         <p className="kp-meta">
-          Free until {formatLongDate(ctx.school.freeUntil)}, then ${SCHOOL_TERMS.pricePerStudentPerYear}{" "}
-          per student a year.
+          Free until {formatLongDate(ctx.school.freeUntil)}, then $
+          {SCHOOL_TERMS.pricePerStudentPerYear} per student a year.
         </p>
         <Row title="Students with a seat" right={<Num>{students}</Num>} />
         <p className="kp-meta">Each student has a Practice plan of their own.</p>
@@ -41,8 +41,8 @@ export default async function SchoolHomePage({
       <Card>
         <SectionHeader title="How students join" />
         <p className="kp-meta">
-          Students sign in to Karman, open Join a class, and type the class code. They get their
-          own Practice plan at once.
+          Open a class and share its link. Students sign in and the code is filled in for them, or
+          they type it at /join/class. Each gets a Practice plan of their own at once.
         </p>
       </Card>
     </>
@@ -53,7 +53,10 @@ export default async function SchoolHomePage({
       <Panel side={side}>
         <ActionMessage done={done} error={error} />
         <Card>
-          <SectionHeader title="Classes" note={classes.length ? <Num>{classes.length}</Num> : undefined} />
+          <SectionHeader
+            title="Classes"
+            note={classes.length ? <Num>{classes.length}</Num> : undefined}
+          />
           {classes.length ? (
             classes.map((c) => (
               <Row
@@ -66,7 +69,8 @@ export default async function SchoolHomePage({
                 }
                 right={
                   <>
-                    <Num>{counts.get(c.id) ?? 0}</Num> {(counts.get(c.id) ?? 0) === 1 ? "student" : "students"}
+                    <Num>{counts.get(c.id) ?? 0}</Num>{" "}
+                    {(counts.get(c.id) ?? 0) === 1 ? "student" : "students"}
                   </>
                 }
                 href={`/school/classes/${c.id}`}
@@ -81,7 +85,13 @@ export default async function SchoolHomePage({
           <form action={createClassAction} className="kp-form">
             <label className="kp-field">
               <span>Class name</span>
-              <input className="kp-input" name="name" required maxLength={80} placeholder="Period 4 SAT Prep" />
+              <input
+                className="kp-input"
+                name="name"
+                required
+                maxLength={80}
+                placeholder="Period 4 SAT Prep"
+              />
             </label>
             <div>
               <Cta type="submit">Create class</Cta>

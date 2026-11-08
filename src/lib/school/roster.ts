@@ -39,23 +39,24 @@ export async function loadClassRoster(
   now: Date = new Date()
 ): Promise<ClassRoster> {
   const supabase = untypedAdmin();
-  const [{ data: seats, error: seatError }, { data: assignments, error: aError }] = await Promise.all([
-    supabase
-      .from("school_seats")
-      .select(
-        "id, joined_at, student:users!school_seats_student_user_id_fkey (id, clerk_id, first_name, last_name, email)"
-      )
-      .eq("school_id", schoolId)
-      .eq("class_id", classId)
-      .is("removed_at", null)
-      .order("joined_at", { ascending: true }),
-    supabase
-      .from("school_assignments")
-      .select("id, class_id, kind, target_id, title, due_on, created_at")
-      .eq("class_id", classId)
-      .is("cancelled_at", null)
-      .order("due_on", { ascending: true }),
-  ]);
+  const [{ data: seats, error: seatError }, { data: assignments, error: aError }] =
+    await Promise.all([
+      supabase
+        .from("school_seats")
+        .select(
+          "id, joined_at, student:users!school_seats_student_user_id_fkey (id, clerk_id, first_name, last_name, email)"
+        )
+        .eq("school_id", schoolId)
+        .eq("class_id", classId)
+        .is("removed_at", null)
+        .order("joined_at", { ascending: true }),
+      supabase
+        .from("school_assignments")
+        .select("id, class_id, kind, target_id, title, due_on, created_at")
+        .eq("class_id", classId)
+        .is("cancelled_at", null)
+        .order("due_on", { ascending: true }),
+    ]);
   if (seatError) throw seatError;
   if (aError) throw aError;
   type UserRow = {
@@ -131,7 +132,8 @@ export async function seatCounts(schoolId: string): Promise<Map<string, number>>
     .is("removed_at", null);
   if (error) throw error;
   const out = new Map<string, number>();
-  for (const r of (data ?? []) as { class_id: string }[]) out.set(r.class_id, (out.get(r.class_id) ?? 0) + 1);
+  for (const r of (data ?? []) as { class_id: string }[])
+    out.set(r.class_id, (out.get(r.class_id) ?? 0) + 1);
   return out;
 }
 
@@ -144,5 +146,6 @@ export async function schoolStudentCount(schoolId: string): Promise<number> {
     .eq("school_id", schoolId)
     .is("removed_at", null);
   if (error) throw error;
-  return new Set(((data ?? []) as { student_user_id: string }[]).map((r) => r.student_user_id)).size;
+  return new Set(((data ?? []) as { student_user_id: string }[]).map((r) => r.student_user_id))
+    .size;
 }

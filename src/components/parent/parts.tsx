@@ -7,13 +7,28 @@ const ZONE = "America/Chicago";
 
 export function sessionWhen(iso: string, opts: { date?: boolean } = {}): string {
   const d = new Date(iso);
-  const day = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: ZONE });
+  const day = d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: ZONE,
+  });
   if (opts.date) return day;
-  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: ZONE });
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: ZONE,
+  });
   return `${day}, ${time} CT`;
 }
 
-export function GuaranteeCard({ status, childName }: { status: GuaranteeStatus; childName: string }) {
+export function GuaranteeCard({
+  status,
+  childName,
+}: {
+  status: GuaranteeStatus;
+  childName: string;
+}) {
   if (status.baseline === null || status.needed === null) {
     return (
       <Card>

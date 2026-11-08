@@ -101,7 +101,10 @@ export function buildProgressGlance(
   return {
     domains,
     counts,
-    coursePercent: { math: coursePercent(levelsFor("math")), reading: coursePercent(levelsFor("reading")) },
+    coursePercent: {
+      math: coursePercent(levelsFor("math")),
+      reading: coursePercent(levelsFor("reading")),
+    },
   };
 }
 

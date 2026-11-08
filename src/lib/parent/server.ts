@@ -7,7 +7,11 @@ import "server-only";
  */
 import { notFound, redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
-import { buildProgressGlance, predictedScore, type ProgressGlance } from "@/lib/progress-glance/levels";
+import {
+  buildProgressGlance,
+  predictedScore,
+  type ProgressGlance,
+} from "@/lib/progress-glance/levels";
 import { loadPracticeActivity, loadScoreHistory } from "@/lib/progress-glance/server";
 import { listSchoolHomeworkForStudent } from "@/lib/school/homework";
 import { resolveEffectiveClerkId, resolveEffectiveRole } from "@/lib/supabase/queries/admin";
@@ -29,7 +33,13 @@ export interface ParentContext {
 
 type Admin = UntypedAdmin;
 
-function childFrom(u: { id: string; clerk_id: string; first_name: string | null; last_name: string | null; email: string | null }): Child {
+function childFrom(u: {
+  id: string;
+  clerk_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+}): Child {
   const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email || "Your student";
   return { id: u.id, clerkId: u.clerk_id, firstName: u.first_name || name.split(" ")[0], name };
 }
@@ -55,7 +65,13 @@ export async function requireParentContext(): Promise<ParentContext> {
     .eq("parent_user_id", me.id)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  type U = { id: string; clerk_id: string; first_name: string | null; last_name: string | null; email: string | null };
+  type U = {
+    id: string;
+    clerk_id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  };
   const children = ((links ?? []) as { student: U | U[] | null }[]).flatMap((l) => {
     const s = Array.isArray(l.student) ? l.student[0] : l.student;
     return s ? [childFrom(s)] : [];
@@ -131,7 +147,10 @@ async function tutorHomework(supabase: Admin, studentUserId: string) {
   return (data ?? []) as { title: string; due_on: string; status: string }[];
 }
 
-function homeworkGlance(items: { title: string; dueOn: string; done: boolean }[], now: Date): HomeworkGlance {
+function homeworkGlance(
+  items: { title: string; dueOn: string; done: boolean }[],
+  now: Date
+): HomeworkGlance {
   const today = now.toISOString().slice(0, 10);
   const weekEnd = new Date(now.getTime() + WEEK_MS).toISOString().slice(0, 10);
   const open = items
@@ -164,14 +183,16 @@ async function sessionsFor(supabase: Admin, child: Child, now: Date) {
       .maybeSingle(),
   ]);
   type One<T> = T | T[] | null;
-  const pick = <T,>(v: One<T>): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
-  const all: SessionGlance[] = ((bookings ?? []) as {
-    id: string;
-    scheduled_start: string;
-    status: string;
-    tutor: One<{ first_name: string | null }>;
-    session: One<{ zoom_recording_url: string | null }>;
-  }[]).map((b) => ({
+  const pick = <T>(v: One<T>): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
+  const all: SessionGlance[] = (
+    (bookings ?? []) as {
+      id: string;
+      scheduled_start: string;
+      status: string;
+      tutor: One<{ first_name: string | null }>;
+      session: One<{ zoom_recording_url: string | null }>;
+    }[]
+  ).map((b) => ({
     id: b.id,
     kind: "1:1",
     startsAt: b.scheduled_start,
@@ -182,7 +203,9 @@ async function sessionsFor(supabase: Admin, child: Child, now: Date) {
   if (member?.cohort_id) {
     const { data: classes } = await supabase
       .from("sessions")
-      .select("id, scheduled_start, status, zoom_recording_url, tutor:users!sessions_tutor_id_fkey (first_name)")
+      .select(
+        "id, scheduled_start, status, zoom_recording_url, tutor:users!sessions_tutor_id_fkey (first_name)"
+      )
       .eq("cohort_id", member.cohort_id)
       .order("scheduled_start", { ascending: true });
     for (const s of (classes ?? []) as {
@@ -205,8 +228,12 @@ async function sessionsFor(supabase: Admin, child: Child, now: Date) {
   const nowIso = now.toISOString();
   const live = all.filter((s) => s.status !== "cancelled");
   return {
-    upcoming: live.filter((s) => s.startsAt >= nowIso).sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
-    past: live.filter((s) => s.startsAt < nowIso).sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
+    upcoming: live
+      .filter((s) => s.startsAt >= nowIso)
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+    past: live
+      .filter((s) => s.startsAt < nowIso)
+      .sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
   };
 }
 
@@ -240,13 +267,25 @@ export async function loadChildWeek(child: Child, now: Date = new Date()): Promi
   const homework = homeworkGlance(
     [
       ...school.map((h) => ({ title: h.title, dueOn: h.dueOn, done: h.status === "completed" })),
-      ...tutorItems.map((h) => ({ title: h.title, dueOn: h.due_on, done: h.status === "completed" })),
+      ...tutorItems.map((h) => ({
+        title: h.title,
+        dueOn: h.due_on,
+        done: h.status === "completed",
+      })),
     ],
     now
   );
   const tier = (sub.data?.tier as string | null) ?? null;
-  const noteRow = note.data as { body: string; created_at: string; tutor: { first_name: string | null } | { first_name: string | null }[] | null } | null;
-  const noteTutor = noteRow ? (Array.isArray(noteRow.tutor) ? noteRow.tutor[0] : noteRow.tutor) : null;
+  const noteRow = note.data as {
+    body: string;
+    created_at: string;
+    tutor: { first_name: string | null } | { first_name: string | null }[] | null;
+  } | null;
+  const noteTutor = noteRow
+    ? Array.isArray(noteRow.tutor)
+      ? noteRow.tutor[0]
+      : noteRow.tutor
+    : null;
   return {
     homework,
     minutesThisWeek: Math.round((act?.secondsSince ?? 0) / 60),
@@ -255,7 +294,9 @@ export async function loadChildWeek(child: Child, now: Date = new Date()): Promi
     glance: buildProgressGlance(act?.answers ?? [], now),
     score: { current: history.at(-1)?.score ?? null, history },
     guarantee: guaranteeFor(tier, history),
-    tutorNote: noteRow ? { body: noteRow.body, from: noteTutor?.first_name ?? null, at: noteRow.created_at } : null,
+    tutorNote: noteRow
+      ? { body: noteRow.body, from: noteTutor?.first_name ?? null, at: noteRow.created_at }
+      : null,
     plan: {
       tier,
       status: (sub.data?.status as string | null) ?? null,

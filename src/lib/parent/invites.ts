@@ -34,7 +34,9 @@ export async function currentInvite(studentUserId: string, supabase: Admin = unt
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return data ? ({ token: data.token as string, expiresAt: data.expires_at as string } satisfies OpenInvite) : null;
+  return data
+    ? ({ token: data.token as string, expiresAt: data.expires_at as string } satisfies OpenInvite)
+    : null;
 }
 
 export async function createInvite(studentUserId: string, supabase: Admin = untypedAdmin()) {
@@ -72,21 +74,31 @@ export type InviteLookup =
   | { state: "open"; inviteId: string; student: { id: string; firstName: string } }
   | { state: "used" | "expired" | "missing" };
 
-export async function lookupInvite(token: string, supabase: Admin = untypedAdmin()): Promise<InviteLookup> {
+export async function lookupInvite(
+  token: string,
+  supabase: Admin = untypedAdmin()
+): Promise<InviteLookup> {
   if (!INVITE_TOKEN_PATTERN.test(token)) return { state: "missing" };
   const { data } = await supabase
     .from("parent_invites")
-    .select("id, accepted_at, revoked_at, expires_at, student:users!parent_invites_student_user_id_fkey (id, first_name)")
+    .select(
+      "id, accepted_at, revoked_at, expires_at, student:users!parent_invites_student_user_id_fkey (id, first_name)"
+    )
     .eq("token", token)
     .maybeSingle();
   if (!data) return { state: "missing" };
   if (data.accepted_at) return { state: "used" };
-  if (data.revoked_at || (data.expires_at as string) <= new Date().toISOString()) return { state: "expired" };
+  if (data.revoked_at || (data.expires_at as string) <= new Date().toISOString())
+    return { state: "expired" };
   type S = { id: string; first_name: string | null };
   const raw = (data as { student: S | S[] | null }).student;
   const s = Array.isArray(raw) ? raw[0] : raw;
   if (!s) return { state: "missing" };
-  return { state: "open", inviteId: data.id as string, student: { id: s.id, firstName: s.first_name || "your student" } };
+  return {
+    state: "open",
+    inviteId: data.id as string,
+    student: { id: s.id, firstName: s.first_name || "your student" },
+  };
 }
 
 export type AcceptResult =
@@ -114,7 +126,10 @@ export async function acceptInvite(
   if (spendError) throw spendError;
   if (!spent?.length) return { ok: false, reason: "invite" };
   if (fresh) {
-    const { error } = await supabase.from("users").update({ role: "parent" }).eq("id", parent.userId);
+    const { error } = await supabase
+      .from("users")
+      .update({ role: "parent" })
+      .eq("id", parent.userId);
     if (error) throw error;
   }
   const { error } = await supabase

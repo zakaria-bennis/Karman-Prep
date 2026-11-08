@@ -75,7 +75,9 @@ export default async function InviteParentPage({
             </>
           ) : (
             <>
-              <p className="kp-meta">Your parent opens it and signs in to link their account to yours.</p>
+              <p className="kp-meta">
+                Your parent opens it and signs in to link their account to yours.
+              </p>
               <form action={createParentInviteAction}>
                 <Cta type="submit">Make the link</Cta>
               </form>
