@@ -66,6 +66,7 @@ export default [
     ignores: [
       ".next/**",
       ".open-next/**",
+      ".wrangler/**",
       ".claude/**",
       ".husky/**",
       "out/**",
