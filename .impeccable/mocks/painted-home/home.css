@@ -293,7 +293,7 @@ img, video { display: block; max-width: 100%; height: auto; }
 .q-top { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
 .q-top b { flex: 1; font-size: 14px; }
 .ring { --p: 0.4; --s: 22px; position: relative; flex: none; width: var(--s); height: var(--s); border-radius: 50%; background: conic-gradient(var(--l3) calc(var(--p) * 1turn), color-mix(in srgb, var(--ink) 16%, transparent) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px)); }
-.tag { align-self: flex-start; margin-top: 12px; padding: 3px 8px; border-radius: 3px; background: color-mix(in srgb, var(--l3) 22%, transparent); font-size: 11.5px; font-weight: 700; }
+.tag { align-self: flex-start; margin-top: 12px; padding: 4px 10px; border-radius: 3px; background: color-mix(in srgb, var(--l3) 22%, transparent); font-size: 11.5px; font-weight: 700; }
 .passage { margin-top: 12px; font-size: 13px; line-height: 1.5; }
 .blank { display: inline-block; width: 4.6em; height: 1em; margin: 0 2px; border-bottom: 1.5px solid currentColor; vertical-align: -0.1em; }
 .ask { margin-top: 10px; color: var(--mute); font-size: 12px; }
@@ -365,7 +365,7 @@ img, video { display: block; max-width: 100%; height: auto; }
 .day.today .ev::before { background: var(--l2); }
 .today-card { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 4px; font-size: 13px; }
 .today-card b { font-size: 15px; }
-.today-card em { font-style: normal; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 3px; background: var(--ink); color: var(--screen); }
+.today-card em { font-style: normal; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 3px; background: var(--ink); color: var(--screen); }
 .today-card p { flex-basis: 100%; }
 .today-card small { color: var(--mute); }
 @media (max-width: 900px) {
@@ -401,7 +401,7 @@ img, video { display: block; max-width: 100%; height: auto; }
 .lab p { margin-top: 2px; }
 .lab .yours { margin-top: 10px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 4px; }
 .lab .yours small { display: block; color: var(--mute); font-size: 11px; font-weight: 700; }
-.lab mark { background: color-mix(in srgb, var(--l3) 30%, transparent); color: inherit; padding: 0 2px; border-radius: 2px; }
+.lab mark { background: color-mix(in srgb, var(--l3) 30%, transparent); color: inherit; padding: 1px 4px; border-radius: 2px; }
 .ch { width: 100%; max-width: 260px; }
 .ch .h { display: flex; justify-content: space-between; color: var(--mute); font-size: 12px; font-weight: 700; }
 .ch p { margin-top: 8px; font-size: 14px; }
