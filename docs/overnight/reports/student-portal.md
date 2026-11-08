@@ -67,12 +67,37 @@ fox's menu.
   trial targets, unlock states, the module assembler) and are used by Homework and Progress.
   The old Learn landing page and the two skill maps now redirect into the Library.
 
+## Founder decisions of 8 November morning (done)
+
+- **Today's main button** starts the Daily 10 until it's done for the day, then the most
+  urgent homework leads ("Start this homework"). With neither, it resumes the last lesson or
+  opens the Library. Where the student left off shows as a link under the button.
+  - The Daily 10 is the quiz-flows session's page at `/learn/daily-ten`. Today reads whether
+    it's done from that session's `quiz_runs` table.
+  - Checked with local rows: before the Daily 10, the button says "Start Your Daily 10"; after
+    a finished Daily 10 for today, it says "Start this homework" and opens the late set.
+- **Join from the account:** a "Join" button opens the Zoom meeting from 30 minutes before a
+  class, 1:1 or office hours until it ends, on Today (Coming up) and in Calendar. Workshops
+  show it once a spot is saved. Checked with a local class starting in 10 minutes.
+- **Links to the quiz flows:** practice sets now open `/learn/set/<skill>`, Domain quizzes
+  `/learn/domain/<domain>` and full-length tests `/learn/test/<1 to 4>`. A tutor's fixed
+  assigned set still opens in catalog practice, which serves its questions. Time trials stay
+  "Not open yet". These pages exist only once the quiz-flows branch is merged.
+- **Levels and streak:** the Library, course pages, Endless mode and Progress also read the
+  levels the quiz flows save (`student_skill_levels`). Each skill shows the higher of the
+  saved level and the level from older practice. Finished quiz runs count toward the streak.
+
 ## What is not done
 
-- **Daily 10, Domain quizzes, time trials and full-length tests open nothing yet.** Those
-  quiz flows belong to the quiz-flows session, which hadn't started. The Library shows them
-  as "Not open yet" with no link, so no button leads to a missing page. Their addresses are
-  fixed in `src/lib/student/quiz-routes.ts`; flipping `ready` to true turns the links on.
+- **Time trials** aren't built by the quiz flows yet, so the Library shows them as "Not open
+  yet" with no link. Their address is fixed in `src/lib/student/quiz-routes.ts`; flipping
+  `ready` to true turns the link on.
+- **When the quiz-flows branch merges:**
+  - `src/components/dashboard/StudentDashboardClient.tsx` will conflict (both branches changed
+    Today's main button). Keep this branch's version: it has the "done for the day" rule.
+  - The level rule exists twice: the quiz flows' `src/lib/levels/rules.ts` (it saves levels)
+    and this branch's `src/lib/student/levels.ts` (it reads older practice). They follow the
+    same rule. Once merged, `levels.ts` should import the quiz flows' rule instead of its own.
 - **Mystery box opening and the fox wardrobe** don't exist yet, so Progress shows the ring
   and the fox with no button.
 - **Quiz history and Messages** (`/dashboard/student/quizzes`, `/chat`) still use the older
