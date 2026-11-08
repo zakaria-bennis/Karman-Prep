@@ -2,14 +2,18 @@
 // Device composites for the site's people photos (2026-11-08).
 //
 // In every people photo the person's own phone or laptop faces them, so the screen is never seen. Each photo
-// gets a copy with one of Karman's own code-drawn devices in the foreground, showing a real Karman screen:
+// gets one of Karman's own code-drawn devices in the foreground, showing a real Karman screen:
 // the iPhone 17 Pro in Cosmic Orange (the site's phone.css) or a Space Black MacBook Pro, both drawn in
 // HTML/CSS. The screens are screenshots of Karman's product screens on the live site (page loads only,
 // nothing is clicked or submitted, never the pricing page).
 //
+// The founder kept these versions (8 November), so the site's files are the composites and the original
+// photos and clips are no longer in the tree. The script reads them from git at SOURCE (the commit every
+// overnight branch starts from), so it can always start again from the clean photos.
+//
 // Writes, per photo in PHOTOS below:
-//   public/site/photos/p-<name>-k.webp (1400x1750) and p-<name>-k-800.webp (800x1000)
-//   public/site/clips/c-<name>-k.mp4 when the photo has a clip (the same device over the clip)
+//   public/site/photos/p-<name>.webp (1400x1750) and p-<name>-800.webp (800x1000)
+//   public/site/clips/c-<name>.mp4 when the photo has a clip (the same device over the clip)
 //   docs/overnight/reports/site-audit/photos/<name>.jpg (before/after sheet: original left, composite right)
 //
 // Run:  node scripts/site/device-photos.mjs [base-url] [--only=daily,bus] [--no-clips] [--no-sheets]
@@ -197,6 +201,10 @@ const CLIPS = !args.includes("--no-clips");
 const SHEETS = !args.includes("--no-sheets");
 const CACHE = args.find((a) => a.startsWith("--screens="))?.slice(10);
 
+/** A commit whose public/site/photos and public/site/clips are the original photos, without devices. */
+const SOURCE = "bbe7e094bc0d96d4eee7c8cced9d2d602049d11e";
+const original = (rel) =>
+  execFileSync("git", ["show", `${SOURCE}:${rel}`], { cwd: ROOT, maxBuffer: 64 * 1024 * 1024 });
 const PHOTO_DIR = join(ROOT, "public/site/photos");
 const CLIP_DIR = join(ROOT, "public/site/clips");
 const SHEET_DIR = join(ROOT, "docs/overnight/reports/site-audit/photos");
@@ -411,13 +419,13 @@ async function main() {
       const inside =
         pct.x0 >= SAFE.x0 && pct.x1 <= SAFE.x1 && pct.y0 >= SAFE.y0 && pct.y1 <= SAFE.y1;
       const layer = await sharp(png).resize(W, H, { kernel: "lanczos3" }).png().toBuffer();
-      const src = join(PHOTO_DIR, `p-${name}.webp`);
+      const src = original(`public/site/photos/p-${name}.webp`);
       const full = await sharp(src)
         .composite([{ input: layer }])
         .png()
         .toBuffer();
-      const out = join(PHOTO_DIR, `p-${name}-k.webp`);
-      const out800 = join(PHOTO_DIR, `p-${name}-k-800.webp`);
+      const out = join(PHOTO_DIR, `p-${name}.webp`);
+      const out800 = join(PHOTO_DIR, `p-${name}-800.webp`);
       await sharp(full).webp({ quality: 82, effort: 6 }).toFile(out);
       await sharp(full)
         .resize(800, 1000, { kernel: "lanczos3" })
@@ -425,7 +433,7 @@ async function main() {
         .toFile(out800);
       console.log(
         `${name}: ${p.device} / ${p.screen}, box x ${pct.x0.toFixed(1)}-${pct.x1.toFixed(1)}% y ${pct.y0.toFixed(1)}-${pct.y1.toFixed(1)}%` +
-          `${inside ? "" : "  OUTSIDE THE SAFE AREA"} | ${kb(src)} KB -> ${kb(out)} KB, 800: ${kb(join(PHOTO_DIR, `p-${name}-800.webp`))} KB -> ${kb(out800)} KB`
+          `${inside ? "" : "  OUTSIDE THE SAFE AREA"} | ${Math.round(src.length / 1024)} KB -> ${kb(out)} KB, 800: ${Math.round(original(`public/site/photos/p-${name}-800.webp`).length / 1024)} KB -> ${kb(out800)} KB`
       );
 
       if (SHEETS) {
@@ -440,8 +448,9 @@ async function main() {
       }
 
       if (CLIPS && p.clip) {
-        const clipIn = join(CLIP_DIR, `c-${name}.mp4`);
-        const clipOut = join(CLIP_DIR, `c-${name}-k.mp4`);
+        const clipIn = join(tmp, `${name}-original.mp4`);
+        writeFileSync(clipIn, original(`public/site/clips/c-${name}.mp4`));
+        const clipOut = join(CLIP_DIR, `c-${name}.mp4`);
         const overlay = join(tmp, `${name}-overlay.png`);
         writeFileSync(
           overlay,
