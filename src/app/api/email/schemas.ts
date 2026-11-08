@@ -11,7 +11,7 @@ import { LEAD_SOURCES } from "@/lib/marketing/offer";
 // previous regex check, so this is at least as strict as before.
 // `source` defaults to "newsletter" so older clients keep working.
 export const emailSubscribeBodySchema = z.object({
-  email: z.string().trim().email({ message: "Valid email required" }),
+  email: z.string().trim().max(254).email({ message: "Valid email required" }),
   source: z.enum(LEAD_SOURCES).default("newsletter"),
   name: z.string().trim().min(1).max(80).optional(),
   role: z.enum(["student", "parent"]).optional(),

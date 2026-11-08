@@ -1,0 +1,38 @@
+{
+  "brand": "Karman Prep",
+  "format": "landing_page",
+  "generated_on": "2026-11-01",
+  "point_a": "A parent of an 11th grader who doesn't know where the score stands and is wary of paying thousands for prep that may not move it.",
+  "point_b": "Books the free practice test on Saturday, December 12.",
+  "enemy": { "type": "approach", "statement": "Prep bought before anyone has measured the student: hours sold with no number at the start and no promise at the end." },
+  "facts": [
+    { "fact": "Free practice test, Saturday, December 12, 10:00 a.m. ET, about 75 minutes, about 49 questions, live on Zoom with a proctor", "source": "offer.ts FREE_PRACTICE_TEST", "used_in": "hero, close, faq" },
+    { "fact": "The test gives a Karman predicted score, a domain-by-domain breakdown and a 20-minute results call with a Karman tutor", "source": "offer.ts", "used_in": "hero" },
+    { "fact": "Missed questions come back after 2, 7 and 21 days in Your Daily 10 (arrives January 2027)", "source": "offer.ts, PRODUCT.md, business-plan.md", "used_in": "daily" },
+    { "fact": "Mateo 1570 Harvard, Priya 1540 Stanford, Ava 1520 UC Berkeley, Karman 1:1 tutoring, median 16 weeks", "source": "design-rules.md rule 47 founder exception", "used_in": "results" },
+    { "fact": "March program: Jan 4 to the March 6, 2027 SAT, 18 classes of 90 minutes, up to six students, five full-length tests, $995 or 3 x $345", "source": "offer.ts MARCH_PROGRAM", "used_in": "program" },
+    { "fact": "Guarantee: +100 or 1450, half or full price back or the next cohort free; Private 20 has its own remedy", "source": "offer.ts GUARANTEE", "used_in": "guarantee" },
+    { "fact": "Plans: Free $0, Platform $29/mo, Plus $49/mo, March $995, Private 10 $1,495, Private 20 $2,495, School $10 per student a year", "source": "offer.ts, plan ladder", "used_in": "plans" }
+  ],
+  "copy": { "landing_page": { "headline": "Know the score before you pay.", "subhead": "Karman's free SAT practice test runs live on Zoom on Saturday, December 12. Your teen leaves with a predicted score, a breakdown by domain and a 20-minute call with a Karman tutor.", "sections": [
+    { "h2": "Answer one of our questions.", "body": "The real practice screen with a Karman original." },
+    { "h2": "Misses return on day 2, 7 and 21.", "body": "Your Daily 10, ten minutes a day." },
+    { "h2": "Official scores from Karman 1:1 students.", "body": "1570, 1540, 1520 with name and college; Karman 1:1 tutoring, median 16 weeks." },
+    { "h2": "Nine weeks, ending on the March 6 SAT.", "body": "18 classes, up to six students, five tests, $995." },
+    { "h2": "Up 100 points, or money back.", "body": "The terms as a table." },
+    { "h2": "The numbers, every week.", "body": "The weekly parent update." },
+    { "h2": "Six plans, priced in full.", "body": "One table." },
+    { "h2": "Questions parents ask", "body": "Seven answers as reading text." },
+    { "h2": "December 12, 10:00 a.m. ET.", "body": "Objection handled: free, from home, 75 minutes, and what you leave with." }
+  ], "cta": "Book the free practice test", "proof": ["The live question grades itself", "Three official scores beside the claim"] } },
+  "ladders": [ { "line_id": "headline", "rungs": ["SAT prep that works", "Know where your teen stands", "A predicted score first", "Know the score before you pay."] } ],
+  "alternates": [ { "line_id": "headline", "options": ["Know the score before you pay.", "Your teen's SAT score, before the SAT.", "Start with the number.", "A predicted SAT score, free, December 12."] } ],
+  "gate": [
+    { "line_id": "headline", "line": "Know the score before you pay.", "visualize": true, "falsifiable": true, "only_us": false, "score": 2, "signed_by": "A rival with a free diagnostic could sign it; the date, the live proctor and the tutor call right under it are what make it Karman's.", "note": "Kept short for the two-line rule; the specifics carry the subhead." },
+    { "line_id": "daily", "line": "Misses return on day 2, 7 and 21.", "visualize": true, "falsifiable": true, "only_us": true, "score": 3, "signed_by": "No rival states this schedule.", "note": "" },
+    { "line_id": "results", "line": "Official scores from Karman 1:1 students.", "visualize": true, "falsifiable": true, "only_us": true, "score": 3, "signed_by": "The three names and scores are Karman's own.", "note": "" },
+    { "line_id": "guarantee", "line": "Up 100 points, or money back.", "visualize": true, "falsifiable": true, "only_us": false, "score": 2, "signed_by": "Others guarantee points too; the table of remedies is specific.", "note": "Lawyer review pending." }
+  ],
+  "cut": ["Average gain +285 and 94% reached target: in offer.ts, left out because this brief allows only the three named students as results.", "10,000+ questions: left out, the live bank count is not confirmed against the claim."],
+  "caveats": ["Every specific in this copy traces to a fact you provided or a review you supplied. Check them before you spend money behind them. This writes the copy; it doesn't verify your claims or clear them for compliance.", "No reviews or testimonials exist, so the copy leans on the offer's own numbers.", "The free test's start time, the guarantee terms and the plan names are still marked CONFIRM in offer.ts."]
+}

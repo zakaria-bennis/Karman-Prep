@@ -1,6 +1,8 @@
 // ============================================================
 // /tutor/* — role-gated layout.
-// Only users with role in {'tutor','admin'} can pass.
+// Staff tutors and admins get the dashboard chrome. Affiliate tutors
+// (the $199 plan) pass too; their pages draw the painted portal shell
+// themselves (src/components/tutor-affiliate/).
 //
 // Protects every sub-route automatically (no need to repeat
 // the role check in each page component).
@@ -18,6 +20,7 @@ export default async function TutorLayout({ children }: { children: React.ReactN
   const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const role = await resolveEffectiveRole(userId);
+  if (role === "affiliate_tutor") return <>{children}</>;
   if (role !== "tutor" && role !== "admin") {
     redirect("/dashboard/student");
   }

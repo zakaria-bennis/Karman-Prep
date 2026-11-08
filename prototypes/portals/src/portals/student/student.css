@@ -1,0 +1,169 @@
+/* The student portal's few rules beyond the design system: math, the highlighter,
+   the set strip, the one shimmer on the next step, the box opening. Every move
+   is still under reduced motion. */
+
+.k-math {
+  font-family: var(--k-font-serif), Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+.k-frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.1;
+  margin: 0 0.15em;
+  font-size: 0.92em;
+}
+.k-frac > span:first-child {
+  border-bottom: 1px solid currentColor;
+  padding: 0 0.2em 0.05em;
+}
+.k-frac > span:last-child {
+  padding: 0.05em 0.2em 0;
+}
+.k-sqrt {
+  display: inline-flex;
+  align-items: baseline;
+}
+.k-sqrt-body {
+  border-top: 1px solid currentColor;
+  padding: 0 0.15em;
+  margin-left: 0.05em;
+}
+
+/* The highlighter: the theme accent at 28 percent, never a yellow. */
+mark.k-hl {
+  background: rgb(var(--k-accent) / 0.28);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.k-passage[data-highlighting] {
+  cursor: text;
+}
+.k-passage[data-highlighting] ::selection {
+  background: rgb(var(--k-accent) / 0.45);
+}
+
+/* The one shimmer: a light band crosses the next step every seven seconds. */
+.k-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.k-sheen::after {
+  content: "";
+  position: absolute;
+  inset: -40% -60%;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgb(255 255 255 / 0.28) 50%,
+    transparent 58%
+  );
+  transform: translateX(-120%);
+  animation: k-sheen 7s var(--k-ease) 1.5s infinite;
+  pointer-events: none;
+}
+@keyframes k-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  22%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+/* A square of the set strip settles when its answer lands. */
+.k-cell {
+  transition:
+    background-color 240ms var(--k-ease),
+    border-color 240ms var(--k-ease),
+    transform 320ms var(--k-spring-quick);
+}
+.k-cell[data-just] {
+  animation: k-cell-pop var(--k-spring-bounce-ms) var(--k-spring-bounce);
+}
+@keyframes k-cell-pop {
+  from {
+    transform: scale(0.6);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* The mystery box rocks, then opens. */
+.k-box-open {
+  animation: k-box-rock 900ms var(--k-ease) both;
+  transform-origin: 50% 85%;
+}
+@keyframes k-box-rock {
+  0% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-7deg);
+  }
+  40% {
+    transform: rotate(7deg);
+  }
+  60% {
+    transform: rotate(-5deg) scale(1.04);
+  }
+  80% {
+    transform: rotate(4deg) scale(1.08);
+  }
+  100% {
+    transform: rotate(0) scale(1.1);
+  }
+}
+.k-reveal {
+  animation: k-reveal var(--k-spring-settle-ms) var(--k-spring-settle) both;
+}
+@keyframes k-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The scratch pad takes every pointer as ink. */
+.k-pad {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .k-sheen::after,
+  .k-cell[data-just],
+  .k-box-open,
+  .k-reveal {
+    animation: none;
+  }
+  .k-sheen::after {
+    display: none;
+  }
+  .k-box-open {
+    transform: scale(1.1);
+  }
+  .k-cell {
+    transition: none;
+  }
+}
+
+/* A fill-in blank is one solid underline, never a row of underscores (rule 55). */
+.k-blank {
+  display: inline-block;
+  width: 4.5em;
+  height: 0.9em;
+  border-bottom: 1.5px solid currentColor;
+  vertical-align: baseline;
+}

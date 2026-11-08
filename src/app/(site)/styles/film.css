@@ -101,7 +101,6 @@
 html.ks-lock { overflow: hidden; }
 
 /* ---------- type ---------- */
-.ks .eyebrow { display: inline-flex; align-items: center; font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .ks h1, .ks h2 { font-weight: 800; letter-spacing: -0.045em; line-height: .96; text-wrap: balance; }
 .ks h1 { font-size: clamp(48px, 7.6vw, 124px); max-width: 12ch; }
 .ks h2 { font-size: clamp(38px, 5.2vw, 80px); }
@@ -277,3 +276,14 @@ html.ks-lock { overflow: hidden; }
 .ks[data-type="impact"] :is(h1, h2) { font-family: var(--font-impact), Impact, "Arial Narrow", sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0; line-height: .94; }
 .ks[data-type="impact"] h1 { font-size: clamp(54px, 8.4vw, 140px); }
 .ks[data-type="impact"] h2 { font-size: clamp(38px, 5.4vw, 88px); }
+
+/* the opening section rises at first paint from CSS alone, so its headline and buttons never wait for the
+   page's scripts (the 2026-11-08 audit measured about 8 s on a slow phone before they showed); the motion
+   is the same rise and fade as before */
+.ks main > section:first-of-type .w > span { animation: ks-rise 1.1s var(--ease) both; animation-delay: calc(.12s + var(--i) * .07s); }
+.ks main > section:first-of-type .rv { animation: ks-in .9s var(--ease) both; animation-delay: var(--d, 0s); }
+@keyframes ks-rise { from { transform: translateY(108%); } to { transform: none; } }
+@keyframes ks-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .ks main > section:first-of-type .w > span, .ks main > section:first-of-type .rv { animation: none; }
+}

@@ -2443,37 +2443,85 @@ export type Database = {
           },
         ];
       };
+      plan_grants: {
+        Row: {
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          plan_id: string;
+          revoked_at: string | null;
+          source: string;
+          source_ref: string | null;
+          sponsor_user_id: string | null;
+          starts_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          plan_id: string;
+          revoked_at?: string | null;
+          source: string;
+          source_ref?: string | null;
+          sponsor_user_id?: string | null;
+          starts_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          plan_id?: string;
+          revoked_at?: string | null;
+          source?: string;
+          source_ref?: string | null;
+          sponsor_user_id?: string | null;
+          starts_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       subscriptions: {
         Row: {
+          billing_term: string;
           canceled_at: string | null;
           created_at: string;
+          current_period_end: string | null;
           id: string;
+          plan_id: string;
           status: string;
           stripe_customer_id: string;
           stripe_subscription_id: string;
-          tier: string;
+          tier: string | null;
           trial_end: string | null;
           user_id: string;
         };
         Insert: {
+          billing_term?: string;
           canceled_at?: string | null;
           created_at?: string;
+          current_period_end?: string | null;
           id?: string;
+          plan_id: string;
           status: string;
           stripe_customer_id: string;
           stripe_subscription_id: string;
-          tier: string;
+          tier?: string | null;
           trial_end?: string | null;
           user_id: string;
         };
         Update: {
+          billing_term?: string;
           canceled_at?: string | null;
           created_at?: string;
+          current_period_end?: string | null;
           id?: string;
+          plan_id?: string;
           status?: string;
           stripe_customer_id?: string;
           stripe_subscription_id?: string;
-          tier?: string;
+          tier?: string | null;
           trial_end?: string | null;
           user_id?: string;
         };

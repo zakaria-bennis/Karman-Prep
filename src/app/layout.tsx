@@ -17,6 +17,7 @@ import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { themeBootstrapScript, themeStyleSheet } from "@/lib/themes/palettes";
+import { deviceThemeBootstrapScript } from "@/lib/themes/device-mode";
 import { quizRoleStyleSheet } from "@/lib/themes/quiz-roles";
 import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
@@ -180,6 +181,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             dangerouslySetInnerHTML={{ __html: quizRoleStyleSheet() }}
           />
           <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript() }} />
+          <script dangerouslySetInnerHTML={{ __html: deviceThemeBootstrapScript() }} />
         </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${plexSerif.variable} ${plexSans.variable} ${plexMono.variable} ${atkinson.variable} ${figureSerif.variable} antialiased`}

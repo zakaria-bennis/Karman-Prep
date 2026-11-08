@@ -39,13 +39,18 @@
 .ks .tools-nav button { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--card); border: 1px solid var(--line); color: var(--ink); cursor: pointer; transition: transform .45s var(--spring); }
 .ks .tools-nav button:active { transform: scale(.92); transition-duration: .08s; }
 .ks .tools-nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ks .tools-nav[hidden] { display: none; }
+.ks .tools-nav button:disabled { opacity: .35; cursor: default; transform: none; }
 .ks .tools-track { list-style: none; margin: 0; padding: 0 0 8px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, calc((100% - 48px) / 4)); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
 .ks .tools-track::-webkit-scrollbar { display: none; }
 .ks .tool { scroll-snap-align: start; display: grid; grid-template-rows: auto auto 1fr; gap: 6px; padding: 18px 18px 22px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
 .ks .tool b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
 .ks .tool > span:not(.tool-art) { color: var(--ink2); font-size: 15.5px; line-height: 1.45; }
 .ks .tool-art { display: block; height: 170px; border-radius: 12px; background: var(--soft); overflow: hidden; }
-@media (max-width: 760px) { .ks .tools-head { align-items: start; flex-direction: column; } .ks .tools-nav { display: none; } .ks .tools-track { grid-auto-columns: 78%; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); } }
+/* no sideways scroll (founder, 8 November; design rule 28): the four cards make a 2 x 2 grid below
+   1200 px, where a row of four no longer fits, and stack in one column on phones */
+@media (max-width: 1199px) { .ks .tools-track { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; scroll-snap-type: none; } .ks .tools-nav { display: none; } }
+@media (max-width: 760px) { .ks .tools-head { align-items: start; flex-direction: column; } .ks .tools-track { grid-template-columns: minmax(0, 1fr); } }
 
 /* the tools' small working screens */
 .ks .tool-ui { height: 100%; display: grid; place-content: center; gap: 6px; padding: 14px; font-family: var(--font-hanken), system-ui, sans-serif; }

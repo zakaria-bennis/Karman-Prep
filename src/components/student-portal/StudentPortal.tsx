@@ -41,10 +41,10 @@ export function studentNav(
 /** The account menu (founder, 2026-11-07). "Profile and security" and "Sign out" are added by the shell. */
 export const STUDENT_MENU: AccountMenuItem[] = [
   { label: "Your test and date", href: `${STUDENT_ROUTES.account}#test` },
-  { label: "Invite a parent", href: `${STUDENT_ROUTES.account}#parent` },
+  { label: "Invite a parent", href: "/dashboard/student/invite-parent" },
   { label: "Sound and motion", href: `${STUDENT_ROUTES.account}#sound` },
   { label: "Plan and billing", href: `${STUDENT_ROUTES.account}#plan` },
-  { label: "Redeem a tutor's code", href: `${STUDENT_ROUTES.account}#code` },
+  { label: "Redeem a tutor's code", href: "/join" },
   { label: "Messages", href: "/dashboard/student/chat" },
 ];
 

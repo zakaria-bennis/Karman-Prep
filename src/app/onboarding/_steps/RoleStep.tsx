@@ -1,10 +1,18 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { GraduationCap, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { startParentAccountAction } from "../parent-action";
 import type { Role } from "./shared";
 
+/**
+ * Students carry on with the questions. A parent gets a parent account at once and goes to the
+ * parent portal to link to their child (founder, 2026-11-08); they skip the questionnaire.
+ */
 export function RoleStep({ role, onPick }: { role: Role; onPick: (r: Role) => void }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   return (
     <div>
       <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">
@@ -23,12 +31,23 @@ export function RoleStep({ role, onPick }: { role: Role; onPick: (r: Role) => vo
         />
         <RoleOption
           icon={<Users className="h-5 w-5" />}
-          label="I'm a parent"
-          desc="I'm looking for prep for my child."
-          active={role === "parent"}
-          onClick={() => onPick("parent")}
+          label={pending ? "Setting up your parent account…" : "I'm a parent"}
+          desc="I'll follow my child's progress and link to their account."
+          active={pending}
+          onClick={() =>
+            startTransition(async () => {
+              setError(null);
+              const result = await startParentAccountAction();
+              if (result?.error) setError(result.error);
+            })
+          }
         />
       </div>
+      {error && (
+        <p role="alert" className="mt-4 text-sm text-ivory dark:text-ivory">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

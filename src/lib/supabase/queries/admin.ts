@@ -22,7 +22,7 @@
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export type AppRole = "student" | "tutor" | "admin" | "parent";
+export type AppRole = "student" | "tutor" | "admin" | "parent" | "affiliate_tutor";
 
 /** Cookie name used by the admin "View as <role>" tool. */
 export const IMPERSONATE_COOKIE = "karman_impersonate_role";

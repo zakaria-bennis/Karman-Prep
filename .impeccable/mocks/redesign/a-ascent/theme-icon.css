@@ -1,0 +1,9 @@
+/* The theme toggle's glyph: 21st.dev 37503 "Theme Toggle" (000h by Cojeev, MIT), the morphing sun and
+   moon, redrawn as one hand-made SVG with transform and opacity only. In light mode the sun with its
+   rays; in dark mode the rays fold in and the crescent appears. */
+.k-theme .sun, .k-theme .rays, .k-theme .moon { transform-box: fill-box; transform-origin: 50% 50%; transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.3s; }
+.k-theme .moon { opacity: 0; transform: rotate(-40deg) scale(0.6); }
+html[data-theme="dark"] .k-theme .moon { opacity: 1; transform: none; }
+html[data-theme="dark"] .k-theme .sun { transform: scale(0.2); opacity: 0; }
+html[data-theme="dark"] .k-theme .rays { opacity: 0; transform: scale(0.4) rotate(45deg); }
+@media (prefers-reduced-motion: reduce) { .k-theme .sun, .k-theme .rays, .k-theme .moon { transition: none; } }

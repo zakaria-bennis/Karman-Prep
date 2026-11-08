@@ -34,6 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 import { learningPlanCopy } from "@/lib/learning-plan/copy";
 import type { StatusDraft } from "@/lib/integrations/openai/generate-status-draft";
+import { tierLabelOf } from "@/lib/scheduling/tiers";
 import {
   actionSaveDraft,
   actionRegenerateDraft,
@@ -239,15 +240,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
         </div>
       </header>
 
-      {/* Group/Seminar gate — Phase 4 ships 1:1 only */}
+      {/* Group-session gate: recaps send for private tutoring only */}
       {!isOneOnOne && (
         <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning-bright">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
-            <strong>Group session — auto-recap deferred.</strong> v1 ships recaps for{" "}
-            <code className="text-warning-bright">private</code> and{" "}
-            <code className="text-warning-bright">elite</code> tier sessions only. Group + small
-            group recaps are tracked for v2.
+            <strong>Group session: auto-recap deferred.</strong> Recaps send for private tutoring
+            sessions only for now. Cohort and weekly live session recaps come later.
           </div>
         </div>
       )}
@@ -567,15 +566,7 @@ function PlanTierPill({ tier }: { tier: string }) {
     small_group: "bg-success/20 text-success-bright",
     group: "bg-gold/20 text-gold-bright",
   };
-  const label =
-    (
-      {
-        private: "Private",
-        elite: "Elite",
-        small_group: "Small Group",
-        group: "Seminar",
-      } as Record<string, string>
-    )[tier] ?? tier;
+  const label = tierLabelOf(tier);
   return (
     <span
       className={cn(
@@ -661,7 +652,7 @@ function humanizeError(err: unknown): string {
   if (msg === "already_sent")
     return "This recap has already been sent. Refresh the page to see the locked state.";
   if (msg === "group_session_deferred")
-    return "Group/Seminar recaps are deferred to v2. Only Private and Elite recaps send for now.";
+    return "Cohort and weekly live session recaps come later. Only private tutoring recaps send for now.";
   if (msg === "no_resolved_emails")
     return "None of the selected recipients have email addresses on file.";
   if (msg === "missing_student_data") return "Couldn't find the student's data on this booking.";

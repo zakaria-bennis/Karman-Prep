@@ -11,7 +11,7 @@ import { pairs, section } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.guarantee,
   "Karman Prep: The guarantee",
-  `The Karman guarantee in full: +${G.points} points or a ${G.orScore}, or half or all of your money back, or the next cohort free. Every rule is on the page.`
+  `The Karman guarantee in full: +${G.pointsBelow} points, or +${G.pointsFrom} from a ${G.splitAt} start. On the cohort: half or all of your money back, or the next cohort free. On Private 10: half back. On Private 20: free extra hours, then half back. Every rule is on the page.`
 );
 
 export default function GuaranteePage() {
@@ -19,7 +19,7 @@ export default function GuaranteePage() {
   return (
     <SitePage kind="inner">
       <InnerHero n={51} href={ROUTES.test} side={<ArtDrawing name="report" style={delay(0.2)} />} />
-      <GuaranteeSection />
+      <GuaranteeSection linkHref="#s-52" />
       <section className="i-sec" data-light id="s-52">
         <div className="in">
           <div className="i-split i-withphoto">

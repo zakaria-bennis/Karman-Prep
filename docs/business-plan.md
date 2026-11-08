@@ -1,10 +1,11 @@
-# Karman Prep — business plan (October 2026)
+# Karman Prep — business plan (updated 8 November 2026)
 
 The working plan for what Karman sells, how it's priced, and what gets built
 in what order. Product copy on the marketing site comes from
 [`src/lib/marketing/offer.ts`](../src/lib/marketing/offer.ts); this doc is the
-reasoning behind those numbers. Visual and voice rules live in
-[`docs/brand.md`](./brand.md).
+reasoning behind those numbers. The price list itself, plan by plan, is
+[`docs/business/plan-ladder-2026-11-08.md`](./business/plan-ladder-2026-11-08.md).
+Voice rules live in [`docs/brand.md`](./brand.md).
 
 ## North star
 
@@ -17,120 +18,93 @@ review, spaced review of mistakes, mixed practice, frequent small-group or
 
 ## The business in one line
 
-A founder-led SAT prep company that sells **programs that end on a specific
-test date**, not hours or monthly subscriptions. A small live cohort is the
-flagship; private 1:1 packages sit on top; free tools bring families in.
+A founder-led SAT prep company with a ladder of plans: free practice to start,
+two practice plans (Practice and Pro), a small live cohort, private 1:1
+packages, and two ways to reach students in bulk (school licenses and a tutor
+affiliate plan). Cohorts are sold on their own terms, never tied to "ends on
+your SAT date" (retired 2026-10-26).
 
 - **Founder:** Zakaria Bennis — solo founder and tutor (99th percentile SAT,
   1,200+ students tutored privately). Nabil Kafil Asrar is no longer
   involved; he must not appear anywhere in product or marketing.
-- **Who buys:** parents of high-school students (mostly 11th grade).
+- **Who buys:** parents of high-school students (mostly 11th grade), schools,
+  and independent tutors who sell on marketplaces like Leland.
 - **Who uses it:** students aged roughly 15–18.
 
-## Why programs, not hours
+## Why this ladder
 
-- SAT prep has a finish line. Monthly plans lose students by design, and
-  low-ticket plans can't pay for acquiring a family.
-- Every session sold one at a time is a new buying decision; families quit
-  before scores move.
-- Hourly pricing invites comparison with commodity tutors.
-- A solo founder's hours are the ceiling, so formats with more revenue per
-  live hour (small groups, free funnels, software) matter.
+- The free plan and the free practice test let a family judge the questions
+  before paying anything.
+- Practice and Pro are low-ticket software plans with software margins. They
+  carry no guarantee because no tutor teaches the student every week.
+- The cohort and private packages are where a tutor teaches every week, so
+  they carry the guarantee and most of the revenue per family.
+- School licenses and the tutor affiliate plan put the platform in front of
+  many students at once without Karman's tutors' hours as the ceiling.
 
-## The offer (launch: enrollment opens November 2026)
+## The offer (founder, 8 November 2026)
 
-All numbers here are mirrored in `src/lib/marketing/offer.ts`.
+All numbers here are mirrored in `src/lib/marketing/offer.ts`. Plan ids are
+the same everywhere (site, Stripe lookup keys, the `subscriptions` table and
+`src/lib/plans/`).
 
-### The March SAT Program (cohort — flagship)
+| Plan            | Price                                  | What it includes                                                                                                               |
+| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Free            | $0                                     | 100 questions in total, plus one free full-length test.                                                                        |
+| Practice        | $39 a month, or $89 for 3 months       | The core question pool, with written explanations.                                                                             |
+| Pro             | $69 a month, or $149 for 3 months      | Every question, including the hard mastery pool, plus video explanations.                                                      |
+| 9-week Cohort   | $995                                   | At most 6 students. 18 sessions, twice a week, 60 minutes each. Score bands 1000 to 1200, 1200 to 1400, 1400 to 1600. No 1:1s. |
+| Private 10      | $1,495                                 | 10 hours of 1:1 tutoring.                                                                                                      |
+| Private 20      | $2,495                                 | 20 hours of 1:1 tutoring.                                                                                                      |
+| Schools         | $8 per student a year, first year free | Each student gets Practice-plan access of their own. It is not a shared pool.                                                  |
+| Tutor affiliate | $199 a month per tutor                 | Up to 50 students on one code get Practice free while the tutor subscribes; the tutor gets admin rights over them.             |
 
-- Ends on the **Saturday, March 6, 2027 SAT**. Runs 9 weeks from Monday,
-  January 4, 2027.
-- **5 paying seats + 1 scholarship seat** (small groups of about 4–6 are
-  where tutoring research shows the strongest effects).
-- Two 90-minute live classes a week (18 classes).
-- **5 full-length practice tests.** The week-1 baseline is an official
-  Bluebook test, proctored live; the dress rehearsal (about a week before
-  the test) is proctored live too.
-- **A 60-minute 1:1 session with Zakaria after every full-length**, going
-  through every mistake. This is Zakaria's core teaching method; a "tutoring
-  session" at Karman _is_ a full-length review.
-- One weekly live session for everyone: test mechanics (pacing, Desmos, how
-  the adaptive second module works) alternating with rotating skill
-  workshops.
-- **Daily 10:** spaced review — every missed question comes back after
-  about 2, 7 and 21 days. (Must ship before January 4.)
-- 5,000+ verified original practice questions across 89 skills × 7
-  difficulty levels (growing toward 10,000+).
-- Cohort chat; questions to the tutor answered once a day.
-- A weekly progress update to parents.
-- The 50-point guarantee (below).
-- **Price:** $995 founding price for the March cohort (pay in full, or 3
-  monthly payments of $345). Later cohorts: $1,295. Target by 2029: $1,495.
-- **Reserving:** a $100 refundable deposit holds a seat (Stripe Payment
-  Link; set `NEXT_PUBLIC_COHORT_DEPOSIT_URL`). Until that exists, the site
-  collects interest through the lead form.
-- Next cohorts: the May 1 and June 5, 2027 SATs (enrollment opens in
-  February).
+- **Cohort payment:** $995 in full, or a $95 refundable deposit and three
+  payments of $300 ($95 + 3 × $300 = $995). The deposit is part of the price.
+  (Fixed 2026-11-08: the old $100 deposit plus 3 × $345 made $1,135.)
+- **Cohort and private plans include Pro** on the platform (every question,
+  video explanations).
+- **Scholarship:** $1,500 to the top-scoring student in each cohort, paid as a
+  refund of the $995 plus a $505 merit bonus.
+- **Free entry points:** the free plan; the free monthly practice test (a
+  half-length test proctored live on Zoom, first one Saturday, December 12,
+  2026, with a 20-minute results call); the 35-question diagnostic.
 
-### Private 1:1 with Zakaria
+## The guarantee
 
-- **Private 10:** 10 hours, $1,450. **Private 20:** 20 hours, $2,900
-  ($145/hour).
-- Weekly 60-minute sessions. Each one goes through every mistake on the
-  student's latest full-length, or targets the skill holding them back.
-- Includes the full platform, the weekly live session, and an update to
-  parents after every session.
-- First step: a free strategy call (`NEXT_PUBLIC_STRATEGY_CALL_URL`, a
-  Cal.com link) or the lead form.
-- From 2028, trained Karman tutors deliver Private at about $135/hour and
-  Zakaria's own hours become "Signature" at about $200/hour.
+The Cohort, Private 10 and Private 20 carry it. Full terms in
+[`docs/business/guarantee.md`](./business/guarantee.md).
 
-### Free entry points
-
-- **Free practice test:** a half-length test (one Reading & Writing module +
-  one Math module, ~49 questions, ~75 minutes) built from Karman's own
-  questions, proctored live on Zoom, monthly. First one: Saturday,
-  December 12, 2026. Includes an estimated score range, a domain breakdown,
-  and a 20-minute results call. Its purpose is to show the quality of
-  Karman's questions.
-- **35-question diagnostic:** free with an account, any time.
-- **Daily Question** (planned, November): one Reading & Writing and one Math
-  question a day, streaks, share card.
-
-### The guarantee
-
-- **50 points** over a proctored official Bluebook baseline taken in week 1.
-- **Eligibility:** take the baseline; attend at least 80% of live classes
-  and every 1:1 session; complete all 5 full-length tests; complete the
-  assigned weekly practice; sit the official SAT on the program's test
-  date; send the official College Board score report within 30 days.
-- **Remedy:** a free seat in the next Karman cohort.
-- Honest intake: students already scoring 1500+, or fewer than ~4 weeks
-  from their test, are told plainly that the program probably isn't worth
-  it for them.
+- **Target:** +100 points from a baseline under 1400; +50 points from a
+  baseline of 1400 or higher. A 1600 always counts.
+- **Cohort remedy:** half the price back, or the next cohort free, when the
+  student reaches half the target or more; the full price back, or the next
+  cohort free, below that. The family chooses.
+- **Private remedy:** Private 10, half the price back ($747.50); Private 20, up to 6 free hours,
+  then half the price back if the next official SAT still falls short.
+- Honest intake: students already scoring 1500+, or fewer than ~4 weeks from
+  their test, are told plainly that a program probably isn't worth it for them.
 
 ## The full ecosystem (status)
 
 | Offering                                                        | Status                                 |
 | --------------------------------------------------------------- | -------------------------------------- |
-| March SAT Program (cohort)                                      | Launching Jan 2027                     |
-| Private 1:1 (Private 10 / 20)                                   | Launching Jan 2027                     |
+| Free plan, Practice and Pro                                     | At launch                              |
+| 9-week Cohort                                                   | First cohort January 4, 2027           |
+| Private 1:1 (Private 10 / 20)                                   | At launch                              |
+| School licenses                                                 | At launch (first year free)            |
+| Tutor affiliate plan                                            | At launch                              |
 | Free monthly practice test (own questions)                      | First: Dec 12, 2026                    |
 | 35-question diagnostic                                          | Live                                   |
 | Practice engine: question bank, Daily 10, timed modules         | Bank live; Daily 10 by Jan 2027        |
 | Weekly live session + rotating workshops                        | Jan 2027                               |
 | Cohort community (chat; DMs later with safeguards)              | Jan 2027                               |
 | Insights: student/tutor views, weekly parent update             | Manual Jan 2027; automated summer 2027 |
-| Daily Question (free, streaks, leagues)                         | Nov 2026                               |
+| Video explanations (Pro)                                        | Rolling from launch                    |
 | Root Words (Wordle-style, root-based vocab)                     | Spring 2027                            |
 | Score Plan (test-date and superscore planner)                   | Spring 2027                            |
 | Ask Karman (AI mistake coach, grounded in checked explanations) | Summer 2027                            |
-| Test-Day Playbook (personal guide generated from student data)  | May 2027                               |
-| Video lesson library (clipped from recorded workshops)          | Rolling from Jan 2027                  |
-| Karman Live Season Pass ($199, weekly sessions + recordings)    | Fall 2027                              |
-| Self-Paced ($249)                                               | Fall 2027                              |
 | PSAT & Foundations track (9th–10th grade)                       | Summer 2028                            |
-| Karman for Schools (licenses)                                   | 2028–29                                |
 | Social video engine (YouTube, Instagram, TikTok)                | Now                                    |
 
 ## Marketing honesty rules
@@ -144,8 +118,8 @@ All numbers here are mirrored in `src/lib/marketing/offer.ts`.
    tutored. Always state the format next to them (1:1 tutoring, median 16
    weeks) and never present them as results of the 9-week cohort. Replace
    them with cohort results once those exist.
-3. **No fake urgency.** Real deadlines (enrollment close, test dates, seat
-   counts) are fine; countdown gimmicks are not.
+3. **No fake urgency.** Real deadlines (enrollment close, seat counts) are
+   fine; countdown gimmicks are not.
 4. **Don't sell features that won't exist in time.** Anything not shipped by
    the program start is labeled "coming" with a season.
 5. **Only original questions in public.** No College Board content on the
@@ -157,40 +131,42 @@ All numbers here are mirrored in `src/lib/marketing/offer.ts`.
 ## Economics
 
 - **Floor:** $80 per working hour. A live hour carries ~25 minutes of prep
-  and follow-up (≈1.4 working hours), so a 1:1 hour must bring in ≥ ~$116.
-- **Cohort of 5 at $1,295:** 27 class hours + 25 review hours = 52 live
-  hours → ~$124 per live hour → ~$89 per working hour. The $995 founding
-  cohort runs ~$68 per working hour — the accepted cost of a first set of
-  results.
-- **Private at $145/hour** → ~$100+ per working hour.
-- **Solo ceiling:** ~$80–120k revenue a year.
-- **Target:** ~$400k annual profit by 2029, which needs ~$950k revenue:
-  tutor-delivered cohorts and private hours (~8 part-time tutors at
-  ~$50/hour), Signature hours, Season Pass, Self-Paced, the PSAT track,
-  school licenses, and practice-test packs — plus ~1,500–2,000 paying
-  families a year from an audience built by the Daily Question and video.
+  and follow-up (≈1.4 working hours).
+- **Cohort of 6 at $995:** $5,970 for 18 class hours (no 1:1 reviews any
+  more) → ~$330 per live hour → ~$235 per working hour before the
+  scholarship. The scholarship ($1,500, the winner's $995 back plus $505)
+  brings a full cohort to $4,470 net, still ~$175 per working hour.
+- **Private 10 at $1,495** → $149.50 per hour → ~$107 per working hour.
+  **Private 20 at $2,495** → $124.75 per hour → ~$89 per working hour.
+- **Practice ($39) and Pro ($69):** software margins; the cost is content
+  (questions, written and video explanations) and acquisition.
+- **Schools:** free in year one to win adoption; $8 per student a year after.
+- **Tutor affiliate:** $199 a month for up to 50 Practice seats (about $4 a
+  seat at full use), sold to tutors who bring their own students.
+- **Target:** ~$400k annual profit by 2029, from tutor-delivered cohorts and
+  private hours, Practice/Pro subscriptions, school licenses and tutor
+  affiliates, plus an audience built by the Daily Question and video.
 
 ## Build order
 
-**Before enrollment opens (Nov 2026):** marketing site rebuilt around the
-programs; honesty fixes (testimonials, Nabil, the misleading predicted-score
-page, guarantee terms); lead capture; Daily Question; half-length free
-practice test runner; deposits via Stripe Payment Link.
+**Before launch (Nov 2026):** marketing site on the new ladder; Stripe
+checkout for Practice, Pro, Cohort, Private 10/20 and Tutor affiliate (lookup
+keys, `scripts/stripe/setup-test-products.mjs`); server-side plan access
+(`src/lib/plans/`); lead capture; half-length free practice test runner.
 
-**Before January 4, 2027:** package checkout (one-time + 3 payments) and an
-enrollment record that stores outcomes; spaced review + random,
-recently-seen-excluding question selection; question source tagging and
-College Board removal; chat with DMs off and no Slack dependency; cohort
-cap of 6 (5 + scholarship); birth-year gate and parent-visibility consent;
-intake screening.
+**Before January 4, 2027:** cohort deposit and instalments; an enrollment
+record that stores outcomes; scholarship review and payout; spaced review +
+random, recently-seen-excluding question selection; chat with DMs off;
+cohort cap of 6; birth-year gate and parent-visibility consent; intake
+screening.
 
-**After March 2027:** Root Words, Score Plan, Ask Karman, Test-Day
-Playbook, automated parent digest, Karman's own adaptive full-length tests,
-tutor view, video library, Season Pass, Self-Paced, results page.
+**After March 2027:** Root Words, Score Plan, Ask Karman, automated parent
+digest, Karman's own adaptive full-length tests, results page.
 
 ## Open decisions to confirm
 
 - Class days/times, free practice test start time, and the enrollment
   deadline (placeholders in `offer.ts`, marked `CONFIRM:`).
-- The guarantee remedy (free next cohort) replaces the old full-refund
-  promise.
+- Lawyer review of the guarantee, refund and affiliate terms.
+- Decided 2026-11-08: the $95 deposit and three $300 payments; Private 10 half back; access until
+  the SAT date; cohorts start "the week of" a date.

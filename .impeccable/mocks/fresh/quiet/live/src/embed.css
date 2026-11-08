@@ -1,0 +1,23 @@
+/* Page-side stylesheet for the marketing embed. Hides engine controls that do nothing on a
+   marketing page; nothing in the engine itself is edited. */
+[data-calculator-trigger],
+button[aria-label="Toggle light and dark mode"],
+button[aria-label="Close appearance menu"],
+button[aria-label="Close quiz"],
+button[aria-label="Bookmark for review"],
+button[aria-label="Flag question for tutor"],
+button[aria-label^="Cross out choice"],
+button[aria-label^="Transfer to Calculator"],
+[data-transfer-control],
+button[aria-label="Open Karman calculator"],
+details[class*="_settings_"] {
+  display: none !important;
+}
+
+/* The engine marks a wrong pick with text-ivory on bg-error, which fails AA in both themes
+   (1.98:1 ivory, 1.73:1 observatory). The right pick already uses text-night on bg-success;
+   the marketing embed gives the wrong pick the same night ink (about 6.4:1 and 10:1). The fix
+   belongs in src/components/learn/quiz too; see NOTES.md. */
+span.bg-error.text-ivory {
+  color: rgb(var(--k-night)) !important;
+}

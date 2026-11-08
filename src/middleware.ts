@@ -16,9 +16,14 @@
 // become public again.
 // ============================================================
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest } from "next/server";
+import {
+  clerkMiddleware,
+  createRouteMatcher,
+  type ClerkMiddlewareAuth,
+} from "@clerk/nextjs/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
+import { SITE_PAGES } from "@/components/site/routes";
 
 /** Dev-only auth bypass. When NODE_ENV !== "production" and
  *  DEV_IMPERSONATE_CLERK_ID is set, the entire Clerk gate is
@@ -55,12 +60,14 @@ const isMaintenanceExempt = createRouteMatcher([
   "/api/webhooks(.*)", // Slack/Zoom/etc.
   "/api/cron(.*)", // CF cron triggers (self-auth via CRON_SECRET)
   "/api/email/subscribe", // Coming-soon notify form posts here
+  "/api/consent", // the session-replay consent banner, shown to signed-out visitors too
   "/api/calendar/feed/(.*)", // Calendar apps fetch it; the secret token is the credential
 ]);
 
 /** Routes that don't require auth in normal (post-launch) operation.
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
+  "/checkout/start", // pricing plan buttons: signed out goes to sign-up, then back here
   // the marketing site (src/components/site/routes.ts)
   "/",
   "/program",
@@ -74,6 +81,7 @@ const isPublicRoute = createRouteMatcher([
   "/privacy",
   "/terms",
   "/refunds",
+  "/cookies",
   // old marketing addresses, redirected in next.config.mjs
   "/free-diagnostic",
   "/plans",
@@ -90,7 +98,7 @@ const isPublicRoute = createRouteMatcher([
   ...CAL_OAUTH_ROUTES,
   "/api/webhooks(.*)",
   "/api/email/subscribe",
-  "/api/diagnostic/sample",
+  "/api/consent",
   "/api/cron(.*)",
   "/api/calendar/feed/(.*)",
 ]);
@@ -104,8 +112,12 @@ function bypassMiddleware(_request: NextRequest) {
   return NextResponse.next();
 }
 
-/** Real middleware — Clerk auth + maintenance gate. */
-const realMiddleware = clerkMiddleware(async (auth, request) => {
+/** The marketing pages. Once launched they need nothing from Clerk on the server, so they skip its
+ *  middleware: no handshake redirects for crawlers and link previews, and no auth headers. */
+const isMarketingPage = createRouteMatcher([...SITE_PAGES, "/robots.txt", "/sitemap.xml"]);
+
+/** The auth rules: maintenance gate, public routes, then Clerk protection. Exported for the tests. */
+export const karmanAuth = async (auth: ClerkMiddlewareAuth, request: NextRequest) => {
   // ── Pre-launch maintenance gate ────────────────────────────
   if (!LAUNCHED && !isMaintenanceExempt(request)) {
     const { userId } = await auth();
@@ -127,11 +139,35 @@ const realMiddleware = clerkMiddleware(async (auth, request) => {
   }
   await auth.protect();
   return NextResponse.next();
-}, KARMAN_AUTH_ROUTES);
+};
+
+/** Real middleware — Clerk auth + maintenance gate. */
+const realMiddleware = clerkMiddleware(karmanAuth, KARMAN_AUTH_ROUTES);
+
+/** After launch: one address (www goes to karmanprep.com), the retired coming-soon page goes home,
+ *  marketing pages skip Clerk, everything else goes through it. */
+function launchedMiddleware(request: NextRequest, event: NextFetchEvent) {
+  if (request.headers.get("host") === "www.karmanprep.com") {
+    const url = new URL(
+      request.nextUrl.pathname + request.nextUrl.search,
+      "https://karmanprep.com"
+    );
+    return NextResponse.redirect(url, 308);
+  }
+  if (request.nextUrl.pathname === "/coming-soon") {
+    return NextResponse.redirect(new URL("/", request.url), 307);
+  }
+  if (isMarketingPage(request)) return NextResponse.next();
+  return realMiddleware(request, event);
+}
 
 // Pick at module load — bypass branch skips Clerk's per-request
 // publishable-key check entirely. Cannot fire in production.
-export default DEV_AUTH_BYPASS_ACTIVE ? bypassMiddleware : realMiddleware;
+export default DEV_AUTH_BYPASS_ACTIVE
+  ? bypassMiddleware
+  : LAUNCHED
+    ? launchedMiddleware
+    : realMiddleware;
 
 export const config = {
   matcher: [

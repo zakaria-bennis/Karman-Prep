@@ -1,0 +1,379 @@
+/* Karman, "Through the screen", round 2: the hero stage and the camera push, then the app screens behind the tabs. Tokens live in portal.css. */
+
+/* ---------- 1. hero: a framed stage (modern-UI 2.4) ---------- */
+.portal {
+  position: relative;
+  isolation: isolate;
+}
+.portal__stage {
+  position: relative;
+}
+.portal__ground {
+  display: none;
+}
+.hero {
+  padding: 80px var(--margin) 0;
+}
+.hero__card {
+  position: relative;
+  border-radius: var(--r-section);
+  background: var(--pine);
+  overflow: hidden;
+}
+/* The hero copy sits on pine at every size: a solid pine card on phones, pine glass over the photo on desktop. */
+.hero__copy {
+  color: var(--on-pine);
+}
+.hero__copy .pill {
+  border-color: rgba(245, 243, 236, 0.22);
+  background: rgba(245, 243, 236, 0.1);
+  color: var(--on-pine);
+}
+.hero__copy .pill:hover {
+  background: rgba(245, 243, 236, 0.18);
+}
+.hero__copy .pill__dot {
+  background: var(--marigold);
+}
+.hero__copy .hero__sub {
+  color: var(--on-pine-2);
+}
+.hero__copy :focus-visible {
+  outline-color: var(--marigold);
+}
+.hero__copy {
+  position: relative;
+  z-index: 2;
+  padding: 32px 20px 28px;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 10px 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ground);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+.pill:hover {
+  background: var(--card-2);
+}
+.pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pine);
+}
+.pill__chev {
+  width: 12px;
+  height: 12px;
+}
+.hero__title {
+  margin-top: 20px;
+  font-size: var(--s-hero);
+  font-weight: 560;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  max-width: 12ch;
+}
+.hero__sub {
+  margin-top: 16px;
+  color: var(--ink-2);
+  font-size: clamp(18px, 1.4vw, 21px);
+  max-width: 30ch;
+}
+.hero__copy .button {
+  margin-top: 28px;
+}
+.hero__media {
+  position: relative;
+  margin: 0 10px 10px;
+  padding-bottom: 110px;
+}
+.hero__photo {
+  position: relative;
+  aspect-ratio: 1150 / 720;
+  border-radius: var(--r-tile);
+  overflow: hidden;
+  background: var(--card-2);
+}
+.hero__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+.hero__field {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 80%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, var(--field), transparent);
+}
+.hero__phone {
+  position: absolute;
+  left: 14px;
+  bottom: 10px;
+  width: clamp(136px, 36vw, 230px);
+  z-index: 2;
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero__copy {
+    padding: 48px 40px 36px;
+  }
+  .hero__media {
+    padding-bottom: 200px;
+  }
+  .hero__phone {
+    left: 40px;
+  }
+}
+@media (min-width: 1024px) {
+  .hero {
+    padding: 0;
+  }
+  .portal__stage {
+    height: 100vh;
+    overflow: hidden;
+  }
+  .portal.is-live {
+    height: 250vh;
+  }
+  .portal.is-live .portal__stage {
+    position: sticky;
+    top: 0;
+  }
+  .portal__ground {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: var(--app);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .portal.is-live + .platform {
+    position: relative;
+    z-index: 2;
+    margin-top: -70vh;
+  }
+  .hero__card {
+    position: absolute;
+    inset: 80px var(--margin) var(--margin);
+    overflow: visible;
+    background: var(--card-2);
+  }
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .hero__photo {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    border-radius: var(--r-section);
+  }
+  /* The photo is scaled from its left edge so the student sits in the right third; the copy card
+     holds the dark stage on the left, and the phone stands between them. */
+  .hero__photo img {
+    transform: scale(1.15);
+    transform-origin: 0 50%;
+  }
+  .hero__copy {
+    position: absolute;
+    z-index: 3;
+    left: clamp(16px, 2.2vw, 32px);
+    bottom: clamp(16px, 2.2vw, 32px);
+    top: 40%;
+    width: min(44%, 560px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: clamp(24px, 2.6vw, 40px);
+    border: 1px solid rgba(245, 243, 236, 0.14);
+    border-radius: 24px;
+    background: rgba(31, 77, 69, 0.9);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    backdrop-filter: blur(24px) saturate(1.2);
+  }
+  .hero__title {
+    margin-top: 16px;
+    font-size: clamp(40px, 4.2vw, 64px);
+    max-width: 14ch;
+  }
+  .hero__sub {
+    margin-top: 12px;
+  }
+  .hero__copy .button {
+    margin-top: 22px;
+  }
+  .hero__field {
+    inset-inline: auto;
+    left: 38%;
+    width: 36%;
+    height: 100%;
+  }
+  .hero__phone {
+    top: max(14%, calc(50% - 290px));
+    left: 49.5%;
+    bottom: auto;
+    width: auto;
+    height: min(70%, 580px);
+  }
+}
+
+/* ---------- 2. inside the product: tabs swap the phone ---------- */
+.platform {
+  margin-top: var(--gap);
+  background: var(--app);
+  padding: clamp(56px, 8vw, 120px) var(--pad);
+}
+.platform__inner {
+  display: grid;
+  gap: 28px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.tabs {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tabs__glide {
+  display: none;
+}
+.tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+.tab__name {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 540;
+  letter-spacing: -0.01em;
+}
+.tab__line {
+  display: none;
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.4;
+}
+.tab[aria-selected="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ground);
+}
+.platform__caption {
+  color: var(--ink-2);
+  font-size: 16px;
+  min-height: 3em;
+}
+.platform__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: clamp(28px, 4vw, 48px) 0;
+  border-radius: var(--r-section);
+  background: var(--marigold); /* the product on colour: the screen's stage */
+}
+.platform__field {
+  display: none;
+}
+.platform__phone {
+  width: clamp(230px, 68vw, 330px);
+}
+@media (min-width: 900px) {
+  .platform__inner {
+    grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
+    grid-template-areas: "head stage" "tabs stage";
+    grid-template-rows: auto 1fr;
+    column-gap: clamp(32px, 6vw, 96px);
+    row-gap: 32px;
+    align-items: start;
+  }
+  .platform__head {
+    grid-area: head;
+  }
+  .tabs {
+    grid-area: tabs;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+  .tabs__glide {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    border-radius: var(--r-tile);
+    background: var(--card);
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .tab {
+    width: 100%;
+    padding: 16px 20px;
+    border: 0;
+    border-radius: var(--r-tile);
+  }
+  .tab__name {
+    font-size: 20px;
+  }
+  .tab__line {
+    display: block;
+  }
+  .tab[aria-selected="true"] {
+    background: transparent;
+    color: var(--ink);
+  }
+  .tab:not([aria-selected="true"]) .tab__name {
+    color: var(--ink-2);
+  }
+  .tab:not([aria-selected="true"]):hover .tab__name {
+    color: var(--ink);
+  }
+  .platform__caption {
+    display: none;
+  }
+  .platform__stage {
+    grid-area: stage;
+  }
+  .platform__phone {
+    width: min(360px, calc(80vh * 0.4819));
+  }
+}
+:root[data-theme="dark"] .tab[aria-selected="true"] {
+  color: #12110f;
+}
+@media (min-width: 900px) {
+  :root[data-theme="dark"] .tab[aria-selected="true"] {
+    color: var(--ink);
+  }
+}

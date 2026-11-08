@@ -15,7 +15,7 @@ const KIND: Record<Kind, string> = {
   fl: "Full-length test",
   hw: "Homework due",
   ws: "Workshop",
-  oh: "Office hours",
+  oh: "Live session",
 };
 // pair: a full-length test and the session that reviews it share a number. t is the short chip on the grid,
 // long the full line in the side card, so nothing on the grid is cut off.
@@ -29,7 +29,7 @@ const E = (k: Kind, t: string, long: string, at: string, pair?: number) => ({
 });
 const DAYS: Day[] = [
   { d: "Mon", n: 1, ev: [E("hw", "Quadratics set", "Quadratics, 15 questions", "9:00 p.m.")] },
-  { d: "Tue", n: 2, ev: [E("oh", "Office hours", "Office hours with Lin", "6:00 p.m.")] },
+  { d: "Tue", n: 2, ev: [E("oh", "Live session", "Weekly live session with Lin", "6:00 p.m.")] },
   {
     d: "Wed",
     n: 3,
@@ -67,7 +67,7 @@ const DAYS: Day[] = [
     n: 11,
     ev: [E("s", "1:1 with David", "Math review of full-length 4 with David", "5:00 p.m.", 4)],
   },
-  { d: "Fri", n: 12, ev: [E("oh", "Office hours", "Office hours with David", "6:00 p.m.")] },
+  { d: "Fri", n: 12, ev: [E("oh", "Live session", "Weekly live session with David", "6:00 p.m.")] },
   {
     d: "Sat",
     n: 13,

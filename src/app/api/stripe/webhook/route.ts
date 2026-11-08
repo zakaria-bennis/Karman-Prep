@@ -1,34 +1,27 @@
 // ============================================================
 // POST /api/stripe/webhook
-// Handles Stripe webhook events for subscription lifecycle.
+// Keeps `subscriptions` (Practice, Pro, Tutor affiliate) and
+// `plan_grants` (Cohort, Private 10, Private 20) in step with Stripe.
 // Must be a raw body handler — no JSON.parse middleware.
+//
+// Every write is idempotent (keyed on the Stripe subscription,
+// checkout session or refund id), and any failure returns 500 so
+// Stripe retries the event.
 // ============================================================
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
+import { scheduleCohortInstallments } from "@/lib/integrations/stripe/installment-schedule";
 import { withWebhookInstrumentation } from "@/lib/observability/webhook";
 import {
   chargeMetadataSchema,
+  purchaseMetadataSchema,
   subscriptionMetadataSchema,
 } from "@/lib/integrations/stripe/schemas";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
-import { dropFromActiveCohort, restoreLastCohort } from "@/lib/supabase/queries/cohorts";
-import { ensureCohortChannels } from "@/lib/chat/provisioning";
+import { recordPurchaseGrant } from "@/lib/plans";
 import Stripe from "stripe";
-
-// Stripe subscription statuses that mean the seat is no longer paid for.
-// On any of these, the student is dropped from their active cohort.
-const INACTIVE_STATUSES = new Set<Stripe.Subscription.Status>([
-  "canceled",
-  "unpaid",
-  "incomplete_expired",
-  "past_due",
-]);
-
-// Statuses that mean the seat IS paid for. Triggers cohort restore
-// from the user's last membership (if any seat is still open).
-const ACTIVE_STATUSES = new Set<Stripe.Subscription.Status>(["active", "trialing"]);
 
 /** Verifies the Stripe signature and returns the parsed event */
 async function parseWebhookEvent(req: Request): Promise<Stripe.Event> {
@@ -40,6 +33,43 @@ async function parseWebhookEvent(req: Request): Promise<Stripe.Event> {
   // constructEventAsync uses Web Crypto under the hood — required on
   // Cloudflare Workers (no Node crypto module). Works in Node too.
   return stripe.webhooks.constructEventAsync(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+}
+
+/**
+ * The `subscriptions` row for a Stripe subscription, or null when it was not
+ * made by our Checkout (no userId) or bills a price we do not sell. The plan
+ * and term come from the price first, because a plan switch in the Stripe
+ * portal changes the price but not the subscription's own metadata.
+ */
+function subscriptionRow(sub: Stripe.Subscription) {
+  const item = sub.items?.data?.[0];
+  const priceMeta = item?.price?.metadata ?? {};
+  const meta = subscriptionMetadataSchema.safeParse({
+    userId: sub.metadata?.userId,
+    planId: priceMeta.plan_id ?? sub.metadata?.planId,
+    term: priceMeta.term ?? sub.metadata?.term,
+  });
+  if (!meta.success) {
+    console.warn(`[webhook] skipped subscription ${sub.id}: bad metadata`, meta.error.issues);
+    return null;
+  }
+  return {
+    userId: meta.data.userId,
+    row: {
+      user_id: meta.data.userId,
+      stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+      stripe_subscription_id: sub.id,
+      plan_id: meta.data.planId,
+      billing_term: meta.data.term,
+      status: sub.status,
+      current_period_end: item?.current_period_end
+        ? new Date(item.current_period_end * 1000).toISOString()
+        : null,
+      // Stamped when the status flips to canceled, so the Revenue
+      // dashboard can compute real monthly churn.
+      canceled_at: sub.status === "canceled" ? new Date().toISOString() : null,
+    },
+  };
 }
 
 export const POST = withWebhookInstrumentation(
@@ -58,136 +88,45 @@ export const POST = withWebhookInstrumentation(
 
     try {
       switch (event.type) {
-        // ---- Subscription created (also fires when trial starts) ----
-        case "customer.subscription.created": {
-          const sub = event.data.object as Stripe.Subscription;
-          const meta = subscriptionMetadataSchema.safeParse(sub.metadata);
-          if (!meta.success) {
-            // Either userId missing (subscription created outside our flow)
-            // or tier wasn't one of the 4 locked values. Skip rather than
-            // insert garbage. Return 200 — no retry helps.
-            console.warn(
-              `[webhook] subscription.created skipped — bad metadata on ${sub.id}:`,
-              meta.error.issues
-            );
-            break;
-          }
-          const { userId, tier } = meta.data;
-
-          const { data: saved, error: saveError } = await supabase
-            .from("subscriptions")
-            .upsert(
-              {
-                user_id: userId,
-                stripe_customer_id: sub.customer as string,
-                stripe_subscription_id: sub.id,
-                tier,
-                status: sub.status,
-                trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-              },
-              { onConflict: "stripe_subscription_id" }
-            )
-            .select("id")
-            .single();
-          if (saveError) throw saveError;
-          if (!saved) throw new Error("Subscription was not persisted");
-
-          // Auto-restore cohort membership if the user previously had one
-          // and is now active/trialing again. No-op if they're already in
-          // a cohort or if their old cohort is full / completed.
-          if (ACTIVE_STATUSES.has(sub.status)) {
-            const restored = await restoreLastCohort(userId);
-            if (restored) {
-              console.log(
-                `[webhook] Restored ${userId} to cohort ${restored} on subscription.created`
-              );
-              // Auto-provision Slack channels for this cohort if they don't
-              // exist yet. Idempotent — safe to call on every restore. Wrapped
-              // so a Slack failure doesn't break the rest of the webhook flow.
-              ensureCohortChannels(restored).catch((err) =>
-                console.error(`[webhook] ensureCohortChannels failed for ${restored}:`, err)
-              );
-            }
-          }
-
-          // Send welcome email
-          const { data: user, error: userError } = await supabase
-            .from("users")
-            .select("email")
-            .eq("clerk_id", userId)
-            .maybeSingle();
-          if (userError) throw userError;
-
-          if (user?.email) {
-            await sendWelcomeEmail({
-              to: user.email,
-              firstName: user.email.split("@")[0],
-              role: "student",
-            });
-          }
-          break;
-        }
-
-        // ---- Subscription updated (upgrade / downgrade / renewed / paused) ----
+        // ---- Renewing plan started or changed (renewal, plan switch, past due) ----
+        case "customer.subscription.created":
         case "customer.subscription.updated": {
           const sub = event.data.object as Stripe.Subscription;
-          const meta = subscriptionMetadataSchema.safeParse(sub.metadata);
-          if (!meta.success) {
-            console.warn(
-              `[webhook] subscription.updated skipped — bad metadata on ${sub.id}:`,
-              meta.error.issues
-            );
-            break;
-          }
-          const { userId, tier } = meta.data;
+          const parsed = subscriptionRow(sub);
+          // No retry helps a subscription made outside our flow: acknowledge it.
+          if (!parsed) break;
 
+          // Upsert on both events: Stripe may deliver `updated` before `created`.
           const { data: saved, error: saveError } = await supabase
             .from("subscriptions")
-            .update({
-              status: sub.status,
-              tier,
-              trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-              // Stamp canceled_at the moment status flips to canceled,
-              // so the Revenue dashboard can compute real monthly churn.
-              // Stripe also sends `customer.subscription.deleted` (handled
-              // below), but `subscription.updated` fires first when a
-              // user cancels at period end.
-              canceled_at: sub.status === "canceled" ? new Date().toISOString() : null,
-            })
-            .eq("stripe_subscription_id", sub.id)
+            .upsert(parsed.row, { onConflict: "stripe_subscription_id" })
             .select("id")
             .single();
           if (saveError) throw saveError;
           if (!saved) throw new Error("Subscription was not persisted");
 
-          // Cohort lifecycle hooks
-          if (INACTIVE_STATUSES.has(sub.status)) {
-            const dropped = await dropFromActiveCohort(userId);
-            if (dropped) {
-              console.log(
-                `[webhook] Dropped ${userId} from cohort ${dropped} (status=${sub.status})`
-              );
-            }
-          } else if (ACTIVE_STATUSES.has(sub.status)) {
-            const restored = await restoreLastCohort(userId);
-            if (restored) {
-              console.log(
-                `[webhook] Restored ${userId} to cohort ${restored} (status=${sub.status})`
-              );
-              ensureCohortChannels(restored).catch((err) =>
-                console.error(`[webhook] ensureCohortChannels failed for ${restored}:`, err)
-              );
+          if (event.type === "customer.subscription.created") {
+            const { data: user, error: userError } = await supabase
+              .from("users")
+              .select("email")
+              .eq("clerk_id", parsed.userId)
+              .maybeSingle();
+            if (userError) throw userError;
+
+            if (user?.email) {
+              await sendWelcomeEmail({
+                to: user.email,
+                firstName: user.email.split("@")[0],
+                role: "student",
+              });
             }
           }
-
           break;
         }
 
-        // ---- Subscription canceled ----
+        // ---- Renewing plan ended ----
         case "customer.subscription.deleted": {
           const sub = event.data.object as Stripe.Subscription;
-          const userId = sub.metadata?.userId;
-
           const { data: saved, error: saveError } = await supabase
             .from("subscriptions")
             .update({ status: "canceled", canceled_at: new Date().toISOString() })
@@ -196,26 +135,39 @@ export const POST = withWebhookInstrumentation(
             .single();
           if (saveError) throw saveError;
           if (!saved) throw new Error("Subscription was not persisted");
-
-          // Always drop on hard cancel. The cohort_members row stays
-          // with left_at set so the user can be auto-re-added if they
-          // re-subscribe later.
-          if (userId) {
-            const dropped = await dropFromActiveCohort(userId);
-            if (dropped) {
-              console.log(
-                `[webhook] Dropped ${userId} from cohort ${dropped} on subscription.deleted`
-              );
-            }
-          }
-
           break;
         }
 
-        // ---- Trial will end soon ----
-        case "customer.subscription.trial_will_end": {
-          // Could trigger a trial-ending email here
-          console.log("[webhook] Trial ending soon for subscription:", event.data.object);
+        // ---- One payment (Cohort, Private 10, Private 20) ----
+        // Renewing plans also complete a session; their subscription
+        // events above do the work, so only `payment` sessions count here.
+        case "checkout.session.completed":
+        case "checkout.session.async_payment_succeeded": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          if (session.mode !== "payment") break;
+          if (session.payment_status === "unpaid") {
+            // A delayed payment method: async_payment_succeeded follows.
+            console.log(`[webhook] checkout ${session.id} completed unpaid; waiting for payment`);
+            break;
+          }
+          const meta = purchaseMetadataSchema.safeParse(session.metadata);
+          if (!meta.success) {
+            console.warn(
+              `[webhook] skipped checkout ${session.id}: bad metadata`,
+              meta.error.issues
+            );
+            break;
+          }
+          await recordPurchaseGrant({
+            userId: meta.data.userId,
+            planId: meta.data.planId,
+            checkoutSessionId: session.id,
+          });
+          // The cohort's instalment plan: the deposit is in; schedule the three payments.
+          if (meta.data.planId === "cohort" && session.metadata?.term === "installments") {
+            const scheduleId = await scheduleCohortInstallments(session);
+            console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
+          }
           break;
         }
 

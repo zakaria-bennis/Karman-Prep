@@ -27,6 +27,11 @@ export interface SceneCallbacks {
 const PARALLAX_X = 10;
 const PARALLAX_Y = 5;
 const KEEP_OUT = "[data-paint-keepout]";
+/* About 30 frames a second is plenty for drifting leaves and birds, and halves the work. */
+const FRAME_MS = 1000 / 30;
+/* After a minute with no input the scene rests on its last frame until someone moves, so a tab
+   left open does not keep the computer busy. */
+const IDLE_MS = 60_000;
 
 /* Reduced motion on the device, or "Keep the painting still" in Sound and motion. */
 const reducedMotion = prefersStill;
@@ -53,6 +58,9 @@ export class PaintedScene {
   private H = 0;
   private told = false;
   private disposed = false;
+  private lastInput = 0;
+  private sleeping = false;
+  private lastTransform = "";
   private cleanups: (() => void)[] = [];
 
   constructor(
@@ -91,7 +99,7 @@ export class PaintedScene {
     this.cb.onColors?.(pictureColors(handle.final), pictureTone(handle.final));
     this.listen();
     this.resize();
-    this.t0 = this.last = performance.now();
+    this.t0 = this.last = this.lastInput = performance.now();
     this.raf = requestAnimationFrame(this.frame);
   }
 
@@ -105,6 +113,10 @@ export class PaintedScene {
     const move = (e: PointerEvent) => {
       this.pointer.x = e.clientX;
       this.pointer.y = e.clientY;
+      this.wake();
+    };
+    const visible = () => {
+      if (!document.hidden) this.wake();
     };
     const down = (e: PointerEvent) => {
       const target = e.target as Element | null;
@@ -121,16 +133,21 @@ export class PaintedScene {
     const motionChange = () => {
       if (reducedMotion()) this.drawStill();
     };
+    const WAKERS = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"] as const;
     addEventListener("pointermove", move, { passive: true });
     addEventListener("pointerdown", down, { passive: true });
+    for (const w of WAKERS) addEventListener(w, this.wake, { passive: true });
     addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", visible);
     motion.addEventListener("change", motionChange);
     addEventListener(MOTION_EVENT, motionChange);
     this.cleanups.push(() => {
       removeEventListener("pointermove", move);
       removeEventListener("pointerdown", down);
+      for (const w of WAKERS) removeEventListener(w, this.wake);
       removeEventListener("resize", resize);
       removeEventListener(MOTION_EVENT, motionChange);
+      document.removeEventListener("visibilitychange", visible);
       motion.removeEventListener("change", motionChange);
     });
   }
@@ -143,11 +160,25 @@ export class PaintedScene {
 
   private frame = (now: number) => {
     if (this.disposed) return;
+    if (!this.painting && now - this.lastInput > IDLE_MS) {
+      this.sleeping = true;
+      return;
+    }
     this.raf = requestAnimationFrame(this.frame);
-    const dt = Math.min(0.033, (now - this.last) / 1000);
+    if (now - this.last < FRAME_MS - 2) return;
+    const dt = Math.min(0.05, (now - this.last) / 1000);
     this.last = now;
     if (document.hidden || reducedMotion()) return;
     this.step(dt, (now - this.t0) / 1000);
+  };
+
+  /** Any input brings a resting scene back to life. */
+  private wake = () => {
+    this.lastInput = performance.now();
+    if (!this.sleeping || this.disposed) return;
+    this.sleeping = false;
+    this.last = performance.now();
+    this.raf = requestAnimationFrame(this.frame);
   };
 
   /** Under reduced motion the scene holds still: one frame, no wildlife, no parallax. */
@@ -155,7 +186,8 @@ export class PaintedScene {
     const g = this.live.getContext("2d");
     if (!g) return;
     g.clearRect(0, 0, this.W, this.H);
-    this.drawn.style.transform = "scale(1.03)";
+    this.lastTransform = "scale(1.03)";
+    this.drawn.style.transform = this.lastTransform;
   }
 
   private step(dt: number, t: number) {
@@ -164,7 +196,11 @@ export class PaintedScene {
     const { W, H, pointer } = this;
     const px = pointer.x < -900 ? 0 : (pointer.x / W - 0.5) * -PARALLAX_X;
     const py = pointer.y < -900 ? 0 : (pointer.y / H - 0.5) * -PARALLAX_Y;
-    this.drawn.style.transform = `translate3d(${px.toFixed(1)}px,${py.toFixed(1)}px,0) scale(1.03)`;
+    const transform = `translate3d(${px.toFixed(1)}px,${py.toFixed(1)}px,0) scale(1.03)`;
+    if (transform !== this.lastTransform) {
+      this.lastTransform = transform;
+      this.drawn.style.transform = transform;
+    }
     const boxes = keepOut();
     g.clearRect(0, 0, W, H);
     g.save();

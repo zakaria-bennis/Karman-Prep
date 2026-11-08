@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { COHORT_TIER_CAP, tierLabel } from "@/lib/scheduling/tiers";
 import { actionCreateCohort, actionUnarchiveCohort } from "./actions";
 import type {
   AdminCohortRow,
@@ -27,14 +28,6 @@ import type {
   CohortTier,
   CohortStatus,
 } from "@/lib/supabase/queries/cohorts";
-
-// Hard caps mirrored from the DB CHECK constraint and the server action.
-// Used for client-side validation + the auto-suggest default.
-const TIER_CAP: Record<CohortTier, number> = { small_group: 5, group: 200 };
-const TIER_LABEL: Record<CohortTier, string> = {
-  small_group: "Small Group",
-  group: "Seminar",
-};
 
 interface Props {
   cohorts: AdminCohortRow[];
@@ -61,7 +54,8 @@ export default function CohortsClient({ cohorts, satDates, tutors, showArchived 
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-ivory">Cohorts</h1>
           <p className="mt-1 text-sm text-taupe">
-            Seminar (≤ 200 students) and small group (≤ 5) cohorts, grouped by SAT date.
+            Cohorts (at most {COHORT_TIER_CAP.small_group} students) and weekly live sessions (at
+            most {COHORT_TIER_CAP.group}), grouped by SAT date.
           </p>
         </div>
         <button
@@ -354,7 +348,7 @@ function TierBadge({ tier }: { tier: CohortTier }) {
     <span
       className={cn("inline-block rounded-md border px-2 py-0.5 text-xs font-semibold", classes)}
     >
-      {TIER_LABEL[tier]}
+      {tierLabel(tier)}
     </span>
   );
 }
@@ -421,7 +415,7 @@ function CreateCohortDialog({
   const [tier, setTier] = useState<CohortTier>("group");
   const [satDate, setSatDate] = useState<string>(satDates[0]?.test_date ?? "");
   const [tutorId, setTutorId] = useState<string>(tutors[0]?.id ?? "");
-  const [maxSize, setMaxSize] = useState<number>(TIER_CAP["group"]);
+  const [maxSize, setMaxSize] = useState<number>(COHORT_TIER_CAP["group"]);
   const [currentTopic, setCurrentTopic] = useState("");
   const [nameOverridden, setNameOverridden] = useState(false);
   const [name, setName] = useState("");
@@ -433,7 +427,7 @@ function CreateCohortDialog({
     const tutor = tutors.find((t) => t.id === tutorId);
     const tutorName = tutor?.first_name || tutor?.email?.split("@")[0] || "tutor";
     const niceDate = satDate ? formatDate(satDate) : "TBD";
-    return `${TIER_LABEL[tier]} · ${niceDate} · ${tutorName}`;
+    return `${tierLabel(tier)} · ${niceDate} · ${tutorName}`;
   }, [tier, satDate, tutorId, tutors]);
 
   // Use the suggestion unless the admin overrode it.
@@ -442,7 +436,7 @@ function CreateCohortDialog({
   function onTierChange(next: CohortTier) {
     setTier(next);
     // Reset max_size to that tier's cap so the value is always sensible
-    setMaxSize(TIER_CAP[next]);
+    setMaxSize(COHORT_TIER_CAP[next]);
   }
 
   function onSubmit(e: React.FormEvent) {
@@ -506,8 +500,8 @@ function CreateCohortDialog({
                       : "border-bronze bg-night/40 text-ivory hover:bg-surface-raised"
                   )}
                 >
-                  {TIER_LABEL[t]}
-                  <span className="ml-1.5 text-xs opacity-70">≤ {TIER_CAP[t]}</span>
+                  {tierLabel(t)}
+                  <span className="ml-1.5 text-xs opacity-70">≤ {COHORT_TIER_CAP[t]}</span>
                 </button>
               ))}
             </div>
@@ -567,13 +561,13 @@ function CreateCohortDialog({
           </Field>
 
           {/* Max size */}
-          <Field label={`Max size (cap ${TIER_CAP[tier]})`}>
+          <Field label={`Max size (cap ${COHORT_TIER_CAP[tier]})`}>
             <input
               type="number"
               value={maxSize}
               onChange={(e) => setMaxSize(parseInt(e.target.value, 10) || 0)}
               min={1}
-              max={TIER_CAP[tier]}
+              max={COHORT_TIER_CAP[tier]}
               className={inputCls}
               required
             />

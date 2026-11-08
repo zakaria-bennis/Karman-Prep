@@ -15,8 +15,8 @@ export interface AdminUserRow {
   created_at: string;
   /** Count of linked students. Only set when role === 'parent'. */
   linked_student_count: number;
-  /** Most-recent active/trialing subscription tier; null if none. */
-  tier: "group" | "small_group" | "private" | "elite" | "annual" | null;
+  /** Most-recent live renewing plan (Practice, Pro, Tutor affiliate); null if none. */
+  plan_id: "practice" | "pro" | "tutor-affiliate" | null;
   /** All cohort_ids the user is currently an active member of. */
   cohort_ids: string[];
   /** Pending diagnostic retake grants. Admin clicks "Allow retake" to
@@ -39,7 +39,7 @@ export interface LinkedStudentRow {
 
 // ─────────────────────────────────────────────────────────────
 // All users with basic profile info + linked-student counts
-// (for parents) + active subscription tier + cohort memberships.
+// (for parents) + active renewing plan + cohort memberships.
 // Used by /admin/users.
 // ─────────────────────────────────────────────────────────────
 export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
@@ -56,8 +56,8 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     supabase.from("parent_student_links").select("parent_user_id"),
     supabase
       .from("subscriptions")
-      .select("user_id, tier, status, created_at")
-      .in("status", ["active", "trialing"])
+      .select("user_id, plan_id, status, created_at")
+      .in("status", ["active", "trialing", "past_due"])
       .order("created_at", { ascending: false }),
     supabase.from("cohort_members").select("user_id, cohort_id").is("left_at", null),
   ]);
@@ -71,12 +71,12 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     linkCounts.set(r.parent_user_id, (linkCounts.get(r.parent_user_id) ?? 0) + 1);
   }
 
-  // First (most-recent due to ORDER BY) tier per Clerk-userid.
+  // First (most-recent due to ORDER BY) plan per Clerk-userid.
   // subscriptions.user_id is TEXT (Clerk id), not the users.id UUID.
-  const tierByClerkId = new Map<string, AdminUserRow["tier"]>();
+  const planByClerkId = new Map<string, AdminUserRow["plan_id"]>();
   for (const r of subsRes.data ?? []) {
-    if (!tierByClerkId.has(r.user_id)) {
-      tierByClerkId.set(r.user_id, r.tier as AdminUserRow["tier"]);
+    if (!planByClerkId.has(r.user_id)) {
+      planByClerkId.set(r.user_id, r.plan_id as AdminUserRow["plan_id"]);
     }
   }
 
@@ -95,7 +95,7 @@ export async function fetchAdminUsersList(): Promise<AdminUserRow[]> {
     role: u.role as AppRole,
     created_at: u.created_at,
     linked_student_count: linkCounts.get(u.id) ?? 0,
-    tier: tierByClerkId.get(u.clerk_id) ?? null,
+    plan_id: planByClerkId.get(u.clerk_id) ?? null,
     cohort_ids: cohortIdsByUuid.get(u.id) ?? [],
     diagnostic_retakes_remaining:
       (u as { diagnostic_retakes_remaining?: number }).diagnostic_retakes_remaining ?? 0,

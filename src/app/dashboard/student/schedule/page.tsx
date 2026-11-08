@@ -112,7 +112,11 @@ export default async function StudentCalendarPage() {
           {booked.length ? (
             <BookedList rows={booked} preview={ctx.isImpersonating} />
           ) : (
-            <p className="kp-meta">Nothing booked yet.</p>
+            <p className="kp-meta">
+              {oneToOne
+                ? "Nothing booked yet."
+                : "Nothing booked yet. Your tutor posts your cohort classes and live sessions here as they're scheduled."}
+            </p>
           )}
           {hasOneToOnes && (
             <p className={styles.note}>

@@ -12,7 +12,8 @@ import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { countOpenHomework } from "./homework";
-import { planFromSubscription, showsCalendar, type StudentPlan } from "./plan-gate";
+import { getPlan } from "@/lib/plans";
+import { showsCalendar, studentPlan, type StudentPlan } from "./plan-gate";
 import { dayKey, streaks } from "./streak";
 
 export type TestType = "sat" | "psat";
@@ -107,7 +108,12 @@ export async function loadStudentContext(): Promise<StudentContext> {
   if (!row || typeof row.id !== "string") redirect("/onboarding");
 
   const userId = row.id as string;
-  const plan = planFromSubscription(sub as Record<string, unknown> | null);
+  // The most generous of the student's own subscription, purchases, school seat and tutor code.
+  const resolved = await getPlan(clerkId).catch((error: unknown) => {
+    console.error("[student] plan lookup failed:", error instanceof Error ? error.message : error);
+    return null;
+  });
+  const plan = resolved ? studentPlan(resolved.planId, resolved.entitlements) : studentPlan("free");
   const [days, tutor, homeworkOpen] = await Promise.all([
     practiceDaysFor(db, clerkId),
     hasTutorFor(db, userId),

@@ -3,7 +3,7 @@ import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { buildCourse, scoreGain, subjectFromSlug } from "./course";
 import { mistakeLog, nextEndlessSkill } from "./endless";
 import type { SkillLevel } from "./levels";
-import { planFromSubscription, canUse, questionsLeft } from "./plan-gate";
+import { canUse, questionsLeft, showsCalendar, studentPlan } from "./plan-gate";
 
 describe("Library courses", () => {
   it("splits each course into its Domains with every skill", () => {
@@ -48,17 +48,17 @@ describe("endless mode", () => {
 });
 
 describe("plan gates", () => {
-  it("reads the plan from a subscription, Free without a live one", () => {
-    expect(planFromSubscription(null).id).toBe("free");
-    expect(planFromSubscription({ status: "canceled", plan_id: "pro" }).id).toBe("free");
-    expect(planFromSubscription({ status: "active", plan_id: "pro" }).id).toBe("pro");
-    expect(planFromSubscription({ status: "active", tier: "group" }).id).toBe("cohort");
-    expect(planFromSubscription({ status: "trialing", tier: "private" }).id).toBe("private-10");
+  it("names the plan and shows Calendar only when something can be booked", () => {
+    expect(studentPlan("cohort").name).toBe("9-week Cohort");
+    expect(showsCalendar(studentPlan("free"))).toBe(false);
+    expect(showsCalendar(studentPlan("practice"))).toBe(true);
+    expect(canUse(studentPlan("private-10"), "live:private")).toBe(true);
+    expect(canUse(studentPlan("cohort"), "live:private")).toBe(false);
   });
 
   it("locks what the plan doesn't include", () => {
-    const free = planFromSubscription(null);
-    const practice = planFromSubscription({ status: "active", plan_id: "practice" });
+    const free = studentPlan("free");
+    const practice = studentPlan("practice");
     expect(canUse(free, "live:workshops")).toBe(false);
     expect(canUse(practice, "live:workshops")).toBe(true);
     expect(canUse(practice, "pool:mastery")).toBe(false);

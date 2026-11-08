@@ -11,6 +11,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, Flag, AlertCircle, Search } from "luci
 import type { StudentDashboardRow } from "@/lib/supabase/queries/tutor";
 import { currentAtmosphere, ATMOSPHERE_COLORS } from "@/data/curriculum";
 import { cn } from "@/lib/utils";
+import { tierLabel, tierLabelOf } from "@/lib/scheduling/tiers";
 
 interface CohortLite {
   id: string;
@@ -49,10 +50,10 @@ const COLS: { key: SortKey; label: string; className?: string }[] = [
 
 type Plan = NonNullable<StudentDashboardRow["plan_tier"]>;
 const PLAN_LABEL: Record<Plan, string> = {
-  group: "Seminar",
-  small_group: "Small Group",
-  private: "Private",
-  elite: "Elite",
+  group: tierLabel("group"),
+  small_group: tierLabel("small_group"),
+  private: tierLabel("private"),
+  elite: tierLabel("elite"),
   annual: "Annual",
 };
 const PLAN_COLOR: Record<Plan, string> = {
@@ -159,7 +160,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
             <option value="all">All cohorts ({cohorts.length})</option>
             {cohorts.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} ({c.tier === "small_group" ? "Small Group" : "Seminar"})
+                {c.name} ({tierLabelOf(c.tier)})
               </option>
             ))}
           </select>

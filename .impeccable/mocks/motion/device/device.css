@@ -1,0 +1,33 @@
+/* iPhone 17 Pro Max frame for <k-iphone>. Geometry in device.js (viewBox 479 x 994). */
+k-iphone {
+  display: block;
+  position: relative;
+  width: 320px;
+  aspect-ratio: 479 / 994;
+  container-type: inline-size;
+}
+k-iphone .k-iphone__screen {
+  position: absolute;
+  left: 4.0710%;   /* 19.5 / 479 */
+  top: 1.9115%;    /* 19 / 994 */
+  width: 91.8580%; /* 440 / 479 */
+  height: 96.1771%;/* 956 / 994 */
+  border-radius: 14.0909% / 6.4854%; /* 62 pt on a 440 x 956 screen */
+  overflow: hidden;
+  background: #000;
+}
+k-iphone .k-iphone__media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+k-iphone .k-iphone__frame,
+k-iphone .k-iphone__frame svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}

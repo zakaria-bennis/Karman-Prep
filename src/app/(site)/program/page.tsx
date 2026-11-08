@@ -14,7 +14,7 @@ import { siteOrigin } from "@/lib/marketing/public-pages";
 export const metadata = pageMeta(
   ROUTES.program,
   "Karman Prep: The SAT Program",
-  `${MP.name}: ${MP.weeks} weeks of live SAT classes. ${MP.paidSeats + MP.scholarshipSeats} students per class, ${MP.fullLengthTests} full-length tests with a one-on-one review after each, ${formatPrice(MP.price)}.`
+  `${MP.name}: ${MP.weeks} weeks of live SAT classes. Up to ${MP.paidSeats} students per class, grouped by score band, ${MP.totalClasses} classes of ${MP.classMinutes} minutes and ${MP.fullLengthTests} full-length tests, ${formatPrice(MP.price)}.`
 );
 
 /** The label on the drawing's last step: the program's final week */
@@ -72,7 +72,7 @@ export default function ProgramPage() {
         after={
           <>
             <Seats label={section(25).seats} className="rv" />
-            <LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard wide rv" />
+            <LeadFormCard n={25} form="apply" anchor="apply" className="i-formcard i-formwide rv" />
           </>
         }
       />

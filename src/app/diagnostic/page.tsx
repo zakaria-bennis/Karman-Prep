@@ -19,6 +19,7 @@
 import type { Metadata } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
+import { getPlan } from "@/lib/plans";
 import { createAdminClient } from "@/lib/supabase/server";
 import DiagnosticClient from "@/components/diagnostic/DiagnosticClient";
 import { DIAGNOSTIC_QUESTIONS } from "@/data/diagnostic-questions";
@@ -54,13 +55,10 @@ export default async function DiagnosticPage() {
     isRetake = hasPriorResult;
   }
 
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("status")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  const isSubscribed = sub?.status === "active" || sub?.status === "trialing";
+  // Paid means any plan above Free: a subscription, a cohort or private
+  // purchase, a school seat or a tutor's code (src/lib/plans).
+  const plan = await getPlan(userId);
+  const isSubscribed = plan.planId !== "free";
 
   return (
     <DiagnosticClient

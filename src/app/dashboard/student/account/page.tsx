@@ -1,20 +1,18 @@
 /*
  * The student's account page: what the fox's account menu opens (founder, 2026-11-07).
- * Their test and date, a parent invite, sound and motion, plan and billing, and a tutor's code.
+ * Their test and date, sound and motion, plan and billing, and the ways to invite a parent and
+ * add a tutor's code (those two have their own pages: /dashboard/student/invite-parent, /join).
  * Signing out stays in the menu itself. No main button here: each card saves on its own.
  */
 import type { Metadata } from "next";
 import { MoreLink, Panel } from "@/components/portal";
 import StudentPortal from "@/components/student-portal/StudentPortal";
 import AccountCard from "@/components/student-portal/account/AccountCard";
-import ParentInviteForm from "@/components/student-portal/account/ParentInviteForm";
 import PlanBilling from "@/components/student-portal/account/PlanBilling";
 import PlanSummary from "@/components/student-portal/account/PlanSummary";
 import SoundMotion from "@/components/student-portal/account/SoundMotion";
 import TestForm from "@/components/student-portal/account/TestForm";
-import TutorCodeForm from "@/components/student-portal/account/TutorCodeForm";
 import { shortTest } from "@/components/student-portal/account/test-dates";
-import { currentTutor } from "@/components/student-portal/account/tutor-code";
 import { loadStudentContext } from "@/lib/student/context";
 import { dayKey } from "@/lib/student/streak";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -28,19 +26,13 @@ export default async function StudentAccountPage() {
   const ctx = await loadStudentContext();
   const db = createAdminClient();
   const today = dayKey(Date.now());
-  const [{ data: satRows }, { data: me }, tutor] = await Promise.all([
-    db
-      .from("sat_dates")
-      .select("test_date")
-      .gte("test_date", today)
-      .order("test_date", { ascending: true })
-      .limit(12),
-    db.from("users").select("parent_email_collected").eq("id", ctx.userId).maybeSingle(),
-    currentTutor(ctx.userId),
-  ]);
+  const { data: satRows } = await db
+    .from("sat_dates")
+    .select("test_date")
+    .gte("test_date", today)
+    .order("test_date", { ascending: true })
+    .limit(12);
   const satDates = ((satRows ?? []) as { test_date: string }[]).map((r) => r.test_date);
-  const parentEmail =
-    (me as { parent_email_collected?: string | null } | null)?.parent_email_collected ?? null;
   const locked = ctx.isImpersonating ? PREVIEW : null;
   const customer = ctx.subscription?.stripe_customer_id;
   const hasBilling = typeof customer === "string" && customer.length > 0;
@@ -70,12 +62,11 @@ export default async function StudentAccountPage() {
                 </p>
               )}
             </AccountCard>
-            <AccountCard
-              id="code"
-              title={"Redeem a tutor’s code"}
-              note={tutor ? `In ${tutor}’s group` : undefined}
-            >
-              <TutorCodeForm locked={locked} />
+            <AccountCard id="code" title={"A tutor’s code"}>
+              <p className="kp-meta">
+                Joining a tutor&rsquo;s group gives you the Practice plan while their plan is on.
+              </p>
+              <MoreLink href="/join">Add your tutor&rsquo;s code</MoreLink>
             </AccountCard>
           </>
         }
@@ -90,7 +81,8 @@ export default async function StudentAccountPage() {
           />
         </AccountCard>
         <AccountCard id="parent" title="Invite a parent">
-          <ParentInviteForm savedEmail={parentEmail} locked={locked} />
+          <p className="kp-meta">Make a link or a short code, and send it to your parent.</p>
+          <MoreLink href="/dashboard/student/invite-parent">Invite a parent</MoreLink>
         </AccountCard>
         <AccountCard id="sound" title="Sound and motion">
           <SoundMotion />

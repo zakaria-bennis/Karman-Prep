@@ -1,78 +1,23 @@
 /*
  * Plan gates for the student portal: what the student's plan opens, and the honest way up when
- * it doesn't. Pure, so pages, tests and client components share one rule.
- *
- * This mirrors the pricing session's access API (`src/lib/plans/`: `PlanId`, `PlanEntitlements`,
- * `canAccess(plan, feature, usage)`), which merges later. When it lands:
- *   - replace `planFromSubscription(sub)` with `await getPlan(userId)` from `@/lib/plans`
- *     (it also counts school seats, tutor codes and one-time purchases);
- *   - keep `canUse` for the portal-only features below, and call `canAccess` for the rest.
- * Every caller goes through this file, so the swap happens in one place.
+ * it doesn't. The plan itself comes from the pricing session's `getPlan` (src/lib/plans, read in
+ * src/lib/student/context.ts); `canAccess` there answers pools, explanations and limits. This
+ * file adds what only the portal asks: live sessions, workshops, which tabs show, and where to
+ * upgrade.
  */
+import { canAccess } from "@/lib/plans/access";
+import { PLAN_ENTITLEMENTS, type PlanEntitlements, type PlanId } from "@/lib/plans/catalog";
 
-export const STUDENT_PLAN_IDS = [
-  "free",
-  "practice",
-  "pro",
-  "cohort",
-  "private-10",
-  "private-20",
-  "school",
-  "tutor-affiliate",
-] as const;
-export type StudentPlanId = (typeof STUDENT_PLAN_IDS)[number];
-
-/** The same shape as `PlanEntitlements` in `src/lib/plans/catalog.ts`. */
-export interface PlanEntitlements {
-  pool: "core" | "mastery";
-  explanations: readonly ("written" | "video")[];
-  /** Questions a plan may answer in total, or null for no limit. */
-  questionLimit: number | null;
-  fullLengthTestLimit: number | null;
-  tutorAdmin: boolean;
-}
+/** The plan ids and access come from the pricing session's `src/lib/plans` (one source). */
+export type StudentPlanId = PlanId;
 
 export interface StudentPlan {
-  id: StudentPlanId;
+  id: PlanId;
   name: string;
   entitlements: PlanEntitlements;
 }
 
-const FREE: PlanEntitlements = {
-  pool: "core",
-  explanations: ["written"],
-  questionLimit: 100,
-  fullLengthTestLimit: 1,
-  tutorAdmin: false,
-};
-const PRACTICE: PlanEntitlements = {
-  pool: "core",
-  explanations: ["written"],
-  questionLimit: null,
-  fullLengthTestLimit: null,
-  tutorAdmin: false,
-};
-const PRO: PlanEntitlements = {
-  pool: "mastery",
-  explanations: ["written", "video"],
-  questionLimit: null,
-  fullLengthTestLimit: null,
-  tutorAdmin: false,
-};
-
-/** Decisions of 2026-11-08 (pricing session): cohort and private include Pro; schools buy Practice. */
-export const ENTITLEMENTS: Readonly<Record<StudentPlanId, PlanEntitlements>> = {
-  free: FREE,
-  practice: PRACTICE,
-  pro: PRO,
-  cohort: PRO,
-  "private-10": PRO,
-  "private-20": PRO,
-  school: PRACTICE,
-  "tutor-affiliate": { ...PRO, tutorAdmin: true },
-};
-
-export const PLAN_NAMES: Readonly<Record<StudentPlanId, string>> = {
+export const PLAN_NAMES: Readonly<Record<PlanId, string>> = {
   free: "Free",
   practice: "Practice",
   pro: "Pro",
@@ -83,35 +28,12 @@ export const PLAN_NAMES: Readonly<Record<StudentPlanId, string>> = {
   "tutor-affiliate": "Tutor affiliate",
 };
 
-const LIVE = new Set(["active", "trialing", "past_due"]);
-
-/** Old `subscriptions.tier` values, until the pricing migration replaces them with `plan_id`. */
-const LEGACY_TIER: Record<string, StudentPlanId> = {
-  group: "cohort",
-  small_group: "cohort",
-  private: "private-10",
-  elite: "private-20",
-  practice: "practice",
-  pro: "pro",
-};
-
-export function isStudentPlanId(value: unknown): value is StudentPlanId {
-  return typeof value === "string" && (STUDENT_PLAN_IDS as readonly string[]).includes(value);
-}
-
-export function planOf(id: StudentPlanId): StudentPlan {
-  return { id, name: PLAN_NAMES[id], entitlements: ENTITLEMENTS[id] };
-}
-
-/**
- * The plan a `subscriptions` row gives. Reads `plan_id` (pricing branch) or the old `tier`.
- * No row, or a row that isn't live, is the Free plan.
- */
-export function planFromSubscription(sub: Record<string, unknown> | null | undefined): StudentPlan {
-  if (!sub || typeof sub.status !== "string" || !LIVE.has(sub.status)) return planOf("free");
-  if (isStudentPlanId(sub.plan_id)) return planOf(sub.plan_id);
-  const legacy = typeof sub.tier === "string" ? LEGACY_TIER[sub.tier] : undefined;
-  return planOf(legacy ?? "practice");
+/** A resolved plan (`getPlan` in src/lib/plans) as the portal shows it. */
+export function studentPlan(
+  id: PlanId,
+  entitlements: PlanEntitlements = PLAN_ENTITLEMENTS[id]
+): StudentPlan {
+  return { id, name: PLAN_NAMES[id], entitlements };
 }
 
 /** What the student has used, for the Free plan's limits. */
@@ -132,21 +54,14 @@ export type PortalFeature =
   /** Workshops and office hours. */
   | "live:workshops";
 
-/** Whether the plan opens a feature (same answers as `canAccess` for the shared features). */
+/** Whether the plan opens a feature. Pools, explanations and limits are `canAccess`'s answers. */
 export function canUse(plan: StudentPlan, feature: PortalFeature, usage?: PlanUsage): boolean {
-  const e = plan.entitlements;
   switch (feature) {
     case "pool:mastery":
-      return e.pool === "mastery";
     case "explanations:video":
-      return e.explanations.includes("video");
     case "question:new":
-      return e.questionLimit === null || (!!usage && usage.questionsAnswered < e.questionLimit);
     case "full-length-test:new":
-      return (
-        e.fullLengthTestLimit === null ||
-        (!!usage && usage.fullLengthTestsCompleted < e.fullLengthTestLimit)
-      );
+      return canAccess(plan, feature, usage);
     case "live:private":
       return plan.id === "private-10" || plan.id === "private-20";
     case "live:cohort":

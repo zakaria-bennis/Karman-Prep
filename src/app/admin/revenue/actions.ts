@@ -3,8 +3,9 @@
 // ============================================================
 // Server actions for the admin Revenue dashboard.
 //
-// snapshotRevenueAction — captures a single revenue_snapshots
-// row reflecting current MRR and active student counts. Wired
+// snapshotRevenueAction: captures a single revenue_snapshots row
+// with the current MRR (renewing plans at monthly value), the
+// active subscriber count and each plan's line. Wired
 // to a "Snapshot now" button in the dashboard for manual use;
 // production should hit this on a nightly cron (Vercel Cron,
 // pg_cron, or a /api/admin/revenue-snapshot endpoint pointing
@@ -15,14 +16,7 @@ import { revalidatePath } from "next/cache";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
-
-const TIER_PRICES: Record<string, { price: number; model: "subscription" | "per_session" }> = {
-  group: { price: 40, model: "subscription" },
-  small_group: { price: 60, model: "per_session" },
-  private: { price: 135, model: "per_session" },
-  elite: { price: 800, model: "subscription" },
-};
-const ESTIMATED_SESSIONS_PER_MONTH = 4;
+import { isOneTimePlan, planBreakdown, renewingMrr } from "./_economics";
 
 export async function snapshotRevenueAction(): Promise<
   { ok: true; mrr: number } | { ok: false; error: string }
@@ -33,51 +27,37 @@ export async function snapshotRevenueAction(): Promise<
   if (role !== "admin") return { ok: false, error: "Admin only" };
 
   const supabase = createAdminClient();
+  const nowIso = new Date().toISOString();
   const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Active + trialing subs by tier.
+  // Active renewing plans (Practice, Pro, Tutor affiliate) at monthly value.
   const { data: subRows } = await supabase
     .from("subscriptions")
-    .select("tier")
+    .select("plan_id, billing_term")
     .in("status", ["active", "trialing"]);
-  const activeByTier: Record<string, number> = {};
-  for (const r of (subRows ?? []) as Array<{ tier: string }>) {
-    activeByTier[r.tier] = (activeByTier[r.tier] ?? 0) + 1;
-  }
+  const activeSubs = (subRows ?? []) as Array<{ plan_id: string; billing_term: string }>;
 
-  // Bookings in last 30d by tier (for per-session revenue).
-  const { data: bookingRows } = await supabase
-    .from("bookings")
-    .select("plan_tier")
-    .gte("scheduled_start", since30d)
-    .in("status", ["scheduled", "completed"]);
-  const bookingsByTier: Record<string, number> = {};
-  for (const r of (bookingRows ?? []) as Array<{ plan_tier: string }>) {
-    bookingsByTier[r.plan_tier] = (bookingsByTier[r.plan_tier] ?? 0) + 1;
-  }
+  // One-time purchases (Cohort, Private 10, Private 20).
+  const { data: grantRows } = await supabase
+    .from("plan_grants")
+    .select("plan_id, created_at, expires_at")
+    .eq("source", "purchase")
+    .is("revoked_at", null);
+  const purchases = (
+    (grantRows ?? []) as Array<{ plan_id: string; created_at: string; expires_at: string | null }>
+  ).filter((g) => isOneTimePlan(g.plan_id));
+  const activeGrants = purchases.filter((g) => g.expires_at === null || g.expires_at > nowIso);
+  const purchases30d = purchases.filter((g) => g.created_at >= since30d);
 
-  let totalMrrCents = 0;
-  let totalActive = 0;
+  const totalMrrCents = Math.round(renewingMrr(activeSubs) * 100);
   const byTier: Record<string, { students: number; revenue_cents: number }> = {};
-
-  for (const [tier, econ] of Object.entries(TIER_PRICES)) {
-    const students = activeByTier[tier] ?? 0;
-    totalActive += students;
-    let revenueCents = 0;
-    if (econ.model === "subscription") {
-      revenueCents = students * econ.price * 100;
-    } else {
-      const realBookings = bookingsByTier[tier] ?? 0;
-      const sessions = realBookings > 0 ? realBookings : students * ESTIMATED_SESSIONS_PER_MONTH;
-      revenueCents = sessions * econ.price * 100;
-    }
-    totalMrrCents += revenueCents;
-    byTier[tier] = { students, revenue_cents: revenueCents };
+  for (const row of planBreakdown(activeSubs, activeGrants, purchases30d)) {
+    byTier[row.tier] = { students: row.studentCount, revenue_cents: row.revenue * 100 };
   }
 
   const { error } = await supabase.from("revenue_snapshots").insert({
     mrr_cents: totalMrrCents,
-    active_students: totalActive,
+    active_students: activeSubs.length,
     by_tier: byTier,
   });
   if (error) {
