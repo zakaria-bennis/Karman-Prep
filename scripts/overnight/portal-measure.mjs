@@ -20,9 +20,11 @@ async function run(label, url) {
   const t = Date.now();
   await page.goto(base + url, { waitUntil: "load" });
   const loaded = Date.now() - t;
-  await page.waitForFunction(() => document.querySelector(".kp-backdrop[data-painted]"), null, {
-    timeout: 20000,
-  }).catch(() => {});
+  await page
+    .waitForFunction(() => document.querySelector(".kp-backdrop[data-painted]"), null, {
+      timeout: 20000,
+    })
+    .catch(() => {});
   const painted = Date.now() - t;
   await page.waitForTimeout(1500);
   const r = await page.evaluate(() => {
