@@ -236,7 +236,7 @@ describe("when a tutor's plan lapses", () => {
     const [student] = addStudents(deps, 1);
     await join(deps, student.clerkId);
 
-    deps.setSubscription(tutor.id, "past_due");
+    deps.setSubscription(tutor.id, "canceled");
     expect(await getStudentAffiliateStatus(deps, student.clerkId)).toMatchObject({
       state: "lapsed",
       tutorName: "Maya R.",

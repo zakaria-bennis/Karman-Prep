@@ -218,7 +218,6 @@ export function createMemoryAffiliateDeps(): MemoryAffiliateDeps {
         subscriptions.set(tutorUserId, {
           status,
           currentPeriodEnd: "2026-12-08T12:00:00.000Z",
-          cancelAtPeriodEnd: false,
         });
     },
   };

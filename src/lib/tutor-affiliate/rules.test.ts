@@ -8,20 +8,35 @@ import {
   seatSummary,
 } from "./rules";
 
+const NOW = new Date("2026-11-08T12:00:00.000Z");
+const sub = (status: string, currentPeriodEnd: string | null = null) => ({
+  status,
+  currentPeriodEnd,
+});
+
 describe("affiliate access", () => {
   it.each(["active", "trialing"])("grants access while the subscription is %s", (status) => {
-    expect(affiliateAccess({ status })).toBe("active");
+    expect(affiliateAccess(sub(status), NOW)).toBe("active");
   });
 
-  it.each(["past_due", "canceled", "unpaid", "incomplete", "incomplete_expired", "paused"])(
+  it("keeps access while a failed payment is inside the paid period", () => {
+    expect(affiliateAccess(sub("past_due", "2026-11-20T00:00:00.000Z"), NOW)).toBe("active");
+  });
+
+  it("lapses a failed payment once the paid period is over", () => {
+    expect(affiliateAccess(sub("past_due", "2026-11-01T00:00:00.000Z"), NOW)).toBe("lapsed");
+    expect(affiliateAccess(sub("past_due"), NOW)).toBe("lapsed");
+  });
+
+  it.each(["canceled", "unpaid", "incomplete", "incomplete_expired", "paused"])(
     "lapses a %s subscription",
     (status) => {
-      expect(affiliateAccess({ status })).toBe("lapsed");
+      expect(affiliateAccess(sub(status, "2026-12-01T00:00:00.000Z"), NOW)).toBe("lapsed");
     }
   );
 
   it("lapses a tutor with no subscription at all", () => {
-    expect(affiliateAccess(null)).toBe("lapsed");
+    expect(affiliateAccess(null, NOW)).toBe("lapsed");
   });
 });
 

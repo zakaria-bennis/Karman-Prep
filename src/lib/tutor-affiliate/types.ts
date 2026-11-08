@@ -30,7 +30,6 @@ export interface TutorSubscription {
   /** Stripe subscription status: active, trialing, past_due, canceled… */
   status: string;
   currentPeriodEnd: string | null;
-  cancelAtPeriodEnd: boolean;
 }
 
 export interface AffiliateCode {

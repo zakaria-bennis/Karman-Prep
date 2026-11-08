@@ -14,14 +14,26 @@ export const AFFILIATE_SEAT_LIMIT = 50;
 export type AffiliateAccess = "active" | "lapsed";
 
 /**
- * The tutor's $199 subscription lives in the pricing session's
- * `subscriptions` table (plan "tutor-affiliate"). The same statuses
- * that keep a student's own paid plan working keep the code working.
+ * The tutor's $199 subscription lives in the pricing work's
+ * `subscriptions` table (plan "tutor-affiliate"). Same rule as
+ * isSubscriptionActive in src/lib/plans/resolve.ts, so a tutor's page and
+ * their students' access always agree: active and trialing count, and a
+ * failed payment (past_due) still counts until the paid period ends.
  */
-export function affiliateAccess(subscription: { status: string } | null): AffiliateAccess {
-  return subscription?.status === "active" || subscription?.status === "trialing"
-    ? "active"
-    : "lapsed";
+export function affiliateAccess(
+  subscription: { status: string; currentPeriodEnd: string | null } | null,
+  now: Date = new Date()
+): AffiliateAccess {
+  if (!subscription) return "lapsed";
+  if (subscription.status === "active" || subscription.status === "trialing") return "active";
+  if (
+    subscription.status === "past_due" &&
+    subscription.currentPeriodEnd !== null &&
+    Date.parse(subscription.currentPeriodEnd) > now.getTime()
+  ) {
+    return "active";
+  }
+  return "lapsed";
 }
 
 export type AffiliateCapability =
