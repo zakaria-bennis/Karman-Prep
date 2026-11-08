@@ -102,7 +102,7 @@ async function dirty(page: Page, isMobile: boolean) {
  * Moves to another question. A wide window stays open across the move (the open state carries);
  * full screen on a phone is modal, so the student closes it, moves and opens it again there.
  */
-async function move(page: Page, button: "Skip this question" | "Previous") {
+async function move(page: Page, button: "Next" | "Back") {
   if (!phoneSized(page)) return press(page, button);
   await page.getByRole("button", { name: "Close calculator", exact: true }).click();
   await press(page, button);
@@ -142,13 +142,13 @@ test("Next gives a clean calculator with the settings kept; Previous back to a u
   await openCalculator(page, "diagnostic");
   const mode = await frame(page).getAttribute("data-mode");
   await dirty(page, isMobile);
-  await move(page, "Skip this question");
+  await move(page, "Next");
   await expectClean(page);
   await expect(frame(page)).toHaveAttribute("data-mode", mode!); // the window stays where it was
   await expect(frame(page)).toBeVisible(); // and open
 
   await dirty(page, isMobile);
-  await move(page, "Previous");
+  await move(page, "Back");
   await expectClean(page); // no per-question memory
 });
 
@@ -161,7 +161,7 @@ test("a calculator closed on one question opens clean on the next, by keyboard",
   await page.getByRole("button", { name: "Close calculator", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(frame(page)).toBeHidden();
-  await press(page, "Skip this question");
+  await press(page, "Next");
   if (phoneSized(page)) {
     await page.getByRole("button", { name: "Open Karman calculator", exact: true }).focus();
   } else {

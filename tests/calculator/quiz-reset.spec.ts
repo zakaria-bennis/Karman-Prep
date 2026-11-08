@@ -43,7 +43,7 @@ test("RC-21 after setBlank nothing from the previous question resolves", async (
   await page.evaluate(() =>
     globalThis.__calculatorHarness!.engine.updateSettings({ angleMode: "degrees" })
   );
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect(rowItem(page)).toBeVisible();
   await setRows(page, [
     { id: "1", latex: "a" },
@@ -76,7 +76,7 @@ test("NM-24 degrees chosen on one question stay on for the next (owner decision,
     e.setExpression({ id: "1", latex: "\\sin(90)" });
   });
   expect(await value()).toBeCloseTo(1, 12);
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect(rowItem(page)).toBeVisible();
   await setRows(page, [{ id: "1", latex: "\\sin(90)" }]);
   expect(await value()).toBeCloseTo(1, 12);
@@ -149,7 +149,7 @@ test("AR-58 a new question's calculator starts blank with the student's settings
     });
     e.setMathBounds({ left: -1, right: 1, bottom: -1, top: 1 });
   });
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect(status(page)).toHaveText("Calculator cleared for this question.");
   const s = await snapshot(page);
   expect(s.state.expressions.map((e) => e.latex ?? "")).toEqual([""]);
@@ -169,7 +169,7 @@ test("AR-58 a new question's calculator starts blank with the student's settings
   expect(s.state.mode).toBe("graphing");
   expect([s.state.viewport.left, s.state.viewport.right]).toEqual([-10, 10]);
   await page.getByRole("button", { name: "Close calculator", exact: true }).click();
-  await press(page, "Previous");
+  await press(page, "Back");
   await trigger(page).click();
   await expect(rowItem(page)).toBeVisible();
   await page.waitForTimeout(800);
@@ -184,7 +184,7 @@ test("AR-61 twenty question changes with the calculator opened each time leave o
 }) => {
   await open(page);
   for (let i = 0; i < 20; i++) {
-    await press(page, i % 2 ? "Previous" : "Skip this question");
+    await press(page, i % 2 ? "Back" : "Next");
     if (!(await page.locator("[data-calculator-window]").isVisible())) await trigger(page).click();
     await expect(rowItem(page)).toBeVisible();
   }
@@ -198,8 +198,8 @@ test("AR-61 five question changes in one second leave one calculator and no stal
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  const burst = async (first: "Skip this question" | "Previous") => {
-    const other = first === "Previous" ? "Skip this question" : "Previous";
+  const burst = async (first: "Next" | "Back") => {
+    const other = first === "Back" ? "Next" : "Back";
     for (let i = 0; i < 5; i++) await press(page, i % 2 ? other : first);
   };
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -209,10 +209,10 @@ test("AR-61 five question changes in one second leave one calculator and no stal
   });
   await page.goto("/?flow=diagnostic");
   await trigger(page).click();
-  await burst("Skip this question");
+  await burst("Next");
   await expect(rowItem(page)).toBeVisible();
   await setRows(page, [{ id: "1", latex: RUNAWAY }]);
-  await burst("Previous");
+  await burst("Back");
   await page.waitForTimeout(2500);
   const c = await counters(page);
   const s = await snapshot(page);

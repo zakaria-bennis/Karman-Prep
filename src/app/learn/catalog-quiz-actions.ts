@@ -1,6 +1,7 @@
 "use server";
 
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { awardForAnswer } from "@/lib/quiz/points";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { fetchCatalogQuestionPool } from "@/lib/supabase/queries/catalog-question-pool";
 import { loadActiveAssignment } from "@/lib/catalog-assignments/server";
@@ -18,6 +19,7 @@ const service = createCatalogPracticeService({
   loadEvidence: loadCatalogQuestionEvidence,
   loadOwnedAssignment: loadActiveAssignment,
   store: supabaseCatalogSessionStore,
+  award: awardForAnswer,
 });
 
 async function studentId(): Promise<string> {

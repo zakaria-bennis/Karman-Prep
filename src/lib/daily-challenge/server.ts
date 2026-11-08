@@ -26,7 +26,7 @@ export type DailySlot =
 async function loadDailyQuestion(
   subject: DailySubject,
   day: string
-): Promise<QuizQuestionWithChoices | null> {
+): Promise<{ question: QuizQuestionWithChoices; skillId: string } | null> {
   for (const skillId of rankDailySkills(CATALOG_SKILLS, subject, day)) {
     const pool = (
       await fetchCatalogQuestionPool({ skillId, minimumDifficulty: 5, maximumDifficulty: 7 })
@@ -44,7 +44,10 @@ async function loadDailyQuestion(
       subject,
       day
     );
-    if (id) return pool.find((row) => row.id === id) ?? null;
+    if (id) {
+      const question = pool.find((row) => row.id === id);
+      return question ? { question, skillId } : null;
+    }
   }
   return null;
 }
@@ -52,9 +55,12 @@ async function loadDailyQuestion(
 export async function loadDailySlot(subject: DailySubject, asOf = new Date()): Promise<DailySlot> {
   const day = utcDayKey(asOf);
   try {
-    const question = await loadDailyQuestion(subject, day);
-    if (!question) return { state: "empty" };
-    return { state: "ready", value: { day, subject, question: toStudentQuizQuestion(question) } };
+    const found = await loadDailyQuestion(subject, day);
+    if (!found) return { state: "empty" };
+    return {
+      state: "ready",
+      value: { day, subject, question: toStudentQuizQuestion(found.question) },
+    };
   } catch (error) {
     console.error("[daily challenge] reviewed question read failed", error);
     return { state: "unavailable" };
@@ -66,14 +72,26 @@ export async function reviewDailyAnswer(
   subject: DailySubject,
   day: string,
   questionId: string,
-  answer: string
+  answer: string,
+  /** Signed-in students earn points; the public lane passes nothing and keeps no record. */
+  reward?: {
+    clerkId: string;
+    award(input: {
+      key: string;
+      clerkId: string;
+      correct: boolean;
+      difficulty: number;
+      skillId: string | null;
+    }): Promise<0 | 10 | 15>;
+  }
 ): Promise<StudentQuizReview> {
   if (day !== utcDayKey(new Date()))
     throw new Error("A new daily question is available. Refresh the page.");
-  const question = await loadDailyQuestion(subject, day);
-  if (!question || question.id !== questionId) {
+  const found = await loadDailyQuestion(subject, day);
+  if (!found || found.question.id !== questionId) {
     throw new Error("This daily question is no longer available. Refresh the page.");
   }
+  const { question, skillId } = found;
   if (answer.length > 200 || !answer.trim())
     throw new Error("Enter an answer before revealing it.");
   if (
@@ -82,5 +100,15 @@ export async function reviewDailyAnswer(
   ) {
     throw new Error("Choose one of the displayed answers.");
   }
-  return toStudentQuizReview(question, evaluateQuizAnswer(answer, question), answer);
+  const isCorrect = evaluateQuizAnswer(answer, question);
+  const points = reward
+    ? await reward.award({
+        key: `daily:${day}:${subject}`,
+        clerkId: reward.clerkId,
+        correct: isCorrect,
+        difficulty: question.difficulty_level,
+        skillId,
+      })
+    : 0;
+  return { ...toStudentQuizReview(question, isCorrect, answer), points };
 }

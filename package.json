@@ -34,6 +34,8 @@
     "questions:preflight": "tsx scripts/pdf-pipeline/preflight-import-json.ts",
     "questions:import-reviewed": "tsx scripts/pdf-pipeline/import-reviewed-questions.ts",
     "test:calculator": "playwright test --config=playwright.calculator.config.ts",
+    "test:quiz": "playwright test --config=playwright.quiz.config.ts",
+    "quiz:fixture": "node tests/quiz-shell/fixture/server.mjs",
     "dev:calculator": "node tests/calculator/fixture/server.mjs",
     "calculator:build": "node scripts/build/calculator.mjs && tsx scripts/calculator/generate-skin-colors.ts",
     "calculator:check": "node scripts/build/calculator.mjs --check && tsx scripts/calculator/generate-skin-colors.ts --check"

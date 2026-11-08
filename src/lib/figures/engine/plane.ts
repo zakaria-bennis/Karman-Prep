@@ -12,6 +12,8 @@
  */
 import { planeDetail } from "./describe-detail";
 import { HOUSE } from "./house";
+import { dimensionItem, isShaded, shadeItem } from "./fills";
+import { freeTexts, noteBand, noteItems, specNote } from "./notes";
 import { planeLabels } from "./plane-labels";
 import { helperPoints, pathOf, regionItems, shapeItems } from "./plane-shapes";
 import { fmt, planeAxes, type Box, type Mapper } from "./plane-axes";
@@ -235,12 +237,23 @@ function describePlane(spec: FigureSpec, frame: PlaneFrame): string {
 /** The frame a plane spec without one is drawn in. */
 export const DEFAULT_PLANE_FRAME: PlaneFrame = { x: [-10, 10], y: [-10, 10] };
 
+/**
+ * The box a plane's axes are laid out in: `box` less the band its not-to-scale note
+ * takes at the foot (the checks map points through the same box).
+ */
+export function planeAxesBox(spec: FigureSpec, box: Box): Box {
+  return { width: box.width, height: box.height - noteBand(specNote(spec, box.width)) };
+}
+
 /** The Scene of a `plane` FigureSpec drawn in `box`. */
 export function buildPlane(spec: FigureSpec, box: Box): Scene {
   const issues: SceneIssue[] = [];
   const frame: PlaneFrame = spec.frame ?? DEFAULT_PLANE_FRAME;
   if (!spec.frame) issues.push({ code: "clipped", detail: "no frame given; using -10 to 10" });
-  const { items, map: m, issues: frameIssues, thinned } = planeAxes(frame, box);
+  const plot = planeAxesBox(spec, box);
+  const { items, map: m, issues: frameIssues, thinned } = planeAxes(frame, plot);
+  const toPx = ([x, y]: Pt): Pt => [m.px(x), m.py(y)];
+  const inFrame = (p: Pt) => clipParam(p, [0, 0], frame, 0, 0) !== null;
   issues.push(...frameIssues);
   const points = new Map<string, Pt>();
   for (const p of spec.parts) if (p.kind === "point") points.set(p.id, [p.x, p.y]);
@@ -251,6 +264,10 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
   const dots: SceneItem[] = [];
   const lines: SceneItem[] = [];
   for (const part of spec.parts) {
+    if (isShaded(part)) {
+      const fill = shadeItem(part, points, toPx, issues, inFrame);
+      if (fill) fills.push(fill);
+    }
     switch (part.kind) {
       case "function":
         lines.push(...functionItems(part, frame, m, issues));
@@ -267,6 +284,14 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
       case "polygon":
         lines.push(...shapeItems(part, points, frame, m, issues));
         break;
+      case "sector":
+      case "text":
+        break; // a sector is its fill; a text part's label is set at its spot
+      case "dimension": {
+        const item = dimensionItem(part, points, toPx, issues);
+        if (item) lines.push(item);
+        break;
+      }
       case "region":
         fills.push(...regionItems(part, spec, frame, m, issues));
         break;
@@ -293,8 +318,9 @@ export function buildPlane(spec: FigureSpec, box: Box): Scene {
   items.splice(firstInk < 0 ? items.length : firstInk, 0, ...fills);
   items.push(...lines);
   items.push(...dots); // points draw on top of the lines through them
-  const labels = planeLabels(spec, items, box, ([x, y]) => [m.px(x), m.py(y)]);
-  items.push(...labels.items);
+  items.push(...freeTexts(spec, toPx));
+  const labels = planeLabels(spec, items, plot, toPx);
+  items.push(...labels.items, ...noteItems(specNote(spec, box.width), box));
   issues.push(...labels.issues);
   const scene: Scene = {
     width: box.width,

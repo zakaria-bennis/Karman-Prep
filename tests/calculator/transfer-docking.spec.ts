@@ -45,20 +45,23 @@ test("AR-21, TR-64, L-7 a transfer docks at 1024 px and wider over 500 px tall a
     expect(await rows(page)).toEqual(["y>2x+1"]);
     if (mode !== "docked") continue;
     const dock = Math.round(Math.min(720, Math.max(400, 0.45 * width)));
-    expect(await box(frame(page))).toEqual({ x: 12, y: 12, width: dock, height: height - 24 });
+    const top = await page
+      .locator('[data-quiz-bar="top"]')
+      .evaluate((el) => Math.round(el.getBoundingClientRect().bottom) + 8);
+    expect(await box(frame(page))).toEqual({
+      x: 12,
+      y: top,
+      width: dock,
+      height: height - top - 12,
+    });
     const max = Math.max(400, Math.min(900, width - 480));
     const sep = page.getByRole("separator", { name: "Resize calculator dock" });
     await expect(sep).toHaveAttribute("aria-valuemin", "400");
     await expect(sep).toHaveAttribute("aria-valuemax", String(max));
     expect(
       await page
-        .locator("[data-question-layout]")
+        .locator("[data-calculator-dock-shift]")
         .first()
-        .evaluate((el) => getComputedStyle(el).display)
-    ).toBe("block");
-    expect(
-      await page
-        .locator("[data-calculator-workspace]")
         .evaluate((el) => getComputedStyle(el).marginLeft)
     ).toBe(`${dock + 24}px`);
     if (width !== 1280) continue;
@@ -105,11 +108,11 @@ test("TR-65, L-9 an open floating or maximized window docks on transfer and keep
   await transferByMouse(page, "y=2x+3");
   await expect(frame(page)).toHaveAttribute("data-mode", "docked");
   expect(await rows(page)).toEqual(["1+1", "y>2x+1", "y=2x+3"]);
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect(rowItem(page)).toBeVisible();
   await expect(frame(page)).toHaveAttribute("data-mode", "docked");
   expect(await rows(page)).toEqual([""]);
-  await press(page, "Previous");
+  await press(page, "Back");
   await expect(rowItem(page)).toBeVisible();
   await expect(frame(page)).toHaveAttribute("data-mode", "docked");
   expect(await rows(page)).toEqual([""]);
@@ -277,7 +280,7 @@ test("TR-67, A11Y-11 the quiz-side status region announces each transfer result 
   ]);
   await expect.poll(async () => (await snapshot(page))?.regions).toBe(3);
   // the new question's calculator, region and harness engine
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect.poll(() => rows(page)).toEqual([""]);
   await setRows(page, ["f(x)=5x"]); // defined without typing, so no row-error announcements
   await watchCalc("next");

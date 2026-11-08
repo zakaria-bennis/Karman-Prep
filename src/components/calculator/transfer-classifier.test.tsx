@@ -23,7 +23,8 @@ it("AR-33 the eager transfer code reaches the classifier, TransferControl and th
     "src/components/learn/catalog-practice/CatalogQuestion.tsx",
     "src/components/learn/QuestionTable.tsx",
     "src/components/learn/DailyChallenge.tsx",
-    "src/components/diagnostic/parts/AnswerChoiceButton.tsx",
+    "src/components/learn/quiz-shell/Choices.tsx",
+    "src/components/learn/quiz-shell/CalculatorSlot.tsx",
   ];
   // a value import of any calculator-transfer module but the eager payload leaf
   const staticImport =

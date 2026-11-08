@@ -262,7 +262,12 @@ export type StudentQuizReview = Pick<
   | "explanation_text"
   | "explanation_per_choice"
   | "desmos_strategy"
-> & { isCorrect: boolean; studentAnswer: string };
+> & {
+  isCorrect: boolean;
+  studentAnswer: string;
+  /** Points the server awarded for this answer (instant modes only; 0 when none or repeated). */
+  points?: 0 | 10 | 15;
+};
 
 export interface AdaptiveStep {
   question_id: string;

@@ -77,6 +77,20 @@ describe("daily challenge from the live catalog pools", () => {
     await expect(reviewDailyAnswer("math", slot.value.day, id(2), "A")).rejects.toThrow(
       "no longer available"
     );
+    const award = vi.fn(async () => 15 as const);
+    const signedIn = await reviewDailyAnswer("math", slot.value.day, id(1), "A", {
+      clerkId: "user_s",
+      award,
+    });
+    expect(award).toHaveBeenCalledWith({
+      key: `daily:${slot.value.day}:math`,
+      clerkId: "user_s",
+      correct: true,
+      difficulty: 6,
+      skillId: catalogSkillId,
+    });
+    expect(signedIn.points).toBe(15);
+    expect(review.points).toBe(0);
   });
 
   it("rotates across the pool by day and never serves outside difficulty 5–7", async () => {
