@@ -1,7 +1,8 @@
 "use client";
 
-// The study tools, as a small row of cards that slides: swipe on a phone, the two arrows on a computer.
-// The arrows show only while the cards don't all fit, and each one rests at its end of the row.
+// The study tools: a row of four cards on wide screens, a 2 x 2 grid below 1200 px and one column on
+// phones (home.css), so nothing scrolls sideways. The arrows show only if the row ever overflows, and
+// each one rests at its end of the row.
 // Each card shows the tool working, drawn in code (live/screens.ts, TOOLS). Words from site-copy.ts (6).
 import { useEffect, useRef, useState } from "react";
 import { pairs, section } from "@/lib/marketing/site-copy";

@@ -47,7 +47,10 @@
 .ks .tool b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
 .ks .tool > span:not(.tool-art) { color: var(--ink2); font-size: 15.5px; line-height: 1.45; }
 .ks .tool-art { display: block; height: 170px; border-radius: 12px; background: var(--soft); overflow: hidden; }
-@media (max-width: 760px) { .ks .tools-head { align-items: start; flex-direction: column; } .ks .tools-nav { display: none; } .ks .tools-track { grid-auto-columns: 78%; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); } }
+/* no sideways scroll (founder, 8 November; design rule 28): the four cards make a 2 x 2 grid below
+   1200 px, where a row of four no longer fits, and stack in one column on phones */
+@media (max-width: 1199px) { .ks .tools-track { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; scroll-snap-type: none; } .ks .tools-nav { display: none; } }
+@media (max-width: 760px) { .ks .tools-head { align-items: start; flex-direction: column; } .ks .tools-track { grid-template-columns: minmax(0, 1fr); } }
 
 /* the tools' small working screens */
 .ks .tool-ui { height: 100%; display: grid; place-content: center; gap: 6px; padding: 14px; font-family: var(--font-hanken), system-ui, sans-serif; }
