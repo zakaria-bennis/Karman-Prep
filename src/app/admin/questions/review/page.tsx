@@ -15,7 +15,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, ClipboardCheck, Archive } from "lucide-react";
+import { WbPage, WbStats } from "@/components/admin/workbench";
 import {
   selectQuestionsNeedingReview,
   selectNeedsReviewSourcePdfs,
@@ -64,36 +64,28 @@ export default async function QuestionReviewPage({ searchParams }: PageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8">
-      <div className="mb-6">
-        <Link
-          href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-        >
-          <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
-        </Link>
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-[color:var(--ink)]">
-            <ClipboardCheck className="h-5 w-5 text-[color:var(--warn)]" /> Question review
-          </h1>
-          <Link
-            href="/admin/questions/rejected"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] px-3 py-1.5 text-xs text-[color:var(--ink)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
-          >
-            <Archive className="h-3.5 w-3.5" />
-            Rejected
-            {rejectedCount > 0 && (
-              <span className="ml-1 rounded bg-[color:var(--raised)] px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--ink)]">
-                {rejectedCount}
-              </span>
-            )}
+    <WbPage
+      title="Question review"
+      summary="Triage imported questions. Flagged rows need a decision; bank rows need a curriculum node before they go live."
+      actions={
+        <>
+          <Link className="wb-btn" href="/admin/questions/rejected">
+            Rejected ({rejectedCount})
           </Link>
-        </div>
-        <p className="mt-1.5 text-sm text-[color:var(--mute)]">
-          {counts.bank} in bank · {counts.flagged} flagged ({counts.partial_emit} partial_emit ·{" "}
-          {counts.skip} skip)
-        </p>
-      </div>
+          <Link className="wb-btn" href="/admin/curriculum">
+            Back to admin
+          </Link>
+        </>
+      }
+    >
+      <WbStats
+        items={[
+          { label: "In the bank", value: counts.bank },
+          { label: "Flagged", value: counts.flagged },
+          { label: "Partial emit", value: counts.partial_emit },
+          { label: "Skip", value: counts.skip },
+        ]}
+      />
 
       <ReviewClient
         activeTab={activeTab}
@@ -107,6 +99,6 @@ export default async function QuestionReviewPage({ searchParams }: PageProps) {
           source_pdf: params.source_pdf || undefined,
         }}
       />
-    </div>
+    </WbPage>
   );
 }
