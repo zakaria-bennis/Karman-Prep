@@ -14,7 +14,7 @@
 // Step flow:
 //   1. Role             (Student / Parent — re-frames every later
 //                        question's wording)
-//   2. SAT date         (test date OR "not registered yet")
+//   2. Test and date    (SAT or PSAT, then the date OR "not registered yet")
 //   3. Goal score       (target)
 //   4. Baseline         (most recent SAT/PSAT, or "haven't taken")
 //   5. Hours/week       (study time available)
@@ -47,14 +47,24 @@ import { BaselineStep } from "./_steps/BaselineStep";
 import { HoursStep } from "./_steps/HoursStep";
 import { ChoiceStep } from "./_steps/ChoiceStep";
 import { RecommendationStep } from "./_steps/RecommendationStep";
+import type { TestType } from "@/components/student-portal/account/test-dates";
 
-export default function OnboardingClient() {
+export default function OnboardingClient({
+  satDates,
+  today,
+}: {
+  /** Upcoming SAT dates (YYYY-MM-DD) from the sat_dates table. */
+  satDates: string[];
+  /** Today (YYYY-MM-DD), the earliest PSAT date. */
+  today: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tierOverride = searchParams.get("tier");
 
   // ─── Form state ──────────────────────────────────────────
   const [role, setRole] = useState<Role>("student");
+  const [testType, setTestType] = useState<TestType>("sat");
   const [satDate, setSatDate] = useState<string>("");
   const [goalScore, setGoalScore] = useState<number>(1300);
   const [hasBaseline, setHasBaseline] = useState<"" | "yes" | "no">("");
@@ -200,7 +210,15 @@ export default function OnboardingClient() {
           {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}
 
           {currentStep === "sat" && (
-            <SatStep prompt={copy.sat} value={satDate} onChange={setSatDate} />
+            <SatStep
+              prompt={copy.sat}
+              testType={testType}
+              onTestType={setTestType}
+              value={satDate}
+              onChange={setSatDate}
+              satDates={satDates}
+              today={today}
+            />
           )}
 
           {currentStep === "goal" && (

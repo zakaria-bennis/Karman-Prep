@@ -3,7 +3,7 @@ export type Role = "student" | "parent";
 // Re-framing labels — same prompt, different subject.
 export const COPY = {
   student: {
-    sat: "When are you planning to take the SAT?",
+    sat: "Which test are you taking, and when?",
     goal: "What's your goal SAT score?",
     baselineQ: "Have you taken the SAT or PSAT recently?",
     baselineYes: "Yes — I'll enter my score",
@@ -23,7 +23,7 @@ export const COPY = {
     priorFlat: "Yes — but my score didn't really move.",
   },
   parent: {
-    sat: "When is your child planning to take the SAT?",
+    sat: "Which test is your child taking, and when?",
     goal: "What's your child's goal SAT score?",
     baselineQ: "Has your child taken the SAT or PSAT recently?",
     baselineYes: "Yes — I'll enter their score",

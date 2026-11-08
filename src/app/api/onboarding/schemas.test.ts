@@ -112,3 +112,31 @@ describe("onboardingPayloadSchema — availability fields", () => {
     ).toBe(false);
   });
 });
+
+describe("onboardingPayloadSchema — the test and its date", () => {
+  const base = { hsYear: "junior" as const };
+
+  it("accepts SAT or PSAT with a date, without a goal score", () => {
+    expect(
+      onboardingPayloadSchema.safeParse({ ...base, testType: "sat", satTestDate: "2027-03-13" })
+        .success
+    ).toBe(true);
+    expect(
+      onboardingPayloadSchema.safeParse({ ...base, testType: "psat", satTestDate: "2027-10-14" })
+        .success
+    ).toBe(true);
+  });
+
+  it("accepts not registered yet as a null date", () => {
+    expect(
+      onboardingPayloadSchema.safeParse({ ...base, testType: "psat", satTestDate: null }).success
+    ).toBe(true);
+  });
+
+  it("rejects an unknown test", () => {
+    expect(
+      onboardingPayloadSchema.safeParse({ ...base, testType: "act", satTestDate: "2027-03-13" })
+        .success
+    ).toBe(false);
+  });
+});

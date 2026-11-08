@@ -1,12 +1,25 @@
 // ============================================================
 // Onboarding page — role selection after sign-up.
 // Wraps the client component in Suspense for useSearchParams.
+// Upcoming SAT dates come from the sat_dates table.
 // ============================================================
 
 import { Suspense } from "react";
+import { dayKey } from "@/lib/student/streak";
+import { createAdminClient } from "@/lib/supabase/server";
 import OnboardingClient from "./OnboardingClient";
 
-export default function OnboardingPage() {
+export const dynamic = "force-dynamic";
+
+export default async function OnboardingPage() {
+  const today = dayKey(Date.now());
+  const { data } = await createAdminClient()
+    .from("sat_dates")
+    .select("test_date")
+    .gte("test_date", today)
+    .order("test_date", { ascending: true })
+    .limit(10);
+  const satDates = ((data ?? []) as { test_date: string }[]).map((r) => r.test_date);
   return (
     <Suspense
       fallback={
@@ -15,7 +28,7 @@ export default function OnboardingPage() {
         </div>
       }
     >
-      <OnboardingClient />
+      <OnboardingClient satDates={satDates} today={today} />
     </Suspense>
   );
 }
