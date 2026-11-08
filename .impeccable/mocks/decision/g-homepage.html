@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karman Prep: SAT programs that end on your test date</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Theme: saved choice wins, otherwise follow the device.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("karman-theme"); } catch (e) {}
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f5f2eb;
+    --bg-2: #ece7dc;
+    --surface: #fbf9f4;
+    --surface-2: #fffdf8;
+    --line: #dcd5c6;
+    --ink: #15202e;
+    --ink-2: #434c5a;
+    --ink-3: #5a616d;
+    --program: #1e5b4b;
+    --program-tint: #e1ebe5;
+    --private: #7b2d35;
+    --private-tint: #f2e3e2;
+    --free: #85570c;
+    --free-tint: #f3e8d2;
+    --wrong: #a8432f;
+    --wrong-tint: #f6e4df;
+    --on-accent: #fbf9f4;
+    --band: #15202e;
+    --band-ink: #f5f2eb;
+    --band-ink-2: #c3c9d0;
+    --serif: "Source Serif 4", Georgia, serif;
+    --sans: "Hanken Grotesk", system-ui, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #11161d;
+    --bg-2: #171e27;
+    --surface: #19212b;
+    --surface-2: #1f2834;
+    --line: #2f3a48;
+    --ink: #ede8de;
+    --ink-2: #c2c8d0;
+    --ink-3: #a3abb5;
+    --program: #7cc4a5;
+    --program-tint: #1d3129;
+    --private: #e3959c;
+    --private-tint: #3a2226;
+    --free: #e2b867;
+    --free-tint: #352a16;
+    --wrong: #ee9a86;
+    --wrong-tint: #3a2420;
+    --on-accent: #10161d;
+    --band: #0b0f14;
+    --band-ink: #ede8de;
+    --band-ink-2: #aeb6bf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #11161d; --bg-2: #171e27; --surface: #19212b; --surface-2: #1f2834; --line: #2f3a48;
+      --ink: #ede8de; --ink-2: #c2c8d0; --ink-3: #a3abb5;
+      --program: #7cc4a5; --program-tint: #1d3129; --private: #e3959c; --private-tint: #3a2226;
+      --free: #e2b867; --free-tint: #352a16; --wrong: #ee9a86; --wrong-tint: #3a2420;
+      --on-accent: #10161d; --band: #0b0f14; --band-ink: #ede8de; --band-ink-2: #aeb6bf;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; transition: background-color .25s ease, color .25s ease; }
+  a { color: inherit; }
+  .wrap { width: min(1200px, calc(100% - 64px)); margin: 0 auto; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: -.01em; }
+  h2 { font-size: 44px; line-height: 1.1; }
+  h3 { font-size: 26px; line-height: 1.2; }
+  .lede { font-size: 19px; color: var(--ink-2); max-width: 600px; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; text-decoration: none; padding: 15px 22px; border-radius: 4px; border: 1.5px solid transparent; cursor: pointer; font-family: inherit; }
+  .btn-solid { background: var(--ink); color: var(--bg); }
+  .btn-line { border-color: currentColor; background: transparent; }
+  .label { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 5px 10px; border-radius: 3px; }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* nav */
+  header.top { border-bottom: 1px solid var(--line); }
+  header.top .wrap { display: flex; align-items: center; height: 76px; gap: 40px; }
+  .mark { font-family: var(--serif); font-size: 25px; font-weight: 600; text-decoration: none; letter-spacing: -.01em; white-space: nowrap; }
+  .mark span { font-weight: 400; color: var(--ink-3); }
+  header nav { display: flex; gap: 28px; font-size: 15px; font-weight: 500; color: var(--ink-2); }
+  header nav a { text-decoration: none; }
+  header .right { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 15px; font-weight: 500; }
+  header .right a { text-decoration: none; white-space: nowrap; }
+  header .btn { padding: 11px 18px; }
+  .theme { font: inherit; font-size: 14px; color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; cursor: pointer; white-space: nowrap; }
+  .theme:hover { border-color: var(--ink-3); }
+
+  /* hero: copy left, a bright video framed right, real screens overlapping it */
+  .hero { padding: 72px 0 0; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 64px; align-items: center; }
+  .hero .eyebrow { color: var(--program); }
+  .hero h1 { font-size: 62px; line-height: 1.05; margin: 18px 0 20px; }
+  .hero .ctas { display: flex; gap: 14px; margin-top: 30px; flex-wrap: wrap; }
+  .hero .fine { margin-top: 16px; font-size: 14px; color: var(--ink-3); }
+  .stage { position: relative; padding: 36px 0 56px 36px; }
+  .frame { position: relative; aspect-ratio: 16 / 11; border-radius: 6px; overflow: hidden; background: var(--bg-2); }
+  .frame video, .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .card { position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; font-size: 14px; color: var(--ink); width: 250px;
+          opacity: 0; transform: translateY(12px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+  .card .tag { display: block; margin-bottom: 6px; }
+  .card b { font-family: var(--serif); font-weight: 500; font-size: 18px; display: block; line-height: 1.25; }
+  .card .meter { height: 6px; background: var(--bg-2); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .card .meter i { display: block; height: 100%; width: 70%; background: var(--program); }
+  .card .sub { color: var(--ink-3); font-size: 13px; margin-top: 4px; }
+  .card .grid2 { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin-top: 8px; font-size: 13.5px; color: var(--ink-2); }
+  .card .grid2 strong { color: var(--ink); font-weight: 600; }
+  .c1 { left: 0; top: 0; animation-delay: .5s; }
+  .c2 { right: -18px; top: 46%; animation-delay: .9s; }
+  .c3 { left: 8%; bottom: 0; width: 290px; animation-delay: 1.3s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .card { animation: none; opacity: 1; transform: none; } }
+  .proofbar { margin-top: 56px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .proofbar .wrap { display: flex; align-items: center; gap: 56px; height: 92px; }
+  .proofbar b { font-family: var(--serif); font-weight: 500; font-size: 30px; margin-right: 10px; }
+  .proofbar span { font-size: 14px; color: var(--ink-2); }
+  .proofbar .src { margin-left: auto; font-size: 13px; color: var(--ink-3); }
+
+  /* product index */
+  .index { padding: 96px 0 40px; }
+  .rows { margin-top: 44px; border-top: 1px solid var(--line); }
+  .row { display: grid; grid-template-columns: 240px 1fr 200px 180px; align-items: center; gap: 32px; padding: 30px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+  .row .k { font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+  .row h3 { font-size: 28px; }
+  .row p { color: var(--ink-2); margin-top: 4px; }
+  .row .price { font-family: var(--serif); font-size: 24px; }
+  .row .price small { display: block; font-family: var(--sans); font-size: 13px; color: var(--ink-3); }
+  .row .go { justify-self: end; font-weight: 600; font-size: 15px; }
+  .program .k, .program .go, .program .eyebrow { color: var(--program); }
+  .private .k, .private .go, .private .eyebrow { color: var(--private); }
+  .free .k, .free .go, .free .eyebrow { color: var(--free); }
+  .accent-program { background: var(--program); color: var(--on-accent); }
+  .accent-private { background: var(--private); color: var(--on-accent); }
+  .accent-free { background: var(--free); color: var(--on-accent); }
+
+  /* program */
+  .program-sec { padding: 96px 0; }
+  .sec-head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 40px; }
+  .sec-head .eyebrow { margin-bottom: 14px; }
+  .sec-head h2 { max-width: 720px; }
+  .sec-head .lede { margin-top: 14px; }
+  .demo { margin-top: 56px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 28px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+  .review { padding: 28px 32px; }
+  .review .bar { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-3); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .review .q { font-family: var(--serif); font-size: 19px; line-height: 1.5; margin: 20px 0 16px; }
+  .choice { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 4px; margin-top: 8px; font-size: 16px; background: var(--surface-2); }
+  .choice .l { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--ink-3); display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .choice.picked { border-color: var(--wrong); background: var(--wrong-tint); }
+  .choice.picked .l, .choice.picked em { border-color: var(--wrong); color: var(--wrong); }
+  .choice.right { border-color: var(--program); background: var(--program-tint); }
+  .choice.right .l { background: var(--program); border-color: var(--program); color: var(--on-accent); }
+  .choice.right em { color: var(--program); }
+  .choice em { font-style: normal; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .note { margin-top: 18px; padding: 16px 18px; background: var(--bg-2); border-radius: 4px; font-size: 15.5px; }
+  .note b { display: block; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--program); margin-bottom: 4px; }
+  .side { display: grid; gap: 28px; align-content: start; }
+  .side .panel { padding: 26px 28px; }
+  .side h3 { font-size: 22px; margin-bottom: 8px; }
+  .side p { color: var(--ink-2); font-size: 16px; }
+  .returns { display: flex; gap: 10px; margin-top: 16px; }
+  .returns span { flex: 1; text-align: center; padding: 10px 0; border: 1px solid var(--line); border-radius: 4px; font-size: 14px; color: var(--ink-2); }
+  .returns span b { display: block; font-family: var(--serif); font-size: 20px; font-weight: 500; color: var(--ink); }
+  .returns span.now { border-color: var(--program); }
+  .returns span.now b { color: var(--program); }
+
+  /* weeks */
+  .weeks { padding: 96px 0; background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .steps { margin-top: 56px; display: grid; grid-template-columns: 120px 1fr 300px; }
+  .step { display: contents; }
+  .step > * { padding: 28px 0; border-top: 1px solid var(--line); }
+  .step .n { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--program); }
+  .step h3 { font-size: 24px; }
+  .step p { color: var(--ink-2); margin-top: 6px; max-width: 560px; }
+  .step .when { font-size: 15px; color: var(--ink-3); text-align: right; }
+  .step .when b { display: block; font-family: var(--serif); font-weight: 500; font-size: 22px; color: var(--ink); }
+  .step.final .n, .step.final .when b { color: var(--private); }
+
+  /* private */
+  .private-sec { padding: 96px 0; }
+  .split { display: grid; grid-template-columns: 460px 1fr; gap: 72px; align-items: center; }
+  .photo { aspect-ratio: 4/5; background: var(--bg-2); border: 1px dashed var(--line); border-radius: 6px; overflow: hidden; position: relative; }
+  .photo .ph { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-3); font-size: 15px; text-align: center; padding: 30px; }
+  .photo .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 22px; background: var(--band); color: var(--band-ink); font-size: 15px; }
+  .photo .cap b { font-family: var(--serif); font-weight: 500; font-size: 20px; display: block; }
+  .private-sec h2 { margin: 14px 0 16px; }
+  .packs { margin-top: 32px; border-top: 1px solid var(--line); }
+  .pack { display: grid; grid-template-columns: 1fr auto auto; gap: 28px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .pack h3 { font-size: 22px; }
+  .pack p { color: var(--ink-3); font-size: 15px; }
+  .pack .price { font-family: var(--serif); font-size: 26px; }
+  .private-sec .btn { margin-top: 28px; }
+
+  /* free */
+  .free-sec { padding: 96px 0; background: var(--bg-2); }
+  .free-grid { margin-top: 48px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; }
+  .free-feature { overflow: hidden; display: grid; grid-template-rows: 260px auto; }
+  .free-feature .img { position: relative; overflow: hidden; }
+  .free-feature .img video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .free-feature .body { padding: 26px 30px 30px; }
+  .free-feature .meta { display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 14px; color: var(--ink-3); margin: 10px 0 18px; }
+  .tools { border-top: 1px solid var(--line); }
+  .tool { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 16px; padding: 20px 4px; border-bottom: 1px solid var(--line); }
+  .tool h3 { font-size: 21px; }
+  .tool p { font-size: 15px; color: var(--ink-2); }
+  .live { background: var(--program-tint); color: var(--program); }
+  .soon { background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
+
+  /* pricing */
+  .pricing { padding: 96px 0; }
+  .plans { margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .plan { padding: 34px 36px; }
+  .plan .k { font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+  .plan .amt { font-family: var(--serif); font-size: 52px; line-height: 1; margin: 16px 0 6px; }
+  .plan .amt small { font-family: var(--sans); font-size: 16px; color: var(--ink-3); }
+  .plan .muted { color: var(--ink-2); }
+  .plan ul { list-style: none; margin: 22px 0 26px; border-top: 1px solid var(--line); }
+  .plan li { padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 16px; }
+  .plan .obj { font-size: 15px; color: var(--ink-2); margin-bottom: 18px; }
+
+  footer { background: var(--band); color: var(--band-ink-2); padding: 64px 0 40px; font-size: 15px; }
+  footer .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; }
+  footer h4 { color: var(--band-ink); font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+  footer a { display: block; text-decoration: none; padding: 4px 0; }
+  footer a:hover { color: var(--band-ink); }
+  footer .mark { color: var(--band-ink); font-size: 24px; display: inline-block; margin-bottom: 10px; }
+  footer .legal { margin-top: 48px; padding-top: 22px; border-top: 1px solid #2c3746; font-size: 13px; }
+
+  @media (max-width: 760px) {
+    .wrap { width: calc(100% - 32px); }
+    header nav { display: none; }
+    header.top .wrap { gap: 12px; height: 64px; }
+    .mark { font-size: 21px; }
+    header .right { gap: 8px; font-size: 14px; }
+    header .right .signin { display: none; }
+    header .btn { padding: 9px 12px; font-size: 14px; }
+    .theme { padding: 7px 9px; font-size: 13px; }
+    .hero { padding-top: 40px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 24px; }
+    .hero h1 { font-size: 40px; }
+    .hero .ctas { flex-direction: column; align-items: stretch; }
+    .stage { padding: 8px 0 24px; }
+    .stage { display: grid; gap: 10px; }
+    .card { position: static; width: auto; }
+    .c3 { width: auto; }
+    .proofbar { margin-top: 24px; }
+    .proofbar .wrap { height: auto; flex-wrap: wrap; gap: 14px 28px; padding: 18px 0; }
+    .proofbar b { font-size: 24px; }
+    .proofbar .src { margin-left: 0; width: 100%; }
+    h2 { font-size: 32px; }
+    .row { grid-template-columns: 1fr; gap: 6px; padding: 24px 0; }
+    .row .go { justify-self: start; }
+    .sec-head, .demo, .split, .free-grid, .plans { grid-template-columns: 1fr; }
+    .sec-head .btn { justify-self: start; }
+    .review { padding: 20px; }
+    .review .bar { flex-direction: column; gap: 4px; }
+    .steps { grid-template-columns: 56px 1fr; }
+    .step .when { grid-column: 2; text-align: left; padding-top: 0; border-top: 0; }
+    .step .n { font-size: 32px; }
+    .split { gap: 36px; }
+    .plan { padding: 26px 22px; }
+    .plan .amt { font-size: 42px; }
+    footer .cols { grid-template-columns: 1fr 1fr; }
+    .index, .program-sec, .weeks, .private-sec, .free-sec, .pricing { padding: 64px 0; }
+  }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="mark" href="#">Karman <span>Prep</span></a>
+      <nav aria-label="Main">
+        <a href="#">The March Program</a><a href="#">Private Tutoring</a><a href="#">Question Bank</a><a href="#">Free Practice Test</a><a href="#">Pricing</a>
+      </nav>
+      <div class="right">
+        <button class="theme" type="button" id="theme" aria-label="Switch colour theme">Dark mode</button>
+        <a class="signin" href="#">Sign in</a>
+        <a class="btn btn-solid" href="#">Reserve a seat</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">The March SAT Program &middot; January 4 to March 6, 2027</p>
+        <h1>Raise your student&apos;s SAT score by March 6</h1>
+        <p class="lede">Nine weeks of live classes in a group of six. Every practice test ends with a 1:1 review of each mistake.</p>
+        <div class="ctas">
+          <a class="btn accent-program" href="#">Reserve a seat for $100</a>
+          <a class="btn btn-line" href="#">See how the nine weeks run</a>
+        </div>
+        <p class="fine">Refundable deposit. 5 seats and 1 scholarship seat. Enrollment closes December 30.</p>
+      </div>
+      <div class="stage" aria-label="Students using Karman: daily practice, a parent update and a live class">
+        <div class="frame">
+          <video autoplay muted loop playsinline poster="https://images.pexels.com/videos/5536753/pexels-photo-5536753.jpeg?w=1400" aria-hidden="true">
+            <source src="https://videos.pexels.com/video-files/5536753/5536753-hd_1920_1080_25fps.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="card c1"><span class="tag">Daily 10 &middot; Today</span><b>7 of 10 done</b><div class="meter"><i></i></div><p class="sub">3 questions from last week came back</p></div>
+        <div class="card c2"><span class="tag">Live class &middot; Tonight 7:00</span><b>Transitions and turn words</b><p class="sub">With Zakaria and 5 classmates</p></div>
+        <div class="card c3"><span class="tag">Weekly update for parents &middot; Example</span>
+          <div class="grid2"><span>Practice this week</span><strong>3 h 40 min</strong><span>Classes attended</span><strong>2 of 2</strong><span>Next</span><strong>Full-length test 3, Sat</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="proofbar">
+      <div class="wrap">
+        <div><b>+285</b><span>average score gain</span></div>
+        <div><b>94%</b><span>reached their target</span></div>
+        <div><b>1,200+</b><span>students tutored</span></div>
+        <p class="src">Karman 1:1 tutoring results, median 16 weeks</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="index">
+    <div class="wrap">
+      <p class="eyebrow" style="color:var(--ink-3)">Choose how your student prepares</p>
+      <h2 style="margin-top:14px;max-width:640px">One program, private tutoring, or a free test to start</h2>
+      <div class="rows">
+        <a class="row program" href="#"><span class="k">The March Program</span><div><h3>Live classes that end on test day</h3><p>Nine weeks, a group of six, five full-length tests each reviewed 1:1.</p></div><span class="price">$995<small>or 3 payments of $345</small></span><span class="go">See the program</span></a>
+        <a class="row private" href="#"><span class="k">Private 1:1</span><div><h3>Weekly sessions with Zakaria</h3><p>Planned back from your student&apos;s test date. Start any time.</p></div><span class="price">$1,450<small>for 10 hours</small></span><span class="go">See private tutoring</span></a>
+        <a class="row free" href="#"><span class="k">Free</span><div><h3>A proctored practice test, December 12</h3><p>Half-length, live on Zoom, with a score range and a 20-minute results call.</p></div><span class="price">Free<small>monthly</small></span><span class="go">Save a spot</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="program-sec program">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="eyebrow">The March Program</p>
+          <h2>Every mistake your student makes gets found, explained and fixed</h2>
+          <p class="lede">After each full-length test, Zakaria goes through every missed question with your student, 1:1. Then each one comes back until it sticks.</p>
+        </div>
+        <a class="btn accent-program" href="#">Reserve a seat for $100</a>
+      </div>
+      <div class="demo">
+        <div class="panel review" aria-label="Example of a mistake review">
+          <div class="bar"><span>Practice test 2 &middot; Reading &amp; Writing &middot; Question 14</span><span>Reviewed with Zakaria, Jan 13</span></div>
+          <p class="q">Although the committee praised the proposal&apos;s ambition, it ultimately ______ the plan, citing its cost.</p>
+          <div class="choice"><span class="l">A</span><span>endorsed</span><span></span></div>
+          <div class="choice picked"><span class="l">B</span><span>celebrated</span><em>Your answer</em></div>
+          <div class="choice right"><span class="l">C</span><span>rejected</span><em>Correct</em></div>
+          <div class="choice"><span class="l">D</span><span>revised</span><span></span></div>
+          <div class="note"><b>Zakaria&apos;s note</b>&ldquo;Although&rdquo; sets up a turn. Praise first, then the opposite. Circle the turn word before you read the choices.</div>
+        </div>
+        <div class="side">
+          <div class="panel">
+            <h3>It comes back until it sticks</h3>
+            <p>Every missed question returns in your student&apos;s Daily 10.</p>
+            <div class="returns"><span class="now"><b>Jan 15</b>2 days</span><span><b>Jan 20</b>7 days</span><span><b>Feb 3</b>21 days</span></div>
+          </div>
+          <div class="panel">
+            <h3>Parents see the week</h3>
+            <p>A weekly update with practice time, attendance, test scores and what comes next.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="weeks program">
+    <div class="wrap">
+      <p class="eyebrow">How the nine weeks run</p>
+      <h2 style="margin-top:14px;max-width:700px">From a proctored baseline to test morning</h2>
+      <div class="steps">
+        <div class="step"><span class="n">01</span><div><h3>A real baseline</h3><p>An official Bluebook practice test, proctored live in week 1, then a 1:1 review of every mistake.</p></div><span class="when"><b>Jan 4</b>Week 1</span></div>
+        <div class="step"><span class="n">02</span><div><h3>Two live classes a week</h3><p>90 minutes each, in a group of up to six, taught by Zakaria.</p></div><span class="when"><b>Tue &amp; Thu</b>7:00 p.m. ET</span></div>
+        <div class="step"><span class="n">03</span><div><h3>Five full-length tests, each reviewed 1:1</h3><p>The last one is a proctored dress rehearsal about a week before the SAT.</p></div><span class="when"><b>Weeks 1 to 8</b>60 minutes each</span></div>
+        <div class="step final"><span class="n">04</span><div><h3>Test morning</h3><p>Your student sits the official SAT on the date the program was built around.</p></div><span class="when"><b>Mar 6</b>Saturday</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="private-sec private">
+    <div class="wrap split">
+      <div class="photo"><div class="ph">Photo of Zakaria teaching<br>(your photo goes here)</div><div class="cap"><b>Zakaria Bennis</b>Founder. 99th percentile SAT. 1,200+ students tutored.</div></div>
+      <div>
+        <p class="eyebrow">Private 1:1</p>
+        <h2>One-on-one with Zakaria, planned back from your test date</h2>
+        <p class="lede">Each weekly session goes through your student&apos;s latest full-length test, or the one skill holding the score back.</p>
+        <div class="packs">
+          <div class="pack"><div><h3>Private 10</h3><p>10 weekly sessions</p></div><span class="price">$1,450</span><a href="#">Choose</a></div>
+          <div class="pack"><div><h3>Private 20</h3><p>20 weekly sessions</p></div><span class="price">$2,900</span><a href="#">Choose</a></div>
+        </div>
+        <a class="btn accent-private" href="#">Book a free strategy call</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="free-sec free">
+    <div class="wrap">
+      <p class="eyebrow">Free to start</p>
+      <h2 style="margin-top:14px;max-width:720px">See where your student stands before you pay anything</h2>
+      <div class="free-grid">
+        <div class="panel free-feature">
+          <div class="img"><video autoplay muted loop playsinline poster="https://images.pexels.com/videos/4495519/pexels-photo-4495519.jpeg?w=1200" aria-hidden="true"><source src="https://videos.pexels.com/video-files/4495519/4495519-sd_960_540_25fps.mp4" type="video/mp4"></video></div>
+          <div class="body">
+            <h3>Free proctored practice test</h3>
+            <div class="meta"><span>Saturday, December 12</span><span>10:00 a.m. ET</span><span>About 75 minutes</span></div>
+            <p style="color:var(--ink-2)">One Reading &amp; Writing module and one Math module, live on Zoom. Your student gets an estimated score range and a 20-minute results call.</p>
+            <a class="btn accent-free" href="#" style="margin-top:20px">Save a free spot</a>
+          </div>
+        </div>
+        <div class="tools">
+          <div class="tool"><div><h3>35-question diagnostic</h3><p>About 35 minutes, any time, with a free account.</p></div><span class="label live">Live</span></div>
+          <div class="tool"><div><h3>Daily Question</h3><p>One Reading &amp; Writing and one Math question a day.</p></div><span class="label live">Live</span></div>
+          <div class="tool"><div><h3>Daily word game</h3><p>Guess the day&apos;s SAT word, then learn what it means.</p></div><span class="label live">Live</span></div>
+          <div class="tool"><div><h3>Question bank</h3><p>2,500+ original questions by skill and difficulty.</p></div><span class="label live">Live</span></div>
+          <div class="tool"><div><h3>Video lessons</h3><p>Short lessons on the skills students miss most.</p></div><span class="label soon">Winter 2027</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing">
+    <div class="wrap">
+      <p class="eyebrow" style="color:var(--ink-3)">Pricing</p>
+      <h2 style="margin-top:14px">Two ways to prepare, priced up front</h2>
+      <div class="plans">
+        <div class="panel plan program">
+          <p class="k">The March Program</p>
+          <p class="amt">$995 <small>founding price, March cohort only</small></p>
+          <p class="muted">Or 3 monthly payments of $345. Later cohorts are $1,295.</p>
+          <ul><li>18 live classes and 5 full-length tests</li><li>A 60-minute 1:1 review after every test</li><li>Weekly updates for parents</li></ul>
+          <p class="obj">Not sure yet? The $100 deposit is refundable. If the score doesn&apos;t rise 50 points, the next cohort is free. <a href="#">See the terms</a></p>
+          <a class="btn accent-program" href="#">Reserve a seat for $100</a>
+        </div>
+        <div class="panel plan private">
+          <p class="k">Private 1:1</p>
+          <p class="amt">$1,450 <small>10 hours</small></p>
+          <p class="muted">Or $2,900 for 20 hours. $145 an hour.</p>
+          <ul><li>Weekly 60-minute sessions with Zakaria</li><li>Everything on the platform</li><li>A note to parents after every session</li></ul>
+          <p class="obj">Not sure which fits? A 20-minute strategy call is free, and we&apos;ll tell you honestly if prep isn&apos;t worth it yet.</p>
+          <a class="btn accent-private" href="#">Book a free strategy call</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="cols">
+        <div><a class="mark" href="#">Karman Prep</a><p>SAT programs that end on your test date.</p></div>
+        <div><h4>Programs</h4><a href="#">The March Program</a><a href="#">Private Tutoring</a><a href="#">Pricing</a><a href="#">Guarantee</a></div>
+        <div><h4>Free</h4><a href="#">Practice Test</a><a href="#">Diagnostic</a><a href="#">Daily Question</a><a href="#">Question Bank</a></div>
+        <div><h4>Company</h4><a href="#">About</a><a href="#">FAQ</a><a href="#">Terms of Service</a><a href="#">Privacy Policy</a><a href="#">Cookie Policy</a></div>
+      </div>
+      <p class="legal">&copy; 2026 Karman Prep. SAT is a trademark of the College Board, which is not affiliated with Karman Prep.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var btn = document.getElementById("theme");
+      var root = document.documentElement;
+      function current() {
+        var t = root.getAttribute("data-theme");
+        if (t) return t;
+        return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      function label() { btn.textContent = current() === "dark" ? "Light mode" : "Dark mode"; }
+      btn.addEventListener("click", function () {
+        var next = current() === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try { localStorage.setItem("karman-theme", next); } catch (e) {}
+        label();
+      });
+      label();
+    })();
+  </script>
+</body>
+</html>

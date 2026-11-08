@@ -29,8 +29,10 @@ export async function POST(req: NextRequest) {
     const { source, name, role } = parsed.data;
     const email = parsed.data.email.toLowerCase();
 
-    // The lead record is the source of truth for registrations, so a
-    // database failure fails the request and the visitor can retry.
+    // Record the lead with its source. A failure here (for example the
+    // table not existing yet because its migration has not been applied)
+    // is logged but must not block the signup: the email still goes to
+    // the Resend audience below.
     if (SUPABASE_CONFIGURED) {
       const { error } = await createAdminClient()
         .from("marketing_leads")
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
           { email, source, name: name ?? null, role: role ?? null },
           { onConflict: "email,source", ignoreDuplicates: true }
         );
-      if (error) throw error;
+      if (error) console.error("[subscribe] Could not record lead:", error.message);
     }
 
     await addToWaitlist(email);

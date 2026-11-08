@@ -302,3 +302,44 @@ Run these before reporting, on your branch:
 
 Fix what you broke. If a failure was there before your work, say so in your
 report instead.
+
+## Founder decisions, 8 November morning
+
+- **Scholarship:**
+  - The $505 bonus is paid by bank transfer, sent by hand after an admin
+    approves. Live Stripe payouts stay off.
+  - A tie for the top score splits the $1,500: $750 each.
+  - The terms ship as written, with no lawyer gate.
+- **Signups:** a signup still goes through if the lead can't be saved (keep PR
+  #215).
+- **Lead forms:** they add the email to the marketing list. Change the free-test
+  form's words so they no longer promise "nothing else"; say we'll send
+  occasional emails.
+- **Zoom:** live classes and sessions are joined from the student's account. A
+  "Join" button in the portal opens the Zoom meeting. The free-test form's
+  "check your inbox for the Zoom link" goes; say "join from your account".
+- **Parents** get their own account type. They land in the parent portal and
+  link to their child.
+- **Pricing page plan buttons:** a visitor without an account creates one, then
+  goes straight to checkout for that plan. A signed-in visitor goes straight
+  to checkout.
+- **Home page study-tools row:** it stacks on phones. No sideways scroll.
+- **Device photos:** the founder decides after seeing before and after
+  pictures. Keep both versions until then.
+- **Theme:** follow the device everywhere, the site and the portals (this
+  supersedes rule 33's dark default).
+- **Site copy:**
+  - Remove the eyebrow labels on the site.
+  - Add the Cookie Policy page and link it from the footer.
+- **Student Today:** the main button starts the Daily 10 until it's done for
+  the day, then the next assignment leads.
+- **Older admin pages** (people, cohorts, revenue, moderation, jobs,
+  curriculum) get redesigned on the admin kit, with every button clicked,
+  after the portals land.
+- **Admin visibility:** no reason notes on comped plans. Admins can see every
+  student exactly as a tutor can (progress, skills, attempts, homework), to
+  train the algorithms. Admins see how many students each tutor has, with the
+  list.
+- **Old branches:** delete the Oct 8 weekly parent portal branches and the
+  "studio" figure style branch.
+- **Home page speed work** (from Nov 1) gets its own session after the portals.

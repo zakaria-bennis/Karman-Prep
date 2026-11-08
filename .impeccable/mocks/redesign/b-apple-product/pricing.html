@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en" id="top">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Karman pricing: six plans, every price in full</title>
+<meta name="description" content="Free, Platform $29 a month, Plus $49 a month, the SAT Program at $995, Private tutoring from $1,495 and School at $10 per student a year. What each plan includes and what the guarantee covers.">
+<link rel="canonical" href="https://karmanprep.com/pricing">
+<meta property="og:title" content="Karman pricing: six plans, every price in full">
+<meta property="og:description" content="Every price before you talk to anyone, what each plan includes, and what the guarantee covers.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://karmanprep.com/pricing">
+<meta property="og:image" content="https://karmanprep.com/site/film/day.jpg">
+<link rel="icon" href="../logo/favicon-ascent.svg" type="image/svg+xml">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("karman-theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    var seen = false;
+    try { seen = sessionStorage.getItem("karman-intro") === "1"; } catch (e) {}
+    if (!seen && !/[?&]intro=0/.test(location.search)) document.documentElement.setAttribute("data-intro", "");
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<script src="copy.js"></script>
+
+<div class="stage orbit" aria-hidden="true">
+  <video class="day" muted playsinline loop preload="none"></video>
+  <video class="edge" muted playsinline preload="none"></video>
+</div>
+
+<div data-page="site">
+  <main id="main" class="pg">
+    <section class="field ground hero" id="hero" aria-labelledby="h-pricing">
+      <div class="in">
+        <div class="claim" data-rise>
+          <div>
+            <h1 id="h-pricing" data-c="Pricing.headline"></h1>
+            <p class="lede" style="margin-top:24px" data-c="Pricing.text"></p>
+            <div class="act">
+              <a class="btn" id="free-btn" href="#"></a>
+              <span class="note" data-c="Pricing.free line"></span>
+            </div>
+          </div>
+          <figure class="photo"><img src="../../decision/film/photos/p-pricing.webp" width="1200" height="1500" data-alt="Pricing.hero alt" alt=""></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="field a" id="plans" aria-labelledby="h-plans">
+      <div class="in">
+        <div data-rise><h2 id="h-plans" data-c="Pricing.plans title"></h2></div>
+        <div class="plans" id="plan-list" data-rise></div>
+      </div>
+    </section>
+
+    <section class="field b" id="compare" aria-labelledby="h-compare">
+      <div class="in">
+        <div class="claim" data-rise>
+          <h2 id="h-compare" data-c="Pricing.compare title"></h2>
+          <p class="lede" data-c="Pricing.compare text"></p>
+        </div>
+        <div class="cmp" id="cmp" data-rise></div>
+      </div>
+    </section>
+
+    <section class="field a" id="guarantee" aria-labelledby="h-guar">
+      <div class="in">
+        <div class="claim" data-rise>
+          <h2 id="h-guar" data-c="Pricing.guarantee headline"></h2>
+          <p class="lede" data-c="Pricing.guarantee covered"></p>
+        </div>
+        <div data-rise><p class="badge" data-c="Pricing.guarantee badge"></p></div>
+        <ul class="outcomes" id="outcomes" data-rise></ul>
+        <div class="after" data-rise>
+          <a class="lk" id="guar-link" href="#"></a>
+          <p class="muted" data-c="Pricing.honest note"></p>
+          <p class="muted" data-c="Pricing.scholarship"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="window close" id="close" aria-labelledby="h-close">
+      <div class="in">
+        <div class="panel" data-rise>
+          <h2 id="h-close" data-c="Pricing.close headline"></h2>
+          <p class="lede" data-c="Pricing.close text"></p>
+          <div class="act"><a class="btn" id="close-btn" href="#"></a><span class="note" data-c="Pricing.close note"></span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="field b ft"></footer>
+</div>
+
+<script type="module">
+  import { S, esc, list, pairs, ROUTES, chrome, stage, reveal, segmented, ICON } from "./site.js";
+  const P = S("Pricing");
+  document.querySelectorAll("[data-c]").forEach((el) => {
+    const [sec, ...rest] = el.dataset.c.split(".");
+    el.textContent = S(sec)[rest.join(".")] || "";
+  });
+  document.querySelectorAll("[data-alt]").forEach((img) => { const [sec, ...rest] = img.dataset.alt.split("."); img.alt = S(sec)[rest.join(".")] || ""; });
+  const fb = document.getElementById("free-btn"); fb.textContent = P["free button"]; fb.href = ROUTES.test;
+  const cb = document.getElementById("close-btn"); cb.textContent = P["close button"]; cb.href = ROUTES.test;
+  const gl = document.getElementById("guar-link"); gl.innerHTML = `${esc(P["guarantee link"])}${ICON.arrow}`; gl.href = ROUTES.guarantee;
+  document.getElementById("outcomes").innerHTML = pairs(P["guarantee outcomes"]).map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join("");
+
+  // the six plans, top to bottom (21st.dev 28540 rows, recoloured; prices mirror offer.ts); the action sits
+  // under the plan's own words, not across the row
+  const action = (label, href) => `<a class="lk" href="${href}">${esc(label)}${ICON.arrow}</a>`;
+  const plans = [
+    { id: "free", price: `<p class="price num">${esc(P["free price"])}</p>`, href: ROUTES.signUp },
+    { id: "platform", price: `<p class="price num">${esc(P["platform price"])}<small>${esc(P["per month"])}</small></p>`, href: ROUTES.signUp + "?plan=platform" },
+    { id: "plus", price: `<p class="price num">${esc(P["plus price"])}<small>${esc(P["per month"])}</small></p>`, href: ROUTES.signUp + "?plan=plus" },
+    { id: "program", price: `<p class="price num" id="program-price">${esc(P["program price"])}</p>
+        <div class="seg" id="pay" role="radiogroup" aria-label="${esc(P.full)} or ${esc(P.split)}" data-index="0"><span class="thumbx" aria-hidden="true"></span><button type="button" role="radio" data-value="full">${esc(P.full)}</button><button type="button" role="radio" data-value="split">${esc(P.split)}</button></div>
+        <p class="small muted" style="margin-top:12px">${esc(P["program later"])}</p>`, href: ROUTES.program },
+    { id: "private", price: `<p class="price num">${esc(P["private price"])}<small>${esc(P["private price note"])}</small></p><p class="price2 num">${esc(P["private price 2"])}<small>${esc(P["private price note 2"])}</small></p>`, href: ROUTES.private },
+    { id: "school", price: `<p class="price num">${esc(P["school price"])}<small>${esc(P["per student"])}</small></p><div class="thumb"><img src="../../decision/film/photos/p-school-class-800.webp" width="800" height="1000" loading="lazy" alt="${esc(P["school alt"])}"></div>`, href: `mailto:${esc(S("Site").email)}?subject=${encodeURIComponent(P["school action"])}` },
+  ];
+  document.getElementById("plan-list").innerHTML = plans.map((p) => `<article class="plan" id="plan-${p.id}" aria-labelledby="pn-${p.id}">
+      <div><h3 class="name" id="pn-${p.id}">${esc(P[p.id + " name"])}</h3>${p.price}</div>
+      <div class="body"><p>${esc(P[p.id + " text"])}</p><p class="small muted">${esc(P[p.id + " note"])}</p>${action(P[p.id + " action"], p.href)}</div>
+    </article>`).join("");
+  // pay in full or three payments: the figure follows the choice
+  const pp = document.getElementById("program-price");
+  segmented(document.getElementById("pay"), (v) => {
+    pp.innerHTML = v === "split" ? `${esc(P["program split price"])}<small>${esc(P["program split note"])}</small>` : esc(P["program price"]);
+  });
+
+  // what each plan includes (21st.dev 21218 comparison table on wide screens; a list of "from which plan" on phones)
+  const plat = S("Platform");
+  const cols = list(P["compare columns"]);
+  const rows = list(plat.rows).map((r) => r.split(" = ").map((x) => x.trim()));
+  const has = (from, col) => {
+    const order = ["Free", "Platform", "Plus", "Program", "Private", "School"];
+    const i = order.indexOf(col);
+    if (/^Free/.test(from)) return true;
+    if (/^Platform/.test(from)) return i >= 1;
+    if (/^Plus/.test(from)) return i >= 2 && col !== "School";
+    if (from === "The SAT Program") return col === "Program";
+    if (from === "Private tutoring") return col === "Private";
+    if (from === "The SAT Program and Private 20") return col === "Program" || col === "Private";
+    if (from === "School") return col === "School";
+    return false;
+  };
+  const yes = `<span class="yes" role="img" aria-label="${esc(P.included)}"></span>`;
+  const no = `<span class="no" role="img" aria-label="${esc(P["not included"])}"></span>`;
+  document.getElementById("cmp").innerHTML = `<table><thead><tr><th scope="col">${esc(plat.columns.split(" | ")[0])}</th>${cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead><tbody>${
+    rows.map(([name, , from]) => `<tr><td>${esc(name)}</td>${cols.map((c) => `<td>${has(from, c) ? yes : no}</td>`).join("")}</tr>`).join("")
+  }</tbody></table><ul class="list">${rows.map(([name, , from]) => `<li><b>${esc(name)}</b><span>${esc(from)}</span></li>`).join("")}</ul>`;
+
+  chrome({ page: "pricing" });
+  reveal();
+  stage();
+</script>
+</body>
+</html>

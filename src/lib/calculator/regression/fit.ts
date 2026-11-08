@@ -7,6 +7,7 @@
 
 import { fitNonlinear } from "./levenberg";
 import { fitMultiStart, type IndexedGradient } from "./multi-start-fit";
+import { restrictedStart, type Restriction } from "./restriction";
 import { columnOrderPivots, solveColumnOrder } from "./linear-fit";
 import { MAX_EXACT_ROWS, solveExact } from "./exact-linear";
 import { literalFraction, subFractions, type Fraction } from "../core/lib/rational";
@@ -34,7 +35,8 @@ export interface FitInput {
   logMode: boolean; // the row's checkbox (D-30: unchecked by default)
   plainLeft?: boolean; // REG-STATISTICS-8: L is a bare name (default true)
   uniquePredictor?: boolean; // REG-STATISTICS-7: M reads exactly one list (default true)
-  multiStart?: boolean; // a fit of both sides whole: REGRESSION-10's multi-start search too
+  multiStart?: boolean; // a fit of both sides whole: REGRESSION-10's multi-start search always
+  restriction?: Restriction; // a `\left\{…\right\}` on the model (REGRESSION-15)
   gradient?: IndexedGradient; // the model's derivatives for the multi-start search, when known
   // every observation's prediction as an exact fraction (null where it is not exact), when known
   exactModel?: (p: readonly Fraction[]) => (Fraction | null)[];
@@ -220,6 +222,23 @@ function exactAffine(
   return solveExact(f0 as Fraction[], cols, observed as Fraction[], pivots());
 }
 
+/** Whether the model's columns at `p` are dependent (or fewer than its parameters): the data
+ * cannot tell its parameters apart. */
+function isUndetermined(model: FitInput["model"], n: number, k: number, p: Float64Array): boolean {
+  if (n < k) return true;
+  const jacobian = new Float64Array(n * k);
+  for (let j = 0; j < k; j++) {
+    const h = 6.06e-6 * Math.max(1, Math.abs(p[j]));
+    const up = Float64Array.from(p),
+      down = Float64Array.from(p);
+    up[j] += h;
+    down[j] -= h;
+    for (let i = 0; i < n; i++) jacobian[i * k + j] = (model(up, i) - model(down, i)) / (2 * h);
+  }
+  if (!jacobian.every(Number.isFinite)) return false;
+  return columnOrderPivots(jacobian, n, k).length < k;
+}
+
 export function fitRegression(input: FitInput): RegressionResult {
   const { params, model, logForm } = input;
   const k = params.length;
@@ -236,7 +255,8 @@ export function fitRegression(input: FitInput): RegressionResult {
   let p: Float64Array = new Float64Array(k),
     approximate = false,
     exact: (Fraction | null)[] | undefined;
-  const affine = k > 0 ? affineColumns(model, n, k) : null;
+  // a restriction makes the model piecewise, so never a plain line (REGRESSION-15)
+  const affine = k > 0 && input.restriction === undefined ? affineColumns(model, n, k) : null;
   const isLinear = k === 0 || affine !== null;
   const logFit = trans === null ? null : simple(trans.u, trans.v);
   if (on && logFit !== null) {
@@ -266,14 +286,28 @@ export function fitRegression(input: FitInput): RegressionResult {
       const best = Number.isFinite(least)
         ? (fits.find((f) => f.sse <= least * (1 + TIE) + exact) ?? null)
         : null;
-      // A system or equation fitted whole (list-fit.ts), as live Desmos (2026-10-25): the search
-      // from the start 1 stands unless the multi-start search fits better beyond rounding, so
-      // `[ab,a+b]\sim[6,5]` reaches a = 3, b = 2 and `(a-1)^2\sim16`, which stalls at 1, gives 5,
-      // while `-n^6\sim264` keeps 1's −0.00645282 and `2^n\sim0` its −143.26663.
-      const wide =
-        input.multiStart === true
-          ? fitMultiStart(model, y, k, input.gradient, { relative: TIE, slack: exact })
-          : null;
+      // The multi-start search of REGRESSION-10 (live Desmos 2026-10-28), kept for what needs it so
+      // an ordinary fit stays as quick as the single search: a system or equation fitted whole
+      // (`[ab,a+b]\sim[6,5]` reaches a = 3, b = 2, `(a-1)^2\sim16`, which stalls at 1, gives 5),
+      // a restriction (REGRESSION-15), a search that found nothing, and a fit
+      // whose parameters the data cannot tell apart, where Desmos keeps the later ones at 1 and
+      // solves the first exactly (REGRESSION-14: `y_1\sim abx_1` gives b = 1, a the slope).
+      const needsSearch =
+        input.multiStart === true ||
+        input.restriction !== undefined ||
+        best === null ||
+        isUndetermined(model, n, k, best.params);
+      const restricted =
+        input.restriction === undefined
+          ? undefined
+          : {
+              params: input.restriction.params,
+              start: restrictedStart(model, n, k, input.restriction),
+              unrestricted: input.restriction.unrestricted,
+            };
+      const wide = needsSearch
+        ? fitMultiStart(model, y, k, input.gradient, { relative: TIE, slack: exact }, restricted)
+        : null;
       if (
         wide !== null &&
         Number.isFinite(wide.sse) &&

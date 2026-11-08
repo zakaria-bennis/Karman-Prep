@@ -1,0 +1,60 @@
+{
+  "about": "Temporary stand-in stills for the rebuild/portal home page (2026-11-01), until the founder's Gemini batch 2 lands (assets/gemini-inbox/PROMPTS.md). Each id names the Gemini file it stands in for. Generated with --manifest assets/rebuild/portal.manifest.json.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "16:9",
+    "suffix": "",
+    "stillSuffix": "Photorealistic editorial photograph made to sit in one coordinated set. Colour grade: warm neutral, gentle contrast, shadows leaning toward deep pine green, natural skin tones, fine film grain, real skin texture, natural hands with five fingers. Calm and focused, never laughing, not posed like stock. No text, letters or numbers anywhere. No logos on clothing, devices, bags or buildings. No paper, notebooks, pencils or calculators. No purple, no neon, no glowing orbs, no lens flare, no sparkles. Phone and laptop screens face away from the camera."
+  },
+  "cast": {},
+  "shots": [],
+  "plates": [],
+  "stills": [
+    {
+      "id": "pool-bleachers",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "hero, first screen, the portal photograph",
+      "prompt": "Wide horizontal frame. Two 16-year-old swimmers in plain dark team parkas sit on empty bleachers beside an indoor pool between sessions, hair still damp. One holds a phone with its back to the camera; the other leans in to look at it, both focused and quiet. Teal water and lane ropes softly out of focus below. Cool overhead light mixed with warm daylight from high windows. The two students sit in the left third of the frame; the right half is calm, uncluttered pool hall with nothing in it. Camera at seat height, 35mm lens."
+    },
+    {
+      "id": "marigold-light",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "try section, the portrait beside the live question",
+      "prompt": "Vertical head and shoulders portrait of a 17-year-old student, nothing in front of him, against a deep near-black background. A single strong warm marigold-orange light (colour #EBA21F) from the left floods his face, shoulder and the background behind him with warm orange; a faint deep pine-green fill from the right. Over-ear headphones on, plain black t-shirt. Eyes down at a phone held at chin height in both hands, the back of the phone toward the camera. Still, intense focus, no smile. No laptop, no table. 85mm lens.",
+      "retry": "2026-11-01 attempt 2: the first had a branded laptop lid in frame and almost no marigold light"
+    },
+    {
+      "id": "cast-parent-clay",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "close band, the parent portrait",
+      "prompt": "Studio portrait of a parent in their mid-forties, waist up, against a seamless paper backdrop in deep clay red (#9A3B26) that fills the whole frame. Navy work jacket over a white shirt. Holding a phone loosely by their side, screen toward their body. Looking at the camera with a calm, reassured expression and a slight smile. Soft key light from the right. Centred so a tall portrait crop works. 85mm lens."
+    },
+    {
+      "id": "zoom-student-tile",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "classes section, the large Zoom tile",
+      "prompt": "A frame that looks like a laptop webcam view on a video call: a 17-year-old student seen straight on from screen height, head and shoulders, centred, at her desk in her own bedroom in the evening. A warm desk lamp lights her face from the side; behind her a softly blurred bookshelf. She leans slightly toward the camera, listening hard, wired earbuds in. Slight webcam softness, no on-screen interface, nobody else."
+    },
+    {
+      "id": "zoom-tutor",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "classes section, the small Zoom tile (poster for zoom-tutor-loop.mp4)",
+      "prompt": "A frame that looks like a laptop webcam view on a video call: a tutor in his early thirties, head and shoulders, seen straight on from screen height, in his own home study in cool daylight from a window on the left. Plain olive overshirt, a small over-ear headset with a microphone. Mid-explanation, one open hand raised slightly. Plain wall and a softly blurred plant behind. No on-screen interface, nobody else."
+    }
+  ]
+}

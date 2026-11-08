@@ -1,0 +1,59 @@
+/* The home page: the film stage, the hero window, the Daily 10 showcase, the four feature sections, the campus
+   trio, the guarantee slip, the dates ticket and the close. Components carry their own files in components/. */
+
+/* ---- the film: one still painted first, the film behind it after first paint (film.js) ---- */
+.stage { position: fixed; inset: 0; z-index: 0; background: #0b0b0b url("../../decision/film/day.jpg") center / cover no-repeat; }
+@media (max-width: 760px) and (orientation: portrait) { .stage { background-image: url("../../decision/film/day-p.jpg"); } }
+.stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 1.4s var(--ease); }
+.stage .edge { opacity: 0; }
+.stage.ending .edge { opacity: 1; }
+.stage.ending .day { opacity: 0; }
+.stage .scrim { position: absolute; inset: 0; background: rgba(8, 8, 7, .42); }
+@media (prefers-reduced-motion: reduce) { .stage video { transition: none; } }
+
+/* ---- Your Daily 10: the words in two columns, then the engine's own screen at full width, readable ---- */
+.daily .wrap { display: grid; gap: 36px; }
+.daily .words { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 20px clamp(28px, 5vw, 80px); align-items: end; }
+.daily .words .lede { max-width: 32em; }
+.daily .words .side { display: grid; gap: 14px; }
+.daily .words .note { font-size: 17px; color: var(--ink2); min-height: 3.2em; text-wrap: pretty; max-width: 36em; }
+.daily .pic { border-radius: var(--radius); overflow: hidden; background: var(--paper2); margin: 0; }
+.daily .pic img { width: 100%; height: auto; display: block; }
+@media (max-width: 900px) {
+  .daily .words { grid-template-columns: 1fr; }
+}
+/* on a phone the phone render runs edge to edge, so it shows at 1x on a 440 phone (0.85x at 375) */
+@media (max-width: 440px) {
+  .daily .pic { margin: 0 calc(-1 * var(--gutter)); border-radius: 0; }
+}
+
+/* ---- what every student gets: four flat sections, words beside a whole photo, the photo changing sides ---- */
+.features .wrap { display: grid; gap: clamp(40px, 5vw, 72px); }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) min(420px, 40%); gap: clamp(24px, 4vw, 64px); align-items: center; }
+.feature:nth-of-type(even) { grid-template-columns: min(420px, 40%) minmax(0, 1fr); }
+.feature:nth-of-type(even) .pic { order: -1; }
+.feature .words { display: grid; gap: 18px; }
+.feature .words .lede { max-width: 32em; }
+.feature .words .card { margin-top: 6px; padding: 18px 20px; border-radius: var(--radius); background: var(--paper2); max-width: 460px; }
+.feature .words .card b { display: block; margin-bottom: 4px; }
+.feature .pic { border-radius: var(--radius); overflow: hidden; background: var(--paper2); }
+.feature .pic img { width: 100%; height: auto; display: block; }
+@media (max-width: 760px) {
+  .feature, .feature:nth-of-type(even) { grid-template-columns: 1fr; }
+  .feature:nth-of-type(even) .pic { order: 1; }
+}
+
+/* ---- the campus trio on the night field: the headline, the clips, the tutoring line, the record ---- */
+.campus .wrap { display: grid; gap: 28px; }
+.campus h2 { max-width: 14em; }
+.campus .cline { font-weight: 700; font-size: 17px; }
+.campus .record { display: grid; gap: 18px; justify-items: start; margin-top: 12px; }
+.campus .record p { max-width: 30em; font-size: clamp(20px, 2.1vw, 30px); line-height: 1.3; letter-spacing: -0.02em; font-weight: 600; text-wrap: pretty; }
+
+/* ---- the guarantee: heading and paragraph in the night's bone ink, the printed slip full width ---- */
+.guarantee { background: var(--night); color: var(--bone); }
+.guarantee .lede { color: var(--bone); }
+
+/* ---- the dates: the ticket on the page's ground ---- */
+.dates { background: var(--paper); }
+html[data-theme="dark"] .dates { background: var(--paper2); }

@@ -1,0 +1,29 @@
+{
+  "name": "karman-portals-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5175 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "shots": "node scripts/shots.mjs",
+    "contrast": "node scripts/contrast.mjs"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "postcss": "^8.5.30",
+    "tailwindcss": "3.4.19",
+    "typescript": "~5.9.3",
+    "vite": "8.3.5"
+  }
+}

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Karman | Know the SAT score before you pay</title>
+    <meta
+      name="description"
+      content="A free SAT practice test, live on Zoom on Saturday, December 12. A predicted score, a domain breakdown and a call with a Karman tutor."
+    />
+    <link rel="canonical" href="https://karmanprep.com/" />
+    <meta property="og:title" content="Karman | Know the SAT score before you pay" />
+    <meta property="og:image" content="https://karmanprep.com/og/home.png" />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      /* Theme before first paint (rule 33): the device decides, dark when it states nothing;
+         the visible toggle overrides it and is remembered. */
+      (function () {
+        var t = null;
+        try {
+          t = localStorage.getItem("karman-theme");
+        } catch (e) {}
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.classList.add("js");
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts never block the first paint: the page draws in the fallback face, then swaps. -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Funnel+Sans:wght@300..800&display=swap"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
+    />
+    <noscript
+      ><link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&family=Funnel+Sans:wght@300..800&display=swap"
+    /></noscript>
+    <link rel="stylesheet" href="numbers.css" />
+    <!-- The hero phone's first frame, for each device mode. -->
+    <link
+      rel="preload"
+      as="image"
+      href="../../motion/out/tour-9x16-night.webp"
+      media="(prefers-color-scheme: dark), (prefers-color-scheme: no-preference)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="../../motion/out/tour-9x16-pine.webp"
+      media="(prefers-color-scheme: light)"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://karmanprep.com/#org",
+            "name": "Karman Prep",
+            "url": "https://karmanprep.com/",
+            "email": "hello@karmanprep.com"
+          },
+          {
+            "@type": "Event",
+            "name": "Free SAT practice test",
+            "startDate": "2026-12-12T10:00:00-05:00",
+            "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://karmanprep.com/free-practice-test"
+            },
+            "organizer": { "@id": "https://karmanprep.com/#org" },
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+          },
+          {
+            "@type": "Course",
+            "name": "The March SAT Program",
+            "provider": { "@id": "https://karmanprep.com/#org" },
+            "url": "https://karmanprep.com/program"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main" data-copy="header.skip"></a>
+
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <!-- The Karman wordmark, drawn by hand on a 24-unit grid: one stroke weight, round ends. -->
+        <g
+          id="wordmark-paths"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M2.4 2.6 V21.6 M14 2.6 L3 14.2 M7.4 9.8 L14.6 21.6" />
+          <path d="M30.2 10.2 V21.6 M30.2 15.9 a6 6 0 1 1 -12 0 a6 6 0 1 1 12 0" />
+          <path d="M35.8 10.2 V21.6 M35.8 15.4 C 35.8 11.8 38.6 10 42.6 10.4" />
+          <path
+            d="M47.4 10.2 V21.6 M47.4 14.6 C 47.4 11.6 49.4 10.1 51.9 10.1 C 54.4 10.1 55.9 11.6 55.9 14.6 V21.6 M55.9 14.6 C 55.9 11.6 57.9 10.1 60.4 10.1 C 62.9 10.1 64.4 11.6 64.4 14.6 V21.6"
+          />
+          <path d="M81.4 10.2 V21.6 M81.4 15.9 a6 6 0 1 1 -12 0 a6 6 0 1 1 12 0" />
+          <path
+            d="M87 10.2 V21.6 M87 14.6 C 87 11.6 89.5 10.1 92.4 10.1 C 95.4 10.1 97.4 11.6 97.4 14.6 V21.6"
+          />
+        </g>
+      </defs>
+    </svg>
+
+    <!-- Floating pill navigation (21st.dev 18090 Floating Navbar, arihantcodes, ported to plain
+         HTML + CSS: the inset pill and round controls). Shown only near the top of the page, so it never sits on what is being read. -->
+    <header class="nav-wrap" id="header">
+      <div class="nav-pill">
+        <a class="brand" href="#top" data-copy-aria="header.home">
+          <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+            <path class="mark-line" d="M3 12.6 C 10 11.7, 20 12.7, 29 11.8" />
+            <path class="mark-arc" d="M4.5 28 C 12 27.4, 20.5 21, 26.5 5.5" />
+          </svg>
+          <svg class="word" viewBox="0 0 100 24" aria-hidden="true">
+            <use href="#wordmark-paths" />
+          </svg>
+        </a>
+        <nav class="nav" aria-label="Sections">
+          <a href="#platform" data-copy="header.nav_platform"></a>
+          <a href="#class" data-copy="header.nav_class"></a>
+          <a href="#results" data-copy="header.nav_results"></a>
+          <a href="#guarantee" data-copy="header.nav_guarantee"></a>
+        </nav>
+        <div class="nav-end">
+          <button class="round" type="button" id="themeToggle">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle
+                cx="12"
+                cy="12"
+                r="8.2"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              />
+              <path d="M12 3.8 A8.2 8.2 0 0 1 12 20.2 Z" fill="currentColor" />
+            </svg>
+          </button>
+          <button
+            class="menu-btn"
+            type="button"
+            id="menuBtn"
+            aria-expanded="false"
+            aria-controls="sheet"
+            data-copy="header.menu"
+          ></button>
+        </div>
+      </div>
+    </header>
+
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+      <div class="sheet-inner">
+        <button
+          class="menu-btn sheet-close"
+          type="button"
+          id="sheetClose"
+          data-copy="header.close"
+        ></button>
+        <nav aria-label="Sections">
+          <a href="#platform" data-copy="header.nav_platform"></a>
+          <a href="#class" data-copy="header.nav_class"></a>
+          <a href="#results" data-copy="header.nav_results"></a>
+          <a href="#guarantee" data-copy="header.nav_guarantee"></a>
+        </nav>
+      </div>
+    </div>
+
+    <main id="main">
+      <!-- 1. Hero: one rounded stage, readable at first paint: the words and button are static HTML;
+           the phone (its first frame preloaded) plays the tour over the student photo. -->
+      <section class="hero" id="top">
+        <div class="stage hero-stage">
+          <div class="field" aria-hidden="true"></div>
+          <div class="hero-text">
+            <!-- Hero Pill (21st.dev 983, originui): an unfilled pill link with a dot and chevron. -->
+            <a class="pill" href="#test">
+              <span class="pill-dot" aria-hidden="true"></span>
+              <span data-copy="hero.pill">Free practice test, December 12</span>
+              <svg class="pill-chev" viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M4.5 2.5 8 6l-3.5 3.5" />
+              </svg>
+            </a>
+            <h1 class="display" id="heroHead" data-copy="hero.headline" data-chip="hero.chip">
+              Know the SAT <span class="chip">score</span> before you pay.
+            </h1>
+            <p class="sub hero-sub" data-copy="hero.sub">
+              Live on Zoom, with a predicted score and a tutor call after.
+            </p>
+            <a
+              class="btn btn-lg hero-cta"
+              data-main-cta
+              href="https://karmanprep.com/free-practice-test"
+              data-copy="hero.cta"
+              >Book the free practice test</a
+            >
+          </div>
+          <div class="hero-media">
+            <figure class="card photo hero-photo">
+              <img
+                data-slot="hero"
+                src="img/student-pine.webp"
+                srcset="img/student-pine-560.webp 560w, img/student-pine.webp 1000w"
+                sizes="(min-width: 960px) 30vw, 60vw"
+                width="1000"
+                height="1339"
+                data-copy-alt="hero.photo_alt"
+                alt=""
+              />
+            </figure>
+            <div
+              class="phone hero-phone"
+              data-phone
+              data-clip="tour"
+              data-loop
+              data-copy-aria="hero.phone_alt"
+              role="img"
+            >
+              <div class="phone-screen">
+                <picture>
+                  <source
+                    media="(prefers-color-scheme: light)"
+                    srcset="../../motion/out/tour-9x16-pine.webp"
+                  />
+                  <img
+                    class="still crop"
+                    src="../../motion/out/tour-9x16-night.webp"
+                    alt=""
+                    fetchpriority="high"
+                  />
+                </picture>
+                <video
+                  class="crop"
+                  muted
+                  playsinline
+                  preload="none"
+                  aria-hidden="true"
+                  tabindex="-1"
+                ></video>
+              </div>
+              <img
+                class="phone-frame"
+                src="../../motion/device/iphone-17-pro-max-orange.svg"
+                alt=""
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. The app: a pine card. Tabs swap the phone; each tab's one number lands
+           and points at the screen beside it. Feature Tab switcher after 21st.dev 26923. -->
+      <section class="platform" id="platform">
+        <div class="card-band band-pine">
+          <div class="platform-text">
+            <h2 class="h2" data-copy="platform.headline"></h2>
+            <!-- Segmented Tabs (21st.dev 26923, micka_design): a sliding selected background in a
+                 pill track, arrow keys move and select. Rebuilt in plain JS + GSAP. -->
+            <div class="seg" role="tablist" id="tabs" data-copy-aria="platform.tabs_label">
+              <span class="seg-ind" aria-hidden="true"></span>
+              <button
+                role="tab"
+                id="tab-1"
+                aria-controls="panel"
+                data-tab="1"
+                data-copy="platform.tab1"
+              ></button>
+              <button
+                role="tab"
+                id="tab-2"
+                aria-controls="panel"
+                data-tab="2"
+                data-copy="platform.tab2"
+              ></button>
+              <button
+                role="tab"
+                id="tab-3"
+                aria-controls="panel"
+                data-tab="3"
+                data-copy="platform.tab3"
+              ></button>
+              <button
+                role="tab"
+                id="tab-4"
+                aria-controls="panel"
+                data-tab="4"
+                data-copy="platform.tab4"
+              ></button>
+            </div>
+            <div class="fact" id="panel" role="tabpanel" aria-labelledby="tab-1">
+              <p class="big land" id="tabNum">10</p>
+              <p class="unit" id="tabUnit"></p>
+              <p class="line" id="tabLine"></p>
+              <button
+                class="text-link on-dark"
+                type="button"
+                id="replay"
+                data-copy="platform.replay"
+                hidden
+              ></button>
+            </div>
+          </div>
+          <div class="phone platform-phone" data-phone id="tabPhone" role="img"></div>
+        </div>
+      </section>
+
+      <!-- 3. The March class: a student on the Zoom call. Land = the headline. -->
+      <section class="class" id="class">
+        <div class="wrap grid">
+          <div class="class-text">
+            <p class="fact-line" data-copy="class.fact"></p>
+            <h2 class="h2" data-copy="class.headline"></h2>
+            <p class="sub" data-copy="class.sub"></p>
+            <a class="text-link" href="https://karmanprep.com/program" data-copy="class.link"></a>
+          </div>
+          <figure class="card photo zoom-tile">
+            <img
+              data-slot="zoom"
+              src="img/zoom-student-tile.webp"
+              srcset="img/zoom-student-tile-640.webp 640w, img/zoom-student-tile.webp 1200w"
+              sizes="(min-width: 960px) 52vw, 92vw"
+              width="1200"
+              height="670"
+              loading="lazy"
+              data-copy-alt="class.zoom_alt"
+              alt=""
+            />
+          </figure>
+        </div>
+      </section>
+
+      <!-- 4. Results: the night card, a hairline grid. Land = the lead score arrives last. -->
+      <section class="results" id="results">
+        <div class="card-band band-night">
+          <div class="results-head">
+            <h2 class="h2" data-copy="results.headline"></h2>
+            <p class="source" data-copy="results.source"></p>
+          </div>
+          <ol class="scores">
+            <li class="score score-lead">
+              <span class="big land" data-copy="results.score1">1570</span>
+              <span class="who" data-copy="results.name1"></span>
+            </li>
+            <li class="score">
+              <span class="mid land" data-copy="results.score2">1540</span>
+              <span class="who" data-copy="results.name2"></span>
+            </li>
+            <li class="score">
+              <span class="mid land" data-copy="results.score3">1520</span>
+              <span class="who" data-copy="results.name3"></span>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 5. The guarantee: the parent on clay. -->
+      <section class="guarantee" id="guarantee">
+        <div class="wrap grid">
+          <figure class="card photo parent-photo" data-parallax>
+            <img
+              data-slot="parent"
+              src="img/parent-clay-tile.webp"
+              width="1000"
+              height="915"
+              loading="lazy"
+              data-copy-alt="guarantee.image_alt"
+              alt=""
+            />
+          </figure>
+          <div class="guarantee-text">
+            <p class="fact-line" data-copy="guarantee.fact"></p>
+            <h2 class="h2" data-copy="guarantee.headline"></h2>
+            <p class="sub" data-copy="guarantee.sub"></p>
+            <a
+              class="text-link"
+              href="https://karmanprep.com/guarantee"
+              data-copy="guarantee.link"
+            ></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. The close: a stage with the date, the one button, and the test review screen on clay. -->
+      <section class="close" id="test">
+        <div class="stage close-stage">
+          <div class="close-text">
+            <p class="numeral"><span class="big land" data-copy="close.number">Dec 12</span></p>
+            <h2 class="h2" data-copy="close.headline"></h2>
+            <p class="sub" data-copy="close.sub"></p>
+            <a
+              class="btn btn-lg"
+              data-main-cta
+              href="https://karmanprep.com/free-practice-test"
+              data-copy="close.cta"
+            ></a>
+          </div>
+          <div class="card media-card close-media">
+            <div
+              class="phone close-phone"
+              data-phone
+              data-shot="student-testreview-cohort"
+              role="img"
+              data-copy-aria="close.phone_alt"
+            ></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer card with the cropped wordmark (after 21st.dev 35508 Giant Wordmark Footer). -->
+    <footer class="footer">
+      <div class="footer-card">
+        <div class="footer-row">
+          <ul class="footer-links">
+            <li><a href="https://karmanprep.com/terms" data-copy="footer.terms"></a></li>
+            <li><a href="https://karmanprep.com/privacy" data-copy="footer.privacy"></a></li>
+            <li><a href="https://karmanprep.com/cookies" data-copy="footer.cookies"></a></li>
+            <li><a href="mailto:hello@karmanprep.com" data-copy="footer.contact"></a></li>
+          </ul>
+          <div class="footer-controls">
+            <div class="switch" role="radiogroup" data-copy-aria="footer.theme_label">
+              <button
+                type="button"
+                role="radio"
+                data-theme-set="auto"
+                data-copy="footer.theme_auto"
+              ></button>
+              <button
+                type="button"
+                role="radio"
+                data-theme-set="light"
+                data-copy="footer.theme_light"
+              ></button>
+              <button
+                type="button"
+                role="radio"
+                data-theme-set="dark"
+                data-copy="footer.theme_dark"
+              ></button>
+            </div>
+            <button
+              class="text-link on-dark"
+              type="button"
+              id="motionToggle"
+              data-copy="footer.pause"
+            ></button>
+          </div>
+        </div>
+        <p class="legal" data-copy="footer.legal"></p>
+        <svg class="footer-word" viewBox="0 0 100 24" aria-hidden="true">
+          <use href="#wordmark-paths" />
+        </svg>
+      </div>
+    </footer>
+
+    <script defer src="copy.js"></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+      integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"
+      integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"
+      integrity="sha384-BXj4dUwqsTW7BsafEOy150542LwVf57RoKjTk3Ay1dXyFXRwipZgJWd1QKIxStwq"
+      crossorigin="anonymous"
+    ></script>
+    <script defer src="numbers.js"></script>
+  </body>
+</html>

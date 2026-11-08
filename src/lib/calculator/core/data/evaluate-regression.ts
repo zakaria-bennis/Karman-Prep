@@ -12,6 +12,7 @@ import { fitRegression, type RegressionResult } from "../../regression/fit";
 import { rowErrorMessage } from "../analysis/messages";
 import type { RegressionAnalysis } from "./regression-analysis";
 import { fitWholeValues, needsListFit } from "./list-fit";
+import { restrictionOf, withoutRestrictions } from "./regression-restriction";
 
 export interface RegressionOutcome extends RegressionResult {
   residualName: string; // e_k
@@ -99,12 +100,19 @@ export function evaluateRegression(
   if (!observed.some(Number.isFinite)) return failed(r, null);
   const compiled = compileExpression(r.model, scope);
   const vars: Record<string, Value> = {};
-  const model = (p: Float64Array, i: number): number => {
-    deadline.check();
-    r.params.forEach((name, j) => (vars[name] = numberValue(p[j])));
-    r.predictors.forEach((name, j) => (vars[name] = numberValue(lists[j][i] ?? NaN)));
-    return real(compiled(vars, deadline));
-  };
+  const modelOf =
+    (c: typeof compiled) =>
+    (p: Float64Array, i: number): number => {
+      deadline.check();
+      r.params.forEach((name, j) => (vars[name] = numberValue(p[j])));
+      r.predictors.forEach((name, j) => (vars[name] = numberValue(lists[j][i] ?? NaN)));
+      return real(c(vars, deadline));
+    };
+  const model = modelOf(compiled);
+  const restriction = restrictionOf(r, scope, deadline);
+  if (restriction !== undefined) {
+    restriction.unrestricted = modelOf(compileExpression(withoutRestrictions(r.model), scope));
+  }
   // The predictions in exact fractions, data read as typed (exact-values.ts).
   const exactModel = (p: readonly { n: number; d: number }[]) => {
     const at: Record<string, Value> = {};
@@ -127,6 +135,7 @@ export function evaluateRegression(
     logMode: r.logMode,
     plainLeft: r.observed.kind === "id",
     uniquePredictor: r.predictors.length === 1,
+    restriction,
   });
   return { ...result, residualName: r.residual };
 }

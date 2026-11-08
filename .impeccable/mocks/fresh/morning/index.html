@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Karman | SAT prep that fits a school day</title>
+    <meta
+      name="description"
+      content="Karman is SAT prep for your student: ten minutes of practice a day, live classes on Zoom with a Karman tutor, and a weekly update to you. Free practice test Saturday, December 12."
+    />
+    <link rel="canonical" href="https://karmanprep.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Karman | SAT prep that fits a school day" />
+    <meta
+      property="og:description"
+      content="Ten minutes of practice a day, live classes on Zoom with a Karman tutor, and a weekly update to you."
+    />
+    <meta property="og:url" content="https://karmanprep.com/" />
+    <meta property="og:image" content="https://karmanprep.com/og/home.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="color-scheme" content="dark light" />
+    <style>
+      /* first paint, before the stylesheet arrives: never white (rules 3 and 33) */
+      html {
+        background: #111c29;
+        color: #e9e8e4;
+      }
+      @media (prefers-color-scheme: light) {
+        html:not([data-theme="dark"]) {
+          background: #f3f1ec;
+          color: #14181d;
+        }
+      }
+      html[data-theme="light"] {
+        background: #f3f1ec;
+        color: #14181d;
+      }
+    </style>
+    <script>
+      /* Theme before first paint: the remembered choice, else the device, else dark (rule 33). */
+      (function () {
+        var t = null;
+        try {
+          t = localStorage.getItem("karman-theme");
+        } catch (e) {}
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+        document.documentElement.classList.add("js");
+        var seen = null;
+        try {
+          seen = localStorage.getItem("karman-intro-seen");
+        } catch (e) {}
+        if (!seen) document.documentElement.classList.add("intro-on");
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
+    />
+    <noscript
+      ><link
+        href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    /></noscript>
+    <link rel="stylesheet" href="../../redesign/engine/engine.css" />
+    <link rel="stylesheet" href="morning.css" />
+    <link
+      rel="preload"
+      as="image"
+      href="img/wake.webp"
+      media="(min-width: 761px)"
+      imagesrcset="img/wake-800.webp 800w, img/wake.webp 1360w"
+      imagesizes="50vw"
+    />
+    <link rel="preload" as="image" href="img/wake-p.webp" media="(max-width: 760px)" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://karmanprep.com/#org",
+            "name": "Karman Prep",
+            "url": "https://karmanprep.com/",
+            "email": "hello@karmanprep.com",
+            "logo": "https://karmanprep.com/logo.svg"
+          },
+          {
+            "@type": "Course",
+            "name": "The March SAT Program",
+            "description": "Two 90-minute live classes a week on Zoom with a Karman tutor, ending on the March 6, 2027 SAT.",
+            "provider": { "@id": "https://karmanprep.com/#org" },
+            "offers": { "@type": "Offer", "price": "995", "priceCurrency": "USD" },
+            "hasCourseInstance": {
+              "@type": "CourseInstance",
+              "courseMode": "online",
+              "startDate": "2027-01-04",
+              "endDate": "2027-03-06"
+            }
+          },
+          {
+            "@type": "Event",
+            "name": "Free SAT practice test",
+            "startDate": "2026-12-12T10:00:00-05:00",
+            "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+            "eventStatus": "https://schema.org/EventScheduled",
+            "location": {
+              "@type": "VirtualLocation",
+              "url": "https://karmanprep.com/free-practice-test"
+            },
+            "organizer": { "@id": "https://karmanprep.com/#org" },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "url": "https://karmanprep.com/free-practice-test"
+            }
+          }
+        ]
+      }
+    </script>
+    <script src="copy.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main" data-c="site/skip"></a>
+
+    <!-- Opening: the line draws, the sun rises over it, the name arrives, and the logo lands in the header. First visit only. -->
+    <div class="intro" id="intro" aria-hidden="true">
+      <div class="intro-logo" id="intro-logo">
+        <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
+          <path class="mark-sun" d="M6 29a11 11 0 0 1 22 0z" />
+          <rect class="mark-line" x="2" y="32" width="44" height="4" />
+        </svg>
+        <svg class="word" viewBox="0 0 361 88" aria-hidden="true"><use href="#wordmark" /></svg>
+      </div>
+    </div>
+
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <!-- Karman wordmark, drawn by hand for this direction: monoline strokes, one weight. -->
+        <g id="wordmark" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round">
+          <path d="M4.5 8V80M46 8L9.5 47M20.5 35.2L48 80" />
+          <circle cx="88" cy="55" r="20.5" />
+          <path d="M108.5 30V80" />
+          <path d="M129.5 30V80M129.5 54C129.5 40 137.5 34.5 153.5 34.5" />
+          <path
+            d="M170 30V80M170 52C170 40 176 34.5 186.5 34.5C197 34.5 203 40 203 52V80M203 52C203 40 209 34.5 219.5 34.5C230 34.5 236 40 236 52V80"
+          />
+          <circle cx="277.5" cy="55" r="20.5" />
+          <path d="M298 30V80" />
+          <path d="M319 30V80M319 52C319 40 326 34.5 337.5 34.5C349 34.5 356 40 356 52V80" />
+        </g>
+      </defs>
+    </svg>
+
+    <header class="bar" id="top">
+      <div class="bar-in">
+        <a class="logo" href="#top" aria-label="Karman, back to the top" id="logo">
+          <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
+            <path class="mark-sun" d="M6 29a11 11 0 0 1 22 0z" />
+            <rect class="mark-line" x="2" y="32" width="44" height="4" />
+          </svg>
+          <svg class="word" viewBox="0 0 361 88" aria-hidden="true"><use href="#wordmark" /></svg>
+        </a>
+        <nav class="nav" aria-label="Sections">
+          <ul id="nav-list"></ul>
+        </nav>
+        <!-- Theme switch: ported from 21st.dev component 37721 (zweiundeins, "Theme Switch", MIT), segmented compact variant, recoloured. -->
+        <div class="theme" role="radiogroup" id="theme" data-label="site/theme">
+          <label title="Auto"
+            ><input type="radio" name="theme" value="auto" /><svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 4a8 8 0 1 0 0 16z" class="fill" />
+              <circle cx="12" cy="12" r="8" /></svg
+            ><span class="vh">Auto</span></label
+          >
+          <label title="Dark"
+            ><input type="radio" name="theme" value="dark" /><svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" /></svg
+            ><span class="vh">Dark</span></label
+          >
+          <label title="Light"
+            ><input type="radio" name="theme" value="light" /><svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="13" r="4" />
+              <path d="M12 3.5v2.5M12 20v1.5M4 13H2.5M21.5 13H20M6.2 7.2 5 6M19 6l-1.2 1.2" /></svg
+            ><span class="vh">Light</span></label
+          >
+        </div>
+        <button
+          class="menu-btn"
+          id="menu-btn"
+          aria-expanded="false"
+          aria-controls="sheet"
+          data-c="site/menu"
+        ></button>
+      </div>
+    </header>
+
+    <div class="sheet" id="sheet" hidden>
+      <div class="sheet-in">
+        <button class="sheet-close" id="sheet-close" data-c="site/close"></button>
+        <ul id="sheet-list"></ul>
+      </div>
+    </div>
+
+    <main id="main">
+      <!-- 6:40 a.m. -->
+      <section class="ch ch-dawn hero" id="hero" aria-labelledby="h-hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <h1 id="h-hero" data-c="hero/headline"></h1>
+            <p class="lead" data-c="hero/text"></p>
+            <p class="act">
+              <a
+                class="btn"
+                href="https://karmanprep.com/free-practice-test"
+                data-c="hero/button"
+              ></a>
+            </p>
+            <p class="note" data-c="hero/note"></p>
+          </div>
+          <figure class="hero-pic shutter">
+            <div class="frame">
+              <picture>
+                <source
+                  media="(max-width: 760px)"
+                  srcset="img/wake-p.webp"
+                  width="614"
+                  height="768"
+                />
+                <img
+                  class="drift"
+                  src="img/wake.webp"
+                  srcset="img/wake-800.webp 800w, img/wake.webp 1360w"
+                  sizes="(max-width: 760px) 100vw, 58vw"
+                  width="1360"
+                  height="768"
+                  data-alt="hero/alt"
+                  alt=""
+                  fetchpriority="high"
+                />
+              </picture>
+            </div>
+            <figcaption data-c="hero/caption"></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 7:25 a.m.: the real question -->
+      <section class="ch ch-day" id="daily" aria-labelledby="h-daily">
+        <div class="wrap daily-grid">
+          <div class="daily-copy rise">
+            <h2 id="h-daily" data-c="daily/headline"></h2>
+            <p class="body" data-c="daily/text"></p>
+          </div>
+          <div class="demo rise">
+            <div class="demo-box" id="demo-box" data-ui>
+              <noscript
+                ><img
+                  src="../../redesign/engine/renders/alg-1-desktop-dark-question.webp"
+                  alt="The Karman practice screen showing: If 3x + 5 = 26, what is the value of x? Choices 5, 6, 7 and 8."
+                  width="1200"
+                  height="800"
+              /></noscript>
+              <div class="demo-skeleton" id="demo-skeleton" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="demo-result" id="demo-result" aria-live="polite">
+              <p id="demo-msg"></p>
+              <button class="textlink" id="demo-again" hidden data-c="daily/again"></button>
+            </div>
+          </div>
+          <div class="daily-more rise">
+            <ul class="points" data-list="daily/points"></ul>
+            <figure class="bus">
+              <div class="frame">
+                <img
+                  src="img/bus-800.webp"
+                  srcset="img/bus-800.webp 800w, img/bus.webp 1360w"
+                  sizes="36vw"
+                  width="1360"
+                  height="768"
+                  loading="lazy"
+                  data-alt="daily/alt"
+                  alt=""
+                />
+              </div>
+              <figcaption data-c="daily/caption"></figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4:40 p.m.: the parent update -->
+      <section class="ch ch-noon" id="update" aria-labelledby="h-update">
+        <figure class="wide shutter">
+          <div class="frame">
+            <picture>
+              <source
+                media="(max-width: 760px)"
+                srcset="img/table-m-800.webp 800w, img/table-m.webp 1024w"
+                sizes="100vw"
+                width="1024"
+                height="768"
+              />
+              <img
+                class="drift"
+                src="img/table.webp"
+                srcset="img/table-800.webp 800w, img/table.webp 1360w"
+                sizes="100vw"
+                width="1360"
+                height="768"
+                loading="lazy"
+                data-alt="update/alt"
+                alt=""
+              />
+            </picture>
+          </div>
+          <figcaption data-c="update/caption"></figcaption>
+        </figure>
+        <div class="wrap split rise">
+          <div>
+            <h2 id="h-update" data-c="update/headline"></h2>
+          </div>
+          <ul class="points big" data-list="update/points"></ul>
+        </div>
+      </section>
+
+      <!-- 7:05 p.m.: the live class, each in their own place -->
+      <section class="ch ch-night" id="class" aria-labelledby="h-class">
+        <div class="wrap">
+          <div class="class-top rise">
+            <h2 id="h-class" data-c="class/headline"></h2>
+            <ul class="points big" data-list="class/points"></ul>
+          </div>
+          <div class="pair rise">
+            <figure>
+              <div class="frame">
+                <img
+                  src="img/class-p.webp"
+                  width="614"
+                  height="768"
+                  loading="lazy"
+                  data-alt="class/alt student"
+                  alt=""
+                />
+              </div>
+              <figcaption data-c="class/caption student"></figcaption>
+            </figure>
+            <figure>
+              <div class="frame">
+                <img
+                  src="img/tutor-p.webp"
+                  width="614"
+                  height="768"
+                  loading="lazy"
+                  data-alt="class/alt tutor"
+                  alt=""
+                />
+              </div>
+              <figcaption data-c="class/caption tutor"></figcaption>
+            </figure>
+          </div>
+          <div class="price rise">
+            <p class="price-line" data-c="class/price"></p>
+            <a class="textlink" href="https://karmanprep.com/program" data-c="class/link"></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results: three real Karman 1:1 students -->
+      <section class="ch ch-fall" id="results" aria-labelledby="h-results">
+        <div class="wrap">
+          <h2 class="rise" id="h-results" data-c="results/headline"></h2>
+          <ul class="results" id="results-list"></ul>
+          <p class="source rise" data-c="results/source"></p>
+        </div>
+      </section>
+
+      <!-- Plans -->
+      <section class="ch ch-plain" id="plans" aria-labelledby="h-plans">
+        <div class="wrap">
+          <h2 class="rise" id="h-plans" data-c="plans/headline"></h2>
+          <table class="plans rise" id="plans-table">
+            <tbody></tbody>
+          </table>
+          <p class="plans-note rise">
+            <span data-c="plans/note"></span>
+            <a
+              class="textlink"
+              href="mailto:hello@karmanprep.com?subject=Karman%20for%20schools"
+              data-c="plans/school link"
+            ></a>
+          </p>
+        </div>
+      </section>
+
+      <!-- The guarantee -->
+      <section class="ch ch-sun" id="guarantee" aria-labelledby="h-guarantee">
+        <div class="wrap g-grid">
+          <h2 class="rise g-head" id="h-guarantee" data-c="guarantee/headline"></h2>
+          <div class="rise">
+            <p class="body" data-c="guarantee/text"></p>
+          </div>
+          <div class="rise">
+            <table class="outcomes" id="outcomes">
+              <tbody></tbody>
+            </table>
+            <details class="rules">
+              <summary data-c="guarantee/rules title"></summary>
+              <ul class="points" data-list="guarantee/rules"></ul>
+              <p class="body" data-c="guarantee/fine"></p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- Saturday: the free practice test -->
+      <section class="ch ch-dawn" id="free-test" aria-labelledby="h-test">
+        <div class="wrap test-grid">
+          <figure class="test-pic shutter">
+            <div class="frame">
+              <picture>
+                <source
+                  media="(max-width: 760px)"
+                  srcset="img/saturday-p.webp"
+                  width="614"
+                  height="768"
+                />
+                <img
+                  class="drift"
+                  src="img/saturday.webp"
+                  srcset="img/saturday-800.webp 800w, img/saturday.webp 1360w"
+                  sizes="(max-width: 760px) 100vw, 55vw"
+                  width="1360"
+                  height="768"
+                  loading="lazy"
+                  data-alt="test/alt"
+                  alt=""
+                />
+              </picture>
+            </div>
+            <figcaption data-c="test/caption"></figcaption>
+          </figure>
+          <div class="test-copy rise">
+            <h2 id="h-test" data-c="test/headline"></h2>
+            <p class="body" data-c="test/text"></p>
+            <ul class="points" data-list="test/points"></ul>
+            <p class="honest" data-c="test/honest"></p>
+            <p class="act">
+              <a
+                class="btn"
+                href="https://karmanprep.com/free-practice-test"
+                data-c="test/button"
+              ></a>
+            </p>
+            <p class="note" data-c="test/note"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ: ported from 21st.dev component 37545 (ibrandify, "Single Open Accordion"), recoloured, plus icon redrawn. -->
+      <section class="ch ch-plain" id="faq" aria-labelledby="h-faq">
+        <div class="wrap faq-grid">
+          <h2 class="rise" id="h-faq" data-c="faq/headline"></h2>
+          <div class="faq rise" id="faq-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <a class="foot-mark" href="#top" aria-label="Karman, back to the top">
+          <svg class="mark" viewBox="0 0 48 48" aria-hidden="true">
+            <path class="mark-sun" d="M6 29a11 11 0 0 1 22 0z" />
+            <rect class="mark-line" x="2" y="32" width="44" height="4" />
+          </svg>
+          <svg class="word" viewBox="0 0 361 88" aria-hidden="true"><use href="#wordmark" /></svg>
+        </a>
+        <div class="foot-row">
+          <p class="foot-line" data-c="footer/line"></p>
+          <ul class="foot-links" id="foot-links"></ul>
+        </div>
+        <div class="foot-row small">
+          <p>
+            <span data-c="footer/legal"></span>
+            <a class="textlink" href="mailto:hello@karmanprep.com" data-c="footer/contact"></a>
+          </p>
+          <a class="textlink" href="#top" data-c="footer/top"></a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="morning.js"></script>
+  </body>
+</html>

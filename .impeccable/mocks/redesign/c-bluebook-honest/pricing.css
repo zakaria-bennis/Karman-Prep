@@ -1,0 +1,50 @@
+/* The pricing page: every price on one plain page. The cohort ticket changes with the SAT date (the one live
+   thing) and sits on the first screen with its price and the one marigold button, the free practice test is one
+   line with a text link, the other five plans are rows with the comparison table folded under them, the guarantee block names
+   what it covers, and the close carries the page's photograph beside the second button. */
+.p-hero { padding: calc(var(--hd) + clamp(28px, 4vw, 48px)) 0 clamp(28px, 3vw, 40px); }
+.p-hero .wrap { display: grid; gap: 24px clamp(28px, 5vw, 80px); grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); grid-template-areas: "h1 h1" "lede seg" "ticket ticket"; align-items: start; }
+.p-hero h1 { grid-area: h1; font-size: clamp(38px, 5vw, 72px); max-width: 16em; }
+.p-hero > .wrap > .lede { grid-area: lede; max-width: 30em; }
+.p-hero .choose { grid-area: seg; }
+.p-hero .ticket { grid-area: ticket; margin-top: 8px; }
+.p-hero .q { font-weight: 700; font-size: 17px; margin-bottom: 10px; }
+.p-hero .other { margin-top: 16px; font-size: 17px; max-width: 40em; text-wrap: pretty; }
+.p-hero .deposit { font-size: 15px; color: var(--ink2); max-width: 40em; }
+.p-hero .ticket .main h2 { font-size: clamp(28px, 3.6vw, 50px); letter-spacing: -0.035em; }
+.p-hero .ticket .main .deposit { color: var(--bone2); font-size: 17px; }
+.p-hero .ticket .main .rows + .deposit { font-size: 15px; margin-top: 4px; }
+.p-hero .ticket .stub .deposit { color: #57534b; }
+.freeline { background: var(--paper2); }
+.freeline .wrap { display: grid; grid-template-columns: 160px minmax(0, 7fr) minmax(0, 4fr); gap: 24px 40px; align-items: center; padding: clamp(20px, 2.4vw, 32px) 0; }
+.freeline .fpic { aspect-ratio: 4 / 5; border-radius: var(--radius); overflow: hidden; }
+.freeline .fpic img { width: 100%; height: 100%; object-fit: cover; }
+.freeline p { font-size: clamp(18px, 1.7vw, 24px); line-height: 1.35; font-weight: 600; letter-spacing: -0.015em; text-wrap: pretty; }
+.freeline .lk { justify-self: end; }
+.plans .wrap { display: grid; gap: 24px; }
+.plans .lede { max-width: 40em; }
+.plans .compare { margin-top: 8px; }
+.p-guarantee { background: var(--night); color: var(--bone); }
+.p-guarantee .wrap { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 80px); align-items: start; }
+.p-guarantee .badge { font-size: clamp(28px, 2.1vw, 30px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; max-width: 14em; }
+.p-guarantee .words { display: grid; gap: 18px; }
+.p-guarantee .lede { color: var(--bone); }
+.p-guarantee .covered { font-weight: 700; }
+.p-guarantee .aside { display: grid; gap: 18px; padding: clamp(20px, 2.4vw, 32px); background: var(--night2); border-radius: var(--radius); font-size: 17px; line-height: 1.5; }
+.p-guarantee .gpic { border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 10; }
+.p-guarantee .gpic img { width: 100%; height: 100%; object-fit: cover; }
+.p-close { padding: clamp(56px, 7vw, 112px) 0; background: var(--paper2); }
+.p-close .wrap { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
+.p-close .words { display: grid; gap: 18px; justify-items: start; }
+.p-close h2, .p-close .lede { max-width: 18em; }
+.p-close .cpic { border-radius: var(--radius); overflow: hidden; justify-self: end; width: 100%; max-width: 420px; }
+.p-close .cpic img { width: 100%; height: auto; display: block; }
+@media (max-width: 900px) {
+  .p-hero .wrap { grid-template-columns: 1fr; grid-template-areas: "h1" "lede" "seg" "ticket"; }
+  .freeline .wrap { grid-template-columns: 1fr; }
+  .freeline .fpic { width: 180px; }
+  .freeline .lk { justify-self: start; }
+  .p-guarantee .wrap { grid-template-columns: 1fr; }
+  .p-close .wrap { grid-template-columns: 1fr; }
+  .p-close .cpic { justify-self: start; max-width: 100%; }
+}

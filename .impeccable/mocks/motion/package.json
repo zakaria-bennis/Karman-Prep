@@ -1,0 +1,16 @@
+{
+  "name": "karman-motion-lab",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Karman motion lab: short loops cut from real quiz engine captures",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:all": "node render-all.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.539"
+  }
+}

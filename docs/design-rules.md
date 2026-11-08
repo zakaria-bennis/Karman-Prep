@@ -21,22 +21,22 @@ The calculator is excluded until the founder has reviewed it.
 9. Em dashes, in any copy.
 10. Inter, Geist or Space Grotesk fonts.
 11. Colored vertical stripes on the left or right edge of a button or card.
-12. Fake testimonials. A testimonial may only appear if it is real and approved.
+12. (removed by the founder, 2026-11-01)
 13. Bento grids.
 14. Terminal windows.
 15. The "it's not X, it's Y" sentence pattern.
 16. Checkmark bullets.
-17. Three pricing tiers.
-18. A page with no real product demo. Show the actual product, not icons.
-19. Soft, heavily rounded corners.
+17. (removed by the founder, 2026-11-01)
+18. (removed by the founder, 2026-11-01)
+19. (removed by the founder, 2026-11-01)
 20. Purple and black color schemes.
 21. Radial orbs.
 22. Dot grids.
 23. Sparkle icons.
-24. Animated arrows.
-25. Hover animations on everything. Hover feedback is limited to what a user needs.
+24. (removed by the founder, 2026-11-01)
+25. (removed by the founder, 2026-11-01)
 26. Neon colors.
-27. Basic pastel colors.
+27. (removed by the founder, 2026-11-01)
 28. Horizontal scrolling, on any screen size.
 
 ## Always do these
@@ -47,10 +47,13 @@ The calculator is excluded until the founder has reviewed it.
 32. A Cookie Policy page exists and is linked from the footer (founder, 2026-10-19).
     If the site sets any non-essential cookie (analytics, ads, embedded video
     tracking), a consent banner asks first and declining is as easy as accepting.
-33. Every page works in both light and dark mode (founder, 2026-10-19). Dark is
-    the default on every device (founder, 2026-10-20); a visible toggle switches
-    to light, and the choice is remembered. All text meets WCAG AA contrast (4.5:1, or 3:1 for large text)
-    in both modes, checked by calculation, not by eye.
+33. Every page works in both light and dark mode (founder, 2026-10-19). Each
+    visitor sees the mode their device is set to (founder, 2026-10-30); when
+    the device states no preference, dark is the default. A visible toggle
+    overrides it, and the choice is remembered. On the website, light mode is
+    off-white (never pure white, rule 3) with black and marigold accents. All
+    text meets WCAG AA contrast (4.5:1, or 3:1 for large text) in both modes,
+    checked by calculation, not by eye.
 
 ## Founder decisions, 2026-10-20
 
@@ -64,7 +67,7 @@ The calculator is excluded until the founder has reviewed it.
 37. No scroll-driven indicators that fill boxes, light up checkpoints or tick
     items off as the reader scrolls (route bars, filling week squares, skill
     meters).
-38. No visible play or pause button on background film.
+38. (removed by the founder, 2026-11-01)
 39. Internal grading stays internal on marketing pages: no difficulty levels
     ("level 4", "1 to 7", "seven levels"), no skill maps or level meters.
 40. Karman is a company, not a personal site. Marketing copy speaks as Karman,
@@ -80,11 +83,7 @@ The calculator is excluded until the founder has reviewed it.
 42. Students are locked in. A small smile is fine; laughing at a laptop, or
     any staged comedy, is not. No cartoon details such as a pencil behind the
     ear.
-43. Study happens anywhere: at a desk, on the go, on the bench during a
-    practice break. The product is digital, so pictures centre on phones and
-    laptops, not paper. AirPods Pro or AirPods Max are fine; no visible
-    brand logos (university clothing in the "next fall" chapters is the one exception;
-    see rule 47).
+43. (removed by the founder, 2026-11-01)
 44. Screens are readable and show real Karman product screens with logical
     content. The founder approves each screen's content before anything is
     generated. Screen text is placed from our own rendered screens, never left
@@ -95,16 +94,7 @@ The calculator is excluded until the founder has reviewed it.
 46. Tutoring is on Zoom, and pictures may show Zoom as it is (student and
     tutor each in their own place), never a tutor in the room or over a
     shoulder.
-47. Generated people may carry fictional first names as characters in a film
-    or its still (for example "Ava, 6:50 a.m., Daily 10"), but never a score,
-    a quote, a result or a claim that they are enrolled Karman students, and
-    no screen in their hands shows a score result.
-    Founder exception (2026-10-22, cleared by Karman's lawyer): the landing
-    film's "next fall" chapters show three characters standing for real Karman
-    1:1 students, with their real first name, official SAT score and college
-    (Ava 1520 UC Berkeley, Mateo 1570 Harvard, Priya 1540 Stanford), wearing
-    that university's clothing, always with "Karman 1:1 tutoring, median 16
-    weeks". Agents must not remove or hide these chapters.
+47. (removed by the founder, 2026-11-01)
 48. Colour in pictures is not limited to the site palette. Pictures must look
     graded and coordinated with each other and with the page around them.
 
@@ -116,6 +106,10 @@ these on top of the rules above. Where they conflict, these win inside the app.
 49. The app's ground is a subtle, slowly moving constellation sky: faint stars
     and lines on night navy in dark mode, faint ink on bone in light mode. It
     never competes with the content and stops moving under reduced motion.
+    Founder, 2026-10-30: the sky is now one option, not a requirement. The
+    background can be any subtle world that fits studying; agents propose
+    several directions and the founder picks. Subtle, behind the content, and
+    still under reduced motion all still apply.
 50. Buttons and controls are liquid glass, not flat frosted glass: they bend
     the background behind them, carry a bright top edge and a soft shadow, and
     look slightly raised. This overrides rules 5 and 8 inside the app only.
@@ -138,6 +132,32 @@ these on top of the rules above. Where they conflict, these win inside the app.
     is a flag only when a class is missed, never a headline number.
 58. Phone screens are drawn for the iPhone 17 Pro Max (440 x 956 points, thin
     bezel, Dynamic Island). Light mode is bone, never pure white.
+
+## Founder decision, 2026-11-01
+
+The rules above are things to minimise and steer away from when unsure, not
+absolute bans, when the founder decides a page needs otherwise. For the pricing
+page he decided: three tier cards in a row, including Free, and the design
+elements of the Paddle Billing starter kit's pricing page
+(`docs/design/research/paddle-pricing-reference.md`) are allowed, even where they
+touch rules 1, 6, 8, 16, 17, 21 and 22. Contrast (33), overlap (34), sideways
+scroll (28), no invented claims and the copy rules still hold.
+
+Also on 2026-11-01, after removing rule 47, the founder kept the three real
+results on the home page: Ava 1520 UC Berkeley, Mateo 1570 Harvard and Priya 1540
+Stanford, each with "Karman 1:1 tutoring, median 16 weeks".
+
+### Devices in pictures and film (founder, 2026-11-01)
+
+Every device in a generated picture or video is a real, current product, named by
+model in the prompt so the model can draw it properly:
+
+- Phones: iPhone 17 Pro Max or iPhone 18 Pro Max only.
+- Headphones: Sony WH-1000XM5 or AirPods Max 2 only (no earbuds, no wired earphones).
+- Laptops: MacBook Pro in Space Black only.
+- Any other device appears only if it is an official product named by its exact model.
+- Every device is checked at full size before a picture is kept; a generic or wrong
+  device is rejected or fixed with an image edit.
 
 ## Copy rules
 
