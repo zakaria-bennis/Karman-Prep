@@ -67,8 +67,13 @@ In `docs/overnight/reports/quiz-topbar/`:
 - Captured every screen with headless Playwright (no app browser pane).
 - Measured the widest element on each option at 390: everything fits inside the phone; today's
   bar measures 623px.
-- Clicked through the live lab: answer, Submit, Next, the pencil, the calculator, More, Exit,
-  and option C's question squares.
+- Clicked through the live lab with a script, for A, B and C at 390 and 1440: the calculator,
+  an answer, Submit, Next, the pencil, Hide and Show, More, option C's question squares, and
+  Exit. All passed, with no page errors and no sideways scroll. Re-run it with
+  `node .impeccable/mocks/quiz-topbar/lab/click-check.cjs` while the lab server runs.
+- Opened the comparison page itself: all 12 pictures load, and the switches swap them.
+  `quiz-topbar/comparison-page.png` shows it.
+- No app code changed, so the repo checks (types, lint, tests, build) were not needed.
 
 ## Decisions I made
 
