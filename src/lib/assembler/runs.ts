@@ -430,7 +430,7 @@ export async function startFullTest(clerkId: string, formNumber: number): Promis
       runKey: `full-test:${form}`,
       scope: String(form),
       form: {
-        title: `Full-length practice test ${form}`,
+        title: `Practice test ${form}`,
         grading: "end",
         sections: timedSections(parts, true),
       },

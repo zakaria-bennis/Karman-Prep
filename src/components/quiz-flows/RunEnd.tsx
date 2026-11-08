@@ -50,7 +50,9 @@ export function SkillsMoved({
             />
             <span className={s.skillName}>{skill.label}</span>
             <span className={s.skillLevel}>
-              {skill.to > skill.from ? `Now ${levelName(skill.to)}` : levelName(skill.to)}
+              {skill.to > skill.from && skill.to >= 2
+                ? `Up to ${levelName(skill.to)}`
+                : levelName(skill.to)}
             </span>
           </li>
         ))}
