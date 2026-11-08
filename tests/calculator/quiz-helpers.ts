@@ -25,6 +25,16 @@ export const frame = (page: Page) => page.locator("[data-calculator-window]");
 
 export const workspace = (page: Page) => page.locator("[data-calculator-workspace]");
 
+/** The quiz shell's dock-shift host: everything under the top bar moves right of a docked
+ * calculator (shared quiz shell, 2026-10-27). */
+export const shiftHost = (page: Page) => page.locator("[data-calculator-dock-shift]").first();
+
+/** Where the shell asks the dock to start: 8 px under the shell's top bar. */
+export const dockTopOf = async (page: Page) => {
+  const top = (await page.locator('[data-quiz-bar="top"]').boundingBox())!;
+  return Math.round(top.y + top.height) + 8;
+};
+
 export const phoneSized = (page: Page) => {
   const { width, height } = page.viewportSize()!;
   return width <= 767 || height <= 500;

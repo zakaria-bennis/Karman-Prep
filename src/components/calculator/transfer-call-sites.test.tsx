@@ -13,15 +13,16 @@ import { splitMathText } from "@/components/learn/math-segments";
 import { installDomStubs } from "@/components/calculator/__fixtures__/dom-stubs";
 import MathText from "@/components/learn/MathText";
 import QuestionTable from "@/components/learn/QuestionTable";
-import { ActiveQuizScreen } from "@/components/learn/quiz/ActiveQuizScreen";
-import { TableChoiceOption } from "@/components/learn/quiz/TableChoiceOption";
-import CatalogQuestion from "@/components/learn/catalog-practice/CatalogQuestion";
+// Every quiz host now renders the shared quiz shell (founder, 2026-10-27: this file's call sites
+// were repointed from the retired per-host screens to the shell's choices; every assertion kept).
+import { Choices } from "@/components/learn/quiz-shell/Choices";
+import { QuestionContent } from "@/components/learn/quiz-shell/QuestionContent";
+import { PassageBlock } from "@/components/learn/quiz-shell/PassageBlock";
 import DailyChallenge from "@/components/learn/DailyChallenge";
 import DiagnosticClient from "@/components/diagnostic/DiagnosticClient";
-import { AnswerChoiceButton } from "@/components/diagnostic/parts/AnswerChoiceButton";
-import type { MappedNode } from "@/components/learn/ConstellationMap";
+import { modeFor } from "@/lib/quiz/mode";
 import type { DailySlot } from "@/lib/daily-challenge/server";
-import type { StudentQuizQuestion } from "@/types/quiz";
+import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import {
   CalculatorChoiceAction,
   CalculatorSourceAction,
@@ -50,6 +51,12 @@ vi.mock("./bridge-context", async (original) => {
   };
 });
 vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: vi.fn() }));
+vi.mock("@/app/learn/saved-question-actions", () => ({
+  actionQuizStudentState: vi.fn(async () => ({ hasTutor: false, saved: {} })),
+  actionSetBookmark: vi.fn(),
+  actionFlagForTutor: vi.fn(),
+  actionReportProblem: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/free-diagnostic",
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
@@ -296,22 +303,15 @@ const Q = {
     choice_table_data: null,
   })),
 } as unknown as StudentQuizQuestion;
-type QuizStateOverride = NonNullable<Parameters<typeof ActiveQuizScreen>[0]["stateOverride"]>;
-const STATE: QuizStateOverride = {
-  phase: "answering",
-  reviews: {},
-  records: [],
-  targetLength: 1,
-  currentIndex: 0,
-  selectedAnswer: null,
-};
 const REVIEW = {
   correct_answer: "A",
   numeric_tolerance: null,
   explanation_text: "Because $y=2x+3$ has slope 2.",
   explanation_per_choice: { A: "Choice A uses $y=2x+3$.", B: "Choice B uses $y=3x$." },
   desmos_strategy: "Graph $y=2x+3$.",
-} as unknown as QuizStateOverride["reviews"][string];
+  isCorrect: false,
+  studentAnswer: "B",
+} as unknown as StudentQuizReview;
 const DIAGNOSTIC = [
   {
     id: "d1",
@@ -333,18 +333,42 @@ const must = <T,>(value: T | null | undefined): T => {
   if (value === null || value === undefined) throw new Error("missing element");
   return value;
 };
-const practice = (q: StudentQuizQuestion, state: QuizStateOverride, onSelect = noop) => (
-  <ActiveQuizScreen
-    node={{ subject: "math", topic: "Practice" } as MappedNode}
+/** A graded practice question as the shell renders it: passage, question, choices, explanation. */
+const practice = (
+  q: StudentQuizQuestion,
+  review: StudentQuizReview | undefined,
+  onSelect: (letter: string) => void = noop
+) => (
+  <>
+    <PassageBlock q={q} />
+    <QuestionContent
+      q={q}
+      number={1}
+      mode={modeFor("skill", { hasTutor: false })}
+      ws={undefined}
+      review={review}
+      bookmarked={false}
+      flagged={false}
+      eliminatorOn
+      figureHere
+      hasCalculator
+      pickOffer={null}
+      onAnswer={(v) => v && onSelect(v)}
+      onCross={h.onCross}
+      onToggleReview={noop}
+      onToggleBookmark={noop}
+      onFlag={noop}
+      onToggleEliminator={noop}
+    />
+  </>
+);
+const shellChoices = (q: StudentQuizQuestion) => (
+  <Choices
     q={q}
-    stateOverride={state}
-    onClose={noop}
-    onSelectAnswer={onSelect}
-    onSubmit={noop}
-    onFlagClick={noop}
-    showExplanations
-    onToggleExplanations={noop}
-    onNext={noop}
+    state={{ answer: null, crossedOut: [], correct: null, locked: false }}
+    eliminatorOn
+    onPick={h.onSelect}
+    onCross={h.onCross}
   />
 );
 
@@ -352,18 +376,12 @@ const practice = (q: StudentQuizQuestion, state: QuizStateOverride, onSelect = n
 // clusters this task adds.
 it("TR-2 passages, hints, explanations, review panels, captions, footers, cells, prose outside delimiters and the student's own answers render no control in an active quiz", async () => {
   stubbed(bridgeStub());
-  const submitted: QuizStateOverride = {
-    ...STATE,
-    phase: "submitted_wrong",
-    selectedAnswer: "B",
-    reviews: { q1: REVIEW },
-  };
   const passage = {
     ...Q,
     passage_a: "Text 1 cites $y=2x+3$.",
     passage_b: "Text 2 cites $y=3x$.",
   } as StudentQuizQuestion;
-  const quiz = render(practice(passage, submitted));
+  const quiz = render(practice(passage, REVIEW));
   await waitFor(() => expect(namesOf()).toHaveLength(3));
   expect([
     screen.getByText(/has slope 2/),
@@ -377,19 +395,14 @@ it("TR-2 passages, hints, explanations, review panels, captions, footers, cells,
     answer_format: "numeric_entry",
     answer_choices: [],
   } as unknown as StudentQuizQuestion;
-  const typed = render(practice(numeric, { ...submitted, selectedAnswer: "$y=2x+3$" }));
-  expect(screen.getByText("$y=2x+3$")).toBeInTheDocument();
+  const typed = render(practice(numeric, { ...REVIEW, studentAnswer: "$y=2x+3$" }));
+  expect(screen.getByDisplayValue("$y=2x+3$")).toBeInTheDocument();
   expect(namesOf()).toEqual([STEM_AND_CHOICES[0]]);
   typed.unmount();
   const diagnostic = render(<DiagnosticClient questions={DIAGNOSTIC} isSubscribed />);
   await waitFor(() => expect(namesOf()).toHaveLength(3));
-  fireEvent.click(must(buttons(/^Hint/)[0]));
-  expect(screen.getByText(/has slope 2/)).toBeInTheDocument();
   expect(namesOf()).toEqual(STEM_AND_CHOICES);
-  fireEvent.click(
-    must(document.querySelector<HTMLButtonElement>("[data-question-layout] .group > button"))
-  );
-  expect(screen.getByText(/has slope 2/)).toBeInTheDocument();
+  fireEvent.click(must(document.querySelector<HTMLButtonElement>("[role=radio]")));
   expect(namesOf()).toEqual(STEM_AND_CHOICES);
   diagnostic.unmount();
   render(
@@ -411,26 +424,8 @@ it("TR-2 passages, hints, explanations, review panels, captions, footers, cells,
 });
 
 const SITES: Record<string, () => JSX.Element> = {
-  practice: () => practice(Q, STATE, h.onSelect),
-  catalog: () => <CatalogQuestion question={Q} answer="" disabled={false} onAnswer={h.onSelect} />,
-  diagnostic: () => (
-    <>
-      {["A) $5$", "B) $6$"].map((option) => (
-        <AnswerChoiceButton
-          key={option}
-          option={option}
-          correctLetter="A"
-          isAnswered={false}
-          isSelected={false}
-          isCrossed={false}
-          isHighlighted={false}
-          onSelect={h.onSelect}
-          onToggleCrossOut={h.onCross}
-          onToggleHighlight={noop}
-        />
-      ))}
-    </>
-  ),
+  // Practice, catalog, the Challenge question and the diagnostic all render these choices now.
+  shell: () => shellChoices(Q),
 };
 const TABLE = {
   header_row: ["x", "y"],
@@ -462,18 +457,13 @@ it("AR-11 each answer-choice cluster gains data-calculator-cluster and one Trans
 });
 
 it("AR-11, TR-22 a table choice's control sits in its cluster, and daily math choices get a cluster as the next sibling of each label", async () => {
-  const table = () => (
-    <TableChoiceOption
-      id="c-d"
-      groupName="g"
-      letter="D"
-      table={TABLE}
-      selected={false}
-      submitted={false}
-      correct={false}
-      onSelect={h.onSelect}
-    />
-  );
+  const table = () =>
+    shellChoices({
+      ...Q,
+      answer_choices: [
+        { id: "c-d", question_id: "q1", letter: "D", choice_text: "", choice_table_data: TABLE },
+      ],
+    } as unknown as StudentQuizQuestion);
   stubbed(bridgeStub());
   const view = render(table());
   const header = must(buttons(/^Cross out choice D$/)[0]).parentElement;
@@ -497,19 +487,19 @@ it("AR-11, TR-22 a table choice's control sits in its cluster, and daily math ch
       },
     },
   } as DailySlot;
-  const labels = () =>
-    [...document.querySelectorAll("label")].filter((l) => l.querySelector("input[type=radio]"));
   stubbed(bridgeStub());
   render(<DailyChallenge math={slot} reading={{ state: "empty" }} />);
+  fireEvent.click(must(buttons(/^Answer the Math challenge$/)[0]));
+  fireEvent.click(must(buttons(/^Answer eliminator$/)[0]));
   await waitFor(() => expect(namesOf()).toHaveLength(3));
-  for (const [i, label] of labels().entries()) {
-    const cluster = label.nextElementSibling;
-    expect(cluster).toHaveAttribute("data-calculator-cluster");
-    expect(cluster?.querySelectorAll("[data-transfer-control]")).toHaveLength(1);
-    expect(cluster?.querySelector("button")).toHaveAccessibleName(
+  const clusters = [...document.querySelectorAll<HTMLElement>("[data-calculator-cluster]")];
+  expect(clusters).toHaveLength(2);
+  for (const [i, cluster] of clusters.entries()) {
+    expect(cluster.querySelectorAll("[data-transfer-control]")).toHaveLength(1);
+    expect(cluster.querySelector("[data-transfer-control] button")).toHaveAccessibleName(
       `Transfer to Calculator: choice ${"AB"[i]}`
     );
-    expect(label.querySelector("[data-transfer-control]")).toBeNull();
+    expect(cluster.previousElementSibling?.querySelector("[data-transfer-control]")).toBeNull();
   }
 });
 

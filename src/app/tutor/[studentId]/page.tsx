@@ -11,6 +11,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
+import { getTimingAccommodation } from "@/lib/supabase/queries/quiz/saved";
+import { TimingAccommodationControl } from "@/components/tutor/TimingAccommodationControl";
 import { fetchStudentById, fetchNodeStatuses } from "@/lib/supabase/queries/tutor";
 import {
   fetchAllAttemptsForStudent,
@@ -42,10 +44,11 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   const student = await fetchStudentById(studentId);
   if (!student) notFound();
 
-  const [statuses, attempts, flagged] = await Promise.all([
+  const [statuses, attempts, flagged, timing] = await Promise.all([
     fetchNodeStatuses(studentId),
     fetchAllAttemptsForStudent(studentId),
     fetchFlaggedQuestionsForStudent(studentId),
+    getTimingAccommodation(studentId),
   ]);
 
   // Preload per-attempt responses (expandable in Quiz History tab) — first 20 only for perf
@@ -121,6 +124,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
               <h1 className="text-2xl font-extrabold text-ivory dark:text-ivory">
                 {student.email}
               </h1>
+              <TimingAccommodationControl studentClerkId={studentId} value={timing} />
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <span
                   className="rounded-full px-2 py-0.5 text-xs font-bold"

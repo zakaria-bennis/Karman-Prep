@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import DailyChallenge from "./DailyChallenge";
 import type { StudentQuizQuestion } from "@/types/quiz";
@@ -10,6 +10,12 @@ await loadFigureEngine();
 
 const action = vi.hoisted(() => vi.fn());
 vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: action }));
+vi.mock("@/app/learn/saved-question-actions", () => ({
+  actionQuizStudentState: vi.fn(async () => ({ hasTutor: false, saved: {} })),
+  actionSetBookmark: vi.fn(),
+  actionFlagForTutor: vi.fn(),
+  actionReportProblem: vi.fn(),
+}));
 
 const question = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -53,7 +59,7 @@ describe("DailyChallenge", () => {
     expect(
       screen.getByText("No reviewed Reading & Writing question is available for today.")
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Check answer" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Answer the/ })).toBeNull();
   });
 
   it("reveals the reviewed answer only after checking a selected response", async () => {
@@ -72,16 +78,20 @@ describe("DailyChallenge", () => {
         reading={{ state: "empty" }}
       />
     );
-    expect(screen.queryByText(/Correct answer:/)).toBeNull();
-    const check = screen.getByRole("button", { name: "Check answer" });
-    expect((check as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(screen.getByRole("radio", { name: /B\./ }));
-    fireEvent.click(check);
-    expect(await screen.findByText("Not quite")).toBeTruthy();
-    expect(screen.getByText(/Correct answer:/)).toBeTruthy();
     expect(screen.queryByText("Reviewed explanation")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Show explanation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Answer the Math challenge" }));
+    const submit = screen.getByRole("button", { name: "Submit" });
+    expect(submit).toBeDisabled();
+    fireEvent.click(screen.getAllByRole("radio")[1]);
+    fireEvent.click(submit);
+    await waitFor(() =>
+      expect(screen.getByRole("status", { name: "Answer result" }).textContent).toContain(
+        "Not quite"
+      )
+    );
     expect(screen.getByText("Reviewed explanation")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+    expect(await screen.findByText("Not quite. The answer is A.")).toBeTruthy();
     expect(action).toHaveBeenCalledWith({
       subject: "math",
       day: "2026-10-08",

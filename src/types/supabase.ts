@@ -2709,8 +2709,54 @@ export type Database = {
           },
         ];
       };
+      student_point_awards: {
+        Row: {
+          award_key: string;
+          created_at: string;
+          points: number;
+          skill_id: string | null;
+          student_id: string;
+        };
+        Insert: {
+          award_key: string;
+          created_at?: string;
+          points: number;
+          skill_id?: string | null;
+          student_id: string;
+        };
+        Update: {
+          award_key?: string;
+          created_at?: string;
+          points?: number;
+          skill_id?: string | null;
+          student_id?: string;
+        };
+        Relationships: [];
+      };
+      student_saved_questions: {
+        Row: {
+          created_at: string;
+          question_id: string;
+          source: string;
+          student_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          question_id: string;
+          source: string;
+          student_id: string;
+        };
+        Update: {
+          created_at?: string;
+          question_id?: string;
+          source?: string;
+          student_id?: string;
+        };
+        Relationships: [];
+      };
       users: {
         Row: {
+          timing_accommodation: string;
           available_days: string[] | null;
           available_times: string[] | null;
           avatar_url: string | null;
@@ -2756,6 +2802,7 @@ export type Database = {
           zelle_phone: string | null;
         };
         Insert: {
+          timing_accommodation?: string;
           available_days?: string[] | null;
           available_times?: string[] | null;
           avatar_url?: string | null;
@@ -2801,6 +2848,7 @@ export type Database = {
           zelle_phone?: string | null;
         };
         Update: {
+          timing_accommodation?: string;
           available_days?: string[] | null;
           available_times?: string[] | null;
           avatar_url?: string | null;
@@ -3390,6 +3438,13 @@ export type Database = {
       };
     };
     Views: {
+      student_point_totals: {
+        Row: {
+          student_id: string | null;
+          total: number | null;
+        };
+        Relationships: [];
+      };
       quiz_questions_phase3_signals: {
         Row: {
           question_id: string;

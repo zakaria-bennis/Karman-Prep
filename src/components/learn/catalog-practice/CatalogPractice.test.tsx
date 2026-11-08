@@ -23,8 +23,16 @@ vi.mock("@/app/learn/catalog-quiz-actions", () => ({
 }));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/learn/math",
-  useRouter: () => ({ replace: mocks.replace }),
+  useRouter: () => ({ replace: mocks.replace, push: vi.fn() }),
 }));
+vi.mock("@/app/learn/saved-question-actions", () => ({
+  actionQuizStudentState: vi.fn(async () => ({ hasTutor: false, saved: {} })),
+  actionSetBookmark: vi.fn(),
+  actionFlagForTutor: vi.fn(),
+  actionReportProblem: vi.fn(),
+}));
+const choiceA = () => screen.getAllByRole("radio")[0];
+const result = () => screen.getByRole("status", { name: "Answer result" });
 vi.mock("next/link", () => ({
   default: ({ children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a {...props}>{children}</a>
@@ -100,16 +108,16 @@ describe("canonical student practice", () => {
       })
     );
     mount(session());
-    fireEvent.click(screen.getByRole("radio", { name: "Choice A" }));
-    const form = screen.getByRole("button", { name: "Check answer" }).closest("form")!;
-    fireEvent.submit(form);
-    fireEvent.submit(form);
+    fireEvent.click(choiceA());
+    const submitButton = screen.getByRole("button", { name: "Submit" });
+    fireEvent.click(submitButton);
+    fireEvent.click(submitButton);
     expect(mocks.submit).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText(/Correct answer:/)).toBeNull();
+    expect(screen.queryByText("Saved explanation only.")).toBeNull();
     await act(async () => save(review));
-    expect(screen.getByText("Correct · answer saved")).toBeTruthy();
+    expect(result().textContent).toContain("Correct");
     expect(screen.getByText("Saved explanation only.")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "See results" }));
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     await screen.findByText("Practice complete");
     expect(mocks.resume).toHaveBeenCalledWith(id);
     expect(mocks.complete).toHaveBeenCalledWith(id);
@@ -121,14 +129,15 @@ describe("canonical student practice", () => {
       .mockRejectedValueOnce(new Error("internal-db-secret-detail"))
       .mockResolvedValueOnce({ ...review, studentAnswer: "B", isCorrect: false });
     mount(session());
-    fireEvent.click(screen.getByRole("radio", { name: "Choice A" }));
-    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    fireEvent.click(choiceA());
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
     await screen.findByRole("alert");
-    expect(screen.getByRole("radio", { name: "Choice A" })).toBeChecked();
+    expect(choiceA()).toHaveAttribute("aria-checked", "true");
     expect(screen.queryByText(/internal-db/)).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
-    await screen.findByText("Incorrect · answer saved");
-    expect(screen.getByText(/Your saved answer:/).textContent).toContain("B");
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    await waitFor(() => expect(result().textContent).toContain("Not quite"));
+    // The server's original saved answer (B) wins over the local pick (A).
+    expect(choiceA()).toHaveAttribute("aria-checked", "false");
   });
   it("resumes without allocation and completes a session whose final answer was already saved", async () => {
     mount(session({ answered: 1, question: null, reviews: [review] }));
@@ -147,10 +156,10 @@ describe("canonical student practice", () => {
       session({ answered: 1, total: 2, question: nextQuestion, reviews: [review] })
     );
     mount(session({ total: 2 }));
-    fireEvent.click(screen.getByRole("radio", { name: "Choice A" }));
-    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
-    await screen.findByText("Correct · answer saved");
-    fireEvent.click(screen.getByRole("button", { name: "Next question" }));
+    fireEvent.click(choiceA());
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    await waitFor(() => expect(result().textContent).toContain("Correct"));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
     await screen.findByText("Second reviewed question");
     expect(screen.queryByText(/Correct answer:/)).toBeNull();
     expect(mocks.complete).not.toHaveBeenCalled();
@@ -163,13 +172,13 @@ describe("canonical student practice", () => {
         session({ completedAt: "done", question: null, answered: 1, score: 100, reviews: [review] })
       );
     mount(session());
-    fireEvent.click(screen.getByRole("radio", { name: "Choice A" }));
-    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
-    await screen.findByText("Correct · answer saved");
-    fireEvent.click(screen.getByRole("button", { name: "See results" }));
+    fireEvent.click(choiceA());
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    await waitFor(() => expect(result().textContent).toContain("Correct"));
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     await screen.findByRole("alert");
-    expect(screen.getByText("Correct · answer saved")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "See results" }));
+    expect(result().textContent).toContain("Correct");
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     await screen.findByText("Practice complete");
     expect(mocks.submit).toHaveBeenCalledTimes(1);
   });
@@ -200,9 +209,8 @@ describe("canonical student practice", () => {
   });
 });
 
-it("does not number an active randomized session", () => {
+it("numbers a resumed session by its position, with earlier questions locked", () => {
   mount(session({ answered: 1, total: 11 }));
-  expect(screen.queryByText(/Question 2 of 11|2\/11/)).toBeNull();
-  expect(screen.getByText("Skill practice")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Scratchpad" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Question 2 of 11" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Pencil" })).toBeTruthy();
 });
