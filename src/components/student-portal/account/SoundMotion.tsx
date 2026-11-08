@@ -4,12 +4,14 @@
  * Sound and motion. Sound effects use the app-wide switch (src/lib/sound-preference.ts), which is
  * off at the start of every visit by design. Quiz sounds are the quiz's reward jingles
  * (src/lib/quiz/reward-sound.ts), remembered on this device. "Keep the painting still" is stored
- * on this device under MOTION_KEY; the painting reads it.
+ * on this device under MOTION_KEY; the painting reads it. Background music is the portal theme
+ * (src/lib/audio/theme-music.ts), off until turned on and remembered on this device.
  */
 import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import { quizSoundsEnabled, setQuizSounds, subscribeQuizSounds } from "@/lib/quiz/reward-sound";
 import { setSoundEnabled, soundEnabled, subscribeSoundPreference } from "@/lib/sound-preference";
 import { MOTION_EVENT, MOTION_KEY, stillChosen } from "@/lib/painting/motion";
+import MusicToggle from "@/components/portal/MusicToggle";
 import s from "./account.module.css";
 
 const readMotion = stillChosen;
@@ -91,6 +93,7 @@ export default function SoundMotion() {
         onChange={setSoundEnabled}
       />
       <Switch label="Quiz sounds" on={quiz} onChange={setQuizSounds} />
+      <MusicToggle />
       <Switch
         label="Keep the painting still"
         sub={

@@ -38,14 +38,14 @@ export function studentNav(
   return nav;
 }
 
-/** The account menu (founder, 2026-11-07). "Profile and security" and "Sign out" are added by the shell. */
+/** The account menu (founder, 2026-11-07). "Profile" and "Sign out" are added by the shell. */
 export const STUDENT_MENU: AccountMenuItem[] = [
-  { label: "Your test and date", href: `${STUDENT_ROUTES.account}#test` },
-  { label: "Invite a parent", href: "/dashboard/student/invite-parent" },
-  { label: "Sound and motion", href: `${STUDENT_ROUTES.account}#sound` },
-  { label: "Plan and billing", href: `${STUDENT_ROUTES.account}#plan` },
-  { label: "Redeem a tutor's code", href: "/join" },
-  { label: "Messages", href: "/dashboard/student/chat" },
+  { label: "Test date", icon: "test", href: `${STUDENT_ROUTES.account}#test` },
+  { label: "Invite parent", icon: "invite", href: "/dashboard/student/invite-parent" },
+  { label: "Sound", icon: "sound", href: `${STUDENT_ROUTES.account}#sound` },
+  { label: "Plan", icon: "money", href: `${STUDENT_ROUTES.account}#plan` },
+  { label: "Tutor code", icon: "code", href: "/join" },
+  { label: "Messages", icon: "messages", href: "/dashboard/student/chat" },
 ];
 
 export default function StudentPortal({

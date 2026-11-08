@@ -34,7 +34,7 @@ export default function TutorStaffShell({
       name={name}
       accountDetail={email}
       home="/tutor"
-      menu={isAdmin ? [{ label: "Admin", href: "/admin" }] : []}
+      menu={isAdmin ? [{ label: "Admin", icon: "shield", href: "/admin" }] : []}
     >
       <Panel label="Tutor">
         <div className="kp-staff">{children}</div>

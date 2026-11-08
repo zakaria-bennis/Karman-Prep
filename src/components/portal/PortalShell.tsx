@@ -19,8 +19,9 @@ import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 import { portalFontVars } from "./fonts";
 import Greeting from "./Greeting";
 import { pickGreeting } from "./greetings";
-import { Flame, KarmanMark, PortalIcon, type PortalIconName } from "./icons";
+import { Flame, KarmanWordmark, PortalIcon, type PortalIconName } from "./icons";
 import PaintedBackdrop, { COLORS_KEY, PAINTED_IN_KEY } from "./PaintedBackdrop";
+import ThemeMusic from "./ThemeMusic";
 
 export interface PortalNavItem {
   href: string;
@@ -45,9 +46,10 @@ export interface PortalShellProps {
   satDate?: string | null;
   /** Days in a row, shown with a flame beside the fox. Leave out to hide it. */
   streak?: { days: number; href: string } | null;
-  /** Account menu items. "Profile and security" and "Sign out" are always added last. */
+  /** Account menu items. "Profile" and "Sign out" are always added last. */
   menu?: AccountMenuItem[];
-  /** Where the Karman mark at the top of the rail leads. */
+  /** Where the Karman logo leads: this portal's home, never the public site (founder,
+   *  2026-11-08: the logo must not leave the portal). Defaults to the first nav item. */
   home?: string;
 }
 
@@ -76,7 +78,7 @@ export default function PortalShell({
   satDate,
   streak,
   menu = [],
-  home = "/",
+  home,
 }: PortalShellProps) {
   const pathname = usePathname() ?? "";
   const clerk = useClerk();
@@ -156,15 +158,22 @@ export default function PortalShell({
   );
 
   const active = activeHref(pathname, nav);
+  const homeHref = home ?? nav[0]?.href ?? pathname;
   const items: AccountMenuItem[] = [
     ...menu,
-    { label: "Profile and security", onSelect: () => clerk.openUserProfile() },
-    { label: "Sign out", onSelect: () => void clerk.signOut({ redirectUrl: "/" }) },
+    { label: "Profile", icon: "profile", onSelect: () => clerk.openUserProfile() },
+    {
+      label: "Sign out",
+      icon: "signout",
+      quiet: true,
+      onSelect: () => void clerk.signOut({ redirectUrl: "/" }),
+    },
   ];
 
   return (
     <div className={`kp-shell ${portalFontVars}`} data-picture={tone ?? undefined}>
       <script dangerouslySetInnerHTML={{ __html: BOOT }} />
+      <ThemeMusic />
       <a className="kp-skip" href="#portal-main">
         Skip to content
       </a>
@@ -174,8 +183,8 @@ export default function PortalShell({
         <div className="kp-backdrop" aria-hidden="true" />
       )}
       <nav className="kp-nav" aria-label={`${portal} portal`} data-paint-keepout="">
-        <Link className="kp-brand" href={home} aria-label="Karman home">
-          <KarmanMark />
+        <Link className="kp-brand" href={homeHref} aria-label={`${portal} home`}>
+          <KarmanWordmark />
         </Link>
         {nav.map((n) => (
           <Link key={n.href} href={n.href} aria-current={active === n.href ? "page" : undefined}>
@@ -189,6 +198,14 @@ export default function PortalShell({
           </Link>
         ))}
       </nav>
+      <Link
+        className="kp-brand-m"
+        href={homeHref}
+        aria-label={`${portal} home`}
+        data-paint-keepout=""
+      >
+        <KarmanWordmark />
+      </Link>
       <div className="kp-appbar" data-paint-keepout="">
         {streak && (
           <Link
