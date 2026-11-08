@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Quiz top bar options</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f2efe8;
+        --card: #fff;
+        --ink: #16181d;
+        --mute: #5a5c63;
+        --line: rgb(0 0 0 / 0.12);
+        --accent: hsl(208 55% 38%);
+        --pick: hsl(208 55% 92%);
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b0d12;
+          --card: #14171d;
+          --ink: #eef0f4;
+          --mute: #a7afbd;
+          --line: rgb(255 255 255 / 0.12);
+          --accent: hsl(208 60% 70%);
+          --pick: hsl(208 30% 18%);
+          color-scheme: dark;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.5 "Hanken Grotesk", system-ui, sans-serif;
+        font-variant-numeric: lining-nums;
+      }
+      main {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 32px 16px 64px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font: 400 clamp(28px, 4vw, 40px) / 1.15 "Young Serif", Georgia, serif;
+      }
+      h2 {
+        margin: 40px 0 12px;
+        font-size: 20px;
+        font-weight: 650;
+      }
+      p {
+        margin: 0 0 12px;
+        max-width: 70ch;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+        margin: 20px 0 8px;
+      }
+      fieldset {
+        display: flex;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      legend {
+        float: left;
+        margin-right: 8px;
+        line-height: 44px;
+        color: var(--mute);
+        font-size: 14px;
+      }
+      fieldset label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--card);
+        cursor: pointer;
+        font-weight: 550;
+      }
+      fieldset input {
+        position: absolute;
+        opacity: 0;
+      }
+      fieldset label:has(input:checked) {
+        border-color: var(--ink);
+        box-shadow: inset 0 0 0 1px var(--ink);
+      }
+      fieldset label:has(input:focus-visible) {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .desktop {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .phones {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      @media (max-width: 760px) {
+        .desktop {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .phones {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      figure {
+        margin: 0;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--card);
+      }
+      figure.pick {
+        border-color: var(--accent);
+        box-shadow: inset 0 0 0 1px var(--accent);
+        background: var(--pick);
+      }
+      figcaption {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-weight: 650;
+      }
+      .tag {
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: var(--accent);
+        color: var(--bg);
+        font-size: 13px;
+        font-weight: 650;
+      }
+      figure a {
+        display: block;
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .why {
+        margin: 10px 0 0;
+        color: var(--mute);
+        font-size: 14px;
+        font-weight: 450;
+      }
+      ul.notes {
+        margin: 0;
+        padding-left: 20px;
+        max-width: 80ch;
+      }
+      ul.notes li {
+        margin-bottom: 6px;
+      }
+      code {
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>The quiz screen's top bar and margins</h1>
+      <p>
+        Three options next to today's version, on the same question. The question, the answer
+        buttons, the pencil, the highlighter and the calculator are the real ones, unchanged. Only
+        the top bar, the bottom bar's colors and the space around the question change. Colors
+        come from today's painting.
+      </p>
+      <div class="controls">
+        <fieldset>
+          <legend>Mode</legend>
+          <label><input type="radio" name="scheme" value="light" checked />Light</label>
+          <label><input type="radio" name="scheme" value="dark" />Dark</label>
+        </fieldset>
+        <fieldset>
+          <legend>Question</legend>
+          <label><input type="radio" name="q" value="math" checked />Math</label>
+          <label><input type="radio" name="q" value="rw" />Reading with a passage</label>
+        </fieldset>
+      </div>
+
+      <h2>Desktop, 1440 wide</h2>
+      <div class="grid desktop" data-size="1440"></div>
+
+      <h2>Phone, 390 wide</h2>
+      <div class="grid phones" data-size="390"></div>
+
+      <h2>Tablet, 768 wide (math only)</h2>
+      <div class="grid phones" data-size="768"></div>
+
+      <h2>What changes in all three</h2>
+      <ul class="notes">
+        <li>The bar is solid. No glass, nothing moving behind any text (the drifting stars go).</li>
+        <li>Square 4px corners. The clock and counters are in Hanken Grotesk with even-width figures.</li>
+        <li>The small uppercase line above the title goes (no eyebrow labels). Exit sits in the bar instead of inside More.</li>
+        <li>The main button takes the painting's accent with white text and a chevron.</li>
+        <li>
+          Phones: today the bar's tools are wider than a 390 phone when the calculator is on, so the
+          whole question slides off the right edge (see "Today" below). All three options fit. On a
+          phone the section name drops out of the bar; Exit, the clock and the tools stay.
+        </li>
+      </ul>
+      <p style="margin-top: 16px">
+        To click through the options live, run
+        <code>node .impeccable/mocks/quiz-topbar/lab/server.mjs</code> from the repo, then open
+        <code>http://127.0.0.1:4324/?option=a</code> (or <code>b</code>, <code>c</code>,
+        <code>today</code>; add <code>&amp;q=rw</code> for a reading passage).
+      </p>
+    </main>
+    <script>
+      const SHOTS = "../../../docs/overnight/reports/quiz-topbar/";
+      const OPTIONS = [
+        { id: "today", name: "Today", why: "As it ships: glass bar, gold button, uppercase label line." },
+        {
+          id: "a",
+          name: "A. Paper sheet",
+          pick: true,
+          why: "My pick: closest to Bluebook (dashed rule, labelled tools), the hue only as a line, so the question stays the hero.",
+        },
+        {
+          id: "b",
+          name: "B. Painting window",
+          why: "Most Karman: the still painting fills the margins, but on desktop it pulls the eye away from the question.",
+        },
+        {
+          id: "c",
+          name: "C. Navigator bar",
+          why: "Every question one tap away in the bar; useful, but a second row costs height and Bluebook keeps this at the bottom.",
+        },
+      ];
+      const state = { scheme: "light", q: "math" };
+      function render() {
+        for (const grid of document.querySelectorAll(".grid")) {
+          const size = grid.dataset.size;
+          const q = size === "768" ? "math" : state.q;
+          grid.innerHTML = OPTIONS.map((o) => {
+            const src = `${SHOTS}lab-${o.id}-${q}-${size}-${state.scheme}.png`;
+            return `<figure class="${o.pick ? "pick" : ""}">
+              <figcaption>${o.name}${o.pick ? ' <span class="tag">Pick</span>' : ""}</figcaption>
+              <a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt="${o.name}, ${size} wide, ${state.scheme}" loading="lazy" /></a>
+              <p class="why">${o.why}</p>
+            </figure>`;
+          }).join("");
+        }
+      }
+      for (const input of document.querySelectorAll("input[type=radio]"))
+        input.addEventListener("change", () => {
+          state[input.name] = input.value;
+          render();
+        });
+      if (matchMedia("(prefers-color-scheme: dark)").matches) {
+        state.scheme = "dark";
+        document.querySelector('input[value="dark"]').checked = true;
+      }
+      render();
+    </script>
+  </body>
+</html>
