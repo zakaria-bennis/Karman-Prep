@@ -44,7 +44,7 @@
 }
 :where(.ks) * { box-sizing: border-box; margin: 0; padding: 0; }
 .ks { background: var(--night); }
-.ks { color: var(--ink); font: 17px/1.55 var(--font-hanken), system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+.ks { color: var(--ink); font: 17px/1.55 var(--font-hanken), system-ui, sans-serif; font-variant-numeric: lining-nums; -webkit-font-smoothing: antialiased; overflow-x: clip; }
 .ks a { color: inherit; }
 .ks img, .ks video, .ks canvas, .ks svg { display: block; }
 .ks ol, .ks ul { list-style: none; }

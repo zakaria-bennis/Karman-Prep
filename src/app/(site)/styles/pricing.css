@@ -195,11 +195,11 @@
 }
 .ks .plan li::before {
   content: "";
-  width: 10px;
-  height: 2px;
+  width: 9px;
+  height: 9px;
   border-radius: 2px;
   background: var(--marigold);
-  margin-top: 0.7em;
+  margin-top: 0.42em;
 }
 .ks .plan .ghost {
   margin-top: auto;
