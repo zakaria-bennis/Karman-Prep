@@ -4,6 +4,10 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { QuizShell, type QuizShellProps } from "./QuizShell";
 import { modeFor } from "@/lib/quiz/mode";
 import { FIXTURE } from "../../../../tests/quiz-shell/fixture/questions";
+import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
+
+// The figure engine (tables included) loads lazily; loaded first, every figure renders at once.
+await loadFigureEngine();
 
 vi.mock("@/app/learn/saved-question-actions", () => ({
   actionSetBookmark: vi.fn(async () => ({ saved: true })),

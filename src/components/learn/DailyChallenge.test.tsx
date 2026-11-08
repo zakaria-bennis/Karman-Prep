@@ -105,7 +105,7 @@ describe("DailyChallenge", () => {
   it("picks the figure with drawnFigure: an invalid spec falls back to the stored image", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const invalid = { version: "figure-spec/1", type: "plane", parts: [{ kind: "blob" }] };
-    const { container } = render(
+    render(
       <DailyChallenge
         math={{
           state: "ready",
@@ -118,7 +118,9 @@ describe("DailyChallenge", () => {
         reading={{ state: "empty" }}
       />
     );
-    expect(container.querySelector('img[src="/old.png"]')).not.toBeNull();
+    // The question opens on the shared quiz shell, whose figure slot picks with drawnFigure.
+    fireEvent.click(screen.getByRole("button", { name: "Answer the Math challenge" }));
+    expect(document.querySelector('img[src="/old.png"]')).not.toBeNull();
     vi.restoreAllMocks();
   });
 });
