@@ -1,9 +1,9 @@
-/* A card on the account page with an id, so the account menu's links land on it. */
+/* A section of the Settings page, with an id so links (the menu's "Plan and billing") land on it. */
 import type { ReactNode } from "react";
 import { SectionHeader } from "@/components/portal";
-import s from "./account.module.css";
+import s from "./settings.module.css";
 
-export default function AccountCard({
+export default function SettingsCard({
   id,
   title,
   note,

@@ -11,7 +11,7 @@ import {
   MAX_DAYS_AHEAD,
   addDays,
   type TestType,
-} from "@/components/student-portal/account/test-dates";
+} from "@/components/student-portal/settings/test-dates";
 
 const NOT_REGISTERED = "not_registered";
 

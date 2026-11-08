@@ -22,18 +22,18 @@ afterEach(() => {
 });
 
 describe("theme music preference", () => {
-  it("is off when nothing is stored", () => {
+  it("is on when nothing is stored", () => {
     vi.stubGlobal("localStorage", fakeStorage());
-    expect(readThemeMusicPref()).toBe(false);
+    expect(readThemeMusicPref()).toBe(true);
   });
 
-  it("is off when storage is unavailable", () => {
+  it("is on when storage is unavailable", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => {
         throw new Error("blocked");
       },
     });
-    expect(readThemeMusicPref()).toBe(false);
+    expect(readThemeMusicPref()).toBe(true);
   });
 
   it("stores on and off and broadcasts the change", () => {

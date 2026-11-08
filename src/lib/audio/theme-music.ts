@@ -4,26 +4,44 @@
  * triangle pads, a sine bass, and a sparse D major pentatonic pluck with a feedback echo, all
  * through a gentle low-pass filter at a very low master volume.
  *
- * Off by default. The student turns it on with the Background music switch (a user gesture,
- * which browsers need before an AudioContext may sound). The choice is remembered on this device
- * under MUSIC_KEY; changes are broadcast on window as MUSIC_EVENT with `detail` "on" or "off".
+ * On by default (founder, 2026-11-08), very quietly. Browsers block sound until the first click
+ * or key press, so it starts on the first gesture of the page. The off switch is Settings, Sound
+ * and motion, Background music. The choice is remembered on this device under MUSIC_KEY; changes
+ * are broadcast on window as MUSIC_EVENT with `detail` "on" or "off".
  *
  * Scheduling: a lookahead timer (every 200 ms) queues the notes of the next second on the audio
  * clock, looping the score forever. Nothing touches `window` at import, so it is SSR-safe.
  */
 
-/** localStorage key: "on" plays the theme, anything else (or nothing) keeps it off. */
+/** localStorage key: "off" keeps the theme quiet; anything else (or nothing) plays it. */
 export const MUSIC_KEY = "karman-music";
 /** Fired on window when the student changes the choice, with `detail` "on" or "off". */
 export const MUSIC_EVENT = "karman-music-change";
 
 /* ---------- Preference ---------- */
 
+/** For useSyncExternalStore: calls back when this tab or another changes the choice. */
+export function subscribeThemeMusic(listener: () => void): () => void {
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === MUSIC_KEY) listener();
+  };
+  window.addEventListener(MUSIC_EVENT, listener);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener(MUSIC_EVENT, listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+/* The choice, when storage is blocked: it then lasts for this page only. */
+let memory: boolean | null = null;
+
 export function readThemeMusicPref(): boolean {
+  if (memory !== null) return memory;
   try {
-    return localStorage.getItem(MUSIC_KEY) === "on";
+    return localStorage.getItem(MUSIC_KEY) !== "off";
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -31,7 +49,7 @@ export function setThemeMusicPref(on: boolean): void {
   try {
     localStorage.setItem(MUSIC_KEY, on ? "on" : "off");
   } catch {
-    /* Storage blocked: the choice lasts for this page only. */
+    memory = on;
   }
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent(MUSIC_EVENT, { detail: on ? "on" : "off" }));
@@ -129,7 +147,7 @@ export function themeScore(): NoteEvent[] {
 
 /* ---------- Engine ---------- */
 
-const MASTER = 0.07;
+const MASTER = 0.05;
 const FADE = 2;
 const LOOKAHEAD = 1;
 const TICK_MS = 200;

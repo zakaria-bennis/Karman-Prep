@@ -1,5 +1,5 @@
 /*
- * The account page's forms, inside the painted shell. Colors come from the shell's variables
+ * The Settings page's forms, inside the painted shell. Colors come from the shell's variables
  * (portal.css), so light and dark follow the device. Squared 4px corners; 44px touch targets;
  * 16px text in fields so phones don't zoom.
  */
@@ -210,4 +210,39 @@
   .switch::after {
     transition: none;
   }
+}
+
+/* Appearance and Account: a label on the left, its value on the right, wrapping on a phone. */
+.fact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  min-height: 52px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.fact:first-of-type {
+  border-top: 0;
+}
+.fact > b {
+  font-weight: 600;
+}
+.fact > span {
+  min-width: 0;
+  color: var(--mute);
+  overflow-wrap: anywhere;
+}
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.swatch i {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--line);
 }

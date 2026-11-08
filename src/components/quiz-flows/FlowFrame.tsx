@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Card, Cta, Panel, PortalShell } from "@/components/portal";
-import { STUDENT_MENU } from "@/components/student-portal/StudentPortal";
+import { STUDENT_ROUTES } from "@/components/student-portal/StudentPortal";
 import type { ShellUser } from "./types";
 import s from "./flows.module.css";
 
@@ -24,7 +24,8 @@ export function FlowFrame({
       nav={user.nav}
       name={user.name}
       accountDetail={user.email}
-      menu={STUDENT_MENU}
+      menu={user.menu}
+      settingsHref={STUDENT_ROUTES.settings}
       home="/dashboard/student"
       title={title ?? " "}
       streak={{ days: user.streak, href: "/dashboard/student/progress#streak" }}

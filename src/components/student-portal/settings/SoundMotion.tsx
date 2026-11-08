@@ -1,20 +1,25 @@
 "use client";
 
 /*
- * Sound and motion. Sound effects use the app-wide switch (src/lib/sound-preference.ts), which is
- * off at the start of every visit by design. Quiz sounds are the quiz's reward jingles
- * (src/lib/quiz/reward-sound.ts), remembered on this device. "Keep the painting still" is stored
- * on this device under MOTION_KEY; the painting reads it. Background music is the portal theme
- * (src/lib/audio/theme-music.ts), off until turned on and remembered on this device.
+ * Settings, Sound and motion. Three switches, each remembered on this device:
+ * - Background music: the portal theme (src/lib/audio/theme-music.ts), on by default. The click
+ *   is the gesture browsers need, so it starts or stops the music at once.
+ * - Quiz sounds: the quiz's reward jingles (src/lib/quiz/reward-sound.ts), on by default.
+ *   Left out for parents (`quizSounds={false}`), who never take a quiz.
+ * - Reduce motion: holds the painting still and turns off the shell's springs and slides
+ *   (src/lib/painting/motion.ts). Locked on when the device already asks for less motion.
  */
 import { useEffect, useId, useState, useSyncExternalStore } from "react";
+import {
+  readThemeMusicPref,
+  setThemeMusicPref,
+  startThemeMusic,
+  stopThemeMusic,
+  subscribeThemeMusic,
+} from "@/lib/audio/theme-music";
 import { quizSoundsEnabled, setQuizSounds, subscribeQuizSounds } from "@/lib/quiz/reward-sound";
-import { setSoundEnabled, soundEnabled, subscribeSoundPreference } from "@/lib/sound-preference";
-import { MOTION_EVENT, MOTION_KEY, stillChosen } from "@/lib/painting/motion";
-import MusicToggle from "@/components/portal/MusicToggle";
-import s from "./account.module.css";
-
-const readMotion = stillChosen;
+import { MOTION_KEY, setStillChosen, stillChosen } from "@/lib/painting/motion";
+import s from "./settings.module.css";
 
 function Switch({
   label,
@@ -51,19 +56,19 @@ function Switch({
   );
 }
 
-export default function SoundMotion() {
-  const sound = useSyncExternalStore(subscribeSoundPreference, soundEnabled, () => false);
+export default function SoundMotion({ quizSounds = true }: { quizSounds?: boolean }) {
+  const music = useSyncExternalStore(subscribeThemeMusic, readThemeMusicPref, () => true);
   const quiz = useSyncExternalStore(subscribeQuizSounds, quizSoundsEnabled, () => true);
   const [still, setStill] = useState(false);
   const [deviceCalm, setDeviceCalm] = useState(false);
 
   useEffect(() => {
-    setStill(readMotion());
+    setStill(stillChosen());
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     setDeviceCalm(media.matches);
     const onMedia = () => setDeviceCalm(media.matches);
     const onStorage = (e: StorageEvent) => {
-      if (e.key === MOTION_KEY) setStill(readMotion());
+      if (e.key === MOTION_KEY) setStill(stillChosen());
     };
     media.addEventListener("change", onMedia);
     window.addEventListener("storage", onStorage);
@@ -73,31 +78,39 @@ export default function SoundMotion() {
     };
   }, []);
 
+  function changeMusic(next: boolean) {
+    if (next) startThemeMusic();
+    else stopThemeMusic();
+    setThemeMusicPref(next);
+  }
+
   function changeMotion(next: boolean) {
     setStill(next);
-    try {
-      if (next) localStorage.setItem(MOTION_KEY, "still");
-      else localStorage.removeItem(MOTION_KEY);
-    } catch {
-      /* Storage blocked: the choice lasts for this page only. */
-    }
-    window.dispatchEvent(new CustomEvent(MOTION_EVENT, { detail: next ? "still" : "move" }));
+    setStillChosen(next);
   }
 
   return (
     <div>
       <Switch
-        label="Sound effects"
-        sub="Turns off again each time you open Karman."
-        on={sound}
-        onChange={setSoundEnabled}
+        label="Background music"
+        sub="A soft Karman theme, very quiet. Remembered on this device."
+        on={music}
+        onChange={changeMusic}
       />
-      <Switch label="Quiz sounds" on={quiz} onChange={setQuizSounds} />
-      <MusicToggle />
+      {quizSounds && (
+        <Switch
+          label="Quiz sounds"
+          sub="A short chime for right answers and new levels."
+          on={quiz}
+          onChange={setQuizSounds}
+        />
+      )}
       <Switch
-        label="Keep the painting still"
+        label="Reduce motion"
         sub={
-          deviceCalm ? "Your device asks for less motion, so it already holds still." : undefined
+          deviceCalm
+            ? "Your device already asks for less motion, so this is on."
+            : "Holds the painting still and turns off slides and springs."
         }
         on={still || deviceCalm}
         disabled={deviceCalm}

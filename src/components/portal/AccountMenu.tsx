@@ -1,10 +1,11 @@
 "use client";
 
 /*
- * The fox avatar, top right. It opens the account menu: who is signed in, then a grid of big
- * tiles, each an icon and one or two words, then Sign out on its own line (founder, 2026-11-08:
- * "fun, clear and easy", generous tap targets). It springs open from the fox. Escape, a click
- * outside or a scroll closes it, and focus returns to the avatar. Arrow keys move between items.
+ * The fox avatar, top right. It opens the account menu as a drop-down list (founder,
+ * 2026-11-08: "come down in a list, not in this grid"): who is signed in, then one row per item,
+ * a small line icon and a short label, then Sign out on its own line. It springs down from the
+ * fox. Escape, a click outside or a scroll closes it, and focus returns to the avatar. Arrow
+ * keys move between rows.
  *
  * The menu renders into the shell itself, not inside the app bar: the bar's blur and its ink
  * (dark ink over a light painting) used to bleed into the menu and make it unreadable.
@@ -16,12 +17,12 @@ import { Fox } from "./Fox";
 import { PortalIcon, type PortalIconName } from "./icons";
 
 export interface AccountMenuItem {
-  /** One or two words ("Test date", "Sign out"). */
+  /** A short label ("Settings", "Invite a parent"). */
   label: string;
   icon?: PortalIconName;
   href?: string;
   onSelect?: () => void;
-  /** Sign out: shown on its own line below the tiles. */
+  /** Sign out: shown on its own line below a divider. */
   quiet?: boolean;
 }
 
@@ -81,13 +82,13 @@ export default function AccountMenu({
   }, [open, at, close]);
 
   const move = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const keys = ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"];
+    const keys = ["ArrowDown", "ArrowUp", "Home", "End"];
     if (!keys.includes(e.key)) return;
     const all = Array.from(menu.current?.querySelectorAll<HTMLElement>("[role=menuitem]") ?? []);
     if (!all.length) return;
     e.preventDefault();
     const now = all.indexOf(document.activeElement as HTMLElement);
-    const step = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : -1;
+    const step = e.key === "ArrowDown" ? 1 : -1;
     const next =
       e.key === "Home"
         ? 0
@@ -97,16 +98,14 @@ export default function AccountMenu({
     all[next].focus();
   };
 
-  const tiles = items.filter((it) => !it.quiet);
+  const rows = items.filter((it) => !it.quiet);
   const quiet = items.filter((it) => it.quiet);
 
   const entry = (it: AccountMenuItem, i: number, cls: string) => {
     const body = (
       <>
-        <span className="kp-tile-icon">
-          <PortalIcon name={it.icon ?? "settings"} size={22} />
-        </span>
-        <span className="kp-tile-label">{it.label}</span>
+        <PortalIcon name={it.icon ?? "settings"} size={20} />
+        <span>{it.label}</span>
       </>
     );
     const style = { "--i": i } as React.CSSProperties;
@@ -170,17 +169,15 @@ export default function AccountMenu({
           >
             {(name || detail) && (
               <div className="kp-menu-who" role="presentation">
-                <span className="kp-menu-fox" aria-hidden="true">
-                  <Fox size={44} />
-                </span>
                 <span>
                   {name && <b>{name}</b>}
                   {detail && <small>{detail}</small>}
                 </span>
               </div>
             )}
-            <div className="kp-menu-grid">{tiles.map((it, i) => entry(it, i, "kp-tile"))}</div>
-            {quiet.map((it, i) => entry(it, tiles.length + i, "kp-tile kp-tile-quiet"))}
+            {rows.map((it, i) => entry(it, i, "kp-menu-row"))}
+            {quiet.length > 0 && <div className="kp-menu-rule" role="separator" />}
+            {quiet.map((it, i) => entry(it, rows.length + i, "kp-menu-row kp-menu-quiet"))}
           </div>,
           host
         )}

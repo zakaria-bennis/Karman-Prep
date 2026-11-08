@@ -15,7 +15,7 @@ export const STUDENT_ROUTES = {
   library: "/dashboard/student/library",
   calendar: "/dashboard/student/schedule",
   progress: "/dashboard/student/progress",
-  account: "/dashboard/student/account",
+  settings: "/dashboard/student/settings",
 } as const;
 
 export function studentNav(
@@ -38,15 +38,20 @@ export function studentNav(
   return nav;
 }
 
-/** The account menu (founder, 2026-11-07). "Profile" and "Sign out" are added by the shell. */
-export const STUDENT_MENU: AccountMenuItem[] = [
-  { label: "Test date", icon: "test", href: `${STUDENT_ROUTES.account}#test` },
-  { label: "Invite parent", icon: "invite", href: "/dashboard/student/invite-parent" },
-  { label: "Sound", icon: "sound", href: `${STUDENT_ROUTES.account}#sound` },
-  { label: "Plan", icon: "money", href: `${STUDENT_ROUTES.account}#plan` },
-  { label: "Tutor code", icon: "code", href: "/join" },
-  { label: "Messages", icon: "messages", href: "/dashboard/student/chat" },
-];
+/**
+ * The account menu under the fox (founder, 2026-11-08: fewer items, each with an obvious point).
+ * The shell puts Settings first and Sign out last. Messages shows only when there is a group
+ * chat to open.
+ */
+export function studentMenu(ctx: Pick<StudentContext, "hasChat">): AccountMenuItem[] {
+  const menu: AccountMenuItem[] = [
+    { label: "Plan and billing", icon: "money", href: `${STUDENT_ROUTES.settings}#plan` },
+    { label: "Invite a parent", icon: "invite", href: "/dashboard/student/invite-parent" },
+  ];
+  if (ctx.hasChat)
+    menu.push({ label: "Messages", icon: "messages", href: "/dashboard/student/chat" });
+  return menu;
+}
 
 export default function StudentPortal({
   ctx,
@@ -67,7 +72,8 @@ export default function StudentPortal({
       accountDetail={ctx.email}
       satDate={ctx.testDate}
       streak={{ days: ctx.streak.current, href: `${STUDENT_ROUTES.progress}#streak` }}
-      menu={STUDENT_MENU}
+      menu={studentMenu(ctx)}
+      settingsHref={STUDENT_ROUTES.settings}
       home={STUDENT_HOME}
     >
       {children}

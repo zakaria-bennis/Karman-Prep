@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { Card, MoreLink, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
 import { CalendarSubscribe } from "@/components/dashboard/CalendarSubscribe";
 import { LinkStudentForm } from "@/components/parent/LinkStudentForm";
+import { PARENT_SETTINGS } from "@/components/parent/ParentShell";
 import { requireParentContext } from "@/lib/parent/server";
 
 export const metadata: Metadata = { title: "Parent portal" };
@@ -26,6 +27,7 @@ export default async function ParentHomePage() {
       name={ctx.viewer.firstName}
       accountDetail={ctx.viewer.email}
       home="/dashboard/parent"
+      settingsHref={PARENT_SETTINGS}
     >
       <Panel>
         {ctx.children.length ? (

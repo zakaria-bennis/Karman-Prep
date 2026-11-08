@@ -14,6 +14,8 @@ export function parentNav(child: Child): PortalNavItem[] {
   ];
 }
 
+export const PARENT_SETTINGS = "/dashboard/parent/settings";
+
 export function ParentShell({
   ctx,
   child,
@@ -34,14 +36,15 @@ export function ParentShell({
       name={ctx.viewer.firstName}
       accountDetail={ctx.viewer.email}
       home={`/dashboard/parent/${child.id}`}
+      settingsHref={PARENT_SETTINGS}
       menu={[
         { label: "Weekly email", icon: "mail", href: `/dashboard/parent/${child.id}/recap` },
         ...others.map((c) => ({
-          label: c.firstName,
+          label: `Switch to ${c.firstName}`,
           icon: "child" as const,
           href: `/dashboard/parent/${c.id}`,
         })),
-        { label: "Link student", icon: "link", href: "/dashboard/parent/link" },
+        { label: "Link another student", icon: "link", href: "/dashboard/parent/link" },
       ]}
     >
       {children}

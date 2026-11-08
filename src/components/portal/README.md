@@ -47,21 +47,23 @@ render its content straight into the shell. The working example is the student T
 
 ## PortalShell
 
-| Prop            | What it does                                                                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `portal`        | Who it is for, read by screen readers on the nav ("Student", "Parent").                                                                                      |
-| `nav`           | The portal's tabs: `{ href, label, icon, badge? }[]`. Rail on desktop, tab bar on phone. The active tab is the longest `href` the path starts with.          |
-| `title`         | The page heading, typed in. Leave it out on a home page to get a rotating greeting for the hour.                                                             |
-| `name`          | First name, for the greeting and the account menu.                                                                                                           |
-| `accountDetail` | Second line in the account menu, usually the email.                                                                                                          |
-| `satDate`       | ISO date. Adds the milestone greetings at 100, 60, 30, 14 and 7 days.                                                                                        |
-| `streak`        | `{ days, href }`. Shows the flame and count beside the fox. Leave out to hide.                                                                               |
-| `menu`          | Extra account menu items: `{ label, icon, href }` (or `onSelect` from a client component). One or two words each. "Profile" and "Sign out" are always added. |
-| `home`          | Where the Karman logo leads. Defaults to the first nav item: the logo never leaves the portal.                                                               |
+| Prop            | What it does                                                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `portal`        | Who it is for, read by screen readers on the nav ("Student", "Parent").                                                                               |
+| `nav`           | The portal's tabs: `{ href, label, icon, badge? }[]`. Rail on desktop, tab bar on phone. The active tab is the longest `href` the path starts with.   |
+| `title`         | The page heading, typed in. Leave it out on a home page to get a rotating greeting for the hour.                                                      |
+| `name`          | First name, for the greeting and the account menu.                                                                                                    |
+| `accountDetail` | Second line in the account menu, usually the email.                                                                                                   |
+| `satDate`       | ISO date. Adds the milestone greetings at 100, 60, 30, 14 and 7 days.                                                                                 |
+| `streak`        | `{ days, href }`. Shows the flame and count beside the fox. Leave out to hide.                                                                        |
+| `menu`          | The portal's own account menu items: `{ label, icon, href }` (or `onSelect` from a client component). A short label each, with an obvious point.      |
+| `settingsHref`  | This portal's Settings page. With it, "Settings" heads the menu; without it, "Account" opens Clerk's account window. "Sign out" is always added last. |
+| `home`          | Where the Karman logo leads. Defaults to the first nav item: the logo never leaves the portal.                                                        |
 
-The fox avatar springs open the account menu: who is signed in, a grid of big tiles (an icon and
-one or two words each), then Sign out on its own line. Escape, a click outside or a scroll closes
-it, and focus returns to the avatar. Arrow keys move between items.
+The fox avatar drops down the account menu as a list: who is signed in (name and email), then one
+row per item (a small line icon and a short label), then Sign out below a divider. Escape, a click
+outside or a scroll closes it, and focus returns to the avatar. Up and down arrows move between
+rows.
 
 Icons for `nav[].icon`: `today`, `homework`, `library`, `calendar`, `progress`, `students`,
 `child`, `messages`, `money`, `settings`, `school`, `questions`, `review`, `upload`, `code`,

@@ -103,7 +103,6 @@ export const LIFE_SCENES: [string, ...number[]][][] = [
     ["swallows", 0.2, 1, 0.6, 0.8],
     ["deer", 0.15, 0.6, 0.86],
     ["butterflies", 0.3, 1, 0.8, 0.98],
-    ["leaves", 0.7, 0.9, 0.45, 0.7],
     ["owl", 0.832, 0.5, 1],
     ["bats", 0.2, 0.9, 0.1, 0.4],
     ["shootingStar"],
