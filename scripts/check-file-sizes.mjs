@@ -32,6 +32,8 @@ const KNOWN_OFFENDERS = {
   "src/app/onboarding/questionnaire/QuestionnaireClient.tsx": 784,
   "src/components/diagnostic/DiagnosticClient.tsx": 717,
   "src/lib/supabase/queries/quiz.ts": 712,
+  // claude/import-dedup-spec grew it past 700; splitting it is import work (overnight, 2026-11-08).
+  "src/lib/question-bank/import-core.ts": 709,
 };
 
 /** Files exempt because they're machine-generated. */
