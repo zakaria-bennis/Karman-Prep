@@ -19,11 +19,14 @@ function Switch({
   sub,
   on,
   onChange,
+  disabled = false,
 }: {
   label: string;
   sub?: string;
   on: boolean;
   onChange: (on: boolean) => void;
+  /** Locked, for example when the device already asks for less motion. */
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -39,6 +42,7 @@ function Switch({
         aria-checked={on}
         aria-labelledby={`${id}-l`}
         aria-describedby={sub ? `${id}-s` : undefined}
+        disabled={disabled}
         onClick={() => onChange(!on)}
       />
     </div>
@@ -93,6 +97,7 @@ export default function SoundMotion() {
           deviceCalm ? "Your device asks for less motion, so it already holds still." : undefined
         }
         on={still || deviceCalm}
+        disabled={deviceCalm}
         onChange={changeMotion}
       />
     </div>

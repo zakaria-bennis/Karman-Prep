@@ -193,6 +193,10 @@
   background: var(--ink);
   transition: transform 0.25s cubic-bezier(0.2, 1.2, 0.4, 1);
 }
+.switch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .switch[aria-checked="true"] {
   background: var(--accent);
   border-color: transparent;
