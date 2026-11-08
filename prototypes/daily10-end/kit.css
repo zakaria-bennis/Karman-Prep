@@ -1,0 +1,119 @@
+/* Round four: the 21st.dev layer. Everything here sits under html.kit, so the switch shows both versions. */
+
+/* gallery switch */
+.kitsw { display: flex; align-items: center; height: 34px; padding: 3px 3px 3px 12px; border-radius: 999px; gap: 2px; }
+.kitsw span { font: 500 13px var(--font); color: var(--muted); margin-right: 6px; }
+.kitsw button { border: 0; background: none; color: var(--text); font: 500 13px var(--font); padding: 0 12px; height: 100%; border-radius: 999px; cursor: pointer; }
+.kitsw button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 22%, transparent); font-weight: 600; }
+.appopts .kitsw { justify-content: space-between; }
+
+/* Rolling Digits */
+.rd { display: inline-flex; padding-block: .14em; margin-block: -.14em; -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); vertical-align: baseline; }
+.rd-c { display: inline-grid; justify-items: center; overflow: visible; }
+.rd-g { grid-area: 1 / 1; display: block; will-change: transform, opacity; }
+
+/* Shimmer Button (Klyv): one sheen and one pointer light, both clipped by the button */
+.kit .k-shim { position: relative; isolation: isolate; overflow: hidden; }
+.kit .k-sheen { position: absolute; z-index: -1; top: 0; bottom: 0; left: 0; width: 34%; background: linear-gradient(100deg, transparent, color-mix(in srgb, #fff 55%, transparent), transparent); filter: blur(5px); pointer-events: none; animation: k-sweep 3.4s cubic-bezier(.45,0,.25,1) 1s infinite; transform: translateX(-140%); }
+@keyframes k-sweep { 0% { transform: translateX(-140%); } 42%, 100% { transform: translateX(360%); } }
+.kit .k-glow { position: absolute; z-index: -1; left: var(--gx, 50%); top: var(--gy, 50%); width: 140px; height: 140px; translate: -50% -50%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, #fff 50%, transparent), transparent 68%); filter: blur(14px); opacity: var(--go, 0); transition: opacity .35s; pointer-events: none; }
+.kit .savebtn, .kit .plink { transition: color .2s, border-color .2s; } .kit .plink:hover, .kit .savebtn:hover { color: var(--text); border-color: var(--text); }
+
+/* Spotlight: a soft light under the pointer, and the nearest part of the edge lit */
+.kit .ap-n.ok { box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 38%, transparent), inset 0 -1px 0 color-mix(in srgb, #000 16%, transparent); }
+.kit .k-spot { position: relative; isolation: isolate; }
+.kit .k-light, .kit .k-ring { position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s; }
+.kit .k-light { background: radial-gradient(260px circle at var(--sx, 50%) var(--sy, 50%), color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%); }
+.kit .k-ring { inset: -1px; padding: 1px; background: radial-gradient(220px circle at var(--sx, 50%) var(--sy, 50%), color-mix(in srgb, var(--accent) 60%, transparent), transparent 60%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.kit .k-spot.lit > .k-light, .kit .k-spot.lit > .k-ring { opacity: 1; }
+
+
+/* Border Beam: a short light that travels the offer's edge while it waits for a choice */
+@property --k-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.kit .k-beam { position: absolute; z-index: 1; inset: -1px; border-radius: inherit; padding: 1.5px; pointer-events: none; background: conic-gradient(from var(--k-a), transparent 0 72%, color-mix(in srgb, var(--accent) 30%, transparent) 84%, color-mix(in srgb, var(--accent) 50%, #fff) 94%, transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); animation: k-orbit 4.2s linear infinite; }
+@keyframes k-orbit { to { --k-a: 360deg; } }
+.kit .offer { position: relative; }
+
+/* Progress Bar: an inset track and a fill with a lit top edge */
+.kit .mb-track i { background: color-mix(in srgb, var(--text) 9%, var(--pane)); box-shadow: inset 0 1px 2px color-mix(in srgb, #000 22%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--text) 5%, transparent); }
+.kit .mb-track .f { box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 38%, transparent), inset 0 -1px 0 color-mix(in srgb, #000 18%, transparent); }
+
+/* Glass: the coin pill and the sheets carry a lit top edge, like a pane catching light */
+.kit .tokens { background: color-mix(in srgb, var(--text) 7%, var(--pane)); box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent), inset 0 -1px 0 color-mix(in srgb, #000 12%, transparent), 0 6px 16px -10px rgba(0,0,0,.4); }
+.kit .psheet, .kit .allsk { box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent), 0 -20px 60px -20px rgba(0,0,0,.45); }
+
+/* the prize: it tilts toward the pointer, and a highlight moves across it (Tilt Card + Glass Card specular) */
+.kit .prize .pitem-w { transform-style: preserve-3d; will-change: transform; }
+.kit .k-spec { position: absolute; inset: 8%; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side at var(--hx, 50%) var(--hy, 30%), color-mix(in srgb, #fff 28%, transparent), transparent 70%); mix-blend-mode: soft-light; }
+@media (pointer: coarse) { .kit .prize .pitem-w { animation: k-sway 5s ease-in-out infinite; } }
+.kit .viewport:not([data-dev="desktop"]) .prize .pitem-w { animation: k-sway 5s ease-in-out infinite; }
+@keyframes k-sway { 0%, 100% { transform: perspective(500px) rotateY(-8deg) rotateX(3deg); } 50% { transform: perspective(500px) rotateY(8deg) rotateX(-3deg); } }
+
+/* Segmented Control: one thumb slides between the segments */
+.kit .k-seg { position: relative; }
+.kit .k-thumb { position: absolute; z-index: 0; top: 3px; bottom: 3px; left: 3px; border-radius: 8px; background: light-dark(var(--pane), color-mix(in srgb, var(--text) 18%, var(--raised))); box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 .5px color-mix(in srgb, var(--text) 10%, transparent); pointer-events: none; }
+.kit .k-seg button { position: relative; z-index: 1; transition: color .2s; }
+.kit .k-seg button[aria-selected="true"] { background: none; box-shadow: none; }
+.kit .k-seg button[aria-selected="false"] { color: var(--muted); }
+.kit .k-seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+
+/* Drawer: a real handle you can pull down, and a header that drags the sheet */
+.kit .allsk .ps-grab { display: none; }
+.kit .k-handle { position: absolute; left: 0; right: 0; top: 0; height: 26px; cursor: grab; touch-action: none; z-index: 2; }
+.kit .k-handle::after { content: ''; position: absolute; left: 50%; top: 9px; width: 38px; height: 5px; margin-left: -19px; border-radius: 3px; background: var(--line-strong); transition: width .2s, margin .2s, background .2s; }
+.kit .k-handle:hover::after, .kit .allsk.dragging .k-handle::after { width: 48px; margin-left: -24px; background: var(--muted); }
+.kit .allsk header { touch-action: none; cursor: grab; }
+.kit .allsk.dragging, .kit .allsk.dragging header { cursor: grabbing; user-select: none; }
+
+/* Animated List: rows fade and rise in a short stagger */
+.kit .k-in { animation: k-rise .34s cubic-bezier(.2,0,0,1) calc(var(--i, 0) * 45ms) both; }
+@keyframes k-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Animated Shiny Text: the prize's name catches the light once */
+.kit .pname b { background: linear-gradient(100deg, var(--text) 0 40%, color-mix(in srgb, #f5c84f 75%, #fff) 50%, var(--text) 60% 100%); background-size: 260% 100%; background-position: 100% 0; -webkit-background-clip: text; background-clip: text; color: transparent; animation: k-shine 1.8s .5s cubic-bezier(.4,0,.2,1) both; }
+@keyframes k-shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+
+/* Burst: the confetti layer sits over the whole stage and never takes a tap */
+.k-confetti { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 60; pointer-events: none; }
+
+/* Animated Circular Progress Bar: the score sits inside a gauge that fills with each right answer */
+.kit .k-gauge { position: relative; width: 176px; height: 176px; display: grid; place-items: center; margin: 4px 0 2px; }
+.kit .k-gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.kit .k-gauge circle { fill: none; stroke-width: 7; stroke-linecap: round; transform-origin: 50% 50%; transition: stroke-dasharray .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1), opacity .3s; }
+.kit .k-gauge .g-val { stroke: var(--accent); transform: rotate(-90deg); stroke-dasharray: 0 283; }
+.kit .k-gauge .g-rest { stroke: color-mix(in srgb, var(--text) 11%, transparent); stroke-dasharray: 0 283; }
+.kit .k-gauge.done .g-val { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 70%, transparent)); }
+.kit .k-gauge .big.in-gauge { display: grid; justify-items: center; line-height: 1; font-size: 66px; }
+.kit .k-gauge .big.in-gauge .muted { display: block; font-size: 15px !important; font-weight: 500; margin-top: 4px; }
+@container pg (max-width: 560px) { .kit .k-gauge { width: 138px; height: 138px; } .kit .k-gauge .big.in-gauge { font-size: 52px; } .kit .k-gauge .big.in-gauge .muted { font-size: 13px !important; } .kit .k-gauge circle { stroke-width: 8; } }
+
+/* Blur In Text and Sparkles Text */
+.kit .k-word { display: inline-block; }
+.kit .r5-hero > .lbl { font: 600 19px var(--font); letter-spacing: -.01em; color: var(--text); text-transform: none; }
+.k-spk { position: relative; display: inline-block; }
+.k-star { position: absolute; width: 18px; height: 18px; pointer-events: none; z-index: 2; opacity: 0; }
+
+/* Aurora: three slow lights behind the results and the new companion */
+.kit .r5, .kit .unl { position: relative; isolation: isolate; }
+.k-aurora { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+.k-aurora span { position: absolute; width: 75%; aspect-ratio: 1; border-radius: 50%; opacity: .3; animation: k-drift 22s ease-in-out infinite alternate; }
+.k-aurora span:nth-child(1) { left: -15%; top: -30%; background: radial-gradient(closest-side, var(--accent), transparent); }
+.k-aurora span:nth-child(2) { left: 40%; top: -15%; background: radial-gradient(closest-side, var(--t1), transparent); animation-duration: 30s; animation-delay: -7s; }
+.k-aurora span:nth-child(3) { left: 10%; top: 35%; background: radial-gradient(closest-side, var(--t2), transparent); animation-duration: 37s; animation-delay: -14s; opacity: .22; }
+@keyframes k-drift { 0% { transform: translate(0, 0) scale(1) rotate(0deg); } 50% { transform: translate(14%, 10%) scale(1.15) rotate(25deg); } 100% { transform: translate(-8%, 16%) scale(.95) rotate(-15deg); } }
+.r5-hero { position: relative; }
+
+/* Achievement Unlocked: the companion arrives on a gold-rimmed medal, its name in a pill */
+.kit .unl .k-pill { display: inline-flex; align-items: center; height: 28px; padding: 0 13px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--text); font-size: 13px; }
+.k-medal { position: absolute; inset: 9%; border-radius: 50%; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 6%, transparent) 72%); box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 10%, transparent), 0 18px 40px -18px rgba(0,0,0,.5); animation: k-medal-in .7s cubic-bezier(.34,1.56,.64,1) both; }
+.k-medal::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 4px; background: conic-gradient(from 210deg, #fbe08a, #c58718, #f5c84f, #a96d14, #fbe08a); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+@keyframes k-medal-in { from { transform: scale(.55); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* the token pill flashes gold when the tokens land */
+.kit .tokens.k-flash { animation: k-flash .9s cubic-bezier(.22,1,.36,1); }
+@keyframes k-flash { 0% { box-shadow: 0 0 0 0 rgba(245,200,79,.75); background: color-mix(in srgb, #f5c84f 30%, var(--pane)); } 100% { box-shadow: 0 0 0 14px rgba(245,200,79,0); } }
+
+@media (prefers-reduced-motion: reduce) { .k-aurora span, .k-medal, .kit .tokens.k-flash { animation: none !important; } .kit .k-gauge circle { transition: none; } }
+
+@media (prefers-reduced-motion: reduce) { .kit .k-sheen, .kit .k-beam, .kit .prize .pitem-w { animation: none !important; } .kit .k-sheen { display: none; } .kit .k-in { animation: none; } }

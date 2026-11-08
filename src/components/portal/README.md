@@ -115,7 +115,9 @@ doesn't count) and the colors.
   Bob Ross's order, and the heading types along with it. Later pages show it finished. Reduced
   motion always shows it finished and still.
 - Once painted, the scene comes alive (birds, glints, smoke, deer, owls, fireflies) along with
-  the season's particles. A click on open painting scatters a few.
+  the season's particles. A click on open painting scatters a few. It runs at about 30 frames a
+  second, and after a minute with no input it rests on its last frame until the pointer moves,
+  a key is pressed or the tab comes back, so a page left open does not keep the computer busy.
 - The heavy work runs after the first paint, in its own code chunk, so the page is usable at
   once. The painting's hue sets `--hue`, `--hs` and `--accent`; the four level shades `--l1` to
   `--l4` are derived from them in `portal.css`.

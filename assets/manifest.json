@@ -1,0 +1,601 @@
+{
+  "about": "Clips and plates for the landing-page climb. Scenes are described in docs/design/scene-plan.md. A shot runs only when its status is \"approved\". Routes and prices are in scripts/generate-assets.mjs and docs/design/generation-models.md.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "16:9",
+    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. One continuous shot, slow and physical camera move, no cuts. No text, letters, numbers, logos, watermarks, neon, lens flare, bokeh circles, light orbs, purple, glowing orbs or rockets. Phone and laptop screens are never visible to the camera.",
+    "stillSuffix": "Shot on a full-frame camera, natural light, soft contrast, true skin texture with pores and fine detail, true colour, subtle fine film grain, editorial documentary photograph. No text, letters, numbers, logos, crests, brand marks or watermarks anywhere, including on clothing, signs and devices. Phone and laptop screens are never visible to the camera. No purple, neon or lens flare."
+  },
+  "cast": {
+    "ava": ".impeccable/mocks/decision/hf-shots/cast/ava.jpg",
+    "clara": ".impeccable/mocks/decision/hf-shots/cast/clara.jpg",
+    "mateo": ".impeccable/mocks/decision/hf-shots/cast/mateo.jpg",
+    "priya": ".impeccable/mocks/decision/hf-shots/cast/b5-priya.png",
+    "parent1": ".impeccable/mocks/decision/hf-shots/cast/b7-parent1.png",
+    "david": ".impeccable/mocks/decision/hf-shots/cast/david.jpg",
+    "lin": ".impeccable/mocks/decision/hf-shots/cast/lin.jpg",
+    "noah": ".impeccable/mocks/decision/hf-shots/cast/noah.jpg",
+    "sofia": ".impeccable/mocks/decision/hf-shots/cast/sofia.jpg"
+  },
+  "shots": [
+    {
+      "id": "c1",
+      "status": "approved",
+      "route": "wan-3.0",
+      "resolution": "720p",
+      "prompt": "6:10 a.m., before dawn in Palo Alto. One continuous 12-second shot that starts exactly on this image. Seconds 0 to 4: the camera holds still outside the kitchen window; inside, the girl finishes pouring coffee into her travel mug and screws on the lid; the reflection of the oak branches drifts slightly on the glass. Seconds 4 to 12: the camera pulls back from the window and rises slowly and steadily, a smooth crane move straight up: past the red tile roof of the Spanish-revival house, past bare oak branches, above a quiet street of large homes with a few warm windows, up toward a low layer of soft cloud in the deep blue pre-dawn sky, ending just beneath the cloud.",
+      "duration": 12,
+      "firstFrame": ".impeccable/mocks/decision/film/raw/stills/k1-kitchen-fix-2026-10-22T14-31-42.png"
+    },
+    {
+      "id": "c2",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "prompt": "@Image1 is Ava, a 16 year old girl. @Image2 shows the exact shuttle interior, her seat, clothes and light. One continuous 10-second shot at 6:52 a.m. Seconds 0 to 3: a tracking shot alongside the moving shuttle on a country road at sunrise, the camera keeping pace just outside its side windows; thick oak trunks pass between the camera and the shuttle in the foreground, sweeping across the frame, and between them we glimpse Ava through the window, the glass bright with the reflected sunrise. As one wide oak trunk passes close to the lens and fills the frame for an instant, the camera is now inside the shuttle, seated beside her, exactly as in @Image2. Seconds 3 to 7: she works on her phone held low in her lap, screen never visible to the camera, one white earbud in; a tiny frown, a tap, a small nod. Low sun strobes across her face as trees pass. Seconds 7 to 10: she looks up and out of the window; the camera drifts past her shoulder to the glass and tilts up into the open dawn sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 10,
+      "refs": [
+        "ava",
+        ".impeccable/mocks/decision/film/raw/stills/k2-bus-nb-2026-10-22T03-52-24.png"
+      ]
+    },
+    {
+      "id": "c3",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "prompt": "@Image1 is Ava's mother. @Image2 shows the exact car, school, clothes and light. One continuous 8-second shot at 3:15 p.m. on a bright winter afternoon in California. Seconds 0 to 2: locked close on the SUV's windshield; in sharp focus, the reflection of blue sky and live-oak branches on the glass; behind it, soft and out of focus, the driver. The focus slowly pulls through the glass: the reflection melts into blur and she comes into sharp focus in the driver's seat exactly as in @Image2. This is a real lens focus pull, not a dissolve or cross-fade. Seconds 2 to 5.5: she reads the weekly update on her phone held facing her, screen never visible to the camera; her shoulders drop a little, a small relieved smile; she sets the phone face down on her knee and looks out at the school. High school students aged 15 to 18 walk past in soft focus. Seconds 5.5 to 8: the camera rises up and over the SUV roof; the circular drive and red tile roofs fall away beneath; it ends on clear blue afternoon sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 8,
+      "refs": [
+        "parent1",
+        ".impeccable/mocks/decision/film/raw/stills/k3-pickup-nb-2026-10-22T03-53-05.png"
+      ]
+    },
+    {
+      "id": "c4",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "prompt": "@Image1 is Mateo, a 17 year old tennis player. @Image2 shows the exact courts, bench, clothes and golden-hour light. One continuous 8-second shot at 4:35 p.m. Seconds 0 to 2: extremely close on his dark sunglasses, the lenses reflecting the golden sky; he lifts them off slowly and the camera eases back to reveal him on the courtside bench exactly as in @Image2. Seconds 2 to 5.5: he types one short message on his phone with his thumb, screen never visible to the camera, then slips the phone into his bag. That is all he does. Seconds 5.5 to 8: the camera tilts slowly up past the court light pole into a warm amber sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 8,
+      "refs": [
+        "mateo",
+        ".impeccable/mocks/decision/film/raw/stills/k4-tennis-pro-2026-10-22T03-53-24.png"
+      ]
+    },
+    {
+      "id": "c5",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "prompt": "@Image1 is Priya, a 16 year old girl with glasses. @Image2 shows the exact bedroom, lamp and light. One continuous 8-second shot at 8:05 p.m. Seconds 0 to 2: close on her bedroom window from outside at night; in sharp focus, the reflection of the navy sky and the first stars on the glass; behind it, soft, the warm room. The focus pulls through the glass and she comes into focus at her desk, seen from a three-quarter angle, the plain back of her laptop lid at the frame edge with no logo. This is a real lens focus pull, not a dissolve or cross-fade. Seconds 2 to 6: she is in a live online class. She listens with a calm, still face, then answers in one short, calm sentence: small, natural mouth movements at a slow speaking pace, restrained expression, no exaggerated face or chin movement. Seconds 6 to 8: the camera drifts back and up away from the window into the night sky with the first stars. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 8,
+      "refs": [
+        "priya",
+        ".impeccable/mocks/decision/film/raw/stills/k5-priya-pro-2026-10-22T03-54-10.png"
+      ]
+    },
+    {
+      "id": "c6",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "prompt": "@Image1 is David, a Korean-American tutor in his thirties. @Image2 shows the exact home office, white linen-shaded lamp, microphone and light. One continuous 8-second shot at 9:00 p.m. Seconds 0 to 2: close on his office window from outside at night; in sharp focus, stars reflected on the dark glass; behind it, soft, the warm room. The focus pulls through the glass and he comes into focus at his desk exactly as in @Image2. This is a real lens focus pull, not a dissolve or cross-fade. Seconds 2 to 6: he explains something into the microphone at a calm, natural pace, one easy open-hand gesture, a slight smile; small natural mouth movements; the monitor faces him, screen never visible. Seconds 6 to 8: the camera arcs slowly to the window and up into the starry night sky. The final second is only sky: no land, no buildings, no person in frame. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 8,
+      "refs": [
+        "david",
+        ".impeccable/mocks/decision/film/raw/stills/k6-david-fix-2026-10-22T04-58-16.png"
+      ]
+    },
+    {
+      "id": "c7",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "prompt": "@Image1 is Ava (cream cable-knit sweater). @Image2 is Clara, a Chinese-American girl (grey quarter-zip). @Image3 shows the exact SAT check-in lobby, proctor, phone bin and steady flat grey morning light. One continuous 10-second shot at 7:40 a.m. on a Saturday in early March. The light stays exactly the same flat grey daylight for the whole shot, no change in brightness or colour. Seconds 0 to 3: close on Ava's hand holding her phone; she holds the side button and the dark screen stays dark; she lowers it into the clear bin beside the other phones and lets go. Seconds 3 to 6: the camera rises to her face: she shows a plain card to the proctor, who nods; Ava breathes out once, and walks with Clara toward the glass door of the testing room. Seconds 6 to 10: they go in; the glass door swings closed toward the camera, and the closing glass fills with the reflection of the pale grey sky from the tall lobby windows; the camera rises with the reflection until the frame is only pale grey sky. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "duration": 10,
+      "refs": [
+        "ava",
+        "clara",
+        ".impeccable/mocks/decision/film/raw/stills/k7-phones-2026-10-22T05-11-31.png"
+      ]
+    },
+    {
+      "id": "c8a",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "duration": 6,
+      "refs": [
+        "mateo",
+        ".impeccable/mocks/decision/film/raw/stills/k8-harvard-merch-2026-10-22T05-00-33.png"
+      ],
+      "prompt": "@Image1 is Mateo, now 18. @Image2 shows the exact Harvard Yard gate, his crimson HARVARD sweatshirt, tennis bag and early-September light. One continuous 6-second shot. Seconds 0 to 1.5: close on an old wavy pane of a brick dormitory window, in focus, reflecting elms and sky; the camera slides off the window and the focus moves to him walking through the brick and iron gate exactly as in @Image2. Seconds 1.5 to 6: he walks into the Yard at a natural pace, looks around once with a quiet half-smile, and keeps walking under the elms. The HARVARD lettering stays crisp and readable. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "textAllowed": true
+    },
+    {
+      "id": "c8b",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": true,
+      "duration": 6,
+      "refs": [
+        "priya",
+        ".impeccable/mocks/decision/film/raw/stills/k9-stanford-merch-2026-10-22T05-01-46.png"
+      ],
+      "prompt": "@Image1 is Priya, now 18. @Image2 shows the exact Stanford Main Quad arcade, her cardinal STANFORD sweatshirt and golden light. One continuous 6-second shot on a late-September afternoon. Seconds 0 to 1.5: close on the plain dark sunglasses pushed up in her hair, the lenses reflecting palm trees and sandstone arches; the camera eases back to reveal her under the arcade exactly as in @Image2. Seconds 1.5 to 6: she looks up at the arches with a calm, quiet face, lips closed, barely a smile, then turns and walks out into the sunlit quad. The STANFORD lettering stays crisp and readable. All movement is real-time and natural, unhurried, nothing rushed or exaggerated.",
+      "textAllowed": true
+    },
+    {
+      "id": "c8c",
+      "status": "approved",
+      "route": "seedance-2.5",
+      "draft": false,
+      "duration": 6,
+      "refs": [
+        "ava",
+        ".impeccable/mocks/decision/film/raw/stills/k10-berkeley-merch-2026-10-22T05-06-09.png"
+      ],
+      "prompt": "@Image1 is Ava, now 18. @Image2 shows the exact UC Berkeley steps, her navy BERKELEY hoodie, Sather Tower behind her and the clear late-August morning light. One continuous 6-second shot. Seconds 0 to 1.5: close on a shallow puddle on the granite steps, in focus, reflecting the blue sky and the white tower; her sneaker steps into it and the ripples break the reflection; the camera tilts smoothly up to her walking up the steps toward the camera exactly as in @Image2. Seconds 1.5 to 6: she climbs slowly at a calm natural pace toward the camera, body square to the camera, arms relaxed at her sides so nothing covers the lettering; the camera eases back steadily at her walking speed, no tilt, no swing. Her face stays sharp, natural and exactly like @Image1, with real skin texture; the gold BERKELEY lettering across her chest stays crisp, correctly spelled and perfectly stable the whole time. Sather Tower stays behind her, in soft focus.",
+      "textAllowed": true,
+      "resolution": "720p"
+    },
+    {
+      "id": "c8",
+      "status": "proposed",
+      "route": "nasa",
+      "source": "NASA Image and Video Library: GSFC_20180124_m12825_ISS_Airglow, or the JSC 4K Earth Views Extended Cut (2021). Public domain; no NASA logo, no implied endorsement."
+    },
+    {
+      "id": "p-program",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["ava"],
+      "where": "The SAT Program page, opening (beside the headline on desktop, above it on phones)",
+      "prompt": "A 16-year-old girl at her bedroom desk in the evening, in a live online class on her laptop, AirPods Pro in, leaning in, locked in, a small smile at something the tutor said. Warm desk lamp, bookshelves softly out of focus behind her. The laptop is turned away from the camera. Shot from the side at eye level, three-quarter view, room to the left of her for words. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-private",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["david"],
+      "where": "Private tutoring page, opening",
+      "prompt": "A tutor in his late twenties in his own home office, mid-explanation to a student on a video call, one hand gesturing, warm and attentive. Laptop on the desk facing away from the camera, a notebook-free tidy desk, a plant and a window with soft daylight. Side view, waist up, room to the left for words. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-test",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["mateo"],
+      "where": "Free practice test page, beside the sign-up form",
+      "prompt": "A 17-year-old boy at a kitchen table taking a timed practice test on a laptop, AirPods in, chin on his hand, concentrating hard. Soft daylight from a side window, a glass of water by the laptop. The laptop screen faces away from the camera. Three-quarter view from slightly behind his shoulder line, never showing the screen. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-guarantee",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["parent1"],
+      "where": "Guarantee page, next to the worked examples",
+      "prompt": "A parent in their forties at home on the sofa, reading something on a phone with a calm, reassured expression, a cup of tea on the side table. The phone screen faces away from the camera. Soft evening light, natural, unposed, editorial. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-about",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["priya"],
+      "where": "About page, the 'three things we won't do' section",
+      "prompt": "Three 16 and 17 year old teammates on a bench during a break at volleyball practice in a school gym, each doing a quick practice set on their phone, one showing another something on her phone, focused with small smiles. Phone screens face away from the camera. Gym light, warm, documentary. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "p-pricing",
+      "status": "approved",
+      "kind": "still",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "refs": ["clara"],
+      "where": "Pricing page, beside the plans on desktop and between the plans and the guarantee on phones",
+      "prompt": "A parent and their 16-year-old daughter at a kitchen counter looking at a laptop together and talking it through, relaxed, the daughter pointing at something. The laptop is turned away from the camera. Natural light, warm, documentary, room to one side for words. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "approved": "2026-10-25 founder",
+      "note": "Seedream 5 edit on Atlas (founder choice 2026-10-25); downloads need a network that reaches volces.com. Final photos are self-hosted, so visitors never reach that CDN."
+    },
+    {
+      "id": "v-daily",
+      "status": "approved",
+      "route": "wan-3.0",
+      "firstFrame": ".impeccable/mocks/decision/film/raw/stills/p-daily-2026-10-27T01-37-15.png",
+      "ratio": "3:4",
+      "duration": 5,
+      "resolution": "720p",
+      "approved": "2026-10-26 founder (clips ok)",
+      "where": "Home, Daily 10, behind the phone (loops)",
+      "prompt": "The boy on the bleachers keeps answering on his phone, thumbs tapping lightly, a small nod as he gets one right, a soft breeze moves the towel edge; teammates stretch slowly far behind. Camera almost still, a very slight slow push in. Calm, natural motion, no cuts."
+    },
+    {
+      "id": "v-call",
+      "status": "approved",
+      "route": "wan-3.0",
+      "firstFrame": ".impeccable/mocks/decision/film/raw/stills/p-call-2026-10-27T01-46-43.png",
+      "ratio": "3:4",
+      "duration": 5,
+      "resolution": "720p",
+      "approved": "2026-10-26 founder (clips ok)",
+      "where": "Program page, beside how to join (loops)",
+      "prompt": "The mother and daughter keep listening to the video call, the daughter nods slightly and smiles, the mother lowers her hand from her chin and nods; the pendant light glows steadily. Camera almost still, a very slight slow push in. Calm, natural motion, no cuts."
+    }
+  ],
+  "plates": [
+    {
+      "id": "clouds-near",
+      "status": "proposed",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "prompt": "A thin layer of soft cumulus cloud seen from just above, edge to edge, natural daylight, on a plain dark background for compositing, no horizon."
+    },
+    {
+      "id": "clouds-far",
+      "status": "proposed",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "prompt": "High, wispy cirrus cloud seen from above at dusk, sparse, natural colour, plain dark background for compositing."
+    }
+  ],
+  "stills": [
+    {
+      "id": "k1-kitchen-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:10 a.m., before dawn, a Spanish-revival house on an oak-lined street in Palo Alto. Seen from outside through a large kitchen window: the glass reflects a deep blue pre-dawn sky with a few faint stars and the dark silhouette of a live oak; through that reflection we see the warm lit kitchen, white plaster walls, a marble counter, and the girl from Image 1 in an oversized grey hoodie, half asleep, pouring coffee from a pour-over into a steel travel mug. Her phone lies face down on the counter. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k1-kitchen-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:10 a.m., before dawn, a Spanish-revival house on an oak-lined street in Palo Alto. Seen from outside through a large kitchen window: the glass reflects a deep blue pre-dawn sky with a few faint stars and the dark silhouette of a live oak; through that reflection we see the warm lit kitchen, white plaster walls, a marble counter, and the girl from Image 1 in an oversized grey hoodie, half asleep, pouring coffee from a pour-over into a steel travel mug. Her phone lies face down on the counter. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k2-bus-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:52 a.m., inside a quiet private school shuttle bus with dark seats. The girl from Image 1 sits by the window in a cream sweater, one white earbud in, holding her phone low in her lap with its back to the camera, its soft glow on her face, focused, a tiny frown of concentration. Low sunrise light strobes gold through the windows; green winter hills and oaks blur past outside; a faint reflection of the peach dawn sky lies across the window glass. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k2-bus-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "6:52 a.m., inside a quiet private school shuttle bus with dark seats. The girl from Image 1 sits by the window in a cream sweater, one white earbud in, holding her phone low in her lap with its back to the camera, its soft glow on her face, focused, a tiny frown of concentration. Low sunrise light strobes gold through the windows; green winter hills and oaks blur past outside; a faint reflection of the peach dawn sky lies across the window glass. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k3-pickup-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["parent1"],
+      "prompt": "3:15 p.m., bright clear winter afternoon. Exterior three-quarter view through the windshield of a glossy black full-size luxury SUV of the Range Rover kind, no badge or emblem visible. The windshield reflects blue sky and live-oak branches; behind the glass the woman from Image 1, in a camel coat and small gold earrings, sits in the driver's seat reading her phone held up facing her, a quiet relieved half-smile. Soft-focus background: a private prep school of cream stucco walls, red clay tile roofs and an arched loggia, clipped boxwood hedges, a circular drive, and high school students aged 15 to 18 in quarter-zips and fleece vests with backpacks and one lacrosse stick walking past. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k3-pickup-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["parent1"],
+      "prompt": "3:15 p.m., bright clear winter afternoon. Exterior three-quarter view through the windshield of a glossy black full-size luxury SUV of the Range Rover kind, no badge or emblem visible. The windshield reflects blue sky and live-oak branches; behind the glass the woman from Image 1, in a camel coat and small gold earrings, sits in the driver's seat reading her phone held up facing her, a quiet relieved half-smile. Soft-focus background: a private prep school of cream stucco walls, red clay tile roofs and an arched loggia, clipped boxwood hedges, a circular drive, and high school students aged 15 to 18 in quarter-zips and fleece vests with backpacks and one lacrosse stick walking past. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k4-tennis-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "4:35 p.m., golden hour at outdoor hard tennis courts of a private school in the foothills, dark green windscreens on the fence, long shadows across the court. The boy from Image 1 in plain tennis whites sits on the courtside bench at a changeover, a white towel around his neck, racquet bag beside him, thumb-typing on his phone held facing him, a steel water bottle at his feet. His opponent towels off on the far bench, out of focus. Green winter hills and oaks beyond the fence glow amber. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k4-tennis-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "4:35 p.m., golden hour at outdoor hard tennis courts of a private school in the foothills, dark green windscreens on the fence, long shadows across the court. The boy from Image 1 in plain tennis whites sits on the courtside bench at a changeover, a white towel around his neck, racquet bag beside him, thumb-typing on his phone held facing him, a steel water bottle at his feet. His opponent towels off on the far bench, out of focus. Green winter hills and oaks beyond the fence glow amber. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k5-priya-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "8:05 p.m., a bedroom at night. The camera is behind and slightly beside an open laptop, so only the back edge of the silver lid shows at the left of frame. The girl with glasses from Image 1 is speaking mid-sentence on a video call, one hand raised, explaining her answer with quiet confidence; her face is lit cool by the screen and warm by a brass desk lamp. Behind her a window shows deep navy night with the first stars above dark hills; a bookshelf, a plant. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k5-priya-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "8:05 p.m., a bedroom at night. The camera is behind and slightly beside an open laptop, so only the back edge of the silver lid shows at the left of frame. The girl with glasses from Image 1 is speaking mid-sentence on a video call, one hand raised, explaining her answer with quiet confidence; her face is lit cool by the screen and warm by a brass desk lamp. Behind her a window shows deep navy night with the first stars above dark hills; a bookshelf, a plant. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k6-david-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["david"],
+      "prompt": "9:00 p.m., a warm home office at night. The man from Image 1 sits at a walnut desk speaking into a broadcast microphone on a black boom arm, explaining with one open hand, a slight smile, looking at a monitor that faces him at the edge of frame with its screen not visible. Warm brass lamp, oak bookshelves of books with plain spines, a fiddle-leaf fig. The dark window beside him shows a few stars and reflects the lamp. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k6-david-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["david"],
+      "prompt": "9:00 p.m., a warm home office at night. The man from Image 1 sits at a walnut desk speaking into a broadcast microphone on a black boom arm, explaining with one open hand, a slight smile, looking at a monitor that faces him at the edge of frame with its screen not visible. Warm brass lamp, oak bookshelves of books with plain spines, a fiddle-leaf fig. The dark window beside him shows a few stars and reflects the lamp. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k7-test-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava", "clara"],
+      "prompt": "7:40 a.m. on a Saturday in early March under flat grey marine-layer light. Seen from behind and slightly to one side, the girl from Image 1 (cream sweater) and the girl from Image 2 (grey quarter-zip) walk side by side and in step toward tall glass doors of a cream stucco school building with a red tile roof. No headphones. Calm, quiet. The glass doors reflect the pale grey sky and their approaching figures; warm light glows inside the building. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k7-test-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava", "clara"],
+      "prompt": "7:40 a.m. on a Saturday in early March under flat grey marine-layer light. Seen from behind and slightly to one side, the girl from Image 1 (cream sweater) and the girl from Image 2 (grey quarter-zip) walk side by side and in step toward tall glass doors of a cream stucco school building with a red tile roof. No headphones. Calm, quiet. The glass doors reflect the pale grey sky and their approaching figures; warm light glows inside the building. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k8-harvard-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "Early September afternoon in Harvard Yard, Cambridge, Massachusetts. The boy from Image 1, now 18, in a navy quarter-zip with a tennis bag over his shoulder, walks through an old red-brick and wrought-iron gate onto a path under tall elms toward red-brick Georgian dormitories with white trim and ivy; a few first orange leaves; warm side light. Seen from behind at three-quarters, his face half turned. No signs, plaques or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k8-harvard-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["mateo"],
+      "prompt": "Early September afternoon in Harvard Yard, Cambridge, Massachusetts. The boy from Image 1, now 18, in a navy quarter-zip with a tennis bag over his shoulder, walks through an old red-brick and wrought-iron gate onto a path under tall elms toward red-brick Georgian dormitories with white trim and ivy; a few first orange leaves; warm side light. Seen from behind at three-quarters, his face half turned. No signs, plaques or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k9-stanford-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "Late September golden afternoon at Stanford University's Main Quad. The girl from Image 1, now 18, with sunglasses pushed up into her hair and a canvas tote, stands under the sandstone arcade and looks up at the arches and red clay tile roofs with a small private smile; palms and a long arcade receding behind her; warm light. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k9-stanford-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["priya"],
+      "prompt": "Late September golden afternoon at Stanford University's Main Quad. The girl from Image 1, now 18, with sunglasses pushed up into her hair and a canvas tote, stands under the sandstone arcade and looks up at the arches and red clay tile roofs with a small private smile; palms and a long arcade receding behind her; warm light. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k10-berkeley-pro",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "Late August morning at UC Berkeley. The girl from Image 1, now 18, with a backpack on one shoulder, walks up wide granite steps through tall eucalyptus trees; ahead, Sather Tower, the tall white granite campanile, rises above the trees against a clear blue sky; dry golden hills in the distance. Seen from behind at three-quarters, her face slightly turned toward the tower. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k10-berkeley-nb",
+      "status": "approved",
+      "route": "nano-banana-2.1",
+      "ratio": "16:9",
+      "refs": ["ava"],
+      "prompt": "Late August morning at UC Berkeley. The girl from Image 1, now 18, with a backpack on one shoulder, walks up wide granite steps through tall eucalyptus trees; ahead, Sather Tower, the tall white granite campanile, rises above the trees against a clear blue sky; dry golden hills in the distance. Seen from behind at three-quarters, her face slightly turned toward the tower. No signs or lettering. Wide 16:9 cinematic frame, 35mm lens, the person placed near the centre of the frame so a vertical crop also works. California in February."
+    },
+    {
+      "id": "k8-harvard-fix",
+      "status": "approved",
+      "route": "nano-banana-pro",
+      "ratio": "16:9",
+      "refs": [".impeccable/mocks/decision/film/raw/stills/k8-harvard-nb-2026-10-22T03-56-47.png"],
+      "prompt": "Edit this photograph. Keep everything else exactly the same: the same person, face, pose, framing, camera angle, light and colours. Only change this: the two tennis racquet handle butt caps sticking out of his bag must be plain white with no emblem, and the bag must have no logo or brand mark anywhere."
+    },
+    {
+      "id": "k6-david-fix",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [".impeccable/mocks/decision/film/raw/stills/k6-david-pro-2026-10-22T03-55-02.png"],
+      "prompt": "Edit this photograph. Keep everything else exactly the same: the same person, face, pose, framing, camera angle, light and colours. Only change this: replace the brass dome desk lamp with a ribbed white ceramic table lamp with a natural linen drum shade, standing on the desk, giving the same warm glow; the lamp reflected in the dark window becomes the same white linen-shaded lamp. No brass lamp anywhere."
+    },
+    {
+      "id": "k8-harvard-merch",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        ".impeccable/mocks/decision/film/raw/stills/k8-harvard-nb-2026-10-22T03-56-47.png",
+        "mateo"
+      ],
+      "prompt": "Keep the same person, face, place, camera angle and natural light as the reference photo. The young man from the second image, age 18, walks through the old red-brick and wrought-iron gate into Harvard Yard under tall elms, seen from three-quarters behind with his face turned back over his shoulder, as in the first image. He now wears a crimson crewneck sweatshirt with HARVARD in large white varsity block letters across the chest, clearly readable because his body is turned three-quarters toward the camera. The tennis bag on his shoulder is plain with no brand marks, and the racquet handles are plain white. The lettering is crisp, correctly spelled, and printed the way real university merchandise is printed. No other text or logos anywhere in the image."
+    },
+    {
+      "id": "k9-stanford-merch",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        ".impeccable/mocks/decision/film/raw/stills/k9-stanford-pro-2026-10-22T03-57-08.png",
+        "priya"
+      ],
+      "prompt": "Keep the same person, face, place, camera angle and natural light as the reference photo. The young woman from the second image, now 18, stands under the sandstone arcade of Stanford's Main Quad as in the first image, with plain dark sunglasses pushed up into her hair. She now wears a cardinal-red crewneck sweatshirt with STANFORD in white varsity letters across the chest. Calm, quiet, natural expression, lips closed, looking up at the arches. The lettering is crisp, correctly spelled, and printed the way real university merchandise is printed. No other text or logos anywhere in the image."
+    },
+    {
+      "id": "k10-berkeley-merch",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        "ava",
+        ".impeccable/mocks/decision/film/raw/stills/k10-berkeley-nb-2026-10-22T03-58-11.png"
+      ],
+      "prompt": "The young woman from the first image, now 18, at UC Berkeley on a clear late-August morning, using the place and light of the second image. The camera is a few steps above her, looking back down the wide granite steps: she walks up the steps toward the camera, body square to the camera, and behind her the tall white Sather Tower rises over eucalyptus trees against a clear blue sky, with dry golden hills in the distance. She wears a navy blue hoodie with BERKELEY in gold varsity letters straight across the chest, the whole word fully visible and uncovered; both backpack straps sit on her shoulders outside the lettering. Calm, natural expression, lips closed. Framed from the knees up, 35mm lens. The lettering is crisp and correctly spelled. No other text or logos anywhere."
+    },
+    {
+      "id": "k7-phones",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [
+        "ava",
+        "clara",
+        ".impeccable/mocks/decision/film/raw/stills/k7-test-nb-2026-10-22T03-56-04.png"
+      ],
+      "prompt": "7:40 a.m. on a Saturday in early March, SAT test day, inside the bright entrance lobby of the cream stucco private school from the third image, flat grey morning daylight from tall windows. A check-in table with a calm adult proctor wearing a plain lanyard, and a clear plastic bin already holding several switched-off phones. The girl from the first image (cream cable-knit sweater, light-brown ponytail) stands at the table, about to drop her switched-off phone into the bin, holding a plain card in her other hand. The girl from the second image (grey quarter-zip, straight black hair) waits just behind her. Two or three other high school students aged 16 to 18 wait in a short line with their own phones, a glass door to a classroom beyond. Quiet, focused, ordinary. 35mm lens, natural light, the girl at the table near the centre of the frame. Phone screens are dark and face away. No text, signs, letters or logos anywhere."
+    },
+    {
+      "id": "k1-kitchen-fix",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "16:9",
+      "refs": [".impeccable/mocks/decision/film/raw/stills/k1-kitchen-pro-2026-10-22T03-51-21.png"],
+      "prompt": "Edit this photograph. Keep everything exactly the same: the same girl, face, hair, pose, framing, kitchen and light. Only change one thing: in the window reflection just left of the girl's head there is a blurry reflected building with lit shapes that look like letters. Remove that building entirely and replace it with dark oak leaves against the deep blue pre-dawn sky. No letters, signs or lit shapes anywhere in the reflection."
+    },
+    {
+      "id": "cast-lin",
+      "status": "approved",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new characters ok)",
+      "prompt": "Lin, a Chinese-American woman in her early thirties, an SAT tutor, shoulder-length straight black hair, thin gold-rim glasses, oatmeal knit cardigan over a white tee, warm and sharp. Editorial portrait photograph, chest up, looking slightly off camera, calm and focused with at most a small closed-mouth smile, soft window light, plain warm interior background softly out of focus, 4:5 frame."
+    },
+    {
+      "id": "cast-noah",
+      "status": "approved",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new characters ok)",
+      "prompt": "Noah, a 17-year-old Black American high school boy, short twists, a plain heather-grey zip track jacket, a cross-country runner, thoughtful. Editorial portrait photograph, chest up, looking slightly off camera, calm and focused with at most a small closed-mouth smile, soft window light, plain warm interior background softly out of focus, 4:5 frame."
+    },
+    {
+      "id": "cast-sofia",
+      "status": "approved",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new characters ok)",
+      "prompt": "Sofia, a 16-year-old Mexican-American high school girl, long dark curly hair loosely tied back, small gold hoop earrings, a sage green crewneck sweatshirt, quietly determined. Editorial portrait photograph, chest up, looking slightly off camera, calm and focused with at most a small closed-mouth smile, soft window light, plain warm interior background softly out of focus, 4:5 frame."
+    },
+    {
+      "id": "p-lin",
+      "refs": ["lin"],
+      "where": "Private tutoring page and home tutors section",
+      "prompt": "The woman from Image 1, Lin, a tutor in her early thirties, at her own home desk in the late afternoon, on a video call with a student, mid-explanation, one hand open as she makes a point, AirPods Pro in. The laptop faces away from the camera. Plants and a linen curtain softly out of focus behind her, warm side light. Three-quarter view from slightly beside the laptop, room to the right of her. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-daily",
+      "refs": ["noah"],
+      "where": "Home, beside the Daily 10 phone",
+      "prompt": "The boy from Image 1, Noah, 17, sitting on aluminium bleachers beside a running track just after cross-country practice, golden late-afternoon light, a water bottle and a folded towel beside him, AirPods Pro in, answering questions on his phone held in both hands, focused with a very small smile. The phone screen faces away from the camera. Teammates stretching far in the background, out of focus. Shot from slightly below at eye level, three-quarter view. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-start",
+      "refs": ["sofia"],
+      "where": "Home guarantee section, the starting point of the score line",
+      "prompt": "The girl from Image 1, Sofia, 16, just home from school, standing at a kitchen island with her backpack still on one shoulder, opening a laptop to start a practice test, a glass of water beside it, focused and a little determined. The laptop screen faces away from the camera. Soft afternoon light through a big window, warm wood and white stone kitchen, out of focus behind her. Three-quarter view. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-call",
+      "refs": ["sofia"],
+      "where": "Program page apply section and pricing: the call with Karman",
+      "prompt": "The girl from Image 1, Sofia, 16, sitting beside her mother, a Mexican-American woman in her mid forties in a soft cream sweater, at a dining table in the early evening, both on a video call on one laptop, listening closely, the mother with a hand near her chin, Sofia leaning in. The laptop faces away from the camera. Warm pendant light, a calm well-kept home softly out of focus. Shot from across the table at a slight angle. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-bus",
+      "refs": ["noah"],
+      "where": "Pricing self-paced card and the research page",
+      "prompt": "The boy from Image 1, Noah, 17, in a window seat on a city bus in the morning, a backpack on his lap, AirPods Pro in, doing practice questions on his phone, calm and focused. The phone screen faces away from the camera. Soft morning light through the window, the city passing in a gentle blur outside. Shot from the seat across the aisle, three-quarter view. No paper, notebooks, worksheets, printed books on the desk or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "status": "approved",
+      "route": "seedream-5-edit",
+      "ratio": "4:5",
+      "approved": "2026-10-26 founder (new photos ok)"
+    },
+    {
+      "id": "p-school-class",
+      "status": "approved",
+      "approved": "2026-10-31 founder (all needed image and short video creation approved, in chat)",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Pricing page, the School band; school portal prototype, the admin overview",
+      "prompt": "A high-school classroom in the late morning, eleven students of 16 and 17 at desks on laptops, focused, a teacher standing beside one desk helping, natural window light, documentary. Laptop screens face away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos. 16:9 frame.",
+      "quote": "$0.10 (flux-3 fixed estimate, dry run 2026-10-31; fal balance fell about $0.07 for it)",
+      "note": "Proposed in the first pass (2026-10-31). Generated 2026-10-31 on flux-3 as proposed, after two routes that honour the ratio at 2K failed without charge: nano-banana-2-fal needs a reference image (fal 422) and nano-banana-2.1 found the Google prepaid credits depleted (402). The script sends flux-3 only the prompt (aspect auto, 1k tier), so the 16:9 frame is named at the end of the prompt like the cast portraits; content unchanged. Raw: raw/stills/p-school-class-2026-10-31T07-21-12.png, 1360x768 (JPEG data in a .png name, the endpoint default). The spend log shows $0.00 because the fal balance updates late; it fell $0.14 for this still and p-teacher together. Converted by hand, upscaled 1.18x, to film/photos/p-school-class.webp (1600x900) and -800 (800x450), copied to prototypes/portals/public/photos/."
+    },
+    {
+      "id": "p-teacher",
+      "status": "approved",
+      "approved": "2026-10-31 founder (all needed image and short video creation approved, in chat)",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "School portal prototype, the teacher view",
+      "prompt": "A teacher in her forties at her classroom desk after school, reading something on a laptop with a calm, attentive expression, a mug beside the laptop, late afternoon window light, documentary. The laptop screen faces away from the camera. No paper, notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos. 4:5 frame.",
+      "quote": "$0.10 (flux-3 fixed estimate, dry run 2026-10-31; fal balance fell about $0.07 for it)",
+      "note": "Proposed in the first pass (2026-10-31). Generated 2026-10-31 on flux-3 as proposed, after two routes that honour the ratio at 2K failed without charge: nano-banana-2-fal needs a reference image (fal 422) and nano-banana-2.1 found the Google prepaid credits depleted (402). The script sends flux-3 only the prompt (aspect auto, 1k tier), so the 4:5 frame is named at the end of the prompt like the cast portraits; content unchanged. Raw: raw/stills/p-teacher-2026-10-31T07-21-50.png, 912x1152 (JPEG data in a .png name, the endpoint default). The spend log shows $0.00 because the fal balance updates late; it fell $0.14 for this still and p-school-class together. Converted by hand, upscaled 1.54x, to film/photos/p-teacher.webp (1400x1750) and -800 (800x1000), copied to prototypes/portals/public/photos/."
+    },
+    {
+      "id": "p-report-photo",
+      "status": "approved",
+      "approved": "2026-10-31 founder (all needed image and short video creation approved, in chat)",
+      "route": "seedream-5-edit",
+      "refs": ["noah"],
+      "ratio": "4:5",
+      "where": "Student onboarding, the score report step",
+      "prompt": "The boy from Image 1, Noah, 17, at a kitchen table in the morning, holding his phone up with both hands to photograph something on the table in front of him, concentrating, natural light from a side window. The phone screen faces away from the camera and the table surface under the phone is plain and empty. No notebooks, worksheets, printed books or calculators anywhere in the frame. Photographic, natural skin texture, no text or logos.",
+      "quote": "$0.07 (seedream-5-edit, Atlas live quote $0.072 on 2026-10-31)",
+      "note": "Proposed in the first pass (2026-10-31). Generated 2026-10-31: raw/stills/p-report-photo-2026-10-31T07-15-30.png, 1856x2320, charged $0.072 (Atlas balance). Converted by hand to film/photos/p-report-photo.webp (1400x1750) and -800 (800x1000), copied to prototypes/portals/public/photos/."
+    }
+  ]
+}

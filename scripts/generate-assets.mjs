@@ -1,0 +1,775 @@
+#!/usr/bin/env node
+// Generates the landing-page clips and plates listed in assets/manifest.json.
+//
+//   node scripts/generate-assets.mjs                  dry run: price every approved shot, spend nothing
+//   node scripts/generate-assets.mjs --only c2        dry run for one shot
+//   node scripts/generate-assets.mjs --only c2 --run  generate it (spends money)
+//   node scripts/generate-assets.mjs --finish c2 --run  finish an approved Seedance 2.5 draft at 1080p
+//   node scripts/generate-assets.mjs --upscale c2,c3 --run  sharpen drafts 2x on fal FlashVSR (about $0.025 a second)
+//   node scripts/generate-assets.mjs --balance        show prepaid balances
+//   node scripts/generate-assets.mjs --fetch p-program  download a paid result again from its saved link (free)
+//   node scripts/generate-assets.mjs --all            include shots not yet approved in the dry run
+//   --manifest <file> --state <file> --out <dir>     use a separate shot list, state file and output folder
+//
+// Rules: a shot runs only when its manifest status is "approved"; a run stops
+// before it starts if the quoted total is over --budget (default $10); after
+// each Atlas or fal job the real charge is read from the balance and the run
+// stops if it is more than 25% above the quote. Every job is logged to
+// assets/spend-log.csv. Keys come from .env.local and are never printed.
+
+import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from "node:fs";
+import { basename, dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { execFileSync } from "node:child_process";
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+// --manifest, --state and --out let several agents generate at once, each with its own shot list,
+// state file and output folder; the spend log stays shared (one appended line per job).
+const pathOpt = (name, fallback) => {
+  const i = process.argv.indexOf(`--${name}`);
+  return i >= 0 && process.argv[i + 1] ? resolve(process.argv[i + 1]) : fallback;
+};
+const MANIFEST = pathOpt("manifest", join(ROOT, "assets/manifest.json"));
+const STATE = pathOpt("state", join(ROOT, "assets/generation-state.json"));
+const LOG = join(ROOT, "assets/spend-log.csv");
+const OUT = pathOpt("out", join(ROOT, ".impeccable/mocks/decision/film/raw"));
+
+// ---------- arguments ----------
+const argv = process.argv.slice(2);
+const flag = (name) => argv.includes(`--${name}`);
+const opt = (name, fallback) => {
+  const i = argv.indexOf(`--${name}`);
+  return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[i + 1] : fallback;
+};
+const RUN = flag("run");
+const BUDGET = Number(opt("budget", "10"));
+const ONLY = opt("only", null)?.split(",");
+const FINISH = opt("finish", null);
+const UPSCALE = opt("upscale", null)?.split(",");
+const FETCH = opt("fetch", null)?.split(",");
+const OVERRUN = 1.25;
+
+// ---------- keys ----------
+function loadEnv() {
+  const env = {};
+  const file = join(ROOT, ".env.local");
+  if (!existsSync(file)) return env;
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+    if (m) env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
+  }
+  return env;
+}
+const ENV = { ...loadEnv(), ...process.env };
+const key = (name) => {
+  if (!ENV[name]) throw new Error(`${name} is missing from .env.local`);
+  return ENV[name];
+};
+
+// ---------- routes: the cheapest place to run each model ----------
+// estimate = dollars per job when the provider has no free quote endpoint.
+const ROUTES = {
+  "seedance-2.5": { provider: "atlas", kind: "video", model: "bytedance/seedance-2.5" },
+  "seedance-2.0-mini": { provider: "atlas", kind: "video", model: "bytedance/seedance-2.0-mini" },
+  "seedream-5-edit": { provider: "atlas-image", model: "bytedance/seedream-v5.0-pro/edit" },
+  "wan-3.0": { provider: "atlas", kind: "video", model: "alibaba/wan-3.0" },
+  "wan-3.0-prime": { provider: "atlas", kind: "video", model: "alibaba/wan-3.0-prime" },
+  "veo-3.1-fast": { provider: "veo", model: "veo-3.1-fast-generate-preview", perSecond: 0.1 },
+  "veo-3.1-lite": { provider: "veo", model: "veo-3.1-lite-generate-preview", perSecond: 0.05 },
+  // Google image prices: dollars per 1M output tokens (a 2K image is 1,120 to 1,680 tokens).
+  "nano-banana-2.1": {
+    provider: "gemini-image",
+    model: "gemini-nano-banana-2.1",
+    estimate: 0.0504,
+    perMillionOut: 30,
+  },
+  "nano-banana-pro": {
+    provider: "gemini-image",
+    model: "gemini-3-pro-image",
+    estimate: 0.134,
+    perMillionOut: 120,
+  },
+  "gpt-image-2.5": { provider: "openai", model: "gpt-image-2.5-flare", estimate: 0.05 },
+  "ideogram-4.5": { provider: "fal", model: "ideogram/v4.5", estimate: 0.06 },
+  // Google's image models on fal (US storage, reachable on networks that block Chinese CDNs); use the cast refs
+  "nano-banana-pro-fal": { provider: "fal-edit", model: "fal-ai/nano-banana-pro/edit" },
+  "nano-banana-2-fal": { provider: "fal-edit", model: "fal-ai/nano-banana-2/edit" },
+  "flux-3": { provider: "fal", model: "blackforestlabs/flux-3/text-to-image", estimate: 0.1 },
+  nasa: { provider: "none" },
+};
+
+// ---------- small helpers ----------
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const money = (n) => `$${Number(n).toFixed(2)}`;
+const stamp = () => new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+const saveState = (state) => writeFileSync(STATE, JSON.stringify(state, null, 2) + "\n");
+const readJson = (f, fallback) => (existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : fallback);
+
+async function http(url, init = {}, label = url) {
+  const res = await fetch(url, init);
+  const text = await res.text();
+  let body;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    body = text;
+  }
+  if (!res.ok) throw new Error(`${label}: HTTP ${res.status} ${text.slice(0, 400)}`);
+  return body;
+}
+
+async function download(url, file, headers = {}) {
+  // The result URL stays valid after a job ends, so retry slow or dropped downloads.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers,
+        redirect: "follow",
+        signal: AbortSignal.timeout(180000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+      return file;
+    } catch (e) {
+      if (attempt >= 5)
+        throw new Error(
+          `download failed after 5 tries (${e.cause?.code ?? e.message}); result URL: ${url}`
+        );
+      await sleep(5000 * attempt);
+    }
+  }
+}
+
+function logSpend(row) {
+  if (!existsSync(LOG))
+    writeFileSync(LOG, "date,shot,route,model,quoted_usd,charged_usd,charge_source,file\n");
+  const cells = [
+    new Date().toISOString(),
+    row.shot,
+    row.route,
+    row.model,
+    row.quoted,
+    row.charged,
+    row.source,
+    row.file,
+  ];
+  appendFileSync(
+    LOG,
+    cells.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",") + "\n"
+  );
+}
+
+// ---------- prompt ----------
+function fullPrompt(shot, defaults) {
+  let suffix = shot.still ? defaults.stillSuffix : defaults.suffix;
+  // University clothing is the one place words are allowed (founder, 2026-10-22).
+  if (shot.textAllowed && suffix)
+    suffix = suffix.replace(
+      "No text, letters, numbers, logos,",
+      "No text except the sweatshirt lettering, which stays crisp, correctly spelled and stable; no logos,"
+    );
+  return `${shot.prompt.trim()} ${suffix ?? ""}`.trim();
+}
+
+// ---------- Atlas Cloud (Seedance, Wan) ----------
+const ATLAS = "https://api.atlascloud.ai";
+const atlasHeaders = () => ({
+  Authorization: `Bearer ${key("ATLAS_API_KEY")}`,
+  "Content-Type": "application/json",
+});
+
+function atlasBody(shot, route, defaults, refUrls = []) {
+  const variant = shot.firstFrame
+    ? "image-to-video"
+    : refUrls.length
+      ? "reference-to-video"
+      : "text-to-video";
+  const isSeedance = route.model.startsWith("bytedance/");
+  const body = {
+    model: `${route.model}/${variant}`,
+    prompt: fullPrompt(shot, defaults),
+    duration: shot.duration ?? defaults.duration,
+    ratio: shot.ratio ?? defaults.ratio,
+  };
+  if (isSeedance) {
+    body.generate_audio = false;
+    body.watermark = false;
+    if (shot.draft) body.draft = true;
+    else body.resolution = shot.resolution ?? "720p";
+    if (refUrls.length) body.reference_images = refUrls;
+  } else {
+    body.audio = false;
+    body.resolution = shot.resolution ?? "720p";
+    if (shot.firstFrame) body.image = refUrls[0];
+    else if (refUrls.length) body.reference_images = refUrls;
+  }
+  return body;
+}
+
+function atlasImageBody(shot, route, defaults, refUrls) {
+  const size =
+    { "16:9": "2816*1584", "9:16": "1584*2816", "3:4": "1776*2368", "4:5": "1856*2320" }[
+      shot.ratio ?? defaults.ratio
+    ] ?? "2048*2048";
+  return {
+    model: route.model,
+    prompt: fullPrompt(shot, defaults),
+    images: refUrls,
+    size,
+    output_format: "png",
+  };
+}
+
+async function atlasQuote(body) {
+  const r = await http(
+    `${ATLAS}/api/v1/model/calculate`,
+    { method: "POST", headers: atlasHeaders(), body: JSON.stringify(body) },
+    "Atlas quote"
+  );
+  if (r.code !== 200) throw new Error(`Atlas quote: ${r.msg}`);
+  return Number(r.data.price);
+}
+
+async function atlasBalance() {
+  const r = await http(`${ATLAS}/public/v1/balance`, { headers: atlasHeaders() }, "Atlas balance");
+  return Number(r.available.value);
+}
+
+async function atlasUpload(original) {
+  // Big PNG stills time out; send a high-quality JPEG copy instead.
+  let file = original;
+  if (original.endsWith(".png")) {
+    file = join(tmpdir(), `${basename(original, ".png")}.jpg`);
+    execFileSync(
+      "sips",
+      ["-s", "format", "jpeg", "-s", "formatOptions", "92", original, "--out", file],
+      { stdio: "ignore" }
+    );
+  }
+  const form = new FormData();
+  form.append("file", new Blob([readFileSync(file)]), basename(file));
+  const r = await http(
+    `${ATLAS}/api/v1/model/uploadMedia`,
+    { method: "POST", headers: { Authorization: `Bearer ${key("ATLAS_API_KEY")}` }, body: form },
+    "Atlas upload"
+  );
+  const url = r?.data?.download_url || r?.data?.url || r?.url;
+  if (!url) throw new Error(`Atlas upload returned no URL: ${JSON.stringify(r).slice(0, 300)}`);
+  return url;
+}
+
+async function atlasRun(body, kind = "Video", onId = () => {}) {
+  const r = await http(
+    `${ATLAS}/api/v1/model/generate${kind}`,
+    { method: "POST", headers: atlasHeaders(), body: JSON.stringify(body) },
+    "Atlas submit"
+  );
+  const id = r?.data?.id || r?.id;
+  if (!id) throw new Error(`Atlas submit returned no id: ${JSON.stringify(r).slice(0, 300)}`);
+  onId(id); // saved at once, so a dropped connection never loses a paid job
+  process.stdout.write(`  Atlas job ${id} `);
+  let networkErrors = 0;
+  for (let i = 0; i < 240; i++) {
+    await sleep(10000);
+    let p;
+    try {
+      p = await http(
+        `${ATLAS}/api/v1/model/prediction/${id}`,
+        { headers: atlasHeaders() },
+        "Atlas poll"
+      );
+      networkErrors = 0;
+    } catch (e) {
+      if (++networkErrors > 12)
+        throw new Error(
+          `Atlas job ${id}: polling failed (${e.cause?.code ?? e.message}); its ID is saved in assets/generation-state.json`
+        );
+      continue;
+    }
+    const d = p.data || p;
+    if (d.status === "completed" || d.status === "succeeded") {
+      process.stdout.write("done\n");
+      return { url: d.outputs[0], draftId: d.draft_id, id };
+    }
+    if (d.status === "failed")
+      throw new Error(`Atlas job failed: ${d.error || JSON.stringify(d).slice(0, 300)}`);
+    process.stdout.write(".");
+  }
+  throw new Error(`Atlas job ${id} timed out after 40 minutes`);
+}
+
+// ---------- fal (Ideogram, FLUX) ----------
+const falHeaders = () => ({
+  Authorization: `Key ${key("FAL_KEY")}`,
+  "Content-Type": "application/json",
+});
+
+async function falUpload(file, type = "video/mp4") {
+  const init = await http(
+    "https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3",
+    {
+      method: "POST",
+      headers: falHeaders(),
+      body: JSON.stringify({ file_name: basename(file), content_type: type }),
+    },
+    "fal upload"
+  );
+  const put = await fetch(init.upload_url, {
+    method: "PUT",
+    headers: { "Content-Type": type },
+    body: readFileSync(file),
+  });
+  if (!put.ok) throw new Error(`fal upload PUT failed: HTTP ${put.status}`);
+  return init.file_url;
+}
+
+// Sharpens a draft 2x with FlashVSR; far cheaper than a Seedance 1080p finish.
+async function upscale(ids, state) {
+  const PER_SECOND = 0.0005 * 1.64 * 24; // $ per output megapixel x 1708x960 x 24 fps
+  const jobs = ids.map((id) => {
+    const src = state[id]?.lastFile;
+    if (!src || !existsSync(src)) throw new Error(`${id} has no draft to upscale`);
+    const secs = Number(
+      execFileSync("ffprobe", [
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "csv=p=0",
+        src,
+      ]).toString()
+    );
+    return { id, src, quote: secs * PER_SECOND };
+  });
+  const total = jobs.reduce((a, j) => a + j.quote, 0);
+  jobs.forEach((j) => console.log(`${j.id.padEnd(8)} upscale ${money(j.quote)}`));
+  console.log(`Total ${money(total)}, budget ${money(BUDGET)}`);
+  if (!RUN) return console.log("Dry run. Add --run to spend.");
+  if (total > BUDGET) throw new Error("Over budget.");
+  for (const j of jobs) {
+    const before = await falBalance();
+    const url = await falUpload(j.src);
+    const r = await falRun(
+      { model: "fal-ai/flashvsr/upscale/video" },
+      { video_url: url, upscale_factor: 2, output_quality: "high", acceleration: "regular" }
+    );
+    const file = j.src.replace(/-(draft|final)-.*\.mp4$/, "-up.mp4");
+    await download(r.url, file);
+    const charged = before - (await falBalance());
+    logSpend({
+      shot: j.id,
+      route: "flashvsr",
+      model: "fal-ai/flashvsr/upscale/video",
+      quoted: j.quote.toFixed(4),
+      charged: charged.toFixed(4),
+      source: "balance",
+      file: file.replace(ROOT + "/", ""),
+    });
+    state[j.id] = { ...state[j.id], upscaledFile: file };
+    saveState(state);
+    console.log(`  ${j.id}: saved ${basename(file)}  charged ${money(charged)}`);
+  }
+}
+
+const falPrices = {};
+async function falPrice(model) {
+  if (falPrices[model] != null) return falPrices[model];
+  const r = await http(
+    `https://api.fal.ai/v1/models/pricing?endpoint_id=${encodeURIComponent(model)}`,
+    { headers: falHeaders() },
+    "fal price"
+  );
+  return (falPrices[model] = Number(r.prices?.[0]?.unit_price));
+}
+
+async function falBalance() {
+  const r = await http(
+    "https://api.fal.ai/v1/account/billing?expand=credits",
+    { headers: falHeaders() },
+    "fal balance"
+  );
+  return Number(r.credits.current_balance);
+}
+
+async function falRun(route, input) {
+  const sub = await http(
+    `https://queue.fal.run/${route.model}`,
+    { method: "POST", headers: falHeaders(), body: JSON.stringify(input) },
+    "fal submit"
+  );
+  for (let i = 0; i < 240; i++) {
+    await sleep(5000);
+    const s = await http(sub.status_url, { headers: falHeaders() }, "fal poll");
+    if (s.status === "COMPLETED") {
+      const out = await http(sub.response_url, { headers: falHeaders() }, "fal result");
+      return { url: out.images?.[0]?.url || out.image?.url || out.video?.url };
+    }
+  }
+  throw new Error("fal job timed out");
+}
+
+// ---------- Google (Veo, Nano Banana) ----------
+const GOOGLE = "https://generativelanguage.googleapis.com/v1beta";
+const googleHeaders = () => ({
+  "x-goog-api-key": key("GEMINI_API_KEY"),
+  "Content-Type": "application/json",
+});
+
+async function geminiImage(route, shot, defaults, file, refFiles = []) {
+  const parts = refFiles.map((f) => ({
+    inlineData: {
+      mimeType: f.endsWith(".png") ? "image/png" : "image/jpeg",
+      data: readFileSync(f).toString("base64"),
+    },
+  }));
+  parts.push({ text: fullPrompt(shot, defaults) });
+  const body = {
+    contents: [{ parts }],
+    generationConfig: {
+      responseModalities: ["IMAGE"],
+      imageConfig: { aspectRatio: shot.ratio ?? defaults.ratio, imageSize: shot.size ?? "2K" },
+    },
+  };
+  const r = await http(
+    `${GOOGLE}/models/${route.model}:generateContent`,
+    { method: "POST", headers: googleHeaders(), body: JSON.stringify(body) },
+    "Gemini image"
+  );
+  const part = r.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
+  if (!part) throw new Error(`Gemini returned no image: ${JSON.stringify(r).slice(0, 300)}`);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, Buffer.from(part.inlineData.data, "base64"));
+  const u = r.usageMetadata ?? {};
+  const outTokens = (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0);
+  return outTokens
+    ? (outTokens / 1e6) * route.perMillionOut + ((u.promptTokenCount ?? 0) / 1e6) * 2
+    : null;
+}
+
+async function veoRun(route, shot, defaults, file) {
+  const body = {
+    instances: [{ prompt: fullPrompt(shot, defaults) }],
+    parameters: {
+      aspectRatio: shot.ratio ?? defaults.ratio,
+      durationSeconds: Math.min(8, shot.duration ?? 8),
+      resolution: shot.resolution ?? "720p",
+    },
+  };
+  let op = await http(
+    `${GOOGLE}/models/${route.model}:predictLongRunning`,
+    { method: "POST", headers: googleHeaders(), body: JSON.stringify(body) },
+    "Veo submit"
+  );
+  for (let i = 0; i < 120 && !op.done; i++) {
+    await sleep(10000);
+    op = await http(`${GOOGLE}/${op.name}`, { headers: googleHeaders() }, "Veo poll");
+  }
+  const uri = op.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+  if (!uri) throw new Error(`Veo returned no video: ${JSON.stringify(op).slice(0, 300)}`);
+  return download(uri, file, { "x-goog-api-key": key("GEMINI_API_KEY") });
+}
+
+// ---------- OpenAI (GPT Image) ----------
+async function openaiImage(route, shot, defaults, file) {
+  const size = (shot.ratio ?? defaults.ratio) === "9:16" ? "1024x1536" : "1536x1024";
+  const r = await http(
+    "https://api.openai.com/v1/images/generations",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key("OPENAI_IMAGES_API_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: route.model,
+        prompt: fullPrompt(shot, defaults),
+        size,
+        quality: shot.quality ?? "medium",
+        n: 1,
+      }),
+    },
+    "OpenAI image"
+  );
+  const d = r.data?.[0];
+  if (d?.b64_json) {
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, Buffer.from(d.b64_json, "base64"));
+    return file;
+  }
+  return download(d.url, file);
+}
+
+// ---------- planning ----------
+async function plan(item, defaults) {
+  const route = ROUTES[item.route];
+  if (!route) throw new Error(`${item.id}: unknown route "${item.route}"`);
+  if (route.provider === "none")
+    return { item, route, quote: 0, note: "free source, downloaded by hand" };
+  if (route.provider === "atlas") {
+    const fakeRefs = (item.firstFrame ? [item.firstFrame] : (item.refs ?? item.cast ?? [])).map(
+      () => "https://example.com/ref.png"
+    );
+    const body = atlasBody(item, route, defaults, fakeRefs);
+    return { item, route, body, quote: await atlasQuote(body) };
+  }
+  if (route.provider === "fal-edit") return { item, route, quote: await falPrice(route.model) };
+  if (route.provider === "atlas-image") {
+    return {
+      item,
+      route,
+      quote: await atlasQuote(atlasImageBody(item, route, defaults, ["https://example.com/a.png"])),
+    };
+  }
+  if (route.provider === "veo")
+    return {
+      item,
+      route,
+      quote: route.perSecond * Math.min(8, item.duration ?? 8),
+      estimated: true,
+    };
+  return { item, route, quote: route.estimate, estimated: true };
+}
+
+// A reference is a cast name from the manifest, or a path relative to the repo.
+const refPath = (manifest, ref) => join(ROOT, manifest.cast[ref] ?? ref);
+
+async function execute(p, defaults, manifest, state) {
+  const { item, route } = p;
+  const ext = route.kind === "video" || route.provider === "veo" ? "mp4" : "png";
+  const file = item.still
+    ? join(OUT, "stills", `${item.id}-${stamp()}.${ext}`)
+    : join(
+        OUT,
+        `${item.id}-${(item.ratio ?? defaults.ratio).replace(":", "x")}-${item.draft ? "draft" : "final"}-${stamp()}.${ext}`
+      );
+  let charged = p.quote;
+  let source = "estimate";
+
+  if (route.provider === "atlas") {
+    const refUrls = [];
+    for (const r of item.firstFrame ? [item.firstFrame] : (item.refs ?? item.cast ?? []))
+      refUrls.push(await atlasUpload(refPath(manifest, r)));
+    if (item.firstFrame && !refUrls[0]) throw new Error(`${item.id}: first frame did not upload`);
+    const before = await atlasBalance();
+    const r = await atlasRun(atlasBody(item, route, defaults, refUrls), "Video", (id) => {
+      state[item.id] = { ...(state[item.id] ?? {}), pendingJob: id };
+      saveState(state);
+    });
+    state[item.id] = {
+      ...(state[item.id] ?? {}),
+      lastJob: r.id,
+      lastUrl: r.url,
+      ...(r.draftId ? { draftId: r.draftId } : {}),
+    };
+    saveState(state);
+    await download(r.url, file);
+    await sleep(3000);
+    charged = before - (await atlasBalance());
+    source = "balance";
+    state[item.id] = {
+      ...(state[item.id] ?? {}),
+      lastJob: r.id,
+      lastFile: file,
+      ...(r.draftId ? { draftId: r.draftId } : {}),
+    };
+  } else if (route.provider === "atlas-image") {
+    const refUrls = [];
+    for (const r of item.refs ?? []) refUrls.push(await atlasUpload(refPath(manifest, r)));
+    const before = await atlasBalance();
+    const r = await atlasRun(atlasImageBody(item, route, defaults, refUrls), "Image", (id) => {
+      state[item.id] = { ...(state[item.id] ?? {}), pendingJob: id };
+      saveState(state);
+    });
+    state[item.id] = { ...(state[item.id] ?? {}), lastJob: r.id, lastUrl: r.url };
+    saveState(state);
+    await download(r.url, file);
+    await sleep(3000);
+    charged = before - (await atlasBalance());
+    source = "balance";
+    state[item.id] = { ...(state[item.id] ?? {}), lastFile: file };
+  } else if (route.provider === "fal-edit") {
+    const before = await falBalance();
+    const refUrls = [];
+    for (const r of item.refs ?? []) {
+      const f = refPath(manifest, r);
+      refUrls.push(await falUpload(f, f.endsWith(".png") ? "image/png" : "image/jpeg"));
+    }
+    const r = await falRun(route, {
+      prompt: fullPrompt(item, defaults),
+      image_urls: refUrls,
+      aspect_ratio: item.ratio ?? defaults.ratio,
+      resolution: "2K",
+      output_format: "png",
+      num_images: 1,
+    });
+    state[item.id] = { ...(state[item.id] ?? {}), lastUrl: r.url };
+    saveState(state);
+    await download(r.url, file);
+    charged = before - (await falBalance());
+    source = "balance";
+    state[item.id] = { ...(state[item.id] ?? {}), lastFile: file, pendingJob: undefined };
+  } else if (route.provider === "fal") {
+    const before = await falBalance();
+    const r = await falRun(route, { prompt: fullPrompt(item, defaults) });
+    await download(r.url, file);
+    charged = before - (await falBalance());
+    source = "balance";
+  } else if (route.provider === "gemini-image") {
+    const cost = await geminiImage(
+      route,
+      item,
+      defaults,
+      file,
+      (item.refs ?? []).map((r) => refPath(manifest, r))
+    );
+    if (cost != null) {
+      charged = cost;
+      source = "usage tokens";
+    }
+    state[item.id] = { ...(state[item.id] ?? {}), lastFile: file };
+  } else if (route.provider === "veo") await veoRun(route, item, defaults, file);
+  else if (route.provider === "openai") await openaiImage(route, item, defaults, file);
+
+  logSpend({
+    shot: item.id,
+    route: item.route,
+    model: route.model,
+    quoted: p.quote.toFixed(4),
+    charged: charged.toFixed(4),
+    source,
+    file: file.replace(ROOT + "/", ""),
+  });
+  console.log(
+    `  saved ${file.replace(ROOT + "/", "")}  quoted ${money(p.quote)}  charged ${money(charged)} (${source})`
+  );
+  if (source === "balance" && charged > p.quote * OVERRUN + 0.01) {
+    throw new Error(
+      `${item.id} charged ${money(charged)} against a quote of ${money(p.quote)}. Stopping so you can check before anything else runs.`
+    );
+  }
+  return charged;
+}
+
+// ---------- commands ----------
+async function showBalances() {
+  const rows = [];
+  for (const [name, fn] of [
+    ["Atlas Cloud", atlasBalance],
+    ["fal", falBalance],
+  ]) {
+    try {
+      rows.push(`${name}: ${money(await fn())}`);
+    } catch (e) {
+      rows.push(`${name}: ${e.message}`);
+    }
+  }
+  rows.push("Google and OpenAI: no balance API; check their billing pages.");
+  console.log(rows.join("\n"));
+}
+
+async function finishDraft(id, state) {
+  const draftId = state[id]?.draftId;
+  if (!draftId) throw new Error(`${id} has no Seedance 2.5 draft yet. Run it as a draft first.`);
+  const body = { model: "bytedance/seedance-2.5/draft-complete", draft_id: draftId };
+  let quote = null;
+  try {
+    quote = await atlasQuote(body);
+  } catch {
+    quote = null;
+  }
+  console.log(
+    `${id}: finish draft at 1080p, quote ${quote == null ? "not available (measured from the balance)" : money(quote)}`
+  );
+  if (!RUN) return console.log("Dry run. Add --run to spend.");
+  if (quote != null && quote > BUDGET)
+    throw new Error(`Quote ${money(quote)} is over the ${money(BUDGET)} budget.`);
+  const before = await atlasBalance();
+  const r = await atlasRun(body);
+  const file = join(OUT, `${id}-final-1080p-${stamp()}.mp4`);
+  await download(r.url, file);
+  await sleep(3000);
+  const charged = before - (await atlasBalance());
+  logSpend({
+    shot: id,
+    route: "seedance-2.5",
+    model: body.model,
+    quoted: (quote ?? 0).toFixed(4),
+    charged: charged.toFixed(4),
+    source: "balance",
+    file: file.replace(ROOT + "/", ""),
+  });
+  state[id] = { ...state[id], finalFile: file };
+  console.log(`  saved ${file.replace(ROOT + "/", "")}  charged ${money(charged)}`);
+}
+
+async function main() {
+  const manifest = readJson(MANIFEST, null);
+  const state = readJson(STATE, {});
+  const save = () => writeFileSync(STATE, JSON.stringify(state, null, 2) + "\n");
+
+  if (flag("balance")) return showBalances();
+  if (FETCH) {
+    // a job finished and was paid for, but its download failed: fetch it from the saved link
+    const state = readJson(STATE, {});
+    for (const id of FETCH) {
+      const url = state[id]?.lastUrl;
+      if (!url) throw new Error(`${id} has no saved result link`);
+      const file = join(OUT, "stills", `${id}-${stamp()}.png`);
+      await download(url, file);
+      state[id] = { ...state[id], lastFile: file, pendingJob: undefined };
+      saveState(state);
+      console.log(`  fetched ${file.replace(ROOT + "/", "")}`);
+    }
+    return;
+  }
+  if (UPSCALE) return upscale(UPSCALE, state);
+  if (FINISH) {
+    await finishDraft(FINISH, state);
+    return save();
+  }
+
+  const items = [
+    ...(manifest.stills ?? []).map((s) => ({ ...s, still: true })),
+    ...manifest.shots,
+    ...(manifest.plates ?? []),
+  ].filter((s) => !ONLY || ONLY.includes(s.id));
+  const chosen = items.filter((s) => s.status === "approved" || (!RUN && flag("all")));
+  const skipped = items.filter((s) => !chosen.includes(s));
+  if (skipped.length)
+    console.log(`Not approved yet, skipped: ${skipped.map((s) => s.id).join(", ")}`);
+  if (!chosen.length)
+    return console.log(
+      'Nothing to run. Mark shots "approved" in assets/manifest.json first (or add --all to price everything).'
+    );
+
+  const plans = [];
+  for (const item of chosen) plans.push(await plan(item, manifest.defaults));
+  let total = 0;
+  for (const p of plans) {
+    total += p.quote;
+    console.log(
+      `${p.item.id.padEnd(12)} ${p.item.route.padEnd(16)} ${money(p.quote)}${p.estimated ? " (estimate)" : ""}${p.note ? `  ${p.note}` : ""}`
+    );
+  }
+  console.log(`Total ${money(total)}, budget ${money(BUDGET)}`);
+  if (!RUN) return console.log("Dry run. Nothing was spent. Add --run to generate.");
+  if (total > BUDGET)
+    throw new Error(
+      `Total ${money(total)} is over the budget. Raise it with --budget or run fewer shots.`
+    );
+
+  for (const p of plans) {
+    if (p.route.provider === "none") continue;
+    console.log(`${p.item.id}: generating`);
+    await execute(p, manifest.defaults, manifest, state);
+    save();
+  }
+}
+
+main().catch((e) => {
+  console.error(`Stopped: ${e.message}${e.cause ? ` (${e.cause.code ?? e.cause.message})` : ""}`);
+  process.exit(1);
+});

@@ -28,3 +28,7 @@ html:has(#ks) { background: #0e0d0c; }
 .ks .legal th, .ks .legal td { text-align: left; padding: 10px 12px; border-top: 1px solid var(--line); vertical-align: top; }
 .ks .legal th { color: var(--ink); font-weight: 700; }
 .ks .legal section { scroll-margin-top: 90px; }
+
+/* the app's floating theme toggle stays off any page drawn with the site's frame (the 404 and error pages
+   too, whose addresses aren't in SITE_PAGES): the site header has its own switch */
+body:has(#ks) button.fixed[title="Toggle light and dark mode"] { display: none; }

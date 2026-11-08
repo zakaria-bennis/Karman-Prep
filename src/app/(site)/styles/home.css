@@ -39,6 +39,8 @@
 .ks .tools-nav button { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--card); border: 1px solid var(--line); color: var(--ink); cursor: pointer; transition: transform .45s var(--spring); }
 .ks .tools-nav button:active { transform: scale(.92); transition-duration: .08s; }
 .ks .tools-nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ks .tools-nav[hidden] { display: none; }
+.ks .tools-nav button:disabled { opacity: .35; cursor: default; transform: none; }
 .ks .tools-track { list-style: none; margin: 0; padding: 0 0 8px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, calc((100% - 48px) / 4)); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
 .ks .tools-track::-webkit-scrollbar { display: none; }
 .ks .tool { scroll-snap-align: start; display: grid; grid-template-rows: auto auto 1fr; gap: 6px; padding: 18px 18px 22px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }

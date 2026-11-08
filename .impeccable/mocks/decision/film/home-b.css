@@ -1,0 +1,214 @@
+/* Karman home page, option B: "The printed annual" (taste-skill direction editorial-report, seed 399637216),
+   2026-10-31. Loaded after film.css (the shared tokens, header, menu, buttons, the guarantee block, the close, the
+   footer, the dock and the reveal), only when index.html carries ?home=b. The page hangs from one vertical axis
+   at 42% of the width (column 6 of 12): the title and the lines of the method begin on it or step toward it, and
+   the zone left of it holds the figures. Tight margins, colour in whole pages, no lines, no shadows, no print
+   furniture (design rules 5, 8 and 19). Phones are their own composition, under 761px. */
+html[data-home="b"] { --gutter: clamp(18px, 2.2vw, 32px); --max: 1680px; --gut: clamp(12px, 1.6vw, 24px); --mast: max(45svh, 320px); }
+html[data-home="b"] .panel:not(.dark) { --feather: 0px; background: var(--paper); border-radius: 0; margin: 0; padding: clamp(64px, 7vw, 120px) var(--gutter); }
+html[data-home="b"] .panel.dark { margin: 0; border-radius: 0; }
+/* the film sits a fifth higher than the viewport, so the masthead band shows the people in the frame, not only the sky above them */
+html[data-home="b"] .stage { top: -20%; }
+html[data-home="b"] .panel .in { max-width: var(--max); margin: 0 auto; }
+.b-lead .in, .b-stage, .b-day .in, .b-tools .in, .b-cband { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); }
+html[data-home="b"] h2 { max-width: none; }
+
+/* ---------- the opening ---------- */
+.b-hero { color: var(--ink); padding: 0; }
+.b-mast { height: var(--mast); }
+html[data-home="b"] .panel.b-lead { position: relative; z-index: 1; padding-top: clamp(28px, 3.6vw, 52px); padding-bottom: clamp(44px, 5vw, 72px); }
+.b-lead .in { align-items: start; row-gap: 24px; }
+.b-title { grid-column: 6 / -1; grid-row: 1; display: grid; gap: clamp(18px, 2vw, 26px); justify-items: start; align-content: start; }
+.b-title h1 { font-size: clamp(40px, 6.1vw, 92px); max-width: 14ch; }
+.b-stand { font-size: clamp(18px, 1.5vw, 22px); line-height: 1.45; max-width: 58ch; text-wrap: pretty; }
+.b-gline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; font-size: 17px; }
+.b-gline b { font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.b-title .proof { font-size: 15px; color: var(--ink2); max-width: 60ch; }
+/* the figure rises out of the paper into the masthead, like a plate laid over the fold */
+.b-fig { grid-column: 1 / 6; grid-row: 1; position: relative; z-index: 2; display: grid; gap: 14px; justify-items: start; margin-top: calc(72px - var(--mast)); }
+.b-live { display: flex; }
+.b-live .iphone { --pw: clamp(290px, 23.5vw, 344px); }
+.b-try { font-size: 17px; font-weight: 700; max-width: 34ch; }
+
+/* ---------- the method: four lines that step across, each one column further right ---------- */
+.b-method .in { display: grid; gap: clamp(72px, 8vw, 140px); }
+.b-stage { row-gap: clamp(18px, 2vw, 28px); align-items: start; }
+.b-stage h2 { grid-column: var(--c) / -1; font-size: clamp(28px, 3.6vw, 56px); max-width: 26ch; }
+.b-stage .b-words { grid-column: var(--c) / span 5; display: grid; gap: 14px; max-width: 540px; }
+.b-stage .lede { font-size: 18px; }
+.b-sent { font-size: 17px; line-height: 1.5; color: var(--ink2); }
+.b-sent b { color: var(--ink); font-weight: 700; }
+.b-stage .note { padding: 16px 18px; border-radius: 14px; background: var(--soft); font-size: 16px; color: var(--ink2); }
+.b-stage .note b { display: block; color: var(--ink); margin-bottom: 2px; }
+.b-stage .media { grid-column: 1 / -1; min-width: 0; }
+.b-stage.s1 .b-words { grid-column: 1 / span 5; }
+.b-stage.s1 .media { grid-column: 9 / -1; justify-self: end; }
+.b-stage.s2 .b-words { grid-column: 2 / span 3; }
+.b-stage.s2 .media { grid-column: 5 / -1; }
+.b-stage.s3 .b-words { grid-column: 3 / span 5; }
+.b-stage.s3 .media { grid-column: 4 / -1; }
+.b-stage.s4 .b-words { grid-column: 4 / span 5; }
+.b-stage.s4 .media { grid-column: 9 / -1; justify-self: end; }
+.b-stage .wide { margin: 0 2.4%; width: auto; } /* room for the MacBook's deck, which reaches 2.4% past the lid on each side */
+.b-stage .turn { perspective: 1400px; display: flex; justify-content: flex-end; }
+.b-stage .turn .iphone { --pw: clamp(240px, 22vw, 320px); transform: rotateY(-22deg) rotateX(3deg); }
+.b-stage .twin { display: none; }
+@media (max-width: 1000px) {
+  .b-stage.s2 .b-words, .b-stage.s3 .b-words, .b-stage.s4 .b-words { grid-column: var(--c) / span 8; }
+  .b-stage.s2 .media, .b-stage.s3 .media { grid-column: 1 / -1; }
+  .b-stage.s1 .media, .b-stage.s4 .media { grid-column: 7 / -1; }
+}
+
+/* ---------- a school day: four stills edge to edge, unequal widths, the captions under them ---------- */
+html[data-home="b"] .panel.b-day { padding-left: 0; padding-right: 0; padding-bottom: clamp(40px, 5vw, 72px); }
+.b-day .in { padding: 0 var(--gutter); }
+.b-day h2 { grid-column: 3 / -1; font-size: clamp(28px, 3.6vw, 56px); max-width: 22ch; margin-bottom: clamp(32px, 4vw, 64px); }
+.b-band { display: grid; grid-template-columns: 5fr 2fr 3fr 2fr; }
+.b-pane { margin: 0; display: grid; grid-template-rows: auto auto; min-width: 0; }
+.b-pane picture { display: block; height: 68svh; min-height: 420px; max-height: 760px; }
+.b-pane img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; }
+.b-pane[data-still="c3"] img { object-position: 34% 30%; }
+.b-pane[data-still="c6"] img { object-position: 46% 30%; }
+.b-pane figcaption { padding: 14px var(--gut) 0 var(--gut); font-size: 15px; color: var(--ink2); display: grid; gap: 2px; }
+.b-pane:first-child figcaption { padding-left: var(--gutter); }
+.b-pane:last-child figcaption { padding-right: var(--gutter); }
+.b-pane figcaption b { color: var(--ink); font-weight: 700; }
+
+/* ---------- everything else on the platform: a table without lines, the "which plan" column one filled block ---------- */
+.b-tools .in { align-items: start; row-gap: 40px; }
+.b-tools-words { grid-column: 1 / 9; display: grid; gap: clamp(28px, 3vw, 48px); min-width: 0; }
+.b-tools h2 { font-size: clamp(28px, 3.6vw, 56px); max-width: 20ch; }
+.b-table { width: 100%; border-collapse: collapse; font-size: 17px; text-align: left; }
+.b-table th, .b-table td { padding: 18px 20px; vertical-align: top; }
+.b-table thead th { font-size: 17px; font-weight: 800; vertical-align: bottom; padding-bottom: 14px; }
+.b-table tbody th { font-size: clamp(19px, 1.5vw, 22px); font-weight: 700; letter-spacing: -0.01em; width: 32%; line-height: 1.3; }
+.b-table tbody tr:nth-child(odd) { background: var(--soft); }
+.b-table tbody tr:first-child th:first-child { border-radius: 14px 0 0 0; }
+.b-table tbody tr:last-child th:first-child { border-radius: 0 0 0 14px; }
+.b-table .b-plan { background: var(--solid); color: var(--on-solid); font-weight: 700; width: 24%; }
+.b-table thead .b-plan { padding-top: 40px; border-radius: 14px 14px 0 0; }
+.b-table tbody tr:last-child .b-plan { border-radius: 0 0 14px 14px; }
+.b-tools-media { grid-column: 9 / -1; display: flex; justify-content: center; gap: 12px; align-self: center; }
+.b-tools-media .turn { perspective: 1400px; display: flex; }
+.b-tools-media .turn .iphone { --pw: clamp(190px, 15vw, 230px); transform: rotateY(-14deg) rotateX(2deg); }
+.b-tools-media .turn:last-child .iphone { transform: rotateY(14deg) rotateX(2deg); }
+@media (max-width: 1000px) {
+  .b-band { grid-template-columns: 36fr 28fr 36fr; }
+  .b-pane:nth-child(1) { grid-column: 1 / 3; }
+  .b-pane:nth-child(2) { grid-column: 3; }
+  .b-pane:nth-child(3) { grid-column: 1; }
+  .b-pane:nth-child(4) { grid-column: 2 / 4; }
+  .b-pane picture { height: 46svh; min-height: 300px; }
+  .b-pane:nth-child(3) figcaption, .b-pane:first-child figcaption { padding-left: var(--gutter); }
+  .b-pane:nth-child(2) figcaption, .b-pane:last-child figcaption { padding-right: var(--gutter); }
+  .b-tools-words { grid-column: 1 / -1; }
+  .b-tools-media { grid-column: 1 / -1; justify-content: flex-start; gap: 24px; }
+  .b-tools-media .turn .iphone { --pw: min(40vw, 280px); }
+}
+
+/* ---------- the campus chapters: three clips edge to edge, the captions and the line on the black band ---------- */
+html[data-home="b"] .panel.dark.b-campus { padding: 0; }
+.b-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.b-strip .clip, .b-strip .clip:nth-child(1), .b-strip .clip:nth-child(2), .b-strip .clip:nth-child(3) { grid-column: auto; margin: 0; display: grid; gap: 0; }
+.b-strip .clip .fr { aspect-ratio: 3 / 4; border-radius: 0; }
+.b-strip .clip video { object-position: 50% 18%; } /* heads stay in the frame when a third is narrower than the clip */
+.b-strip .clip figcaption { display: none; }
+.b-caps3 { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 18px 0 clamp(56px, 6vw, 96px); }
+.b-caps3 > div { display: grid; gap: 2px; padding: 0 var(--gut); font-size: 16px; color: #d6d1c7; }
+.b-caps3 > div:first-child { padding-left: var(--gutter); }
+.b-caps3 dt { font-weight: 800; color: #fff; font-size: clamp(20px, 1.6vw, 24px); letter-spacing: -0.01em; }
+.b-caps3 dd { margin: 0; }
+.b-cband { padding: clamp(64px, 7vw, 110px) var(--gutter) clamp(36px, 4vw, 56px); row-gap: 24px; align-items: end; }
+.b-cband h2 { grid-column: 1 / 7; max-width: 14ch; font-size: clamp(28px, 3.6vw, 56px); color: #fff; }
+.b-cband .cline { grid-column: 7 / -1; display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; font-size: 16px; color: #bdb8ae; padding-top: 10px; }
+.b-cband .cline .lk { color: #fff; font-size: 17px; }
+.b-cband .cline .lk svg { color: var(--marigold); }
+@media (max-width: 1000px) {
+  .b-cband h2 { grid-column: 1 / -1; }
+  .b-cband .cline { grid-column: 1 / -1; padding-top: 0; }
+}
+
+/* ---------- phones: a second composition, one column, the question as a card ---------- */
+@media (max-width: 760px) {
+  html[data-home="b"] { --mast: max(42svh, 260px); }
+  html[data-home="b"] .stage { top: -26%; } /* the portrait film sits higher still, so the band shows the face, not the hair */
+  .b-lead .in { grid-template-columns: 1fr; row-gap: 18px; }
+  .b-title { display: contents; }
+  .b-title > h1 { order: 1; font-size: clamp(34px, 10vw, 44px); }
+  .b-stand { order: 2; font-size: 17px; }
+  .b-title > .act { order: 3; }
+  .b-fig { order: 4; grid-column: 1; grid-row: auto; margin-top: 10px; gap: 12px; width: 100%; }
+  .b-fig .b-try { order: -1; }
+  .b-gline { order: 5; }
+  .b-title > .proof { order: 6; }
+  .b-title > .layout-switch { order: 7; }
+  /* the question as a card the width of the screen: the drawn iPhone's chrome goes, its screen stays */
+  .b-live { width: 100%; }
+  .b-live .iphone { --pw: 100%; width: 100%; aspect-ratio: auto; background: none; outline: 0; border-radius: 0; }
+  .b-live .iphone .rim, .b-live .iphone .side, .b-live .iphone .island, .b-live .sb { display: none; }
+  .b-live .iphone .glass { position: static; inset: auto; border-radius: 20px; padding: 0; background: var(--card); transform: none; }
+  .b-live .iphone .glass::after { display: none; }
+  .b-live .scr.ph { height: auto; padding: 18px 18px 20px; gap: 14px; font-size: 16px; border-radius: 20px; }
+  .b-live .ph .sh { grid-template-columns: 36px 1fr auto; }
+  .b-live .ph .sh b { font-size: 19px; }
+  .b-live .ph .sh .of { font-size: 15px; min-width: 36px; }
+  .b-live .ph .sh .x { width: 36px; height: 36px; }
+  .b-live .ph .sh .x svg { width: 17px; height: 17px; }
+  .b-live .d10 .steps { gap: 5px; }
+  .b-live .d10 .steps i { height: 6px; }
+  .b-live .d10 .steps i.now { height: 8px; margin-top: -1px; }
+  .b-live .ph .tools { gap: 8px; }
+  .b-live .ph .tools span { height: 34px; font-size: 13px; padding: 0 11px; gap: 6px; }
+  .b-live .ph .tools svg { width: 15px; height: 15px; }
+  .b-live .ph .skill { font-size: 14px; }
+  .b-live .ph .stem { font-size: 19px; }
+  .b-live .d10 .stem u { width: 84px; }
+  .b-live .ph .ask { font-size: 15px; }
+  .b-live .ph .ch { gap: 8px; }
+  .b-live .ph .ch .c { font-size: 16px; padding: 10px 12px; border-radius: 14px; gap: 12px; min-height: 48px; }
+  .b-live .ph .ch i { width: 28px; height: 28px; font-size: 13px; }
+  .b-live .d10.try .res { gap: 10px; }
+  .b-live .d10.try .res .r { padding: 12px 14px; border-radius: 14px; font-size: 15px; gap: 4px; }
+  .b-live .d10.try .when { gap: 6px; font-size: 14px; }
+  .b-live .d10.try .when b { font-size: 15px; }
+  .b-live .d10.try .when span { padding: 8px 12px; border-radius: 10px; }
+
+  .b-method .in { gap: 64px; }
+  .b-stage { grid-template-columns: 1fr; row-gap: 16px; }
+  .b-stage h2, .b-stage .b-words { grid-column: 1; margin-left: calc((var(--c) - 1) * 4vw); }
+  .b-stage h2 { font-size: clamp(26px, 7vw, 40px); max-width: none; }
+  .b-stage .media, .b-stage.s1 .media, .b-stage.s2 .media, .b-stage.s3 .media, .b-stage.s4 .media { grid-column: 1; justify-self: stretch; }
+  .b-stage .b-words, .b-stage.s1 .b-words, .b-stage.s2 .b-words, .b-stage.s3 .b-words, .b-stage.s4 .b-words { grid-column: 1; max-width: none; }
+  .b-stage .wide { display: none; }
+  .b-stage .twin { display: flex; }
+  .b-stage .turn .iphone { --pw: min(62vw, 280px); transform: rotateY(-10deg); }
+
+  .b-day h2 { grid-column: 1 / -1; margin-bottom: 28px; }
+  .b-pane picture { height: 40svh; min-height: 250px; }
+  .b-pane figcaption { padding: 10px 10px 18px 10px; font-size: 14px; }
+
+  .b-tools-words { gap: 24px; }
+  .b-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .b-table, .b-table tbody, .b-table tr, .b-table th, .b-table td, .b-table tbody th, .b-table .b-plan { display: block; width: auto; }
+  .b-table tr { padding: 14px 0 0; border-radius: 14px; overflow: hidden; }
+  .b-table tbody th { padding: 0 16px 8px; font-size: 20px; }
+  .b-table td { padding: 0 16px 14px; font-size: 16px; }
+  .b-table td::before { content: attr(data-th) ": "; font-weight: 700; }
+  .b-table td.b-plan { padding: 12px 16px; margin-top: 2px; }
+  .b-table tbody tr:first-child th:first-child, .b-table tbody tr:last-child th:first-child, .b-table tbody tr:last-child .b-plan { border-radius: 0; }
+  .b-tools-media { justify-content: center; }
+  .b-tools-media .turn .iphone { --pw: min(44vw, 200px); }
+
+  .b-strip { grid-template-columns: 1fr 1fr; }
+  .b-strip .clip:first-child { grid-column: 1 / -1; }
+  .b-strip .clip figcaption { display: grid; padding: 10px var(--gutter) 18px; }
+  .b-caps3 { display: none; }
+  .b-cband { row-gap: 16px; }
+}
+@media (max-width: 480px) {
+  .b-tools-media { flex-direction: column; align-items: center; gap: 20px; }
+  .b-tools-media .turn .iphone, .b-tools-media .turn:last-child .iphone { --pw: min(62vw, 260px); transform: rotateY(-8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b-stage .turn .iphone, .b-tools-media .turn .iphone { transition: none; }
+}

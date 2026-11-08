@@ -1,0 +1,141 @@
+{
+  "about": "Stills for the fresh editorial home page direction (2026-11-01). Generated through scripts/generate-assets.mjs with --manifest assets/fresh/editorial.manifest.json. Founder approved all image creation in chat on 2026-11-01.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "16:9",
+    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. One continuous shot, slow and physical camera move, no cuts. No text, letters, numbers, logos, watermarks, neon, lens flare, bokeh circles, light orbs, purple, glowing orbs or rockets. Phone and laptop screens are never visible to the camera.",
+    "stillSuffix": "Editorial documentary photograph for a long-form magazine feature, shot on 35mm film, Kodak Portra 400 colour, soft natural light, muted greens, slate blues and warm wood tones with warm true skin, gentle film grain, true skin texture with pores, natural hands with five fingers. Unposed, the subject does not look at the camera. No text, letters, numbers, logos, crests, brand marks or watermarks anywhere, including on clothing, signs and devices. Phone and laptop screens face away from the camera and are never visible. No paper, notebooks, worksheets, pencils, printed books or calculators. No purple, neon or lens flare."
+  },
+  "cast": {},
+  "shots": [],
+  "plates": [],
+  "stills": [
+    {
+      "id": "editorial-bus",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "masthead band, first screen",
+      "prompt": "Wide horizontal frame. A 17-year-old boy sits in a window seat of a city bus on an overcast morning, grey hoodie, white wireless earbuds, holding his phone low in both hands and reading it with full concentration, a small backpack on his lap. Rain-speckled window beside him, soft grey city light on his face, other seats empty and out of focus. Camera at seat height across the aisle, 35mm lens, the boy placed right of centre with calm space on the left."
+    },
+    {
+      "id": "editorial-desk",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "method section, beside the question",
+      "prompt": "Wide horizontal frame, the person near the centre so a tighter portrait crop also works. A 16-year-old girl at a small wooden desk by a window in her bedroom in the early evening, dark hair tied back, oversized cream sweater, working on an open silver laptop seen from the side so its screen faces away from the camera, one hand on the trackpad, chin resting on the other hand, focused, a glass of water beside the laptop. Blue dusk outside, a warm desk lamp on. 50mm lens, eye level."
+    },
+    {
+      "id": "editorial-zoom-student",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "tutors section, diptych left",
+      "prompt": "Wide horizontal frame, the person near the centre so a tighter portrait crop also works. A 17-year-old boy at his own desk at home in the evening, wearing over-ear headphones, sitting upright in front of an open laptop seen from a three-quarter back angle so the screen is turned away from the camera, listening intently in a live video class, one hand raised slightly as he is about to speak. Warm lamp, bookshelf blurred behind, a houseplant. 35mm lens."
+    },
+    {
+      "id": "editorial-zoom-tutor",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "tutors section, diptych right",
+      "prompt": "Wide horizontal frame, the person near the centre so a tighter portrait crop also works. A tutor in her late twenties at her own desk in a small apartment study, wearing a light headset with a microphone, speaking to an open laptop that faces away from the camera, explaining something with one open hand, calm and attentive, a mug and a tidy shelf behind her, soft daylight from a window on the left. 35mm lens, eye level. She is alone in the room."
+    },
+    {
+      "id": "editorial-parent",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "weekly note section",
+      "prompt": "Wide horizontal frame, the person near the centre so a tighter portrait crop also works. A Black father in his late forties, short grey beard, navy quarter-zip sweater, sits on a sofa by a window at home in the early evening, reading something on his phone with a calm, quietly pleased expression, the phone tilted so its screen faces away from the camera. Warm lamp light, green plants, a wool throw. 50mm lens, eye level, plain walls with nothing written on them."
+    },
+    {
+      "id": "editorial-bench",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "closing strip",
+      "prompt": "Horizontal frame. A 16-year-old girl in a soccer training kit sits on a team bench at the edge of a grass field during a practice break, shin guards on, water bottle beside her, looking down at her phone held in both hands, focused, teammates blurred far behind. Overcast afternoon, muted greens. 50mm lens, low angle from the side."
+    },
+    {
+      "id": "editorial-library",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "closing strip",
+      "prompt": "Horizontal frame. A 17-year-old Latina girl with curly dark hair and round glasses sits at a long wooden table in a quiet public library with tall windows, working on an open laptop seen from the side so its screen faces away from the camera, wireless earbuds in, completely absorbed. Soft north light, empty chairs, warm wood. 35mm lens."
+    },
+    {
+      "id": "editorial-steps",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "closing strip",
+      "prompt": "Horizontal frame. A 16-year-old white boy with light brown hair and freckles sits on the front steps of a wooden house on a residential street in the late afternoon, a laptop open on his knees seen from the side with the screen facing away from the camera, a basketball resting on the step beside him, concentrating. Golden autumn light, maple leaves on the sidewalk. 35mm lens, from across the path."
+    },
+    {
+      "id": "editorial-dinner",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "hero alternative and plans section",
+      "prompt": "Wide horizontal frame. A Black family of four at a wooden kitchen table in the evening: a father, a mother and two teenagers aged 16 and 13, plates of pasta and a salad, talking quietly, the older teenager listening with a small smile; two phones lie face down at the edge of the table and a closed laptop sits on a side counter. Warm pendant light, dark green walls. Seen from the end of the table, 35mm lens, natural and unposed."
+    },
+    {
+      "id": "editorial-train",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "spare, closing strip alternative",
+      "prompt": "Horizontal frame. A 17-year-old girl with a short dark bob on a commuter train in the morning, sitting by the window with over-ear headphones, reading her phone held low with the screen away from the camera, focused, soft grey daylight, fields passing outside. 35mm documentary photograph."
+    },
+    {
+      "id": "editorial-desk-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "method section, replaces editorial-desk for a more varied cast",
+      "prompt": "Wide horizontal frame, the person near the centre so a tighter portrait crop also works. A 16-year-old South Asian girl with long dark hair in a loose braid, mustard cardigan over a white t-shirt, sits cross-legged on her bed against the wall in the early evening with a silver laptop on a pillow on her knees, seen from the side so the screen faces away from the camera, focused and calm, one hand on the trackpad. Warm bedside lamp, blue dusk through the window, a plant on the sill. 35mm lens, eye level."
+    },
+    {
+      "id": "editorial-zoom-student-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "tutors section diptych left, replaces editorial-zoom-student for a more varied cast",
+      "prompt": "Wide horizontal frame, the person near the centre so a tighter portrait crop also works. A 17-year-old Black boy with short twists, olive green crewneck sweatshirt and over-ear headphones, sits upright at his own desk at home in the evening, facing an open laptop seen from a three-quarter side angle so the screen is turned away from the camera, listening closely in a live video class with a slight nod. Warm desk lamp, bookshelf softly blurred behind, a mug. 35mm lens, eye level."
+    },
+    {
+      "id": "editorial-kitchen-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "masthead, first screen (fix round, replaces editorial-bus)",
+      "prompt": "Wide horizontal frame. Early weekday morning in a warm family kitchen. In the foreground right of centre, a 16-year-old girl in a faded navy school sweatshirt sits on a stool at a wooden kitchen island, holding her phone low in both hands and reading it with calm concentration, a half-eaten bowl of cereal beside her. Behind her, softly out of focus, her father in a grey shirt pours coffee at the counter, not looking at her. Low golden sunlight through a window on the left, plants on the sill. Camera at seat height across the island, 35mm lens, calm space on the left of the frame."
+    },
+    {
+      "id": "editorial-kitchen-b",
+      "status": "rejected",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "masthead, first screen (fix round)",
+      "prompt": "Wide horizontal frame. A quiet weekday evening in a lived-in family kitchen. A 17-year-old boy in a dark green crewneck sits at the end of a wooden kitchen table, an open silver laptop turned side-on so its screen faces away from the camera, one hand on the trackpad, focused and calm. In the soft background his mother, in a cream cardigan, rinses a pan at the sink with her back half turned. Warm pendant light over the table, blue dusk in the window. Camera at table height, 35mm lens, the boy right of centre with calm space on the left.",
+      "rejected": "2026-11-01: an Apple logo shows on the laptop lid (rule 44 / no logos). Kept in raw/rejected."
+    }
+  ]
+}

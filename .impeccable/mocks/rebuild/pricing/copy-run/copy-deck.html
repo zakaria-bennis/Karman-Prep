@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Karman Prep — copy deck</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #0a0b0d;
+        color: #e8e9ed;
+        font:
+          15px/1.65 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Inter,
+          sans-serif;
+        padding: 56px 24px 96px;
+      }
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+      header {
+        border-bottom: 1px solid #1e2128;
+        padding-bottom: 28px;
+        margin-bottom: 44px;
+      }
+      .eyebrow {
+        color: #6f7580;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 30px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
+      .sub {
+        color: #8b919c;
+        margin-top: 8px;
+        font-size: 14px;
+      }
+      h2 {
+        font-size: 12px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #7d838e;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+      section {
+        margin-bottom: 48px;
+      }
+      .lede {
+        color: #8b919c;
+        font-size: 13.5px;
+        margin-bottom: 20px;
+        max-width: 62ch;
+      }
+      .poles {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 18px;
+        align-items: center;
+        background: #101217;
+        border: 1px solid #1e2128;
+        border-radius: 12px;
+        padding: 22px;
+      }
+      .pole-label {
+        color: #6f7580;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 7px;
+      }
+      .wire {
+        color: #3a4048;
+        font-size: 20px;
+      }
+      .enemy {
+        margin-top: 16px;
+        background: #101217;
+        border: 1px solid #1e2128;
+        border-left: 3px solid #d9534f;
+        border-radius: 0 12px 12px 0;
+        padding: 16px 20px;
+      }
+      .enemy-type {
+        color: #d9534f;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      /* asset mocks */
+      .mock {
+        background: #101217;
+        border: 1px solid #1e2128;
+        border-radius: 14px;
+        overflow: hidden;
+        max-width: 600px;
+      }
+      .mock-fb .fb-head {
+        display: flex;
+        gap: 11px;
+        align-items: center;
+        padding: 15px 16px 11px;
+      }
+      .fb-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #2b303a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 650;
+        color: #c7ccd4;
+      }
+      .fb-brand {
+        font-weight: 620;
+        font-size: 14px;
+      }
+      .fb-meta {
+        color: #7d838e;
+        font-size: 12px;
+      }
+      .fb-hook {
+        padding: 2px 16px 10px;
+        font-size: 15px;
+        white-space: pre-wrap;
+        font-weight: 520;
+      }
+      .fb-body {
+        padding: 0 16px 15px;
+        color: #c2c7d0;
+        font-size: 14.5px;
+      }
+      .fb-body p {
+        margin-bottom: 13px;
+      }
+      .fb-card {
+        border-top: 1px solid #1e2128;
+        background: #15181e;
+        position: relative;
+      }
+      .fb-img {
+        height: 150px;
+        background: repeating-linear-gradient(
+          45deg,
+          #191d24,
+          #191d24 11px,
+          #1d222a 11px,
+          #1d222a 22px
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4a515c;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .fb-card-txt {
+        padding: 12px 16px;
+      }
+      .fb-card-head {
+        font-weight: 640;
+        font-size: 14.5px;
+      }
+      .fb-card-desc {
+        color: #7d838e;
+        font-size: 12.5px;
+        margin-top: 3px;
+      }
+      .fb-btn {
+        position: absolute;
+        right: 14px;
+        bottom: 14px;
+        background: #2b303a;
+        color: #e8e9ed;
+        padding: 8px 15px;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .mock-email .inbox {
+        border-bottom: 1px solid #1e2128;
+        padding: 14px 18px;
+        background: #15181e;
+      }
+      .inbox-from {
+        font-weight: 640;
+        font-size: 13px;
+        margin-bottom: 3px;
+      }
+      .inbox-subject {
+        font-size: 14px;
+        font-weight: 560;
+      }
+      .inbox-preview {
+        color: #7d838e;
+        font-weight: 400;
+      }
+      .email-body {
+        padding: 22px 20px;
+      }
+      .email-body p {
+        margin-bottom: 14px;
+        color: #c2c7d0;
+      }
+      .email-cta {
+        display: inline-block;
+        background: #e8e9ed;
+        color: #0a0b0d;
+        padding: 11px 22px;
+        border-radius: 7px;
+        font-weight: 640;
+        font-size: 14px;
+        margin: 6px 0 16px;
+      }
+      .ps {
+        color: #8b919c;
+        font-size: 13.5px;
+        font-style: italic;
+      }
+      .mock-lp {
+        max-width: 760px;
+      }
+      .lp-nav {
+        padding: 14px 24px;
+        border-bottom: 1px solid #1e2128;
+        font-weight: 640;
+        font-size: 13.5px;
+        background: #15181e;
+      }
+      .lp-hero {
+        padding: 44px 30px 38px;
+        text-align: center;
+      }
+      .lp-hero h2 {
+        font-size: 30px;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        color: #f2f3f6;
+        text-transform: none;
+        margin-bottom: 12px;
+        font-weight: 660;
+      }
+      .lp-sub {
+        color: #a8aeb8;
+        font-size: 16px;
+        max-width: 46ch;
+        margin: 0 auto 22px;
+      }
+      .lp-btn {
+        display: inline-block;
+        background: #e8e9ed;
+        color: #0a0b0d;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-weight: 650;
+      }
+      .lp-proof {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 0 24px 30px;
+      }
+      .proof {
+        background: #191d24;
+        border: 1px solid #232830;
+        border-radius: 20px;
+        padding: 7px 15px;
+        font-size: 12.5px;
+        color: #a8aeb8;
+      }
+      .lp-section {
+        padding: 24px 30px;
+        border-top: 1px solid #1a1d23;
+      }
+      .lp-section h3 {
+        font-size: 18px;
+        margin-bottom: 9px;
+        font-weight: 640;
+      }
+      .lp-section p {
+        color: #a8aeb8;
+        margin-bottom: 11px;
+      }
+      /* ladder */
+      .ladders,
+      .alts {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      }
+      .ladder,
+      .alt {
+        background: #101217;
+        border: 1px solid #1e2128;
+        border-radius: 12px;
+        padding: 18px;
+      }
+      .ladder-id,
+      .alt-id {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 11px;
+        color: #6f7580;
+        margin-bottom: 12px;
+      }
+      .ladder-head {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: #4a515c;
+        margin-bottom: 10px;
+      }
+      .rung {
+        position: relative;
+        padding: 6px 0 6px 20px;
+        color: #8b919c;
+        font-size: 13.5px;
+      }
+      .rung-dot {
+        position: absolute;
+        left: 3px;
+        top: 13px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #2f353e;
+      }
+      .rung-final {
+        color: #f2f3f6;
+        font-weight: 620;
+        font-size: 15px;
+      }
+      .rung-final .rung-dot {
+        background: #5b9f6e;
+        box-shadow: 0 0 0 3px rgba(91, 159, 110, 0.16);
+      }
+      .alt ul {
+        list-style: none;
+      }
+      .alt li {
+        padding: 9px 0;
+        border-bottom: 1px solid #191d23;
+        color: #a8aeb8;
+        font-size: 13.5px;
+      }
+      .alt li:last-child {
+        border-bottom: none;
+      }
+      .alt li.shipped {
+        color: #f2f3f6;
+        font-weight: 600;
+      }
+      .tag {
+        background: #1c2b21;
+        color: #5b9f6e;
+        font-size: 9.5px;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 4px;
+        margin-left: 9px;
+        vertical-align: middle;
+      }
+      /* gate */
+      .gate-row {
+        display: flex;
+        gap: 22px;
+        justify-content: space-between;
+        align-items: flex-start;
+        background: #101217;
+        border: 1px solid #1e2128;
+        border-left: 3px solid #2f353e;
+        border-radius: 0 12px 12px 0;
+        padding: 16px 20px;
+        margin-bottom: 11px;
+      }
+      .gate-row.s3 {
+        border-left-color: #5b9f6e;
+      }
+      .gate-row.s2 {
+        border-left-color: #c8963e;
+      }
+      .gate-row.s1 {
+        border-left-color: #d9534f;
+      }
+      .gate-id {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 10.5px;
+        color: #6f7580;
+        margin-bottom: 5px;
+      }
+      .gate-txt {
+        font-size: 15px;
+        font-weight: 560;
+        color: #f2f3f6;
+      }
+      .signed {
+        margin-top: 9px;
+        font-size: 12.5px;
+        color: #8b919c;
+        font-style: italic;
+      }
+      .signed-label {
+        display: block;
+        font-style: normal;
+        font-size: 9.5px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: #5a616b;
+        margin-bottom: 2px;
+      }
+      .gate-note {
+        margin-top: 7px;
+        font-size: 12.5px;
+        color: #7d838e;
+      }
+      .gate-scores {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .chk {
+        text-align: center;
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #5a616b;
+      }
+      .chk span {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .yes {
+        color: #5b9f6e;
+        font-weight: 700;
+      }
+      .no {
+        color: #d9534f;
+        font-weight: 700;
+      }
+      .score {
+        font-size: 21px;
+        font-weight: 680;
+        color: #e8e9ed;
+        margin-left: 6px;
+      }
+      .score span {
+        font-size: 11px;
+        color: #5a616b;
+        font-weight: 500;
+      }
+      /* facts */
+      .facts {
+        display: grid;
+        gap: 8px;
+      }
+      .fact {
+        display: grid;
+        grid-template-columns: 78px 1fr 130px;
+        gap: 14px;
+        align-items: center;
+        background: #101217;
+        border: 1px solid #1e2128;
+        border-radius: 9px;
+        padding: 12px 16px;
+        font-size: 13.5px;
+      }
+      .fact-src {
+        font-size: 9.5px;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 3px 0;
+        border-radius: 4px;
+        background: #1c222b;
+        color: #8b919c;
+      }
+      .fact-src.review {
+        background: #16261c;
+        color: #5b9f6e;
+      }
+      .fact-src.founder {
+        background: #1e2233;
+        color: #7d8ccc;
+      }
+      .fact-txt {
+        color: #c2c7d0;
+      }
+      .fact-used {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 10.5px;
+        color: #5a616b;
+        text-align: right;
+      }
+      .cut {
+        list-style: none;
+        color: #7d838e;
+        font-size: 13.5px;
+      }
+      .cut li {
+        padding: 8px 0 8px 18px;
+        border-bottom: 1px solid #16191f;
+        position: relative;
+        text-decoration: line-through;
+        text-decoration-color: #3a4048;
+      }
+      .cut li:before {
+        content: "\00d7";
+        position: absolute;
+        left: 0;
+        color: #d9534f;
+        text-decoration: none;
+      }
+      .caveats {
+        background: #101217;
+        border: 1px solid #1e2128;
+        border-radius: 12px;
+        padding: 22px 26px;
+      }
+      .caveats ul {
+        list-style: none;
+        color: #8b919c;
+        font-size: 13.5px;
+      }
+      .caveats li {
+        padding: 5px 0 5px 16px;
+        position: relative;
+      }
+      .caveats li:before {
+        content: "\2014";
+        position: absolute;
+        left: 0;
+        color: #4a515c;
+      }
+      footer {
+        border-top: 1px solid #1e2128;
+        padding-top: 22px;
+        color: #5a616b;
+        font-size: 12px;
+        text-align: center;
+      }
+      footer a {
+        color: #7d838e;
+      }
+      @media (max-width: 720px) {
+        .poles {
+          grid-template-columns: 1fr;
+        }
+        .wire {
+          display: none;
+        }
+        .gate-row {
+          flex-direction: column;
+        }
+        .fact {
+          grid-template-columns: 1fr;
+        }
+        .fact-used {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="eyebrow">Conversion Copywriter · Landing page</div>
+        <h1>Karman Prep</h1>
+        <div class="sub">Written 2026-11-02</div>
+      </header>
+
+      <section>
+        <h2>The race</h2>
+        <p class="lede">
+          You can't start in the middle. Two telephone poles &mdash; the copy is the wire.
+        </p>
+        <div class="poles">
+          <div>
+            <div class="pole-label">Point A &mdash; where they are</div>
+            A parent on the pricing page, unsure whether SAT prep means a $49 app or a $2,000 tutor,
+            and wary of paying before knowing it works.
+          </div>
+          <div class="wire">&rarr;</div>
+          <div>
+            <div class="pole-label">Point B &mdash; where they land</div>
+            The parent sees every plan side by side, knows which two carry a guarantee, and books
+            the free practice test or picks a plan.
+          </div>
+        </div>
+        <div class="enemy">
+          <div class="enemy-type">A different approach</div>
+          Prep companies that hide prices behind a sales call and sell one big package.
+        </div>
+      </section>
+
+      <section>
+        <h2>The copy</h2>
+        <p class="lede">
+          Laid out the way the reader will actually see it &mdash; not as a document.
+        </p>
+
+        <div class="mock mock-lp">
+          <div class="lp-nav">Karman Prep</div>
+          <div class="lp-hero">
+            <h2>From 100 free questions to 20 hours with a tutor.</h2>
+            <p class="lp-sub">
+              Monthly practice plans you can cancel, and two tutor plans with a score guarantee.
+            </p>
+            <div class="lp-btn">Book the free practice test</div>
+          </div>
+          <div class="lp-proof">
+            <div class="proof">The guarantee table, straight from offer.ts</div>
+            <div class="proof">Real product clip on an iPhone 17 Pro Max</div>
+          </div>
+          <div class="lp-section">
+            <h3>What your teen opens after signing in.</h3>
+            <p>
+              Home, Classes, a Your Daily 10 prize and Rewards, recorded in the Karman app. Classes
+              come with the March program.
+            </p>
+          </div>
+          <div class="lp-section">
+            <h3>What each plan includes</h3>
+            <p>Table that follows the On your own / With a tutor control.</p>
+          </div>
+          <div class="lp-section">
+            <h3>The March program promises +100 points or a 1450 on the official SAT.</h3>
+            <p>
+              If the score falls short, the family chooses money back or a free seat in the next
+              cohort.
+            </p>
+          </div>
+          <div class="lp-section">
+            <h3>Questions before you pay</h3>
+            <p>Six answers, all from offer.ts and the plan ladder.</p>
+          </div>
+          <div class="lp-section">
+            <h3>Not sure yet? Start with the free practice test.</h3>
+            <p>
+              Saturday, December 12, 10:00 a.m. ET. About 75 minutes, live on Zoom, with a predicted
+              score and a 20-minute results call.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>The gate</h2>
+        <p class="lede">
+          Harry Dry's three rules. Three nos and it's rubbish. Three yeses and you're onto
+          something.
+        </p>
+        <div class="gate">
+          <div class="gate-row s3">
+            <div class="gate-line">
+              <div class="gate-id">headline</div>
+              <div class="gate-txt">From 100 free questions to 20 hours with a tutor.</div>
+              <div class="signed">
+                <span class="signed-label">competitor test</span>With Kaplan&#x27;s or
+                PrepScholar&#x27;s name on it, the 100 / 20-hour pairing no longer matches their
+                ladder.
+              </div>
+              <div class="gate-note">Both ends are real Karman plan facts.</div>
+            </div>
+            <div class="gate-scores">
+              <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+              <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+              <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+              <div class="score">3<span>/3</span></div>
+            </div>
+          </div>
+          <div class="gate-row s2">
+            <div class="gate-line">
+              <div class="gate-id">subhead</div>
+              <div class="gate-txt">
+                Monthly practice plans you can cancel, and two tutor plans with a score guarantee.
+              </div>
+              <div class="signed">
+                <span class="signed-label">competitor test</span>Others sell monthly plans and
+                guarantees too.
+              </div>
+              <div class="gate-note">Kept for clarity; it sets up the control.</div>
+            </div>
+            <div class="gate-scores">
+              <div class="chk"><span>see it</span><span class="no">no</span></div>
+              <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+              <div class="chk"><span>only us</span><span class="no">no</span></div>
+              <div class="score">2<span>/3</span></div>
+            </div>
+          </div>
+          <div class="gate-row s3">
+            <div class="gate-line">
+              <div class="gate-id">guarantee</div>
+              <div class="gate-txt">
+                The March program promises +100 points or a 1450 on the official SAT.
+              </div>
+              <div class="signed">
+                <span class="signed-label">competitor test</span>The program name and the 1450 floor
+                are Karman&#x27;s.
+              </div>
+              <div class="gate-note">Wording mirrors GUARANTEE in offer.ts.</div>
+            </div>
+            <div class="gate-scores">
+              <div class="chk"><span>see it</span><span class="yes">yes</span></div>
+              <div class="chk"><span>prove it</span><span class="yes">yes</span></div>
+              <div class="chk"><span>only us</span><span class="yes">yes</span></div>
+              <div class="score">3<span>/3</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2>The ladder</h2>
+        <p class="lede">
+          Every line starts abstract. This is the climb down to something you can see.
+        </p>
+        <div class="ladders">
+          <div class="ladder">
+            <div class="ladder-id">headline</div>
+            <div class="ladder-head"><span>abstract</span><span>concrete</span></div>
+            <div class="rung"><span class="rung-dot"></span>Simple pricing for every family</div>
+            <div class="rung"><span class="rung-dot"></span>A plan for every budget</div>
+            <div class="rung">
+              <span class="rung-dot"></span>From free practice to a private tutor
+            </div>
+            <div class="rung"><span class="rung-dot"></span>From $0 to $2,495</div>
+            <div class="rung rung-final">
+              <span class="rung-dot"></span>From 100 free questions to 20 hours with a tutor
+            </div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2>Alternates</h2>
+        <p class="lede">
+          You get better feedback on three versions than on one. Swap any of these in.
+        </p>
+        <div class="alts">
+          <div class="alt">
+            <div class="alt-id">headline</div>
+            <ul>
+              <li class="shipped">
+                From 100 free questions to 20 hours with a tutor.<span class="tag">shipped</span>
+              </li>
+              <li class="">SAT prep from $0 a month to a class that ends on March 6.</li>
+              <li class="">Every Karman plan, from $0 practice to 20 hours with a tutor.</li>
+              <li class="">Choose how much help your teen gets before the SAT.</li>
+            </ul>
+          </div>
+          <div class="alt">
+            <div class="alt-id">subhead</div>
+            <ul>
+              <li class="shipped">
+                Monthly practice plans you can cancel, and two tutor plans with a score
+                guarantee.<span class="tag">shipped</span>
+              </li>
+              <li class="">Practice on your own month to month, or add a Karman tutor.</li>
+              <li class="">Only the March program and Private 20 carry the score guarantee.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2>The facts underneath</h2>
+        <p class="lede">
+          Every specific in the copy traces back to one of these. No fact, no line.
+        </p>
+        <div class="facts">
+          <div class="fact">
+            <div class="fact-src founder">founder</div>
+            <div class="fact-txt">
+              Free gives 100 questions; Platform $29 a month gives 500; Plus $49 a month gives all.
+            </div>
+            <div class="fact-used">headline, cards</div>
+          </div>
+          <div class="fact">
+            <div class="fact-src founder">founder</div>
+            <div class="fact-txt">Private 20 is $2,495 for 20 hours with a Karman tutor.</div>
+            <div class="fact-used">headline, cards</div>
+          </div>
+          <div class="fact">
+            <div class="fact-src founder">founder</div>
+            <div class="fact-txt">
+              Only the March program and Private 20 carry the guarantee: +100 points or a 1450.
+            </div>
+            <div class="fact-used">subhead, guarantee</div>
+          </div>
+          <div class="fact">
+            <div class="fact-src founder">founder</div>
+            <div class="fact-txt">Platform and Plus bill monthly until the family cancels.</div>
+            <div class="fact-used">subhead, FAQ</div>
+          </div>
+          <div class="fact">
+            <div class="fact-src founder">founder</div>
+            <div class="fact-txt">
+              Free practice test: Saturday, December 12, 10:00 a.m. ET, about 75 minutes, live on
+              Zoom, with a predicted score and a 20-minute results call.
+            </div>
+            <div class="fact-used">close</div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2>Cut</h2>
+        <ul class="cut">
+          <li>
+            Simple pricing. Easy setup. (the starter&#x27;s two-beat line, banned by copy rule 16)
+          </li>
+          <li>Most popular badge (no paying users yet, so it would be a fabricated claim)</li>
+        </ul>
+      </section>
+      <section class="caveats">
+        <h2>Read this before you spend money</h2>
+        <ul>
+          <li>
+            Every specific in this copy traces to a fact you provided or a review you supplied —
+            check them before you spend money behind them. This writes the copy; it doesn&#x27;t
+            verify your claims or clear them for compliance.
+          </li>
+          <li>No reviews exist yet, so no line quotes a family.</li>
+          <li>
+            The schedule, enrollment deadline and guarantee terms are still marked CONFIRM in
+            offer.ts.
+          </li>
+        </ul>
+      </section>
+
+      <footer>
+        Method: Harry Dry's three rules &mdash;
+        <a href="https://marketingexamples.com">marketingexamples.com</a>
+      </footer>
+    </div>
+  </body>
+</html>

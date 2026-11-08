@@ -1,0 +1,16 @@
+/* 21st.dev component 26909 (ln-dev7/gallery-02, "Gallery Grid with Captions"), ported to plain CSS: tiles with a
+   caption beneath each picture. The gradient thumbnails became Karman's three campus clips (real footage,
+   rule 47), the equal grid became one clip large in the middle and two smaller stepped at its sides (rule 6: never three equal
+   cards in a row), the mono eyebrow was dropped, and the border and hover scale became the page's flat 12px
+   corner. Each caption is one line: the first name, the official score and the college. */
+
+.trio { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 5fr) minmax(0, 3fr); gap: clamp(12px, 2vw, 28px); align-items: end; }
+.trio figure { margin: 0; display: grid; gap: 12px; }
+.trio .fr { position: relative; aspect-ratio: 3 / 5; border-radius: var(--radius); overflow: hidden; background: var(--night2); }
+.trio .fr video, .trio .fr img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.trio figcaption { font-size: 17px; line-height: 1.35; }
+.trio figcaption b { font-weight: 800; }
+@media (max-width: 760px) {
+  .trio { gap: 8px; }
+  .trio figcaption { font-size: 15px; }
+}

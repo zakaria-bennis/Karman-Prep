@@ -2,7 +2,6 @@
 // Privacy Policy page
 // ============================================================
 
-import Link from "next/link";
 import SitePage from "@/components/site/SitePage";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -268,9 +267,9 @@ export default function PrivacyPage() {
             ))}
 
             <div>
-              <Link href="/terms">Terms of Service</Link>
-              <Link href="/refunds">Refund Policy</Link>
-              <Link href="/guarantee">Score Guarantee</Link>
+              <a href="/terms">Terms of Service</a>
+              <a href="/refunds">Refund Policy</a>
+              <a href="/guarantee">Score Guarantee</a>
             </div>
           </div>
         </div>

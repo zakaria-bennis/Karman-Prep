@@ -1,4 +1,3 @@
-import Link from "next/link";
 import SitePage from "@/components/site/SitePage";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -59,7 +58,7 @@ export default function RefundsPage() {
               refund tutoring, test, or other service fees. Current standard checkout offers are not
               configured as eligible.
             </p>
-            <Link href="/guarantee">Read the full prospective policy</Link>
+            <a href="/guarantee">Read the full prospective policy</a>
           </section>
 
           <section>
@@ -83,7 +82,7 @@ export default function RefundsPage() {
           </section>
 
           <div>
-            <Link href="/terms">Terms of Service</Link>
+            <a href="/terms">Terms of Service</a>
           </div>
         </div>
       </article>

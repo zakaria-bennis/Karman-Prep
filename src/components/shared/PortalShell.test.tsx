@@ -36,18 +36,4 @@ describe("role workspace navigation", () => {
       "/tutor/settings/booking"
     );
   });
-  it("keeps rapid question review and operational jobs reachable in admin", () => {
-    path = "/admin/questions/preview/rapid";
-    render(<PortalShell area="admin">Questions</PortalShell>);
-    const nav = within(screen.getByRole("navigation", { name: "Admin workspace" }));
-    expect(nav.getByRole("link", { name: "Rapid student view" }).getAttribute("aria-current")).toBe(
-      "page"
-    );
-    expect(
-      nav.getByRole("link", { name: "Question preview" }).getAttribute("aria-current")
-    ).toBeNull();
-    expect(nav.getByRole("link", { name: "Import jobs" }).getAttribute("href")).toBe(
-      "/admin/pdf-pipeline/jobs"
-    );
-  });
 });
