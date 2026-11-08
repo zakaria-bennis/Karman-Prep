@@ -92,6 +92,8 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.program, "program link"],
       [ROUTES.private, "private link"],
       [ROUTES.pricing, "pricing link"],
+      [ROUTES.schools, "schools link"],
+      [ROUTES.tutors, "tutors link"],
       [ROUTES.test, "free test link"],
       [ROUTES.calculator, "calculator link"],
     ],
