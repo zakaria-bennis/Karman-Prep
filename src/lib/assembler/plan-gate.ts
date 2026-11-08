@@ -10,7 +10,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
-import { CORE_MAX_DIFFICULTY, getPlan, getUsage } from "@/lib/plans";
+import { CORE_MAX_DIFFICULTY, PLAN_ENTITLEMENTS, getPlan, getUsage } from "@/lib/plans";
 
 export const MASTERY_MAX_DIFFICULTY = 7;
 
@@ -56,22 +56,14 @@ async function fullTestsStarted(clerkId: string): Promise<number> {
   return count ?? 0;
 }
 
-const FREE: QuizAccess = {
-  plan: "free",
-  maxDifficulty: CORE_MAX_DIFFICULTY,
-  questionsLeft: 0,
-  fullTestsLeft: 0,
-};
-
 export async function loadQuizAccess(clerkId: string): Promise<QuizAccess> {
-  let entitlements;
-  try {
-    entitlements = (await getPlan(clerkId)).entitlements;
-  } catch (error) {
-    // Fail closed: without a readable plan, nothing new opens (saved runs still resume).
-    console.error("[quiz access] plan could not be read", error);
-    return FREE;
-  }
+  // A plan that cannot be read counts as Free (as the student portal does): limits still apply.
+  const entitlements = await getPlan(clerkId)
+    .then((plan) => plan.entitlements)
+    .catch((error: unknown) => {
+      console.error("[quiz access] plan could not be read", error);
+      return PLAN_ENTITLEMENTS.free;
+    });
   const mastery = entitlements.pool === "mastery";
   const access: QuizAccess = {
     plan: mastery ? "mastery" : entitlements.questionLimit === null ? "core" : "free",
