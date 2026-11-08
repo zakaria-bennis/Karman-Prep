@@ -14,18 +14,7 @@
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  AlertOctagon,
-  AlertTriangle,
-  Info,
-  CheckCheck,
-  Flag,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  X,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { WbPill, type Tone } from "@/components/admin/workbench";
 import {
   actionBulkAcceptQuestions,
   actionBulkFlagQuestions,
@@ -56,26 +45,18 @@ interface Props {
   };
 }
 
-const SEVERITY_CHIPS: Record<
-  FindingSeverity,
-  { label: string; icon: typeof AlertOctagon; cls: string }
-> = {
-  BLOCKING: {
-    label: "Blocking",
-    icon: AlertOctagon,
-    cls: "bg-[color-mix(in_srgb,var(--late)_15%,transparent)] text-[color:var(--late)] border-[color-mix(in_srgb,var(--late)_30%,transparent)]",
-  },
-  WARNING: {
-    label: "Warning",
-    icon: AlertTriangle,
-    cls: "bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)] border-[color-mix(in_srgb,var(--warn)_30%,transparent)]",
-  },
-  NOTICE: {
-    label: "Notice",
-    icon: Info,
-    cls: "bg-[color-mix(in_srgb,var(--raised)_15%,transparent)] text-[color:var(--ink)] border-[color-mix(in_srgb,var(--line)_30%,transparent)]",
-  },
+const SEVERITY_TONE: Record<FindingSeverity, { label: string; tone: Tone }> = {
+  BLOCKING: { label: "Blocking", tone: "fail" },
+  WARNING: { label: "Warning", tone: "warn" },
+  NOTICE: { label: "Notice", tone: "neutral" },
 };
+
+const SEVERITY_TABS: Array<{ value: string; label: string }> = [
+  { value: "", label: "All severities" },
+  { value: "BLOCKING", label: "Blocking only" },
+  { value: "WARNING", label: "Warning and up" },
+  { value: "NOTICE", label: "Notice only" },
+];
 
 const DOMAINS = [
   "algebra",
@@ -224,186 +205,173 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
     activeFilters.include_resolved;
 
   return (
-    <div className="space-y-4">
-      {/* Filter bar */}
-      <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_50%,transparent)] p-4">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-          <FilterSelect
-            label="Severity"
-            value={activeFilters.severity ?? ""}
-            onChange={(v) => setFilter("severity", v)}
-            options={[
-              { value: "", label: "All severities" },
-              { value: "BLOCKING", label: "Blocking only" },
-              { value: "WARNING", label: "Warning & up" },
-              { value: "NOTICE", label: "Notice only" },
-            ]}
-          />
-          <FilterSelect
-            label="Source"
-            value={activeFilters.source ?? ""}
-            onChange={(v) => setFilter("source", v)}
-            options={[
-              { value: "", label: "Both auditor + grader" },
-              { value: "auditor", label: "Deterministic auditor" },
-              { value: "grader", label: "LLM grader" },
-            ]}
-          />
-          <FilterSelect
-            label="Category"
-            value={activeFilters.category ?? ""}
-            onChange={(v) => setFilter("category", v)}
-            options={[
-              { value: "", label: "All categories" },
-              ...filterOptions.categories.map((c) => ({ value: c, label: c })),
-            ]}
-          />
-          <FilterSelect
-            label="Domain"
-            value={activeFilters.domain ?? ""}
-            onChange={(v) => setFilter("domain", v)}
-            options={[
-              { value: "", label: "All domains" },
-              ...DOMAINS.map((d) => ({ value: d, label: d })),
-            ]}
-          />
-          <FilterSelect
-            label="Source PDF"
-            value={activeFilters.source_pdf ?? ""}
-            onChange={(v) => setFilter("source_pdf", v)}
-            options={[
-              { value: "", label: "All source PDFs" },
-              ...filterOptions.source_pdfs.map((p) => ({ value: p, label: p })),
-            ]}
-          />
-          <div className="flex flex-col">
-            <label className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
-              Search
-            </label>
-            <input
-              type="text"
-              placeholder="question text…"
-              defaultValue={activeFilters.q ?? ""}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") setFilter("q", (e.target as HTMLInputElement).value);
-              }}
-              className="rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-2.5 py-1.5 text-xs text-[color:var(--ink)] placeholder-[color-mix(in_srgb,var(--mute)_70%,transparent)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
-            />
-          </div>
+    <>
+      <div className="wb-toolbar">
+        <div className="wb-tabs" role="group" aria-label="Severity">
+          {SEVERITY_TABS.map((t) => {
+            const on = (activeFilters.severity ?? "") === t.value;
+            return (
+              <button
+                key={t.value || "all"}
+                type="button"
+                className="wb-tab"
+                aria-pressed={on}
+                aria-current={on ? "page" : undefined}
+                onClick={() => setFilter("severity", t.value || undefined)}
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </div>
+        <form
+          role="search"
+          className="wb-search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const input = e.currentTarget.elements.namedItem("q") as HTMLInputElement | null;
+            setFilter("q", input?.value.trim() || undefined);
+          }}
+        >
+          <input
+            className="wb-input"
+            type="search"
+            name="q"
+            placeholder="Question text"
+            aria-label="Search question text"
+            defaultValue={activeFilters.q ?? ""}
+          />
+          <button className="wb-btn" type="submit">
+            Search
+          </button>
+        </form>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gap: 8,
+          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+        }}
+      >
+        <FilterSelect
+          label="Source"
+          value={activeFilters.source ?? ""}
+          onChange={(v) => setFilter("source", v)}
+          options={[
+            { value: "", label: "Auditor and grader" },
+            { value: "auditor", label: "Deterministic auditor" },
+            { value: "grader", label: "LLM grader" },
+          ]}
+        />
+        <FilterSelect
+          label="Category"
+          value={activeFilters.category ?? ""}
+          onChange={(v) => setFilter("category", v)}
+          options={[
+            { value: "", label: "All categories" },
+            ...filterOptions.categories.map((c) => ({ value: c, label: c })),
+          ]}
+        />
+        <FilterSelect
+          label="Domain"
+          value={activeFilters.domain ?? ""}
+          onChange={(v) => setFilter("domain", v)}
+          options={[
+            { value: "", label: "All domains" },
+            ...DOMAINS.map((d) => ({ value: d, label: d })),
+          ]}
+        />
+        <FilterSelect
+          label="Source PDF"
+          value={activeFilters.source_pdf ?? ""}
+          onChange={(v) => setFilter("source_pdf", v)}
+          options={[
+            { value: "", label: "All source PDFs" },
+            ...filterOptions.source_pdfs.map((p) => ({ value: p, label: p })),
+          ]}
+        />
+      </div>
+
+      <div className="wb-toolbar">
+        <label className="wb-note" style={{ display: "inline-flex", gap: 6, cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={!!activeFilters.include_resolved}
+            onChange={(e) => setFilter("include_resolved", e.target.checked ? "true" : "")}
+            style={{ accentColor: "var(--accent)" }}
+          />
+          Include resolved findings
+        </label>
         {anyFilterActive && (
-          <div className="mt-3 flex items-center gap-2">
-            <button
-              onClick={clearAll}
-              className="rounded-md border border-[color:var(--line)] px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
-            >
-              Clear all filters
-            </button>
-            <label className="ml-auto flex items-center gap-1.5 text-xs text-[color:var(--mute)]">
-              <input
-                type="checkbox"
-                checked={!!activeFilters.include_resolved}
-                onChange={(e) => setFilter("include_resolved", e.target.checked ? "true" : "")}
-                className="h-3.5 w-3.5 rounded border-[color:var(--line)] bg-[color:var(--sunk)]"
-              />
-              Include resolved findings
-            </label>
-          </div>
+          <button type="button" className="wb-btn" onClick={clearAll}>
+            Clear all filters
+          </button>
         )}
       </div>
 
       {/* Bulk action bar — visible only when at least one row is selected */}
       {selectedIds.size > 0 && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_6%,transparent)] px-4 py-3">
-          <span className="text-sm font-semibold text-[color:var(--accent-text)]">
-            {selectedIds.size} selected
-          </span>
-          <span className="text-xs text-[color:var(--mute)]">·</span>
+        <div className="wb-toolbar" role="region" aria-label="Bulk actions">
+          <b>{selectedIds.size} selected</b>
           <button
+            type="button"
+            className="wb-btn"
             onClick={bulkResolve}
             disabled={bulkBusy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--raised)_20%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--raised)_30%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {bulkBusy === "resolving" ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <CheckCircle2 className="h-3.5 w-3.5" />
-            )}
-            Resolve all findings
+            {bulkBusy === "resolving" ? "Resolving…" : "Resolve all findings"}
           </button>
           <button
+            type="button"
+            className="wb-btn"
+            data-variant="primary"
             onClick={bulkAccept}
             disabled={bulkBusy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--good)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--good)] hover:bg-[color-mix(in_srgb,var(--good)_25%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {bulkBusy === "accepting" ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <CheckCheck className="h-3.5 w-3.5" />
-            )}
-            Accept as live
+            {bulkBusy === "accepting" ? "Accepting…" : "Accept as live"}
           </button>
-          <button
-            onClick={bulkFlag}
-            disabled={bulkBusy !== null}
-            className="inline-flex items-center gap-1.5 rounded-md bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--warn)] hover:bg-[color-mix(in_srgb,var(--warn)_25%,transparent)] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {bulkBusy === "flagging" ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Flag className="h-3.5 w-3.5" />
-            )}
-            Flag as needs-review
+          <button type="button" className="wb-btn" onClick={bulkFlag} disabled={bulkBusy !== null}>
+            {bulkBusy === "flagging" ? "Flagging…" : "Flag as needs-review"}
           </button>
-          <button
-            onClick={clearSelection}
-            className="ml-auto inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-          >
-            <X className="h-3 w-3" /> Clear selection
+          <button type="button" className="wb-btn" onClick={clearSelection}>
+            Clear selection
           </button>
         </div>
       )}
 
       {bulkFeedback && (
         <div
-          className={cn(
-            "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm",
-            bulkFeedback.kind === "success"
-              ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] text-[color:var(--good)]"
-              : "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]"
-          )}
+          className="wb-alert"
+          data-tone={bulkFeedback.kind === "success" ? "ok" : undefined}
+          role={bulkFeedback.kind === "error" ? "alert" : "status"}
+          style={{ display: "flex", gap: 8, alignItems: "center" }}
         >
-          {bulkFeedback.kind === "success" ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-          ) : (
-            <XCircle className="h-4 w-4 shrink-0" />
-          )}
-          <span className="flex-1">{bulkFeedback.message}</span>
-          <button
-            onClick={() => setBulkFeedback(null)}
-            className="text-xs underline opacity-70 hover:opacity-100"
-          >
-            dismiss
+          <span style={{ flex: 1 }}>{bulkFeedback.message}</span>
+          <button type="button" className="wb-btn" onClick={() => setBulkFeedback(null)}>
+            Dismiss
           </button>
         </div>
       )}
 
-      {/* Table */}
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_30%,transparent)] p-12 text-center">
-          <p className="text-sm font-semibold text-[color:var(--ink)]">No findings match the current filter.</p>
-          <p className="mt-1 text-xs text-[color:var(--mute)]">
-            {anyFilterActive
-              ? "Try clearing filters to see everything."
-              : "Run the audit + grader scripts and ingest-findings to populate."}
-          </p>
+        <div className="wb-empty">
+          <b>No findings match the current filter.</b>
+          {anyFilterActive ? (
+            <button type="button" className="wb-btn" onClick={clearAll}>
+              Clear filters
+            </button>
+          ) : (
+            "Run the audit and grader scripts, then ingest-findings, to fill this list."
+          )}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)]">
-          <table className="w-full text-sm">
-            <thead className="border-b border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)]">
-              <tr className="text-left text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
-                <th className="w-8 px-3 py-2.5">
+        <div className="wb-table-wrap">
+          <table className="wb-table">
+            <caption className="sr-only">Questions with findings</caption>
+            <thead>
+              <tr>
+                <th scope="col" style={{ width: 32 }}>
                   <input
                     type="checkbox"
                     aria-label="Select all visible rows"
@@ -412,108 +380,92 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
                       if (el) el.indeterminate = someVisibleSelected && !allVisibleSelected;
                     }}
                     onChange={toggleAllVisible}
-                    className="h-3.5 w-3.5 cursor-pointer rounded border-[color:var(--line)] bg-[color:var(--sunk)]"
+                    style={{ accentColor: "var(--accent)" }}
                   />
                 </th>
-                <th className="px-4 py-2.5">Question</th>
-                <th className="px-4 py-2.5">Source</th>
-                <th className="px-4 py-2.5">Domain</th>
-                <th className="px-4 py-2.5">Findings</th>
-                <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5 text-right"></th>
+                <th scope="col">Question</th>
+                <th scope="col">Source</th>
+                <th scope="col">Domain</th>
+                <th scope="col">Findings</th>
+                <th scope="col">Status</th>
+                <th scope="col">
+                  <span className="sr-only">Open</span>
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[color:var(--line)]">
+            <tbody>
               {rows.map((r) => {
-                const worst = SEVERITY_CHIPS[r.worst_severity];
-                const WorstIcon = worst.icon;
+                const worst = SEVERITY_TONE[r.worst_severity] ?? SEVERITY_TONE.NOTICE;
                 const isSelected = selectedIds.has(r.question_id);
                 return (
                   <tr
                     key={r.question_id}
-                    className={cn(
-                      "transition-colors hover:bg-[color-mix(in_srgb,var(--raised)_40%,transparent)]",
-                      isSelected && "bg-[color-mix(in_srgb,var(--accent)_4%,transparent)]"
-                    )}
+                    style={
+                      isSelected
+                        ? { background: "color-mix(in srgb, var(--accent) 6%, transparent)" }
+                        : undefined
+                    }
                   >
-                    <td className="px-3 py-3">
+                    <td data-label="Select">
                       <input
                         type="checkbox"
                         aria-label={`Select row ${r.question_id}`}
                         checked={isSelected}
                         onChange={() => toggleRow(r.question_id)}
-                        className="h-3.5 w-3.5 cursor-pointer rounded border-[color:var(--line)] bg-[color:var(--sunk)]"
+                        style={{ accentColor: "var(--accent)" }}
                       />
                     </td>
-                    <td className="px-4 py-3 text-[color:var(--ink)]">
-                      <div
-                        className={cn(
-                          "max-w-xl truncate text-sm",
-                          r.worst_severity === "BLOCKING" && "font-medium"
-                        )}
-                        title={r.question_text}
-                      >
-                        {r.question_text.slice(0, 140)}
-                        {r.question_text.length > 140 && "…"}
-                      </div>
-                      <div className="mt-0.5 text-[11px] text-[color:var(--mute)]">
-                        {r.concept_slug ?? "(no concept)"}
-                        {r.latest_category ? ` · last: ${r.latest_category}` : ""}
-                      </div>
+                    <td data-label="Question">
+                      <span style={{ minWidth: 0, overflowWrap: "anywhere", textAlign: "left" }}>
+                        <span
+                          title={r.question_text}
+                          style={{ fontWeight: r.worst_severity === "BLOCKING" ? 600 : 400 }}
+                        >
+                          {r.question_text.slice(0, 140)}
+                          {r.question_text.length > 140 && "…"}
+                        </span>
+                        <small>
+                          {r.concept_slug ?? "(no concept)"}
+                          {r.latest_category ? ` · last: ${r.latest_category}` : ""}
+                        </small>
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[color:var(--mute)]">
+                    <td data-label="Source">
                       {r.source_pdf ? (
-                        <>
-                          <div className="font-mono">{r.source_pdf}</div>
-                          <div className="text-[color:var(--mute)]">p {r.source_page ?? "?"}</div>
-                        </>
+                        <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+                          {r.source_pdf}
+                          <small>p {r.source_page ?? "?"}</small>
+                        </span>
                       ) : (
-                        <span className="text-[color:var(--mute)]">unknown</span>
+                        <span className="wb-note">unknown</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-[color:var(--ink)]">{r.domain ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold",
-                            worst.cls
-                          )}
-                        >
-                          <WorstIcon className="h-3 w-3" />
-                          {r.total_count}
-                        </span>
+                    <td data-label="Domain">{r.domain ?? "—"}</td>
+                    <td data-label="Findings">
+                      <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 4 }}>
+                        <WbPill tone={worst.tone}>
+                          {r.total_count} · {worst.label}
+                        </WbPill>
                         {r.blocking_count > 0 && r.worst_severity !== "BLOCKING" && (
-                          <span className="text-[10px] text-[color:var(--late)]">{r.blocking_count}🔴</span>
+                          <WbPill tone="fail">{r.blocking_count} blocking</WbPill>
                         )}
                         {r.warning_count > 0 && r.worst_severity === "BLOCKING" && (
-                          <span className="text-[10px] text-[color:var(--warn)]">
-                            {r.warning_count}🟡
-                          </span>
+                          <WbPill tone="warn">{r.warning_count} warning</WbPill>
                         )}
                         {r.notice_count > 0 && r.worst_severity !== "NOTICE" && (
-                          <span className="text-[10px] text-[color:var(--mute)]">{r.notice_count}⚪</span>
+                          <WbPill tone="neutral">{r.notice_count} notice</WbPill>
                         )}
-                      </div>
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-xs">
+                    <td data-label="Status">
                       {r.is_live ? (
-                        <span className="rounded bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-1.5 py-0.5 text-[color:var(--good)]">
-                          live
-                        </span>
+                        <WbPill tone="ok">live</WbPill>
                       ) : (
-                        <span className="rounded bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] px-1.5 py-0.5 text-[color:var(--warn)]">
-                          {r.import_status ?? "draft"}
-                        </span>
+                        <WbPill tone="warn">{r.import_status ?? "draft"}</WbPill>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/admin/questions/inspect/${r.question_id}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
-                      >
-                        Inspect →
-                      </Link>
+                    <td data-label="">
+                      <Link href={`/admin/questions/inspect/${r.question_id}`}>Inspect</Link>
                     </td>
                   </tr>
                 );
@@ -522,7 +474,7 @@ export default function InspectorClient({ rows, filterOptions, activeFilters }: 
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -538,14 +490,12 @@ function FilterSelect({
   options: { value: string; label: string }[];
 }) {
   return (
-    <div className="flex flex-col">
-      <label className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
-        {label}
-      </label>
+    <label className="wb-field">
+      <span>{label}</span>
       <select
+        className="wb-select"
         value={value}
         onChange={(e) => onChange(e.target.value || undefined)}
-        className="rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)] px-2.5 py-1.5 text-xs text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -553,6 +503,6 @@ function FilterSelect({
           </option>
         ))}
       </select>
-    </div>
+    </label>
   );
 }

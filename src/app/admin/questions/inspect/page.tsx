@@ -16,17 +16,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ChevronRight,
-  Microscope,
-  CheckCircle2,
-  BarChart3,
-  LineChart,
-  Shapes,
-  Activity,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
+import { WbPage, WbSection, WbStats } from "@/components/admin/workbench";
 import {
   selectInspectorWorklist,
   selectInspectorSummary,
@@ -86,87 +76,73 @@ export default async function InspectorPage({ searchParams }: PageProps) {
     selectRecentActivity(168, scopeOpts),
   ]);
 
-  return (
-    <div className="mx-auto max-w-7xl px-5 py-8">
-      <div className="mb-6">
-        <Link
-          href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-        >
-          <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
-        </Link>
-        <div className="flex items-start justify-between gap-2">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-[color:var(--ink)]">
-            <Microscope className="h-5 w-5 text-[color:var(--accent-text)]" /> Inspector
-          </h1>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/admin/questions/chart-review"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
-            >
-              <LineChart className="h-3.5 w-3.5" /> Chart review
-            </Link>
-            <Link
-              href="/admin/questions/geometry-review"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
-            >
-              <Shapes className="h-3.5 w-3.5" /> Geometry review
-            </Link>
-            <Link
-              href="/admin/questions/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
-            >
-              <BarChart3 className="h-3.5 w-3.5" /> Quality dashboard
-            </Link>
-          </div>
-        </div>
-        <p className="mt-1.5 text-sm text-[color:var(--mute)]">
-          {summary.questions_with_findings} questions with findings · {summary.total_findings} total
-          (<span className="text-[color:var(--late)]">{summary.blocking} blocking</span> ·{" "}
-          <span className="text-[color:var(--warn)]">{summary.warning} warning</span> ·{" "}
-          <span className="text-[color:var(--mute)]">{summary.notice} notice</span>) · {summary.unique_codes}{" "}
-          distinct codes
-          {filter.source_pdf && (
-            <>
-              {" · "}
-              <span className="rounded-md border border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--accent-text)]">
-                scoped: {filter.source_pdf}
-              </span>{" "}
-              <Link
-                href="/admin/questions/inspect"
-                className="text-[10px] text-[color:var(--mute)] underline hover:text-[color:var(--ink)]"
-              >
-                clear
-              </Link>
-            </>
-          )}
-        </p>
-        <p className="mt-1 text-xs text-[color:var(--mute)]">
-          Populated by{" "}
-          <code className="rounded bg-[color:var(--raised)] px-1 py-0.5">
-            scripts/question-audit/ingest-findings.mjs
-          </code>
-          . Re-run after each audit pass to refresh.
-        </p>
-      </div>
+  const hasActivity =
+    activity24h.new_findings > 0 ||
+    activity24h.resolved_findings > 0 ||
+    activity7d.new_findings > 0 ||
+    activity7d.resolved_findings > 0;
 
+  return (
+    <WbPage
+      title="Inspector"
+      summary={
+        <>
+          Questions with at least one open audit or grader finding, worst first. Filled by{" "}
+          <code>scripts/question-audit/ingest-findings.mjs</code>; run it again after each audit
+          pass.
+        </>
+      }
+      actions={
+        <>
+          <Link className="wb-btn" href="/admin/questions/chart-review">
+            Chart review
+          </Link>
+          <Link className="wb-btn" href="/admin/questions/geometry-review">
+            Geometry review
+          </Link>
+          <Link className="wb-btn" href="/admin/questions/dashboard">
+            Quality dashboard
+          </Link>
+          <Link className="wb-btn" href="/admin/curriculum">
+            Back to admin
+          </Link>
+        </>
+      }
+    >
       {params.accepted && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] px-4 py-3 text-sm text-[color:var(--good)]">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          <span>Question accepted as live · all findings auto-resolved.</span>
-        </div>
+        <p className="wb-alert" data-tone="ok" role="status">
+          Question accepted as live. All its findings were resolved.
+        </p>
       )}
 
-      {/* ── Recent activity (audit diff) ──
-          Two side-by-side cards: last 24h + last 7d. Useful for spotting
-          a fresh audit run (sudden burst of new findings) and tracking
-          triage velocity (resolved > new = winning). Net change is
-          color-coded green when shrinking, rose when growing. */}
-      {(activity24h.new_findings > 0 ||
-        activity24h.resolved_findings > 0 ||
-        activity7d.new_findings > 0 ||
-        activity7d.resolved_findings > 0) && (
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {filter.source_pdf && (
+        <p className="wb-note">
+          Counts are scoped to <code>{filter.source_pdf}</code>.{" "}
+          <Link href="/admin/questions/inspect">Clear</Link>
+        </p>
+      )}
+
+      <WbStats
+        items={[
+          { label: "Questions with findings", value: summary.questions_with_findings },
+          { label: "Findings in total", value: summary.total_findings },
+          { label: "Blocking", value: summary.blocking },
+          { label: "Warning", value: summary.warning },
+          { label: "Notice", value: summary.notice },
+          { label: "Distinct codes", value: summary.unique_codes },
+        ]}
+      />
+
+      {/* Recent activity (audit diff): last 24h and last 7d. Spots a
+          fresh audit run and tracks triage speed (resolved > new = winning). */}
+      {hasActivity && (
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          }}
+        >
           <ActivityCard label="Last 24 hours" data={activity24h} />
           <ActivityCard label="Last 7 days" data={activity7d} />
         </div>
@@ -178,16 +154,13 @@ export default async function InspectorPage({ searchParams }: PageProps) {
         activeFilters={filter}
         summary={summary}
       />
-    </div>
+    </WbPage>
   );
 }
 
-// ── Recent-activity panel ─────────────────────────────────
-// Server-rendered side-by-side card. No interactivity — purely
-// informational. Net change colored:
-//   · negative (resolved > new) → emerald, TrendingDown icon (good)
-//   · positive (new > resolved) → rose, TrendingUp icon (backlog growing)
-//   · zero                       → slate, Activity icon (steady)
+// Recent-activity panel. Server-rendered, informational only.
+// Net change: negative (resolved > new) is good, positive means the
+// backlog is growing.
 function ActivityCard({
   label,
   data,
@@ -197,48 +170,21 @@ function ActivityCard({
 }) {
   const isShrinking = data.net_change < 0;
   const isGrowing = data.net_change > 0;
-  const Icon = isShrinking ? TrendingDown : isGrowing ? TrendingUp : Activity;
-  const netClass = isShrinking
-    ? "text-[color:var(--good)]"
-    : isGrowing
-      ? "text-[color:var(--late)]"
-      : "text-[color:var(--mute)]";
+  const netColor = isShrinking ? "var(--good)" : isGrowing ? "var(--late)" : "var(--mute)";
   const netSign = data.net_change > 0 ? "+" : "";
+  const newParts = [
+    data.new_blocking > 0 ? `${data.new_blocking} blocking` : null,
+    data.new_warning > 0 ? `${data.new_warning} warning` : null,
+    data.new_notice > 0 ? `${data.new_notice} notice` : null,
+  ].filter(Boolean);
   return (
-    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-4">
-      <div className="flex items-center justify-between border-b border-[color:var(--line)] pb-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-[color:var(--ink)]">
-          <Activity className="h-3.5 w-3.5 text-[color:var(--mute)]" />
-          {label}
-        </div>
-        <div className={`flex items-center gap-1 text-xs font-bold ${netClass}`}>
-          <Icon className="h-3.5 w-3.5" />
+    <WbSection title={label}>
+      <dl className="wb-dl">
+        <dt>Net change</dt>
+        <dd style={{ color: netColor, fontWeight: 600 }}>
           {netSign}
-          {data.net_change} net
-        </div>
-      </div>
-      <div className="mt-2 grid grid-cols-2 gap-3 text-xs">
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-[color:var(--mute)]">New findings</div>
-          <div className="mt-0.5 text-lg font-bold text-[color:var(--ink)]">{data.new_findings}</div>
-          {data.new_findings > 0 && (
-            <div className="mt-0.5 flex items-center gap-2 text-[10px]">
-              {data.new_blocking > 0 && (
-                <span className="text-[color:var(--late)]">{data.new_blocking} blocking</span>
-              )}
-              {data.new_warning > 0 && (
-                <span className="text-[color:var(--warn)]">{data.new_warning} warning</span>
-              )}
-              {data.new_notice > 0 && <span className="text-[color:var(--mute)]">{data.new_notice} notice</span>}
-            </div>
-          )}
-        </div>
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-[color:var(--mute)]">Resolved</div>
-          <div className="mt-0.5 text-lg font-bold text-[color:var(--good)]">
-            {data.resolved_findings}
-          </div>
-          <div className="mt-0.5 text-[10px] text-[color:var(--mute)]">
+          {data.net_change}{" "}
+          <span className="wb-note">
             {data.new_findings === 0 && data.resolved_findings === 0
               ? "no activity"
               : isShrinking
@@ -246,9 +192,16 @@ function ActivityCard({
                 : isGrowing
                   ? "backlog growing"
                   : "steady"}
-          </div>
-        </div>
-      </div>
-    </div>
+          </span>
+        </dd>
+        <dt>New findings</dt>
+        <dd>
+          {data.new_findings}
+          {newParts.length > 0 && <span className="wb-note"> ({newParts.join(", ")})</span>}
+        </dd>
+        <dt>Resolved</dt>
+        <dd style={{ color: "var(--good)" }}>{data.resolved_findings}</dd>
+      </dl>
+    </WbSection>
   );
 }
