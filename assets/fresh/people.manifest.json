@@ -1,0 +1,158 @@
+{
+  "about": "Stills for the 'people' direction of the fresh home page (.impeccable/mocks/fresh/people/). Tutors and students on Zoom, each in their own place, and the parent at home. Warm daylight grade. Approved by the founder in chat on 2026-11-01.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "4:5",
+    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. No text, letters, numbers, logos, watermarks, neon, lens flare, bokeh circles, light orbs, purple. Phone and laptop screens are never visible to the camera.",
+    "stillSuffix": "Shot on a full-frame camera with a 50mm lens, soft natural daylight, warm and gentle grade with honey, linen, oak and muted sage tones, low contrast, true skin texture with pores and fine detail, natural hands with five fingers, subtle fine film grain, editorial documentary portrait, unposed. No text, letters, numbers, logos, crests, brand marks or watermarks anywhere, including on clothing, signs and devices. Phone and laptop screens are never visible to the camera: every device faces away or is seen from the back or edge. No paper, no notebooks, no pencils, no calculators. No purple, no neon, no lens flare."
+  },
+  "cast": {},
+  "shots": [],
+  "plates": [],
+  "stills": [
+    {
+      "id": "people-student-call",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Hero, lower tile of the call (student in her own room)",
+      "prompt": "A 17-year-old girl in her own bedroom at home on a video call with her tutor. She sits at a small oak desk facing her open laptop, which is turned away from the camera so only its aluminium back is visible. The camera is behind and slightly beside the laptop, so we see her face from the front at eye level: dark hair tied back, an oversized oatmeal knit sweater, AirPods Pro in her ears, listening with calm focus, the faint start of a smile. Late afternoon daylight from a window on the left. Behind her a plain warm plaster wall, a trailing plant and a low shelf. Framed from the waist up with generous space above her head and on both sides, her head in the upper middle of the frame."
+    },
+    {
+      "id": "people-tutor-call",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Hero, upper tile of the call (the tutor in his own home study)",
+      "prompt": "A tutor in his late twenties in his own small home study, on a video call with a student. He sits facing his open laptop, which is turned away from the camera so only its back is visible. The camera is behind the laptop at eye level, so we see his face from the front: short dark hair, trimmed beard, a rust-brown overshirt over a white t-shirt, a single wired earbud, explaining a step mid-sentence with one open hand raised slightly, warm and patient expression. Morning daylight from a window on the right. Behind him oak bookshelves with plain unlabelled books and a ceramic lamp. Framed from the waist up with generous space above his head and on both sides, his head in the upper middle of the frame."
+    },
+    {
+      "id": "people-parent-update",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Parent section and second state of the sticky panel (the weekly update arrives)",
+      "prompt": "A mother in her mid-forties at her kitchen table on a Sunday morning, reading on her phone, which she holds so its screen faces her and away from the camera. Soft morning light from a big window, a ceramic coffee mug and a bowl of clementines on a pale oak table. She has shoulder-length brown hair and wears a soft grey cardigan; her expression is calm and quietly pleased, a small smile. Framed from the waist up, her face fully in frame in the upper middle, generous space around her."
+    },
+    {
+      "id": "people-student-bus",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Second state of the sticky panel, beside the parent (practice on the way to school)",
+      "prompt": "A 16-year-old boy in a window seat of a city bus in the early morning, doing practice questions on his phone, held low in both hands with the screen facing him and away from the camera. AirPods Pro in, navy hooded jacket, a backpack on the seat beside him, locked-in focus, eyes down on the phone. Soft cool morning light through the bus window with a blurred street outside. Framed from the chest up, his whole face in the upper middle of the frame, generous space around him."
+    },
+    {
+      "id": "people-student-bench",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "How a week goes, Your Daily 10 on a practice break",
+      "prompt": "A 17-year-old girl sitting on a wooden team bench at the edge of a grass sports field during a practice break, in a plain forest green training top and shorts, a water bottle beside her, doing ten practice questions on her phone, held in one hand with the screen facing her and away from the camera. Focused, calm, hair in a ponytail. Late afternoon golden light, the field soft behind her. Framed from the knees up, her whole face clearly in frame, generous space around her."
+    },
+    {
+      "id": "people-test-saturday",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Questions section, tall picture (taking the free practice test from home on a Saturday)",
+      "prompt": "A 17-year-old boy at a dining table at home on a Saturday morning, taking a timed practice test on his laptop, which faces him and is seen from the side so its screen is not visible to the camera. Grey crewneck sweatshirt, over-ear headphones around his neck, a glass of water, chin resting lightly on one hand, deep concentration. Soft daylight from tall windows, a pale wall and a wooden chair. Framed from the waist up, his whole face in frame, generous space above him."
+    },
+    {
+      "id": "people-father-sofa",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Questions section, small picture (a father reading the results note at home)",
+      "prompt": "A father in his late forties sitting on a linen sofa at home in the early evening, reading on his phone, held with the screen facing him and away from the camera. Reading glasses, short greying hair, a moss green sweater, relaxed and attentive, a small smile. Warm lamp light mixed with the last daylight from a window. Framed from the chest up, his whole face in frame in the upper middle, generous space around him."
+    },
+    {
+      "id": "people-cta-window",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Last section, beside the closing line (a student ready to start)",
+      "prompt": "A 16-year-old girl sitting sideways on a deep window seat at home with her laptop open on her knees, the laptop turned so its screen faces her and only its back and edge are visible to the camera. Curly dark hair, a cream knit sweater, AirPods Pro in, looking down at the laptop with quiet, locked-in focus. Soft warm late afternoon window light, a calm plain wall to the side. Framed from the knees up, her whole face clearly in frame, generous space around her."
+    },
+    {
+      "id": "people-tutor-woman",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Private 1:1 line, the tutor going through a mistake on a call",
+      "prompt": "A tutor in her early thirties in her own apartment, on a video call with a student. She sits facing her open laptop, which is turned away from the camera so only its back is visible. The camera is behind the laptop at eye level, so we see her face from the front: black hair in a low bun, a sage green linen shirt, wired earbuds, leaning slightly forward and listening carefully with a warm, encouraging expression. Soft daylight from a window, a pale wall with one framed abstract print with no text, a ceramic mug. Framed from the waist up with generous space above her head and on both sides, her head in the upper middle of the frame."
+    },
+    {
+      "id": "people-test-girl",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Prices, under the heading (a student practising at home)",
+      "prompt": "A 16-year-old girl at the desk in her bedroom on a Saturday morning, practising SAT questions on her open laptop. The laptop stands open with its lid up and is turned away from the camera, so we see the aluminium back of the lid and her face above it from the front, at eye level. Over-ear headphones on, a plain rust-coloured hoodie, hair tucked behind one ear, eyes on the screen, calm, locked-in concentration. Soft daylight from a window, a pale wall, a small plant and a glass of water on the desk. Framed from the waist up, her whole face clearly in frame, generous space above her."
+    },
+    {
+      "id": "people-parent-laptop",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Questions section, small picture (a parent on the results call)",
+      "prompt": "A mother in her early fifties at a small desk in her home office, on a video call on her open laptop, which is turned away from the camera so only its back is visible. The camera is behind the laptop at eye level, so we see her face from the front: short grey hair, round glasses, a navy knit sweater, listening and nodding slightly with a warm, attentive look. Soft daylight, a pale wall, a linen curtain. Framed from the chest up, her whole face in frame in the upper middle, generous space around her."
+    },
+    {
+      "id": "people-student-evening",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Prices, beside the Private 1:1 lines (a student on a 1:1 call in the evening)",
+      "prompt": "A 17-year-old boy at the desk in his bedroom in the evening, on a 1:1 video call with his tutor. He faces his open laptop, which is turned away from the camera so only its back is visible; the camera is behind the laptop at eye level, so we see his face from the front. Short curly black hair, a plain charcoal t-shirt, AirPods Pro in, talking through his reasoning with one hand raised slightly, focused and serious. Warm desk-lamp light mixed with blue dusk from a window, a corkboard with nothing pinned, a pale wall. Framed from the waist up with generous space above his head, his whole face clearly in frame."
+    },
+    {
+      "id": "people-call-tutor",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Hero and classes, upper tile of the call (the tutor as his laptop camera sees him)",
+      "prompt": "A tutor in his late twenties in his own small home study, on a video call with a student, seen from exactly where his laptop camera sits: straight on, at eye level, no laptop or screen in the frame. He looks just below the lens at the student on his screen, explaining a step mid-sentence with a warm, patient expression and one open hand raised at chest height. Short dark hair, trimmed beard, a rust-brown overshirt over a plain white t-shirt, a single wired earbud. His face is softly lit by the screen and by morning daylight from a window on the right. Behind him, gently out of focus, oak bookshelves with plain unlabelled books and a ceramic lamp. Framed from the waist up, his head in the upper third of the frame with room above it, generous space on both sides."
+    },
+    {
+      "id": "people-call-student",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Hero and classes, lower tile of the call (the student as her laptop camera sees her)",
+      "prompt": "A 17-year-old girl in her own bedroom at home, on a video call with her tutor, seen from exactly where her laptop camera sits: straight on, at eye level, no laptop or screen in the frame. She looks just below the lens at her tutor on the screen, listening with calm, locked-in focus and the faint start of a smile. Dark hair tied back, an oversized oatmeal knit sweater, AirPods Pro in her ears, both hands resting out of frame. Her face is softly lit by the screen and by late afternoon daylight from a window on the left. Behind her, gently out of focus, a plain warm plaster wall, a trailing plant on a low oak shelf. Framed from the waist up, her head in the upper third of the frame with room above it, generous space on both sides."
+    },
+    {
+      "id": "people-bus-quiet",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Practice step, first tile (Your Daily 10 on the way to school)",
+      "prompt": "A 16-year-old boy in a window seat of a city bus in the early morning, doing practice questions on his phone, which he holds low in both hands with its back toward the camera and its screen facing him. AirPods Pro, a navy hooded jacket, a sage green backpack on his lap, locked-in focus, eyes down on the phone. Seen from the seat across the aisle at eye level. Outside the window only a soft, unreadable blur of bare trees and pale sky. The bus interior is plain grey and sage with no signs, no stickers, no route displays, no screens. Soft cool morning light on his face. Framed from the waist up, his whole face in the upper middle of the frame, generous space around him."
+    },
+    {
+      "id": "people-parent-reading",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "4:5",
+      "where": "Parent step, first tile (the weekly update arrives on Sunday morning)",
+      "prompt": "A mother in her mid-forties at her kitchen table on a Sunday morning, reading the weekly update about her teenager on her phone. Seen from the front at a gentle three-quarter angle at eye level. She holds the phone upright in her right hand at chest height, tilted up toward her face: the back of the phone faces the camera and her eyes look straight down into its screen. Shoulder-length brown hair, a soft grey cardigan over a cream top, a calm and quietly pleased expression. Soft morning light from a big window behind the camera, a ceramic coffee mug on a pale oak table, a plain kitchen softly out of focus behind her. Framed from the waist up, her face fully in the upper middle of the frame, generous space around her."
+    }
+  ]
+}

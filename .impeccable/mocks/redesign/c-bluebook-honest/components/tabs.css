@@ -1,0 +1,15 @@
+/* 21st.dev component 23570 (ddoemonn/tabs), the look: the tab row and the sliding indicator, in Karman's tokens.
+   The original's white card with its stone border became a bare row on the page; the indicator is a
+   2px marigold bar under the selected word (transform only). */
+.tabs [role=tablist] { position: relative; display: flex; gap: 4px; flex-wrap: wrap; }
+.tabs [role=tab] {
+  position: relative; min-height: 44px; padding: 0 14px; font-size: 17px; font-weight: 600; color: var(--ink2);
+  border-radius: 8px; transition: color .15s var(--ease), background-color .15s var(--ease);
+}
+.tabs [role=tab]:hover { background: var(--paper2); }
+.tabs [role=tab][aria-selected="true"] { color: var(--ink); font-weight: 800; }
+.tabs .tab-ind { position: absolute; left: 0; bottom: 2px; width: 100px; height: 3px; border-radius: 2px; background: var(--marigold); transform-origin: 0 50%; pointer-events: none; }
+.tabs [data-panel][hidden] { display: none; }
+.panel.night .tabs [role=tab] { color: var(--bone2); }
+.panel.night .tabs [role=tab][aria-selected="true"] { color: var(--bone); }
+.panel.night .tabs [role=tab]:hover { background: var(--night2); }
