@@ -29,7 +29,7 @@ import { HOUSE } from "./house";
 import { buildScene, defaultBox, type Box } from "./index";
 import { svgArcPoints, textBox, textOverlap } from "./labels";
 import { droppedLabels, labelDrift, labelsOnLines, tickHint } from "./label-checks";
-import { DEFAULT_PLANE_FRAME } from "./plane";
+import { DEFAULT_PLANE_FRAME, planeAxesBox } from "./plane";
 import { fmt, planeAxes } from "./plane-axes";
 import type { Scene, SceneIssue, SceneItem, ThinnedTicks } from "./scene";
 import type { FigureSpec, Part } from "./spec";
@@ -147,6 +147,7 @@ function authorTexts(spec: FigureSpec): { text: string; partId?: string }[] {
   }));
   if (spec.type === "table") return out; // the table's own texts are all drawn (tableTexts)
   if (spec.title) out.push({ text: spec.title });
+  if (spec.caption) out.push({ text: spec.caption });
   if (spec.frame?.xLabel) out.push({ text: spec.frame.xLabel });
   if (spec.frame?.yLabel) out.push({ text: spec.frame.yLabel });
   for (const c of spec.frame?.categories ?? []) out.push({ text: c });
@@ -238,21 +239,20 @@ function wrappedRun(drawn: Drawn[], used: boolean[], want: string): number {
 // ---------------------------------------------------------------- the not-to-scale note
 
 /**
- * Several figures print the note once, in the plural, under the last one
- * (notToScale: "figures"), as Bluebook does; never one singular note per figure.
+ * Several figures print the note once, under the last one: in the plural (notToScale:
+ * "figures"), as Bluebook usually does, or in the singular (true) when the original
+ * prints it so (2026-06_ASIA_V1_MATH_M2_Q21); never one note per figure.
  */
 function noteIssues(specs: FigureSpec[]): SceneIssue[] {
   if (specs.length < 2) return [];
   const noted = specs.flatMap((s, i) => (s.notToScale ? [i + 1] : []));
   const last = specs.length;
-  const ok =
-    noted.length === 0 ||
-    (noted.length === 1 && noted[0] === last && specs[last - 1].notToScale === "figures");
+  const ok = noted.length === 0 || (noted.length === 1 && noted[0] === last);
   if (ok) return [];
   return [
     {
       code: "missing_label",
-      detail: `figures ${noted.join(", ")} print the not-to-scale note; several figures print "Note: Figures not drawn to scale." once: set notToScale to "figures" on figure ${last} only`,
+      detail: `figures ${noted.join(", ")} print the not-to-scale note; several figures print "Note: Figures not drawn to scale." once: set notToScale on figure ${last} only ("figures" for the plural note)`,
     },
   ];
 }
@@ -323,7 +323,7 @@ function placed(spec: FigureSpec, scene: Scene, box: Box): Placed | null {
     };
   }
   if (spec.type === "plane") {
-    const { map } = planeAxes(spec.frame ?? DEFAULT_PLANE_FRAME, box);
+    const { map } = planeAxes(spec.frame ?? DEFAULT_PLANE_FRAME, planeAxesBox(spec, box));
     const px = ([x, y]: Pt): Pt => [map.px(x), map.py(y)];
     return { world: pointsOf(spec, (p) => p), points: pointsOf(spec, px), px, parts: spec.parts };
   }

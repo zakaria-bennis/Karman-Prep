@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 472" role="img" aria-label="Prices of Nuts Sold by Growers in the United States, 2016/17 to 2019/20 Seasons. Line graph of 4 series. X-axis: x. Y-axis: y. Pistachios: points (0.5, 1.68), (1.5, 1.69), (2.5, 2.65), (3.5, 2.81); hazelnuts: points (0.5, 1.35), (1.5, 1.15), (2.5, 0.9), (3.5, 0.96); almonds: points (0.5, 2.39), (1.5, 2.53), (2.5, 2.5), (3.5, 2.45); pecans: points (0.5, 2.59), (1.5, 2.33), (2.5, 1.75), (3.5, 1.84)." data-figure-view="">
+<defs>
+<marker id="figure-arrow-_R_0_" viewBox="0 0 8 6" refX="8" refY="3" markerWidth="8" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+<path d="M0 0 L8 3 L0 6 Z" fill="context-stroke">
+</path>
+</marker>
+</defs>
+<path d="M39.75 357.3 L584 357.3" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 257.53 L584 257.53" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 157.77 L584 157.77" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 58 L584 58" fill="none" stroke="var(--figure-grid)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+</path>
+<path d="M39.75 357.3 L584 357.3" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<path d="M39.75 357.3 L39.75 58" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="axis">
+</path>
+<text x="113.03" y="373.8" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 113.03 373.8)">2016/17</text>
+<text x="249.09" y="373.8" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 249.09 373.8)">2017/18</text>
+<text x="385.16" y="373.8" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 385.16 373.8)">2018/19</text>
+<text x="521.22" y="373.8" text-anchor="end" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-45 521.22 373.8)">2019/20</text>
+<path d="M36.75 357.3 L42.75 357.3" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="362.3" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">0</text>
+<path d="M36.75 257.53 L42.75 257.53" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="262.53" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">1</text>
+<path d="M36.75 157.77 L42.75 157.77" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="162.77" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">2</text>
+<path d="M36.75 58 L42.75 58" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+</path>
+<text x="33.75" y="63" text-anchor="end" fill="var(--figure-ink-muted)" font-size="15" font-family="inherit">3</text>
+<text x="311.88" y="438.25" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit">Season</text>
+<text x="15" y="207.65" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" transform="rotate(-90 15 207.65)">Price per pound (dollars)</text>
+<path d="M107.78 189.69 L243.84 188.69 L379.91 92.92 L515.97 76.96" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M107.78 184.52 L112.28 193.07 L103.28 193.07 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M243.84 183.52 L248.34 192.07 L239.34 192.07 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M379.91 87.74 L384.41 96.29 L375.41 96.29 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M515.97 71.78 L520.47 80.33 L511.47 80.33 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s1">
+</path>
+<path d="M107.78 222.62 L243.84 242.57 L379.91 267.51 L515.97 261.52" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="s2">
+</path>
+<path d="M103.96 218.79 L111.61 218.79 L111.61 226.44 L103.96 226.44 Z" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M240.02 238.74 L247.67 238.74 L247.67 246.39 L240.02 246.39 Z" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M376.08 263.69 L383.73 263.69 L383.73 271.34 L376.08 271.34 Z" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M512.14 257.7 L519.79 257.7 L519.79 265.35 L512.14 265.35 Z" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s2">
+</path>
+<path d="M107.78 118.86 L243.84 104.89 L379.91 107.88 L515.97 112.87" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" stroke-dasharray="0.5 3.5" data-part="s3">
+</path>
+<path d="M103.73 118.86 A4.05 4.05 0 1 0 111.83 118.86 A4.05 4.05 0 1 0 103.73 118.86 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M239.79 104.89 A4.05 4.05 0 1 0 247.89 104.89 A4.05 4.05 0 1 0 239.79 104.89 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M375.86 107.88 A4.05 4.05 0 1 0 383.96 107.88 A4.05 4.05 0 1 0 375.86 107.88 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M511.92 112.87 A4.05 4.05 0 1 0 520.02 112.87 A4.05 4.05 0 1 0 511.92 112.87 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s3">
+</path>
+<path d="M107.78 98.9 L243.84 124.84 L379.91 182.71 L515.97 173.73" fill="none" stroke="var(--figure-ink-muted)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<path d="M107.78 92.83 L109.36 97.33 L113.86 98.9 L109.36 100.48 L107.78 104.98 L106.21 100.48 L101.71 98.9 L106.21 97.33 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<path d="M243.84 118.77 L245.42 123.27 L249.92 124.84 L245.42 126.42 L243.84 130.92 L242.27 126.42 L237.77 124.84 L242.27 123.27 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<path d="M379.91 176.63 L381.48 181.13 L385.98 182.71 L381.48 184.28 L379.91 188.78 L378.33 184.28 L373.83 182.71 L378.33 181.13 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<path d="M515.97 167.65 L517.54 172.15 L522.04 173.73 L517.54 175.3 L515.97 179.8 L514.39 175.3 L509.89 173.73 L514.39 172.15 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="s4">
+</path>
+<text x="300" y="31" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">Prices of Nuts Sold by Growers in the United States, 2016/17 to</text>
+<text x="300" y="49" text-anchor="middle" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="title">2019/20 Seasons</text>
+<path d="M61.5 458 L91.5 458" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<path d="M76.5 452.83 L81 461.38 L72 461.38 Z" fill="var(--figure-ink)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="97.5" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">pistachios</text>
+<path d="M198 458 L228 458" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" stroke-dasharray="4 3" data-part="legend">
+</path>
+<path d="M209.18 454.18 L216.83 454.18 L216.83 461.83 L209.18 461.83 Z" fill="var(--figure-ink-muted)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="234" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">hazelnuts</text>
+<path d="M329.25 458 L359.25 458" fill="none" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" stroke-dasharray="0.5 3.5" data-part="legend">
+</path>
+<path d="M340.2 458 A4.05 4.05 0 1 0 348.3 458 A4.05 4.05 0 1 0 340.2 458 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="365.25" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">almonds</text>
+<path d="M442.5 458 L472.5 458" fill="none" stroke="var(--figure-ink-muted)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<path d="M457.5 451.93 L459.08 456.43 L463.58 458 L459.08 459.58 L457.5 464.08 L455.93 459.58 L451.43 458 L455.93 456.43 Z" fill="var(--figure-paper)" stroke="var(--figure-ink)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" data-part="legend">
+</path>
+<text x="478.5" y="463" text-anchor="start" fill="var(--figure-ink)" font-size="15" font-family="inherit" data-part="legend">pecans</text>
+</svg>
