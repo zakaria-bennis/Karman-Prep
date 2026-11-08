@@ -1,0 +1,24 @@
+/*
+ * Extra colours for the staff tools (admin and staff tutor) inside the painted shell.
+ * The shell gives --ink, --mute, --line, --card, --accent, --accent-ink, --good and --late.
+ * Work tools also need an accent colour for text (the shell's --accent is tuned for white
+ * text on it, so it is too dark for text on the dark box), a warning colour, an info colour and two quiet surfaces. Like the
+ * shell's own colours, they follow the device's light or dark setting. Text colours are
+ * checked for 4.5:1 on the box tint in both modes.
+ */
+.kp-shell {
+  --warn: #f2c46d;
+  --info: #7cc4ff;
+  --raised: rgb(255 255 255 / 0.06);
+  --sunk: rgb(0 0 0 / 0.22);
+  --accent-text: hsl(var(--hue) var(--hs) 74%);
+}
+@media (prefers-color-scheme: light) {
+  .kp-shell {
+    --warn: #7a4f00;
+    --info: #1a5ea0;
+    --raised: rgb(255 255 255 / 0.55);
+    --sunk: rgb(0 0 0 / 0.05);
+    --accent-text: hsl(var(--hue) var(--hs) 30%);
+  }
+}

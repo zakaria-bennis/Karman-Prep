@@ -8,7 +8,7 @@ import {
   applyQuizSkill,
   decayedLevel,
   effective,
-  levelFromAnswers,
+  levelFromHistory,
   nextDecayAt,
   runToNext,
   type LevelState,
@@ -122,6 +122,8 @@ describe("skill levels", () => {
 
 describe("levels from saved answers (the parent, tutor and older-practice views)", () => {
   const now = new Date("2026-11-08T12:00:00Z");
+  const lvl = (a: Parameters<typeof levelFromHistory>[0], at: Date) =>
+    levelFromHistory(a, at).level;
   const answers = (pattern: string, start = "2026-11-07T10:00:00Z") =>
     [...pattern].map((ch, i) => ({
       correct: ch !== "0",
@@ -130,13 +132,13 @@ describe("levels from saved answers (the parent, tutor and older-practice views)
     }));
 
   it("replays answers through the same run rule as live practice", () => {
-    expect(levelFromAnswers([], now)).toBe(0);
-    expect(levelFromAnswers(answers("0"), now)).toBe(1);
-    expect(levelFromAnswers(answers("111"), now)).toBe(2);
-    expect(levelFromAnswers(answers("1111111"), now)).toBe(3);
-    expect(levelFromAnswers(answers("111111111111"), now)).toBe(4);
-    expect(levelFromAnswers(answers("11h1"), now)).toBe(1);
-    expect(levelFromAnswers(answers("0111").reverse(), now)).toBe(2);
+    expect(lvl([], now)).toBe(0);
+    expect(lvl(answers("0"), now)).toBe(1);
+    expect(lvl(answers("111"), now)).toBe(2);
+    expect(lvl(answers("1111111"), now)).toBe(3);
+    expect(lvl(answers("111111111111"), now)).toBe(4);
+    expect(lvl(answers("11h1"), now)).toBe(1);
+    expect(lvl(answers("0111").reverse(), now)).toBe(2);
   });
 
   it("decays saved and replayed levels after DECAY_DAYS idle, never below New", () => {
@@ -145,6 +147,6 @@ describe("levels from saved answers (the parent, tutor and older-practice views)
     expect(decayedLevel(4, "2026-10-01T12:00:00Z", now)).toBe(3);
     expect(decayedLevel(4, "2025-01-01T12:00:00Z", now)).toBe(1);
     expect(decayedLevel(0, null, now)).toBe(0);
-    expect(levelFromAnswers(answers("111", "2026-09-01T10:00:00Z"), now)).toBe(1);
+    expect(lvl(answers("111", "2026-09-01T10:00:00Z"), now)).toBe(1);
   });
 });

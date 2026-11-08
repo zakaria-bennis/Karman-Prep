@@ -22,6 +22,8 @@ export type { SkillLevel };
 
 /** Weeks without practice before a skill drops one level. Each further span drops another. */
 export const DECAY_WEEKS = 4;
+/** The same span in days, for readers that count days. */
+export const DECAY_DAYS = DECAY_WEEKS * 7;
 const DAY_MS = 86_400_000;
 const DECAY_MS = DECAY_WEEKS * 7 * DAY_MS;
 
@@ -143,41 +145,37 @@ export function applyMeasured(stored: LevelState, count: number, at: Date): Leve
   };
 }
 
-/** Days without practice before a skill drops one level (DECAY_WEEKS in days). */
-export const DECAY_DAYS = DECAY_WEEKS * 7;
-
-export type AnswerRecord = {
+/** One saved answer from any lane, for readers that only have raw history. */
+export type HistoryAnswer = {
   correct: boolean;
-  /** True when a hint was opened first; such an answer never counts toward a run. */
+  /** Answers given with a hint never count toward a run. */
   usedHint?: boolean;
-  /** When it was answered: an ISO string or epoch milliseconds. */
-  at: string | number;
+  /** When it was answered: an ISO string, epoch milliseconds or a Date. */
+  at: string | number | Date;
 };
 
-const timeOf = (at: string | number) => (typeof at === "number" ? at : Date.parse(at));
+const msOf = (at: HistoryAnswer["at"]) =>
+  at instanceof Date ? at.getTime() : typeof at === "number" ? at : Date.parse(at);
 
-/**
- * A skill's state from its saved answers, replayed oldest first through `applyAnswer`. For
- * screens that only have answers (older catalog practice, the parent and school views).
- */
-export function stateFromAnswers(answers: readonly AnswerRecord[]): LevelState {
-  return answers
-    .filter((a) => Number.isFinite(timeOf(a.at)))
-    .sort((a, b) => timeOf(a.at) - timeOf(b.at))
-    .reduce<LevelState>(
-      (state, a) =>
-        applyAnswer(state, {
-          correct: a.correct,
-          usedHint: a.usedHint === true,
-          at: new Date(timeOf(a.at)),
-        }).state,
-      NOT_STARTED
-    );
+/** The state after every answer, oldest first, by `applyAnswer` (decay between answers included). */
+export function foldAnswers(answers: readonly HistoryAnswer[]): LevelState {
+  const ordered = answers
+    .map((a) => ({ ...a, ms: msOf(a.at) }))
+    .filter((a) => Number.isFinite(a.ms))
+    .sort((x, y) => x.ms - y.ms);
+  let state = NOT_STARTED;
+  for (const a of ordered)
+    state = applyAnswer(state, {
+      correct: a.correct,
+      usedHint: !!a.usedHint,
+      at: new Date(a.ms),
+    }).state;
+  return state;
 }
 
-/** A skill's level at `now` from its saved answers, with decay applied. */
-export function levelFromAnswers(answers: readonly AnswerRecord[], now: Date): SkillLevel {
-  return effective(stateFromAnswers(answers), now).level;
+/** A skill's state from its whole answer history, with decay applied up to `now`. */
+export function levelFromHistory(answers: readonly HistoryAnswer[], now: Date): LevelState {
+  return effective(foldAnswers(answers), now);
 }
 
 /** A stored level as it stands at `now`, after decay. */

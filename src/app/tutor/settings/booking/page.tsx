@@ -2,7 +2,7 @@
 // /tutor/settings/booking — tutor connects their Cal.com account.
 //
 // Three states render here:
-//   1. Not connected → big "Connect Cal account" button.
+//   1. Not connected → the "Connect Cal.com" main button.
 //   2. Connected but no event-type bound → dropdown of the tutor's
 //      Cal event-types (we tried to auto-match by keyword and the
 //      callback couldn't pick one — multiple matches or none).
@@ -11,18 +11,18 @@
 //      dropdown and "disconnect" button.
 //
 // The dedicated /tutor home banner that prompts setup links here.
+// The Settings tab opens this page; payment settings are linked below.
 // ============================================================
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { CalendarCheck, ChevronRight, ExternalLink } from "lucide-react";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { getCalConnectionStatus, getValidCalAccessToken } from "@/lib/supabase/queries/cal-oauth";
 import { listEventTypes, type CalEventType } from "@/lib/integrations/cal/oauth";
+import { Card, MoreLink, SectionHeader } from "@/components/portal";
 import { CalConnectionClient } from "./CalConnectionClient";
 
 export const metadata: Metadata = { title: "Booking settings" };
@@ -76,56 +76,46 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
   const successMessage = buildSuccessMessage(params, status.eventTypeTitle);
 
   return (
-    <div className="mx-auto max-w-2xl px-5 py-8">
-      <Link
-        href="/tutor"
-        className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory dark:text-taupe dark:hover:text-ivory"
-      >
-        <ChevronRight className="h-3 w-3 rotate-180" /> Back to tutor home
-      </Link>
-      <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory dark:text-ivory">
-        <CalendarCheck className="h-5 w-5 text-info" /> Booking settings
-      </h1>
-      <p className="mt-1.5 text-sm text-taupe dark:text-taupe">
-        Connect your Cal.com account so your students can book sessions on your real calendar.
+    <div className="wb" style={{ paddingBlock: 0 }}>
+      <p className="wb-note">
+        Connect your Cal.com account so your students book sessions on your real calendar.
       </p>
 
       {errorMessage ? (
-        <div className="mt-5 rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
+        <p className="wb-alert" role="alert">
           {errorMessage}
-        </div>
+        </p>
       ) : null}
       {successMessage ? (
-        <div className="mt-5 rounded-lg border border-success/40 bg-success/10 px-4 py-3 text-sm text-success">
+        <p className="wb-alert" data-tone="ok" role="status">
           {successMessage}
-        </div>
+        </p>
       ) : null}
 
-      <div className="mt-6">
-        <CalConnectionClient
-          status={status}
-          eventTypes={eventTypes}
-          eventTypesError={eventTypesError}
-        />
-      </div>
+      <CalConnectionClient
+        status={status}
+        eventTypes={eventTypes}
+        eventTypesError={eventTypesError}
+      />
 
-      <div className="mt-8 rounded-lg border border-bronze bg-surface px-4 py-3 text-xs text-ivory dark:border-bronze dark:bg-surface/40 dark:text-ivory">
-        <p className="font-semibold text-ivory dark:text-ivory">Need a Cal account?</p>
-        <p className="mt-1">
+      <Card>
+        <SectionHeader title="Need a Cal account?" />
+        <p className="kp-meta">
           Sign up at{" "}
-          <a
-            href="https://cal.com"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-0.5 text-info hover:underline dark:text-info"
-          >
-            cal.com <ExternalLink className="h-3 w-3" />
+          <a className="kp-link" href="https://cal.com" target="_blank" rel="noreferrer">
+            cal.com
           </a>{" "}
-          (free tier works fine). Create one event-type for Karman sessions — name it something with
-          &ldquo;Karman&rdquo; or &ldquo;SAT&rdquo; in the title and we&rsquo;ll auto-detect it.
-          Otherwise you&rsquo;ll pick it from a dropdown after connecting.
+          (the free plan is fine). Make one event type for Karman sessions with &ldquo;Karman&rdquo;
+          or &ldquo;SAT&rdquo; in the title and we&rsquo;ll find it. Otherwise you pick it from a
+          list after connecting.
         </p>
-      </div>
+      </Card>
+
+      <Card>
+        <SectionHeader title="Payment settings" />
+        <p className="kp-meta">Set up how Karman pays you through Stripe.</p>
+        <MoreLink href="/tutor/settings/payment">Payment settings</MoreLink>
+      </Card>
     </div>
   );
 }

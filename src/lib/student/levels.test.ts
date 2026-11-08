@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { stateFromAnswers } from "@/lib/levels/rules";
 import {
   DECAY_DAYS,
+  climb,
   decay,
   levelCounts,
   levelFromAnswers,
@@ -38,7 +38,7 @@ describe("skill levels", () => {
   it("a wrong answer or a hint resets the run", () => {
     expect(levelFromAnswers(run("11011"), NOW)).toBe(1);
     expect(levelFromAnswers(run("11h11"), NOW)).toBe(1);
-    expect(stateFromAnswers(run("1101")).run).toBe(1);
+    expect(climb(run("1101")).run).toBe(1);
   });
 
   it("reads answers in time order, whatever order they arrive in", () => {

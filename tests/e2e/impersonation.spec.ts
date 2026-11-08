@@ -31,7 +31,7 @@ test.describe("admin impersonation", () => {
 
     // ── 1. Land on the admin users table ───────────────────
     await page.goto("/admin/users");
-    await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "People" }).first()).toBeVisible();
 
     // The mid student should be in the list. Find their row by
     // email (stable across reseed runs).

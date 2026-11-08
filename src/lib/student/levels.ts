@@ -1,17 +1,24 @@
 /*
- * Skill levels for the student portal (founder, 2026-11-08): the five levels the portal draws
- * as squares (Not started, New, Learning, Understanding, Conquered).
+ * Skill levels for the student portal (founder, 2026-11-08). The rule itself (New on the first
+ * try; runs of 3, then 4 more, then 5 more right answers without a hint; a level lost for every
+ * DECAY_DAYS without practice, never below New) lives in one place, `src/lib/levels/rules.ts`.
+ * This module only adapts the portal's answer shape to it and adds display helpers.
  *
- * The rule itself (runs of 3, 4 and 5 right answers in a row without a hint, decay after
- * DECAY_WEEKS without practice) lives in one place, `src/lib/levels/rules.ts`. This module only
- * adapts the portal's saved answers to it and adds the portal's counts.
+ * The level names and colours come from `src/components/portal/skill-levels.ts`.
  */
-import { clampLevel, type SkillLevel } from "@/components/portal/skill-levels";
-import { DECAY_DAYS, decayedLevel, levelFromAnswers as levelAt } from "@/lib/levels/rules";
+import {
+  DECAY_DAYS,
+  effective,
+  foldAnswers,
+  levelFromHistory,
+  runToNext,
+  type HistoryAnswer,
+  type SkillLevel,
+} from "@/lib/levels/rules";
 import type { ConfidenceBand } from "@/types/quiz";
 
 export type { SkillLevel };
-export { DECAY_DAYS };
+export { DECAY_DAYS, runToNext };
 
 /** One saved answer for a skill. */
 export interface LevelAnswer {
@@ -22,20 +29,34 @@ export interface LevelAnswer {
   hint?: boolean;
 }
 
-const toRecord = (a: LevelAnswer) => ({ correct: a.correct, usedHint: a.hint, at: a.at });
+const toHistory = (a: LevelAnswer): HistoryAnswer => ({
+  correct: a.correct,
+  usedHint: !!a.hint,
+  at: a.at,
+});
 
-/** A stored level after decay (see `src/lib/levels/rules.ts`). */
+/** The level before decay up to now, and the run in progress, from answers in any order. */
+export function climb(answers: readonly LevelAnswer[]): { level: SkillLevel; run: number } {
+  const state = foldAnswers(answers.map(toHistory));
+  return { level: state.level, run: state.run };
+}
+
+/** Levels lost to decay since the last answer, floored at New. */
 export function decay(level: SkillLevel, lastAnsweredMs: number | null, nowMs: number): SkillLevel {
-  return decayedLevel(
-    clampLevel(level),
-    lastAnsweredMs === null ? null : new Date(lastAnsweredMs).toISOString(),
+  return effective(
+    {
+      level,
+      run: 0,
+      answered: 0,
+      lastPracticedAt: lastAnsweredMs === null ? null : new Date(lastAnsweredMs).toISOString(),
+    },
     new Date(nowMs)
-  );
+  ).level;
 }
 
 /** A skill's level from its saved answers, with decay applied. */
 export function levelFromAnswers(answers: readonly LevelAnswer[], nowMs = Date.now()): SkillLevel {
-  return levelAt(answers.map(toRecord), new Date(nowMs));
+  return levelFromHistory(answers.map(toHistory), new Date(nowMs)).level;
 }
 
 /**

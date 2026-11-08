@@ -43,17 +43,17 @@ export function OrphanWarningBanner({ lineage, questionId, href, className }: Pr
   return (
     <div
       className={cn(
-        "flex items-start gap-2 border border-warning/35 bg-warning/[0.08] px-3 py-2 text-xs text-warning-bright",
+        "flex items-start gap-2 border border-[color-mix(in_srgb,var(--warn)_35%,transparent)] bg-[color-mix(in_srgb,var(--warn)_8%,transparent)] px-3 py-2 text-xs text-[color:var(--warn)]",
         className
       )}
     >
-      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-bright" />
+      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--warn)]" />
       <div className="min-w-0 flex-1">
         This PDF page has orphan crops the matcher could not pair with a database row.
         {href && (
           <>
             {" "}
-            <Link href={href} className="font-semibold underline decoration-warning-bright/50">
+            <Link href={href} className="font-semibold underline decoration-[color-mix(in_srgb,var(--warn)_50%,transparent)]">
               Open inspector
             </Link>
             .
@@ -63,7 +63,7 @@ export function OrphanWarningBanner({ lineage, questionId, href, className }: Pr
       <button
         type="button"
         onClick={dismiss}
-        className="shrink-0 rounded p-0.5 text-warning-bright/70 hover:bg-warning/10 hover:text-warning-bright"
+        className="shrink-0 rounded p-0.5 text-[color-mix(in_srgb,var(--warn)_70%,transparent)] hover:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)] hover:text-[color:var(--warn)]"
         aria-label="Dismiss orphan crop warning"
       >
         <X className="h-3.5 w-3.5" />

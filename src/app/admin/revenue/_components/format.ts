@@ -23,13 +23,3 @@ export function fmtMonth(yyyymm: string): string {
     timeZone: "UTC",
   });
 }
-
-export const ACCENT_RING: Record<string, string> = {
-  emerald: "border-success/40 text-success-bright bg-success/10",
-  blue: "border-info/40 text-info-bright bg-info/10",
-  violet: "border-gold/40 text-gold-bright bg-gold/10",
-  amber: "border-warning/40 text-warning-bright bg-warning/10",
-  rose: "border-error/40 text-error-bright bg-error/10",
-  slate: "border-bronze/40 text-ivory bg-surface-raised/10",
-  teal: "border-success/40 text-success-bright bg-success/10",
-};

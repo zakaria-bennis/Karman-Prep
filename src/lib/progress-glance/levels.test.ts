@@ -1,47 +1,66 @@
 import { describe, expect, it } from "vitest";
 import { buildProgressGlance, coursePercent, predictedScore } from "./levels";
 
+describe("levels follow the one rule (src/lib/levels/rules.ts)", () => {
+  const now = new Date("2026-11-08T12:00:00Z");
+  const answers = (skillId: string, pattern: string, day = "2026-11-07") =>
+    [...pattern].map((ch, i) => ({
+      skillId,
+      correct: ch === "1",
+      at: `${day}T10:${String(i).padStart(2, "0")}:00Z`,
+    }));
+  const levelOf = (list: ReturnType<typeof answers>, at = now) =>
+    buildProgressGlance(list, at)
+      .domains.flatMap((d) => d.skills)
+      .find((s) => s.id === list[0].skillId)?.level;
+
+  it("needs 3, then 4 more, then 5 more right in a row", () => {
+    expect(levelOf(answers("ma-skill-percentages", "0"))).toBe(1);
+    expect(levelOf(answers("ma-skill-percentages", "111"))).toBe(2);
+    expect(levelOf(answers("ma-skill-percentages", "11111"))).toBe(2);
+    expect(levelOf(answers("ma-skill-percentages", "1111111"))).toBe(3);
+    expect(levelOf(answers("ma-skill-percentages", "111111111111"))).toBe(4);
+  });
+
+  it("drops one level per 4 idle weeks, never below New", () => {
+    const learning = answers("ma-skill-percentages", "111", "2026-10-01");
+    expect(levelOf(learning, new Date("2026-10-20T12:00:00Z"))).toBe(2);
+    expect(levelOf(learning, new Date("2026-11-08T12:00:00Z"))).toBe(1);
+  });
+});
+
 describe("buildProgressGlance", () => {
   it("groups every catalog skill by Domain and counts levels", () => {
     const now = new Date("2026-11-08T12:00:00Z");
-    // 3, then 4, then 5 right in a row (src/lib/levels/rules.ts): Conquered.
-    const answers = Array.from({ length: 12 }, (_, i) => ({
+    const answers = [true, true, true, true, true].map((correct, i) => ({
       skillId: "ma-skill-percentages",
-      correct: true,
-      at: `2026-11-07T10:${String(i).padStart(2, "0")}:00Z`,
+      correct,
+      at: `2026-11-07T10:0${i}:00Z`,
     }));
     const glance = buildProgressGlance(answers, now);
     expect(glance.domains).toHaveLength(8);
     const all = glance.domains.flatMap((d) => d.skills);
-    expect(all.find((s) => s.id === "ma-skill-percentages")?.level).toBe(4);
-    expect(glance.counts[4]).toBe(1);
+    expect(all.find((s) => s.id === "ma-skill-percentages")?.level).toBe(2);
+    expect(glance.counts[2]).toBe(1);
     expect(glance.counts[0]).toBe(all.length - 1);
     expect(glance.coursePercent.math).toBeGreaterThan(0);
     expect(glance.coursePercent.reading).toBe(0);
   });
 
-  it("follows the one level rule: each level needs its own run, and idle weeks decay", () => {
+  it("shows a higher level the quiz flows saved", () => {
     const now = new Date("2026-11-08T12:00:00Z");
-    const at = (day: string, i: number) => `${day}T10:${String(i).padStart(2, "0")}:00Z`;
-    const level = (
-      answers: { correct: boolean; at: string }[],
-      stored?: Map<string, 0 | 1 | 2 | 3 | 4>
-    ) =>
-      buildProgressGlance(
-        answers.map((a) => ({ ...a, skillId: "ma-skill-percentages" })),
-        now,
-        stored
-      )
+    const answers = [true, true, true].map((correct, i) => ({
+      skillId: "ma-skill-percentages",
+      correct,
+      at: `2026-11-07T10:0${i}:00Z`,
+    }));
+    const level = (stored?: Map<string, 0 | 1 | 2 | 3 | 4>) =>
+      buildProgressGlance(answers, now, stored)
         .domains.flatMap((d) => d.skills)
         .find((s) => s.id === "ma-skill-percentages")?.level;
-    const right = (n: number, day = "2026-11-07") =>
-      Array.from({ length: n }, (_, i) => ({ correct: true, at: at(day, i) }));
-    expect(level(right(5))).toBe(2);
-    expect(level(right(7))).toBe(3);
-    // Learning reached on Sep 1, then more than 4 weeks idle: back to New.
-    expect(level(right(3, "2026-09-01"))).toBe(1);
-    // A higher level saved by the quiz flows wins.
-    expect(level(right(3), new Map([["ma-skill-percentages", 4]]))).toBe(4);
+    expect(level()).toBe(2);
+    expect(level(new Map([["ma-skill-percentages", 4]]))).toBe(4);
+    expect(level(new Map([["ma-skill-percentages", 1]]))).toBe(2);
   });
 
   it("never carries question ids or answers", () => {

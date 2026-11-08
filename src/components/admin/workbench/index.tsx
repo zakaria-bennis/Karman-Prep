@@ -5,6 +5,7 @@
 // client JavaScript. Styles in workbench.css.
 // ============================================================
 
+import "./tokens.css";
 import "./workbench.css";
 import Link from "next/link";
 import type { ReactNode } from "react";

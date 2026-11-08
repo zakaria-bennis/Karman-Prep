@@ -1,7 +1,8 @@
 # quiz-flows report
 
-Branch: `claude/overnight-quiz-7856ae`. I merged `claude/overnight-ship` into it at 09:27 (no
-conflicts). Nothing pushed, nothing deployed. Production was not touched. The question bank was
+Branch: `claude/overnight-quiz-7856ae`. I merged `claude/overnight-ship` into it at 09:27 and
+again at 10:22 (one conflict on Today's main button: I kept the student portal's version, which
+opens the Daily 10 until it is done for the day). Nothing pushed, nothing deployed. Production was not touched. The question bank was
 only read, and only the local copy. My new tables live in the local database only.
 
 ## What is done
@@ -26,6 +27,11 @@ served.
     colour (no marigold). It uses the quiz's first-round sounds.
 - **Skill levels**: Not started, New, Learning, Understanding, Conquered, saved per student.
   The rules are in `src/lib/levels/README.md` (written for the student-portal session).
+  **One rule everywhere:** the rule lived in four places (mine, the student portal's, the
+  parent and school view's, and the tutor roster's). The parent, school and tutor copies
+  counted differently: 5 right in a row from scratch showed Conquered, and the parent view
+  decayed after 3 weeks, not 4. All three now call `src/lib/levels/rules.ts`, so a parent, a
+  tutor and the student see the same level for the same answers.
 - **Practice set** (`/learn/set/<skill>`). Ten questions in one skill, adaptive: a right answer
   makes the next one harder, a miss makes it easier.
   - A level-up shows a small banner under the question: the square paints in, the fox hops,
@@ -52,9 +58,12 @@ served.
   diagnostic. Checked against the import session's bank export (10,096 questions): four full
   tests fill completely for both pools with no question family repeated within or across the
   four forms, every Domain quiz fills, and the diagnostic fills.
-- **Plan gates**: core pool (difficulty 1 to 5) for Free and Practice, every question (1 to 7)
-  for Pro, Cohort and Private. Free stops at 100 questions (the free full-length test and the
-  diagnostic do not count) and one full-length test.
+- **Plan gates** now call pricing's rules (`src/lib/plans`, merged at 10:22): core pool
+  (difficulty 1 to 5) for Free and Practice, every question (1 to 7) for Pro, Cohort and
+  Private. Free stops at 100 questions (the free full-length test and the diagnostic do not
+  count) and one full-length test. If a plan cannot be read, the student is treated as Free,
+  the same as the student portal does.
+- **The flow screens use the student portal's frame** (its tabs, streak and account menu).
 
 ## How I checked
 
@@ -73,8 +82,12 @@ served.
     or an exam date.
   - The diagnostic to the end, and the Math challenge question with "how everyone did".
 - Phone width (390): the Daily 10 results and the tests page, in light.
-- `npx tsc --noEmit`: my code is clean. Errors left come from the merged branch, not my work
-  (see below). Lint and format checks on every file I changed: pass. Sizes: see below.
+- After the 10:22 merge: `npx tsc --noEmit` has no errors; lint and format pass on every file I
+  changed; `npm run check:sizes` passes; 180 unit tests pass (mine plus catalog practice, plans
+  and the challenge). I did not run the full `npm test` suite (time).
+- Smoke test after the merge, at phone width: Today renders with no sideways scroll, and the
+  Daily 10 page opens a fresh Daily 10. (The local database had been reset since my 09:44 run,
+  which wiped my earlier test runs; that is expected.)
 
 ## Decisions I made
 
@@ -108,12 +121,14 @@ served.
   results table, which feeds the progress and predicted-SAT pages. I built the bank version
   at `/learn/diagnostic` but did not switch the old page over or delete it. Decide whether the
   new one replaces it (the public site keeps `src/data/diagnostic-questions.ts` either way).
-- **Pricing's plan rules (`src/lib/plans`) are not merged yet.** My plan check copies its rules
-  (`src/lib/assembler/plan-gate.ts`, with the swap written in its header). When it merges,
-  pricing's usage count must also count the new `quiz_run_responses` table and full tests.
-- **Skill links still open the older practice page** (`/learn/practice/<skill>`), which is not
-  adaptive and does not move levels. The student-portal session should link skills to
-  `/learn/set/<skill>`. Tutor-assigned practice still uses the older page.
+- **Pricing's usage count does not read the new tables yet.** `getUsage` counts skill practice
+  and old quizzes; my plan check adds the quiz runs and full tests on top
+  (`src/lib/assembler/plan-gate.ts`). Better: pricing's usage source reads `quiz_runs` itself.
+- **The local database has no `plan_grants` table yet** (pricing's migration is not applied
+  there), so every local plan lookup fails and local students count as Free.
+- **Tutor-assigned practice still uses the older practice page** (`/learn/practice/<skill>`),
+  which is not adaptive and does not move levels. The student portal's Library already links
+  skills to the new practice sets.
 - **I did not see a level-up live.** My test answers were random, so no run of 3 happened. The
   rules are covered by unit tests; the banner is built but unclicked.
 - **Not captured:** iPad width (768) and dark mode. Each painted page took about 4 minutes to
@@ -123,12 +138,12 @@ served.
     answers it (design rule 34).
   - Long page titles slide under the shell's top-left pill on desktop. I shortened mine.
   - One Math chart question draws bars with negative heights (browser console errors).
-  - Type errors from the merged branch: `pdf-lib` and `pdf-parse` were not installed
-    (`npm ci` fixes it) and `src/middleware.ts` (site audit's change) does not type-check.
+  - Painted pages wait for the painting before the box appears; in a busy headless browser that
+    took minutes, which is why I could not capture more widths.
 
 ## Database
 
 One migration, applied to the local database only:
-`supabase/migrations/20261108120000_quiz_runs_levels_challenge.sql`. It adds `quiz_runs`,
+`supabase/migrations/20261108120100_quiz_runs_levels_challenge.sql`. It adds `quiz_runs`,
 `quiz_run_responses`, `student_skill_levels` and `daily_challenge_answers`, all closed to
 everyone but the server. A local reset from a branch without this file removes these tables.

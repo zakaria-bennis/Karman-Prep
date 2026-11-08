@@ -79,7 +79,8 @@ export function DailyTenEnd({ user, run }: { user: ShellUser; run: RunView }) {
   };
   const rw = bySection("reading");
   const math = bySection("math");
-  const streak = result.streak ?? user.streak;
+  // The portal's practice streak; today counts once the Daily 10 is done.
+  const streak = Math.max(user.streak, result.streak ?? 0);
   if (stage === "box")
     return (
       <FlowFrame user={{ ...user, streak }} title="Daily 10">

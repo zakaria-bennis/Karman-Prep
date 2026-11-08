@@ -98,10 +98,10 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-bold text-ivory">
+          <h2 className="text-base font-bold text-[color:var(--ink)]">
             {questions.length} question{questions.length !== 1 ? "s" : ""}
           </h2>
-          <p className="mt-0.5 text-xs text-taupe">
+          <p className="mt-0.5 text-xs text-[color:var(--mute)]">
             Target: ~100 per node.{" "}
             {viewMode === "list"
               ? "Drag the handle to reorder."
@@ -110,12 +110,12 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
         </div>
         <div className="flex items-center gap-2">
           {/* View mode toggle */}
-          <div className="inline-flex overflow-hidden rounded-lg border border-bronze bg-surface text-xs">
+          <div className="inline-flex overflow-hidden rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] text-xs">
             <button
               onClick={() => setViewMode("list")}
               className={cn(
                 "px-3 py-1.5 font-semibold",
-                viewMode === "list" ? "bg-surface-raised text-ivory" : "text-taupe hover:text-ivory"
+                viewMode === "list" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
             >
               List
@@ -123,8 +123,8 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
             <button
               onClick={() => setViewMode("tabs")}
               className={cn(
-                "border-l border-bronze px-3 py-1.5 font-semibold",
-                viewMode === "tabs" ? "bg-surface-raised text-ivory" : "text-taupe hover:text-ivory"
+                "border-l border-[color:var(--line)] px-3 py-1.5 font-semibold",
+                viewMode === "tabs" ? "bg-[color:var(--raised)] text-[color:var(--ink)]" : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
             >
               Tabs
@@ -132,7 +132,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
           </div>
           <button
             onClick={() => setShowAddForm((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-1.5 text-sm font-semibold text-night hover:bg-gold-bright"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--accent)] px-3 py-1.5 text-sm font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]"
           >
             <Plus className="h-3.5 w-3.5" /> {showAddForm ? "Cancel" : "New question"}
           </button>
@@ -153,7 +153,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
       {/* Difficulty filter chips */}
       {questions.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-semibold uppercase tracking-wider text-taupe">Filter:</span>
+          <span className="font-semibold uppercase tracking-wider text-[color:var(--mute)]">Filter:</span>
           <FilterChip
             label={`All ${questions.length}`}
             active={filter === "all"}
@@ -170,7 +170,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
             />
           ))}
           {filter !== "all" && (
-            <span className="ml-2 text-taupe">
+            <span className="ml-2 text-[color:var(--mute)]">
               Showing {filteredQuestions.length} of {questions.length}
             </span>
           )}
@@ -178,7 +178,7 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
       )}
 
       {questions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-bronze p-10 text-center text-sm text-taupe">
+        <div className="rounded-xl border border-dashed border-[color:var(--line)] p-10 text-center text-sm text-[color:var(--mute)]">
           No questions yet. Add one above or use Bulk Import tab.
         </div>
       ) : viewMode === "tabs" ? (
@@ -220,8 +220,8 @@ export default function QuestionEditor({ nodeId, subject, topicCluster, initialQ
       ) : (
         <div className="space-y-3">
           {filteredQuestions.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-bronze p-8 text-center text-sm text-taupe">
-              No <strong className="text-ivory">{filter}</strong> questions yet.
+            <div className="rounded-xl border border-dashed border-[color:var(--line)] p-8 text-center text-sm text-[color:var(--mute)]">
+              No <strong className="text-[color:var(--ink)]">{filter}</strong> questions yet.
             </div>
           ) : (
             filteredQuestions.map((q) => {
@@ -276,7 +276,7 @@ function FilterChip({
       onClick={onClick}
       className={cn(
         "rounded-full border px-2.5 py-1 font-semibold capitalize transition-colors",
-        active ? "text-ivory" : "border-bronze text-taupe hover:border-bronze hover:text-ivory"
+        active ? "text-[color:var(--ink)]" : "border-[color:var(--line)] text-[color:var(--mute)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
       )}
       style={
         active

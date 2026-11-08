@@ -23,7 +23,7 @@ export default async function RapidQuestionReviewPage() {
 
   if (error) {
     return (
-      <div className="p-6 text-sm text-error-bright">
+      <div className="p-6 text-sm text-[color:var(--late)]">
         Unable to load stored questions: {error.message}
       </div>
     );

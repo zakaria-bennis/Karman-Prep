@@ -25,7 +25,6 @@ export default async function StudentDashboardPage() {
   const ctx = await loadStudentContext();
   const userId = ctx.clerkId;
   const supabase = createAdminClient();
-  const sub = ctx.subscription as { status: string; trial_end: string | null } | null;
   // "We're matching you with a tutor" shows while onboarding flagged a placement failure and
   // no cohort or tutor has the student yet (audit #10); it clears itself once they're placed.
   const { data: placement } = await supabase
@@ -133,7 +132,6 @@ export default async function StudentDashboardPage() {
       dashboard={dashboard}
       main={main}
       diagnostic={diagnosticResult.data}
-      subscription={sub}
       showPlacementBanner={showPlacementBanner}
       ctx={ctx}
       due={due}

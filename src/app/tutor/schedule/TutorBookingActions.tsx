@@ -86,8 +86,8 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
 
   if (mode === "confirming-cancel") {
     return (
-      <div className="mt-2 flex flex-col gap-2 rounded-lg border border-error/40 bg-error/10 p-2 text-xs">
-        <p className="font-semibold text-error">
+      <div className="mt-2 flex flex-col gap-2 rounded border border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] p-2 text-xs">
+        <p className="font-semibold text-[color:var(--late)]">
           Cancel this session? The student gets a token refund automatically.
         </p>
         <input
@@ -95,14 +95,10 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Optional reason (shown to the student)"
-          className="rounded border border-error/40 bg-surface px-2 py-1 text-error placeholder:text-error"
+          className="wb-input"
         />
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={cancel}
-            disabled={pending}
-            className="inline-flex items-center gap-1 rounded bg-error px-2 py-1 font-semibold text-ivory hover:bg-error-bright disabled:opacity-50"
-          >
+          <button onClick={cancel} disabled={pending} className="wb-btn" data-variant="danger">
             {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
             Confirm cancel
           </button>
@@ -113,41 +109,37 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
               setErr(null);
             }}
             disabled={pending}
-            className="rounded border border-error/40 bg-surface px-2 py-1 text-error"
+            className="wb-btn"
           >
             Back
           </button>
         </div>
-        {err ? <span className="text-error">{err}</span> : null}
+        {err ? <span className="text-[color:var(--late)]">{err}</span> : null}
       </div>
     );
   }
 
   if (mode === "rescheduling") {
     return (
-      <div className="mt-2 flex flex-col gap-2 rounded-lg border border-info/40 bg-info/10 p-2 text-xs">
-        <p className="font-semibold text-info">
+      <div className="mt-2 flex flex-col gap-2 rounded border border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] p-2 text-xs">
+        <p className="font-semibold text-[color:var(--info)]">
           Pick a new start time. The student will get an email with the new details.
         </p>
         <input
           type="datetime-local"
           value={newStart}
           onChange={(e) => setNewStart(e.target.value)}
-          className="rounded border border-info/40 bg-surface px-2 py-1 text-info"
+          className="wb-input"
         />
         <input
           type="text"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Optional reason (shown to the student)"
-          className="rounded border border-info/40 bg-surface px-2 py-1 text-info placeholder:text-info"
+          className="wb-input"
         />
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={reschedule}
-            disabled={pending}
-            className="inline-flex items-center gap-1 rounded bg-info px-2 py-1 font-semibold text-ivory hover:bg-info-bright disabled:opacity-50"
-          >
+          <button onClick={reschedule} disabled={pending} className="wb-btn">
             {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
             Confirm reschedule
           </button>
@@ -158,29 +150,23 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
               setErr(null);
             }}
             disabled={pending}
-            className="rounded border border-info/40 bg-surface px-2 py-1 text-info"
+            className="wb-btn"
           >
             Back
           </button>
         </div>
-        {err ? <span className="text-error">{err}</span> : null}
+        {err ? <span className="text-[color:var(--late)]">{err}</span> : null}
       </div>
     );
   }
 
   return (
     <div className="mt-1 flex items-center gap-1.5">
-      <button
-        onClick={() => setMode("rescheduling")}
-        className="inline-flex items-center gap-1 rounded border border-bronze bg-surface px-2 py-0.5 text-[11px] font-semibold text-ivory hover:border-info/40 hover:text-info dark:border-bronze dark:bg-surface dark:text-ivory"
-      >
+      <button onClick={() => setMode("rescheduling")} className="wb-btn">
         <RotateCcw className="h-3 w-3" />
         Reschedule
       </button>
-      <button
-        onClick={() => setMode("confirming-cancel")}
-        className="inline-flex items-center gap-1 rounded border border-bronze bg-surface px-2 py-0.5 text-[11px] font-semibold text-ivory hover:border-error/40 hover:text-error dark:border-bronze dark:bg-surface dark:text-ivory"
-      >
+      <button onClick={() => setMode("confirming-cancel")} className="wb-btn">
         <X className="h-3 w-3" />
         Cancel
       </button>

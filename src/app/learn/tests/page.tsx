@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Card, Num, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
-import { STUDENT_MENU, studentNav } from "@/components/student-portal/StudentPortal";
-
-// Quiz screens don't load the student context, so they show every student tab.
-const STUDENT_NAV = studentNav({ hasTutor: true, homeworkOpen: 0, showCalendar: true });
-import { loadFlowUser } from "@/components/quiz-flows/load-user";
+import { Card, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import StudentPortal from "@/components/student-portal/StudentPortal";
+import { loadStudentContext } from "@/lib/student/context";
 import { SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { FULL_LENGTH_FORMS } from "@/lib/assembler/forms";
 import { loadQuizAccess } from "@/lib/assembler/plan-gate";
@@ -24,7 +21,8 @@ type Saved = {
 
 /** Full-length practice tests, the diagnostic and the Domain quizzes, with where each stands. */
 export default async function TestsPage() {
-  const { clerkId, user } = await loadFlowUser("/learn/tests");
+  const ctx = await loadStudentContext();
+  const clerkId = ctx.clerkId;
   const [access, saved] = await Promise.all([
     loadQuizAccess(clerkId).catch(() => null),
     (createAdminClient() as unknown as SupabaseClient)
@@ -48,16 +46,7 @@ export default async function TestsPage() {
     return { right: "Start", href: true };
   };
   return (
-    <PortalShell
-      portal="Student"
-      nav={STUDENT_NAV}
-      name={user.name}
-      accountDetail={user.email}
-      menu={STUDENT_MENU}
-      home="/dashboard/student"
-      title="Tests and quizzes"
-      streak={user.streak ? { days: user.streak, href: "/learn/daily-ten" } : undefined}
-    >
+    <StudentPortal ctx={ctx} title="Tests and quizzes">
       <Panel>
         <Card>
           <SectionHeader title="Full-length practice tests" note={`${FULL_LENGTH_FORMS}`} />
@@ -108,6 +97,6 @@ export default async function TestsPage() {
           </Card>
         ))}
       </Panel>
-    </PortalShell>
+    </StudentPortal>
   );
 }

@@ -3,7 +3,6 @@
  * Order: greeting, the one main action, where to pick up, homework and practice. No score or
  * skills on Today: they live in Progress and the Library. The data comes from the page as before.
  */
-import Link from "next/link";
 import { Banner, Card, Cta, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
 import JoinButton from "@/components/student-portal/JoinButton";
 import StudentPortal, { STUDENT_ROUTES } from "@/components/student-portal/StudentPortal";
@@ -13,7 +12,6 @@ import type { StudentContext } from "@/lib/student/context";
 interface Props {
   dashboard: LearnDashboardData;
   diagnostic: { score_range_low: number; score_range_high: number } | null;
-  subscription: { status: string; trial_end: string | null } | null;
   showPlacementBanner?: boolean;
   ctx: StudentContext;
   /** Open homework due soonest (null: no tutor can assign work). */
@@ -29,48 +27,25 @@ interface Props {
 export default function StudentDashboardClient({
   dashboard,
   diagnostic,
-  subscription,
   showPlacementBanner,
   ctx,
   due = null,
   comingUp = null,
   main,
 }: Props) {
-  const trialEnds =
-    subscription?.status === "trialing" && subscription.trial_end
-      ? new Date(subscription.trial_end).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })
-      : null;
   const next = dashboard.next;
   const review = dashboard.review;
 
-  const banner =
-    showPlacementBanner || trialEnds ? (
-      <Banner>
-        <div>
-          {showPlacementBanner ? (
-            <>
-              <b>We&rsquo;re matching you with a tutor</b>
-              <span style={{ display: "block", color: "var(--mute)", fontSize: 14 }}>
-                Your answers are saved. Practice in the Library while we place you.
-              </span>
-            </>
-          ) : (
-            <>
-              <b>Your trial ends {trialEnds}</b>
-              <span style={{ display: "block", color: "var(--mute)", fontSize: 14 }}>
-                Your card is charged automatically then.{" "}
-                <Link className="kp-link" href="/billing">
-                  Manage plan
-                </Link>
-              </span>
-            </>
-          )}
-        </div>
-      </Banner>
-    ) : null;
+  const banner = showPlacementBanner ? (
+    <Banner>
+      <div>
+        <b>We&rsquo;re matching you with a tutor</b>
+        <span style={{ display: "block", color: "var(--mute)", fontSize: 14 }}>
+          Your answers are saved. Practice in the Library while we place you.
+        </span>
+      </div>
+    </Banner>
+  ) : null;
 
   const side = (
     <>

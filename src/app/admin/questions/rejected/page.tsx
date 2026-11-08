@@ -20,7 +20,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Archive } from "lucide-react";
+import { WbPage, WbStats } from "@/components/admin/workbench";
 import {
   selectRejectedQuestions,
   selectRejectedQuestionCount,
@@ -36,30 +36,22 @@ export default async function RejectedQuestionsPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8">
-      <div className="mb-6">
-        <Link
-          href="/admin/questions/review"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
-        >
-          <ChevronRight className="h-3 w-3 rotate-180" /> Back to review
+    <WbPage
+      title="Rejected questions"
+      summary="Questions removed on the preview page. Restore puts one back into the bank with its original id. Permanent delete drops the snapshot for good."
+      actions={
+        <Link className="wb-btn" href="/admin/questions/review">
+          Back to review
         </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
-          <Archive className="h-5 w-5 text-taupe" /> Rejected questions
-        </h1>
-        <p className="mt-1.5 text-sm text-taupe">
-          {total === 0
-            ? "Nothing in the recovery bin."
-            : `${total} rejected question${total === 1 ? "" : "s"} · showing most recent ${Math.min(
-                rows.length,
-                total
-              )}`}
-          . Restore puts the question back into the bank with its original id. Permanent delete
-          drops the snapshot for good.
-        </p>
-      </div>
-
+      }
+    >
+      <WbStats
+        items={[
+          { label: "In the recovery bin", value: total.toLocaleString("en-US") },
+          { label: "Shown (most recent)", value: Math.min(rows.length, total) },
+        ]}
+      />
       <RejectedClient rows={rows} />
-    </div>
+    </WbPage>
   );
 }

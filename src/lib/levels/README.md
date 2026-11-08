@@ -37,18 +37,6 @@ levels, and anyone who writes answers.
 - **Full-length tests and the diagnostic:** they measure; they never move levels. They mark a
   skill as tried (New) and as practised, so it does not decay.
 
-## One rule everywhere
-
-`rules.ts` is the only place the thresholds and decay live. Everything else calls it:
-
-- `src/lib/student/levels.ts` (the student portal) replays saved catalog-practice answers
-  through `levelFromAnswers` and decays stored levels with `decayedLevel`.
-- `src/lib/progress-glance/levels.ts` (parent and school views) and
-  `src/lib/tutor-affiliate/progress.ts` (tutor roster) use `levelFromAnswers` too, and take a
-  level saved in `student_skill_levels` when it is higher (`loadSavedLevels` in
-  `src/lib/progress-glance/server.ts`), so a parent, teacher or tutor sees the level the
-  student sees.
-
 ## One model with points and mastery
 
 - **Levels** are the only skill status a student sees. The older mastery bands
@@ -69,11 +57,21 @@ const levels = await loadSkillLevels(clerkId);
 ```
 
 Pure rules (safe anywhere): `applyAnswer`, `applyQuizSkill`, `applyMeasured`, `effective`,
-`runToNext`, `nextDecayAt`, `DECAY_WEEKS` in `./rules.ts`.
+`runToNext`, `nextDecayAt`, `DECAY_WEEKS` / `DECAY_DAYS` in `./rules.ts`. For readers that only
+have raw answers: `levelFromHistory(answers, now)` (and `foldAnswers`).
+
+**This is the only copy of the rule.** The student portal (`src/lib/student/levels.ts`), the
+parent and school glance (`src/lib/progress-glance/levels.ts`) and the tutor roster
+(`src/lib/tutor-affiliate/progress.ts`) all call it, so every portal shows the same level for
+the same answers. The parent, school and tutor views also take a level saved in
+`student_skill_levels` when it is higher (`loadSavedLevels` in
+`src/lib/progress-glance/server.ts`, decayed with `decayedLevel`), so they match what the
+student sees after Daily 10s, practice sets and Domain quizzes. Do not restate the thresholds
+or the decay anywhere else.
 
 Storage: `public.student_skill_levels` (student_id = Clerk id, skill_id = catalog skill id,
 level 0 to 4, run, answered, last_practiced_at). Migration
-`supabase/migrations/20261108120000_quiz_runs_levels_challenge.sql`.
+`supabase/migrations/20261108120100_quiz_runs_levels_challenge.sql`.
 
 ## Where the flows live (for links)
 

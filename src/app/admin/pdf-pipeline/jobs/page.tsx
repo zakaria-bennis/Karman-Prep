@@ -5,27 +5,33 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Upload, Activity, CheckCircle2, XCircle, Clock } from "lucide-react";
+import {
+  WbPage,
+  WbPill,
+  WbStats,
+  WbTable,
+  WbTabs,
+  formatDateTime,
+  type Tone,
+} from "@/components/admin/workbench";
 import { selectRecentPdfJobs, selectPdfJobCounts } from "@/lib/supabase/queries/pdf-jobs";
 import { STAGE_LABEL } from "@/types/pdf-job";
 
 export const metadata: Metadata = { title: "Admin — PDF jobs | Karman" };
 export const dynamic = "force-dynamic";
 
-const STATUS_TONE = {
-  queued: "border-bronze bg-surface-raised/40 text-ivory",
-  running: "border-gold/40 bg-gold/40 text-gold-bright",
-  partial: "border-warning/40 bg-warning/40 text-warning-bright",
-  complete: "border-success/40 bg-success/40 text-success-bright",
-  failed: "border-error/40 bg-error/40 text-error-bright",
-} as const;
+const PATH = "/admin/pdf-pipeline/jobs";
 
-function statusIcon(status: string) {
-  if (status === "complete") return <CheckCircle2 className="h-3.5 w-3.5" />;
-  if (status === "failed") return <XCircle className="h-3.5 w-3.5" />;
-  if (status === "running") return <Activity className="h-3.5 w-3.5 animate-pulse" />;
-  return <Clock className="h-3.5 w-3.5" />;
-}
+const STATUS_TONE: Record<string, Tone> = {
+  queued: "neutral",
+  running: "info",
+  partial: "warn",
+  complete: "ok",
+  failed: "fail",
+};
+
+const FILTERS = ["all", "queued", "running", "complete", "failed"] as const;
+type Filter = (typeof FILTERS)[number];
 
 function formatBytes(b: number | null): string {
   if (!b) return "—";
@@ -44,128 +50,158 @@ function formatAgo(iso: string | null): string {
   return `${Math.floor(hr / 24)}d ago`;
 }
 
-export default async function PdfJobsPage() {
+type Job = Awaited<ReturnType<typeof selectRecentPdfJobs>>[number];
+
+export default async function PdfJobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status } = await searchParams;
+  const filter: Filter = (FILTERS as readonly string[]).includes(status ?? "")
+    ? (status as Filter)
+    : "all";
   const [jobs, counts] = await Promise.all([selectRecentPdfJobs(50), selectPdfJobCounts()]);
+  const shown = filter === "all" ? jobs : jobs.filter((j) => j.status === filter);
+  const countIn = (f: Filter) =>
+    f === "all" ? jobs.length : jobs.filter((j) => j.status === f).length;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <Link
-            href="/admin/curriculum"
-            className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
-          >
-            <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
+    <WbPage
+      title="PDF processing jobs"
+      summary="Every PDF uploaded for the automated pipeline, newest first (last 50). Open a job for its progress."
+      actions={
+        <>
+          <Link className="wb-btn" href="/admin/questions/import">
+            Upload PDF
           </Link>
-          <h1 className="text-2xl font-bold text-ivory">PDF processing jobs</h1>
-          <p className="mt-1 text-sm text-taupe">
-            Every PDF uploaded for the automated pipeline. Click a row for live progress.
-          </p>
-        </div>
-        <Link
-          href="/admin/questions/import"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-gold px-3 py-2 text-sm font-semibold text-night hover:bg-gold-bright"
-        >
-          <Upload className="h-4 w-4" /> Upload PDF
-        </Link>
-      </div>
+          <Link className="wb-btn" href="/admin/curriculum">
+            Back to admin
+          </Link>
+        </>
+      }
+    >
+      <WbStats
+        items={[
+          { label: "Queued", value: counts.queued },
+          { label: "Running", value: counts.running },
+          { label: "Complete", value: counts.complete },
+          { label: "Failed", value: counts.failed },
+          { label: "Total", value: counts.total },
+        ]}
+      />
 
-      <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
-        {(
-          [
-            ["queued", counts.queued],
-            ["running", counts.running],
-            ["complete", counts.complete],
-            ["failed", counts.failed],
-            ["total", counts.total],
-          ] as const
-        ).map(([k, n]) => (
-          <div key={k} className="rounded-lg border border-bronze bg-surface/60 px-3 py-2">
-            <div className="text-[11px] uppercase tracking-wide text-taupe">{k}</div>
-            <div className="text-lg font-bold text-ivory">{n}</div>
-          </div>
-        ))}
-      </div>
+      <WbTabs
+        label="Job status"
+        param="status"
+        value={filter}
+        basePath={PATH}
+        options={FILTERS.map((f) => ({
+          value: f,
+          label: f === "all" ? "All" : f[0].toUpperCase() + f.slice(1),
+          count: countIn(f),
+        }))}
+      />
 
-      <div className="overflow-hidden rounded-xl border border-bronze bg-surface/40">
-        <table className="w-full text-sm">
-          <thead className="border-b border-bronze bg-night/40 text-left text-xs uppercase tracking-wide text-taupe">
-            <tr>
-              <th className="px-4 py-2 font-medium">PDF</th>
-              <th className="px-4 py-2 font-medium">Status</th>
-              <th className="px-4 py-2 font-medium">Stage</th>
-              <th className="px-4 py-2 font-medium">Progress</th>
-              <th className="px-4 py-2 font-medium">Size</th>
-              <th className="px-4 py-2 font-medium">Uploaded</th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-taupe">
-                  No PDF jobs yet. Upload one at{" "}
-                  <Link href="/admin/questions/import" className="text-gold hover:text-gold-bright">
-                    /admin/questions/import
-                  </Link>
-                  .
-                </td>
-              </tr>
-            )}
-            {jobs.map((job) => {
-              const tone =
-                STATUS_TONE[job.status as keyof typeof STATUS_TONE] ?? STATUS_TONE.queued;
+      <WbTable<Job>
+        caption="PDF processing jobs"
+        rows={shown}
+        rowKey={(j) => j.id}
+        empty={
+          jobs.length === 0 ? (
+            <>
+              <b>No PDF jobs yet.</b>
+              Upload one on <Link href="/admin/questions/import">the import page</Link>.
+            </>
+          ) : (
+            <>
+              <b>No job has this status.</b>
+              <Link href={PATH}>Clear filters</Link>
+            </>
+          )
+        }
+        columns={[
+          {
+            key: "pdf",
+            label: "PDF",
+            cell: (job) => (
+              <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+                <Link href={`${PATH}/${job.id}`}>{job.source_pdf}</Link>
+              </span>
+            ),
+          },
+          {
+            key: "status",
+            label: "Status",
+            cell: (job) => (
+              <WbPill tone={STATUS_TONE[job.status] ?? "neutral"}>{job.status}</WbPill>
+            ),
+          },
+          {
+            key: "stage",
+            label: "Stage",
+            cell: (job) => {
               const stage = job.progress?.stage ?? "queued";
-              const stageLabel = job.progress?.stage_label ?? STAGE_LABEL[stage] ?? stage;
+              return job.progress?.stage_label ?? STAGE_LABEL[stage] ?? stage;
+            },
+          },
+          {
+            key: "progress",
+            label: "Progress",
+            cell: (job) => {
               const percent = job.progress?.percent ?? 0;
+              const bar =
+                job.status === "failed"
+                  ? "var(--late)"
+                  : job.status === "complete"
+                    ? "var(--good)"
+                    : "var(--accent)";
               return (
-                <tr
-                  key={job.id}
-                  className="border-b border-bronze last:border-b-0 hover:bg-surface/60"
-                >
-                  <td className="px-4 py-2.5">
-                    <Link
-                      href={`/admin/pdf-pipeline/jobs/${job.id}`}
-                      className="font-medium text-ivory hover:text-ivory"
-                    >
-                      {job.source_pdf}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5">
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    role="progressbar"
+                    aria-valuenow={percent}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`${job.source_pdf} progress`}
+                    style={{
+                      display: "block",
+                      width: 96,
+                      height: 6,
+                      borderRadius: 4,
+                      overflow: "hidden",
+                      background: "var(--sunk, var(--line))",
+                    }}
+                  >
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tone}`}
-                    >
-                      {statusIcon(job.status)}
-                      {job.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-taupe">{stageLabel}</td>
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-surface-raised">
-                        <div
-                          className={`h-full rounded-full transition-all ${
-                            job.status === "failed"
-                              ? "bg-error"
-                              : job.status === "complete"
-                                ? "bg-success"
-                                : "bg-gold"
-                          }`}
-                          style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
-                        />
-                      </div>
-                      <span className="text-xs tabular-nums text-taupe">{percent}%</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-taupe">
-                    {formatBytes(job.pdf_size_bytes)}
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-taupe">{formatAgo(job.uploaded_at)}</td>
-                </tr>
+                      style={{
+                        display: "block",
+                        height: "100%",
+                        width: `${Math.max(0, Math.min(100, percent))}%`,
+                        background: bar,
+                      }}
+                    />
+                  </span>
+                  {percent}%
+                </span>
               );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            },
+          },
+          {
+            key: "size",
+            label: "Size",
+            numeric: true,
+            cell: (job) => formatBytes(job.pdf_size_bytes),
+          },
+          {
+            key: "uploaded",
+            label: "Uploaded",
+            cell: (job) => (
+              <span title={formatDateTime(job.uploaded_at)}>{formatAgo(job.uploaded_at)}</span>
+            ),
+          },
+        ]}
+      />
+    </WbPage>
   );
 }

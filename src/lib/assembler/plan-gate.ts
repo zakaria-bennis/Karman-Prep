@@ -8,6 +8,7 @@ import {
   difficultyRangeFor,
   getPlan,
   getUsage,
+  PLAN_ENTITLEMENTS,
   questionsLeft,
   type PlanAccess,
   type PlanUsage,
@@ -36,7 +37,11 @@ export function quizAccessFor(plan: PlanAccess, usage?: PlanUsage): QuizAccess {
 
 /** A limited plan (Free) needs usage; unlimited plans skip the count queries. */
 export async function loadQuizAccess(clerkId: string): Promise<QuizAccess & { limited: boolean }> {
-  const plan = await getPlan(clerkId);
+  // A plan that cannot be read counts as Free (as the student portal does): limits still apply.
+  const plan: PlanAccess = await getPlan(clerkId).catch((error: unknown) => {
+    console.error("[quiz access] plan could not be read", error);
+    return { entitlements: PLAN_ENTITLEMENTS.free };
+  });
   const limited =
     plan.entitlements.questionLimit !== null || plan.entitlements.fullLengthTestLimit !== null;
   const usage = limited ? await getUsage(clerkId) : undefined;

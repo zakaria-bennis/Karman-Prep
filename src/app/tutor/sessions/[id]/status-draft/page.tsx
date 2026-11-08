@@ -11,8 +11,7 @@
 
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { Card, MoreLink } from "@/components/portal";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -143,18 +142,10 @@ export default async function StatusDraftPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-night text-ivory">
-      <div className="mx-auto max-w-7xl px-5 py-8">
-        <Link
-          href="/tutor/schedule"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          My schedule
-        </Link>
-        <StatusDraftClient data={data} />
-      </div>
-    </div>
+    <Card>
+      <StatusDraftClient data={data} />
+      <MoreLink href="/tutor/schedule">Schedule</MoreLink>
+    </Card>
   );
 }
 

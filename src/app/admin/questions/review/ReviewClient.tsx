@@ -15,8 +15,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { X, ChevronDown, ChevronRight, CheckCheck, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   actionAcceptFlaggedQuestion,
   actionRejectFlaggedQuestion,
@@ -230,29 +228,34 @@ export default function ReviewClient({
     }
   }
 
+  const hasFilters = !!(
+    activeFilters.flag_type ||
+    activeFilters.domain ||
+    activeFilters.source_pdf
+  );
+
   return (
     <>
-      {/* ── Tab toggle ─────────────────────────────────────── */}
-      <div className="mb-5 flex border-b border-bronze">
-        <TabButton
-          active={activeTab === "flagged"}
-          onClick={() => setTab("flagged")}
-          label="Flagged"
-          count={counts.flagged}
-          tone="amber"
-        />
-        <TabButton
-          active={activeTab === "bank"}
-          onClick={() => setTab("bank")}
-          label="Bank"
-          count={counts.bank}
-          tone="indigo"
-        />
+      <div className="wb-toolbar">
+        <div className="wb-tabs" role="group" aria-label="Review list">
+          <TabButton
+            active={activeTab === "flagged"}
+            onClick={() => setTab("flagged")}
+            label="Flagged"
+            count={counts.flagged}
+          />
+          <TabButton
+            active={activeTab === "bank"}
+            onClick={() => setTab("bank")}
+            label="Bank"
+            count={counts.bank}
+          />
+        </div>
       </div>
 
-      {/* ── Filter bar (Flagged tab only) ──────────────────── */}
+      {/* Filter bar (Flagged tab only) */}
       {showFilters && (
-        <div className="mb-5 flex flex-wrap items-center gap-2 text-xs">
+        <div className="wb-toolbar" style={{ alignItems: "flex-end" }}>
           <FilterSelect
             label="Flag type"
             value={activeFilters.flag_type ?? ""}
@@ -281,10 +284,11 @@ export default function ReviewClient({
             ]}
             onChange={(v) => setFilter("source_pdf", v)}
           />
-          {(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf) && (
+          {hasFilters && (
             <button
+              type="button"
+              className="wb-btn"
               onClick={() => router.push("/admin/questions/review")}
-              className="ml-auto text-taupe hover:text-ivory"
             >
               Clear filters
             </button>
@@ -292,118 +296,99 @@ export default function ReviewClient({
         </div>
       )}
 
-      {/* ── Bulk-accept result banner (Bank tab only, after a run) ─ */}
+      {/* Bulk-accept result banner (Bank tab only, after a run) */}
       {bulkResult && activeTab === "bank" && (
-        <div className="mb-3 flex items-start gap-2 rounded-lg border border-success/30 bg-success/[0.06] px-3 py-2 text-xs text-success-bright">
-          <CheckCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <div className="flex-1">
-            Auto-accepted <span className="font-semibold">{bulkResult.accepted}</span> question
+        <div
+          className="wb-alert"
+          data-tone="ok"
+          role="status"
+          style={{ display: "flex", gap: 8, alignItems: "center" }}
+        >
+          <span style={{ flex: 1 }}>
+            Auto-accepted <b>{bulkResult.accepted}</b> question
             {bulkResult.accepted === 1 ? "" : "s"} to their default nodes.
             {bulkResult.skipped > 0 && (
-              <>
-                {" "}
-                <span className="text-warning-bright">{bulkResult.skipped} skipped</span> (no slug
-                match — assign manually).
-              </>
+              <> {bulkResult.skipped} skipped (no slug match, assign by hand).</>
             )}
-            {bulkResult.errored > 0 && (
-              <>
-                {" "}
-                <span className="text-error-bright">{bulkResult.errored} errored</span> (see
-                console).
-              </>
-            )}
-          </div>
-          <button
-            onClick={() => setBulkResult(null)}
-            className="text-success-bright/70 hover:text-success-bright"
-          >
-            <X className="h-3 w-3" />
+            {bulkResult.errored > 0 && <> {bulkResult.errored} errored (see console).</>}
+          </span>
+          <button type="button" className="wb-btn" onClick={() => setBulkResult(null)}>
+            Dismiss
           </button>
         </div>
       )}
 
-      {/* ── Cards ──────────────────────────────────────────── */}
+      {/* Cards */}
       {visibleQuestions.length === 0 ? (
         <EmptyState
           tab={activeTab}
-          hasFilters={
-            !!(activeFilters.flag_type || activeFilters.domain || activeFilters.source_pdf)
-          }
+          hasFilters={hasFilters}
+          onClear={() => router.push("/admin/questions/review")}
         />
       ) : (
         <>
-          <div className="mb-2 flex items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-3">
-              {/* Bank tab — auto-accept-all-by-slug shortcut */}
-              {activeTab === "bank" && (
-                <button
-                  onClick={handleAcceptAll}
-                  disabled={bulkAccepting || bank.length === 0}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-                    "bg-success text-night hover:bg-success-bright disabled:hover:bg-success-bright"
-                  )}
+          <div className="wb-toolbar">
+            {/* Bank tab — auto-accept-all-by-slug shortcut */}
+            {activeTab === "bank" && (
+              <button
+                type="button"
+                className="wb-btn"
+                data-variant="primary"
+                onClick={handleAcceptAll}
+                disabled={bulkAccepting || bank.length === 0}
+              >
+                {bulkAccepting ? `Accepting ${bank.length}…` : `Auto-accept all (${bank.length})`}
+              </button>
+            )}
+            {/* Flagged tab — bulk-reject controls (audit issue #15) */}
+            {showBulkSelect && (
+              <>
+                <label
+                  className="wb-note"
+                  style={{ display: "inline-flex", gap: 6, cursor: "pointer" }}
                 >
-                  <CheckCheck className="h-3 w-3" />
-                  {bulkAccepting ? `Accepting ${bank.length}…` : `Auto-accept all (${bank.length})`}
-                </button>
-              )}
-              {/* Flagged tab — bulk-reject controls (audit issue #15) */}
-              {showBulkSelect && (
-                <>
-                  <label className="inline-flex cursor-pointer items-center gap-1.5 text-taupe hover:text-ivory">
-                    <input
-                      type="checkbox"
-                      checked={allVisibleSelected}
-                      onChange={toggleSelectAllVisible}
-                      className="h-3.5 w-3.5 cursor-pointer accent-error"
-                    />
-                    Select all{" "}
-                    {visibleQuestions.length > 0 && <span>({visibleQuestions.length})</span>}
-                  </label>
-                  {selectedCount > 0 && (
-                    <>
-                      <span className="text-taupe">·</span>
-                      <span className="text-ivory">{selectedCount} selected</span>
-                      <button
-                        onClick={handleBulkReject}
-                        disabled={bulkRejecting}
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-                          "bg-error text-ivory hover:bg-error-bright disabled:hover:bg-error-bright"
-                        )}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        {bulkRejecting
-                          ? `Rejecting ${selectedCount}…`
-                          : `Reject ${selectedCount} selected`}
-                      </button>
-                      <button
-                        onClick={() => setSelectedIds(new Set())}
-                        disabled={bulkRejecting}
-                        className="text-taupe hover:text-ivory disabled:opacity-50"
-                      >
-                        Clear
-                      </button>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    style={{ accentColor: "var(--accent)" }}
+                  />
+                  Select all ({visibleQuestions.length})
+                </label>
+                {selectedCount > 0 && (
+                  <>
+                    <b>{selectedCount} selected</b>
+                    <button
+                      type="button"
+                      className="wb-btn"
+                      data-variant="danger"
+                      onClick={handleBulkReject}
+                      disabled={bulkRejecting}
+                    >
+                      {bulkRejecting
+                        ? `Rejecting ${selectedCount}…`
+                        : `Reject ${selectedCount} selected`}
+                    </button>
+                    <button
+                      type="button"
+                      className="wb-btn"
+                      onClick={() => setSelectedIds(new Set())}
+                      disabled={bulkRejecting}
+                    >
+                      Clear
+                    </button>
+                  </>
+                )}
+              </>
+            )}
             <button
+              type="button"
+              className="wb-btn"
+              style={{ marginLeft: "auto" }}
+              aria-pressed={allExpanded}
               onClick={toggleAllExpanded}
-              className="inline-flex items-center gap-1 text-taupe hover:text-ivory"
             >
-              {allExpanded ? (
-                <>
-                  <ChevronRight className="h-3 w-3" /> Collapse all
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-3 w-3" /> Expand all
-                </>
-              )}
+              {allExpanded ? "Collapse all" : "Expand all"}
             </button>
           </div>
           <div className="space-y-3">
@@ -441,42 +426,59 @@ function TabButton({
   onClick,
   label,
   count,
-  tone,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
   count: number;
-  tone: "amber" | "indigo";
 }) {
-  const accent = tone === "amber" ? "text-warning-bright" : "text-gold-bright";
   return (
     <button
+      type="button"
+      className="wb-tab"
+      aria-pressed={active}
+      aria-current={active ? "page" : undefined}
       onClick={onClick}
-      className={cn(
-        "-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition-colors",
-        active ? "border-ivory text-ivory" : "border-transparent text-taupe hover:text-ivory"
-      )}
     >
       {label}
-      <span className={cn("ml-2 font-mono text-xs", active ? accent : "text-taupe")}>{count}</span>
+      <small>{count}</small>
     </button>
   );
 }
 
-function EmptyState({ tab, hasFilters }: { tab: Tab; hasFilters: boolean }) {
-  let copy: string;
-  if (tab === "flagged") {
-    copy = hasFilters
-      ? "No flagged questions match the current filters."
-      : "No flagged questions. Anything the routine emitted as needs_review will land here for triage.";
-  } else {
-    copy =
-      "No questions in the bank. Imported PDF-routine questions land here with no curriculum node assigned — accept one with a node picked to send it live.";
+function EmptyState({
+  tab,
+  hasFilters,
+  onClear,
+}: {
+  tab: Tab;
+  hasFilters: boolean;
+  onClear: () => void;
+}) {
+  if (tab === "flagged" && hasFilters) {
+    return (
+      <div className="wb-empty">
+        <b>No flagged questions match the current filters.</b>
+        <button type="button" className="wb-btn" onClick={onClear}>
+          Clear filters
+        </button>
+      </div>
+    );
   }
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
-      {copy}
+    <div className="wb-empty">
+      {tab === "flagged" ? (
+        <>
+          <b>No flagged questions.</b>
+          Anything the routine emitted as needs_review lands here for triage.
+        </>
+      ) : (
+        <>
+          <b>No questions in the bank.</b>
+          Imported questions land here with no curriculum node. Accept one with a node picked to
+          send it live.
+        </>
+      )}
     </div>
   );
 }
@@ -493,13 +495,9 @@ function FilterSelect({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="inline-flex items-center gap-1.5 text-taupe">
-      <span>{label}:</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-bronze bg-surface px-2 py-1 text-xs text-ivory"
-      >
+    <label className="wb-field" style={{ flex: "1 1 180px", maxWidth: 280 }}>
+      <span>{label}</span>
+      <select className="wb-select" value={value} onChange={(e) => onChange(e.target.value)}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}

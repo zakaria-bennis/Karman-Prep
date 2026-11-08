@@ -1,13 +1,12 @@
 // Progress at a glance for a tutor's students: a ring per course and a
-// square per skill, from each student's practice answers and the levels the
-// quiz flows saved, by the one level rule (src/lib/levels/rules.ts).
+// square per skill, built from each student's practice answers.
 
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import type { SkillLevel } from "@/components/portal/skill-levels";
-import { levelFromAnswers } from "@/lib/levels/rules";
+import { levelFromHistory } from "@/lib/levels/rules";
 import { coursePercent } from "@/lib/progress-glance/levels";
 import { loadSavedLevels } from "@/lib/progress-glance/server";
 
@@ -96,10 +95,10 @@ export async function fetchStudentGlances(
     for (const [skillId, list] of answers.get(clerkId) ?? []) {
       levels.set(
         skillId,
-        levelFromAnswers(
+        levelFromHistory(
           list.map((a) => ({ correct: a.right, at: a.at })),
           now
-        )
+        ).level
       );
     }
     // A higher level the quiz flows saved wins, so the tutor sees what the student sees.

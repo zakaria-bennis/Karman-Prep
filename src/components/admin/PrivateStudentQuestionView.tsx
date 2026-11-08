@@ -36,7 +36,7 @@ export default function PrivateStudentQuestionView({
 
   return (
     <div
-      className="fixed inset-0 z-[60] overflow-hidden bg-night text-ivory"
+      className="fixed inset-0 z-[60] overflow-hidden bg-[color:var(--sunk)] text-[color:var(--ink)]"
       data-private-student-view="unanswered"
       data-question-id={question.id}
       data-payload-sha256={payloadSha256}
@@ -56,15 +56,15 @@ export default function PrivateStudentQuestionView({
           />
         </fieldset>
       </QuizProvider>
-      <aside className="absolute inset-x-0 bottom-0 z-[73] flex h-20 items-center justify-between gap-3 border-t border-bronze bg-night px-3 text-xs sm:px-6">
+      <aside className="absolute inset-x-0 bottom-0 z-[73] flex h-20 items-center justify-between gap-3 border-t border-[color:var(--line)] bg-[color:var(--sunk)] px-3 text-xs sm:px-6">
         <p>
           Private review · unanswered student rendering · controls disabled
-          <span className="block text-taupe">Practice previews do not show question numbers.</span>
+          <span className="block text-[color:var(--mute)]">Practice previews do not show question numbers.</span>
         </p>
         <Link
           href={`/admin/questions/inspect/${question.id}`}
           prefetch={false}
-          className="shrink-0 text-info-bright underline"
+          className="shrink-0 text-[color:var(--info)] underline"
         >
           Exit review
         </Link>

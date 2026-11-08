@@ -24,7 +24,7 @@ export function TimingAccommodationControl({
   const [pending, start] = useTransition();
   return (
     <fieldset className="mt-3">
-      <legend className="text-xs font-semibold text-taupe">Timed sections</legend>
+      <legend className="text-xs font-semibold text-[color:var(--mute)]">Timed sections</legend>
       <div className="mt-1 flex flex-wrap gap-2" role="radiogroup" aria-label="Timed sections">
         {OPTIONS.map((o) => (
           <button
@@ -34,7 +34,9 @@ export function TimingAccommodationControl({
             aria-checked={current === o.value}
             disabled={pending}
             className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${
-              current === o.value ? "border-info bg-info/10 text-ivory" : "border-bronze text-taupe"
+              current === o.value
+                ? "border-[color:var(--info)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] text-[color:var(--ink)]"
+                : "border-[color:var(--line)] text-[color:var(--mute)]"
             }`}
             onClick={() =>
               start(async () => {
@@ -54,7 +56,7 @@ export function TimingAccommodationControl({
         ))}
       </div>
       {error && (
-        <p role="alert" className="mt-1 text-sm text-error">
+        <p role="alert" className="mt-1 text-sm text-[color:var(--late)]">
           {error}
         </p>
       )}

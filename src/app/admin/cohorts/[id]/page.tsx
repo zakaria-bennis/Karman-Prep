@@ -1,17 +1,14 @@
 // ============================================================
-// /admin/cohorts/[id] — Cohort detail page
-// Tabs: Members | Notes | Homework
+// /admin/cohorts/[id]: one cohort. Tabs: Members, Notes, Homework.
 // ============================================================
 
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 import { fetchCohortDetail, fetchEligibleStudentsForCohort } from "@/lib/supabase/queries/cohorts";
 import { findChannelsByCohort } from "@/lib/supabase/queries/chat";
 import CohortDetailClient from "./CohortDetailClient";
 
-export const metadata: Metadata = { title: "Admin — Cohort | Karman" };
+export const metadata: Metadata = { title: "Cohort" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {
@@ -37,20 +34,11 @@ export default async function AdminCohortDetailPage({ params, searchParams }: Pa
   const activeTab = tab === "notes" ? "notes" : tab === "homework" ? "homework" : "members";
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8">
-      <Link
-        href="/admin/cohorts"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
-      >
-        <ChevronLeft className="h-4 w-4" />
-        All cohorts
-      </Link>
-      <CohortDetailClient
-        detail={detail}
-        activeTab={activeTab}
-        eligibleStudents={eligibleStudents}
-        chatProvisioned={chatProvisioned}
-      />
-    </div>
+    <CohortDetailClient
+      detail={detail}
+      activeTab={activeTab}
+      eligibleStudents={eligibleStudents}
+      chatProvisioned={chatProvisioned}
+    />
   );
 }

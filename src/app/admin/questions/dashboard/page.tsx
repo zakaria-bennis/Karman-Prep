@@ -17,26 +17,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  BarChart3,
-  AlertOctagon,
-  AlertTriangle,
-  Info,
-  CheckCircle2,
-  FileText,
-  Layers,
-  Cpu,
-  Microscope,
-} from "lucide-react";
-import { selectQualityDashboardData } from "@/lib/supabase/queries/quiz/findings";
-import { cn } from "@/lib/utils";
+  WbPage,
+  WbPill,
+  WbSection,
+  WbStats,
+  WbTable,
+  type Tone,
+} from "@/components/admin/workbench";
+import {
+  selectQualityDashboardData,
+  type QualityDashboardData,
+} from "@/lib/supabase/queries/quiz/findings";
 
 export const metadata: Metadata = { title: "Admin — Quality Dashboard | Karman" };
 
-const SEVERITY_CLASSES = {
-  BLOCKING: "border-error/40 bg-error/[0.08] text-error-bright",
-  WARNING: "border-warning/40 bg-warning/[0.08] text-warning-bright",
-  NOTICE: "border-bronze bg-surface-raised/40 text-ivory",
-} as const;
+const INSPECT = "/admin/questions/inspect";
+const n = (value: number) => value.toLocaleString("en-US");
+
+const SEVERITY: Record<string, { label: string; tone: Tone }> = {
+  BLOCKING: { label: "Blocking", tone: "fail" },
+  WARNING: { label: "Warning", tone: "warn" },
+  NOTICE: { label: "Notice", tone: "neutral" },
+};
+
+type CodeRow = QualityDashboardData["top_codes"][number];
+type SourceRow = QualityDashboardData["by_source"][number];
+type PdfRow = QualityDashboardData["by_source_pdf"][number];
+type DomainRow = QualityDashboardData["by_domain"][number];
+
+const CELL = { minWidth: 0, overflowWrap: "anywhere" } as const;
 
 export default async function QualityDashboardPage() {
   const data = await selectQualityDashboardData();
@@ -55,269 +64,177 @@ export default async function QualityDashboardPage() {
       : 0;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-bronze pb-4">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-ivory">
-            <BarChart3 className="h-5 w-5 text-gold" />
-            Quality dashboard
-          </h1>
-          <p className="mt-1 text-xs text-taupe">
-            Aggregate view of every open audit + grader finding across the question bank.
-          </p>
-        </div>
-        <Link
-          href="/admin/questions/inspect"
-          className="inline-flex items-center gap-1.5 rounded-md border border-bronze bg-surface/60 px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
-        >
-          <Microscope className="h-3.5 w-3.5" /> Open inspector worklist
+    <WbPage
+      title="Quality dashboard"
+      summary="Every open audit and grader finding across the question bank. Click a row to open those questions in the inspector."
+      actions={
+        <Link className="wb-btn" href={INSPECT}>
+          Open inspector worklist
         </Link>
-      </div>
+      }
+    >
+      {data.totals.open === 0 && (
+        <p className="wb-alert" data-tone="ok">
+          No open findings. The bank is clean.
+        </p>
+      )}
 
-      {/* ── Top stats grid ── */}
-      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard
-          label="Open findings"
-          value={data.totals.open}
-          sublabel={`${data.totals.resolved} resolved (${resolvedPct}%)`}
-          tone="default"
-        />
-        <StatCard
-          label="Blocking"
-          value={data.totals.blocking_open}
-          sublabel={`${data.totals.warning_open} warning · ${data.totals.notice_open} notice`}
-          tone="rose"
-        />
-        <StatCard
-          label="Questions affected"
-          value={data.totals.questions_affected}
-          sublabel={`${data.totals.questions_clean} clean · ${cleanPct}% of total clean`}
-          tone="amber"
-        />
-        <StatCard
-          label="Unique codes"
-          value={data.totals.unique_codes}
-          sublabel="Distinct audit + grader codes firing"
-          tone="violet"
-        />
-      </div>
+      <WbStats
+        items={[
+          {
+            label: `Open findings · ${n(data.totals.resolved)} resolved (${resolvedPct}%)`,
+            value: n(data.totals.open),
+          },
+          {
+            label: `Blocking · ${n(data.totals.warning_open)} warning, ${n(data.totals.notice_open)} notice`,
+            value: n(data.totals.blocking_open),
+          },
+          {
+            label: `Questions affected · ${n(data.totals.questions_clean)} clean (${cleanPct}%)`,
+            value: n(data.totals.questions_affected),
+          },
+          {
+            label: "Distinct audit and grader codes firing",
+            value: n(data.totals.unique_codes),
+          },
+        ]}
+      />
 
-      {/* ── Two-column body ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Top codes ── */}
-        <Card title="Top 10 codes" icon={Layers}>
-          {data.top_codes.length === 0 ? (
-            <EmptyState message="No findings — clean bank!" />
-          ) : (
-            <ol className="space-y-2">
-              {data.top_codes.map((c) => (
-                <li
-                  key={c.code}
-                  className={cn(
-                    "flex items-center justify-between rounded-lg border px-3 py-2 text-xs",
-                    SEVERITY_CLASSES[c.severity]
-                  )}
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <SeverityIcon severity={c.severity} />
-                    <code className="rounded bg-night/60 px-1.5 py-0.5 font-mono text-[10px] text-ivory">
-                      {c.code}
-                    </code>
-                    <span className="truncate text-[10px] text-taupe">{c.category}</span>
-                  </div>
-                  <div className="ml-2 flex items-center gap-3">
-                    <span className="font-semibold">{c.open}</span>
-                    {c.resolved > 0 && (
-                      <span className="text-[10px] text-taupe">+{c.resolved} resolved</span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </Card>
+      <div className="wb-grid" data-columns="2">
+        <WbSection title="Top 10 codes">
+          <WbTable<CodeRow>
+            caption="Top 10 finding codes"
+            rows={data.top_codes}
+            rowKey={(c) => c.code}
+            empty="No findings. The bank is clean."
+            columns={[
+              {
+                key: "code",
+                label: "Code",
+                cell: (c) => (
+                  <span style={CELL}>
+                    <code>{c.code}</code>
+                    <small>{c.category}</small>
+                  </span>
+                ),
+              },
+              {
+                key: "severity",
+                label: "Severity",
+                cell: (c) => {
+                  const sev = SEVERITY[c.severity] ?? { label: c.severity, tone: "neutral" };
+                  return <WbPill tone={sev.tone}>{sev.label}</WbPill>;
+                },
+              },
+              { key: "open", label: "Open", numeric: true, cell: (c) => n(c.open) },
+              {
+                key: "resolved",
+                label: "Resolved",
+                numeric: true,
+                cell: (c) => (c.resolved > 0 ? n(c.resolved) : "—"),
+              },
+            ]}
+          />
+        </WbSection>
 
-        {/* By source ── */}
-        <Card title="By source" icon={Cpu}>
-          {data.by_source.length === 0 ? (
-            <EmptyState message="No findings recorded yet." />
-          ) : (
-            <ul className="space-y-2">
-              {data.by_source.map((s) => (
-                <li
-                  key={s.source}
-                  className="flex items-center justify-between rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
-                >
-                  <div className="flex items-center gap-2">
+        <WbSection title="By source">
+          <WbTable<SourceRow>
+            caption="Findings by source"
+            rows={data.by_source}
+            rowKey={(s) => s.source}
+            empty="No findings recorded yet."
+            columns={[
+              {
+                key: "source",
+                label: "Source",
+                cell: (s) => (
+                  <Link href={`${INSPECT}?source=${s.source}`}>
+                    {s.source === "auditor" ? "Deterministic auditor" : "LLM grader"}
+                  </Link>
+                ),
+              },
+              { key: "open", label: "Open", numeric: true, cell: (s) => n(s.open) },
+              {
+                key: "resolved",
+                label: "Resolved",
+                numeric: true,
+                cell: (s) => (s.resolved > 0 ? n(s.resolved) : "—"),
+              },
+            ]}
+          />
+        </WbSection>
+
+        <WbSection title="By test batch">
+          <WbTable<PdfRow>
+            caption="Findings by test batch (source PDF)"
+            rows={data.by_source_pdf.slice(0, 10)}
+            rowKey={(p) => p.source_pdf}
+            empty="No source PDF on any flagged question."
+            columns={[
+              {
+                key: "pdf",
+                label: "Source PDF",
+                cell: (p) => (
+                  <span style={CELL}>
                     <Link
-                      href={`/admin/questions/inspect?source=${s.source}`}
-                      className="font-semibold text-ivory hover:underline"
+                      href={`${INSPECT}?source_pdf=${encodeURIComponent(p.source_pdf)}`}
+                      title={p.source_pdf}
                     >
-                      {s.source === "auditor" ? "Deterministic auditor" : "LLM grader"}
+                      {p.source_pdf}
                     </Link>
-                  </div>
-                  <div className="flex items-center gap-3 text-[11px]">
-                    <span className="text-ivory">{s.open} open</span>
-                    {s.resolved > 0 && <span className="text-taupe">+{s.resolved} resolved</span>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+                    <small>
+                      {n(p.questions_affected)} of {n(p.total_questions)} questions affected,{" "}
+                      {p.total_questions > 0
+                        ? Math.round(
+                            ((p.total_questions - p.questions_affected) / p.total_questions) * 100
+                          )
+                        : 0}
+                      % clean
+                    </small>
+                  </span>
+                ),
+              },
+              {
+                key: "blocking",
+                label: "Blocking",
+                numeric: true,
+                cell: (p) => (p.blocking > 0 ? <WbPill tone="fail">{n(p.blocking)}</WbPill> : "—"),
+              },
+              { key: "open", label: "Open", numeric: true, cell: (p) => n(p.open) },
+            ]}
+          />
+        </WbSection>
 
-        {/* By source_pdf ── */}
-        <Card title="By test batch (source_pdf)" icon={FileText}>
-          {data.by_source_pdf.length === 0 ? (
-            <EmptyState message="No source_pdf populated on any flagged row." />
-          ) : (
-            <ul className="space-y-2">
-              {data.by_source_pdf.slice(0, 10).map((p) => {
-                const cleanPctRow =
-                  p.total_questions > 0
-                    ? Math.round(
-                        ((p.total_questions - p.questions_affected) / p.total_questions) * 100
-                      )
-                    : 0;
-                return (
-                  <li
-                    key={p.source_pdf}
-                    className="rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <Link
-                        href={`/admin/questions/inspect?source_pdf=${encodeURIComponent(p.source_pdf)}`}
-                        className="truncate font-mono text-[11px] text-ivory hover:underline"
-                        title={p.source_pdf}
-                      >
-                        {p.source_pdf}
-                      </Link>
-                      <span className="ml-2 shrink-0 font-semibold text-ivory">{p.open}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-3 text-[10px] text-taupe">
-                      <span>{p.questions_affected} questions affected</span>
-                      <span>·</span>
-                      <span>{p.total_questions} total</span>
-                      <span>·</span>
-                      <span>{cleanPctRow}% clean</span>
-                      {p.blocking > 0 && (
-                        <>
-                          <span>·</span>
-                          <span className="font-semibold text-error-bright">
-                            {p.blocking} blocking
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Card>
-
-        {/* By domain ── */}
-        <Card title="By SAT domain" icon={Layers}>
-          {data.by_domain.length === 0 ? (
-            <EmptyState message="No domain populated on any flagged row." />
-          ) : (
-            <ul className="space-y-2">
-              {data.by_domain.map((d) => (
-                <li
-                  key={d.domain}
-                  className="rounded-lg border border-bronze bg-surface/40 px-3 py-2 text-xs"
-                >
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href={`/admin/questions/inspect?domain=${encodeURIComponent(d.domain)}`}
-                      className="font-semibold text-ivory hover:underline"
-                    >
+        <WbSection title="By SAT domain">
+          <WbTable<DomainRow>
+            caption="Findings by SAT domain"
+            rows={data.by_domain}
+            rowKey={(d) => d.domain}
+            empty="No domain on any flagged question."
+            columns={[
+              {
+                key: "domain",
+                label: "Domain",
+                cell: (d) => (
+                  <span style={CELL}>
+                    <Link href={`${INSPECT}?domain=${encodeURIComponent(d.domain)}`}>
                       {d.domain}
                     </Link>
-                    <span className="ml-2 font-semibold text-ivory">{d.open}</span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-3 text-[10px] text-taupe">
-                    <span>{d.questions_affected} questions affected</span>
-                    {d.blocking > 0 && (
-                      <>
-                        <span>·</span>
-                        <span className="font-semibold text-error-bright">
-                          {d.blocking} blocking
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+                    <small>{n(d.questions_affected)} questions affected</small>
+                  </span>
+                ),
+              },
+              {
+                key: "blocking",
+                label: "Blocking",
+                numeric: true,
+                cell: (d) => (d.blocking > 0 ? <WbPill tone="fail">{n(d.blocking)}</WbPill> : "—"),
+              },
+              { key: "open", label: "Open", numeric: true, cell: (d) => n(d.open) },
+            ]}
+          />
+        </WbSection>
       </div>
-
-      {data.totals.open === 0 && (
-        <div className="mt-6 rounded-xl border border-success/40 bg-success/[0.06] p-5 text-center text-sm text-success-bright">
-          <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-success" />
-          No open findings. The bank is clean.
-        </div>
-      )}
-    </div>
+    </WbPage>
   );
-}
-
-function StatCard({
-  label,
-  value,
-  sublabel,
-  tone,
-}: {
-  label: string;
-  value: number;
-  sublabel: string;
-  tone: "default" | "rose" | "amber" | "violet";
-}) {
-  const tones: Record<typeof tone, string> = {
-    default: "border-bronze bg-surface/50 text-ivory",
-    rose: "border-error/30 bg-error/[0.06] text-error-bright",
-    amber: "border-warning/30 bg-warning/[0.06] text-warning-bright",
-    violet: "border-gold/30 bg-gold/[0.06] text-gold-bright",
-  };
-  return (
-    <div className={cn("rounded-xl border p-4", tones[tone])}>
-      <div className="text-[10px] font-semibold uppercase tracking-wider opacity-70">{label}</div>
-      <div className="mt-1 text-2xl font-bold">{value.toLocaleString()}</div>
-      <div className="mt-0.5 text-[10px] opacity-60">{sublabel}</div>
-    </div>
-  );
-}
-
-function Card({
-  title,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  icon: typeof Layers;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-bronze bg-surface/30 p-5">
-      <div className="mb-3 flex items-center gap-2 border-b border-bronze pb-2 text-sm font-semibold text-ivory">
-        <Icon className="h-4 w-4 text-taupe" />
-        {title}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return <p className="py-6 text-center text-xs text-taupe">{message}</p>;
-}
-
-function SeverityIcon({ severity }: { severity: "BLOCKING" | "WARNING" | "NOTICE" }) {
-  if (severity === "BLOCKING")
-    return <AlertOctagon className="h-3.5 w-3.5 shrink-0 text-error-bright" />;
-  if (severity === "WARNING")
-    return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning-bright" />;
-  return <Info className="h-3.5 w-3.5 shrink-0 text-taupe" />;
 }

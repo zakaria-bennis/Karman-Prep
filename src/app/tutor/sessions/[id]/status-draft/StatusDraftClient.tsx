@@ -225,24 +225,21 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
     <div className="space-y-6">
       {/* ── Header ──────────────────────────────────────── */}
       <header>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-info">
-          Session Recap Draft
-        </p>
-        <h1 className="text-2xl font-extrabold tracking-tight text-ivory">{data.studentName}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-taupe">
+        <h2 className="kp-title">Session recap draft: {data.studentName}</h2>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[color:var(--mute)]">
           <span>{sessionDateLabel}</span>
-          <span className="text-taupe">·</span>
+          <span className="text-[color:var(--mute)]">·</span>
           <span>{data.durationMinutes} min</span>
-          <span className="text-taupe">·</span>
+          <span className="text-[color:var(--mute)]">·</span>
           <PlanTierPill tier={data.planTier} />
-          <span className="text-taupe">·</span>
+          <span className="text-[color:var(--mute)]">·</span>
           <DraftStatusPill data={data} />
         </div>
       </header>
 
       {/* Group-session gate: recaps send for private tutoring only */}
       {!isOneOnOne && (
-        <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning-bright">
+        <div className="flex items-start gap-2 rounded border border-[color-mix(in_srgb,var(--warn)_30%,transparent)] bg-[color-mix(in_srgb,var(--warn)_5%,transparent)] px-4 py-3 text-sm text-[color:var(--warn)]">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <strong>Group session: auto-recap deferred.</strong> Recaps send for private tutoring
@@ -253,12 +250,12 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* ── No transcript yet — manual paste form ──────── */}
       {!data.hasTranscript && (
-        <section className="rounded-xl border border-bronze bg-surface/40 p-5">
+        <section className="rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
           <div className="mb-3 flex items-center gap-2">
-            <FileText className="h-4 w-4 text-taupe" />
-            <h2 className="text-sm font-bold text-ivory">No transcript yet</h2>
+            <FileText className="h-4 w-4 text-[color:var(--mute)]" />
+            <h2 className="text-sm font-bold text-[color:var(--ink)]">No transcript yet</h2>
           </div>
-          <p className="mb-3 text-sm text-taupe">
+          <p className="mb-3 text-sm text-[color:var(--mute)]">
             If Fireflies has a transcript for this session, the draft will appear here
             automatically. Otherwise, paste the transcript below and we&apos;ll generate the draft.
           </p>
@@ -267,13 +264,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             onChange={(e) => setPendingTranscript(e.target.value)}
             placeholder={`Paste transcript here. Format like:\n\nZakaria: Today we covered linear equations…\nMaya: I'm still confused about negative coefficients.\n…`}
             rows={8}
-            className="w-full rounded-lg border border-bronze bg-night px-3 py-2 font-mono text-sm leading-relaxed text-ivory focus:border-info/40 focus:outline-none"
+            className="w-full rounded border border-[color:var(--line)] bg-[color:var(--sunk)] px-3 py-2 font-mono text-sm leading-relaxed text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--info)_40%,transparent)] focus:outline-none"
           />
           <div className="mt-3 flex justify-end">
             <button
               onClick={handleManualTranscript}
               disabled={isPending || !pendingTranscript.trim()}
-              className="inline-flex items-center gap-2 rounded-lg bg-info px-4 py-2 text-sm font-semibold text-ivory hover:bg-info-bright disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded bg-[color:var(--info)] px-4 py-2 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--info)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -288,19 +285,21 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* ── Draft generation failed ─────────────────────── */}
       {data.draftError && (
-        <div className="flex items-start gap-2 rounded-xl border border-error/30 bg-error/5 px-4 py-3 text-sm text-error-bright">
+        <div className="flex items-start gap-2 rounded border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)] px-4 py-3 text-sm text-[color:var(--late)]">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <strong>Draft generation failed.</strong> The transcript is saved. You can write the
             recap manually in the form below or regenerate.
-            <div className="mt-1 font-mono text-xs text-error-bright/80">{data.draftError}</div>
+            <div className="mt-1 font-mono text-xs text-[color-mix(in_srgb,var(--late)_80%,transparent)]">
+              {data.draftError}
+            </div>
           </div>
         </div>
       )}
 
       {/* ── Action error ────────────────────────────────── */}
       {error && (
-        <div className="rounded-xl border border-error/30 bg-error/5 px-4 py-3 text-sm text-error-bright">
+        <div className="rounded border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)] px-4 py-3 text-sm text-[color:var(--late)]">
           {error}
         </div>
       )}
@@ -309,20 +308,22 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
       {(data.hasTranscript || data.draft || data.draftError) && (
         <div className="grid gap-6 lg:grid-cols-12">
           {/* LEFT — editable fields */}
-          <section className="rounded-xl border border-bronze bg-surface/40 p-5 lg:col-span-7">
+          <section className="rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5 lg:col-span-7">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Edit3 className="h-4 w-4 text-taupe" />
-                <h2 className="text-sm font-bold text-ivory">Edit draft</h2>
+                <Edit3 className="h-4 w-4 text-[color:var(--mute)]" />
+                <h2 className="text-sm font-bold text-[color:var(--ink)]">Edit draft</h2>
                 {savedAt && (
-                  <span className="text-xs text-taupe">· saved {timeSince(savedAt)} ago</span>
+                  <span className="text-xs text-[color:var(--mute)]">
+                    · saved {timeSince(savedAt)} ago
+                  </span>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 {!editMode ? (
                   <button
                     onClick={() => setEditMode(true)}
-                    className="rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
+                    className="rounded-md border border-[color:var(--line)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
                   >
                     Edit
                   </button>
@@ -330,7 +331,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   <button
                     onClick={handleSaveDraft}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-success px-3 py-1.5 text-xs font-semibold text-night hover:bg-success-bright disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--good)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--good)] disabled:opacity-40"
                   >
                     {isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -344,7 +345,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                   <button
                     onClick={handleRegenerate}
                     disabled={isPending}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-bronze px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)] disabled:opacity-40"
                     title="Re-run OpenAI on the stored transcript"
                   >
                     {isPending ? (
@@ -361,7 +362,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             <div className="space-y-4">
               {FIELDS.map((f) => (
                 <div key={f.key}>
-                  <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-taupe">
+                  <label className="mb-1.5 block text-[11px] font-bold text-[color:var(--mute)]">
                     {f.label}
                   </label>
                   <textarea
@@ -377,8 +378,8 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                     className={cn(
                       "w-full resize-y rounded-md border px-3 py-2 text-sm leading-relaxed",
                       editMode
-                        ? "border-bronze bg-night text-ivory focus:border-info/40 focus:outline-none"
-                        : "cursor-default border-bronze bg-surface text-ivory"
+                        ? "border-[color:var(--line)] bg-[color:var(--sunk)] text-[color:var(--ink)] focus:border-[color-mix(in_srgb,var(--info)_40%,transparent)] focus:outline-none"
+                        : "cursor-default border-[color:var(--line)] bg-[color:var(--card)] text-[color:var(--ink)]"
                     )}
                   />
                 </div>
@@ -388,10 +389,12 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
           {/* RIGHT — preview */}
           <aside className="lg:col-span-5">
-            <div className="sticky top-6 rounded-xl border border-bronze bg-surface/40 p-5">
+            <div className="sticky top-6 rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
               <div className="mb-3 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-info" />
-                <h2 className="text-sm font-bold text-ivory">Preview — what the parent sees</h2>
+                <Sparkles className="h-4 w-4 text-[color:var(--info)]" />
+                <h2 className="text-sm font-bold text-[color:var(--ink)]">
+                  Preview — what the parent sees
+                </h2>
               </div>
               <RecapPreview
                 draft={draft}
@@ -406,13 +409,13 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
 
       {/* ── Recipients ──────────────────────────────────── */}
       {(data.hasTranscript || data.draft) && (
-        <section className="rounded-xl border border-bronze bg-surface/40 p-5">
+        <section className="rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
           <div className="mb-3 flex items-center gap-2">
-            <UsersIcon className="h-4 w-4 text-taupe" />
-            <h2 className="text-sm font-bold text-ivory">Recipients</h2>
+            <UsersIcon className="h-4 w-4 text-[color:var(--mute)]" />
+            <h2 className="text-sm font-bold text-[color:var(--ink)]">Recipients</h2>
           </div>
           {allRecipients.length === 0 ? (
-            <p className="text-sm text-taupe">
+            <p className="text-sm text-[color:var(--mute)]">
               No email addresses on file for this student or any linked parents. Add a parent
               linkage in <code>parent_student_links</code> or update the student email before
               sending.
@@ -425,20 +428,20 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                     type="checkbox"
                     checked={recipientIds.has(r.id)}
                     onChange={() => toggleRecipient(r.id)}
-                    className="h-4 w-4 accent-info"
+                    className="h-4 w-4 accent-[color:var(--info)]"
                   />
                   <span
                     className={cn(
-                      "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                      "rounded px-1.5 py-0.5 text-[10px] font-bold",
                       r.type === "student"
-                        ? "bg-success/20 text-success-bright"
-                        : "bg-gold/20 text-gold-bright"
+                        ? "bg-[color-mix(in_srgb,var(--good)_20%,transparent)] text-[color:var(--good)]"
+                        : "bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-[color:var(--accent-text)]"
                     )}
                   >
                     {r.type}
                   </span>
-                  <span className="font-medium text-ivory">{r.label}</span>
-                  <span className="text-taupe">{r.email}</span>
+                  <span className="font-medium text-[color:var(--ink)]">{r.label}</span>
+                  <span className="text-[color:var(--mute)]">{r.email}</span>
                 </li>
               ))}
             </ul>
@@ -449,7 +452,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
       {/* ── Send button ─────────────────────────────────── */}
       {(data.hasTranscript || data.draft) && (
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <p className="text-xs text-taupe">
+          <p className="text-xs text-[color:var(--mute)]">
             {!allFieldsFilled
               ? `Fill in all ${FIELDS.length} fields to enable sending.`
               : recipientIds.size === 0
@@ -461,7 +464,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           <button
             onClick={handleSend}
             disabled={isPending || !allFieldsFilled || recipientIds.size === 0 || !isOneOnOne}
-            className="inline-flex items-center gap-2 rounded-xl bg-info px-6 py-3 text-sm font-bold text-ivory hover:bg-info-bright disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded bg-[color:var(--info)] px-6 py-3 text-sm font-bold text-[color:var(--ink)] hover:bg-[color:var(--info)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -491,23 +494,27 @@ function RecapPreview({
   fromName: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-md border border-bronze bg-night">
-      <header className="border-b border-bronze bg-surface/60 px-4 py-3 text-xs">
-        <div className="text-taupe">From</div>
-        <div className="text-ivory">{fromName} &lt;noreply@karmanprep.com&gt;</div>
-        <div className="mt-1.5 text-taupe">Subject</div>
-        <div className="font-semibold text-ivory">{subject}</div>
+    <div className="overflow-hidden rounded-md border border-[color:var(--line)] bg-[color:var(--sunk)]">
+      <header className="border-b border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] px-4 py-3 text-xs">
+        <div className="text-[color:var(--mute)]">From</div>
+        <div className="text-[color:var(--ink)]">{fromName} &lt;noreply@karmanprep.com&gt;</div>
+        <div className="mt-1.5 text-[color:var(--mute)]">Subject</div>
+        <div className="font-semibold text-[color:var(--ink)]">{subject}</div>
       </header>
-      <div className="space-y-3 px-4 py-4 font-serif text-sm leading-relaxed text-ivory">
+      <div className="space-y-3 px-4 py-4 font-serif text-sm leading-relaxed text-[color:var(--ink)]">
         {FIELDS.map((f) => (
           <div key={f.key}>
-            <div className="font-sans font-semibold not-italic text-ivory">{f.label}:</div>
+            <div className="font-sans font-semibold not-italic text-[color:var(--ink)]">
+              {f.label}:
+            </div>
             <div className="mt-0.5 whitespace-pre-wrap">
-              {draft[f.key]?.trim() || <span className="italic text-taupe">— empty —</span>}
+              {draft[f.key]?.trim() || (
+                <span className="italic text-[color:var(--mute)]">— empty —</span>
+              )}
             </div>
           </div>
         ))}
-        <div className="mt-3 whitespace-pre-wrap border-t border-bronze pt-3 text-ivory">
+        <div className="mt-3 whitespace-pre-wrap border-t border-[color:var(--line)] pt-3 text-[color:var(--ink)]">
           {signature}
         </div>
       </div>
@@ -532,17 +539,14 @@ function RecapAlreadySent({
   return (
     <div className="space-y-6">
       <header>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-success">
-          Recap sent
-        </p>
-        <h1 className="text-2xl font-extrabold tracking-tight text-ivory">{data.studentName}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-taupe">
-          <CheckCircle2 className="h-4 w-4 text-success" />
+        <h2 className="kp-title">Recap sent: {data.studentName}</h2>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[color:var(--mute)]">
+          <CheckCircle2 className="h-4 w-4 text-[color:var(--good)]" />
           <span>Sent {data.recapSentAt ? new Date(data.recapSentAt).toLocaleString() : "—"}</span>
         </div>
       </header>
-      <div className="rounded-xl border border-success/30 bg-success/5 p-5">
-        <p className="text-sm text-success-bright">
+      <div className="rounded border border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_5%,transparent)] p-5">
+        <p className="text-sm text-[color:var(--good)]">
           This recap has already been sent. The fields below are read-only.
         </p>
       </div>
@@ -561,17 +565,17 @@ function RecapAlreadySent({
 // ──────────────────────────────────────────────────────────
 function PlanTierPill({ tier }: { tier: string }) {
   const map: Record<string, string> = {
-    private: "bg-warning/20 text-warning-bright",
-    elite: "bg-gold/20 text-gold-bright",
-    small_group: "bg-success/20 text-success-bright",
-    group: "bg-gold/20 text-gold-bright",
+    private: "bg-[color-mix(in_srgb,var(--warn)_20%,transparent)] text-[color:var(--warn)]",
+    elite: "bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-[color:var(--accent-text)]",
+    small_group: "bg-[color-mix(in_srgb,var(--good)_20%,transparent)] text-[color:var(--good)]",
+    group: "bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-[color:var(--accent-text)]",
   };
   const label = tierLabelOf(tier);
   return (
     <span
       className={cn(
-        "rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-        map[tier] ?? "bg-surface-raised text-ivory"
+        "rounded px-2 py-0.5 text-[10px] font-bold",
+        map[tier] ?? "bg-[color:var(--raised)] text-[color:var(--ink)]"
       )}
     >
       {label}
@@ -603,21 +607,14 @@ function Pill({
   children: React.ReactNode;
 }) {
   const map = {
-    emerald: "bg-success/20 text-success-bright",
-    slate: "bg-surface-raised text-ivory",
-    rose: "bg-error/20 text-error-bright",
-    blue: "bg-info/20 text-info-bright",
-    amber: "bg-warning/20 text-warning-bright",
+    emerald: "bg-[color-mix(in_srgb,var(--good)_20%,transparent)] text-[color:var(--good)]",
+    slate: "bg-[color:var(--raised)] text-[color:var(--ink)]",
+    rose: "bg-[color-mix(in_srgb,var(--late)_20%,transparent)] text-[color:var(--late)]",
+    blue: "bg-[color-mix(in_srgb,var(--info)_20%,transparent)] text-[color:var(--info)]",
+    amber: "bg-[color-mix(in_srgb,var(--warn)_20%,transparent)] text-[color:var(--warn)]",
   };
   return (
-    <span
-      className={cn(
-        "rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-        map[color]
-      )}
-    >
-      {children}
-    </span>
+    <span className={cn("rounded px-2 py-0.5 text-[10px] font-bold", map[color])}>{children}</span>
   );
 }
 
