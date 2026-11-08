@@ -29,7 +29,7 @@ A calm tutor sitting next to the student. Say "you", use short sentences, and us
 ## Math (multiple choice and student-produced response)
 
 **Shape.** 1-5 numbered steps, an optional Desmos line, wrong-choice lines, and a takeaway.
-- **Each step is `Label: work`.** The label is 2-6 words and names the goal of the step, not the arithmetic. Good: "Get the absolute value alone". Bad: "Subtract 1". The labels together should read like the method for this skill.
+- **Each step is `Label: work`.** The label is 2-6 words and names the goal of the step, not the arithmetic. Good: "Get the absolute value alone". Bad: "Subtract 1". Never a bare operation (Combine, Reduce, Add, Simplify, Distribute): start with a purpose verb such as Get, Find, Match or Write. The labels together should read like the method for this skill.
 - **The work** shows the move in the question's own numbers, in `$...$`. Show each line a student would write. Combine lines a strong student does in their head.
 - **Add the why** (a few words, after "because" or a dash) only where a student would ask "why that move?". Examples: why clear fractions with 12, why the x-coefficients must match, why reject a root. Don't explain arithmetic.
 - **The last step lands on the answer:** the value, and for multiple choice the letter, as in "so $r = \frac{5}{21}$" or "That is 0.22, choice B."
@@ -39,27 +39,27 @@ A calm tutor sitting next to the student. Say "you", use short sentences, and us
 - **Student-produced response:** `wrong_choices` is `null`. If one slip is very common (dropping a negative root, giving a percent as a decimal), put it in `common_slip`, one sentence. Otherwise use `null`. If the answer can be entered in more than one form, the last step can name them: "Enter $5/21$ or $.2380$."
 - **Takeaway:** one sentence the student can use on a *different* question of this skill. It states the rule or the first move. It is not a recap of this answer. Good: "When a question asks for an expression, solve for that expression; don't stop at $x$."
 
-**Length (words, steps + Desmos + takeaway; wrong-choice lines and `common_slip` extra, up to 20 each):** easy (difficulty 1-3): 25-60. Medium (4-5): 45-90. Hard (6-7): 60-120. Never over 150. Go shorter when the question is one or two moves. A 2-step explanation is fine. Don't pad to reach a minimum.
+**Length (words, steps + Desmos + takeaway; wrong-choice lines and `common_slip` extra, up to 20 each):** aim for the low end. Difficulty 1-2: about 30-40. Difficulty 3: 25-60. Medium (4-5): 45-90. Hard (6-7): 60-120. Never over 150. Go shorter when the question is one or two moves. A 2-step explanation is fine. Don't pad to reach a minimum.
 
 ## R&W reading questions
 
 Covers information and ideas, craft and structure, transitions and rhetorical synthesis.
 **Shape:** evidence, then reasoning, then why each wrong choice fails, then the takeaway.
-- **`evidence`**: the exact words in the passage that decide the answer, quoted word for word (the script checks they appear in the passage). Use the shortest quote that decides it, one or two short pieces with "…" between them. Transitions: the end of the sentence before and the start of the sentence after. Rhetorical synthesis: the goal named in the question, plus the note or notes that meet it.
+- **`evidence`**: the exact words in the passage that decide the answer, quoted word for word (the script checks they appear in the passage). Use the shortest quote that decides it, one or two short pieces with "…" between them. Each piece must keep its meaning from the passage: never cut a negation (not, neither, nor, no, never) or a qualifier out of the quote. Transitions: the end of the sentence before and the start of the sentence after. Rhetorical synthesis: the goal named in the question, plus the note or notes that meet it.
 - **`reasoning`**: 1-3 sentences on how those words lead to the correct choice. Name the relationship (contrast, cause, example, claim and support) when that is what decides it. Words in context: say what the word must mean here, then match it.
 - **`wrong_choices`**: one line for **each** wrong choice, 15 words or fewer, giving the specific reason it fails against *this* passage. For example: "goes beyond the text", "the passage says the opposite: decarcinized groups have few living relatives", or "right topic, but doesn't follow from frog crabs". Don't write "not supported" with no reason.
 - **`takeaway`**: one sentence on how to approach this question type next time. Good: "For 'most logically completes', the answer is what the last example shows, not a bigger claim." Not a summary of the passage.
 
-**Length:** evidence + reasoning + takeaway, 35-90 words. Words in context and easy questions go to the low end.
+**Length:** evidence + reasoning + takeaway, 35-90 words. Difficulty 1-2: about 45-55. Words in context and easy questions go to the low end.
 
 ## R&W grammar questions (Standard English Conventions)
 
 Covers boundaries, punctuation, agreement, verb forms and tense, pronouns, modifiers, and possessives.
 **Shape:** rule, test, applied, wrong choices, takeaway.
-- **`rule`**: the convention in plain words, one sentence, no jargon the student can't use. Good: "A verb matches its subject, not the closest noun."
+- **`rule`**: the convention in plain words, one sentence, no jargon the student can't use. Good: "A verb matches its subject, not the closest noun." The rule must hold for every sentence, not only this one. Example: "Each clause needs one main verb; -ing and to-forms cannot be it."
 - **`test`**: the check the student runs on any sentence, one sentence. For example: "Cross out everything between the subject and the blank, then read the subject with each verb."
 - **`applied`**: the test run on *this* sentence, with its own words. Show the shortened sentence where that helps: "Such lists … reveal the daily minutiae."
-- **`wrong_choices`**: one line for each wrong choice, 15 words or fewer, naming what breaks: "comma splice", "'reveals' is singular", "no main verb". Then add a few words of why if the label alone wouldn't help.
+- **`wrong_choices`**: one line for each wrong choice, 15 words or fewer, naming the error first: "comma splice", "'reveals' is singular", "no main verb". Then add a few words of why if the label alone wouldn't help.
 - **`takeaway`**: how to spot this trap next time, not the rule again. Good: "Long descriptions between subject and verb are there to hide the subject."
 
 **Length:** rule + test + applied + takeaway, 35-80 words.

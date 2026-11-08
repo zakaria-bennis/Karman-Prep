@@ -75,7 +75,7 @@ You are not given the answer key. Work the question yourself, using SAT-level me
 
 Set figure_missing to true only if the question depends on a figure, graph, table or passage text that is not provided to you, so it cannot be answered from what you see. Then give your best guess as the answer.
 
-Pick exactly one skill_id from this list (id | name | how to spot it | what is excluded). Choose by how the question is solved and what it asks for.
+Pick exactly one skill_id from this list (id | name | how to spot it | what is excluded). Choose by how the question is solved and what it asks for. Math: classify by the decisive method, not the last operation. Reading: the topic in the id is the field of the passage claim (a study of soil naming laws is social studies; a computing award is science).
 ${CATALOG[subject]}`;
 
 function solveSchema(subject) {
