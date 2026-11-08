@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
   if (placementFailed) {
     notifyAdminOfPlacementFailure({
       studentUuid,
-      tier: sub.tier,
+      tier: sub.tier ?? sub.planId,
       reason: placementFailureReason ?? "Unknown",
     }).catch((err) => console.error("[onboarding/submit] admin alert failed:", err));
   }
