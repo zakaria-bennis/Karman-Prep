@@ -1,16 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
+import { SUB_SKILLS } from "@/lib/subskills/taxonomy";
 import { buildCourse, scoreGain, subjectFromSlug } from "./course";
 import { mistakeLog, nextEndlessSkill } from "./endless";
 import type { SkillLevel } from "./levels";
 import { canUse, questionsLeft, showsCalendar, studentPlan } from "./plan-gate";
 
 describe("Library courses", () => {
-  it("splits each course into its Domains with every skill", () => {
+  it("splits each course into its Domains, official skills and every sub-skill", () => {
     const math = buildCourse("math", new Map());
     expect(math.name).toBe("SAT Math");
     expect(math.domains).toHaveLength(4);
-    expect(math.total).toBe(CATALOG_SKILLS.filter((s) => s.subject === "math").length);
+    expect(math.total).toBe(SUB_SKILLS.filter((s) => s.subject === "math").length);
+    const algebra = math.domains.find((d) => d.id === "algebra")!;
+    expect(algebra.officials.map((o) => o.label)).toHaveLength(5);
+    const sec = buildCourse("reading", new Map()).domains.find((d) => d.id === "conventions")!;
+    expect(sec.officials.map((o) => o.label)).toEqual(["Boundaries", "Form, Structure, and Sense"]);
+    expect(sec.skills).toHaveLength(12);
     expect(math.progress).toBe(0);
     expect(buildCourse("reading", new Map()).domains).toHaveLength(4);
   });
@@ -21,7 +27,10 @@ describe("Library courses", () => {
     expect(["algebra", "advanced_math"]).toContain(first.domainId);
     const levels = new Map<string, SkillLevel>([[first.id, 4]]);
     expect(buildCourse("math", levels).upNext!.id).not.toBe(first.id);
-    expect(scoreGain("algebra", 4)).toBe(0);
+    expect(scoreGain("algebra", 0.5, 4)).toBe(0);
+    // A sub-skill the bank asks more often weighs more.
+    const heavy = buildCourse("math", new Map(), (id) => (id === first.id ? 1 : 100));
+    expect(heavy.upNext!.id).not.toBe(first.id);
   });
 
   it("reads course slugs", () => {

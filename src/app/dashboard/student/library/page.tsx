@@ -13,13 +13,15 @@ import ChallengeBanner from "@/components/student-portal/library/ChallengeBanner
 import CourseView, { CourseSwitch } from "@/components/student-portal/library/CourseView";
 import styles from "@/components/student-portal/library/library.module.css";
 import { buildCourse } from "@/lib/student/course";
+import { subSkillQuestionCount } from "@/lib/subskills/map";
 import { loadStudentContext } from "@/lib/student/context";
 import { questionsLeft, upgradeFor } from "@/lib/student/plan-gate";
 import { CHALLENGE, ENDLESS, TIME_TRIAL, fullLengthTest } from "@/lib/student/quiz-routes";
 import {
+  loadRunAnswers,
   loadSkillAnswers,
   loadStoredLevels,
-  levelsBySkill,
+  levelsBySubSkill,
   withStored,
 } from "@/lib/student/skill-levels-server";
 import { dayKey } from "@/lib/student/streak";
@@ -39,13 +41,14 @@ export default async function LibraryPage({
 }) {
   const q = query.safeParse((await searchParams) ?? {});
   const ctx = await loadStudentContext();
-  const [answers, stored] = await Promise.all([
+  const [answers, runAnswers, stored] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
+    loadRunAnswers(ctx.clerkId),
     loadStoredLevels(ctx.clerkId),
   ]);
-  const levels = withStored(levelsBySkill(answers), stored);
-  const math = buildCourse("math", levels);
-  const reading = buildCourse("reading", levels);
+  const levels = withStored(levelsBySubSkill([...answers, ...runAnswers]), stored);
+  const math = buildCourse("math", levels, subSkillQuestionCount);
+  const reading = buildCourse("reading", levels, subSkillQuestionCount);
   /* Without a pick, open the course that is further behind. */
   const picked = q.success ? q.data.subject : undefined;
   const open = picked

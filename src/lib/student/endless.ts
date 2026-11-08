@@ -6,6 +6,7 @@
  *   2. Otherwise, practice Up next of the course that is further behind (biggest score gain).
  * Pure: the page passes in the answers and courses.
  */
+import { subSkillTitle } from "@/lib/subskills/taxonomy";
 import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import type { Course } from "./course";
 import type { SkillLevel } from "./levels";
@@ -27,7 +28,8 @@ export interface MistakeEntry {
 }
 
 const RECENT_MS = 14 * 86_400_000;
-const label = (id: string) => CATALOG_SKILLS.find((s) => s.id === id)?.label ?? "Skill";
+const label = (id: string) =>
+  subSkillTitle(id) ?? CATALOG_SKILLS.find((s) => s.id === id)?.label ?? "Skill";
 const ms = (at: string | number) => (typeof at === "number" ? at : Date.parse(at));
 
 /** Misses grouped by skill, newest first. */

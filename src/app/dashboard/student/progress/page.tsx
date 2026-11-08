@@ -5,6 +5,7 @@
  * bottom. Section scores show only once a source stores them (the diagnostic stores the total).
  * The old Mastered list and the predicted-SAT chart are folded in here.
  */
+import { SUB_SKILLS, subSkillTitle } from "@/lib/subskills/taxonomy";
 import type { Metadata } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Panel } from "@/components/portal";
@@ -17,7 +18,6 @@ import {
   SkillsCard,
   TimeCard,
 } from "@/components/student-portal/progress/ProgressCards";
-import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { loadStudentContext } from "@/lib/student/context";
 import {
   monthEffort,
@@ -32,7 +32,7 @@ import {
   loadRunAnswers,
   loadSkillAnswers,
   loadStoredLevels,
-  levelsBySkill,
+  levelsBySubSkill,
   withStored,
 } from "@/lib/student/skill-levels-server";
 import { summarisePoints, type PointAward } from "@/lib/student/skill-points";
@@ -95,13 +95,18 @@ export default async function StudentProgressPage() {
   ]);
 
   const history = scoreHistory((diagnostics.data ?? []) as DiagnosticRow[]);
-  const levels = withStored(levelsBySkill(answers, nowMs), stored);
   // Effort and bests count every answer: catalog practice and the quiz flows' runs.
   const time = (at: string | number) => (typeof at === "number" ? at : Date.parse(at));
   const everyAnswer = [...answers, ...runAnswers].sort((a, b) => time(a.at) - time(b.at));
-  const skillLevels = CATALOG_SKILLS.map((s) => levels.get(s.id) ?? 0);
-  const labels = new Map(CATALOG_SKILLS.map((s) => [s.id, s.label]));
-  const moves = whatMoved(everyAnswer, labels, nowMs);
+  // Levels and moves are per sub-skill (founder, 2026-11-08).
+  const levels = withStored(levelsBySubSkill(everyAnswer, nowMs), stored);
+  const skillLevels = SUB_SKILLS.map((s) => levels.get(s.id) ?? 0);
+  const labels = new Map(SUB_SKILLS.map((s) => [s.id, subSkillTitle(s.id) ?? s.label]));
+  const moves = whatMoved(
+    everyAnswer.map((a) => ({ ...a, skillId: a.subSkillId })),
+    labels,
+    nowMs
+  );
   const days = dailyEffort(everyAnswer, nowMs);
   const month = monthEffort(everyAnswer, nowMs);
   const bests = personalBests({

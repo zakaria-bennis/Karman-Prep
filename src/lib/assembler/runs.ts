@@ -17,7 +17,9 @@ import {
   effective,
   type LevelState,
 } from "@/lib/levels/rules";
-import { loadStoredLevels, saveLevels } from "@/lib/levels/server";
+import { loadStoredLevels, saveLevels, skillStateOf } from "@/lib/levels/server";
+import { subSkillOfQuestion } from "@/lib/subskills/map";
+import { getSubSkill, subSkillTitle, subSkillsOfSkill } from "@/lib/subskills/taxonomy";
 import { dayKeyIn, safeTimeZone, streakDays } from "@/lib/daily-ten/day";
 import { selectDailyTen, skillsToLoad, targetDifficulty } from "@/lib/daily-ten/select";
 import type { QuizDifficultyLevel, QuizQuestionWithChoices } from "@/types/quiz";
@@ -117,7 +119,7 @@ async function masteryBySkill(clerkId: string, now: Date): Promise<Map<string, n
     bySkill.set(row.skill_id, list);
   }
   for (const [skillId, obs] of bySkill) {
-    if (!levels.has(skillId)) continue;
+    if (!subSkillsOfSkill(skillId).some((s) => levels.has(s.id)) && !levels.has(skillId)) continue;
     out.set(
       skillId,
       estimateSkill(obs.map((o) => ({ ...o, difficulty: o.difficulty as QuizDifficultyLevel })))
@@ -141,7 +143,7 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
     answeredInRuns(clerkId),
   ]);
   const skills = CATALOG_SKILLS.map((skill) => {
-    const state = effective(levels.get(skill.id) ?? NOT_STARTED, now);
+    const state = effective(skillStateOf(levels, skill.id, now), now);
     return {
       skillId: skill.id,
       section: (skill.subject === "math" ? "math" : "reading") as Section,
@@ -223,11 +225,18 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   );
 }
 
-/** A 10-question practice set in one skill, adaptive within the set. Resumes an open one. */
-export async function startPracticeSet(clerkId: string, skillId: string): Promise<RunView> {
-  const skill = catalogSkill(z.string().min(1).max(160).parse(skillId));
+/**
+ * A 10-question practice set in one sub-skill (or a whole catalog skill), adaptive within the
+ * set. Resumes an open one. A sub-skill serves only its own questions (src/lib/subskills/).
+ */
+export async function startPracticeSet(clerkId: string, setId: string): Promise<RunView> {
+  const id = z.string().min(1).max(200).parse(setId);
+  const sub = getSubSkill(id);
+  const skill = catalogSkill(sub?.skillId ?? id);
   if (!skill) throw new Error("Practice session is unavailable");
-  const open = await findOpenRun(clerkId, "practice-set", skill.id);
+  const scope = sub?.id ?? skill.id;
+  const split = subSkillsOfSkill(skill.id).length > 1;
+  const open = await findOpenRun(clerkId, "practice-set", scope);
   if (open) return view(open);
   const access = await requireQuestionsLeft(clerkId);
   const [levels, history, bank] = await Promise.all([
@@ -235,11 +244,15 @@ export async function startPracticeSet(clerkId: string, skillId: string): Promis
     answeredInRuns(clerkId),
     loadAdmittedBank([skill.id], access.maxDifficulty),
   ]);
-  if (!bank.items.length) throw new Error("No distinct approved questions are available");
+  const items =
+    sub && split
+      ? bank.items.filter((i) => subSkillOfQuestion(i.id, skill.id) === sub.id)
+      : bank.items;
+  if (!items.length) throw new Error("No distinct approved questions are available");
   // Freeze a pool spread across difficulty, never-answered questions first.
   const byDifficulty = new Map<number, string[]>();
   const usedFamilies = new Set<string>();
-  const sorted = [...bank.items].sort(
+  const sorted = [...items].sort(
     (a, b) => (history.has(a.id) ? 1 : 0) - (history.has(b.id) ? 1 : 0) || a.id.localeCompare(b.id)
   );
   for (const item of sorted) {
@@ -257,15 +270,19 @@ export async function startPracticeSet(clerkId: string, skillId: string): Promis
       }
     if (!added) break;
   }
-  const state = effective(levels.get(skill.id) ?? NOT_STARTED, new Date());
+  const state = effective(
+    sub ? (levels.get(sub.id) ?? NOT_STARTED) : skillStateOf(levels, skill.id),
+    new Date()
+  );
+  const title = sub && split ? (subSkillTitle(sub.id) ?? skill.label) : skill.label;
   const size = Math.min(PRACTICE_SET_SIZE, pool.length, access.questionsLeft ?? PRACTICE_SET_SIZE);
   const form: RunForm = {
-    title: skill.label,
+    title,
     grading: "instant",
     sections: [
       {
         key: "main",
-        title: skill.label,
+        title,
         subject: skill.subject === "math" ? "math" : "reading",
         seconds: null,
         questionIds: [],
@@ -281,8 +298,8 @@ export async function startPracticeSet(clerkId: string, skillId: string): Promis
   const run = await insertRun({
     studentId: clerkId,
     kind: "practice-set",
-    runKey: `practice-set:${skill.id}:${crypto.randomUUID()}`,
-    scope: skill.id,
+    runKey: `practice-set:${scope}:${crypto.randomUUID()}`,
+    scope,
     form,
     snapshots: pool.map((id) => bank.snapshots.get(id)!),
     sequence: [],
@@ -513,8 +530,10 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
     throw new Error("Question is not next in this session");
   const correct = gradeAgainst(input.answer, snap);
   const skillId = snap.binding.catalogSkillId;
+  // Levels live per sub-skill; the answer row keeps the catalog skill.
+  const levelKey = subSkillOfQuestion(input.questionId, skillId);
   const levels = await loadStoredLevels(clerkId);
-  const before = levels.get(skillId) ?? NOT_STARTED;
+  const before = levels.get(levelKey) ?? NOT_STARTED;
   const now = new Date();
   // Domain quizzes move levels by the quiz rule when they finish; sets and the Daily 10 by runs.
   const moved =
@@ -541,7 +560,7 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
     // Another tab saved first: keep its answer and do not move levels twice.
     return { review: reviewOf(snap, saved), change: null, view: await resumeRun(clerkId, run.id) };
   }
-  if (moved) await saveLevels(clerkId, new Map([[skillId, moved.state]]));
+  if (moved) await saveLevels(clerkId, new Map([[levelKey, moved.state]]));
   const points = await awardForAnswer({
     key: `run:${run.id}:${input.questionId}`,
     clerkId,
@@ -556,7 +575,7 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
     review: reviewOf(snap, saved, points),
     change:
       moved?.change && moved.change.to > moved.change.from
-        ? { skill: labelForSkill(skillId), ...moved.change }
+        ? { skill: labelForSkill(levelKey), ...moved.change }
         : null,
     view: current.completedAt ? buildView(current, all) : await serveNext(current, all),
   };
@@ -641,7 +660,8 @@ async function finishRun(run: RunRecord, responses: RunResponse[]): Promise<RunR
   const levels = await loadStoredLevels(run.studentId);
   const changed = new Map<string, LevelState>();
   const bySkill = new Map<string, RunResponse[]>();
-  for (const r of responses) bySkill.set(r.skillId, [...(bySkill.get(r.skillId) ?? []), r]);
+  const keyOf = (r: RunResponse) => subSkillOfQuestion(r.questionId, r.skillId);
+  for (const r of responses) bySkill.set(keyOf(r), [...(bySkill.get(keyOf(r)) ?? []), r]);
   const moves = new Map<string, { from: number; to: number }>();
   if (run.kind === "domain-quiz" || run.kind === "full-test" || run.kind === "diagnostic") {
     for (const [skillId, rows] of bySkill) {
@@ -661,7 +681,7 @@ async function finishRun(run: RunRecord, responses: RunResponse[]): Promise<RunR
     await saveLevels(run.studentId, changed);
   }
   const withMoves = responses.map((r) => {
-    const m = moves.get(r.skillId);
+    const m = moves.get(keyOf(r));
     return m
       ? {
           ...r,
@@ -670,7 +690,7 @@ async function finishRun(run: RunRecord, responses: RunResponse[]): Promise<RunR
         }
       : r;
   });
-  const result = summarise(run, withMoves, await tokensForRun(run.id, run.studentId));
+  const result = summarise(run, withMoves, await tokensForRun(run.id, run.studentId), keyOf);
   if (run.kind === "full-test" || run.kind === "diagnostic") {
     const scored = (section: Section) => {
       const keys = run.form.sections.filter((s) => s.subject === section).map((s) => s.key);
