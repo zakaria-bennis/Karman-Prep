@@ -112,6 +112,7 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.terms, "terms link"],
       [ROUTES.privacy, "privacy link"],
       [ROUTES.refunds, "refunds link"],
+      [ROUTES.cookies, "cookies link"],
     ],
   ],
 ];
