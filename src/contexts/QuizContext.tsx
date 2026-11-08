@@ -31,10 +31,9 @@ import {
   actionStartQuiz,
   actionRecordResponse,
   actionCompleteQuiz,
-  actionFlagQuestion,
 } from "@/app/learn/quiz-actions";
+import { actionFlagForTutor } from "@/app/learn/saved-question-actions";
 import type { Subject } from "@/data/curriculum";
-import { playSound } from "@/lib/sounds";
 import * as Sentry from "@sentry/nextjs";
 
 // ── State / events ───────────────────────────────────────────
@@ -81,12 +80,12 @@ export interface QuizState {
   adaptivePath: AdaptiveStep[];
   consecutiveWrong: number;
 
-  isScratchpadOpen: boolean;
-
   score: number | null;
   correctCount: number;
   targetLength: number;
   confidenceBand: ConfidenceBand | null;
+  /** The skill's band before this set, for the level-up card. */
+  bandBefore: ConfidenceBand | null;
   newStatus: string | null;
 }
 
@@ -106,11 +105,11 @@ const initialState: QuizState = {
   records: [],
   adaptivePath: [],
   consecutiveWrong: 0,
-  isScratchpadOpen: false,
   score: null,
   correctCount: 0,
   targetLength: QUIZ_LENGTH,
   confidenceBand: null,
+  bandBefore: null,
   newStatus: null,
 };
 
@@ -138,11 +137,11 @@ type Action =
   | { type: "SHOW_VIDEO_PROMPT" }
   | { type: "DISMISS_VIDEO_PROMPT" }
   | { type: "FLAG_CURRENT"; note?: string }
-  | { type: "TOGGLE_SCRATCHPAD" }
   | {
       type: "COMPLETE";
       score: number;
       confidenceBand: ConfidenceBand;
+      bandBefore: ConfidenceBand | null;
       newStatus: string;
     };
 
@@ -292,15 +291,13 @@ function reducer(state: QuizState, action: Action): QuizState {
       return { ...state, records };
     }
 
-    case "TOGGLE_SCRATCHPAD":
-      return { ...state, isScratchpadOpen: !state.isScratchpadOpen };
-
     case "COMPLETE":
       return {
         ...state,
         phase: "complete",
         score: action.score,
         confidenceBand: action.confidenceBand,
+        bandBefore: action.bandBefore,
         newStatus: action.newStatus,
       };
 
@@ -319,7 +316,6 @@ interface QuizContextValue {
   nextQuestion: () => Promise<void>;
   dismissVideoPrompt: () => void;
   flagCurrent: (note?: string) => Promise<void>;
-  toggleScratchpad: () => void;
   reset: () => void;
   retakeQuiz: () => Promise<void>;
 }
@@ -394,8 +390,6 @@ export function QuizProvider({ children }: { children: ReactNode }) {
         response_time_seconds: responseTimeSeconds,
       });
       dispatch({ type: "SUBMIT_ANSWER", review, responseTimeSeconds });
-      if (review.isCorrect) playSound("nodeComplete");
-      else playSound("error");
       if (!review.isCorrect && state.consecutiveWrong + 1 >= 3) {
         setTimeout(() => dispatch({ type: "SHOW_VIDEO_PROMPT" }), 600);
       }
@@ -427,12 +421,12 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       completionInFlightRef.current = true;
 
       try {
-        const { score, newStatus, confidenceBand } = await actionCompleteQuiz({
+        const { score, newStatus, confidenceBand, bandBefore } = await actionCompleteQuiz({
           attemptId: state.attemptId!,
           nodeId: state.nodeId!,
           subject: state.subject!,
         });
-        dispatch({ type: "COMPLETE", score, confidenceBand, newStatus });
+        dispatch({ type: "COMPLETE", score, confidenceBand, bandBefore, newStatus });
       } catch (err) {
         Sentry.captureException(err, { tags: { feature: "quiz.complete" } });
         completionInFlightRef.current = false;
@@ -455,11 +449,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       const q = state.selectedQuestions[state.currentIndex];
       dispatch({ type: "FLAG_CURRENT", note });
       try {
-        await actionFlagQuestion({
-          question_id: q.id,
-          node_id: state.nodeId,
-          flag_note: note ?? null,
-        });
+        await actionFlagForTutor({ questionId: q.id, nodeId: state.nodeId, note: note ?? null });
       } catch (err) {
         console.error(err);
       }
@@ -467,7 +457,6 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     [state]
   );
 
-  const toggleScratchpad = useCallback(() => dispatch({ type: "TOGGLE_SCRATCHPAD" }), []);
   const reset = useCallback(() => {
     advancedQuestionRef.current = null;
     dispatch({ type: "RESET" });
@@ -497,7 +486,6 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       nextQuestion,
       dismissVideoPrompt,
       flagCurrent,
-      toggleScratchpad,
       reset,
       retakeQuiz,
     }),
@@ -509,7 +497,6 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       nextQuestion,
       dismissVideoPrompt,
       flagCurrent,
-      toggleScratchpad,
       reset,
       retakeQuiz,
     ]

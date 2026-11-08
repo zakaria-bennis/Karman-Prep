@@ -1,0 +1,40 @@
+{
+  "source": "2025-11_ASIA_V2_RW_M1_Q11 (figure-redraw engine gaps 3, 2026-11-08)",
+  "figure_spec": {
+    "version": "figure-spec/1",
+    "type": "line",
+    "parts": [
+      {
+        "kind": "series",
+        "id": "s1",
+        "seriesKind": "line",
+        "values": [
+          [0.5, 8],
+          [1.5, 8],
+          [2.5, 15],
+          [3.5, 40]
+        ],
+        "style": {
+          "marker": "triangle"
+        }
+      }
+    ],
+    "labels": [
+      {
+        "text": "graphite—AAm pair",
+        "on": "s1"
+      }
+    ],
+    "marks": [],
+    "frame": {
+      "x": [0, 4],
+      "y": [0, 45],
+      "yStep": 5,
+      "categories": ["0", "1", "2", "3"],
+      "xTitle": "Voltage (V)",
+      "yTitle": "Adhesion strength (kPa)"
+    },
+    "title": "Mean Adhesion Strength of Graphite and Acrylamide Gel, at Varying Voltages",
+    "legend": true
+  }
+}

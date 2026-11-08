@@ -20,12 +20,4 @@ export const completeQuizSchema = z
   })
   .strict();
 
-export const flagQuizQuestionSchema = z
-  .object({
-    question_id: z.string().uuid(),
-    node_id: quizNodeIdSchema,
-    flag_note: z.string().max(2000).nullable(),
-  })
-  .strict();
-
 export const watchPercentageSchema = z.number().finite().min(0).max(100);

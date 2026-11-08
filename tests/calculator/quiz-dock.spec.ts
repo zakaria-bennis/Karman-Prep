@@ -10,8 +10,9 @@ import {
   press,
   row,
   rowItem,
+  shiftHost,
+  dockTopOf,
   trigger,
-  workspace,
 } from "./quiz-helpers";
 
 test("AR-23 the dock is a 12 px left column with a separator between 400 px and min(900px, 100vw - 480px); the workspace shifts by its width plus 24 px", async ({
@@ -20,15 +21,20 @@ test("AR-23 the dock is a 12 px left column with a separator between 400 px and 
   chromeOnly(info.project.name);
   await openCalculator(page, "diagnostic", { width: 1280, height: 800 });
   await dock(page);
-  expect(await frame(page).boundingBox()).toEqual({ x: 12, y: 12, width: 576, height: 776 });
-  const margin = () => workspace(page).evaluate((el) => getComputedStyle(el).marginLeft);
+  const top = await dockTopOf(page);
+  expect(await frame(page).boundingBox()).toEqual({
+    x: 12,
+    y: top,
+    width: 576,
+    height: 800 - top - 12,
+  });
+  const margin = () => shiftHost(page).evaluate((el) => getComputedStyle(el).marginLeft);
   expect(await margin()).toBe("600px");
+  // The question column stays usable beside the dock.
   expect(
-    await page
-      .locator("[data-question-layout]")
-      .first()
-      .evaluate((el) => getComputedStyle(el).display)
-  ).toBe("block");
+    (await page.locator("[data-quiz-frame]:not([data-exiting]) [data-quiz-column]").boundingBox())!
+      .width
+  ).toBeGreaterThanOrEqual(320);
   const sep = page.getByRole("separator", { name: "Resize calculator dock" });
   expect((await sep.boundingBox())!.width).toBe(24);
   await sep.focus();
@@ -61,22 +67,16 @@ test("AR-24 catalog and daily docks start below the learn header; the page conte
       await openCalculator(page, flow, size);
       await dock(page);
       const box = (await frame(page).boundingBox())!;
-      const header = (await page.locator("header.fixed").boundingBox())!;
-      expect(box.y).toBe(72);
+      const header = (await page.locator('[data-quiz-bar="top"]').boundingBox())!;
+      expect(box.y).toBe(await dockTopOf(page));
       expect(box.y).toBeGreaterThanOrEqual(header.y + header.height);
-      const [margin, left] = await page
-        .locator("[data-calculator-dock-shift]")
-        .or(workspace(page))
-        .first()
-        .evaluate(
-          (el) => [getComputedStyle(el).marginLeft, el.getBoundingClientRect().left] as const
-        ); // daily shifts its content column (task 10), which precedes the workspaces inside it
+      const [margin, left] = await shiftHost(page).evaluate(
+        (el) => [getComputedStyle(el).marginLeft, el.getBoundingClientRect().left] as const
+      ); // the shell shifts everything under its top bar
       expect(margin).toBe(`${box.width + 24}px`);
       expect(left).toBeGreaterThanOrEqual(box.x + box.width + 12);
       expect(
-        await workspace(page)
-          .first()
-          .evaluate((el) => el.firstElementChild!.getBoundingClientRect().width)
+        await shiftHost(page).evaluate((el) => el.firstElementChild!.getBoundingClientRect().width)
       ).toBeGreaterThanOrEqual(320);
       const covered = await page.evaluate(
         ({ x, y, width, height }) =>
@@ -115,7 +115,7 @@ test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and
   for (let i = 0; i < 6; i++) await page.keyboard.press("ArrowDown");
   await row(page).focus(); // MathQuill keeps the row's textarea at 0 x 0, so it cannot be clicked
   await page.keyboard.type("a=5");
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await expect(rowItem(page)).toBeVisible();
   expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
   expect(await latex(page)).toEqual([""]);
@@ -124,7 +124,7 @@ test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and
   ).toBe(false); // task 6: no focusOnOpen for a carried window
   await dock(page);
   const width = (await frame(page).boundingBox())!.width;
-  await press(page, "Previous");
+  await press(page, "Back");
   await expect(rowItem(page)).toBeVisible();
   await expect(frame(page)).toHaveAttribute("data-mode", "docked");
   expect((await frame(page).boundingBox())!.width).toBe(width);
@@ -133,7 +133,7 @@ test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and
   expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
   await dock(page);
   await page.getByRole("button", { name: "Close calculator", exact: true }).click();
-  await press(page, "Skip this question");
+  await press(page, "Next");
   await trigger(page).click();
   await expect(frame(page)).toHaveAttribute("data-mode", "docked"); // L-4: the mode last chosen
   await page.getByRole("button", { name: "Undock calculator" }).click();
@@ -197,7 +197,7 @@ test("AN-10, L-10, L-6 docking, undocking, restoring and closing change the work
           document.querySelector<HTMLElement>(`[aria-label="${label}"]`)!.click();
           requestAnimationFrame(() => {
             const w = document.querySelector("[data-calculator-window]")!;
-            const s = getComputedStyle(document.querySelector("[data-calculator-workspace]")!);
+            const s = getComputedStyle(document.querySelector("[data-calculator-dock-shift]")!);
             resolve([
               s.marginLeft,
               s.transitionDuration,
@@ -247,7 +247,7 @@ test("L-4 at 1280 by 800 the toolbar button docks the calculator on the left of 
   await expect(frame(page)).toHaveAttribute("data-mode", "docked");
   await expect(page.getByRole("complementary", { name: "Karman calculator" })).toBeVisible();
   const dockBox = (await frame(page).boundingBox())!;
-  const question = (await workspace(page).boundingBox())!;
+  const question = (await shiftHost(page).boundingBox())!;
   expect(dockBox.x).toBe(12);
   expect(question.x).toBeGreaterThanOrEqual(dockBox.x + dockBox.width);
 });
