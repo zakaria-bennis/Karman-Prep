@@ -138,9 +138,12 @@
     if (!window.LANDSCAPES || !window.paintPicture || !window.LIFE) { root.classList.remove("painting"); return; }
     scene = sceneOfDay();
     time = timeOfDay();
-    art = window.LANDSCAPES.render(scene, time);
+    /* Phones and tablets get a smaller picture: it is painted over in brush strokes anyway, and it takes
+       about half the time to make. Same 960 by 600 shape, so life's positions still line up. */
+    art = Math.min(innerWidth, innerHeight) < 820 ? window.LANDSCAPES.render(scene, time, 640, 400) : window.LANDSCAPES.render(scene, time);
     document.getElementById("painting-title").textContent = window.LANDSCAPES.titles[scene].toLowerCase().replace(/^./, (c) => c.toUpperCase());
-    paint(!still());
+    /* Let the browser answer taps between making the picture and planning its strokes. */
+    setTimeout(() => paint(!still()), 0);
   }
   /* A new width repaints the picture at once (no painting in). Height alone, as when a phone's address
      bar slides away, only stretches it, so scrolling never repaints. */
