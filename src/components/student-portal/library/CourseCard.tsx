@@ -22,7 +22,7 @@ export default function CourseCard({ course }: { course: Course }) {
           <Ring value={course.progress} size={64} label={`${course.name}: ${pct}%`}>
             <Num>{pct}%</Num>
           </Ring>
-          <span>
+          <span className={styles.headText}>
             <b>
               <Num>{pct}%</Num> of the course
             </b>

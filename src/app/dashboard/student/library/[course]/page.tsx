@@ -74,7 +74,7 @@ export default async function CoursePage({
             <Ring value={course.progress} size={72} width={7} label={`${course.name}: ${pct}%`}>
               <Num>{pct}%</Num>
             </Ring>
-            <span>
+            <span className={styles.headText}>
               <b id="course-head">
                 <Num>{course.strong}</Num> of <Num>{course.total}</Num> skills at Understanding or
                 above
