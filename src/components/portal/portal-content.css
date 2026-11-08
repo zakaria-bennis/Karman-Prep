@@ -52,8 +52,11 @@
   .kp-panel {
     min-height: calc(100dvh - 140px);
     display: grid;
+    grid-template-rows: 1fr;
+    align-content: stretch;
+  }
+  .kp-panel:has(> .kp-banner) {
     grid-template-rows: auto 1fr;
-    align-content: start;
   }
   /* The last card in each column stretches to the bottom of the box. */
   .kp-p-main > .kp-card:last-child,
