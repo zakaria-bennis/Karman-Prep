@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Card, Num, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
-import { STUDENT_MENU, STUDENT_NAV } from "@/components/dashboard/StudentDashboardClient";
+import { STUDENT_MENU, studentNav } from "@/components/student-portal/StudentPortal";
+
+// Quiz screens don't load the student context, so they show every student tab.
+const STUDENT_NAV = studentNav({ hasTutor: true, homeworkOpen: 0, showCalendar: true });
 import { loadFlowUser } from "@/components/quiz-flows/load-user";
 import { SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { FULL_LENGTH_FORMS } from "@/lib/assembler/forms";

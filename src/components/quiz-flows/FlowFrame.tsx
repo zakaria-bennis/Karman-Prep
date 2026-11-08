@@ -3,7 +3,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Card, Cta, Panel, PortalShell } from "@/components/portal";
-import { STUDENT_MENU, STUDENT_NAV } from "@/components/dashboard/StudentDashboardClient";
+import { STUDENT_MENU, studentNav } from "@/components/student-portal/StudentPortal";
+
+// Quiz screens don't load the student context, so they show every student tab.
+const STUDENT_NAV = studentNav({ hasTutor: true, homeworkOpen: 0, showCalendar: true });
 import type { ShellUser } from "./types";
 import s from "./flows.module.css";
 
