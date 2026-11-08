@@ -17,9 +17,12 @@ code-drawn devices in the front of the picture, showing a real Karman screen.
 - The parent view hides its two score boxes, because design rule 47 says no
   screen held by a person shows a score.
 - The two moving clips (daily, call) carry the same device.
-- The originals are still in `public/site/photos/`. To go back, set
-  `DEVICE = ""` in `src/components/site/Photo.tsx`.
+- The founder kept these versions (8 November). The site's photo and clip
+  files are now the device versions under their usual names; the originals
+  were deleted from the site and the switch back removed. They stay in git
+  history, and in the sheets below.
 - To redo them after the screens change: `node scripts/site/device-photos.mjs`.
+  It reads the original photos from git (commit `bbe7e094`).
 
 Before (left) and after (right), one sheet per photo:
 

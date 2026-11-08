@@ -35,8 +35,10 @@ The list of changes, with before and after pictures, is in
 - **Theme follows the device**, on the site and in the portals, until a
   visitor picks one with the toggle (design rule 33 as written). The portals
   no longer save their default as if it were a choice.
-- **Photos:** both versions are kept. One sheet with every original beside its
-  device version: `docs/overnight/reports/site-audit/photos-before-after.jpg`.
+- **Photos:** the founder kept the versions with a Karman screen. They now
+  use the usual file names; the originals and the switch back are deleted.
+  The sheet with every original beside its device version stays:
+  `docs/overnight/reports/site-audit/photos-before-after.jpg`.
 - **A type error I had introduced** in `src/middleware.ts` (caught by the full
   type check after the first merge) is fixed.
 
@@ -53,7 +55,9 @@ The list of changes, with before and after pictures, is in
   from the site, with perspective, rounded corners, a light glare and a shadow.
 - The two moving clips (daily, call) show the same device.
 - No image generation and no spend.
-- The originals stay beside the copies. Going back is one line.
+- The founder kept them (8 November): the device versions now use the usual
+  file names, and the original photos, clips and the switch back are gone
+  from the site. The before and after sheets stay in the reports.
 - The home film shows no screens either (phones face the people, and the
   phones in the box are switched off), so it was left as it is.
 
@@ -173,7 +177,7 @@ The list of changes, with before and after pictures, is in
 ## Decisions I made
 
 1. No photo showed a screen, so I added our own code-drawn devices in front
-   instead of drawing screens onto the backs of devices. The originals stay.
+   instead of drawing screens onto the backs of devices.
 2. The parent phone hides its two score boxes, because design rule 47 says no
    screen held by a person shows a score.
 3. Signed-out visitors who type an unknown address still go to sign-in rather
@@ -201,15 +205,12 @@ The list of changes, with before and after pictures, is in
    `scripts/build/check-release-env.mjs` refuse `pk_test_` keys.
 2. **Turn on "Always Use HTTPS"** in Cloudflare (SSL/TLS, Edge Certificates).
    Today `http://karmanprep.com` serves pages, sign-in included, unencrypted.
-3. **The photos:** pick the left or right column of
-   `photos-before-after.jpg`. The site shows the right-hand versions now;
-   going back is one line (`DEVICE = ""` in `src/components/site/Photo.tsx`).
-4. /learn is open to any signed-in account on any plan. Intended for
+3. /learn is open to any signed-in account on any plan. Intended for
    self-paced, or should it check the plan?
-5. The Privacy Policy says Karman uses PostHog analytics, but no PostHog code
+4. The Privacy Policy says Karman uses PostHog analytics, but no PostHog code
    is in the app, and the new Cookie Policy says no analytics cookies are set.
    One of them should change (the legal copy is the pricing session's).
-6. The free practice test page still promises "a score range" in two places,
+5. The free practice test page still promises "a score range" in two places,
    while tonight's brief says to show one predicted score, never a range.
    CLAUDE.md asks for labelled ranges. Which rule wins on this page?
 
