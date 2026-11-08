@@ -53,3 +53,6 @@ vendor/
 tests/fixtures/figures/golden/__snapshots__/
 # Reviewed design prototypes (vanilla JS references, not product code)
 prototypes/
+# Design mocks (vanilla JS references) and image-generation manifests, not product code
+.impeccable/
+assets/

@@ -243,15 +243,15 @@ Why these three:
 
 How they combine down a page (home page as the example):
 
-| Screen | Picture | Colour |
-|---|---|---|
-| Hero | B: the cast of portraits fanned under the headline | Bone, with each card on its own colour |
-| Daily 10 | A: the Daily 10 question, answered and missed, on a marigold block | Marigold block on bone |
-| Live class | D: student tile and David's tile beside the real question | Bone |
-| Proof band | H: one number rolls in, with its label | Pine band |
-| Where it fits | C: pool bleachers with the Challenge question card floated over | Bone |
-| Parents | B then A: the parent portrait on clay, then the real parent note | Clay block |
-| Close | G or E: one big still or film moment, one button | Night band |
+| Screen        | Picture                                                            | Colour                                 |
+| ------------- | ------------------------------------------------------------------ | -------------------------------------- |
+| Hero          | B: the cast of portraits fanned under the headline                 | Bone, with each card on its own colour |
+| Daily 10      | A: the Daily 10 question, answered and missed, on a marigold block | Marigold block on bone                 |
+| Live class    | D: student tile and David's tile beside the real question          | Bone                                   |
+| Proof band    | H: one number rolls in, with its label                             | Pine band                              |
+| Where it fits | C: pool bleachers with the Challenge question card floated over    | Bone                                   |
+| Parents       | B then A: the parent portrait on clay, then the real parent note   | Clay block                             |
+| Close         | G or E: one big still or film moment, one button                   | Night band                             |
 
 Rules for the mix:
 
@@ -271,46 +271,46 @@ play buttons, and credit the id in a comment.
 
 **On the page**
 
-| Id | Name | What for |
-|---|---|---|
-| 31460 | Hero Section with Cards (scrollxui) | The hero fan of colour-backdrop portraits (B) |
-| 19079 | Centered Hero with Image Fan | Alternative to 31460 for the same fan |
-| 19078 | Split Hero With Image Cards (felipemenezes098) | Plans page: cohort and Private as photo cards with a price line |
-| 19074 | Editorial Collage Hero | Private 1:1 page: student still and tutor still overlapped |
-| 29767 | Features With Panel (scrollxui) | Product tour: a short list beside one real screen that swaps (A) |
-| 27355 | Phone Scroll Hero (ruixen.ui) | The orange iPhone 17 Pro Max with the real Daily 10 screen rising over the headline |
-| 20020 | Phone Mockups 1 | Base for a large phone of real screens, Cash App style |
-| 29339 | iPad Mockup | The parent note on iPad |
-| 24466 | Scroll Reveal Image (unlumen) | A small window that grows into the live-class film |
-| 26064 | Sticky Content Wrapper (hyperiux) | "A week with Karman": words on one side, one picture per day on the other |
-| 26866 | Parallax Strip Slider (hyperiux) | Strip wipes between graded portraits (E), with no visible controls |
-| 30118 | Scroll Gallery (soralabs) | Full-screen wipes between product moments |
-| 25275 | Stacking Cards (danielpetho) | The plan ladder on phones as stacking colour cards |
-| 26895 | Two-Plan Pricing Cards (ln-dev7) | Platform $29 next to Plus $49, plain lines instead of ticks |
-| 29418 | Split Feature Section (uiable) | Parent view beside student view (recolour from purple) |
-| 20068 | Count Up (unlumen) | Real numbers from `offer.ts` rolling in (H) |
-| 20459 | Number Ticker (danielpetho) | Same job, on load rather than on scroll |
-| 26070 | Rolling Text (hyperiux) | A price or the SAT date rolling like a slot reel |
-| 28388 | Dual Wipe Reveal (soralabs) | Section headlines revealed by marigold and ink blocks |
-| 19260 | Text Reveal Block (soralabs) | Line-by-line colour wipe for the line before the button |
-| 1944 | Infinite Text Marquee | A slow line of real SAT skill names behind one Daily 10 card |
-| 10905 | Reveal Image Mask | A tutor portrait opening from a circle |
-| 39591 | Mask Reveal (balick) | Each new product screen sliding in |
-| 26166 | Phantom Image Trail (hyperiux) | About page: a trail of portraits with first names, desktop only |
-| 18352 | Line Draw SVG | Karman's own drawings drawing themselves once |
+| Id    | Name                                           | What for                                                                            |
+| ----- | ---------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 31460 | Hero Section with Cards (scrollxui)            | The hero fan of colour-backdrop portraits (B)                                       |
+| 19079 | Centered Hero with Image Fan                   | Alternative to 31460 for the same fan                                               |
+| 19078 | Split Hero With Image Cards (felipemenezes098) | Plans page: cohort and Private as photo cards with a price line                     |
+| 19074 | Editorial Collage Hero                         | Private 1:1 page: student still and tutor still overlapped                          |
+| 29767 | Features With Panel (scrollxui)                | Product tour: a short list beside one real screen that swaps (A)                    |
+| 27355 | Phone Scroll Hero (ruixen.ui)                  | The orange iPhone 17 Pro Max with the real Daily 10 screen rising over the headline |
+| 20020 | Phone Mockups 1                                | Base for a large phone of real screens, Cash App style                              |
+| 29339 | iPad Mockup                                    | The parent note on iPad                                                             |
+| 24466 | Scroll Reveal Image (unlumen)                  | A small window that grows into the live-class film                                  |
+| 26064 | Sticky Content Wrapper (hyperiux)              | "A week with Karman": words on one side, one picture per day on the other           |
+| 26866 | Parallax Strip Slider (hyperiux)               | Strip wipes between graded portraits (E), with no visible controls                  |
+| 30118 | Scroll Gallery (soralabs)                      | Full-screen wipes between product moments                                           |
+| 25275 | Stacking Cards (danielpetho)                   | The plan ladder on phones as stacking colour cards                                  |
+| 26895 | Two-Plan Pricing Cards (ln-dev7)               | Platform $29 next to Plus $49, plain lines instead of ticks                         |
+| 29418 | Split Feature Section (uiable)                 | Parent view beside student view (recolour from purple)                              |
+| 20068 | Count Up (unlumen)                             | Real numbers from `offer.ts` rolling in (H)                                         |
+| 20459 | Number Ticker (danielpetho)                    | Same job, on load rather than on scroll                                             |
+| 26070 | Rolling Text (hyperiux)                        | A price or the SAT date rolling like a slot reel                                    |
+| 28388 | Dual Wipe Reveal (soralabs)                    | Section headlines revealed by marigold and ink blocks                               |
+| 19260 | Text Reveal Block (soralabs)                   | Line-by-line colour wipe for the line before the button                             |
+| 1944  | Infinite Text Marquee                          | A slow line of real SAT skill names behind one Daily 10 card                        |
+| 10905 | Reveal Image Mask                              | A tutor portrait opening from a circle                                              |
+| 39591 | Mask Reveal (balick)                           | Each new product screen sliding in                                                  |
+| 26166 | Phantom Image Trail (hyperiux)                 | About page: a trail of portraits with first names, desktop only                     |
+| 18352 | Line Draw SVG                                  | Karman's own drawings drawing themselves once                                       |
 
 **Video blocks (Remotion)**
 
-| Id | Name | What for |
-|---|---|---|
-| 37369 | Sliding Screenshot Color Planes | Marigold, pine and clay planes framing real screens (A, H) |
-| 36798 | Focus Pull To Phone | Focus shifting from a blurred laptop to the Daily 10 phone |
-| 36776 | Phone To Laptop Handoff | "Start on your phone, finish on your laptop" practice test |
-| 36780 | Tablet Stylus Markup | David's markup on a Karman question during class (D) |
-| 36787 | Shock Stat Counter | A stat poster for ads, in marigold, with the filling bar removed |
-| 37271 | Brush Stroke Screenshot Reveal | A painted reveal of a real screen at a chapter start |
-| 37359 | Truchet Path Run | A quiet pattern with one marigold path between chapters |
-| 36838 | Karaoke Captions | Captions for 9:16 social cuts of the landing film |
+| Id    | Name                            | What for                                                         |
+| ----- | ------------------------------- | ---------------------------------------------------------------- |
+| 37369 | Sliding Screenshot Color Planes | Marigold, pine and clay planes framing real screens (A, H)       |
+| 36798 | Focus Pull To Phone             | Focus shifting from a blurred laptop to the Daily 10 phone       |
+| 36776 | Phone To Laptop Handoff         | "Start on your phone, finish on your laptop" practice test       |
+| 36780 | Tablet Stylus Markup            | David's markup on a Karman question during class (D)             |
+| 36787 | Shock Stat Counter              | A stat poster for ads, in marigold, with the filling bar removed |
+| 37271 | Brush Stroke Screenshot Reveal  | A painted reveal of a real screen at a chapter start             |
+| 37359 | Truchet Path Run                | A quiet pattern with one marigold path between chapters          |
+| 36838 | Karaoke Captions                | Captions for 9:16 social cuts of the landing film                |
 
 **Avoid in the catalogue:** dot grids and dot fields, the radial-circle hero
 608, the animated grid hero 27704, colourful bento 4439, terminal backgrounds,

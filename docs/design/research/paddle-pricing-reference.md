@@ -56,16 +56,16 @@ The original analysis follows; where it says "change these", the decision above 
 
 ## Change these to fit Karman's rules
 
-| In the starter | Karman version | Rule |
-|---|---|---|
-| Three cards in a row | Two cards per view, switched by the control | 6, 17 |
-| Radial glow behind the featured card, blur and grain layers | A solid colour block for the featured card | 1, 21 |
-| Grid-line background | Plain bone or ink ground | 22 |
-| Frosted cards (`backdrop-blur`) | Solid surfaces | 8 |
-| Lucide circle-check icons on every feature | Plain rows with hairlines, or Karman's own drawn marks | 2, 16 |
-| "Get started" on every card | One highlighted button per screen, the rest text links | 35 |
-| Dark only | Light and dark following the device | 33 |
-| Fading gradient card border | A plain hairline | 1 |
+| In the starter                                              | Karman version                                         | Rule  |
+| ----------------------------------------------------------- | ------------------------------------------------------ | ----- |
+| Three cards in a row                                        | Two cards per view, switched by the control            | 6, 17 |
+| Radial glow behind the featured card, blur and grain layers | A solid colour block for the featured card             | 1, 21 |
+| Grid-line background                                        | Plain bone or ink ground                               | 22    |
+| Frosted cards (`backdrop-blur`)                             | Solid surfaces                                         | 8     |
+| Lucide circle-check icons on every feature                  | Plain rows with hairlines, or Karman's own drawn marks | 2, 16 |
+| "Get started" on every card                                 | One highlighted button per screen, the rest text links | 35    |
+| Dark only                                                   | Light and dark following the device                    | 33    |
+| Fading gradient card border                                 | A plain hairline                                       | 1     |
 
 ## Not taken
 
