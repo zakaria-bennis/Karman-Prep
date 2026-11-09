@@ -315,6 +315,7 @@ export default function Easel({ percents, time, reducedMotion, onChoose }: Intro
                 type="button"
                 className={styles.half}
                 data-subject={s}
+                data-slug={SLUG[s]}
                 data-on={active === s || undefined}
                 aria-label={`${NAME[s]}, ${percents[s]}% done`}
                 style={{ clipPath: clip(layout, s), WebkitClipPath: clip(layout, s) }}

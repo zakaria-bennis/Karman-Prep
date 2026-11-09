@@ -243,6 +243,7 @@ export default function PaperBoats({ percents, time, reducedMotion, onChoose }: 
               type="button"
               className={styles.boat}
               data-subject={s}
+              data-slug={SLUG[s]}
               data-on={active === s || undefined}
               aria-label={`${NAME[s]}, ${percents[s]}% done`}
               style={style}
