@@ -10,7 +10,7 @@ async function userId(clerkId: string): Promise<string | null> {
   return (data as { id: string } | null)?.id ?? null;
 }
 
-/** True when the student is currently in a cohort or has a current 1:1 tutor ("Flag for my tutor"). */
+/** True when the student is currently in a cohort or has a current 1:1 tutor ("Ask my tutor"). */
 export async function hasTutor(clerkId: string): Promise<boolean> {
   const id = await userId(clerkId);
   if (!id) return false;
