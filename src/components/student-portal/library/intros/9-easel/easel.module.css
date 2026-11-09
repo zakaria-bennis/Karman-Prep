@@ -1,0 +1,184 @@
+/* Intro 9, the easel. Colors are the studio's own (painted); the names are pencil-dark on the
+   primed canvas. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #1a1720;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.root[data-shown] {
+  opacity: 1;
+}
+
+/* The camera: still until a half is chosen, then it pushes into the easel's canvas. */
+.camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.62, 0, 0.22, 1);
+}
+.fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* The easel's canvas. */
+.art {
+  position: absolute;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.25) inset;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.dabs {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.dabs[data-on] {
+  opacity: 1;
+  transition-duration: 0.12s;
+}
+.paint {
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    clip-path 0.7s cubic-bezier(0.5, 0, 0.2, 1),
+    -webkit-clip-path 0.7s cubic-bezier(0.5, 0, 0.2, 1);
+}
+.paint[data-on] {
+  opacity: 1;
+}
+
+/* The room's light on the canvas: warm lamp light at night, the hour's glow at dawn and sunset.
+   It lifts off as the camera arrives, so the scene shows in its own colors. */
+.light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  transition: opacity 0.6s ease;
+}
+.root[data-time="dawn"] .light {
+  background: linear-gradient(110deg, rgb(255 222 214 / 0.55), rgb(232 214 222 / 0.4));
+}
+.root[data-time="sunset"] .light {
+  background: linear-gradient(110deg, rgb(255 206 160 / 0.55), rgb(236 196 170 / 0.45));
+}
+.root[data-time="night"] .light {
+  background: radial-gradient(circle at 30% 20%, rgb(240 222 190), rgb(170 150 135));
+}
+.root[data-phase="push"] .light {
+  opacity: 0;
+}
+
+/* The two halves are buttons cut to their side of the diagonal (clip-path set inline). */
+.halves {
+  position: absolute;
+  inset: 0;
+}
+.half {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.half:focus-visible {
+  outline: none;
+}
+.label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: 44%;
+  color: #2b2830;
+  text-align: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition:
+    transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1),
+    opacity 0.3s ease;
+  /* A breath of primer around the letters keeps them clear of the pencil lines. */
+  text-shadow:
+    0 0 6px #f4efe4,
+    0 0 14px #f4efe4,
+    0 0 22px #f4efe4;
+}
+.half[data-on] .label {
+  transform: translate(-50%, calc(-50% - 4px)) scale(1.04);
+}
+.root[data-reduced] .half[data-on] .label {
+  transform: translate(-50%, -50%);
+}
+.root[data-phase="paint"] .label,
+.root[data-phase="push"] .label {
+  opacity: 0;
+}
+.name {
+  font: 400 clamp(22px, 3.4vw, 54px) / 1.02 var(--font-serif);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.pct {
+  position: relative;
+  font: 650 14px / 18px var(--font-sans);
+}
+/* Keyboard focus: a pencil-dark rule under the percent. */
+.pct::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 48px;
+  height: 2px;
+  margin-left: -24px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.half:focus-visible .pct::after {
+  opacity: 1;
+}
+@media (max-width: 767px) {
+  .label {
+    max-width: 86%;
+  }
+  .name {
+    font-size: clamp(22px, 6.4vw, 30px);
+  }
+  .pct {
+    font-size: 13px;
+  }
+}
+
+/* The full-screen scene the camera arrives in: it takes over as the push ends. */
+.ground {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease 0.8s;
+}
+.ground[data-on] {
+  opacity: 1;
+}
+.root[data-reduced] .ground {
+  transition: opacity 0.45s ease;
+}

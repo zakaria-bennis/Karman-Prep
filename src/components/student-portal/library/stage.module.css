@@ -250,6 +250,20 @@
   }
 }
 
+/* An opening animation (`?intro=N`): above the world, below the rail and header. It fades out
+   over the ground it ended on. */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  transition: opacity 0.45s ease;
+}
+.intro[data-leaving] {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ---------- The box ---------- */
 .box[hidden] {
   display: none;

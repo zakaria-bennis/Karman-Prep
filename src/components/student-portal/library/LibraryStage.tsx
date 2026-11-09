@@ -28,10 +28,18 @@ import {
 } from "react";
 import { Num, Panel } from "@/components/portal/primitives";
 import LibraryWorld, { DESCENT_MS, SHORT, type Slug, type StageCourse } from "./LibraryWorld";
+import type { IntroDef, Subject } from "./intros/registry";
 import { COURSE_PICK_KEY, afterPaintingOpening, challengeMoment, readStore } from "./moment";
+import { choosePainting } from "@/lib/painting/schedule";
 import styles from "./stage.module.css";
 
 export type { StageCourse };
+
+/** The hour the day's painting is lit for (dev links may override it with `?time=`). */
+function introTime() {
+  if (typeof window === "undefined") return "day" as const;
+  return choosePainting(new Date(), location.search, process.env.NODE_ENV !== "production").time;
+}
 
 const spring = { type: "spring", stiffness: 190, damping: 26, mass: 1 } as const;
 
@@ -69,6 +77,7 @@ export default function LibraryStage({
   side,
   initial,
   waitForChallenge,
+  intro = null,
 }: {
   courses: StageCourse[];
   /** Each course's content, rendered on the server. */
@@ -79,6 +88,8 @@ export default function LibraryStage({
   initial: Slug | null;
   /** True when the Challenge moment may open first. */
   waitForChallenge: boolean;
+  /** An opening animation to play instead of the sky (`?intro=N`, for comparing openings). */
+  intro?: IntroDef | null;
 }) {
   const reduce = useReducedMotion() ?? false;
   const [pick, setPick] = useState<Slug | null>(initial);
@@ -87,6 +98,10 @@ export default function LibraryStage({
   const [ghost, setGhost] = useState<Ghost | null>(null);
   /** True while the camera is falling and the box has not opened yet. */
   const [falling, setFalling] = useState(false);
+  /** The opening animation has landed: the box fades in over the ground, with no fall. */
+  const [landed, setLanded] = useState(false);
+  /** The opening animation fades out over the ground it ended on, then unmounts. */
+  const [introLeaving, setIntroLeaving] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const fallRun = useRef<{ stop: () => void } | null>(null);
@@ -112,9 +127,10 @@ export default function LibraryStage({
       keep(initial);
       return;
     }
+    if (intro) return;
     const kept = readStore("session", COURSE_PICK_KEY);
     if (kept === "math" || kept === "reading-writing") setPick(kept);
-  }, [initial]);
+  }, [initial, intro]);
 
   const choose = useCallback((slug: Slug, from: Omit<Opening, "slug">) => {
     setActive(null);
@@ -122,6 +138,23 @@ export default function LibraryStage({
     setPick(slug);
     keep(slug);
   }, []);
+
+  /* An opening animation ended on this subject's ground: land there and fade the box in. */
+  const fromIntro = useCallback((s: Subject) => {
+    const slug: Slug = s === "math" ? "math" : "reading-writing";
+    setActive(null);
+    setLanded(true);
+    setIntroLeaving(true);
+    setPick(slug);
+    keep(slug);
+    window.setTimeout(() => setIntroLeaving(false), 480);
+  }, []);
+
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!landed || !pick || !box) return;
+    void animate(box, { opacity: [0, 1], y: [reduce ? 0 : 14, 0] }, { duration: 0.4 });
+  }, [landed, pick, reduce]);
 
   /* The box opens out of the chosen point, and the name travels into the toggle. */
   useLayoutEffect(() => {
@@ -175,6 +208,7 @@ export default function LibraryStage({
     const box = boxRef.current;
     const was = pick;
     const finish = () => {
+      setLanded(false);
       setPick(null);
       keep(null);
       /* Focus goes back to the painting that was open. */
@@ -241,9 +275,24 @@ export default function LibraryStage({
             active={active}
             flying={ghost?.slug ?? null}
             reduce={reduce}
+            land={landed}
             onActive={setActive}
             onChoose={choose}
           />
+          {intro && ready && (!pick || introLeaving) && (
+            <div className={styles.intro} data-leaving={introLeaving || undefined}>
+              <intro.Component
+                key={intro.id}
+                percents={{
+                  math: pct(courses.find((c) => c.slug === "math") ?? courses[0]),
+                  rw: pct(courses.find((c) => c.slug === "reading-writing") ?? courses[1]),
+                }}
+                time={introTime()}
+                reducedMotion={reduce}
+                onChoose={fromIntro}
+              />
+            </div>
+          )}
           <div ref={boxRef} className={styles.box} hidden={!pick}>
             <Panel
               side={side}
