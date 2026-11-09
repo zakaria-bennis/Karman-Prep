@@ -52,10 +52,13 @@ test.describe("admin impersonation", () => {
     // We should have been redirected to /dashboard/student and
     // the page should render the target's seeded data.
     await expect(page).toHaveURL(/\/dashboard\/student/);
-    // The mid student has a seeded diagnostic. The dashboard no
-    // longer shows a forecast band, so check for the link to the
-    // measured results, which only renders when a diagnostic exists.
-    await expect(page.getByRole("link", { name: /See diagnostic details/i })).toBeVisible();
+    // The student portal's Today page renders for the target: its one main button
+    // (the Daily 10, the next homework, or the Library once both are done).
+    await expect(
+      page
+        .getByRole("link", { name: /Start Your Daily 10|Start this homework|Open the Library/i })
+        .first()
+    ).toBeVisible();
 
     // ── 4. Navigate to /learn while still impersonated ─────
     // The banner is site-wide so it should follow us.
