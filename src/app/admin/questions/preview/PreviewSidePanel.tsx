@@ -48,7 +48,7 @@ export function PreviewSidePanel({
   showSourceAssetPanels,
 }: Props) {
   return (
-    <aside className="flex h-full w-full flex-col gap-3 overflow-y-auto rounded-xl border border-gold/20 bg-surface/40 p-3">
+    <aside className="flex h-full w-full flex-col gap-3 overflow-y-auto rounded-xl border border-[color-mix(in_srgb,var(--accent)_20%,transparent)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-3">
       {openPanels.has("desmos") && (
         <PanelCard
           title="Desmos strategy"
@@ -59,7 +59,7 @@ export function PreviewSidePanel({
           fieldKey="desmos_strategy"
         >
           {edit ? (
-            <div className="text-[14px] leading-[1.6] text-info-bright">
+            <div className="text-[14px] leading-[1.6] text-[color:var(--info)]">
               <EditableMathText
                 value={q.desmos_strategy ?? ""}
                 onSave={(v) => edit.onSave("desmos_strategy", v)}
@@ -69,7 +69,7 @@ export function PreviewSidePanel({
               />
             </div>
           ) : q.desmos_strategy ? (
-            <div className="text-[14px] leading-[1.6] text-info-bright">
+            <div className="text-[14px] leading-[1.6] text-[color:var(--info)]">
               <MathText text={q.desmos_strategy} className="block whitespace-pre-wrap" />
             </div>
           ) : (
@@ -88,7 +88,7 @@ export function PreviewSidePanel({
           fieldKey="hint"
         >
           {edit ? (
-            <div className="text-[14px] leading-[1.6] text-warning-bright">
+            <div className="text-[14px] leading-[1.6] text-[color:var(--warn)]">
               <EditableMathText
                 value={q.hint ?? ""}
                 onSave={(v) => edit.onSave("hint", v)}
@@ -98,7 +98,7 @@ export function PreviewSidePanel({
               />
             </div>
           ) : q.hint ? (
-            <div className="text-[14px] leading-[1.6] text-warning-bright">
+            <div className="text-[14px] leading-[1.6] text-[color:var(--warn)]">
               <MathText text={q.hint} className="block whitespace-pre-wrap" />
             </div>
           ) : (
@@ -168,14 +168,26 @@ export function PreviewSidePanel({
 type Tone = "sky" | "amber" | "indigo" | "slate";
 
 const TONE_CLASSES: Record<Tone, { border: string; bg: string; text: string }> = {
-  sky: { border: "border-info/30", bg: "bg-info/[0.04]", text: "text-info-bright" },
-  amber: { border: "border-warning/30", bg: "bg-warning/[0.04]", text: "text-warning-bright" },
-  indigo: {
-    border: "border-gold/30",
-    bg: "bg-gold/[0.04]",
-    text: "text-gold-bright",
+  sky: {
+    border: "border-[color-mix(in_srgb,var(--info)_30%,transparent)]",
+    bg: "bg-[color-mix(in_srgb,var(--info)_4%,transparent)]",
+    text: "text-[color:var(--info)]",
   },
-  slate: { border: "border-bronze", bg: "bg-surface/40", text: "text-ivory" },
+  amber: {
+    border: "border-[color-mix(in_srgb,var(--warn)_30%,transparent)]",
+    bg: "bg-[color-mix(in_srgb,var(--warn)_4%,transparent)]",
+    text: "text-[color:var(--warn)]",
+  },
+  indigo: {
+    border: "border-[color-mix(in_srgb,var(--accent)_30%,transparent)]",
+    bg: "bg-[color-mix(in_srgb,var(--accent)_4%,transparent)]",
+    text: "text-[color:var(--accent-text)]",
+  },
+  slate: {
+    border: "border-[color:var(--line)]",
+    bg: "bg-[color-mix(in_srgb,var(--card)_40%,transparent)]",
+    text: "text-[color:var(--ink)]",
+  },
 };
 
 function PanelCard({
@@ -199,7 +211,7 @@ function PanelCard({
   const showChip = edit && fieldKey && edit.editedFields.has(fieldKey);
   return (
     <section className={cn("rounded-xl border", t.border, t.bg)}>
-      <header className="flex items-center gap-2 border-b border-bronze/60 px-3 py-2">
+      <header className="flex items-center gap-2 border-b border-[color-mix(in_srgb,var(--line)_60%,transparent)] px-3 py-2">
         <Icon className={cn("h-3.5 w-3.5", t.text)} />
         <span className={cn("text-[11px] font-bold uppercase tracking-[0.18em]", t.text)}>
           {title}
@@ -209,7 +221,7 @@ function PanelCard({
         )}
         <button
           onClick={onClose}
-          className="ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-lg text-taupe hover:text-ivory"
+          className="ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[color:var(--mute)] hover:text-[color:var(--ink)]"
           aria-label={`Close ${title}`}
         >
           <X className="h-3.5 w-3.5" />
@@ -221,7 +233,7 @@ function PanelCard({
 }
 
 function EmptyHint({ children }: { children: React.ReactNode }) {
-  return <div className="text-xs italic text-taupe">{children}</div>;
+  return <div className="text-xs italic text-[color:var(--mute)]">{children}</div>;
 }
 
 function ExplanationsBody({ question: q }: { question: PreviewQuestionWithLineage }) {
@@ -234,7 +246,7 @@ function ExplanationsBody({ question: q }: { question: PreviewQuestionWithLineag
   return (
     <>
       {q.explanation_text && (
-        <div className="mb-3 text-[14px] leading-[1.6] text-ivory">
+        <div className="mb-3 text-[14px] leading-[1.6] text-[color:var(--ink)]">
           <MathText text={q.explanation_text} className="block whitespace-pre-wrap" />
         </div>
       )}
@@ -250,14 +262,14 @@ function ExplanationsBody({ question: q }: { question: PreviewQuestionWithLineag
                 className={cn(
                   "rounded-lg border px-3 py-2 text-[13px] leading-[1.5]",
                   isCorrect
-                    ? "border-success/40 bg-success/[0.04] text-success-bright"
-                    : "border-bronze bg-surface/40 text-ivory"
+                    ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_4%,transparent)] text-[color:var(--good)]"
+                    : "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] text-[color:var(--ink)]"
                 )}
               >
                 <span
                   className={cn(
                     "mr-1.5 inline-block font-mono font-bold",
-                    isCorrect ? "text-success-bright" : "text-taupe"
+                    isCorrect ? "text-[color:var(--good)]" : "text-[color:var(--mute)]"
                   )}
                 >
                   {letter}.
@@ -290,13 +302,13 @@ function PdfPanel({ question: q }: { question: PreviewQuestionWithLineage }) {
     <div className="space-y-3">
       {/* Mode toggle — only shown when both modes are available. */}
       {hasFigure && hasSource && (
-        <div className="inline-flex rounded-lg border border-bronze bg-surface p-0.5 text-[11px]">
+        <div className="inline-flex rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] p-0.5 text-[11px]">
           <button
             onClick={() => setView("cropped")}
             className={
               view === "cropped"
-                ? "rounded-md bg-surface-raised px-2.5 py-1 font-semibold text-ivory"
-                : "rounded-md px-2.5 py-1 text-taupe hover:text-ivory"
+                ? "rounded-md bg-[color:var(--raised)] px-2.5 py-1 font-semibold text-[color:var(--ink)]"
+                : "rounded-md px-2.5 py-1 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             }
           >
             Cropped figure
@@ -305,8 +317,8 @@ function PdfPanel({ question: q }: { question: PreviewQuestionWithLineage }) {
             onClick={() => setView("source")}
             className={
               view === "source"
-                ? "rounded-md bg-surface-raised px-2.5 py-1 font-semibold text-ivory"
-                : "rounded-md px-2.5 py-1 text-taupe hover:text-ivory"
+                ? "rounded-md bg-[color:var(--raised)] px-2.5 py-1 font-semibold text-[color:var(--ink)]"
+                : "rounded-md px-2.5 py-1 text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             }
           >
             Source PDF page
@@ -315,14 +327,16 @@ function PdfPanel({ question: q }: { question: PreviewQuestionWithLineage }) {
       )}
 
       {view === "cropped" && hasFigure && (
-        <div className="overflow-hidden rounded-lg border border-bronze/50 bg-surface p-2">
+        <div className="overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--line)_50%,transparent)] bg-[color:var(--card)] p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={q.image_url ?? ""}
             alt={q.image_alt ?? ""}
             className="mx-auto block max-h-[480px] w-auto rounded object-contain"
           />
-          {q.image_alt && <p className="mt-2 px-2 text-[10px] italic text-taupe">{q.image_alt}</p>}
+          {q.image_alt && (
+            <p className="mt-2 px-2 text-[10px] italic text-[color:var(--mute)]">{q.image_alt}</p>
+          )}
         </div>
       )}
 
@@ -332,23 +346,23 @@ function PdfPanel({ question: q }: { question: PreviewQuestionWithLineage }) {
 
       {/* Metadata footer — always visible so the admin sees what
           file + page the question came from regardless of mode. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-bronze/60 pt-2 text-[10px] text-taupe">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[color-mix(in_srgb,var(--line)_60%,transparent)] pt-2 text-[10px] text-[color:var(--mute)]">
         {q.source_pdf && (
           <span>
-            <span className="text-taupe">file:</span>{" "}
-            <span className="font-mono text-ivory">{q.source_pdf}</span>
+            <span className="text-[color:var(--mute)]">file:</span>{" "}
+            <span className="font-mono text-[color:var(--ink)]">{q.source_pdf}</span>
           </span>
         )}
         {q.source_page != null && (
           <span>
-            <span className="text-taupe">page:</span>{" "}
-            <span className="font-mono text-ivory">p{q.source_page}</span>
+            <span className="text-[color:var(--mute)]">page:</span>{" "}
+            <span className="font-mono text-[color:var(--ink)]">p{q.source_page}</span>
           </span>
         )}
         {hasFigure && (
           <span>
-            <span className="text-taupe">figure:</span>{" "}
-            <span className="font-mono text-ivory">stored in R2</span>
+            <span className="text-[color:var(--mute)]">figure:</span>{" "}
+            <span className="font-mono text-[color:var(--ink)]">stored in R2</span>
           </span>
         )}
       </div>
@@ -374,26 +388,28 @@ function GraderBody({ question: q }: { question: PreviewQuestionWithLineage }) {
   const adjudicator = (v.adjudicator_correct as string | undefined) ?? null;
   const final = (v.final_correct as string | undefined) ?? null;
   return (
-    <div className="space-y-2 text-xs text-ivory">
+    <div className="space-y-2 text-xs text-[color:var(--ink)]">
       {pass1 && (
         <div className="space-y-1">
-          <div className="text-[10px] uppercase tracking-wider text-taupe">Pass 1 voters</div>
+          <div className="text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
+            Pass 1 voters
+          </div>
           {Object.entries(pass1).map(([voter, value]) => (
             <div key={voter} className="flex items-center justify-between">
-              <span className="font-mono text-taupe">{voter}</span>
-              <span className="font-mono text-ivory">{String(value ?? "—")}</span>
+              <span className="font-mono text-[color:var(--mute)]">{voter}</span>
+              <span className="font-mono text-[color:var(--ink)]">{String(value ?? "—")}</span>
             </div>
           ))}
         </div>
       )}
-      <div className="space-y-1 border-t border-bronze/60 pt-2">
+      <div className="space-y-1 border-t border-[color-mix(in_srgb,var(--line)_60%,transparent)] pt-2">
         <div className="flex items-center justify-between">
-          <span className="text-taupe">adjudicator</span>
-          <span className="font-mono text-ivory">{adjudicator ?? "—"}</span>
+          <span className="text-[color:var(--mute)]">adjudicator</span>
+          <span className="font-mono text-[color:var(--ink)]">{adjudicator ?? "—"}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-taupe">final</span>
-          <span className="font-mono font-bold text-success-bright">{final ?? "—"}</span>
+          <span className="text-[color:var(--mute)]">final</span>
+          <span className="font-mono font-bold text-[color:var(--good)]">{final ?? "—"}</span>
         </div>
       </div>
     </div>

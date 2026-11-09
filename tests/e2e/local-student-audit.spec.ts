@@ -10,20 +10,8 @@ test("direct synthetic student cannot enter admin or tutor pages", async ({ page
   await expect(page).toHaveURL(/\/dashboard\/student/);
 });
 
-test("direct synthetic student completes a 35-question diagnostic", async ({ page }) => {
-  test.setTimeout(120_000);
+test("the old diagnostic address opens the bank-fed diagnostic", async ({ page }) => {
   await page.goto("/diagnostic");
-  await expect(page).toHaveURL(/\/diagnostic/);
-  const replayConsent = page.getByRole("dialog", { name: /Help us debug/i });
-  if (await replayConsent.isVisible()) {
-    await replayConsent.getByRole("button", { name: "Decline" }).click();
-  }
-  for (let i = 0; i < 35; i++) {
-    await page.locator("div.space-y-3 > div.group.relative > button").first().click();
-    await page.getByRole("button", { name: i === 34 ? /See My Results/ : /Next Question/ }).click();
-  }
-  await expect(page.getByText("Your Diagnostic Results")).toBeVisible();
-  await expect(page.getByText("Predicted SAT Score Range")).toBeVisible();
-  await page.reload();
-  await expect(page).toHaveURL(/\/dashboard\/student\/progress/);
+  await expect(page).toHaveURL(/\/learn\/diagnostic/);
+  await expect(page.getByRole("button", { name: "Start the diagnostic" })).toBeVisible();
 });

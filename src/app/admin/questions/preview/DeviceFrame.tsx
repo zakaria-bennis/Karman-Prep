@@ -44,10 +44,10 @@ export function DeviceFrame({
     return <div className="h-full">{children}</div>;
   }
   return (
-    <div className="flex h-full w-full justify-center overflow-auto bg-night/40 p-2 sm:p-4">
+    <div className="flex h-full w-full justify-center overflow-auto bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] p-2 sm:p-4">
       <div
         className={cn(
-          "w-full overflow-hidden rounded-2xl border border-bronze/70 bg-night shadow-2xl shadow-black/40",
+          "w-full overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--line)_70%,transparent)] bg-[color:var(--sunk)] shadow-2xl shadow-black/40",
           WIDTHS[width]
         )}
       >
@@ -72,7 +72,7 @@ export function DeviceFrameToggle({
     { value: "full", label: "Full", px: "—" },
   ];
   return (
-    <div className="inline-flex items-center rounded-lg border border-bronze bg-surface p-0.5">
+    <div className="inline-flex items-center rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] p-0.5">
       {opts.map((o) => {
         const active = value === o.value;
         return (
@@ -81,7 +81,9 @@ export function DeviceFrameToggle({
             onClick={() => onChange(o.value)}
             className={cn(
               "min-h-11 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
-              active ? "bg-surface-raised text-ivory" : "text-taupe hover:text-ivory"
+              active
+                ? "bg-[color:var(--raised)] text-[color:var(--ink)]"
+                : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             )}
             aria-pressed={active}
             title={`${o.label} (${o.px}px)`}

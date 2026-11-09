@@ -1,0 +1,58 @@
+# Local Supabase for development only. Never link this to the remote project.
+# Karman uses Clerk for sign-in. Only Postgres, PostgREST, the Kong gateway and
+# the auth and storage services the migrations need run. The rest is off.
+# How to use it: docs/overnight/local-db.md
+project_id = "karman-local"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.pooler]
+enabled = false
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+enabled = false
+
+[realtime]
+enabled = false
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+# Storage stays on: three migrations create storage buckets and policies.
+# The app stores files in R2, not here. Image resizing is off.
+[storage]
+enabled = true
+
+[storage.image_transformation]
+enabled = false
+
+[storage.s3_protocol]
+enabled = false
+
+# Auth stays on: the migrations' row-level policies call auth.jwt(), which
+# only the auth service creates. It is small. Sign-in itself is Clerk.
+[auth]
+enabled = true
+enable_signup = false
+
+[edge_runtime]
+enabled = false
+
+[analytics]
+enabled = false

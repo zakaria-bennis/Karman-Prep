@@ -62,7 +62,7 @@ export function ProvisionChatButton({ cohortId, alreadyProvisioned }: Props) {
 
   if (state === "ok") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-0.5 text-xs font-semibold text-success dark:border-success/30 dark:bg-success/10 dark:text-success-bright">
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-2 py-0.5 text-xs font-semibold text-[color:var(--good)] dark:border-[color-mix(in_srgb,var(--good)_30%,transparent)] dark:bg-[color-mix(in_srgb,var(--good)_10%,transparent)] dark:text-[color:var(--good)]">
         <CheckCircle2 className="h-3.5 w-3.5" />
         Slack channels provisioned
         {createdCount !== null && createdCount > 0 ? ` (created ${createdCount} now)` : ""}
@@ -76,7 +76,7 @@ export function ProvisionChatButton({ cohortId, alreadyProvisioned }: Props) {
         type="button"
         onClick={provision}
         disabled={state === "running"}
-        className="inline-flex items-center gap-1.5 rounded-md bg-info px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-info-bright disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--accent)] px-3 py-1.5 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)] disabled:opacity-50"
       >
         {state === "running" ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -86,7 +86,7 @@ export function ProvisionChatButton({ cohortId, alreadyProvisioned }: Props) {
         {state === "running" ? "Provisioning…" : "Provision Slack channels"}
       </button>
       {state === "error" && errMsg && (
-        <span className="inline-flex items-center gap-1 text-xs text-error dark:text-error-bright">
+        <span className="inline-flex items-center gap-1 text-xs text-[color:var(--late)] dark:text-[color:var(--late)]">
           <AlertTriangle className="h-3.5 w-3.5" />
           {errMsg}
         </span>

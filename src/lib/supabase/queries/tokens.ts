@@ -7,8 +7,6 @@
 // to preserve when extending:
 //   · releasing an already-released token is a no-op
 //   · consuming an already-consumed token is a no-op
-//   · ensureEliteMonthlyTokens for the same (user, month) is a
-//     no-op once that month's batch exists
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";
@@ -29,50 +27,6 @@ export interface TokenRow {
   consumed_reason: ConsumedReason | null;
   created_at: string;
   updated_at: string;
-}
-
-/** "YYYY-MM" for the current UTC month — used as the elite_monthly key. */
-function currentMonthKey(): string {
-  const d = new Date();
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-/** First instant of next UTC month — used as Elite expiry. */
-function nextMonthStartIso(): string {
-  const d = new Date();
-  d.setUTCMonth(d.getUTCMonth() + 1, 1);
-  d.setUTCHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-
-const ELITE_MONTHLY_GRANT = 8;
-
-/** Lazy-grant Elite monthly tokens. Idempotent — if the user
- *  already has an elite_monthly batch for the current month
- *  (any token row with that month key), this returns without
- *  inserting. Safe to call from getAvailableTokenCount. */
-export async function ensureEliteMonthlyTokens(userUuid: string): Promise<void> {
-  const supabase = createAdminClient();
-  const month = currentMonthKey();
-
-  const { count, error: countErr } = await supabase
-    .from("tokens")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userUuid)
-    .eq("source", "elite_monthly")
-    .eq("granted_for_month", month);
-  if (countErr) throw countErr;
-  if ((count ?? 0) > 0) return;
-
-  const expires = nextMonthStartIso();
-  const rows = Array.from({ length: ELITE_MONTHLY_GRANT }, () => ({
-    user_id: userUuid,
-    source: "elite_monthly" as const,
-    granted_for_month: month,
-    expires_at: expires,
-  }));
-  const { error } = await supabase.from("tokens").insert(rows);
-  if (error) throw error;
 }
 
 /** Mint one private token. Called when Stripe confirms a per-session

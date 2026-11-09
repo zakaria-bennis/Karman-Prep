@@ -77,7 +77,7 @@ Compact changelog of merged PRs since the previous sync. Use this as the diff ag
 
 6. **PDF processing jobs have no auto-refresh.** Admins import a PDF, then have to manually F5 the `/admin/jobs` page to watch progress. Add polling or live-status events.
 
-7. ~~**Diagnostic is one-and-done with no student retake path.**~~ **RESOLVED** — `users.diagnostic_retakes_remaining` column added. [src/app/diagnostic/page.tsx](src/app/diagnostic/page.tsx) gates the retake on a positive balance; [src/app/admin/users/actions.ts](src/app/admin/users/actions.ts) `actionGrantDiagnosticRetake` lets admins increment it; the submit route decrements on retake. Admin grants the retake from the user list when a student asks.
+7. ~~**Diagnostic is one-and-done with no student retake path.**~~ **RESOLVED** — `users.diagnostic_retakes_remaining` column added. The bank-fed diagnostic (`/learn/diagnostic`, `src/lib/assembler/diagnostic-record.ts`) uses one on a retake; [src/app/admin/users/actions.ts](src/app/admin/users/actions.ts) `actionGrantDiagnosticRetake` lets admins increment it; Admin grants the retake from the user list when a student asks.
 
 8. ~~**Tutor cannot reschedule or cancel their own sessions.**~~ **RESOLVED 2026-05-15 ([PR #40](https://github.com/zakaria-bennis/Karman-Prep/pull/40))** — `/tutor/schedule` now has self-serve cancel + reschedule with the 24-hour rule.
 
@@ -589,15 +589,9 @@ Everything a paying student lives in.
 
 ### `/dashboard/student/progress` — Progress tracker
 
-- **What it is:** Detailed progress hub — diagnostic delta, domain heatmap, weak topics by domain, mastery counters.
-- **What the user does:** Compares current vs first diagnostic, scans weak topics, sees cumulative mastery.
-- **What "working" looks like:** Retake CTA shows when `users.diagnostic_retakes_remaining > 0` (admin-granted); otherwise hidden with copy explaining the gate.
-
-### `/dashboard/student/predicted-sat` — SAT trajectory chart
-
-- **What it is:** Multi-week chart projecting where the student's actual SAT score will land based on mastered nodes (+8 points per node).
-- **What "working" looks like:** Chart shows projected band + actual diagnostic markers; baseline from first diagnostic.
-- 🚩 **Red flags:** The +8-per-node projection is a rough heuristic with no per-domain or per-difficulty weighting. Consider labeling it as "estimate" so families don't take it literally.
+- **What it is:** The painted Progress tab (2026-11-08): one Karman predicted score (never a range) with its history line, skills by level in a ring, what moved this week, active time per week, personal bests, and streak and rewards (tokens, the mystery box, the fox) at the bottom.
+- **What the user does:** Sees where they stand, which skills moved, and opens a moved skill's practice set.
+- **What "working" looks like:** The score is the midpoint of the latest diagnostic's stored range, to the nearest 10. Levels come from `src/lib/student/levels.ts`; the numbers from `src/lib/student/progress.ts`. The old Predicted SAT chart and Mastered list are folded in here.
 
 ### `/dashboard/student/schedule` — Session booking
 
@@ -617,11 +611,6 @@ Everything a paying student lives in.
   - **Flagged messages get held now (PR #30/#31).** Sender sees their own bubble with a "pending admin review" caption; recipient sees a placeholder. Until admin acts at `/admin/moderation`, the message never reaches Slack/recipient. This is intentional but means the queue must be watched.
   - Private students without a cohort see a "you're not in a cohort yet" empty state — verify the admin auto-assign path works.
   - Channels must be provisioned by admin from the cohort detail page. If skipped, the empty state remains.
-
-### `/dashboard/student/mastered` — Mastered lessons gallery
-
-- **What it is:** Filterable list of every node the student has mastered, with date, best score, attempt count.
-- **What the user does:** Browses by subject/domain, sorts, clicks back into lessons to review or retake.
 
 ### `/billing` — Subscription management
 
@@ -1046,10 +1035,8 @@ Stable IDs for cross-reference. Use these when an AI needs to cite a specific fe
 - `feat.student.constellation-math` → `/learn/math`
 - `feat.student.lesson` → `/learn/[subject]/[nodeId]`
 - `feat.student.progress` → `/dashboard/student/progress`
-- `feat.student.predicted-sat` → `/dashboard/student/predicted-sat`
 - `feat.student.schedule` → `/dashboard/student/schedule`
 - `feat.student.chat` → `/dashboard/student/chat`
-- `feat.student.mastered` → `/dashboard/student/mastered`
 - `feat.student.billing` → `/billing`
 
 ## Booking APIs (student-facing)

@@ -1,0 +1,196 @@
+/* ---------- the research page: the memory curve and the six findings ---------- */
+.ks .rc svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ks .rc-ax {
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.ks .rc-once,
+.ks .rc-spaced {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.ks .rc-once {
+  stroke: var(--ink2);
+  stroke-width: 2;
+  transition: stroke-dashoffset 1.8s var(--ease) 0.3s;
+}
+.ks .rc-spaced {
+  stroke: var(--marigold);
+  stroke-width: 3;
+  transition: stroke-dashoffset 2.6s cubic-bezier(0.5, 0.05, 0.3, 1) 0.7s;
+}
+.ks .rc-recall {
+  fill: var(--paper);
+  stroke: var(--marigold);
+  stroke-width: 2.4;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  transition: transform 0.5s var(--spring) calc(1.3s + var(--k) * 0.6s);
+}
+.ks .rc.drawn .rc-once,
+.ks .rc.drawn .rc-spaced {
+  stroke-dashoffset: 0;
+}
+.ks .rc.drawn .rc-recall {
+  transform: scale(1);
+  animation: rc-ping 5.4s ease-in-out calc(4s + var(--k) * 0.9s) infinite;
+}
+@keyframes rc-ping {
+  0%,
+  20%,
+  100% {
+    stroke-width: 2.4;
+  }
+  8% {
+    stroke-width: 6;
+    fill: var(--marigold);
+  }
+}
+.ks .rc {
+  width: 100%;
+  max-width: 640px;
+  justify-self: end;
+}
+.ks .rc-t {
+  fill: var(--ink2);
+  stroke: none;
+  font-size: 21px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease) 2.6s;
+}
+.ks .rc-t.b {
+  fill: var(--marigold-ink);
+}
+.ks .rc.drawn .rc-t {
+  opacity: 1;
+}
+.ks .rc-cur {
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+.ks .rc-cur line {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+.ks .rc-cur .c-a {
+  fill: var(--paper);
+  stroke: var(--ink2);
+  stroke-width: 2;
+}
+.ks .rc-cur .c-b {
+  fill: var(--marigold);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.ks .rs-list {
+  list-style: none;
+  margin: clamp(30px, 4vw, 56px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 clamp(28px, 5vw, 80px);
+  counter-reset: none;
+}
+.ks .rs-list li {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 30px 0 34px;
+  border-top: 1px solid var(--line);
+  position: relative;
+}
+.ks .rs-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 2px;
+  width: 0;
+  background: var(--marigold);
+  transition: width 1.1s var(--ease) 0.3s;
+}
+.ks .rs-list li.on::before {
+  width: 64px;
+}
+.ks .rs-list h3 {
+  font-size: clamp(22px, 2vw, 30px);
+}
+.ks .rs-found {
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.5;
+}
+.ks .rs-k {
+  color: var(--ink2);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-left: 14px;
+  border-left: 2px solid var(--marigold);
+}
+.ks .rs-src {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  color: var(--ink2);
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.ks .rs-src .lk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.ks .rs-src .lk svg {
+  width: 14px;
+  height: 14px;
+  color: var(--marigold-ink);
+  transition: transform 0.4s var(--spring);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ks .rs-src .lk:hover svg {
+    transform: translate(3px, -3px);
+  }
+  .ks .rs-list li:hover::before {
+    width: 100%;
+  }
+}
+@media (max-width: 800px) {
+  .ks .rs-list {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .rc *,
+  .ks .rs-list li::before {
+    transition: none !important;
+    animation: none !important;
+  }
+  .ks .rc-once,
+  .ks .rc-spaced {
+    stroke-dashoffset: 0;
+  }
+  .ks .rc-recall {
+    transform: scale(1);
+  }
+  .ks .rc-t {
+    opacity: 1;
+  }
+}

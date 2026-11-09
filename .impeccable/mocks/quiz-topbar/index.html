@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Quiz bars, before and after</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f2efe8;
+        --card: #fff;
+        --ink: #16181d;
+        --mute: #5a5c63;
+        --line: rgb(0 0 0 / 0.12);
+        --accent: hsl(208 55% 38%);
+        --pick: hsl(208 55% 93%);
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b0d12;
+          --card: #14171d;
+          --ink: #eef0f4;
+          --mute: #a7afbd;
+          --line: rgb(255 255 255 / 0.12);
+          --accent: hsl(208 60% 70%);
+          --pick: hsl(208 30% 18%);
+          color-scheme: dark;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.5 "Hanken Grotesk", system-ui, sans-serif;
+        font-variant-numeric: lining-nums;
+      }
+      main {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 32px 16px 64px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font: 400 clamp(28px, 4vw, 40px) / 1.15 "Young Serif", Georgia, serif;
+      }
+      h2 {
+        margin: 40px 0 12px;
+        font-size: 22px;
+        font-weight: 650;
+      }
+      h3 {
+        margin: 24px 0 10px;
+        font-size: 16px;
+        font-weight: 650;
+        color: var(--mute);
+      }
+      p {
+        margin: 0 0 12px;
+        max-width: 72ch;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+        margin: 20px 0 8px;
+      }
+      fieldset {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      legend {
+        float: left;
+        margin-right: 8px;
+        line-height: 44px;
+        color: var(--mute);
+        font-size: 14px;
+      }
+      fieldset label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--card);
+        cursor: pointer;
+        font-weight: 550;
+      }
+      fieldset input {
+        position: absolute;
+        opacity: 0;
+      }
+      fieldset label:has(input:checked) {
+        border-color: var(--ink);
+        box-shadow: inset 0 0 0 1px var(--ink);
+      }
+      fieldset label:has(input:focus-visible) {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .pair {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .phones {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      @media (max-width: 760px) {
+        .pair {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .phones {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      figure {
+        margin: 0;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--card);
+      }
+      figure.pick {
+        border-color: var(--accent);
+        box-shadow: inset 0 0 0 1px var(--accent);
+        background: var(--pick);
+      }
+      figcaption {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 10px;
+        font-weight: 650;
+      }
+      .tag {
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: var(--accent);
+        color: var(--bg);
+        font-size: 13px;
+        font-weight: 650;
+      }
+      figure a {
+        display: block;
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .why {
+        margin: 10px 0 0;
+        color: var(--mute);
+        font-size: 14px;
+      }
+      ul.notes {
+        margin: 0;
+        padding-left: 20px;
+        max-width: 80ch;
+      }
+      ul.notes li {
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Quiz bars, before and after</h1>
+      <p>
+        The real quiz screen, before and after. The question and answer buttons are unchanged.
+        The bars around them are rebuilt: every tool has an icon and a word, a 48px target and a
+        springy press. The Challenge questions get the painting window.
+      </p>
+      <div class="controls">
+        <fieldset>
+          <legend>Mode</legend>
+          <label><input type="radio" name="scheme" value="light" checked />Light</label>
+          <label><input type="radio" name="scheme" value="dark" />Dark</label>
+        </fieldset>
+        <fieldset>
+          <legend>Screen</legend>
+          <label><input type="radio" name="flow" value="set" checked />Practice set</label>
+          <label><input type="radio" name="flow" value="daily10" />Daily 10</label>
+          <label><input type="radio" name="flow" value="challenge" />Challenge question</label>
+        </fieldset>
+      </div>
+
+      <h2>Desktop, 1440 wide</h2>
+      <div class="pair" data-size="1440"></div>
+      <h2>iPad, 768 wide</h2>
+      <div class="pair" data-size="768"></div>
+      <h2>Phone, 390 wide</h2>
+      <div class="pair phones" data-size="390"></div>
+
+      <h2>The one open choice: where the tools sit on a phone</h2>
+      <p>
+        Desktop and iPad have room for one bar. On a phone the tools need a row of their own.
+        Both versions below are the real screen.
+      </p>
+      <div class="pair phones" id="variants"></div>
+
+      <h2>What changed</h2>
+      <ul class="notes">
+        <li>Top bar: Exit (it was hidden inside More), the title, the clock with Hide, then Calculator, Highlight, Pencil, Reference (math) and More.</li>
+        <li>Highlight is new in the bar: select words, then tap it, as on Bluebook. With nothing selected it says how.</li>
+        <li>Bottom bar: Back and Next carry chevrons. The navigator dots show a tick for right and a cross for wrong, so it is not colour alone, with "3 of 10" beside them.</li>
+        <li>Every button squeezes when pressed and springs back with a small overshoot. Quick repeat taps never queue.</li>
+        <li>Phones no longer scroll sideways: before, the bar's tools stretched the whole screen and cut off the question.</li>
+        <li>The learn area's floating "Today" pill no longer sits on top of the quiz's bar.</li>
+        <li>Challenge questions: today's painting, finished and still, around the question; a thin strip of it under the bar on phone and iPad. The bars take the painting's hue.</li>
+      </ul>
+    </main>
+    <script>
+      const SHOTS = "../../../docs/overnight/reports/quiz-topbar/";
+      const state = { scheme: "light", flow: "set" };
+      const fig = (src, name, why, pick) => `<figure class="${pick ? "pick" : ""}">
+        <figcaption>${name}${pick ? ' <span class="tag">Pick</span>' : ""}</figcaption>
+        <a href="${src}" target="_blank" rel="noopener"><img src="${src}" alt="${name}" loading="lazy" /></a>
+        ${why ? `<p class="why">${why}</p>` : ""}
+      </figure>`;
+      function render() {
+        for (const grid of document.querySelectorAll(".pair[data-size]")) {
+          const size = grid.dataset.size;
+          const base = `${state.flow}-${size}-${state.scheme}.png`;
+          grid.innerHTML = fig(`${SHOTS}before-${base}`, "Before") + fig(`${SHOTS}after-${base}`, "After");
+        }
+        const s = state.scheme;
+        document.getElementById("variants").innerHTML =
+          fig(`${SHOTS}variant-top-390-${s}.png`, "Tools under the top bar", "Shipped. Like Bluebook: tools at the top, Back and Next at the bottom. The pencil strip and answers keep the bottom clear.", true) +
+          fig(`${SHOTS}variant-top-390-${s}-pencil.png`, "Under the top bar, pencil on", "") +
+          fig(`${SHOTS}variant-thumb-390-${s}.png`, "Tools above Back and Next", "Easier to reach with a thumb, but every tool sits right under the answers.") +
+          fig(`${SHOTS}variant-thumb-390-${s}-pencil.png`, "Above Back and Next, pencil on", "The pencil's strip lands on top of the tools.");
+      }
+      for (const input of document.querySelectorAll("input[type=radio]"))
+        input.addEventListener("change", () => {
+          state[input.name] = input.value;
+          render();
+        });
+      if (matchMedia("(prefers-color-scheme: dark)").matches) {
+        state.scheme = "dark";
+        document.querySelector('input[value="dark"]').checked = true;
+      }
+      render();
+    </script>
+  </body>
+</html>

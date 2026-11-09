@@ -72,12 +72,16 @@ export default [
       "node_modules/**",
       "playwright-report/**",
       "test-results/**",
+      "tmp/**", // gitignored scratch files
+      ".wrangler/**", // local Wrangler state and build output
       "tests/visual/snapshots/**",
       "tests/visual/real-device-captures/**",
       "tests/visual/regression.spec.ts-snapshots/**",
       "dist/**",
       "build/**",
       "scripts/**",
+      "prototypes/**",
+      ".impeccable/**", // design mocks and their helper scripts, not product code
       "supabase/**",
       "*.config.js",
       "*.config.mjs",

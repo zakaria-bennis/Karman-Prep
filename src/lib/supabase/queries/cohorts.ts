@@ -193,18 +193,19 @@ export async function fetchEligibleStudentsForCohort(
 
   if (eligibleUsers.length === 0) return [];
 
-  // Fetch latest active subscription per student to show their paid tier.
+  // Fetch the active renewing plan per student (practice, pro or tutor-affiliate)
+  // to show next to their name. One-time purchases live in plan_grants.
   const clerkIds = eligibleUsers.map((s) => s.clerk_id);
   const { data: subs } = await supabase
     .from("subscriptions")
-    .select("user_id, tier, status")
+    .select("user_id, plan_id, status")
     .in("user_id", clerkIds)
     .in("status", ["active", "trialing"]);
 
   const tierByClerk = new Map<string, string>();
   for (const s of subs ?? []) {
     // Keep first seen — a student shouldn't have multiple active subs.
-    if (!tierByClerk.has(s.user_id)) tierByClerk.set(s.user_id, s.tier);
+    if (!tierByClerk.has(s.user_id)) tierByClerk.set(s.user_id, s.plan_id);
   }
 
   return eligibleUsers.map((s) => ({
@@ -559,12 +560,16 @@ export async function fetchCohortDetail(cohortId: string): Promise<CohortDetail 
   // Normalize joined user rows.
   type RawMember = {
     joined_at: string;
-    user: CohortMemberRow | CohortMemberRow[] | null;
+    user: RawMemberUser | RawMemberUser[] | null;
   };
+  type RawMemberUser = Omit<CohortMemberRow, "user_id" | "joined_at"> & { id: string };
   const members: CohortMemberRow[] = ((membersRes.data ?? []) as unknown as RawMember[]).flatMap(
     (r) => {
       const u = Array.isArray(r.user) ? r.user[0] : r.user;
-      return u ? [{ ...u, joined_at: r.joined_at }] : [];
+      if (!u) return [];
+      // The users join returns `id`; callers key and act on `user_id`.
+      const { id, ...rest } = u;
+      return [{ ...rest, user_id: id, joined_at: r.joined_at }];
     }
   );
 

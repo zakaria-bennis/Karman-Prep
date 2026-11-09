@@ -1,0 +1,38 @@
+/*
+ * The one open choice in the quiz bars, as a mock over the real shell: where the tools sit on
+ * a phone. "top" is what ships (a row under the top bar, like Bluebook's tools at the top).
+ * "thumb" moves that row to just above Back and Next, where a thumb reaches it.
+ */
+.lab-left {
+  padding: 48px 16px;
+  text-align: center;
+  font: 500 16px/1.5 system-ui;
+  color: var(--quiz-text);
+}
+.lab-left a {
+  color: inherit;
+}
+
+html[data-variant="thumb"] [data-layout="compact"] [data-quiz-bar="top"] [role="toolbar"] {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(60px + env(safe-area-inset-bottom));
+  z-index: 4;
+  padding: 4px 8px;
+  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
+  background: var(--quiz-panel);
+}
+html[data-variant="thumb"] [data-layout="compact"] [data-quiz-bar="top"] {
+  padding-bottom: 6px;
+}
+/* The question scrolls clear of the moved row. */
+html[data-variant="thumb"] [data-layout="compact"] [data-quiz-scroll] {
+  padding-bottom: 60px;
+}
+/* The bar's glass blur would make it the fixed row's positioning box; this variant drops it. */
+html[data-variant="thumb"] [data-layout="compact"] [data-quiz-bar="top"] {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--quiz-panel);
+}

@@ -5,28 +5,21 @@
 //
 // Lives at /tutor/earnings/data. Owns:
 //   · Time-range dropdown (URL-driven via ?range=)
-//   · Compact period summary (range-scoped totals)
+//   · Period totals (range-scoped, not lifetime)
+//   · The 12-week earnings chart
 //   · Sessions table filtered by range
-//   · Always-visible analytics chart (12 weeks, the centerpiece)
-//   · Recent payouts list
+//   · Recent payouts table
 //
-// The slim /tutor/earnings page above keeps the lifetime metric
-// cards + the two big CTAs.
+// The slim /tutor/earnings page keeps the lifetime totals and the
+// payout button. The painted shell gives the heading and tabs.
 // ============================================================
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Wallet,
-  Clock,
-  DollarSign,
-  CalendarClock,
-  Mail,
-  AlertCircle,
-  BarChart3,
-  Users as UsersIcon,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { Card, Num, SectionHeader } from "@/components/portal";
+import { WbPill, WbStats, WbTable, type Tone } from "@/components/admin/workbench";
+import { tierLabelOf } from "@/lib/scheduling/tiers";
 import {
   TIME_RANGE_LABELS,
   type TimeRange,
@@ -69,7 +62,7 @@ export default function EarningsDataClient({
   const filteredPending = sessions.filter(
     (x) => x.payout_status === "pending" || x.payout_status === "requested"
   ).length;
-  void summary; // surfaced as period summary below; lifetime stats live on /tutor/earnings
+  void summary; // lifetime stats live on /tutor/earnings
 
   function changeRange(r: TimeRange) {
     startTransition(() => {
@@ -78,23 +71,16 @@ export default function EarningsDataClient({
   }
 
   return (
-    <div className="space-y-8">
-      {/* ── Time-range selector + period summary ─────────── */}
-      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-taupe dark:text-taupe">
-              Time range
-            </div>
-            <div className="mt-1 text-base font-bold text-ivory dark:text-ivory">
-              {TIME_RANGE_LABELS[range]}
-            </div>
-          </div>
+    <div className="wb" style={{ paddingBlock: 0 }}>
+      <Card>
+        <SectionHeader title={TIME_RANGE_LABELS[range]} />
+        <label className="wb-field" style={{ maxWidth: 240, marginBlock: "8px 12px" }}>
+          <span>Time range</span>
           <select
+            className="wb-select"
             value={range}
             disabled={isPending}
             onChange={(e) => changeRange(e.target.value as TimeRange)}
-            className="rounded-md border border-bronze bg-surface px-3 py-2 text-sm text-ivory focus:border-info/40 focus:outline-none dark:border-bronze dark:bg-surface dark:text-ivory"
           >
             {RANGE_ORDER.map((r) => (
               <option key={r} value={r}>
@@ -102,171 +88,142 @@ export default function EarningsDataClient({
               </option>
             ))}
           </select>
-        </div>
+        </label>
+        <WbStats
+          items={[
+            { label: "Sessions", value: sessions.length },
+            { label: "Hours", value: fmtHours(filteredHours) },
+            { label: "Earned", value: fmt.format(filteredAmount) },
+            { label: "Paid / open", value: `${filteredPaid} / ${filteredPending}` },
+          ]}
+        />
+      </Card>
 
-        {/* 4-card period summary (range-scoped totals, NOT lifetime) */}
-        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <PeriodCard
-            icon={<CalendarClock className="h-4 w-4" />}
-            label="Sessions"
-            value={String(sessions.length)}
-          />
-          <PeriodCard
-            icon={<Clock className="h-4 w-4" />}
-            label="Hours"
-            value={fmtHours(filteredHours)}
-          />
-          <PeriodCard
-            icon={<DollarSign className="h-4 w-4" />}
-            label="Earned"
-            value={fmt.format(filteredAmount)}
-            tone="emerald"
-          />
-          <PeriodCard
-            icon={<Wallet className="h-4 w-4" />}
-            label="Status"
-            value={`${filteredPaid} paid · ${filteredPending} open`}
-            tone="slate"
-          />
-        </div>
-      </section>
-
-      {/* ── Always-visible analytics chart ────────────────── */}
-      <section className="rounded-xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/60">
-        <div className="mb-3 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-info" />
-          <h2 className="text-lg font-bold text-ivory dark:text-ivory">Earnings trend</h2>
-          <span className="text-xs text-taupe">last 12 weeks</span>
-        </div>
+      <Card>
+        <SectionHeader title="Last 12 weeks" />
         <WeeklyChart points={weekly} />
-      </section>
+      </Card>
 
-      {/* ── Sessions table ───────────────────────────────── */}
-      <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
-          <CalendarClock className="h-5 w-5 text-taupe" />
-          Sessions in this period
-          <span className="text-xs font-normal text-taupe">({sessions.length})</span>
-        </h2>
+      <Card>
+        <SectionHeader title="Sessions in this range" note={<Num>{sessions.length}</Num>} />
+        <WbTable
+          caption={`Sessions, ${TIME_RANGE_LABELS[range]}`}
+          rows={sessions}
+          rowKey={(s) => s.id}
+          empty={
+            <>
+              <b>No sessions in this range</b>
+              Try a wider range.
+            </>
+          }
+          columns={[
+            { key: "date", label: "Date", cell: (s) => formatDate(s.scheduled_start) },
+            {
+              key: "for",
+              label: "For",
+              cell: (s) => <ForCell session={s} counts={studentSessionCounts} />,
+            },
+            { key: "tier", label: "Plan", cell: (s) => <TierPill tier={s.tier} /> },
+            {
+              key: "hours",
+              label: "Hours",
+              numeric: true,
+              cell: (s) => (s.tutor_hours != null ? fmtHours(s.tutor_hours) : "—"),
+            },
+            {
+              key: "amount",
+              label: "Amount",
+              numeric: true,
+              cell: (s) => (s.payout_amount != null ? fmt.format(s.payout_amount) : "—"),
+            },
+            {
+              key: "recap",
+              label: "Recap",
+              cell: (s) =>
+                s.recap_email_sent ? (
+                  <WbPill tone="ok">Sent</WbPill>
+                ) : (
+                  <WbPill tone="neutral">Not sent</WbPill>
+                ),
+            },
+            {
+              key: "payout",
+              label: "Payout",
+              cell: (s) => <PayoutStatusPill status={s.payout_status} />,
+            },
+          ]}
+        />
+      </Card>
 
-        {sessions.length === 0 ? (
-          <EmptyCard
-            text={`No sessions in this range (${TIME_RANGE_LABELS[range]}). Try a wider window.`}
-          />
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-bronze dark:border-bronze">
-            <table className="w-full text-sm">
-              <thead className="bg-surface dark:bg-surface">
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
-                  <th className="px-4 py-2.5">Date</th>
-                  <th className="px-4 py-2.5">For</th>
-                  <th className="px-4 py-2.5">Tier</th>
-                  <th className="px-4 py-2.5 text-right">Hours</th>
-                  <th className="px-4 py-2.5 text-right">Amount</th>
-                  <th className="px-4 py-2.5">Recap</th>
-                  <th className="px-4 py-2.5">Payout</th>
-                </tr>
-              </thead>
-              <tbody className="bg-surface dark:bg-night">
-                {sessions.map((s) => (
-                  <SessionRow key={s.id} session={s} counts={studentSessionCounts} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      {/* ── Recent payouts ─────────────────────────────── */}
-      <section>
-        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-ivory dark:text-ivory">
-          <Wallet className="h-5 w-5 text-taupe" />
-          Recent payouts ({payouts.length})
-        </h2>
-
-        {payouts.length === 0 ? (
-          <EmptyCard text="No payout requests yet — pending sessions show in the table above." />
-        ) : (
-          <ul className="space-y-2">
-            {payouts.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/60"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <PayoutStatusPill status={p.status} />
-                  <div className="min-w-0">
-                    <div className="font-bold tabular-nums text-ivory dark:text-ivory">
-                      {fmt.format(p.net_amount ?? p.total_amount)}
-                    </div>
-                    <div className="truncate text-xs text-taupe">
-                      {p.booking_count ?? 0} session{p.booking_count === 1 ? "" : "s"} ·{" "}
-                      {fmtHours(p.total_hours)}
-                      {p.payout_method && (
-                        <>
-                          <span className="mx-1.5">·</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-taupe dark:text-taupe">
-                            {p.payout_method === "instant"
-                              ? "Instant"
-                              : p.payout_method === "standard"
-                                ? "ACH"
-                                : p.payout_method}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="shrink-0 text-right text-xs text-taupe">
+      <Card>
+        <SectionHeader title="Recent payouts" note={<Num>{payouts.length}</Num>} />
+        <WbTable
+          caption="Recent payouts"
+          rows={payouts}
+          rowKey={(p) => p.id}
+          empty={
+            <>
+              <b>No payouts yet</b>
+              Sessions waiting to be paid are in the table above.
+            </>
+          }
+          columns={[
+            {
+              key: "amount",
+              label: "Amount",
+              numeric: true,
+              cell: (p) => <strong>{fmt.format(p.net_amount ?? p.total_amount)}</strong>,
+            },
+            {
+              key: "sessions",
+              label: "Sessions",
+              numeric: true,
+              cell: (p) => p.booking_count ?? 0,
+            },
+            { key: "hours", label: "Hours", numeric: true, cell: (p) => fmtHours(p.total_hours) },
+            {
+              key: "method",
+              label: "Method",
+              cell: (p) => (p.payout_method ? methodLabel(p.payout_method) : "—"),
+            },
+            { key: "status", label: "Status", cell: (p) => <PayoutStatusPill status={p.status} /> },
+            {
+              key: "when",
+              label: "When",
+              cell: (p) => (
+                <>
                   Requested {timeSince(p.requested_at)} ago
-                  {p.paid_at && <div className="text-success">Paid {timeSince(p.paid_at)} ago</div>}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                  {p.paid_at && (
+                    <small style={{ display: "block", color: "var(--good)" }}>
+                      Paid {timeSince(p.paid_at)} ago
+                    </small>
+                  )}
+                </>
+              ),
+            },
+          ]}
+        />
+      </Card>
+
+      <p className="wb-note">
+        <Link className="kp-link" href="/tutor/earnings">
+          Back to earnings
+        </Link>
+      </p>
     </div>
   );
 }
 
 // ──────────────────────────────────────────────────────────
-// Components
+// Cells
 // ──────────────────────────────────────────────────────────
-function PeriodCard({
-  icon,
-  label,
-  value,
-  tone = "slate",
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  tone?: "slate" | "emerald";
-}) {
-  const tones = {
-    slate: "bg-surface dark:bg-surface-raised/40 text-ivory dark:text-ivory",
-    emerald: "bg-success/10 dark:bg-success/10 text-success dark:text-success-bright",
-  };
-  return (
-    <div className={cn("rounded-lg px-3 py-2.5", tones[tone])}>
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider opacity-70">
-        {icon}
-        {label}
-      </div>
-      <div className="mt-0.5 text-base font-extrabold tabular-nums sm:text-lg">{value}</div>
-    </div>
-  );
-}
-
-function SessionRow({
+function ForCell({
   session: s,
   counts,
 }: {
   session: TutorEarningsSession;
   counts: Record<string, number>;
 }) {
-  const isGroup = !!s.cohort_id;
   const enrolled = s.enrolled ?? [];
   const nameWithCount = (e: {
     id: string;
@@ -278,162 +235,59 @@ function SessionRow({
     return `${studentDisplay(e)}${n > 1 ? ` (${n})` : ""}`;
   };
 
-  const forCol = isGroup ? (
-    <div>
-      <div className="flex items-center gap-1.5">
-        <UsersIcon className="h-3.5 w-3.5 text-taupe" />
-        <span className="max-w-[18rem] truncate font-medium text-ivory dark:text-ivory">
-          {s.cohort?.name ?? "(cohort missing)"}
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-taupe">
-          {enrolled.length} enrolled
-        </span>
-      </div>
-      {enrolled.length > 0 && (
-        <div className="mt-0.5 max-w-[18rem] truncate text-[11px] text-taupe">
-          {enrolled.slice(0, 3).map(nameWithCount).join(", ")}
-          {enrolled.length > 3 ? ` +${enrolled.length - 3}` : ""}
-        </div>
-      )}
-    </div>
-  ) : (
-    <span className="max-w-[16rem] truncate font-medium text-ivory dark:text-ivory">
-      {enrolled.length > 0 ? nameWithCount(enrolled[0]) : "—"}
-    </span>
-  );
-
-  return (
-    <tr className="border-t border-bronze dark:border-bronze">
-      <td className="whitespace-nowrap px-4 py-2.5 align-top text-ivory dark:text-ivory">
-        {formatDate(s.scheduled_start)}
-      </td>
-      <td className="px-4 py-2.5 align-top">{forCol}</td>
-      <td className="px-4 py-2.5 align-top">
-        <PlanTierBadge tier={s.tier} />
-      </td>
-      <td className="px-4 py-2.5 text-right align-top tabular-nums text-taupe dark:text-taupe">
-        {s.tutor_hours != null ? fmtHours(s.tutor_hours) : "—"}
-      </td>
-      <td className="px-4 py-2.5 text-right align-top font-semibold tabular-nums text-ivory dark:text-ivory">
-        {s.payout_amount != null ? fmt.format(s.payout_amount) : "—"}
-      </td>
-      <td className="px-4 py-2.5 align-top">
-        <RecapPill sent={s.recap_email_sent} />
-      </td>
-      <td className="px-4 py-2.5 align-top">
-        <PayoutStatusPill status={s.payout_status} compact />
-      </td>
-    </tr>
-  );
-}
-
-function PlanTierBadge({ tier }: { tier: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    private: {
-      label: "Private",
-      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
-    },
-    elite: {
-      label: "Elite",
-      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
-    },
-    small_group: {
-      label: "Small Group",
-      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
-    },
-    group: {
-      label: "Seminar",
-      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
-    },
-  };
-  const m = map[tier] ?? {
-    label: tier,
-    cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-ivory",
-  };
-  return (
-    <span
-      className={cn(
-        "inline-block rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-        m.cls
-      )}
-    >
-      {m.label}
-    </span>
-  );
-}
-
-function RecapPill({ sent }: { sent: boolean }) {
-  if (sent) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded bg-success/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success dark:bg-success/15 dark:text-success-bright">
-        <Mail className="h-3 w-3" /> Sent
-      </span>
-    );
+  if (!s.cohort_id) {
+    return <span>{enrolled.length > 0 ? nameWithCount(enrolled[0]) : "—"}</span>;
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded bg-surface px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-taupe dark:bg-surface-raised dark:text-taupe">
-      <AlertCircle className="h-3 w-3" /> Not sent
-    </span>
-  );
-}
-
-function PayoutStatusPill({ status, compact }: { status: string; compact?: boolean }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    not_eligible: {
-      label: "—",
-      cls: "bg-surface dark:bg-surface-raised text-taupe dark:text-taupe",
-    },
-    pending: {
-      label: "Pending",
-      cls: "bg-warning/10 dark:bg-warning/15 text-warning dark:text-warning-bright",
-    },
-    requested: {
-      label: "Requested",
-      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
-    },
-    pending_approval: {
-      label: "Awaiting review",
-      cls: "bg-info/10 dark:bg-info/15 text-info dark:text-info-bright",
-    },
-    approved: {
-      label: "Payment in flight",
-      cls: "bg-gold/10 dark:bg-gold/15 text-gold dark:text-gold-bright",
-    },
-    paid: {
-      label: "Paid",
-      cls: "bg-success/10 dark:bg-success/15 text-success dark:text-success-bright",
-    },
-    cancelled: { label: "Cancelled", cls: "bg-surface dark:bg-surface-raised text-taupe" },
-    failed: {
-      label: "Failed",
-      cls: "bg-error/10 dark:bg-error/15 text-error dark:text-error-bright",
-    },
-  };
-  const m = map[status] ?? { label: status, cls: "bg-surface dark:bg-surface-raised text-taupe" };
-  return (
-    <span
-      className={cn(
-        "inline-block whitespace-nowrap rounded text-[10px] font-bold uppercase tracking-wider",
-        compact ? "px-2 py-0.5" : "px-3 py-1",
-        m.cls
+    <span style={{ display: "block", minWidth: 0 }}>
+      <span style={{ fontWeight: 600 }}>{s.cohort?.name ?? "(cohort missing)"}</span>{" "}
+      <small>{enrolled.length} enrolled</small>
+      {enrolled.length > 0 && (
+        <small style={{ display: "block" }}>
+          {enrolled.slice(0, 3).map(nameWithCount).join(", ")}
+          {enrolled.length > 3 ? ` +${enrolled.length - 3}` : ""}
+        </small>
       )}
-    >
-      {m.label}
     </span>
   );
 }
 
-function EmptyCard({ text }: { text: string }) {
-  return (
-    <div className="rounded-xl border border-dashed border-bronze px-6 py-8 text-center dark:border-bronze">
-      <p className="text-sm text-taupe dark:text-taupe">{text}</p>
-    </div>
-  );
+const TIER_TONES: Record<string, Tone> = {
+  private: "warn",
+  elite: "info",
+  small_group: "ok",
+  group: "info",
+};
+
+function TierPill({ tier }: { tier: string }) {
+  return <WbPill tone={TIER_TONES[tier] ?? "neutral"}>{tierLabelOf(tier)}</WbPill>;
+}
+
+const PAYOUT_STATUS: Record<string, { label: string; tone: Tone }> = {
+  not_eligible: { label: "—", tone: "neutral" },
+  pending: { label: "Pending", tone: "warn" },
+  requested: { label: "Requested", tone: "info" },
+  pending_approval: { label: "Awaiting review", tone: "info" },
+  approved: { label: "Payment in flight", tone: "info" },
+  paid: { label: "Paid", tone: "ok" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
+  failed: { label: "Failed", tone: "fail" },
+};
+
+function PayoutStatusPill({ status }: { status: string }) {
+  const m = PAYOUT_STATUS[status] ?? { label: status, tone: "neutral" as Tone };
+  return <WbPill tone={m.tone}>{m.label}</WbPill>;
+}
+
+function methodLabel(method: string): string {
+  if (method === "instant") return "Instant";
+  if (method === "standard") return "ACH";
+  return method;
 }
 
 // ──────────────────────────────────────────────────────────
 // WeeklyChart — inline SVG bar chart, no chart library.
-// 12 weeks of $earned per week. Hover shows tooltip.
+// 12 weeks of $earned per week. Hover a bar for the week.
 // ──────────────────────────────────────────────────────────
 function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
   const W = 700;
@@ -448,88 +302,66 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
 
   const total = points.reduce((s, p) => s + p.amount, 0);
   const totalHours = points.reduce((s, p) => s + p.hours, 0);
+  const label = { fill: "var(--mute)", fontSize: 10, fontFamily: "var(--font-sans)" };
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-baseline gap-3">
-        <div className="text-xs font-bold uppercase tracking-wider text-taupe">12-week total</div>
-        <div className="text-lg font-extrabold tabular-nums text-ivory dark:text-ivory">
-          {fmt.format(total)}
-        </div>
-        <div className="text-xs text-taupe">· {fmtHours(totalHours)}</div>
-      </div>
+      <p className="kp-meta">
+        <Num>{fmt.format(total)}</Num> over <Num>{fmtHours(totalHours)}</Num>.
+      </p>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label={`Earnings per week for the last ${points.length} weeks`}
+        style={{ display: "block", width: "100%", height: "auto", marginTop: 8 }}
+      >
+        {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
+          const y = PAD.top + innerH - frac * innerH;
+          return (
+            <g key={frac}>
+              <line
+                x1={PAD.left}
+                x2={PAD.left + innerW}
+                y1={y}
+                y2={y}
+                stroke="var(--line)"
+                strokeWidth="1"
+                strokeDasharray={frac === 0 ? "none" : "2,3"}
+              />
+              <text x={PAD.left - 8} y={y + 4} textAnchor="end" style={label}>
+                {fmt.format(frac * niceMax)}
+              </text>
+            </g>
+          );
+        })}
 
-      <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" preserveAspectRatio="none">
-          {/* Y axis grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
-            const y = PAD.top + innerH - frac * innerH;
-            return (
-              <g key={frac}>
-                <line
-                  x1={PAD.left}
-                  x2={PAD.left + innerW}
-                  y1={y}
-                  y2={y}
-                  stroke="currentColor"
-                  className="text-ivory dark:text-ivory"
-                  strokeWidth="1"
-                  strokeDasharray={frac === 0 ? "none" : "2,3"}
-                />
-                <text
-                  x={PAD.left - 8}
-                  y={y + 4}
-                  textAnchor="end"
-                  className="fill-taupe text-[10px]"
-                  fontFamily="system-ui"
-                >
-                  {fmt.format(frac * niceMax)}
+        {points.map((p, i) => {
+          const x = PAD.left + i * barW;
+          const h = (p.amount / niceMax) * innerH;
+          const y = PAD.top + innerH - h;
+          const showLabel = i % 2 === 0 || i === points.length - 1;
+          return (
+            <g key={p.weekStart}>
+              <rect
+                x={x + barW * 0.15}
+                y={y}
+                width={barW * 0.7}
+                height={h}
+                fill={p.amount === 0 ? "var(--line)" : "var(--accent)"}
+                rx="2"
+              >
+                <title>{`Week of ${p.weekStart}: ${fmt.format(p.amount)} · ${fmtHours(p.hours)} · ${p.sessions} session${p.sessions === 1 ? "" : "s"}`}</title>
+              </rect>
+              {showLabel && (
+                <text x={x + barW / 2} y={H - 14} textAnchor="middle" style={label}>
+                  {shortWeek(p.weekStart)}
                 </text>
-              </g>
-            );
-          })}
-
-          {/* Bars */}
-          {points.map((p, i) => {
-            const x = PAD.left + i * barW;
-            const h = (p.amount / niceMax) * innerH;
-            const y = PAD.top + innerH - h;
-            const showLabel = i % 2 === 0 || i === points.length - 1;
-            return (
-              <g key={p.weekStart}>
-                <rect
-                  x={x + barW * 0.15}
-                  y={y}
-                  width={barW * 0.7}
-                  height={h}
-                  className={cn(
-                    "fill-info dark:fill-info",
-                    p.amount === 0 && "fill-ivory dark:fill-ivory"
-                  )}
-                  rx="2"
-                >
-                  <title>{`Week of ${p.weekStart}: ${fmt.format(p.amount)} · ${fmtHours(p.hours)} · ${p.sessions} session${p.sessions === 1 ? "" : "s"}`}</title>
-                </rect>
-                {showLabel && (
-                  <text
-                    x={x + barW / 2}
-                    y={H - 14}
-                    textAnchor="middle"
-                    className="fill-taupe text-[10px]"
-                    fontFamily="system-ui"
-                  >
-                    {shortWeek(p.weekStart)}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-
-      <div className="mt-3 text-xs text-taupe">
-        Hover bars for week details. Bars represent gross earnings (pre-fee).
-      </div>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <p className="wb-note">Each bar is one week, before fees. Hover a bar for the details.</p>
     </div>
   );
 }

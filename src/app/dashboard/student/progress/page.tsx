@@ -1,367 +1,135 @@
-// ============================================================
-// /dashboard/student/progress — student-facing progress hub.
-//
-// Surfaces the diagnostic into the rest of the experience:
-//   · Latest saved diagnostic date and measured domain performance
-//   · Domain breakdown (latest snapshot)
-//   · Weak topics from the latest diagnostic, grouped by domain
-//   · Constellation mastery counter (from learn_node_status)
-//   · CTA to (re)take the diagnostic
-//
-// Server component; one round-trip per data slice.
-// ============================================================
-
+/*
+ * /dashboard/student/progress — how the student is doing and where they stand (founder,
+ * 2026-11-07). Everything visual: one predicted score and its history, skills by level in a
+ * ring, what moved this week, time and effort, personal bests, then streak and rewards at the
+ * bottom. Section scores show only once a source stores them (the diagnostic stores the total).
+ * The old Mastered list and the predicted-SAT chart are folded in here.
+ */
+import { SUB_SKILLS, subSkillTitle } from "@/lib/subskills/taxonomy";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { safeAuth } from "@/lib/auth/dev-auth";
-import { redirect } from "next/navigation";
-import { ArrowRight, BarChart3, Sparkles, AlertCircle, RefreshCcw, TrendingUp } from "lucide-react";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { Panel } from "@/components/portal";
+import StudentPortal, { STUDENT_ROUTES } from "@/components/student-portal/StudentPortal";
+import {
+  BestsCard,
+  MovedCard,
+  RewardsCard,
+  ScoreCard,
+  SkillsCard,
+  TimeCard,
+} from "@/components/student-portal/progress/ProgressCards";
+import { loadStudentContext } from "@/lib/student/context";
+import {
+  monthEffort,
+  personalBests,
+  practiceSets,
+  scoreHistory,
+  dailyEffort,
+  whatMoved,
+  type TrialRun,
+} from "@/lib/student/progress";
+import {
+  loadRunAnswers,
+  loadSkillAnswers,
+  loadStoredLevels,
+  levelsBySubSkill,
+  withStored,
+} from "@/lib/student/skill-levels-server";
+import { summarisePoints, type PointAward } from "@/lib/student/skill-points";
 import { createAdminClient } from "@/lib/supabase/server";
-import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { DOMAIN_LABELS, type SATDomain, type DomainScores } from "@/types";
-import { domainFromSlug, labelFromSlug } from "@/lib/question-bank/taxonomy";
 
 export const metadata: Metadata = { title: "Progress" };
 export const dynamic = "force-dynamic";
 
-// Slug → label and slug → domain are derived from the canonical
-// taxonomy in `lib/question-bank/taxonomy.ts` (which is itself
-// derived from `data/curriculum.ts`). Keeping the source of truth
-// in one place means a topic rename only needs editing curriculum.ts.
-const topicLabel = labelFromSlug;
+/** The diagnostic: where a first predicted score comes from. */
+const DIAGNOSTIC_HREF = "/learn/diagnostic";
 
-function domainHeatColor(score: number): string {
-  if (score >= 70) return "var(--status-success)";
-  if (score >= 50) return "var(--status-warning)";
-  return "var(--status-error)";
-}
+type DiagnosticRow = { taken_at: string; score_range_low: number; score_range_high: number };
+type AwardRow = { award_key: string; skill_id: string | null; points: number; created_at: string };
 
-interface DiagnosticRow {
-  id: string;
-  taken_at: string;
-  score_range_low: number;
-  score_range_high: number;
-  domain_scores: DomainScores;
-  weak_concepts: string[] | null;
+/** Every point award, a page at a time (the API returns at most 1,000 rows per call). */
+async function loadAwards(db: SupabaseClient, clerkId: string): Promise<PointAward[]> {
+  const out: PointAward[] = [];
+  for (let page = 0; page < 20; page++) {
+    const { data, error } = await db
+      .from("student_point_awards")
+      .select("award_key, skill_id, points, created_at")
+      .eq("student_id", clerkId)
+      .order("award_key", { ascending: true })
+      .range(page * 1000, page * 1000 + 999);
+    if (error || !data) break;
+    for (const r of data as AwardRow[]) {
+      out.push({
+        awardKey: r.award_key,
+        skillId: r.skill_id,
+        points: r.points,
+        createdAt: r.created_at,
+      });
+    }
+    if (data.length < 1000) break;
+  }
+  return out;
 }
 
 export default async function StudentProgressPage() {
-  const { userId: realUserId } = await safeAuth();
-  if (!realUserId) redirect("/auth/sign-in");
-  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
+  const ctx = await loadStudentContext();
+  const db = createAdminClient() as unknown as SupabaseClient;
+  const nowMs = Date.now();
 
-  const supabase = createAdminClient();
-
-  // Resolve internal user id
-  const { data: user } = await supabase
-    .from("users")
-    .select("id, diagnostic_retakes_remaining")
-    .eq("clerk_id", userId)
-    .maybeSingle();
-  const internalId = (user as { id?: string } | null)?.id ?? null;
-  const retakesRemaining =
-    (user as { diagnostic_retakes_remaining?: number } | null)?.diagnostic_retakes_remaining ?? 0;
-
-  // Diagnostics (newest first; we use [0] = latest, [last] = first)
-  let diagnostics: DiagnosticRow[] = [];
-  if (internalId) {
-    const { data } = await supabase
+  const [answers, runAnswers, stored, diagnostics, trials, awards] = await Promise.all([
+    loadSkillAnswers(ctx.clerkId),
+    loadRunAnswers(ctx.clerkId),
+    loadStoredLevels(ctx.clerkId, nowMs),
+    db
       .from("diagnostic_results")
-      .select("id, taken_at, score_range_low, score_range_high, domain_scores, weak_concepts")
-      .eq("user_id", internalId)
-      .order("taken_at", { ascending: false });
-    diagnostics = (data as DiagnosticRow[] | null) ?? [];
-  }
+      .select("taken_at, score_range_low, score_range_high")
+      .eq("user_id", ctx.userId)
+      .order("taken_at", { ascending: true })
+      .limit(100),
+    db
+      .from("time_trial_runs")
+      .select("beat, finished, elapsed_seconds, section")
+      .eq("student_id", ctx.clerkId)
+      .limit(1000),
+    loadAwards(db, ctx.clerkId),
+  ]);
 
-  const latest = diagnostics[0] ?? null;
+  const history = scoreHistory((diagnostics.data ?? []) as DiagnosticRow[]);
+  // Effort and bests count every answer: catalog practice and the quiz flows' runs.
+  const time = (at: string | number) => (typeof at === "number" ? at : Date.parse(at));
+  const everyAnswer = [...answers, ...runAnswers].sort((a, b) => time(a.at) - time(b.at));
+  // Levels and moves are per sub-skill (founder, 2026-11-08).
+  const levels = withStored(levelsBySubSkill(everyAnswer, nowMs), stored);
+  const skillLevels = SUB_SKILLS.map((s) => levels.get(s.id) ?? 0);
+  const labels = new Map(SUB_SKILLS.map((s) => [s.id, subSkillTitle(s.id) ?? s.label]));
+  const moves = whatMoved(
+    everyAnswer.map((a) => ({ ...a, skillId: a.subSkillId })),
+    labels,
+    nowMs
+  );
+  const days = dailyEffort(everyAnswer, nowMs);
+  const month = monthEffort(everyAnswer, nowMs);
+  const bests = personalBests({
+    sets: practiceSets(everyAnswer),
+    trials: (trials.data ?? []) as TrialRun[],
+  });
+  const tokens = summarisePoints(awards, nowMs).total;
 
-  // Mastery counter — keyed by Clerk userId per learn_node_status convention.
-  const { data: masteryRows } = await supabase
-    .from("learn_node_status")
-    .select("status")
-    .eq("user_id", userId);
-  const masteryRowsTyped = (masteryRows ?? []) as Array<{ status: string }>;
-  const masteredCount = masteryRowsTyped.filter((r) => r.status === "mastered").length;
-  const inProgressCount = masteryRowsTyped.filter((r) => r.status === "in_progress").length;
-
-  // Group weak topics by domain for the breakdown card
-  const weakByDomain: Record<SATDomain, string[]> = {
-    algebra: [],
-    advanced_math: [],
-    geometry: [],
-    data_analysis: [],
-    info_ideas: [],
-    craft_structure: [],
-    expression_ideas: [],
-    conventions: [],
-  };
-  if (latest?.weak_concepts) {
-    for (const slug of latest.weak_concepts) {
-      const dom = domainFromSlug(slug);
-      if (!dom) continue;
-      weakByDomain[dom].push(slug);
-    }
-  }
+  const side = (
+    <>
+      <TimeCard days={days} questions={month.questions} paceSeconds={month.paceSeconds} />
+      {bests.length > 0 && <BestsCard bests={bests} />}
+      <RewardsCard current={ctx.streak.current} longest={ctx.streak.longest} tokens={tokens} />
+    </>
+  );
 
   return (
-    <DashboardLayout>
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-        <header className="mb-6">
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Progress</p>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ivory dark:text-ivory">
-            <BarChart3 className="h-6 w-6 text-taupe" />
-            Your progress
-          </h1>
-          <p className="mt-1 text-sm text-taupe dark:text-taupe">
-            See your saved diagnostic breakdown, practice focus areas, and earlier lesson progress.
-          </p>
-        </header>
-
-        {!latest ? (
-          <EmptyState />
-        ) : (
-          <div className="space-y-6">
-            {/* ─── Top row: saved diagnostic + earlier-lesson mastery ──────────── */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <DiagnosticSnapshotCard takenAt={latest.taken_at} count={diagnostics.length} />
-              <CounterCard
-                icon={<Sparkles className="h-4 w-4" />}
-                label="Earlier lessons marked mastered"
-                value={masteredCount}
-                hint={inProgressCount > 0 ? `${inProgressCount} in progress` : "Keep going"}
-              />
-            </div>
-
-            {/* ─── Domain breakdown ──────────────────────────── */}
-            <DomainBreakdown scores={latest.domain_scores} />
-
-            {/* ─── Weak topics ───────────────────────────────── */}
-            <WeakTopics weakByDomain={weakByDomain} />
-            {/* Re-take CTA — only visible when the admin has granted
-                a retake. Each click consumes one grant on submit. */}
-            {retakesRemaining > 0 ? <RetakeCta /> : null}
-          </div>
-        )}
-      </div>
-    </DashboardLayout>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Subcomponents
-// ─────────────────────────────────────────────────────────────
-
-function EmptyState() {
-  return (
-    <div className="rounded-2xl border border-dashed border-bronze px-8 py-12 text-center dark:border-bronze">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-info to-gold">
-        <TrendingUp className="h-7 w-7 text-ivory" />
-      </div>
-      <h2 className="text-lg font-bold text-ivory dark:text-ivory">No diagnostic on file yet</h2>
-      <p className="mx-auto mt-1 max-w-md text-sm text-taupe dark:text-taupe">
-        Take the 35-question diagnostic to see performance on the domains it samples and topics to
-        practice next. It does not predict an official SAT score.
-      </p>
-      <Link
-        href="/diagnostic"
-        className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-info to-gold px-4 py-2 text-sm font-semibold text-ivory shadow-[0_4px_14px_rgba(59,130,246,0.35)] hover:from-info hover:to-gold"
-      >
-        Take the diagnostic
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-    </div>
-  );
-}
-
-function DiagnosticSnapshotCard({ takenAt, count }: { takenAt: string; count: number }) {
-  return (
-    <section className="rounded-2xl border border-bronze/40 bg-surface p-6">
-      <h2 className="text-sm font-medium text-taupe">Latest diagnostic snapshot</h2>
-      <p className="mt-3 text-2xl font-semibold text-ivory">Taken {formatDaysAgo(takenAt)}</p>
-      <p className="mt-3 text-sm leading-6 text-taupe">
-        {count} saved {count === 1 ? "diagnostic" : "diagnostics"}. The domain breakdown below
-        describes sampled practice performance, not an official SAT score or prediction.
-      </p>
-    </section>
-  );
-}
-
-function CounterCard({
-  icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  hint: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
-      <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
-        <span className="text-info dark:text-info">{icon}</span>
-        {label}
-      </p>
-      <p className="text-3xl font-extrabold text-ivory dark:text-ivory">{value}</p>
-      <p className="mt-2 text-[11px] text-taupe dark:text-taupe">{hint}</p>
-    </div>
-  );
-}
-
-const MATH_DOMAINS: SATDomain[] = ["algebra", "advanced_math", "geometry", "data_analysis"];
-const RW_DOMAINS: SATDomain[] = [
-  "info_ideas",
-  "craft_structure",
-  "expression_ideas",
-  "conventions",
-];
-
-function DomainBreakdown({ scores }: { scores: DomainScores }) {
-  return (
-    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
-      <h2 className="mb-4 flex items-center gap-2 font-bold text-ivory dark:text-ivory">
-        Domain breakdown
-        <span className="text-xs font-normal text-taupe">(latest diagnostic)</span>
-      </h2>
-
-      <DomainSubsection title="Math" domains={MATH_DOMAINS} scores={scores} />
-      <div className="mt-5 border-t border-bronze pt-5 dark:border-bronze">
-        <DomainSubsection title="Reading & Writing" domains={RW_DOMAINS} scores={scores} />
-      </div>
-    </div>
-  );
-}
-
-function DomainSubsection({
-  title,
-  domains,
-  scores,
-}: {
-  title: string;
-  domains: SATDomain[];
-  scores: DomainScores;
-}) {
-  const entries = domains
-    .map((d) => [d, scores[d] ?? 0] as [SATDomain, number])
-    .sort((a, b) => a[1] - b[1]);
-  return (
-    <div>
-      <p className="mb-3 text-xs font-bold uppercase tracking-wide text-taupe dark:text-taupe">
-        {title}
-      </p>
-      <div className="space-y-3">
-        {entries.map(([domain, score]) => (
-          <div key={domain}>
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-sm font-medium text-ivory dark:text-ivory">
-                {DOMAIN_LABELS[domain]}
-              </span>
-              <span className="text-sm font-bold" style={{ color: domainHeatColor(score) }}>
-                {score}%
-              </span>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-surface dark:bg-surface-raised">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${score}%`, backgroundColor: domainHeatColor(score) }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function WeakTopics({ weakByDomain }: { weakByDomain: Record<SATDomain, string[]> }) {
-  const domains = (Object.keys(weakByDomain) as SATDomain[]).filter(
-    (d) => weakByDomain[d].length > 0
-  );
-  if (domains.length === 0) {
-    return (
-      <div className="rounded-2xl border border-success/40 bg-success/10 px-5 py-4 dark:border-success/40 dark:bg-success/10">
-        <p className="inline-flex items-center gap-1.5 text-sm font-bold text-success dark:text-success-bright">
-          <Sparkles className="h-4 w-4" />
-          No weak topics flagged
-        </p>
-        <p className="mt-1 text-xs text-success/80 dark:text-success-bright/80">
-          No weak topics are recorded for your latest diagnostic. Continue practicing to build on
-          your progress.
-        </p>
-      </div>
-    );
-  }
-  return (
-    <div className="rounded-2xl border border-bronze bg-surface p-5 dark:border-bronze dark:bg-surface/40">
-      <h2 className="mb-3 inline-flex items-center gap-2 font-bold text-ivory dark:text-ivory">
-        <AlertCircle className="h-4 w-4 text-warning" />
-        Topics to focus on
-      </h2>
-      <p className="mb-4 text-xs text-taupe dark:text-taupe">
-        Pulled from the topics you missed on your latest diagnostic, grouped by domain.
-      </p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {domains.map((d) => (
-          <div
-            key={d}
-            className="rounded-xl border border-bronze bg-surface px-4 py-3 dark:border-bronze dark:bg-surface/60"
-          >
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe dark:text-taupe">
-              {DOMAIN_LABELS[d]}
-            </p>
-            <ul className="space-y-1">
-              {weakByDomain[d].map((slug) => (
-                <li
-                  key={slug}
-                  className="flex items-center gap-1.5 text-sm text-ivory dark:text-ivory"
-                >
-                  <span className="h-1 w-1 rounded-full bg-warning" />
-                  {topicLabel(slug)}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function formatDaysAgo(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffDay = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-  if (diffDay === 0) return "today";
-  if (diffDay === 1) return "yesterday";
-  if (diffDay < 30) return `${diffDay} days ago`;
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(d);
-}
-
-// ─── Retake CTA ─────────────────────────────────────────────
-// Visible only when admin has granted a retake (users.diagnostic_retakes_remaining > 0).
-function RetakeCta() {
-  return (
-    <div className="mt-6 rounded-xl border border-success/40 bg-success/10 px-5 py-4 dark:border-success/30 dark:bg-success/10">
-      <p className="text-sm font-semibold text-success dark:text-success-bright">
-        A diagnostic retake is available
-      </p>
-      <p className="mt-0.5 text-xs text-success/80 dark:text-success-bright/80">
-        Your admin granted a retake so you can benchmark your progress. Submitting will add a fresh
-        diagnostic_results row alongside your prior one &mdash; both show up on your trend chart.
-      </p>
-      <Link
-        href="/diagnostic"
-        className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-success px-3 py-1.5 text-xs font-semibold text-night hover:bg-success-bright"
-      >
-        <RefreshCcw className="h-3.5 w-3.5" /> Retake diagnostic
-      </Link>
-    </div>
+    <StudentPortal ctx={ctx} title="Progress">
+      <Panel side={side} label="Your progress">
+        <ScoreCard history={history} testHref={DIAGNOSTIC_HREF} />
+        <SkillsCard levels={skillLevels} href={STUDENT_ROUTES.library} />
+        <MovedCard moves={moves} />
+      </Panel>
+    </StudentPortal>
   );
 }

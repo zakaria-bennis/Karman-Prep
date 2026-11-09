@@ -75,11 +75,11 @@ export default function HistoryPane({ questionId, history }: Props) {
 
   if (history.length === 0) {
     return (
-      <div className="rounded-xl border border-bronze bg-surface/40 p-5">
-        <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-ivory">
-          <Clock className="h-4 w-4 text-taupe" /> Edit history
+      <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+        <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+          <Clock className="h-4 w-4 text-[color:var(--mute)]" /> Edit history
         </div>
-        <p className="text-xs text-taupe">
+        <p className="text-xs text-[color:var(--mute)]">
           No edits yet. Once you save changes in edit mode, snapshots appear here with a one-click
           Restore.
         </p>
@@ -88,12 +88,12 @@ export default function HistoryPane({ questionId, history }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40 p-5">
-      <div className="mb-3 flex items-center justify-between border-b border-bronze pb-2">
-        <div className="flex items-center gap-2 text-sm font-semibold text-ivory">
-          <Clock className="h-4 w-4 text-taupe" /> Edit history
+    <div className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
+      <div className="mb-3 flex items-center justify-between border-b border-[color:var(--line)] pb-2">
+        <div className="flex items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+          <Clock className="h-4 w-4 text-[color:var(--mute)]" /> Edit history
         </div>
-        <span className="text-[10px] uppercase tracking-wider text-taupe">
+        <span className="text-[10px] uppercase tracking-wider text-[color:var(--mute)]">
           {history.length} entr{history.length === 1 ? "y" : "ies"}
         </span>
       </div>
@@ -103,8 +103,8 @@ export default function HistoryPane({ questionId, history }: Props) {
           className={cn(
             "mb-3 rounded-lg border px-3 py-2 text-xs",
             feedback.kind === "success"
-              ? "border-success/40 bg-success/[0.06] text-success-bright"
-              : "border-error/40 bg-error/[0.06] text-error-bright"
+              ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_6%,transparent)] text-[color:var(--good)]"
+              : "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_6%,transparent)] text-[color:var(--late)]"
           )}
         >
           {feedback.message}
@@ -117,12 +117,12 @@ export default function HistoryPane({ questionId, history }: Props) {
           return (
             <li
               key={entry.id}
-              className="rounded-lg border border-bronze bg-night/40 px-3 py-2 text-xs"
+              className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_40%,transparent)] px-3 py-2 text-xs"
             >
               <div className="flex items-start gap-2">
                 <button
                   onClick={() => toggle(entry.id)}
-                  className="mt-0.5 shrink-0 rounded p-0.5 text-taupe hover:bg-surface-raised hover:text-ivory"
+                  className="mt-0.5 shrink-0 rounded p-0.5 text-[color:var(--mute)] hover:bg-[color:var(--raised)] hover:text-[color:var(--ink)]"
                   aria-label={isExpanded ? "Collapse details" : "Expand details"}
                 >
                   {isExpanded ? (
@@ -132,28 +132,30 @@ export default function HistoryPane({ questionId, history }: Props) {
                   )}
                 </button>
                 <div className="flex-1">
-                  <div className="text-ivory">
+                  <div className="text-[color:var(--ink)]">
                     {new Date(entry.created_at).toLocaleString()}{" "}
-                    <span className="text-taupe">·</span>{" "}
-                    <span className="text-taupe">{entry.edit_source}</span>
+                    <span className="text-[color:var(--mute)]">·</span>{" "}
+                    <span className="text-[color:var(--mute)]">{entry.edit_source}</span>
                   </div>
-                  <div className="mt-0.5 text-taupe">
+                  <div className="mt-0.5 text-[color:var(--mute)]">
                     Changed:{" "}
                     {entry.changed_fields.length > 0 ? (
-                      <code className="text-ivory">{entry.changed_fields.join(", ")}</code>
+                      <code className="text-[color:var(--ink)]">
+                        {entry.changed_fields.join(", ")}
+                      </code>
                     ) : (
                       <span className="italic">no fields</span>
                     )}
                   </div>
                   {entry.edit_note && (
-                    <div className="mt-0.5 italic text-taupe">{entry.edit_note}</div>
+                    <div className="mt-0.5 italic text-[color:var(--mute)]">{entry.edit_note}</div>
                   )}
                 </div>
                 <button
                   onClick={() => restore(entry)}
                   disabled={restoringId !== null}
                   title="Restore to this state"
-                  className="inline-flex items-center gap-1 rounded-md border border-bronze px-2 py-1 text-[10px] font-semibold text-ivory hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center gap-1 rounded-md border border-[color:var(--line)] px-2 py-1 text-[10px] font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {restoringId === entry.id ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -165,23 +167,26 @@ export default function HistoryPane({ questionId, history }: Props) {
               </div>
 
               {isExpanded && (
-                <div className="mt-2 space-y-2 border-t border-bronze pt-2">
+                <div className="mt-2 space-y-2 border-t border-[color:var(--line)] pt-2">
                   {entry.changed_fields.map((field) => {
                     const beforeVal = formatValue(entry.before_state[field]);
                     const afterVal = formatValue(entry.after_state[field]);
                     return (
-                      <div key={field} className="rounded bg-night/60 p-2">
-                        <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
+                      <div
+                        key={field}
+                        className="rounded bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] p-2"
+                      >
+                        <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--mute)]">
                           {field}
                         </div>
                         <div className="grid grid-cols-2 gap-2 font-mono text-[10px]">
-                          <div className="rounded border border-error/20 bg-error/[0.04] p-1.5 text-error-bright">
+                          <div className="rounded border border-[color-mix(in_srgb,var(--late)_20%,transparent)] bg-[color-mix(in_srgb,var(--late)_4%,transparent)] p-1.5 text-[color:var(--late)]">
                             <div className="mb-1 text-[9px] uppercase opacity-60">before</div>
                             <div className="line-clamp-4 whitespace-pre-wrap break-words">
                               {beforeVal}
                             </div>
                           </div>
-                          <div className="rounded border border-success/20 bg-success/[0.04] p-1.5 text-success-bright">
+                          <div className="rounded border border-[color-mix(in_srgb,var(--good)_20%,transparent)] bg-[color-mix(in_srgb,var(--good)_4%,transparent)] p-1.5 text-[color:var(--good)]">
                             <div className="mb-1 text-[9px] uppercase opacity-60">after</div>
                             <div className="line-clamp-4 whitespace-pre-wrap break-words">
                               {afterVal}

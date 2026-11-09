@@ -1,0 +1,72 @@
+/* Form parts for the tutor affiliate screens, on the painted shell's variables
+   (so light and dark follow the device, like the rest of the shell). */
+.ka-stack {
+  display: grid;
+  gap: 14px;
+}
+.ka-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.ka-field small {
+  font-weight: 400;
+  color: var(--mute);
+}
+.ka-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: 400 16px/22px var(--font-sans);
+}
+.ka-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ka-code {
+  font-family: var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+.ka-textbtn {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 4px;
+}
+.ka-textbtn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.ka-status {
+  margin: 0;
+  color: var(--mute);
+}
+.ka-status[data-tone="error"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.ka-pair {
+  display: grid;
+  gap: 14px;
+}
+@media (min-width: 640px) {
+  .ka-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+}

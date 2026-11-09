@@ -6,12 +6,9 @@ import type { MrrSnapshot } from "../_types";
 export function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
   if (snapshots.length < 2) {
     return (
-      <div className="py-12 text-center text-xs text-taupe">
-        Need at least 2 snapshots to draw a trend.
-        <br />
-        <span className="text-taupe">
-          Hit &ldquo;Snapshot now&rdquo; to capture today&apos;s MRR.
-        </span>
+      <div className="wb-empty">
+        <b>Need at least 2 snapshots to draw a trend.</b>
+        Press &ldquo;Snapshot now&rdquo; to capture today&apos;s MRR.
       </div>
     );
   }
@@ -31,26 +28,34 @@ export function MrrSparkline({ snapshots }: { snapshots: MrrSnapshot[] }) {
   const last = snapshots[snapshots.length - 1];
   return (
     <div>
-      <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="spark-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8BA86A" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#8BA86A" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <path d={area} fill="url(#spark-area)" />
-        <path d={path} stroke="#A6C486" strokeWidth={1.5} fill="none" />
+      <svg
+        width="100%"
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={`MRR from ${fmtMoney(snapshots[0].mrr)} to ${fmtMoney(last.mrr)}`}
+        style={{ display: "block" }}
+      >
+        <path d={area} style={{ fill: "color-mix(in srgb, var(--good) 14%, transparent)" }} />
+        <path
+          d={path}
+          strokeWidth={1.5}
+          vectorEffect="non-scaling-stroke"
+          style={{ fill: "none", stroke: "var(--good)" }}
+        />
         {snapshots.map((s, i) => (
-          <circle key={i} cx={xScale(i)} cy={yScale(s.mrr)} r={2.5} fill="#A6C486">
+          <circle key={i} cx={xScale(i)} cy={yScale(s.mrr)} r={2.5} style={{ fill: "var(--good)" }}>
             <title>{`${new Date(s.capturedAt).toLocaleDateString()} — ${fmtMoney(s.mrr)}`}</title>
           </circle>
         ))}
       </svg>
-      <div className="mt-2 flex items-center justify-between text-[10px] text-taupe">
+      <div
+        className="wb-note"
+        style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 6 }}
+      >
         <span>{new Date(snapshots[0].capturedAt).toLocaleDateString()}</span>
         <span>
-          Latest:{" "}
-          <span className="font-semibold tabular-nums text-ivory">{fmtMoney(last.mrr)}</span>
+          Latest: <b style={{ color: "var(--ink)" }}>{fmtMoney(last.mrr)}</b>
         </span>
         <span>{new Date(last.capturedAt).toLocaleDateString()}</span>
       </div>

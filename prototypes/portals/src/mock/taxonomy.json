@@ -1,0 +1,92 @@
+{
+  "note": "Verbatim copy of src/data/curriculum/approved-skill-taxonomy.json (schema_version 1) made 2026-10-31 so the package imports nothing across its boundary. Ids follow src/data/curriculum/skill-catalog.ts: rw-skill-<slug> and ma-skill-<slug>.",
+  "domains": [
+    {
+      "section": "Reading and Writing",
+      "label": "Information and Ideas",
+      "skills": [
+        "Central Ideas and Details",
+        "Command of Evidence",
+        "Inferences"
+      ]
+    },
+    {
+      "section": "Reading and Writing",
+      "label": "Craft and Structure",
+      "skills": [
+        "Words in Context",
+        "Text Structure and Purpose",
+        "Cross-Text Connections"
+      ]
+    },
+    {
+      "section": "Reading and Writing",
+      "label": "Expression of Ideas",
+      "skills": [
+        "Rhetorical Synthesis",
+        "Transitions"
+      ]
+    },
+    {
+      "section": "Reading and Writing",
+      "label": "Standard English Conventions",
+      "skills": [
+        "Sentence boundaries and joining independent clauses",
+        "Joining main and dependent clauses",
+        "Essential versus nonessential information including names and titles",
+        "Colons and dashes introducing explanations or lists",
+        "Lists and series",
+        "Unnecessary punctuation within a sentence",
+        "Subject-verb agreement",
+        "Pronoun-antecedent agreement",
+        "Finite versus nonfinite verb forms",
+        "Verb tense and aspect",
+        "Modifier placement",
+        "Plurals possessives and contractions"
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Algebra",
+      "skills": [
+        "Linear equations in one variable",
+        "Linear equations in two variables",
+        "Linear functions",
+        "Systems of two linear equations in two variables",
+        "Linear inequalities in one or two variables"
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Advanced Math",
+      "skills": [
+        "Equivalent expressions",
+        "Nonlinear equations in one variable and systems of equations in two variables",
+        "Nonlinear functions"
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Problem-Solving and Data Analysis",
+      "skills": [
+        "Ratios rates proportional relationships and units",
+        "Percentages",
+        "One-variable data: distributions and measures of center and spread",
+        "Two-variable data: models and scatterplots",
+        "Probability and conditional probability",
+        "Inference from sample statistics and margin of error",
+        "Evaluating statistical claims: observational studies and experiments"
+      ]
+    },
+    {
+      "section": "Math",
+      "label": "Geometry and Trigonometry",
+      "skills": [
+        "Area and volume",
+        "Lines angles and triangles",
+        "Right triangles and trigonometry",
+        "Circles"
+      ]
+    }
+  ]
+}

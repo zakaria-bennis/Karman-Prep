@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CatalogSkill } from "@/data/curriculum/skill-catalog";
 import {
   actionStartCatalogPractice,
@@ -18,18 +18,17 @@ import {
   type CatalogSavedReview,
 } from "@/lib/catalog-practice/student-entry";
 import MathText from "../MathText";
-import Scratchpad from "../Scratchpad";
-import { AnnotationProvider } from "../quiz/PassageAnnotations";
-import { CalculatorScope, CalculatorTrigger } from "@/components/calculator/CalculatorScope";
-import { makeQuestionKey } from "@/components/calculator/question-key";
-import { LEARN_HEADER_CLEARANCE } from "@/components/learn/learn-header";
-import { QuizMenu } from "../quiz/QuizMenu";
-import { PracticeTimer, HighlightTool } from "../quiz/QuizTools";
-import { CatalogStudyTools } from "./CatalogStudyTools";
-import { QuestionTransition } from "../quiz/QuizTools";
-import CatalogQuestion from "./CatalogQuestion";
+import { modeFor } from "@/lib/quiz/mode";
+import { clearWorkspaces } from "@/lib/quiz/workspace";
+import {
+  actionFlagForTutor,
+  actionQuizStudentState,
+  actionReportProblem,
+  actionSetBookmark,
+} from "@/app/learn/saved-question-actions";
+import { QuizShell } from "../quiz-shell/QuizShell";
 import CatalogPoolPreview from "./CatalogPoolPreview";
-import type { StudentQuizQuestion } from "@/types/quiz";
+import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 
 export default function CatalogPractice({
   skill,
@@ -47,28 +46,30 @@ export default function CatalogPractice({
   availableQuestions?: StudentQuizQuestion[];
 }) {
   const router = useRouter();
-  const shellRef = useRef<HTMLDivElement>(null);
-  const [calculatorOpen, setCalculatorOpen] = useState(false);
-  const [scratchpadOpen, setScratchpadOpen] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
-  const previewQuestion =
-    availableQuestions?.[Math.min(previewIndex, availableQuestions.length - 1)];
   const [session, setSession] = useState(initialSession);
-  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
-  const [seen, setSeen] = useState<StudentQuizQuestion[]>(
-    initialSession?.question ? [initialSession.question] : []
+  // Questions by their position in the session; positions answered before a resume stay empty.
+  const [seen, setSeen] = useState<(StudentQuizQuestion | undefined)[]>(() =>
+    placed([], initialSession)
   );
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
-  const shownQuestion = reviewIndex === null ? session?.question : seen[reviewIndex];
-  const oldReview = shownQuestion
-    ? session?.reviews.find((r) => r.questionId === shownQuestion.id)
-    : null;
-  const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<CatalogSavedReview | null>(null);
   const [error, setError] = useState(initialError);
   const [pending, setPending] = useState(false);
+  const [student, setStudent] = useState<{
+    hasTutor: boolean;
+    saved: Record<string, "bookmark" | "tutor_flag">;
+  }>({ hasTutor: false, saved: {} });
   const busy = useRef(false);
   const startedAt = useRef(Date.now());
+
+  const ids = seen.flatMap((q) => (q ? [q.id] : [])).join(",");
+  useEffect(() => {
+    if (!ids) return;
+    actionQuizStudentState({ questionIds: ids.split(",") })
+      .then(setStudent)
+      .catch(() => undefined);
+  }, [ids]);
 
   async function run(action: () => Promise<void>) {
     if (busy.current) return;
@@ -93,11 +94,7 @@ export default function CatalogPractice({
     }
     setSession(next);
     setReviewIndex(null);
-    if (next.question)
-      setSeen((old) =>
-        old.some((q) => q.id === next.question!.id) ? old : [...old, next.question!]
-      );
-    setAnswer("");
+    setSeen((old) => placed(old, next));
     setFeedback(null);
     startedAt.current = Date.now();
   }
@@ -116,8 +113,9 @@ export default function CatalogPractice({
     });
   }
 
-  function submit() {
-    if (!session?.question || !answer.trim() || feedback) return;
+  function submit(questionId: string, answer: string) {
+    if (!session?.question || session.question.id !== questionId || !answer.trim() || feedback)
+      return;
     const current = session.question;
     return run(async () => {
       const saved = await actionSubmitCatalogPractice({
@@ -131,7 +129,6 @@ export default function CatalogPractice({
       });
       if (saved.questionId !== current.id) throw new Error("Practice session is unavailable");
       // Use the server's saved first response even after a retry or another open tab.
-      setAnswer(saved.studentAnswer);
       setFeedback(saved);
     });
   }
@@ -141,270 +138,162 @@ export default function CatalogPractice({
     return run(async () => {
       const resumed = await actionResumeCatalogPractice(session.id);
       requireEntrySkill(resumed, skill.id);
-      accept(
-        !resumed.question && !resumed.completedAt
-          ? await actionCompleteCatalogPractice(session.id)
-          : resumed
-      );
+      if (!resumed.question && !resumed.completedAt) {
+        const done = await actionCompleteCatalogPractice(session.id);
+        clearWorkspaces(session.id);
+        accept(done);
+      } else accept(resumed);
     });
   }
 
-  const questionKey = makeQuestionKey(
-    session?.id ?? "preview",
-    String(shownQuestion?.id ?? previewQuestion?.id)
+  const reviews: Record<string, StudentQuizReview> = {};
+  for (const r of session?.reviews ?? []) reviews[r.questionId] = r;
+  if (feedback) reviews[feedback.questionId] = feedback;
+  const position = session ? Math.min(session.answered, session.total - 1) : 0;
+  const currentIndex = session?.question ? session.answered : position;
+  const errorBox = error && (
+    <p role="alert" className="mb-6 rounded-xl border border-error p-4 text-sm leading-relaxed">
+      {error}
+    </p>
   );
+
+  if (session && !session.completedAt && seen.some(Boolean) && (session.question || feedback))
+    return (
+      <QuizShell
+        mode={modeFor("catalog", { hasTutor: student.hasTutor })}
+        questions={seen as StudentQuizQuestion[]}
+        total={session.total}
+        attemptKey={session.id}
+        index={reviewIndex ?? currentIndex}
+        section={skill.subject === "reading" ? "Reading and Writing" : "Math"}
+        topic={skill.label}
+        reviews={reviews}
+        saved={student.saved}
+        hasCalculator={skill.subject === "math"}
+        onNavigate={(i) => {
+          if (i > currentIndex) return void next();
+          setReviewIndex(i === currentIndex ? null : i);
+        }}
+        onSubmit={(id, answer) => submit(id, answer)}
+        onFinish={() => void next()}
+        onExit={() => router.push(`/learn/${skill.subject}`)}
+        onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
+        onFlagForTutor={(id, note) =>
+          actionFlagForTutor({ questionId: id, nodeId: skill.id, note: note || null })
+        }
+        onReportProblem={(id, note) =>
+          actionReportProblem({ questionId: id, nodeId: skill.id, note })
+        }
+        feedback={errorBox}
+      />
+    );
+
   return (
-    <AnnotationProvider key={session?.id ?? "preview"}>
-      <div
-        ref={shellRef}
-        className="mx-auto min-h-dvh w-full max-w-6xl px-4 pb-24 pt-24 text-ivory sm:px-8"
-      >
-        <CalculatorScope
-          key={questionKey}
-          questionKey={questionKey}
-          dockTop={LEARN_HEADER_CLEARANCE}
-          enabled={skill.subject === "math" && !session?.completedAt}
-          open={calculatorOpen}
-          onOpenChange={setCalculatorOpen}
+    <div className="mx-auto min-h-dvh w-full max-w-6xl px-4 pb-24 pt-24 text-ivory sm:px-8">
+      <header className="mb-8">
+        <Link
+          href={`/learn/${skill.subject}`}
+          className="text-sm text-taupe underline underline-offset-4"
         >
-          <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <Link
-                href={`/learn/${skill.subject}`}
-                className="text-sm text-taupe underline underline-offset-4"
-              >
-                Back to skills
-              </Link>
-              <p className="mt-5 text-sm text-taupe">{skill.domainLabel}</p>
-              <h1 className="mt-1 text-2xl font-semibold">{skill.label}</h1>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <CatalogStudyTools
-                bookmarks={bookmarks}
-                onBookmark={(id) =>
-                  setBookmarks((old) => {
-                    const next = new Set(old);
-                    if (next.has(id)) next.delete(id);
-                    else next.add(id);
-                    return next;
-                  })
-                }
-                questionId={shownQuestion?.id ?? previewQuestion?.id}
-                questions={session ? seen : (availableQuestions ?? [])}
-                onJump={(index) => {
-                  if (session)
-                    setReviewIndex(seen[index]?.id === session.question?.id ? null : index);
-                  else setPreviewIndex(index);
-                }}
-              />
-              <CalculatorTrigger />
-              <HighlightTool />
-              <PracticeTimer startedAt={startedAt.current} />
-              <QuizMenu subject={skill.subject} />
-              <button
-                type="button"
-                onClick={() => setScratchpadOpen(true)}
-                aria-pressed={scratchpadOpen}
-                className="min-h-11 rounded-lg border border-bronze px-3 py-2 text-sm font-semibold"
-              >
-                Scratchpad
-              </button>
-            </div>
-          </header>
-          {error && (
-            <p
-              role="alert"
-              className="mb-6 rounded-xl border border-error p-4 text-sm leading-relaxed"
-            >
-              {error}
+          Back to skills
+        </Link>
+        <p className="mt-5 text-sm text-taupe">{skill.domainLabel}</p>
+        <h1 className="mt-1 text-2xl font-semibold">{skill.label}</h1>
+      </header>
+      {errorBox}
+      <div aria-busy={pending}>
+        {!session ? (
+          <section className="rounded-2xl border border-bronze bg-surface p-6">
+            <h2 className="text-lg font-semibold">
+              {resumeSessionId
+                ? "Resume saved practice"
+                : assignmentId
+                  ? "Assigned practice"
+                  : "Practice this skill"}
+            </h2>
+            <p className="my-4 text-sm leading-relaxed text-taupe">
+              {resumeSessionId
+                ? "Your saved practice is kept in your account. Retry loading it below."
+                : "Work through up to ten reviewed questions. Your answers are saved as you go. You can leave and resume from this page."}
             </p>
-          )}
-          <div aria-busy={pending}>
-            {!session ? (
-              <section className="rounded-2xl border border-bronze bg-surface p-6">
-                <h2 className="text-lg font-semibold">
-                  {resumeSessionId
-                    ? "Resume saved practice"
-                    : assignmentId
-                      ? "Assigned practice"
-                      : "Practice this skill"}
-                </h2>
-                <p className="my-4 text-sm leading-relaxed text-taupe">
-                  {resumeSessionId
-                    ? "Your saved practice is kept in your account. Retry loading it below."
-                    : "Work through up to ten reviewed questions. Your answers are saved as you go. You can leave and resume from this page."}
-                </p>
-                <button
-                  type="button"
-                  disabled={pending || availableQuestions?.length === 0}
-                  onClick={resumeSessionId ? retryResume : start}
-                  className="min-h-11 rounded-xl bg-gold px-6 py-3 font-semibold text-night disabled:opacity-50"
-                >
-                  {pending
-                    ? "Loading…"
-                    : resumeSessionId
-                      ? "Retry loading practice"
-                      : "Start practice"}
-                </button>
-                {availableQuestions && (
-                  <CatalogPoolPreview
-                    questions={availableQuestions}
-                    onReload={() => router.refresh()}
-                    navigation={{ index: previewIndex, onChange: setPreviewIndex }}
-                  />
-                )}
-              </section>
-            ) : session.completedAt ? (
-              <section className="space-y-6 rounded-2xl border border-bronze bg-surface p-6">
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    {session.score === null ? "Practice closed" : "Practice complete"}
-                  </h2>
-                  {session.score !== null && (
-                    <p className="mt-3 text-3xl font-semibold">{session.score}%</p>
-                  )}
-                  <p className="mt-2 text-sm text-taupe">
-                    This practice only · {session.answered} of {session.total} questions answered
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-taupe">
-                    This result records this session. It does not establish mastery or predict an
-                    SAT score.
-                  </p>
-                </div>
-                <ol className="space-y-4" aria-label="Saved answers">
-                  {session.reviews.map((review) => (
-                    <li key={review.questionId} className="rounded-xl border border-bronze p-4">
-                      <p className="font-semibold">
-                        Saved response · {review.isCorrect ? "Correct" : "Incorrect"}
-                      </p>
-                      <SavedFeedback review={review} />
-                    </li>
-                  ))}
-                </ol>
-                <Link
-                  href={`/learn/${skill.subject}`}
-                  className="inline-block min-h-11 rounded-xl border border-bronze px-4 py-3"
-                >
-                  Choose another skill
-                </Link>
-              </section>
-            ) : reviewIndex !== null && shownQuestion ? (
-              <section className="space-y-6 rounded-2xl border border-bronze bg-surface p-5 sm:p-8">
-                <CatalogQuestion
-                  question={shownQuestion}
-                  answer={oldReview?.studentAnswer ?? ""}
-                  disabled
-                  onAnswer={() => {}}
-                />
-                {oldReview && <SavedFeedback review={oldReview} />}
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setReviewIndex(null)}
-                >
-                  Return to current question
-                </button>
-              </section>
-            ) : session.question ? (
-              <section className="space-y-6 rounded-2xl border border-bronze bg-surface p-5 sm:p-8">
-                <p className="text-sm text-taupe">Skill practice</p>
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    void submit();
-                  }}
-                  className="space-y-6"
-                >
-                  <QuestionTransition index={seen.length}>
-                    <div data-question-content>
-                      <CatalogQuestion
-                        question={session.question}
-                        answer={answer}
-                        disabled={pending || !!feedback}
-                        onAnswer={setAnswer}
-                      />
-                    </div>
-                  </QuestionTransition>
-                  {!feedback && (
-                    <button
-                      type="submit"
-                      disabled={pending || !answer.trim()}
-                      className="min-h-11 rounded-xl bg-gold px-6 py-3 font-semibold text-night disabled:opacity-50"
-                    >
-                      {pending ? "Saving…" : "Check answer"}
-                    </button>
-                  )}
-                </form>
-                {feedback && (
-                  <section role="status" className="space-y-4 border-t border-bronze pt-6">
-                    <h2 className="font-semibold">
-                      {feedback.isCorrect ? "Correct" : "Incorrect"} · answer saved
-                    </h2>
-                    <SavedFeedback review={feedback} />
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={next}
-                      className="min-h-11 rounded-xl bg-gold px-6 py-3 font-semibold text-night disabled:opacity-50"
-                    >
-                      {pending
-                        ? "Loading…"
-                        : session.answered + 1 === session.total
-                          ? "See results"
-                          : "Next question"}
-                    </button>
-                  </section>
-                )}
-              </section>
-            ) : (
-              <section className="space-y-4 rounded-2xl border border-bronze bg-surface p-6">
-                <h2 className="font-semibold">All {session.total} answers are saved</h2>
-                <p className="text-sm text-taupe">Finish this session to see your result.</p>
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={next}
-                  className="min-h-11 rounded-xl bg-gold px-6 py-3 font-semibold text-night disabled:opacity-50"
-                >
-                  {pending ? "Loading…" : "See results"}
-                </button>
-              </section>
+            <button
+              type="button"
+              disabled={pending || availableQuestions?.length === 0}
+              onClick={resumeSessionId ? retryResume : start}
+              className="min-h-11 rounded-xl bg-gold px-6 py-3 font-semibold text-night disabled:opacity-50"
+            >
+              {pending ? "Loading…" : resumeSessionId ? "Retry loading practice" : "Start practice"}
+            </button>
+            {availableQuestions && (
+              <CatalogPoolPreview
+                questions={availableQuestions}
+                onReload={() => router.refresh()}
+                navigation={{ index: previewIndex, onChange: setPreviewIndex }}
+              />
             )}
-          </div>
-          {session && !session.completedAt && (
-            <nav className="my-4 flex gap-3" aria-label="Practice questions">
-              <button
-                type="button"
-                className="btn-secondary"
-                disabled={(reviewIndex ?? seen.length - 1) <= 0}
-                onClick={() => setReviewIndex((reviewIndex ?? seen.length - 1) - 1)}
-              >
-                Previous
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                disabled={(reviewIndex === null && !feedback) || pending}
-                onClick={() => {
-                  if (reviewIndex !== null) {
-                    setReviewIndex(reviewIndex + 1 >= seen.length - 1 ? null : reviewIndex + 1);
-                  } else void next();
-                }}
-              >
-                Next
-              </button>
-            </nav>
-          )}
-          <Scratchpad
-            pageKey={shownQuestion?.id ?? previewQuestion?.id ?? "empty-preview"}
-            open={scratchpadOpen}
-            onClose={() => setScratchpadOpen(false)}
-            constraintsRef={shellRef}
-          />
-        </CalculatorScope>
+          </section>
+        ) : session.completedAt ? (
+          <section className="space-y-6 rounded-2xl border border-bronze bg-surface p-6">
+            <div>
+              <h2 className="text-xl font-semibold">
+                {session.score === null ? "Practice closed" : "Practice complete"}
+              </h2>
+              {session.score !== null && (
+                <p className="mt-3 text-3xl font-semibold">{session.score}%</p>
+              )}
+              <p className="mt-2 text-sm text-taupe">
+                This practice only · {session.answered} of {session.total} questions answered
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-taupe">
+                This result records this session. It does not establish mastery or predict an SAT
+                score.
+              </p>
+            </div>
+            <ol className="space-y-4" aria-label="Saved answers">
+              {session.reviews.map((review) => (
+                <li key={review.questionId} className="rounded-xl border border-bronze p-4">
+                  <p className="font-semibold">
+                    Saved response · {review.isCorrect ? "Correct" : "Incorrect"}
+                  </p>
+                  <SavedFeedback review={review} />
+                </li>
+              ))}
+            </ol>
+            <Link
+              href={`/learn/${skill.subject}`}
+              className="inline-block min-h-11 rounded-xl border border-bronze px-4 py-3"
+            >
+              Choose another skill
+            </Link>
+          </section>
+        ) : (
+          <section className="space-y-4 rounded-2xl border border-bronze bg-surface p-6">
+            <h2 className="font-semibold">All {session.total} answers are saved</h2>
+            <p className="text-sm text-taupe">Finish this session to see your result.</p>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={next}
+              className="min-h-11 rounded-xl bg-gold px-6 py-3 font-semibold text-night disabled:opacity-50"
+            >
+              {pending ? "Loading…" : "See results"}
+            </button>
+          </section>
+        )}
       </div>
-    </AnnotationProvider>
+    </div>
   );
+}
+
+/** Puts a session's current question at its position in the session. */
+function placed(
+  old: (StudentQuizQuestion | undefined)[],
+  next: CatalogStudentSession | null
+): (StudentQuizQuestion | undefined)[] {
+  if (!next?.question) return old;
+  const out = old.slice();
+  out[next.answered] = next.question;
+  return out;
 }
 
 function SavedFeedback({ review }: { review: CatalogSavedReview }) {

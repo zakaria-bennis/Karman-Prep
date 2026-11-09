@@ -9,8 +9,8 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, ListChecks } from "lucide-react";
 import { redirect } from "next/navigation";
+import { WbPage, WbStats } from "@/components/admin/workbench";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { requireRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -19,6 +19,10 @@ import JobsClient from "./JobsClient";
 
 export const metadata: Metadata = { title: "Admin — PDF jobs | Karman" };
 export const dynamic = "force-dynamic";
+
+const TITLE = "PDF jobs";
+const SUMMARY =
+  "Each row follows one uploaded SAT PDF through the extraction steps. Finished files import into the bank on their own.";
 
 export default async function AdminJobsPage() {
   const { userId } = await safeAuth();
@@ -33,35 +37,46 @@ export default async function AdminJobsPage() {
     .order("uploaded_at", { ascending: false })
     .limit(200);
 
+  const actions = (
+    <>
+      <Link className="wb-btn" href="/admin/questions/import">
+        Upload a PDF
+      </Link>
+      <Link className="wb-btn" href="/admin/curriculum">
+        Back to admin
+      </Link>
+    </>
+  );
+
   if (error) {
     return (
-      <div className="mx-auto max-w-5xl px-5 py-8 text-sm text-error-bright">
-        Failed to load jobs: {error.message}
-      </div>
+      <WbPage title={TITLE} summary={SUMMARY} actions={actions}>
+        <p role="alert" className="wb-alert">
+          Failed to load jobs: {error.message}
+        </p>
+      </WbPage>
     );
   }
 
   const jobs = (data ?? []) as unknown as PdfProcessingJob[];
+  const active = jobs.filter((j) => j.status === "queued" || j.status === "running").length;
+  const failed = jobs.filter((j) => j.status === "failed").length;
+  const imported = jobs.reduce(
+    (sum, j) => sum + Object.values(j.imported_counts ?? {}).reduce((s, n) => s + (n ?? 0), 0),
+    0
+  );
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8">
-      <div className="mb-6">
-        <Link
-          href="/admin/curriculum"
-          className="mb-3 inline-flex items-center gap-1 text-xs text-taupe hover:text-ivory"
-        >
-          <ChevronRight className="h-3 w-3 rotate-180" /> Back to admin
-        </Link>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-ivory">
-          <ListChecks className="h-5 w-5 text-gold" /> PDF processing queue
-        </h1>
-        <p className="mt-1 text-sm text-taupe">
-          Each row tracks one uploaded SAT PDF through the four-module extraction pipeline. CSVs
-          auto-import into the bank when complete.
-        </p>
-      </div>
-
+    <WbPage title={TITLE} summary={SUMMARY} actions={actions}>
+      <WbStats
+        items={[
+          { label: "Jobs", value: jobs.length.toLocaleString("en-US") },
+          { label: "Queued or running", value: active.toLocaleString("en-US") },
+          { label: "Failed", value: failed.toLocaleString("en-US") },
+          { label: "Questions imported", value: imported.toLocaleString("en-US") },
+        ]}
+      />
       <JobsClient initialJobs={jobs} />
-    </div>
+    </WbPage>
   );
 }

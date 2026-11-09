@@ -1,0 +1,241 @@
+/* The Challenge question, full screen. Colors come from the shell (portal.css) and the day's
+   painting (--hue, --hs); the sky follows the painting's light. */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 3vw, 40px);
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(10px) saturate(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  cursor: pointer;
+}
+
+.frame {
+  position: relative;
+  width: min(1180px, 100%);
+  height: min(760px, 100%);
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--bg);
+  box-shadow:
+    0 30px 80px rgb(0 0 0 / 0.45),
+    0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
+  isolation: isolate;
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform-origin: 60% 40%;
+}
+
+/* The words sit on a calm band at the foot of the painting, never over moving parts. */
+.copy {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(80px, 14vh, 140px) clamp(20px, 5vw, 56px) clamp(22px, 5vh, 48px);
+  /* A calm pool behind the words at the bottom left; the rest of the painting stays clear. */
+  background: radial-gradient(
+    ellipse 70% 100% at 0% 100%,
+    color-mix(in srgb, var(--bg) 93%, transparent),
+    color-mix(in srgb, var(--bg) 84%, transparent) 50%,
+    transparent 100%
+  );
+}
+@media (max-width: 640px) {
+  .copy {
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, var(--bg) 86%, transparent) 30%,
+      color-mix(in srgb, var(--bg) 95%, transparent)
+    );
+  }
+}
+.title {
+  margin: 0;
+  max-width: 14ch;
+  font: 400 clamp(40px, 6.4vw, 80px) / 1 var(--font-serif);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.sub {
+  margin: 14px 0 0;
+  max-width: 46ch;
+  color: var(--ink);
+  font-size: clamp(16px, 1.5vw, 19px);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.copy :global(.kp-cta) {
+  margin-top: 22px;
+  min-width: min(320px, 100%);
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 4px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.close:hover {
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+}
+.close:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------- The painting's palette, by the light ---------- */
+.art[data-time="night"] {
+  --sky1: hsl(228 45% 9%);
+  --sky2: hsl(232 36% 19%);
+  --sky3: hsl(var(--hue) 28% 27%);
+  --orb: #f4eedc;
+  --glow: hsl(48 60% 85% / 0.32);
+  --far: hsl(var(--hue) calc(var(--hs) * 0.35) 24%);
+  --mid: hsl(var(--hue) calc(var(--hs) * 0.4) 16%);
+  --near: hsl(var(--hue) calc(var(--hs) * 0.45) 11%);
+  --pine: hsl(var(--hue) 25% 6%);
+  --water: hsl(230 32% 15%);
+  --stroke: rgb(255 255 255 / 0.06);
+}
+.art[data-time="dawn"] {
+  --sky1: hsl(212 45% 66%);
+  --sky2: hsl(350 55% 82%);
+  --sky3: hsl(36 85% 84%);
+  --orb: #fff3cf;
+  --glow: hsl(40 100% 88% / 0.6);
+  --far: hsl(var(--hue) calc(var(--hs) * 0.3) 64%);
+  --mid: hsl(var(--hue) calc(var(--hs) * 0.4) 49%);
+  --near: hsl(var(--hue) calc(var(--hs) * 0.5) 35%);
+  --pine: hsl(var(--hue) 30% 16%);
+  --water: hsl(212 35% 72%);
+  --stroke: rgb(255 255 255 / 0.22);
+}
+.art[data-time="day"] {
+  --sky1: hsl(206 62% 56%);
+  --sky2: hsl(200 60% 74%);
+  --sky3: hsl(195 55% 89%);
+  --orb: #fffbe8;
+  --glow: hsl(50 100% 92% / 0.65);
+  --far: hsl(var(--hue) calc(var(--hs) * 0.35) 62%);
+  --mid: hsl(var(--hue) calc(var(--hs) * 0.45) 45%);
+  --near: hsl(var(--hue) calc(var(--hs) * 0.55) 31%);
+  --pine: hsl(var(--hue) 30% 14%);
+  --water: hsl(204 45% 62%);
+  --stroke: rgb(255 255 255 / 0.25);
+}
+.art[data-time="sunset"] {
+  --sky1: hsl(262 35% 30%);
+  --sky2: hsl(338 55% 56%);
+  --sky3: hsl(28 90% 66%);
+  --orb: #ffd79a;
+  --glow: hsl(30 100% 75% / 0.55);
+  --far: hsl(var(--hue) calc(var(--hs) * 0.4) 38%);
+  --mid: hsl(var(--hue) calc(var(--hs) * 0.45) 27%);
+  --near: hsl(var(--hue) calc(var(--hs) * 0.5) 18%);
+  --pine: hsl(var(--hue) 30% 9%);
+  --water: hsl(300 25% 32%);
+  --stroke: rgb(255 230 200 / 0.14);
+}
+
+.sky1 {
+  stop-color: var(--sky1);
+}
+.sky2 {
+  stop-color: var(--sky2);
+}
+.sky3 {
+  stop-color: var(--sky3);
+}
+.glowIn {
+  stop-color: var(--glow);
+}
+.glowOut {
+  stop-color: var(--glow);
+  stop-opacity: 0;
+}
+.starGlowIn {
+  stop-color: color-mix(in srgb, #fff6d8 70%, hsl(var(--hue) var(--hs) 60%));
+  stop-opacity: 0.75;
+}
+.starGlowOut {
+  stop-color: hsl(var(--hue) var(--hs) 60%);
+  stop-opacity: 0;
+}
+.skyStrokes path {
+  fill: none;
+  stroke: var(--stroke);
+  stroke-linecap: round;
+}
+.orb {
+  fill: var(--orb);
+}
+.trails path {
+  stroke: color-mix(in srgb, #fff6d8 75%, hsl(var(--hue) var(--hs) 60%));
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+.light {
+  fill: #fff4d6;
+}
+.lightCore {
+  fill: #fffdf6;
+}
+.far {
+  fill: var(--far);
+}
+.mid {
+  fill: var(--mid);
+}
+.near {
+  fill: var(--near);
+}
+.water {
+  fill: var(--water);
+}
+.ripples path {
+  fill: none;
+  stroke: var(--orb);
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+.pines path {
+  fill: var(--pine);
+}
+
+@media (max-width: 640px) {
+  .frame {
+    height: 100%;
+  }
+  .copy :global(.kp-cta) {
+    width: 100%;
+  }
+}

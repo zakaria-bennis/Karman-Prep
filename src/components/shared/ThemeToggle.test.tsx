@@ -4,7 +4,6 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { renderToString } from "react-dom/server";
 import { hydrateRoot } from "react-dom/client";
 import { ThemeToggle } from "./ThemeToggle";
-import Navbar from "@/components/landing/Navbar";
 
 vi.mock("@clerk/nextjs", () => ({ useAuth: () => ({ isSignedIn: false }) }));
 vi.mock("@/components/shared/ThemedClerkWidgets", () => ({ ThemedUserButton: () => null }));
@@ -67,10 +66,14 @@ describe("floating theme control", () => {
       "/admin/users",
       "/learn",
       "/",
+      "/program",
+      "/private-tutoring",
+      "/free-practice-test",
+      "/pricing",
+      "/guarantee",
       "/faq",
-      "/free-diagnostic",
-      "/plans",
-      "/questions",
+      "/about",
+      "/privacy",
       "/calculator",
     ]) {
       pathname = route;
@@ -79,23 +82,6 @@ describe("floating theme control", () => {
       view.unmount();
     }
   });
-
-  it.each(["/free-diagnostic", "/plans", "/questions"])(
-    "avoids an extra fixed control when the root and Navbar compose on %s",
-    (route) => {
-      pathname = route;
-      render(
-        <>
-          <Navbar />
-          <ThemeToggle floating />
-        </>
-      );
-      const controls = screen.getAllByRole("button", { name: "Toggle light and dark mode" });
-      // Navbar has desktop/mobile alternatives; CSS chooses which is visible.
-      expect(controls).toHaveLength(2);
-      expect(controls.some((button) => button.classList.contains("fixed"))).toBe(false);
-    }
-  );
 
   it.each(["/auth/sign-in", "/auth/sign-up"])("keeps the floating control on %s", (route) => {
     pathname = route;

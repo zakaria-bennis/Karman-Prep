@@ -166,8 +166,8 @@ export default function NodeQuestionSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
-      <div className="flex items-center gap-2 rounded-lg border border-bronze bg-surface px-3 py-1.5 transition-colors focus-within:border-gold/60 focus-within:bg-surface/90">
-        <Search className="h-3.5 w-3.5 shrink-0 text-taupe" />
+      <div className="flex items-center gap-2 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 py-1.5 transition-colors focus-within:border-[color-mix(in_srgb,var(--accent)_60%,transparent)] focus-within:bg-[color-mix(in_srgb,var(--card)_90%,transparent)]">
+        <Search className="h-3.5 w-3.5 shrink-0 text-[color:var(--mute)]" />
         <input
           ref={inputRef}
           type="search"
@@ -176,7 +176,7 @@ export default function NodeQuestionSearch() {
           onFocus={() => setOpen(query.trim().length >= 2)}
           onKeyDown={onKeyDown}
           placeholder="Search nodes, questions, slugs…"
-          className="flex-1 bg-transparent text-sm text-ivory placeholder:text-taupe focus:outline-none"
+          className="flex-1 bg-transparent text-sm text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:outline-none"
           aria-label="Search nodes and questions"
         />
         {query && (
@@ -185,7 +185,7 @@ export default function NodeQuestionSearch() {
               setQuery("");
               inputRef.current?.focus();
             }}
-            className="text-taupe hover:text-ivory"
+            className="text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             aria-label="Clear search"
           >
             <X className="h-3.5 w-3.5" />
@@ -194,15 +194,15 @@ export default function NodeQuestionSearch() {
       </div>
 
       {open && (
-        <div className="absolute right-0 z-30 mt-1.5 w-[28rem] max-w-[90vw] overflow-hidden rounded-lg border border-bronze bg-night/95 shadow-xl shadow-black/50 backdrop-blur-sm">
+        <div className="absolute right-0 z-30 mt-1.5 w-[28rem] max-w-[90vw] overflow-hidden rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_95%,transparent)] shadow-xl shadow-black/50 backdrop-blur-sm">
           {results.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-taupe">
+            <div className="px-3 py-3 text-xs text-[color:var(--mute)]">
               {loading ? "Searching…" : `No results for "${query.trim()}".`}
             </div>
           ) : (
-            <ul className="max-h-[28rem] divide-y divide-bronze/60 overflow-y-auto">
+            <ul className="max-h-[28rem] divide-y divide-[color-mix(in_srgb,var(--line)_60%,transparent)] overflow-y-auto">
               {nodeResults.length > 0 && (
-                <li className="bg-surface/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-taupe">
+                <li className="bg-[color-mix(in_srgb,var(--card)_50%,transparent)] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-[color:var(--mute)]">
                   Nodes ({nodeResults.length})
                 </li>
               )}
@@ -212,14 +212,14 @@ export default function NodeQuestionSearch() {
                   active={activeIndex === i}
                   onMouseEnter={() => setActiveIndex(i)}
                   onClick={() => navigateTo(r)}
-                  icon={<GraduationCap className="h-3.5 w-3.5 text-gold" />}
+                  icon={<GraduationCap className="h-3.5 w-3.5 text-[color:var(--accent-text)]" />}
                   primary={r.node.topic}
                   secondary={`${r.node.id} · ${r.node.concept_slug}`}
                   tertiary={r.node.description}
                 />
               ))}
               {questionResults.length > 0 && (
-                <li className="bg-surface/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-taupe">
+                <li className="bg-[color-mix(in_srgb,var(--card)_50%,transparent)] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-[color:var(--mute)]">
                   Questions ({questionResults.length})
                 </li>
               )}
@@ -234,9 +234,9 @@ export default function NodeQuestionSearch() {
                     onClick={() => navigateTo({ kind: "question", q })}
                     icon={
                       isBank ? (
-                        <Inbox className="h-3.5 w-3.5 text-warning" />
+                        <Inbox className="h-3.5 w-3.5 text-[color:var(--warn)]" />
                       ) : (
-                        <FileQuestion className="h-3.5 w-3.5 text-success" />
+                        <FileQuestion className="h-3.5 w-3.5 text-[color:var(--good)]" />
                       )
                     }
                     primary={
@@ -256,11 +256,11 @@ export default function NodeQuestionSearch() {
               })}
             </ul>
           )}
-          <div className="flex items-center gap-3 border-t border-bronze/60 px-3 py-1.5 text-[10px] text-taupe">
-            <kbd className="text-taupe">↑↓</kbd> navigate
-            <kbd className="text-taupe">↵</kbd> open
-            <kbd className="text-taupe">esc</kbd> close
-            {loading && <span className="ml-auto text-gold">searching…</span>}
+          <div className="flex items-center gap-3 border-t border-[color-mix(in_srgb,var(--line)_60%,transparent)] px-3 py-1.5 text-[10px] text-[color:var(--mute)]">
+            <kbd className="text-[color:var(--mute)]">↑↓</kbd> navigate
+            <kbd className="text-[color:var(--mute)]">↵</kbd> open
+            <kbd className="text-[color:var(--mute)]">esc</kbd> close
+            {loading && <span className="ml-auto text-[color:var(--accent-text)]">searching…</span>}
           </div>
         </div>
       )}
@@ -291,14 +291,20 @@ function ResultRow({
       onClick={onClick}
       className={cn(
         "flex cursor-pointer items-start gap-2 px-3 py-2 text-sm",
-        active ? "bg-gold/10" : "hover:bg-surface-raised/60"
+        active
+          ? "bg-[color-mix(in_srgb,var(--accent)_10%,transparent)]"
+          : "hover:bg-[color-mix(in_srgb,var(--raised)_60%,transparent)]"
       )}
     >
       <span className="mt-0.5 shrink-0">{icon}</span>
       <span className="min-w-0 flex-1">
-        <div className="truncate text-ivory">{primary}</div>
-        {secondary && <div className="truncate font-mono text-[11px] text-taupe">{secondary}</div>}
-        {tertiary && <div className="truncate text-[11px] text-taupe">{tertiary}</div>}
+        <div className="truncate text-[color:var(--ink)]">{primary}</div>
+        {secondary && (
+          <div className="truncate font-mono text-[11px] text-[color:var(--mute)]">{secondary}</div>
+        )}
+        {tertiary && (
+          <div className="truncate text-[11px] text-[color:var(--mute)]">{tertiary}</div>
+        )}
       </span>
     </li>
   );

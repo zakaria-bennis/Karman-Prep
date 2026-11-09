@@ -1,0 +1,236 @@
+/* The Library's own parts. Colors come from the shell's variables (portal.css). */
+
+/* What to do next: the course ring, the skill in big type, one main button. */
+.next {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--l2) 30%, transparent),
+    color-mix(in srgb, var(--accent) 10%, transparent)
+  );
+}
+.nextText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.nextTitle {
+  margin: 0;
+  font: 700 clamp(24px, 2.4vw, 30px) / 1.15 var(--font-sans);
+  letter-spacing: -0.015em;
+}
+.nextSub {
+  margin: 0 0 6px;
+  color: var(--mute);
+  font-size: 16px;
+  line-height: 23px;
+}
+.next > :first-child {
+  grid-column: 2;
+  grid-row: 1;
+}
+.next > .nextText {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.domainsTitle {
+  margin: 8px 0 -4px;
+  font: 700 22px/28px var(--font-sans);
+}
+.domains {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.domainSum {
+  display: grid;
+  gap: 8px;
+}
+.domainHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.domainHead b {
+  font-size: 18px;
+  line-height: 24px;
+}
+.domainHead small {
+  color: var(--mute);
+  font-size: 14px;
+  white-space: nowrap;
+}
+/* The official skills' squares sit in small groups, so the Domain reads like the College Board. */
+.groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.official + .official {
+  margin-top: 6px;
+}
+.official h3 {
+  margin: 8px 0 2px;
+  font: 700 15px/20px var(--font-sans);
+  color: var(--mute);
+}
+.skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.skill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.skill > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.skill b {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.skill small {
+  display: block;
+  color: var(--mute);
+  font-size: 14px;
+}
+.skill:hover b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dot {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.domainLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 6px 0 4px;
+}
+.headText > b {
+  display: block;
+  font-size: 16px;
+}
+.headText > small {
+  display: block;
+  color: var(--mute);
+  font-size: 13.5px;
+  margin-top: 2px;
+}
+
+.go {
+  font-weight: 650;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Course page: Khan's side list, Domains on the left, the open Domain on the right. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sideLink {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 14.5px;
+  border: 1px solid transparent;
+}
+.sideLink:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.sideLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.sideLink[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 650;
+}
+.sideLink small {
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+.skill {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+}
+.skill b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.skill small {
+  display: block;
+  color: var(--mute);
+  font-size: 13px;
+}
+.skill a {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.locked {
+  color: var(--mute);
+  font-size: 14px;
+  margin: 6px 0 2px;
+}
+
+.soon {
+  color: var(--mute);
+  font-size: 13.5px;
+  white-space: nowrap;
+}

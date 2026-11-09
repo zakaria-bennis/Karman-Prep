@@ -45,7 +45,7 @@ export function KeyboardCheatSheet({ open, shortcuts, onClose }: Props) {
       role="dialog"
       aria-modal="true"
       aria-label="Keyboard shortcuts"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-night/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[color-mix(in_srgb,var(--sunk)_70%,transparent)] backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -55,19 +55,19 @@ export function KeyboardCheatSheet({ open, shortcuts, onClose }: Props) {
         onKeyDown={(e) => {
           if (e.key === "Escape") onClose();
         }}
-        className="relative max-h-[88vh] w-[min(720px,92vw)] overflow-auto rounded-2xl border border-bronze bg-surface p-5 shadow-2xl shadow-black/70 focus:outline-none"
+        className="relative max-h-[88vh] w-[min(720px,92vw)] overflow-auto rounded-2xl border border-[color:var(--line)] bg-[color:var(--card)] p-5 shadow-2xl shadow-black/70 focus:outline-none"
       >
         <header className="mb-4 flex items-center gap-2">
-          <Keyboard className="h-4 w-4 text-gold-bright" />
-          <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-gold-bright">
+          <Keyboard className="h-4 w-4 text-[color:var(--accent-text)]" />
+          <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-[color:var(--accent-text)]">
             Keyboard shortcuts
           </h2>
-          <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-taupe">
+          <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-[color:var(--mute)]">
             press <KeyHint>?</KeyHint> any time to reopen
           </span>
           <button
             onClick={onClose}
-            className="text-taupe hover:text-ivory"
+            className="text-[color:var(--mute)] hover:text-[color:var(--ink)]"
             aria-label="Close shortcuts"
           >
             <X className="h-4 w-4" />
@@ -80,14 +80,14 @@ export function KeyboardCheatSheet({ open, shortcuts, onClose }: Props) {
             if (items.length === 0) return null;
             return (
               <section key={groupName}>
-                <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-taupe">
+                <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--mute)]">
                   {groupName}
                 </h3>
                 <ul className="space-y-1.5">
                   {items.map((s) => (
                     <li
                       key={s.key + s.description}
-                      className="flex items-center gap-3 text-xs text-ivory"
+                      className="flex items-center gap-3 text-xs text-[color:var(--ink)]"
                     >
                       <KeyHint>{formatKey(s.key)}</KeyHint>
                       <span className="flex-1">{s.description}</span>
@@ -99,7 +99,7 @@ export function KeyboardCheatSheet({ open, shortcuts, onClose }: Props) {
           })}
         </div>
 
-        <footer className="mt-5 border-t border-bronze pt-3 text-[10px] text-taupe">
+        <footer className="mt-5 border-t border-[color:var(--line)] pt-3 text-[10px] text-[color:var(--mute)]">
           Shortcuts are ignored while typing in a text field — click out (or press{" "}
           <KeyHint>Esc</KeyHint>) to enable them again.
         </footer>
@@ -120,8 +120,8 @@ function KeyHint({ children }: { children: React.ReactNode }) {
   return (
     <kbd
       className={cn(
-        "inline-flex min-w-[1.6rem] items-center justify-center rounded-md border border-bronze bg-surface-raised px-1.5 py-0.5",
-        "font-mono text-[11px] font-semibold text-ivory shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset,0_-1px_0_0_rgba(0,0,0,0.6)_inset]"
+        "inline-flex min-w-[1.6rem] items-center justify-center rounded-md border border-[color:var(--line)] bg-[color:var(--raised)] px-1.5 py-0.5",
+        "font-mono text-[11px] font-semibold text-[color:var(--ink)] shadow-[0_1px_0_0_rgba(255,255,255,0.03)_inset,0_-1px_0_0_rgba(0,0,0,0.6)_inset]"
       )}
     >
       {children}

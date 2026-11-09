@@ -53,6 +53,9 @@ const isChartKind = (k: string | undefined): k is ChartKind => CHART_TYPES.inclu
 /** Share of a category band a lone bar fills, and a group of bars fills. */
 const BAR_SHARE = 0.4;
 const GROUP_SHARE = 0.6;
+/** The least height a chart's plot area keeps, in px; the figure grows taller to keep it. */
+const MIN_PLOT_HEIGHT = 120;
+
 /** No bar is wider than this share of the plot. */
 const MAX_BAR_SHARE = 1 / 8;
 const BOX_HEIGHT = 40;
@@ -469,6 +472,13 @@ export function buildChart(spec: FigureSpec, box: Box): Scene {
   });
   const opts = { y: yMode, reserve: { top: titleH, bottom: legendH, left }, avoid: titleBoxes };
   let axes = planeAxes(frame, full, opts);
+  // On a phone the box keeps its aspect, so a short box with rotated category names can leave
+  // no room for the plot (bars drew negative heights). The figure grows taller instead, as it
+  // does for a title or legend.
+  if (axes.map.h < MIN_PLOT_HEIGHT) {
+    full.height += MIN_PLOT_HEIGHT - axes.map.h;
+    axes = planeAxes(frame, full, opts);
+  }
   // A number line (dot or box plot) is only as tall as its stacks or boxes, so the
   // drawing is not left at the foot of an empty box.
   const need = numberLineHeight(type, series, kinds);

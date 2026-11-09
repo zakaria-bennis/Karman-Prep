@@ -1,8 +1,9 @@
 // ============================================================
 // scripts/reset-diagnostics.mjs
 //
-// Wipes all diagnostic_results rows for a given user so they
-// can re-take the (one-time) diagnostic for testing.
+// Wipes a user's diagnostic: their diagnostic_results rows and their
+// bank-fed diagnostic runs (quiz_runs, kind "diagnostic"), so they can
+// take the one-time diagnostic again for testing.
 //
 // Usage:
 //   node --env-file=.env.local scripts/reset-diagnostics.mjs
@@ -35,7 +36,7 @@ for (let i = 0; i < args.length; i += 1) {
 
 const { data: user, error: userErr } = await supa
   .from("users")
-  .select("id, email")
+  .select("id, email, clerk_id")
   .eq("email", email)
   .maybeSingle();
 if (userErr || !user) {
@@ -48,16 +49,22 @@ const { count: existing } = await supa
   .select("*", { count: "exact", head: true })
   .eq("user_id", user.id);
 
-if (!existing || existing === 0) {
-  console.log(`[reset-diagnostics] no diagnostic results for ${email} — nothing to do`);
-  process.exit(0);
-}
-
 const { error: delErr } = await supa.from("diagnostic_results").delete().eq("user_id", user.id);
 if (delErr) {
   console.error("[reset-diagnostics] delete failed:", delErr);
   process.exit(1);
 }
+const { data: runs, error: runErr } = await supa
+  .from("quiz_runs")
+  .delete()
+  .eq("student_id", user.clerk_id)
+  .eq("kind", "diagnostic")
+  .select("id");
+if (runErr) {
+  console.error("[reset-diagnostics] run delete failed:", runErr);
+  process.exit(1);
+}
 
-console.log(`[reset-diagnostics] ✓ deleted ${existing} diagnostic result row(s) for ${email}`);
-console.log(`[reset-diagnostics]   → /diagnostic is now retakeable for this user`);
+console.log(
+  `[reset-diagnostics] ✓ deleted ${existing ?? 0} result row(s) and ${(runs ?? []).length} diagnostic run(s) for ${email}`
+);

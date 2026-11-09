@@ -1,29 +1,23 @@
 "use client";
 
 // ============================================================
-// CohortDetailClient — header + tabs (Members / Notes / Homework).
-// Admin can add/remove members. Notes + homework are read-only
-// here (the tutor portal owns their CRUD).
-//
-// The tab implementations + shared primitives live in
-// ./_components/ (audit M1 split — was a single 700-line file).
+// CohortDetailClient: header, totals and tabs (Members, Notes,
+// Homework). Admins add and remove members here. Notes and
+// homework are read-only (the tutor portal owns them).
+// Tabs live in ./_components/.
 // ============================================================
 
-import { BookOpen, ClipboardList, Users as UsersIcon } from "lucide-react";
+import Link from "next/link";
+import { WbPage, WbPill, WbStats, WbTabs, WbToolbar } from "@/components/admin/workbench";
+import { tierLabel } from "@/lib/scheduling/tiers";
 import type { CohortDetail, EligibleStudentRow } from "@/lib/supabase/queries/cohorts";
 import { ProvisionChatButton } from "@/components/admin/ProvisionChatButton";
+import { STATUS_LABEL, STATUS_TONE } from "../format";
 import { CohortSetupBanner } from "./_components/CohortSetupBanner";
 import { HomeworkTab } from "./_components/HomeworkTab";
 import { MembersTab } from "./_components/MembersTab";
 import { NotesTab } from "./_components/NotesTab";
-import {
-  formatDate,
-  StatusBadge,
-  TabLink,
-  TierBadge,
-  tutorDisplay,
-  type TabKey,
-} from "./_components/shared";
+import { formatSatDate, tutorDisplay, type TabKey } from "./_components/shared";
 
 interface Props {
   detail: CohortDetail;
@@ -39,80 +33,59 @@ export default function CohortDetailClient({
   chatProvisioned,
 }: Props) {
   const { cohort, members, tutorNote, homework } = detail;
+  const tutorName = tutorDisplay(cohort.tutor);
+  const seatsOpen = cohort.max_size - members.length;
 
   return (
-    <div>
-      {/* ── Header ─────────────────────────────────────────── */}
-      <header className="mb-6">
-        <div className="mb-2 flex flex-wrap items-center gap-3">
-          <TierBadge tier={cohort.tier} />
-          <StatusBadge status={cohort.status} />
-          <span className="text-sm text-taupe">{formatDate(cohort.sat_date)} SAT</span>
-          <span className="text-taupe">·</span>
-          <span className="text-sm text-taupe">{tutorDisplay(cohort.tutor)}</span>
-          <span className="text-taupe">·</span>
-          <span className="font-mono text-sm text-taupe">
-            {cohort.member_count}/{cohort.max_size} seats
-          </span>
-        </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-ivory">{cohort.name}</h1>
-        {cohort.current_topic && (
-          <p className="mt-2 text-sm text-taupe">
-            <span className="font-semibold text-ivory">Current topic —</span> {cohort.current_topic}
-          </p>
-        )}
-        <div className="mt-3">
-          <ProvisionChatButton cohortId={cohort.id} alreadyProvisioned={chatProvisioned} />
-        </div>
-      </header>
+    <WbPage
+      title={cohort.name}
+      summary={`${tierLabel(cohort.tier)} for the ${formatSatDate(cohort.sat_date)} SAT, led by ${tutorName}.`}
+      actions={<Link href="/admin/cohorts">All cohorts</Link>}
+    >
+      <WbToolbar>
+        <WbPill tone={STATUS_TONE[cohort.status]}>{STATUS_LABEL[cohort.status]}</WbPill>
+        {cohort.archived_at && <WbPill tone="neutral">Archived</WbPill>}
+        <ProvisionChatButton cohortId={cohort.id} alreadyProvisioned={chatProvisioned} />
+      </WbToolbar>
+
+      {cohort.current_topic && <p className="wb-note">Current topic: {cohort.current_topic}</p>}
+
+      <WbStats
+        items={[
+          { label: "Students", value: `${cohort.member_count} of ${cohort.max_size}` },
+          { label: "Open seats", value: Math.max(0, seatsOpen) },
+          { label: "Homework posted", value: homework.length },
+        ]}
+      />
 
       {cohort.setup_completed_at === null &&
       (cohort.tier === "group" || cohort.tier === "small_group") ? (
         <CohortSetupBanner cohortId={cohort.id} />
       ) : null}
 
-      {/* ── Tab nav ────────────────────────────────────────── */}
-      <div className="mb-6 flex gap-1 border-b border-bronze text-sm">
-        <TabLink
-          cohortId={cohort.id}
-          tab="members"
-          activeTab={activeTab}
-          icon={UsersIcon}
-          label="Members"
-          count={members.length}
-        />
-        <TabLink
-          cohortId={cohort.id}
-          tab="notes"
-          activeTab={activeTab}
-          icon={ClipboardList}
-          label="Notes"
-          count={tutorNote ? 1 : 0}
-        />
-        <TabLink
-          cohortId={cohort.id}
-          tab="homework"
-          activeTab={activeTab}
-          icon={BookOpen}
-          label="Homework"
-          count={homework.length}
-        />
-      </div>
+      <WbTabs
+        label="Cohort sections"
+        param="tab"
+        value={activeTab}
+        basePath={`/admin/cohorts/${cohort.id}`}
+        options={[
+          { value: "members", label: "Members", count: members.length },
+          { value: "notes", label: "Notes", count: tutorNote ? 1 : 0 },
+          { value: "homework", label: "Homework", count: homework.length },
+        ]}
+      />
 
-      {/* ── Tab content ────────────────────────────────────── */}
       {activeTab === "members" && (
         <MembersTab
           cohortId={cohort.id}
           members={members}
-          seatsOpen={cohort.max_size - members.length}
+          seatsOpen={seatsOpen}
           cohortTier={cohort.tier}
           eligibleStudents={eligibleStudents}
         />
       )}
-      {activeTab === "notes" && (
-        <NotesTab note={tutorNote} tutorName={tutorDisplay(cohort.tutor)} />
-      )}
+      {activeTab === "notes" && <NotesTab note={tutorNote} tutorName={tutorName} />}
       {activeTab === "homework" && <HomeworkTab homework={homework} />}
-    </div>
+    </WbPage>
   );
 }

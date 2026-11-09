@@ -1,0 +1,497 @@
+/* Karman, "Through the screen", round 2: the week bento, results, plans, close and footer. Tokens live in portal.css. */
+
+/* ---------- 3. a week: bento of live product tiles (modern-UI 2.5, 2.13) ---------- */
+.week,
+.plans {
+  max-width: 1212px;
+  margin: 0 auto;
+  padding: var(--gap) var(--margin) 0;
+}
+.week > .h2,
+.plans > .h2 {
+  padding: 0 var(--pad) 0 clamp(4px, 1vw, 16px);
+}
+.bento {
+  display: grid;
+  gap: 14px;
+  margin-top: 36px;
+}
+.tile {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+  background: var(--card);
+}
+.spot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    300px circle at var(--x, 50%) var(--y, 50%),
+    rgba(235, 162, 31, 0.09),
+    transparent 70%
+  );
+  transition: opacity 0.3s ease;
+}
+.spot:hover::after {
+  opacity: 1;
+}
+@media (min-width: 900px) {
+  .bento {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  .tile--try {
+    grid-column: 1 / span 7;
+    grid-row: 1 / span 2;
+  }
+  .tile--zoom {
+    grid-column: 8 / span 5;
+  }
+  .tile--start {
+    grid-column: 8 / span 5;
+  }
+  .tile--quiz {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    column-gap: 32px;
+    align-items: center;
+  }
+  .tile--quiz .quiz__stage {
+    margin-bottom: 0;
+    height: 360px;
+  }
+  .tile--quiz .quiz__stage .phone {
+    width: 260px;
+  }
+  .tile {
+    padding: 28px;
+  }
+}
+
+.tile--try {
+  background: var(--pine);
+  border-color: transparent;
+  color: var(--on-pine);
+}
+.tile--try .tile__sub,
+.try__prompt {
+  color: var(--on-pine-2);
+}
+.try__prompt {
+  margin-top: 20px;
+  font-size: var(--s-small);
+  font-weight: 600;
+}
+.try__frame {
+  position: relative;
+  margin-top: 10px;
+  height: 560px;
+  overflow: hidden;
+  border-radius: var(--r-media);
+  background: rgb(16, 28, 24);
+}
+.try__loading {
+  padding: 24px;
+  color: var(--on-pine);
+  font-size: var(--s-small);
+}
+.try__result {
+  margin-top: 14px;
+  min-height: 27px;
+  max-width: 46ch;
+  font-size: 17px;
+  font-weight: 600;
+}
+.tile--try .textlink {
+  color: var(--on-pine);
+}
+.try__frame .karman-engine {
+  position: absolute !important;
+  inset: 10px;
+  width: auto !important;
+  height: auto !important;
+}
+.try__frame [data-engine-hide] {
+  display: none !important;
+}
+@media (max-width: 599px) {
+  .try__frame {
+    height: 520px;
+  }
+}
+
+/* A real screen in a tile: the phone rises out of a coloured stage and is cropped by it. */
+.tile__phone {
+  position: relative;
+  height: 300px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 28px;
+  border-radius: var(--r-media);
+  background: var(--card-2);
+}
+.tile__phone .phone {
+  width: 230px;
+  flex: none;
+}
+.tile--start {
+  display: block;
+}
+.start__stage {
+  background: var(--marigold);
+}
+.start__date {
+  font-family: var(--f-display);
+  font-size: clamp(52px, 6vw, 88px);
+  font-weight: 540;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--marigold-ink);
+}
+.start__body .textlink {
+  margin-top: 10px;
+}
+@media (min-width: 900px) {
+  .start__date {
+    font-size: clamp(40px, 3.6vw, 56px);
+    white-space: nowrap;
+  }
+}
+
+/* Zoom: the student in her own room, on the call (rule 46). */
+.zoom__photo {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border-radius: var(--r-media);
+  background: var(--card-2);
+}
+.zoom__photo img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.zoom__photo figcaption {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #12110f;
+  color: #f5f5f2;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* The quiz tile: a phone playing Your Daily 10 on the pine block. */
+.quiz__stage {
+  background: var(--pine);
+}
+
+/* ---------- 4. results: the pine card ---------- */
+.results {
+  padding: var(--gap) var(--margin) 0;
+}
+.results__card {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(32px, 5vw, 72px) var(--pad);
+  border-radius: var(--r-section);
+  background: var(--pine);
+  color: var(--on-pine);
+}
+.results__range {
+  margin-top: 20px;
+  color: var(--on-pine-2);
+  font-size: 18px;
+}
+.results__num {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--f-display);
+  font-size: clamp(80px, 11vw, 160px);
+  font-weight: 520;
+  line-height: 1.2;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+  color: var(--marigold);
+}
+.results__label {
+  margin-top: 4px;
+  color: var(--on-pine);
+  font-size: 16px;
+  font-weight: 600;
+}
+.results__grid {
+  display: grid;
+  margin-top: clamp(32px, 4vw, 56px);
+  border-top: 1px solid rgba(245, 243, 236, 0.18);
+}
+.results__grid li {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(245, 243, 236, 0.18);
+}
+.results__grid img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.results__grid p {
+  display: grid;
+  line-height: 1.25;
+}
+.r-name {
+  font-size: 15px;
+  color: var(--on-pine-2);
+}
+.r-score {
+  font-family: var(--f-display);
+  font-size: 34px;
+  font-weight: 520;
+  letter-spacing: -0.03em;
+}
+.r-school {
+  font-size: 15px;
+}
+@media (min-width: 900px) {
+  .results__card {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 0 clamp(32px, 5vw, 80px);
+    align-items: end;
+  }
+  .results__grid {
+    margin-top: 0;
+  }
+}
+
+/* ---------- 5. plans: two cards ---------- */
+.plans__cards {
+  display: grid;
+  gap: 14px;
+  margin-top: 36px;
+}
+.plan {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+  background: var(--card);
+}
+.plan__name {
+  font-family: var(--f-display);
+  font-size: 20px;
+  font-weight: 540;
+  letter-spacing: -0.01em;
+}
+.plan__price {
+  margin-top: 14px;
+}
+.plan__amount {
+  display: inline-block;
+  font-family: var(--f-display);
+  font-size: clamp(48px, 5vw, 64px);
+  font-weight: 520;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+.plan__note {
+  color: var(--ink-2);
+  font-size: 15px;
+}
+.plan__list {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 16px;
+}
+.plan__list li {
+  position: relative;
+  padding-left: 18px;
+}
+.plan__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.55;
+}
+.plan--pick {
+  border-color: transparent;
+  background: var(--pine);
+  color: var(--on-pine);
+}
+.plan--pick .plan__amount {
+  color: var(--marigold);
+}
+.plan--pick .plan__note {
+  color: var(--on-pine-2);
+}
+.plan--pick .plan__list {
+  border-color: rgba(245, 243, 236, 0.18);
+}
+.plans__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-top: 20px;
+  padding-left: clamp(4px, 1vw, 16px);
+}
+@media (min-width: 900px) {
+  .plans__cards {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  }
+}
+
+/* ---------- 6. close: the night card ---------- */
+.close {
+  padding: var(--gap) var(--margin) 0;
+}
+.close__card {
+  display: grid;
+  max-width: 1180px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--r-section);
+  background: var(--night);
+  color: var(--on-night);
+}
+.close__photo {
+  background: var(--clay);
+}
+.close__photo img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: 50% 12%;
+}
+.close__body {
+  padding: clamp(28px, 5vw, 72px);
+  align-self: center;
+}
+.close__body .sub {
+  color: var(--on-night-2);
+}
+.close__objection {
+  margin-top: 20px;
+  max-width: 40ch;
+  font-size: 17px;
+  font-weight: 600;
+}
+.close__body .button {
+  margin-top: 28px;
+}
+.close__date {
+  margin-top: 12px;
+  color: var(--on-night-2);
+  font-size: var(--s-small);
+}
+@media (min-width: 900px) {
+  .close__card {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+  .close__photo img {
+    aspect-ratio: auto;
+    min-height: 560px;
+  }
+}
+
+/* ---------- footer card with the cropped wordmark (modern-UI 2.17) ---------- */
+.foot {
+  padding: var(--gap) var(--margin) var(--margin);
+}
+.foot__card {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+  overflow: hidden;
+  padding: clamp(28px, 4vw, 48px) var(--pad) 0;
+  border-radius: var(--r-section);
+  background: var(--card);
+}
+.foot__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+}
+.foot__contact {
+  margin-right: auto;
+  font-family: var(--f-display);
+  font-size: clamp(24px, 3vw, 40px);
+  font-weight: 520;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+.foot__contact:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+.foot__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  font-size: var(--s-small);
+}
+.foot__legal a {
+  padding: 6px 0;
+  text-underline-offset: 4px;
+}
+.foot__year {
+  margin-top: 20px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.foot__word {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 24px 0 -5.5%;
+  color: var(--ink);
+}
+.theme {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ground);
+}
+.theme button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.theme button[aria-checked="true"] {
+  background: var(--ink);
+  color: var(--ground);
+}

@@ -75,8 +75,8 @@ export function PreviewToolbar({
     filters.hasFigure !== "all";
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-bronze bg-surface/40 px-4 py-2.5">
-      <div className="flex items-center gap-1.5 text-xs text-taupe">
+    <div className="flex flex-wrap items-center gap-3 border-b border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-4 py-2.5">
+      <div className="flex items-center gap-1.5 text-xs text-[color:var(--mute)]">
         <Filter className="h-3.5 w-3.5" />
         <span>Filters</span>
       </div>
@@ -148,21 +148,24 @@ export function PreviewToolbar({
           onChange={(event) => setJumpId(event.target.value)}
           aria-label="Jump to question ID"
           placeholder="Question ID"
-          className="min-h-11 min-w-0 max-w-full rounded-lg border border-bronze bg-surface px-3 text-sm text-ivory"
+          className="min-h-11 min-w-0 max-w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-3 text-sm text-[color:var(--ink)]"
         />
         <button
           type="submit"
-          className="min-h-11 rounded-lg border border-bronze px-3 text-sm font-medium"
+          className="min-h-11 rounded-lg border border-[color:var(--line)] px-3 text-sm font-medium"
         >
           Jump
         </button>
-        <span role="status" className="w-full text-xs text-taupe">
+        <span role="status" className="w-full text-xs text-[color:var(--mute)]">
           {jumpMessage}
         </span>
       </form>
 
       {anyFilterSet && (
-        <button onClick={onClearFilters} className="text-xs text-taupe hover:text-ivory">
+        <button
+          onClick={onClearFilters}
+          className="text-xs text-[color:var(--mute)] hover:text-[color:var(--ink)]"
+        >
           Clear filters
         </button>
       )}
@@ -171,40 +174,40 @@ export function PreviewToolbar({
       <div className="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto">
         <button
           onClick={onOpenCheatSheet}
-          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-lg border border-bronze bg-surface px-2 py-1 text-[11px] text-ivory hover:border-bronze hover:text-ivory"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-2 py-1 text-[11px] text-[color:var(--ink)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
           title="Keyboard shortcuts (?)"
           aria-label="Open keyboard shortcuts"
         >
           <Keyboard className="h-3 w-3" />
-          <span className="font-mono text-[10px] text-taupe">?</span>
+          <span className="font-mono text-[10px] text-[color:var(--mute)]">?</span>
         </button>
         <DeviceFrameToggle value={device} onChange={onChangeDevice} />
         <div className="flex items-center gap-2">
-          <span className="text-xs text-taupe">
+          <span className="text-xs text-[color:var(--mute)]">
             {totalCount === 0 ? (
               "0 questions"
             ) : (
               <>
-                <span className="font-semibold text-ivory">{currentIndex + 1}</span>
-                <span className="text-taupe"> of {totalCount}</span>
+                <span className="font-semibold text-[color:var(--ink)]">{currentIndex + 1}</span>
+                <span className="text-[color:var(--mute)]"> of {totalCount}</span>
               </>
             )}
           </span>
           <button
             onClick={onPrev}
             disabled={currentIndex === 0 || totalCount === 0}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-md border border-[color:var(--line)] bg-[color:var(--raised)] p-1.5 hover:bg-[color:var(--raised)] disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Previous question"
           >
-            <ChevronLeft className="h-4 w-4 text-ivory" />
+            <ChevronLeft className="h-4 w-4 text-[color:var(--ink)]" />
           </button>
           <button
             onClick={onNext}
             disabled={currentIndex >= totalCount - 1 || totalCount === 0}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-md border border-bronze bg-surface-raised p-1.5 hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-md border border-[color:var(--line)] bg-[color:var(--raised)] p-1.5 hover:bg-[color:var(--raised)] disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Next question"
           >
-            <ChevronRight className="h-4 w-4 text-ivory" />
+            <ChevronRight className="h-4 w-4 text-[color:var(--ink)]" />
           </button>
         </div>
       </div>
@@ -231,8 +234,8 @@ function Select({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "min-h-11 max-w-full rounded-lg border border-bronze bg-surface px-2.5 py-1 text-sm text-ivory",
-        "focus:border-gold/40 focus:outline-none",
+        "min-h-11 max-w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] px-2.5 py-1 text-sm text-[color:var(--ink)]",
+        "focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none",
         className
       )}
     >

@@ -21,6 +21,7 @@
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";
+import { COHORT_TIER_CAP, tierLabel } from "@/lib/scheduling/tiers";
 
 /** Default tutor assignments for cohort tiers. Override via env in
  *  prod when the real tutors have stable Clerk ids. */
@@ -30,7 +31,7 @@ const DEFAULT_SMALLGROUP_TUTOR_CLERK =
 
 const COHORT_MAX_SIZE: Record<"group" | "small_group", number> = {
   group: 200,
-  small_group: 5,
+  small_group: COHORT_TIER_CAP.small_group,
 };
 
 interface TutorRow {
@@ -122,10 +123,10 @@ export async function placeInCohort(input: PlaceInCohortInput): Promise<PlaceInC
     );
   }
 
-  // Name pattern: "Seminar — Nov 7 2026 — Cohort N"
+  // Name pattern: "Cohort — Nov 7 2026 — Cohort N" (labels from src/lib/scheduling/tiers.ts)
   // N counts existing cohorts (including completed) for this tier+date.
   const nIdx = (cohorts?.length ?? 0) + 1;
-  const labelPrefix = input.tier === "group" ? "Seminar" : "Small Group";
+  const labelPrefix = tierLabel(input.tier);
   const dateLabel = formatSatDate(input.satTestDate);
   const newCohortName = `${labelPrefix} — ${dateLabel} — Cohort ${nIdx}`;
 

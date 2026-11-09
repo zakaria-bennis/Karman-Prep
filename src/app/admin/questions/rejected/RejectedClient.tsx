@@ -6,25 +6,15 @@
 // yet — recovery is a low-volume flow (the admin only comes
 // here when they realize they shouldn't have rejected something).
 //
-// Pattern matches /admin/questions/review:
-//   · cards collapsed by default (just the preview + meta)
-//   · expand to see the full question_text + choices
-//   · destructive button (Permanent delete) is rose-tinted and
-//     gated behind window.confirm
+// Dense table: each row shows the preview + meta; "Show" opens
+// the full question_text, choices and reason underneath. The
+// destructive button (Permanent delete) is gated behind
+// window.confirm.
 // ============================================================
 
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ChevronDown,
-  ChevronRight,
-  RotateCcw,
-  Trash2,
-  Loader2,
-  FileText,
-  AlertCircle,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { WbPill, formatDateTime } from "@/components/admin/workbench";
 import {
   actionRestoreRejectedQuestion,
   actionHardDeleteRejectedQuestion,
@@ -109,8 +99,9 @@ export default function RejectedClient({ rows }: Props) {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
-        Nothing rejected yet. Questions removed via the preview page land here for safekeeping.
+      <div className="wb-empty">
+        <b>Nothing rejected yet.</b>
+        Questions removed on the preview page land here for safekeeping.
       </div>
     );
   }
@@ -119,45 +110,50 @@ export default function RejectedClient({ rows }: Props) {
     <>
       {banner && (
         <div
-          className={cn(
-            "mb-3 flex items-start gap-2 rounded-lg border px-3 py-2 text-xs",
-            banner.kind === "ok"
-              ? "border-success/30 bg-success/[0.06] text-success-bright"
-              : "border-error/30 bg-error/[0.06] text-error-bright"
-          )}
+          className="wb-alert"
+          data-tone={banner.kind === "ok" ? "ok" : undefined}
+          role={banner.kind === "err" ? "alert" : "status"}
+          style={{ display: "flex", gap: 8, alignItems: "center" }}
         >
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <div className="flex-1">{banner.text}</div>
-          <button
-            onClick={() => setBanner(null)}
-            className={cn(
-              "text-xs hover:opacity-100",
-              banner.kind === "ok" ? "text-success-bright/70" : "text-error-bright/70"
-            )}
-          >
-            dismiss
+          <span style={{ flex: 1 }}>{banner.text}</span>
+          <button type="button" className="wb-btn" onClick={() => setBanner(null)}>
+            Dismiss
           </button>
         </div>
       )}
 
-      <div className="space-y-3">
-        {rows.map((r) => (
-          <RejectedCard
-            key={r.id}
-            row={r}
-            busy={pendingId === r.id}
-            expanded={expandedIds.has(r.id)}
-            onToggleExpanded={() => toggleExpanded(r.id)}
-            onRestore={() => handleRestore(r.id)}
-            onHardDelete={() => handleHardDelete(r.id, r.question_preview)}
-          />
-        ))}
+      <div className="wb-table-wrap">
+        <table className="wb-table">
+          <caption className="sr-only">Rejected questions</caption>
+          <thead>
+            <tr>
+              <th scope="col">Question</th>
+              <th scope="col">Source</th>
+              <th scope="col">Subject</th>
+              <th scope="col">Rejected</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <RejectedRow
+                key={r.id}
+                row={r}
+                busy={pendingId === r.id}
+                expanded={expandedIds.has(r.id)}
+                onToggleExpanded={() => toggleExpanded(r.id)}
+                onRestore={() => handleRestore(r.id)}
+                onHardDelete={() => handleHardDelete(r.id, r.question_preview)}
+              />
+            ))}
+          </tbody>
+        </table>
       </div>
     </>
   );
 }
 
-interface CardProps {
+interface RowProps {
   row: RejectedQuestionRow;
   busy: boolean;
   expanded: boolean;
@@ -166,123 +162,97 @@ interface CardProps {
   onHardDelete: () => void;
 }
 
-function RejectedCard({
-  row,
-  busy,
-  expanded,
-  onToggleExpanded,
-  onRestore,
-  onHardDelete,
-}: CardProps) {
+const LEFT = { minWidth: 0, overflowWrap: "anywhere", textAlign: "left" } as const;
+
+function RejectedRow({ row, busy, expanded, onToggleExpanded, onRestore, onHardDelete }: RowProps) {
   const snapshot = row.question_snapshot as Record<string, unknown>;
   const questionText =
     (snapshot.question_text as string | null | undefined) ?? row.question_preview ?? "";
   const passage = snapshot.passage as string | null | undefined;
+  const detailsId = `rejected-${row.id}`;
 
   return (
-    <div className="rounded-xl border border-bronze bg-surface/40">
-      {/* ── Collapsed header (always visible) ─────────────── */}
-      <button
-        onClick={onToggleExpanded}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-surface/60"
-      >
-        <div className="mt-0.5 text-taupe">
-          {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="line-clamp-2 text-sm text-ivory">
+    <Fragment>
+      <tr>
+        <td data-label="Question">
+          <span style={LEFT}>
             {row.question_preview || "(no preview captured)"}
-          </div>
-          <MetaRow row={row} />
-        </div>
-      </button>
-
-      {/* ── Expanded body ─────────────────────────────────── */}
-      {expanded && (
-        <div className="border-t border-bronze px-4 py-3">
-          {passage && (
-            <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
-                Passage
-              </div>
-              <div className="whitespace-pre-wrap rounded border border-bronze/60 bg-night/40 px-3 py-2 text-xs text-ivory">
-                {passage}
-              </div>
-            </div>
-          )}
-          <div className="mb-3">
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
-              Question
-            </div>
-            <div className="whitespace-pre-wrap text-sm text-ivory">{questionText}</div>
-          </div>
-          {row.choices_snapshot.length > 0 && (
-            <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
-                Choices
-              </div>
-              <ol className="space-y-1 text-xs text-ivory">
-                {row.choices_snapshot.map((c) => (
-                  <li key={c.letter}>
-                    <span className="font-mono font-bold text-taupe">{c.letter}.</span>{" "}
-                    {c.choice_text}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-          {row.rejected_reason && (
-            <div className="mb-3">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-taupe">
-                Reason given at reject time
-              </div>
-              <div className="rounded border border-warning/20 bg-warning/[0.04] px-3 py-2 text-xs text-warning-bright">
-                {row.rejected_reason}
-              </div>
-            </div>
-          )}
-
-          <ActionRow busy={busy} onRestore={onRestore} onHardDelete={onHardDelete} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MetaRow({ row }: { row: RejectedQuestionRow }) {
-  const when = (row.rejected_at ?? "").replace("T", " ").slice(0, 16);
-  return (
-    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-taupe">
-      <span className="inline-flex items-center gap-1">
-        <span className="text-taupe">rejected</span>
-        <span className="font-mono text-taupe">{when} UTC</span>
-      </span>
-      {row.source_pdf && (
-        <span className="inline-flex items-center gap-1">
-          <FileText className="h-3 w-3" />
-          <span className="font-mono text-taupe">
-            {row.source_pdf}
-            {row.source_page != null ? ` p${row.source_page}` : ""}
+            {row.rejected_reason && <small>Reason on file</small>}
+            <button
+              type="button"
+              className="wb-btn"
+              style={{ marginTop: 6, minHeight: 32 }}
+              aria-expanded={expanded}
+              aria-controls={detailsId}
+              onClick={onToggleExpanded}
+            >
+              {expanded ? "Hide details" : "Show details"}
+            </button>
           </span>
-        </span>
+        </td>
+        <td data-label="Source">
+          {row.source_pdf ? (
+            <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+              {row.source_pdf}
+              {row.source_page != null && <small>p {row.source_page}</small>}
+            </span>
+          ) : (
+            "—"
+          )}
+        </td>
+        <td data-label="Subject">
+          <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 4 }}>
+            {row.subject && <WbPill tone="neutral">{row.subject}</WbPill>}
+            {row.domain && <WbPill tone="neutral">{row.domain}</WbPill>}
+            {!row.subject && !row.domain && "—"}
+          </span>
+        </td>
+        <td data-label="Rejected">{formatDateTime(row.rejected_at)}</td>
+        <td data-label="Actions">
+          <ActionRow busy={busy} onRestore={onRestore} onHardDelete={onHardDelete} />
+        </td>
+      </tr>
+      {expanded && (
+        <tr id={detailsId}>
+          <td colSpan={5} data-label="">
+            <div style={{ ...LEFT, display: "grid", gap: 12, width: "100%" }}>
+              {passage && (
+                <div>
+                  <b>Passage</b>
+                  <p className="wb-note" style={{ whiteSpace: "pre-wrap", color: "var(--ink)" }}>
+                    {passage}
+                  </p>
+                </div>
+              )}
+              <div>
+                <b>Question</b>
+                <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{questionText}</p>
+              </div>
+              {row.choices_snapshot.length > 0 && (
+                <div>
+                  <b>Choices</b>
+                  <ul style={{ margin: "4px 0 0", paddingLeft: 0, listStyle: "none" }}>
+                    {row.choices_snapshot.map((c) => (
+                      <li key={c.letter}>
+                        <b>{c.letter}.</b> {c.choice_text}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {row.rejected_reason && (
+                <div>
+                  <b>Reason given at reject time</b>
+                  <p className="wb-note" style={{ marginTop: 4 }}>
+                    {row.rejected_reason}
+                  </p>
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
       )}
-      {row.domain && (
-        <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ivory">
-          {row.domain}
-        </span>
-      )}
-      {row.subject && (
-        <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ivory">
-          {row.subject}
-        </span>
-      )}
-      {row.rejected_reason && (
-        <span className="inline-flex items-center gap-1 text-warning/80">
-          <AlertCircle className="h-3 w-3" />
-          <span className="italic">reason on file</span>
-        </span>
-      )}
-    </div>
+    </Fragment>
   );
 }
 
@@ -296,29 +266,19 @@ function ActionRow({
   onHardDelete: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2 pt-1">
-      <button
-        onClick={onRestore}
-        disabled={busy}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-          "bg-success text-night hover:bg-success-bright disabled:hover:bg-success-bright"
-        )}
-      >
-        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
-        Restore to bank
+    <span style={{ display: "inline-flex", flexWrap: "wrap", gap: 6, justifyContent: "flex-end" }}>
+      <button type="button" className="wb-btn" onClick={onRestore} disabled={busy}>
+        {busy ? "Working…" : "Restore to bank"}
       </button>
       <button
+        type="button"
+        className="wb-btn"
+        data-variant="danger"
         onClick={onHardDelete}
         disabled={busy}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-50",
-          "bg-error text-ivory hover:bg-error-bright disabled:hover:bg-error-bright"
-        )}
       >
-        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
         Permanent delete
       </button>
-    </div>
+    </span>
   );
 }

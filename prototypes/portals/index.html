@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-theme="observatory" data-type="hanken" data-glass="refract" data-bg="contour">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Karman portals: prototypes</title>
+    <!--
+      Fonts: Hanken Grotesk 400 to 800 (the site face, default), IBM Plex Sans 400 to 600
+      and IBM Plex Serif 400 (question stems) for the type switch. One request now;
+      Phase 2 self-hosts the same files under public/fonts and drops this link.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif&display=swap"
+    />
+    <script>
+      // Rule 33: follow the device, dark when it states no preference; a remembered
+      // theme wins. The gallery's hash switches (theme=, mode=, type=, glass=, bg=)
+      // win over both so screenshots are stable. Light fallback is ivory, not paper
+      // (paper's surface is pure white, rule 3).
+      (function () {
+        try {
+          var dark = { observatory: 1, charcoal: 1, forest: 1, plum: 1 };
+          var light = {
+            ivory: 1,
+            paper: 1,
+            sand: 1,
+            sage: 1,
+            lavender: 1,
+            peach: 1,
+            rose: 1,
+            blush: 1,
+          };
+          var q = new URLSearchParams((location.hash.split("?")[1] || "").replace(/^\?/, ""));
+          var root = document.documentElement;
+          var saved = localStorage.getItem("karman-theme");
+          var mode = q.get("mode");
+          var id = q.get("theme");
+          if (!(id in dark || id in light)) id = null;
+          if (!id && mode === "light") id = "ivory";
+          if (!id && mode === "dark") id = "observatory";
+          if (!id && (saved in dark || saved in light)) id = saved;
+          if (!id)
+            id = window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "ivory"
+              : "observatory";
+          root.dataset.theme = id;
+          root.classList.toggle("dark", !!dark[id]);
+          var type = q.get("type") || localStorage.getItem("karman-type");
+          if (type === "plex" || type === "hanken") root.dataset.type = type;
+          var glass = q.get("glass") || localStorage.getItem("karman-glass");
+          if (glass === "frost" || glass === "refract") root.dataset.glass = glass;
+          var bg = q.get("bg") || localStorage.getItem("karman-bg");
+          if (bg === "sky" || bg === "ruled" || bg === "contour" || bg === "grain")
+            root.dataset.bg = bg;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

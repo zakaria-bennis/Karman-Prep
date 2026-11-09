@@ -1,0 +1,194 @@
+{
+  "about": "Stills for the Quiet direction of the home page (.impeccable/mocks/fresh/quiet). One photograph per chapter, all in one soft daylight grade. Founder approved all image creation for this work in chat on 2026-11-01.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "16:9",
+    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. One continuous shot, slow and physical camera move, no cuts. No text, letters, numbers, logos, watermarks, neon, lens flare, bokeh circles, light orbs, purple, glowing orbs or rockets. Phone and laptop screens are never visible to the camera.",
+    "stillSuffix": "Wide horizontal 16:9 photograph. Shot on a full-frame camera with a 35mm or 50mm lens, natural light, true colour with a gentle warm film grade, each room real and specific with its own wall colour and objects, true skin texture with pores and fine detail, natural hands with five fingers, subtle fine film grain, editorial documentary photograph, not staged. No text, letters, numbers, logos, crests, brand marks or watermarks anywhere, including on clothing, walls, books and devices. Phone and laptop screens are never visible to the camera. No paper, notebooks, pens, pencils or calculators. No purple, neon, lens flare or bokeh circles."
+  },
+  "cast": {},
+  "shots": [],
+  "plates": [],
+  "stills": [
+    {
+      "id": "quiet-hero-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Hero, first screen",
+      "prompt": "A 17-year-old girl studying alone at a plain light-oak desk beside a tall window in late afternoon. Her laptop is open on the desk, seen from the side so its screen faces away from the camera. White wireless earbuds, hair loosely tied back, one hand resting near her chin, eyes on the laptop, fully focused, calm. She sits in the right third of the frame; the left two thirds is a plain warm off-white plaster wall softly lit by the window. A single ceramic mug. Quiet, spare room."
+    },
+    {
+      "id": "quiet-hero-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Hero, first screen (alternate)",
+      "prompt": "A 17-year-old girl studying alone at a plain light-oak desk beside a tall window in late afternoon. Her laptop is open on the desk, seen from the side so its screen faces away from the camera. White wireless earbuds, hair loosely tied back, one hand resting near her chin, eyes on the laptop, fully focused, calm. She sits in the right third of the frame; the left two thirds is a plain warm off-white plaster wall softly lit by the window. A single ceramic mug. Quiet, spare room."
+    },
+    {
+      "id": "quiet-daily-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Your Daily 10 chapter",
+      "prompt": "A 16-year-old boy in a plain navy track jacket sitting on a low aluminium bench beside an empty school running track during a practice break, early evening golden light. He holds his phone low in both hands with the screen facing away from the camera, looking down at it, white wireless earbuds in, completely focused. He sits left of centre; open sky, the track and a distant line of trees fill the right side. Calm, spacious frame."
+    },
+    {
+      "id": "quiet-daily-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Your Daily 10 chapter (alternate)",
+      "prompt": "A 16-year-old boy in a plain navy track jacket sitting on a low aluminium bench beside an empty school running track during a practice break, early evening golden light. He holds his phone low in both hands with the screen facing away from the camera, looking down at it, white wireless earbuds in, completely focused. He sits left of centre; open sky, the track and a distant line of trees fill the right side. Calm, spacious frame."
+    },
+    {
+      "id": "quiet-class-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Live cohort chapter",
+      "prompt": "Evening at home. A 17-year-old girl sits at a kitchen table in a live online class on her laptop, wearing plain over-ear headphones, speaking mid-sentence to the people on the call with one open hand, focused and engaged. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. A warm pendant lamp above, a dark window behind her. She sits right of centre; a calm plain wall fills the left side."
+    },
+    {
+      "id": "quiet-class-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Live cohort chapter (alternate)",
+      "prompt": "Evening at home. A 17-year-old girl sits at a kitchen table in a live online class on her laptop, wearing plain over-ear headphones, speaking mid-sentence to the people on the call with one open hand, focused and engaged. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. A warm pendant lamp above, a dark window behind her. She sits right of centre; a calm plain wall fills the left side."
+    },
+    {
+      "id": "quiet-tutor-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Private 1:1 chapter, the tutor in his own place",
+      "prompt": "A tutor in his late twenties at a desk in his own small home study, on a one-to-one video call on his laptop, wearing a slim headset microphone, leaning slightly forward and explaining with one open hand, warm and attentive. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. A softly out-of-focus bookshelf and a plant behind him, daylight from a side window. He sits left of centre."
+    },
+    {
+      "id": "quiet-tutor-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Private 1:1 chapter, the tutor in her own place (alternate)",
+      "prompt": "A tutor, a woman in her late twenties, at a desk in her own small home study, on a one-to-one video call on her laptop, wearing a slim headset microphone, leaning slightly forward and explaining with one open hand, warm and attentive. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. A softly out-of-focus bookshelf and a plant behind her, daylight from a side window. She sits left of centre."
+    },
+    {
+      "id": "quiet-student-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Private 1:1 chapter, the student in his own room",
+      "prompt": "A 16-year-old boy at the desk in his own bedroom on a one-to-one video call on his laptop, white wireless earbuds in, listening closely with a slight nod, focused. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. Evening, a warm desk lamp, a plain wall and a made bed softly out of focus behind him. He sits right of centre."
+    },
+    {
+      "id": "quiet-student-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Private 1:1 chapter, the student in his own room (alternate)",
+      "prompt": "A 16-year-old boy at the desk in his own bedroom on a one-to-one video call on his laptop, white wireless earbuds in, listening closely with a slight nod, focused. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. Evening, a warm desk lamp, a plain wall and a made bed softly out of focus behind him. He sits right of centre."
+    },
+    {
+      "id": "quiet-parent-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Weekly update to the parent",
+      "prompt": "A mother in her mid forties standing at a kitchen counter on a calm weekday morning, reading a message on her phone held at chest height with the screen facing away from the camera, a small reassured smile, a cup of coffee on the counter beside her. Soft daylight from a window, pale stone counter, plain light wall. She stands left of centre; the right side is calm open kitchen."
+    },
+    {
+      "id": "quiet-parent-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Weekly update to the parent (alternate)",
+      "prompt": "A mother in her mid forties standing at a kitchen counter on a calm weekday morning, reading a message on her phone held at chest height with the screen facing away from the camera, a small reassured smile, a cup of coffee on the counter beside her. Soft daylight from a window, pale stone counter, plain light wall. She stands left of centre; the right side is calm open kitchen."
+    },
+    {
+      "id": "quiet-test-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Free practice test, the closing chapter",
+      "prompt": "Saturday morning. A 17-year-old boy sits upright at a clean desk in a bright quiet room, taking a timed practice test on his laptop, completely focused, a glass of water beside the laptop. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. Morning sun through sheer curtains. He sits right of centre; a plain pale wall fills the left side."
+    },
+    {
+      "id": "quiet-test-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Free practice test, the closing chapter (alternate)",
+      "prompt": "Saturday morning. A 17-year-old boy sits upright at a clean desk in a bright quiet room, taking a timed practice test on his laptop, completely focused, a glass of water beside the laptop. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. Morning sun through sheer curtains. He sits right of centre; a plain pale wall fills the left side."
+    },
+    {
+      "id": "quiet-hero-c",
+      "where": "Hero",
+      "prompt": "Blue hour at home. A 17-year-old girl studying at the desk in her own bedroom, a deep teal wall behind her, a tall window showing a dark blue dusk sky over rooftops, a warm brass desk lamp lighting her face from the left. Her laptop is open on the desk, seen from the side so its screen faces away from the camera. White wireless earbuds, hair loosely tied back, both hands on the keyboard, eyes on the laptop, completely focused. She sits in the right half of the frame, her whole head and shoulders and the desk in frame with clear space above her head; the left half of the frame is the window and the dusk. A woven wool blanket over the back of her chair, a small potted plant.",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9"
+    },
+    {
+      "id": "quiet-zoom-tutor",
+      "where": "March class, tutor tile",
+      "prompt": "Webcam view on a live video class: the photograph is exactly what the laptop's own camera sees, straight on at eye level, the person centred and framed from the chest up with room above the head, looking at the screen just below the lens. Slightly soft webcam-like focus, natural indoor light. A Karman tutor, a man around thirty with short dark hair and a trimmed beard, in a plain grey sweater, slim headset microphone, explaining something with a small open-hand gesture near the bottom of the frame, warm and attentive. Behind him, his own home study: a deep green wall, a wooden shelf with plants and a few plain ceramic objects, a warm lamp. Evening.",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9"
+    },
+    {
+      "id": "quiet-zoom-a",
+      "where": "March class, student tile",
+      "prompt": "Webcam view on a live video class: the photograph is exactly what the laptop's own camera sees, straight on at eye level, the person centred and framed from the chest up with room above the head, looking at the screen just below the lens. Slightly soft webcam-like focus, natural indoor light. A 16-year-old boy in his own bedroom, over-ear headphones, a dark green hoodie, focused, a very slight nod. Behind him: a navy blue wall, the corner of a bed with a striped blanket, an acoustic guitar on a stand. Evening, warm lamp light from one side.",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9"
+    },
+    {
+      "id": "quiet-zoom-b",
+      "where": "March class, student tile",
+      "prompt": "Webcam view on a live video class: the photograph is exactly what the laptop's own camera sees, straight on at eye level, the person centred and framed from the chest up with room above the head, looking at the screen just below the lens. Slightly soft webcam-like focus, natural indoor light. A 17-year-old girl at her family's kitchen table, white wireless earbuds, hair in two braids, a cream knit sweater, calm and focused, relaxed brow, a faint small smile, listening to the tutor, at ease. Behind her: pale butter-yellow kitchen cabinets, a window with late afternoon sun, a fruit bowl on the counter.",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9"
+    },
+    {
+      "id": "quiet-zoom-c",
+      "where": "March class, student tile",
+      "prompt": "Webcam view on a live video class: the photograph is exactly what the laptop's own camera sees, straight on at eye level, the person centred and framed from the chest up with room above the head, looking at the screen just below the lens. Slightly soft webcam-like focus, natural indoor light. A 16-year-old boy in a quiet glass-walled study room at a public library, white wireless earbuds, a grey crewneck, thinking with his chin slightly lifted, focused. Behind him: a glass wall and soft blurred wooden shelves, cool even daylight.",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9"
+    },
+    {
+      "id": "quiet-student-c",
+      "where": "Private 1:1, student",
+      "prompt": "Afternoon. A 17-year-old boy at the desk in his own room on a one-to-one video call on his laptop, white wireless earbuds in, listening with full focus, one hand resting on the desk. Seen from three-quarter front so the back of the laptop faces the camera and its screen is not visible. A terracotta red wall, a skateboard leaning in the corner, low sun through window blinds laying soft stripes of light across the wall. He is clearly 17, with a young adult face. Framed from the waist up, his whole head in frame with space above it.",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9"
+    }
+  ]
+}

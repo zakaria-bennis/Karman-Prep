@@ -107,7 +107,7 @@ export function AddQuestionForm({
   }
 
   const inputClass =
-    "w-full rounded-lg border border-bronze bg-surface text-ivory px-3 py-2 text-sm placeholder:text-taupe focus:outline-none focus:border-gold/40";
+    "w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--card)] text-[color:var(--ink)] px-3 py-2 text-sm placeholder:text-[color:var(--mute)] focus:outline-none focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)]";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -203,9 +203,9 @@ export function AddQuestionForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-5 space-y-4 rounded-xl border border-gold/30 bg-gold/5 p-5"
+      className="mb-5 space-y-4 rounded-xl border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_5%,transparent)] p-5"
     >
-      <h3 className="text-sm font-bold text-ivory">New question</h3>
+      <h3 className="text-sm font-bold text-[color:var(--ink)]">New question</h3>
 
       {/* Answer format toggle (MC vs numeric) */}
       {subject === "math" && (
@@ -213,15 +213,15 @@ export function AddQuestionForm({
           label="Answer format"
           helper="Numeric entry is typed in by the student — no A/B/C/D choices."
         >
-          <div className="inline-flex overflow-hidden rounded-lg border border-bronze bg-surface">
+          <div className="inline-flex overflow-hidden rounded-lg border border-[color:var(--line)] bg-[color:var(--card)]">
             <button
               type="button"
               onClick={() => setAnswerFormat("multiple_choice")}
               className={cn(
                 "px-4 py-1.5 text-xs font-semibold",
                 answerFormat === "multiple_choice"
-                  ? "bg-gold text-night"
-                  : "text-taupe hover:text-ivory"
+                  ? "bg-[color:var(--accent)] text-[color:var(--accent-ink)]"
+                  : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
             >
               Multiple choice
@@ -230,10 +230,10 @@ export function AddQuestionForm({
               type="button"
               onClick={() => setAnswerFormat("numeric_entry")}
               className={cn(
-                "border-l border-bronze px-4 py-1.5 text-xs font-semibold",
+                "border-l border-[color:var(--line)] px-4 py-1.5 text-xs font-semibold",
                 answerFormat === "numeric_entry"
-                  ? "bg-gold text-night"
-                  : "text-taupe hover:text-ivory"
+                  ? "bg-[color:var(--accent)] text-[color:var(--accent-ink)]"
+                  : "text-[color:var(--mute)] hover:text-[color:var(--ink)]"
               )}
             >
               Numeric entry
@@ -273,13 +273,13 @@ export function AddQuestionForm({
           <button
             type="button"
             onClick={() => imageInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface-raised"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--raised)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
           >
             <ImageIcon className="h-3.5 w-3.5" /> {imageFile ? "Change image" : "Choose image"}
           </button>
           {imageFile && (
             <>
-              <span className="max-w-xs truncate text-xs text-taupe">
+              <span className="max-w-xs truncate text-xs text-[color:var(--mute)]">
                 {imageFile.name || "Pasted image"}
               </span>
               <button
@@ -288,7 +288,7 @@ export function AddQuestionForm({
                   setImageFromFile(null);
                   if (imageInputRef.current) imageInputRef.current.value = "";
                 }}
-                className="text-xs text-error hover:text-error-bright"
+                className="text-xs text-[color:var(--late)] hover:text-[color:var(--late)]"
               >
                 remove
               </button>
@@ -306,7 +306,7 @@ export function AddQuestionForm({
           <img
             src={imagePreviewUrl}
             alt={imageAlt || "Attached image preview"}
-            className="mt-2 max-h-48 rounded-lg border border-bronze bg-night"
+            className="mt-2 max-h-48 rounded-lg border border-[color:var(--line)] bg-[color:var(--sunk)]"
           />
         )}
         {imageFile && (
@@ -349,7 +349,7 @@ export function AddQuestionForm({
                           },
                     }))
                   }
-                  className="mt-1.5 text-xs font-semibold text-gold-bright"
+                  className="mt-1.5 text-xs font-semibold text-[color:var(--accent-text)]"
                 >
                   {choiceTables[letter] ? "Remove table" : "Add source table"}
                 </button>
@@ -369,7 +369,7 @@ export function AddQuestionForm({
               {LETTERS.map((l) => (
                 <label
                   key={l}
-                  className="flex cursor-pointer items-center gap-1 text-sm text-ivory"
+                  className="flex cursor-pointer items-center gap-1 text-sm text-[color:var(--ink)]"
                 >
                   <input
                     type="radio"
@@ -490,7 +490,7 @@ export function AddQuestionForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm font-semibold text-taupe hover:bg-surface-raised"
+          className="rounded-lg px-4 py-2 text-sm font-semibold text-[color:var(--mute)] hover:bg-[color:var(--raised)]"
         >
           Cancel
         </button>
@@ -498,8 +498,10 @@ export function AddQuestionForm({
           type="submit"
           disabled={!valid || submitting}
           className={cn(
-            "rounded-lg bg-gold px-5 py-2 text-sm font-bold text-night",
-            !valid || submitting ? "cursor-not-allowed opacity-50" : "hover:bg-gold-bright"
+            "rounded-lg bg-[color:var(--accent)] px-5 py-2 text-sm font-bold text-[color:var(--accent-ink)]",
+            !valid || submitting
+              ? "cursor-not-allowed opacity-50"
+              : "hover:bg-[color:var(--accent)]"
           )}
         >
           {submitting ? "Adding…" : "Add question"}
@@ -520,8 +522,12 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-taupe">{label}</span>
-      {helper && <span className="mb-1 mt-0.5 block text-[10px] text-taupe">{helper}</span>}
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
+        {label}
+      </span>
+      {helper && (
+        <span className="mb-1 mt-0.5 block text-[10px] text-[color:var(--mute)]">{helper}</span>
+      )}
       <div className={helper ? "" : "mt-1"}>{children}</div>
     </label>
   );
@@ -536,9 +542,9 @@ function DifficultyLevelField({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-taupe">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--mute)]">
           Difficulty level{" "}
-          <span className="ml-1 normal-case tracking-normal text-taupe">
+          <span className="ml-1 normal-case tracking-normal text-[color:var(--mute)]">
             (1 easiest → 7 hardest)
           </span>
         </span>
@@ -564,8 +570,8 @@ function DifficultyLevelField({
               className={cn(
                 "flex-1 rounded-lg border py-2 text-sm font-bold transition-colors",
                 active
-                  ? "text-ivory"
-                  : "border-bronze text-taupe hover:border-bronze hover:text-ivory"
+                  ? "text-[color:var(--ink)]"
+                  : "border-[color:var(--line)] text-[color:var(--mute)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
               )}
               style={
                 active

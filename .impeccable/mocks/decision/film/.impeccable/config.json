@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/film/alive.css"
+        ],
+        "createdAt": "2026-10-25T23:47:11.822Z",
+        "reason": "Founder asked for small glimmers and shines on every page (2026-10-25). The numbers are solid at rest; a light band crosses about 1 s every 7 to 13 s, off with reduced motion."
+      }
+    ]
+  }
+}

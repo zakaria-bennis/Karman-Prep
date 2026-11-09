@@ -27,7 +27,6 @@ const NEW_FILE_SOFT_LIMIT = 700;
  *  let a known offender grow uncontrollably while we plan a split. */
 const KNOWN_OFFENDERS = {
   "src/app/admin/cohorts/[id]/CohortDetailClient.tsx": 701,
-  "src/app/admin/revenue/RevenueClient.tsx": 850,
   "src/app/onboarding/OnboardingClient.tsx": 812,
   "src/app/onboarding/questionnaire/QuestionnaireClient.tsx": 784,
   "src/components/diagnostic/DiagnosticClient.tsx": 717,

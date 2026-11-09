@@ -1,7 +1,8 @@
 "use client";
 
 // ============================================================
-// JobsClient — renders the PDF-job table with auto-refresh.
+// JobsClient — the PDF-job table with status tabs, a file-name
+// search and auto-refresh.
 //
 // Polls /admin/jobs (via router.refresh) every 10s while the
 // page is open so admins see status changes pushed by the local
@@ -9,21 +10,9 @@
 // ============================================================
 
 import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  CheckCircle2,
-  Clock,
-  Loader2,
-  XCircle,
-  AlertTriangle,
-  RefreshCw,
-  FileText,
-  Download,
-  Sparkles,
-  Upload as UploadIcon,
-  Database,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { WbPill, WbTable, formatDateTime, type Tone } from "@/components/admin/workbench";
 import {
   PDF_MODULE_KEYS,
   PDF_MODULE_LABELS,
@@ -40,10 +29,28 @@ const REFRESH_INTERVAL_MS = 10_000;
 // hitting the server every second. Re-renders are essentially free.
 const ELAPSED_TICK_MS = 1_000;
 
+type StatusFilter = "all" | "active" | "failed" | "complete";
+
+const FILTERS: Array<{ value: StatusFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "active", label: "Queued or running" },
+  { value: "failed", label: "Failed" },
+  { value: "complete", label: "Complete" },
+];
+
+function matchesFilter(job: PdfProcessingJob, filter: StatusFilter): boolean {
+  if (filter === "all") return true;
+  if (filter === "active") return job.status === "queued" || job.status === "running";
+  if (filter === "failed") return job.status === "failed" || job.status === "partial";
+  return job.status === "complete";
+}
+
 export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessingJob[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [filter, setFilter] = useState<StatusFilter>("all");
+  const [query, setQuery] = useState("");
 
   // Auto-refresh while there are non-terminal jobs to watch.
   const hasActiveJobs = initialJobs.some((j) => j.status === "queued" || j.status === "running");
@@ -58,53 +65,122 @@ export default function JobsClient({ initialJobs }: { initialJobs: PdfProcessing
 
   if (initialJobs.length === 0) {
     return (
-      <div className="rounded-xl border border-bronze bg-surface/40 px-6 py-12 text-center text-sm text-taupe">
-        <FileText className="mx-auto mb-2 h-6 w-6 text-taupe" />
-        No PDFs uploaded yet. Upload one from{" "}
-        <a
-          href="/admin/questions/import"
-          className="text-gold-bright underline hover:text-gold-bright"
-        >
-          /admin/questions/import
-        </a>
-        .
+      <div className="wb-empty">
+        <b>No PDFs uploaded yet.</b>
+        Upload one from <Link href="/admin/questions/import">the import page</Link>.
       </div>
     );
   }
 
+  const q = query.trim().toLowerCase();
+  const searched = q
+    ? initialJobs.filter((j) => j.source_pdf.toLowerCase().includes(q))
+    : initialJobs;
+  const shown = searched.filter((j) => matchesFilter(j, filter));
+  const clearAll = () => {
+    setQuery("");
+    setFilter("all");
+  };
+
   return (
     <>
-      {/* Toolbar */}
-      <div className="mb-3 flex items-center gap-3 text-xs">
+      <div className="wb-toolbar">
+        <div className="wb-tabs" role="group" aria-label="Job status">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              className="wb-tab"
+              aria-pressed={filter === f.value}
+              aria-current={filter === f.value ? "page" : undefined}
+              onClick={() => setFilter(f.value)}
+            >
+              {f.label}
+              <small>{searched.filter((j) => matchesFilter(j, f.value)).length}</small>
+            </button>
+          ))}
+        </div>
+        <div className="wb-search" role="search">
+          <input
+            className="wb-input"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="File name"
+            aria-label="Search by file name"
+          />
+        </div>
         <button
+          type="button"
+          className="wb-btn"
           onClick={() => startTransition(() => router.refresh())}
-          className="inline-flex items-center gap-1 text-taupe hover:text-ivory"
         >
-          <RefreshCw className="h-3 w-3" /> Refresh
+          Refresh
         </button>
-        <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-taupe">
+        <label className="wb-note" style={{ display: "inline-flex", gap: 6, cursor: "pointer" }}>
           <input
             type="checkbox"
             checked={autoRefresh}
             onChange={(e) => setAutoRefresh(e.target.checked)}
-            className="accent-gold"
+            style={{ accentColor: "var(--accent)" }}
           />
           Auto-refresh while jobs are running
         </label>
       </div>
 
-      {/* Job rows */}
-      <div className="space-y-2">
-        {initialJobs.map((job) => (
-          <JobRow key={job.id} job={job} />
-        ))}
-      </div>
+      <WbTable<PdfProcessingJob>
+        caption="PDF processing jobs"
+        rows={shown}
+        rowKey={(j) => j.id}
+        empty={
+          <>
+            <b>No job matches.</b>
+            <button type="button" className="wb-btn" onClick={clearAll}>
+              {q ? "Clear the search" : "Clear filters"}
+            </button>
+          </>
+        }
+        columns={[
+          { key: "file", label: "File", cell: (j) => <FileCell job={j} /> },
+          { key: "status", label: "Status", cell: (j) => <JobStatusPill status={j.status} /> },
+          { key: "stage", label: "Stage", cell: (j) => <StageCell job={j} /> },
+          { key: "modules", label: "Modules", cell: (j) => <ModuleList job={j} /> },
+          {
+            key: "imported",
+            label: "Imported",
+            numeric: true,
+            cell: (j) => totalImported(j).toLocaleString("en-US"),
+          },
+        ]}
+      />
     </>
   );
 }
 
-function JobRow({ job }: { job: PdfProcessingJob }) {
-  const totalImported = Object.values(job.imported_counts).reduce((sum, n) => sum + (n ?? 0), 0);
+function totalImported(job: PdfProcessingJob): number {
+  return Object.values(job.imported_counts ?? {}).reduce((sum, n) => sum + (n ?? 0), 0);
+}
+
+function FileCell({ job }: { job: PdfProcessingJob }) {
+  const meta = [
+    formatDateTime(job.uploaded_at),
+    job.pdf_size_bytes != null ? `${(job.pdf_size_bytes / 1024 / 1024).toFixed(1)} MB` : null,
+    job.pdf_page_count != null ? `${job.pdf_page_count} pages` : null,
+  ].filter(Boolean);
+  return (
+    <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+      <span style={{ fontWeight: 600 }}>{job.source_pdf}</span>
+      <small>{meta.join(" · ")}</small>
+      {job.error_message && (
+        <small role="alert" style={{ color: "var(--late)" }}>
+          {job.error_message}
+        </small>
+      )}
+    </span>
+  );
+}
+
+function StageCell({ job }: { job: PdfProcessingJob }) {
   // Derive the visible stage. `progress` arrives populated for jobs
   // run by the new daemon; older rows fall back to the status enum.
   const stage = deriveStage(job);
@@ -113,74 +189,21 @@ function JobRow({ job }: { job: PdfProcessingJob }) {
   const stagePercent = job.progress?.percent ?? STAGE_PERCENT[stage] ?? 0;
   const isActive =
     stage !== "complete" && stage !== "failed" && stage !== "queued" && stage !== "done";
-
   return (
-    <article className="rounded-lg border border-bronze bg-surface/60 px-4 py-3">
-      <div className="flex items-start gap-3">
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-taupe" />
-        <div className="min-w-0 flex-1">
-          {/* ── Title row ───────────────────────────────────── */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate text-sm font-semibold text-ivory">{job.source_pdf}</span>
-            <JobStatusBadge status={job.status} />
-            <span className="text-[11px] text-taupe">
-              {new Date(job.uploaded_at).toLocaleString()}
-            </span>
-            {job.pdf_size_bytes != null && (
-              <span className="text-[11px] text-taupe">
-                {(job.pdf_size_bytes / 1024 / 1024).toFixed(1)} MB
-              </span>
-            )}
-            {job.pdf_page_count != null && (
-              <span className="text-[11px] text-taupe">{job.pdf_page_count} pages</span>
-            )}
-            {totalImported > 0 && (
-              <span className="text-[11px] text-success">{totalImported} questions imported</span>
-            )}
-          </div>
-
-          {/* ── Live progress bar + stage chip ───────────────── */}
-          <div className="mt-2.5">
-            <div className="mb-1 flex items-center gap-2 text-[11px]">
-              <StageIcon stage={stage} />
-              <span className="font-medium text-ivory">
-                {STAGE_LABEL[stage] ?? job.progress?.stage_label ?? stage}
-              </span>
-              {isActive && job.started_at && <ElapsedTime startedAt={job.started_at} />}
-              {job.progress?.message && (
-                <span className="truncate text-taupe">— {job.progress.message}</span>
-              )}
-              {job.progress?.updated_at && (
-                <span className="ml-auto shrink-0 text-taupe">
-                  updated {timeAgo(job.progress.updated_at)}
-                </span>
-              )}
-            </div>
-            <ProgressBar percent={stagePercent} stage={stage} />
-          </div>
-
-          {/* ── Per-module pills (collapsed by default for now;
-                useful when Hybrid-Full multi-session lands) ──── */}
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {PDF_MODULE_KEYS.map((m) => (
-              <ModulePill
-                key={m}
-                label={PDF_MODULE_LABELS[m]}
-                status={job.module_status[m] ?? "pending"}
-                imported={job.imported_counts[m]}
-              />
-            ))}
-          </div>
-
-          {job.error_message && (
-            <div className="mt-2 flex items-start gap-1.5 text-xs text-error-bright">
-              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-              {job.error_message}
-            </div>
-          )}
-        </div>
-      </div>
-    </article>
+    <span style={{ display: "block", minWidth: 0, flex: "1 1 auto", textAlign: "left" }}>
+      <span style={{ fontWeight: 600 }}>
+        {STAGE_LABEL[stage] ?? job.progress?.stage_label ?? stage}
+      </span>
+      {isActive && job.started_at && (
+        <>
+          {" "}
+          <ElapsedTime startedAt={job.started_at} />
+        </>
+      )}
+      {job.progress?.message && <small>{job.progress.message}</small>}
+      <ProgressBar percent={stagePercent} stage={stage} />
+      {job.progress?.updated_at && <small>Updated {timeAgo(job.progress.updated_at)}</small>}
+    </span>
   );
 }
 
@@ -202,74 +225,41 @@ function deriveStage(job: PdfProcessingJob): PdfJobStage {
   return "pulled";
 }
 
-function StageIcon({ stage }: { stage: PdfJobStage }) {
-  // Map covers BOTH v1 (legacy daemon) and v2 (Gemini pipeline)
-  // stages so this legacy /admin/jobs view renders both row
-  // generations without crashing. The newer /admin/pdf-pipeline/
-  // jobs/[id] view is the preferred surface for v2 jobs.
-  // Partial — only the stages we give bespoke icons. Any stage not listed
-  // (incl. newer v2 orchestrator stages + future ones) falls back below
-  // instead of crashing the page on an undefined destructure.
-  const map: Partial<
-    Record<
-      PdfJobStage,
-      { icon: React.ComponentType<{ className?: string }>; className: string; spin?: boolean }
-    >
-  > = {
-    queued: { icon: Clock, className: "text-taupe" },
-    // v1 — old daemon
-    pulled: { icon: Download, className: "text-taupe" },
-    processing: { icon: Sparkles, className: "text-gold", spin: false },
-    finalizing: { icon: UploadIcon, className: "text-info" },
-    ingesting: { icon: Database, className: "text-gold" },
-    // v2 — Gemini pipeline (full 14-stage orchestrator)
-    extracting: { icon: Sparkles, className: "text-gold" },
-    figures: { icon: Sparkles, className: "text-info" },
-    csv: { icon: UploadIcon, className: "text-info" },
-    importing: { icon: Database, className: "text-gold" },
-    answer_key: { icon: Download, className: "text-success" },
-    crops: { icon: FileText, className: "text-info" },
-    visuals: { icon: Sparkles, className: "text-gold" },
-    figure_structure: { icon: Sparkles, className: "text-info" },
-    math_repair: { icon: Sparkles, className: "text-warning" },
-    fill_gate: { icon: Clock, className: "text-taupe" },
-    filling: { icon: Sparkles, className: "text-gold" },
-    qa_filling: { icon: Sparkles, className: "text-gold" },
-    grading: { icon: Sparkles, className: "text-warning" },
-    auditing: { icon: AlertTriangle, className: "text-warning" },
-    validating: { icon: CheckCircle2, className: "text-info" },
-    publishing: { icon: UploadIcon, className: "text-success" },
-    done: { icon: CheckCircle2, className: "text-success" },
-    // terminal (shared)
-    complete: { icon: CheckCircle2, className: "text-success" },
-    failed: { icon: XCircle, className: "text-error" },
-  };
-  // Fallback for any stage without a bespoke icon (keeps the page from
-  // crashing on an unmapped/new stage — the original bug).
-  const entry = map[stage] ?? { icon: Sparkles, className: "text-taupe" };
-  const { icon: Icon, className } = entry;
-  // Active (non-terminal, non-queued) stages get a soft pulse.
-  const active =
-    stage !== "queued" && stage !== "complete" && stage !== "done" && stage !== "failed";
-  return <Icon className={cn("h-3.5 w-3.5 shrink-0", className, active && "animate-pulse")} />;
-}
-
 function ProgressBar({ percent, stage }: { percent: number; stage: PdfJobStage }) {
-  const barColor =
+  const bar =
     stage === "failed"
-      ? "bg-error/70"
-      : stage === "complete"
-        ? "bg-success/70"
+      ? "var(--late)"
+      : stage === "complete" || stage === "done"
+        ? "var(--good)"
         : stage === "queued"
-          ? "bg-surface-raised"
-          : "bg-gold/70";
+          ? "var(--line)"
+          : "var(--accent)";
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised">
-      <div
-        className={cn("h-full transition-all duration-700 ease-out", barColor)}
-        style={{ width: `${percent}%` }}
+    <span
+      role="progressbar"
+      aria-valuenow={Math.round(percent)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Progress"
+      style={{
+        display: "block",
+        height: 6,
+        margin: "6px 0 2px",
+        borderRadius: 4,
+        overflow: "hidden",
+        background: "var(--sunk, var(--line))",
+      }}
+    >
+      <span
+        style={{
+          display: "block",
+          height: "100%",
+          width: `${percent}%`,
+          background: bar,
+          transition: "width 700ms ease-out",
+        }}
       />
-    </div>
+    </span>
   );
 }
 
@@ -281,7 +271,7 @@ function ElapsedTime({ startedAt }: { startedAt: string }) {
     return () => clearInterval(t);
   }, []);
   const elapsedSec = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
-  return <span className="font-mono text-taupe">({formatDuration(elapsedSec)})</span>;
+  return <span style={{ color: "var(--mute)" }}>({formatDuration(elapsedSec)})</span>;
 }
 
 function formatDuration(sec: number): string {
@@ -304,65 +294,39 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function JobStatusBadge({ status }: { status: PdfJobStatus }) {
-  const map: Record<
-    PdfJobStatus,
-    { label: string; className: string; icon: React.ComponentType<{ className?: string }> }
-  > = {
-    queued: { label: "Queued", className: "bg-surface-raised text-ivory", icon: Clock },
-    running: { label: "Running", className: "bg-gold/20 text-gold-bright", icon: Loader2 },
-    partial: {
-      label: "Partial",
-      className: "bg-warning/20 text-warning-bright",
-      icon: AlertTriangle,
-    },
-    complete: {
-      label: "Complete",
-      className: "bg-success/20 text-success-bright",
-      icon: CheckCircle2,
-    },
-    failed: { label: "Failed", className: "bg-error/20 text-error-bright", icon: XCircle },
-  };
-  const { label, className, icon: Icon } = map[status];
-  const isAnimated = status === "running";
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold",
-        className
-      )}
-    >
-      <Icon className={cn("h-3 w-3", isAnimated && "animate-spin")} /> {label}
-    </span>
-  );
+const STATUS_PILL: Record<PdfJobStatus, { label: string; tone: Tone }> = {
+  queued: { label: "Queued", tone: "neutral" },
+  running: { label: "Running", tone: "info" },
+  partial: { label: "Partial", tone: "warn" },
+  complete: { label: "Complete", tone: "ok" },
+  failed: { label: "Failed", tone: "fail" },
+};
+
+function JobStatusPill({ status }: { status: PdfJobStatus }) {
+  const entry = STATUS_PILL[status] ?? { label: status, tone: "neutral" as Tone };
+  return <WbPill tone={entry.tone}>{entry.label}</WbPill>;
 }
 
-function ModulePill({
-  label,
-  status,
-  imported,
-}: {
-  label: string;
-  status: PdfModuleStatus;
-  imported?: number;
-}) {
-  const cls = {
-    pending: "border-bronze text-taupe",
-    in_progress: "border-gold/50 text-gold-bright bg-gold/10",
-    complete: "border-success/40 text-success-bright bg-success/10",
-    failed: "border-error/40 text-error-bright bg-error/10",
-  }[status];
+const MODULE_TONE: Record<PdfModuleStatus, Tone> = {
+  pending: "neutral",
+  in_progress: "info",
+  complete: "ok",
+  failed: "fail",
+};
+
+function ModuleList({ job }: { job: PdfProcessingJob }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-medium",
-        cls
-      )}
-    >
-      {label}
-      {imported != null && status === "complete" && (
-        <span className="text-success/80">· {imported}</span>
-      )}
+    <span style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "flex-end" }}>
+      {PDF_MODULE_KEYS.map((m) => {
+        const status = job.module_status?.[m] ?? "pending";
+        const imported = job.imported_counts?.[m];
+        return (
+          <WbPill key={m} tone={MODULE_TONE[status] ?? "neutral"}>
+            {PDF_MODULE_LABELS[m]}
+            {imported != null && status === "complete" && ` · ${imported}`}
+          </WbPill>
+        );
+      })}
     </span>
   );
 }

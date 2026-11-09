@@ -1,0 +1,158 @@
+.grid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  /* Squares per row come from columnsFor() (rows that come out even). */
+  grid-template-columns: repeat(var(--nav-cols, 10), minmax(0, 1fr));
+  gap: 8px;
+}
+@media (max-width: 520px) {
+  .grid {
+    gap: 5px;
+  }
+}
+.cell {
+  display: flex;
+}
+.square {
+  flex: 1;
+  position: relative;
+  min-height: 44px;
+  border: 1.5px dashed var(--quiz-text-muted);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--quiz-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.square[data-state="answered"] {
+  border-style: solid;
+  background: color-mix(in srgb, var(--quiz-accent) 22%, var(--quiz-panel));
+}
+.square[data-state="correct"] {
+  border: 1.5px solid var(--quiz-correct);
+  background: color-mix(in srgb, var(--quiz-correct) 20%, var(--quiz-panel));
+}
+.square[data-state="wrong"] {
+  border: 1.5px solid var(--quiz-wrong);
+  background: color-mix(in srgb, var(--quiz-wrong) 16%, var(--quiz-panel));
+}
+.square[data-state="locked"] {
+  opacity: 0.4;
+  cursor: default;
+}
+.square[aria-current="true"] {
+  outline: 2px solid var(--quiz-text);
+  outline-offset: 2px;
+}
+.square:focus-visible {
+  outline: 2px solid var(--quiz-accent);
+  outline-offset: 2px;
+}
+.flagMark {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  color: var(--quiz-accent);
+}
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: color-mix(in srgb, var(--quiz-bg) 55%, transparent);
+}
+.sheet {
+  width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  border-top: 1px solid var(--quiz-line);
+}
+.popover {
+  width: min(680px, calc(100vw - 32px));
+  max-height: 70vh;
+  overflow: auto;
+  margin-bottom: 88px;
+  padding: 18px;
+  border: 1px solid var(--quiz-line);
+  border-radius: 14px;
+}
+.sheet:focus,
+.popover:focus {
+  outline: none;
+}
+.dialogHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dialogTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: var(--quiz-text-muted);
+}
+.check {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+.checkTitle {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.checkActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+.timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* The clock reads as one unit: icon and time on a quiet chip. */
+.clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px 0 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--quiz-text) 6%, transparent);
+  color: var(--quiz-text);
+}
+.clock[data-hidden] {
+  padding: 0 10px;
+  color: var(--quiz-text-muted);
+}
+.time {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+}
+.digit {
+  display: inline-block;
+}
+.warn {
+  color: var(--quiz-accent);
+}

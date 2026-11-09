@@ -1,0 +1,113 @@
+{
+  "about": "Stills for the 'One morning' direction (fresh round, 2026-11-01): one fictional student, Nora, through one school Thursday in January, from waking to a live class on Zoom that evening. One grade across every still. Built by scripts/generate-assets.mjs with --manifest assets/fresh/morning.manifest.json --state assets/fresh/morning.state.json --out .impeccable/mocks/fresh/morning/raw.",
+  "defaults": {
+    "duration": 8,
+    "ratio": "16:9",
+    "suffix": "Photoreal, documentary, natural light, soft contrast, true colour, fine film grain. One continuous shot, slow and physical camera move, no cuts. No text, letters, numbers, logos, watermarks, neon, lens flare, bokeh circles, light orbs, purple, glowing orbs or rockets. Phone and laptop screens are never visible to the camera.",
+    "stillSuffix": "A frame from a quiet 35mm feature film, wide 16:9 cinematic composition with the person near the centre of the frame. Graded on Kodak Vision3 500T: cool slate-blue shadows, warm amber light from lamps and low sun, muted saturation, soft highlight roll-off, lifted blacks, fine film grain, gentle halation. True skin texture with pores and fine detail, natural hands with five fingers. No text, letters, numbers, logos, crests, brand marks or watermarks anywhere, including on clothing, signs and devices. Phone and laptop screens face away from the camera and are never visible. No paper, notebooks, pencils or calculators. No purple, neon or lens flare."
+  },
+  "cast": {},
+  "shots": [],
+  "plates": [],
+  "stills": [
+    {
+      "id": "morning-wake",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Hero, 6:40 a.m. chapter",
+      "prompt": "6:40 a.m. on a dark winter school morning in January. Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater, sits cross-legged on her unmade bed beside a tall window. Outside the window the sky is deep blue before sunrise, a bare tree and the roofs of a quiet street. A small bedside lamp gives warm amber light. She holds her phone in both hands, its back to the camera, and looks down at it, calm and focused, a small private concentration. White AirPods Pro in her ears. Medium-wide shot at eye level, 35mm lens, room for type on the left third of the frame."
+    },
+    {
+      "id": "morning-wake-ideo",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "ideogram-4.5",
+      "ratio": "16:9",
+      "where": "Hero alternate, to compare routes",
+      "prompt": "6:40 a.m. on a dark winter school morning in January. Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater, sits cross-legged on her unmade bed beside a tall window. Outside the window the sky is deep blue before sunrise, a bare tree and the roofs of a quiet street. A small bedside lamp gives warm amber light. She holds her phone in both hands, its back to the camera, and looks down at it, calm and focused, a small private concentration. White AirPods Pro in her ears. Medium-wide shot at eye level, 35mm lens, room for type on the left third of the frame."
+    },
+    {
+      "id": "morning-bus",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Bus chapter, 7:25 a.m.",
+      "prompt": "7:25 a.m., a cold January school morning, the first low sun just over the rooftops. Inside a city bus, Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater under an open navy winter coat, sits by a fogged window, holding her phone low in both hands with its back to the camera, eyes on it, focused. White AirPods Pro in her ears. Other passengers soft and out of focus. Warm sunlight across her face and the seat, cool blue street outside. Medium shot from the aisle, 35mm lens."
+    },
+    {
+      "id": "morning-table",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Parent update chapter, 4:40 p.m.",
+      "prompt": "4:40 p.m. in January, low amber sun through a kitchen window. At a wooden kitchen table, Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater works on a laptop whose back faces the camera, focused, chin on one hand. Across the table, her mother, a woman in her late forties with short greying hair and reading glasses, in a navy cardigan, holds a cup of tea and reads her phone, its back to the camera, a calm small smile. Lived-in family kitchen, plants on the sill. Wide shot at seated eye level, 35mm lens, both faces clearly visible."
+    },
+    {
+      "id": "morning-class",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Live class chapter, 7:05 p.m., student side",
+      "prompt": "7:05 p.m., a dark January evening. Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater sits at a small desk in her bedroom in front of an open laptop whose back faces the camera, wearing silver over-ear headphones, mid-sentence, answering a question in a live online class, engaged and serious. A warm desk lamp, the window behind her deep blue night with a street light. Medium shot from beside the laptop, 35mm lens, her face fully visible."
+    },
+    {
+      "id": "morning-tutor",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Live class chapter, 7:05 p.m., tutor side",
+      "prompt": "7:05 p.m., a January evening. In his own apartment study, a tutor, a man about thirty with short curly black hair, a neat short beard and warm brown skin, in a grey crewneck sweater, sits at a desk in front of an open laptop whose back faces the camera, wearing a small headset, explaining something with one open hand, attentive and kind. Bookshelves and a warm lamp behind him, a dark window. Medium shot from beside the laptop, 35mm lens, his face fully visible."
+    },
+    {
+      "id": "morning-saturday",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Free practice test chapter, Saturday 9:55 a.m.",
+      "prompt": "Saturday 9:55 a.m. in December, clear cold light through a tall window. Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater sits at a wooden dining table in front of an open laptop whose back faces the camera, a glass of water beside it, sitting upright and ready, calm, about to begin a timed test. Pale winter sun on the table and her hands, cool blue shadows in the room. Medium-wide shot, 35mm lens, her face fully visible, room on the left of the frame."
+    },
+    {
+      "id": "morning-class-2",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Live class chapter, 7:05 p.m., student side (the first take shows a brand logo on the laptop)",
+      "prompt": "7:05 p.m., a dark January evening. Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater sits at a small wooden desk in her bedroom, seen from the front-left, in front of an open plain matte grey laptop with a completely blank unbranded lid, the lid facing the camera. She wears silver over-ear headphones and listens closely to her tutor in a live online class, calm and focused, a slight nod, one hand resting near the keyboard. A warm desk lamp, the window behind her deep blue night with one street light. Medium shot, 35mm lens, her face fully visible and relaxed."
+    },
+    {
+      "id": "morning-walk",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "Daily practice chapter, 7:20 a.m., on the way to the bus",
+      "prompt": "7:20 a.m., a cold clear January morning, the first low sun raking across a quiet residential street with bare trees and frost on the grass. Nora, a 17-year-old girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater under an open navy winter coat, a canvas backpack on one shoulder, white AirPods Pro in her ears, walks toward a bus stop with her hands in her coat pockets, calm, thinking. Long warm sunlight from the left, cool blue shadows. Medium-wide shot from across the street, 50mm lens, her face visible in three-quarter view, the person near the centre of the frame."
+    },
+    {
+      "id": "morning-bus-us-a",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "7:25 a.m. chapter, beside the live question (replaces morning-walk, fix round)",
+      "prompt": "7:25 a.m., a cold clear January school morning in an American suburb. Inside a yellow American school bus with rows of dark green vinyl bench seats with high backs and metal top rails, Nora, a 17-year-old American girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater under an open navy winter coat, sits alone by the window, holding her phone in both hands low in her lap, its back to the camera, eyes down on it, calm and focused. White AirPods Pro in her ears, a canvas backpack beside her on the seat. Through the window, low golden sun, bare trees and white clapboard houses with front lawns passing in soft focus. Warm sun across her face and the green seat, cool blue shadows inside the bus. Medium shot from the seat across the aisle, 35mm lens, her face and both hands clearly visible, the person near the centre of the frame."
+    },
+    {
+      "id": "morning-bus-us-b",
+      "status": "approved",
+      "approved": "2026-11-01 founder, in chat: generate whatever assets you want",
+      "route": "flux-3",
+      "ratio": "16:9",
+      "where": "7:25 a.m. chapter, alternate take (fix round)",
+      "prompt": "7:25 a.m. on a frosty January morning in an American suburb. Nora, a 17-year-old American girl with dark brown hair in a loose low ponytail, warm light-brown skin and a few freckles, wearing an oversized forest-green knit sweater under an open navy winter coat, sits on a dark green vinyl seat of a yellow American school bus, her shoulder against the window, holding her phone in both hands at chest height, its back to the camera, absorbed in it, a small private concentration. White AirPods Pro in her ears. Other students are soft and out of focus in the seats behind her. Pale gold sunrise light through the bus windows, frost on the glass, cool blue interior shadows. Medium close shot at seated eye level from the aisle, 50mm lens, her face fully visible, both hands natural with five fingers."
+    }
+  ]
+}

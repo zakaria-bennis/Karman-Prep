@@ -16,7 +16,7 @@ export function SourceAssetImagePanel({ lineage, assetType, emptyLabel }: Props)
 
   if (!asset) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-bronze bg-night/50 px-3 py-3 text-xs text-taupe">
+      <div className="flex items-center gap-2 rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_50%,transparent)] px-3 py-3 text-xs text-[color:var(--mute)]">
         <ImageOff className="h-4 w-4 shrink-0" />
         {emptyLabel}
       </div>
@@ -27,7 +27,7 @@ export function SourceAssetImagePanel({ lineage, assetType, emptyLabel }: Props)
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <MatchConfidenceBadge method={asset.match_method} confidence={asset.match_confidence} />
-        <span className="min-w-0 flex-1 truncate font-mono text-[10px] text-taupe">
+        <span className="min-w-0 flex-1 truncate font-mono text-[10px] text-[color:var(--mute)]">
           {sourceAssetFilename(asset.asset_path)}
         </span>
         {asset.public_url && (
@@ -35,7 +35,7 @@ export function SourceAssetImagePanel({ lineage, assetType, emptyLabel }: Props)
             href={asset.public_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded border border-bronze bg-surface-raised px-2 py-1 text-[10px] font-semibold text-ivory hover:bg-surface-raised"
+            className="inline-flex items-center gap-1 rounded border border-[color:var(--line)] bg-[color:var(--raised)] px-2 py-1 text-[10px] font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
           >
             <ExternalLink className="h-2.5 w-2.5" /> view
           </a>
@@ -43,7 +43,7 @@ export function SourceAssetImagePanel({ lineage, assetType, emptyLabel }: Props)
       </div>
 
       {asset.public_url ? (
-        <div className="overflow-hidden rounded-lg border border-bronze/50 bg-surface p-2">
+        <div className="overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--line)_50%,transparent)] bg-[color:var(--card)] p-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={asset.public_url}
@@ -52,9 +52,9 @@ export function SourceAssetImagePanel({ lineage, assetType, emptyLabel }: Props)
           />
         </div>
       ) : (
-        <div className="rounded-lg border border-bronze bg-night/50 px-3 py-3 text-xs text-taupe">
+        <div className="rounded-lg border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_50%,transparent)] px-3 py-3 text-xs text-[color:var(--mute)]">
           Asset exists but has no public URL. Path:{" "}
-          <span className="font-mono text-ivory">{asset.asset_path}</span>
+          <span className="font-mono text-[color:var(--ink)]">{asset.asset_path}</span>
         </div>
       )}
     </div>

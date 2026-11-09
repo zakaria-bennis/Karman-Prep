@@ -4,11 +4,26 @@ Karman is a pre-launch SAT prep company run by a solo, non-technical founder,
 Zakaria Bennis. Write updates for him in plain language. The site is live at
 karmanprep.com on Cloudflare Workers, with no paying users yet.
 
-**Current direction:** sell programs that end on a specific SAT date (a small
-live cohort, private 1:1 packages on top, free entry points) instead of hours or
-monthly plans. The plan is in `docs/business-plan.md`, and every price, date and
-claim the site may state is in `src/lib/marketing/offer.ts`. Values marked
-`CONFIRM:` there need the founder before launch.
+**What Karman sells (founder, 2026-11-08):** a ladder of plans, never tied to
+"ends on your SAT date" (that positioning is retired):
+
+- Free ($0: 100 questions in total, plus one free full-length test)
+- Practice ($39 a month or $89 for 3 months: the core pool, written explanations)
+- Pro ($69 a month or $149 for 3 months: every question incl. mastery, video explanations)
+- 9-week Cohort ($995: at most 6 students, 18 x 60-minute classes, score bands, no 1:1s)
+- Private 10 ($1,495) and Private 20 ($2,495)
+- Schools ($8 per student a year, first year free; each student their own Practice)
+- Tutor affiliate ($199 a month: up to 50 students on one code get Practice)
+
+Only the Cohort and both Private packages carry the guarantee (+100 under a 1400
+baseline, +50 from 1400). Families join a call with the company before any cohort
+seat. The free practice test is the entry point, never a pricing card.
+
+- Each plan's price and features: `docs/business/plan-ladder-2026-11-08.md`.
+- The reasoning behind them: `docs/business-plan.md`.
+- Every price, date and claim the site may state: `src/lib/marketing/offer.ts`;
+  values marked `CONFIRM:` there need the founder before launch.
+- Server-side access per plan: `src/lib/plans/` (read its README).
 
 ## Branches
 

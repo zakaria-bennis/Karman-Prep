@@ -24,20 +24,20 @@ describe("MatchConfidenceBadge", () => {
     );
     expect(screen.getByText(/passage/)).toBeInTheDocument();
     expect(screen.getByText(/0\.90/)).toBeInTheDocument();
-    // Tailwind class includes "success" for the good tone
-    expect(container.querySelector("span")?.className).toMatch(/success/);
+    // Tailwind class uses the portal --good colour for the good tone
+    expect(container.querySelector("span")?.className).toMatch(/--good/);
   });
 
   it("renders amber 'warn' tone at confidence 0.65", () => {
     const { container } = render(
       <MatchConfidenceBadge method="page_choice_snippets" confidence={0.65} />
     );
-    expect(container.querySelector("span")?.className).toMatch(/warning/);
+    expect(container.querySelector("span")?.className).toMatch(/--warn/);
   });
 
   it("renders red 'bad' tone for orphan method", () => {
     const { container } = render(<MatchConfidenceBadge method="orphan" confidence={0} />);
-    expect(container.querySelector("span")?.className).toMatch(/error/);
+    expect(container.querySelector("span")?.className).toMatch(/--late/);
     expect(screen.getByText(/orphan/)).toBeInTheDocument();
   });
 
@@ -45,15 +45,15 @@ describe("MatchConfidenceBadge", () => {
     const { container } = render(
       <MatchConfidenceBadge method="ordered_fallback" confidence={0.5} />
     );
-    expect(container.querySelector("span")?.className).toMatch(/error/);
+    expect(container.querySelector("span")?.className).toMatch(/--late/);
   });
 
   it("AUDIT FIX: renders neutral 'bronze' tone for null confidence on non-orphan method", () => {
     // Page-level page_image rows have no per-question match score —
     // they should NOT render as success/good.
     const { container } = render(<MatchConfidenceBadge method="page_image" confidence={null} />);
-    expect(container.querySelector("span")?.className).toMatch(/bronze/);
-    expect(container.querySelector("span")?.className).not.toMatch(/success/);
+    expect(container.querySelector("span")?.className).toMatch(/--line/);
+    expect(container.querySelector("span")?.className).not.toMatch(/--good/);
   });
 
   it("omits the numeric score when confidence is null", () => {

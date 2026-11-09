@@ -22,13 +22,9 @@ import { NextResponse } from "next/server";
 import { listCohortsNeedingSetup } from "@/lib/supabase/queries/cohorts";
 import { resend, FROM } from "@/lib/integrations/resend/client";
 import { withCronInstrumentation } from "@/lib/observability/cron";
+import { tierLabelOf } from "@/lib/scheduling/tiers";
 
 export const runtime = "nodejs";
-
-const TIER_LABEL: Record<string, string> = {
-  group: "Seminar",
-  small_group: "Small Group",
-};
 
 function daysSince(iso: string): number {
   const elapsedMs = Date.now() - new Date(iso).getTime();
@@ -55,7 +51,7 @@ export const POST = withCronInstrumentation("cohort-setup-reminder", async (req:
   const rows = pending
     .map((c) => {
       const days = daysSince(c.created_at);
-      const tierLabel = TIER_LABEL[c.tier] ?? c.tier;
+      const tierLabel = tierLabelOf(c.tier);
       return `<tr>
         <td style="padding:6px 8px;">${escapeHtml(c.name)}</td>
         <td style="padding:6px 8px;color:#64748b;">${tierLabel}</td>

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Karman Prep: SAT tutors who see every answer (painted mock)</title>
+<meta name="description" content="Live SAT classes of six and private tutoring, taught by PhD students, quants and university professors, with research-backed daily practice and live progress for parents.">
+<meta name="robots" content="noindex">
+<script>
+  /* Theme before the first paint: the visitor's own pick if they made one, otherwise the device's. */
+  (function () {
+    var q = new URLSearchParams(location.search).get("theme"), t = null;
+    try { t = localStorage.getItem("painted-home-theme"); } catch (e) {}
+    if (q === "light" || q === "dark") t = q;
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+    /* The panels stay solid until the painting is finished, so nothing ever moves behind the words. */
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !/[?&]still\b/.test(location.search)) document.documentElement.classList.add("painting");
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Young+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="home.css">
+</head>
+<body>
+<div id="backdrop" aria-hidden="true"><canvas class="paint"></canvas><canvas class="life"></canvas></div>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar panel">
+  <a class="logo" href="https://karmanprep.com/">Karman</a>
+  <ul class="nav">
+    <li><a href="https://karmanprep.com/program">The SAT Program</a></li>
+    <li><a href="https://karmanprep.com/private-tutoring">Private tutoring</a></li>
+    <li><a href="https://karmanprep.com/pricing">Pricing</a></li>
+    <li><a href="https://karmanprep.com/auth/sign-in">Sign in</a></li>
+    <li><a href="https://karmanprep.com/free-practice-test">Free practice test</a></li>
+  </ul>
+  <button class="icon-btn theme-btn" id="theme" type="button" aria-label="Dark mode" aria-pressed="false">
+    <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+    <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+  </button>
+  <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg>
+  </button>
+  <ul class="menu" id="menu" hidden>
+    <li><a href="https://karmanprep.com/program">The SAT Program</a></li>
+    <li><a href="https://karmanprep.com/private-tutoring">Private tutoring</a></li>
+    <li><a href="https://karmanprep.com/pricing">Pricing</a></li>
+    <li><a href="https://karmanprep.com/auth/sign-in">Sign in</a></li>
+    <li><a href="https://karmanprep.com/free-practice-test">Free practice test</a></li>
+  </ul>
+</header>
+
+<main id="main">
+  <section class="hero" id="m-1" aria-labelledby="h1">
+    <div class="box panel">
+      <h1 id="h1">Real tutors teach it. Daily practice makes it stick.</h1>
+      <p class="lede">Live SAT classes of six and private one-on-one tutoring, taught by PhD students, quants and university professors. Between sessions, ten minutes of research-backed practice a day, and a tutor who sees every answer.</p>
+      <div class="act">
+        <a class="cta" href="https://karmanprep.com/free-practice-test">Take the free practice test<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></a>
+        <a class="tlink" href="https://karmanprep.com/pricing">See pricing</a>
+        <small>Free. Saturday, December 12, live on Zoom.</small>
+      </div>
+      <p class="proof">Karman's 1:1 students gained <span class="num">285</span> points on average. Karman 1:1 tutoring, median <span class="num">16</span> weeks.</p>
+    </div>
+  </section>
+
+  <div class="col">
+    <section class="panel sec tutors" id="tutors" aria-labelledby="tutors-h">
+      
+        <h2 id="tutors-h">Tutors you would hire for something harder than the SAT.</h2>
+        <img class="t-photo" src="../../../public/site/photos/p-lin-800.webp" width="800" height="1000" alt="A tutor at her desk at home, mid-explanation on a video call, one hand open as she makes a point." loading="lazy" decoding="async">
+      
+      <ul class="creds">
+        <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 9 44 17 24 25 4 17Z"/><path d="M12 21v9c0 4.5 24 4.5 24 0v-9"/><path class="hue" d="M24 17 39 19v10"/><path class="hue" d="M37 29h4l-.6 5h-2.8Z"/></svg><b>PhD students</b><span>Doing research at university level</span></li>
+        <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 40H43M6 40V7"/><path class="hue" d="M8 38C17 38 18 12 25 12S33 38 42 38"/><path d="M25 14v24" stroke-dasharray="2 3"/></svg><b>Quants</b><span>Building mathematical models for a living</span></li>
+        <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 8h38v26H5Z"/><path d="M17 41h14M24 34v7"/><path class="hue" d="M10 27l7-8 6 4 7-9 9 4"/></svg><b>Market analysts</b><span>Reading data against a deadline, every day</span></li>
+        <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 12c6-2.5 13-2 20 2v24c-7-4-14-4.5-20-2Z"/><path d="M44 12c-6-2.5-13-2-20 2v24c7-4 14-4.5 20-2Z"/><circle class="hue" cx="33" cy="27" r="6"/><path class="hue" d="m37.5 31.5 5 5"/></svg><b>Published researchers</b><span>Peer-reviewed work in their own fields</span></li>
+        <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 7h38v24H5Z"/><path d="M15 31l-4 10M33 31l4 10"/><path class="hue" d="M11 15h11M11 22h7M28 14l5 5m0-5-5 5M28 24h8"/></svg><b>University professors</b><span>Teaching is already their profession</span></li>
+        <li><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 7h36v26H6Z"/><path d="M12 14h24M12 20h16"/><circle class="hue" cx="34" cy="32" r="5"/><path class="hue" d="m31 36-2 7 5-3 5 3-2-7"/></svg><b>Certified tutors</b><span>Certified by the Association of Test Preparation, Admissions, and Private Tutoring</span></li>
+      </ul>
+    </section>
+
+    <section class="panel sec guarantee" id="m-8" aria-labelledby="g-h">
+      <h2 id="g-h">If your student does the work and the score doesn't rise, we pay you back.</h2>
+      <p class="lede">You may have paid for SAT prep before and watched the score sit still. Then the refund turned out to hang on a rule nobody mentioned. It happens a lot in this industry. Here is our whole deal, on one line.</p>
+      <div class="deal">
+        <p class="track"><span>Starting score</span><i></i><span>Nine weeks of work</span><i></i><span>The SAT</span></p>
+        <p class="promise">+100 points<span>or +50 for a student who starts at <span class="num">1400</span> or higher</span></p>
+        <dl class="outcomes">
+          <div><dt>+100 or more<small>+50 or more from 1400</small></dt><dd>The promise was kept. Nothing back.</dd></div>
+          <div><dt>+50 to +99<small>+25 to +49 from 1400</small></dt><dd>Half the price back (<span class="num">$497.50</span>), or the next cohort free. You choose.</dd></div>
+          <div><dt>Under +50<small>Under +25 from 1400</small></dt><dd>The full <span class="num">$995</span> back, or the next cohort free. You choose.</dd></div>
+        </dl>
+        <p class="note">Measured from an SAT or PSAT from the last 6 months, or from a week-1 Bluebook test we proctor live.</p>
+      </div>
+      <div class="sides">
+        <div class="card">
+          <h3>Our side</h3>
+          <ul class="list">
+            <li>Two live classes a week, in a group of up to six</li>
+            <li>Five full-length practice tests</li>
+            <li>A weekly live session</li>
+            <li>The Daily 10 and our own practice questions</li>
+            <li>Live progress for parents, and a weekly summary</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Your student's side</h3>
+          <ul class="list">
+            <li>Attend at least 15 of the 18 live classes, live</li>
+            <li>Take all five full-length tests, each in one timed sitting</li>
+            <li>Do at least 90% of the weekly practice, tracked on the dashboard</li>
+            <li>Sit the SAT within 60 days of the last class</li>
+          </ul>
+        </div>
+      </div>
+      <ul class="list covers">
+        <li>A student's first Karman program, once per student</li>
+        <li>Paid in full, or every installment paid on time</li>
+      </ul>
+      <p class="claim">Within 30 days of scores coming out, email us the College Board score report. One email. Nothing is taken out of a refund.</p>
+      <a class="tlink" href="https://karmanprep.com/guarantee">The guarantee, with worked examples</a>
+    </section>
+
+    <div class="window" aria-hidden="true"></div>
+
+    <section class="panel sec features" id="features" aria-label="How it works">
+      <article class="feat" id="m-4">
+        <div class="media">
+          <div class="pair">
+            <img src="../../../public/site/photos/p-daily-800.webp" width="800" height="1000" alt="A runner on the bleachers after practice, answering questions on his phone, a towel beside him." loading="lazy" decoding="async">
+            <figure class="phone" role="img" aria-label="The Daily 10 on a phone: question 4 of 10, a Standard English question the student missed last time, with four choices.">
+              <div class="scr">
+                <div class="sb"><span class="num">9:41</span><i></i></div>
+                <div class="q-top"><b>Your Daily 10</b><span class="ring" style="--p:.4"></span><span class="num">4 of 10</span></div>
+                <p class="tag">Last time: missed</p>
+                <p class="passage">The museum's new wing opened in <span class="blank"></span> its first exhibit drew more visitors in one week than the old galleries had in a month.</p>
+                <p class="ask">Which choice completes the text so that it conforms to the conventions of Standard English?</p>
+                <ul class="choices"><li><i>A</i>March, and</li><li><i>B</i>March</li><li><i>C</i>March; and</li><li><i>D</i>March and</li></ul>
+                <span class="check">Check</span>
+              </div>
+            </figure>
+          </div>
+        </div>
+        <div class="words">
+          <h2>Ten questions a day, picked from what your student gets wrong.</h2>
+          <p class="lede"><b>The Daily 10.</b> Every day, ten questions chosen from the skills your student finds hardest. Miss one, and it comes back a few days later to try again.</p>
+          <a class="tlink" href="https://karmanprep.com/research">Explore the research behind our design</a>
+        </div>
+      </article>
+
+      <article class="feat flip" id="m-5">
+        <div class="media">
+          <figure class="phone" role="img" aria-label="A parent's phone showing Maya's progress: Reading and Writing 640 and Math 690, the skills that moved, attendance, practice done, and a note from her tutor David.">
+            <div class="scr">
+              <div class="sb"><span class="num">9:41</span><i></i></div>
+              <p class="p-h"><b>Maya's progress</b><small>Live. Updated 2 minutes ago</small></p>
+              <p class="feed">Daily 10 done: <span class="num">9 of 10</span></p>
+              <div class="scores">
+                <div><small>Reading and Writing</small><b class="num">640</b><span class="num">+40 since week 1</span></div>
+                <div><small>Math</small><b class="num">690</b><span class="num">+60 since week 1</span></div>
+              </div>
+              <div class="moved"><small>Skills that moved</small>
+                <ul>
+                  <li><i class="sq l4"></i>Nonlinear functions<span>Mastered</span></li>
+                  <li><i class="sq l3"></i>Transitions<span>Up one level</span></li>
+                  <li><i class="sq l1"></i>Command of evidence<span>Next week's focus</span></li>
+                </ul>
+              </div>
+              <div class="rings">
+                <div><span class="ring" style="--p:1"></span><b class="num">2 of 2</b><small>Live classes</small></div>
+                <div><span class="ring" style="--p:.96"></span><b class="num">96%</b><small>Practice done</small></div>
+                <div><span class="ring" style="--p:1"></span><b class="num">1 of 1</b><small>Reviews</small></div>
+              </div>
+              <div class="note-d"><small>Note from David</small><p>Maya fixed every quadratic system from test 3. Next: evidence questions, and full-length 4 on Saturday.</p></div>
+              <p class="tabs"><span class="on">Progress</span><span>Schedule</span><span>Messages</span></p>
+            </div>
+          </figure>
+        </div>
+        <div class="words">
+          <h2>Your tutor starts every session already knowing what went wrong.</h2>
+          <p class="lede">Every answer your student gives, on homework, the Daily 10 and every full-length test, reaches the tutor the moment it's given: the choice they picked, how long it took, and which of the eight SAT domains is slipping. No session opens with "so, what was hard this week?" Parents see the same progress on their phone.</p>
+        </div>
+      </article>
+
+      <article class="feat cal" id="m-14">
+        <div class="words">
+          <h2>The next session, what's due and how every skill is moving, on one screen.</h2>
+        </div>
+        <figure class="wide" role="img" aria-label="A one-on-one student's calendar for two weeks: a session with the tutor every Thursday, a full-length test due the day before each, homework, the weekly live session hours and a Saturday workshop, with progress on all eight SAT domains beside it.">
+          <div class="w-top">Karman <span>Calendar</span></div>
+          <div class="w-body">
+            <div class="w-side">
+              <div class="next"><small>Next session</small><b class="num">Thursday, 5:00 p.m.</b><span>Math review of full-length 3 with David</span><span>Full-length 3 due Wednesday</span></div>
+              <span class="dom-h">Reading and Writing</span>
+              <div class="dom">Information and Ideas<span class="lv" data-lv="5"></span></div>
+              <div class="dom">Craft and Structure<span class="lv" data-lv="4"></span></div>
+              <div class="dom">Expression of Ideas<span class="lv" data-lv="5"></span></div>
+              <div class="dom">Standard English Conventions<span class="lv" data-lv="3"></span></div>
+              <span class="dom-h">Math</span>
+              <div class="dom">Algebra<span class="lv" data-lv="6"></span></div>
+              <div class="dom">Advanced Math<span class="lv" data-lv="4"></span></div>
+              <div class="dom">Problem-Solving and Data Analysis<span class="lv" data-lv="5"></span></div>
+              <div class="dom">Geometry and Trigonometry<span class="lv" data-lv="3"></span></div>
+            </div>
+            <div class="w-cal">
+              <span class="month">February</span>
+              <div class="dow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+              <div class="grid">
+                <div class="day today"><span class="n num">1</span><p class="ev hw"><span>Quadratics set</span></p></div>
+                <div class="day"><span class="n num">2</span><p class="ev oh"><span>Live session</span></p></div>
+                <div class="day"><span class="n num">3</span><p class="ev fl"><span>Full-length 3</span></p></div>
+                <div class="day"><span class="n num">4</span><p class="ev s"><span>1:1 with David</span></p></div>
+                <div class="day"><span class="n num">5</span><p class="ev hw"><span>Transitions set</span></p></div>
+                <div class="day"><span class="n num">6</span><p class="ev ws"><span>Pacing workshop</span></p></div>
+                <div class="day"><span class="n num">7</span></div>
+                <div class="day"><span class="n num">8</span><p class="ev s"><span>1:1 with Lin</span></p></div>
+                <div class="day"><span class="n num">9</span><p class="ev hw"><span>Functions set</span></p></div>
+                <div class="day"><span class="n num">10</span><p class="ev fl"><span>Full-length 4</span></p></div>
+                <div class="day"><span class="n num">11</span><p class="ev s"><span>1:1 with David</span></p></div>
+                <div class="day"><span class="n num">12</span><p class="ev oh"><span>Live session</span></p></div>
+                <div class="day"><span class="n num">13</span><p class="ev ws"><span>Desmos workshop</span></p></div>
+                <div class="day"><span class="n num">14</span></div>
+              </div>
+              <div class="today-card"><b>Monday, February 1</b><em>Today</em><p>Quadratics, 15 questions</p><small>Homework due, 9:00 p.m.</small></div>
+            </div>
+          </div>
+        </figure>
+      </article>
+
+      <article class="feat tools-feat" id="m-6">
+        <div class="words">
+          <h2>Small games between sets, built to make it stick.</h2>
+          <ul class="tools">
+            <li class="tool card">
+              <div class="art" aria-hidden="true"><div class="wl"><div><b>C</b><b class="y">R</b><b>A</b><b>N</b><b class="y">E</b></div><div><b>S</b><b>L</b><b>O</b><b class="g">T</b><b>H</b></div><div><b class="g">T</b><b class="g">E</b><b class="g">R</b><b class="g">S</b><b class="g">E</b></div></div></div>
+              <b>Wordline</b><span>Today's SAT word in six tries.</span>
+            </li>
+            <li class="tool card">
+              <div class="art" aria-hidden="true"><div class="fc"><div class="front"><b>bene-</b><small>Tap to turn</small></div><div class="back">good, well<span>benefit, benevolent, benign</span></div><small>Comes back in 3 days</small></div></div>
+              <b>Flashcards</b><span>Roots, prefixes and suffixes, so a new word can be worked out on test day.</span>
+            </li>
+            <li class="tool card">
+              <div class="art" aria-hidden="true"><div class="lab"><b>candid</b><i>adjective</i><p>Truthful and direct.</p><div class="yours"><small>Your sentence</small>My coach was <mark>candid</mark> about my free throws.</div></div></div>
+              <b>Word Lab</b><span>One SAT word a day, used in a sentence of your own.</span>
+            </li>
+            <li class="tool card">
+              <div class="art" aria-hidden="true"><div class="ch"><div class="h"><span>Today's challenge</span><span>Hard</span></div><p>If f(x) = 3<sup>x+2</sup>, what is f(x + 1) ÷ f(x)?</p><div class="opts"><span class="num">2</span><span class="num">3</span><span class="num">9</span></div></div></div>
+              <b>Daily Challenge</b><span>One hard question a day, with the full method after.</span>
+            </li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <div class="window" aria-hidden="true"></div>
+
+    <section class="panel sec campus" id="m-9" aria-labelledby="c-h">
+      <h2 id="c-h">What the nine weeks are for.</h2>
+      <div class="tri">
+        <div class="clip"><video muted playsinline preload="none" poster="../../../public/site/film/c8a-r0.jpg" data-src="../../../public/site/film/c8a-r.mp4" aria-hidden="true"></video></div>
+        <div class="clip"><video muted playsinline preload="none" poster="../../../public/site/film/c8b-r0.jpg" data-src="../../../public/site/film/c8b-r.mp4" aria-hidden="true"></video></div>
+        <div class="clip"><video muted playsinline preload="none" poster="../../../public/site/film/c8c-r0.jpg" data-src="../../../public/site/film/c8c-r.mp4" aria-hidden="true"></video></div>
+      </div>
+    </section>
+
+    <div class="window" aria-hidden="true"></div>
+
+    <section class="panel sec end" id="m-11" aria-labelledby="end-h">
+      <h2 id="end-h">See their score range before you spend a dollar.</h2>
+      <p class="lede">December 12 at 10:00 a.m. ET, live on Zoom with a proctor. About 75 minutes, 49 of our own questions, then an estimated score range, a breakdown by domain and a 20-minute call to go through it.</p>
+      <p class="obj">Already scoring 1500, or under four weeks from the test? We'll tell you a program probably isn't worth your money.</p>
+      <div class="act">
+        <a class="cta" href="https://karmanprep.com/free-practice-test">Take the free practice test<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></a>
+        <small>Free. No card needed.</small>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="foot panel">
+  <div class="foot-cols">
+    <div><a class="logo" href="https://karmanprep.com/">Karman</a></div>
+    <nav aria-labelledby="f-p"><h2 id="f-p">Programs</h2><ul>
+      <li><a href="https://karmanprep.com/program">The SAT Program</a></li>
+      <li><a href="https://karmanprep.com/private-tutoring">Private tutoring</a></li>
+      <li><a href="https://karmanprep.com/pricing">Pricing</a></li>
+      <li><a href="https://karmanprep.com/free-practice-test">Free practice test</a></li>
+      <li><a href="https://karmanprep.com/calculator">Calculator</a></li>
+    </ul></nav>
+    <nav aria-labelledby="f-k"><h2 id="f-k">Karman</h2><ul>
+      <li><a href="https://karmanprep.com/guarantee">The guarantee</a></li>
+      <li><a href="https://karmanprep.com/faq">FAQ</a></li>
+      <li><a href="https://karmanprep.com/about">About</a></li>
+      <li><a href="https://karmanprep.com/research">The research</a></li>
+      <li><a href="https://karmanprep.com/auth/sign-in">Sign in</a></li>
+    </ul></nav>
+    <nav aria-labelledby="f-l"><h2 id="f-l">Legal</h2><ul>
+      <li><a href="https://karmanprep.com/terms">Terms of Service</a></li>
+      <li><a href="https://karmanprep.com/privacy">Privacy Policy</a></li>
+      <li><a href="https://karmanprep.com/refunds">Refund Policy</a></li>
+      <li><a href="mailto:hello@karmanprep.com">hello@karmanprep.com</a></li>
+    </ul></nav>
+  </div>
+  <p class="credit">Today's painting: <span id="painting-title">a Karman landscape</span>, painted by Karman.</p>
+</footer>
+
+<script src="landscapes.js" defer></script>
+<script src="painterly.js" defer></script>
+<script src="life.js" defer></script>
+<script src="home.js" defer></script>
+</body>
+</html>

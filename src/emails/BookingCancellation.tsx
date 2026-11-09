@@ -14,18 +14,15 @@ export interface BookingCancellationProps {
   planTier: BookingCancellationTier;
 }
 
-/** Per locked policy in project_tiers.md. */
+/** Private tutoring's late-cancel rule: under 24 hours counts as a used hour of the package. */
 function buildCreditMessage(p: BookingCancellationProps): string {
   if (!p.withinWindow) {
-    return "This session was cancelled with more than 24 hours notice and no credit has been applied.";
+    return "This session was cancelled with more than 24 hours' notice, so nothing was used.";
   }
-  if (p.planTier === "private" && p.creditForfeited) {
-    return "This session was cancelled within 24 hours. Per our policy, the session payment has been retained and is not eligible for a refund or rebooking.";
+  if ((p.planTier === "private" || p.planTier === "elite") && p.creditForfeited) {
+    return "This session was less than 24 hours away when it was cancelled, so it counted as a used hour of your package.";
   }
-  if (p.planTier === "elite" && p.creditForfeited) {
-    return "This session was cancelled within 24 hours and your session credit has been applied. You have one fewer session remaining this month.";
-  }
-  return "This session was cancelled within 24 hours. No credit was applied.";
+  return "This session was cancelled within 24 hours. Nothing was used.";
 }
 
 export function BookingCancellation(props: BookingCancellationProps) {
@@ -61,7 +58,7 @@ export function BookingCancellation(props: BookingCancellationProps) {
       </Section>
 
       <Text style={{ color: "#64748b", fontSize: 13, marginTop: 24 }}>
-        Cancellation update (.ics) attached — your calendar will be cleared automatically.
+        Cancellation update (.ics) attached. Your calendar will clear automatically.
       </Text>
     </Layout>
   );

@@ -1,22 +1,23 @@
 "use client";
 
 // ============================================================
-// Members tab — list of members + Add member dialog.
-// Carved out of the old monolithic CohortDetailClient.tsx
-// (audit M1).
+// Members tab: the cohort's students, a search box, Remove (with
+// a confirmation) and the Add member dialog. Seat limits are
+// enforced by the server action and the database.
 // ============================================================
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Trash2, X } from "lucide-react";
+import { WbTable } from "@/components/admin/workbench";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
-import { actionAddCohortMember, actionRemoveCohortMember } from "../members-actions";
+import { actionRemoveCohortMember } from "../members-actions";
 import type {
   CohortMemberRow,
   EligibleStudentRow,
   CohortTier,
 } from "@/lib/supabase/queries/cohorts";
-import { Avatar, EmptyBlock, formatDateTime, studentDisplay } from "./shared";
+import { AddMemberDialog } from "./AddMemberDialog";
+import { Avatar, formatDay, studentDisplay } from "./shared";
 
 export function MembersTab({
   cohortId,
@@ -33,67 +34,109 @@ export function MembersTab({
 }) {
   const [adding, setAdding] = useState(false);
   const [rowError, setRowError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const fullCapacity = seatsOpen <= 0;
+  const q = query.trim().toLowerCase();
+  const shown = q
+    ? members.filter(
+        (m) => studentDisplay(m).toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+      )
+    : members;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-taupe">
-          {seatsOpen > 0 ? (
-            <>
-              {seatsOpen} open seat{seatsOpen === 1 ? "" : "s"}.
-            </>
-          ) : (
-            <>Cohort is at capacity.</>
-          )}
+    <div style={{ display: "grid", gap: 12 }}>
+      <div className="wb-toolbar" style={{ justifyContent: "space-between" }}>
+        <p className="wb-note">
+          {seatsOpen > 0
+            ? `${seatsOpen} open seat${seatsOpen === 1 ? "" : "s"}.`
+            : "This cohort is full."}
         </p>
         <button
+          type="button"
+          className="wb-btn"
+          data-variant="primary"
           onClick={() => setAdding(true)}
           disabled={fullCapacity || eligibleStudents.length === 0}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-gold px-3 py-1.5 text-sm font-semibold text-night hover:bg-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
           title={
             fullCapacity
-              ? "Cohort is at capacity"
+              ? "This cohort is full"
               : eligibleStudents.length === 0
-                ? "No eligible students available"
+                ? "No students can be added right now"
                 : undefined
           }
         >
-          <Plus className="h-4 w-4" />
           Add member
         </button>
       </div>
 
-      {members.length === 0 ? (
-        <EmptyBlock
-          title="No members yet"
-          subtitle="Click Add member to place a student in this cohort."
-        />
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-bronze">
-          <table className="w-full text-sm">
-            <thead className="bg-surface/60 text-xs uppercase tracking-wider text-taupe">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">Name</th>
-                <th className="px-4 py-3 text-left font-semibold">Email</th>
-                <th className="px-4 py-3 text-left font-semibold">Joined</th>
-                <th aria-hidden="true" className="w-12" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-bronze">
-              {members.map((m) => (
-                <MemberRow key={m.user_id} cohortId={cohortId} member={m} onError={setRowError} />
-              ))}
-            </tbody>
-          </table>
-          {rowError && (
-            <div className="border-t border-bronze bg-error/5 px-4 py-2 text-xs text-error-bright">
-              {rowError}
-            </div>
-          )}
+      {members.length > 0 && (
+        <div role="search" className="wb-search">
+          <input
+            className="wb-input"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Student name or email"
+            aria-label="Search members by name or email"
+          />
         </div>
       )}
+
+      {rowError && (
+        <p role="alert" className="wb-alert" style={{ margin: 0 }}>
+          {rowError}
+        </p>
+      )}
+
+      <WbTable<CohortMemberRow>
+        caption="Members of this cohort"
+        rows={shown}
+        rowKey={(m) => m.user_id}
+        empty={
+          q ? (
+            <>
+              <b>No member matches.</b>
+              <button
+                type="button"
+                className="wb-btn"
+                onClick={() => setQuery("")}
+                style={{ marginTop: 8 }}
+              >
+                Clear the search
+              </button>
+            </>
+          ) : (
+            <>
+              <b>No members yet.</b>
+              Use Add member to place a student in this cohort.
+            </>
+          )
+        }
+        columns={[
+          {
+            key: "name",
+            label: "Name",
+            cell: (m) => (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                <Avatar name={studentDisplay(m)} avatarUrl={m.avatar_url} />
+                <span style={{ overflowWrap: "anywhere" }}>{studentDisplay(m)}</span>
+              </span>
+            ),
+          },
+          {
+            key: "email",
+            label: "Email",
+            cell: (m) => <span style={{ overflowWrap: "anywhere" }}>{m.email}</span>,
+          },
+          { key: "joined", label: "Joined", cell: (m) => formatDay(m.joined_at) },
+          {
+            key: "remove",
+            label: "",
+            cell: (m) => <RemoveButton cohortId={cohortId} member={m} onError={setRowError} />,
+          },
+        ]}
+      />
 
       {adding && (
         <AddMemberDialog
@@ -107,7 +150,7 @@ export function MembersTab({
   );
 }
 
-function MemberRow({
+function RemoveButton({
   cohortId,
   member,
   onError,
@@ -119,13 +162,13 @@ function MemberRow({
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const confirm = useConfirm();
+  const name = studentDisplay(member);
 
   async function remove() {
-    const name = studentDisplay(member);
     const ok = await confirm({
       title: `Remove ${name}?`,
       description:
-        "This ends their cohort membership. Quiz history and node mastery stay with the student — they can be added to another cohort right away.",
+        "This ends their place in the cohort. Their quiz history and progress stay with them, and they can join another cohort right away.",
       confirmLabel: "Remove",
       danger: true,
     });
@@ -143,153 +186,15 @@ function MemberRow({
   }
 
   return (
-    <tr className="transition-colors hover:bg-surface/40">
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Avatar name={studentDisplay(member)} avatarUrl={member.avatar_url} />
-          <span className="font-medium text-ivory">{studentDisplay(member)}</span>
-        </div>
-      </td>
-      <td className="px-4 py-3 font-mono text-xs text-taupe">{member.email}</td>
-      <td className="px-4 py-3 text-xs text-taupe">{formatDateTime(member.joined_at)}</td>
-      <td className="px-2 py-3">
-        <button
-          onClick={remove}
-          disabled={pending}
-          className="text-taupe hover:text-error-bright disabled:opacity-50"
-          aria-label={`Remove ${studentDisplay(member)} from cohort`}
-        >
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-        </button>
-      </td>
-    </tr>
-  );
-}
-
-function AddMemberDialog({
-  cohortId,
-  cohortTier,
-  eligibleStudents,
-  onClose,
-}: {
-  cohortId: string;
-  cohortTier: CohortTier;
-  eligibleStudents: EligibleStudentRow[];
-  onClose: () => void;
-}) {
-  const [studentId, setStudentId] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-  const router = useRouter();
-
-  // Sort: students with matching sub tier first (clearest candidates),
-  // then everyone else (admin override).
-  const sorted = useMemo(() => {
-    const matching = eligibleStudents.filter((s) => s.subscription_tier === cohortTier);
-    const other = eligibleStudents.filter((s) => s.subscription_tier !== cohortTier);
-    return [...matching, ...other];
-  }, [eligibleStudents, cohortTier]);
-
-  const selected = sorted.find((s) => s.id === studentId) ?? null;
-  const tierMismatch = selected && selected.subscription_tier !== cohortTier;
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setErr(null);
-    startTransition(async () => {
-      try {
-        await actionAddCohortMember(cohortId, studentId);
-        router.refresh();
-        onClose();
-      } catch (e) {
-        setErr(e instanceof Error ? e.message : "Failed to add member");
-      }
-    });
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-night/60 p-4 backdrop-blur-sm"
-      onClick={onClose}
+    <button
+      type="button"
+      className="wb-btn"
+      data-variant="danger"
+      onClick={remove}
+      disabled={pending}
+      aria-label={`Remove ${name} from cohort`}
     >
-      <div
-        className="relative w-full max-w-lg rounded-2xl border border-bronze bg-surface p-6 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-taupe hover:text-ivory"
-          aria-label="Close"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <h2 className="text-lg font-bold text-ivory">Add member</h2>
-        <p className="mt-1 text-sm text-taupe">
-          Only students not currently in another active cohort are shown.
-        </p>
-
-        <form onSubmit={submit} className="mt-5 space-y-3">
-          <label className="block">
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-taupe">
-              Student
-            </span>
-            <select
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              required
-              className="w-full rounded-lg border border-bronze bg-night/60 px-3 py-2 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-gold/40"
-            >
-              <option value="">Select a student…</option>
-              {sorted.map((s) => {
-                const name = [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email;
-                const tierBit = s.subscription_tier
-                  ? ` · ${s.subscription_tier}`
-                  : " · no active sub";
-                return (
-                  <option key={s.id} value={s.id}>
-                    {name}
-                    {tierBit}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-
-          {tierMismatch && (
-            <p className="rounded-lg border border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning-bright">
-              Heads up — this student&apos;s subscription tier is{" "}
-              <span className="font-semibold">{selected?.subscription_tier ?? "none"}</span>, not{" "}
-              <span className="font-semibold">{cohortTier}</span>. You can still place them (admin
-              override), but their billing won&apos;t match the cohort.
-            </p>
-          )}
-
-          {err && (
-            <p className="rounded-lg border border-error/20 bg-error/10 px-3 py-2 text-sm text-error-bright">
-              {err}
-            </p>
-          )}
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={pending}
-              className="rounded-lg border border-bronze px-4 py-2 text-sm font-semibold text-ivory hover:bg-surface-raised disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!studentId || pending}
-              className="inline-flex items-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-night hover:bg-gold-bright disabled:opacity-50"
-            >
-              {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-              Add to cohort
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      {pending ? "Removing…" : "Remove"}
+    </button>
   );
 }

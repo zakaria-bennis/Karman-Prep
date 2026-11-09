@@ -1,53 +1,59 @@
 // ============================================================
 // Zod schemas for Stripe boundaries.
 //
-// Where these add value (and where they don't):
+//   · Webhook BODY → not validated here. Signature verification
+//     plus the SDK's typed Event union already do that job.
 //
-//   · Webhook BODY → we don't validate. Stripe's signature
-//     verification + the SDK's typed Event discriminated union
-//     already do that job. Adding Zod on top would be duplicate
-//     work for less coverage than what Stripe gives us.
+//   · Webhook METADATA → validated. Stripe types metadata as
+//     `Record<string, string>`, so a typo'd plan id or an object
+//     created outside our Checkout flow (no metadata at all) would
+//     otherwise flow into `subscriptions` or `plan_grants`.
 //
-//   · Webhook METADATA fields → we DO validate. Stripe types
-//     metadata as `Record<string, string>` because customers set
-//     it freely, so the SDK can't narrow it. Anything we set in
-//     Checkout flows back through metadata on Subscription /
-//     Charge events. A typo'd tier or a subscription created
-//     outside our flow (no metadata at all) would otherwise be
-//     happily inserted into our `subscriptions` table.
-//
-//   · Checkout REQUEST body → we DO validate. The client posts
-//     `{ tier }` and we forward it to Stripe price-ID lookup.
-//     Without validation, a malformed `tier` flows downstream
-//     and surfaces as a confusing Stripe error.
+//   · Checkout REQUEST body → validated before any Stripe call.
 // ============================================================
 
 import { z } from "zod";
+import { ONE_TIME_PLAN_IDS, SUBSCRIPTION_PLAN_IDS } from "@/lib/plans/catalog";
+import { COHORT_PAYMENT_OPTIONS } from "./cohort-installments";
+import { BILLING_TERMS, CHECKOUT_PLAN_IDS, hasTermChoice } from "./prices";
 
-/** The four locked plan tiers. Mirrors `SubscriptionTier` in @/types,
- *  but kept here so this schema is self-contained at the Stripe
- *  boundary. If a new tier is added to the type union, update here. */
-export const subscriptionTierSchema = z.enum(["group", "small_group", "private", "elite"]);
+export const checkoutPlanIdSchema = z.enum(CHECKOUT_PLAN_IDS);
+export const billingTermSchema = z.enum(BILLING_TERMS);
 
-export type SubscriptionTier = z.infer<typeof subscriptionTierSchema>;
-
-/** Metadata we set on Stripe Subscription objects via Checkout.
- *  `userId` is the Clerk user id. `tier` is the locked plan id.
- *  Both can be missing on subscriptions created outside our flow
- *  (manual Stripe dashboard creation, legacy data) — `safeParse`
- *  callers should handle that gracefully. */
+/** Metadata Checkout puts on a Subscription (`subscription_data.metadata`).
+ *  `userId` is the Clerk user id. Missing on subscriptions made outside
+ *  our flow, so callers use `safeParse` and skip those. */
 export const subscriptionMetadataSchema = z.object({
   userId: z.string().min(1, "userId required"),
-  tier: subscriptionTierSchema,
+  planId: z.enum(SUBSCRIPTION_PLAN_IDS),
+  term: billingTermSchema,
 });
 
-/** Metadata we set on Stripe Charge objects via Checkout. We only
- *  read `userId` from charge metadata (in `charge.refunded`). */
+/** Metadata Checkout puts on a one-payment session (cohort, private-10, private-20). */
+export const purchaseMetadataSchema = z.object({
+  userId: z.string().min(1, "userId required"),
+  planId: z.enum(ONE_TIME_PLAN_IDS),
+});
+
+/** Metadata on Stripe Charge objects. Only `userId` is read (in `charge.refunded`). */
 export const chargeMetadataSchema = z.object({
   userId: z.string().min(1, "userId required"),
 });
 
-/** Body shape for POST /api/stripe/checkout. */
-export const createCheckoutBodySchema = z.object({
-  tier: subscriptionTierSchema,
-});
+/** Body for POST /api/stripe/checkout. Practice and Pro need a term; every
+ *  other plan has one price and ignores it. A Cohort seat may name its cohort. */
+export const createCheckoutBodySchema = z
+  .object({
+    plan: checkoutPlanIdSchema,
+    term: billingTermSchema.optional(),
+    /** Cohort only: the cohort the seat is for. Ignored for other plans. */
+    cohortId: z.uuid().optional(),
+    /** Cohort only: $995 at once ("full", the default) or the deposit and three payments. */
+    payment: z.enum(COHORT_PAYMENT_OPTIONS).optional(),
+  })
+  .refine((body) => !hasTermChoice(body.plan) || body.term !== undefined, {
+    message: "term is required for practice and pro",
+    path: ["term"],
+  });
+
+export type CreateCheckoutBody = z.infer<typeof createCheckoutBodySchema>;

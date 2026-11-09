@@ -1,0 +1,29 @@
+/* 21st.dev component 29356 (sean0205/c-separator-6, "Order Summary Separator"), ported to plain CSS: a column of
+   dl rows, label left and value right, grouped under headings, a heavier final row. The 1px Radix separators
+   became space and a leader of round dots (the taste-skill "itinerary on a slip" blueprint), the muted grey
+   labels became full ink on the printed slip. Used for the guarantee: the whole promise and its four rules
+   printed on one bone slip, in two columns on desktop, the same in light and dark. */
+
+.slip { background: var(--bone); color: #12110f; border-radius: var(--radius); padding: clamp(24px, 3vw, 40px); font-variant-numeric: tabular-nums; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(28px, 5vw, 80px); }
+.slip .col { min-width: 0; }
+.slip .promise { font-size: clamp(34px, 3.6vw, 50px); font-weight: 800; letter-spacing: -0.035em; line-height: 1; }
+.slip .promise-note { margin-top: 12px; font-size: 15px; color: #57534b; text-wrap: pretty; }
+.slip h3 { font-size: 19px; margin: 30px 0 10px; letter-spacing: -0.01em; }
+.slip h3.first { margin-top: 0; }
+.slip dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 0; align-items: baseline; margin: 0; }
+.slip dl > div { display: contents; }
+.slip dt, .slip dd { margin: 0; padding: 7px 0; font-size: 17px; line-height: 1.4; }
+.slip dd { text-align: right; font-weight: 700; max-width: 22ch; }
+.slip .rows li { position: relative; padding: 7px 0 7px 22px; font-size: 17px; line-height: 1.4; }
+.slip .rows li::before { content: ""; position: absolute; left: 3px; top: 15px; width: 7px; height: 7px; border-radius: 50%; background: #12110f; }
+.slip .final { grid-column: 1 / -1; margin: 28px calc(-1 * clamp(24px, 3vw, 40px)) calc(-1 * clamp(24px, 3vw, 40px)); padding: 16px clamp(24px, 3vw, 40px); background: #12110f; color: #f1ede4; font-size: 15px; line-height: 1.45; border-radius: 0 0 var(--radius) var(--radius); }
+.guarantee .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-areas: "h lede" "slip slip" "link link"; gap: 28px clamp(32px, 6vw, 96px); align-items: end; }
+.guarantee h2 { grid-area: h; }
+.guarantee .lede { grid-area: lede; max-width: 34em; }
+.guarantee .slip { grid-area: slip; margin-top: 12px; }
+.guarantee .g-link { grid-area: link; }
+@media (max-width: 900px) {
+  .slip { grid-template-columns: 1fr; }
+  .slip h3.first { margin-top: 30px; }
+  .guarantee .wrap { grid-template-columns: 1fr; grid-template-areas: "h" "lede" "slip" "link"; }
+}

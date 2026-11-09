@@ -22,15 +22,24 @@ interface Props {
 }
 
 const VERDICT_TONE: Record<GraderVerdict, string> = {
-  verified: "border-success/60 bg-success/50 text-success-bright",
-  verified_pro: "border-success/60 bg-success/50 text-success-bright",
-  verified_opus: "border-success/60 bg-success/50 text-success-bright",
-  likely_wrong: "border-error/60 bg-error/50 text-error-bright",
-  pass1_split: "border-warning/60 bg-warning/50 text-warning-bright",
-  pass1_disagree: "border-warning/60 bg-warning/50 text-warning-bright",
-  pass2_disagree: "border-warning/60 bg-warning/50 text-warning-bright",
-  uncertain_parse: "border-bronze bg-surface-raised/40 text-taupe",
-  error: "border-bronze bg-surface-raised/40 text-taupe",
+  verified:
+    "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
+  verified_pro:
+    "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
+  verified_opus:
+    "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_50%,transparent)] text-[color:var(--good)]",
+  likely_wrong:
+    "border-[color-mix(in_srgb,var(--late)_60%,transparent)] bg-[color-mix(in_srgb,var(--late)_50%,transparent)] text-[color:var(--late)]",
+  pass1_split:
+    "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
+  pass1_disagree:
+    "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
+  pass2_disagree:
+    "border-[color-mix(in_srgb,var(--warn)_60%,transparent)] bg-[color-mix(in_srgb,var(--warn)_50%,transparent)] text-[color:var(--warn)]",
+  uncertain_parse:
+    "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--mute)]",
+  error:
+    "border-[color:var(--line)] bg-[color-mix(in_srgb,var(--raised)_40%,transparent)] text-[color:var(--mute)]",
 };
 
 const VERDICT_LABEL: Record<GraderVerdict, string> = {
@@ -64,7 +73,7 @@ function VoterChip({
   if (!answerStr) {
     return (
       <span
-        className="inline-flex items-center gap-1 rounded border border-bronze bg-surface/40 px-1.5 py-0.5 text-[10px] text-taupe"
+        className="inline-flex items-center gap-1 rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-1.5 py-0.5 text-[10px] text-[color:var(--mute)]"
         title={`${name} did not vote`}
       >
         <span className="font-semibold">{name}</span>
@@ -77,8 +86,8 @@ function VoterChip({
     <span
       className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] ${
         agrees
-          ? "border-success/60 bg-success/40 text-success-bright"
-          : "border-error/60 bg-error/40 text-error-bright"
+          ? "border-[color-mix(in_srgb,var(--good)_60%,transparent)] bg-[color-mix(in_srgb,var(--good)_40%,transparent)] text-[color:var(--good)]"
+          : "border-[color-mix(in_srgb,var(--late)_60%,transparent)] bg-[color-mix(in_srgb,var(--late)_40%,transparent)] text-[color:var(--late)]"
       }`}
       title={`${name} answered ${answerStr} (stored: ${storedStr ?? "?"})`}
     >
@@ -95,7 +104,7 @@ export function GraderVotesBadge({ votes, storedAnswer }: Props) {
   // "Ungraded" hint instead of crashing the whole review page.
   if (!votes || typeof votes !== "object") {
     return (
-      <span className="text-[10px] italic text-taupe">
+      <span className="text-[10px] italic text-[color:var(--mute)]">
         Ungraded — run the multi-vote grader to populate per-LLM votes
       </span>
     );

@@ -25,6 +25,12 @@ const oneScenes = (choices: unknown[]) => choiceScenes(choices).map((s) => s?.[0
 await loadFigureEngine();
 
 vi.mock("@/app/learn/daily-challenge-actions", () => ({ actionReviewDailyAnswer: vi.fn() }));
+vi.mock("@/app/learn/saved-question-actions", () => ({
+  actionQuizStudentState: vi.fn(async () => ({ hasTutor: false, saved: {} })),
+  actionSetBookmark: vi.fn(),
+  actionFlagForTutor: vi.fn(),
+  actionReportProblem: vi.fn(),
+}));
 vi.mock("@/contexts/QuizContext", () => ({
   useQuiz: () => ({ state: null }),
   useOptionalQuizState: () => null,
@@ -350,7 +356,7 @@ describe("student surfaces draw figure choices", () => {
     expect(onSelectAnswer).toHaveBeenCalledWith("D");
   });
 
-  it("DailyChallenge draws figure choices and selects one for checking", () => {
+  it("DailyChallenge draws figure choices in the quiz shell and selects one for checking", () => {
     render(
       <DailyChallenge
         math={{
@@ -364,11 +370,12 @@ describe("student surfaces draw figure choices", () => {
         reading={{ state: "empty" }}
       />
     );
+    fireEvent.click(screen.getByRole("button", { name: "Answer the Math challenge" }));
     const a = screen.getByRole("radio", { name: /^Choice A: A coordinate plane/ });
-    expect(screen.getByRole("button", { name: "Check answer" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
     fireEvent.click(a);
     expect(a).toHaveAttribute("aria-checked", "true");
-    expect(screen.getByRole("button", { name: "Check answer" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Submit" })).toBeEnabled();
   });
 
   it("a table choice_figure_spec keeps the table-choice path with its radio", () => {

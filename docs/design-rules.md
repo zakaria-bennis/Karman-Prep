@@ -21,22 +21,22 @@ The calculator is excluded until the founder has reviewed it.
 9. Em dashes, in any copy.
 10. Inter, Geist or Space Grotesk fonts.
 11. Colored vertical stripes on the left or right edge of a button or card.
-12. Fake testimonials. A testimonial may only appear if it is real and approved.
+12. (removed by the founder, 2026-11-01)
 13. Bento grids.
 14. Terminal windows.
 15. The "it's not X, it's Y" sentence pattern.
 16. Checkmark bullets.
-17. Three pricing tiers.
-18. A page with no real product demo. Show the actual product, not icons.
-19. Soft, heavily rounded corners.
+17. (removed by the founder, 2026-11-01)
+18. (removed by the founder, 2026-11-01)
+19. (removed by the founder, 2026-11-01)
 20. Purple and black color schemes.
 21. Radial orbs.
 22. Dot grids.
 23. Sparkle icons.
-24. Animated arrows.
-25. Hover animations on everything. Hover feedback is limited to what a user needs.
+24. (removed by the founder, 2026-11-01)
+25. (removed by the founder, 2026-11-01)
 26. Neon colors.
-27. Basic pastel colors.
+27. (removed by the founder, 2026-11-01)
 28. Horizontal scrolling, on any screen size.
 
 ## Always do these
@@ -44,6 +44,166 @@ The calculator is excluded until the founder has reviewed it.
 29. Loading states use skeleton loaders.
 30. A Terms of Service page exists and is linked from the footer.
 31. A Privacy Policy page exists and is linked from the footer.
+32. A Cookie Policy page exists and is linked from the footer (founder, 2026-10-19).
+    If the site sets any non-essential cookie (analytics, ads, embedded video
+    tracking), a consent banner asks first and declining is as easy as accepting.
+33. Every page works in both light and dark mode (founder, 2026-10-19). Each
+    visitor sees the mode their device is set to (founder, 2026-10-30); when
+    the device states no preference, dark is the default. A visible toggle
+    overrides it, and the choice is remembered. On the website, light mode is
+    off-white (never pure white, rule 3) with black and marigold accents. All
+    text meets WCAG AA contrast (4.5:1, or 3:1 for large text) in both modes,
+    checked by calculation, not by eye.
+
+## Founder decisions, 2026-10-20
+
+34. Text never overlaps other text at any scroll position, on any screen size.
+    Fixed and sticky elements (header, dock, loader) never sit on top of text
+    being read. Check by scanning text boxes at every scroll step, not by eye.
+35. One highlighted call to action on screen at any time. Every other action is a
+    plain text link. The floating button only shows when no other button is
+    visible.
+36. No before-and-after sliders or drag-to-reveal comparisons.
+37. No scroll-driven indicators that fill boxes, light up checkpoints or tick
+    items off as the reader scrolls (route bars, filling week squares, skill
+    meters).
+38. (removed by the founder, 2026-11-01)
+39. Internal grading stays internal on marketing pages: no difficulty levels
+    ("level 4", "1 to 7", "seven levels"), no skill maps or level meters.
+40. Karman is a company, not a personal site. Marketing copy speaks as Karman,
+    not in the first person. Zakaria is not named in the visible text of any
+    page except the About page, where he is introduced in full. Search-engine
+    metadata may keep a founder field.
+
+## Pictures and film, 2026-10-20
+
+41. Karman is a people company, so pictures and film show people: students of
+    16 and 17 first, then parents and tutors. Empty rooms and still lifes on
+    their own read as lazy and generated.
+42. Students are locked in. A small smile is fine; laughing at a laptop, or
+    any staged comedy, is not. No cartoon details such as a pencil behind the
+    ear.
+43. (removed by the founder, 2026-11-01)
+44. Screens are readable and show real Karman product screens with logical
+    content. The founder approves each screen's content before anything is
+    generated. Screen text is placed from our own rendered screens, never left
+    to the image model to invent.
+45. No physical calculators anywhere. The digital SAT has its own on-screen
+    graphing calculator. Questions shown in pictures are Karman originals,
+    never questions imported from College Board material.
+46. Tutoring is on Zoom, and pictures may show Zoom as it is (student and
+    tutor each in their own place), never a tutor in the room or over a
+    shoulder.
+47. (removed by the founder, 2026-11-01)
+48. Colour in pictures is not limited to the site palette. Pictures must look
+    graded and coordinated with each other and with the page around them.
+
+## Product app, 2026-10-21
+
+The student, parent and tutor app (and its screens shown on the site) follow
+these on top of the rules above. Where they conflict, these win inside the app.
+
+49. The app's ground is a subtle, slowly moving constellation sky: faint stars
+    and lines on night navy in dark mode, faint ink on bone in light mode. It
+    never competes with the content and stops moving under reduced motion.
+    Founder, 2026-10-30: the sky is now one option, not a requirement. The
+    background can be any subtle world that fits studying; agents propose
+    several directions and the founder picks. Subtle, behind the content, and
+    still under reduced motion all still apply.
+50. Buttons and controls are liquid glass, not flat frosted glass: they bend
+    the background behind them, carry a bright top edge and a soft shadow, and
+    look slightly raised. This overrides rules 5 and 8 inside the app only.
+    Cards and panels are heavier and darker than buttons, so glass never sits
+    on glass of the same weight.
+51. No unnecessary subtitles. A row says what it is; a second line appears only
+    when it carries a date, a due time or a state the person needs.
+52. Icons are custom drawn for Karman (never Lucide or a stock set). Desktop
+    navigation is a slim icon rail of a few icons, not a wide sidebar.
+53. Product names: "Your Daily 10", "Challenge question" (not Daily Question),
+    "Full-length review session" (not 1:1 review). The word game is called
+    Wordline (founder, 2026-10-21).
+54. Tutors are named on product screens (the March cohort's tutor is David).
+55. Every due item shows its due date. Fill-in blanks are one solid underline,
+    never a row of underscores.
+56. Question screens carry the tools a student expects: highlight, scratch pad,
+    and a timer that can be hidden. A question-set indicator shows which
+    questions were right and wrong.
+57. Parent screens lead with skill mastery and questions answered. Attendance
+    is a flag only when a class is missed, never a headline number.
+58. Phone screens are drawn for the iPhone 17 Pro Max (440 x 956 points, thin
+    bezel, Dynamic Island). Light mode is bone, never pure white.
+
+## Founder decision, 2026-11-01
+
+The rules above are things to minimise and steer away from when unsure, not
+absolute bans, when the founder decides a page needs otherwise. For the pricing
+page he decided: three tier cards in a row, including Free, and the design
+elements of the Paddle Billing starter kit's pricing page
+(`docs/design/research/paddle-pricing-reference.md`) are allowed, even where they
+touch rules 1, 6, 8, 16, 17, 21 and 22. Contrast (33), overlap (34), sideways
+scroll (28), no invented claims and the copy rules still hold.
+
+Also on 2026-11-01, after removing rule 47, the founder kept the three real
+results on the home page: Ava 1520 UC Berkeley, Mateo 1570 Harvard and Priya 1540
+Stanford, each with "Karman 1:1 tutoring, median 16 weeks".
+
+### Devices in pictures and film (founder, 2026-11-01)
+
+Every device in a generated picture or video is a real, current product, named by
+model in the prompt so the model can draw it properly:
+
+- Phones: iPhone 17 Pro Max or iPhone 18 Pro Max only.
+- Headphones: Sony WH-1000XM5 or AirPods Max 2 only (no earbuds, no wired earphones).
+- Laptops: MacBook Pro in Space Black only.
+- Any other device appears only if it is an official product named by its exact model.
+- Every device is checked at full size before a picture is kept; a generic or wrong
+  device is rejected or fixed with an image edit.
+
+## Copy rules
+
+Set by the founder on 2026-10-19. Every word on the website follows these.
+
+1. No em dashes.
+2. No fabricated claims.
+3. Keep copy scannable.
+4. Write specific headlines.
+5. Leave out unnecessary information.
+6. One idea per section.
+7. Break up blocks of text.
+8. The body supports the headline.
+9. Above the fold sells.
+10. One to three key points per section.
+11. Punchy, not padded.
+12. Every CTA has a clear verb and outcome.
+13. Lead with the benefit, then the feature.
+14. No generic openers.
+15. Write for someone skimming.
+16. No two-beat antithesis ("Less X. More Y.").
+17. No aphorism formulas.
+18. Talk to one buyer, the parent, not everyone.
+19. Handle the objection right before the CTA.
+20. Put the proof next to the claim.
+
+## SEO requirements
+
+Set by the founder on 2026-10-19. Every public page is built with these from
+the start.
+
+- `sitemap.xml` and `robots.txt` generated from the real public routes.
+- No `noindex` on public pages. Portals, admin and auth stay out of the index.
+- A canonical tag, a unique meta title and a unique meta description on every page.
+- Exactly one H1 per page, and headings in order (H2 under H1, H3 under H2).
+- Alt text on every meaningful image. Decorative images use empty alt.
+- Schema markup (JSON-LD): Organization, Course for each program, FAQPage, Event
+  for the free practice test.
+- Internal links between related pages. No broken links.
+- Compressed, correctly sized images (`next/image`, WebP or AVIF).
+- Core Web Vitals in the green on mobile. Video and heavy motion never block the LCP.
+- Mobile responsive. HTTPS forced.
+- Short, readable URL slugs (`/programs/march-sat`, not `/p?id=3`).
+- An Open Graph image for every page.
+- `llms.txt` at the site root describing Karman for AI assistants.
+- Google Search Console verified (the founder does this with his Google account).
 
 ## Also required
 

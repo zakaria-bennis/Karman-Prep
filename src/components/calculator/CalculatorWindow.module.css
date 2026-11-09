@@ -95,6 +95,8 @@
   background: var(--kcc-chrome);
   color: var(--kcc-text);
   outline: none;
+  /* The pencil's cursor never reaches in here: over the calculator the pointer is a cursor. */
+  cursor: auto;
 }
 
 .frame[data-mode="maximized"],
@@ -128,13 +130,49 @@
   animation: kcc-window-enter 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Founder, 2026-11-08 (supersedes AN-10 for the dock): the docked calculator rises from the
+   bottom on the left as the question slides right, and drops away on close or on the next
+   question (the scope marks it data-leaving and keeps it shown until the drop ends). */
+@keyframes kcc-dock-rise {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+@keyframes kcc-dock-drop {
+  from {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.frame[data-entering][data-mode="docked"] {
+  animation: kcc-dock-rise 420ms cubic-bezier(0.32, 1.12, 0.4, 1);
+}
+
+.frame[data-leaving] {
+  pointer-events: none;
+  animation: kcc-dock-drop 280ms cubic-bezier(0.4, 0, 0.8, 0.4) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .frame[data-entering][data-mode] {
+  .frame[data-entering][data-mode],
+  .frame[data-leaving] {
     animation: none;
   }
 }
 
-[data-reduced-motion="true"] .frame[data-entering][data-mode] {
+[data-reduced-motion="true"] .frame[data-entering][data-mode],
+[data-reduced-motion="true"] .frame[data-leaving] {
   animation: none;
 }
 

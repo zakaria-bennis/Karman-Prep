@@ -41,34 +41,6 @@ export async function sendWelcomeEmail({
   });
 }
 
-/** Sends a trial-ending reminder (fires 2 days before trial end) */
-export async function sendTrialEndingEmail({
-  to,
-  firstName,
-  trialEndDate,
-}: {
-  to: string;
-  firstName: string;
-  trialEndDate: string;
-}) {
-  return resend.emails.send({
-    from: FROM,
-    to,
-    subject: "Your Karman trial ends in 2 days",
-    html: `
-      <div style="font-family: Inter, sans-serif; max-width: 600px; margin: auto; padding: 32px;">
-        <h2 style="color: #D97706;">Your free trial ends on ${trialEndDate}</h2>
-        <p>Hi ${firstName}, your 7-day free trial of Karman ends soon.</p>
-        <p>To keep your progress and continue your personalized SAT prep, your subscription will auto-activate on ${trialEndDate}.</p>
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/billing"
-           style="background:#2563EB;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:16px;">
-          Manage Subscription
-        </a>
-      </div>
-    `,
-  });
-}
-
 /** Adds a visitor email to the Resend audience for nurture emails */
 export async function addToWaitlist(email: string) {
   const audienceId = process.env.RESEND_AUDIENCE_ID;

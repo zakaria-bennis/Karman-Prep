@@ -146,30 +146,32 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
   }
 
   return (
-    <section className="rounded-xl border border-bronze bg-surface/60 p-5">
+    <section className="rounded-xl border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_60%,transparent)] p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-bold text-ivory">Bulk import</h3>
+        <h3 className="text-sm font-bold text-[color:var(--ink)]">Bulk import</h3>
         <button
           onClick={handleDownloadTemplate}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-bright"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--accent-text)] hover:text-[color:var(--accent-text)]"
         >
           <Download className="h-3.5 w-3.5" /> CSV template
         </button>
       </div>
-      <p className="mb-4 max-w-2xl text-xs text-taupe">
+      <p className="mb-4 max-w-2xl text-xs text-[color:var(--mute)]">
         Upload a CSV or JSON file. Accepts the legacy 15-column template AND the 30-column routine
         template (PDF-ingestion output). Required:
-        <code className="mx-1 rounded bg-surface-raised px-1 py-0.5 text-ivory">question_text</code>
+        <code className="mx-1 rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
+          question_text
+        </code>
         ,
-        <code className="mx-1 rounded bg-surface-raised px-1 py-0.5 text-ivory">
+        <code className="mx-1 rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
           correct_answer
         </code>
         ,
-        <code className="mx-1 rounded bg-surface-raised px-1 py-0.5 text-ivory">
+        <code className="mx-1 rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
           explanation_text
         </code>
         . Choices are required for multiple-choice rows; SPR rows leave them blank and set{" "}
-        <code className="mx-0.5 rounded bg-surface-raised px-1 py-0.5 text-ivory">
+        <code className="mx-0.5 rounded bg-[color:var(--raised)] px-1 py-0.5 text-[color:var(--ink)]">
           question_format=numeric_entry
         </code>
         .
@@ -185,15 +187,17 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-bronze bg-surface-raised px-3 py-1.5 text-sm font-semibold text-ivory hover:bg-surface-raised"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--line)] bg-[color:var(--raised)] px-3 py-1.5 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
         >
           <Upload className="h-3.5 w-3.5" /> Choose file
         </button>
-        {preview && <span className="text-xs text-taupe">{preview.length} rows parsed</span>}
+        {preview && (
+          <span className="text-xs text-[color:var(--mute)]">{preview.length} rows parsed</span>
+        )}
       </div>
 
       {parseError && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-xs text-error-bright">
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_10%,transparent)] px-3 py-2 text-xs text-[color:var(--late)]">
           <AlertCircle className="h-3.5 w-3.5" /> {parseError}
         </div>
       )}
@@ -202,10 +206,12 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
 
       {preview && (
         <div className="mt-4">
-          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-taupe">Preview</h4>
-          <div className="max-h-80 overflow-y-auto rounded-lg border border-bronze text-xs">
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--mute)]">
+            Preview
+          </h4>
+          <div className="max-h-80 overflow-y-auto rounded-lg border border-[color:var(--line)] text-xs">
             <table className="w-full">
-              <thead className="sticky top-0 bg-surface-raised text-taupe">
+              <thead className="sticky top-0 bg-[color:var(--raised)] text-[color:var(--mute)]">
                 <tr>
                   <th className="px-3 py-2 text-left font-semibold">Question</th>
                   <th className="px-3 py-2 text-left font-semibold">Difficulty</th>
@@ -216,20 +222,20 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
               </thead>
               <tbody>
                 {preview.map((r, i) => (
-                  <tr key={i} className="border-t border-bronze">
-                    <td className="max-w-[24rem] truncate px-3 py-2 text-ivory">
+                  <tr key={i} className="border-t border-[color:var(--line)]">
+                    <td className="max-w-[24rem] truncate px-3 py-2 text-[color:var(--ink)]">
                       {r.question_text}
                     </td>
-                    <td className="px-3 py-2 text-taupe">{r.difficulty}</td>
-                    <td className="px-3 py-2 text-taupe">{r.correct_answer}</td>
-                    <td className="px-3 py-2 text-taupe">{r.concept_slug ?? "—"}</td>
+                    <td className="px-3 py-2 text-[color:var(--mute)]">{r.difficulty}</td>
+                    <td className="px-3 py-2 text-[color:var(--mute)]">{r.correct_answer}</td>
+                    <td className="px-3 py-2 text-[color:var(--mute)]">{r.concept_slug ?? "—"}</td>
                     <td className="px-3 py-2">
                       <span
                         className={cn(
                           "inline-block rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide",
                           r.import_status === "needs_review"
-                            ? "bg-warning/15 text-warning-bright"
-                            : "bg-success/15 text-success-bright"
+                            ? "bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)]"
+                            : "bg-[color-mix(in_srgb,var(--good)_15%,transparent)] text-[color:var(--good)]"
                         )}
                       >
                         {r.import_status ?? "ok"}
@@ -243,7 +249,7 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
           <div className="mt-3 flex justify-end gap-2">
             <button
               onClick={() => setPreview(null)}
-              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-taupe hover:bg-surface-raised"
+              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-[color:var(--mute)] hover:bg-[color:var(--raised)]"
             >
               Cancel
             </button>
@@ -251,8 +257,8 @@ export default function BulkImportPanel({ nodeId, subject, topicCluster }: Props
               onClick={handleConfirm}
               disabled={importing}
               className={cn(
-                "rounded-lg bg-gold px-4 py-1.5 text-sm font-bold text-night",
-                importing ? "cursor-not-allowed opacity-50" : "hover:bg-gold-bright"
+                "rounded-lg bg-[color:var(--accent)] px-4 py-1.5 text-sm font-bold text-[color:var(--accent-ink)]",
+                importing ? "cursor-not-allowed opacity-50" : "hover:bg-[color:var(--accent)]"
               )}
             >
               {importing ? "Importing…" : `Import ${preview.length} questions`}
@@ -268,18 +274,20 @@ export function ImportResultBanner({ result }: { result: BulkImportResult }) {
   const total =
     result.inserted + result.skipped_duplicates + result.flagged_for_review + result.errored;
   return (
-    <div className="mt-3 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-xs text-success-bright">
+    <div className="mt-3 rounded-lg border border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)] px-3 py-2 text-xs text-[color:var(--good)]">
       <div className="flex items-center gap-2 font-semibold">
         <Check className="h-3.5 w-3.5" /> Imported {total} rows
       </div>
-      <ul className="mt-1.5 space-y-0.5 text-success-bright/80">
+      <ul className="mt-1.5 space-y-0.5 text-[color-mix(in_srgb,var(--good)_80%,transparent)]">
         <li>· {result.inserted} live</li>
         <li>· {result.flagged_for_review} flagged for review</li>
         <li>· {result.skipped_duplicates} skipped (duplicate)</li>
-        {result.errored > 0 && <li className="text-error-bright">· {result.errored} errored</li>}
+        {result.errored > 0 && (
+          <li className="text-[color:var(--late)]">· {result.errored} errored</li>
+        )}
       </ul>
       {result.errors.length > 0 && (
-        <details className="mt-2 cursor-pointer text-error-bright">
+        <details className="mt-2 cursor-pointer text-[color:var(--late)]">
           <summary className="font-semibold">
             Show {result.errors.length} error{result.errors.length === 1 ? "" : "s"}
           </summary>

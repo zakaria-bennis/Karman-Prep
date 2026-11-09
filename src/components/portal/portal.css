@@ -1,0 +1,508 @@
+/*
+ * The painted portal shell: tokens, shell, panel, cards and primitives.
+ * Ported from prototypes/today-directions/index.html ("Bold moments" type style, approved
+ * 2026-11-08). Every class starts with kp- so nothing here touches the public site.
+ * Theme follows the device (design rule 33). The painting sets --hue, --hs and --accent on
+ * the root element; the four level shades are derived here from the hue.
+ */
+
+/* Painting colors. Defaults are Karman's calm blue until the day's painting has loaded. */
+:root {
+  --hue: 208;
+  --hs: 55%;
+  --accent: hsl(208 55% 42%);
+}
+
+.kp-shell {
+  --bg: #06080d;
+  --ink: #eef0f4;
+  --mute: #a7afbd;
+  --line: rgb(255 255 255 / 0.12);
+  --accent-ink: #fff;
+  --late: #ff9c8a;
+  --good: #8fd0a8;
+  --card: rgb(255 255 255 / 0.035);
+  /* Dark mode climbs from dark to light. */
+  --l1: hsl(var(--hue) calc(var(--hs) * 0.6) 30%);
+  --l2: hsl(var(--hue) calc(var(--hs) * 0.85) 46%);
+  --l3: hsl(var(--hue) var(--hs) 64%);
+  --l4: hsl(var(--hue) var(--hs) 84%);
+  --panel-tint: 80%;
+  --font-sans: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
+  --font-serif: var(--font-young-serif), "Young Serif", Georgia, serif;
+  --font-hand: var(--font-caveat), Caveat, cursive;
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  color: var(--ink);
+  background: var(--bg);
+  font: 16px/24px var(--font-sans);
+  font-variant-numeric: lining-nums;
+  overflow-x: clip;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  .kp-shell {
+    --bg: #f2efe8;
+    --ink: #16181d;
+    --mute: #5a5c63;
+    --line: rgb(0 0 0 / 0.12);
+    --late: #a52c18;
+    --good: #2f6b45;
+    --card: rgb(255 255 255 / 0.45);
+    /* Light mode climbs from light to dark. */
+    --l1: hsl(var(--hue) var(--hs) 86%);
+    --l2: hsl(var(--hue) var(--hs) 68%);
+    --l3: hsl(var(--hue) calc(var(--hs) * 0.9) 46%);
+    --l4: hsl(var(--hue) calc(var(--hs) * 0.8) 28%);
+    --panel-tint: 86%;
+    color-scheme: light;
+  }
+}
+
+/* Resets at zero weight (:where), so component colors like the main button's white text win. */
+.kp-shell :where(a) {
+  color: inherit;
+  text-decoration: none;
+}
+.kp-shell :where(button) {
+  font: inherit;
+  color: inherit;
+}
+.kp-shell :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.kp-skip {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 40;
+  padding: 10px 14px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+.kp-skip:focus {
+  transform: none;
+}
+
+/* ---------- Backdrop: the painting, behind everything ---------- */
+.kp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--bg);
+  pointer-events: none;
+}
+.kp-backdrop canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.kp-backdrop .kp-drawn {
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.kp-backdrop[data-painted] .kp-drawn {
+  opacity: 1;
+}
+/* Paper grain over the painting, so flat color reads as paint on paper. */
+.kp-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.kp-credit {
+  position: fixed;
+  right: 18px;
+  bottom: 14px;
+  z-index: 1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: #fff;
+  opacity: 0.78;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.7);
+  pointer-events: none;
+}
+@media (max-width: 1099px) {
+  .kp-credit {
+    display: none;
+  }
+}
+
+/* ---------- Navigation: a rail on desktop, a tab bar on phone ---------- */
+.kp-nav {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+}
+.kp-nav a {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 44px;
+  min-height: 52px;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 600;
+  color: var(--mute);
+  border-radius: 14px;
+  text-align: center;
+}
+.kp-nav a[aria-current="page"] {
+  color: var(--ink);
+  background: rgb(255 255 255 / 0.12);
+}
+.kp-nav svg {
+  flex: none;
+}
+.kp-brand {
+  display: none;
+}
+.kp-badge {
+  position: absolute;
+  top: 4px;
+  left: calc(50% + 8px);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--late);
+  color: #16181d;
+  font: 600 11px/16px var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+  text-align: center;
+}
+@media (max-width: 767px) {
+  .kp-nav {
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    padding: 4px;
+    border-radius: 22px;
+    justify-content: space-around;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(18px) saturate(1.5);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.18),
+      0 10px 30px rgb(0 0 0 / 0.35);
+  }
+  .kp-nav a {
+    flex: 1;
+    font-size: 11px;
+  }
+}
+@media (min-width: 768px) {
+  .kp-nav {
+    left: 12px;
+    top: 12px;
+    bottom: 12px;
+    width: 76px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 6px;
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--bg) 40%, transparent);
+    backdrop-filter: blur(18px) saturate(1.5);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 14px 40px rgb(0 0 0 / 0.35);
+    overflow-y: auto;
+  }
+  .kp-brand {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    margin-bottom: 6px;
+    border-radius: 14px;
+  }
+}
+@media (prefers-color-scheme: light) {
+  .kp-nav a[aria-current="page"] {
+    background: rgb(0 0 0 / 0.07);
+  }
+}
+
+/* ---------- App bar: streak and the fox, top right. It scrolls away, so it never covers text. ---------- */
+.kp-appbar {
+  position: absolute;
+  z-index: 12;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 4px 12px;
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.kp-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.kp-streak svg {
+  fill: var(--accent);
+}
+.kp-avatar {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+@media (prefers-color-scheme: light) {
+  .kp-avatar {
+    background: rgb(0 0 0 / 0.06);
+  }
+}
+/* The account menu: a drop-down list that springs down from the fox. It lives in the shell,
+   outside the app bar, so it keeps the shell's own ink and its own solid background. */
+.kp-menu {
+  position: fixed;
+  z-index: 30;
+  width: 272px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--bg) 97%, hsl(var(--hue) var(--hs) 50%));
+  box-shadow:
+    0 20px 50px rgb(0 0 0 / 0.32),
+    0 2px 8px rgb(0 0 0 / 0.16);
+  transform-origin: calc(100% - 22px) -8px;
+  animation: kp-menu-in 0.42s
+    linear(0, 0.25 7%, 0.7 17%, 0.98 27%, 1.04 35%, 1.03 45%, 1.005 60%, 1);
+}
+@keyframes kp-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.82);
+  }
+  25% {
+    opacity: 1;
+  }
+}
+.kp-menu-who {
+  padding: 10px 12px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.kp-menu-who b {
+  display: block;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+}
+.kp-menu-who small {
+  display: block;
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+.kp-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  animation: kp-row-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.1) backwards;
+  animation-delay: calc(var(--i, 0) * 18ms + 40ms);
+}
+.kp-menu-row svg {
+  flex: none;
+  color: var(--mute);
+}
+@keyframes kp-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.kp-menu-row:hover,
+.kp-menu-row:focus-visible {
+  background: hsl(var(--hue) var(--hs) 50% / 0.14);
+}
+.kp-menu-row:focus-visible {
+  outline-offset: -2px;
+}
+.kp-menu-rule {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line);
+}
+.kp-menu-quiet {
+  color: var(--mute);
+}
+@media (prefers-reduced-motion: reduce) {
+  .kp-menu,
+  .kp-menu-row {
+    animation: none;
+  }
+}
+/* Settings, Reduce motion: every spring, slide and fade in the portal finishes at once. */
+:root[data-kp-still] .kp-shell :is(*, *::before, *::after) {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* The Karman wordmark, as in the site header. */
+.kp-wordmark {
+  font: 800 17px/1 var(--font-sans);
+  letter-spacing: -0.035em;
+}
+.kp-brand-m {
+  display: none;
+}
+@media (max-width: 767px) {
+  .kp-brand-m {
+    position: absolute;
+    z-index: 12;
+    top: 12px;
+    left: 16px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 52px;
+    padding: 0 16px;
+    border-radius: 30px;
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .kp-brand-m .kp-wordmark {
+    font-size: 21px;
+  }
+}
+
+/* ---------- Page ---------- */
+.kp-main {
+  position: relative;
+  z-index: 1;
+  padding: 72px 16px 120px;
+}
+@media (max-width: 767px) {
+  /* On phone the painting shows above the box. */
+  .kp-main {
+    padding-top: max(76px, 22vh);
+  }
+}
+@media (min-width: 768px) {
+  .kp-main {
+    padding: 28px 40px 24px 112px;
+  }
+}
+.kp-col {
+  max-width: clamp(760px, 46vw, 960px);
+}
+.kp-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-right: 120px;
+  text-shadow:
+    0 2px 22px rgb(0 0 0 / 0.75),
+    0 1px 3px rgb(0 0 0 / 0.5);
+}
+@media (max-width: 767px) {
+  .kp-top {
+    padding-right: 0;
+  }
+}
+@media (prefers-color-scheme: light) {
+  .kp-top {
+    text-shadow: 0 1px 18px rgb(255 255 255 / 0.7);
+  }
+}
+/* On a light picture, the greeting switches to dark ink so it stays readable over the paint. */
+.kp-shell[data-picture="light"] .kp-top {
+  color: #14161b;
+  text-shadow: 0 1px 16px rgb(255 255 255 / 0.75);
+}
+/* The rail, the app bar and the phone logo follow the device theme, whatever the picture
+   (founder, 2026-11-08: a white rail beside a dark box looked broken). In light mode over a
+   light picture they turn white with dark ink; in dark mode they stay dark and thicken their
+   glass so light ink keeps its contrast over bright paint. */
+@media (prefers-color-scheme: light) {
+  .kp-shell[data-picture="light"] :is(.kp-nav, .kp-appbar, .kp-brand-m) {
+    --ink: #14161b;
+    --mute: #3c3f46;
+    color: #14161b;
+    background: rgb(255 255 255 / 0.62);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .kp-shell[data-picture="light"] :is(.kp-nav, .kp-appbar, .kp-brand-m) {
+    background: color-mix(in srgb, var(--bg) 84%, transparent);
+  }
+}
+.kp-greet {
+  margin: 0;
+  max-width: 24ch;
+  min-height: 1.08em;
+  font: 400 clamp(28px, 2.8vw, 40px) / 1.08 var(--font-serif);
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+.kp-caret {
+  display: inline-block;
+  width: 0.08em;
+  height: 0.9em;
+  margin-left: 0.06em;
+  vertical-align: -0.08em;
+  background: var(--accent);
+  animation: kp-blink 1s steps(1) infinite;
+}
+.kp-caret[data-done] {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+@keyframes kp-blink {
+  50% {
+    opacity: 0;
+  }
+}

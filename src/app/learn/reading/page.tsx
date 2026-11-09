@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
-import SkillCatalogPage from "@/components/learn/SkillCatalogPage";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Reading & Writing — Learn | Karman" };
-
+/** The old Reading and Writing skill map is now the Library's course (2026-11-08). */
 export default function Page() {
-  return <SkillCatalogPage subject="reading" />;
+  redirect("/dashboard/student/library/reading-writing");
 }

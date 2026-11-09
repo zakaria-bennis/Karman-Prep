@@ -1,0 +1,105 @@
+/* Karman, direction C "Bluebook, honest" (2026-11-01). The tokens, the type, the frame, the buttons and the
+   shell shared by the home and pricing pages. The page is the test's own screen: a calm flat frame, Hanken
+   Grotesk, off-white and night, marigold on the one action only. Components ported from 21st.dev sit in
+   components/ with their id at the top of each file (see 21st.md). */
+
+:root {
+  --paper: #f5f5f2;        /* the ground, never pure white (rule 3) */
+  --paper2: #e8e7e1;       /* one tone step for fields */
+  --ink: #12110f;
+  --ink2: #57534b;         /* 6.7:1 on paper */
+  --night: #0e0d0c;        /* the dark field, both modes */
+  --night2: #1a1917;
+  --bone: #f1ede4;         /* ink on night, and the printed slip */
+  --bone2: #b6b0a4;        /* 8.5:1 on night */
+  --marigold: #eba21f;
+  --mari-ink: #94600a;     /* small marigold text on paper, 5.3:1 */
+  --on-mari: #0b0b0b;
+  --mist: 245, 245, 242;
+  --gutter: clamp(16px, 3vw, 40px);
+  --radius: 12px;          /* the engine's own corner (rounded-xl); one radius for the page */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --spring: cubic-bezier(.3, 1.4, .4, 1);
+  --hd: 64px;
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  --paper: #151412;
+  --paper2: #26231f;
+  --ink: #f1ede4;
+  --ink2: #b6b0a4;
+  --mari-ink: #f0b545;
+  --mist: 21, 20, 18;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--paper); scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 17px/1.5 "Hanken Grotesk", system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+::selection { background: var(--marigold); color: var(--on-mari); }
+:focus-visible { outline: 3px solid var(--marigold); outline-offset: 3px; border-radius: 6px; }
+a { color: inherit; }
+img, video { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; text-wrap: balance; }
+h1 { font-size: clamp(38px, 4.2vw, 58px); }
+h2 { font-size: clamp(30px, 3.6vw, 50px); }
+h3 { font-size: clamp(22px, 2.1vw, 30px); letter-spacing: -0.025em; }
+.lede { font-size: clamp(17px, 1.35vw, 20px); line-height: 1.5; text-wrap: pretty; max-width: 34em; }
+.small { font-size: 15px; color: var(--ink2); }
+b, strong { font-weight: 700; }
+.wrap { width: min(1360px, 100% - 2 * var(--gutter)); margin: 0 auto; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- the page sits over the film; the intro fades it in (see ../logo/intro.js) ---- */
+html[data-intro] [data-page="site"] { opacity: 0; animation: k-restore 0s linear 1.6s forwards; }
+@keyframes k-restore { to { opacity: 1; } }
+[data-page="site"] { position: relative; z-index: 1; }
+
+/* ---- the one highlighted button (rule 35) and the plain text link that every other action is ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; padding: 0 26px;
+  border-radius: 10px; background: var(--marigold); color: var(--on-mari); font-weight: 800; font-size: 17px;
+  text-decoration: none; transition: transform .45s var(--spring), background-color .2s var(--ease);
+}
+.btn:hover { background: #f0ad35; }
+.btn:active { transform: scale(.96); transition-duration: .08s; }
+.lk {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; text-decoration: underline;
+  text-decoration-color: var(--marigold); text-decoration-thickness: 2px; text-underline-offset: 5px;
+}
+.lk:hover { text-decoration-color: currentColor; }
+.lk svg { width: 18px; height: 18px; flex: none; }
+.act { display: grid; gap: 10px; justify-items: start; }
+.act small { font-size: 15px; color: var(--ink2); }
+.skip { position: fixed; left: 12px; top: -60px; z-index: 200; background: var(--paper); color: var(--ink); padding: 10px 14px; border-radius: 10px; text-decoration: none; font-weight: 700; }
+.skip:focus { top: 12px; }
+
+/* ---- sections: panels are opaque paper or night over the film; windows show the film ---- */
+.panel { position: relative; background: var(--paper); color: var(--ink); }
+.panel.night { background: var(--night); color: var(--bone); }
+.panel.night .small, .panel.night .act small { color: var(--bone2); }
+.panel.night .lk { color: var(--bone); }
+.window { position: relative; }
+.sec { padding: clamp(72px, 9vw, 140px) 0; }
+
+/* ---- the reveal: the parts of a section rise once as it enters (motion layer; nothing stays hidden without script) ---- */
+.rv { opacity: 1; transform: none; }
+html.js .rv { opacity: 0; transform: translateY(22px); transition: opacity .9s var(--ease), transform .9s var(--ease); transition-delay: var(--d, 0s); }
+html.js .rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { html.js .rv { opacity: 1; transform: none; transition: none; } }
+
+/* ---- icons drawn for Karman: one stroke weight, currentColor ---- */
+.ic { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .btn { width: 100%; min-height: 56px; }
+}

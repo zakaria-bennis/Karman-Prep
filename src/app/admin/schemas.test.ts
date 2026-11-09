@@ -409,8 +409,12 @@ describe("createCohortInputSchema", () => {
     ).toBe(false);
   });
 
-  it("rejects max_size > tier cap (small_group: 5)", () => {
-    expect(createCohortInputSchema.safeParse({ ...valid, max_size: 6 }).success).toBe(false);
+  it("accepts a full cohort of six (small_group cap)", () => {
+    expect(createCohortInputSchema.safeParse({ ...valid, max_size: 6 }).success).toBe(true);
+  });
+
+  it("rejects max_size > tier cap (small_group: 6)", () => {
+    expect(createCohortInputSchema.safeParse({ ...valid, max_size: 7 }).success).toBe(false);
   });
 
   it("rejects max_size > tier cap (group: 200)", () => {

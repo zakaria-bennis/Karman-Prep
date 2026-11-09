@@ -80,17 +80,16 @@ export const FLOATING_MIN_SIZE = { width: 360, height: 280 } as const;
 export const WINDOW_KEY_STEP = 16; // AR-22, AR-23, KB-10
 /** Gap between the dock and the viewport edge, and between the dock and the workspace. */
 export const DOCK_MARGIN = 12; /* AR-23 */
-export const DOCK_MIN_WIDTH = 400;
+/** Founder, 2026-11-08: the dock (with its margins) takes 25% to 75% of the viewport's width, so
+ * the question always keeps 25% to 75% too. Supersedes AR-23's 400 px .. min(900, 100vw - 480). */
+export const DOCK_MIN_SHARE = 0.25;
+export const DOCK_MAX_SHARE = 0.75;
 
 /** The default floating size: `min(880px, 100vw - 32px)` by `min(600px, 100dvh - 80px)`. */
 const FLOATING_DEFAULT_SIZE = { width: 880, height: 600 } as const;
 const FLOATING_VIEWPORT_INSET = { width: 32, height: 80 } as const;
-/** AR-23: the default dock width is `clamp(400px, 45vw, 720px)`. */
+/** AR-23: the default dock width is 45% of the viewport (then kept within the shares). */
 const DOCK_DEFAULT_SHARE = 0.45;
-const DOCK_DEFAULT_MAX_WIDTH = 720;
-/** AR-23: the dock never grows past `min(900px, 100vw - 480px)`. */
-const DOCK_MAX_WIDTH = 900;
-const DOCK_VIEWPORT_RESERVE = 480;
 
 /** The floating window's first place and size in `viewport` (AR-22). */
 export function defaultFloatingRect(viewport: ViewportSize): WindowRect {
@@ -126,20 +125,30 @@ export function clampFloatingRect(rect: WindowRect, viewport: ViewportSize): Win
   };
 }
 
-/** The dock's default width, `clamp(400px, 45vw, 720px)` rounded to whole pixels (AR-23). */
-export function defaultDockWidth(viewportWidth: number): number {
-  return Math.round(
-    Math.min(DOCK_DEFAULT_MAX_WIDTH, Math.max(DOCK_MIN_WIDTH, DOCK_DEFAULT_SHARE * viewportWidth))
+/** The narrowest dock width in this viewport: 25% of it, less the two margins. */
+export function minDockWidth(viewportWidth: number): number {
+  return Math.max(0, Math.round(DOCK_MIN_SHARE * viewportWidth) - 2 * DOCK_MARGIN);
+}
+
+/** The widest dock width in this viewport: 75% of it, less the two margins. */
+export function maxDockWidth(viewportWidth: number): number {
+  return Math.max(
+    minDockWidth(viewportWidth),
+    Math.round(DOCK_MAX_SHARE * viewportWidth) - 2 * DOCK_MARGIN
   );
 }
 
-/** `width` kept between 400 px and `min(900px, 100vw - 480px)`, never below 400 (AR-23). */
-export function clampDockWidth(width: number, viewportWidth: number): number {
-  const max = Math.max(
-    DOCK_MIN_WIDTH,
-    Math.min(DOCK_MAX_WIDTH, viewportWidth - DOCK_VIEWPORT_RESERVE)
+/** The dock's default width, 45% of the viewport less the margins, in whole pixels. */
+export function defaultDockWidth(viewportWidth: number): number {
+  return clampDockWidth(
+    Math.round(DOCK_DEFAULT_SHARE * viewportWidth) - 2 * DOCK_MARGIN,
+    viewportWidth
   );
-  return clamp(width, DOCK_MIN_WIDTH, max);
+}
+
+/** `width` kept so the dock takes 25% to 75% of the viewport (founder, 2026-11-08). */
+export function clampDockWidth(width: number, viewportWidth: number): number {
+  return clamp(width, minDockWidth(viewportWidth), maxDockWidth(viewportWidth));
 }
 
 /**

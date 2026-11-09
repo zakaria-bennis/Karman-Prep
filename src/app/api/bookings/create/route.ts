@@ -1,10 +1,10 @@
 // ============================================================
 // POST /api/bookings/create
 //
-// Self-booking entry point for Private + Elite students.
+// Self-booking entry point for Private 10 and Private 20 students.
 // Flow:
 //   1. Clerk auth → 401
-//   2. Plan tier gate — group/small_group rejected with 403
+//   2. Plan gate (src/lib/plans) — only Private 10/20 self-book, else 403
 //   3. Resolve student + tutor UUIDs from Clerk ids
 //   4. createBooking() on Cal.com (single point of contact)
 //   5. Persist resulting booking row to Supabase
@@ -29,11 +29,7 @@ import {
   getUserUuidByClerkId,
   insertBooking,
 } from "@/lib/supabase/queries/bookings";
-import {
-  assignTokenToBooking,
-  ensureEliteMonthlyTokens,
-  getAvailableTokenCount,
-} from "@/lib/supabase/queries/tokens";
+import { assignTokenToBooking, getAvailableTokenCount } from "@/lib/supabase/queries/tokens";
 import { createBookingBodySchema } from "../schemas";
 
 /** How long /api/bookings/create holds a per-user mutex. Anti-abuse
@@ -128,21 +124,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Token check — fail fast if the student has nothing to spend.
-    // For Elite, lazy-grant the current month's batch on first hit.
-    if (sub.tier === "elite") {
-      await ensureEliteMonthlyTokens(studentUuid);
-    }
     const tokensAvailable = await getAvailableTokenCount(studentUuid);
     if (tokensAvailable < 1) {
-      return NextResponse.json(
-        {
-          error:
-            sub.tier === "elite"
-              ? "No session credits remaining this month."
-              : "No session credits available — purchase a session to book.",
-        },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "No hours left in your package." }, { status: 403 });
     }
 
     const clerkUser = await currentUser();

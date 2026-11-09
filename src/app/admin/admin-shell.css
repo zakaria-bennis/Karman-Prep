@@ -1,0 +1,21 @@
+/*
+ * Admin inside the painted shell.
+ *
+ * 1. A wider box: the admin is a work tool with dense tables, so its box may use more of
+ *    the screen than the student portal's (the painting still shows on the right).
+ * 2. A wide table scrolls inside the box instead of spilling out of it.
+ *
+ * Colours come from the shell (--ink, --mute, --line...) plus the staff tokens in
+ * src/components/admin/workbench/tokens.css.
+ */
+@media (min-width: 1100px) {
+  .kp-shell:has(.kp-admin) .kp-col {
+    max-width: min(1180px, calc(100vw - 260px));
+  }
+}
+
+.kp-admin {
+  color: var(--ink);
+  min-width: 0;
+  overflow-x: auto;
+}

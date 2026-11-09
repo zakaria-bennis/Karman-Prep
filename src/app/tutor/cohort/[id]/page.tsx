@@ -5,11 +5,9 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { ChevronLeft } from "lucide-react";
 import { fetchTutorCohortDetail } from "@/lib/supabase/queries/tutor";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -52,18 +50,5 @@ export default async function TutorCohortPage({ params }: PageProps) {
 
   if (!detail) notFound();
 
-  return (
-    <div className="min-h-screen bg-night text-ivory">
-      <div className="mx-auto max-w-5xl px-5 py-8">
-        <Link
-          href="/tutor"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-taupe hover:text-ivory"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          My cohorts
-        </Link>
-        <TutorCohortClient detail={detail} />
-      </div>
-    </div>
-  );
+  return <TutorCohortClient detail={detail} />;
 }

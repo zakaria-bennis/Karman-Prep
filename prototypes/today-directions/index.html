@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Today · Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Young+Serif&family=Caveat:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Tokens. The accent and level shades are replaced by colors from the day's painting once it loads. */
+:root{--bg:#06080d;--ink:#eef0f4;--mute:#a7afbd;--line:rgb(255 255 255 / .12);--accent:#c94a2c;--accent-ink:#fff;--late:#ff9c8a;--card:rgb(10 12 18 / .52)}
+:root[data-theme=light]{--bg:#f2efe8;--ink:#16181d;--mute:#5a5c63;--line:rgb(0 0 0 / .12);--accent:#a83a20;--late:#a52c18;--card:rgb(250 248 242 / .62)}
+*{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);font:16px/24px "Hanken Grotesk",system-ui,sans-serif;overflow-x:clip}
+/* Numbers are always Hanken Grotesk with lining figures; counts and scores also line up in width (founder, 2026-11-08) */
+body{font-variant-numeric:lining-nums}
+.score,.stat-row b,.bests b,.streak-big b,.pring b,.weeks b,.trend text,.cal,.legend b{font-family:"Hanken Grotesk",sans-serif;font-variant-numeric:lining-nums tabular-nums}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:8px}
+#backdrop{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--bg)}
+#backdrop canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.bd-paint{position:absolute;inset:0;overflow:hidden}
+.bd-paint img{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;object-position:70% 40%;will-change:transform;transition:filter 1.4s}
+/* The content sits in a tinted, squared-off box laid over the painting */
+.panel{margin-top:18px;padding:4px 22px 20px;background:color-mix(in srgb,var(--bg) 80%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.15);backdrop-filter:blur(16px) saturate(1.15);border-radius:4px;box-shadow:0 1px 0 rgb(255 255 255 / .06) inset,0 18px 50px rgb(0 0 0 / .28)}
+:root[data-theme=light] .panel{background:color-mix(in srgb,var(--bg) 86%,transparent);box-shadow:0 18px 50px rgb(0 0 0 / .12)}
+.p-main>.act{margin-top:22px}
+.top{text-shadow:0 2px 22px rgb(0 0 0 / .75),0 1px 3px rgb(0 0 0 / .5)}
+:root[data-theme=light] .top{text-shadow:0 1px 18px rgb(255 255 255 / .7)}
+/* On a light picture, the greeting and the rail switch to dark ink so they stay readable */
+:root[data-picture=light] .top{color:#14161b;text-shadow:0 1px 16px rgb(255 255 255 / .75)}
+:root[data-picture=light] .nav{--ink:#14161b;--mute:#3c3f46;color:#14161b;background:rgb(255 255 255 / .55)}
+.credit{position:fixed;right:18px;bottom:14px;z-index:1;margin:0;font-size:12px;color:#fff;opacity:.72;text-shadow:0 1px 6px rgb(0 0 0 / .6)}
+@media (max-width:767px){.panel{padding:4px 18px 20px;margin-left:-6px;margin-right:-6px}.credit{display:none}body main{padding-top:max(20px,26vh)}}
+@media (prefers-reduced-transparency:reduce){.panel{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}}
+.toast{position:fixed;z-index:30;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100vw - 32px);padding:11px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px}
+@media (min-width:768px){.toast{bottom:28px}}
+
+/* Review bar: for the founder only */
+.review{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:6px 16px;font-size:13px;color:var(--mute);background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.review label{display:inline-flex;align-items:center;gap:6px}
+.review select,.review button{min-height:36px;padding:0 8px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.review strong{color:var(--ink)}
+
+/* Shell: five tabs. Sidebar on desktop, tab bar on phone */
+.nav{position:fixed;z-index:10;display:flex}
+.nav a{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:44px;min-height:52px;font-size:12px;font-weight:600;color:var(--mute);border-radius:14px}
+.nav a[aria-current=page]{color:var(--ink);background:rgb(255 255 255 / .12)}
+:root[data-theme=light] .nav a[aria-current=page]{background:rgb(0 0 0 / .07)}
+.nav svg{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav .brand{display:none}
+.badge{position:absolute;top:4px;left:calc(50% + 8px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--late);color:#16181d;font:600 11px/16px "Hanken Grotesk",sans-serif;text-align:center}
+@media (max-width:767px){.nav{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));padding:4px;border-radius:22px;justify-content:space-around;background:color-mix(in srgb,var(--bg) 58%,transparent);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);box-shadow:inset 0 1px 0 rgb(255 255 255 / .22),0 10px 30px rgb(0 0 0 / .35)}.nav a{flex:1}}
+@media (min-width:768px){.nav{left:12px;top:62px;bottom:12px;width:76px;flex-direction:column;gap:6px;padding:12px 6px;border-radius:24px;background:color-mix(in srgb,var(--bg) 40%,transparent);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);box-shadow:inset 0 1px 0 rgb(255 255 255 / .25),0 14px 40px rgb(0 0 0 / .35)}.nav .brand{display:grid;place-items:center;min-height:40px;font-weight:800;margin-bottom:6px}}
+
+/* Page */
+main{position:relative;padding:20px 20px 120px}
+@media (min-width:768px){main{padding:30px 48px 24px 112px}}
+/* The box runs from under the greeting to near the bottom of the screen, on every page. */
+@media (min-width:768px){
+ .panel{min-height:calc(100dvh - 140px);grid-template-rows:1fr}
+ .panel:has(>.banner){grid-template-rows:auto 1fr}
+ .p-main,.p-side{display:flex;flex-direction:column;min-height:100%}
+ .p-main>.next{margin-top:auto;padding-top:28px}
+}
+.when{margin:16px 0 0;font-size:12px;line-height:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.sec-h+.when{margin-top:6px}
+.when+.row{border-top:0}
+/* A smaller box, so more of the painting shows. Same box on every page. */
+.col{max-width:clamp(760px, 46vw, 960px)}
+/* Profile and streak sit in the top-right header, like a profile icon on any app */
+.appbar{position:fixed;z-index:12;top:58px;right:20px;display:flex;align-items:center;gap:12px;padding:4px 4px 4px 12px;border-radius:30px;background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+@media (max-width:767px){.appbar{top:auto;position:absolute;top:12px;right:12px}}
+.top{padding-right:140px}
+.cta{gap:8px}.cta .chev{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s cubic-bezier(.2,1.4,.4,1)}
+@media (hover:hover){.cta:hover .chev{transform:translateX(3px)}}
+.p-main>section:first-child,.p-side>section:first-child{margin-top:22px}
+@media (min-width:1100px){
+ .panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:32px;align-items:start}
+ .panel>.banner{grid-column:1/-1}
+}
+.banner{display:flex;align-items:center;gap:16px;margin-top:20px;padding:14px 16px;border-radius:4px;background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.banner>div{flex:1}.banner>div>b{display:block}.banner>div>span{color:var(--mute);font-size:14px}
+.cta.small{min-height:44px;width:auto;margin:0;padding:0 16px;font-size:15px}
+.banner .x{width:44px;height:44px;border:0;background:none;font-size:22px;cursor:pointer;color:var(--mute)}
+.score{margin:0;font:600 64px/1 "Hanken Grotesk",sans-serif;letter-spacing:-.03em}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--mute)}.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:12px;height:12px;border-radius:3px}.legend b{color:var(--ink)}
+.bd-paint .drawn{position:absolute;inset:0;width:100%;height:100%;display:block;transition:filter 1.4s}
+.bd-paint [hidden]{display:none}
+/* Paper grain over Karman's drawings, so flat color reads as ink on paper */
+.bd-paint::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.me{display:flex;align-items:center;gap:14px;flex:none}
+.streak{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-weight:600}
+.streak svg{fill:var(--accent)}
+.avatar{width:44px;height:44px;padding:0;border:0;border-radius:50%;background:rgb(255 255 255 / .1);overflow:hidden;cursor:pointer;display:grid;place-items:center}
+.greet{margin:0;text-wrap:balance;min-height:1.1em}
+.caret{display:inline-block;width:.08em;height:.9em;margin-left:.06em;vertical-align:-.08em;background:var(--accent);animation:blink 1s steps(1) infinite}
+.caret.done{animation:none;opacity:0;transition:opacity .5s}
+@keyframes blink{50%{opacity:0}}
+.act{margin-top:28px}
+.act-t{margin:0}
+.meta{margin:4px 0 0;color:var(--mute)}
+.cta{display:flex;align-items:center;justify-content:center;width:100%;max-width:400px;min-height:52px;margin-top:18px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 60%,#000);transition:transform .45s cubic-bezier(.2,1.6,.4,1),box-shadow .45s}
+.cta:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 60%,#000);transition-duration:60ms}
+.resume{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin-top:28px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
+.resume b{display:block;font-weight:600}.resume small{display:block;color:var(--mute);font-size:14px;line-height:20px}
+.ring{width:30px;height:30px;border-radius:50%;background:conic-gradient(var(--ink) calc(var(--p)*360deg),var(--line) 0);-webkit-mask:radial-gradient(circle,transparent 10px,#000 11px);mask:radial-gradient(circle,transparent 10px,#000 11px)}
+.go{font-size:14px;font-weight:600;color:var(--mute);display:inline-flex;align-items:center;gap:8px}
+.go::after{content:"";width:6px;height:6px;border-top:1.6px solid currentColor;border-right:1.6px solid currentColor;transform:rotate(45deg)}
+:root[data-theme=light] .avatar{background:rgb(0 0 0 / .06)}
+.note{display:flex;gap:14px;margin:28px 0 0;align-items:flex-start}
+.who{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#355a7c;color:#fff;font-weight:700}
+.note blockquote{margin:0}
+.note p{margin:0;font-family:Caveat,cursive;font-size:25px;line-height:28px}
+.note figcaption{margin-top:4px;font-size:14px;color:var(--mute)}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}
+.sec-h h2{margin:0}
+.sec-h small{color:var(--mute);font-size:14px}
+.due,.next{margin-top:36px}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:58px;padding:9px 0;border-top:1px solid var(--line);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
+.sec-h+.row{border-top:0}
+.row b{display:block;font-weight:600}.row small{display:block;color:var(--mute);font-size:14px;line-height:20px}
+.row>span:last-child{flex:none;color:var(--mute);font-size:14px;text-align:right}
+.row .late{color:var(--late)}
+.more{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-weight:600}
+.more::after{content:"";width:6px;height:6px;border-top:1.6px solid currentColor;border-right:1.6px solid currentColor;transform:rotate(45deg)}
+@media (hover:hover){.row:hover,.resume:hover{transform:translateX(4px)}.cta:hover{transform:translateY(-1px)}}
+
+/* Cards: the other tabs group their parts into cards, with room between them, and the last card in each column stretches to the bottom of the box */
+.p-main:has(>.card),.p-side:has(>.card){display:flex;flex-direction:column;gap:16px}
+.card{padding:16px 18px 14px;border:1px solid var(--line);border-radius:4px;background:rgb(255 255 255 / .035)}
+:root[data-theme=light] .card{background:rgb(255 255 255 / .45)}
+.p-main>.card:first-child,.p-side>.card:first-child{margin-top:22px}
+.panel:has(>.banner) .p-main>.card:first-child,.panel:has(>.banner) .p-side>.card:first-child{margin-top:16px}
+@media (min-width:768px){.p-main>.card:last-child,.p-side>.card:last-child{flex:1}}
+.card .sec-h{margin-bottom:6px}
+.card .row:last-child{padding-bottom:2px}
+.late-card{border-color:color-mix(in srgb,var(--late) 40%,transparent)}
+.nudge{margin:8px 0 0;font-size:14px;color:var(--late)}
+.note-line{display:block;margin-top:4px;font-style:normal;font-size:14px;line-height:20px}
+.note-line span{color:var(--mute)}
+.row.done{align-items:flex-start}
+.stat-row{display:flex;flex-wrap:wrap;gap:12px 28px;margin:6px 0 4px}
+.stat-row b{display:block;font-size:20px;line-height:26px}.stat-row span{font-size:13px;color:var(--mute)}
+.small-note{margin:10px 0 0;font-size:14px;line-height:20px;color:var(--mute)}
+.upnext-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 6px;padding:10px 12px;border-radius:4px;background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.upnext-row small{display:block;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.upnext-row b{display:block}
+.unit{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0;border-top:1px solid var(--line)}
+.unit-h b{display:block;font-weight:600;font-size:15px;line-height:20px}.unit-h small{color:var(--mute);font-size:13px}
+.sqs{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;max-width:52%}
+.unit-h{min-width:0}
+.sq{display:inline-block;width:14px;height:14px;border-radius:3px;flex:none}
+/* Level shades come from the day's painting: painterly.js sets --hue and --hs. Dark mode climbs to light, light mode climbs to dark. */
+:root{--hue:208;--hs:55%;--l1:hsl(var(--hue) calc(var(--hs) * .6) 30%);--l2:hsl(var(--hue) calc(var(--hs) * .85) 46%);--l3:hsl(var(--hue) var(--hs) 64%);--l4:hsl(var(--hue) var(--hs) 84%)}
+:root[data-theme=light]{--l1:hsl(var(--hue) var(--hs) 86%);--l2:hsl(var(--hue) var(--hs) 68%);--l3:hsl(var(--hue) calc(var(--hs) * .9) 46%);--l4:hsl(var(--hue) calc(var(--hs) * .8) 28%)}
+.sq.l0{box-shadow:inset 0 0 0 1.5px var(--line)}.sq.l1{background:var(--l1)}.sq.l2{background:var(--l2)}.sq.l3{background:var(--l3)}.sq.l4{background:var(--l4)}
+/* Rings: every progress measure is a ring (founder pick, 2026-11-08) */
+.pring{--s:56px;position:relative;flex:none;width:var(--s);height:var(--s)}
+.pring::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--l3) calc(var(--p) * 1turn),color-mix(in srgb,var(--ink) 14%,transparent) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 5.5px))}
+.pring.multi::before{background:var(--g);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 10px),#000 calc(100% - 9.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 10px),#000 calc(100% - 9.5px))}
+.pring b{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;line-height:1;font-weight:700}
+.pring b small{margin-top:3px;font-size:11px;font-weight:500;color:var(--mute)}
+.pring.multi b{font-size:22px}
+.ring-row{display:flex;align-items:center;gap:16px;margin:6px 0 8px}
+.ring-row>span:not(.pring)>b{display:block}.ring-row>span:not(.pring)>small{display:block;color:var(--mute);font-size:14px;line-height:20px}
+.ring-row .legend{flex-direction:column;gap:6px}
+.stat-row .pring{margin-left:auto}
+.row.ring-line{justify-content:flex-start;gap:14px}.row.ring-line>span:nth-child(2){flex:1}
+.course-foot{padding-top:4px;border-top:1px solid var(--line)}
+.session{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.sec-h+.session{border-top:0}
+.session b{display:block;font-weight:600}.session small{display:block;color:var(--mute);font-size:14px}
+.actions{display:flex;gap:6px;flex:none}
+.ghost{min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:none;font-size:14px;cursor:pointer}
+.card .cta{margin-top:14px}
+.cal-h,.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.cal-h{margin-top:4px;font-size:12px;font-weight:700;color:var(--mute)}
+.cal .day{position:relative;height:40px;padding:0;border:0;border-radius:4px;background:none;font-size:14px;cursor:pointer}
+.cal .day:hover{background:rgb(255 255 255 / .06)}
+.cal .today{background:var(--ink);color:var(--bg);font-weight:700}
+.cal .has::after,.dot{content:"";display:inline-block;width:6px;height:6px;border-radius:50%}
+.cal .has::after{position:absolute;left:50%;bottom:4px;margin-left:-3px}
+.cal .s::after,.dot.s{background:var(--accent)}.cal .t::after,.dot.t{background:var(--l3)}
+.card .legend{margin-top:10px}
+.score-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.trend{display:block;width:100%;max-height:150px;margin:12px 0 8px;color:var(--l3);overflow:visible}
+.trend circle{fill:currentColor}.trend text{fill:var(--mute);font-size:11px}.trend .v{fill:var(--ink);font-weight:700}
+.row .up{color:#8fd0a8}.row .down{color:var(--late)}
+.weeks{display:flex;align-items:flex-end;gap:10px;height:120px;margin:10px 0 12px}
+.weeks>div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.wbar{width:100%;max-width:38px;border-radius:4px 4px 0 0;background:var(--l2)}
+.weeks>div:last-child .wbar{background:var(--l3)}
+.weeks small{font-size:11px;color:var(--mute);white-space:nowrap}.weeks b{font-size:13px;line-height:16px}
+.bests{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.bests b{display:block;font-size:20px;line-height:26px}.bests span{font-size:13px;line-height:18px;color:var(--mute)}
+.streak-big{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:baseline;margin:4px 0 6px}
+.streak-big b{grid-row:span 2;font:600 48px/1 "Hanken Grotesk",sans-serif;letter-spacing:-.03em}.streak-big span{font-weight:600}.streak-big small{color:var(--mute);font-size:14px}
+@media (max-width:520px){.banner{flex-wrap:wrap;position:relative;padding-right:48px}.banner>div{flex-basis:100%}.banner .x{position:absolute;top:4px;right:4px}.unit{flex-direction:column;align-items:flex-start;gap:6px}.sqs{max-width:none;justify-content:flex-start}.bests{grid-template-columns:1fr 1fr}.session{flex-wrap:wrap}}
+
+/* ---------- Type style 1: bold headline moments ---------- */
+[data-type=bold] .greet{font:400 clamp(28px,2.8vw,40px)/1.08 "Young Serif",Georgia,serif;letter-spacing:-.018em;max-width:24ch}
+[data-type=bold] .act-t{font:700 22px/28px "Hanken Grotesk",sans-serif;letter-spacing:-.01em}
+[data-type=bold] .sec-h h2{font:700 19px/26px "Hanken Grotesk",sans-serif}
+[data-type=bold] .act{margin-top:28px}
+
+/* ---------- Type style 2: editorial throughout ---------- */
+[data-type=editorial] .greet{font:400 clamp(28px,3vw,40px)/1.1 "Young Serif",Georgia,serif;letter-spacing:-.015em;padding-bottom:22px;border-bottom:1px solid var(--line);flex:1}
+[data-type=editorial] .act-t,[data-type=editorial] .sec-h h2{font:400 26px/32px "Young Serif",Georgia,serif;letter-spacing:-.01em}
+[data-type=editorial] .sec-h h2{font-size:22px;line-height:28px}
+[data-type=editorial] .meta{font-style:italic;font-family:"Young Serif",Georgia,serif;font-size:17px}
+[data-type=editorial] .row b{font-family:"Young Serif",Georgia,serif;font-weight:400;font-size:18px}
+@media (min-width:1100px){
+ [data-type=editorial] .panel{column-gap:40px}
+}
+
+/* ---------- Type style 3: quiet and precise ---------- */
+[data-type=quiet] body{font-size:15px;line-height:22px}
+[data-type=quiet] .greet{font:500 24px/30px "Hanken Grotesk",sans-serif;letter-spacing:-.015em}
+[data-type=quiet] .act-t{font:600 17px/24px "Hanken Grotesk",sans-serif}
+[data-type=quiet] .sec-h h2{font:600 13px/18px "Hanken Grotesk",sans-serif;color:var(--mute);letter-spacing:.02em}
+[data-type=quiet] .cta{min-height:48px;font-size:15px;max-width:320px;border-radius:12px}
+[data-type=quiet] .note p{font-size:22px;line-height:26px}
+[data-type=quiet] .row{min-height:52px}
+@media (min-width:1100px){[data-type=quiet] .col{max-width:700px}}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-transparency:reduce){.nav,.review{background:var(--bg)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
+</style>
+</head>
+<body>
+<div id="backdrop" aria-hidden="true"></div>
+<div class="review" aria-label="Review controls">
+  <strong>Today: directions</strong>
+  <label>Type <select id="type"><option value="bold">Bold moments</option><option value="editorial">Editorial</option><option value="quiet">Quiet</option></select></label>
+  <label>Day <select id="day"><option value="0">Today</option><option value="1">Tomorrow</option><option value="2">In 2 days</option><option value="3">In 3 days</option><option value="4">In 4 days</option><option value="5">In 5 days</option><option value="6">In 6 days</option><option value="7">In 7 days</option><option value="8">In 8 days</option><option value="9">In 9 days</option></select></label>
+  <label>Time <select id="hour"><option value="now">Now</option><option value="7">Dawn, 7 AM</option><option value="13">Day, 1 PM</option><option value="19">Sunset, 7 PM</option><option value="23">Night, 11 PM</option></select></label>
+  <label>Season <select id="season"><option value="auto">From the date</option><option value="fall">Fall</option><option value="winter">Winter</option><option value="spring">Spring</option><option value="summer">Summer</option></select></label>
+  <label>Weather <select id="weather"><option value="clear">Clear</option><option value="rain">Rain</option><option value="snow">Snow</option><option value="fog">Fog</option></select></label>
+  <label>SAT in <select id="countdown"><option value="real">Real date</option><option value="100">100 days</option><option value="30">30 days</option><option value="7">7 days</option></select></label>
+  <label>Daily 10 <select id="daily"><option value="todo">Not done</option><option value="done">Done</option></select></label>
+  <button id="again" type="button">New greeting</button>
+  <button id="theme" type="button">Switch theme</button>
+</div>
+<nav class="nav" id="nav" aria-label="Main"></nav>
+<div class="appbar" id="appbar"></div>
+<main><div class="col" id="view"></div></main>
+<div class="toast" id="toast" role="status" hidden></div>
+<p class="credit" id="credit"></p>
+<script src="../student-skeleton/fox.js"></script>
+<script>window.paintIn = !matchMedia("(prefers-reduced-motion: reduce)").matches;</script>
+<script src="screens.js"></script>
+<script src="today.js"></script>
+<script src="landscapes.js"></script>
+<script src="painterly.js"></script>
+<script src="life.js"></script>
+<script src="backdrops.js"></script>
+</body>
+</html>

@@ -90,7 +90,7 @@ export function PreviewActionBar({
   }
 
   return (
-    <div className="border-t border-bronze bg-surface/40 px-4 py-2.5">
+    <div className="border-t border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] px-4 py-2.5">
       {/* ── Note input (shown when Flag or Reject is armed) ── */}
       {(flagMode || rejectMode) && (
         <div className="mb-2.5 flex flex-wrap items-center gap-2">
@@ -112,21 +112,23 @@ export function PreviewActionBar({
                 ? "Why is this flagged? (required)"
                 : "Why are you rejecting this? (optional — recoverable)"
             }
-            className="min-h-11 min-w-0 flex-1 rounded-lg border border-bronze bg-night px-3 py-1.5 text-sm text-ivory placeholder:text-taupe focus:border-gold/40 focus:outline-none"
+            className="min-h-11 min-w-0 flex-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--sunk)] px-3 py-1.5 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--mute)] focus:border-[color-mix(in_srgb,var(--accent)_40%,transparent)] focus:outline-none"
           />
           <button
             onClick={flagMode ? submitFlag : submitReject}
             disabled={anyBusy || (flagMode && !note.trim())}
             className={cn(
-              "min-h-11 rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
-              flagMode ? "bg-warning hover:bg-warning-bright" : "bg-error hover:bg-error-bright"
+              "min-h-11 rounded-lg px-3 py-1.5 text-xs font-bold text-[color:var(--ink)] disabled:opacity-50",
+              flagMode
+                ? "bg-[color:var(--warn)] hover:bg-[color:var(--warn)]"
+                : "bg-[color:var(--late)] hover:bg-[color:var(--late)]"
             )}
           >
             {flagMode ? "Flag" : "Reject"}
           </button>
           <button
             onClick={cancelNote}
-            className="min-h-11 rounded-lg border border-bronze px-3 py-1.5 text-xs text-ivory hover:bg-surface-raised"
+            className="min-h-11 rounded-lg border border-[color:var(--line)] px-3 py-1.5 text-xs text-[color:var(--ink)] hover:bg-[color:var(--raised)]"
           >
             Cancel
           </button>
@@ -141,8 +143,8 @@ export function PreviewActionBar({
             onClick={onApprove}
             disabled={anyBusy || flagMode || rejectMode}
             className={cn(
-              "inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-ivory disabled:opacity-50",
-              "bg-success hover:bg-success-bright"
+              "inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-[color:var(--ink)] disabled:opacity-50",
+              "bg-[color:var(--good)] hover:bg-[color:var(--good)]"
             )}
           >
             {pending.approve ? (
@@ -161,8 +163,8 @@ export function PreviewActionBar({
             className={cn(
               "inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               flagMode
-                ? "border-warning/40 bg-warning/15 text-warning-bright"
-                : "border-warning/40 bg-transparent text-warning-bright hover:bg-warning/10"
+                ? "border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-[color-mix(in_srgb,var(--warn)_15%,transparent)] text-[color:var(--warn)]"
+                : "border-[color-mix(in_srgb,var(--warn)_40%,transparent)] bg-transparent text-[color:var(--warn)] hover:bg-[color-mix(in_srgb,var(--warn)_10%,transparent)]"
             )}
           >
             {pending.flag ? (
@@ -181,8 +183,8 @@ export function PreviewActionBar({
             className={cn(
               "inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold disabled:opacity-50",
               rejectMode
-                ? "border-error/40 bg-error/15 text-error-bright"
-                : "border-error/40 bg-transparent text-error-bright hover:bg-error/10"
+                ? "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_15%,transparent)] text-[color:var(--late)]"
+                : "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-transparent text-[color:var(--late)] hover:bg-[color-mix(in_srgb,var(--late)_10%,transparent)]"
             )}
           >
             {pending.reject ? (
@@ -208,8 +210,8 @@ export function PreviewActionBar({
                 className={cn(
                   "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
                   open
-                    ? "border-gold/40 bg-gold/20 text-gold-bright"
-                    : "border-bronze bg-surface text-taupe hover:border-bronze hover:text-ivory"
+                    ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-[color:var(--accent-text)]"
+                    : "border-[color:var(--line)] bg-[color:var(--card)] text-[color:var(--mute)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
                 )}
               >
                 <Icon className="h-3 w-3" />

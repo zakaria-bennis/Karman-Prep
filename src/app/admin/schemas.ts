@@ -15,6 +15,7 @@
 import { z } from "zod";
 
 import { isValidNodeId } from "@/lib/question-bank/taxonomy";
+import { COHORT_TIER_CAP } from "@/lib/scheduling/tiers";
 import { isValidChoiceTableData } from "@/lib/question-bank/choice-table";
 import type { QuestionTableData } from "@/types/question-table";
 
@@ -307,12 +308,9 @@ export const impersonateRoleSchema = z.enum(["student", "tutor", "parent"]);
 export const cohortTierSchema = z.enum(["group", "small_group"]);
 export const cohortStatusSchema = z.enum(["forming", "active", "completed"]);
 
-// Per-tier max cohort size — mirrored from migration 006's CHECK
-// constraint. Update in lockstep with the DB.
-const TIER_MAX_CAP: Record<z.infer<typeof cohortTierSchema>, number> = {
-  small_group: 5,
-  group: 200,
-};
+/** Per-tier caps: a cohort (small_group) seats MARCH_PROGRAM.paidSeats, six.
+ *  The database constraint `cohort_size_within_tier_cap` matches. */
+const TIER_MAX_CAP: Record<z.infer<typeof cohortTierSchema>, number> = COHORT_TIER_CAP;
 
 // ── impersonation-actions.ts ──────────────────────────────
 export const setImpersonationInputSchema = z.object({
@@ -347,7 +345,7 @@ export const createCohortInputSchema = z
     status: cohortStatusSchema.optional(),
   })
   .refine((d) => d.max_size <= TIER_MAX_CAP[d.tier], {
-    message: "max_size exceeds the per-tier cap (group: 200, small_group: 5)",
+    message: `max_size exceeds the per-tier cap (group: ${COHORT_TIER_CAP.group}, small_group: ${COHORT_TIER_CAP.small_group})`,
     path: ["max_size"],
   });
 
