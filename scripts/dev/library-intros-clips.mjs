@@ -49,6 +49,8 @@ async function record(url, { challenge = false }, act) {
     deviceScaleFactor: 1,
     colorScheme: url.includes("night") ? "dark" : "light",
   });
+  /* Decline the session-replay consent bar, so it does not cover the bottom of the picture. */
+  await ctx.addCookies([{ name: "karman_replay_consent", value: "no", url: BASE }]);
   await ctx.addInitScript(
     ([d, c]) => {
       try {

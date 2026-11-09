@@ -1,7 +1,8 @@
 /*
  * Headless screenshots of the Library's opening animations (`?intro=N`): the start, each choice
  * hovered, the middle of the closing animation and the end state (the box open over the ground),
- * at 1440 and 390 wide, by day and by night; plus frame sequences and the twinkling Challenge.
+ * at 1440 and 390 wide, by day and by night; plus the Challenge banner. (Motion is in the clips:
+ * library-intros-clips.mjs.)
  * Intros mark their two choices with `data-slug="math"` and `data-slug="reading-writing"`.
  * Uses the dev preview /dev/library-intros (no database, no sign-in). Needs a dev server
  * (BASE, default http://localhost:3163).
@@ -9,7 +10,7 @@
  * Writes to docs/overnight/reports/library-intros/. Uses the installed Chrome (PW_BUNDLED=1 for
  * Playwright's own).
  */
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright";
 
 const BASE = process.env.BASE ?? "http://localhost:3163";
@@ -38,6 +39,8 @@ async function open({
     deviceScaleFactor: 1,
     hasTouch: w < 768,
   });
+  /* Decline the session-replay consent bar, so it does not cover the bottom of the picture. */
+  await ctx.addCookies([{ name: "karman_replay_consent", value: "no", url: BASE }]);
   await ctx.addInitScript(
     ([d, c]) => {
       try {
@@ -74,32 +77,6 @@ async function centerOf(page, slug) {
     return [b.left + b.width / 2, b.top + b.height / 2];
   });
   return r;
-}
-
-/* Records the screen for `ms` with Chrome's screencast, then keeps `n` evenly spaced frames. */
-async function frames(page, name, n, ms, act) {
-  const cdp = await page.context().newCDPSession(page);
-  const got = [];
-  cdp.on("Page.screencastFrame", (f) => {
-    got.push({ t: f.metadata.timestamp, data: f.data });
-    void cdp.send("Page.screencastFrameAck", { sessionId: f.sessionId }).catch(() => {});
-  });
-  await cdp.send("Page.startScreencast", { format: "jpeg", quality: 70, everyNthFrame: 1 });
-  await page.waitForTimeout(120);
-  const t0 = Date.now() / 1000;
-  if (act) await act();
-  await page.waitForTimeout(ms);
-  await cdp.send("Page.stopScreencast");
-  const kept = got.filter((f) => f.t >= t0 - 0.05);
-  for (let i = 0; i < n && kept.length; i++) {
-    const f = kept[Math.min(kept.length - 1, Math.round((i / (n - 1)) * (kept.length - 1)))];
-    await writeFile(
-      `${OUT}/${name}-${String(i).padStart(2, "0")}.jpg`,
-      Buffer.from(f.data, "base64")
-    );
-  }
-  await cdp.detach();
-  return kept.length;
 }
 
 for (const id of ids) {
@@ -142,20 +119,6 @@ for (const id of ids) {
     report.push({ tag, scroll, openScroll, errors });
     await ctx.close();
   }
-  if (want(`${id}-frames`)) {
-    const { ctx, page, errors } = await open({ w: 1440, h: 900, intro: id });
-    await page.waitForSelector(choice("math"), { timeout: 60000 });
-    await page.waitForTimeout(3000);
-    const [x, y] = await centerOf(page, "reading-writing");
-    await frames(page, `${id}-frames-hover`, 8, 2000, () => page.mouse.move(x, y));
-    const n = await frames(page, `${id}-frames-choose`, 14, 3200, () => page.mouse.click(x, y));
-    await page.waitForTimeout(500);
-    await page.click('button[aria-label^="Close the course"]');
-    await page.waitForTimeout(2000);
-    await shot(page, `${id}-5-after-close`);
-    report.push({ tag: `${id}-frames`, frames: n, errors });
-    await ctx.close();
-  }
   if (want(`${id}-reduced`)) {
     const { ctx, page, errors } = await open({ w: 1440, h: 900, intro: id, reduced: true });
     await page.waitForSelector(choice("math"), { timeout: 60000 });
@@ -164,7 +127,6 @@ for (const id of ids) {
     await page.mouse.move(x, y);
     await page.waitForTimeout(600);
     await shot(page, `${id}-reduced-hover`);
-    await frames(page, `${id}-reduced-choose`, 5, 1200, () => page.mouse.click(x, y));
     report.push({ tag: `${id}-reduced`, errors });
     await ctx.close();
   }
@@ -179,7 +141,6 @@ if (want("challenge")) {
     await page.waitForSelector('[role="dialog"]', { timeout: 60000 });
     await page.waitForTimeout(3000);
     await shot(page, `challenge-${time}`);
-    await frames(page, `challenge-${time}-twinkle`, 6, 3000);
     report.push({ tag: `challenge-${time}`, errors });
     await ctx.close();
   }
