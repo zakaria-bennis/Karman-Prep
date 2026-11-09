@@ -39,7 +39,8 @@ import {
   routeHarder,
   type Section,
 } from "./forms";
-import { PlanLimitError, loadQuizAccess } from "./plan-gate";
+import { PlanLimitError, assertQuestionsLeft, loadQuizAccess } from "./plan-gate";
+import { COUNTED_RUN_KINDS } from "@/lib/plans";
 import { practiceSetPool } from "./set-pool";
 import { masteryBySkill } from "./mastery-by-skill";
 import { nextDiagnosticRun, recordDiagnosticResult } from "./diagnostic-record";
@@ -82,13 +83,6 @@ async function view(run: RunRecord): Promise<RunView> {
   return buildView(run, await loadResponses(run.id));
 }
 
-async function requireQuestionsLeft(clerkId: string) {
-  const access = await loadQuizAccess(clerkId);
-  if (access.questionsLeft === 0)
-    throw new PlanLimitError("You have used the Free plan's 100 questions.");
-  return access;
-}
-
 /** Today's Daily 10: the same ten all day (saved), counted in the streak once finished. */
 export async function openDailyTen(clerkId: string, timeZone: string): Promise<RunView> {
   const now = new Date();
@@ -96,7 +90,7 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   const runKey = `daily-ten:${day}`;
   const saved = await findRunByKey(clerkId, runKey);
   if (saved) return view(saved);
-  const access = await requireQuestionsLeft(clerkId);
+  const access = await assertQuestionsLeft(clerkId);
   const [levels, mastery, history] = await Promise.all([
     loadStoredLevels(clerkId),
     masteryBySkill(clerkId, now),
@@ -198,7 +192,7 @@ export async function startPracticeSet(clerkId: string, setId: string): Promise<
   const split = subSkillsOfSkill(skill.id).length > 1;
   const open = await findOpenRun(clerkId, "practice-set", scope);
   if (open) return view(open);
-  const access = await requireQuestionsLeft(clerkId);
+  const access = await assertQuestionsLeft(clerkId);
   const [levels, history, bank] = await Promise.all([
     loadStoredLevels(clerkId),
     answeredInRuns(clerkId),
@@ -275,7 +269,7 @@ export async function startDomainQuiz(clerkId: string, domainId: string): Promis
   if (!domain) throw new Error("Practice session is unavailable");
   const open = await findOpenRun(clerkId, "domain-quiz", domain.id);
   if (open) return view(open);
-  const access = await requireQuestionsLeft(clerkId);
+  const access = await assertQuestionsLeft(clerkId);
   const [history, bank] = await Promise.all([
     answeredInRuns(clerkId),
     loadAdmittedBank(skillsInDomain(domain.id), access.maxDifficulty),
@@ -469,6 +463,9 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
   const next = ids.find((id) => !responses.some((r) => r.questionId === id));
   if (run.completedAt || next !== input.questionId)
     throw new Error("Question is not next in this session");
+  // Full-length tests and the diagnostic sit outside Free's 100 questions.
+  if ((COUNTED_RUN_KINDS as readonly string[]).includes(run.kind))
+    await assertQuestionsLeft(clerkId);
   const correct = gradeAgainst(input.answer, snap);
   const skillId = snap.binding.catalogSkillId;
   // Levels live per sub-skill; the answer row keeps the catalog skill.

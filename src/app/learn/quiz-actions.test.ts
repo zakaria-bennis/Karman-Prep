@@ -13,6 +13,8 @@ vi.mock("@/lib/auth/dev-auth", () => ({
   safeAuth: async () => ({ userId: "dev_seed_student_stuck" }),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+const gate = vi.hoisted(() => ({ assertQuestionsLeft: vi.fn(async () => undefined) }));
+vi.mock("@/lib/assembler/plan-gate", () => gate);
 const points = vi.hoisted(() => ({ awardForAnswer: vi.fn(async () => 10) }));
 vi.mock("@/lib/quiz/points", () => points);
 vi.mock("@/lib/supabase/queries/quiz", () => ({
@@ -23,6 +25,8 @@ vi.mock("@/lib/supabase/queries/quiz", () => ({
 }));
 
 import { actionCompleteQuiz, actionRecordResponse, actionStartQuiz } from "./quiz-actions";
+import { PlanLimitError } from "@/lib/assembler/plan-limit";
+import type { StudentQuizReview } from "@/types/quiz";
 
 const question = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -91,7 +95,7 @@ describe("quiz actions", () => {
       student_answer: answer as string,
       response_time_seconds: 3,
     });
-    expect(review.isCorrect).toBe(correct);
+    expect((review as StudentQuizReview).isCorrect).toBe(correct);
     expect(mocks.recordQuestionResponse).toHaveBeenCalledWith(
       expect.objectContaining({ is_correct: correct })
     );
@@ -273,6 +277,20 @@ describe("quiz actions", () => {
     expect(mocks.recordQuestionResponse).not.toHaveBeenCalled();
   });
 
+  it("returns the Free plan limit instead of saving once the 100 questions are used", async () => {
+    gate.assertQuestionsLeft.mockRejectedValueOnce(new PlanLimitError("limit reached"));
+    const result = await actionRecordResponse({
+      attempt_id: "00000000-0000-4000-8000-000000000010",
+      question_id: question.id,
+      student_answer: "B",
+      response_time_seconds: 3,
+    });
+    expect(result).toEqual({ planLimit: true, message: "limit reached" });
+    expect(gate.assertQuestionsLeft).toHaveBeenCalledWith("dev_seed_student_stuck");
+    expect(mocks.recordQuestionResponse).not.toHaveBeenCalled();
+    expect(points.awardForAnswer).not.toHaveBeenCalled();
+  });
+
   it("awards points for a correct answer once, keyed by the stored response", async () => {
     mocks.recordQuestionResponse.mockResolvedValue({
       id: "resp-1",
@@ -292,7 +310,7 @@ describe("quiz actions", () => {
       difficulty: 1,
       skillId: "ma-00",
     });
-    expect(review.points).toBe(10);
+    expect((review as StudentQuizReview).points).toBe(10);
   });
 
   it("reports the skill band from before the set was completed", async () => {
