@@ -5,251 +5,101 @@
   position: relative;
 }
 
-/* ---------- The world: sky, clouds, ground ---------- */
-/* Fixed behind the page's content (the heading stays readable over it), above the day's
-   painting, which it replaces on this tab. */
-.world {
+/* ---------- The shared end state: the subject's ground, behind everything on this tab ---------- */
+.groundScene {
   position: fixed;
   inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  opacity: 0;
+  z-index: -2;
   pointer-events: none;
-  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.world[data-shown] {
-  opacity: 1;
-}
-.paint,
-.live {
+.paint {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
 }
-
-/* The camera: the sky rises away, a deep bank of cloud rushes up past the view, and the ground
-   arrives underneath it. While the cloud fills the screen, the sky hands over to the ground (an
-   opacity switch hidden in the cloud), so no edge between them ever shows. Transforms and
-   opacity only, as CSS transitions, so a click or Escape mid-way simply turns it round. */
-.layer {
-  position: absolute;
-  inset: 0;
-  will-change: transform;
-  transition:
-    transform 1.9s cubic-bezier(0.55, 0, 0.3, 1),
-    opacity 0.14s linear 0.84s;
-}
-.world[data-view="sky"] .layer {
-  transition:
-    transform 1.5s cubic-bezier(0.55, 0, 0.3, 1),
-    opacity 0.14s linear 0.62s;
-}
-.skyLayer {
-  transform: translate3d(0, 0, 0);
-}
-/* Three screens tall, solid cloud in its middle, soft at both ends. */
-.cloudLayer {
-  bottom: auto;
-  height: 300%;
-  transform: translate3d(0, 34%, 0);
-  -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
-  mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
-}
-.groundLayer {
-  opacity: 0;
-  transform: translate3d(0, 40%, 0) scale(1.16);
-  transform-origin: 50% 0;
-}
-.world[data-view="ground"] .skyLayer {
-  opacity: 0;
-  transform: translate3d(0, -100%, 0);
-}
-.world[data-view="ground"] .cloudLayer {
-  transform: translate3d(0, -100%, 0);
-}
-.world[data-view="ground"] .groundLayer {
-  opacity: 1;
-  transform: none;
-}
-.world[data-instant] .layer,
-.world[data-instant] .paint {
-  transition: none;
-}
-/* Switching course down on the ground cross-fades the scene. */
-.ground {
-  position: absolute;
-  inset: 0;
+.groundScene [data-ground] {
   opacity: 0;
   transition: opacity 0.55s ease;
 }
-.ground[data-on] {
+.groundScene[data-shown="math"] [data-ground="math"],
+.groundScene[data-shown="reading-writing"] [data-ground="reading-writing"] {
   opacity: 1;
 }
-/* Reduced motion: no fall, the sky and the ground cross-fade. */
-.world[data-still] .layer {
-  transform: none;
-  transition: opacity 0.45s ease;
-}
-.world[data-still] .cloudLayer {
-  display: none;
-}
-.world[data-still][data-view="sky"] .groundLayer,
-.world[data-still][data-view="ground"] .skyLayer {
-  opacity: 0;
-}
 
-.paint {
-  transition: filter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-/* The seam slides on a soft spring-like ease: a little lean on hover, and right off the screen
-   when a course is chosen, so its sky fills the view on the way down. */
-.paint[data-slug="reading-writing"] {
-  transition:
-    filter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
-    mask-position 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-    -webkit-mask-position 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  mask-repeat: no-repeat;
-  -webkit-mask-repeat: no-repeat;
-}
-.world[data-still] .paint[data-slug="reading-writing"] {
-  transition: filter 0.3s ease;
-}
-
-/* Pointing at a half: it brightens, the other dims. */
-.world[data-active="math"] .paint[data-slug="math"],
-.world[data-active="reading-writing"] .paint[data-slug="reading-writing"] {
-  filter: brightness(1.12) saturate(1.06);
-}
-.world[data-active="math"] .paint[data-slug="reading-writing"],
-.world[data-active="reading-writing"] .paint[data-slug="math"] {
-  filter: brightness(0.78) saturate(0.88);
-}
-/* Reduced motion: a gentle brighten only. */
-.world[data-still][data-active="math"] .paint[data-slug="reading-writing"],
-.world[data-still][data-active="reading-writing"] .paint[data-slug="math"] {
-  filter: none;
-}
-.world[data-still][data-active="math"] .paint[data-slug="math"],
-.world[data-still][data-active="reading-writing"] .paint[data-slug="reading-writing"] {
-  filter: brightness(1.08);
-}
-
-/* Each half is a button cut to its side of the diagonal (clip-path set inline). */
-.halves {
-  position: absolute;
+/* ---------- The opening animation, full screen above the ground, below the rail and header ---------- */
+.introLayer {
+  position: fixed;
   inset: 0;
+  z-index: -1;
 }
-.half {
-  position: absolute;
-  inset: 0;
+
+/* ---------- The picker (only with ?intro=N) ---------- */
+.picker {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  max-width: calc(100vw - 32px);
+  padding: 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 13px;
+  line-height: 18px;
+}
+.picker ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
   margin: 0;
   padding: 0;
-  border: 0;
-  background: none;
-  color: #fff;
-  cursor: pointer;
-  pointer-events: auto;
-  -webkit-tap-highlight-color: transparent;
+  list-style: none;
 }
-.half:focus-visible {
-  outline: none;
-}
-.label {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
+.picker a {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: max-content;
-  max-width: min(40vw, 600px);
-  text-align: center;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  transition:
-    transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1),
-    opacity 0.3s ease;
-  text-shadow:
-    0 2px 26px rgb(0 0 0 / 0.62),
-    0 1px 3px rgb(0 0 0 / 0.5);
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: 4px;
+  color: var(--mute);
 }
-.half[data-on] .label {
-  transform: translate(-50%, calc(-50% - 8px)) scale(1.04);
+.picker a:hover {
+  color: var(--ink);
 }
-.world[data-still] .half[data-on] .label {
-  transform: translate(-50%, -50%);
+.picker a[aria-current] {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
-.world[data-pick] .label {
-  opacity: 0;
+.pickerId {
+  font-weight: 700;
 }
-.name {
-  font: 400 clamp(44px, 5.2vw, 88px) / 1 var(--font-serif);
-  letter-spacing: -0.02em;
-  text-wrap: balance;
+.pickerName {
+  display: none;
 }
-/* Keyboard focus: a white rule under the percent. */
-.pct::before {
-  content: "";
-  position: absolute;
-  bottom: -12px;
-  left: 50%;
-  width: 64px;
-  height: 3px;
-  margin-left: -32px;
-  border-radius: 2px;
-  background: currentColor;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.half:focus-visible .pct::before {
-  opacity: 1;
-}
-.pct {
-  position: relative;
-  font: 650 15px / 20px var(--font-sans);
-  opacity: 0.92;
+.picker a[aria-current] .pickerName,
+.picker a:hover .pickerName,
+.picker a:focus-visible .pickerName {
+  display: inline;
 }
 @media (max-width: 767px) {
-  .label {
-    max-width: 86vw;
-  }
-  .name {
-    font-size: clamp(40px, 11vw, 56px);
+  .picker {
+    bottom: 96px;
   }
 }
 
-/* The name on its way into the toggle. */
-.ghost {
-  position: fixed;
-  z-index: 30;
-  margin: 0;
-  color: #fff;
-  font: 400 clamp(44px, 5.2vw, 88px) / 1 var(--font-serif);
-  letter-spacing: -0.02em;
-  text-align: center;
-  text-wrap: balance;
-  text-shadow: 0 2px 20px rgb(0 0 0 / 0.5);
-  transform-origin: 0 0;
-  pointer-events: none;
-}
-@media (max-width: 767px) {
-  .ghost {
-    font-size: clamp(40px, 11vw, 56px);
-  }
-}
-
-/* While the world shows, the day's painting credit and (on a phone) the page heading step aside:
-   the heading would sit on the Math name. */
-:global(.kp-shell):has(.world[data-shown]) :global(.kp-credit) {
+/* While an intro shows, the day's painting credit and (on a phone) the page heading step aside. */
+:global(.kp-shell):has(.stage) :global(.kp-credit) {
   display: none;
 }
 @media (max-width: 767px) {
-  :global(.kp-shell):has(.stage:not([data-open]) .world[data-shown]) :global(.kp-top) {
+  :global(.kp-shell):has(.stage:not([data-open]) .introLayer) :global(.kp-top) {
     visibility: hidden;
   }
 }
-
 /* ---------- The box ---------- */
 .box[hidden] {
   display: none;
@@ -325,11 +175,6 @@
   display: inline-flex;
   gap: 6px;
   transition: opacity 0.25s ease;
-}
-/* While the name is still travelling in, its place in the toggle waits empty. */
-.tab[data-landing] .tabLabel {
-  opacity: 0;
-  transition: none;
 }
 .close {
   display: inline-flex;

@@ -1,42 +1,68 @@
 "use client";
 
 /*
- * The Library's stage (founder, 2026-11-08): "start the library section off with no card open
- * … Once a student clicks, it opens up their card, with an animation."
+ * The Library's stage (founder, 2026-11-08): "start the library section off with no card open"
+ * and "I want 10 different animations I can pick from … all of them leading to the same library
+ * card at the end."
  *
- * - With no course open, the box is closed and the Library looks up into the sky, split on a
- *   diagonal between Math and Reading and Writing (LibraryWorld). It waits for the Challenge
- *   moment to be out of the way first.
- * - Choosing a half: the camera falls through the clouds to that subject's ground. The name
- *   hangs where it was on the way down, then, as the box opens out of the scene on a spring, it
- *   travels into the small Math / Reading and Writing toggle at the top left of the box. The
- *   toggle switches course after that (the ground cross-fades). Escape during the fall turns back.
- * - Close, at the top right of the box, closes it and climbs back up to the sky.
- * - The open course is kept for this browser session (moving between tabs or reloading reopens
- *   it); closing the box forgets it. A `?subject=` link opens that course straight away.
- * - Reduced motion: the box fades in and out, nothing travels.
+ * - With no course open, the box is closed and an opening animation fills the screen: the one
+ *   `?intro=N` names, or intro 1 (intros/registry.ts). It waits for the Challenge moment to be
+ *   out of the way first.
+ * - The intro lets the student choose Math or Reading and Writing, plays its closing animation and
+ *   calls `onChoose`. Then the shared end state shows: the chosen subject's ground scene
+ *   (GroundScene) with the box opening out of it on a spring, the small Math / Reading and Writing
+ *   toggle at its top left. The toggle switches course (the ground cross-fades).
+ * - Close, at the top right of the box, closes it and replays the intro from its start.
+ * - Without `?intro`, the open course is kept for this browser session (changing tabs or
+ *   reloading reopens it); closing forgets it. A `?subject=` link opens a course straight away.
+ * - With `?intro`, a small picker at the bottom right hops between the intros.
+ * - Reduced motion: the intro and the end state cross-fade.
  */
-import { animate, LayoutGroup, MotionConfig, motion, useReducedMotion } from "framer-motion";
+import {
+  AnimatePresence,
+  animate,
+  LayoutGroup,
+  MotionConfig,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { Num, Panel } from "@/components/portal/primitives";
-import LibraryWorld, { DESCENT_MS, SHORT, type Slug, type StageCourse } from "./LibraryWorld";
+import { prefersStill } from "@/lib/painting/motion";
+import { choosePainting } from "@/lib/painting/schedule";
+import type { Slug } from "@/lib/painting/library/seam";
+import GroundScene, { groundAnchor } from "./GroundScene";
+import IntroPicker from "./IntroPicker";
+import { INTROS, type IntroDef, type IntroProps, type Subject } from "./intros/registry";
+import { IntroStageContext } from "./intros/stage-context";
 import { COURSE_PICK_KEY, afterPaintingOpening, challengeMoment, readStore } from "./moment";
 import styles from "./stage.module.css";
 
-export type { StageCourse };
+export interface StageCourse {
+  slug: Slug;
+  name: string;
+  progress: number;
+}
+
+export const SHORT: Record<Slug, string> = {
+  math: "Math",
+  "reading-writing": "Reading and Writing",
+};
+const toSlug = (s: Subject): Slug => (s === "math" ? "math" : "reading-writing");
 
 const spring = { type: "spring", stiffness: 190, damping: 26, mass: 1 } as const;
 
-/** Before React loads, a kept course shows its box at once, so the paintings don't flash. */
-const BOOT = `(function(){try{var v=sessionStorage.getItem("${COURSE_PICK_KEY}");if(v==="math"||v==="reading-writing")document.currentScript.parentElement.setAttribute("data-boot",v)}catch(e){}})();`;
+/** Before React loads, a kept course shows its box at once, so the intro doesn't flash. */
+const BOOT = `(function(){try{if(/[?&]intro=/.test(location.search))return;var v=sessionStorage.getItem("${COURSE_PICK_KEY}");if(v==="math"||v==="reading-writing")document.currentScript.parentElement.setAttribute("data-boot",v)}catch(e){}})();`;
 
 function keep(slug: Slug | null) {
   try {
@@ -47,28 +73,14 @@ function keep(slug: Slug | null) {
   }
 }
 
-interface Opening {
-  slug: Slug;
-  x: number;
-  y: number;
-  name: DOMRect | null;
-  /** The name's line height in pixels. */
-  line: number;
-}
-
-interface Ghost {
-  slug: Slug;
-  from: DOMRect;
-  to: DOMRect;
-  line: number;
-}
-
 export default function LibraryStage({
   courses,
   views,
   side,
   initial,
+  intro,
   waitForChallenge,
+  intros = INTROS,
 }: {
   courses: StageCourse[];
   /** Each course's content, rendered on the server. */
@@ -77,19 +89,25 @@ export default function LibraryStage({
   side: ReactNode;
   /** A course picked by the link (`?subject=`), opened straight away. */
   initial: Slug | null;
+  /** The intro named by `?intro=N`, or null for the default (intro 1, no picker). */
+  intro: number | null;
   /** True when the Challenge moment may open first. */
   waitForChallenge: boolean;
+  /** The intros to choose from (tests pass their own). */
+  intros?: IntroDef[];
 }) {
-  const reduce = useReducedMotion() ?? false;
+  const motionPref = useReducedMotion() ?? false;
+  const [still, setStill] = useState(false);
+  const reduce = motionPref || still;
   const [pick, setPick] = useState<Slug | null>(initial);
-  const [active, setActive] = useState<Slug | null>(null);
-  const [opening, setOpening] = useState<Opening | null>(null);
-  const [ghost, setGhost] = useState<Ghost | null>(null);
-  /** True while the camera is falling and the box has not opened yet. */
-  const [falling, setFalling] = useState(false);
+  /** The ground an intro asked to see underneath it before it finished. */
+  const [preview, setPreview] = useState<Slug | null>(null);
+  /** Bumped on Close, so the intro starts again from the top. */
+  const [round, setRound] = useState(0);
+  const [opened, setOpened] = useState<Slug | null>(null);
+  const [time, setTime] = useState<IntroProps["time"]>("day");
   const rootRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
-  const fallRun = useRef<{ stop: () => void } | null>(null);
   const settled = useSyncExternalStore(
     challengeMoment.subscribe,
     challengeMoment.settled,
@@ -97,9 +115,14 @@ export default function LibraryStage({
   );
   const [afterOpening, setAfterOpening] = useState(false);
   const ready = (!waitForChallenge || settled) && afterOpening;
+  const def = intros.find((d) => d.id === intro) ?? intros.find((d) => d.id === 1) ?? intros[0];
 
   useEffect(() => {
     let live = true;
+    setStill(prefersStill());
+    setTime(
+      choosePainting(new Date(), location.search, process.env.NODE_ENV !== "production").time
+    );
     void afterPaintingOpening().then(() => live && setAfterOpening(true));
     return () => {
       live = false;
@@ -112,36 +135,38 @@ export default function LibraryStage({
       keep(initial);
       return;
     }
+    if (intro !== null) return;
     const kept = readStore("session", COURSE_PICK_KEY);
     if (kept === "math" || kept === "reading-writing") setPick(kept);
-  }, [initial]);
+  }, [initial, intro]);
 
-  const choose = useCallback((slug: Slug, from: Omit<Opening, "slug">) => {
-    setActive(null);
-    setOpening({ slug, ...from });
+  const onChoose = useCallback((s: Subject) => {
+    const slug = toSlug(s);
     setPick(slug);
+    setOpened(slug);
     keep(slug);
   }, []);
 
-  /* The box opens out of the chosen point, and the name travels into the toggle. */
+  const stage = useMemo(
+    () => ({ showGround: (s: Subject | null) => setPreview(s ? toSlug(s) : null) }),
+    []
+  );
+
+  /* The box opens out of the ground scene, from the bridge or the book, on a spring. */
   useLayoutEffect(() => {
     const box = boxRef.current;
-    if (!opening || !box) return;
+    if (!opened || !box) return;
     const r = box.getBoundingClientRect();
-    const tab = box.querySelector<HTMLElement>(`[data-tab="${opening.slug}"] [data-label]`);
-    const to = tab?.getBoundingClientRect();
+    const [fx, fy] = groundAnchor(opened, innerWidth, innerHeight);
     if (reduce) {
-      void animate(box, { opacity: [0, 1] }, { duration: 0.25 });
+      void animate(box, { opacity: [0, 1] }, { duration: 0.3 });
     } else {
-      const ox = Math.max(0, Math.min(r.width, opening.x - r.left));
-      const oy = Math.max(0, Math.min(r.height, opening.y - r.top));
+      const ox = Math.max(0, Math.min(r.width, fx * innerWidth - r.left));
+      const oy = Math.max(0, Math.min(r.height, fy * innerHeight - r.top));
+      const far = Math.hypot(Math.max(ox, r.width - ox), Math.max(oy, r.height - oy)) + 40;
       box.style.transformOrigin = `${ox}px ${oy}px`;
       box.style.opacity = "0";
-      const far = Math.hypot(Math.max(ox, r.width - ox), Math.max(oy, r.height - oy)) + 40;
-      const land = DESCENT_MS / 1000 - 0.15;
-      box.style.pointerEvents = "none";
-      setFalling(true);
-      const run = animate(
+      void animate(
         box,
         {
           opacity: [0, 1],
@@ -149,54 +174,32 @@ export default function LibraryStage({
           clipPath: [`circle(0px at ${ox}px ${oy}px)`, `circle(${far}px at ${ox}px ${oy}px)`],
         },
         {
-          delay: land,
-          scale: { ...spring, delay: land },
-          opacity: { duration: 0.22, delay: land },
-          clipPath: { duration: 0.75, ease: [0.3, 0.9, 0.2, 1], delay: land },
+          delay: 0.1,
+          scale: { ...spring, delay: 0.1 },
+          opacity: { duration: 0.22, delay: 0.1 },
+          clipPath: { duration: 0.75, ease: [0.3, 0.9, 0.2, 1], delay: 0.1 },
         }
-      );
-      fallRun.current = run;
-      void run.then(() => {
+      ).then(() => {
         box.style.clipPath = "";
         box.style.transformOrigin = "";
-        box.style.pointerEvents = "";
-        setFalling(false);
       });
-      if (opening.name && to)
-        setGhost({ slug: opening.slug, from: opening.name, to, line: opening.line });
     }
-    requestAnimationFrame(() =>
-      box.querySelector<HTMLElement>(`[data-tab="${opening.slug}"]`)?.focus({ preventScroll: true })
+    const focus = requestAnimationFrame(() =>
+      box.querySelector<HTMLElement>(`[data-tab="${opened}"]`)?.focus({ preventScroll: true })
     );
-    setOpening(null);
-  }, [opening, reduce]);
+    setOpened(null);
+    return () => cancelAnimationFrame(focus);
+  }, [opened, reduce]);
 
   const close = () => {
     const box = boxRef.current;
-    const was = pick;
     const finish = () => {
       setPick(null);
+      setPreview(null);
+      setRound((r) => r + 1);
       keep(null);
-      /* Focus goes back to the painting that was open. */
-      requestAnimationFrame(() =>
-        rootRef.current
-          ?.querySelector<HTMLElement>(`button[data-slug="${was}"]`)
-          ?.focus({ preventScroll: true })
-      );
     };
     if (!box) return finish();
-    if (falling) {
-      /* Turned back on the way down: the camera climbs straight back up. */
-      fallRun.current?.stop();
-      setFalling(false);
-      setGhost(null);
-      box.style.clipPath = "";
-      box.style.pointerEvents = "";
-      box.style.opacity = "0";
-      finish();
-      requestAnimationFrame(() => (box.style.opacity = ""));
-      return;
-    }
     void animate(box, reduce ? { opacity: 0 } : { opacity: 0, scale: 0.9, y: 18 }, {
       duration: reduce ? 0.2 : 0.26,
       ease: [0.4, 0, 0.7, 0.2],
@@ -207,22 +210,17 @@ export default function LibraryStage({
     });
   };
 
-  /* During the fall, Escape turns back up. */
-  useEffect(() => {
-    if (!falling) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  });
-
   const switchTo = (slug: Slug) => {
     setPick(slug);
     keep(slug);
   };
 
   const pct = (c: StageCourse) => Math.round(c.progress * 100);
+  const percents = {
+    math: pct(courses.find((c) => c.slug === "math") ?? courses[0]),
+    rw: pct(courses.find((c) => c.slug === "reading-writing") ?? courses[0]),
+  };
+  const Intro = def?.Component;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -234,16 +232,29 @@ export default function LibraryStage({
           suppressHydrationWarning
         >
           <script dangerouslySetInnerHTML={{ __html: BOOT }} />
-          <LibraryWorld
-            courses={courses}
-            ready={ready}
-            pick={pick}
-            active={active}
-            flying={ghost?.slug ?? null}
-            reduce={reduce}
-            onActive={setActive}
-            onChoose={choose}
-          />
+          <GroundScene ready={ready || pick !== null} shown={pick ?? preview} />
+          <AnimatePresence>
+            {ready && !pick && Intro && (
+              <motion.div
+                key={`${def.id}-${round}`}
+                className={styles.introLayer}
+                data-intro={def.id}
+                initial={{ opacity: round ? 0 : 1 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: reduce ? 0.3 : 0.45 } }}
+                transition={{ duration: 0.45 }}
+              >
+                <IntroStageContext.Provider value={stage}>
+                  <Intro
+                    percents={percents}
+                    time={time}
+                    reducedMotion={reduce}
+                    onChoose={onChoose}
+                  />
+                </IntroStageContext.Provider>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <div ref={boxRef} className={styles.box} hidden={!pick}>
             <Panel
               side={side}
@@ -258,7 +269,6 @@ export default function LibraryStage({
                           key={c.slug}
                           type="button"
                           data-tab={c.slug}
-                          data-landing={ghost?.slug === c.slug || undefined}
                           className={styles.tab}
                           aria-pressed={on}
                           onClick={() => !on && switchTo(c.slug)}
@@ -282,7 +292,7 @@ export default function LibraryStage({
                     type="button"
                     className={styles.close}
                     onClick={close}
-                    aria-label="Close the course and go back to the two paintings"
+                    aria-label="Close the course and go back to the start"
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                       <path
@@ -310,43 +320,7 @@ export default function LibraryStage({
               ))}
             </Panel>
           </div>
-          {ghost && (
-            <motion.span
-              key={`${ghost.slug}-${ghost.from.left}`}
-              className={styles.ghost}
-              aria-hidden="true"
-              style={{
-                left: ghost.from.left,
-                top: ghost.from.top,
-                width: ghost.from.width,
-                height: ghost.from.height,
-              }}
-              initial={{ x: 0, y: 0, scale: 1, opacity: 1 }}
-              /* The name hangs where it was while the camera falls, then flies into the toggle
-                 as the box opens. */
-              animate={{
-                x: [0, 0, ghost.to.left - ghost.from.left],
-                y: [0, 0, ghost.to.top - ghost.from.top],
-                scale: [1, 1, ghost.to.height / ghost.line],
-                opacity: ghost.from.height > ghost.line * 1.4 ? [1, 1, 0, 0] : [1, 1, 1, 0],
-              }}
-              transition={{
-                duration: DESCENT_MS / 1000 + 0.55,
-                times: [0, (DESCENT_MS / 1000 - 0.15) / (DESCENT_MS / 1000 + 0.55), 1],
-                ease: [0.3, 0.9, 0.25, 1],
-                /* A two-line name (Reading and Writing) fades early, so it never sits on the
-                   toggle as two lines. */
-                opacity: {
-                  duration: DESCENT_MS / 1000 + 0.75,
-                  times:
-                    ghost.from.height > ghost.line * 1.4 ? [0, 0.6, 0.72, 1] : [0, 0.6, 0.86, 1],
-                },
-              }}
-              onAnimationComplete={() => setGhost(null)}
-            >
-              {SHORT[ghost.slug]}
-            </motion.span>
-          )}
+          {intro !== null && <IntroPicker intros={intros} current={def?.id ?? 1} />}
         </div>
       </LayoutGroup>
     </MotionConfig>

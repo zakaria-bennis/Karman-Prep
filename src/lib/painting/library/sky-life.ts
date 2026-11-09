@@ -11,6 +11,7 @@
  */
 import type { PictureMap } from "../life";
 import type { MathSky, ReadingSky } from "./sky";
+import { kiteDiamond, kiteString } from "./sky-day";
 
 const TAU = Math.PI * 2;
 const LETTERS = "abcdefghijklmnopqrstuvwxyzAEGKMRSW&";
@@ -92,14 +93,17 @@ export function drawMathSkyHover(
   k: number,
   h: number,
   map: PictureMap,
-  night: boolean
+  night: boolean,
+  t: number
 ) {
+  if (sky.day) return drawMathDay(g, sky, k, h, map, t);
   if (k <= 0.01) return;
   const col = night ? "236,240,255" : "255,252,240";
   g.save();
   drawFigures(g, sky.figures, k, h, 0.1, map, col);
   /* The moons on their orbits, each with a trail of light along the ellipse. */
   const pl = sky.planet;
+  if (!pl) return g.restore();
   const px = map.X(pl.x);
   const py = map.Y(pl.y);
   const pr = map.X(pl.x + pl.r) - px;
@@ -217,4 +221,118 @@ export function drawReadingSky(
   }
   g.restore();
   st.letters = st.letters.filter((q) => q.life < q.max);
+}
+
+/** A small flock flying a V across the sky, wings beating. */
+function flock(g: CanvasRenderingContext2D, x: number, y: number, s: number, t: number, a: number) {
+  g.strokeStyle = `rgba(30,34,44,${0.7 * a})`;
+  g.lineWidth = Math.max(1.2, s * 0.09);
+  g.lineCap = "round";
+  for (let i = 0; i < 5; i++) {
+    const row = Math.ceil(i / 2);
+    const side = i % 2 ? -1 : 1;
+    const bx = x - row * s * 1.3;
+    const by = y + side * row * s * 0.8;
+    const beat = Math.sin(t * 7 + i) * s * 0.25;
+    g.beginPath();
+    g.moveTo(bx - s * 0.5, by - beat);
+    g.quadraticCurveTo(bx - s * 0.2, by - s * 0.3, bx, by);
+    g.quadraticCurveTo(bx + s * 0.2, by - s * 0.3, bx + s * 0.5, by - beat);
+    g.stroke();
+  }
+}
+
+/**
+ * Math by day comes alive: the kite strings and kites trace themselves in light, a triangle
+ * joins the two kites and the balloon, the burner flares, and a flock crosses in a V.
+ */
+function drawMathDay(
+  g: CanvasRenderingContext2D,
+  sky: MathSky,
+  k: number,
+  h: number,
+  map: PictureMap,
+  t: number
+) {
+  const day = sky.day;
+  if (!day) return;
+  const { X, Y, S } = map;
+  const aspect = Y(1) / X(1);
+  const col = "255,252,236";
+  g.save();
+  g.lineCap = "round";
+  g.lineJoin = "round";
+  /* The burner: a warm flicker under the envelope, always a little, brighter on hover. */
+  const { x, y, r } = day.balloon;
+  const R = X(r);
+  const fl = 0.55 + 0.45 * Math.sin(t * 9) * Math.sin(t * 5.3);
+  dot(g, X(x), Y(y) + R * 1.55, R * (0.35 + 0.25 * k), "255,196,110", (0.25 + 0.6 * k) * fl);
+  if (k > 0.01) {
+    day.kites.forEach((kt, i) => {
+      const d = kiteDiamond(kt, aspect);
+      const str = kiteString(d[2], day.anchor).map(([u, v]) => [X(u), Y(v)] as [number, number]);
+      const p = ease((h - i * 0.3) / 1.1);
+      g.strokeStyle = `rgba(${col},${0.75 * k})`;
+      g.lineWidth = 2 * S;
+      g.shadowColor = `rgba(${col},${0.8 * k})`;
+      g.shadowBlur = 8 * S;
+      partial(g, str, p);
+      const outline = [...d, d[0]].map(([u, v]) => [X(u), Y(v)] as [number, number]);
+      partial(g, outline, ease((h - 0.2 - i * 0.3) / 0.8));
+      g.shadowBlur = 0;
+    });
+    /* The triangle between the two kites and the balloon. */
+    const tri = [
+      [day.kites[0][0], day.kites[0][1]],
+      [day.kites[1][0], day.kites[1][1]],
+      [x, y],
+      [day.kites[0][0], day.kites[0][1]],
+    ].map(([u, v]) => [X(u), Y(v)] as [number, number]);
+    g.setLineDash([6 * S, 7 * S]);
+    g.strokeStyle = `rgba(${col},${0.6 * k})`;
+    g.lineWidth = 1.6 * S;
+    partial(g, tri, ease((h - 0.8) / 1.2));
+    g.setLineDash([]);
+    /* A flock crossing in a V. */
+    const fx = ((h * 0.09) % 1.3) - 0.15;
+    flock(g, X(day.birds[0] + fx), Y(day.birds[1]) - h * 4 * S, 16 * S, t, k);
+  }
+  g.restore();
+}
+
+/** Paper planes gliding off from where the painted ones sit, on Reading and Writing's hover. */
+export function drawPlanes(
+  g: CanvasRenderingContext2D,
+  planes: [number, number, number][],
+  k: number,
+  h: number,
+  map: PictureMap
+) {
+  if (k <= 0.01) return;
+  const { X, Y } = map;
+  planes.forEach(([u, v, s], i) => {
+    const run = ((h + i * 0.9) % 2.6) / 2.6;
+    const x = X(u) + run * X(0.22) - X(0.04);
+    const y = Y(v) - run * Y(0.18) + Math.sin(run * TAU) * Y(0.015);
+    const S = X(s) * 0.8;
+    const a = k * Math.min(1, run * 5, (1 - run) * 4);
+    g.save();
+    g.translate(x, y);
+    g.rotate(-0.35 + Math.cos(run * TAU) * 0.12);
+    g.fillStyle = `rgba(255,252,244,${0.95 * a})`;
+    g.beginPath();
+    g.moveTo(S * 1.2, -S * 0.2);
+    g.lineTo(-S, -S * 0.05);
+    g.lineTo(-S * 0.4, S * 0.35);
+    g.closePath();
+    g.fill();
+    g.fillStyle = `rgba(214,206,190,${0.95 * a})`;
+    g.beginPath();
+    g.moveTo(S * 1.2, -S * 0.2);
+    g.lineTo(-S * 0.4, S * 0.35);
+    g.lineTo(-S * 0.55, S * 0.6);
+    g.closePath();
+    g.fill();
+    g.restore();
+  });
 }

@@ -1,8 +1,9 @@
 /*
  * The Library (founder, 2026-11-07 and 2026-11-08): where the long study sessions happen.
  * The Challenge question opens full screen first (once a day, until it's done). Then the box is
- * closed and two paintings, Math and Reading and Writing, meet on a diagonal across the screen.
- * Choosing one opens the box out of it, with the small course toggle at its top left. Each course
+ * closed and an opening animation (`?intro=N`, intro 1 by default) lets the student choose Math or
+ * Reading and Writing. Its ending opens the box over that subject's painted ground, with the
+ * small course toggle at its top left. Each course
  * shows what to practice next, then its Domains opening in place. Practice modes and full-length
  * tests sit beside it. Khan's function, Karman's look.
  */
@@ -38,6 +39,8 @@ const FORMS = [1, 2, 3, 4];
 
 const query = z.object({
   subject: z.enum(["math", "reading-writing"]).optional(),
+  /* The opening animation to play (founder, 2026-11-08: ten to compare). */
+  intro: z.coerce.number().int().min(1).max(99).optional(),
 });
 
 export default async function LibraryPage({
@@ -176,6 +179,7 @@ export default async function LibraryPage({
         }}
         side={side}
         initial={picked}
+        intro={q.success ? (q.data.intro ?? null) : null}
         waitForChallenge={challengeAnswered < 2}
       />
       <ChallengeMoment href={CHALLENGE.path} day={challengeDay} answered={challengeAnswered} />
