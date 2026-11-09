@@ -3,7 +3,7 @@ import SitePage from "@/components/site/SitePage";
 import { Close, InnerHero, Rows } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
-import { formatPrice, PRACTICE_PLAN, TUTOR_AFFILIATE_PLAN as TA } from "@/lib/marketing/offer";
+import { TUTOR_AFFILIATE_PLAN as TA } from "@/lib/marketing/offer";
 
 export const metadata = pageMeta(ROUTES.tutors, "Karman Prep: For tutors", TA.summary);
 
