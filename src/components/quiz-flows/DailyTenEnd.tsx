@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Card, Cta, Num } from "@/components/portal";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
 import type { RunView } from "@/lib/assembler/run-types";
-import { AnswerShapes } from "./LevelBanner";
+import { AnswerShapes, LevelChanges, type LevelChange } from "./LevelBanner";
 import { FlowFrame } from "./FlowFrame";
 import { ScoreRing, SkillsMoved, answersOf, weakestSkill } from "./RunEnd";
 import type { ShellUser } from "./types";
@@ -67,7 +67,15 @@ function Box({ tokens, onDone }: { tokens: number; onDone(): void }) {
   );
 }
 
-export function DailyTenEnd({ user, run }: { user: ShellUser; run: RunView }) {
+export function DailyTenEnd({
+  user,
+  run,
+  changes = [],
+}: {
+  user: ShellUser;
+  run: RunView;
+  changes?: readonly LevelChange[];
+}) {
   const result = run.result!;
   const [stage, setStage] = useState<"box" | "results">(result.tokens > 0 ? "box" : "results");
   const next = weakestSkill(result.skills);
@@ -128,6 +136,7 @@ export function DailyTenEnd({ user, run }: { user: ShellUser; run: RunView }) {
               </span>
             )}
           </p>
+          <LevelChanges changes={changes} />
           <div className={s.actions}>
             {next && (
               <Cta href={`/learn/set/${encodeURIComponent(next.skillId)}`}>
