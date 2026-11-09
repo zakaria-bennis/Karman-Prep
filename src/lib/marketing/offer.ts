@@ -71,12 +71,11 @@ export const MARCH_PROGRAM = {
   fullLengthTests: 5,
   /** Each cohort is grouped by starting score, so a class works on the same level. */
   scoreBands: ["1000 to 1200", "1200 to 1400", "1400 to 1600"],
-  // CONFIRM: enrollment deadline.
-  enrollmentClosesLabel: "December 30, 2026",
+  enrollmentClosesLabel: "January 1, 2027",
   /** At most six students in a cohort, every seat paid. */
   paidSeats: 6,
   /** Paid seats already held with a deposit. The site shows the seats still open.
-   *  CONFIRM: update as each family holds a seat. */
+   *  Update as each family holds a seat. */
   paidSeatsTaken: 0,
   /** Founder, 2026-11-08: one price for every cohort. */
   price: 995,
@@ -123,7 +122,7 @@ export const MARCH_PROGRAM = {
 
 /**
  * Later cohorts, named by the week they start (never a weekday; founder, 2026-11-08).
- * Applications close the week before. CONFIRM: start and close dates.
+ * Applications close the week before.
  */
 export const NEXT_PROGRAMS = [
   {
@@ -249,10 +248,9 @@ export const PRO_PLAN = {
   ],
 } as const;
 
-/** Monthly and 3-month plans renew until cancelled; cancelling stops the next payment.
- *  CONFIRM: renewal wording. */
-export const PLAN_RENEWAL =
-  "Monthly and 3-month plans renew until you cancel. Cancel any time and the plan runs to the end of the time you paid for.";
+/** Monthly and 3-month plans renew until cancelled; cancelling stops the next payment and the plan
+ *  runs to the end of the time paid for. The site says it in three words (founder, 2026-11-09). */
+export const PLAN_RENEWAL = "Cancel any time.";
 
 /** School licenses: every student gets a Practice plan of their own, not a shared pool. */
 export const SCHOOL_PLAN = {
@@ -270,16 +268,19 @@ export const SCHOOL_PLAN = {
   ],
 } as const;
 
-/** For tutors who sell on marketplaces like Leland. CONFIRM: affiliate terms before launch. */
+/** For tutors who sell on marketplaces like Leland. Shown only on /for-tutors, never with the
+ *  family plans (founder, 2026-11-09). maxStudents counts students at the same time. */
 export const TUTOR_AFFILIATE_PLAN = {
   id: "tutor-affiliate",
   name: "Tutor affiliate",
   monthly: 199,
   /** Students who redeem the tutor's code get this plan free while the tutor pays. */
   studentPlan: "practice",
-  maxStudents: 50,
+  maxStudents: 40,
+  summary:
+    "$199 a month gives up to 40 concurrent students the Practice plan for free, with their progress and assignments in one place for you to view at any time.",
   includes: [
-    "One code for up to 50 students",
+    "One code for up to 40 students at a time",
     "A Practice plan for each student, free while your subscription is active",
     "See each student's progress",
     "Assign work",
@@ -287,25 +288,21 @@ export const TUTOR_AFFILIATE_PLAN = {
   ],
 } as const;
 
+/** The free practice test (founder, 2026-11-09): no live proctored sitting. A family takes a
+ *  full-length practice test on Karman whenever they like, then can book a results call. */
 export const FREE_PRACTICE_TEST = {
-  id: "practice-test-2026-12-12",
+  id: "practice-test-self-paced",
   name: "Free practice test",
-  dateLabel: "Saturday, December 12, 2026",
-  dateShort: "December 12",
-  // CONFIRM: start time.
-  timeLabel: "10:00 a.m. ET",
-  durationLabel: "About 75 minutes",
-  minutes: 75,
-  questionCount: 49,
-  /** The results call after the test. */
+  questionCount: 98,
+  durationLabel: "About 2 hours 14 minutes",
+  /** The optional results call after the test. */
   callMinutes: 20,
-  format: "One Reading and Writing module and one Math module, about 49 questions.",
-  delivery: "Live on Zoom, with a live proctor.",
-  cadence: "Every month.",
+  format: "A full-length practice SAT: two Reading and Writing modules and two Math modules.",
+  delivery: "On Karman, any time.",
   includes: [
-    "An estimated score range",
+    "A score report",
     "A domain-by-domain breakdown",
-    "A 20-minute results call with a Karman tutor",
+    "An optional 20-minute results call with a Karman tutor",
   ],
 } as const;
 
@@ -317,7 +314,7 @@ export const DIAGNOSTIC = {
 /**
  * The guarantee (founder, 2026-11-08; see docs/business/guarantee.md). The
  * Cohort, Private 10 and Private 20 carry it. The target depends on the
- * starting score. CONFIRM: lawyer review before launch.
+ * starting score. Reviewed by a lawyer (founder, 2026-11-09).
  */
 export const GUARANTEE = {
   /** Baselines under this score aim for `pointsBelow`; at or above it, `pointsFrom`. */
@@ -402,7 +399,7 @@ export const INTAKE_NOTE =
  * merit bonus for the rest. The full rules are the "Cohort Scholarship" section of
  * /terms (src/lib/scholarship/terms-section.ts). The app pays the refund of what
  * the family actually paid and makes up the rest with the bonus.
- * CONFIRM: lawyer review, and how the bonus reaches families in live mode.
+ * Reviewed by a lawyer; the refund plus a bank transfer for the rest (founder, 2026-11-09).
  */
 export const COHORT_SCHOLARSHIP = {
   amount: 1500,
@@ -440,6 +437,7 @@ export const LEAD_SOURCES = [
   "coming-soon",
   "newsletter",
   "practice-test-2026-12-12",
+  "practice-test-self-paced",
   "cohort-march-2027",
   "cohort-may-2027",
   "cohort-june-2027",

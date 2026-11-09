@@ -269,7 +269,7 @@ export function CalculatorScope({
 
   // AN-10: the open animation runs only when this scope's window goes from closed to open with
   // motion allowed; any mode change or closing ends it, so Undock, Restore and AR-26 never replay it.
-  const mode = windowModeFor(windowState, fullScreen);
+  const mode = windowModeFor(windowState, fullScreen, viewport.width);
   const previous = useRef({ open, mode });
   useLayoutEffect(() => {
     const before = previous.current;

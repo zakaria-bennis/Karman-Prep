@@ -118,10 +118,10 @@ test("flagging for a tutor waves the flag without errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/?set=instant&q=math&tutor=1");
-  await page.getByRole("button", { name: "Flag for my tutor" }).click();
-  await page.getByLabel("Note for your tutor (optional)").fill("I keep missing these");
+  await page.getByRole("button", { name: "Ask my tutor" }).click();
+  await page.getByLabel("Question for your tutor (optional)").fill("I keep missing these");
   await page.getByRole("button", { name: "Send to tutor" }).click();
-  await expect(page.getByRole("button", { name: "Flag for my tutor" })).toHaveAttribute(
+  await expect(page.getByRole("button", { name: "Ask my tutor" })).toHaveAttribute(
     "aria-pressed",
     "true"
   );

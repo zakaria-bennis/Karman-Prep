@@ -26,7 +26,6 @@ import {
 } from "@/lib/marketing/offer";
 import { findStripePrice, priceLabel, type BillingTerm } from "@/lib/integrations/stripe/prices";
 import type { SubscriptionPlanId } from "@/lib/plans/catalog";
-import DashboardLayout from "./DashboardLayout";
 
 export interface BillingSelection {
   planId: SubscriptionPlanId;
@@ -170,10 +169,8 @@ export default function BillingClient({ subscription, selected, required }: Prop
   const selectedLine = selected ? planLine(selected.planId, selected.term) : null;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mx-auto max-w-3xl space-y-8 px-4 py-8 sm:px-6">
-        <h1 className="text-2xl font-bold text-ivory dark:text-ivory">Billing & Subscription</h1>
-
         {/* Plan picked on the pricing or For tutors page */}
         {selected && selectedPlan && selectedLine && (
           <div className="rounded-2xl border-2 border-info/40 bg-info/10 p-5 dark:bg-info/20">
@@ -415,6 +412,6 @@ export default function BillingClient({ subscription, selected, required }: Prop
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

@@ -67,7 +67,7 @@ export function QuestionHeader({
           <button
             type="button"
             className={shell.tool}
-            aria-label="Flag for my tutor"
+            aria-label="Ask my tutor"
             aria-pressed={flagged}
             aria-expanded={noteOpen}
             onClick={() => (flagged ? undefined : setNoteOpen((v) => !v))}
@@ -85,7 +85,7 @@ export function QuestionHeader({
               onKeyDown={(e) => e.key === "Escape" && setNoteOpen(false)}
             >
               <label className={styles.popoverLabel} htmlFor="tutor-flag-note">
-                Note for your tutor (optional)
+                Question for your tutor (optional)
               </label>
               <textarea
                 id="tutor-flag-note"

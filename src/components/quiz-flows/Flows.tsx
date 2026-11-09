@@ -110,7 +110,16 @@ export function FullTestFlow({
   );
 }
 
-export function DiagnosticFlow({ user, resumable }: { user: ShellUser; resumable: boolean }) {
+export function DiagnosticFlow({
+  user,
+  resumable,
+  retake = false,
+}: {
+  user: ShellUser;
+  resumable: boolean;
+  /** An admin granted a retake of a finished diagnostic: ask before it begins. */
+  retake?: boolean;
+}) {
   const open = useCallback(() => actionStartDiagnostic(), []);
   return (
     <RunPlayer
@@ -121,14 +130,22 @@ export function DiagnosticFlow({ user, resumable }: { user: ShellUser; resumable
       intro={
         resumable
           ? undefined
-          : (start, pending) => (
-              <Message
-                title="Diagnostic"
-                text="35 questions from Karman's question bank: Reading and Writing (18 questions, 22 minutes), then a break, then Math (17 questions, 27 minutes). It shows where to start."
-                action={{ onClick: start, label: pending ? "Loading" : "Start the diagnostic" }}
-                back={{ href: "/dashboard/student", label: "Back" }}
-              />
-            )
+          : (start, pending) =>
+              retake ? (
+                <Message
+                  title="Start your retake"
+                  text="A new diagnostic, timed like your first: Reading and Writing, a break, then Math."
+                  action={{ onClick: start, label: pending ? "Loading" : "Start your retake" }}
+                  back={{ href: "/dashboard/student", label: "Back" }}
+                />
+              ) : (
+                <Message
+                  title="Diagnostic"
+                  text="35 questions from Karman's question bank: Reading and Writing (18 questions, 22 minutes), then a break, then Math (17 questions, 27 minutes). It shows where to start."
+                  action={{ onClick: start, label: pending ? "Loading" : "Start the diagnostic" }}
+                  back={{ href: "/dashboard/student", label: "Back" }}
+                />
+              )
       }
     />
   );

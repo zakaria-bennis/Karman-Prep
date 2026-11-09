@@ -23,7 +23,7 @@ export const COHORT_LATE_DAYS = 3;
 export const FULL_LENGTH = { questions: 98, minutes: 134 } as const;
 const DAY_MS = 86_400_000;
 
-export type HomeworkSource = "tutor" | "catalog" | "trial" | "cohort";
+export type HomeworkSource = "tutor" | "school" | "catalog" | "trial" | "cohort";
 export type HomeworkState = "open" | "scheduled" | "locked" | "done";
 export type HomeworkGroup = "past" | "tonight" | "tomorrow" | "week" | "later";
 

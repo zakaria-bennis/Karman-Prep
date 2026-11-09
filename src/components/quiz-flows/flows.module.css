@@ -350,3 +350,10 @@
     transition: none;
   }
 }
+
+/* The level changes a run collected, stacked on its end screen. */
+.levelChanges {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
