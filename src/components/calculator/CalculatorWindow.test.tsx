@@ -129,16 +129,16 @@ it("KB-10 arrow keys move the focused handle and resize the focused grip by 16 p
   expect(last()).toEqual({ x: 16, y: 64, width: 360, height: 280 });
 }); // 352 clamps to the 360 minimum
 
-it("AR-23 the dock splitter is a separator stepping 16 px, with Home and End at 25% and 75% of the viewport less the margins (founder, 2026-11-08)", () => {
+it("AR-23 the dock splitter is a separator stepping 16 px, with Home at 25% of the viewport less the margins but never under 320 px, and End at 75% (founder, 2026-11-08 and 2026-11-09)", () => {
   const { props } = setup("docked");
   const sep = screen.getByRole("separator", { name: "Resize calculator dock" });
   expect(
     ["aria-valuenow", "aria-valuemin", "aria-valuemax"].map((a) => sep.getAttribute(a))
-  ).toEqual(["576", "296", "936"]);
+  ).toEqual(["576", "320", "936"]);
   for (const [key, width] of [
     ["ArrowRight", 592],
     ["ArrowLeft", 560],
-    ["Home", 296],
+    ["Home", 320],
     ["End", 936],
   ] as const) {
     fireEvent.keyDown(sep, { key });
