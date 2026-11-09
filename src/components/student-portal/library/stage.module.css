@@ -20,6 +20,15 @@
 .world[data-shown] {
   opacity: 1;
 }
+/* Founder, 2026-11-09: with a course open, today's painting sits behind the box. The camera
+   still lands on the subject's ground, then the world fades away to the day's painting. */
+.world[data-shown][data-view="ground"] {
+  opacity: 0;
+  transition: opacity 0.9s ease 1.7s;
+}
+.world[data-instant][data-view="ground"] {
+  transition: none;
+}
 .paint,
 .live {
   position: absolute;
