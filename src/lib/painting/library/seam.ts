@@ -1,8 +1,9 @@
 /*
- * Where the Library's two opening paintings meet (founder, 2026-11-08: "a diagonal between the
- * Math and the Reading"). On a wide screen the seam runs from the top, right of center, down to
- * the bottom, left of center: Math on the left, Reading and Writing on the right. On a phone or an
- * upright iPad it runs gently across the middle: Math on top, Reading and Writing below.
+ * Where the Library's two opening skies meet (founder, 2026-11-08: "a diagonal between the Math
+ * and the Reading", then "make the diagonal clearly diagonal"). On a wide screen the seam runs
+ * corner to corner, from near the top right to near the bottom left: Math above and to the left,
+ * Reading and Writing below and to the right. On a phone or an upright iPad it slants across the
+ * middle: Math on top, Reading and Writing below.
  *
  * The seam itself is a painted edge, not a ruled line: a mask whose border wanders with noise and
  * is crossed by brush tongues from both sides. The mask is three screens long, so sliding it moves
@@ -21,12 +22,12 @@ export function layoutFor(w: number, h: number): Layout {
 /** The seam's two ends, as fractions of the screen. */
 export const SEAM: Record<Layout, [Pt, Pt]> = {
   wide: [
-    [0.6, 0],
-    [0.4, 1],
+    [0.85, 0],
+    [0.15, 1],
   ],
   tall: [
-    [0, 0.57],
-    [1, 0.43],
+    [0, 0.64],
+    [1, 0.36],
   ],
 };
 
@@ -45,10 +46,10 @@ export function clipPath(layout: Layout, slug: Slug): string {
   return `polygon(${pts.join(", ")})`;
 }
 
-/** Where each subject's name sits (fractions), clear of the bridge, the book and the sun. */
+/** Where each subject's name sits (fractions), clear of the planet, the nebula and the figures. */
 export const LABEL_AT: Record<Layout, Record<Slug, Pt>> = {
-  wide: { math: [0.27, 0.3], "reading-writing": [0.77, 0.3] },
-  tall: { math: [0.5, 0.235], "reading-writing": [0.5, 0.675] },
+  wide: { math: [0.27, 0.27], "reading-writing": [0.72, 0.62] },
+  tall: { math: [0.5, 0.2], "reading-writing": [0.5, 0.74] },
 };
 
 /** The mask is drawn at a quarter of the screen's size; the browser scales it up softly. */

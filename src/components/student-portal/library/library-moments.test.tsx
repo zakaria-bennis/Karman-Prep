@@ -28,7 +28,7 @@ beforeEach(() => {
   challengeMoment.reset();
 });
 
-describe("Library opening: two paintings, then the box", () => {
+describe("Library opening: the sky split in two, then the box", () => {
   const stage = (initial: "math" | "reading-writing" | null = null) => (
     <LibraryStage
       courses={courses}
@@ -67,6 +67,17 @@ describe("Library opening: two paintings, then the box", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Close the course/ }));
 
+    await waitFor(() => expect(screen.getByText("Math course").closest("[hidden]")).toBeTruthy());
+    expect(sessionStorage.getItem(COURSE_PICK_KEY)).toBeNull();
+  });
+
+  it("Escape on the way down turns back up to the sky", async () => {
+    render(stage());
+    fireEvent.click(half(/Math/));
+    await waitFor(() => expect(screen.getByText("Math course").closest("[hidden]")).toBeNull());
+    act(() => {
+      fireEvent.keyDown(document, { key: "Escape" });
+    });
     await waitFor(() => expect(screen.getByText("Math course").closest("[hidden]")).toBeTruthy());
     expect(sessionStorage.getItem(COURSE_PICK_KEY)).toBeNull();
   });

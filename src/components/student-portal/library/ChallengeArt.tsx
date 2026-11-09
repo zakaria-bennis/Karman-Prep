@@ -4,7 +4,7 @@
  * The Challenge question's own painting (founder, 2026-11-08: "it has its own art, design and
  * animation"). Drawn in code, in the day painting's style: a sky in the painting's light (dawn,
  * day, sunset or night), the land in the painting's hue, a still lake, pines at the edges, and
- * two bright stars rising over the ridge, one for each of today's questions. Brush edges come
+ * two painted dots of light rising over the ridge, one for each of today's questions. Brush edges come
  * from an SVG displacement filter, so the shapes read as paint rather than vector.
  *
  * Everything moves only on entrance, then holds still (nothing moves behind text).
@@ -43,9 +43,6 @@ function grove(x0: number, x1: number, ground: (x: number) => number, base: numb
   }
   return d;
 }
-
-/** A four-point star, the Challenge's mark. */
-const STAR = "M0 -30 C3 -8 8 -3 30 0 C8 3 3 8 0 30 C-3 8 -8 3 -30 0 C-8 -3 -3 -8 0 -30 Z";
 
 /** Loose sky strokes, Bob Ross style: start x, y, end x, width, how much each one bows. */
 const SKY_STROKES: [number, number, number, number, number][] = [
@@ -164,7 +161,7 @@ export default function ChallengeArt({ time, still }: { time: TimeOfDay; still: 
         <circle cx="880" cy="250" r="58" className={styles.orb} filter="url(#ch-brush)" />
       </motion.g>
 
-      {/* Two trails rising from the ridge to the stars: today's two questions. */}
+      {/* Two trails rising from the ridge to two dots of light: today's two questions. */}
       <g className={styles.trails} fill="none">
         <motion.path d="M330 452 C360 330 400 250 470 190" {...draw(0.55)} />
         <motion.path d="M700 446 C690 330 660 220 640 140" {...draw(0.75)} />
@@ -176,7 +173,9 @@ export default function ChallengeArt({ time, still }: { time: TimeOfDay; still: 
         <g key={st.x} transform={`translate(${st.x} ${st.y}) scale(${st.s})`}>
           <motion.g {...pop(st.d)}>
             <circle r="70" fill="url(#ch-star-glow)" />
-            <path d={STAR} className={styles.star} />
+            {/* A dab of paint with a smaller dab beside it, ragged at the edge like the land. */}
+            <circle r="15" className={styles.light} filter="url(#ch-brush)" />
+            <circle cx="-5" cy="-5" r="6" className={styles.lightCore} />
           </motion.g>
         </g>
       ))}
