@@ -1,10 +1,9 @@
 /*
- * The Library's two opening paintings (founder, 2026-11-08: "two paintings joined on a
- * diagonal"), composed from Karman's painting primitives (studio.ts) and the subject motifs, in
- * the day's light and hue. painterly.ts then paints them in as brushwork, like the backdrop.
- *
- * Each painting fills the whole screen, because the chosen one grows over the other when a
- * course opens. Its subject sits in its own half of the diagonal (seam.ts), under the name.
+ * The Library's two ground scenes, where the camera lands after falling from the sky (sky.ts),
+ * composed from Karman's painting primitives (studio.ts) and the subject motifs, in the day's
+ * light and hue. painterly.ts then paints them in as brushwork, like the backdrop. Each fills the
+ * screen behind the open box. The land takes the hour's light the same way in both (gradeLand),
+ * so at night the meadow darkens as much as the lake.
  *
  * - Math: a lake below mountains with one sharp, triangular peak; the parabola bridge across it;
  *   terraced fields climbing beside it like a bar chart; a ring of light around the sun.
@@ -18,6 +17,7 @@ import { Studio } from "../studio";
 import type { Item } from "../life/types";
 import {
   bridge,
+  gradeLand,
   hslColor,
   openBook,
   quill,
@@ -130,6 +130,7 @@ function mathScene(k: Studio, accent: Color, p: MathPlan): { life: Item[]; at: M
   k.grass(0.94, 0.8, 1);
   for (const [x, y, h] of p.pines) k.pine(x, y, h);
   k.rock(p.bridge.cx + p.bridge.span * 0.62, 0.975, 0.02);
+  gradeLand(k, water - 0.12);
   const b = p.bridge;
   return {
     life: [
@@ -211,6 +212,7 @@ function readingScene(
   quill(k, p.quill, accent);
   openBook(k, book, accent, FLOWERS);
   k.grass(0.95, 0, 1);
+  gradeLand(k, horizon - 0.02);
   const [tx, ty, th] = p.tree;
   return {
     life: [

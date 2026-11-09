@@ -203,8 +203,11 @@
   stroke-linecap: round;
   opacity: 0.75;
 }
-.star {
-  fill: #fffaf0;
+.light {
+  fill: #fff4d6;
+}
+.lightCore {
+  fill: #fffdf6;
 }
 .far {
   fill: var(--far);

@@ -1,14 +1,14 @@
-/* The Library's stage: the two opening paintings on their diagonal, and the box that opens out of
-   the chosen one. Colors come from the shell (portal.css): the painting's hue and the accent. */
+/* The Library's stage: the sky with its diagonal, the fall to the ground, and the box that opens
+   out of the ground. Colors come from the shell (portal.css): the painting's hue and the accent. */
 
 .stage {
   position: relative;
 }
 
-/* ---------- The two paintings ---------- */
-/* Fixed behind the page's content (the heading stays readable over them), above the day's
-   painting, which they replace on this tab. */
-.paintings {
+/* ---------- The world: sky, clouds, ground ---------- */
+/* Fixed behind the page's content (the heading stays readable over it), above the day's
+   painting, which it replaces on this tab. */
+.world {
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -17,7 +17,7 @@
   pointer-events: none;
   transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.paintings[data-shown] {
+.world[data-shown] {
   opacity: 1;
 }
 .paint,
@@ -28,57 +28,112 @@
   height: 100%;
   display: block;
 }
+
+/* The camera: the sky rises away, a deep bank of cloud rushes up past the view, and the ground
+   arrives underneath it. While the cloud fills the screen, the sky hands over to the ground (an
+   opacity switch hidden in the cloud), so no edge between them ever shows. Transforms and
+   opacity only, as CSS transitions, so a click or Escape mid-way simply turns it round. */
+.layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  transition:
+    transform 1.9s cubic-bezier(0.55, 0, 0.3, 1),
+    opacity 0.14s linear 0.84s;
+}
+.world[data-view="sky"] .layer {
+  transition:
+    transform 1.5s cubic-bezier(0.55, 0, 0.3, 1),
+    opacity 0.14s linear 0.62s;
+}
+.skyLayer {
+  transform: translate3d(0, 0, 0);
+}
+/* Three screens tall, solid cloud in its middle, soft at both ends. */
+.cloudLayer {
+  bottom: auto;
+  height: 300%;
+  transform: translate3d(0, 34%, 0);
+  -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+  mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+}
+.groundLayer {
+  opacity: 0;
+  transform: translate3d(0, 40%, 0) scale(1.16);
+  transform-origin: 50% 0;
+}
+.world[data-view="ground"] .skyLayer {
+  opacity: 0;
+  transform: translate3d(0, -100%, 0);
+}
+.world[data-view="ground"] .cloudLayer {
+  transform: translate3d(0, -100%, 0);
+}
+.world[data-view="ground"] .groundLayer {
+  opacity: 1;
+  transform: none;
+}
+.world[data-instant] .layer,
+.world[data-instant] .paint {
+  transition: none;
+}
+/* Switching course down on the ground cross-fades the scene. */
+.ground {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+.ground[data-on] {
+  opacity: 1;
+}
+/* Reduced motion: no fall, the sky and the ground cross-fade. */
+.world[data-still] .layer {
+  transform: none;
+  transition: opacity 0.45s ease;
+}
+.world[data-still] .cloudLayer {
+  display: none;
+}
+.world[data-still][data-view="sky"] .groundLayer,
+.world[data-still][data-view="ground"] .skyLayer {
+  opacity: 0;
+}
+
 .paint {
   transition: filter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-/* The seam slides on a soft spring-like ease: a little lean on hover, right off the screen when a
-   course opens, and across to the other side when the course switches. */
+/* The seam slides on a soft spring-like ease: a little lean on hover, and right off the screen
+   when a course is chosen, so its sky fills the view on the way down. */
 .paint[data-slug="reading-writing"] {
   transition:
     filter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
-    mask-position 0.95s cubic-bezier(0.22, 1, 0.36, 1),
-    -webkit-mask-position 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+    mask-position 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    -webkit-mask-position 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
 }
-.paintings[data-still] .paint[data-slug="reading-writing"] {
+.world[data-still] .paint[data-slug="reading-writing"] {
   transition: filter 0.3s ease;
 }
 
 /* Pointing at a half: it brightens, the other dims. */
-.paintings[data-active="math"] .paint[data-slug="math"],
-.paintings[data-active="reading-writing"] .paint[data-slug="reading-writing"] {
-  filter: brightness(1.1) saturate(1.06);
+.world[data-active="math"] .paint[data-slug="math"],
+.world[data-active="reading-writing"] .paint[data-slug="reading-writing"] {
+  filter: brightness(1.12) saturate(1.06);
 }
-.paintings[data-active="math"] .paint[data-slug="reading-writing"],
-.paintings[data-active="reading-writing"] .paint[data-slug="math"] {
-  filter: brightness(0.8) saturate(0.88);
+.world[data-active="math"] .paint[data-slug="reading-writing"],
+.world[data-active="reading-writing"] .paint[data-slug="math"] {
+  filter: brightness(0.78) saturate(0.88);
 }
 /* Reduced motion: a gentle brighten only. */
-.paintings[data-still][data-active="math"] .paint[data-slug="reading-writing"],
-.paintings[data-still][data-active="reading-writing"] .paint[data-slug="math"] {
+.world[data-still][data-active="math"] .paint[data-slug="reading-writing"],
+.world[data-still][data-active="reading-writing"] .paint[data-slug="math"] {
   filter: none;
 }
-.paintings[data-still][data-active="math"] .paint[data-slug="math"],
-.paintings[data-still][data-active="reading-writing"] .paint[data-slug="reading-writing"] {
+.world[data-still][data-active="math"] .paint[data-slug="math"],
+.world[data-still][data-active="reading-writing"] .paint[data-slug="reading-writing"] {
   filter: brightness(1.08);
-}
-
-/* Choosing a half: its light swells as its painting grows over the other, then settles. */
-.paintings:not([data-still])[data-pick="math"] .paint[data-slug="math"],
-.paintings:not([data-still])[data-pick="reading-writing"] .paint[data-slug="reading-writing"] {
-  animation: swell 1.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-@keyframes swell {
-  0% {
-    filter: brightness(1.1) saturate(1.06);
-  }
-  28% {
-    filter: brightness(1.16) saturate(1.1);
-  }
-  100% {
-    filter: none;
-  }
 }
 
 /* Each half is a button cut to its side of the diagonal (clip-path set inline). */
@@ -122,10 +177,10 @@
 .half[data-on] .label {
   transform: translate(-50%, calc(-50% - 8px)) scale(1.04);
 }
-.paintings[data-still] .half[data-on] .label {
+.world[data-still] .half[data-on] .label {
   transform: translate(-50%, -50%);
 }
-.paintings[data-pick] .label {
+.world[data-pick] .label {
   opacity: 0;
 }
 .name {
@@ -184,13 +239,13 @@
   }
 }
 
-/* While the paintings show, the day's painting credit and (on a phone) the page heading step
-   aside: the heading would sit on the Math painting's name. */
-:global(.kp-shell):has(.paintings[data-shown]) :global(.kp-credit) {
+/* While the world shows, the day's painting credit and (on a phone) the page heading step aside:
+   the heading would sit on the Math name. */
+:global(.kp-shell):has(.world[data-shown]) :global(.kp-credit) {
   display: none;
 }
 @media (max-width: 767px) {
-  :global(.kp-shell):has(.stage:not([data-open]) .paintings[data-shown]) :global(.kp-top) {
+  :global(.kp-shell):has(.stage:not([data-open]) .world[data-shown]) :global(.kp-top) {
     visibility: hidden;
   }
 }

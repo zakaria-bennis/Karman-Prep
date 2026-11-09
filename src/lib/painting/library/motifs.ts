@@ -468,3 +468,24 @@ export function quill(k: Studio, at: QuillAt, accent: Color) {
   g.quadraticCurveTo(tipX + (endX - tipX) * 0.4, tipY + (endY - tipY) * 0.55, endX, endY);
   g.stroke();
 }
+
+/**
+ * Lays the hour's light over the land from `v` down, so every ground scene darkens the same way
+ * at dusk and night (founder, 2026-11-08: the meadow stayed bright green at night). A multiply
+ * wash in the light's own shade color, as strong as the light is dark.
+ */
+export function gradeLand(k: Studio, v: number) {
+  const { g, W, H, C, L } = k;
+  if (L.dark <= 0) return;
+  const y = Math.round(v * H);
+  const tone = mix(C.shade, C.lit, 0.35);
+  g.save();
+  g.globalCompositeOperation = "multiply";
+  const gr = g.createLinearGradient(0, y - H * 0.04, 0, H);
+  gr.addColorStop(0, rgb(tone, 0));
+  gr.addColorStop(0.08, rgb(tone, Math.min(1, L.dark * 1.35)));
+  gr.addColorStop(1, rgb(tone, Math.min(1, L.dark * 1.5)));
+  g.fillStyle = gr;
+  g.fillRect(0, y - H * 0.04, W, H - y + H * 0.04);
+  g.restore();
+}
