@@ -489,25 +489,38 @@ export function planDabs(
   return out;
 }
 
-/** Draws the dabs as far as time t (ms), with a lighter bristle streak through each. */
+/**
+ * Draws the dabs as far as time t (ms) like a loaded flat brush: a body of paint that thins
+ * toward the end of the stroke, crossed by bristle lines a little lighter and darker.
+ */
 export function drawDabs(g: CanvasRenderingContext2D, dabs: Dab[], t: number) {
   g.lineCap = "round";
   g.lineJoin = "round";
-  for (const d of dabs) {
+  const BRISTLES = 7;
+  for (const [k, d] of dabs.entries()) {
     const p = Math.max(0, Math.min(1, (t - d.t0) / d.dur));
     if (p <= 0) continue;
     const n = Math.max(1, Math.ceil(p * (d.pts.length - 1)));
-    g.strokeStyle = d.c;
-    g.lineWidth = d.w;
-    g.beginPath();
-    g.moveTo(d.pts[0][0], d.pts[0][1]);
-    for (let i = 1; i <= n; i++) g.lineTo(d.pts[i][0], d.pts[i][1]);
-    g.stroke();
-    g.strokeStyle = "rgba(255,255,255,0.22)";
-    g.lineWidth = d.w * 0.18;
-    g.beginPath();
-    g.moveTo(d.pts[0][0], d.pts[0][1] - d.w * 0.2);
-    for (let i = 1; i <= n; i++) g.lineTo(d.pts[i][0], d.pts[i][1] - d.w * 0.2);
-    g.stroke();
+    const [a, b] = [d.pts[0], d.pts[d.pts.length - 1]];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const nx = -(b[1] - a[1]) / len;
+    const ny = (b[0] - a[0]) / len;
+    for (let j = 0; j < BRISTLES; j++) {
+      const off = (j / (BRISTLES - 1) - 0.5) * d.w;
+      /* Each bristle carries a slightly different load: lighter, darker, drier. */
+      const lift = (((k * 7 + j * 13) % 9) - 4) * 6;
+      const m = d.c.match(/\d+(\.\d+)?/g)?.map(Number) ?? [128, 128, 128];
+      g.strokeStyle = `rgba(${m[0] + lift},${m[1] + lift},${m[2] + lift},${0.55 + ((j * 5 + k) % 4) * 0.1})`;
+      g.lineWidth = (d.w / BRISTLES) * 1.9;
+      /* Outer bristles run dry sooner. */
+      const reach = Math.max(1, Math.round(n * (1 - Math.abs(off / d.w) * 0.5)));
+      g.beginPath();
+      for (let i = 0; i <= reach; i++) {
+        const [x, y] = d.pts[i];
+        if (i) g.lineTo(x + nx * off, y + ny * off);
+        else g.moveTo(x + nx * off, y + ny * off);
+      }
+      g.stroke();
+    }
   }
 }
