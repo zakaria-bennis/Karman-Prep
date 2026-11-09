@@ -95,7 +95,7 @@ const DEMOS: [string, string][] = [
   ["Practice set of 2 that ends in a level up", "?set=instant&length=2&levelup=1"],
   ["Timed section of 6: mark for review and the check page", "?set=end&length=6"],
   ["Timed section at double time", "?set=end&length=6&acc=double"],
-  ["Student with a tutor: Flag for my tutor", "?set=instant&q=math&tutor=1"],
+  ["Student with a tutor: Ask my tutor", "?set=instant&q=math&tutor=1"],
   ["Review mode: answers locked, explanations shown", "?set=review"],
   ["Light theme (Warm ivory)", "?set=instant&q=rw&theme=ivory"],
 ];
