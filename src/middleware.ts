@@ -63,6 +63,7 @@ const isMaintenanceExempt = createRouteMatcher([
   "/api/consent", // the session-replay consent banner, shown to signed-out visitors too
   "/api/calendar/feed/(.*)", // Calendar apps fetch it; the secret token is the credential
   "/dev/library-intros", // dev-only preview, no data (the page 404s in production)
+  "/dev/library-shinkai", // dev-only stills, no data (the page 404s in production)
 ]);
 
 /** Routes that don't require auth in normal (post-launch) operation.
@@ -103,6 +104,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/cron(.*)",
   "/api/calendar/feed/(.*)",
   "/dev/library-intros", // dev-only preview, no data (the page 404s in production)
+  "/dev/library-shinkai", // dev-only stills, no data (the page 404s in production)
 ]);
 
 const LAUNCHED = process.env.NEXT_PUBLIC_KARMAN_LAUNCHED === "true";
