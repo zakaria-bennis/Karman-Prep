@@ -5,11 +5,7 @@ import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import { formatPrice, PRACTICE_PLAN, TUTOR_AFFILIATE_PLAN as TA } from "@/lib/marketing/offer";
 
-export const metadata = pageMeta(
-  ROUTES.tutors,
-  "Karman Prep: For tutors",
-  `The Karman tutor affiliate plan: ${formatPrice(TA.monthly)} a month, one code for up to ${TA.maxStudents} students, who get the ${PRACTICE_PLAN.name} plan free while you subscribe. You see their progress, assign work and manage your roster.`
-);
+export const metadata = pageMeta(ROUTES.tutors, "Karman Prep: For tutors", TA.summary);
 
 /** Signed-out tutors create an account first, then go straight to checkout for this plan. */
 const START = `${ROUTES.checkout}?plan=${TA.id}`;
