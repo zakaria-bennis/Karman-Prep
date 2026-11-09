@@ -242,7 +242,11 @@ function InstantRun({
       attemptKey={run.id}
       index={index}
       section={run.kind === "daily-ten" ? "Daily 10" : run.title}
-      topic={current ? shown.sections[0].topics[current.id] : undefined}
+      /* Only a skill's own practice names its topic: anywhere else it gives the answer away
+         (founder, 2026-11-08). */
+      topic={
+        run.kind === "practice-set" && current ? shown.sections[0].topics[current.id] : undefined
+      }
       reviews={reviews}
       saved={student.saved}
       hasCalculator={subject === "math"}
@@ -262,7 +266,11 @@ function InstantRun({
       }
       feedback={
         <>
-          {after?.change && index === currentIndex && <LevelBanner change={after.change} />}
+          {/* Level news waits for the end of a mixed run: mid-run it names the skill being
+              tested and can discourage after a miss (founder, 2026-11-08). */}
+          {after?.change && index === currentIndex && run.kind === "practice-set" && (
+            <LevelBanner change={after.change} />
+          )}
           {errorBox(error)}
         </>
       }

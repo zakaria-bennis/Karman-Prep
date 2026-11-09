@@ -129,7 +129,6 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
 
   return (
     <div className="mt-6 border-t border-bronze pt-5">
-      <p className="text-xs text-taupe">{q.topic_cluster}</p>
       {review ? (
         <p className="mt-4 text-sm font-semibold text-ivory" role="status">
           {review.isCorrect ? "Correct." : `Not quite. The answer is ${review.correct_answer}.`}
@@ -153,7 +152,6 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
           index={0}
           section="Challenge question"
           backdrop="painting"
-          topic={subjectName[subject]}
           reviews={review ? { [q.id]: review } : {}}
           saved={student.saved}
           hasCalculator={subject === "math"}

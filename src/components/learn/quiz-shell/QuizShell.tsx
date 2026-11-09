@@ -33,6 +33,7 @@ import { Timer } from "./Timer";
 import { BarButton, TopBar } from "./TopBar";
 import { PaintingWindow } from "./PaintingWindow";
 import { rangesFromSelection } from "@/lib/quiz/annotations/ranges";
+import { Explanation } from "./Explanation";
 import { FeedbackBar, ProgressDots } from "./Rewards";
 import { LevelUpCard } from "./LevelUpCard";
 import { DRAWING_NAMES } from "./drawings";
@@ -160,21 +161,22 @@ export function QuizShell(props: QuizShellProps) {
     const t = setTimeout(() => setHint(null), 3200);
     return () => clearTimeout(t);
   }, [hint]);
-  // Highlight: marks the words already selected in the question or passage (Bluebook's way).
-  const highlightSelection = () => {
+  // Highlight: a tool like the pencil (founder, 2026-11-08). Words already selected are
+  // highlighted straight away; after that, every selection is highlighted until it's turned off.
+  const toggleHighlighter = () => {
+    if (s.highlighterOn) return s.setHighlighterOn(false);
+    s.setHighlighterOn(true);
     const sel = window.getSelection();
+    const color = s.annotations.nextColor();
     let added = 0;
-    if (s.annotations.enabled)
-      document
-        .querySelectorAll<HTMLElement>("[data-quiz-shell] [data-quiz-pane]")
-        .forEach((pane) => {
-          for (const r of rangesFromSelection(pane, sel)) {
-            s.annotations.add(r, 1);
-            added++;
-          }
-        });
+    document.querySelectorAll<HTMLElement>("[data-quiz-shell] [data-quiz-pane]").forEach((pane) => {
+      for (const r of rangesFromSelection(pane, sel)) {
+        s.annotations.add(r, color);
+        added++;
+      }
+    });
     if (added) sel?.removeAllRanges();
-    else setHint("Select some words in the question, then tap Highlight.");
+    else setHint("Select words to highlight them. Esc puts the highlighter away.");
   };
   useEffect(() => {
     if (!saveNotice) return;
@@ -199,6 +201,18 @@ export function QuizShell(props: QuizShellProps) {
     s.setPencilOn(!s.pencilOn);
     s.setTool("pen");
   };
+  /* Escape puts the pencil or the highlighter away (menus and dialogs handle their own Escape
+     first). */
+  useEffect(() => {
+    if (!s.pencilOn && !s.highlighterOn) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented || dialog) return;
+      s.setPencilOn(false);
+      s.setHighlighterOn(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  });
   const last = index + 1 >= total;
   const goNext = () => {
     if (!last) return props.onNavigate(index + 1);
@@ -233,6 +247,7 @@ export function QuizShell(props: QuizShellProps) {
   const answer = ws?.answer ?? null;
   const squares = squaresFor(total, questions, s.workspaces, props.reviews, s.saved, mode);
   const math = q.subject === "math";
+  const missAside = instant && layout === "wide" && !!review && !review.isCorrect;
   const dots: DotState[] = Array.from({ length: total }, (_, i) => {
     const item = questions[i];
     const r = item ? props.reviews[item.id] : undefined;
@@ -314,6 +329,7 @@ export function QuizShell(props: QuizShellProps) {
           data-layout={layout}
           data-drawing={s.drawing || undefined}
           data-pencil={s.pencilOn || undefined}
+          data-highlighter={s.highlighterOn || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
           data-backdrop={backdrop}
           className={`${styles.shell} ${styles[layout]}`}
@@ -323,7 +339,7 @@ export function QuizShell(props: QuizShellProps) {
           <div ref={header} className={styles.barGroup}>
             <TopBar
               section={props.section}
-              topic={props.topic ?? q.topic_cluster}
+              topic={props.topic}
               exit={props.onExit && <BarButton icon={<ExitIcon />} word="Exit" onClick={exit} />}
               centre={
                 mode.clock.kind !== "none" &&
@@ -342,9 +358,10 @@ export function QuizShell(props: QuizShellProps) {
                   <BarButton
                     icon={<HighlightIcon />}
                     word="Highlight"
+                    aria-pressed={s.highlighterOn}
                     // Keeps the selection: pressing a button would otherwise clear it first.
                     onPointerDown={(e) => e.preventDefault()}
-                    onClick={highlightSelection}
+                    onClick={toggleHighlighter}
                   />
                   <BarButton
                     icon={
@@ -382,6 +399,7 @@ export function QuizShell(props: QuizShellProps) {
                 layout={layout}
                 questionKey={q.id}
                 direction={direction}
+                aside={missAside && review ? <Explanation q={q} review={review} /> : null}
                 wrap={(c) => (
                   <CalculatorFrame
                     enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
@@ -417,6 +435,7 @@ export function QuizShell(props: QuizShellProps) {
                       figureHere={!hasPassage(q)}
                       hasCalculator={!!props.hasCalculator}
                       pickOffer={s.pickOffer}
+                      explanationAside={missAside}
                       onAnswer={answerWith}
                       onCross={(letter) => s.act({ type: "toggleCross", letter })}
                       onToggleReview={() =>
@@ -491,11 +510,11 @@ export function QuizShell(props: QuizShellProps) {
                   props.onNavigate(i);
                 }}
               />
-              <div className={nav.legend}>
-                <span>Solid: answered</span>
-                <span>Dashed: unanswered</span>
-                {mode.markForReview && <span>Tag: marked for review</span>}
-              </div>
+              {mode.markForReview && (
+                <div className={nav.legend}>
+                  <span>Tag: marked for review</span>
+                </div>
+              )}
             </NavigatorDialog>
           )}
           {dialog === "reference" && (

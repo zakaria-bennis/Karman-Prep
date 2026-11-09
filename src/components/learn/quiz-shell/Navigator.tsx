@@ -52,6 +52,17 @@ export function squaresFor(
   });
 }
 
+/**
+ * Squares per row (founder, 2026-11-08): rows that come out even, as few rows as reads well.
+ * Daily 10 is one row of 10; a Reading and Writing module (27) is rows of 9; a Math module (22)
+ * rows of 11; anything with no even split (Endless) rows of 10.
+ */
+export function columnsFor(total: number): number {
+  if (total <= 12) return Math.max(1, total);
+  for (let c = 12; c >= 6; c--) if (total % c === 0) return c;
+  return 10;
+}
+
 /** The grid of every question in the section (spec: Navigator). */
 export function NavigatorGrid({
   squares,
@@ -66,7 +77,10 @@ export function NavigatorGrid({
 }) {
   const { reduced } = useShellMotion();
   return (
-    <ul className={styles.grid}>
+    <ul
+      className={styles.grid}
+      style={{ "--nav-cols": columnsFor(squares.length) } as React.CSSProperties}
+    >
       {squares.map((s, i) => (
         <li key={i} className={styles.cell}>
           <motion.button
