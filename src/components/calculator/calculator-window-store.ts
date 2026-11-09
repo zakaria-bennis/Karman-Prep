@@ -84,6 +84,8 @@ export const DOCK_MARGIN = 12; /* AR-23 */
  * the question always keeps 25% to 75% too. Supersedes AR-23's 400 px .. min(900, 100vw - 480). */
 export const DOCK_MIN_SHARE = 0.25;
 export const DOCK_MAX_SHARE = 0.75;
+/** The dock is never narrower than this, however small 25% of the viewport is (2026-11-09). */
+export const DOCK_MIN_WIDTH = 320;
 
 /** The default floating size: `min(880px, 100vw - 32px)` by `min(600px, 100dvh - 80px)`. */
 const FLOATING_DEFAULT_SIZE = { width: 880, height: 600 } as const;
@@ -125,9 +127,15 @@ export function clampFloatingRect(rect: WindowRect, viewport: ViewportSize): Win
   };
 }
 
-/** The narrowest dock width in this viewport: 25% of it, less the two margins. */
+/** The narrowest dock width in this viewport: 25% of it less the two margins, and never under
+ * the 320 px floor. */
 export function minDockWidth(viewportWidth: number): number {
-  return Math.max(0, Math.round(DOCK_MIN_SHARE * viewportWidth) - 2 * DOCK_MARGIN);
+  return Math.max(DOCK_MIN_WIDTH, Math.round(DOCK_MIN_SHARE * viewportWidth) - 2 * DOCK_MARGIN);
+}
+
+/** Whether the floor-width dock still leaves the question at least 25% of the viewport. */
+export function dockFits(viewportWidth: number): boolean {
+  return Math.round(DOCK_MAX_SHARE * viewportWidth) - 2 * DOCK_MARGIN >= DOCK_MIN_WIDTH;
 }
 
 /** The widest dock width in this viewport: 75% of it, less the two margins. */
@@ -146,21 +154,32 @@ export function defaultDockWidth(viewportWidth: number): number {
   );
 }
 
-/** `width` kept so the dock takes 25% to 75% of the viewport (founder, 2026-11-08). */
+/** `width` kept so the dock takes 25% to 75% of the viewport (founder, 2026-11-08), but at least
+ * 320 px. */
 export function clampDockWidth(width: number, viewportWidth: number): number {
   return clamp(width, minDockWidth(viewportWidth), maxDockWidth(viewportWidth));
 }
 
 /**
  * The mode the window shows: full screen while the viewport asks for it (AR-26), else the stored
- * mode when it is floating, docked or maximized, else the mode to restore.
+ * mode when it is floating, docked or maximized, else the mode to restore. A dock that cannot fit
+ * its 320 px floor beside 25% of question shows full screen.
  */
-export function windowModeFor(state: WindowStoreState, fullScreen: boolean): WindowMode {
+export function windowModeFor(
+  state: WindowStoreState,
+  fullScreen: boolean,
+  viewportWidth?: number
+): WindowMode {
   if (fullScreen) return "fullscreen";
-  if (state.mode === "floating" || state.mode === "docked" || state.mode === "maximized") {
-    return state.mode;
+  const mode =
+    state.mode === "floating" || state.mode === "docked" || state.mode === "maximized"
+      ? state.mode
+      : state.restoreMode;
+  // Too narrow for a 320 px dock beside 25% of question: show it full screen instead.
+  if (mode === "docked" && viewportWidth !== undefined && !dockFits(viewportWidth)) {
+    return "fullscreen";
   }
-  return state.restoreMode;
+  return mode;
 }
 
 function initialState(): WindowStoreState {

@@ -77,6 +77,12 @@ export async function nextDiagnosticRun(
   return nextDiagnosticKey(latest.runKey);
 }
 
+/** How many admin-granted retakes are left, read only (0 when unknown). */
+export async function diagnosticRetakesLeft(clerkId: string): Promise<number> {
+  const user = await userRow(clerkId);
+  return Math.max(0, user?.diagnostic_retakes_remaining ?? 0);
+}
+
 /** Uses one admin-granted retake. False when none is left. */
 async function consumeDiagnosticRetake(clerkId: string): Promise<boolean> {
   const user = await userRow(clerkId);

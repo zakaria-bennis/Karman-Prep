@@ -22,7 +22,7 @@ import {
   windowStore,
 } from "./transfer-helpers";
 
-test("AR-21, TR-64, L-7 a transfer docks at 1024 px and wider over 500 px tall as a left column of clamp(400px, 45vw, 720px) resizable by 16 px arrow steps, Home, End and pointer drag between 400 px and min(900px, 100vw - 480px) with a single-column question, and opens full screen otherwise", async ({
+test("AR-21, TR-64, L-7 a transfer docks at 1024 px and wider over 500 px tall as a left column at 45% of the viewport less its margins, resizable by 16 px arrow steps, Home, End and pointer drag between 25% and 75% of the viewport (margins included) and never under 320 px, with a single-column question, and opens full screen otherwise", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -44,7 +44,9 @@ test("AR-21, TR-64, L-7 a transfer docks at 1024 px and wider over 500 px tall a
     await expect(row(page, 1)).toBeFocused();
     expect(await rows(page)).toEqual(["y>2x+1"]);
     if (mode !== "docked") continue;
-    const dock = Math.round(Math.min(720, Math.max(400, 0.45 * width)));
+    const min = Math.max(320, Math.round(0.25 * width) - 24);
+    const max = Math.max(min, Math.round(0.75 * width) - 24);
+    const dock = Math.min(max, Math.max(min, Math.round(0.45 * width) - 24));
     const top = await page
       .locator('[data-quiz-bar="top"]')
       .evaluate((el) => Math.round(el.getBoundingClientRect().bottom) + 8);
@@ -54,9 +56,8 @@ test("AR-21, TR-64, L-7 a transfer docks at 1024 px and wider over 500 px tall a
       width: dock,
       height: height - top - 12,
     });
-    const max = Math.max(400, Math.min(900, width - 480));
     const sep = page.getByRole("separator", { name: "Resize calculator dock" });
-    await expect(sep).toHaveAttribute("aria-valuemin", "400");
+    await expect(sep).toHaveAttribute("aria-valuemin", String(min));
     await expect(sep).toHaveAttribute("aria-valuemax", String(max));
     expect(
       await page
@@ -72,12 +73,12 @@ test("AR-21, TR-64, L-7 a transfer docks at 1024 px and wider over 500 px tall a
     await page.keyboard.press("ArrowLeft");
     expect(await w()).toBe(dock);
     await page.keyboard.press("Home");
-    expect(await w()).toBe(400);
+    expect(await w()).toBe(min);
     await page.keyboard.press("End");
     expect(await w()).toBe(max);
     // drags past each bound land exactly on it
     for (const [toX, expected] of [
-      [20, 400],
+      [20, min],
       [width - 20, max],
     ] as const) {
       const s = await box(sep);
