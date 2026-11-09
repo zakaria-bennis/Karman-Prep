@@ -501,7 +501,6 @@ export function QuizShell(props: QuizShellProps) {
                 <FeedbackBar
                   key={q.id}
                   correct={review.isCorrect}
-                  points={review.points ?? 0}
                   streak={rewards.streak}
                   showStreak={reward.showStreak}
                   drawing={drawing}
