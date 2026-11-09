@@ -11,11 +11,11 @@
     }
   },
   "eagerAddedGzipBytes": {
-    "/learn/[subject]/[nodeId]/page": 0,
-    "/learn/practice/[skillId]/page": 0,
-    "/learn/daily/page": 0,
-    "/learn/earlier/[subject]/page": 0,
-    "/learn/diagnostic/page": 0
+    "/learn/[subject]/[nodeId]/page": 259,
+    "/learn/practice/[skillId]/page": 1635,
+    "/learn/daily/page": 767,
+    "/learn/earlier/[subject]/page": 1051,
+    "/learn/diagnostic/page": 1069
   },
   "lazyGzipBytes": 202446,
   "workerGzipBytes": 95377,
