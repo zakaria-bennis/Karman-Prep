@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { QuizShell, type QuizShellProps } from "./QuizShell";
 import { LevelUpCard, bandRank, bandRose } from "./LevelUpCard";
 import { modeFor } from "@/lib/quiz/mode";
