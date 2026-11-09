@@ -142,7 +142,16 @@ export const karmanAuth = async (auth: ClerkMiddlewareAuth, request: NextRequest
 };
 
 /** Real middleware — Clerk auth + maintenance gate. */
-const realMiddleware = clerkMiddleware(karmanAuth, KARMAN_AUTH_ROUTES);
+/** Only karmanprep.com may present a Clerk session in production (Clerk's production guide:
+ *  authorizedParties guards against session cookies leaking from another subdomain). Local
+ *  development keeps Clerk's default so localhost still signs in. */
+const AUTHORIZED_PARTIES =
+  process.env.NODE_ENV === "production" ? ["https://karmanprep.com"] : undefined;
+
+const realMiddleware = clerkMiddleware(karmanAuth, {
+  ...KARMAN_AUTH_ROUTES,
+  authorizedParties: AUTHORIZED_PARTIES,
+});
 
 /** After launch: one address (www goes to karmanprep.com), the retired coming-soon page goes home,
  *  marketing pages skip Clerk, everything else goes through it. */
