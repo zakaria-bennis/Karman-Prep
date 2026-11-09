@@ -11,6 +11,7 @@
  */
 import type { ComponentType } from "react";
 import SkyToGround from "./1-sky-to-ground/SkyToGround";
+import Telescope from "./2-telescope/Telescope";
 
 export type Subject = "math" | "rw";
 export type IntroProps = {
@@ -21,4 +22,7 @@ export type IntroProps = {
   onChoose: (s: Subject) => void;
 };
 export type IntroDef = { id: number; name: string; Component: ComponentType<IntroProps> };
-export const INTROS: IntroDef[] = [{ id: 1, name: "Sky to ground", Component: SkyToGround }];
+export const INTROS: IntroDef[] = [
+  { id: 1, name: "Sky to ground", Component: SkyToGround },
+  { id: 2, name: "Telescope", Component: Telescope },
+];

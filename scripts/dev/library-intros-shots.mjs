@@ -60,7 +60,7 @@ async function open({
 const shot = (page, name) =>
   page.screenshot({ path: `${OUT}/${name}.jpg`, quality: 78, type: "jpeg" });
 
-const choice = (slug) => `[data-intro] [data-slug="${slug}"]`;
+const choice = (slug) => `[data-intro] button[data-slug="${slug}"]`;
 
 /** The middle of a choice's name (or of the choice itself). */
 async function centerOf(page, slug) {

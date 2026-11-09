@@ -32,12 +32,13 @@ export interface DayReading {
 }
 
 export function dayPlan(layout: Layout, aspect: number): { math: DayMath; reading: DayReading } {
+  /* The tail trails down and to the right, away from the name. */
   const tail = (x: number, y: number, len: number, curl: number): Pt[] =>
-    Array.from({ length: 28 }, (_, i) => {
-      const t = i / 27;
+    Array.from({ length: 24 }, (_, i) => {
+      const t = i / 23;
       return [
-        x - t * len * 0.75,
-        y + (t * len * 0.9 + Math.sin(t * Math.PI * curl) * len * 0.12) / aspect,
+        x + t * len * 0.45 + Math.sin(t * Math.PI * curl) * len * 0.08,
+        y + (t * len * 0.75) / aspect,
       ];
     });
   if (layout === "wide") {
@@ -52,8 +53,8 @@ export function dayPlan(layout: Layout, aspect: number): { math: DayMath; readin
         birds: [0.1, 0.4],
       },
       reading: {
-        kite: [0.82, 0.22, 0.04],
-        tail: tail(0.82, 0.22 + 0.06 / aspect, 0.34, 2.2),
+        kite: [0.8, 0.2, 0.04],
+        tail: tail(0.8, 0.2 + 0.06 / aspect, 0.2, 2.2),
         planes: [
           [0.55, 0.82, 0.03],
           [0.9, 0.7, 0.025],
@@ -72,8 +73,8 @@ export function dayPlan(layout: Layout, aspect: number): { math: DayMath; readin
       birds: [0.14, 0.12],
     },
     reading: {
-      kite: [0.78, 0.55, 0.06],
-      tail: tail(0.78, 0.55 + 0.09 / aspect, 0.5, 2),
+      kite: [0.74, 0.5, 0.06],
+      tail: tail(0.74, 0.5 + 0.09 / aspect, 0.26, 2),
       planes: [
         [0.25, 0.86, 0.05],
         [0.68, 0.92, 0.04],
