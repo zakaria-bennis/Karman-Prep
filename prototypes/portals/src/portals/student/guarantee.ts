@@ -107,7 +107,7 @@ export function guaranteeStatus(plan: PlanId, studentId: string): GuaranteeStatu
 console.assert(guaranteeStatus("cohort", "ava")?.onTrack === true, "the cohort demo is on track");
 console.assert(guaranteeStatus("private20", "maya")?.rows.length === 3, "three Private 20 rows");
 console.assert(
-  guaranteeStatus("plus", "sofia") === null,
+  guaranteeStatus("pro", "sofia") === null,
   "no guarantee on Pro"
 );
 console.assert(guaranteeStatus("private10", "maya")?.rows.length === 3, "Private 10 carries the guarantee too");

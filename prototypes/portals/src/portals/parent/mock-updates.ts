@@ -236,7 +236,7 @@ console.assert(
   "Omar has used every one of Free’s 100 questions"
 );
 console.assert(
-  questionsAnswered(anyStudent("lin"), "platform", "long-time") <= (PLANS.platform.questions === "all" ? Infinity : PLANS.platform.questions),
+  questionsAnswered(anyStudent("lin"), "practice", "long-time") <= (PLANS.practice.questions === "all" ? Infinity : PLANS.practice.questions),
   "Lin’s answers fit inside Practice"
 );
 console.assert(

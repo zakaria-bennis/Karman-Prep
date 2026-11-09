@@ -142,7 +142,7 @@ export function NextUp({ v }: { v: StudentView }) {
       {v.firstDay ? (
         <p className="text-dense text-muted">
           After the diagnostic, Your Daily 10 opens every day
-          {v.has("daily10") ? "" : ` on ${PLANS.platform.name}`}.
+          {v.has("daily10") ? "" : ` on ${PLANS.practice.name}`}.
         </p>
       ) : nothing ? (
         <Empty

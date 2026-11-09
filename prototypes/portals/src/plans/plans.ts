@@ -2,13 +2,12 @@
  * The plan ladder as data (docs/business/plan-ladder-2026-11-08.md). Names and
  * prices mirror src/lib/marketing/offer.ts (PRACTICE_PLAN, PRO_PLAN,
  * MARCH_PROGRAM, PRIVATE_PACKAGES, SCHOOL_PLAN) as of 2026-11-08; Phase 2 reads
- * offer.ts and src/lib/plans directly and deletes the copies here. The ids
- * "platform" and "plus" are this prototype's old keys for Practice and Pro; the
- * app's plan ids are practice, pro, private-10 and private-20.
+ * offer.ts and src/lib/plans directly and deletes the copies here. The ids match
+ * the app's plan ids except private10 and private20 (private-10 and private-20 there).
  * Every screen reads this through usePlan(); no plan name is hard-coded in a
  * component.
  */
-export type PlanId = "free" | "platform" | "plus" | "cohort" | "private10" | "private20" | "school";
+export type PlanId = "free" | "practice" | "pro" | "cohort" | "private10" | "private20" | "school";
 export type BundleId =
   | "quiz"
   | "calculator"
@@ -82,7 +81,7 @@ export const BUNDLES: Record<BundleId, Bundle> = {
   workshops: {
     id: "workshops",
     name: "The weekly live session",
-    description: "Test mechanics and skill workshops, for the cohort and private students.
+    description: "Test mechanics and skill workshops, for the cohort and private students.",
   },
   liveClasses: {
     id: "liveClasses",
@@ -135,8 +134,8 @@ export const PLANS: Record<PlanId, Plan> = {
     guarantee: false,
     bundles: ["quiz", "challenge", "progress"],
   },
-  platform: {
-    id: "platform",
+  practice: {
+    id: "practice",
     name: "Practice",
     description:
       "The core question pool with written explanations, Your Daily 10, full-length tests, the calculator.",
@@ -147,8 +146,8 @@ export const PLANS: Record<PlanId, Plan> = {
     guarantee: false,
     bundles: PRACTICE,
   },
-  plus: {
-    id: "plus",
+  pro: {
+    id: "pro",
     name: "Pro",
     description:
       "Every question, including the hard mastery pool, and video explanations as they're recorded.",
@@ -210,7 +209,7 @@ export const PLANS: Record<PlanId, Plan> = {
 export const PLAN_IDS = Object.keys(PLANS) as PlanId[];
 export const BUNDLE_IDS = Object.keys(BUNDLES) as BundleId[];
 /** The upgrade ladder. A school seat upgrades into the family plans from the bottom. */
-export const LADDER: PlanId[] = ["free", "platform", "plus", "cohort", "private10", "private20"];
+export const LADDER: PlanId[] = ["free", "practice", "pro", "cohort", "private10", "private20"];
 
 export function has(plan: PlanId, bundle: BundleId): boolean {
   return PLANS[plan].bundles.includes(bundle);
@@ -235,6 +234,6 @@ console.assert(
   "every plan has the quiz engine, the challenge and progress"
 );
 console.assert(
-  upgradeFor("free", "daily10") === "platform" && upgradeFor("platform", "workshops") === "cohort",
+  upgradeFor("free", "daily10") === "practice" && upgradeFor("practice", "workshops") === "cohort",
   "ladder order"
 );

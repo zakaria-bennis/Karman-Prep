@@ -16,7 +16,7 @@ const arg = (name, fallback) => { const i = process.argv.indexOf(`--${name}`); r
 const only = arg("only", ["routes", "plans", "states"]);
 const screens = arg("screens", null);
 const routes = screens ? studentRoutes.filter((r) => screens.includes(r.id)) : studentRoutes;
-const PLANS = ["free", "platform", "plus", "cohort", "private10", "private20", "school"];
+const PLANS = ["free", "practice", "pro", "cohort", "private10", "private20", "school"];
 const STATES = ["long-time", "first-day", "empty", "loading", "error", "locked"];
 
 const DEVICES = {

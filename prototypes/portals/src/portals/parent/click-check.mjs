@@ -17,7 +17,7 @@ const url = (id, o) => `${BASE}/#/screen/parent/${id}?portal=parent&screen=${id}
 
 for (const [device, mode, size] of [["phone", "dark", { width: 440, height: 956 }], ["desktop", "light", { width: 1440, height: 900 }]]) {
   for (const r of parentRoutes) {
-    for (const plan of r.id === "plan" ? ["plus", "cohort", "private20", "free"] : r.id === "home" ? ["plus", "free"] : ["plus"]) {
+    for (const plan of r.id === "plan" ? ["pro", "cohort", "private20", "free"] : r.id === "home" ? ["pro", "free"] : ["pro"]) {
       const page = await browser.newPage({ viewport: size, colorScheme: mode, isMobile: device === "phone", hasTouch: device === "phone" });
       page.on("pageerror", (e) => errors.push(`${r.id}/${device}: ${e.message}`));
       page.on("console", (m) => { if (m.type() === "error" || (m.type() === "warning" && /assert/i.test(m.text()))) errors.push(`${r.id}/${device}: ${m.text()}`); });

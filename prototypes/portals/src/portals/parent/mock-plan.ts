@@ -275,6 +275,6 @@ console.assert(
   "exactly one installment is due next"
 );
 console.assert(
-  nextPlanFor("private20") === null && nextPlanFor("school")?.plan.id === "plus",
+  nextPlanFor("private20") === null && nextPlanFor("school")?.plan.id === "pro",
   "the ladder’s ends"
 );

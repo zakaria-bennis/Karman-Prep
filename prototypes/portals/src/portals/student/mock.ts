@@ -174,8 +174,8 @@ export function cohortStanding(predicted: number | null) {
 /** The student each plan shows in the gallery, so every plan's screens carry that student's honest numbers. */
 export const STUDENT_BY_PLAN: Record<PlanId, string> = {
   free: "noah",
-  platform: "lin",
-  plus: "sofia",
+  practice: "lin",
+  pro: "sofia",
   cohort: "ava",
   private10: "maya",
   private20: "maya",
@@ -215,7 +215,7 @@ export function eventsFor(plan: PlanId, firstDay: boolean): CalEvent[] {
       ? EVENTS.ava
       : plan === "private10" || plan === "private20"
         ? EVENTS.maya
-        : plan === "plus"
+        : plan === "pro"
           ? EVENTS.sofia
           : [];
   return own.map((e) => ({ ...e, title: shortTitle(e.title) }));
@@ -256,7 +256,7 @@ console.assert(
   "every miss points at a demo question"
 );
 console.assert(
-  hoursFor("private20") === 20 && hoursFor("plus") === 0,
+  hoursFor("private20") === 20 && hoursFor("pro") === 0,
   "hours only on private plans"
 );
 console.assert(

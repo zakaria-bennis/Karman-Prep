@@ -51,8 +51,8 @@ export const anyStudent = (id: string): Student =>
 /** Which student the gallery’s plan switch shows. Maya buys Private in both sizes. */
 export const STUDENT_FOR_PLAN: Record<PlanId, string> = {
   free: "omar",
-  platform: "lin",
-  plus: "sofia",
+  practice: "lin",
+  pro: "sofia",
   cohort: "ava",
   private10: "maya",
   private20: "maya",

@@ -9,7 +9,7 @@ export interface Route {
   settings: Settings;
 }
 
-/** #/screen/student/home?plan=plus&device=phone → { path: ["screen","student","home"], settings } */
+/** #/screen/student/home?plan=pro&device=phone → { path: ["screen","student","home"], settings } */
 export function parseHash(hash = location.hash): Route {
   const [p, q = ""] = hash.replace(/^#\/?/, "").split("?");
   const query = new URLSearchParams(q);

@@ -115,7 +115,7 @@ an empty block keeps its frame, a locked panel stays readable, no em dashes, no 
 
 ## Plans (`src/plans/`)
 
-`PLANS` (free, platform, plus, cohort, private10, private20, school: id, name,
+`PLANS` (free, practice, pro, cohort, private10, private20, school: id, name,
 description, price, billing, priceLabel, questions, guarantee, bundles), `BUNDLES` (the 13:
 quiz, calculator, daily10, challenge, fullLength, progress, planning, workshops,
 liveClasses, oneToOne, parent, guarantee, school), `has(plan, bundle)`, `upgradeFor(plan,
@@ -125,7 +125,7 @@ upgradeFor(bundle) }`. Never hard-code a plan name in a component.
 ## Mock data (`src/mock/`), the fixed clock is 2026-10-31 09:41
 
 `TODAY`, `NOW`, `SAT_MARCH` (2027-03-06), `FREE_TEST`, `daysUntil`, `addDays`, `fmtDate`;
-`STUDENTS` (Maya private20, Noah free first day, Lin platform, Sofia plus, Ava cohort with
+`STUDENTS` (Maya private20, Noah free first day, Lin practice, Sofia pro, Ava cohort with
 David, Theo on a Ridgeview High seat), `PARENTS` (Dana has Maya and Noah), `TUTORS` (David,
 Zakaria), `STAFF`, `SCHOOL`, `COHORTS`, `CLASSES`, `studentById`; `SKILLS` (39, exact
 labels), `DOMAINS`, `levelsFor(studentId)`, `movedToday`, `weakest`, `byBand`; `QUESTIONS`

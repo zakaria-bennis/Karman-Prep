@@ -15,7 +15,7 @@ const OUT = fileURLToPath(new URL("../../../shots/parent/", import.meta.url));
 const BASE = process.env.BASE ?? "http://127.0.0.1:5174";
 const arg = (name, fallback) => { const i = process.argv.indexOf(`--${name}`); return i > 0 ? process.argv[i + 1].split(",") : fallback; };
 const only = arg("only", ["routes", "plans", "states"]);
-const PLANS = ["free", "platform", "plus", "cohort", "private10", "private20", "school"];
+const PLANS = ["free", "practice", "pro", "cohort", "private10", "private20", "school"];
 const STATES = ["long-time", "first-day", "empty", "loading", "error", "locked"];
 
 const DEVICES = {

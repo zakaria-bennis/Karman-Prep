@@ -18,7 +18,7 @@ export const ROUTES: ScreenRoute[] = [
 export const SWITCHES = {
   portal: ["student", "parent", "tutor", "school", "daily10"],
   role: ["student", "parent", "tutor", "teacher", "admin"],
-  plan: ["free", "platform", "plus", "cohort", "private10", "private20", "school"],
+  plan: ["free", "practice", "pro", "cohort", "private10", "private20", "school"],
   device: ["phone", "narrow", "ipad", "desktop"],
   theme: [
     "observatory",
@@ -44,7 +44,7 @@ export const SWITCHES = {
 export const DEFAULTS = {
   portal: "student",
   role: "student",
-  plan: "plus",
+  plan: "pro",
   device: "phone",
   theme: "",
   mode: "device",

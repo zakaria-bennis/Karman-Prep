@@ -91,10 +91,10 @@ console.assert(
   periodFor("cohort", anyStudent("ava"), "long-time").tests === 1,
   "Ava has taken one full-length test since joining the cohort"
 );
-const sofia = periodFor("plus", anyStudent("sofia"), "long-time");
+const sofia = periodFor("pro", anyStudent("sofia"), "long-time");
 console.assert(
   sofia.from === "charge" &&
-    sofia.questions <= questionsAnswered(anyStudent("sofia"), "plus", "long-time"),
+    sofia.questions <= questionsAnswered(anyStudent("sofia"), "pro", "long-time"),
   "the span since the last charge never exceeds the total answered"
 );
 console.assert(
@@ -112,6 +112,6 @@ console.assert(
   "the sections add up to the questions used"
 );
 console.assert(
-  allowanceFor("plus", anyStudent("sofia"), "long-time") === null,
+  allowanceFor("pro", anyStudent("sofia"), "long-time") === null,
   "a plan with every question has no allowance"
 );

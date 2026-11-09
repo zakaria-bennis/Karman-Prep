@@ -20,7 +20,7 @@ Plex Sans 400 to 600, IBM Plex Serif 400). Phase 2 self-hosts the same files.
 ## The gallery
 
 - `#/` is the start page. Its switches are portal (student, parent, tutor,
-  school, daily10), screen, role, plan (free, platform, plus, cohort,
+  school, daily10), screen, role, plan (free, practice, pro, cohort,
   private10, private20, school), state (long-time, first-day, empty, loading,
   error, locked), device (phone 440, 375, iPad, desktop), theme (the 12 account
   themes, or follow the mode), mode (device, light, dark), type (hanken, plex),
