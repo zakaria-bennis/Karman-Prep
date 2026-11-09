@@ -3,7 +3,8 @@
  * hovered, the middle of the closing animation and the end state (the box open over the ground),
  * at 1440 and 390 wide, by day and by night; plus frame sequences and the twinkling Challenge.
  * Intros mark their two choices with `data-slug="math"` and `data-slug="reading-writing"`.
- * Needs a dev server with the dev sign-in bypass (BASE, default http://localhost:3163).
+ * Uses the dev preview /dev/library-intros (no database, no sign-in). Needs a dev server
+ * (BASE, default http://localhost:3163).
  *   node scripts/dev/library-intros-shots.mjs [ids, e.g. 1,2,3] [only]
  * Writes to docs/overnight/reports/library-intros/. Uses the installed Chrome (PW_BUNDLED=1 for
  * Playwright's own).
@@ -51,9 +52,12 @@ async function open({
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   const q = intro ? `intro=${intro}&` : "";
-  await page.goto(`${BASE}/dashboard/student/library?${q}paint-time=${time}`, {
-    waitUntil: "load",
-  });
+  await page.goto(
+    `${BASE}/dev/library-intros?${q}${challenge ? "challenge=1&" : ""}paint-time=${time}`,
+    {
+      waitUntil: "load",
+    }
+  );
   return { ctx, page, errors };
 }
 
