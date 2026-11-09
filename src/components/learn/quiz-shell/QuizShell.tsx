@@ -21,7 +21,7 @@ import { BottomBar } from "./BottomBar";
 import { CALC_SLOT_ID, CalculatorFrame } from "./CalculatorSlot";
 import { FigureSlot } from "./FigureSlot";
 import { ChevronIcon, ExitIcon, HighlightIcon, PenIcon, ReferenceIcon } from "./icons";
-import { MoreMenu } from "./MoreMenu";
+import { MoreMenu, TEXT_SIZES } from "./MoreMenu";
 import { NavigatorDialog, NavigatorGrid, squaresFor } from "./Navigator";
 import { PassageBlock, hasPassage } from "./PassageBlock";
 import { PencilContext } from "./pencil-context";
@@ -101,6 +101,8 @@ export function QuizShell(props: QuizShellProps) {
   const [dialog, setDialog] = useState<"nav" | "reference" | "exit" | null>(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
+  /** Bumped by "?" to open the shortcuts list in the More menu. */
+  const [shortcutsAsked, setShortcutsAsked] = useState(0);
   // The host's server start time wins; otherwise the first start this session (survives reloads).
   // Nothing is recorded while the host is still loading (its attempt key is not real yet).
   const startedAt = useMemo(
@@ -240,6 +242,26 @@ export function QuizShell(props: QuizShellProps) {
     redo: () => s.act({ type: "redo" }),
     back: () => (checking ? setChecking(false) : index > 0 && props.onNavigate(index - 1)),
     next: () => canNext && !checking && goNext(),
+    highlight: toggleHighlighter,
+    calculator: () =>
+      document
+        .querySelector<HTMLButtonElement>("[data-quiz-shell] [data-calculator-trigger]")
+        ?.click(),
+    reference: () =>
+      q?.subject === "math" && setDialog((d) => (d === "reference" ? null : "reference")),
+    eliminator: () => setEliminatorOn((v) => !v),
+    submit: () => {
+      if (!q || checking) return;
+      const picked = s.workspaces[q.id]?.answer;
+      if (mode.grading === "instant" && !review) return picked && props.onSubmit?.(q.id, picked);
+      if (canNext) goNext();
+    },
+    textSize: (step) => {
+      const i = TEXT_SIZES.indexOf(s.textSize as (typeof TEXT_SIZES)[number]);
+      const nextSize = TEXT_SIZES[Math.min(TEXT_SIZES.length - 1, Math.max(0, i + step))];
+      if (nextSize) s.setTextSize(nextSize);
+    },
+    help: () => setShortcutsAsked((n) => n + 1),
   });
 
   if (props.loading || !q) return <ShellSkeleton layout={layout} />;
@@ -382,6 +404,8 @@ export function QuizShell(props: QuizShellProps) {
                   <MoreMenu
                     textSize={s.textSize}
                     onTextSize={s.setTextSize}
+                    shortcutsAsked={shortcutsAsked}
+                    math={math}
                     showSounds={mode.grading === "instant"}
                     onReport={
                       props.onReportProblem &&

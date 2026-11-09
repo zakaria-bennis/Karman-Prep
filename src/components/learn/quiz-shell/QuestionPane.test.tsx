@@ -250,9 +250,7 @@ describe("saving markers", () => {
     setup({ onReportProblem });
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("button", { name: "Report a problem" }));
-    fireEvent.change(screen.getByLabelText("What is wrong with this question?"), {
-      target: { value: "Typo" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "Typo or wording" }));
     fireEvent.click(screen.getByRole("button", { name: "Send report" }));
     expect(await screen.findByText("That did not send. Try again.")).toBeTruthy();
     expect(screen.queryByText(/Thanks/)).toBeNull();
