@@ -51,27 +51,33 @@ export function BookmarkIcon({ state = "off", ...p }: IconProps) {
   );
 }
 
-/** The flag rises up its pole and waves once. */
-export function FlagIcon({ state = "off", ...p }: IconProps) {
+/**
+ * Asking the tutor: a raised hand (founder, 2026-11-08, in place of the flag). When on, the hand
+ * lifts, gives one small wave and two short strokes appear beside it.
+ */
+export function RaiseHandIcon({ state = "off", ...p }: IconProps) {
   const t = useStateTransition(true);
   const { reduced } = useShellMotion();
   const on = state === "on";
   return (
     <Svg {...p}>
-      <path d="M6 21V3" />
-      <motion.path
-        d="M6 4h11l-2.5 4 2.5 4H6"
+      <motion.g
         initial={false}
-        animate={{
-          y: on ? 0 : 6,
-          scaleY: on ? 1 : 0.55,
-          fillOpacity: on ? 1 : 0,
-          rotate: on && !reduced ? [0, -5, 3, 0] : 0,
-        }}
-        style={{ originX: 0, originY: 0 }}
-        fill="currentColor"
-        // The wave has four keyframes, so it runs as a tween; the rise keeps the spring.
-        transition={{ ...t, rotate: { type: "tween", duration: 0.5, ease: "easeInOut" } }}
+        animate={{ y: on ? -1.5 : 0.5, rotate: on && !reduced ? [0, -8, 6, 0] : 0 }}
+        style={{ originX: "50%", originY: "100%" }}
+        transition={{ ...t, rotate: { type: "tween", duration: 0.55, ease: "easeInOut" } }}
+      >
+        <path d="M8.5 12.5V7a1.5 1.5 0 0 1 3 0v5" />
+        <path d="M11.5 11.5V5a1.5 1.5 0 0 1 3 0v6.5" />
+        <path d="M14.5 11.5V6.5a1.5 1.5 0 0 1 3 0v7" />
+        <path d="M17.5 10a1.5 1.5 0 0 1 3 0v4.5a7 7 0 0 1-7 7h-.8a6 6 0 0 1-4.5-2l-3.5-4a1.6 1.6 0 0 1 2.4-2.1l1.4 1.5V12.5" />
+      </motion.g>
+      <motion.path
+        d="M3.5 6.5l1.6 1.2M5 3.5l.9 1.8"
+        initial={false}
+        animate={{ opacity: on ? 1 : 0, scale: on ? 1 : 0.6 }}
+        style={{ originX: "100%", originY: "100%" }}
+        transition={t}
       />
     </Svg>
   );

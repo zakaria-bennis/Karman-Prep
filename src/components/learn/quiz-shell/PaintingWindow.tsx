@@ -1,5 +1,5 @@
 "use client";
-// The Challenge questions' backdrop (founder, 2026-11-08: "painting window"). Today's Karman
+// The backdrop behind the Challenge and every untimed quiz (founder, 2026-11-08: "painting window"). Today's Karman
 // painting, painted once with the portal's brush strokes and then held still: no opening, no
 // birds, no particles, so nothing ever moves behind text. Its hue tints the bars. The engine
 // loads in its own chunk after the question is on screen.

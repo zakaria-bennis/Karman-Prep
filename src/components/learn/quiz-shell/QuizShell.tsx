@@ -75,8 +75,9 @@ export type QuizShellProps = {
   /** A completed skill set moved the skill's band (skill practice only). */
   levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
   onLevelUpDone?(): void;
-  /** The day's painting, still, around the question (the Challenge questions only). */
-  backdrop?: "painting";
+  /** The day's painting, still, around the question. Untimed practice (instant grading, no
+   *  countdown) gets it by default (founder, 2026-11-08); "none" turns it off. */
+  backdrop?: "painting" | "none";
 };
 
 function seedOf(text: string): number {
@@ -89,6 +90,8 @@ export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
   const layout = useQuizLayout();
   const q = questions[index];
+  const untimed = mode.grading === "instant" && !props.hideClock;
+  const backdrop = props.backdrop ?? (untimed ? "painting" : "none");
   const total = props.total ?? questions.length;
   const review = q ? props.reviews[q.id] : undefined;
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
@@ -312,11 +315,11 @@ export function QuizShell(props: QuizShellProps) {
           data-drawing={s.drawing || undefined}
           data-pencil={s.pencilOn || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
-          data-backdrop={props.backdrop}
+          data-backdrop={backdrop}
           className={`${styles.shell} ${styles[layout]}`}
           style={{ "--quiz-text-scale": s.textSize / 100 } as React.CSSProperties}
         >
-          {props.backdrop === "painting" && <PaintingWindow />}
+          {backdrop === "painting" && <PaintingWindow />}
           <div ref={header} className={styles.barGroup}>
             <TopBar
               section={props.section}

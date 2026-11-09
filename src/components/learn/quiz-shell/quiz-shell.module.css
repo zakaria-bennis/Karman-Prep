@@ -556,12 +556,29 @@
 .painting[data-ready] {
   opacity: 1;
 }
+/* With the painting behind it, the whole quiz takes the painting's colours (founder,
+   2026-11-08: "a matching color theme to the background … you don't need to stick exclusively
+   to marigold"). Light and dark still follow the device: each has its own painted set. The
+   accent is light in dark mode and dark in light mode, so text on it (--quiz-bg) stays legible.
+   Right and wrong keep their own colours. */
 .shell[data-backdrop="painting"] {
   --window-bar: hsl(var(--hue, 208) 34% 95%);
+  --quiz-bg: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 95%);
+  --quiz-panel: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.4) 98%);
+  --quiz-line: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.3) 80%);
+  --quiz-text: hsl(var(--hue, 208) 30% 12%);
+  --quiz-text-muted: hsl(var(--hue, 208) 14% 36%);
+  --quiz-accent: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.9) 34%);
 }
 @media (prefers-color-scheme: dark) {
   .shell[data-backdrop="painting"] {
     --window-bar: hsl(var(--hue, 208) 26% 12%);
+    --quiz-bg: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 8%);
+    --quiz-panel: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 11%);
+    --quiz-line: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.3) 24%);
+    --quiz-text: hsl(var(--hue, 208) 20% 93%);
+    --quiz-text-muted: hsl(var(--hue, 208) 12% 70%);
+    --quiz-accent: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.9) 68%);
   }
 }
 .shell[data-backdrop="painting"] .barGroup,
