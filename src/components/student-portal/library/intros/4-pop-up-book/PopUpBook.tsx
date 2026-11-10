@@ -154,6 +154,7 @@ export default function PopUpBook({ percents, time, reducedMotion, onChoose }: I
   return (
     <div
       className={`${kit.root} ${styles.root}`}
+      data-intro="4"
       data-shown={shown || undefined}
       data-phase={phase}
       data-time={time}
