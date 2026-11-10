@@ -10,9 +10,12 @@ import "@/app/(site)/styles/schools-lab.css";
 
 const OPTIONS = [
   ["0", "Today"],
-  ["1", "Counted"],
-  ["2", "Changing wall"],
-  ["3", "Clouds"],
+  ["1", "A. Counted"],
+  ["2", "B. Changing wall"],
+  ["3", "C. Clouds"],
+  ["4", "D. Roll call"],
+  ["5", "E. Spotlight"],
+  ["6", "F. Lanterns"],
 ] as const;
 const TOP = 12;
 const PLACES = 10;
@@ -136,6 +139,78 @@ function Clouds({ schools }: { schools: School[] }) {
   );
 }
 
+/** 4. No logos: the names themselves, set large like the headline, coming into focus one after another. */
+function RollCall({ schools }: { schools: School[] }) {
+  return (
+    <p className="sch sch-roll rv">
+      {schools.map((s, i) => (
+        <span key={s.name} data-big={i < TOP || undefined} style={{ "--k": i } as CSSProperties}>
+          {s.name}.{" "}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/** 5. One school large and in focus, all thirty small beside it; the focus moves from one to the next. */
+function Spotlight({ schools }: { schools: School[] }) {
+  const [at, setAt] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => {
+      const el = ref.current;
+      if (!el || document.hidden || document.documentElement.dataset.sch !== "5") return;
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      setAt((n) => (n + 1) % schools.length);
+    }, 1900);
+    return () => clearInterval(timer);
+  }, [schools.length]);
+  return (
+    <div className="sch sch-spot sch-band" ref={ref}>
+      <div className="sch-spot-big">
+        <span key={at}>
+          <Logo school={schools[at]} />
+        </span>
+      </div>
+      <ul className="sch-spot-all">
+        {schools.map((s, i) => (
+          <li key={s.name} data-on={i === at || undefined}>
+            <button type="button" onClick={() => setAt(i)} aria-label={s.name}>
+              <Logo school={s} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** 6. Each logo on a small lit lantern, rising slowly out of the trees and away into the sky. */
+function Lanterns({ schools }: { schools: School[] }) {
+  return (
+    <ul className="sch sch-lanterns">
+      {schools.map((s, i) => (
+        <li
+          key={s.name}
+          data-big={i < TOP || undefined}
+          style={
+            {
+              "--x": `${((i * 5) % 6) * 15.5 + 2 + (i % 2) * 3}%`,
+              "--t": "24s",
+              "--d": `${-(i * 0.8).toFixed(1)}s`,
+              "--sway": `${((i * 13) % 5) * 8 - 16}px`,
+            } as CSSProperties
+          }
+        >
+          <Logo school={s} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function SchoolsLab({ schools }: { schools: School[] }) {
   const [picked, setPicked] = useState("0");
   useEffect(() => {
@@ -155,8 +230,11 @@ export default function SchoolsLab({ schools }: { schools: School[] }) {
       <Counted key={`c${picked}`} schools={schools} />
       <Wall schools={schools} />
       <Clouds schools={schools} />
+      <RollCall schools={schools} />
+      <Spotlight schools={schools} />
+      <Lanterns schools={schools} />
       <aside className="lab" aria-label="Options to try">
-        <b>Schools section</b>
+        <b>Schools section: tap an option to see it on the page</b>
         <div>
           {OPTIONS.map(([v, label]) => (
             <button
