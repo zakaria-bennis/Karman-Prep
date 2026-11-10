@@ -13,15 +13,68 @@ const GROUPS = [
     key: "in",
     name: "Headline entrance",
     reload: true,
-    options: ["Now", "Rise", "Brush", "Mist", "Wind"],
+    options: [
+      ["0", "Now"],
+      ["1", "Rise"],
+      ["3", "Mist"],
+      ["4", "Wind"],
+      ["2", "Flip"],
+      ["5", "Horizon"],
+    ],
   },
-  { key: "btn", name: "Start free button", options: ["Now", "Sunlit", "Flood", "Cream"] },
-  { key: "bar", name: "Top bar", options: ["Now", "One pill", "Soft veil", "Links pill"] },
-  { key: "read", name: "Small text", options: ["Now", "Bolder", "Glow", "Both"] },
-  { key: "sky", name: "Sky", options: ["Now", "Sunrise", "Deep sunrise"] },
+  {
+    key: "btn",
+    name: "Start free button",
+    options: [
+      ["0", "Now"],
+      ["1", "Sunlit"],
+      ["2", "Flood"],
+      ["3", "Cream"],
+    ],
+  },
+  {
+    key: "tint",
+    name: "Button colour",
+    options: [
+      ["0", "Ink"],
+      ["1", "Plum"],
+      ["2", "Pine"],
+      ["3", "Ember"],
+      ["4", "Sun"],
+    ],
+  },
+  {
+    key: "bar",
+    name: "Top bar",
+    options: [
+      ["0", "Now"],
+      ["1", "One pill"],
+      ["2", "Soft veil"],
+      ["3", "Links pill"],
+    ],
+  },
+  {
+    key: "read",
+    name: "Small text",
+    options: [
+      ["0", "Now"],
+      ["1", "Bolder"],
+      ["2", "Glow"],
+      ["3", "Both"],
+    ],
+  },
+  {
+    key: "sky",
+    name: "Sky",
+    options: [
+      ["0", "Now"],
+      ["1", "Sunrise"],
+      ["2", "Deep sunrise"],
+    ],
+  },
 ] as const;
 
-export const LAB_BOOT = `try{var q=new URLSearchParams(location.search),d=document.documentElement;["in","btn","bar","read","sky","lab","hold"].forEach(function(k){var v=q.get(k);if(v)d.dataset[k]=v});if(q.get("in"))sessionStorage.removeItem("karman:claim-seen")}catch(e){}`;
+export const LAB_BOOT = `try{var q=new URLSearchParams(location.search),d=document.documentElement;["in","btn","tint","bar","read","sky","lab","hold"].forEach(function(k){var v=q.get(k);if(v)d.dataset[k]=v});if(q.get("in"))sessionStorage.removeItem("karman:claim-seen")}catch(e){}`;
 
 /** Option 4 arrives letter by letter, so each letter needs its own box. */
 function splitLetters() {
@@ -83,14 +136,14 @@ export default function HomeLab() {
             <div key={g.key} className="lab-row">
               <b>{g.name}</b>
               <div>
-                {g.options.map((label, i) => (
+                {g.options.map(([value, label]) => (
                   <button
-                    key={label}
+                    key={value}
                     type="button"
-                    data-on={(picked[g.key] ?? "0") === String(i) || undefined}
-                    onClick={() => pick(g.key, String(i), "reload" in g)}
+                    data-on={(picked[g.key] ?? "0") === value || undefined}
+                    onClick={() => pick(g.key, value, "reload" in g)}
                   >
-                    {i ? `${i}. ${label}` : label}
+                    {label}
                   </button>
                 ))}
               </div>
