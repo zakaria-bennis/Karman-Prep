@@ -193,6 +193,9 @@ headline: Go on. Ask us the hard ones.
 label: More questions
 asks: What if the score doesn't go up? = Then your money comes back. All of it if we miss by a lot, half if we miss by a little. Or your student keeps going with us for free. | Who's teaching my kid? = People who are overqualified on purpose. PhD students, medical students, published writers, researchers and professors. | How much time does it take? = About ten minutes a day. In the cohort, add ${w(MP.classesPerWeek)} live classes a week. Get one wrong and your tutor is updated before you finish reading this sentence. | Can we try it first? = Yes. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card.
 
+## 14 Receipts
+headline: We keep the receipts.
+
 ## 21 Program: opening
 headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.
 text: Classes grouped by score band (${MP.scoreBands.join(", ")}), ${w(MP.fullLengthTests)} full-length tests, and the guarantee printed in full. Classes start ${START_DAY}.

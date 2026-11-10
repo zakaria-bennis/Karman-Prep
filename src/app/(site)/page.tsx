@@ -8,6 +8,7 @@ import { HeadWords, nums } from "@/components/site/home/Head";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
+import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
 import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
@@ -16,6 +17,7 @@ import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
+import { RECEIPTS, RECEIPTS_ARE_SAMPLES } from "@/lib/marketing/receipts";
 import { SCHOOLS } from "@/lib/marketing/schools";
 import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
 import { pairs, section, SITE } from "@/lib/marketing/site-copy";
@@ -65,6 +67,8 @@ export default function HomePage() {
   }));
   const how = section(6);
   const doubts = section(13);
+  /* sample rows are for designing with: they never reach a production build (receipts.ts) */
+  const showReceipts = !RECEIPTS_ARE_SAMPLES || process.env.NODE_ENV !== "production";
   const price = section(7);
   const close = section(11);
   return (
@@ -161,6 +165,16 @@ export default function HomePage() {
           <TextLink label={how["research link"]} href={ROUTES.research} />
         </div>
       </section>
+
+      {/* The receipts: what students scored, and the texts behind it */}
+      {showReceipts ? (
+        <section className="sect receipts" id="receipts" aria-labelledby="receipts-h">
+          <div className="mist" aria-hidden="true" />
+          <div className="inner" data-paint-keepout>
+            <Receipts headline={section(14).headline} headingId="receipts-h" rows={RECEIPTS} />
+          </div>
+        </section>
+      ) : null}
 
       {/* 6. Their doubts */}
       <section className="sect ask" id="ask" aria-labelledby="ask-h">

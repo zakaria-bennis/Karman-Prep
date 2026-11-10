@@ -320,3 +320,68 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks .ways .sweep, .ks .ways .draw { stroke-dashoffset: 0; }
   .ks .journey .rays, .ks .claim .mist, .ks.page-home .sheet, .ks.page-home main .btn { animation: none !important; }
 }
+
+/* ---------- The receipts: a plain list beside the orange phone (Receipts.tsx). The heading and the rows
+   together are exactly as tall as the phone: the phone sets the height and the rows share what is left. ---------- */
+.ks .rcp.rv { opacity: 1; transform: none; }
+.ks .rcp { --pw: clamp(250px, 25vw, 320px); width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(28px, 5vw, 84px); align-items: stretch; }
+.ks .rcp-side { display: flex; flex-direction: column; min-height: 0; height: calc(var(--pw) * 150 / 71.9); }
+.ks .rcp-side h2 { padding-bottom: clamp(12px, 1.6vw, 22px); }
+.ks .rcp-list { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; display: grid; grid-auto-rows: minmax(0, 1fr); }
+.ks .rcp-list li { display: grid; border-top: 1.5px solid rgba(29, 26, 34, .16); }
+.ks .rcp-list li:last-child { border-bottom: 1.5px solid rgba(29, 26, 34, .16); }
+.ks .rcp-list button { position: relative; display: grid; grid-template-columns: 1.05fr 1.35fr 1.35fr auto .85fr 1.15fr; align-items: center; gap: 12px; width: 100%; padding: 0 14px; border: 0; background: none; color: inherit; font: inherit; font-size: clamp(15px, 1.25vw, 18px); text-align: left; cursor: pointer; border-radius: 16px; transition: background .5s var(--out), transform .5s var(--spring); }
+.ks .rcp-list button > * { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ks .rcp-list b { font-weight: 800; }
+.ks .rcp-list .num i { font-style: normal; opacity: .55; }
+.ks .rcp-list .gain { justify-self: start; overflow: visible; padding: 3px 12px; border-radius: 999px; background: var(--ink); color: var(--cream); transition: transform .5s var(--spring); }
+.ks .rcp-list .at img { display: block; height: clamp(18px, 1.7vw, 24px); max-width: 100%; object-fit: contain; object-position: left; }
+.ks .rcp-list .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.ks .rcp-list button:hover { background: rgba(255, 250, 243, .45); }
+.ks .rcp-list button.on { background: var(--cream); transform: scale(1.015); box-shadow: 0 10px 26px -18px rgba(29, 26, 34, .55); }
+.ks .rcp-list button.on .gain { transform: scale(1.1); }
+.ks .rcp-list li:has(button.on), .ks .rcp-list li:has(button.on) + li { border-top-color: transparent; }
+/* the lit row's six seconds, drawn along its foot; a held row keeps a full line */
+.ks .rcp-list .tick { position: absolute; left: 16px; right: 16px; bottom: 5px; height: 2.5px; border-radius: 3px; background: var(--ink); transform-origin: left; animation: rcp-tick 6s linear both; }
+.ks .rcp[data-held] .tick { animation: none; }
+@keyframes rcp-tick { from { transform: scaleX(0); } }
+.ks .rcp-phone { display: grid; place-items: center; }
+.ks .rcp-phone .iphone { --pw: inherit; width: var(--pw); }
+/* arriving: the rows come in one after another, the phone rises */
+.ks .rcp.rv:not(.on) .rcp-list li { opacity: 0; transform: translateX(-26px); }
+.ks .rcp.rv:not(.on) .rcp-phone { opacity: 0; transform: translateY(60px) rotate(3deg); }
+.ks .rcp .rcp-list li { transition: opacity .7s var(--out), transform .8s var(--spring); transition-delay: calc(.15s + var(--i) * 70ms); }
+.ks .rcp .rcp-phone { transition: opacity .8s var(--out) .2s, transform 1.1s var(--spring) .2s; }
+/* the conversation on the phone */
+.ks .txt { container-type: inline-size; display: flex; flex-direction: column; background: #fff; color: #000; font-family: -apple-system, "SF Pro Text", var(--font-hanken), system-ui, sans-serif; }
+.ks .txt-top { flex: none; display: grid; justify-items: center; gap: 1.2cqw; padding: 17cqw 0 3cqw; background: rgba(246, 246, 246, .96); border-bottom: 1px solid rgba(0, 0, 0, .1); font-size: 4.1cqw; }
+.ks .txt-top b { font-weight: 500; }
+.ks .txt-face { display: grid; place-items: center; width: 15cqw; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(#a5abb8, #858a97); color: #fff; font-size: 7cqw; font-weight: 600; }
+.ks .txt-view { flex: 1; min-height: 0; overflow: hidden; }
+.ks .txt-thread { display: flex; flex-direction: column; align-items: flex-start; gap: 1.6cqw; padding: 4cqw 4cqw 12cqw; animation: rcp-thread .6s var(--out) both; }
+@keyframes rcp-thread { from { opacity: 0; transform: translateY(18px); } }
+.ks .txt-thread small { align-self: center; color: #8a8a8e; font-size: 3.4cqw; padding-bottom: 1cqw; }
+.ks .txt-thread p { max-width: 76%; margin: 0; padding: 2.4cqw 3.6cqw; border-radius: 5.4cqw; background: #e9e9eb; font-size: 5cqw; line-height: 1.28; }
+.ks .txt-thread p.me { align-self: flex-end; background: #0a84ff; color: #fff; }
+@media (max-width: 1040px) {
+  .ks .rcp-list button { grid-template-columns: 1.05fr 1.35fr auto .85fr 1.1fr; }
+  .ks .rcp-list .home { display: none; }
+  .ks .rcp-list .wk span { display: none; }
+  .ks .rcp-list .wk::after { content: " wk"; }
+  .ks .rcp-list li:nth-child(n + 9) { display: none; }
+}
+@media (max-width: 760px) {
+  .ks .rcp { grid-template-columns: 1fr; --pw: min(280px, 74vw); }
+  .ks .rcp-side { height: auto; }
+  .ks .rcp-list { grid-auto-rows: 56px; }
+  .ks .rcp-list li:nth-child(n + 7) { display: none; }
+  .ks .rcp-list button { grid-template-columns: 1.1fr 1.5fr auto 1fr; padding: 0 10px; gap: 8px; font-size: 15px; }
+  .ks .rcp-list .wk { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .rcp .rcp-list li, .ks .rcp .rcp-phone { opacity: 1 !important; transform: none !important; transition: none; }
+  .ks .rcp-list .tick, .ks .txt-thread { animation: none; }
+  .ks .txt-view { overflow-y: auto; }
+}
+.ks.still-motion .rcp-list .tick, .ks.still-motion .txt-thread { animation: none; }
+.ks.still-motion .txt-view { overflow-y: auto; }

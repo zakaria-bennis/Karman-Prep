@@ -112,3 +112,11 @@ a chat as the whole page).
   phone menu, the still button and every link. Passing.
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
 - The six checks in `CLAUDE.md` pass on this commit.
+
+## Receipts section (10 Nov 2026, in progress)
+
+Between "How we teach" and the questions: `Receipts.tsx`, a plain list of students beside the orange phone,
+which shows the text conversation behind the lit row. Six seconds a row; a tap holds a row. The heading and
+rows are exactly as tall as the phone. Every row in `src/lib/marketing/receipts.ts` is still a made-up
+sample, so `RECEIPTS_ARE_SAMPLES` keeps the section out of production builds. The founder is supplying the
+real students and the words they sent; nothing may be written for them.
