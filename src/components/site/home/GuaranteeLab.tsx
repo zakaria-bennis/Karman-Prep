@@ -1,134 +1,138 @@
 "use client";
 
-// TEMPORARY (2026-11-10): three short, signed versions of the guarantee for the founder to pick from. He
-// asked for less information here (the full rules are one link away) and liked the promise being signed.
-// Never shown in production. The choice is data-gua on <html> (0 is today's flip tiles); the styles are in
-// styles/guarantee-lab.css. The winner replaces ScoreTiles.tsx; this file goes.
+// TEMPORARY (2026-11-10): the guarantee, short and signed "Karman" in a quick hand, for the founder to pick
+// a layout and a signature. He wants little information here (the full rules are one link away), a
+// signature like a company's own scrawl (no name of a person, no title, no underline, not drawn on), and
+// layouts modelled on how other companies show a guarantee. Never shown in production. The choices are
+// data-gua (layout) and data-sig (signature) on <html>; 0 is today's flip tiles. Styles are in
+// styles/guarantee-lab.css; the trial signature faces come from Google Fonts by a plain link, here only.
+// The winner replaces ScoreTiles.tsx, its face is then self-hosted through next/font, and this file goes.
 import { useEffect, useState } from "react";
 import "@/app/(site)/styles/guarantee-lab.css";
-import { nums } from "./Head";
-import Seg from "./Seg";
 
-export interface LabBand {
-  label: string;
-  private: number;
-  cohort: number;
-}
 interface Props {
-  bands: LabBand[];
-  /** The two outcomes where money comes back, as [name, line]. */
-  back: [string, string][];
-  words: Record<"private" | "cohort" | "track" | "promise" | "signed" | "role", string>;
+  /** The three outcomes, as [name, line]. */
+  outcomes: [string, string][];
+  words: Record<"line" | "signed" | "seal" | "sealUnit", string>;
 }
 
-const OPTIONS = [
+const LAYOUTS = [
   ["0", "Today"],
-  ["1", "A. Signed line"],
-  ["2", "B. Signed note"],
-  ["3", "C. Signed, your number"],
+  ["1", "A. Promise"],
+  ["2", "B. Seal"],
+  ["3", "C. Promise and three lines"],
 ] as const;
+/** [value, label, Google Fonts family or "" for the hand-drawn one] */
+const SIGNATURES = [
+  ["1", "1", "Mrs Saint Delafield"],
+  ["2", "2", "Herr Von Muellerhoff"],
+  ["3", "3", "Mr De Haviland"],
+  ["4", "4", "WindSong"],
+  ["5", "5", "Whisper"],
+  ["6", "6", "Qwitcher Grypen"],
+  ["8", "8", "Nothing You Could Do"],
+  ["9", "9 drawn", ""],
+] as const;
+const FONT_LINK = `https://fonts.googleapis.com/css2?${SIGNATURES.filter((s) => s[2])
+  .map((s) => `family=${s[2].replace(/ /g, "+")}`)
+  .join("&")}&display=swap`;
 
-/** The founder's name, written out when it scrolls into view, with a stroke under it. */
-function Signature({ name, role }: { name: string; role: string }) {
+/** "Karman", signed in a hurry. Option 9 is one drawn stroke: a K, then the rest trailing off. */
+function Signature({ name }: { name: string }) {
   return (
-    <p className="gua-sig rv">
-      <span className="gua-sig-name">
-        {name}
-        <svg viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M4 14 C 60 4, 120 22, 180 10 S 270 6, 296 12" pathLength="1" />
-        </svg>
-      </span>
-      <span className="gua-sig-role">{role}</span>
+    <p className="gua-sig" aria-label={name}>
+      <span aria-hidden="true">{name}</span>
+      <svg viewBox="0 0 330 110" aria-hidden="true">
+        <path d="M34 12 C 30 40, 24 70, 16 98" />
+        <path d="M82 8 C 60 34, 44 50, 26 60 C 48 56, 64 74, 84 96 C 92 78, 100 62, 112 60 C 124 58, 118 86, 128 84 C 138 82, 140 56, 152 58 C 162 60, 154 84, 164 82 C 174 80, 176 60, 186 62 C 194 64, 190 80, 200 78 C 214 75, 216 64, 228 66 C 252 70, 286 62, 322 48" />
+      </svg>
     </p>
   );
 }
 
-function Back({ back }: { back: [string, string][] }) {
-  return (
-    <ul className="gua-back">
-      {back.map(([name, line]) => (
-        <li key={name}>
-          <b>{name}</b> {line}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-export default function GuaranteeLab({ bands, back, words }: Props) {
-  const [picked, setPicked] = useState("0");
-  const [track, setTrack] = useState(0);
-  const [range, setRange] = useState(0);
-  const key = track === 0 ? "private" : "cohort";
+export default function GuaranteeLab({ outcomes, words }: Props) {
+  const [layout, setLayout] = useState("0");
+  const [sig, setSig] = useState("1");
   useEffect(() => {
-    const v = new URLSearchParams(location.search).get("gua") ?? "0";
-    document.documentElement.dataset.gua = v;
-    setPicked(v);
+    const q = new URLSearchParams(location.search);
+    const g = q.get("gua") ?? "0";
+    const s = q.get("sig") ?? "1";
+    document.documentElement.dataset.gua = g;
+    document.documentElement.dataset.sig = s;
+    setLayout(g);
+    setSig(s);
   }, []);
-  const pick = (v: string) => {
+  const pick = (key: "gua" | "sig", v: string) => {
     const url = new URL(location.href);
-    url.searchParams.set("gua", v);
+    url.searchParams.set(key, v);
     history.replaceState(null, "", url);
-    document.documentElement.dataset.gua = v;
-    setPicked(v);
+    document.documentElement.dataset[key] = v;
+    (key === "gua" ? setLayout : setSig)(v);
   };
-  const sign = <Signature name={words.signed} role={words.role} />;
+  const sign = <Signature name={words.signed} />;
 
   return (
     <>
-      {/* A. Signed line: the headline is the promise; two short lines and a signature under it */}
-      <div className="gua gua-line">
-        <Back back={back} />
+      <link rel="stylesheet" href={FONT_LINK} />
+
+      {/* A. Promise: the headline, one sentence, the signature */}
+      <div className="gua gua-a">
+        <p className="gua-line">{words.line}</p>
         {sign}
       </div>
 
-      {/* B. Signed note: the same few words on a small sheet of paper, tilted, signed */}
-      <div className="gua gua-note">
-        <div className="gua-sheet">
-          <Back back={back} />
+      {/* B. Seal: centred, a round seal with the number, then the same sentence and signature */}
+      <div className="gua gua-b">
+        <div className="gua-seal" aria-hidden="true">
+          <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="92" />
+            <circle className="thin" cx="100" cy="100" r="80" />
+          </svg>
+          <b>{words.seal}</b>
+          <span>{words.sealUnit}</span>
+        </div>
+        <p className="gua-line">{words.line}</p>
+        {sign}
+      </div>
+
+      {/* C. Promise and three lines: the promise and signature on the left, three quiet lines on the right */}
+      <div className="gua gua-c">
+        <div className="gua-c-say">
+          <p className="gua-line">{words.line}</p>
           {sign}
         </div>
-      </div>
-
-      {/* C. Signed, your number: pick a starting range, read one sentence, signed */}
-      <div className="gua gua-pick">
-        <Seg
-          labels={[words.private, words.cohort]}
-          value={track}
-          onChange={setTrack}
-          label={words.track}
-          small
-        />
-        <div className="gua-chips" role="radiogroup" aria-label={words.track}>
-          {bands.map((b, i) => (
-            <button
-              key={b.label}
-              type="button"
-              role="radio"
-              aria-checked={i === range}
-              data-on={i === range || undefined}
-              onClick={() => setRange(i)}
-            >
-              {b.label}
-            </button>
+        <ul className="gua-three">
+          {outcomes.map(([name, line]) => (
+            <li key={name}>
+              <b>{name}</b>
+              <span>{line}</span>
+            </li>
           ))}
-        </div>
-        <p className="gua-answer" aria-live="polite">
-          {words.promise}{" "}
-          <span key={`${key}${range}`}>{nums(`+${bands[range][key]} points.`)}</span>
-        </p>
-        {sign}
+        </ul>
       </div>
 
       <aside className="lab" aria-label="Options to try">
-        <b>Guarantee section: tap an option to see it on the page</b>
+        <b>Guarantee: layout</b>
         <div>
-          {OPTIONS.map(([v, label]) => (
+          {LAYOUTS.map(([v, label]) => (
             <button
               key={v}
               type="button"
-              data-on={picked === v || undefined}
-              onClick={() => pick(v)}
+              data-on={layout === v || undefined}
+              onClick={() => pick("gua", v)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <b>Signature</b>
+        <div>
+          {SIGNATURES.map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              data-on={sig === v || undefined}
+              onClick={() => pick("sig", v)}
             >
               {label}
             </button>

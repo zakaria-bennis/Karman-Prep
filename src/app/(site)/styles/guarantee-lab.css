@@ -1,166 +1,183 @@
-/* TEMPORARY (2026-11-10): three short, signed versions of the guarantee (GuaranteeLab.tsx). The winner moves
+/* TEMPORARY (2026-11-10): layouts and signatures for the short guarantee (GuaranteeLab.tsx). The winner moves
    into painted.css and this file goes. */
 .ks .gua {
   display: none;
   width: 100%;
-  gap: clamp(16px, 2vw, 26px);
+  gap: clamp(14px, 1.8vw, 24px);
   justify-items: start;
 }
-html[data-gua="1"] .ks .gua-line {
+html[data-gua="1"] .ks .gua-a {
   display: grid;
 }
-html[data-gua="2"] .ks .gua-note {
+html[data-gua="2"] .ks .gua-b {
   display: grid;
 }
-html[data-gua="3"] .ks .gua-pick {
+html[data-gua="3"] .ks .gua-c {
   display: grid;
 }
-html[data-gua="1"] .ks .offer :is(.offer-cols, .inner > .fine) {
+html[data-gua="1"] .ks .offer :is(.offer-cols, .lede, .inner > .fine) {
   display: none;
 }
-html[data-gua="2"] .ks .offer :is(.offer-cols, .inner > .fine) {
+html[data-gua="2"] .ks .offer :is(.offer-cols, .lede, .inner > .fine) {
   display: none;
 }
-html[data-gua="3"] .ks .offer :is(.offer-cols, .inner > .fine) {
-  display: none;
-}
-/* the sentence that asks for a starting score only belongs to the version that takes one */
-html[data-gua="1"] .ks .offer .lede {
-  display: none;
-}
-html[data-gua="2"] .ks .offer .lede {
+html[data-gua="3"] .ks .offer :is(.offer-cols, .lede, .inner > .fine) {
   display: none;
 }
 
-/* the two short lines: when the money comes back */
-.ks .gua-back {
-  display: grid;
-  gap: 6px;
+.ks .gua-line {
+  max-width: 30em;
   font-size: clamp(19px, 1.9vw, 27px);
-  line-height: 1.35;
+  line-height: 1.4;
   font-weight: 600;
 }
-.ks .gua-back b {
-  font-weight: 800;
-}
 
-/* the signature: written from left to right when it comes into view, then underlined in one stroke */
+/* ---------- the signature: "Karman" in a quick hand. No underline, no title, nothing drawn on. ---------- */
 .ks .gua-sig {
-  display: grid;
-  gap: 2px;
-  justify-items: start;
-}
-.ks .gua-sig.rv {
-  opacity: 1;
-  transform: none;
-}
-.ks .gua-sig-name {
-  position: relative;
-  padding: 0 0.3em 0.16em 0;
-  font-family: var(--font-caveat), cursive;
-  font-size: clamp(46px, 5.6vw, 84px);
+  margin-top: clamp(2px, 0.6vw, 10px);
   line-height: 1;
   white-space: nowrap;
-  transform: rotate(-3deg);
+  transform: rotate(-5deg);
   transform-origin: 0 100%;
-  clip-path: inset(-20% 0 -30% 0);
-  transition: clip-path 1.5s cubic-bezier(0.5, 0.1, 0.3, 1) 0.25s;
 }
-.ks .gua-sig.rv:not(.on) .gua-sig-name {
-  clip-path: inset(-20% 100% -30% 0);
+.ks .gua-sig span {
+  display: inline-block;
+  padding: 0.12em 0.3em 0.2em 0;
+  font-size: clamp(64px, 8vw, 120px);
+  letter-spacing: -0.02em;
 }
-.ks .gua-sig-name svg {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -0.04em;
-  width: 100%;
-  height: 0.3em;
+.ks .gua-sig svg {
+  display: none;
+  width: clamp(200px, 24vw, 340px);
+  height: auto;
   overflow: visible;
   fill: none;
   stroke: var(--ink);
-  stroke-width: 3;
+  stroke-width: 2.6;
   stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
 }
-.ks .gua-sig-name path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 0.7s var(--out) 1.7s;
+html[data-sig="1"] .ks .gua-sig span {
+  font-family: "Mrs Saint Delafield", cursive;
 }
-.ks .gua-sig.rv:not(.on) path {
-  stroke-dashoffset: 1;
+html[data-sig="2"] .ks .gua-sig span {
+  font-family: "Herr Von Muellerhoff", cursive;
 }
-.ks .gua-sig-role {
-  margin-top: 10px;
-  font-weight: 700;
-  font-size: 16px;
+html[data-sig="3"] .ks .gua-sig span {
+  font-family: "Mr De Haviland", cursive;
+}
+html[data-sig="4"] .ks .gua-sig span {
+  font-family: "WindSong", cursive;
+  font-size: clamp(50px, 6.2vw, 92px);
+}
+html[data-sig="5"] .ks .gua-sig span {
+  font-family: "Whisper", cursive;
+}
+html[data-sig="6"] .ks .gua-sig span {
+  font-family: "Qwitcher Grypen", cursive;
+}
+html[data-sig="7"] .ks .gua-sig span {
+  font-family: "Reenie Beanie", cursive;
+  font-size: clamp(54px, 6.6vw, 98px);
+}
+html[data-sig="8"] .ks .gua-sig span {
+  font-family: "Nothing You Could Do", cursive;
+  font-size: clamp(40px, 4.8vw, 72px);
+  letter-spacing: -0.08em;
+}
+html[data-sig="9"] .ks .gua-sig span {
+  display: none;
+}
+html[data-sig="9"] .ks .gua-sig svg {
+  display: block;
 }
 
-/* ---------- B. Signed note ---------- */
-.ks .gua-sheet {
+/* ---------- B. Seal ---------- */
+html[data-gua="2"] .ks .offer .inner {
+  justify-items: center;
+  text-align: center;
+  margin-inline: auto;
+}
+html[data-gua="2"] .ks .offer h2 {
+  max-width: 20ch;
+}
+.ks .gua-b {
+  justify-items: center;
+}
+.ks .gua-b .gua-sig {
+  transform-origin: 50% 100%;
+}
+.ks .gua-seal {
+  position: relative;
+  order: -1;
+  width: clamp(120px, 13vw, 170px);
+  aspect-ratio: 1;
   display: grid;
-  gap: clamp(18px, 2.4vw, 30px);
-  justify-items: start;
-  padding: clamp(26px, 3.4vw, 48px) clamp(26px, 3.8vw, 56px);
-  border-radius: clamp(22px, 2.6vw, 34px);
-  background: var(--cream);
-  box-shadow:
-    0 30px 60px -34px rgba(29, 26, 34, 0.6),
-    0 4px 10px -6px rgba(29, 26, 34, 0.2);
-  transform: rotate(-1.2deg);
+  place-content: center;
+  justify-items: center;
+}
+.ks .gua-seal svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+.ks .gua-seal .thin {
+  stroke-width: 1.2;
+  stroke-dasharray: 2 5;
+  stroke-linecap: round;
+}
+.ks .gua-seal b {
+  font-size: clamp(34px, 3.8vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.ks .gua-seal span {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* ---------- C. Signed, your number ---------- */
-.ks .gua-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* ---------- C. Promise and three lines ---------- */
+.ks .gua-c {
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: clamp(24px, 5vw, 80px);
+  align-items: center;
 }
-.ks .gua-chips button {
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 999px;
+.ks .gua-c-say {
+  display: grid;
+  gap: clamp(14px, 1.8vw, 24px);
+  justify-items: start;
+}
+.ks .gua-three {
+  display: grid;
+  gap: 10px;
+}
+.ks .gua-three li {
+  display: grid;
+  gap: 2px;
+  padding: 14px 22px;
+  border-radius: 22px;
   background: var(--soft-card);
   box-shadow: var(--lift);
-  font-weight: 700;
+}
+.ks .gua-three b {
+  font-size: 17.5px;
+  font-weight: 800;
+}
+.ks .gua-three span {
   font-size: 16px;
+  font-weight: 600;
   color: var(--ink2);
-  transition:
-    background-color 0.3s var(--out),
-    color 0.3s var(--out),
-    transform 0.45s var(--spring);
 }
-.ks .gua-chips button[data-on] {
-  background: var(--ink);
-  color: var(--cream);
-}
-.ks .gua-chips button:active {
-  transform: scale(0.94);
-  transition-duration: 0.08s;
-}
-.ks .gua-answer {
-  font-family: var(--font-young-serif), Georgia, serif;
-  font-size: clamp(34px, 5.4vw, 84px);
-  line-height: 1.05;
-  letter-spacing: -0.012em;
-  text-wrap: balance;
-}
-.ks .gua-answer span {
-  display: inline-block;
-  white-space: nowrap;
-  animation: gua-focus 0.8s var(--out) both;
-}
-@keyframes gua-focus {
-  from {
-    opacity: 0;
-    filter: blur(12px);
-    transform: scale(1.12);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: none;
+@media (max-width: 900px) {
+  .ks .gua-c {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -170,7 +187,7 @@ html[data-gua="2"] .ks .offer .lede {
   z-index: 400;
   right: 12px;
   bottom: 12px;
-  max-width: min(420px, calc(100vw - 24px));
+  max-width: min(430px, calc(100vw - 24px));
   display: grid;
   gap: 8px;
   padding: 14px;
@@ -206,13 +223,4 @@ html[data-gua="2"] .ks .offer .lede {
 }
 html[data-lab="0"] .lab {
   display: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .ks .gua-answer span {
-    animation: none;
-  }
-  .ks .gua-sig-name,
-  .ks .gua-sig-name path {
-    transition: none;
-  }
 }
