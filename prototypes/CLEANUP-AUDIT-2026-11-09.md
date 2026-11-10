@@ -124,10 +124,41 @@ about the tiered guarantee and 280).
 4. No Superpowers hook, no UI Color Palette.
 5. Old docs and mocks out of the way in an archive folder.
 
-## Already done today
+## Done on 9 November
 
-- Switched off the UI Color Palette setting that forced the orchestrator role.
-- Rewrote the stale parts of `PRODUCT.md` and `CLAUDE.md` on `claude/painted-site`.
-- Archived six superseded notes and added one with the current working rules.
+In the repository (pull request #255):
+
+- Deleted 239 MB of old mockups, the old portal, skeleton and painting prototypes, and the overnight
+  reports and screenshots. They remain in the git history.
+- Moved the October design rules, brand and token guides, old site design briefs, the May roadmap and
+  audits, old copy decks and session prompts to `docs/archive/`, with a note that nothing there is
+  current. `docs/` went from 83 MB to under 6 MB.
+- Rewrote `CLAUDE.md` as one short, current file. Rewrote the stale parts of `PRODUCT.md`.
 - Recorded the agreed home page direction where the design skill reads it
   (`.impeccable/surfaces/src-app-site-page-tsx.md`).
+
+On this computer (each one can be undone):
+
+- The main folder is now on `main`, up to date, with dependencies reinstalled. Its unsaved edits are on
+  the branch `claude/first-pass-unsaved-2026-11-09`. Its loose files (549 MB) are in
+  `~/Karman-Prep-archive/main-folder-unsaved-2026-11-09/`.
+- Switched off for this project: Superpowers, Sentry, Figma. Switched off for every project: EGM.
+  Backups of both settings files are in `~/.claude/settings-backups/`.
+- Moved 13 unused skills to `~/.claude/skills-archive/` (Hairline, Remotion, GSAP, onetake,
+  reverse-engineer-anything, find-skills, animation-vocabulary) and `taste-skill` to
+  `.claude/skills-archive/` in the main folder.
+- Switched off the UI Color Palette setting that forced the "color system orchestrator" role.
+- Archived nine superseded notes, corrected two, and added one with the current working rules.
+- Removed seven finished working copies and 138 local branches already merged into `main`. Their names
+  and commit ids are in `~/.claude/settings-backups/karman-deleted-branches-2026-11-09.txt`.
+
+## Left for Zakaria
+
+1. Merge pull request #255. Until then `main` still carries the old mockups, docs and `CLAUDE.md`.
+2. In the desktop app, remove the plugins listed under "Turn off" and "Remove" in section 2. Those live
+   inside the app, and a session cannot remove them. UI Color Palette and Superpowers matter most.
+3. Disconnect the account connectors named in section 2 (Vercel first).
+4. Archive finished sessions in the app. That is what frees the 30 or so working copies it still holds
+   (about 20 GB).
+5. Run `/skill-doctor` in a terminal `claude` session if you want its report. It is not available
+   inside a desktop session.
