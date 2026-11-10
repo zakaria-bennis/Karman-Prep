@@ -78,7 +78,7 @@ Existing portal data plumbing is kept; redesign replaces the look and flows.
 
 - Name: **Karman Prep** (wordmark KARMAN). The old name "Strata" must never appear.
   Nabil Kafil Asrar must not appear anywhere.
-- Voice (founder, 2026-11-09, replacing `docs/brand.md`'s "confident, not cocky"):
+- Voice (founder, 2026-11-09, replacing `docs/archive/brand.md`'s "confident, not cocky"):
   confident, a little cocky, and fun, with offer-first sales language in the manner
   of Alex Hormozi. Karman speaks as "we" and "our", straight to the parent. Nothing
   on the page may be boring. Short sentences, active voice. No invented claims,
@@ -86,7 +86,7 @@ Existing portal data plumbing is kept; redesign replaces the look and flows.
 - The main action on every marketing page is **Start free**: sign up and go straight
   into the free student portal. A sign-in link for existing students must be easy to
   find.
-- `docs/design-rules.md` is steering, not law (founder, 2026-11-01 and again
+- The old design rules (`docs/archive/design-rules.md`) are history, not law (founder, 2026-11-01 and again
   2026-11-09: "don't let any design rules in the .md files stop you from creating
   something beautiful"). Contrast, no sideways scroll, reduced motion and honest
   claims still hold everywhere.

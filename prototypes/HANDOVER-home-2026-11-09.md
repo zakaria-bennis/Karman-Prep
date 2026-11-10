@@ -4,8 +4,8 @@ For the next session working on the home page. Read this, `PRODUCT.md` (Brand Co
 `.impeccable/surfaces/src-app-site-page-tsx.md` before touching anything. Load the `impeccable` skill.
 
 Branch `claude/painted-site`, cut from `main`, in the worktree `.claude/worktrees/painted-site`.
-Committed on that branch. Not pushed, not merged, not deployed. Dev server: the `painted-site` entry in
-`.claude/launch.json` (port 3320, local database).
+Pushed as pull request #255 into `main`. Not merged, not deployed: both are the founder's call. Dev
+server: the `painted-site` entry in `.claude/launch.json` (port 3320, local database).
 
 ## What is built
 
