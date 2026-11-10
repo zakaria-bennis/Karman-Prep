@@ -7,7 +7,11 @@ const OUT = process.env.OUT ?? "/tmp/intros-quick";
 await mkdir(OUT, { recursive: true });
 const day = new Date().toISOString().slice(0, 10);
 const browser = await chromium.launch({ channel: "chrome" });
-const ctx = await browser.newContext({ viewport: { width: +w, height: +h }, deviceScaleFactor: 1, hasTouch: +w < 768 });
+const ctx = await browser.newContext({
+  viewport: { width: +w, height: +h },
+  deviceScaleFactor: 1,
+  hasTouch: +w < 768,
+});
 await ctx.addInitScript((d) => {
   try {
     localStorage.setItem("karman-challenge-closed", d);
@@ -18,7 +22,10 @@ await ctx.addInitScript((d) => {
 const page = await ctx.newPage();
 page.on("pageerror", (e) => console.log("pageerror", String(e)));
 page.on("console", (m) => m.type() === "error" && console.log("console", m.text()));
-await page.goto(`${BASE}/dashboard/student/library?intro=${id}&paint-time=${time}`, { waitUntil: "load", timeout: 240000 });
+await page.goto(`${BASE}/dashboard/student/library?intro=${id}&paint-time=${time}`, {
+  waitUntil: "load",
+  timeout: 240000,
+});
 await page.waitForSelector(`[data-intro="${id}"][data-shown]`, { timeout: 90000 });
 const tag = `${id}-${w}-${time}`;
 await page.waitForTimeout(2600);
