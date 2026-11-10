@@ -1,6 +1,5 @@
-/* Karman landing page, 2026-10-25.
-   A white site with black and marigold accents. One continuous film plays behind the page; white panels
-   slide over it and leave "windows" where the film keeps running. Nothing is tied to the scroll. */
+/* Karman's marketing site: the base every page shares (tokens, header, phone menu, type, the button, panels,
+   feature rows, footer, the one reveal). The home page's painting and its painted look are in painted.css. */
 .ks {
   /* light (the default): a neutral off-white, never pure white (design rule 3) and not cream, so the site stays white with black and marigold while the panels sit softly on the film */
   --paper: #f5f5f2;
@@ -52,25 +51,14 @@
 .ks :focus-visible { outline: 3px solid var(--marigold); outline-offset: 3px; border-radius: 10px; }
 .ks ::selection { background: var(--marigold); color: var(--on-mari); }
 .ks .skip { position: fixed; left: 12px; top: -60px; z-index: 200; background: var(--paper); color: var(--ink); padding: 10px 14px; border-radius: 10px; text-decoration: none; font-weight: 700; }
-.ks .skip:focus { top: 12px; }
+.ks .skip:focus-visible { top: 12px; }
 
-/* ---------- the film: fixed behind everything, playing in real time ---------- */
+/* ---------- the home page's stage: fixed behind everything (the painting, painted.css) ---------- */
 .ks .stage { position: fixed; inset: 0; z-index: 0; background: #0b0b0b; }
-.ks .stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 1.4s var(--ease); }
-.ks .stage .edge { opacity: 0; }
-.ks .stage.ending .edge { opacity: 1; }
-.ks .stage.ending .day { opacity: 0; }
-.ks .stage .scrim { position: absolute; inset: 0; background:
-  linear-gradient(90deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.16) 50%, rgba(0,0,0,0) 72%),
-  linear-gradient(0deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,0) 48%),
-  linear-gradient(180deg, rgba(0,0,0,.38) 0%, rgba(0,0,0,0) 20%); }
-.ks .stage .orb { position: absolute; left: 50%; top: 50%; margin: -32px 0 0 -32px; opacity: 0; transition: opacity .4s var(--ease); }
-.ks .stage.waiting .orb { opacity: 1; }
 
 /* ---------- header: a slim bar at the top of the page that scrolls away with it, so it never sits over words
    being read (founder, 8 November). White words over the film, black words on paper pages. ---------- */
 .ks .hd { position: absolute; inset: 8px var(--gutter) auto; z-index: 50; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 clamp(10px, 1.6vw, 22px); border-radius: var(--r-panel); background: rgba(var(--mist), var(--tint)); color: var(--ink); transition: background-color .4s var(--ease), color .4s var(--ease), box-shadow .4s var(--ease); }
-.ks.scrolled .hero .cue { opacity: 0; }
 .ks .mark { font-weight: 800; font-size: 23px; letter-spacing: -0.035em; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
 .ks .hd nav { display: flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 600; }
 .ks .hd nav a, .ks .hd nav button { min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; text-decoration: none; border-radius: 999px; }
@@ -134,30 +122,16 @@ html.ks-lock { overflow: hidden; }
 /* headings further down rise word by word when they come into view */
 .ks.ready .kin:not(.on) .w > span { transform: translateY(108%); }
 .ks .kin.on .w > span { transition-delay: calc(.05s + var(--i) * .06s); }
-.ks .hero .cue { transition: opacity .4s var(--ease); position: absolute; left: 50%; bottom: 20px; width: 1.5px; height: 44px; background: rgba(255,255,255,.3); overflow: hidden; border-radius: 2px; }
-.ks .hero .cue::after { content: ""; position: absolute; left: 0; top: -40%; width: 100%; height: 40%; background: var(--marigold); animation: ks-cue 2.6s var(--ease) infinite; }
-@keyframes ks-cue { to { top: 100%; } }
 
-/* the test date, over the film */
-
-/* the close: the day dissolves into orbit */
 .ks .end { min-height: 100svh; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding-top: 120px; padding-bottom: 120px; }
 .ks .end .in { display: grid; gap: 22px; justify-items: start; max-width: 760px; padding: clamp(24px, 3.4vw, 48px); border-radius: var(--r-panel); background: rgba(var(--mist), var(--tint)); color: var(--ink); -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1); }
 .ks .end h2 { font-size: clamp(38px, 4.6vw, 72px); max-width: 14ch; }
-.ks .kline { position: absolute; left: var(--gutter); bottom: 34px; display: grid; gap: 10px; justify-items: start; }
-.ks .kline .bar { width: min(560px, 80%); height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7) 20%, var(--marigold) 50%, rgba(255,255,255,.7) 80%, transparent); transform: scaleX(0); transition: transform 1.6s var(--ease) .4s; }
-.ks .kline.on .bar { transform: none; }
-.ks .kline p { font-size: 14px; font-weight: 600; letter-spacing: .02em; padding: 8px 12px; border-radius: var(--r-panel); background: rgba(var(--mist), var(--tint)); color: var(--ink2); }
 
 /* the panels (founder, 8 November, after the painted mock): tinted, squared-off boxes in one column left of
    centre, with even gaps, so the film keeps running beside and between them. Every word sits on one. */
 .ks .panel { position: relative; max-width: var(--col); margin: 0 var(--gutter) var(--gap); padding: clamp(26px, 4vw, 64px); border-radius: var(--r-panel); background: rgba(var(--mist), var(--tint)); -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1); }
-/* the film lifts toward the paper's tone while paper fills the screen, over 1.6 s, so nothing jumps */
-.ks .stage .haze { position: absolute; inset: 0; background: rgb(var(--mist)); opacity: 0; transition: opacity 1.6s var(--ease); pointer-events: none; }
-.ks .stage.hazy .haze { opacity: .28; }
 .ks .panel .in { max-width: none; margin: 0; }
 .ks .panel h2 { font-size: clamp(32px, 3.6vw, 56px); }
-
 
 /* ---------- features: words on one side, the product at the outer edge of the page ---------- */
 .ks .features { overflow: hidden; }
@@ -196,27 +170,6 @@ html.ks-lock { overflow: hidden; }
   .ks .turn .iphone { --pw: min(62vw, 280px); }
 }
 
-/* the line drawings (live/week.ts): isometric line work that answers the pointer */
-
-/* the black panels */
-.ks .panel.dark { background: var(--night); color: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
-
-/* ---------- the campus films, side by side ---------- */
-.ks .campus { padding: clamp(14px, 1.4vw, 22px); }
-.ks .campus h2 { padding: clamp(40px, 5vw, 70px) var(--gutter) clamp(28px, 3vw, 44px); }
-.ks .tri { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(8px, 1vw, 14px); }
-.ks .clip { position: relative; aspect-ratio: 3 / 4.2; border-radius: 2px; overflow: hidden; background: #111; }
-.ks .clip video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-@media (max-width: 760px) { .ks .tri { grid-template-columns: 1fr 1fr; } .ks .clip:last-child { grid-column: span 2; aspect-ratio: 4 / 3.4; } }
-
-
-/* ---------- the pause button: small, bottom right ---------- */
-.ks .motion { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 60; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: rgba(20,20,20,.42); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); opacity: .72; transition: opacity .25s var(--ease), transform .45s var(--spring); }
-.ks .motion svg { width: 14px; height: 14px; fill: currentColor; }
-.ks .motion:hover, .ks .motion:focus-visible { opacity: 1; }
-.ks .motion:active { transform: scale(.9); transition-duration: .08s; }
-.ks .motion[hidden] { display: none; }
-
 /* footer */
 .ks .ft { position: relative; z-index: 1; background: var(--night); color: #c9c4ba; padding: 72px var(--gutter) 40px; }
 .ks .ft .mark { color: #fff; }
@@ -235,19 +188,12 @@ html.ks-lock { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .ks .rv, .ks .w > span { opacity: 1; transform: none; transition: none; }
-  .ks .hero .cue::after, 
-  .ks .stage video { transition: none; }
-  .ks .kline .bar { transform: none; transition: none; }
   .ks .btn, .ks .btn .go, .ks .wide, .ks .turn .iphone { transition: none; }
 }
 
 @media (max-width: 380px) { .ks .btn { font-size: 15.5px; gap: 10px; padding-left: 20px; } }
 .ks .end .obj { font-size: 16px; max-width: 56ch; color: var(--ink2); }
-/* the line drawings in dark mode */
 
-/* the pause button only while some film is on screen: it never sits over words on paper */
-.ks .motion { transition: opacity .3s var(--ease), transform .45s var(--spring), bottom .45s var(--ease); }
-.ks .motion.away { opacity: 0; pointer-events: none; }
 /* phones: a laptop screen is shown larger and runs off the page edge, so its words stay readable */
 @media (max-width: 760px) {
   .ks .m-wide .media { overflow: visible; }

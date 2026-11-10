@@ -71,7 +71,7 @@ async function writeTimingReport(slug: string, target: string, deltaMs: number) 
           deltaMs === -1
             ? "no transition fired (target has no transition-* CSS, or selector missed)"
             : deltaMs > SLOW_THRESHOLD_MS
-              ? "exceeds docs/design-tokens.md threshold; reduce duration or simplify easing"
+              ? "exceeds docs/archive/design-tokens.md threshold; reduce duration or simplify easing"
               : "within expected range",
       },
       null,

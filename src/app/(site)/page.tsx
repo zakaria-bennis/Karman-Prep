@@ -1,21 +1,28 @@
-import HomeFilm from "@/components/site/home/HomeFilm";
-import { Tutors } from "@/components/site/home/HomeSections";
-import Feature from "@/components/site/Feature";
-import GuaranteeDeal from "@/components/site/GuaranteeDeal";
-import StudyTools from "@/components/site/home/StudyTools";
+import ClaimPill from "@/components/site/home/ClaimPill";
+import Doubts from "@/components/site/home/Doubts";
+import Fireflies from "@/components/site/home/Fireflies";
+import Flock from "@/components/site/home/Flock";
+import { homeFonts } from "@/components/site/home/fonts";
+import { HeadWords, nums } from "@/components/site/home/Head";
+import HomeJourney from "@/components/site/home/HomeJourney";
+import HomeTouches from "@/components/site/home/HomeTouches";
+import LetterMotes from "@/components/site/home/LetterMotes";
+import Logos from "@/components/site/home/Logos";
+import ScoreTiles from "@/components/site/home/ScoreTiles";
+import Ways from "@/components/site/home/Ways";
 import SitePage from "@/components/site/SitePage";
-import PortalShot from "@/components/site/PortalShot";
 import { jsonLd, pageMeta } from "@/components/site/meta";
-import { Arrow, Btn, delay, Kinetic } from "@/components/site/parts";
+import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import { CONTACT } from "@/lib/marketing/offer";
+import { CONTACT, GUARANTEE_TIERS, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
-import { section } from "@/lib/marketing/site-copy";
+import { SCHOOLS } from "@/lib/marketing/schools";
+import { pairs, section } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
   "Karman Prep: SAT tutors who see every answer",
-  "Live SAT classes of six and private tutoring, taught by PhD students, quants and university professors, with research-backed daily practice and live progress for parents."
+  "SAT prep taught by PhD students, quants and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
 );
 
 const ORG = {
@@ -27,138 +34,201 @@ const ORG = {
   description: section(1).text,
 };
 
-const CAMPUS = ["c8a", "c8b", "c8c"];
+/** The drawing for each kind of tutor, in the order the copy lists them (public/site/tutors/). */
+const TUTOR_ART = ["phd", "quant", "medic", "writer", "researcher", "professor"];
+
+const SEEN_BOOT = `try{if(sessionStorage.getItem("karman:claim-seen")==="1")document.documentElement.classList.add("claim-seen")}catch(e){}`;
+
+/** The headline in three pieces: the words before the number, the number's phrase, the words after. */
+function splitClaim(headline: string): [string, string, string] {
+  const m = headline.match(/^(.*?)(\d[\d,]*\s+points)(.*)$/);
+  return m ? [m[1].trim(), m[2], m[3].trim()] : [headline, "", ""];
+}
 
 export default function HomePage() {
-  const hero = section(1);
-  const campus = section(9);
-  const cal = section(14);
-  const end = section(11);
+  const claim = section(1);
+  const [before, number, after] = splitClaim(claim.headline);
+  /* the full stop after the number stays with the pill, so it can never start a line */
+  const mark = /^[.,!?]/.test(after) ? after[0] : "";
+  const rest = after.slice(mark.length).trim();
+  const gain = String(TRACK_RECORD.averageGain);
+  const proof = section(9);
+  const offer = section(10);
+  const who = section(12);
+  const how = section(6);
+  const doubts = section(13);
+  const price = section(7);
+  const close = section(11);
   return (
-    <SitePage kind="home" stage={<HomeFilm />}>
+    <SitePage kind="home" className={homeFonts} stage={<HomeJourney />}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
-      <link
-        rel="preload"
-        as="image"
-        href="/site/film/day.jpg"
-        media="(min-width: 761px), (orientation: landscape)"
-      />
-      <link
-        rel="preload"
-        as="image"
-        href="/site/film/day-p.jpg"
-        media="(max-width: 760px) and (orientation: portrait)"
-      />
-      <section className="window hero" id="m-1">
-        <div className="in">
+      <HomeTouches />
+      {/* a visitor who has already watched the headline form this visit sees it at once */}
+      <script dangerouslySetInnerHTML={{ __html: SEEN_BOOT }} />
+
+      {/* 1. The claim */}
+      <section className="claim" id="claim">
+        <Flock text={gain} />
+        <div className="mist" aria-hidden="true" />
+        <LetterMotes />
+        <div className="say" data-paint-keepout>
           <h1>
-            <Kinetic text={hero.headline} />
+            <HeadWords text={before} />{" "}
+            {number ? (
+              <span className="keep">
+                <ClaimPill label={number}>
+                  <span className="num">{gain}</span> points
+                </ClaimPill>
+                {mark}
+              </span>
+            ) : null}{" "}
+            <HeadWords text={rest} from={before.split(" ").length + 3} />
           </h1>
-          {hero.text ? (
-            <p className="lede rv" style={delay(0.45)}>
-              {hero.text}
-            </p>
-          ) : null}
-          <div className="act two rv" style={delay(0.6)}>
-            <Btn label={hero.button} href={ROUTES.test} />
-            <a className="btn2" href={ROUTES.pricing}>
-              {hero["second button"]}
+          <p className="lede">{claim.text}</p>
+          <div className="go-row">
+            <Btn label={claim.button} href={ROUTES.signUp} />
+            <a className="more" href={ROUTES.pricing}>
+              {claim["second button"]}
               <Arrow />
             </a>
-            {hero["button note"] ? <small>{hero["button note"]}</small> : null}
           </div>
-          {hero.proof ? (
-            <p className="proof rv" style={delay(0.75)}>
-              {hero.proof}
-            </p>
-          ) : null}
-        </div>
-        <span className="cue" aria-hidden="true" />
-      </section>
-
-      <div className="panel duo">
-        <Tutors />
-        <section className="guarantee" id="m-8" aria-labelledby="g-h">
-          <div className="in">
-            <GuaranteeDeal g={section(8)} headId="g-h" />
-          </div>
-        </section>
-      </div>
-
-      <section className="panel features" id="features">
-        <div className="in">
-          <Feature n={4} />
-          <Feature n={5} />
-          <article className="feat cal" id="m-14">
-            <div className="words rv">
-              <h2>{cal.headline}</h2>
-              {cal.text ? <p className="lede">{cal.text}</p> : null}
-            </div>
-            <figure className="cal-fig mbp rv">
-              <span className="notch" aria-hidden="true" />
-              <PortalShot
-                screen="today"
-                device="desk"
-                modes={["dark"]}
-                alt="The student's Today screen in the Karman app on a laptop: the Daily 10, homework with due times, live classes with David on Zoom, and practice"
-              />
-            </figure>
-          </article>
-          <StudyTools />
+          <p className="fine">
+            {claim["button note"]} <span>{claim.proof}</span>
+          </p>
         </div>
       </section>
 
-      <section
-        className="panel campus dark"
-        id="m-9"
-        aria-labelledby={campus.headline ? "c-h" : undefined}
-        aria-hidden={campus.headline ? undefined : true}
-      >
-        {campus.headline ? (
-          <h2 className="rv" id="c-h">
-            {campus.headline}
-          </h2>
-        ) : null}
-        <div className="tri">
-          {CAMPUS.map((id, k) => (
-            <div className="clip rv" style={delay(k * 0.12)} key={id}>
-              <video
-                muted
-                playsInline
-                preload="none"
-                poster={`/site/film/${id}-r0.jpg`}
-                data-src={`/site/film/${id}-r.mp4`}
-                aria-hidden="true"
-              />
-            </div>
+      {/* 2. The proof */}
+      <section className="sect proof" id="proof" aria-labelledby="proof-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="inner rv" data-paint-keepout>
+          <h2 id="proof-h">{nums(proof.headline)}</h2>
+          <p className="lede">{proof.text}</p>
+        </div>
+        <ul className="sr">
+          {SCHOOLS.map((x) => (
+            <li key={x.name}>{x.name}</li>
           ))}
+        </ul>
+        <Logos schools={SCHOOLS} />
+      </section>
+
+      {/* 3. The offer */}
+      <section className="sect offer" id="offer" aria-labelledby="offer-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="inner" data-paint-keepout>
+          <div className="rv">
+            <h2 id="offer-h">{nums(offer.headline)}</h2>
+            <p className="lede">{offer.text}</p>
+          </div>
+          <div className="offer-cols">
+            <div className="rv">
+              <ScoreTiles
+                bands={GUARANTEE_TIERS.bands.map((b) => ({ ...b }))}
+                noGuaranteeFrom={GUARANTEE_TIERS.noGuaranteeFrom}
+                words={{
+                  private: offer.private,
+                  cohort: offer.cohort,
+                  track: offer.track,
+                  now: offer.now,
+                  lower: offer.lower,
+                  higher: offer.higher,
+                  promise: offer.promise,
+                  none: offer.none,
+                }}
+              />
+            </div>
+            <ul className="outcomes">
+              {pairs(offer.outcomes).map(([name, line], k) => (
+                <li className="rv" key={name} style={{ transitionDelay: `${k * 110}ms` }}>
+                  <b>{name}</b>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="fine rv">{offer.free}</p>
+          <TextLink label={offer.link} href={ROUTES.guarantee} />
         </div>
       </section>
 
-      <section className="window end" id="m-11">
-        <div className="in">
-          <h2 className="rv">{end.headline}</h2>
-          {end.text ? (
-            <p className="lede rv" style={delay(0.1)}>
-              {end.text}
-            </p>
-          ) : null}
-          {end.objection ? (
-            <p className="obj rv" style={delay(0.15)}>
-              {end.objection}
-            </p>
-          ) : null}
-          <div className="act rv" style={delay(0.2)}>
-            <Btn label={end.button} href={ROUTES.test} />
-            {end["button note"] ? <small>{end["button note"]}</small> : null}
-          </div>
+      {/* 4. Who teaches */}
+      <section className="sect who" id="who" aria-labelledby="who-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="inner" data-paint-keepout>
+          <h2 className="rv" id="who-h">
+            {who.headline}
+          </h2>
+          <ul className="tutors">
+            {pairs(who.credentials).map(([name, line], k) => (
+              <li className="rv" key={name} style={{ transitionDelay: `${k * 90}ms` }}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG drawings */}
+                <img
+                  src={`/site/tutors/${TUTOR_ART[k % TUTOR_ART.length]}.svg`}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+                <b>{name}</b>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-        {end["line note"] ? (
-          <div className="kline rv" style={delay(0.35)}>
-            <span className="bar" aria-hidden="true" />
-            <p>{end["line note"]}</p>
+      </section>
+
+      {/* 5. How we teach */}
+      <section className="sect how" id="how" aria-labelledby="how-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="inner" data-paint-keepout>
+          <h2 className="rv" id="how-h">
+            {nums(how.headline)}
+          </h2>
+          <Ways items={pairs(how.ways)} />
+          <TextLink label={how["research link"]} href={ROUTES.research} />
+        </div>
+      </section>
+
+      {/* 6. Their doubts */}
+      <section className="sect ask" id="ask" aria-labelledby="ask-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="inner" data-paint-keepout>
+          <h2 className="rv" id="ask-h">
+            {doubts.headline}
+          </h2>
+          <Doubts items={pairs(doubts.asks)} label={doubts.label} />
+        </div>
+      </section>
+
+      {/* 7. The price and the close, at night */}
+      <section className="sect price night" id="price" aria-labelledby="price-h">
+        <Fireflies />
+        <div className="mist" aria-hidden="true" />
+        <div className="inner" data-paint-keepout>
+          <h2 className="rv" id="price-h">
+            {nums(price.headline)}
+          </h2>
+          <ul className="plans">
+            {pairs(price.ways).map(([name, line], k) => {
+              const cut = line.indexOf(". ");
+              return (
+                <li className="rv" key={name} style={{ transitionDelay: `${k * 90}ms` }}>
+                  <b>{name}</b>
+                  <i>{cut > 0 ? line.slice(0, cut) : line}</i>
+                  <span>{cut > 0 ? line.slice(cut + 2) : ""}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="go-row rv">
+            <Btn label={close.button} href={ROUTES.signUp} />
+            <a className="more" href={ROUTES.pricing}>
+              {price.link}
+              <Arrow />
+            </a>
           </div>
-        ) : null}
+          <p className="lede rv">{close.headline}</p>
+        </div>
       </section>
     </SitePage>
   );
