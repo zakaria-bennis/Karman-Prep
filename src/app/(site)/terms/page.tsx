@@ -10,6 +10,8 @@ import {
   formatPrice as $,
   FREE_PLAN,
   GUARANTEE as G,
+  type GuaranteeTrack,
+  guaranteeBandLabel,
   MARCH_PROGRAM as MP,
   PLAN_RENEWAL,
   PRACTICE_PLAN,
@@ -21,6 +23,15 @@ import {
 import { SCHOLARSHIP_TERMS_SECTION } from "@/lib/scholarship/terms-section";
 
 const [P10, P20] = PRIVATE_PACKAGES;
+
+/** "+200 points from a baseline of 1200 or lower; +150 from 1210 to 1300; ..." for one track. */
+const targets = (track: GuaranteeTrack) =>
+  G.bands
+    .map(
+      (b, i) =>
+        `+${b[track]}${i === 0 ? " points from a baseline of" : " from"} ${guaranteeBandLabel(i)}`
+    )
+    .join("; ");
 
 export const metadata = pageMeta(
   ROUTES.terms,
@@ -73,7 +84,7 @@ const SECTIONS = [
   {
     id: "guarantee",
     title: "5. The Karman Guarantee",
-    content: `The ${MP.planName}, ${P10.name} and ${P20.name} carry the Karman guarantee. The target is +${G.pointsBelow} points from a baseline under ${G.splitAt}, and +${G.pointsFrom} points from a baseline of ${G.splitAt} or higher; a ${G.topScore} always counts. If every requirement is met and the SAT falls short, the family gets the remedy shown at karmanprep.com/guarantee: on the ${MP.planName}, half or all of the price back, or the next cohort free; on Private 10, half the price back; on Private 20, free extra hours, then half the price back. ${PRACTICE_PLAN.name}, ${PRO_PLAN.name}, ${FREE_PLAN.name}, school licenses and ${TA.name} plans carry no guarantee. The requirements, eligibility and how to claim are listed in full on the guarantee page, and for private tutoring on the private tutoring page.`,
+    content: `The ${MP.planName}, ${P10.name} and ${P20.name} carry the Karman guarantee. The target depends on the baseline score and the plan. On ${P20.name}: ${targets("private")}. On the ${MP.planName} and ${P10.name}: ${targets("cohort")}. From a baseline of ${G.noGuaranteeFrom} or higher these plans carry no guarantee, and the family is told so before paying. A ${G.topScore} always counts. If every requirement is met and the SAT falls short, the family gets the remedy shown at karmanprep.com/guarantee: on the ${MP.planName}, half or all of the price back, or the next cohort free; on Private 10, half the price back; on Private 20, free extra hours, then half the price back. ${PRACTICE_PLAN.name}, ${PRO_PLAN.name}, ${FREE_PLAN.name}, school licenses and ${TA.name} plans carry no guarantee. The requirements, eligibility and how to claim are listed in full on the guarantee page, and for private tutoring on the private tutoring page.`,
   },
   {
     id: "acceptable-use",

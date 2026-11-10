@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   formatPrice as money,
   GUARANTEE as G,
+  guaranteeMax,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
   PRACTICE_PLAN,
@@ -69,7 +70,6 @@ const INCLUDES = {
     "A note to parents after every session",
   ],
 };
-const PROMISE = `+${G.pointsBelow} points, or +${G.pointsFrom} from ${G.splitAt}`;
 // what each option includes, side by side: Practice and Pro, cohort, private ("" = not included)
 const COMPARE: [string, string, string, string][] = [
   [
@@ -107,10 +107,10 @@ const COMPARE: [string, string, string, string][] = [
   ["Cohort group chat, answered by a tutor every day", "", "yes", ""],
   ["Progress for parents", "On their phone", "Every week", "After every session"],
   [
-    `The guarantee: ${PROMISE}`,
+    "The guarantee, set by the starting score",
     "",
-    "Money back or the next cohort free",
-    `${PRIVATE_PACKAGES[0].name}: half back. ${PRIVATE_PACKAGES[1].name}: free hours, then half back`,
+    `Up to +${guaranteeMax("cohort")} points. Money back or the next cohort free`,
+    `${PRIVATE_PACKAGES[0].name}: up to +${guaranteeMax("cohort")}, half back. ${PRIVATE_PACKAGES[1].name}: up to +${guaranteeMax("private")}, free hours, then half back`,
   ],
 ];
 
@@ -270,7 +270,7 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
 
             <article className={`plan program rv ${other ? "dim" : ""}`} style={delay(0.06)}>
               <a className="badge" href="#guarantee">
-                <b>+{G.pointsBelow}</b>
+                <b>+{guaranteeMax("cohort")}</b>
                 <span>{S("badge")}</span>
               </a>
               <h2 className="pname">{d.name}</h2>
@@ -344,8 +344,8 @@ export default function PricingPlans({ guarantee }: { guarantee: ReactNode }) {
                 <span className="per">{pricePerHour(PRIVATE_PACKAGES[hours])} an hour</span>
               </p>
               <a className="badge g20" href="#guarantee">
-                <b>+{G.pointsBelow}</b>
-                <span>Both packages: {PROMISE}.</span>
+                <b>+{guaranteeMax(G.trackOf[PRIVATE_PACKAGES[hours].id])}</b>
+                <span>{S("private badge")}</span>
               </a>
               <p className="meta">Start any time.</p>
               <ul>
