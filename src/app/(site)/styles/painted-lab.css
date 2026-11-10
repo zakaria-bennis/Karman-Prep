@@ -20,10 +20,16 @@ html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"
   animation: pill-ring 0.8s var(--out) calc(var(--pill-at) + 0.22s) forwards;
 }
 /* the full stop after the number arrives with it */
-html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"]) .ks .claim .keep {
+html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])
+  .ks
+  .claim
+  .keep {
   color: transparent;
 }
-html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go] .ks .claim .keep {
+html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go]
+  .ks
+  .claim
+  .keep {
   animation: keep-ink 0.01s linear calc(var(--pill-at) + 0.2s) forwards;
 }
 @keyframes keep-ink {
@@ -34,13 +40,22 @@ html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"
 html[data-in] .ks .claim .w > span {
   transition: none;
 }
-html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go] .ks .claim .lede {
+html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go]
+  .ks
+  .claim
+  .lede {
   animation: claim-up 0.8s var(--out) calc(var(--pill-at) + 0.3s) forwards;
 }
-html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go] .ks .claim .go-row {
+html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go]
+  .ks
+  .claim
+  .go-row {
   animation: claim-up 0.8s var(--out) calc(var(--pill-at) + 0.44s) forwards;
 }
-html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go] .ks .claim .fine {
+html:is([data-in="1"], [data-in="2"], [data-in="3"], [data-in="4"], [data-in="5"])[data-go]
+  .ks
+  .claim
+  .fine {
   animation: claim-up 0.8s var(--out) calc(var(--pill-at) + 0.58s) forwards;
 }
 
@@ -83,16 +98,58 @@ html[data-in="1"][data-go] .ks .claim .w > span {
 }
 
 /* 2. Flip: each word tips up from lying flat, like the score tiles further down the page */
-html[data-in="2"] .ks .claim { --pill-at: 1.3s; }
-html[data-in="2"] .ks .claim .w { perspective: 700px; }
-html[data-in="2"][data-go] .ks .claim .w > span { opacity: 1; transform-origin: 50% 100%; animation: in-flip .85s cubic-bezier(.2, 1.3, .4, 1) calc(.12s + var(--i) * 80ms) both; }
-@keyframes in-flip { from { opacity: 0; transform: rotateX(-96deg) translateY(.2em); } 40% { opacity: 1; } to { opacity: 1; transform: none; } }
+html[data-in="2"] .ks .claim {
+  --pill-at: 1.3s;
+}
+html[data-in="2"] .ks .claim .w {
+  perspective: 700px;
+}
+html[data-in="2"][data-go] .ks .claim .w > span {
+  opacity: 1;
+  transform-origin: 50% 100%;
+  animation: in-flip 0.85s cubic-bezier(0.2, 1.3, 0.4, 1) calc(0.12s + var(--i) * 80ms) both;
+}
+@keyframes in-flip {
+  from {
+    opacity: 0;
+    transform: rotateX(-96deg) translateY(0.2em);
+  }
+  40% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 /* 5. Horizon: the whole headline comes up out of the sunrise, small and far, and grows into its place */
-html[data-in="5"] .ks .claim { --pill-at: 1.25s; }
-html[data-in="5"][data-go] .ks .claim .w > span { opacity: 1; animation: none; }
-html[data-in="5"][data-go] .ks .claim h1 { transform-origin: 0 100%; animation: in-horizon 1.25s cubic-bezier(.16, 1, .3, 1) backwards; }
-@keyframes in-horizon { from { opacity: 0; transform: translate(4%, 78%) scale(.22); filter: blur(6px); } 35% { opacity: 1; filter: blur(0); } to { opacity: 1; transform: none; } }
+html[data-in="5"] .ks .claim {
+  --pill-at: 1.25s;
+}
+html[data-in="5"][data-go] .ks .claim .w > span {
+  opacity: 1;
+  animation: none;
+}
+html[data-in="5"][data-go] .ks .claim h1 {
+  transform-origin: 0 100%;
+  animation: in-horizon 1.25s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+@keyframes in-horizon {
+  from {
+    opacity: 0;
+    transform: translate(4%, 78%) scale(0.22);
+    filter: blur(6px);
+  }
+  35% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 /* 3. Mist: the words are there in the haze and come into focus, as if the morning mist lifts */
 html[data-in="3"] .ks .claim {
@@ -288,13 +345,51 @@ html[data-btn="3"] .ks.page-home main .btn .go {
 }
 
 /* ================= the button's colour (data-tint): colours taken from the painting itself ================= */
-html[data-tint="1"] .ks.page-home { --go: #55309a; --go-2: #3c1f78; --on-go: #fffaf3; }
-html[data-tint="2"] .ks.page-home { --go: #1f6b52; --go-2: #124a3a; --on-go: #fffaf3; }
-html[data-tint="3"] .ks.page-home { --go: #d8452f; --go-2: #b02c22; --on-go: #fffaf3; }
-html[data-tint="4"] .ks.page-home { --go: #ffd66b; --go-2: #ffb938; --on-go: #1d1a22; }
-html:is([data-tint="1"], [data-tint="2"], [data-tint="3"], [data-tint="4"]) .ks.page-home :is(main .btn, .hd .cta) { background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .34), transparent 70%), linear-gradient(180deg, var(--go), var(--go-2)); color: var(--on-go); }
-html:is([data-tint="1"], [data-tint="2"], [data-tint="3"], [data-tint="4"]) .ks.page-home main .btn .go { color: var(--on-go); }
-html:is([data-tint="1"], [data-tint="2"], [data-tint="3"], [data-tint="4"]) .ks.page-home .hd .cta:hover { color: var(--on-go); }
+html[data-tint="1"] .ks.page-home {
+  --go: #55309a;
+  --go-2: #3c1f78;
+  --on-go: #fffaf3;
+}
+html[data-tint="2"] .ks.page-home {
+  --go: #1f6b52;
+  --go-2: #124a3a;
+  --on-go: #fffaf3;
+}
+html[data-tint="3"] .ks.page-home {
+  --go: #d8452f;
+  --go-2: #b02c22;
+  --on-go: #fffaf3;
+}
+html[data-tint="4"] .ks.page-home {
+  --go: #ffd66b;
+  --go-2: #ffb938;
+  --on-go: #1d1a22;
+}
+html:is([data-tint="1"], [data-tint="2"], [data-tint="3"], [data-tint="4"])
+  .ks.page-home
+  :is(main .btn, .hd .cta) {
+  background:
+    radial-gradient(
+      150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%,
+      rgba(255, 255, 255, 0.34),
+      transparent 70%
+    ),
+    linear-gradient(180deg, var(--go), var(--go-2));
+  color: var(--on-go);
+}
+html:is([data-tint="1"], [data-tint="2"], [data-tint="3"], [data-tint="4"])
+  .ks.page-home
+  main
+  .btn
+  .go {
+  color: var(--on-go);
+}
+html:is([data-tint="1"], [data-tint="2"], [data-tint="3"], [data-tint="4"])
+  .ks.page-home
+  .hd
+  .cta:hover {
+  color: var(--on-go);
+}
 
 /* ================= the top bar (data-bar) ================= */
 /* 1. One pill: the whole bar on one rounded cream shape */
