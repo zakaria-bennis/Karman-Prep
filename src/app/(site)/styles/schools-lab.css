@@ -135,7 +135,10 @@ html:is([data-sch="1"], [data-sch="2"], [data-sch="3"]) .ks .proof .logos {
   height: 100%;
   animation: sch-focus 0.9s var(--out) both;
 }
-.ks .sch-places img { width: 100%; height: clamp(30px, 3.4vw, 48px); }
+.ks .sch-places img {
+  width: 100%;
+  height: clamp(30px, 3.4vw, 48px);
+}
 @keyframes sch-focus {
   from {
     opacity: 0;
