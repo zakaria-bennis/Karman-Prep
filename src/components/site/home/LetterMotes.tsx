@@ -34,6 +34,9 @@ export default function LetterMotes() {
     const claim = canvas?.closest<HTMLElement>(".claim");
     const g = canvas?.getContext("2d");
     if (!canvas || !claim || !g) return;
+    /* the options panel (HomeLab.tsx) is trying another entrance: that one runs from CSS alone */
+    const trying = document.documentElement.dataset.in;
+    if (trying && trying !== "0") return;
     const done = () => {
       claim.classList.add("formed", "slam");
       try {

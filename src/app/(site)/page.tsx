@@ -4,6 +4,7 @@ import Fireflies from "@/components/site/home/Fireflies";
 import Flock from "@/components/site/home/Flock";
 import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
+import HomeLab, { LAB_BOOT } from "@/components/site/home/HomeLab";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import LetterMotes from "@/components/site/home/LetterMotes";
@@ -64,11 +65,17 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
       <HomeTouches />
       {/* a visitor who has already watched the headline form this visit sees it at once */}
+      {process.env.NODE_ENV !== "production" ? (
+        <>
+          <script dangerouslySetInnerHTML={{ __html: LAB_BOOT }} />
+          <HomeLab />
+        </>
+      ) : null}
       <script dangerouslySetInnerHTML={{ __html: SEEN_BOOT }} />
 
       {/* 1. The claim */}
       <section className="claim" id="claim">
-        <Flock text={gain} />
+        <Flock />
         <div className="mist" aria-hidden="true" />
         <LetterMotes />
         <div className="say" data-paint-keepout>
@@ -76,7 +83,7 @@ export default function HomePage() {
             <HeadWords text={before} />{" "}
             {number ? (
               <span className="keep">
-                <ClaimPill label={number}>
+                <ClaimPill>
                   <span className="num">{gain}</span> points
                 </ClaimPill>
                 {mark}

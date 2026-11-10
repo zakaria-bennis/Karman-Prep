@@ -82,6 +82,8 @@ html.ks-lock:has(.ks.page-home) { overflow: auto; }
 
 /* ---------- the main button: ink on the painting, soft-edged, settling a little when pressed ---------- */
 .ks.page-home .btn { min-height: 64px; padding: 0 28px 0 32px; gap: 12px; border-radius: 999px; background: var(--go); color: var(--cream); font-weight: 700; font-size: clamp(19px, 1.5vw, 22px); letter-spacing: -0.01em; box-shadow: 0 16px 30px -16px rgba(29, 26, 34, .75); transform: translate(var(--pull-x, 0px), var(--pull-y, 0px)); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
+/* no sweep of light across it (alive.css): it read as fake on this page (founder, 2026-11-10) */
+.ks.page-home .btn.glint::after { content: none; }
 .ks.page-home .btn .go { width: 24px; height: 24px; background: none; color: var(--cream); overflow: visible; }
 .ks.page-home .btn .go svg { width: 20px; height: 20px; }
 @media (hover: hover) and (pointer: fine) {
@@ -93,7 +95,7 @@ html.ks-lock:has(.ks.page-home) { overflow: auto; }
 .ks.page-home .more svg { width: 16px; height: 16px; transition: transform .4s var(--spring); }
 @media (hover: hover) and (pointer: fine) { .ks.page-home .more:hover svg { transform: translateX(5px); } }
 
-/* ---------- 1. the claim: the headline on the dawn sky, and the flock that spells its number ---------- */
+/* ---------- 1. the claim: the headline on the dawn sky, and a few flocks of birds passing far off ---------- */
 .ks .claim { position: relative; min-height: 100svh; display: flex; align-items: center; padding: 120px var(--gutter) clamp(90px, 16vh, 170px); }
 /* a calm patch of sky behind the words: brightest where they are, gone before any edge could show */
 .ks .claim .mist { position: absolute; inset: 0; background: radial-gradient(ellipse 62% 64% at 26% 50%, rgba(var(--mist-rgb), .5), rgba(var(--mist-rgb), .3) 52%, rgba(var(--mist-rgb), 0) 78%); animation: mist-in 1.4s var(--out) both; }
@@ -131,8 +133,6 @@ html.ks-lock:has(.ks.page-home) { overflow: auto; }
 .ks .claim .keep::before { content: ""; position: absolute; inset: -6% -2%; border-radius: 999px; border: 2px solid var(--ink); opacity: 0; pointer-events: none; }
 .ks .claim.slam .keep::before { animation: pill-ring .8s var(--out) .34s both; }
 @keyframes pill-ring { from { opacity: .5; transform: scale(.96); } to { opacity: 0; transform: scale(1.5, 1.9); } }
-@media (hover: hover) and (pointer: fine) { .ks .claim-pill:hover { transform: rotate(1deg) scale(1.03); } }
-.ks .claim.slam .claim-pill:active { transform: rotate(-1.4deg) scale(.96, .92); transition-duration: .08s; }
 html.claim-seen .ks .claim :is(.w > span, .lede, .go-row, .fine, .claim-pill) { animation: none; opacity: 1; }
 html.claim-seen .ks .claim .keep::before { animation: none; }
 @media (max-width: 1100px) {
