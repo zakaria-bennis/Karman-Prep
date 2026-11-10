@@ -2,6 +2,7 @@ import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
 import Fireflies from "@/components/site/home/Fireflies";
 import Flock from "@/components/site/home/Flock";
+import GuaranteeLab from "@/components/site/home/GuaranteeLab";
 import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
 import HomeJourney from "@/components/site/home/HomeJourney";
@@ -13,7 +14,13 @@ import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
+import {
+  CONTACT,
+  FOUNDER,
+  GUARANTEE,
+  guaranteeBandLabel,
+  TRACK_RECORD,
+} from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
 import { SCHOOLS } from "@/lib/marketing/schools";
 import { pairs, section } from "@/lib/marketing/site-copy";
@@ -147,6 +154,25 @@ export default function HomePage() {
               ))}
             </ul>
           </div>
+          {process.env.NODE_ENV !== "production" ? (
+            <GuaranteeLab
+              bands={GUARANTEE.bands.map((b, i) => ({
+                label: guaranteeBandLabel(i),
+                private: b.private,
+                cohort: b.cohort,
+              }))}
+              outcomes={pairs(offer.outcomes)}
+              words={{
+                private: offer.private,
+                cohort: offer.cohort,
+                track: offer.track,
+                promise: offer.promise,
+                none: offer.none,
+                free: offer.free,
+                signed: FOUNDER.firstName,
+              }}
+            />
+          ) : null}
           <p className="fine rv">{offer.free}</p>
           <TextLink label={offer.link} href={ROUTES.guarantee} />
         </div>

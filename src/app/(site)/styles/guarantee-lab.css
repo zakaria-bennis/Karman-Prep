@@ -1,0 +1,254 @@
+/* TEMPORARY (2026-11-10): the three options for the guarantee (GuaranteeLab.tsx). The winner moves into
+   painted.css and this file goes. */
+.ks .gua {
+  display: none;
+  width: 100%;
+  gap: clamp(18px, 2.2vw, 28px);
+  justify-items: start;
+}
+html[data-gua="1"] .ks .gua-rows {
+  display: grid;
+}
+html[data-gua="2"] .ks .gua-pick {
+  display: grid;
+}
+html[data-gua="3"] .ks .gua-paper {
+  display: grid;
+}
+html[data-gua="1"] .ks .offer :is(.offer-cols, .inner > .fine) {
+  display: none;
+}
+html[data-gua="2"] .ks .offer :is(.offer-cols, .inner > .fine) {
+  display: none;
+}
+html[data-gua="3"] .ks .offer :is(.offer-cols, .inner > .fine) {
+  display: none;
+}
+
+.ks .gua-outcomes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px clamp(20px, 3vw, 44px);
+  width: min(100%, 980px);
+}
+.ks .gua-outcomes li {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+.ks .gua-outcomes b {
+  font-size: clamp(17px, 1.5vw, 20px);
+  font-weight: 800;
+}
+.ks .gua-outcomes span {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 16.5px;
+  line-height: 1.4;
+}
+.ks .gua-free {
+  font-weight: 700;
+  font-size: 16px;
+}
+.ks .gua-none {
+  max-width: 52ch;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.45;
+}
+@media (max-width: 760px) {
+  .ks .gua-outcomes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- A. Find your row ---------- */
+.ks .gua-ladder {
+  width: min(100%, 760px);
+  display: grid;
+}
+.ks .gua-ladder li {
+  display: grid;
+  grid-template-columns: auto minmax(24px, 1fr) auto;
+  align-items: baseline;
+  gap: 14px;
+  padding: clamp(8px, 1vw, 12px) 0;
+}
+.ks .gua-ladder span {
+  font-weight: 700;
+  font-size: clamp(18px, 1.7vw, 24px);
+}
+.ks .gua-ladder i {
+  align-self: center;
+  height: 0;
+  border-top: 2px dotted rgba(29, 26, 34, 0.45);
+}
+.ks .gua-ladder b {
+  font-size: clamp(34px, 4.2vw, 60px);
+  line-height: 1;
+  animation: sch-focus 0.7s var(--out) both;
+}
+@keyframes sch-focus {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+/* ---------- B. Pick a range ---------- */
+.ks .gua-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ks .gua-chips button {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--soft-card);
+  box-shadow: var(--lift);
+  font-weight: 700;
+  font-size: 16.5px;
+  color: var(--ink2);
+  transition:
+    background-color 0.3s var(--out),
+    color 0.3s var(--out),
+    transform 0.45s var(--spring);
+}
+.ks .gua-chips button[data-on] {
+  background: var(--ink);
+  color: var(--cream);
+}
+.ks .gua-chips button:active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
+}
+.ks .gua-answer {
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-size: clamp(34px, 5.4vw, 84px);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+.ks .gua-answer span {
+  display: inline-block;
+  white-space: nowrap;
+  animation: sch-focus 0.8s var(--out) both;
+}
+
+/* ---------- C. Written promise ---------- */
+.ks .gua-sheet {
+  width: min(100%, 720px);
+  display: grid;
+  gap: clamp(16px, 2vw, 24px);
+  padding: clamp(26px, 3.6vw, 52px);
+  border-radius: clamp(22px, 2.6vw, 34px);
+  background: var(--cream);
+  box-shadow:
+    0 30px 60px -34px rgba(29, 26, 34, 0.6),
+    0 4px 10px -6px rgba(29, 26, 34, 0.2);
+  transform: rotate(-0.7deg);
+}
+.ks .gua-sheet-head {
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.1;
+}
+.ks .gua-lines {
+  display: grid;
+}
+.ks .gua-lines li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ks .gua-lines span {
+  font-weight: 700;
+  font-size: clamp(17px, 1.6vw, 21px);
+}
+.ks .gua-lines b {
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1;
+  animation: sch-focus 0.7s var(--out) both;
+}
+.ks .gua-sheet .gua-outcomes {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.ks .gua-sheet .gua-outcomes li {
+  grid-template-columns: minmax(0, 11em) minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+.ks .gua-sign {
+  justify-self: end;
+  font-family: var(--font-caveat), cursive;
+  font-size: clamp(30px, 3.2vw, 42px);
+  line-height: 1;
+  transform: rotate(-3deg);
+}
+@media (max-width: 560px) {
+  .ks .gua-sheet .gua-outcomes li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+/* ---------- the panel ---------- */
+.lab {
+  position: fixed;
+  z-index: 400;
+  right: 12px;
+  bottom: 12px;
+  max-width: min(420px, calc(100vw - 24px));
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #15131a;
+  color: #f4efe6;
+  font:
+    500 13px/1.3 system-ui,
+    sans-serif;
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+}
+.lab b {
+  color: #b9b2c6;
+}
+.lab div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.lab button {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #2b2733;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.lab button[data-on] {
+  background: #f4efe6;
+  color: #15131a;
+  font-weight: 700;
+}
+html[data-lab="0"] .lab {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .gua b,
+  .ks .gua-answer span {
+    animation: none;
+  }
+}
