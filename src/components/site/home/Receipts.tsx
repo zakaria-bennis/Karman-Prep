@@ -2,7 +2,7 @@
 
 // The receipts: a plain list of students (where they started, where they finished, the gain, how long it
 // took, where they went) beside the orange phone, which shows the text conversation behind the lit row. The
-// light moves down the list one row every six seconds while the phone pans slowly down that conversation.
+// light slides down the list one row every six seconds while the phone pans slowly down that conversation.
 // Tapping a row holds it; tapping it again lets the list move on (founder, 2026-11-10). The heading and the
 // rows together are exactly as tall as the phone (painted.css, .rcp). Without scripts, under reduced motion,
 // or when the painting is held still, nothing moves by itself: the first row is lit, any row can be tapped,
@@ -29,7 +29,7 @@ export default function Receipts({
   const [active, setActive] = useState(0);
   const [held, setHeld] = useState(false);
   const [seen, setSeen] = useState(false);
-  /* counts each fresh six seconds, so the lit row's timing line starts again */
+  /* counts each fresh six seconds, so a released row gets its full time again */
   const [run, setRun] = useState(0);
   const host = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLOListElement>(null);
@@ -96,7 +96,11 @@ export default function Receipts({
     <div className="rcp rv" ref={host} data-held={held || undefined}>
       <div className="rcp-side">
         <h2 id={headingId}>{headline}</h2>
-        <ol className="rcp-list" ref={list}>
+        <ol
+          className="rcp-list"
+          ref={list}
+          style={{ "--rows": rows.length, "--at": active } as React.CSSProperties}
+        >
           {rows.map((r, i) => (
             <li key={r.name} style={{ "--i": i } as React.CSSProperties}>
               <button
@@ -120,7 +124,6 @@ export default function Receipts({
                   {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG logos */}
                   <img src={`/site/schools/${r.school}.svg`} alt={r.schoolName} decoding="async" />
                 </span>
-                {i === active ? <span className="tick" key={run} aria-hidden="true" /> : null}
               </button>
             </li>
           ))}
