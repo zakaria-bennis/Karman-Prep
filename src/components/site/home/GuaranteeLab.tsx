@@ -1,8 +1,9 @@
 "use client";
 
-// TEMPORARY (2026-11-10): three other ways to show the guarantee, none with a slider or big buttons, for the
-// founder to pick from. Never shown in production. The choice is data-gua on <html> (0 is today's flip
-// tiles); the styles are in styles/guarantee-lab.css. The winner replaces ScoreTiles.tsx; this file goes.
+// TEMPORARY (2026-11-10): three short, signed versions of the guarantee for the founder to pick from. He
+// asked for less information here (the full rules are one link away) and liked the promise being signed.
+// Never shown in production. The choice is data-gua on <html> (0 is today's flip tiles); the styles are in
+// styles/guarantee-lab.css. The winner replaces ScoreTiles.tsx; this file goes.
 import { useEffect, useState } from "react";
 import "@/app/(site)/styles/guarantee-lab.css";
 import { nums } from "./Head";
@@ -15,31 +16,46 @@ export interface LabBand {
 }
 interface Props {
   bands: LabBand[];
-  outcomes: [string, string][];
-  words: Record<"private" | "cohort" | "track" | "promise" | "none" | "free" | "signed", string>;
+  /** The two outcomes where money comes back, as [name, line]. */
+  back: [string, string][];
+  words: Record<"private" | "cohort" | "track" | "promise" | "signed" | "role", string>;
 }
 
 const OPTIONS = [
   ["0", "Today"],
-  ["1", "A. Find your row"],
-  ["2", "B. Pick a range"],
-  ["3", "C. Written promise"],
+  ["1", "A. Signed line"],
+  ["2", "B. Signed note"],
+  ["3", "C. Signed, your number"],
 ] as const;
 
-function Outcomes({ outcomes }: { outcomes: [string, string][] }) {
+/** The founder's name, written out when it scrolls into view, with a stroke under it. */
+function Signature({ name, role }: { name: string; role: string }) {
   return (
-    <ul className="gua-outcomes">
-      {outcomes.map(([name, line]) => (
+    <p className="gua-sig rv">
+      <span className="gua-sig-name">
+        {name}
+        <svg viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M4 14 C 60 4, 120 22, 180 10 S 270 6, 296 12" pathLength="1" />
+        </svg>
+      </span>
+      <span className="gua-sig-role">{role}</span>
+    </p>
+  );
+}
+
+function Back({ back }: { back: [string, string][] }) {
+  return (
+    <ul className="gua-back">
+      {back.map(([name, line]) => (
         <li key={name}>
-          <b>{name}</b>
-          <span>{line}</span>
+          <b>{name}</b> {line}
         </li>
       ))}
     </ul>
   );
 }
 
-export default function GuaranteeLab({ bands, outcomes, words }: Props) {
+export default function GuaranteeLab({ bands, back, words }: Props) {
   const [picked, setPicked] = useState("0");
   const [track, setTrack] = useState(0);
   const [range, setRange] = useState(0);
@@ -56,37 +72,33 @@ export default function GuaranteeLab({ bands, outcomes, words }: Props) {
     document.documentElement.dataset.gua = v;
     setPicked(v);
   };
-  const tracks = (
-    <Seg
-      labels={[words.private, words.cohort]}
-      value={track}
-      onChange={setTrack}
-      label={words.track}
-    />
-  );
+  const sign = <Signature name={words.signed} role={words.role} />;
 
   return (
     <>
-      {/* A. Find your row: the four starting ranges and what each is promised, all in view at once */}
-      <div className="gua gua-rows">
-        {tracks}
-        <ul className="gua-ladder">
-          {bands.map((b) => (
-            <li key={b.label}>
-              <span>{b.label}</span>
-              <i aria-hidden="true" />
-              <b key={`${key}${b[key]}`}>{nums(`+${b[key]}`)}</b>
-            </li>
-          ))}
-        </ul>
-        <p className="gua-none">{words.none}</p>
-        <Outcomes outcomes={outcomes} />
-        <p className="gua-free">{words.free}</p>
+      {/* A. Signed line: the headline is the promise; two short lines and a signature under it */}
+      <div className="gua gua-line">
+        <Back back={back} />
+        {sign}
       </div>
 
-      {/* B. Pick a range: two small switches, and one big sentence that answers */}
+      {/* B. Signed note: the same few words on a small sheet of paper, tilted, signed */}
+      <div className="gua gua-note">
+        <div className="gua-sheet">
+          <Back back={back} />
+          {sign}
+        </div>
+      </div>
+
+      {/* C. Signed, your number: pick a starting range, read one sentence, signed */}
       <div className="gua gua-pick">
-        {tracks}
+        <Seg
+          labels={[words.private, words.cohort]}
+          value={track}
+          onChange={setTrack}
+          label={words.track}
+          small
+        />
         <div className="gua-chips" role="radiogroup" aria-label={words.track}>
           {bands.map((b, i) => (
             <button
@@ -105,27 +117,7 @@ export default function GuaranteeLab({ bands, outcomes, words }: Props) {
           {words.promise}{" "}
           <span key={`${key}${range}`}>{nums(`+${bands[range][key]} points.`)}</span>
         </p>
-        <Outcomes outcomes={outcomes} />
-        <p className="gua-free">{words.free}</p>
-      </div>
-
-      {/* C. Written promise: the whole guarantee on one sheet of paper, signed */}
-      <div className="gua gua-paper">
-        {tracks}
-        <div className="gua-sheet">
-          <p className="gua-sheet-head">{words.promise}</p>
-          <ul className="gua-lines">
-            {bands.map((b) => (
-              <li key={b.label}>
-                <span>{b.label}</span>
-                <b key={`${key}${b[key]}`}>{nums(`+${b[key]}`)}</b>
-              </li>
-            ))}
-          </ul>
-          <Outcomes outcomes={outcomes} />
-          <p className="gua-free">{words.free}</p>
-          <p className="gua-sign">{words.signed}</p>
-        </div>
+        {sign}
       </div>
 
       <aside className="lab" aria-label="Options to try">

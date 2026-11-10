@@ -161,15 +161,14 @@ export default function HomePage() {
                 private: b.private,
                 cohort: b.cohort,
               }))}
-              outcomes={pairs(offer.outcomes)}
+              back={pairs(offer.outcomes).slice(1)}
               words={{
                 private: offer.private,
                 cohort: offer.cohort,
                 track: offer.track,
                 promise: offer.promise,
-                none: offer.none,
-                free: offer.free,
-                signed: FOUNDER.firstName,
+                signed: FOUNDER.name,
+                role: "Founder, Karman Prep",
               }}
             />
           ) : null}
