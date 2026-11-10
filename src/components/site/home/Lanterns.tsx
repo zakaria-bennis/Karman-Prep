@@ -199,13 +199,16 @@ export default function Lanterns({ schools }: { schools: School[] }) {
           queue = [...bodies].sort(() => Math.random() - 0.5);
         }
       }
-      if (hold || !seen || document.hidden) return;
+      if (hold) return;
       if (!placed) {
         host.classList.add("live");
         measure();
         if (!bodies.every((b) => b.w > 0)) return;
         fill();
+        paint();
       }
+      /* in the air from the start, but only moving while the section is on screen */
+      if (!seen || document.hidden) return;
       step(dt, now / 1000);
       paint();
     };
