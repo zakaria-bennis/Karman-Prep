@@ -2,12 +2,12 @@ import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
 import Fireflies from "@/components/site/home/Fireflies";
 import Flock from "@/components/site/home/Flock";
+import Guarantee from "@/components/site/home/Guarantee";
 import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
-import ScoreTiles from "@/components/site/home/ScoreTiles";
 import Ways from "@/components/site/home/Ways";
 import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
@@ -16,7 +16,7 @@ import { ROUTES } from "@/components/site/routes";
 import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
 import { SCHOOLS } from "@/lib/marketing/schools";
-import { pairs, section } from "@/lib/marketing/site-copy";
+import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
@@ -119,35 +119,17 @@ export default function HomePage() {
         <div className="inner" data-paint-keepout>
           <div className="rv">
             <h2 id="offer-h">{nums(offer.headline)}</h2>
-            <p className="lede">{offer.text}</p>
           </div>
-          <div className="offer-cols">
-            <div className="rv">
-              <ScoreTiles
-                bands={GUARANTEE.bands.map((b) => ({ ...b }))}
-                noGuaranteeFrom={GUARANTEE.noGuaranteeFrom}
-                words={{
-                  private: offer.private,
-                  cohort: offer.cohort,
-                  track: offer.track,
-                  now: offer.now,
-                  lower: offer.lower,
-                  higher: offer.higher,
-                  promise: offer.promise,
-                  none: offer.none,
-                }}
-              />
-            </div>
-            <ul className="outcomes">
-              {pairs(offer.outcomes).map(([name, line], k) => (
-                <li className="rv" key={name} style={{ transitionDelay: `${k * 110}ms` }}>
-                  <b>{name}</b>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <p className="fine rv">{offer.free}</p>
+          <Guarantee
+            outcomes={pairs(offer.outcomes)}
+            words={{
+              line: offer.text,
+              signed: SITE.logo,
+              stamp: `+${GUARANTEE.bands[0].private}`,
+              stampUnit: offer["stamp unit"],
+              stampRing: offer["stamp ring"],
+            }}
+          />
           <TextLink label={offer.link} href={ROUTES.guarantee} />
         </div>
       </section>

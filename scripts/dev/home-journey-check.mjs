@@ -57,10 +57,7 @@ for (const [name, width, height] of [
         const el = n.parentElement;
         if (!n.textContent.trim() || !el.offsetParent) continue;
         /* text on its own solid surface is checked by colour pair below, not by the painting */
-        if (
-          el.closest(".btn, .claim-pill, .tiles, .seg, .score-set button, .talk .q, .sr, [hidden]")
-        )
-          continue;
+        if (el.closest(".btn, .claim-pill, .talk .q, .sr, [hidden]")) continue;
         const range = document.createRange();
         range.selectNodeContents(n);
         const cs = getComputedStyle(el);
@@ -120,22 +117,19 @@ for (const [name, width, height] of [
     `${name}: measured contrast over the painting, all seven sections${bad.length ? "\n     " + [...new Set(bad)].slice(0, 14).join("\n     ") : ""}`
   );
 
-  /* the guarantee tiles follow the starting score and the track */
+  /* the guarantee: the stamp comes down and the three cards arrive */
   await page.evaluate(() => document.querySelector("#offer").scrollIntoView({ block: "center" }));
-  const tiles = async () => (await page.locator(".tiles.won").innerText()).replace(/\s+/g, "");
-  say((await tiles()) === "1400", `${name}: private from 1200 guarantees 1400`);
-  await page.locator(".score .seg button").nth(1).click();
-  say((await tiles()) === "1350", `${name}: the cohort from 1200 guarantees 1350`);
-  await page.locator(".score-set button").nth(1).click();
-  say(
-    (await tiles()) === "1310",
-    `${name}: ten points higher moves to the next band (1210 to 1310)`
-  );
-  for (let i = 0; i < 25; i++) await page.locator(".score-set button").nth(1).click();
-  say(
-    (await page.locator(".score-none").count()) === 1,
-    `${name}: from 1460 there is no guarantee, and it says so`
-  );
+  await page.waitForTimeout(3200);
+  const gua = await page.evaluate(() => ({
+    stamp: +getComputedStyle(document.querySelector(".gua-stamp")).opacity,
+    cards: [...document.querySelectorAll(".gua-cards li")].filter(
+      (l) => +getComputedStyle(l).opacity > 0.9
+    ).length,
+    sig: document.querySelector(".gua-sig").getBoundingClientRect().width,
+  }));
+  say(gua.stamp === 1, `${name}: the guarantee's stamp is on the page`);
+  say(gua.cards === 3, `${name}: the three outcomes have arrived (${gua.cards})`);
+  say(gua.sig > 150, `${name}: the signature is drawn (${Math.round(gua.sig)} px wide)`);
   /* a doubt opens into its answer */
   await page.evaluate(() => document.querySelector("#ask").scrollIntoView({ block: "center" }));
   await page.locator(".asks button", { hasText: "try it first" }).evaluate((el) => el.click());
