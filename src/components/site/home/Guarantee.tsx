@@ -1,11 +1,12 @@
 "use client";
 
 // The guarantee, kept short (founder, 2026-11-10): one sentence, "Karman" signed the way he signs it, a
-// +200 stamp that is brought down hard beside the signature, and the three outcomes on cards that slide in
+// +200 stamp that is brought down hard at the top right, level with the headline, and the three outcomes on cards that slide in
 // from the side. Everything else about the guarantee is one link away. The arrival plays when the section
-// scrolls into view (the site's "rv" then "on" classes, painted.css). When the stamp lands, the words give
+// scrolls into view (the site's "rv" then "on" classes, painted.css). When the stamp lands, the headline gives
 // a short jolt and a few leaves burst from under it (lib/painting/journey.ts listens for "karman:burst").
 import type { CSSProperties } from "react";
+import { StampLab, Stamps } from "./Stamps";
 
 /** How long after the stamp starts to fall it hits the page: 52% of .gua-stamp's .75s (painted.css). */
 const IMPACT_MS = 390;
@@ -21,16 +22,17 @@ export interface GuaranteeWords {
   stampRing: string;
 }
 
-/** "Karman" as the founder signs it, traced by hand from the picture he sent: a tall K whose leg sweeps
-    away under the whole word, and the rest as one quick run of waves. It is simply there, never drawn on. */
+/** "Karman" as the founder signs it, traced by hand from the picture he sent, then set lower and wider at
+    his request so it takes little height: a K whose leg sweeps away under the whole word, and the rest as
+    one quick run of waves. It is simply there, never drawn on. */
 function Signature({ name }: { name: string }) {
   return (
     <p className="gua-sig" role="img" aria-label={name}>
-      <svg viewBox="130 0 850 392" aria-hidden="true">
-        <path className="pen" d="M172 20 C 177 110, 179 200, 158 334" />
+      <svg viewBox="130 118 850 196" aria-hidden="true">
+        <path className="pen" d="M176 128 C 179 170, 178 232, 162 300" />
         <path
           className="pen"
-          d="M333 22 C 280 102, 222 188, 163 270 C 186 234, 230 186, 268 186 C 304 187, 322 250, 360 300 C 398 346, 470 364, 590 358 C 720 352, 850 336, 958 314"
+          d="M300 130 C 262 172, 214 222, 166 266 C 190 240, 232 212, 268 212 C 304 213, 322 250, 360 274 C 400 298, 470 306, 590 302 C 720 298, 850 290, 958 278"
         />
         <path
           className="brush"
@@ -58,7 +60,7 @@ export default function Guarantee({
     if (e.animationName !== "gua-stamp") return;
     const stamp = e.currentTarget;
     setTimeout(() => {
-      stamp.closest(".gua")?.classList.add("hit");
+      stamp.closest(".offer")?.classList.add("hit");
       const r = stamp.getBoundingClientRect();
       document.dispatchEvent(
         new CustomEvent("karman:burst", {
@@ -72,48 +74,20 @@ export default function Guarantee({
     <div className="gua rv">
       <div className="gua-say">
         <p className="gua-line">{words.line}</p>
-        <div className="gua-signed">
-          <Signature name={words.signed} />
-          <div className="gua-stamp" aria-hidden="true" onAnimationStart={landed}>
-            <svg viewBox="0 0 200 200">
-              <defs>
-                {/* ink that did not take everywhere: a rough edge and a few bare patches */}
-                <filter id="gua-worn" x="-10%" y="-10%" width="120%" height="120%">
-                  <feTurbulence
-                    type="fractalNoise"
-                    baseFrequency=".8"
-                    numOctaves="2"
-                    seed="7"
-                    result="n"
-                  />
-                  <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" result="d" />
-                  <feColorMatrix
-                    in="n"
-                    type="matrix"
-                    values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.5"
-                    result="holes"
-                  />
-                  <feComposite in="d" in2="holes" operator="in" />
-                </filter>
-                <path id="gua-ring" d="M100 100 m-74 0 a74 74 0 1 1 148 0 a74 74 0 1 1 -148 0" />
-              </defs>
-              <g filter="url(#gua-worn)">
-                <circle cx="100" cy="100" r="94" />
-                <circle className="thin" cx="100" cy="100" r="60" />
-                <text className="ring">
-                  <textPath href="#gua-ring">{`${words.stampRing} · ${words.stampRing} · `}</textPath>
-                </text>
-                <text className="big" x="100" y="112" textAnchor="middle">
-                  {words.stamp}
-                </text>
-                <text className="unit" x="100" y="136" textAnchor="middle">
-                  {words.stampUnit}
-                </text>
-              </g>
-            </svg>
-          </div>
-        </div>
+        <Signature name={words.signed} />
       </div>
+      {/* the stamp sits at the top right of the section, level with its headline (painted.css) */}
+      <div className="gua-stamp" aria-hidden="true" onAnimationStart={landed}>
+        <Stamps
+          words={{
+            stamp: words.stamp,
+            unit: words.stampUnit,
+            ring: words.stampRing,
+            brand: words.signed,
+          }}
+        />
+      </div>
+      {process.env.NODE_ENV !== "production" ? <StampLab /> : null}
       <ul className="gua-cards">
         {outcomes.map(([name, line], i) => (
           <li key={name} style={{ "--k": i } as CSSProperties}>
