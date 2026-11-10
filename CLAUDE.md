@@ -15,9 +15,10 @@ karmanprep.com on Cloudflare Workers, with no paying users yet.
 - Schools ($8 per student a year, first year free; each student their own Practice)
 - Tutor affiliate ($199 a month: up to 50 students on one code get Practice)
 
-Only the Cohort and both Private packages carry the guarantee (+100 under a 1400
-baseline, +50 from 1400). Families join a call with the company before any cohort
-seat. The free practice test is the entry point, never a pricing card.
+Only the Cohort and both Private packages carry the guarantee, tiered by starting
+score (founder, 2026-11-09; `GUARANTEE_TIERS` in `offer.ts`). Families join a call
+with the company before any cohort seat. The entry point is **Start free**: sign
+up and go straight into the free student portal.
 
 - Each plan's price and features: `docs/business/plan-ladder-2026-11-08.md`.
 - The reasoning behind them: `docs/business-plan.md`.
@@ -34,11 +35,20 @@ seat. The free practice test is the entry point, never a pricing card.
 
 ## Active workstreams
 
-- **Website.** Being rebuilt around the program offer. Design rules are in
-  `docs/design-rules.md` (founder's 31 rules, 2026-10-18). The espresso-and-gold
-  look is retired, and `docs/design-tokens.md` and the palette in `docs/brand.md`
-  no longer apply. The voice section of `docs/brand.md` still does. Every button,
-  link and redirect must work, and be clicked through in a browser before it ships.
+- **Website.** Being rebuilt in the student portal's painted look (founder,
+  2026-11-09). His current direction is in `PRODUCT.md` under Brand Commitments,
+  and it wins. `docs/design-rules.md` is steering, not law. `docs/design-tokens.md`,
+  the palette and the voice section of `docs/brand.md` no longer apply. Every
+  button, link and redirect must work, and be clicked through in a browser before
+  it ships. Where the home page stands: `prototypes/HANDOVER-home-2026-11-09.md`.
+  - Load the `impeccable` skill before any design work.
+  - One section at a time: perfect it before the next, even when he sends a long
+    list. Show two or three clearly different mockups before building a section,
+    and ask with a picture when a phrase of his is unclear.
+  - Watch every animation before showing it (`scripts/dev/motion-sheet.mjs`), and
+    look at full-size screenshots in light and dark.
+  - No AI-generated images on the site. Draw in code, or use a real photo or logo
+    he supplies. Never restyle an old component and call it new.
 - **Question import.** Continue the founder's existing Codex pipeline, do not
   replace it. Goals: about 10,000 questions, difficulty 1 to 7, skill tags, no
   duplicates. Import sessions must read `docs/ingestion/reviewed-import-rules.md`.

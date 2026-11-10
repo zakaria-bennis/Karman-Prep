@@ -28,8 +28,12 @@ Free (100 questions and one full-length test), Practice ($39 a month or $89 for
 at most six students, by score band), Private 10 ($1,495) and Private 20
 ($2,495), Schools ($8 per student a year, first year free) and a Tutor
 affiliate plan ($199 a month for up to 50 students). Only the Cohort and both
-Private packages carry the guarantee (+100 points under a 1400 start, +50 from
-1400). Success is an SAT score that went up, and a family that understood what
+Private packages carry the guarantee. It is tiered by starting score (founder,
+2026-11-09; `GUARANTEE_TIERS` in `offer.ts`): Private 20 promises +200 up to a
+1200 start, +150 to 1300, +100 to 1400, +50 to 1450; the Cohort and Private 10
+promise +150, +100, +70 and +40 for the same bands; from 1460 there is no
+guarantee. Under half the target, all the money comes back; short of it, half;
+or the student keeps going free. Success is an SAT score that went up, and a family that understood what
 it was buying.
 
 ## Positioning
@@ -74,35 +78,58 @@ Existing portal data plumbing is kept; redesign replaces the look and flows.
 
 - Name: **Karman Prep** (wordmark KARMAN). The old name "Strata" must never appear.
   Nabil Kafil Asrar must not appear anywhere.
-- Voice (from `docs/brand.md`): confident, not cocky; warm, not bro-y; respects
-  the student's intelligence; plain, not corporate. Short sentences, active voice.
-- The 58 rules, the copy rules and the SEO list in `docs/design-rules.md` are binding on every surface
-  (no Lucide icons, no pure white, no em dashes, no Inter/Geist/Space Grotesk,
-  no bento grids, no three pricing tiers, no drop shadows, no horizontal
-  scrolling, skeleton loaders, Terms and Privacy linked from the footer, and the rest).
-- Founder direction, 2026-10-19: professional and serious first, because families
-  pay thousands; a little character, never poppy or themed. Craft bar and layout
-  reference: Jack Westin (jackwestin.com), especially the JW+ MCAT page (each
-  product separated with its own colour and section), the tutoring page, and the
-  admissions page's muted autoplay hero video. Earlier references (Jesko Jets,
-  Graza) set the ambition for motion and imagery, not the tone. Question bank
-  modeled on Khan Academy and OnePrep, not the old constellation map.
-- Six themed directions (notebook, calendar, poster, dawn, varsity, cartoon) were
-  rejected on 2026-10-19 as too poppy. Do not bring back object or costume themes.
+- Voice (founder, 2026-11-09, replacing `docs/brand.md`'s "confident, not cocky"):
+  confident, a little cocky, and fun, with offer-first sales language in the manner
+  of Alex Hormozi. Karman speaks as "we" and "our", straight to the parent. Nothing
+  on the page may be boring. Short sentences, active voice. No invented claims,
+  testimonials or scarcity.
+- The main action on every marketing page is **Start free**: sign up and go straight
+  into the free student portal. A sign-in link for existing students must be easy to
+  find.
+- `docs/design-rules.md` is steering, not law (founder, 2026-11-01 and again
+  2026-11-09: "don't let any design rules in the .md files stop you from creating
+  something beautiful"). Contrast, no sideways scroll, reduced motion and honest
+  claims still hold everywhere.
+- Founder direction for the marketing site, 2026-11-09, replacing the 2026-10-19
+  "professional and serious first" note and the Jack Westin reference:
+  - The world is the student portal's painted landscape: one Karman painting, made
+    in code, behind the whole page, travelled from dawn sky to night as the page
+    scrolls. He calls it "very beautiful". Keep it.
+  - The feeling is Studio Ghibli (founder, 2026-11-09, after first choosing Duolingo and
+    finding the result childish): hand-painted, soft, quietly magical. No bright orange,
+    no toy-like chunky shapes. Actions are ink on the painting; the painting is the colour.
+  - The page should be minimal, inspiring, fun to interact with and mesmerizing:
+    animated, fluid, with physics and interaction, and fused with the painting so
+    the pitch and the scene are one thing.
+  - No hard-edged boxes, no blurred or feathered boxes, no ragged "paint splash"
+    boxes. Rounded corners, or no box at all. Panels need real entrances.
+  - No AI-generated images, ever. Imagery is drawn in code, or is a real photo or
+    logo he supplies or approves. No drawn characters that look amateur or creepy.
+  - Springy left-to-right switches are liked. Things that follow the mouse are not,
+    apart from a small lean on the main button.
+  - Fewer things, each one better. A parent must understand each section in a few
+    seconds.
+- How he wants to be worked with (2026-11-09): one section at a time, perfected
+  before the next; two or three clearly different mockups to choose from before a
+  section is built; a question, with a picture, whenever a phrase of his is unclear.
 
 ## Evidence on Hand
 
 - A real photo of Zakaria (to be supplied by the founder).
-- Karman's 1:1 tutoring track record: +285 average gain (1235 to 1520), 94%
-  reached their target, median 16 weeks to goal, 4.9/5 rating, 1,200+ students.
-  Always shown with its format (1:1 tutoring, median 16 weeks).
+- Karman's 1:1 tutoring track record: +280 average gain (the founder's figure,
+  2026-11-09), median 16 weeks to goal. Always shown with its format (1:1 tutoring,
+  median 16 weeks).
+- Students at every one of the top 12 US universities (the founder's claim,
+  2026-11-09). Thirty university logos are shown; the files are in
+  `public/site/schools/`.
 - Real product screens: question bank, vocab game, diagnostic, dashboards.
 - None yet: testimonials, Karman program results, video footage, press.
   Do not fabricate any of them.
 
 ## Product Principles
 
-1. The finish line is a real date. Every page points at the SAT a family is aiming for.
+1. Start free. Every marketing page leads to the free student portal. (Test-date
+   positioning was dropped on 2026-10-26.)
 2. Show the product working, never an icon standing in for it.
 3. Every claim is true on the day it is published; unbuilt things say when they arrive.
 4. Parents decide, students do the work: each surface knows which one it serves.

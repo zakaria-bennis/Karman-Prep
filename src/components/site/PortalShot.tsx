@@ -1,7 +1,7 @@
 // A real screen from the Karman portal, captured from the app itself (founder, 8 November: the site shows the
 // product only through real portal screens, never drawn ones). The captures live in public/site/portal/;
 // a phone capture comes in the site's light and dark mode and follows the page's own switch (film.css).
-// Put it inside the code-drawn iPhone (parts.tsx Phone) or the laptop frame (.mbp, calendar.css).
+// Put it inside the code-drawn iPhone (parts.tsx Phone).
 export type PortalScreen = "today" | "library" | "progress" | "daily-end" | "parent-week";
 
 export default function PortalShot({

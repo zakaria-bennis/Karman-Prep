@@ -24,9 +24,8 @@ export const FOUNDER = {
  */
 export const TRACK_RECORD = {
   sourceLabel: "Karman 1:1 tutoring, median 16 weeks",
-  averageGain: 285,
-  averageBefore: 1235,
-  averageAfter: 1520,
+  /** The founder's figure (2026-11-09). */
+  averageGain: 280,
   reachedTargetPct: 94,
   medianWeeksToGoal: 16,
   rating: "4.9/5",
@@ -381,6 +380,39 @@ export const GUARANTEE = {
       "Free extra hours (3 on Private 10, 6 on Private 20). If the next SAT still falls short, half the price back.",
   },
 } as const;
+
+/**
+ * The tiered guarantee (founder, 2026-11-09): the promise depends on the starting score and on how the
+ * student is taught. Private 20 carries the full numbers; the cohort and Private 10 carry the smaller ones,
+ * because one tutor is shared or the hours are few. From `noGuaranteeFrom` there is no guarantee, and the
+ * family is told before paying. The home page shows these; the guarantee and pricing pages still read
+ * `GUARANTEE` above until the founder signs off the full terms.
+ */
+export const GUARANTEE_TIERS = {
+  noGuaranteeFrom: 1460,
+  /** Starting score up to `upTo`: points promised on each track. */
+  bands: [
+    { upTo: 1200, private: 200, cohort: 150 },
+    { upTo: 1300, private: 150, cohort: 100 },
+    { upTo: 1400, private: 100, cohort: 70 },
+    { upTo: 1450, private: 50, cohort: 40 },
+  ],
+  /** Which track each plan is on. */
+  trackOf: { cohort: "cohort", "private-10": "cohort", "private-20": "private" },
+  /** Under half the target: all the money back. Half or more, but short: half back. Or keep going free. */
+  refund: { underHalfTarget: 1, shortOfTarget: 0.5, paidWithinDays: 14 },
+  /** The work that keeps the guarantee, all tracked in the portal. */
+  work: { classesOf18: 16, dailyDaysPerWeek: 6, homeworkPct: 90, fullLengthTests: 5 },
+} as const;
+
+export type GuaranteeTrack = "cohort" | "private";
+
+/** Points promised for a starting score on a track, or null when there is no guarantee. */
+export function guaranteedGain(start: number, track: GuaranteeTrack): number | null {
+  if (start >= GUARANTEE_TIERS.noGuaranteeFrom) return null;
+  const band = GUARANTEE_TIERS.bands.find((b) => start <= b.upTo);
+  return band ? band[track] : null;
+}
 
 /** "+100 points" under a 1400 start, "+50 points" from 1400. */
 export function guaranteeTarget(baseline: number): number {
