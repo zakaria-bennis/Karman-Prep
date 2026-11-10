@@ -92,3 +92,6 @@ assets/generation-state.json
 # Raw generator output for the fresh mocks; the WebP crops in img/ are what the pages use
 
 # Motion lab (Remotion) dependencies and cache
+
+# Stand-in portraits for local mock-ups only (stock photos of strangers; never commit or deploy)
+public/site/tutors/standin/
