@@ -41,7 +41,12 @@ The site is live at karmanprep.com on Cloudflare Workers, with no paying users y
 
 ## Branches and the dev server
 
-- Start new work from `main`. Name branches `claude/<short-name>`.
+- **`main` is the only branch that lasts.** Start new work from `main`, on a branch named
+  `claude/<short-name>`. A branch lives for one task.
+- **End every session by opening its pull request**, and say so in the last message. Leave no unsaved
+  files and no work that exists only on this computer.
+- **After a pull request merges**, GitHub deletes the branch. Remove the working copy and the local branch
+  too. Never start a second task on an old branch.
 - Dev server: `npm run dev:next`. To sign in locally, set `DEV_IMPERSONATE_CLERK_ID` in `.env.local`,
   then run `npm run seed:dev`. A local database is described in `docs/overnight/local-db.md`.
 
