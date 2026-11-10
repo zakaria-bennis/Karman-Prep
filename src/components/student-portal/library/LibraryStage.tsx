@@ -27,6 +27,8 @@ import {
   type ReactNode,
 } from "react";
 import { Num, Panel } from "@/components/portal/primitives";
+import { choosePainting } from "@/lib/painting/schedule";
+import { INTROS, type IntroDef, type IntroProps, type Subject } from "./intros/registry";
 import LibraryWorld, { DESCENT_MS, SHORT, type Slug, type StageCourse } from "./LibraryWorld";
 import { COURSE_PICK_KEY, afterPaintingOpening, challengeMoment, readStore } from "./moment";
 import styles from "./stage.module.css";
@@ -36,7 +38,7 @@ export type { StageCourse };
 const spring = { type: "spring", stiffness: 190, damping: 26, mass: 1 } as const;
 
 /** Before React loads, a kept course shows its box at once, so the paintings don't flash. */
-const BOOT = `(function(){try{var v=sessionStorage.getItem("${COURSE_PICK_KEY}");if(v==="math"||v==="reading-writing")document.currentScript.parentElement.setAttribute("data-boot",v)}catch(e){}})();`;
+const BOOT = `(function(){try{if(/[?&]intro=/.test(location.search))return;var v=sessionStorage.getItem("${COURSE_PICK_KEY}");if(v==="math"||v==="reading-writing")document.currentScript.parentElement.setAttribute("data-boot",v)}catch(e){}})();`;
 
 function keep(slug: Slug | null) {
   try {
@@ -54,6 +56,8 @@ interface Opening {
   name: DOMRect | null;
   /** The name's line height in pixels. */
   line: number;
+  /** Chosen in an opening animation that has already landed on the ground: no fall. */
+  jump?: boolean;
 }
 
 interface Ghost {
@@ -97,6 +101,18 @@ export default function LibraryStage({
   );
   const [afterOpening, setAfterOpening] = useState(false);
   const ready = (!waitForChallenge || settled) && afterOpening;
+  /* `?intro=N` plays one of the opening animations (intros/registry.ts) instead of the sky. */
+  const [intro, setIntro] = useState<{ def: IntroDef; time: IntroProps["time"] } | null>(null);
+  /** "leaving": the intro has landed and fades out over the shared ground. */
+  const [introPhase, setIntroPhase] = useState<"on" | "leaving" | "gone">("on");
+  useEffect(() => {
+    const n = Number(new URLSearchParams(location.search).get("intro"));
+    const def = INTROS.find((i) => i.id === n);
+    if (!def) return;
+    const dev = process.env.NODE_ENV !== "production";
+    setIntro({ def, time: choosePainting(new Date(), location.search, dev).time });
+  }, []);
+  const introOn = intro !== null && introPhase !== "gone" && !initial;
 
   useEffect(() => {
     let live = true;
@@ -113,6 +129,7 @@ export default function LibraryStage({
       return;
     }
     const kept = readStore("session", COURSE_PICK_KEY);
+    if (/[?&]intro=/.test(location.search)) return;
     if (kept === "math" || kept === "reading-writing") setPick(kept);
   }, [initial]);
 
@@ -138,7 +155,7 @@ export default function LibraryStage({
       box.style.transformOrigin = `${ox}px ${oy}px`;
       box.style.opacity = "0";
       const far = Math.hypot(Math.max(ox, r.width - ox), Math.max(oy, r.height - oy)) + 40;
-      const land = DESCENT_MS / 1000 - 0.15;
+      const land = opening.jump ? 0.1 : DESCENT_MS / 1000 - 0.15;
       box.style.pointerEvents = "none";
       setFalling(true);
       const run = animate(
@@ -224,6 +241,14 @@ export default function LibraryStage({
 
   const pct = (c: StageCourse) => Math.round(c.progress * 100);
 
+  const introChose = (s: Subject) => {
+    const slug: Slug = s === "math" ? "math" : "reading-writing";
+    choose(slug, { x: innerWidth / 2, y: innerHeight * 0.55, name: null, line: 60, jump: true });
+    setIntroPhase("leaving");
+    window.setTimeout(() => setIntroPhase("gone"), 900);
+  };
+  const percent = (slug: Slug) => pct(courses.find((c) => c.slug === slug) ?? courses[0]);
+
   return (
     <MotionConfig reducedMotion="user">
       <LayoutGroup id="library-course">
@@ -236,7 +261,7 @@ export default function LibraryStage({
           <script dangerouslySetInnerHTML={{ __html: BOOT }} />
           <LibraryWorld
             courses={courses}
-            ready={ready}
+            ready={ready && (!introOn || introPhase === "leaving")}
             pick={pick}
             active={active}
             flying={ghost?.slug ?? null}
@@ -244,6 +269,16 @@ export default function LibraryStage({
             onActive={setActive}
             onChoose={choose}
           />
+          {introOn && ready && intro && (
+            <div className={styles.intro} data-leaving={introPhase === "leaving" || undefined}>
+              <intro.def.Component
+                percents={{ math: percent("math"), rw: percent("reading-writing") }}
+                time={intro.time}
+                reducedMotion={reduce}
+                onChoose={introChose}
+              />
+            </div>
+          )}
           <div ref={boxRef} className={styles.box} hidden={!pick}>
             <Panel
               side={side}
