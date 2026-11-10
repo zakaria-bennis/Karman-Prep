@@ -5,13 +5,13 @@ import { Close, GuaranteeSection, InnerHero, Rows, Statements } from "@/componen
 import { pageMeta } from "@/components/site/meta";
 import { delay, Icon } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import { GUARANTEE as G } from "@/lib/marketing/offer";
+import { GUARANTEE as G, guaranteeMax } from "@/lib/marketing/offer";
 import { pairs, section } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.guarantee,
   "Karman Prep: The guarantee",
-  `The Karman guarantee in full: +${G.pointsBelow} points, or +${G.pointsFrom} from a ${G.splitAt} start. On the cohort: half or all of your money back, or the next cohort free. On Private 10: half back. On Private 20: free extra hours, then half back. Every rule is on the page.`
+  `The Karman guarantee in full. The target depends on the starting score: up to +${guaranteeMax("private")} points on Private 20, up to +${guaranteeMax("cohort")} on the cohort and Private 10, and none from ${G.noGuaranteeFrom}. On the cohort: half or all of your money back, or the next cohort free. On Private 10: half back. On Private 20: free extra hours, then half back. Every rule is on the page.`
 );
 
 export default function GuaranteePage() {
@@ -20,6 +20,7 @@ export default function GuaranteePage() {
     <SitePage kind="inner">
       <InnerHero n={51} href={ROUTES.test} side={<ArtDrawing name="report" style={delay(0.2)} />} />
       <GuaranteeSection linkHref="#s-52" />
+      <Rows n={56} />
       <section className="i-sec" data-light id="s-52">
         <div className="in">
           <div className="i-split i-withphoto">

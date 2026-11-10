@@ -29,7 +29,7 @@ OWN-WORLD: Karman's code-made painting behind everything, travelled by scroll. W
 
 STORY: The parent reads a result, sees where those students went, learns the exact score Karman will guarantee for their own child, meets who teaches and how, gets their doubts answered, sees the price, and starts free.
 
-FIRST VIEWPORT: Top bar as plain words on the sky, with Start free in ink at the right. Headline at the left, about 76px, three lines, with "280 points" as a tilted ink shape whose lettering is cut out to the sky. The headline forms out of drifting motes, then that shape slams in. One sentence of support, Start free and See pricing beneath, one line on what free includes. The right half is open dawn sky where a flock of birds gathers into the number 280, holds, then scatters and keeps flying. Treeline along the bottom.
+FIRST VIEWPORT: Top bar as words on the sky, with a soft veil of light behind it that fades out below, and Start free in ink at the right. Headline at the left, about 76px, three lines, with "280 points" as a tilted ink shape whose lettering is cut out to the sky. The headline comes into focus out of the morning haze, word by word, then that shape slams in. One sentence of support in semibold ink, Start free (ink, with a breathing ring of the sky's light) and See pricing beneath, one line on what free includes. The right half is open dawn sky where two or three small flocks of birds cross and are gone. Treeline along the bottom. (Settled with the founder on 2026-11-10.)
 
 FORM: A scroll-travelled painted scene with seven stops; user-pinned sequence, not a dealt structure. seed:7dcbb546f97dcdea.
 
