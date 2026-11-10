@@ -187,12 +187,12 @@ button note: Free. No card. No catch.
 
 ## 12 Tutors
 headline: Our tutors are overqualified. That's the point.
-credentials: PhD students = Research by day. Your student's algebra by night. | Quants = They build mathematical models for a living. SAT math is the warm-up. | Medical students = They got through the MCAT. The SAT doesn't scare them. | Published writers = Edited by professionals. They fix a comma splice in their sleep. | Published researchers = Peer-reviewed in their own fields. | Professors = Teaching is already the day job.
+credentials: PhD students = Research by day. Your student's algebra by night. | Medical students = They got through the MCAT. The SAT doesn't scare them. | Published writers = Edited by professionals. They fix a comma splice in their sleep. | Published researchers = Peer-reviewed in their own fields. | Professors = Teaching is already the day job.
 
 ## 13 Their doubts
 headline: Go on. Ask us the hard ones.
 label: More questions
-asks: What if the score doesn't go up? = Then your money comes back. All of it if we miss by a lot, half if we miss by a little. Or your student keeps going with us for free. | Who's teaching my kid? = People who are overqualified on purpose. PhD students, quants, medical students, published writers, researchers and professors. | How much time does it take? = About ten minutes a day. In the cohort, add ${w(MP.classesPerWeek)} live classes a week. Get one wrong and your tutor is updated before you finish reading this sentence. | Can we try it first? = Yes. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card.
+asks: What if the score doesn't go up? = Then your money comes back. All of it if we miss by a lot, half if we miss by a little. Or your student keeps going with us for free. | Who's teaching my kid? = People who are overqualified on purpose. PhD students, medical students, published writers, researchers and professors. | How much time does it take? = About ten minutes a day. In the cohort, add ${w(MP.classesPerWeek)} live classes a week. Get one wrong and your tutor is updated before you finish reading this sentence. | Can we try it first? = Yes. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card.
 
 ## 21 Program: opening
 headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.

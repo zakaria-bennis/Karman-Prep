@@ -1,0 +1,258 @@
+/* TEMPORARY (2026-11-10): three layouts for the tutors with real photos (TutorsLab.tsx). The winner moves
+   into painted.css and this file goes. */
+.ks .tut {
+  display: none;
+  width: 100%;
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+}
+.ks .tut.rv {
+  opacity: 1;
+  transform: none;
+}
+html[data-tut="1"] .ks .tut-a {
+  display: grid;
+}
+html[data-tut="2"] .ks .tut-b {
+  display: grid;
+}
+html[data-tut="3"] .ks .tut-c {
+  display: grid;
+}
+html[data-tut="1"] .ks .who .tutors {
+  display: none;
+}
+html[data-tut="2"] .ks .who .tutors {
+  display: none;
+}
+html[data-tut="3"] .ks .who .tutors {
+  display: none;
+}
+
+/* a stand-in for a real photo */
+.ks .tut-frame {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  background: linear-gradient(170deg, #e9dfd0, #cfc3b6);
+  box-shadow: var(--lift);
+}
+.ks .tut-frame svg {
+  width: 78%;
+  fill: rgba(29, 26, 34, 0.2);
+}
+.ks .tut-frame em {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+  text-align: center;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink2);
+}
+
+/* the five kinds of tutor: the one in turn is darker */
+.ks .tut-kinds {
+  display: grid;
+  gap: clamp(8px, 1vw, 14px);
+}
+.ks .tut-kinds li {
+  display: grid;
+  gap: 1px;
+  opacity: 0.5;
+  transition:
+    opacity 0.6s var(--out),
+    transform 0.6s var(--spring);
+}
+.ks .tut-kinds li[data-on] {
+  opacity: 1;
+  transform: translateX(8px);
+}
+.ks .tut-kinds b {
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(22px, 2.5vw, 36px);
+  line-height: 1.1;
+}
+.ks .tut-kinds span {
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* ---------- A. Staggered row ---------- */
+.ks .tut-a {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+}
+.ks .tut-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.6vw, 24px);
+  align-items: start;
+}
+.ks .tut-row .tut-frame {
+  aspect-ratio: 4 / 5;
+  border-radius: 999px 999px 26px 26px;
+  animation: ask-float 7s ease-in-out infinite;
+  transition:
+    opacity 0.6s var(--out),
+    translate 1s var(--spring);
+}
+.ks .tut-row .tut-frame:nth-child(2) {
+  margin-top: clamp(30px, 5vw, 80px);
+  animation-delay: -2.3s;
+  transition-delay: 0.12s;
+}
+.ks .tut-row .tut-frame:nth-child(3) {
+  margin-top: clamp(10px, 2vw, 30px);
+  animation-delay: -4.6s;
+  transition-delay: 0.24s;
+}
+.ks .tut-a.rv:not(.on) .tut-frame {
+  opacity: 0;
+  translate: 0 80px;
+}
+
+/* ---------- B. Fan of prints ---------- */
+.ks .tut-b {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+}
+.ks .tut-fan {
+  position: relative;
+  width: min(100%, 420px);
+  aspect-ratio: 1 / 1.05;
+  justify-self: center;
+}
+.ks .tut-print {
+  position: absolute;
+  left: 22%;
+  top: 6%;
+  width: 56%;
+  padding: 8px 8px 30px;
+  border-radius: 10px;
+  background: var(--cream);
+  box-shadow: 0 24px 40px -22px rgba(29, 26, 34, 0.65);
+  transform: translateX(calc((var(--p) - 1) * 42%)) rotate(calc((var(--p) - 1) * 9deg))
+    translateY(calc((var(--p) - 1) * (var(--p) - 1) * 14px));
+  z-index: var(--p);
+  transition: transform 0.9s var(--spring);
+}
+.ks .tut-print .tut-frame {
+  aspect-ratio: 4 / 5;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+/* ---------- C. One changing line ---------- */
+.ks .tut-c {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 44px);
+}
+.ks .tut-faces {
+  display: flex;
+}
+.ks .tut-faces .tut-frame {
+  width: clamp(72px, 9vw, 124px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 4px solid var(--cream);
+  margin-left: clamp(-34px, -2.6vw, -20px);
+}
+.ks .tut-faces .tut-frame:first-child {
+  margin-left: 0;
+}
+.ks .tut-faces .tut-frame em {
+  display: none;
+}
+.ks .tut-word {
+  display: grid;
+  gap: 4px;
+}
+.ks .tut-word b {
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(34px, 5.4vw, 84px);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  animation: tut-focus 0.8s var(--out) both;
+}
+.ks .tut-word span {
+  font-size: clamp(18px, 1.8vw, 25px);
+  font-weight: 600;
+  animation: tut-focus 0.8s var(--out) 0.12s both;
+}
+@keyframes tut-focus {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(6px) scale(1.06);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .ks .tut-a,
+  .ks .tut-b,
+  .ks .tut-c {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- the panel ---------- */
+.lab {
+  position: fixed;
+  z-index: 400;
+  right: 12px;
+  bottom: 12px;
+  max-width: min(430px, calc(100vw - 24px));
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #15131a;
+  color: #f4efe6;
+  font:
+    500 13px/1.3 system-ui,
+    sans-serif;
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+}
+.lab b {
+  color: #b9b2c6;
+}
+.lab div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.lab button {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #2b2733;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.lab button[data-on] {
+  background: #f4efe6;
+  color: #15131a;
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .tut-row .tut-frame,
+  .ks .tut-word b,
+  .ks .tut-word span {
+    animation: none;
+  }
+  .ks .tut-print,
+  .ks .tut-kinds li {
+    transition: none;
+  }
+}

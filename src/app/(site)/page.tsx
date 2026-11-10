@@ -9,6 +9,7 @@ import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
 import Ways from "@/components/site/home/Ways";
+import TutorsLab from "@/components/site/home/TutorsLab";
 import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
@@ -21,7 +22,7 @@ import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.home,
   "Karman Prep: SAT tutors who see every answer",
-  "SAT prep taught by PhD students, quants and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
+  "SAT prep taught by PhD students, medical students and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
 );
 
 const ORG = {
@@ -34,7 +35,7 @@ const ORG = {
 };
 
 /** The drawing for each kind of tutor, in the order the copy lists them (public/site/tutors/). */
-const TUTOR_ART = ["phd", "quant", "medic", "writer", "researcher", "professor"];
+const TUTOR_ART = ["phd", "medic", "writer", "researcher", "professor"];
 
 /* The opening plays once per visit: hide the words before they are drawn, then let them arrive when the
    typefaces are in (painted.css, claim-wait and claim-go). Three seconds is the longest it will wait. */
@@ -156,6 +157,9 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+          {process.env.NODE_ENV !== "production" ? (
+            <TutorsLab kinds={pairs(who.credentials)} />
+          ) : null}
         </div>
       </section>
 

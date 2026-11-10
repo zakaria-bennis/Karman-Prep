@@ -17,13 +17,6 @@ const TUTORS = {
     accessory: "GlassRound",
     facialHair: "None",
   },
-  quant: {
-    body: "BlazerBlackTee",
-    hair: "ShortWavy",
-    face: "Driven",
-    accessory: "None",
-    facialHair: "None",
-  },
   medic: { body: "ShirtCoat", hair: "Bun", face: "Calm", accessory: "None", facialHair: "None" },
   writer: {
     body: "Coffee",

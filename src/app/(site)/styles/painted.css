@@ -222,8 +222,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @media (min-width: 901px) { .ks .gua-cards { margin-top: clamp(30px, 5.5vw, 84px); } }
 @media (max-width: 900px) { .ks .gua { grid-template-columns: minmax(0, 1fr); } }
 
-/* ---------- 4. who teaches: six hand-drawn people (Open Peeps), each in an arch of sky ---------- */
-.ks .tutors { width: 100%; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(12px, 1.8vw, 28px); }
+/* ---------- 4. who teaches: five hand-drawn people (Open Peeps), each in an arch of sky ---------- */
+.ks .tutors { width: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(12px, 1.8vw, 28px); }
 @media (max-width: 1000px) { .ks .tutors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .ks .tutors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .ks .tutors li { display: grid; gap: 6px; justify-items: center; align-content: start; text-align: center; }
