@@ -181,6 +181,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .gua.rv { opacity: 1; transform: none; }
 .ks .gua-say { display: grid; gap: clamp(10px, 1.4vw, 18px); justify-items: start; }
 .ks .gua-line { max-width: 30em; font-size: clamp(19px, 1.9vw, 27px); line-height: 1.4; font-weight: 600; }
+.ks .gua-sig { grid-column: 1 / -1; margin-top: clamp(4px, 1vw, 14px); }
 .ks .gua-sig svg { display: block; width: clamp(190px, 24vw, 350px); height: auto; overflow: visible; fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
 .ks .gua-sig .pen { stroke-width: 6.5; }
 .ks .gua-sig .brush { stroke-width: 11; }
@@ -190,24 +191,13 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
    under it, and the headline jolts (.offer.hit). */
 .ks .offer h2 { max-width: min(18ch, calc(100% - clamp(120px, 20vw, 260px))); }
 .ks .gua-stamp { position: absolute; top: 0; right: 0; width: clamp(104px, 13.5vw, 184px); transform: rotate(-13deg); }
-.ks .gua-stamp svg { display: none; width: 100%; height: auto; overflow: visible; }
-.ks .gua-stamp svg[data-wide] { width: 138%; margin-left: -38%; }
-.ks .gua-stamp .gua-defs { display: block; position: absolute; width: 0; height: 0; }
-.ks .gua-stamp svg[data-d="1"] { display: block; }
-.ks .gua-stamp :is(circle, .line) { fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.ks .gua-stamp svg { display: block; width: 100%; height: auto; overflow: visible; }
+.ks .gua-stamp circle { fill: none; stroke: var(--ink); stroke-width: 5; }
 .ks .gua-stamp .thin { fill: none; stroke: var(--ink); stroke-width: 2; }
-.ks .gua-stamp .dash { stroke-dasharray: 3 7; }
-.ks .gua-stamp .brush { stroke-width: 8; }
-.ks .gua-stamp .full { fill: var(--ink); stroke: none; }
 .ks .gua-stamp text { fill: var(--ink); font-family: var(--font-hanken), system-ui, sans-serif; font-weight: 800; }
-.ks .gua-stamp .bare { stroke: var(--cream); }
-.ks .gua-stamp :is(text.bare, .bare text) { fill: var(--cream); stroke: none; }
 .ks .gua-stamp .ring { font-size: 15.5px; letter-spacing: .13em; text-transform: uppercase; }
-.ks .gua-stamp .ring.small { font-size: 12.5px; letter-spacing: .1em; }
-.ks .gua-stamp .big { letter-spacing: -0.04em; }
-.ks .gua-stamp .caps { text-transform: uppercase; letter-spacing: -0.02em; }
-.ks .gua-stamp .unit { letter-spacing: .18em; text-transform: uppercase; }
-.ks .gua-stamp .tiny { letter-spacing: .06em; }
+.ks .gua-stamp .big { font-size: 50px; letter-spacing: -0.04em; }
+.ks .gua-stamp .unit { font-size: 15px; letter-spacing: .18em; text-transform: uppercase; }
 .ks .gua-stamp::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--ink); opacity: 0; pointer-events: none; }
 .ks .gua.rv:not(.on) .gua-stamp { opacity: 0; }
 .ks .gua.rv.on .gua-stamp { animation: gua-stamp .75s linear .5s both; }
@@ -221,15 +211,6 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @keyframes gua-shock { from { opacity: .55; transform: scale(.9); } to { opacity: 0; transform: scale(2.3); } }
 .ks .offer.hit h2 { animation: gua-jolt .42s linear both; }
 @keyframes gua-jolt { 0% { transform: translate(0, 9px); } 22% { transform: translate(-5px, -5px); } 44% { transform: translate(4px, 3px); } 68% { transform: translate(-2px, -1px); } 100% { transform: none; } }
-/* TEMPORARY (2026-11-10): the ten stamp designs and their panel (Stamps.tsx) */
-html[data-stamp] .ks .gua-stamp svg[data-d] { display: none; }
-html[data-stamp="1"] .ks .gua-stamp svg[data-d="1"], html[data-stamp="2"] .ks .gua-stamp svg[data-d="2"], html[data-stamp="3"] .ks .gua-stamp svg[data-d="3"], html[data-stamp="4"] .ks .gua-stamp svg[data-d="4"], html[data-stamp="5"] .ks .gua-stamp svg[data-d="5"], html[data-stamp="6"] .ks .gua-stamp svg[data-d="6"], html[data-stamp="7"] .ks .gua-stamp svg[data-d="7"], html[data-stamp="8"] .ks .gua-stamp svg[data-d="8"], html[data-stamp="9"] .ks .gua-stamp svg[data-d="9"], html[data-stamp="10"] .ks .gua-stamp svg[data-d="10"] { display: block; }
-.lab { position: fixed; z-index: 400; right: 12px; bottom: 12px; max-width: min(430px, calc(100vw - 24px)); display: grid; gap: 8px; padding: 14px; border-radius: 16px; background: #15131a; color: #f4efe6; font: 500 13px/1.3 system-ui, sans-serif; box-shadow: 0 20px 50px -20px rgba(0, 0, 0, .7); }
-.lab b { color: #b9b2c6; }
-.lab div { display: flex; flex-wrap: wrap; gap: 5px; }
-.lab button { min-height: 38px; padding: 0 11px; border-radius: 8px; background: #2b2733; color: inherit; font: inherit; cursor: pointer; }
-.lab button[data-on] { background: #f4efe6; color: #15131a; font-weight: 700; }
-html[data-lab="0"] .lab { display: none; }
 /* the three outcomes: stacked on the right, each sliding in from the edge once the stamp is down */
 .ks .gua-cards { display: grid; gap: 12px; width: 100%; }
 .ks .gua-cards li { display: grid; gap: 3px; padding: 18px 24px; border-radius: 16px; background: var(--soft-card); box-shadow: var(--lift); }

@@ -16,7 +16,7 @@ night as the page scrolls. The founder approved this order.
 |---|---|---|---|
 | 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `ClaimPill.tsx`, `Flock.tsx`, `CLAIM_BOOT` in `page.tsx` | Headline comes into focus out of the haze, word by word; the "280 points" shape slams in with its lettering cut out to the sky; two or three small flocks of birds cross the sky |
 | 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
-| 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence, his own "Karman" signature, a +200 ink stamp brought down hard beside it (the words jolt and leaves burst), then three outcome cards slide in from the side |
+| 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence; a +200 ring stamp brought down hard at the top right, level with the headline (the headline jolts and leaves burst); three outcome cards slide in from the side; his own "Karman" signature, kept low, right above the link to the full guarantee |
 | 4 | Who: "Our tutors are overqualified. That's the point." | `public/site/tutors/*.svg`, `scripts/dev/make-tutor-peeps.mjs` | Six Open Peeps drawings pop up and hop on hover |
 | 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
