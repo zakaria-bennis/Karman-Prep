@@ -15,7 +15,7 @@ night as the page scrolls. The founder approved this order.
 | # | Section | Files | Animation |
 |---|---|---|---|
 | 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `ClaimPill.tsx`, `Flock.tsx`, `CLAIM_BOOT` in `page.tsx` | Headline comes into focus out of the haze, word by word; the "280 points" shape slams in with its lettering cut out to the sky; two or three small flocks of birds cross the sky |
-| 2 | The proof: "We're twelve for twelve." | `Logos.tsx`, `src/lib/marketing/schools.ts` | 30 real logos land like leaves, then drift in two rows |
+| 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
 | 3 | The offer: "Up to +200 points, or your money back." | `ScoreTiles.tsx`, `GUARANTEE` in `offer.ts` | Flip tiles: their score now, the score guaranteed; leaves burst when it changes |
 | 4 | Who: "Our tutors are overqualified. That's the point." | `public/site/tutors/*.svg`, `scripts/dev/make-tutor-peeps.mjs` | Six Open Peeps drawings pop up and hop on hover |
 | 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
@@ -36,7 +36,11 @@ and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are 
   main button in ink with a breathing ring of the sky's light and no sweep of shine; a soft veil of light
   behind the top bar; bolder small text with no glow and no new background; today's dawn sky; small flocks
   of birds passing, which spell nothing and ignore the pointer ("gimmicky").
-- **Sections 2 to 7:** built in one pass at his request so the page could be handed over whole. He has
+- **Section 2:** settled with him on 10 November 2026. He was "tired of" the double carousel and chose
+  lanterns out of six live options (counted grid, changing wall, clouds, a roll call of names, spotlight,
+  lanterns). He asked for them to be physical: bouncing off each other, able to be handled, all thirty
+  coming round in a loop.
+- **Sections 3 to 7:** built in one pass at his request so the page could be handed over whole. He has
   seen a still sketch of them, not the built versions. Treat each as a first draft to be reviewed with
   him, one at a time.
 - **Feeling:** Studio Ghibli. Hand-painted, soft, quietly magical. Not childish, no bright orange.
