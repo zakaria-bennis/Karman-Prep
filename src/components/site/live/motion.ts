@@ -1,5 +1,5 @@
-// Whether the home page's films are paused (the small pause button), remembered for the visitor.
-// Changing it tells the films through a "karman:motion" event. Browser only.
+// Whether the home page's painting and films are held still (the footer's button), remembered for the
+// visitor. Changing it tells them through a "karman:motion" event. Browser only.
 
 const KEY = "karman-motion";
 
