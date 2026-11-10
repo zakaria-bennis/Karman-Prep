@@ -55,7 +55,7 @@ const figureSerif = localFont({
   fallback: ["Times New Roman", "Times", "serif"],
 });
 
-// ─── Karman type stack (docs/brand.md) ────────────────────────
+// ─── Karman type stack (docs/archive/brand.md) ────────────────────────
 //   Plex Serif    → display + headings
 //   Plex Sans     → body, UI labels, buttons
 //   Plex Mono     → technical labels, code, equations

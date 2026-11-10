@@ -10,7 +10,7 @@ import { MatchConfidenceBadge } from "./MatchConfidenceBadge";
 //   good     confidence ≥ 0.85                    → success CheckCircle
 //   neutral  null confidence + non-orphan method  → bronze Minus
 //
-// Tones use the observatory semantic palette (docs/brand.md "Status
+// Tones use the observatory semantic palette (docs/archive/brand.md "Status
 // colors"): success / warning / error, with bronze for the neutral case.
 //
 // The neutral case is the fix from the audit — previously a null

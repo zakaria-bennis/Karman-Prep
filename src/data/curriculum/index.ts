@@ -329,7 +329,7 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
   math: "Math",
 };
 
-// Constellation accents from docs/brand.md — subject SIGNALS on the
+// Constellation accents from docs/archive/brand.md — subject SIGNALS on the
 // warm-dark canvas (R&W rose, Math blue), never full-page themes.
 export const SUBJECT_COLORS: Record<Subject, { hex: string; glow: string; dim: string }> = {
   reading: { hex: "#D84F73", glow: "#F06A8C80", dim: "#D84F7330" }, // R&W rose

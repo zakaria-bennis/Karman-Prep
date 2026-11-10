@@ -1,0 +1,296 @@
+/* The painted home page (founder's direction, 2026-11-09; the contract is in
+   .impeccable/surfaces/src-app-site-page-tsx.md). One sales argument told across one painted day: Karman's
+   code-made painting sits behind everything and is travelled from dawn to night as the page scrolls
+   (HomeJourney.tsx, lib/painting/journey.ts). Words sit straight on the scene, on a soft band of mist with no
+   edge, never in a box. The page's light is the painting's light, not the device's: ink on cream mist by
+   day, cream on indigo mist at night. Every action is ink, never a bright colour: the painting is the colour.
+   Rounded, soft shapes that settle when pressed. The feeling is hand-painted and quiet, like a Ghibli
+   background, not a toy. Young Serif for headlines; Hanken Grotesk for everything else and every numeral. */
+@property --glow { syntax: "<color>"; inherits: true; initial-value: rgba(255, 190, 140, 0.6); }
+.ks.page-home {
+  --ink: #1d1a22; --ink2: #3a3442; --cream: #fffaf3; --paper: #fffaf3; --card: #fffaf3; --soft: #f1e9dc; --line: rgba(29, 26, 34, .14);
+  --go: #1d1a22; --go-edge: #000; --solid: #1d1a22; --on-solid: #fffaf3;
+  --accent: var(--go); --marigold: var(--go); --marigold-hi: #37313f; --marigold-ink: #1d1a22; --on-mari: #fffaf3;
+  --mist-rgb: 255, 246, 236;
+  --spring: cubic-bezier(.3, 1.5, .5, 1);
+  --out: cubic-bezier(.16, 1, .3, 1);
+  --glow: rgba(255, 190, 140, 0.6);
+  color: var(--ink); color-scheme: light;
+  transition: --glow 1.6s linear;
+}
+.ks.page-home[data-light="day"] { --glow: rgba(255, 252, 232, 0.55); }
+.ks.page-home[data-light="sunset"] { --glow: rgba(255, 138, 72, 0.62); }
+.ks.page-home[data-light="night"] { --glow: rgba(176, 200, 255, 0.4); }
+.ks.page-home ::selection { background: var(--ink); color: var(--cream); }
+/* the page shares one layer with the painting, so a shape here can be cut through to it */
+.ks.page-home main { z-index: auto; }
+.ks.page-home :focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 12px; }
+.ks .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- the painting: four lights of one scene, stacked, under one camera ---------- */
+.ks .journey { --p: 0; background: linear-gradient(180deg, #5d6da6 0%, #a79ab5 52%, #f7c6a5 100%); overflow: hidden; pointer-events: none; }
+.ks .journey .cam { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+.ks .journey canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ks .journey .cam canvas { opacity: 0; transition: opacity .7s linear; }
+/* the sun, then the moon: a soft light that crosses the sky as the page is scrolled, high at midday */
+.ks .journey .glow { position: absolute; inset: 0; mix-blend-mode: screen; background: radial-gradient(circle at calc(12% + var(--p) * 76%) calc(14% + (var(--p) - .5) * (var(--p) - .5) * 150%), var(--glow) 0, transparent 46%); }
+/* long shafts of light from it at dawn and sunset, turning slowly */
+.ks .journey .rays { position: absolute; left: calc(12% + var(--p) * 76%); top: calc(14% + (var(--p) - .5) * (var(--p) - .5) * 150%); width: 240vmax; height: 240vmax; margin: -120vmax 0 0 -120vmax; opacity: 0; mix-blend-mode: soft-light; background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, .5) 0deg 5deg, transparent 5deg 19deg); -webkit-mask-image: radial-gradient(circle, #000 0, transparent 46%); mask-image: radial-gradient(circle, #000 0, transparent 46%); transition: opacity 1.6s linear; animation: rays-turn 180s linear infinite; }
+.ks[data-light="dawn"] .journey .rays, .ks[data-light="sunset"] .journey .rays { opacity: .38; }
+@keyframes rays-turn { to { transform: rotate(360deg); } }
+.ks.still-motion .journey .rays { animation-play-state: paused; }
+.ks .journey .shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 42%, transparent 52%, rgba(8, 10, 24, .42) 100%); opacity: calc(.3 + var(--p) * .6); }
+.ks .journey::after { content: ""; position: absolute; inset: 0; opacity: .16; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+/* ---------- the top bar: plain words on the sky, and the one action ---------- */
+.ks.page-home .hd { inset: 22px var(--gutter) auto; height: auto; padding: 0; background: none; border-radius: 0; gap: 12px; color: var(--ink); }
+.ks.page-home .hd .mark { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(28px, 2.4vw, 34px); letter-spacing: -0.01em; transition: transform .5s var(--spring); }
+.ks.page-home .hd nav { position: relative; gap: 4px; font-size: 17px; font-weight: 700; }
+.ks.page-home .hd nav a, .ks.page-home .hd nav button { position: relative; z-index: 1; min-height: 46px; padding: 0 16px; border-radius: 999px; transition: color .25s var(--out), transform .5s var(--spring); }
+.ks.page-home .hd .nl::after { display: none; }
+.ks.page-home .hd .theme { display: none; }
+.ks .nav-mark { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--ink); opacity: 0; pointer-events: none; transition: transform .4s var(--spring), width .4s var(--spring), opacity .2s var(--out); }
+.ks.page-home .hd nav .hot { color: var(--cream); }
+.ks.page-home .hd .cta { margin-left: 10px; border: 0; background: var(--go); color: var(--cream); padding: 0 24px; min-height: 48px; font-weight: 700; box-shadow: 0 10px 22px -12px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
+.ks.page-home .hd .cta:active { transform: translateY(2px) scale(.97); box-shadow: 0 4px 10px -8px rgba(29, 26, 34, .7); transition-duration: .08s; }
+.ks.page-home .hd .menu { border: 0; background: var(--cream); box-shadow: 0 10px 22px -14px rgba(29, 26, 34, .6); }
+@media (hover: hover) and (pointer: fine) {
+  .ks.page-home .hd .mark:hover { transform: rotate(-3deg) scale(1.05); }
+  .ks.page-home .hd .cta:hover { background: #37313f; color: var(--cream); transform: translateY(-2px); }
+}
+@media (max-width: 440px) { .ks.page-home .hd .cta { display: inline-flex; padding: 0 18px; } }
+/* the phone menu: a small rounded sheet that drops from the Menu button, not a screen of its own */
+.ks.page-home .sheet { inset: 84px 16px auto auto; width: min(330px, calc(100vw - 32px)); max-height: calc(100svh - 110px); padding: 10px 22px 22px; gap: 14px; border-radius: 30px; background: var(--cream); box-shadow: 0 24px 50px -24px rgba(29, 26, 34, .6); transform-origin: 90% 0; animation: sheet-in .45s var(--spring) both; }
+@keyframes sheet-in { from { opacity: 0; transform: scale(.7) translateY(-12px); } }
+.ks.page-home .sheet .top .mark { display: none; }
+.ks.page-home .sheet .top { justify-content: flex-end; min-height: 0; }
+.ks.page-home .sheet .close { min-height: 40px; border: 0; background: var(--soft); }
+.ks.page-home .sheet nav { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+.ks.page-home .sheet nav a { min-height: 50px; }
+.ks.page-home .sheet .theme { display: none; }
+.ks.page-home .sheet .btn { align-self: stretch; justify-content: center; }
+html.ks-lock:has(.ks.page-home) { overflow: auto; }
+
+/* ---------- type ---------- */
+.ks.page-home :is(h1, h2) { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.012em; line-height: 1.08; text-wrap: balance; }
+.ks.page-home h1 { font-size: clamp(40px, 4.5vw, 72px); max-width: none; line-height: 1.2; }
+.ks.page-home h2 { font-size: clamp(34px, 4.3vw, 64px); max-width: 18ch; }
+.ks.page-home .num { font-family: var(--font-hanken), system-ui, sans-serif; font-weight: 800; font-size: .97em; letter-spacing: -0.035em; font-variant-numeric: lining-nums; }
+.ks.page-home .lede { font-size: clamp(18px, 1.6vw, 24px); line-height: 1.45; max-width: 34em; color: #2d2833; }
+.ks.page-home .fine { font-size: 16px; font-weight: 700; color: var(--ink2); max-width: 34em; }
+.ks.page-home .fine span { display: block; font-weight: 500; }
+
+/* ---------- the main button: ink on the painting, soft-edged, settling a little when pressed ---------- */
+.ks.page-home .btn { min-height: 64px; padding: 0 28px 0 32px; gap: 12px; border-radius: 999px; background: var(--go); color: var(--cream); font-weight: 700; font-size: clamp(19px, 1.5vw, 22px); letter-spacing: -0.01em; box-shadow: 0 16px 30px -16px rgba(29, 26, 34, .75); transform: translate(var(--pull-x, 0px), var(--pull-y, 0px)); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
+.ks.page-home .btn .go { width: 24px; height: 24px; background: none; color: var(--cream); overflow: visible; }
+.ks.page-home .btn .go svg { width: 20px; height: 20px; }
+@media (hover: hover) and (pointer: fine) {
+  .ks.page-home .btn:hover { background: #37313f; box-shadow: 0 22px 36px -18px rgba(29, 26, 34, .8); }
+  .ks.page-home .btn:hover .go { transform: translateX(5px); }
+}
+.ks.page-home .btn:active { transform: translate(var(--pull-x, 0px), calc(var(--pull-y, 0px) + 2px)) scale(.975); box-shadow: 0 6px 14px -10px rgba(29, 26, 34, .8); transition-duration: .08s; }
+.ks.page-home .more { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; font-weight: 800; font-size: 19px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.ks.page-home .more svg { width: 16px; height: 16px; transition: transform .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks.page-home .more:hover svg { transform: translateX(5px); } }
+
+/* ---------- 1. the claim: the headline on the dawn sky, and the flock that spells its number ---------- */
+.ks .claim { position: relative; min-height: 100svh; display: flex; align-items: center; padding: 120px var(--gutter) clamp(90px, 16vh, 170px); }
+/* a calm patch of sky behind the words: brightest where they are, gone before any edge could show */
+.ks .claim .mist { position: absolute; inset: 0; background: radial-gradient(ellipse 62% 64% at 26% 50%, rgba(var(--mist-rgb), .5), rgba(var(--mist-rgb), .3) 52%, rgba(var(--mist-rgb), 0) 78%); animation: mist-in 1.4s var(--out) both; }
+@keyframes mist-in { from { opacity: 0; } }
+.ks .claim .flock { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.ks .claim .say { position: relative; display: grid; gap: clamp(18px, 2.2vw, 28px); justify-items: start; width: min(100%, 61vw); }
+@media (max-width: 1100px) { .ks .claim .say { width: 100%; max-width: 760px; } }
+.ks .claim .keep { white-space: nowrap; }
+.ks .claim .go-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 30px; }
+.ks .claim .motes { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+/* the order of arrival: motes gather into the headline (LetterMotes.tsx), the words settle over them, the
+   number's shape slams down, then the sentence, the button and the small print. Without scripts the same
+   order plays from CSS alone, a little later; a returning visitor (html.claim-seen) sees it all at once. */
+.ks .claim .w { overflow: visible; }
+.ks .claim .w > span { transform: none; opacity: 0; animation: claim-word .7s var(--out) 2.6s forwards; }
+.ks .claim.formed .w > span { animation: claim-word .55s var(--out) forwards; }
+@keyframes claim-word { to { opacity: 1; } }
+.ks .claim :is(.lede, .go-row, .fine) { opacity: 0; animation: claim-up .8s var(--out) 3.4s forwards; }
+.ks .claim.slam .lede { animation: claim-up .8s var(--out) .5s forwards; }
+.ks .claim.slam .go-row { animation: claim-up .8s var(--out) .66s forwards; }
+.ks .claim.slam .fine { animation: claim-up .8s var(--out) .8s forwards; }
+@keyframes claim-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+/* the number: one solid shape of ink with its lettering cut out of it, so the painting shows through the
+   words. White lettering on an ink shape, multiplied onto the scene, leaves exactly that. */
+.ks .claim-pill { display: inline-block; padding: 0 .34em .04em; line-height: 1.12; border-radius: 999px; background: var(--ink); color: #fff; font: inherit; letter-spacing: inherit; white-space: nowrap; mix-blend-mode: multiply; transform: rotate(-1.4deg); opacity: 0; animation: pill-slam .62s cubic-bezier(.2, 1.3, .4, 1) 3s forwards; transition: transform .45s var(--spring); }
+.ks .claim.slam .claim-pill { animation: pill-slam .62s cubic-bezier(.2, 1.3, .4, 1) .12s forwards; }
+@keyframes pill-slam {
+  0% { opacity: 0; transform: scale(2.7) rotate(-11deg); }
+  38% { opacity: 1; transform: scale(.9, .84) rotate(-1.4deg); }
+  62% { transform: scale(1.05, 1.07) rotate(-1.4deg); }
+  100% { opacity: 1; transform: rotate(-1.4deg); }
+}
+/* where it lands, a ring of dust goes out */
+.ks .claim .keep { position: relative; display: inline-block; }
+.ks .claim .keep::before { content: ""; position: absolute; inset: -6% -2%; border-radius: 999px; border: 2px solid var(--ink); opacity: 0; pointer-events: none; }
+.ks .claim.slam .keep::before { animation: pill-ring .8s var(--out) .34s both; }
+@keyframes pill-ring { from { opacity: .5; transform: scale(.96); } to { opacity: 0; transform: scale(1.5, 1.9); } }
+@media (hover: hover) and (pointer: fine) { .ks .claim-pill:hover { transform: rotate(1deg) scale(1.03); } }
+.ks .claim.slam .claim-pill:active { transform: rotate(-1.4deg) scale(.96, .92); transition-duration: .08s; }
+html.claim-seen .ks .claim :is(.w > span, .lede, .go-row, .fine, .claim-pill) { animation: none; opacity: 1; }
+html.claim-seen .ks .claim .keep::before { animation: none; }
+@media (max-width: 1100px) {
+  .ks .claim { align-items: flex-end; padding-top: 40svh; padding-bottom: 12svh; }
+  .ks.page-home h1 { font-size: clamp(40px, 7.2vw, 62px); }
+  .ks .claim .mist { background: linear-gradient(180deg, rgba(var(--mist-rgb), 0) 26%, rgba(var(--mist-rgb), .62) 46%, rgba(var(--mist-rgb), .62) 88%, rgba(var(--mist-rgb), 0)); }
+}
+
+/* ---------- every section after the first: words on a band of mist that runs the full width and fades out
+   above and below, so the landscape shows between one section and the next ---------- */
+.ks .sect { position: relative; padding: clamp(96px, 17vh, 190px) var(--gutter); }
+.ks .sect > .mist { position: absolute; inset: 0; pointer-events: none; background: rgba(var(--mist-rgb), .66); -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); }
+.ks .sect .inner { position: relative; width: min(1240px, 100%); display: grid; gap: clamp(20px, 2.6vw, 34px); justify-items: start; }
+.ks .sect .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.ks .sect .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks .sect .lk:hover svg { transform: translateX(5px); } }
+/* a soft cream surface for the few things that need one: rounded, lightly lifted, never a hard box */
+.ks.page-home { --soft-card: rgba(255, 250, 243, .94); --lift: 0 18px 34px -22px rgba(29, 26, 34, .55); }
+
+/* ---------- every left-to-right switch: one thumb that springs across (Seg.tsx) ---------- */
+.ks .seg { position: relative; display: inline-flex; max-width: 100%; padding: 5px; border-radius: 999px; background: var(--soft-card); box-shadow: var(--lift); }
+.ks .seg button { position: relative; z-index: 1; min-height: 46px; padding: 0 22px; border-radius: 999px; font-size: 16.5px; font-weight: 700; color: var(--ink2); white-space: nowrap; transition: color .3s var(--out), transform .2s var(--out); }
+.ks .seg button[data-on] { color: var(--cream); }
+.ks .seg button:active { transform: scale(.94); }
+.ks .seg-thumb { position: absolute; left: 0; top: 5px; bottom: 5px; border-radius: 999px; background: var(--ink); transition: transform .6s cubic-bezier(.3, 1.55, .5, 1), width .6s cubic-bezier(.3, 1.55, .5, 1), opacity .2s; }
+@media (max-width: 520px) { .ks .seg button { padding: 0 14px; font-size: 15px; } }
+
+/* ---------- 2. the proof: the universities' own logos, drifting on one cream band ---------- */
+.ks .logos { position: relative; width: 100%; margin-top: clamp(22px, 3vw, 40px); padding: clamp(22px, 3vw, 40px) 0; display: grid; gap: clamp(18px, 2.4vw, 32px); border-radius: clamp(28px, 4vw, 52px); background: var(--soft-card); box-shadow: var(--lift); overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+.ks .lg-row { display: flex; width: max-content; animation: lg-run calc(var(--n) * 5.5s) linear infinite; }
+.ks .lg-row.rev { animation-direction: reverse; animation-duration: calc(var(--n) * 7s); }
+@keyframes lg-run { to { transform: translateX(-50%); } }
+.ks .lg-row ul { display: flex; flex: none; align-items: center; gap: clamp(40px, 5.4vw, 84px); padding-right: clamp(40px, 5.4vw, 84px); }
+.ks .lg-row li { flex: none; }
+.ks .lg-row img { height: clamp(32px, 3.8vw, 54px); width: auto; max-width: clamp(150px, 17vw, 240px); object-fit: contain; transition: transform .5s var(--spring); }
+/* they come down onto the band one after another, like leaves landing */
+.ks .logos.rv:not(.on) .lg-row li { opacity: 0; transform: translateY(-46px) rotate(-9deg); }
+.ks .logos .lg-row li { transition: opacity .5s var(--out) calc(var(--k) * 45ms), transform .8s var(--spring) calc(var(--k) * 45ms); }
+@media (hover: hover) and (pointer: fine) {
+  .ks .logos:hover .lg-row { animation-play-state: paused; }
+  .ks .lg-row li:hover img { transform: scale(1.16) rotate(-2deg); }
+}
+.ks.still-motion .lg-row { animation-play-state: paused; }
+
+/* ---------- 3. the offer: their score now, and the score we guarantee, on tiles that flip ---------- */
+.ks .offer-cols { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(28px, 5vw, 84px); align-items: center; }
+@media (max-width: 980px) { .ks .offer-cols { grid-template-columns: minmax(0, 1fr); } }
+.ks .score { display: grid; gap: clamp(14px, 1.8vw, 22px); justify-items: start; }
+.ks .score-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; min-height: clamp(76px, 8vw, 112px); }
+.ks .score-lab { width: 8.2em; font-weight: 700; font-size: 18px; }
+.ks .score-set { display: inline-flex; align-items: center; gap: 12px; }
+.ks .score-set button { width: 52px; height: 52px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--cream); box-shadow: var(--lift); transition: transform .45s var(--spring), background-color .3s var(--out); }
+.ks .score-set button:active { transform: scale(.86); transition-duration: .08s; }
+@media (hover: hover) and (pointer: fine) { .ks .score-set button:hover { background: #37313f; transform: scale(1.08); } }
+.ks .score-set svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.ks .tiles { display: inline-flex; gap: clamp(5px, .7vw, 9px); perspective: 700px; }
+.ks .tiles .t { width: clamp(50px, 5.6vw, 84px); height: clamp(66px, 7.4vw, 110px); display: grid; place-items: center; border-radius: clamp(14px, 1.6vw, 22px); background: var(--cream); color: var(--ink); font-weight: 800; font-size: clamp(44px, 5.2vw, 78px); letter-spacing: -0.04em; line-height: 1; box-shadow: var(--lift); transform-origin: 50% 0; animation: tile-flip .52s var(--spring) both; }
+.ks .tiles.won .t { background: var(--ink); color: var(--cream); }
+@keyframes tile-flip { from { transform: rotateX(-86deg); opacity: .25; } }
+.ks .score-none { max-width: 26ch; font-family: var(--font-young-serif), Georgia, serif; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.25; animation: claim-up .6s var(--out) both; }
+.ks .outcomes { display: grid; gap: 12px; }
+.ks .outcomes li { display: grid; gap: 2px; padding: 16px 26px; border-radius: 26px; background: var(--soft-card); box-shadow: var(--lift); transition: opacity .9s var(--ease), transform .9s var(--spring); }
+.ks .outcomes b { font-size: clamp(19px, 1.7vw, 23px); font-weight: 700; }
+.ks .outcomes span { color: var(--ink2); }
+@media (hover: hover) and (pointer: fine) { .ks .outcomes li.on:hover { transform: translateX(8px); } }
+
+/* ---------- 4. who teaches: six hand-drawn people (Open Peeps), each in an arch of sky ---------- */
+.ks .tutors { width: 100%; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(12px, 1.8vw, 28px); }
+@media (max-width: 1000px) { .ks .tutors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .ks .tutors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ks .tutors li { display: grid; gap: 6px; justify-items: center; align-content: start; text-align: center; }
+.ks .tutors img { width: 100%; aspect-ratio: 5 / 6; object-fit: cover; object-position: 50% 0; border-radius: 999px 999px 28px 28px; background: var(--soft-card); box-shadow: var(--lift); transition: transform .5s var(--spring); }
+.ks .tutors b { margin-top: 8px; font-size: clamp(16px, 1.4vw, 20px); font-weight: 700; }
+.ks .tutors span { font-size: 15.5px; line-height: 1.4; color: var(--ink2); }
+/* they pop up from behind the treeline, one after another */
+.ks .tutors li.rv { transform: translateY(70px) scale(.86); transition: opacity .5s var(--out), transform .9s var(--spring); }
+.ks .tutors li.rv.on { transform: none; }
+@media (hover: hover) and (pointer: fine) { .ks .tutors li:hover img { animation: tutor-hop .55s var(--spring); } }
+@keyframes tutor-hop { 35% { transform: translateY(-14px) rotate(-3deg); } 70% { transform: translateY(2px) rotate(2deg); } }
+
+/* ---------- 5. how: six ways, each with one small drawing that moves ---------- */
+.ks .ways { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1000px) { .ks .ways { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ks .ways { grid-template-columns: minmax(0, 1fr); } }
+.ks .ways li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 16px; align-items: center; padding: 18px 24px; border-radius: 28px; background: var(--soft-card); box-shadow: var(--lift); }
+.ks .ways li.rv { transform: scale(.9); transition: opacity .6s var(--out), transform .8s var(--spring); }
+.ks .ways li.rv.on { transform: none; }
+.ks .ways svg { grid-row: span 2; width: 52px; height: 52px; fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.ks .ways b { align-self: end; font-size: clamp(18px, 1.5vw, 21px); font-weight: 700; }
+.ks .ways span { align-self: start; font-size: 15.5px; line-height: 1.4; color: var(--ink2); }
+.ks .ways .thin { stroke: var(--ink2); stroke-width: 1.8; }
+.ks .ways :is(.fill, .rise, .dot) { fill: var(--ink); stroke: none; }
+.ks .ways .draw { stroke-dasharray: 1; }
+.ks .ways .sweep { stroke-width: 3.6; stroke-dasharray: 1; stroke-dashoffset: 1; transform: rotate(-90deg); transform-origin: 24px 24px; }
+.ks .ways .hand { transform-origin: 24px 24px; }
+.ks .ways .talk { transform-origin: 30px 30px; }
+.ks .ways li.on .fill { animation: way-fill 4.2s var(--ease) infinite; }
+.ks .ways li.on .draw { animation: way-draw 4.2s var(--ease) infinite; }
+.ks .ways li.on .rise { animation: way-rise 3.6s var(--ease) infinite; }
+/* the clock: the hand and the ring it leaves behind are one motion, at one steady speed */
+.ks .ways li.on .sweep { animation: way-sweep 6s linear infinite; }
+.ks .ways li.on .hand { animation: way-turn 6s linear infinite; }
+.ks .ways li.on .talk { animation: way-talk 1.4s ease-in-out infinite; }
+@keyframes way-fill { 0%, 8% { opacity: 0; } 22%, 84% { opacity: 1; } 96%, 100% { opacity: 0; } }
+@keyframes way-draw { 0%, 5% { stroke-dashoffset: 1; } 45%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 1; } }
+@keyframes way-rise { 0%, 10% { transform: translateY(16px); opacity: 0; } 40%, 82% { transform: none; opacity: 1; } 100% { opacity: 0; } }
+@keyframes way-sweep { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes way-turn { to { transform: rotate(360deg); } }
+@keyframes way-talk { 50% { transform: scaleX(.4); } }
+.ks.still-motion .ways * { animation-play-state: paused !important; }
+
+/* ---------- 6. their doubts: questions as bubbles, each opening into its answer ---------- */
+.ks .doubts { width: min(100%, 940px); display: grid; gap: clamp(22px, 2.8vw, 36px); }
+.ks .talk { display: grid; gap: 14px; }
+.ks .talk .q { justify-self: end; max-width: 26ch; padding: 16px 28px; border-radius: 30px 30px 8px 30px; background: var(--ink); color: var(--cream); font-weight: 700; font-size: clamp(19px, 2vw, 27px); line-height: 1.25; box-shadow: var(--lift); transform-origin: 100% 100%; animation: bubble-in .55s var(--spring) both; }
+.ks .talk .a { justify-self: start; max-width: min(100%, 660px); display: grid; gap: 8px; padding: clamp(20px, 2.4vw, 30px) clamp(22px, 2.8vw, 36px); border-radius: 30px 30px 30px 8px; background: var(--soft-card); box-shadow: var(--lift); transform-origin: 0 100%; animation: bubble-in .65s var(--spring) .16s both; }
+.ks .talk .a b { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(25px, 2.9vw, 42px); line-height: 1.12; }
+.ks .talk .a span { color: var(--ink2); font-size: clamp(16px, 1.3vw, 19px); }
+@keyframes bubble-in { from { opacity: 0; transform: scale(.4) rotate(-4deg); } }
+.ks .asks { display: flex; flex-wrap: wrap; gap: 12px; }
+.ks .asks li { animation: ask-float 6.5s ease-in-out infinite; }
+@keyframes ask-float { 50% { transform: translateY(-7px) rotate(.8deg); } }
+.ks .asks button { min-height: 52px; padding: 0 26px; border-radius: 999px; background: var(--soft-card); font-weight: 700; font-size: clamp(16px, 1.4vw, 19px); box-shadow: var(--lift); transition: transform .45s var(--spring), background-color .3s var(--out), color .3s var(--out); }
+@media (hover: hover) and (pointer: fine) { .ks .asks button:hover { background: var(--ink); color: var(--cream); transform: translateY(-4px) scale(1.04); } }
+.ks .asks button:active { transform: scale(.94); transition-duration: .08s; }
+.ks.still-motion .asks li { animation-play-state: paused; }
+
+/* ---------- 7. the price and the close, at night: the mist turns to dusk and the words to cream ---------- */
+.ks .sect.night { --mist-rgb: 18, 20, 42; color: var(--cream); padding-bottom: clamp(120px, 22vh, 240px); }
+.ks .sect.night > .mist { background: rgba(var(--mist-rgb), .78); }
+.ks .sect.night :focus-visible { outline-color: var(--cream); }
+.ks .fireflies { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.ks .plans { width: 100%; display: grid; gap: 12px; }
+.ks .plans li { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 10em) minmax(0, 1fr); gap: 4px 22px; align-items: baseline; padding: 18px 30px; border-radius: 28px; background: var(--cream); color: var(--ink); box-shadow: 0 20px 40px -24px rgba(0, 0, 0, .8); }
+.ks .plans b { font-size: clamp(19px, 1.7vw, 24px); font-weight: 700; }
+.ks .plans i { font-style: normal; font-weight: 800; font-size: clamp(21px, 2vw, 28px); letter-spacing: -0.03em; }
+.ks .plans span { color: var(--ink2); font-size: clamp(15.5px, 1.3vw, 18px); }
+@media (max-width: 860px) { .ks .plans li { grid-template-columns: minmax(0, 1fr) auto; } .ks .plans span { grid-column: 1 / -1; } }
+/* dealt in from the side, one after another */
+.ks .plans li.rv { transform: translateX(-70px) rotate(-2.5deg); transition: opacity .5s var(--out), transform .85s var(--spring); }
+.ks .plans li.rv.on { transform: none; }
+@media (hover: hover) and (pointer: fine) { .ks .plans li.on:hover { transform: translateX(8px) rotate(.4deg); } }
+.ks .sect.night .btn { background: var(--cream); color: var(--ink); box-shadow: 0 18px 36px -18px rgba(0, 0, 0, .9); }
+.ks .sect.night .btn .go { color: var(--ink); }
+@media (hover: hover) and (pointer: fine) { .ks .sect.night .btn:hover { background: #fff; } }
+.ks .sect.night .more { color: var(--cream); }
+.ks .sect.night .lede { color: var(--cream); font-family: var(--font-young-serif), Georgia, serif; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.15; max-width: 22ch; }
+.ks .sect .go-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 30px; }
+
+/* ---------- the footer's line about the painting, with the still button ---------- */
+.ks .ft .credit .motion { display: inline; min-height: 0; padding: 12px 0; color: #c9c4ba; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.ks .ft .credit .motion[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ks.page-home, .ks .journey .cam canvas, .ks.page-home .btn, .ks .nav-mark, .ks .claim-pill, .ks .seg-thumb { transition: none; }
+  .ks .lg-row, .ks .tiles .t, .ks .ways *, .ks .talk *, .ks .asks li, .ks .score-none { animation: none !important; }
+  .ks .ways .sweep, .ks .ways .draw { stroke-dashoffset: 0; }
+  .ks .lg-row { width: auto; } .ks .lg-row ul { flex-wrap: wrap; justify-content: center; row-gap: 22px; padding: 0 5%; } .ks .lg-row ul[aria-hidden] { display: none; } .ks .logos { -webkit-mask-image: none; mask-image: none; }
+  .ks .journey .rays, .ks .claim .mist, .ks .claim :is(.lede, .go-row, .fine), .ks .claim .w > span, .ks .claim-pill, .ks .claim .keep::before, .ks.page-home .sheet { animation: none !important; }
+  .ks .claim :is(.w > span, .lede, .go-row, .fine, .claim-pill) { opacity: 1; }
+}
