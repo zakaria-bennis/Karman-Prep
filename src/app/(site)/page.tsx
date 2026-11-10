@@ -6,7 +6,6 @@ import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
-import LetterMotes from "@/components/site/home/LetterMotes";
 import Logos from "@/components/site/home/Logos";
 import ScoreTiles from "@/components/site/home/ScoreTiles";
 import Ways from "@/components/site/home/Ways";
@@ -37,7 +36,9 @@ const ORG = {
 /** The drawing for each kind of tutor, in the order the copy lists them (public/site/tutors/). */
 const TUTOR_ART = ["phd", "quant", "medic", "writer", "researcher", "professor"];
 
-const SEEN_BOOT = `try{if(sessionStorage.getItem("karman:claim-seen")==="1")document.documentElement.classList.add("claim-seen")}catch(e){}`;
+/* The opening plays once per visit: hide the words before they are drawn, then let them arrive when the
+   typefaces are in (painted.css, claim-wait and claim-go). Three seconds is the longest it will wait. */
+const CLAIM_BOOT = `try{var d=document.documentElement,k="karman:claim-seen";if(sessionStorage.getItem(k)!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches){d.classList.add("claim-wait");var go=function(){if(d.classList.contains("claim-wait")){d.classList.replace("claim-wait","claim-go");try{sessionStorage.setItem(k,"1")}catch(e){}}};document.fonts.ready.then(function(){setTimeout(go,150)});setTimeout(go,3000)}}catch(e){}`;
 
 /** The headline in three pieces: the words before the number, the number's phrase, the words after. */
 function splitClaim(headline: string): [string, string, string] {
@@ -63,20 +64,19 @@ export default function HomePage() {
     <SitePage kind="home" className={homeFonts} stage={<HomeJourney />}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
       <HomeTouches />
-      {/* a visitor who has already watched the headline form this visit sees it at once */}
-      <script dangerouslySetInnerHTML={{ __html: SEEN_BOOT }} />
+      {/* a visitor who has already watched the headline arrive this visit sees it at once */}
+      <script dangerouslySetInnerHTML={{ __html: CLAIM_BOOT }} />
 
       {/* 1. The claim */}
       <section className="claim" id="claim">
-        <Flock text={gain} />
+        <Flock />
         <div className="mist" aria-hidden="true" />
-        <LetterMotes />
         <div className="say" data-paint-keepout>
           <h1>
             <HeadWords text={before} />{" "}
             {number ? (
               <span className="keep">
-                <ClaimPill label={number}>
+                <ClaimPill>
                   <span className="num">{gain}</span> points
                 </ClaimPill>
                 {mark}
