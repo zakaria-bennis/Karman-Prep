@@ -29,6 +29,8 @@ export default function Receipts({
   const [active, setActive] = useState(0);
   const [held, setHeld] = useState(false);
   const [seen, setSeen] = useState(false);
+  /* true when the last move was a tap: the light then slides half as fast again (painted.css) */
+  const [tapped, setTapped] = useState(false);
   /* counts each fresh six seconds, so a released row gets its full time again */
   const [run, setRun] = useState(0);
   const host = useRef<HTMLDivElement>(null);
@@ -56,6 +58,7 @@ export default function Receipts({
           break;
         }
       }
+      setTapped(false);
       setActive(next);
       setRun((r) => r + 1);
     }, HOLD_MS);
@@ -82,6 +85,7 @@ export default function Receipts({
   }, [active, seen, run]);
 
   const tap = (i: number) => {
+    setTapped(true);
     if (i === active && held) {
       setHeld(false);
       setRun((r) => r + 1);
@@ -93,7 +97,12 @@ export default function Receipts({
 
   const now = rows[active];
   return (
-    <div className="rcp rv" ref={host} data-held={held || undefined}>
+    <div
+      className="rcp rv"
+      ref={host}
+      data-held={held || undefined}
+      data-tapped={tapped || undefined}
+    >
       <div className="rcp-side">
         <h2 id={headingId}>{headline}</h2>
         <ol

@@ -348,6 +348,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .rcp.rv:not(.on) .rcp-list li { opacity: 0; transform: translateX(-26px); }
 .ks .rcp.rv:not(.on) .rcp-list::before { opacity: 0; }
 .ks .rcp .rcp-list::before { transition: transform .9s cubic-bezier(.5, 0, .15, 1), opacity .8s var(--out) .5s; }
+/* a tap moves the light half as fast again as the six-second walk does */
+.ks .rcp[data-tapped] .rcp-list::before { transition-duration: .6s, .8s; }
 .ks .rcp.rv:not(.on) .rcp-phone { opacity: 0; transform: translateY(60px) rotate(3deg); }
 .ks .rcp .rcp-list li { transition: opacity .7s var(--out), transform .8s var(--spring); transition-delay: calc(.15s + var(--i) * 70ms); }
 .ks .rcp .rcp-phone { transition: opacity .8s var(--out) .2s, transform 1.1s var(--spring) .2s; }
