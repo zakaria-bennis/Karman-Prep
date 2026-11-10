@@ -222,25 +222,13 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @media (min-width: 901px) { .ks .gua-cards { margin-top: clamp(30px, 5.5vw, 84px); } }
 @media (max-width: 900px) { .ks .gua { grid-template-columns: minmax(0, 1fr); } }
 
-/* ---------- 4. who teaches: five hand-drawn people (Open Peeps), each in an arch of sky ---------- */
-.ks .tutors { width: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(12px, 1.8vw, 28px); }
-@media (max-width: 1000px) { .ks .tutors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .ks .tutors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.ks .tutors li { display: grid; gap: 6px; justify-items: center; align-content: start; text-align: center; }
-.ks .tutors img { width: 100%; aspect-ratio: 5 / 6; object-fit: cover; object-position: 50% 0; border-radius: 999px 999px 28px 28px; background: var(--soft-card); box-shadow: var(--lift); transition: transform .5s var(--spring); }
-.ks .tutors b { margin-top: 8px; font-size: clamp(16px, 1.4vw, 20px); font-weight: 700; }
-.ks .tutors span { font-size: 15.5px; line-height: 1.4; color: var(--ink2); }
-/* they pop up from behind the treeline, one after another */
-.ks .tutors li.rv { transform: translateY(70px) scale(.86); transition: opacity .5s var(--out), transform .9s var(--spring); }
-.ks .tutors li.rv.on { transform: none; }
-@media (hover: hover) and (pointer: fine) { .ks .tutors li:hover img { animation: tutor-hop .55s var(--spring); } }
-@keyframes tutor-hop { 35% { transform: translateY(-14px) rotate(-3deg); } 70% { transform: translateY(2px) rotate(2deg); } }
-
+/* ---------- 4. who teaches ---------- */
 /* the tutors' photos on a turning arc (TutorArc.tsx): each photo is placed by the script; the title of
    whoever is at the top pops up in the middle */
 .ks .arc { position: relative; width: min(100%, 1080px); aspect-ratio: 2.05 / 1; margin: clamp(10px, 2vw, 30px) auto 0; }
 .ks .arc-dot { position: absolute; left: 0; top: 0; width: clamp(62px, 12.5%, 140px); aspect-ratio: 1; padding: 0; border-radius: 50%; overflow: hidden; border: 4px solid var(--cream); background: var(--soft); box-shadow: var(--lift); opacity: 0; will-change: transform, opacity; cursor: pointer; }
 .ks .arc-dot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+.ks .arc-dot svg { display: block; width: 100%; height: 100%; background: linear-gradient(170deg, #f3eadc, #ddd0c0); fill: rgba(29, 26, 34, .2); }
 .ks .arc-title { position: absolute; left: 50%; bottom: 3%; width: min(62%, 640px); translate: -50% 0; display: grid; gap: 6px; justify-items: center; text-align: center; opacity: 0; pointer-events: none; }
 .ks .arc-title[data-live] { opacity: 1; }
 .ks .arc-title b { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(28px, 4.4vw, 68px); line-height: 1.05; letter-spacing: -0.012em; animation: arc-pop .7s cubic-bezier(.2, 1.5, .4, 1) both; }

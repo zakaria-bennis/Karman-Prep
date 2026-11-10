@@ -139,8 +139,16 @@ export default function TutorArc({
           onFocus={() => (held.current = i % n)}
           onBlur={() => (held.current = null)}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- small portrait photos */}
-          <img src={p.src} alt="" decoding="async" draggable={false} />
+          {p.src ? (
+            /* eslint-disable-next-line @next/next/no-img-element -- small portrait photos */
+            <img src={p.src} alt="" decoding="async" draggable={false} />
+          ) : (
+            /* no photo yet: a plain frame */
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="40" r="17" />
+              <path d="M16 100 C 16 74, 32 62, 50 62 C 68 62, 84 74, 84 100 Z" />
+            </svg>
+          )}
         </button>
       ))}
       <p className="arc-title" data-live={live || undefined} aria-live="off">

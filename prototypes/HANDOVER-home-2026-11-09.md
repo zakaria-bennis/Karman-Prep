@@ -17,7 +17,7 @@ night as the page scrolls. The founder approved this order.
 | 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `ClaimPill.tsx`, `Flock.tsx`, `CLAIM_BOOT` in `page.tsx` | Headline comes into focus out of the haze, word by word; the "280 points" shape slams in with its lettering cut out to the sky; two or three small flocks of birds cross the sky |
 | 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
 | 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence; a +200 ring stamp brought down hard at the top right, level with the headline (the headline jolts and leaves burst); three outcome cards slide in from the side; his own "Karman" signature, kept low, right above the link to the full guarantee |
-| 4 | Who: "Our tutors are overqualified. That's the point." | `TutorArc.tsx`, `src/lib/marketing/tutors.ts` (until the real photos are listed there: the five drawings in `public/site/tutors/`) | Photos wait in a stack at the left, fan out along a half circle that turns slowly like a wheel with its lower half out of sight; the title of whoever is at the top pops up in the middle |
+| 4 | Who: "Our tutors are overqualified. That's the point." | `TutorArc.tsx`, `src/lib/marketing/tutors.ts` | Photos wait in a stack at the left, fan out along a half circle that turns slowly like a wheel with its lower half out of sight; the title of whoever is at the top pops up in the middle |
 | 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 | 7 | Price and close, at night: "Four ways in. The first one is free." | `Fireflies.tsx` | Rows dealt in; fireflies follow the cursor |
@@ -48,8 +48,8 @@ and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are 
   request. He asked for the stamp, for its landing to be prominent, and for the cards to come from the side.
 - **Section 4:** on 10 November 2026 he chose the arc out of ten live layouts, and described the motion
   himself (stack at the left, fan out, slow turn, titles popping up in the middle). He will supply six
-  real photos; until then `TUTOR_PHOTOS` is empty, the live site keeps the drawings, and a developer's
-  machine shows stock stand-ins that are kept out of git. "Quants" is gone from the site: there is none
+  real photos; until then each place on the arc is a plain frame with no picture (he asked for the
+  stock stand-ins to be removed). The Open Peeps drawings are deleted. "Quants" is gone from the site: there is none
   on the team. Still open: a word other than "Published" for the researchers, and which kind each real
   photo is.
 - **Sections 5 to 7:** built in one pass at his request so the page could be handed over whole. He has
@@ -75,7 +75,7 @@ a chat as the whole page).
    other rule is the lawyer-reviewed one. The lawyer has not re-read the tiered targets or Terms section 5.
 4. The other site pages (program, pricing, guarantee, private tutoring, FAQ, About, schools, tutors)
    still have the old look, old voice, marigold and generated photos.
-5. The six tutor drawings are stock Open Peeps. He offered to generate custom images in Gemini from
+5. (Closed 10 November: the tutor drawings are gone; real photos are coming.) He had offered custom images from
    prompts if he wants something more his own.
 6. Thirty schools are shown on his word that students attend all of the top 12; four of the thirty were
    my substitutions for schools with no usable logo file. Confirm the list in `schools.ts`.

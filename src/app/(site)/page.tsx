@@ -17,7 +17,7 @@ import { ROUTES } from "@/components/site/routes";
 import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
 import { SCHOOLS } from "@/lib/marketing/schools";
-import { STAND_IN_TUTORS, TUTOR_PHOTOS } from "@/lib/marketing/tutors";
+import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
 import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
@@ -34,9 +34,6 @@ const ORG = {
   email: CONTACT.general,
   description: section(1).text,
 };
-
-/** The drawing for each kind of tutor, in the order the copy lists them (public/site/tutors/). */
-const TUTOR_ART = ["phd", "medic", "writer", "researcher", "professor"];
 
 /* The opening plays once per visit: hide the words before they are drawn, then let them arrive when the
    typefaces are in (painted.css, claim-wait and claim-go). Three seconds is the longest it will wait. */
@@ -59,14 +56,7 @@ export default function HomePage() {
   const offer = section(10);
   const who = section(12);
   const tutorKinds = pairs(who.credentials);
-  /* the stock stand-ins are for judging the layout on a developer's machine, never for the live site */
-  const tutorPhotos = (
-    TUTOR_PHOTOS.length
-      ? TUTOR_PHOTOS
-      : process.env.NODE_ENV !== "production"
-        ? STAND_IN_TUTORS
-        : []
-  ).map((t) => ({
+  const tutorPhotos = TUTOR_PHOTOS.map((t) => ({
     src: t.src,
     kind: Math.max(
       0,
@@ -158,26 +148,7 @@ export default function HomePage() {
           <h2 className="rv" id="who-h">
             {who.headline}
           </h2>
-          {tutorPhotos.length ? (
-            <TutorArc photos={tutorPhotos} kinds={tutorKinds} />
-          ) : (
-            /* until the real photos are listed in lib/marketing/tutors.ts: the five drawings */
-            <ul className="tutors">
-              {tutorKinds.map(([name, line], k) => (
-                <li className="rv" key={name} style={{ transitionDelay: `${k * 90}ms` }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG drawings */}
-                  <img
-                    src={`/site/tutors/${TUTOR_ART[k % TUTOR_ART.length]}.svg`}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <b>{name}</b>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <TutorArc photos={tutorPhotos} kinds={tutorKinds} />
         </div>
       </section>
 
