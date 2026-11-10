@@ -244,39 +244,3 @@ export function busy(el: HTMLElement, on: boolean, label?: string) {
     button.removeAttribute("aria-busy");
   }
 }
-
-/* ---------- the first visit's opening: the wordmark and the line, only while the first picture is not ready ---------- */
-// Skipped when the picture arrives within 250 ms, on later visits in the same session, and with reduced
-// motion. Never longer than 1.2 s: the page is the point, not the loader.
-export function opening(src: string, word: string) {
-  let seen = false;
-  try {
-    seen = sessionStorage.getItem("k-open") === "1";
-    sessionStorage.setItem("k-open", "1");
-  } catch {
-    /* private windows: show it, nothing is remembered */
-  }
-  if (seen || reduced() || !src) return;
-  const img = new Image();
-  img.src = src;
-  let el: HTMLDivElement | null = null;
-  const t = setTimeout(() => {
-    el = document.createElement("div");
-    el.className = "k-open";
-    el.setAttribute("aria-hidden", "true");
-    el.innerHTML = `<span class="w">${esc(word)}</span><span class="ln"></span>`;
-    host().append(el);
-    const shown = el;
-    requestAnimationFrame(() => shown.classList.add("on"));
-  }, 250);
-  const end = () => {
-    clearTimeout(t);
-    if (!el) return;
-    const shown = el;
-    el = null;
-    shown.classList.add("out");
-    setTimeout(() => shown.remove(), 500);
-  };
-  img.decode().then(end, end);
-  setTimeout(end, 1200);
-}

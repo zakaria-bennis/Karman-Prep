@@ -31,7 +31,7 @@ export default function ConstellationStar({
   const active = node.subject === activeSubject;
   const subjectHex = active ? activeHex : otherHex;
   // Mastery is the earned moment — it trades the subject halo
-  // for gold (docs/brand.md "Prestige — gold").
+  // for gold (docs/archive/brand.md "Prestige — gold").
   const haloId =
     node.status === "mastered"
       ? "halo-mastered"

@@ -1,7 +1,7 @@
 // ============================================================
 // Design-token drift checker. Reads the computed CSS of headings
 // + the floating banner and emits a JSON report of what doesn't
-// match docs/design-tokens.md. Catches "an h1 silently became
+// match docs/archive/design-tokens.md. Catches "an h1 silently became
 // 28px" or "a hex code crept in outside the palette."
 //
 // This spec NEVER fails the suite — drift goes into a report.

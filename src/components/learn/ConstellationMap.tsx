@@ -3,7 +3,7 @@
 // ============================================================
 // ConstellationMap — full-screen "brain constellation" star map.
 //
-// Observatory system (docs/brand.md): the warm night sky seen from
+// Observatory system (docs/archive/brand.md): the warm night sky seen from
 // the lamp-lit study.
 //   • Left lobe = Reading & Writing (R&W rose), right lobe = Math
 //     (Math blue) — constellation accents as subject SIGNALS

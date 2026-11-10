@@ -2,7 +2,7 @@
 // GeometryFigure — renders a 2D-geometry figure from structured
 // figure_geometry_data as a clean SVG on the warm night plaque, drawn
 // in the Math-blue subject signal with ivory labels (observatory
-// system, docs/brand.md).
+// system, docs/archive/brand.md).
 //
 // Only used when figure_kind='geometric' — i.e. the Stage-6.6 gate
 // already rasterized this exact SVG and a vision model confirmed it
@@ -35,7 +35,7 @@ export default function GeometryFigure({ data, className }: Props) {
     <figure
       className={cn(
         // Warm night plaque matching the app background; Math-blue figure
-        // with ivory labels inside (observatory system, docs/brand.md).
+        // with ivory labels inside (observatory system, docs/archive/brand.md).
         "themed-question-figure my-4 rounded-lg border border-bronze bg-night p-4",
         "shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]",
         balanced && "w-full max-w-md",
