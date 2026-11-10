@@ -28,7 +28,10 @@ import {
   FREE_PRACTICE_TEST as FT,
   FOUNDER,
   GUARANTEE as G,
-  GUARANTEE_TIERS as GT,
+  type GuaranteeTrack,
+  guaranteeBandLabel,
+  guaranteedGain,
+  guaranteeMax,
   INTAKE,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
@@ -86,8 +89,19 @@ const SEATS_LEFT = Math.max(0, MP.paidSeats - MP.paidSeatsTaken);
 const START_DAY = noYear(MP.startLabel);
 const CLOSES = noYear(MP.enrollmentClosesLabel);
 const STARTS = [MP.startShort, MAY.startShort, JUNE.startShort];
-const PROMISE = `+${G.pointsBelow} points, or +${G.pointsFrom} from ${G.splitAt}`;
-const TARGETS = `The target is +${G.pointsBelow} points from a start under ${G.splitAt}, and +${G.pointsFrom} from ${G.splitAt} or higher. A ${G.topScore} always counts.`;
+/** The most each track promises. The target itself depends on the starting score (offer.ts, GUARANTEE). */
+const UP_TO = {
+  cohort: `Up to +${guaranteeMax("cohort")} points`,
+  private: `Up to +${guaranteeMax("private")} points`,
+} as const;
+/** "1200 or lower", "1210 to 1300": the starting scores each band covers. */
+const BAND_LABELS = G.bands.map((_, i) => guaranteeBandLabel(i));
+const targetsFor = (track: GuaranteeTrack) =>
+  G.bands.map((b, i) => `+${b[track]} from a start of ${BAND_LABELS[i]}`).join(", ");
+const TARGETS = `The target depends on the starting score: ${targetsFor("cohort")}. From ${G.noGuaranteeFrom} there is no guarantee, and we tell you before you pay. A ${G.topScore} always counts.`;
+/** The cohort's target for a starting score, for the worked examples. */
+const cohortTarget = (start: number) => guaranteedGain(start, "cohort");
+const TOP = G.bands[G.bands.length - 1];
 const PROOF = `Karman's 1:1 students gained ${TR.averageGain} points on average. ${TR.sourceLabel}.`;
 const SPLIT = `a ${$(MP.depositAmount)} deposit and ${w(MP.installments.count)} payments of ${$(MP.installments.amount)}`;
 const PRIVATE_BONUS = G.private.packages;
@@ -138,7 +152,7 @@ link: See every price
 ## 8 Guarantee
 headline: The score goes up, or we pay you back.
 text: You've seen guarantees with a trapdoor in the fine print. Ours doesn't have one. Your student does the work, the score goes up, or the money comes back to you. Here is the whole deal, on one line.
-promise: ${PROMISE}
+promise: ${UP_TO.cohort}
 promise note: ${TARGETS} Measured from an SAT or PSAT score from the last ${G.baselineMonths} months, or from a week-1 Bluebook practice test we proctor live.
 line start: Starting score
 line weeks: ${W(MP.weeks)} weeks of work
@@ -157,7 +171,7 @@ headline: We're twelve for twelve.
 text: The top 12 universities in the country have one thing in common: a Karman student on campus. Plenty of the schools right behind them do too.
 
 ## 10 Your number
-headline: Up to +${GT.bands[0].private} points, or your money back.
+headline: ${UP_TO.private}, or your money back.
 text: Tell us where your student is today. We'll show you the score we guarantee.
 private: Private tutoring
 cohort: The ${w(MP.weeks)}-week cohort
@@ -166,7 +180,7 @@ now: Their score now
 lower: Ten points lower
 higher: Ten points higher
 promise: We guarantee
-none: At ${GT.noGuaranteeFrom} or higher, we don't sell you a guarantee. We'd rather say so now than argue about it later.
+none: At ${G.noGuaranteeFrom} or higher, we don't sell you a guarantee. We'd rather say so now than argue about it later.
 outcomes: They hit it. = Promise kept. You owe us a high five. | They came close. = Half your money comes back. | Not even close. = All of your money comes back.
 free: Or your student keeps going with us for free. Your call.
 link: The guarantee, in full
@@ -243,8 +257,8 @@ rows: Before = Your student takes a full-length test, or we pick the skill holdi
 
 ## 33 Private: packages
 headline: Two packages, both with the guarantee.
-small package: ${P10.name} = ${P10.hours} hours, ${$(P10.price)}. For a focused push on one section. Comes with the guarantee: ${PROMISE}. If not, half the price back (${usd(P10.price / 2)}).
-large package: ${P20.name} = ${P20.hours} hours, ${$(P20.price)}. Comes with the guarantee: ${PROMISE}. If not, up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back.
+small package: ${P10.name} = ${P10.hours} hours, ${$(P10.price)}. For a focused push on one section. Comes with the guarantee: ${UP_TO.cohort.toLowerCase()}, set by the starting score. If not, half the price back (${usd(P10.price / 2)}).
+large package: ${P20.name} = ${P20.hours} hours, ${$(P20.price)}. Comes with the guarantee: ${UP_TO.private.toLowerCase()}, set by the starting score. If not, up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back.
 includes: Everything in ${PRO.name}: every question, with video explanations as they're recorded | The weekly live session | A note to parents after every session
 
 ## 34 Private: track record
@@ -301,12 +315,12 @@ text: It's built from our own questions, not the College Board's, so the score i
 button: Send me the link
 
 ## 51 Guarantee: opening
-headline: ${PROMISE}, or money back or a free repeat.
-text: The cohort's whole deal is on this page and the home page, and nowhere else adds a rule. The private packages' rules are on the private tutoring page, in full.
+headline: ${UP_TO.private}, or your money back.
+text: The target depends on where your student starts and how they're taught: ${UP_TO.private.toLowerCase()} on ${P20.name}, ${UP_TO.cohort.toLowerCase()} on the cohort and ${P10.name}. The cohort's whole deal is on this page, and nowhere else adds a rule. The private packages' rules are on the private tutoring page, in full.
 
 ## 52 Guarantee: examples
 headline: Five students, worked through.
-rows: Baseline 1180, SAT 1300 = +120, with a +${G.pointsBelow} target. The promise was kept. Nothing back | Baseline 1180, SAT 1250 = +70, more than half of +${G.pointsBelow}. Half back (${usd(MP.price / 2)}), or the next cohort free | Baseline 1180, SAT 1210 = +30, under half of +${G.pointsBelow}. The full ${$(MP.price)} back, or the next cohort free | Baseline 1420, SAT 1480 = +60. From ${G.splitAt} the target is +${G.pointsFrom}. The promise was kept | Baseline 1450, SAT 1480 = +30, more than half of +${G.pointsFrom}. Half back (${usd(MP.price / 2)}), or the next cohort free
+rows: Baseline 1180, SAT 1340 = +160, with a +${cohortTarget(1180)} target. The promise was kept. Nothing back | Baseline 1180, SAT 1280 = +100, more than half of +${cohortTarget(1180)}. Half back (${usd(MP.price / 2)}), or the next cohort free | Baseline 1180, SAT 1230 = +50, under half of +${cohortTarget(1180)}. The full ${$(MP.price)} back, or the next cohort free | Baseline 1420, SAT 1480 = +60. From a start of ${BAND_LABELS[3]} the target is +${cohortTarget(1420)}. The promise was kept | Baseline 1450, SAT 1480 = +30, more than half of +${cohortTarget(1450)}. Half back (${usd(MP.price / 2)}), or the next cohort free
 
 ## 53 Guarantee: what we won't add
 headline: What you won't find in our terms.
@@ -314,12 +328,17 @@ list: A "good faith" clause we get to judge | A quota on answering polls in clas
 
 ## 54 Guarantee: private and exclusions
 headline: Private tutoring and what isn't covered.
-rows: ${P10.name} = ${PROMISE}. If not: half the price back (${usd(P10.price / 2)}) | ${P20.name} = ${PROMISE}. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
+rows: ${P10.name} = ${UP_TO.cohort}, set by the starting score. If not: half the price back (${usd(P10.price / 2)}) | ${P20.name} = ${UP_TO.private}, set by the starting score. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
 
 ## 55 Guarantee: claim
 headline: Claiming takes one email.
 text: Within ${G.claimDays} days of scores coming out, send the College Board score report to ${G.claimEmail}. No mailed paper reports, no fees.
 button: Take the free practice test
+
+
+## 56 Guarantee: targets
+headline: The target, by starting score.
+rows: ${BAND_LABELS[0]} = +${G.bands[0].cohort} on the cohort and ${P10.name}. +${G.bands[0].private} on ${P20.name} | ${BAND_LABELS[1]} = +${G.bands[1].cohort} on the cohort and ${P10.name}. +${G.bands[1].private} on ${P20.name} | ${BAND_LABELS[2]} = +${G.bands[2].cohort} on the cohort and ${P10.name}. +${G.bands[2].private} on ${P20.name} | ${BAND_LABELS[3]} = +${G.bands[3].cohort} on the cohort and ${P10.name}. +${G.bands[3].private} on ${P20.name} | ${G.noGuaranteeFrom} or higher = No guarantee. We tell you before you pay
 
 ## 61 About: opening
 headline: Test prep that shows its work.
@@ -345,7 +364,7 @@ button: Take the free practice test
 
 ## 71 FAQ
 headline: Straight answers.
-qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = On the cohort, any SAT taken within ${G.satWithinDays} days of the last class. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student is already at ${G.splitAt} or higher. Is that covered? = Yes. From a ${G.splitAt} start, the target is +${G.pointsFrom} points instead of +${G.pointsBelow}. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of scores coming out.
+qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = On the cohort, any SAT taken within ${G.satWithinDays} days of the last class. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student already scores high. Is that covered? = Up to ${TOP.upTo}, yes. From a start of ${BAND_LABELS[3]} the target is +${TOP.cohort} points on the cohort and ${P10.name}, and +${TOP.private} on ${P20.name}. From ${G.noGuaranteeFrom} there is no guarantee, and we tell you before you pay. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of scores coming out.
 
 ## 81 Research: opening
 headline: Why Karman is built the way it is.
@@ -490,7 +509,8 @@ pricing text: Nothing is added later: no materials fee, no platform fee.
 pricing date question: When does your student want to start?
 pricing other date: Another time
 pricing guarantee headline: What you get back, by score.
-pricing badge: ${PROMISE}, or money back or the next cohort free.
+pricing badge: ${UP_TO.cohort}, or money back or the next cohort free.
+pricing private badge: ${P10.name}: up to +${guaranteeMax("cohort")}. ${P20.name}: up to +${guaranteeMax("private")}.
 pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the score. You choose. Every rule is listed below.
 pricing compare title: What each option includes
 pricing compare open: Compare everything, line by line

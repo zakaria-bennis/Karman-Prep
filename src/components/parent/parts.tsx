@@ -1,5 +1,6 @@
 /* Small pieces shared by the parent pages: the guarantee card and session times. */
 import { Card, Legend, Num, Ring, SectionHeader } from "@/components/portal";
+import { GUARANTEE } from "@/lib/marketing/offer";
 import type { GuaranteeStatus } from "@/lib/parent/guarantee";
 
 /** Family times show in Central time until families pick their own zone. */
@@ -29,6 +30,18 @@ export function GuaranteeCard({
   status: GuaranteeStatus;
   childName: string;
 }) {
+  if (status.none) {
+    return (
+      <Card>
+        <SectionHeader title="Score guarantee" />
+        <p className="kp-meta">
+          {childName} started at <Num>{status.baseline}</Num>. From a starting score of{" "}
+          <Num>{GUARANTEE.noGuaranteeFrom}</Num> or higher, the {status.plan} plan carries no score
+          guarantee.
+        </p>
+      </Card>
+    );
+  }
   if (status.baseline === null || status.needed === null) {
     return (
       <Card>
