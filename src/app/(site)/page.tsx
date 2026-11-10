@@ -7,6 +7,7 @@ import { HeadWords, nums } from "@/components/site/home/Head";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import Logos from "@/components/site/home/Logos";
+import SchoolsLab from "@/components/site/home/SchoolsLab";
 import ScoreTiles from "@/components/site/home/ScoreTiles";
 import Ways from "@/components/site/home/Ways";
 import SitePage from "@/components/site/SitePage";
@@ -111,6 +112,7 @@ export default function HomePage() {
           ))}
         </ul>
         <Logos schools={SCHOOLS} />
+        {process.env.NODE_ENV !== "production" ? <SchoolsLab schools={SCHOOLS} /> : null}
       </section>
 
       {/* 3. The offer */}
