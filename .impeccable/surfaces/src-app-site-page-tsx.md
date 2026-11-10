@@ -14,7 +14,7 @@ Order the founder approved on 2026-11-09 (he pinned this; it replaced a dealt ha
 1. The claim. "Our average student gains 280 points. Yours doesn't have to be average." Start free.
 2. The proof. "We're twelve for twelve." The universities' logos on lit lanterns that rise, bump and come round again (settled 2026-11-10).
 3. The offer. "Up to +200 points, or your money back." One sentence, the founder's "Karman" signature, a +200 stamp that lands, three outcome cards from the side; the rules are behind the link (settled 2026-11-10).
-4. Who. "Our tutors are overqualified. That's the point."
+4. Who. "Our tutors are overqualified. That's the point." Six real photos on a slowly turning arc, with the title of whoever is at the top in the middle (chosen 2026-11-10; real photos pending).
 5. How. "Six ways we make a skill stick, because one would be lazy."
 6. Their doubts. "Go on. Ask us the hard ones."
 7. The price and the close. "Four ways in. The first one is free." Start free.

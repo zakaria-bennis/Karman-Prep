@@ -9,6 +9,7 @@ import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
 import Ways from "@/components/site/home/Ways";
+import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
@@ -16,12 +17,13 @@ import { ROUTES } from "@/components/site/routes";
 import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
 import { SCHOOLS } from "@/lib/marketing/schools";
+import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
 import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
   "Karman Prep: SAT tutors who see every answer",
-  "SAT prep taught by PhD students, quants and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
+  "SAT prep taught by PhD students, medical students and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
 );
 
 const ORG = {
@@ -32,9 +34,6 @@ const ORG = {
   email: CONTACT.general,
   description: section(1).text,
 };
-
-/** The drawing for each kind of tutor, in the order the copy lists them (public/site/tutors/). */
-const TUTOR_ART = ["phd", "quant", "medic", "writer", "researcher", "professor"];
 
 /* The opening plays once per visit: hide the words before they are drawn, then let them arrive when the
    typefaces are in (painted.css, claim-wait and claim-go). Three seconds is the longest it will wait. */
@@ -56,6 +55,14 @@ export default function HomePage() {
   const proof = section(9);
   const offer = section(10);
   const who = section(12);
+  const tutorKinds = pairs(who.credentials);
+  const tutorPhotos = TUTOR_PHOTOS.map((t) => ({
+    src: t.src,
+    kind: Math.max(
+      0,
+      tutorKinds.findIndex(([name]) => name === t.kind)
+    ),
+  }));
   const how = section(6);
   const doubts = section(13);
   const price = section(7);
@@ -141,21 +148,7 @@ export default function HomePage() {
           <h2 className="rv" id="who-h">
             {who.headline}
           </h2>
-          <ul className="tutors">
-            {pairs(who.credentials).map(([name, line], k) => (
-              <li className="rv" key={name} style={{ transitionDelay: `${k * 90}ms` }}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG drawings */}
-                <img
-                  src={`/site/tutors/${TUTOR_ART[k % TUTOR_ART.length]}.svg`}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
-                <b>{name}</b>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
+          <TutorArc photos={tutorPhotos} kinds={tutorKinds} />
         </div>
       </section>
 
