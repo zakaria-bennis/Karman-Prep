@@ -154,8 +154,9 @@ export default function HomePage() {
               words={{
                 line: `${section(8).text.split(". ")[2]}.`,
                 signed: SITE.logo,
-                seal: `+${GUARANTEE.bands[0].private}`,
-                sealUnit: "points",
+                stamp: `+${GUARANTEE.bands[0].private}`,
+                stampUnit: "points",
+                stampRing: "or your money back",
               }}
             />
           ) : null}

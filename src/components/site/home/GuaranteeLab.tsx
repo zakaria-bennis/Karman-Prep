@@ -1,109 +1,131 @@
 "use client";
 
-// TEMPORARY (2026-11-10): the guarantee, short and signed "Karman" in a quick hand, for the founder to pick
-// a layout and a signature. He wants little information here (the full rules are one link away), a
-// signature like a company's own scrawl (no name of a person, no title, no underline, not drawn on), and
-// layouts modelled on how other companies show a guarantee. Never shown in production. The choices are
-// data-gua (layout) and data-sig (signature) on <html>; 0 is today's flip tiles. Styles are in
-// styles/guarantee-lab.css; the trial signature faces come from Google Fonts by a plain link, here only.
-// The winner replaces ScoreTiles.tsx, its face is then self-hosted through next/font, and this file goes.
-import { useEffect, useState } from "react";
+// TEMPORARY (2026-11-10): the guarantee as the founder described it: the headline, one sentence, "Karman"
+// signed the way he signs it, a +200 stamp that is stamped onto the page, and three cards that float in.
+// The panel switches where the cards come from (data-gua: 1 from below, 2 from the side; 0 is today's flip
+// tiles). Never shown in production. Styles are in
+// styles/guarantee-lab.css. The winner replaces ScoreTiles.tsx; this file goes.
+import { useEffect, useRef, useState } from "react";
 import "@/app/(site)/styles/guarantee-lab.css";
 
 interface Props {
   /** The three outcomes, as [name, line]. */
   outcomes: [string, string][];
-  words: Record<"line" | "signed" | "seal" | "sealUnit", string>;
+  words: Record<"line" | "signed" | "stamp" | "stampUnit" | "stampRing", string>;
 }
 
 const LAYOUTS = [
   ["0", "Today"],
-  ["1", "A. Promise"],
-  ["2", "B. Seal"],
-  ["3", "C. Promise and three lines"],
+  ["1", "Cards from below"],
+  ["2", "Cards from the side"],
 ] as const;
-/** [value, label, Google Fonts family or "" for the hand-drawn one] */
-const SIGNATURES = [
-  ["1", "1", "Mrs Saint Delafield"],
-  ["2", "2", "Herr Von Muellerhoff"],
-  ["3", "3", "Mr De Haviland"],
-  ["4", "4", "WindSong"],
-  ["5", "5", "Whisper"],
-  ["6", "6", "Qwitcher Grypen"],
-  ["8", "8", "Nothing You Could Do"],
-  ["9", "9 drawn", ""],
-] as const;
-const FONT_LINK = `https://fonts.googleapis.com/css2?${SIGNATURES.filter((s) => s[2])
-  .map((s) => `family=${s[2].replace(/ /g, "+")}`)
-  .join("&")}&display=swap`;
-
-/** "Karman", signed in a hurry. Option 9 is one drawn stroke: a K, then the rest trailing off. */
+/** "Karman" as the founder signs it (traced by hand from the picture he sent on 2026-11-10): a tall K whose
+    leg sweeps away underneath, and the rest of the word as one quick run of waves. */
 function Signature({ name }: { name: string }) {
   return (
-    <p className="gua-sig" aria-label={name}>
-      <span aria-hidden="true">{name}</span>
-      <svg viewBox="0 0 330 110" aria-hidden="true">
-        <path d="M34 12 C 30 40, 24 70, 16 98" />
-        <path d="M82 8 C 60 34, 44 50, 26 60 C 48 56, 64 74, 84 96 C 92 78, 100 62, 112 60 C 124 58, 118 86, 128 84 C 138 82, 140 56, 152 58 C 162 60, 154 84, 164 82 C 174 80, 176 60, 186 62 C 194 64, 190 80, 200 78 C 214 75, 216 64, 228 66 C 252 70, 286 62, 322 48" />
+    <p className="gua-sig" role="img" aria-label={name}>
+      <svg viewBox="130 0 850 380" aria-hidden="true">
+        <path className="pen" d="M172 20 C 177 110, 179 200, 158 334" />
+        <path
+          className="pen"
+          d="M333 22 C 280 102, 222 188, 163 270 C 186 234, 230 186, 268 186 C 304 187, 322 250, 360 300 C 398 345, 470 358, 585 348"
+        />
+        <path
+          className="brush"
+          d="M478 228 C 450 218, 415 240, 412 258 C 412 272, 440 268, 470 250 C 492 236, 510 224, 520 226 C 512 236, 500 250, 510 252 C 540 240, 580 214, 600 218 C 585 232, 560 252, 572 252 C 610 236, 660 208, 690 212 C 672 226, 650 244, 664 244 C 700 228, 758 206, 790 212"
+        />
+        <path
+          className="tail"
+          d="M786 212 C 806 220, 826 221, 860 216 C 900 212, 930 222, 950 230"
+        />
       </svg>
     </p>
   );
 }
 
+/** A round ink stamp, a little worn, that lands on the page when the section comes into view. */
+function Stamp({ words }: { words: Props["words"] }) {
+  return (
+    <div className="gua-stamp" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <filter id="gua-worn" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency=".8"
+              numOctaves="2"
+              seed="7"
+              result="n"
+            />
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" result="d" />
+            <feColorMatrix
+              in="n"
+              type="matrix"
+              values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.5"
+              result="holes"
+            />
+            <feComposite in="d" in2="holes" operator="in" />
+          </filter>
+          <path id="gua-ring" d="M100 100 m-74 0 a74 74 0 1 1 148 0 a74 74 0 1 1 -148 0" />
+        </defs>
+        <g filter="url(#gua-worn)">
+          <circle cx="100" cy="100" r="94" />
+          <circle className="thin" cx="100" cy="100" r="60" />
+          <text className="ring">
+            <textPath href="#gua-ring" startOffset="0">
+              {`${words.stampRing} · ${words.stampRing} · `}
+            </textPath>
+          </text>
+          <text className="big" x="100" y="112" textAnchor="middle">
+            {words.stamp}
+          </text>
+          <text className="unit" x="100" y="136" textAnchor="middle">
+            {words.stampUnit}
+          </text>
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 export default function GuaranteeLab({ outcomes, words }: Props) {
   const [layout, setLayout] = useState("0");
-  const [sig, setSig] = useState("1");
+  const host = useRef<HTMLDivElement>(null);
+  /* play the arrival again: back to the waiting state for a moment, then in */
+  const replay = () => {
+    const el = host.current;
+    if (!el) return;
+    el.classList.remove("on");
+    setTimeout(() => el.classList.add("on"), 120);
+  };
   useEffect(() => {
     const q = new URLSearchParams(location.search);
     const g = q.get("gua") ?? "0";
-    const s = q.get("sig") ?? "1";
     document.documentElement.dataset.gua = g;
-    document.documentElement.dataset.sig = s;
     setLayout(g);
-    setSig(s);
   }, []);
-  const pick = (key: "gua" | "sig", v: string) => {
+  const pick = (v: string) => {
     const url = new URL(location.href);
-    url.searchParams.set(key, v);
+    url.searchParams.set("gua", v);
     history.replaceState(null, "", url);
-    document.documentElement.dataset[key] = v;
-    (key === "gua" ? setLayout : setSig)(v);
+    document.documentElement.dataset.gua = v;
+    setLayout(v);
+    replay();
   };
-  const sign = <Signature name={words.signed} />;
 
   return (
     <>
-      <link rel="stylesheet" href={FONT_LINK} />
-
-      {/* A. Promise: the headline, one sentence, the signature */}
-      <div className="gua gua-a">
-        <p className="gua-line">{words.line}</p>
-        {sign}
-      </div>
-
-      {/* B. Seal: centred, a round seal with the number, then the same sentence and signature */}
-      <div className="gua gua-b">
-        <div className="gua-seal" aria-hidden="true">
-          <svg viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r="92" />
-            <circle className="thin" cx="100" cy="100" r="80" />
-          </svg>
-          <b>{words.seal}</b>
-          <span>{words.sealUnit}</span>
-        </div>
-        <p className="gua-line">{words.line}</p>
-        {sign}
-      </div>
-
-      {/* C. Promise and three lines: the promise and signature on the left, three quiet lines on the right */}
-      <div className="gua gua-c">
-        <div className="gua-c-say">
+      <div className="gua rv" ref={host}>
+        <div className="gua-say">
           <p className="gua-line">{words.line}</p>
-          {sign}
+          <div className="gua-signed">
+            <Signature name={words.signed} />
+            <Stamp words={words} />
+          </div>
         </div>
-        <ul className="gua-three">
-          {outcomes.map(([name, line]) => (
-            <li key={name}>
+        <ul className="gua-cards">
+          {outcomes.map(([name, line], i) => (
+            <li key={name} style={{ "--k": i } as React.CSSProperties}>
               <b>{name}</b>
               <span>{line}</span>
             </li>
@@ -112,32 +134,22 @@ export default function GuaranteeLab({ outcomes, words }: Props) {
       </div>
 
       <aside className="lab" aria-label="Options to try">
-        <b>Guarantee: layout</b>
+        <b>Guarantee: where the cards come from</b>
         <div>
           {LAYOUTS.map(([v, label]) => (
             <button
               key={v}
               type="button"
               data-on={layout === v || undefined}
-              onClick={() => pick("gua", v)}
+              onClick={() => pick(v)}
             >
               {label}
             </button>
           ))}
         </div>
-        <b>Signature</b>
-        <div>
-          {SIGNATURES.map(([v, label]) => (
-            <button
-              key={v}
-              type="button"
-              data-on={sig === v || undefined}
-              onClick={() => pick("sig", v)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <button type="button" onClick={replay}>
+          Play the stamp again
+        </button>
       </aside>
     </>
   );
