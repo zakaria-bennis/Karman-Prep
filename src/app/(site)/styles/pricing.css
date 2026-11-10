@@ -261,6 +261,8 @@
   transition: transform 0.45s var(--spring);
 }
 .ks .badge b {
+  /* The number never gives up room to the words beside it: it was being clipped. */
+  flex: none;
   font-size: 30px;
   font-weight: 800;
   letter-spacing: -0.05em;

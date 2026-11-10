@@ -22,10 +22,11 @@ function input(overrides: Partial<RecapInput["week"]> = {}): RecapInput {
       score: { current: 1300, history: [{ takenAt: "2026-11-02", score: 1300 }] },
       guarantee: {
         plan: "Private",
-        baseline: 1190,
-        target: 1290,
+        baseline: 1390,
+        target: 1490,
         gained: 110,
         needed: 100,
+        none: false,
         met: true,
       },
       tutorNote: null,
