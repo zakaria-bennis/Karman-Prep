@@ -8,23 +8,23 @@ The feeling to reach: "I'm getting better, and I know exactly what to do next."
 
 ## Laws of UX
 
-| Law | What it means | What it forces in the portal |
-| --- | --- | --- |
-| Hick's Law | More choices, slower decisions | One highlighted action per screen. Five tabs at most, so Cohort and Private reach Rewards from the top strip and the Today card. Practice recommends one mode before listing the rest |
-| Miller's Law | People hold a few things at once | Up next shows three rows at most. Skills to work on shows three, then "See all" |
-| Tesler's Law | Complexity has to live somewhere | Karman picks the next set and the weak skills, so the student doesn't have to. Plan rules live in one config |
-| Progressive disclosure | Show detail when asked | Full stats are collapsed under "All stats" on Progress |
-| Jakob's Law | People expect what other apps do | Bottom tabs on phone, side rail on desktop. The character sits top right on every device and opens a small account menu, as on Google or YouTube |
-| Fitts's Law | Big, close targets are faster | Full-width main button on phone. Every target is at least 44 by 44 |
-| Von Restorff | The different thing gets noticed | The accent fills only one button per screen. Everything else is neutral |
-| Serial position | First and last are remembered | Next action first on Today. Today is the first tab, profile is the last stop |
-| Goal gradient | Effort rises near the finish | Ten segments on Your Daily 10. Tokens show the distance to the next box. The score has no target: students are never capped at a number |
-| Zeigarnik | Unfinished work stays on the mind | Leaving a set mid-way turns the main button into "Continue Your Daily 10" |
-| Peak-end | People judge by the peak and the end | Every set ends on the approved end screen, then a clear next action |
-| Doherty threshold | Response under 400 ms keeps flow | Buttons respond on press. Section skeletons while loading, button orb only after 400 ms |
-| Proximity and common region | Close together means related | Each card holds one idea. Date sits on the same row as its item |
-| Law of similarity | Alike means same function | Every row is built the same way everywhere |
-| Aesthetic-usability | Good-looking feels easier | Applied in the visual round. The skeleton only sets space and order |
+| Law                         | What it means                        | What it forces in the portal                                                                                                                                                          |
+| --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hick's Law                  | More choices, slower decisions       | One highlighted action per screen. Five tabs at most, so Cohort and Private reach Rewards from the top strip and the Today card. Practice recommends one mode before listing the rest |
+| Miller's Law                | People hold a few things at once     | Up next shows three rows at most. Skills to work on shows three, then "See all"                                                                                                       |
+| Tesler's Law                | Complexity has to live somewhere     | Karman picks the next set and the weak skills, so the student doesn't have to. Plan rules live in one config                                                                          |
+| Progressive disclosure      | Show detail when asked               | Full stats are collapsed under "All stats" on Progress                                                                                                                                |
+| Jakob's Law                 | People expect what other apps do     | Bottom tabs on phone, side rail on desktop. The character sits top right on every device and opens a small account menu, as on Google or YouTube                                      |
+| Fitts's Law                 | Big, close targets are faster        | Full-width main button on phone. Every target is at least 44 by 44                                                                                                                    |
+| Von Restorff                | The different thing gets noticed     | The accent fills only one button per screen. Everything else is neutral                                                                                                               |
+| Serial position             | First and last are remembered        | Next action first on Today. Today is the first tab, profile is the last stop                                                                                                          |
+| Goal gradient               | Effort rises near the finish         | Ten segments on Your Daily 10. Tokens show the distance to the next box. The score has no target: students are never capped at a number                                               |
+| Zeigarnik                   | Unfinished work stays on the mind    | Leaving a set mid-way turns the main button into "Continue Your Daily 10"                                                                                                             |
+| Peak-end                    | People judge by the peak and the end | Every set ends on the approved end screen, then a clear next action                                                                                                                   |
+| Doherty threshold           | Response under 400 ms keeps flow     | Buttons respond on press. Section skeletons while loading, button orb only after 400 ms                                                                                               |
+| Proximity and common region | Close together means related         | Each card holds one idea. Date sits on the same row as its item                                                                                                                       |
+| Law of similarity           | Alike means same function            | Every row is built the same way everywhere                                                                                                                                            |
+| Aesthetic-usability         | Good-looking feels easier            | Applied in the visual round. The skeleton only sets space and order                                                                                                                   |
 
 ## Apple's design guidance
 

@@ -7,7 +7,7 @@ export type QuizMode = {
   clock: QuizClock;
   /** Bluebook's section-only marker; only when grading waits until the end. */
   markForReview: boolean;
-  /** Only students with a cohort or 1:1 tutor see "Flag for my tutor". */
+  /** Only students with a cohort or 1:1 tutor see "Ask my tutor". */
   showTutorFlag: boolean;
   canBookmark: boolean;
 };

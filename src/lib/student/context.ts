@@ -35,7 +35,7 @@ export interface StudentContext {
   practiceDays: string[];
   /** Open tutor homework, for the tab badge. */
   homeworkOpen: number;
-  /** A tutor or cohort can assign this student work. */
+  /** A tutor, cohort or school teacher can assign this student work. */
   hasTutor: boolean;
   /** In a cohort, so Messages has a group chat to open. */
   hasChat: boolean;
@@ -80,8 +80,11 @@ async function practiceDaysFor(db: Db, clerkId: string): Promise<string[]> {
   return [...days].sort();
 }
 
-async function teachersFor(db: Db, userId: string): Promise<{ cohort: boolean; tutor: boolean }> {
-  const [cohort, tutor] = await Promise.all([
+async function teachersFor(
+  db: Db,
+  userId: string
+): Promise<{ cohort: boolean; tutor: boolean; school: boolean }> {
+  const [cohort, tutor, school] = await Promise.all([
     db
       .from("cohort_members")
       .select("user_id", { count: "exact", head: true })
@@ -92,8 +95,17 @@ async function teachersFor(db: Db, userId: string): Promise<{ cohort: boolean; t
       .select("student_user_id", { count: "exact", head: true })
       .eq("student_user_id", userId)
       .is("ended_at", null),
+    db
+      .from("school_seats")
+      .select("student_user_id", { count: "exact", head: true })
+      .eq("student_user_id", userId)
+      .is("removed_at", null),
   ]);
-  return { cohort: (cohort.count ?? 0) > 0, tutor: (tutor.count ?? 0) > 0 };
+  return {
+    cohort: (cohort.count ?? 0) > 0,
+    tutor: (tutor.count ?? 0) > 0,
+    school: (school.count ?? 0) > 0,
+  };
 }
 
 export async function loadStudentContext(): Promise<StudentContext> {
@@ -136,7 +148,7 @@ export async function loadStudentContext(): Promise<StudentContext> {
     streak: streaks(days, dayKey(Date.now())),
     practiceDays: days,
     homeworkOpen,
-    hasTutor: teachers.cohort || teachers.tutor || homeworkOpen > 0,
+    hasTutor: teachers.cohort || teachers.tutor || teachers.school || homeworkOpen > 0,
     hasChat: teachers.cohort,
     showCalendar: showsCalendar(plan),
   };

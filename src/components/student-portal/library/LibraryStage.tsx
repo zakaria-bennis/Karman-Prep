@@ -173,12 +173,24 @@ export default function LibraryStage({
         }
       );
       fallRun.current = run;
-      void run.then(() => {
+      /* The opening circle must never stay on the box. The promise alone isn't enough: a
+         background tab or a busy page can leave the circle part-way (founder, 2026-11-08), so a
+         timer finishes the job a beat after the opening should have ended. */
+      let done = false;
+      const settle = () => {
+        if (done) return;
+        done = true;
+        window.clearTimeout(timer);
+        run.complete();
         box.style.clipPath = "";
         box.style.transformOrigin = "";
         box.style.pointerEvents = "";
+        box.style.opacity = "";
+        box.style.transform = "";
         setFalling(false);
-      });
+      };
+      const timer = window.setTimeout(settle, (land + 1.4) * 1000);
+      void run.then(settle, settle);
       if (opening.name && to)
         setGhost({ slug: opening.slug, from: opening.name, to, line: opening.line });
     }

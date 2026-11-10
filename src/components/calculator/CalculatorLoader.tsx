@@ -11,6 +11,7 @@ import type {
   QuizMountOptions,
 } from "@/components/calculator/host/quiz-host";
 import type { ThemeChoice } from "@/lib/calculator/theme/choice";
+import { readThemeHint } from "./theme-hint";
 import type { CalculatorLoadFailure, CalculatorLoadStatus } from "./CalculatorScope";
 import { calculatorWindowStore } from "./calculator-window-store";
 import { onCalculatorFontsLoaded, warmCalculatorFonts } from "./font-warmup";
@@ -167,6 +168,8 @@ export function CalculatorLoader(props: CalculatorLoaderProps) {
       preferences: calculatorWindowStore.get().preferences,
       onPreferences: (preferences) => calculatorWindowStore.set({ preferences }),
       defaultTheme: latest.current.defaultTheme,
+      // In the quiz (no host default), the theme closest to the quiz's colours (founder, 2026-11-08).
+      themeHint: latest.current.defaultTheme ? null : readThemeHint(frame),
       fixedSideBySide: latest.current.fixedSideBySide,
     };
     let handle: QuizCalculatorHandle;

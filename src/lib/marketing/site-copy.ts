@@ -84,7 +84,6 @@ const CLASS = MP.paidSeats;
 const SEATS_LEFT = Math.max(0, MP.paidSeats - MP.paidSeatsTaken);
 const START_DAY = noYear(MP.startLabel);
 const CLOSES = noYear(MP.enrollmentClosesLabel);
-const TEST_DAY = noYear(FT.dateLabel);
 const STARTS = [MP.startShort, MAY.startShort, JUNE.startShort];
 const PROMISE = `+${G.pointsBelow} points, or +${G.pointsFrom} from ${G.splitAt}`;
 const TARGETS = `The target is +${G.pointsBelow} points from a start under ${G.splitAt}, and +${G.pointsFrom} from ${G.splitAt} or higher. A ${G.topScore} always counts.`;
@@ -102,7 +101,7 @@ headline: Real tutors teach it. Daily practice makes it stick.
 text: Live SAT classes of ${w(CLASS)} and private one-on-one tutoring, taught by PhD students, quants and university professors. Between sessions, ten minutes of research-backed practice a day, and a tutor who sees every answer.
 proof: ${PROOF}
 button: Take the free practice test
-button note: Free. ${TEST_DAY}, live on Zoom.
+button note: Free. Any time, no card needed.
 second button: See pricing
 
 ## 2 Live classes
@@ -153,7 +152,7 @@ headline: What the ${w(MP.weeks)} weeks are for.
 
 ## 11 The close
 headline: See their score range before you spend a dollar.
-text: ${FT.dateShort} at ${FT.timeLabel}, live on Zoom with a proctor. About ${FT.minutes} minutes, ${FT.questionCount} of our own questions, then an estimated score range, a breakdown by domain and a ${FT.callMinutes}-minute call to go through it.
+text: A full-length practice SAT on Karman, any time. ${FT.questionCount} of our own questions, then a score report, a breakdown by domain and, if you want one, a ${FT.callMinutes}-minute call to go through it.
 objection: Already scoring ${INTAKE.scoreFrom}, or under ${w(INTAKE.minWeeks)} weeks from the test? We'll tell you a program probably isn't worth your money.
 button: Take the free practice test
 button note: Free. No card needed.
@@ -247,12 +246,12 @@ form done title: Request received.
 form done text: We'll email you times for the ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}.
 
 ## 41 Test: opening
-headline: A proctored practice SAT, free, on ${FT.dateShort}.
-text: ${FT.minutes} minutes on Zoom with a live proctor. ${FT.questionCount} questions written by Karman: one Reading and Writing module, one Math module. Then a score range, a breakdown by domain and a ${FT.callMinutes}-minute call.
-facts: ${TEST_DAY} = ${FT.timeLabel} | ${FT.durationLabel} = ${FT.questionCount} questions | Live on Zoom = With a proctor | $0 = No card needed
+headline: A full-length practice SAT, free, whenever you're ready.
+text: ${FT.questionCount} questions written by Karman, timed like the real test: two Reading and Writing modules, two Math modules. Then a score report, a breakdown by domain and an optional ${FT.callMinutes}-minute call.
+facts: Any time = No set date | ${FT.durationLabel} = ${FT.questionCount} questions | On Karman = Bluebook-style | $0 = No card needed
 
 ## 42 Test: the form
-headline: Save your student's seat.
+headline: Get the test link.
 form email: Your email
 form email help: Your results go here.
 form name: Student's first name
@@ -260,23 +259,23 @@ form grade: Grade
 form grade options: 9th | 10th | 11th | 12th
 form date: Which SAT are they planning to take?
 form date options: ${SAT_DATES.join(" | ")} | Not sure yet
-form button: Save the seat
+form button: Send me the link
 form privacy: We use your email for this test, its results and occasional emails from Karman. You can unsubscribe at any time.
-form done title: The seat is saved.
-form done text: On test day, join from your Karman account: the Join button there opens the Zoom room. Your results come by email from ${CONTACT.general}.
+form done title: You're in.
+form done text: We'll email you the link to start the test from ${CONTACT.general}, with a way to book the results call when you're done.
 
 ## 43 Test: what you get
 headline: What you get back.
-rows: A score range = An estimate, given as a range, never a single number | A breakdown by domain = Which of the eight SAT domains cost the most points | A ${FT.callMinutes}-minute call = A Karman tutor walks you through it and answers questions
+rows: A score report = Where your student stands today | A breakdown by domain = Which of the eight SAT domains cost the most points | A ${FT.callMinutes}-minute call = Optional: a Karman tutor walks you through it and answers questions
 
 ## 44 Test: the sitting
-headline: How the sitting runs.
-rows: Join the Zoom = At ${FT.timeLabel}. The proctor checks everyone in | Reading and Writing = One timed module | Math = One timed module, with Desmos | Done = Your results come with a link to book the call
+headline: How it runs.
+rows: Start = Whenever you have the time, from your Karman account | Reading and Writing = Two timed modules | Math = Two timed modules, with a calculator | Done = Your results come with a link to book the call
 
 ## 45 Test: honest note
 headline: An estimate, not a prediction.
-text: It's half the length of the SAT and built from our own questions, so the range is an estimate. That's why it's a range. We show it so you can judge the quality of our questions before you pay for anything.
-button: Save the seat
+text: It's built from our own questions, not the College Board's, so the score is an estimate. We show it so you can judge the quality of our questions before you pay for anything.
+button: Send me the link
 
 ## 51 Guarantee: opening
 headline: ${PROMISE}, or money back or a free repeat.

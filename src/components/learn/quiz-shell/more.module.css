@@ -6,7 +6,9 @@
   right: 0;
   top: calc(100% + 8px);
   z-index: 20;
-  width: min(320px, calc(100vw - 24px));
+  width: min(380px, calc(100vw - 24px));
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
   padding: 8px;
   border: 1px solid var(--quiz-line);
   border-radius: 14px;
@@ -84,5 +86,59 @@
 }
 .keys dd {
   margin: 0;
+  text-align: right;
   color: var(--quiz-text-muted);
+}
+
+/* Report a problem: one tap names it. */
+.reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 12px;
+}
+.reason {
+  padding: 6px 10px;
+  border: 1px solid var(--quiz-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--quiz-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.reason[aria-pressed="true"] {
+  border-color: var(--quiz-accent);
+  background: var(--quiz-accent);
+  color: var(--quiz-bg);
+}
+.reason:focus-visible {
+  outline: 2px solid var(--quiz-accent);
+  outline-offset: 2px;
+}
+
+/* Shortcuts: grouped, with key caps. */
+.keyGroup + .keyGroup {
+  margin-top: 12px;
+}
+.keyTitle {
+  margin: 0 0 6px;
+  color: var(--quiz-text-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  margin-right: 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--quiz-line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
 }

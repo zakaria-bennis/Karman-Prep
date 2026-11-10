@@ -11,16 +11,50 @@ import { SPRING, useShellMotion } from "./motion";
 
 export const TEXT_SIZES = [100, 125, 150, 175, 200] as const;
 
-const SHORTCUTS: [string, string][] = [
-  ["A to D", "Pick an answer"],
-  ["M", "Mark for review"],
-  ["S", "Bookmark"],
-  ["P", "Pencil on or off"],
-  ["E", "Eraser"],
-  ["Cmd or Ctrl + Z", "Undo ink"],
-  ["Left and right arrows", "Back and Next"],
-  ["Esc", "Close a menu"],
+/** Every shortcut, grouped (founder, 2026-11-08: "flesh them out"). Keys are shown as key caps. */
+type Shortcut = { keys: string[]; does: string; math?: true };
+const SHORTCUT_GROUPS: { title: string; items: Shortcut[] }[] = [
+  {
+    title: "Answer",
+    items: [
+      { keys: ["A", "B", "C", "D"], does: "Pick an answer" },
+      { keys: ["X"], does: "Answer eliminator on or off" },
+      { keys: ["Enter"], does: "Submit, then Next" },
+      { keys: ["←", "→"], does: "Back and Next" },
+    ],
+  },
+  {
+    title: "Tools",
+    items: [
+      { keys: ["P"], does: "Pencil on or off" },
+      { keys: ["E"], does: "Eraser" },
+      { keys: ["H"], does: "Highlighter on or off" },
+      { keys: ["C"], does: "Calculator", math: true },
+      { keys: ["R"], does: "Reference sheet", math: true },
+      { keys: ["Esc"], does: "Close a menu, then put the pencil or highlighter away" },
+    ],
+  },
+  {
+    title: "Your page",
+    items: [
+      { keys: ["M"], does: "Mark for review" },
+      { keys: ["S"], does: "Bookmark" },
+      { keys: ["⌘ or Ctrl", "Z"], does: "Undo ink" },
+      { keys: ["⌘ or Ctrl", "Shift", "Z"], does: "Redo ink" },
+      { keys: ["+", "−"], does: "Bigger or smaller text" },
+      { keys: ["?"], does: "Show this list" },
+    ],
+  },
 ];
+
+/** One tap names the problem; a note is optional (founder, 2026-11-08). */
+const REPORT_REASONS = [
+  "The answer key looks wrong",
+  "Typo or wording",
+  "Figure or graph problem",
+  "The explanation is unclear",
+  "Something else",
+] as const;
 
 /** Text size, report a problem, animations, sounds, shortcuts (spec: More menu). Exit is in the bar. */
 export function MoreMenu({
@@ -28,17 +62,30 @@ export function MoreMenu({
   onTextSize,
   showSounds,
   onReport,
+  shortcutsAsked = 0,
+  math = false,
 }: {
   textSize: number;
   onTextSize(size: number): void;
   showSounds: boolean;
   onReport?(note: string): Promise<unknown>;
+  /** Bumped by the "?" key: opens the shortcuts list. */
+  shortcutsAsked?: number;
+  /** Math questions list the calculator and reference keys. */
+  math?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<"menu" | "report" | "shortcuts">("menu");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [reason, setReason] = useState<(typeof REPORT_REASONS)[number] | null>(null);
+  const [sending, setSending] = useState(false);
+  useEffect(() => {
+    if (!shortcutsAsked) return;
+    setOpen(true);
+    setPanel("shortcuts");
+  }, [shortcutsAsked]);
   const animations = useQuizAnimations();
   const sounds = useSyncExternalStore(subscribeQuizSounds, quizSoundsEnabled, () => true);
   const { reduced } = useShellMotion();
@@ -146,33 +193,59 @@ export function MoreMenu({
             )}
             {panel === "report" &&
               (sent ? (
-                <p className={styles.done} role="status">
-                  Thanks. We will check this question.
-                </p>
+                <div className={styles.done} role="status">
+                  <p>Thanks. We will check this question and fix it if something is wrong.</p>
+                  <button type="button" className={shell.tool} onClick={() => setOpen(false)}>
+                    Back to the question
+                  </button>
+                </div>
               ) : (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    if (!note.trim() || !onReport) return;
+                    const text = [reason, note.trim()].filter(Boolean).join(": ");
+                    if (!text || !onReport || sending) return;
                     setFailed(false);
-                    onReport(note.trim()).then(
-                      () => {
-                        setSent(true);
-                        setNote("");
-                      },
-                      () => setFailed(true)
-                    );
+                    setSending(true);
+                    onReport(text)
+                      .then(
+                        () => {
+                          setSent(true);
+                          setNote("");
+                          setReason(null);
+                        },
+                        () => setFailed(true)
+                      )
+                      .finally(() => setSending(false));
                   }}
                 >
-                  <label className={styles.label} htmlFor="quiz-report">
+                  <p className={styles.label} id="quiz-report-reason">
                     What is wrong with this question?
+                  </p>
+                  <div className={styles.reasons} role="group" aria-labelledby="quiz-report-reason">
+                    {REPORT_REASONS.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        className={styles.reason}
+                        aria-pressed={reason === r}
+                        onClick={() => setReason(reason === r ? null : r)}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                  <label className={styles.label} htmlFor="quiz-report">
+                    {reason === "Something else"
+                      ? "Tell us what you saw"
+                      : "Anything to add? (optional)"}
                   </label>
                   <textarea
                     id="quiz-report"
                     className={styles.text}
-                    rows={4}
-                    maxLength={2000}
-                    required
+                    rows={3}
+                    maxLength={1800}
+                    required={reason === "Something else" || !reason}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                   />
@@ -185,22 +258,39 @@ export function MoreMenu({
                     <button type="button" className={shell.tool} onClick={() => setPanel("menu")}>
                       Back
                     </button>
-                    <button type="submit" className={shell.tool}>
-                      Send report
+                    <button
+                      type="submit"
+                      className={shell.tool}
+                      disabled={sending || (!reason && !note.trim())}
+                    >
+                      {sending ? "Sending…" : "Send report"}
                     </button>
                   </div>
                 </form>
               ))}
             {panel === "shortcuts" && (
               <>
-                <dl className={styles.keys}>
-                  {SHORTCUTS.map(([k, v]) => (
-                    <div key={k}>
-                      <dt>{k}</dt>
-                      <dd>{v}</dd>
-                    </div>
-                  ))}
-                </dl>
+                {SHORTCUT_GROUPS.map((g) => (
+                  <section key={g.title} className={styles.keyGroup}>
+                    <h3 className={styles.keyTitle}>{g.title}</h3>
+                    <dl className={styles.keys}>
+                      {g.items
+                        .filter((it) => math || !it.math)
+                        .map((it) => (
+                          <div key={it.does}>
+                            <dt>
+                              {it.keys.map((k) => (
+                                <kbd key={k} className={styles.kbd}>
+                                  {k}
+                                </kbd>
+                              ))}
+                            </dt>
+                            <dd>{it.does}</dd>
+                          </div>
+                        ))}
+                    </dl>
+                  </section>
+                ))}
                 <button type="button" className={shell.tool} onClick={() => setPanel("menu")}>
                   Back
                 </button>

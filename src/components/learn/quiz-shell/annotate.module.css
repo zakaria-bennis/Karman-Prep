@@ -62,3 +62,18 @@
   color: var(--quiz-text);
   font: inherit;
 }
+
+/* A highlight's note, shown while the pointer rests on it. */
+.peek {
+  position: absolute;
+  z-index: 6;
+  max-width: min(320px, 80%);
+  padding: 8px 12px;
+  border: 1px solid var(--quiz-line);
+  border-radius: 10px;
+  color: var(--quiz-text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  pointer-events: none;
+}

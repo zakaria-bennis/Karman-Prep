@@ -21,7 +21,7 @@ describe("site copy", () => {
       `${formatPrice(MARCH_PROGRAM.price)}, or a ${formatPrice(MARCH_PROGRAM.depositAmount)} deposit and three payments of ${formatPrice(MARCH_PROGRAM.installments.amount)}.`
     );
     expect(section(21).text).toContain(MARCH_PROGRAM.startLabel.replace(/, \d{4}$/, ""));
-    expect(section(41).headline).toContain(FREE_PRACTICE_TEST.dateShort);
+    expect(section(41).text).toContain(String(FREE_PRACTICE_TEST.questionCount));
     expect(section(51).headline).toContain(
       `+${GUARANTEE.pointsBelow} points, or +${GUARANTEE.pointsFrom} from ${GUARANTEE.splitAt}`
     );

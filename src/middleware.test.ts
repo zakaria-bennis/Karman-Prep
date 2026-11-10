@@ -26,7 +26,11 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
   // An accidentally configured development bypass must not remove protection.
   vi.stubEnv("DEV_IMPERSONATE_CLERK_ID", "dev_seed_admin");
   const { karmanAuth: middleware } = await import("./middleware");
-  expect(captured.middlewareOptions).toEqual(KARMAN_AUTH_ROUTES);
+  // In production only karmanprep.com may present a Clerk session.
+  expect(captured.middlewareOptions).toEqual({
+    ...KARMAN_AUTH_ROUTES,
+    authorizedParties: ["https://karmanprep.com"],
+  });
   const protect = vi.fn().mockResolvedValue(undefined);
   const auth = Object.assign(vi.fn().mockResolvedValue({ userId: null }), { protect });
   const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;

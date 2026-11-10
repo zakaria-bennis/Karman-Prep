@@ -181,7 +181,10 @@ describe.skipIf(!existsSync(BANK))("coverage against the live bank export", () =
     difficulty: number;
     family: string;
   };
-  const rows = (JSON.parse(readFileSync(BANK, "utf8")) as { questions: Row[] }).questions;
+  // Read only when present: describe bodies run even when skipped (CI has no export).
+  const rows = existsSync(BANK)
+    ? (JSON.parse(readFileSync(BANK, "utf8")) as { questions: Row[] }).questions
+    : [];
   const pool: BankItem[] = rows.map((r) => ({
     id: r.id,
     skillId: r.skill,

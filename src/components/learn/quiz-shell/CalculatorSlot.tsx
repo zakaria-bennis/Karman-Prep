@@ -38,15 +38,27 @@ export function CalculatorFrame({
   children: ReactNode;
 }) {
   const questionKey = makeQuestionKey(attemptKey, questionId);
-  // A question that is sliding out gives up its calculator at once: one calculator on screen.
+  // Founder, 2026-11-08: moving to another question plays the close in reverse (the calculator
+  // drops, the question slides back), as the X does. The question sliding out keeps its scope
+  // enabled so its calculator can drop, but closed, and the shared open state goes to false, so
+  // the next question starts closed: never two calculators on screen.
   const present = useIsPresent();
+  useEffect(() => {
+    if (!present && open) onOpenChange(false);
+  }, [present, open, onOpenChange]);
+  // An open state carried in from the question before is not this question's open: it is
+  // about to turn false (above), so the new question never rises a calculator only to drop it.
+  const [carried, setCarried] = useState(open);
+  useEffect(() => {
+    if (!open) setCarried(false);
+  }, [open]);
   const on = enabled && present;
   return (
     <CalculatorScope
       key={questionKey}
       questionKey={questionKey}
-      enabled={on}
-      open={on && open}
+      enabled={enabled}
+      open={on && open && !carried}
       onOpenChange={onOpenChange}
       dockTop={dockTop}
     >

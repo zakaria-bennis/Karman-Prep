@@ -10,6 +10,7 @@ import {
   workspaceReducer,
   type QuestionWorkspace,
   type WorkspaceAction,
+  type HighlightColor,
 } from "@/lib/quiz/workspace";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import type { AnnotationContextValue } from "./annotation-context";
@@ -51,7 +52,18 @@ export function useShellState({
 }) {
   const [state, dispatch] = useReducer(reduce, { workspaces: {}, loadedFor: null });
   const [saved, setSaved] = useState(initialSaved ?? {});
-  const [pencilOn, setPencilOn] = useState(false);
+  const [pencilOn, setPencilOnState] = useState(false);
+  const [highlighterOn, setHighlighterOnState] = useState(false);
+  /* One tool at a time: turning one on turns the other off (founder, 2026-11-08). */
+  const setPencilOn = (on: boolean) => {
+    setPencilOnState(on);
+    if (on) setHighlighterOnState(false);
+  };
+  const setHighlighterOn = (on: boolean) => {
+    setHighlighterOnState(on);
+    if (on) setPencilOnState(false);
+  };
+  const colorTurn = useRef(0);
   const [tool, setTool] = useState<PencilTool>("pen");
   const [pen, setPen] = useState<PenIndex>(1);
   const [drawing, setDrawing] = useState(false);
@@ -108,6 +120,12 @@ export function useShellState({
   const annotations = useMemo<AnnotationContextValue>(
     () => ({
       enabled: !pencilOn,
+      highlighting: highlighterOn && !pencilOn,
+      nextColor: () => {
+        const c = ((colorTurn.current % 3) + 1) as HighlightColor;
+        colorTurn.current++;
+        return c;
+      },
       highlights: ws?.highlights ?? [],
       add: (range, color) => {
         const id = Math.max(highlightSerial.current, Date.now()) + 1;
@@ -125,7 +143,7 @@ export function useShellState({
         q && dispatch({ questionId: q.id, action: { type: "updateNote", id, note } }),
       remove: (id) => q && dispatch({ questionId: q.id, action: { type: "removeHighlight", id } }),
     }),
-    [pencilOn, ws?.highlights, q]
+    [pencilOn, highlighterOn, ws?.highlights, q]
   );
 
   return {
@@ -137,6 +155,8 @@ export function useShellState({
     setSaved,
     pencilOn,
     setPencilOn,
+    highlighterOn,
+    setHighlighterOn,
     tool,
     setTool,
     pen,

@@ -112,6 +112,7 @@ test.describe("wide window", () => {
     await page.reload();
     await trigger(page).click();
     await expect(frame(page)).toHaveAttribute("data-mode", "docked");
+    await expect(frame(page)).not.toHaveAttribute("data-entering"); // the dock has risen
     expect((await box(page)).width).toBe(width);
   });
 
