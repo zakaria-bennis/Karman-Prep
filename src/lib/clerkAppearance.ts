@@ -10,7 +10,7 @@
 // explicitly style (UserProfile sub-pages, MFA flows, etc.)
 // without having to enumerate each element class by hand.
 //
-// Observatory system (docs/brand.md): warm night surfaces, ivory
+// Observatory system (docs/archive/brand.md): warm night surfaces, ivory
 // text, bronze borders, antique-gold primary actions.
 // ============================================================
 

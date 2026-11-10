@@ -680,6 +680,8 @@
     background: color-mix(in srgb, var(--quiz-bg) 58%, transparent);
   }
 }
-.shell[data-backdrop="painting"][data-pencil].wide [data-quiz-scroll] > [data-quiz-pane]:only-child::before {
+.shell[data-backdrop="painting"][data-pencil].wide
+  [data-quiz-scroll]
+  > [data-quiz-pane]:only-child::before {
   opacity: 0;
 }

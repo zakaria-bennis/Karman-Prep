@@ -133,28 +133,4 @@ function review() {
 }
 
 /* ---------- the study tools, small cards for the carousel ---------- */
-function wordline() {
-  const rows = [
-    ["CRANE", "xpxxg"],
-    ["SLOTH", "pxxpx"],
-    ["TERSE", "ggggg"],
-  ];
-  const cell = (ch: string, s: string, k: number) =>
-    `<i class="${s === "g" ? "g" : s === "p" ? "p" : ch ? "x" : ""}" style="--k:${k}">${ch}</i>`;
-  return `<div class="tool-ui wl">${Array.from({ length: 4 }, (_, r) => {
-    const [w, s] = rows[r] || ["     ", "     "];
-    return `<div class="row">${[...w].map((ch, c) => cell(ch.trim(), s[c].trim(), r * 5 + c)).join("")}</div>`;
-  }).join("")}</div>`;
-}
-function flashcards() {
-  return `<div class="tool-ui fc"><div class="card"><div class="f"><b>bene-</b><span>Tap to turn</span></div><div class="b"><b>good, well</b><span>benefit, benevolent, benign</span></div></div><p class="due">Comes back in 3 days</p></div>`;
-}
-function wordlab() {
-  return `<div class="tool-ui lab"><p class="w"><b>candid</b><em>adjective</em></p><p class="m">Truthful and direct.</p><p class="you"><span>Your sentence</span>My coach was <u>candid</u> about my free throws.</p></div>`;
-}
-function challenge() {
-  return `<div class="tool-ui dc"><p class="t">Today's challenge <span>Hard</span></p><p class="s">If f(x) = 3ˣ⁺², what is f(x + 1) ÷ f(x)?</p><div class="o"><span>2</span><span class="ok">3</span><span>9</span></div></div>`;
-}
-
 export const SCREENS = { zoom, review };
-export const TOOLS = { wordline, flashcards, wordlab, challenge };

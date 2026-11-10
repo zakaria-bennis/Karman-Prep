@@ -42,7 +42,7 @@ experience for all users of iPad, iPhone, laptop, and desktop."
 - **Pen colours:** five colours, picked by tapping the pen icon.
 - **Markers:**
   - **Bookmark:** for every student, kept permanently in a "Saved questions" list.
-  - **Flag for my tutor:** a visible button shown only to students with a cohort
+  - **Ask my tutor:** a visible button shown only to students with a cohort
     or 1:1 tutor. Flagging also bookmarks the question.
   - **Mark for review:** the Bluebook marker, kept only for the section.
 - **No default assets.** Every icon and control is drawn by Karman and has motion
@@ -155,7 +155,7 @@ QuizShell (mode, questions, callbacks)
 │   ├── PassagePane   passage blocks (R&W); absent for most math
 │   ├── Divider       draggable on wide/medium layouts
 │   └── QuestionPane
-│       ├── QuestionHeader   number · Mark for review (end mode) · Bookmark · Flag for my tutor · Eliminator toggle
+│       ├── QuestionHeader   number · Mark for review (end mode) · Bookmark · Ask my tutor · Eliminator toggle
 │       ├── Stem             MathText, tables
 │       ├── FigureSlot       figure engine output (see contract)
 │       ├── Choices          text / math / table / figure choices, or numeric entry
@@ -397,7 +397,7 @@ choice's letter badge, a chip reading "Pick C?" springs out beside the choice.
   - A square's accessible name carries all of its states.
   - The navigator doubles as the end-of-section check page in end mode.
 - **Question header.** In order: the question number box, Mark for review (end mode
-  only), Bookmark, Flag for my tutor (only if `showTutorFlag`), and the eliminator
+  only), Bookmark, Ask my tutor (only if `showTutorFlag`), and the eliminator
   toggle ("ABC" with a strike, drawn by us).
 - **Eliminator.**
   - When the toggle is on, each choice shows a cross-out button set at least 8 px
@@ -446,7 +446,7 @@ Server actions validate inputs with Zod.
     `created_at`, unique on `(student_id, question_id)`.
   - The RLS policy lets students read and write their own rows. Tutors and admins
     can read rows for their students.
-  - Bookmark toggles a `bookmark` row. Flag for my tutor writes the existing flag
+  - Bookmark toggles a `bookmark` row. Ask my tutor writes the existing flag
     record with an optional note (today `flag_note` on the quiz response) and also
     upserts a saved row with source `tutor_flag`.
   - The plan routes every host's existing flag path through one server action.
@@ -544,15 +544,15 @@ still.
 
 **Markers and tools**
 
-| Element           | Motion                                                                             |
-| ----------------- | ---------------------------------------------------------------------------------- |
-| Bookmark          | The ribbon drops with a small overshoot and settles. Removing it lifts the ribbon. |
-| Flag for my tutor | The flag rises up its pole and waves once.                                         |
-| Mark for review   | The marker flips in.                                                               |
-| Eliminator        | The strike draws across the choice left to right. Undo retracts it.                |
-| Pencil toggle     | The cap slides off the pen icon on, and snaps back on off.                         |
-| Pen colours       | The five colours spring out in an arc, and the chosen colour fills the pen tip.    |
-| Desktop cursor    | A small nib that tilts with the direction of movement.                             |
+| Element         | Motion                                                                             |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Bookmark        | The ribbon drops with a small overshoot and settles. Removing it lifts the ribbon. |
+| Ask my tutor    | The hand rises and waves once.                                                     |
+| Mark for review | The marker flips in.                                                               |
+| Eliminator      | The strike draws across the choice left to right. Undo retracts it.                |
+| Pencil toggle   | The cap slides off the pen icon on, and snaps back on off.                         |
+| Pen colours     | The five colours spring out in an arc, and the chosen colour fills the pen tip.    |
+| Desktop cursor  | A small nib that tilts with the direction of movement.                             |
 
 **Ink and highlights**
 

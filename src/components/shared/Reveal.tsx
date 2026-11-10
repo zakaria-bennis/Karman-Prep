@@ -3,7 +3,7 @@
 // ============================================================
 // Reveal — the site-wide "enter" primitive.
 //
-// Settle, per docs/brand.md "Motion": content fades in with a
+// Settle, per docs/archive/brand.md "Motion": content fades in with a
 // small 8px rise on a long-tailed ease — it arrives, it doesn't
 // spring. Use directly, or set `as="stagger"` on a parent to
 // orchestrate a stagger of child <Reveal> elements.

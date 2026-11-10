@@ -126,16 +126,19 @@ export default function SitePage({
   kind,
   children,
   stage,
+  className = "",
 }: {
   kind: SiteKind;
   children: ReactNode;
-  /** The home page's film, drawn behind everything. */
+  /** The home page's painting, drawn behind everything. */
   stage?: ReactNode;
+  /** Extra classes for the page's root, such as a font variable only this page uses. */
+  className?: string;
 }) {
   return (
     <div
       id="ks"
-      className={`ks ${hanken.variable} ${impact.variable} ${kind === "home" ? "" : `page-${kind}`}`}
+      className={`ks ${hanken.variable} ${impact.variable} page-${kind} ${className}`}
       data-mode="dark"
       suppressHydrationWarning
     >
@@ -161,8 +164,8 @@ export default function SitePage({
             {SITE["sign in link"]}
           </a>
           <ThemeButton />
-          <a className="cta" href={ROUTES.test}>
-            {SITE["free test link"]}
+          <a className="cta" href={ROUTES.signUp}>
+            {SITE["start free"]}
           </a>
           <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
             {SITE.menu}
@@ -191,19 +194,10 @@ export default function SitePage({
           ))}
         </nav>
         <ThemeButton labeled />
-        <Btn label={SITE["free test link"]} href={ROUTES.test} />
+        <Btn label={SITE["start free"]} href={ROUTES.signUp} />
       </div>
       {stage}
       <main id="main">{children}</main>
-      {stage ? (
-        <button
-          className="motion"
-          type="button"
-          aria-label={SITE.pause}
-          title={SITE.pause}
-          aria-pressed="false"
-        />
-      ) : null}
       <footer className="ft">
         <div className="cols">
           <span className="mark">{SITE.logo}</span>
@@ -221,7 +215,14 @@ export default function SitePage({
             ))}
           </nav>
         </div>
-        {stage ? <p className="credit">{SITE.credits}</p> : null}
+        {stage ? (
+          <p className="credit">
+            {SITE.credits}{" "}
+            <button className="motion" type="button" aria-pressed="false">
+              {SITE.pause}
+            </button>
+          </p>
+        ) : null}
       </footer>
       <ShellBehaviour />
     </div>

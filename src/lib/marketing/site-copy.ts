@@ -9,7 +9,7 @@
 // Prices, dates and other numbers are ${...} slots filled from offer.ts:
 // change those in src/lib/marketing/offer.ts, never here.
 //
-// Sections: 1 to 14 the home page, 21 to 27 the SAT Program, 31 to 36
+// Sections: 1 to 12 the home page, 21 to 27 the SAT Program, 31 to 36
 // private tutoring, 41 to 45 the free practice test, 51 to 55 the
 // guarantee, 61 to 65 About, 71 the FAQ, 90 the photos' alt text and
 // captions. "## Site" holds the header, menu, footer, pricing page
@@ -28,6 +28,7 @@ import {
   FREE_PRACTICE_TEST as FT,
   FOUNDER,
   GUARANTEE as G,
+  GUARANTEE_TIERS as GT,
   INTAKE,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
@@ -84,7 +85,6 @@ const CLASS = MP.paidSeats;
 const SEATS_LEFT = Math.max(0, MP.paidSeats - MP.paidSeatsTaken);
 const START_DAY = noYear(MP.startLabel);
 const CLOSES = noYear(MP.enrollmentClosesLabel);
-const TEST_DAY = noYear(FT.dateLabel);
 const STARTS = [MP.startShort, MAY.startShort, JUNE.startShort];
 const PROMISE = `+${G.pointsBelow} points, or +${G.pointsFrom} from ${G.splitAt}`;
 const TARGETS = `The target is +${G.pointsBelow} points from a start under ${G.splitAt}, and +${G.pointsFrom} from ${G.splitAt} or higher. A ${G.topScore} always counts.`;
@@ -98,11 +98,11 @@ const ENROLL_LATER = NEXT_PROGRAMS_ENROLLMENT_LABEL.replace(
 
 export const SITE_COPY = `
 ## 1 Opening
-headline: Real tutors teach it. Daily practice makes it stick.
-text: Live SAT classes of ${w(CLASS)} and private one-on-one tutoring, taught by PhD students, quants and university professors. Between sessions, ten minutes of research-backed practice a day, and a tutor who sees every answer.
-proof: ${PROOF}
-button: Take the free practice test
-button note: Free. ${TEST_DAY}, live on Zoom.
+headline: Our average student gains ${TR.averageGain} points. Yours doesn't have to be average.
+text: We built the SAT prep we wish we'd had: overqualified tutors, a portal that knows exactly what your student gets wrong, and a guarantee with our money on the line.
+proof: ${TR.sourceLabel}.
+button: Start free
+button note: ${FREE.questionLimit} practice questions and a full-length practice test. No card. No catch.
 second button: See pricing
 
 ## 2 Live classes
@@ -117,23 +117,27 @@ headline: Want one-on-one? An hour on what went wrong.
 feature title: Every mistake, one by one.
 feature text: In private tutoring, your student's tutor opens the test they just took and works through each question they missed until the method makes sense.
 
-## 4 Daily practice
-headline: Ten questions a day, picked from what your student gets wrong.
-feature title: The Daily 10.
-feature text: Every day, ten questions chosen from the skills your student finds hardest. Miss one, and it comes back a few days later to try again.
-research link: Explore the research behind our design
+## 5 The free portal
+headline: It's free to start. So start.
+text: Sign up and your student is inside the portal right away, with ${FREE.questionLimit} practice questions and a full-length practice test with a score report. You watch the progress from your phone. No card. Nothing to cancel. The only thing you can lose is the excuse.
+button: Start free
+student tab: What your student sees
+parent tab: What you see
+switch label: Whose screen
 
-## 5 Progress
-headline: Your tutor starts every session already knowing what went wrong.
-feature text: Every answer your student gives, on homework, the Daily 10 and every full-length test, reaches the tutor the moment it's given: the choice they picked, how long it took, and which of the eight SAT domains is slipping. No session opens with "so, what was hard this week?" Parents see the same progress on their phone.
+## 6 How we teach
+headline: Six ways we make a skill stick, because one would be lazy.
+ways: Skill practice = A practice set for every skill on the SAT. Three right in a row moves a skill up a level. | Written explanations = Every question shows the method, step by step. No "the answer is C, good luck." | The Daily 10 = Ten questions a day, pulled from whatever your student keeps missing. | The Challenge = Two hard questions a day, the same two for every student. Bragging rights included. | Full-length practice tests = Timed like the real thing and scored like the real thing, minus the Saturday morning panic. | Live teaching = Classes of ${w(CLASS)} and private one-on-one, with a tutor who has seen every answer before saying hello.
+research link: See the research we built it on
 
-## 6 Study tools
-headline: Small games between sets, built to make it stick.
-tools: Wordline = Today's SAT word in six tries. | Flashcards = Roots, prefixes and suffixes, so a new word can be worked out on test day. | Word Lab = One SAT word a day, used in a sentence of your own. | Daily Challenge = One hard question a day, with the full method after.
+## 7 Ways to start
+headline: Four ways in. The first one is free.
+ways: ${FREE.name} = $0. ${FREE.questionLimit} practice questions and a full-length practice test. No card. | ${PP.name} = ${$(PP.monthly)} a month. The question bank, written explanations and the Daily 10. Cheaper than the takeout you'll order while they study. | The ${w(MP.weeks)}-week cohort = ${$(MP.price)}. ${W(CLASS)} students at most, ${MP.totalClasses} live classes, and our guarantee. | Private tutoring = From ${$(P10.price)}. One tutor, one student, nowhere to hide, and our guarantee.
+link: See every price
 
 ## 8 Guarantee
-headline: If your student does the work and the score doesn't rise, we pay you back.
-text: You may have paid for SAT prep before and watched the score sit still. Then the refund turned out to hang on a rule nobody mentioned. It happens a lot in this industry. Here is our whole deal, on one line.
+headline: The score goes up, or we pay you back.
+text: You've seen guarantees with a trapdoor in the fine print. Ours doesn't have one. Your student does the work, the score goes up, or the money comes back to you. Here is the whole deal, on one line.
 promise: ${PROMISE}
 promise note: ${TARGETS} Measured from an SAT or PSAT score from the last ${G.baselineMonths} months, or from a week-1 Bluebook practice test we proctor live.
 line start: Starting score
@@ -148,22 +152,40 @@ covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE
 claim: Within ${G.claimDays} days of scores coming out, email us the College Board score report. One email. Nothing is taken out of a refund.
 link: The guarantee, with worked examples
 
-## 9 Campus film
-headline: What the ${w(MP.weeks)} weeks are for.
+## 9 Universities
+headline: We're twelve for twelve.
+text: The top 12 universities in the country have one thing in common: a Karman student on campus. Plenty of the schools right behind them do too.
+
+## 10 Your number
+headline: Up to +${GT.bands[0].private} points, or your money back.
+text: Tell us where your student is today. We'll show you the score we guarantee.
+private: Private tutoring
+cohort: The ${w(MP.weeks)}-week cohort
+track: How your student is taught
+now: Their score now
+lower: Ten points lower
+higher: Ten points higher
+promise: We guarantee
+none: At ${GT.noGuaranteeFrom} or higher, we don't sell you a guarantee. We'd rather say so now than argue about it later.
+outcomes: They hit it. = Promise kept. You owe us a high five. | They came close. = Half your money comes back. | Not even close. = All of your money comes back.
+free: Or your student keeps going with us for free. Your call.
+link: The guarantee, in full
 
 ## 11 The close
-headline: See their score range before you spend a dollar.
-text: ${FT.dateShort} at ${FT.timeLabel}, live on Zoom with a proctor. About ${FT.minutes} minutes, ${FT.questionCount} of our own questions, then an estimated score range, a breakdown by domain and a ${FT.callMinutes}-minute call to go through it.
-objection: Already scoring ${INTAKE.scoreFrom}, or under ${w(INTAKE.minWeeks)} weeks from the test? We'll tell you a program probably isn't worth your money.
-button: Take the free practice test
-button note: Free. No card needed.
+headline: You read this far. Now start free.
+text: Signing up costs nothing and the portal opens right away: ${FREE.questionLimit} practice questions and a full-length practice test with a score report. Worst case, you find out exactly where your student stands. Best case, scroll back up and read the first line again.
+objection: Already scoring ${INTAKE.scoreFrom}, or under ${w(INTAKE.minWeeks)} weeks from the test? We'll tell you to keep your money. Really.
+button: Start free
+button note: Free. No card. No catch.
 
 ## 12 Tutors
-headline: Tutors you would hire for something harder than the SAT.
-credentials: PhD students = Doing research at university level | Quants = Building mathematical models for a living | Market analysts = Reading data against a deadline, every day | Published researchers = Peer-reviewed work in their own fields | University professors = Teaching is already their profession | Certified tutors = Certified by the Association of Test Preparation, Admissions, and Private Tutoring
+headline: Our tutors are overqualified. That's the point.
+credentials: PhD students = Research by day. Your student's algebra by night. | Quants = They build mathematical models for a living. SAT math is the warm-up. | Medical students = They got through the MCAT. The SAT doesn't scare them. | Published writers = Edited by professionals. They fix a comma splice in their sleep. | Published researchers = Peer-reviewed in their own fields. | Professors = Teaching is already the day job.
 
-## 14 Calendar
-headline: The next session, what's due and how every skill is moving, on one screen.
+## 13 Their doubts
+headline: Go on. Ask us the hard ones.
+label: More questions
+asks: What if the score doesn't go up? = Then your money comes back. All of it if we miss by a lot, half if we miss by a little. Or your student keeps going with us for free. | Who's teaching my kid? = People who are overqualified on purpose. PhD students, quants, medical students, published writers, researchers and professors. | How much time does it take? = About ten minutes a day. In the cohort, add ${w(MP.classesPerWeek)} live classes a week. Get one wrong and your tutor is updated before you finish reading this sentence. | Can we try it first? = Yes. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card.
 
 ## 21 Program: opening
 headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.
@@ -227,7 +249,7 @@ includes: Everything in ${PRO.name}: every question, with video explanations as 
 
 ## 34 Private: track record
 headline: This is how we have always tutored.
-text: Karman's 1:1 students gained ${TR.averageGain} points on average, from ${TR.averageBefore} to ${TR.averageAfter}, and ${TR.reachedTargetPct}% reached their target score.
+text: Karman's 1:1 students gained ${TR.averageGain} points on average, and ${TR.reachedTargetPct}% reached their target score.
 proof: ${TR.sourceLabel}. ${FOUNDER.studentsTutored} students.
 
 ## 35 Private: guarantee terms
@@ -247,12 +269,12 @@ form done title: Request received.
 form done text: We'll email you times for the ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}.
 
 ## 41 Test: opening
-headline: A proctored practice SAT, free, on ${FT.dateShort}.
-text: ${FT.minutes} minutes on Zoom with a live proctor. ${FT.questionCount} questions written by Karman: one Reading and Writing module, one Math module. Then a score range, a breakdown by domain and a ${FT.callMinutes}-minute call.
-facts: ${TEST_DAY} = ${FT.timeLabel} | ${FT.durationLabel} = ${FT.questionCount} questions | Live on Zoom = With a proctor | $0 = No card needed
+headline: A full-length practice SAT, free, whenever you're ready.
+text: ${FT.questionCount} questions written by Karman, timed like the real test: two Reading and Writing modules, two Math modules. Then a score report, a breakdown by domain and an optional ${FT.callMinutes}-minute call.
+facts: Any time = No set date | ${FT.durationLabel} = ${FT.questionCount} questions | On Karman = Bluebook-style | $0 = No card needed
 
 ## 42 Test: the form
-headline: Save your student's seat.
+headline: Get the test link.
 form email: Your email
 form email help: Your results go here.
 form name: Student's first name
@@ -260,23 +282,23 @@ form grade: Grade
 form grade options: 9th | 10th | 11th | 12th
 form date: Which SAT are they planning to take?
 form date options: ${SAT_DATES.join(" | ")} | Not sure yet
-form button: Save the seat
+form button: Send me the link
 form privacy: We use your email for this test, its results and occasional emails from Karman. You can unsubscribe at any time.
-form done title: The seat is saved.
-form done text: On test day, join from your Karman account: the Join button there opens the Zoom room. Your results come by email from ${CONTACT.general}.
+form done title: You're in.
+form done text: We'll email you the link to start the test from ${CONTACT.general}, with a way to book the results call when you're done.
 
 ## 43 Test: what you get
 headline: What you get back.
-rows: A score range = An estimate, given as a range, never a single number | A breakdown by domain = Which of the eight SAT domains cost the most points | A ${FT.callMinutes}-minute call = A Karman tutor walks you through it and answers questions
+rows: A score report = Where your student stands today | A breakdown by domain = Which of the eight SAT domains cost the most points | A ${FT.callMinutes}-minute call = Optional: a Karman tutor walks you through it and answers questions
 
 ## 44 Test: the sitting
-headline: How the sitting runs.
-rows: Join the Zoom = At ${FT.timeLabel}. The proctor checks everyone in | Reading and Writing = One timed module | Math = One timed module, with Desmos | Done = Your results come with a link to book the call
+headline: How it runs.
+rows: Start = Whenever you have the time, from your Karman account | Reading and Writing = Two timed modules | Math = Two timed modules, with a calculator | Done = Your results come with a link to book the call
 
 ## 45 Test: honest note
 headline: An estimate, not a prediction.
-text: It's half the length of the SAT and built from our own questions, so the range is an estimate. That's why it's a range. We show it so you can judge the quality of our questions before you pay for anything.
-button: Save the seat
+text: It's built from our own questions, not the College Board's, so the score is an estimate. We show it so you can judge the quality of our questions before you pay for anything.
+button: Send me the link
 
 ## 51 Guarantee: opening
 headline: ${PROMISE}, or money back or a free repeat.
@@ -423,6 +445,7 @@ bus alt: A student in a window seat on the bus, earbuds in, working through ques
 ## Site
 logo: Karman
 free test link: Free practice test
+start free: Start free
 calculator link: Calculator
 program link: The SAT Program
 private link: Private tutoring
@@ -444,11 +467,10 @@ footer company: Karman
 footer legal: Legal
 menu: Menu
 close: Close
-pause: Pause the film
-play: Play the film
+pause: Hold the painting still
+play: Let the painting move
 dark mode: Dark mode
 light mode: Light mode
-loading film: The film is on its way.
 not found title: This page isn't here.
 not found text: The address may be mistyped, or the page has moved. These are the pages people look for most.
 not found home: Go to the home page
@@ -491,7 +513,7 @@ pricing tutors: ${TA.name} = ${$(TA.monthly)} a month. One code gives up to ${TA
 pricing guarantee link: The guarantee, with worked examples
 pricing honest note: If you're already scoring ${INTAKE.scoreFrom} or higher, or your test is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you honestly that a program probably isn't the best use of your money.
 pricing scholarship: The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
-credits: Night sky: International Gemini Observatory/NOIRLab/NSF/AURA (CC BY 4.0). Earth from orbit: NASA.
+credits: The painting behind this page is Karman's own. It is made in code, and it changes every day.
 `;
 
 /* ---------- reading the copy ---------- */

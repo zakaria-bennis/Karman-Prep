@@ -1,7 +1,7 @@
 # Student portal: the laws as layout decisions
 
 Written 2026-11-06 for the student portal skeleton
-(`prototypes/student-skeleton/`, now filled with a simulated student). `docs/design-rules.md` still wins where it
+(`prototypes/student-skeleton/`, now filled with a simulated student). `docs/archive/design-rules.md` still wins where it
 disagrees. Each law below says what it means and what it forces on the screen.
 
 The feeling to reach: "I'm getting better, and I know exactly what to do next."

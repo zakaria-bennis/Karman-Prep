@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { QuizShell, type QuizShellProps } from "./QuizShell";
 import { LevelUpCard, bandRank, bandRose } from "./LevelUpCard";
 import { modeFor } from "@/lib/quiz/mode";
@@ -50,18 +50,18 @@ beforeEach(() => {
 });
 
 describe("bottom-bar reward", () => {
-  it("says exactly Correct with the points counting up, and plays the jingle", async () => {
+  it("says exactly Correct and plays the jingle, with no token chip", () => {
     shell({ reviews: { n1: graded(0, true) } });
     const bar = screen.getByRole("status", { name: "Answer result" });
     expect(bar.textContent).toContain("Correct");
-    await waitFor(() => expect(bar.textContent).toContain("+10"));
+    expect(bar.textContent).not.toContain("+10");
     expect(sounds.playSound).toHaveBeenCalledWith("correct");
   });
-  it("a hard question shows +15", async () => {
+  it("a hard question shows no +15 either (tokens only on the result screen)", () => {
     shell({ reviews: { n1: graded(0, true, 15) } });
-    await waitFor(() =>
-      expect(screen.getByRole("status", { name: "Answer result" }).textContent).toContain("+15")
-    );
+    const text = screen.getByRole("status", { name: "Answer result" }).textContent ?? "";
+    expect(text).not.toContain("+15");
+    expect(text).not.toContain("points");
   });
   it("says exactly Not quite for a wrong answer, with no jingle", () => {
     shell({ reviews: { n1: graded(0, false) } });
@@ -95,7 +95,7 @@ describe("bottom-bar reward", () => {
     for (let i = 0; i < 5; i++) {
       reviews[`n${i + 1}`] = graded(i, true);
       rerender(<QuizShell {...props} index={i} reviews={{ ...reviews }} />);
-      if (i === 2) expect(screen.getByText("Correct. Plus 10 points. 3 in a row.")).toBeTruthy();
+      if (i === 2) expect(screen.getByText("Correct. 3 in a row.")).toBeTruthy();
     }
     expect(sounds.playSound).toHaveBeenLastCalledWith("correctStreak");
   });

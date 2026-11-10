@@ -5,7 +5,7 @@ sites about two problems the founder raised: pages lack colour, and pages use
 too many words. The aim is motion and pictures that lead the eye to one thing
 per screen.
 
-Everything here was checked against `docs/design-rules.md`. Ideas that broke a
+Everything here was checked against `docs/archive/design-rules.md`. Ideas that broke a
 rule were dropped or rewritten, and each pattern says which rules to watch.
 Nothing here is approved. The founder leads design, so every idea must be shown
 to him as a working screen first.
@@ -405,7 +405,7 @@ the same house rules:
 - **Points at:** the product in use, then one chapter title.
 - **Build it:** pre-rendered film (Remotion or `scripts/generate-assets.mjs`) as
   an image sequence or video, scrubbed with ScrollTrigger. Compare with
-  `docs/design/scroll-film.md` before building.
+  `docs/archive/design/scroll-film.md` before building.
 - **Karman screen:** the landing film chapters.
 - **Watch:** Hextronics' page is 145,440 px tall, far too long. Keep each
   chapter short. No play button (38). Every shot approved by the founder before

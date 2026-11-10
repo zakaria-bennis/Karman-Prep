@@ -7,7 +7,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Card, Panel } from "@/components/portal";
+import StudentPortal from "@/components/student-portal/StudentPortal";
+import { loadStudentContext } from "@/lib/student/context";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { COHORT_SCHOLARSHIP, formatPrice } from "@/lib/marketing/offer";
@@ -52,10 +54,12 @@ function ClaimStatus({ claim, cohortName }: { claim: ClaimRow; cohortName: strin
   };
   const line = lines[claim.status];
   return (
-    <section aria-live="polite" className="rounded-lg border border-bronze/40 bg-surface p-5">
-      <h2 className="text-base font-semibold text-foreground">{line.title}</h2>
-      <p className="mt-1 text-sm text-taupe">{line.body}</p>
-    </section>
+    <div aria-live="polite">
+      <Card>
+        <h2 className="kp-title">{line.title}</h2>
+        <p className="kp-meta">{line.body}</p>
+      </Card>
+    </div>
   );
 }
 
@@ -63,7 +67,7 @@ export default async function ScholarshipPage() {
   const { userId: realClerkId } = await safeAuth();
   if (!realClerkId) redirect("/auth/sign-in");
   const { clerkId } = await resolveEffectiveClerkId(realClerkId);
-  const student = await getUserByClerkId(clerkId);
+  const [ctx, student] = await Promise.all([loadStudentContext(), getUserByClerkId(clerkId)]);
   const [cohorts, claims] = student
     ? await Promise.all([getStudentCohorts(student.id), listStudentClaims(student.id)])
     : [[], []];
@@ -74,23 +78,17 @@ export default async function ScholarshipPage() {
   );
 
   return (
-    <DashboardLayout>
-      <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
-        <header className="space-y-2">
-          <h1 className="text-2xl font-semibold text-foreground">Cohort scholarship</h1>
-          <p className="text-sm leading-6 text-taupe">
-            The top official SAT score in each cohort wins {formatPrice(COHORT_SCHOLARSHIP.amount)}:
-            the {formatPrice(COHORT_SCHOLARSHIP.refund)} cohort price back, plus a{" "}
-            {formatPrice(COHORT_SCHOLARSHIP.meritBonus)} merit bonus. Upload your official College
-            Board score report within {COHORT_SCHOLARSHIP.claimDays} days of your scores coming out.{" "}
-            <Link
-              href="/terms#cohort-scholarship"
-              className="font-medium text-foreground underline"
-            >
-              Read the rules
-            </Link>
-          </p>
-        </header>
+    <StudentPortal ctx={ctx} title="Cohort scholarship">
+      <Panel label="Cohort scholarship">
+        <p className="kp-meta">
+          The top official SAT score in each cohort wins {formatPrice(COHORT_SCHOLARSHIP.amount)}:
+          the {formatPrice(COHORT_SCHOLARSHIP.refund)} cohort price back, plus a{" "}
+          {formatPrice(COHORT_SCHOLARSHIP.meritBonus)} merit bonus. Upload your official College
+          Board score report within {COHORT_SCHOLARSHIP.claimDays} days of your scores coming out.{" "}
+          <Link href="/terms#cohort-scholarship" className="kp-link">
+            Read the rules
+          </Link>
+        </p>
 
         {claims.map((claim) => (
           <ClaimStatus
@@ -101,20 +99,20 @@ export default async function ScholarshipPage() {
         ))}
 
         {cohorts.length === 0 ? (
-          <section className="rounded-lg border border-bronze/40 bg-surface p-5">
-            <h2 className="text-base font-semibold text-foreground">For cohort students</h2>
-            <p className="mt-1 text-sm text-taupe">
+          <Card>
+            <h2 className="kp-title">For cohort students</h2>
+            <p className="kp-meta">
               The scholarship is for students in a 9-week cohort. Once you join one, you can upload
               your score report here after your official SAT.
             </p>
-          </section>
+          </Card>
         ) : open.length > 0 ? (
           <ScholarshipUploadForm
             cohorts={open.map((c) => ({ id: c.id, name: c.name }))}
             hasClaim={claims.some((k) => open.some((c) => c.id === k.cohort_id))}
           />
         ) : null}
-      </div>
-    </DashboardLayout>
+      </Panel>
+    </StudentPortal>
   );
 }
