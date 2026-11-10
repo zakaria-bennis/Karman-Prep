@@ -27,8 +27,8 @@ import { readStudentBriefing, readEducatorPracticeReview } from "@/lib/educator-
 import { readDailyBriefing } from "@/lib/educator-briefing/daily";
 import { sessionId, bookingId } from "@/lib/educator-briefing/fixtures.test-helper";
 import DailyBriefingPage from "./page";
-import StudentBriefingPage from "../[studentId]/briefing/page";
-import EducatorPracticeReviewPage from "../[studentId]/practice/[sessionId]/page";
+import StudentBriefingPage from "../../[studentId]/briefing/page";
+import EducatorPracticeReviewPage from "../../[studentId]/practice/[sessionId]/page";
 
 beforeEach(() => vi.resetAllMocks());
 

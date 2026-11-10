@@ -11,6 +11,14 @@ export type ShortcutHandlers = {
   redo?(): void;
   back?(): void;
   next?(): void;
+  highlight?(): void;
+  calculator?(): void;
+  reference?(): void;
+  eliminator?(): void;
+  /** Enter: Submit, or Next once the answer is checked. */
+  submit?(): void;
+  textSize?(step: 1 | -1): void;
+  help?(): void;
 };
 
 function typing(target: EventTarget | null): boolean {
@@ -50,6 +58,20 @@ export function useShortcuts(handlers: ShortcutHandlers) {
       if (key === "s") return run(h.bookmark);
       if (key === "p") return run(h.pencil);
       if (key === "e") return run(h.eraser);
+      if (key === "h") return run(h.highlight);
+      if (key === "c") return run(h.calculator);
+      if (key === "r") return run(h.reference);
+      if (key === "x") return run(h.eliminator);
+      if (e.key === "?") return run(h.help);
+      if (e.key === "+" || e.key === "=") return run(h.textSize && (() => h.textSize!(1)));
+      if (e.key === "-") return run(h.textSize && (() => h.textSize!(-1)));
+      // Enter only when nothing else has focus, so a focused button still does its own job.
+      if (e.key === "Enter") {
+        const el = document.activeElement;
+        if (el && el !== document.body && !(el as HTMLElement).hasAttribute?.("data-quiz-shell"))
+          return;
+        return run(h.submit);
+      }
       if (e.key === "ArrowLeft") return run(h.back);
       if (e.key === "ArrowRight") return run(h.next);
     }

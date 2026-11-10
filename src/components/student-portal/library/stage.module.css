@@ -12,6 +12,13 @@
   z-index: -2;
   pointer-events: none;
 }
+/* Founder, 2026-11-09: with a course open, today's painting sits behind the box. The intro still
+   lands on the subject's ground, then the ground fades away to the day's painting. A course that
+   is already open when the page loads starts faded, so nothing plays. */
+.stage[data-open] .groundScene {
+  opacity: 0;
+  transition: opacity 0.9s ease 1.7s;
+}
 .paint {
   position: absolute;
   inset: 0;

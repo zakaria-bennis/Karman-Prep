@@ -19,12 +19,12 @@ import {
   type RunActionResult,
 } from "@/app/learn/quiz-run-actions";
 import type { RunReview, RunView } from "@/lib/assembler/run-types";
-import { LevelBanner } from "./LevelBanner";
+import { LevelBanner, type LevelChange } from "./LevelBanner";
 import { FlowFrame, Message } from "./FlowFrame";
 import { RunEnd } from "./RunEnd";
 import type { ShellUser } from "./types";
 
-type Change = { skill: string; from: number; to: number } | null;
+type Change = LevelChange | null;
 
 export function RunPlayer({
   user,
@@ -51,6 +51,8 @@ export function RunPlayer({
   const [run, setRun] = useState<RunView | null>(initial);
   const [error, setError] = useState<{ text: string; limit?: boolean } | null>(null);
   const [pending, setPending] = useState(false);
+  // Level changes outside practice sets are kept for the end screen, not shown mid-run.
+  const [changes, setChanges] = useState<LevelChange[]>([]);
   const [started, setStarted] = useState(!intro || !!initial);
   const busy = useRef(false);
 
@@ -120,11 +122,13 @@ export function RunPlayer({
         exitHref={exitHref}
         lessonHref={lessonHref}
         againHref={againHref}
+        changes={changes}
       />
     );
   return run.grading === "instant" ? (
     <InstantRun
       run={run}
+      onChange={(c) => setChanges((old) => [...old, c])}
       setRun={setRun}
       call={call}
       error={error?.text ?? null}
@@ -168,12 +172,14 @@ function errorBox(text: string | null) {
 
 function InstantRun({
   run,
+  onChange,
   setRun,
   call,
   error,
   exitHref,
 }: {
   run: RunView;
+  onChange(change: LevelChange): void;
   setRun(view: RunView): void;
   call: Caller;
   error: string | null;
@@ -205,6 +211,7 @@ function InstantRun({
       if (!saved) return;
       setExtra((old) => ({ ...old, [questionId]: saved.review }));
       setAfter({ view: saved.view, change: saved.change });
+      if (saved.change && run.kind !== "practice-set") onChange(saved.change);
     });
   }
 
@@ -242,7 +249,11 @@ function InstantRun({
       attemptKey={run.id}
       index={index}
       section={run.kind === "daily-ten" ? "Daily 10" : run.title}
-      topic={current ? shown.sections[0].topics[current.id] : undefined}
+      /* Only a skill's own practice names its topic: anywhere else it gives the answer away
+         (founder, 2026-11-08). */
+      topic={
+        run.kind === "practice-set" && current ? shown.sections[0].topics[current.id] : undefined
+      }
       reviews={reviews}
       saved={student.saved}
       hasCalculator={subject === "math"}
@@ -262,7 +273,11 @@ function InstantRun({
       }
       feedback={
         <>
-          {after?.change && index === currentIndex && <LevelBanner change={after.change} />}
+          {/* Level news waits for the end of a mixed run: mid-run it names the skill being
+              tested and can discourage after a miss (founder, 2026-11-08). */}
+          {after?.change && index === currentIndex && run.kind === "practice-set" && (
+            <LevelBanner change={after.change} />
+          )}
           {errorBox(error)}
         </>
       }

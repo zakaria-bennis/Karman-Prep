@@ -32,7 +32,7 @@ export function TopBar({
   tools,
 }: {
   section: string;
-  topic: string;
+  topic?: string;
   exit?: ReactNode;
   centre?: ReactNode;
   tools?: ReactNode;

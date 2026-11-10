@@ -21,6 +21,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { catalogSessionHref } from "@/lib/catalog-practice/student-entry";
+import { listSchoolHomeworkForStudent } from "@/lib/school/homework";
 import { createAdminClient } from "@/lib/supabase/server";
 import { assignedSetHref, courseSlug, practiceHref } from "./course";
 import {
@@ -117,7 +118,7 @@ export async function loadStudentHomework(
   const nowMs = options.nowMs ?? Date.now();
   const client = db();
 
-  const [tutorRows, catalogRows, trialRows, memberRows] = await Promise.all([
+  const [tutorRows, catalogRows, trialRows, memberRows, schoolItems] = await Promise.all([
     rows(
       client
         .from("tutor_homework")
@@ -150,6 +151,14 @@ export async function loadStudentHomework(
         .eq("user_id", ids.userId)
         .is("left_at", null)
     ),
+    // A school student's teacher assignments. A school read failure never hides the rest.
+    listSchoolHomeworkForStudent(ids).catch((error: unknown) => {
+      console.error(
+        "[homework] school read failed:",
+        error instanceof Error ? error.message : error
+      );
+      return [];
+    }),
   ]);
 
   const cohortIds = memberRows.map((r) => str(r.cohort_id)).filter((x): x is string => !!x);
@@ -311,6 +320,29 @@ export async function loadStudentHomework(
       from: nameById.get(r.assigned_by_user_id as string) ?? null,
       completedAt: str(r.completed_at),
       result,
+    });
+  }
+
+  for (const s of schoolItems) {
+    const done = s.status === "completed";
+    items.push({
+      key: `school:${s.id}`,
+      source: "school",
+      title: s.title,
+      size:
+        s.kind === "skill_practice"
+          ? { questions: PRACTICE_SET_QUESTIONS }
+          : s.kind === "domain_quiz"
+            ? { questions: DOMAIN_QUIZ_QUESTIONS }
+            : { questions: FULL_LENGTH.questions, timedMinutes: FULL_LENGTH.minutes },
+      dueOn: s.dueOn,
+      dueAt: null,
+      state: done ? "done" : "open",
+      href: s.href,
+      note: null,
+      from: s.className,
+      completedAt: s.completedAt,
+      result: null,
     });
   }
 

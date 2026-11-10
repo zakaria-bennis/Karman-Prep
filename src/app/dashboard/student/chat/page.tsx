@@ -1,36 +1,31 @@
 // ============================================================
-// /dashboard/student/chat — student chat surface.
+// /dashboard/student/chat — Messages, inside the student portal.
 //
 // Server component: resolves the student's cohort + provisioned
 // chat channels (cohort_chat + qa) and the student's own UUID,
 // then hands everything to <ChatShell> which owns the layout
 // (tabs, sidebar, DM picker, conversation routing).
 //
-// Self-bookable students without a cohort fall through to a
-// friendly empty state and skip the shell entirely.
+// Students without a cohort go back to Today.
 // ============================================================
 
 import type { Metadata } from "next";
 import { currentUser } from "@clerk/nextjs/server";
-import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
-import { MessageSquare } from "lucide-react";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Panel } from "@/components/portal";
 import { ChatShell } from "@/components/chat/ChatShell";
+import StudentPortal, { STUDENT_HOME } from "@/components/student-portal/StudentPortal";
+import { loadStudentContext } from "@/lib/student/context";
 import { createAdminClient } from "@/lib/supabase/server";
-import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
-import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 
-export const metadata: Metadata = { title: "Chat" };
+export const metadata: Metadata = { title: "Messages" };
 export const dynamic = "force-dynamic";
 
 export default async function StudentChatPage() {
-  const { userId: realUserId } = await safeAuth();
-  if (!realUserId) redirect("/auth/sign-in");
-  const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
-
-  const studentUuid = await getUserUuidByClerkId(userId);
-  if (!studentUuid) redirect("/onboarding");
+  const ctx = await loadStudentContext();
+  // Messages is for cohort students only; the account menu shows it only to them.
+  if (!ctx.hasChat) redirect(STUDENT_HOME);
+  const studentUuid = ctx.userId;
 
   const supa = createAdminClient();
 
@@ -80,41 +75,21 @@ export default async function StudentChatPage() {
   const postingAs = lastInitial ? `${first} ${lastInitial}` : first;
 
   return (
-    <DashboardLayout>
-      <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-6xl flex-col px-4 py-6 sm:px-6">
-        <header className="mb-4">
-          <p className="mb-1 text-xs font-bold uppercase tracking-widest text-info">Chat</p>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-ivory dark:text-ivory">
-            <MessageSquare className="h-6 w-6 text-taupe" />
-            Conversations
-          </h1>
-        </header>
-
-        {!membership?.cohort_id ? (
-          <div className="rounded-xl border border-dashed border-bronze px-6 py-10 text-center dark:border-bronze">
-            <p className="text-sm text-taupe dark:text-taupe">
-              You&apos;re not in a cohort yet. Cohort chat unlocks once you&apos;re placed (admin
-              assigns you after signup).
-            </p>
-          </div>
-        ) : !cohortChannel && !qaChannel ? (
-          <div className="rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 dark:border-warning/20 dark:bg-warning/5">
-            <p className="text-sm text-warning dark:text-warning-bright">
-              Your cohort chat hasn&apos;t been set up yet. Ask your tutor or admin to provision it
-              from the cohort detail page.
-            </p>
-          </div>
+    <StudentPortal ctx={ctx} title="Messages">
+      <Panel label="Messages">
+        {!membership?.cohort_id || (!cohortChannel && !qaChannel) ? (
+          <p className="kp-meta">
+            Your cohort chat isn&apos;t set up yet. Ask your tutor to open it.
+          </p>
         ) : (
-          <div className="min-h-0 flex-1">
-            <ChatShell
-              cohortChannel={cohortChannel}
-              qaChannel={qaChannel}
-              postingAsPreview={postingAs}
-              selfUuid={studentUuid}
-            />
-          </div>
+          <ChatShell
+            cohortChannel={cohortChannel}
+            qaChannel={qaChannel}
+            postingAsPreview={postingAs}
+            selfUuid={studentUuid}
+          />
         )}
-      </div>
-    </DashboardLayout>
+      </Panel>
+    </StudentPortal>
   );
 }

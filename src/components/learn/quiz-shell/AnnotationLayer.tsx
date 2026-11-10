@@ -1,21 +1,20 @@
 "use client";
 // Highlights and notes (spec: Bluebook tools). Highlights are painted behind the text, so the
 // question's own DOM is never changed and every browser shows them.
+// Founder, 2026-11-08: with the highlighter on, a selection is highlighted at once in the next
+// colour (each highlight takes a different one). Clicking a highlight offers only Delete and Add
+// a note; resting the pointer on a highlight with a note shows the note.
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { domRange, rangesFromSelection } from "@/lib/quiz/annotations/ranges";
-import type { AnnotationRange, HighlightColor } from "@/lib/quiz/workspace";
+import type { HighlightColor } from "@/lib/quiz/workspace";
 import shell from "./quiz-shell.module.css";
 import styles from "./annotate.module.css";
 import { useAnnotations } from "./annotation-context";
 import { SPRING, useShellMotion } from "./motion";
 
 type Box = { left: number; top: number; width: number; height: number };
-type Menu =
-  | { kind: "new"; ranges: AnnotationRange[]; at: Box }
-  | { kind: "edit"; id: number; at: Box; editing: boolean };
-
-const COLORS: HighlightColor[] = [1, 2, 3];
+type Menu = { kind: "edit"; id: number; at: Box; editing: boolean };
 
 function rectsOf(pane: HTMLElement, range: Range): Box[] {
   const o = pane.getBoundingClientRect();
@@ -41,6 +40,7 @@ export function AnnotationLayer() {
   const [menu, setMenu] = useState<Menu | null>(null);
   const [draft, setDraft] = useState("");
   const [fresh, setFresh] = useState<number | null>(null);
+  const [peek, setPeek] = useState<{ id: number; at: Box } | null>(null);
   const { reduced } = useShellMotion();
   const pane = () => holder.current?.parentElement as HTMLElement | null;
   const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
@@ -65,48 +65,94 @@ export function AnnotationLayer() {
     );
   }, [ctx?.highlights, tick]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // A finished selection inside this pane opens the menu.
+  // With the highlighter on, a finished selection inside this pane is highlighted at once.
   useEffect(() => {
     const el = pane();
     if (!el) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const onChange = () => {
+    let pressed = false;
+    const settle = () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
         const c = ctxRef.current;
-        if (!c?.enabled) return;
+        if (!c?.enabled || !c.highlighting || pressed) return;
         const sel = window.getSelection();
         const ranges = rangesFromSelection(el, sel);
-        if (!ranges.length || !sel) return setMenu((m) => (m?.kind === "new" ? null : m));
-        const boxes = rectsOf(el, sel.getRangeAt(0));
-        if (boxes.length) setMenu({ kind: "new", ranges, at: union(boxes) });
-      }, 120);
+        if (!ranges.length) return;
+        const color = c.nextColor();
+        let last = 0;
+        for (const r of ranges) last = c.add(r, color);
+        setFresh(last);
+        sel?.removeAllRanges();
+      }, 60);
     };
-    // Tapping a highlight opens it for a note, a new colour or removal.
+    const onDown = () => {
+      pressed = true;
+    };
+    // Tapping a highlight opens it: Delete or Add a note.
     const onUp = (e: PointerEvent) => {
+      pressed = false;
       const c = ctxRef.current;
-      if (!c?.enabled || !window.getSelection()?.isCollapsed) return;
-      const o = el.getBoundingClientRect();
-      const x = e.clientX - o.left;
-      const y = e.clientY - o.top;
-      const hit = paintedRef.current.find((p) =>
-        p.boxes.some(
-          (b) => x >= b.left && x <= b.left + b.width && y >= b.top && y <= b.top + b.height
-        )
-      );
+      if (!c?.enabled) return;
+      if (!window.getSelection()?.isCollapsed) return settle();
+      const hit = hitAt(e);
       if (hit) {
+        setPeek(null);
         setDraft(c.highlights.find((h) => h.id === hit.id)?.note ?? "");
         setMenu({ kind: "edit", id: hit.id, at: union(hit.boxes), editing: false });
       }
     };
+    // Resting on a highlight with a note shows the note.
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || pressed) return;
+      const hit = hitAt(e);
+      const noted = hit && ctxRef.current?.highlights.find((h) => h.id === hit.id)?.note;
+      setPeek((p) =>
+        noted && hit ? (p?.id === hit.id ? p : { id: hit.id, at: union(hit.boxes) }) : null
+      );
+    };
+    const onLeave = () => setPeek(null);
+    const hitAt = (e: PointerEvent) => {
+      const o = el.getBoundingClientRect();
+      const x = e.clientX - o.left;
+      const y = e.clientY - o.top;
+      return paintedRef.current.find((p) =>
+        p.boxes.some(
+          (b) => x >= b.left && x <= b.left + b.width && y >= b.top && y <= b.top + b.height
+        )
+      );
+    };
+    // Keyboard selections (Shift and the arrows) settle on selectionchange.
+    const onChange = () => !pressed && settle();
     document.addEventListener("selectionchange", onChange);
+    el.addEventListener("pointerdown", onDown);
     el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
     return () => {
       clearTimeout(timer);
       document.removeEventListener("selectionchange", onChange);
+      el.removeEventListener("pointerdown", onDown);
       el.removeEventListener("pointerup", onUp);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
     };
   }, []);
+
+  // Escape closes the menu first (the shell's own Escape then puts the tool away); a page that
+  // changes size closes it too, so it never floats away from its highlight.
+  useEffect(() => {
+    if (!menu) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      e.preventDefault();
+      setMenu(null);
+      setDraft("");
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, [menu]);
+  useEffect(() => setMenu(null), [tick]);
 
   const ctxRef = useRef(ctx);
   ctxRef.current = ctx;
@@ -118,28 +164,7 @@ export function AnnotationLayer() {
     setMenu(null);
     setDraft("");
   };
-  const apply = (color: HighlightColor) => {
-    if (menu?.kind === "new") {
-      let last = 0;
-      for (const r of menu.ranges) last = ctx.add(r, color);
-      setFresh(last);
-      window.getSelection()?.removeAllRanges();
-      close();
-    } else if (menu?.kind === "edit") {
-      ctx.recolor(menu.id, color);
-      close();
-    }
-  };
-  const addNote = () => {
-    if (menu?.kind === "new") {
-      let last = 0;
-      for (const r of menu.ranges) last = ctx.add(r, 1);
-      setFresh(last);
-      window.getSelection()?.removeAllRanges();
-      setDraft("");
-      setMenu({ kind: "edit", id: last, at: menu.at, editing: true });
-    } else if (menu?.kind === "edit") setMenu({ ...menu, editing: true });
-  };
+  const addNote = () => menu && setMenu({ ...menu, editing: true });
   // Phones: the system's own edit menu sits above a selection, so ours goes below it.
   const menuTop = menu ? (coarse ? menu.at.top + menu.at.height + 10 : menu.at.top - 10) : 0;
 
@@ -174,7 +199,7 @@ export function AnnotationLayer() {
       <AnimatePresence mode="wait">
         {menu && (
           <motion.div
-            key={menu.kind === "edit" ? `e${menu.id}` : "new"}
+            key={`e${menu.id}`}
             role="toolbar"
             aria-label="Highlight and note"
             className={`${styles.menu} ${shell.glass}`}
@@ -187,7 +212,7 @@ export function AnnotationLayer() {
             onKeyDown={(e) => e.key === "Escape" && close()}
             onPointerDown={(e) => e.preventDefault()}
           >
-            {menu.kind === "edit" && menu.editing ? (
+            {menu.editing ? (
               <form
                 className={styles.noteForm}
                 onSubmit={(e) => {
@@ -220,35 +245,37 @@ export function AnnotationLayer() {
               </form>
             ) : (
               <div className={styles.row}>
-                {COLORS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className={styles.colour}
-                    aria-label={`Highlight colour ${c}`}
-                    style={{ background: `var(--quiz-highlight-${c})` }}
-                    onClick={() => apply(c)}
-                  />
-                ))}
-                <button type="button" className={shell.tool} onClick={addNote}>
-                  {menu.kind === "edit" && ctx.highlights.find((h) => h.id === menu.id)?.note
-                    ? "Edit note"
-                    : "Add note"}
+                <button
+                  type="button"
+                  className={shell.tool}
+                  onClick={() => {
+                    ctx.remove(menu.id);
+                    close();
+                  }}
+                >
+                  Delete
                 </button>
-                {menu.kind === "edit" && (
-                  <button
-                    type="button"
-                    className={shell.tool}
-                    onClick={() => {
-                      ctx.remove(menu.id);
-                      close();
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
+                <button type="button" className={shell.tool} onClick={addNote}>
+                  {ctx.highlights.find((h) => h.id === menu.id)?.note ? "Edit note" : "Add a note"}
+                </button>
               </div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {peek && !menu && (
+          <motion.div
+            key={`p${peek.id}`}
+            role="tooltip"
+            className={`${styles.peek} ${shell.glass}`}
+            style={{ left: Math.max(4, peek.at.left), top: peek.at.top + peek.at.height + 8 }}
+            initial={{ opacity: 0, y: reduced ? 0 : -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {ctx.highlights.find((h) => h.id === peek.id)?.note}
           </motion.div>
         )}
       </AnimatePresence>

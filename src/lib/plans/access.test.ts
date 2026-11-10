@@ -65,7 +65,7 @@ describe("plan catalog", () => {
     ["private-10", PRO_LEVEL],
     ["private-20", PRO_LEVEL],
     ["school", PRACTICE_LEVEL],
-    ["tutor-affiliate", { ...PRO_LEVEL, tutorAdmin: true, maxSponsoredStudents: 50 }],
+    ["tutor-affiliate", { ...PRO_LEVEL, tutorAdmin: true, maxSponsoredStudents: 40 }],
   ])("%s opens the right pool, explanations and limits", (id, expected) => {
     expect(PLAN_ENTITLEMENTS[id]).toEqual(expected);
   });

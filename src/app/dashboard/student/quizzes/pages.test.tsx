@@ -17,9 +17,14 @@ vi.mock("@/lib/quiz-review", () => ({ fetchCompletedQuizReview: mocks.review }))
 vi.mock("@/lib/catalog-practice/history-server", () => ({
   loadOwnCatalogPracticeHistory: mocks.catalog,
 }));
-vi.mock("@/components/dashboard/DashboardLayout", () => ({
+vi.mock("@/components/student-portal/StudentPortal", () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
+vi.mock("next/font/google", () => {
+  const font = () => ({ className: "", variable: "", style: { fontFamily: "" } });
+  return { Caveat: font, Hanken_Grotesk: font, Young_Serif: font };
+});
+vi.mock("@/lib/student/context", () => ({ loadStudentContext: async () => ({}) }));
 vi.mock("@/components/learn/QuizReviewQuestion", () => ({
   default: () => <div>Reviewed question content</div>,
 }));

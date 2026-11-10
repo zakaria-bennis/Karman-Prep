@@ -133,6 +133,24 @@ class WindowBoundary extends Component<
   }
 }
 
+/** The dock's rise and drop, matching CalculatorWindow.module.css (founder, 2026-11-08). */
+const DOCK_RISE_MS = 420;
+const DOCK_DROP_MS = 280;
+const SLIDE_ID = "kcc-dock-slide";
+
+/** Plays `host`'s left margin from `from` px to `to` px; a newer slide replaces an older one. The
+ * margin (not a transform) moves, because a transformed host would carry the fixed dock with it. */
+function slideHost(host: HTMLElement, from: number, to: number, duration: number) {
+  if (typeof host.animate !== "function" || from === to) return;
+  for (const running of host.getAnimations?.() ?? []) if (running.id === SLIDE_ID) running.cancel();
+  const easing = to > from ? "cubic-bezier(0.32, 1.12, 0.4, 1)" : "ease-in-out";
+  const slide = host.animate([{ marginLeft: `${from}px` }, { marginLeft: `${to}px` }], {
+    duration,
+    easing,
+  });
+  slide.id = SLIDE_ID;
+}
+
 /** The modes an open brings back as they were left. */
 const RESTORABLE_MODES: ReadonlySet<string> = new Set(["floating", "docked", "maximized"]);
 
@@ -251,22 +269,35 @@ export function CalculatorScope({
 
   // AN-10: the open animation runs only when this scope's window goes from closed to open with
   // motion allowed; any mode change or closing ends it, so Undock, Restore and AR-26 never replay it.
-  const mode = windowModeFor(windowState, fullScreen);
+  const mode = windowModeFor(windowState, fullScreen, viewport.width);
   const previous = useRef({ open, mode });
   useLayoutEffect(() => {
     const before = previous.current;
     previous.current = { open, mode };
     const node = frameRef.current;
     if (!node) return;
-    // Docked and maximized windows never animate (AN-10), so they are never marked entering.
-    const animates = mode === "floating" || mode === "fullscreen";
+    // Maximized windows never animate (AN-10). The dock rises on open and drops on close
+    // (founder, 2026-11-08): a closing dock stays shown, marked data-leaving, until the drop ends.
+    const animates = mode === "floating" || mode === "fullscreen" || mode === "docked";
     if (open && !before.open && !reducedMotion && animates) node.setAttribute("data-entering", "");
     else if (!open || mode !== before.mode) node.removeAttribute("data-entering");
+    if (!open && before.open && !reducedMotion && mode === "docked" && before.mode === "docked") {
+      node.setAttribute("data-leaving", "");
+      setLeaving(true);
+    } else if (open) {
+      node.removeAttribute("data-leaving");
+      setLeaving(false);
+    }
   }, [open, mode, reducedMotion]);
+  const [leaving, setLeaving] = useState(false);
   useEffect(() => {
     if (!frame) return;
     const finish = (event: AnimationEvent) => {
-      if (event.target === frame) frame.removeAttribute("data-entering");
+      if (event.target !== frame) return;
+      if (frame.hasAttribute("data-leaving")) {
+        frame.removeAttribute("data-leaving");
+        setLeaving(false);
+      } else frame.removeAttribute("data-entering");
     };
     frame.addEventListener("animationend", finish);
     frame.addEventListener("animationcancel", finish);
@@ -275,6 +306,15 @@ export function CalculatorScope({
       frame.removeEventListener("animationcancel", finish);
     };
   }, [frame]);
+  // A drop that never runs (motion turned off in CSS) still ends.
+  useEffect(() => {
+    if (!leaving) return;
+    const timer = window.setTimeout(() => {
+      frameRef.current?.removeAttribute("data-leaving");
+      setLeaving(false);
+    }, DOCK_DROP_MS + 120);
+    return () => window.clearTimeout(timer);
+  }, [leaving]);
 
   // AR-28, L-11: full screen is modal; the workspace is inert and hidden and the page cannot
   // scroll behind it, and the previous body overflow comes back on hide.
@@ -386,6 +426,16 @@ export function CalculatorScope({
     setShiftHost(parent?.closest<HTMLElement>("[data-calculator-dock-shift]") ?? null);
   }, []);
   const dockShift = enabled && open && mode === "docked" ? dockWidth + 2 * DOCK_MARGIN : null;
+  // Founder, 2026-11-08: the question slides right as the dock opens and back as it closes. The
+  // margin is set at once; an animation plays it on dock and undock only, so resizing never animates.
+  // Declared before the margin effect so its cleanup still reads the docked margin.
+  const shifted = dockShift !== null;
+  useLayoutEffect(() => {
+    if (shiftHost === null || !shifted || reducedMotion) return;
+    slideHost(shiftHost, 0, dockShift ?? 0, DOCK_RISE_MS);
+    return () => slideHost(shiftHost, parseFloat(shiftHost.style.marginLeft) || 0, 0, DOCK_DROP_MS);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs on dock and undock only
+  }, [shiftHost, shifted]);
   useLayoutEffect(() => {
     if (shiftHost === null || dockShift === null) return;
     const marginLeft = shiftHost.style.marginLeft;
@@ -445,7 +495,11 @@ export function CalculatorScope({
           </button>
         )}
         {enabled && shown && (
-          <div data-calculator-root="" hidden={!open} data-reduced-motion={String(reducedMotion)}>
+          <div
+            data-calculator-root=""
+            hidden={!open && !leaving}
+            data-reduced-motion={String(reducedMotion)}
+          >
             <WindowBoundary
               open={open}
               rect={floatingRect}

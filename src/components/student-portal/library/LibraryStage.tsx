@@ -166,7 +166,7 @@ export default function LibraryStage({
       const far = Math.hypot(Math.max(ox, r.width - ox), Math.max(oy, r.height - oy)) + 40;
       box.style.transformOrigin = `${ox}px ${oy}px`;
       box.style.opacity = "0";
-      void animate(
+      const run = animate(
         box,
         {
           opacity: [0, 1],
@@ -179,10 +179,28 @@ export default function LibraryStage({
           opacity: { duration: 0.22, delay: 0.1 },
           clipPath: { duration: 0.75, ease: [0.3, 0.9, 0.2, 1], delay: 0.1 },
         }
-      ).then(() => {
+      );
+      /* The opening circle must never stay on the box. The promise alone isn't enough: a
+         background tab or a busy page can leave the circle part-way (founder, 2026-11-08), so a
+         timer finishes the job a beat after the opening should have ended. */
+      let done = false;
+      const clear = () => {
         box.style.clipPath = "";
         box.style.transformOrigin = "";
-      });
+        box.style.opacity = "";
+        box.style.transform = "";
+      };
+      const settle = () => {
+        if (done) return;
+        done = true;
+        window.clearTimeout(timer);
+        run.complete();
+        clear();
+        /* Finishing the animation writes its last frame on the next paint, so clear once more. */
+        requestAnimationFrame(clear);
+      };
+      const timer = window.setTimeout(settle, 1500);
+      void run.then(settle, settle);
     }
     const focus = requestAnimationFrame(() =>
       box.querySelector<HTMLElement>(`[data-tab="${opened}"]`)?.focus({ preventScroll: true })

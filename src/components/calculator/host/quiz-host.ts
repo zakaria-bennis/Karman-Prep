@@ -7,6 +7,8 @@ import { reportCalculatorError } from "@/components/calculator/report-error";
 import type { TransferResult, TransferTrigger } from "@/lib/calculator-transfer/payload";
 import type { ThemeChoice } from "@/lib/calculator/theme/choice";
 import { KarmanCalculator, lastFocusedRow } from "../KarmanCalculator";
+import type { ThemeHint } from "../theme-hint";
+import { nearestSkin } from "./nearest-skin";
 import { preferencesOf, type CalculatorPreferences } from "../calculator-window-store";
 import { CALCULATOR_BUILD } from "../styles/generated";
 import { applyTransfer as applyTransferPayload } from "../transfer/apply";
@@ -27,6 +29,9 @@ export interface QuizMountOptions {
   // The theme until the student picks one in Settings: absent in the quiz ("auto", the site
   // theme); "classic" on the /calculator page.
   defaultTheme?: ThemeChoice;
+  // The quiz's colours (theme-hint.ts): with no defaultTheme, the default becomes the skin closest
+  // to them (founder, 2026-11-08). A theme the student picked in Settings still wins, for the exam.
+  themeHint?: ThemeHint | null;
   // True on the /calculator page: side by side, as desmos.com/calculator, with no layout setting.
   fixedSideBySide?: boolean;
 }
@@ -51,7 +56,8 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
     {
       chromeSlot: options.chromeSlot,
       announceResetOnMount: options.announceReset,
-      defaultTheme: options.defaultTheme,
+      defaultTheme:
+        options.defaultTheme ?? (options.themeHint ? nearestSkin(options.themeHint) : undefined),
       fixedSideBySide: options.fixedSideBySide,
     }
   );
