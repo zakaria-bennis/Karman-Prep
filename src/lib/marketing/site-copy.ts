@@ -172,17 +172,10 @@ text: The top 12 universities in the country have one thing in common: a Karman 
 
 ## 10 Your number
 headline: ${UP_TO.private}, or your money back.
-text: Tell us where your student is today. We'll show you the score we guarantee.
-private: Private tutoring
-cohort: The ${w(MP.weeks)}-week cohort
-track: How your student is taught
-now: Their score now
-lower: Ten points lower
-higher: Ten points higher
-promise: We guarantee
-none: At ${G.noGuaranteeFrom} or higher, we don't sell you a guarantee. We'd rather say so now than argue about it later.
+text: Your student does the work, the score goes up, or the money comes back to you.
+stamp unit: points
+stamp ring: or your money back
 outcomes: They hit it. = Promise kept. You owe us a high five. | They came close. = Half your money comes back. | Not even close. = All of your money comes back.
-free: Or your student keeps going with us for free. Your call.
 link: The guarantee, in full
 
 ## 11 The close

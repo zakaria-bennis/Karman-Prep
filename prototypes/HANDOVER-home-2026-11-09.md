@@ -16,21 +16,21 @@ night as the page scrolls. The founder approved this order.
 |---|---|---|---|
 | 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `ClaimPill.tsx`, `Flock.tsx`, `CLAIM_BOOT` in `page.tsx` | Headline comes into focus out of the haze, word by word; the "280 points" shape slams in with its lettering cut out to the sky; two or three small flocks of birds cross the sky |
 | 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
-| 3 | The offer: "Up to +200 points, or your money back." | `ScoreTiles.tsx`, `GUARANTEE` in `offer.ts` | Flip tiles: their score now, the score guaranteed; leaves burst when it changes |
+| 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence, his own "Karman" signature, a +200 ink stamp brought down hard beside it (the words jolt and leaves burst), then three outcome cards slide in from the side |
 | 4 | Who: "Our tutors are overqualified. That's the point." | `public/site/tutors/*.svg`, `scripts/dev/make-tutor-peeps.mjs` | Six Open Peeps drawings pop up and hop on hover |
 | 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 | 7 | Price and close, at night: "Four ways in. The first one is free." | `Fireflies.tsx` | Rows dealt in; fireflies follow the cursor |
 
 Everywhere: the painting (`HomeJourney.tsx`, `src/lib/painting/journey.ts`), the sun crossing the sky,
-leaves with physics (`leaves.ts`), springy switches (`Seg.tsx`), a button that leans toward the cursor
+leaves with physics (`leaves.ts`), a button that leans toward the cursor
 and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are in
 `src/app/(site)/styles/painted.css`. All words are in `src/lib/marketing/site-copy.ts`.
 
 ## Where the founder's approval stands
 
 - **Approved:** the seven-section order; the headline; "We're twelve for twelve."; Start free as the
-  main action; the "we" voice, confident and a little cocky; the painting; springy switches.
+  main action; the "we" voice, confident and a little cocky; the painting.
 - **Section 1:** settled with him on 10 November 2026, from live options. He chose: the headline coming
   into focus out of the haze (he rejected the particles, a brush wipe, rise, wind, flip and horizon); the
   main button in ink with a breathing ring of the sky's light and no sweep of shine; a soft veil of light
@@ -40,7 +40,13 @@ and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are 
   lanterns out of six live options (counted grid, changing wall, clouds, a roll call of names, spotlight,
   lanterns). He asked for them to be physical: bouncing off each other, able to be handled, all thirty
   coming round in a loop.
-- **Sections 3 to 7:** built in one pass at his request so the page could be handed over whole. He has
+- **Section 3:** settled with him on 10 November 2026. He disliked the plus and minus score tiles ("huge",
+  "the slider idea") and every version that listed the tiers: too much for the home page, since the full
+  rules are one link away. He wants it short and enticing. He rejected a typed-out signature, his own name,
+  a title under it, an underline and a drawn-on effect, then sent a picture of how he signs "Karman"; it
+  is traced by hand in `Guarantee.tsx`, with the K's lower line carried under the whole word at his
+  request. He asked for the stamp, for its landing to be prominent, and for the cards to come from the side.
+- **Sections 4 to 7:** built in one pass at his request so the page could be handed over whole. He has
   seen a still sketch of them, not the built versions. Treat each as a first draft to be reviewed with
   him, one at a time.
 - **Feeling:** Studio Ghibli. Hand-painted, soft, quietly magical. Not childish, no bright orange.
@@ -96,7 +102,7 @@ a chat as the whole page).
 ## Checks
 
 - `node scripts/dev/home-journey-check.mjs`: measures text contrast against the real painting pixels in
-  all seven sections at desktop, tablet and phone, and tests the tiles, the bubbles, the birds, the
+  all seven sections at desktop, tablet and phone, and tests the guarantee's stamp and cards, the bubbles, the birds, the
   phone menu, the still button and every link. Passing.
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
 - The six checks in `CLAUDE.md` pass on this commit.
