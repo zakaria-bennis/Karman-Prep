@@ -4,7 +4,6 @@ import Fireflies from "@/components/site/home/Fireflies";
 import Flock from "@/components/site/home/Flock";
 import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
-import HomeLab, { LAB_BOOT } from "@/components/site/home/HomeLab";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import Logos from "@/components/site/home/Logos";
@@ -66,12 +65,6 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
       <HomeTouches />
       {/* a visitor who has already watched the headline arrive this visit sees it at once */}
-      {process.env.NODE_ENV !== "production" ? (
-        <>
-          <script dangerouslySetInnerHTML={{ __html: LAB_BOOT }} />
-          <HomeLab />
-        </>
-      ) : null}
       <script dangerouslySetInnerHTML={{ __html: CLAIM_BOOT }} />
 
       {/* 1. The claim */}

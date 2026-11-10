@@ -85,7 +85,7 @@ for (const [name, width, height] of [
     }, sel);
     const hide = await page.addStyleTag({
       content:
-        "#main *{color:transparent!important;text-decoration-color:transparent!important;animation-play-state:paused!important} #main .flock,#main .fireflies,.lab{visibility:hidden}",
+        "#main *{color:transparent!important;text-decoration-color:transparent!important;animation-play-state:paused!important} #main .flock,#main .fireflies{visibility:hidden}",
     });
     await page.waitForTimeout(250);
     const { data, info } = await sharp(await page.screenshot({ type: "png" }))
