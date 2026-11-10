@@ -311,16 +311,29 @@ export const DIAGNOSTIC = {
 } as const;
 
 /**
- * The guarantee (founder, 2026-11-08; see docs/business/guarantee.md). The
- * Cohort, Private 10 and Private 20 carry it. The target depends on the
- * starting score. Reviewed by a lawyer (founder, 2026-11-09).
+ * The guarantee (see docs/business/guarantee.md). The Cohort, Private 10 and Private 20 carry it.
+ *
+ * - The rules (who is covered, what the student does, what comes back, how to claim) are the founder's
+ *   of 2026-11-08, reviewed by a lawyer (founder, 2026-11-09).
+ * - The targets are tiered by starting score and by how the student is taught (founder, 2026-11-09, the
+ *   same day, replacing "+100, or +50 from 1400"). Private 20 carries the full numbers; the cohort and
+ *   Private 10 carry the smaller ones, because one tutor is shared or the hours are few. From
+ *   `noGuaranteeFrom` there is no guarantee, and the family is told before paying. The lawyer has not yet
+ *   re-read the targets.
  */
 export const GUARANTEE = {
-  /** Baselines under this score aim for `pointsBelow`; at or above it, `pointsFrom`. */
-  splitAt: 1400,
-  pointsBelow: 100,
-  pointsFrom: 50,
-  /** A 1600 always counts as reaching the target (a 1560 can't gain 50). */
+  /** A starting score at or above this carries no guarantee. */
+  noGuaranteeFrom: 1460,
+  /** Starting score up to `upTo`: points promised on each track. */
+  bands: [
+    { upTo: 1200, private: 200, cohort: 150 },
+    { upTo: 1300, private: 150, cohort: 100 },
+    { upTo: 1400, private: 100, cohort: 70 },
+    { upTo: 1450, private: 50, cohort: 40 },
+  ],
+  /** Which track each plan is on. */
+  trackOf: { cohort: "cohort", "private-10": "cohort", "private-20": "private" },
+  /** A 1600 always counts as reaching the target. */
   topScore: 1600,
   /** Plans that carry it. */
   planIds: ["cohort", "private-10", "private-20"],
@@ -381,42 +394,30 @@ export const GUARANTEE = {
   },
 } as const;
 
-/**
- * The tiered guarantee (founder, 2026-11-09): the promise depends on the starting score and on how the
- * student is taught. Private 20 carries the full numbers; the cohort and Private 10 carry the smaller ones,
- * because one tutor is shared or the hours are few. From `noGuaranteeFrom` there is no guarantee, and the
- * family is told before paying. The home page shows these; the guarantee and pricing pages still read
- * `GUARANTEE` above until the founder signs off the full terms.
- */
-export const GUARANTEE_TIERS = {
-  noGuaranteeFrom: 1460,
-  /** Starting score up to `upTo`: points promised on each track. */
-  bands: [
-    { upTo: 1200, private: 200, cohort: 150 },
-    { upTo: 1300, private: 150, cohort: 100 },
-    { upTo: 1400, private: 100, cohort: 70 },
-    { upTo: 1450, private: 50, cohort: 40 },
-  ],
-  /** Which track each plan is on. */
-  trackOf: { cohort: "cohort", "private-10": "cohort", "private-20": "private" },
-  /** Under half the target: all the money back. Half or more, but short: half back. Or keep going free. */
-  refund: { underHalfTarget: 1, shortOfTarget: 0.5, paidWithinDays: 14 },
-  /** The work that keeps the guarantee, all tracked in the portal. */
-  work: { classesOf18: 16, dailyDaysPerWeek: 6, homeworkPct: 90, fullLengthTests: 5 },
-} as const;
-
 export type GuaranteeTrack = "cohort" | "private";
+export type GuaranteePlanId = keyof typeof GUARANTEE.trackOf;
 
 /** Points promised for a starting score on a track, or null when there is no guarantee. */
 export function guaranteedGain(start: number, track: GuaranteeTrack): number | null {
-  if (start >= GUARANTEE_TIERS.noGuaranteeFrom) return null;
-  const band = GUARANTEE_TIERS.bands.find((b) => start <= b.upTo);
+  if (start >= GUARANTEE.noGuaranteeFrom) return null;
+  const band = GUARANTEE.bands.find((b) => start <= b.upTo);
   return band ? band[track] : null;
 }
 
-/** "+100 points" under a 1400 start, "+50 points" from 1400. */
-export function guaranteeTarget(baseline: number): number {
-  return baseline < GUARANTEE.splitAt ? GUARANTEE.pointsBelow : GUARANTEE.pointsFrom;
+/** The most a track promises: the lowest band's number. */
+export function guaranteeMax(track: GuaranteeTrack): number {
+  return GUARANTEE.bands[0][track];
+}
+
+/** SAT scores move in tens, so a band that ends at 1200 is followed by one that starts at 1210. */
+const SCORE_STEP = 10;
+
+/** "1200 or lower", "1210 to 1300": the starting scores band `i` covers. */
+export function guaranteeBandLabel(i: number): string {
+  const band = GUARANTEE.bands[i];
+  return i === 0
+    ? `${band.upTo} or lower`
+    : `${GUARANTEE.bands[i - 1].upTo + SCORE_STEP} to ${band.upTo}`;
 }
 
 /** Who we tell, before they pay, that a program probably isn't worth their money. */

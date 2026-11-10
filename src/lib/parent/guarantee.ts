@@ -1,12 +1,10 @@
 /*
- * The score guarantee as a parent sees it (founder, 2026-11-08): the Cohort, Private 10 and
- * Private 20 carry it. The target is +100 points for a baseline under 1400 and +50 from 1400.
- * Baseline is the first measured score; progress is the latest predicted score.
- *
- * Merge note: the pricing session's GUARANTEE in src/lib/marketing/offer.ts carries the same
- * numbers (pointsBelow 100, pointsFrom 50, splitAt 1400). When it lands, read them from there.
+ * The score guarantee as a parent sees it: the Cohort, Private 10 and Private 20 carry it. The target
+ * depends on the starting score and on the plan (offer.ts, GUARANTEE; founder, 2026-11-09), and from a
+ * start of 1460 there is none. Baseline is the first measured score; progress is the latest predicted
+ * score.
  */
-export const GUARANTEE_RULE = { pointsBelow: 100, pointsFrom: 50, splitAt: 1400 } as const;
+import { GUARANTEE, guaranteedGain, type GuaranteeTrack } from "@/lib/marketing/offer";
 
 export interface GuaranteeStatus {
   plan: "Cohort" | "Private";
@@ -14,9 +12,16 @@ export interface GuaranteeStatus {
   target: number | null;
   /** Points gained so far, never below zero. */
   gained: number;
-  /** Points the guarantee asks for (+100 or +50). */
+  /** Points the guarantee asks for; null before a first score, and when the start is too high. */
   needed: number | null;
+  /** True when the starting score is at or above the point where no guarantee is sold. */
+  none: boolean;
   met: boolean;
+}
+
+/** Private 10 carries the cohort's numbers; every other private plan carries the full ones. */
+function trackOf(tier: string | null, plan: GuaranteeStatus["plan"]): GuaranteeTrack {
+  return plan === "Cohort" || tier === "private-10" ? "cohort" : "private";
 }
 
 /** Plan names as stored before and after the pricing session's plan ids land. */
@@ -35,17 +40,19 @@ export function guaranteeFor(
   if (!plan) return null;
   const baseline = history[0]?.score ?? null;
   if (baseline === null)
-    return { plan, baseline: null, target: null, gained: 0, needed: null, met: false };
-  const needed =
-    baseline < GUARANTEE_RULE.splitAt ? GUARANTEE_RULE.pointsBelow : GUARANTEE_RULE.pointsFrom;
+    return { plan, baseline: null, target: null, gained: 0, needed: null, none: false, met: false };
   const latest = history.at(-1)?.score ?? baseline;
   const gained = Math.max(0, latest - baseline);
+  const needed = guaranteedGain(baseline, trackOf(tier, plan));
+  if (needed === null)
+    return { plan, baseline, target: null, gained, needed: null, none: true, met: false };
   return {
     plan,
     baseline,
-    target: Math.min(1600, baseline + needed),
+    target: Math.min(GUARANTEE.topScore, baseline + needed),
     gained,
     needed,
+    none: false,
     met: gained >= needed,
   };
 }

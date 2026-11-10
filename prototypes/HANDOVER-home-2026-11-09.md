@@ -4,7 +4,7 @@ For the next session working on the home page. Read this, `PRODUCT.md` (Brand Co
 `.impeccable/surfaces/src-app-site-page-tsx.md` before touching anything. Load the `impeccable` skill.
 
 Branch `claude/painted-site`, cut from `main`, in the worktree `.claude/worktrees/painted-site`.
-Pushed as pull request #255 into `main`. Not merged, not deployed: both are the founder's call. Dev
+Merged into `main` as pull request #255 and deployed on 9 November, on the founder's word. Dev
 server: the `painted-site` entry in `.claude/launch.json` (port 3320, local database).
 
 ## What is built
@@ -16,7 +16,7 @@ night as the page scrolls. The founder approved this order.
 |---|---|---|---|
 | 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `LetterMotes.tsx`, `ClaimPill.tsx`, `Flock.tsx` | Headline forms from motes; the "280 points" shape slams in with its lettering cut out to the sky; a flock of birds spells 280 and regathers when the shape is pressed |
 | 2 | The proof: "We're twelve for twelve." | `Logos.tsx`, `src/lib/marketing/schools.ts` | 30 real logos land like leaves, then drift in two rows |
-| 3 | The offer: "Up to +200 points, or your money back." | `ScoreTiles.tsx`, `GUARANTEE_TIERS` in `offer.ts` | Flip tiles: their score now, the score guaranteed; leaves burst when it changes |
+| 3 | The offer: "Up to +200 points, or your money back." | `ScoreTiles.tsx`, `GUARANTEE` in `offer.ts` | Flip tiles: their score now, the score guaranteed; leaves burst when it changes |
 | 4 | Who: "Our tutors are overqualified. That's the point." | `public/site/tutors/*.svg`, `scripts/dev/make-tutor-peeps.mjs` | Six Open Peeps drawings pop up and hop on hover |
 | 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
@@ -51,8 +51,9 @@ a chat as the whole page).
 1. Section 1: find out what still feels off.
 2. Review sections 2 to 7 with him one at a time. He now has Mobbin and 21st.dev; use them for
    reference and components.
-3. The guarantee page and pricing page still show the OLD guarantee (+100, or +50 from 1400). The home
-   page shows the tiered one. They must match before launch. He has not formally signed the tiers off.
+3. Done on 9 November: the Guarantee, Pricing, Refunds, Terms and FAQ pages and the parent portal now
+   state the same tiered targets as the home page, from one record (`GUARANTEE` in `offer.ts`). Every
+   other rule is the lawyer-reviewed one. The lawyer has not re-read the tiered targets or Terms section 5.
 4. The other site pages (program, pricing, guarantee, private tutoring, FAQ, About, schools, tutors)
    still have the old look, old voice, marigold and generated photos.
 5. The six tutor drawings are stock Open Peeps. He offered to generate custom images in Gemini from
@@ -66,9 +67,10 @@ a chat as the whole page).
 ## Decisions on record
 
 - Average gain is 280 (he overrode `offer.ts`; the start and finish averages were removed).
-- Tiered guarantee, in `offer.ts` as `GUARANTEE_TIERS`: Private 20 promises +200 up to 1200, +150 to
-  1300, +100 to 1400, +50 to 1450. Cohort and Private 10 promise +150, +100, +70, +40. None from 1460.
-  Under half the target, all money back; short of it, half; or keep going free. Paid within 14 days.
+- Tiered targets, in `offer.ts` as `GUARANTEE.bands`: Private 20 promises +200 up to 1200, +150 to 1300,
+  +100 to 1400, +50 to 1450. Cohort and Private 10 promise +150, +100, +70, +40. None from 1460. Founder's
+  choice on 9 November: tiered targets, with every other rule kept exactly as the lawyer reviewed it
+  (15 of 18 classes, five tests, 90% of practice, SAT within 60 days, half or all back, claim in 30 days).
 - The home page takes its light from the painting, not from the device: ink on cream mist by day, cream
   on indigo at night. It has no light and dark switch.
 - Logos are from Wikimedia Commons (`public/site/schools/SOURCES.json`). He was told once that a public
