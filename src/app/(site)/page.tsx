@@ -14,7 +14,7 @@ import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import { CONTACT, GUARANTEE_TIERS, TRACK_RECORD } from "@/lib/marketing/offer";
+import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
 import { SCHOOLS } from "@/lib/marketing/schools";
 import { pairs, section } from "@/lib/marketing/site-copy";
@@ -124,8 +124,8 @@ export default function HomePage() {
           <div className="offer-cols">
             <div className="rv">
               <ScoreTiles
-                bands={GUARANTEE_TIERS.bands.map((b) => ({ ...b }))}
-                noGuaranteeFrom={GUARANTEE_TIERS.noGuaranteeFrom}
+                bands={GUARANTEE.bands.map((b) => ({ ...b }))}
+                noGuaranteeFrom={GUARANTEE.noGuaranteeFrom}
                 words={{
                   private: offer.private,
                   cohort: offer.cohort,

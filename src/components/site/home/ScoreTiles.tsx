@@ -4,7 +4,7 @@
 // digit after another like a departures board, to the score Karman guarantees for that start. A switch picks
 // private tutoring or the cohort. From the score where no guarantee is sold, it says so plainly. When the
 // guaranteed score changes, a few leaves burst from the tiles (lib/painting/journey.ts listens for
-// "karman:burst"). The numbers come from offer.ts (GUARANTEE_TIERS), passed in by the page with every word.
+// "karman:burst"). The numbers come from offer.ts (GUARANTEE), passed in by the page with every word.
 import { useEffect, useRef, useState } from "react";
 import Seg from "./Seg";
 
