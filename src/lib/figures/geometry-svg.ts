@@ -119,7 +119,7 @@ export interface GeometryRenderTheme {
   label: string;
 }
 
-// Observatory display palette (docs/brand.md) — geometry is a math
+// Observatory display palette (docs/archive/brand.md) — geometry is a math
 // figure, so it carries the Math-blue subject signal on the warm night
 // canvas, with ivory labels for late-night legibility.
 export const DISPLAY_THEME: GeometryRenderTheme = { stroke: "#2FA8FF", label: "#F3ECDD" };

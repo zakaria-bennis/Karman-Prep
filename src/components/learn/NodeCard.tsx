@@ -10,7 +10,7 @@
 //
 // Observatory chrome: warm surface, bronze hairline, the subject
 // accent confined to the tier badge, top rule, and lesson CTA.
-// Settle-style entry — no spring, no pop (docs/brand.md "Motion").
+// Settle-style entry — no spring, no pop (docs/archive/brand.md "Motion").
 // ============================================================
 
 import { motion } from "framer-motion";

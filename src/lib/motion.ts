@@ -3,7 +3,7 @@
 //
 // Two generations live side by side here:
 //
-//  1. CONTEMPLATIVE primitives (docs/brand.md "Motion") — the
+//  1. CONTEMPLATIVE primitives (docs/archive/brand.md "Motion") — the
 //     observatory direction. Small rises, long-tail eases, no
 //     overshoot, no scale-up springs. New code should reach for
 //     these.
@@ -17,7 +17,7 @@
 import type { Variants } from "framer-motion";
 
 // ─────────────────────────────────────────────────────────────
-// Contemplative — docs/brand.md
+// Contemplative — docs/archive/brand.md
 // ─────────────────────────────────────────────────────────────
 
 /** Duration tokens (seconds — framer-motion uses seconds, not ms). */

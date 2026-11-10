@@ -46,6 +46,6 @@ Env vars live in `.env.local` (gitignored). Mirror to Cloudflare via `npx wrangl
 Full docs in **[`docs/README.md`](./docs/README.md)**. Highlights:
 
 - [Deployment — Cloudflare](./docs/deployment-cloudflare.md)
-- [Handoff](./docs/handoff.md) — context for new contributors
+- [Handoff](./docs/archive/handoff.md) — context for new contributors
 - [Ingestion routine](./docs/ingestion/routine.md) — how SAT questions get into the bank
 - [Recaps & payouts audit](./docs/recaps-payouts/phase-0-audit.md) — recap-email + tutor-payout system design

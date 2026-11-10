@@ -1,18 +1,13 @@
 "use client";
 
 // What the frame does once the page is on screen (ported from the mock's site.js): the light and dark switch,
-// the opening's scroll cue, the phone menu, the film's pause button, the press feedback on links and
+// the opening's scroll cue, the phone menu, the painting's still button, the press feedback on links and
 // buttons, the one reveal, and the alive layer. It renders nothing.
 import { useEffect } from "react";
 import { SITE } from "@/lib/marketing/site-copy";
 import { startAlive } from "./live/alive";
 import { busy, line } from "./live/kit";
 import { motionPaused, setMotionPaused } from "./live/motion";
-
-const PAUSE =
-  '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="3" width="2.6" height="10" rx="1"/><rect x="9.4" y="3" width="2.6" height="10" rx="1"/></svg>';
-const PLAY =
-  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2v9.6c0 .6.6.9 1.1.6l7.2-4.8a.7.7 0 0 0 0-1.2L6.1 2.6C5.6 2.3 5 2.6 5 3.2Z"/></svg>';
 
 export default function ShellBehaviour() {
   useEffect(() => {
@@ -66,14 +61,12 @@ export default function ShellBehaviour() {
       { signal }
     );
 
-    /* ---------- the pause button (home only): stops every film on the page, remembered ---------- */
+    /* ---------- the footer's still button (home only): holds the painting and the films still, remembered ---------- */
     const motion = ks.querySelector<HTMLButtonElement>(".motion");
     if (motion) {
       const label = () => {
         const p = motionPaused();
-        motion.innerHTML = p ? PLAY : PAUSE;
-        motion.setAttribute("aria-label", p ? SITE.play : SITE.pause);
-        motion.title = motion.getAttribute("aria-label") ?? "";
+        motion.textContent = p ? SITE.play : SITE.pause;
         motion.setAttribute("aria-pressed", String(p));
       };
       motion.hidden = reduce;
