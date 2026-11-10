@@ -17,7 +17,7 @@ export const TUTOR_PHOTOS: TutorPhoto[] = [
   { src: "", kind: "PhD students" },
   { src: "", kind: "Medical students" },
   { src: "", kind: "Published writers" },
-  { src: "", kind: "Published researchers" },
+  { src: "", kind: "Peer-reviewed researchers" },
   { src: "", kind: "Professors" },
   { src: "", kind: "PhD students" },
 ];

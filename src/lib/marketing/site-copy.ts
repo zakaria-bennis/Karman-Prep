@@ -187,7 +187,7 @@ button note: Free. No card. No catch.
 
 ## 12 Tutors
 headline: Our tutors are overqualified. That's the point.
-credentials: PhD students = Research by day. Your student's algebra by night. | Medical students = They got through the MCAT. The SAT doesn't scare them. | Published writers = Edited by professionals. They fix a comma splice in their sleep. | Published researchers = Peer-reviewed in their own fields. | Professors = Teaching is already the day job.
+credentials: PhD students = Research by day. Your student's algebra by night. | Medical students = They got through the MCAT. The SAT doesn't scare them. | Published writers = Edited by professionals. They fix a comma splice in their sleep. | Peer-reviewed researchers = Published in their own fields. | Professors = Teaching is already the day job.
 
 ## 13 Their doubts
 headline: Go on. Ask us the hard ones.
