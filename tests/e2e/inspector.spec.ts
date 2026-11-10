@@ -71,10 +71,9 @@ test.describe("admin Inspector", () => {
     await page.goto("/admin/questions/inspect");
     await expect(page.getByRole("heading", { name: "Inspector" })).toBeVisible();
 
-    // The filter bar exposes 6 selects: Severity / Source / Category
-    // / Source PDF / Domain / Include resolved. We assert their labels
-    // are present (the <select> elements are themselves accessible).
-    await expect(page.getByText(/Severity$/i).first()).toBeVisible();
+    // Severity is a row of tabs (a labelled group); Source, Category, Source PDF and Domain
+    // are labelled selects.
+    await expect(page.getByRole("group", { name: "Severity" })).toBeVisible();
     await expect(page.getByText(/Source$/i).first()).toBeVisible();
     await expect(page.getByText(/Domain$/i).first()).toBeVisible();
   });

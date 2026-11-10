@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Card, Cta, Num, Ring, SectionHeader, SkillSquares, levelName } from "@/components/portal";
 import type { RunView, SkillMove } from "@/lib/assembler/run-types";
-import { AnswerShapes, LevelBanner } from "./LevelBanner";
+import { AnswerShapes, LevelBanner, LevelChanges, type LevelChange } from "./LevelBanner";
 import { DailyTenEnd } from "./DailyTenEnd";
 import { FlowFrame } from "./FlowFrame";
 import { TestReport } from "./TestReport";
@@ -101,16 +101,19 @@ export function RunEnd({
   exitHref,
   lessonHref,
   againHref,
+  changes = [],
 }: {
   user: ShellUser;
   run: RunView;
   exitHref: string;
   lessonHref?: string | null;
   againHref?: string;
+  /** Level changes collected during the run (not shown mid-run outside practice sets). */
+  changes?: readonly LevelChange[];
 }) {
   const result = run.result;
   if (!result) return null;
-  if (run.kind === "daily-ten") return <DailyTenEnd user={user} run={run} />;
+  if (run.kind === "daily-ten") return <DailyTenEnd user={user} run={run} changes={changes} />;
   if (run.kind === "full-test" || run.kind === "diagnostic")
     return <TestReport user={user} run={run} exitHref={exitHref} />;
   const next = weakestSkill(result.skills);
@@ -133,6 +136,7 @@ export function RunEnd({
           {set && leveled && (
             <LevelBanner change={{ skill: set.label, from: set.from, to: set.to }} />
           )}
+          {!set && <LevelChanges changes={changes} />}
           <div className={s.actions}>
             {run.kind === "practice-set" && !leveled ? (
               <>

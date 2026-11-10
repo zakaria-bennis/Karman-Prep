@@ -29,16 +29,16 @@ Nothing is deployed. Main is never touched. The founder deploys himself.
 These replace the Oct 30 ladder (Platform $29, Plus $49) everywhere: site,
 `src/lib/marketing/offer.ts`, `docs/business/`, app plans, emails, legal pages.
 
-| Plan | Price | What it includes |
-| --- | --- | --- |
-| Free | $0 | 100 questions in total, plus one free full-length test. |
-| Practice | $39 a month, or $89 for 3 months | The core question pool, with written explanations. |
-| Pro | $69 a month, or $149 for 3 months | Every question, including the hard mastery pool, plus video explanations. |
-| 9-week Cohort | $995 | At most 6 students. 18 sessions, twice a week, 60 minutes each. Score bands 1000 to 1200, 1200 to 1400, 1400 to 1600. No 1:1s. |
-| Private 10 | $1,495 | 10 hours of 1:1 tutoring. |
-| Private 20 | $2,495 | 20 hours of 1:1 tutoring. |
-| Schools | $8 per student a year, first year free | Each student gets Practice-plan access of their own. It is not a shared pool. |
-| Tutor affiliate | $199 a month per tutor | See below. |
+| Plan            | Price                                  | What it includes                                                                                                               |
+| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Free            | $0                                     | 100 questions in total, plus one free full-length test.                                                                        |
+| Practice        | $39 a month, or $89 for 3 months       | The core question pool, with written explanations.                                                                             |
+| Pro             | $69 a month, or $149 for 3 months      | Every question, including the hard mastery pool, plus video explanations.                                                      |
+| 9-week Cohort   | $995                                   | At most 6 students. 18 sessions, twice a week, 60 minutes each. Score bands 1000 to 1200, 1200 to 1400, 1400 to 1600. No 1:1s. |
+| Private 10      | $1,495                                 | 10 hours of 1:1 tutoring.                                                                                                      |
+| Private 20      | $2,495                                 | 20 hours of 1:1 tutoring.                                                                                                      |
+| Schools         | $8 per student a year, first year free | Each student gets Practice-plan access of their own. It is not a shared pool.                                                  |
+| Tutor affiliate | $199 a month per tutor                 | See below.                                                                                                                     |
 
 - **Guarantee:** the Cohort, Private 10 and Private 20 carry it. The target is
   +100 points for a student whose baseline is under 1400, and +50 for a
@@ -236,20 +236,20 @@ Tonight's additions:
 - **Lint:** `npm run lint` dies on the `.wrangler` folder. Add `.wrangler/**`
   to the ESLint ignores if your branch lacks it.
 
-| Session | Port |
-| --- | --- |
-| merge-ui | 3101 |
-| merge-rest | 3112 |
-| pricing | 3102 |
-| paint-foundation | 3103 |
-| site-audit | 3104 |
-| painted-home | 3105 |
-| tutor-affiliate | 3106 |
+| Session           | Port |
+| ----------------- | ---- |
+| merge-ui          | 3101 |
+| merge-rest        | 3112 |
+| pricing           | 3102 |
+| paint-foundation  | 3103 |
+| site-audit        | 3104 |
+| painted-home      | 3105 |
+| tutor-affiliate   | 3106 |
 | admin-scholarship | 3107 |
-| student-portal | 3108 |
-| quiz-flows | 3109 |
-| parent-school | 3110 |
-| qa-sweep | 3111 |
+| student-portal    | 3108 |
+| quiz-flows        | 3109 |
+| parent-school     | 3110 |
+| qa-sweep          | 3111 |
 
 The local Supabase runs on its default ports (API 54321, database 54322).
 

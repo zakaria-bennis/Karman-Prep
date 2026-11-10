@@ -6,10 +6,12 @@ import { Fox, levelName } from "@/components/portal";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
 import s from "./flows.module.css";
 
-export function LevelBanner({ change }: { change: { skill: string; from: number; to: number } }) {
+export type LevelChange = { skill: string; from: number; to: number };
+
+export function LevelBanner({ change, sound = true }: { change: LevelChange; sound?: boolean }) {
   useEffect(() => {
-    if (change.to >= 2) playRewardSound("levelUp");
-  }, [change.to]);
+    if (sound && change.to >= 2) playRewardSound("levelUp");
+  }, [change.to, sound]);
   return (
     <div className={s.levelBanner} role="status">
       <span className={s.fox} aria-hidden="true">
@@ -42,5 +44,24 @@ export function AnswerShapes({ answers }: { answers: { id: string; correct: bool
         </li>
       ))}
     </ol>
+  );
+}
+
+/** The level changes a run collected, listed on its end screen (one sound for the list). The
+ * latest change per skill wins, so a skill that moved twice shows where it ended. */
+export function LevelChanges({ changes }: { changes: readonly LevelChange[] }) {
+  const latest = new Map<string, LevelChange>();
+  for (const c of changes) {
+    const first = latest.get(c.skill);
+    latest.set(c.skill, first ? { ...c, from: first.from } : c);
+  }
+  const list = [...latest.values()].filter((c) => c.to !== c.from);
+  if (list.length === 0) return null;
+  return (
+    <div className={s.levelChanges} aria-label="Level changes">
+      {list.map((c, i) => (
+        <LevelBanner key={c.skill} change={c} sound={i === 0} />
+      ))}
+    </div>
   );
 }

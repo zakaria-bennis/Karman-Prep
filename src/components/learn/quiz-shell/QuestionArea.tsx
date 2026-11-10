@@ -19,6 +19,7 @@ export function QuestionArea({
   passage,
   question,
   wrap = (c) => c,
+  aside = null,
 }: {
   layout: QuizLayout;
   questionKey: string;
@@ -27,6 +28,9 @@ export function QuestionArea({
   question: ReactNode;
   /** Wraps one question's frame content (the calculator scope lives here). */
   wrap?: (content: ReactNode) => ReactNode;
+  /** The explanation after a miss, on wide screens: the question moves left and this fills the
+   *  right (founder, 2026-11-08). */
+  aside?: ReactNode;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const [split, setSplit] = useState(0.5);
@@ -59,7 +63,10 @@ export function QuestionArea({
   };
 
   return (
-    <div className={`${styles.area} ${styles[layout]} ${split2 ? styles.split : ""}`}>
+    <div
+      className={`${styles.area} ${styles[layout]} ${split2 ? styles.split : ""}`}
+      data-aside={aside ? "" : undefined}
+    >
       <Sky />
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
@@ -101,6 +108,21 @@ export function QuestionArea({
             )}
           </Presence>
         </motion.div>
+      </AnimatePresence>
+      <AnimatePresence>
+        {aside && (
+          <motion.aside
+            key={`aside-${questionKey}`}
+            data-quiz-scroll
+            className={styles.aside}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, x: 60 }}
+            transition={{ duration: reduced ? DUR.fast : 0.42, ease: [0.2, 0.8, 0.2, 1] }}
+          >
+            {aside}
+          </motion.aside>
+        )}
       </AnimatePresence>
     </div>
   );

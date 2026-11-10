@@ -15,7 +15,7 @@ import {
   trigger,
 } from "./quiz-helpers";
 
-test("AR-23 the dock is a 12 px left column with a separator between 400 px and min(900px, 100vw - 480px); the workspace shifts by its width plus 24 px", async ({
+test("AR-23 the dock is a 12 px left column with a separator keeping it (margins included) between 25% and 75% of the viewport and never under 320 px; the workspace shifts by its width plus 24 px", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -25,11 +25,11 @@ test("AR-23 the dock is a 12 px left column with a separator between 400 px and 
   expect(await frame(page).boundingBox()).toEqual({
     x: 12,
     y: top,
-    width: 576,
+    width: 552,
     height: 800 - top - 12,
   });
   const margin = () => shiftHost(page).evaluate((el) => getComputedStyle(el).marginLeft);
-  expect(await margin()).toBe("600px");
+  expect(await margin()).toBe("576px");
   // The question column stays usable beside the dock.
   expect(
     (await page.locator("[data-quiz-frame]:not([data-exiting]) [data-quiz-column]").boundingBox())!
@@ -39,9 +39,9 @@ test("AR-23 the dock is a 12 px left column with a separator between 400 px and 
   expect((await sep.boundingBox())!.width).toBe(24);
   await sep.focus();
   for (const [key, width] of [
-    ["ArrowRight", 592],
-    ["End", 800],
-    ["Home", 400],
+    ["ArrowRight", 568],
+    ["End", 936],
+    ["Home", 320],
   ] as const) {
     await page.keyboard.press(key);
     await expect(sep).toHaveAttribute("aria-valuenow", String(width));
@@ -52,7 +52,7 @@ test("AR-23 the dock is a 12 px left column with a separator between 400 px and 
   await page.mouse.down();
   await page.mouse.move(1250, s.y + 100, { steps: 4 });
   await page.mouse.up();
-  await expect(sep).toHaveAttribute("aria-valuenow", "800");
+  await expect(sep).toHaveAttribute("aria-valuenow", "936");
 });
 
 test("AR-24 catalog and daily docks start below the learn header; the page content shifts right of the dock by its width plus 24 px, keeps a question column at least 320 px wide and leaves no focusable or content element under the dock", async ({
@@ -173,7 +173,7 @@ test("AR-26 crossing 1024 px wide or 500 px tall switches between docked or floa
     await expect(frame(page)).toHaveAttribute("data-mode", mode);
     expect(await snap()).toEqual(before);
     await expect(row(page, 2)).toBeFocused();
-    if (mode === "docked") expect((await frame(page).boundingBox())!.width).toBe(576);
+    if (mode === "docked") expect((await frame(page).boundingBox())!.width).toBe(552);
   }
   await page.getByRole("button", { name: "Undock calculator" }).click();
   const rect = await frame(page).boundingBox();
@@ -184,7 +184,7 @@ test("AR-26 crossing 1024 px wide or 500 px tall switches between docked or floa
   expect(await frame(page).boundingBox()).toEqual(rect);
 });
 
-test("AN-10, L-10, L-6 docking, undocking, restoring and closing change the workspace width within one frame, without transitions or a replayed entry animation, at z-index 72", async ({
+test("AN-10, L-10, L-6 docking, undocking and restoring change the workspace width within one frame without a replayed entry animation, at z-index 72; closing a dock drops it away and a reopened dock rises from the bottom", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -208,13 +208,21 @@ test("AN-10, L-10, L-6 docking, undocking, restoring and closing change the work
         }),
       label
     );
-  expect(await after("Fixture dock")).toEqual(["600px", "0s", "0", "72"]);
+  expect(await after("Fixture dock")).toEqual(["576px", "0s", "0", "72"]);
   expect(await after("Undock calculator")).toEqual(["0px", "0s", "0", "72"]);
   expect(await after("Maximize calculator")).toEqual(["0px", "0s", "0", "72"]);
   expect(await after("Restore calculator size")).toEqual(["0px", "0s", "0", "72"]);
   await dock(page);
-  expect(await after("Close calculator")).toEqual(["0px", "0s", "0", "72"]);
+  // Founder, 2026-11-08: a closing dock drops away (data-leaving), then hides.
+  expect(await after("Close calculator")).toEqual(["0px", "0s", "1", "72"]);
   await expect(trigger(page)).toBeFocused();
+  await expect(frame(page)).not.toHaveAttribute("data-leaving");
+  await expect(frame(page)).toBeHidden();
+  // Reopening the dock rises it from the bottom.
+  await trigger(page).click();
+  await expect(frame(page)).toHaveAttribute("data-mode", "docked");
+  expect(await frame(page).evaluate((el) => el.getAnimations().length)).toBeGreaterThan(0);
+  await expect(frame(page)).not.toHaveAttribute("data-entering");
 });
 
 test("A11Y-6 floating and maximized are non-modal dialogs, full screen is modal, docked is complementary, all named Karman calculator around a Graphing calculator region", async ({

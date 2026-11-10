@@ -73,10 +73,8 @@ taken before the two fixes above.
 
 ## What is not done
 
-- The other student pages (Progress, Calendar, Quiz history, Messages, Billing) and the
-  tutor, parent and admin portals still use the old shell
-  (`src/components/shared/PortalShell.tsx` through `DashboardLayout`). The portal sessions
-  move them. Once none is left, delete the old shell and `DashboardLayout`.
+- Every portal page now uses this shell; the old shell and `DashboardLayout` were deleted
+  (claude/fix-portals, 2026-11-09).
 - There is no Homework tab yet, because there is no Homework page to link to.
 - There is no streak data in the app yet, so the streak stays hidden until a portal passes one.
 - Real local weather is not wired; the weather is clear unless forced in development.

@@ -78,14 +78,10 @@ Schedule, Earnings, Payouts and Settings.
 
 ## Not done
 
-- **The old layout files are not deleted.** `DashboardLayout` and
-  `src/components/shared/PortalShell.tsx` are still used by four student pages: Messages
-  (`/dashboard/student/chat`), Quiz history (list and detail) and the scholarship upload. Those
-  belong to the student-portal and quiz sessions. Delete both files once those pages move into
-  the student portal shell. The tutor and admin areas no longer use them.
-- **No guard for affiliate tutors on staff pages yet.** An affiliate tutor who types a staff
-  address like `/tutor/schedule` now gets the staff tabs, with empty pages. A guard should send
-  them back to `/tutor`.
+- **The old layout files are deleted** (claude/fix-portals, 2026-11-09): Messages, Quiz
+  history and the scholarship upload moved into the student portal shell.
+- **Affiliate tutors on staff pages** are now sent back to `/tutor` (claude/fix-portals,
+  2026-11-09): staff-only routes sit in `src/app/tutor/(staff)/`.
 - **Some tutor tab contents** (Skills, Tutor controls, Flagged, Quiz history) are re-coloured,
   not redesigned. They keep their own tables and filters.
 

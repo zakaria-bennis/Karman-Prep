@@ -149,7 +149,9 @@ export function themeScore(): NoteEvent[] {
 
 const MASTER = 0.05;
 const FADE = 2;
-const LOOKAHEAD = 1;
+/* Two seconds queued ahead: the painted pages keep the main thread busy, and a late timer
+   used to leave gaps that clicked (founder, 2026-11-08). */
+const LOOKAHEAD = 2;
 const TICK_MS = 200;
 
 interface Engine {
@@ -207,6 +209,8 @@ function build(): Engine | null {
   feedback.connect(delay);
   tone.connect(bus);
 
+  crackle(ctx, master);
+
   return {
     ctx,
     master,
@@ -220,6 +224,46 @@ function build(): Engine | null {
   };
 }
 
+/**
+ * A soft record crackle under the theme (founder, 2026-11-08: "a little bit of soft crackle").
+ * Four seconds of sparse, rounded grains (each a few milliseconds long, never a one-sample
+ * spike, which is what sounds harsh), looped, darkened and kept well under the music.
+ */
+const CRACKLE_GAIN = 0.12;
+function crackle(ctx: AudioContext, out: AudioNode): void {
+  const rate = ctx.sampleRate;
+  const buf = ctx.createBuffer(1, rate * 4, rate);
+  const data = buf.getChannelData(0);
+  let seed = 7;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const grains = 4 * 14;
+  for (let i = 0; i < grains; i++) {
+    const at = Math.floor(rand() * (data.length - rate * 0.01));
+    const len = Math.floor(rate * (0.002 + rand() * 0.004));
+    const amp = 0.15 + rand() * 0.35 * (rand() < 0.15 ? 2 : 1);
+    for (let j = 0; j < len; j++) {
+      const shape = Math.sin((Math.PI * j) / len) * Math.exp((-3 * j) / len);
+      data[at + j] += (rand() * 2 - 1) * amp * shape;
+    }
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  const dark = ctx.createBiquadFilter();
+  dark.type = "lowpass";
+  dark.frequency.value = 2400;
+  const thin = ctx.createBiquadFilter();
+  thin.type = "highpass";
+  thin.frequency.value = 300;
+  const level = ctx.createGain();
+  level.gain.value = CRACKLE_GAIN;
+  src.connect(thin);
+  thin.connect(dark);
+  dark.connect(level);
+  level.connect(out);
+  src.start();
+}
+
 function playNote(e: Engine, n: NoteEvent, when: number): void {
   const { ctx } = e;
   const osc = ctx.createOscillator();
@@ -228,7 +272,7 @@ function playNote(e: Engine, n: NoteEvent, when: number): void {
   osc.frequency.value = n.freq;
   if (n.voice === "pad") osc.detune.value = (n.freq % 7) - 3; // a touch of warmth, no chorus
 
-  const attack = n.voice === "pad" ? 1.5 : n.voice === "bass" ? 0.6 : 0.01;
+  const attack = n.voice === "pad" ? 1.5 : n.voice === "bass" ? 0.6 : 0.025;
   const end = when + n.dur;
   const g = env.gain;
   g.setValueAtTime(0, when);
