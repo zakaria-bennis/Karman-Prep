@@ -8,7 +8,7 @@ import * as Icons from "./index";
 const shellDir = path.resolve(__dirname, "..");
 const names = [
   "BookmarkIcon",
-  "FlagIcon",
+  "RaiseHandIcon",
   "ReviewMarkIcon",
   "EliminatorIcon",
   "PenIcon",

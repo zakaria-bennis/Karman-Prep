@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { QuizMode } from "@/lib/quiz/mode";
 import styles from "./pane.module.css";
 import shell from "./quiz-shell.module.css";
-import { BookmarkIcon, EliminatorIcon, FlagIcon, ReviewMarkIcon } from "./icons";
+import { BookmarkIcon, EliminatorIcon, RaiseHandIcon, ReviewMarkIcon } from "./icons";
 
 /** Question number, markers and the eliminator toggle (spec: Bluebook tools). */
 export function QuestionHeader({
@@ -67,12 +67,12 @@ export function QuestionHeader({
           <button
             type="button"
             className={shell.tool}
-            aria-label="Flag for my tutor"
+            aria-label="Ask my tutor"
             aria-pressed={flagged}
             aria-expanded={noteOpen}
             onClick={() => (flagged ? undefined : setNoteOpen((v) => !v))}
           >
-            <FlagIcon state={on(flagged)} />
+            <RaiseHandIcon state={on(flagged)} />
           </button>
           {noteOpen && (
             <form
@@ -85,7 +85,7 @@ export function QuestionHeader({
               onKeyDown={(e) => e.key === "Escape" && setNoteOpen(false)}
             >
               <label className={styles.popoverLabel} htmlFor="tutor-flag-note">
-                Note for your tutor (optional)
+                Question for your tutor (optional)
               </label>
               <textarea
                 id="tutor-flag-note"

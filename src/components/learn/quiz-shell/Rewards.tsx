@@ -1,7 +1,7 @@
 "use client";
 // Khan-style small wins in instant-grading modes (spec: Small wins).
-import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "framer-motion";
-import { useEffect } from "react";
+// Tokens are never shown here: they appear only on the result screen.
+import { AnimatePresence, motion } from "framer-motion";
 import type { ConfidenceBand } from "@/types/quiz";
 import type { DotState } from "@/lib/quiz/rewards";
 import styles from "./rewards.module.css";
@@ -9,34 +9,19 @@ import { ChevronIcon, CrossIcon, FlameIcon, TickIcon } from "./icons";
 import { BOUNCE, useShellMotion } from "./motion";
 import { RewardDrawing } from "./drawings";
 
-function CountUp({ to, reduced }: { to: number; reduced: boolean }) {
-  const value = useMotionValue(reduced ? to : 0);
-  const text = useTransform(value, (v) => `+${Math.round(v)}`);
-  useEffect(() => {
-    if (reduced) return value.set(to);
-    const c = animate(value, to, { duration: 0.45, ease: "easeOut" });
-    return () => c.stop();
-  }, [to, reduced, value]);
-  return <motion.span>{text}</motion.span>;
-}
-
 export function FeedbackBar({
   correct,
-  points,
   streak,
   showStreak,
   drawing,
 }: {
   correct: boolean;
-  points: number;
   streak: number;
   showStreak: boolean;
   drawing: string;
 }) {
   const { reduced } = useShellMotion();
-  const said = correct
-    ? `Correct.${points ? ` Plus ${points} points.` : ""}${showStreak ? ` ${streak} in a row.` : ""}`
-    : "Not quite.";
+  const said = correct ? `Correct.${showStreak ? ` ${streak} in a row.` : ""}` : "Not quite.";
   return (
     <motion.div
       role="status"
@@ -56,17 +41,6 @@ export function FeedbackBar({
       <span className={styles.message} aria-hidden="true">
         {correct ? "Correct" : "Not quite"}
       </span>
-      {correct && points > 0 && (
-        <motion.span
-          aria-hidden="true"
-          className={`${styles.points} ${points >= 15 ? styles.gold : ""}`}
-          initial={reduced ? false : { scale: 0.6 }}
-          animate={{ scale: 1 }}
-          transition={BOUNCE}
-        >
-          <CountUp to={points} reduced={reduced} />
-        </motion.span>
-      )}
       {correct && showStreak && (
         <span className={styles.streak} aria-hidden="true">
           <FlameIcon size={18} />

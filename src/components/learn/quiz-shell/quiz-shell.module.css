@@ -345,6 +345,35 @@
   position: absolute;
   inset: 0;
   display: grid;
+  transition: right 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* After a miss on a wide screen the question moves left and the explanation takes the right. */
+.area[data-aside] .frame {
+  right: min(46%, 640px);
+}
+.aside {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  width: min(46%, 640px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 28px 32px 48px;
+  border-left: 1px solid var(--quiz-line);
+  background: var(--quiz-panel);
+  color: var(--quiz-text);
+}
+.aside section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame {
+    transition: none;
+  }
 }
 .scroll {
   position: relative;
@@ -556,12 +585,29 @@
 .painting[data-ready] {
   opacity: 1;
 }
+/* With the painting behind it, the whole quiz takes the painting's colours (founder,
+   2026-11-08: "a matching color theme to the background … you don't need to stick exclusively
+   to marigold"). Light and dark still follow the device: each has its own painted set. The
+   accent is light in dark mode and dark in light mode, so text on it (--quiz-bg) stays legible.
+   Right and wrong keep their own colours. */
 .shell[data-backdrop="painting"] {
   --window-bar: hsl(var(--hue, 208) 34% 95%);
+  --quiz-bg: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 95%);
+  --quiz-panel: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.4) 98%);
+  --quiz-line: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.3) 80%);
+  --quiz-text: hsl(var(--hue, 208) 30% 12%);
+  --quiz-text-muted: hsl(var(--hue, 208) 14% 36%);
+  --quiz-accent: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.9) 34%);
 }
 @media (prefers-color-scheme: dark) {
   .shell[data-backdrop="painting"] {
     --window-bar: hsl(var(--hue, 208) 26% 12%);
+    --quiz-bg: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 8%);
+    --quiz-panel: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 11%);
+    --quiz-line: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.3) 24%);
+    --quiz-text: hsl(var(--hue, 208) 20% 93%);
+    --quiz-text-muted: hsl(var(--hue, 208) 12% 70%);
+    --quiz-accent: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.9) 68%);
   }
 }
 .shell[data-backdrop="painting"] .barGroup,
@@ -578,12 +624,26 @@
 .shell[data-backdrop="painting"] .sky {
   display: none;
 }
+/* The page stays full width (so pencil notes in the margins keep their place), and the reading
+   panel is drawn behind the column instead. */
 .shell[data-backdrop="painting"].wide [data-quiz-scroll] > [data-quiz-pane]:only-child {
-  max-width: calc(44rem + 98px);
-  margin: 0 auto;
+  background: transparent;
+}
+.shell[data-backdrop="painting"].wide [data-quiz-scroll] > [data-quiz-pane]:only-child::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  /* Always reaches the bottom of the screen, even when the page is shorter (calculator open). */
+  height: max(100%, 100vh);
+  left: 50%;
+  z-index: -1;
+  width: min(calc(44rem + 98px), 100%);
+  transform: translateX(-50%);
   border-left: 1px solid var(--quiz-line);
   border-right: 1px solid var(--quiz-line);
+  background: var(--quiz-panel);
   box-shadow: 0 0 60px -20px rgb(0 0 0 / 0.35);
+  transition: opacity 300ms ease;
 }
 .shell[data-backdrop="painting"] .wide.split .frame {
   max-width: 1280px;
@@ -591,4 +651,37 @@
 .shell[data-backdrop="painting"]:not(.wide) .area {
   margin-top: 10px;
   border-top: 1px solid var(--quiz-line);
+}
+
+/* Pencil on, untimed (founder, 2026-11-08): the painting turns to frosted glass, heavily blurred
+   and tinted toward the mode's background, and the question's page widens to the edges so the
+   margins can be written on. Dark enough (or light enough) that the pen always stands out. */
+.shell[data-backdrop="painting"] .painting {
+  transition:
+    opacity 400ms ease,
+    filter 360ms ease;
+}
+.shell[data-backdrop="painting"][data-pencil] .painting {
+  filter: blur(36px) saturate(0.7) brightness(1.25) contrast(0.6);
+}
+.shell[data-backdrop="painting"][data-pencil]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--quiz-bg) 62%, transparent);
+}
+@media (prefers-color-scheme: dark) {
+  .shell[data-backdrop="painting"][data-pencil] .painting {
+    filter: blur(36px) saturate(0.7) brightness(0.55);
+  }
+  .shell[data-backdrop="painting"][data-pencil]::before {
+    background: color-mix(in srgb, var(--quiz-bg) 58%, transparent);
+  }
+}
+.shell[data-backdrop="painting"][data-pencil].wide
+  [data-quiz-scroll]
+  > [data-quiz-pane]:only-child::before {
+  opacity: 0;
 }

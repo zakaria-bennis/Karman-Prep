@@ -10,6 +10,8 @@ import {
   clampFloatingRect,
   defaultDockWidth,
   defaultFloatingRect,
+  dockFits,
+  minDockWidth,
   windowModeFor,
 } from "./calculator-window-store";
 import { DEFAULT_SETTINGS } from "@/lib/calculator/core/api/types";
@@ -85,14 +87,23 @@ it("AR-22 floating geometry starts at 16, 64 with its default size and is clampe
   });
 });
 
-it("AR-23 the dock defaults to clamp(400px, 45vw, 720px) and stays between 400 and min(900, 100vw - 480)", () => {
-  expect([800, 1024, 1280, 1920].map(defaultDockWidth)).toEqual([400, 461, 576, 720]);
+it("the dock defaults to 45% and stays between 25% and 75% of the viewport, margins included (founder, 2026-11-08)", () => {
+  expect([800, 1024, 1280, 1920].map(defaultDockWidth)).toEqual([336, 437, 552, 840]);
   expect([
-    clampDockWidth(350, 1280),
-    clampDockWidth(1000, 1280),
-    clampDockWidth(1000, 1920),
+    clampDockWidth(100, 1280),
+    clampDockWidth(2000, 1280),
+    clampDockWidth(2000, 1920),
     clampDockWidth(600, 1024),
-  ]).toEqual([400, 800, 900, 544]);
+  ]).toEqual([320, 936, 1416, 600]);
+});
+
+it("the dock never goes under 320 px, and a viewport too narrow for it plus 25% of question shows full screen (2026-11-09)", () => {
+  expect([800, 1024, 1280, 1920].map(minDockWidth)).toEqual([320, 320, 320, 456]);
+  expect(clampDockWidth(150, 800)).toBe(320);
+  expect([dockFits(800), dockFits(458), dockFits(457)]).toEqual([true, true, false]);
+  calculatorWindowStore.set({ mode: "docked" });
+  expect(windowModeFor(get(), false, 1280)).toBe("docked");
+  expect(windowModeFor(get(), false, 400)).toBe("fullscreen");
 });
 
 it("the geometry survives a reload through localStorage; preferences stay in the page session (owner, 2026-10-21)", () => {

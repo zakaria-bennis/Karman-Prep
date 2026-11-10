@@ -23,6 +23,8 @@ export type QuestionContentProps = {
   figureHere: boolean;
   hasCalculator: boolean;
   pickOffer: string | null;
+  /** The explanation is shown beside the question instead (a miss on a wide screen). */
+  explanationAside?: boolean;
   onAnswer(value: string | null): void;
   onCross(letter: string): void;
   onToggleReview(): void;
@@ -85,7 +87,7 @@ export function QuestionContent(p: QuestionContentProps) {
           pickOffer={p.pickOffer}
         />
       )}
-      {graded && review && <Explanation q={q} review={review} />}
+      {graded && review && !p.explanationAside && <Explanation q={q} review={review} />}
     </>
   );
 }

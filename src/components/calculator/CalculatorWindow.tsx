@@ -18,11 +18,12 @@ import {
 import { Maximize2, Minimize2, Minus, PictureInPicture2, X } from "lucide-react";
 import {
   DOCK_MARGIN,
-  DOCK_MIN_WIDTH,
   WINDOW_KEY_STEP,
   calculatorWindowStore,
   clampDockWidth,
   clampFloatingRect,
+  maxDockWidth,
+  minDockWidth,
   type WindowMode,
   type WindowRect,
 } from "./calculator-window-store";
@@ -92,11 +93,9 @@ function viewport() {
   return { width: window.innerWidth, height: window.innerHeight };
 }
 
-/** The dock's widest width in this viewport, `min(900px, 100vw - 480px)` but at least 400 px. */
-function maxDockWidth(): number {
-  return typeof window === "undefined"
-    ? DOCK_MIN_WIDTH
-    : clampDockWidth(Number.POSITIVE_INFINITY, window.innerWidth);
+/** The live viewport width, 0 before the client renders. */
+function viewportWidth(): number {
+  return typeof window === "undefined" ? 0 : window.innerWidth;
 }
 
 /** A pointer drag of the title bar (move) or the grip (resize), from the rect it started on. */
@@ -343,8 +342,8 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
           aria-orientation="vertical"
           aria-label="Resize calculator dock"
           aria-valuenow={props.dockWidth}
-          aria-valuemin={DOCK_MIN_WIDTH}
-          aria-valuemax={maxDockWidth()}
+          aria-valuemin={minDockWidth(viewportWidth())}
+          aria-valuemax={maxDockWidth(viewportWidth())}
           tabIndex={0}
           {...splitterHandlers}
         />
@@ -356,9 +355,9 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
 
 /** The splitter's next dock width for one of SPLITTER_KEYS (AR-23). */
 function splitterWidth(key: string, dockWidth: number): number {
-  const viewportWidth = window.innerWidth;
-  if (key === "Home") return DOCK_MIN_WIDTH;
-  if (key === "End") return clampDockWidth(Number.POSITIVE_INFINITY, viewportWidth);
+  const width = window.innerWidth;
+  if (key === "Home") return minDockWidth(width);
+  if (key === "End") return maxDockWidth(width);
   const step = key === "ArrowRight" ? WINDOW_KEY_STEP : -WINDOW_KEY_STEP;
-  return clampDockWidth(dockWidth + step, viewportWidth);
+  return clampDockWidth(dockWidth + step, width);
 }

@@ -237,7 +237,7 @@ describe("getPlan", () => {
     expect(plan.planId).toBe("tutor-affiliate");
     expect(canAccess(plan, "tutor-admin")).toBe(true);
     expect(canAccess(plan, "pool:mastery")).toBe(true);
-    expect(plan.entitlements.maxSponsoredStudents).toBe(50);
+    expect(plan.entitlements.maxSponsoredStudents).toBe(40);
   });
 
   it("rejects an empty user id", async () => {
@@ -454,16 +454,16 @@ describe("tutor-affiliate seats", () => {
       grant(`user_s${i}`, "practice", "tutor-affiliate", { sourceRef: `redemption_user_s${i}` })
     );
 
-  it("caps a tutor at 50 students", async () => {
+  it("caps a tutor at 40 students", async () => {
     const { source } = fakeSource({
       subscriptions: [sub(TUTOR, "tutor-affiliate")],
-      grants: roster(49),
+      grants: roster(39),
     });
     expect(await canSponsorMore(TUTOR, source, NOW)).toBe(true);
     expect((await grantPlan(affiliate("user_new"), source, NOW)).status).toBe("created");
-    expect(await activeSponsoredCount(TUTOR, source, NOW)).toBe(50);
+    expect(await activeSponsoredCount(TUTOR, source, NOW)).toBe(40);
     expect(await canSponsorMore(TUTOR, source, NOW)).toBe(false);
-    await expect(grantPlan(affiliate("user_51"), source, NOW)).rejects.toBeInstanceOf(
+    await expect(grantPlan(affiliate("user_41"), source, NOW)).rejects.toBeInstanceOf(
       PlanGrantError
     );
     // A retry for a student already on the roster still works at the cap.
@@ -471,10 +471,10 @@ describe("tutor-affiliate seats", () => {
   });
 
   it("frees a seat when a student is removed or their grant expires", async () => {
-    const grants = roster(50);
+    const grants = roster(40);
     grants[0]!.expiresAt = at(-1);
     const { source } = fakeSource({ subscriptions: [sub(TUTOR, "tutor-affiliate")], grants });
-    expect(await activeSponsoredCount(TUTOR, source, NOW)).toBe(49);
+    expect(await activeSponsoredCount(TUTOR, source, NOW)).toBe(39);
     await grantPlan(affiliate("user_new"), source, NOW);
     expect(await canSponsorMore(TUTOR, source, NOW)).toBe(false);
     await revokeGrant(

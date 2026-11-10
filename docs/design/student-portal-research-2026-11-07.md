@@ -5,18 +5,18 @@ grid could not be verified, because its legend is an image and Mobbin needs a pa
 
 ## How strong designers decide
 
-| Source | What they do | What Karman does |
-| --- | --- | --- |
-| [NN/g, progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/) | Put what people often need up front, and stop at two levels | Today holds today's work. Everything else is one clear click away |
-| [Khan Academy, 2025](https://blog.khanacademy.org/?p=20367) | Students called it overwhelming and unclear about what to do next | Today opens by naming the next task, its size and its due date |
-| [Duolingo, new home](https://blog.duolingo.com/new-duolingo-home-screen-design) | Replaced vague labels with what the learner can do | Skills use their real names, never coded labels |
-| [NN/g, information scent](https://www.nngroup.com/articles/information-scent/) | Vague labels weaken a user's guess at what a link delivers | Rows name the task and carry one useful number, such as "3 to review" |
-| [NN/g, dashboards](https://www.nngroup.com/articles/dashboards-preattentive/) | Use length and position for quantity. Avoid gauges and donuts | Bars and squares, no progress rings |
-| [Tufte, sparklines](https://www.edwardtufte.com/notebook/sparkline-theory-and-practice-edward-tufte/) | Give a number its history | The score sits on top of its test history |
-| [Linear, redesign](https://linear.app/blog/how-we-redesigned-the-linear-ui) | Set hierarchy in black and white before colour | Check screens in greyscale before approving colour |
-| [NN/g, animation](https://www.nngroup.com/articles/animation-purpose-ux/) | Motion is for feedback, state change and orientation. Decorative motion often frustrates | Interface motion marks a press or a change, such as a skill moving up |
-| [Apple, WWDC25 session 219](https://developer.apple.com/videos/play/wwdc2025/219/) | Glass belongs on the navigation layer, never on content or on other glass | Only the sidebar is glass. Respects Reduced Transparency and Reduced Motion |
-| [Duolingo, streaks](https://blog.duolingo.com/how-streaks-keep-duolingo-learners-committed-to-their-language-goals) | Planned breaks raise retention | Open idea: streak breaks. Not built |
+| Source                                                                                                              | What they do                                                                             | What Karman does                                                            |
+| ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [NN/g, progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/)                            | Put what people often need up front, and stop at two levels                              | Today holds today's work. Everything else is one clear click away           |
+| [Khan Academy, 2025](https://blog.khanacademy.org/?p=20367)                                                         | Students called it overwhelming and unclear about what to do next                        | Today opens by naming the next task, its size and its due date              |
+| [Duolingo, new home](https://blog.duolingo.com/new-duolingo-home-screen-design)                                     | Replaced vague labels with what the learner can do                                       | Skills use their real names, never coded labels                             |
+| [NN/g, information scent](https://www.nngroup.com/articles/information-scent/)                                      | Vague labels weaken a user's guess at what a link delivers                               | Rows name the task and carry one useful number, such as "3 to review"       |
+| [NN/g, dashboards](https://www.nngroup.com/articles/dashboards-preattentive/)                                       | Use length and position for quantity. Avoid gauges and donuts                            | Bars and squares, no progress rings                                         |
+| [Tufte, sparklines](https://www.edwardtufte.com/notebook/sparkline-theory-and-practice-edward-tufte/)               | Give a number its history                                                                | The score sits on top of its test history                                   |
+| [Linear, redesign](https://linear.app/blog/how-we-redesigned-the-linear-ui)                                         | Set hierarchy in black and white before colour                                           | Check screens in greyscale before approving colour                          |
+| [NN/g, animation](https://www.nngroup.com/articles/animation-purpose-ux/)                                           | Motion is for feedback, state change and orientation. Decorative motion often frustrates | Interface motion marks a press or a change, such as a skill moving up       |
+| [Apple, WWDC25 session 219](https://developer.apple.com/videos/play/wwdc2025/219/)                                  | Glass belongs on the navigation layer, never on content or on other glass                | Only the sidebar is glass. Respects Reduced Transparency and Reduced Motion |
+| [Duolingo, streaks](https://blog.duolingo.com/how-streaks-keep-duolingo-learners-committed-to-their-language-goals) | Planned breaks raise retention                                                           | Open idea: streak breaks. Not built                                         |
 
 ## How Khan Academy shows mastery
 

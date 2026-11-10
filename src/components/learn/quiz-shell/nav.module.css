@@ -3,8 +3,14 @@
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  /* Squares per row come from columnsFor() (rows that come out even). */
+  grid-template-columns: repeat(var(--nav-cols, 10), minmax(0, 1fr));
   gap: 8px;
+}
+@media (max-width: 520px) {
+  .grid {
+    gap: 5px;
+  }
 }
 .cell {
   display: flex;
@@ -12,7 +18,7 @@
 .square {
   flex: 1;
   position: relative;
-  min-height: 48px;
+  min-height: 44px;
   border: 1.5px dashed var(--quiz-text-muted);
   border-radius: 8px;
   background: transparent;
@@ -69,7 +75,7 @@
   border-top: 1px solid var(--quiz-line);
 }
 .popover {
-  width: min(560px, calc(100vw - 32px));
+  width: min(680px, calc(100vw - 32px));
   max-height: 70vh;
   overflow: auto;
   margin-bottom: 88px;
