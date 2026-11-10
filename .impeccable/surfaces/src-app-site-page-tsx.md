@@ -12,7 +12,7 @@ Scope: the marketing home page. Mode: Persuade. Visitor: a parent of a high-scho
 Order the founder approved on 2026-11-09 (he pinned this; it replaced a dealt hand of three single-device structures he rejected as "each one gimmick"):
 
 1. The claim. "Our average student gains 280 points. Yours doesn't have to be average." Start free.
-2. The proof. "We're twelve for twelve." Logos.
+2. The proof. "We're twelve for twelve." The universities' logos on lit lanterns that rise, bump and come round again (settled 2026-11-10).
 3. The offer. "Up to +200 points, or your money back." Their score now, the score we guarantee, what comes back.
 4. Who. "Our tutors are overqualified. That's the point."
 5. How. "Six ways we make a skill stick, because one would be lazy."

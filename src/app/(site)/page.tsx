@@ -6,7 +6,7 @@ import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
-import Logos from "@/components/site/home/Logos";
+import Lanterns from "@/components/site/home/Lanterns";
 import ScoreTiles from "@/components/site/home/ScoreTiles";
 import Ways from "@/components/site/home/Ways";
 import SitePage from "@/components/site/SitePage";
@@ -110,7 +110,7 @@ export default function HomePage() {
             <li key={x.name}>{x.name}</li>
           ))}
         </ul>
-        <Logos schools={SCHOOLS} />
+        <Lanterns schools={SCHOOLS} />
       </section>
 
       {/* 3. The offer */}
