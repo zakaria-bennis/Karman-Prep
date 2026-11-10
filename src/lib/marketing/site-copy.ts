@@ -16,8 +16,8 @@
 // ("pricing ...") and the loading and form messages ("form ...").
 //
 // House rules: no em dashes, nothing the offer doesn't promise, tutoring
-// results always with "Karman 1:1 tutoring, median 16 weeks", no numbered
-// list markers, talk to the parent.
+// results with "Karman 1:1 tutoring, median 16 weeks" (the home page's opening
+// leaves it off: founder, 2026-11-10), no numbered list markers, talk to the parent.
 // ============================================================
 
 import {
@@ -114,7 +114,6 @@ export const SITE_COPY = `
 ## 1 Opening
 headline: Our average student gains ${TR.averageGain} points. Yours doesn't have to be average.
 text: We built the SAT prep we wish we'd had: overqualified tutors, a portal that knows exactly what your student gets wrong, and a guarantee with our money on the line.
-proof: ${TR.sourceLabel}.
 button: Start free
 button note: ${FREE.questionLimit} practice questions and a full-length practice test. No card. No catch.
 second button: See pricing
@@ -187,12 +186,15 @@ button note: Free. No card. No catch.
 
 ## 12 Tutors
 headline: Our tutors are overqualified. That's the point.
-credentials: PhD students = Research by day. Your student's algebra by night. | Medical students = They got through the MCAT. The SAT doesn't scare them. | Published writers = Edited by professionals. They fix a comma splice in their sleep. | Published researchers = Peer-reviewed in their own fields. | Professors = Teaching is already the day job.
+credentials: PhD students = Research by day. Your student's algebra by night. | Medical students = They got through the MCAT. The SAT doesn't scare them. | Published writers = Edited by professionals. They fix a comma splice in their sleep. | Peer-reviewed researchers = Published in their own fields. | Professors = Teaching is already the day job.
 
 ## 13 Their doubts
 headline: Go on. Ask us the hard ones.
 label: More questions
 asks: What if the score doesn't go up? = Then your money comes back. All of it if we miss by a lot, half if we miss by a little. Or your student keeps going with us for free. | Who's teaching my kid? = People who are overqualified on purpose. PhD students, medical students, published writers, researchers and professors. | How much time does it take? = About ten minutes a day. In the cohort, add ${w(MP.classesPerWeek)} live classes a week. Get one wrong and your tutor is updated before you finish reading this sentence. | Can we try it first? = Yes. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card.
+
+## 14 Receipts
+headline: We keep the receipts.
 
 ## 21 Program: opening
 headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.
