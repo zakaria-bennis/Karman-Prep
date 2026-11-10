@@ -8,7 +8,7 @@
 // or when the painting is held still, nothing moves by itself: the first row is lit, any row can be tapped,
 // and the conversation scrolls by hand.
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Phone } from "@/components/site/parts";
+import PhoneFrame from "@/components/site/PhoneFrame";
 import type { Receipt } from "@/lib/marketing/receipts";
 
 const HOLD_MS = 6000;
@@ -130,26 +130,28 @@ export default function Receipts({
         </ol>
       </div>
       <div className="rcp-phone">
-        <Phone>
-          <div className="scr txt">
-            <div className="txt-top">
-              <span className="txt-face" aria-hidden="true">
-                {now.name.replace(/[^A-Z]/g, "").slice(-1) || now.name[0]}
-              </span>
-              <b>{now.name}</b>
-            </div>
-            <div className="txt-view">
-              <div className="txt-thread" key={active} ref={thread}>
-                <small>Text Message</small>
-                {now.texts.map((t, k) => (
-                  <p key={k} className={t.from === "karman" ? "me" : undefined}>
-                    {t.text}
-                  </p>
-                ))}
+        <PhoneFrame>
+          <div className="scr-host">
+            <div className="scr txt">
+              <div className="txt-top">
+                <span className="txt-face" aria-hidden="true">
+                  {now.name.replace(/[^A-Z]/g, "").slice(-1) || now.name[0]}
+                </span>
+                <b>{now.name}</b>
+              </div>
+              <div className="txt-view">
+                <div className="txt-thread" key={active} ref={thread}>
+                  <small>Text Message</small>
+                  {now.texts.map((t, k) => (
+                    <p key={k} className={t.from === "karman" ? "me" : undefined}>
+                      {t.text}
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </Phone>
+        </PhoneFrame>
       </div>
     </div>
   );
