@@ -17,7 +17,7 @@ night as the page scrolls. The founder approved this order.
 | 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `ClaimPill.tsx`, `Flock.tsx`, `CLAIM_BOOT` in `page.tsx` | Headline comes into focus out of the haze, word by word; the "280 points" shape slams in with its lettering cut out to the sky; two or three small flocks of birds cross the sky |
 | 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
 | 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence; a +200 ring stamp brought down hard at the top right, level with the headline (the headline jolts and leaves burst); three outcome cards slide in from the side; his own "Karman" signature, kept low, right above the link to the full guarantee |
-| 4 | Who: "Our tutors are overqualified. That's the point." | `public/site/tutors/*.svg`, `scripts/dev/make-tutor-peeps.mjs` | Six Open Peeps drawings pop up and hop on hover |
+| 4 | Who: "Our tutors are overqualified. That's the point." | `TutorArc.tsx`, `src/lib/marketing/tutors.ts` (until the real photos are listed there: the five drawings in `public/site/tutors/`) | Photos wait in a stack at the left, fan out along a half circle that turns slowly like a wheel with its lower half out of sight; the title of whoever is at the top pops up in the middle |
 | 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 | 7 | Price and close, at night: "Four ways in. The first one is free." | `Fireflies.tsx` | Rows dealt in; fireflies follow the cursor |
@@ -46,7 +46,13 @@ and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are 
   a title under it, an underline and a drawn-on effect, then sent a picture of how he signs "Karman"; it
   is traced by hand in `Guarantee.tsx`, with the K's lower line carried under the whole word at his
   request. He asked for the stamp, for its landing to be prominent, and for the cards to come from the side.
-- **Sections 4 to 7:** built in one pass at his request so the page could be handed over whole. He has
+- **Section 4:** on 10 November 2026 he chose the arc out of ten live layouts, and described the motion
+  himself (stack at the left, fan out, slow turn, titles popping up in the middle). He will supply six
+  real photos; until then `TUTOR_PHOTOS` is empty, the live site keeps the drawings, and a developer's
+  machine shows stock stand-ins that are kept out of git. "Quants" is gone from the site: there is none
+  on the team. Still open: a word other than "Published" for the researchers, and which kind each real
+  photo is.
+- **Sections 5 to 7:** built in one pass at his request so the page could be handed over whole. He has
   seen a still sketch of them, not the built versions. Treat each as a first draft to be reviewed with
   him, one at a time.
 - **Feeling:** Studio Ghibli. Hand-painted, soft, quietly magical. Not childish, no bright orange.
