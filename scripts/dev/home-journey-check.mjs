@@ -1,6 +1,6 @@
 // Checks the painted home page in a real browser. Words sit straight on a painting here, so contrast is
 // measured from the pixels actually behind each line of text, not from a background colour. Also checked:
-// no sideways scroll, the flock, the phone menu, the still button, and every link.
+// no sideways scroll, the birds, the phone menu, the still button, and every link.
 // Usage: node scripts/dev/home-journey-check.mjs [baseUrl]
 import { chromium } from "playwright";
 import sharp from "sharp";
@@ -148,7 +148,7 @@ for (const [name, width, height] of [
   await page.evaluate(() => scrollTo(0, 0));
   await page.waitForTimeout(1500);
 
-  /* the flock is drawn, and pressing the number calls it back without an error */
+  /* birds are crossing the sky, and nothing has raised an error */
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.waitForTimeout(3500);
@@ -156,13 +156,11 @@ for (const [name, width, height] of [
     const c = document.querySelector(".flock");
     const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
     let n = 0;
-    for (let i = 3; i < d.length; i += 4 * 97) if (d[i] > 40) n++;
+    for (let i = 3; i < d.length; i += 4 * 7) if (d[i] > 40) n++;
     return n;
   });
-  say(drawn > 20, `${name}: the flock is in the sky (${drawn} samples)`);
-  await page.locator(".claim-pill").click();
-  await page.waitForTimeout(600);
-  say(errors.length === 0, `${name}: pressing the number raises no error`);
+  say(drawn > 3, `${name}: birds are in the sky (${drawn} samples)`);
+  say(errors.length === 0, `${name}: the opening raises no error`);
 
   if (name === "phone") {
     await page.locator(".hd .menu").click();

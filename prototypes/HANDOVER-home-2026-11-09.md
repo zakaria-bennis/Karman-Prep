@@ -14,7 +14,7 @@ night as the page scrolls. The founder approved this order.
 
 | # | Section | Files | Animation |
 |---|---|---|---|
-| 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `LetterMotes.tsx`, `ClaimPill.tsx`, `Flock.tsx` | Headline forms from motes; the "280 points" shape slams in with its lettering cut out to the sky; a flock of birds spells 280 and regathers when the shape is pressed |
+| 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `ClaimPill.tsx`, `Flock.tsx`, `CLAIM_BOOT` in `page.tsx` | Headline comes into focus out of the haze, word by word; the "280 points" shape slams in with its lettering cut out to the sky; two or three small flocks of birds cross the sky |
 | 2 | The proof: "We're twelve for twelve." | `Logos.tsx`, `src/lib/marketing/schools.ts` | 30 real logos land like leaves, then drift in two rows |
 | 3 | The offer: "Up to +200 points, or your money back." | `ScoreTiles.tsx`, `GUARANTEE` in `offer.ts` | Flip tiles: their score now, the score guaranteed; leaves burst when it changes |
 | 4 | Who: "Our tutors are overqualified. That's the point." | `public/site/tutors/*.svg`, `scripts/dev/make-tutor-peeps.mjs` | Six Open Peeps drawings pop up and hop on hover |
@@ -31,8 +31,11 @@ and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are 
 
 - **Approved:** the seven-section order; the headline; "We're twelve for twelve."; Start free as the
   main action; the "we" voice, confident and a little cocky; the painting; springy switches.
-- **Section 1:** he asked for the motes, the slam and the cut-out lettering, and for no orange. That is
-  built. Asked whether it now feels right he said "not necessarily" and did not say what is off. Ask.
+- **Section 1:** settled with him on 10 November 2026, from live options. He chose: the headline coming
+  into focus out of the haze (he rejected the particles, a brush wipe, rise, wind, flip and horizon); the
+  main button in ink with a breathing ring of the sky's light and no sweep of shine; a soft veil of light
+  behind the top bar; bolder small text with no glow and no new background; today's dawn sky; small flocks
+  of birds passing, which spell nothing and ignore the pointer ("gimmicky").
 - **Sections 2 to 7:** built in one pass at his request so the page could be handed over whole. He has
   seen a still sketch of them, not the built versions. Treat each as a first draft to be reviewed with
   him, one at a time.
@@ -48,7 +51,7 @@ a chat as the whole page).
 
 ## Open items
 
-1. Section 1: find out what still feels off.
+1. Section 1: done (10 November 2026).
 2. Review sections 2 to 7 with him one at a time. He now has Mobbin and 21st.dev; use them for
    reference and components.
 3. Done on 9 November: the Guarantee, Pricing, Refunds, Terms and FAQ pages and the parent portal now
@@ -89,7 +92,7 @@ a chat as the whole page).
 ## Checks
 
 - `node scripts/dev/home-journey-check.mjs`: measures text contrast against the real painting pixels in
-  all seven sections at desktop, tablet and phone, and tests the tiles, the bubbles, the flock, the
+  all seven sections at desktop, tablet and phone, and tests the tiles, the bubbles, the birds, the
   phone menu, the still button and every link. Passing.
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
 - The six checks in `CLAUDE.md` pass on this commit.
