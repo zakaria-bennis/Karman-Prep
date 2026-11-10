@@ -3,7 +3,7 @@
 // ============================================================
 // ConstellationMap — full-screen "brain constellation" star map.
 //
-// Observatory system (docs/brand.md): the warm night sky seen from
+// Observatory system (docs/archive/brand.md): the warm night sky seen from
 // the lamp-lit study.
 //   • Left lobe = Reading & Writing (R&W rose), right lobe = Math
 //     (Math blue) — constellation accents as subject SIGNALS
@@ -388,7 +388,7 @@ function ConstellationMapInner({
                 const active = node.subject === activeSubject;
                 const subjectHex = active ? activeHex : otherHex;
                 // Mastery is the earned moment — it trades the subject halo
-                // for gold (docs/brand.md "Prestige — gold").
+                // for gold (docs/archive/brand.md "Prestige — gold").
                 const haloId =
                   node.status === "mastered"
                     ? "halo-mastered"
