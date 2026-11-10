@@ -16,8 +16,8 @@
 // ("pricing ...") and the loading and form messages ("form ...").
 //
 // House rules: no em dashes, nothing the offer doesn't promise, tutoring
-// results always with "Karman 1:1 tutoring, median 16 weeks", no numbered
-// list markers, talk to the parent.
+// results with "Karman 1:1 tutoring, median 16 weeks" (the home page's opening
+// leaves it off: founder, 2026-11-10), no numbered list markers, talk to the parent.
 // ============================================================
 
 import {
@@ -114,7 +114,6 @@ export const SITE_COPY = `
 ## 1 Opening
 headline: Our average student gains ${TR.averageGain} points. Yours doesn't have to be average.
 text: We built the SAT prep we wish we'd had: overqualified tutors, a portal that knows exactly what your student gets wrong, and a guarantee with our money on the line.
-proof: ${TR.sourceLabel}.
 button: Start free
 button note: ${FREE.questionLimit} practice questions and a full-length practice test. No card. No catch.
 second button: See pricing

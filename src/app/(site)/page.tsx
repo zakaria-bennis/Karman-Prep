@@ -99,9 +99,7 @@ export default function HomePage() {
               <Arrow />
             </a>
           </div>
-          <p className="fine">
-            {claim["button note"]} <span>{claim.proof}</span>
-          </p>
+          <p className="fine">{claim["button note"]}</p>
         </div>
       </section>
 

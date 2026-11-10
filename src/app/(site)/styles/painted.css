@@ -80,7 +80,6 @@ html.ks-lock:has(.ks.page-home) { overflow: auto; }
 .ks.page-home .num { font-family: var(--font-hanken), system-ui, sans-serif; font-weight: 800; font-size: .97em; letter-spacing: -0.035em; font-variant-numeric: lining-nums; }
 .ks.page-home .lede { font-size: clamp(18px, 1.6vw, 24px); font-weight: 600; line-height: 1.45; max-width: 34em; color: var(--ink); }
 .ks.page-home .fine { font-size: 16px; font-weight: 800; color: var(--ink); max-width: 34em; }
-.ks.page-home .fine span { display: block; font-weight: 600; }
 
 /* ---------- the main button: ink on the painting, lit by the hour. A soft ring of the sky's light breathes
    around it, and a highlight on its top edge slides toward the pointer as the button leans (HomeTouches.tsx).
