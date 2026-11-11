@@ -262,108 +262,199 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks .arc-title span { font-size: 15.5px; }
 }
 
-/* ---------- 5. how: seven cartoon cards, each with a scene that plays on a loop (Ways.tsx) ---------- */
-.ks .ways { --w-ink: #1d1a22; --w-bg: #fffaf3; --w-tint: #f1e7d7; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 20px 12px; }
-/* wide screens hold all seven in one row, like a hand of cards */
-.ks .ways li { flex: 0 1 calc((100% - 72px) / 7); min-width: 0; display: grid; align-content: start; gap: 4px; padding: 8px 8px 16px; border-radius: 22px; background: var(--w-bg); color: var(--w-ink); box-shadow: inset 0 0 0 2.5px var(--w-ink), 0 7px 0 var(--w-ink), var(--lift); }
-/* dealt onto the page like a hand of cards, then each one lifts when pointed at */
-.ks .ways li.rv { transform: translateY(70px) rotate(calc((var(--k) - 3) * 2.6deg)) scale(.9); transition: opacity .5s var(--out), transform .9s var(--spring), box-shadow .3s var(--out); }
-.ks .ways li.rv.on { transform: rotate(-.7deg); }
-.ks .ways li.rv.on:nth-child(even) { transform: rotate(.7deg) translateY(6px); }
-@media (hover: hover) and (pointer: fine) { .ks .ways li.rv.on:hover { transform: translateY(-7px) rotate(-1.2deg); box-shadow: inset 0 0 0 2.5px var(--w-ink), 0 14px 0 var(--w-ink), var(--lift); transition-delay: 0s !important; } }
-.ks .way-art { position: relative; border-radius: 15px; overflow: hidden; background: radial-gradient(circle, color-mix(in srgb, var(--w-ink) 17%, transparent) 1.2px, transparent 1.7px) 0 0 / 9px 9px, var(--w-tint); box-shadow: inset 0 0 0 2.5px var(--w-ink); }
-.ks .way-art svg { display: block; width: 100%; height: auto; aspect-ratio: 160 / 110; overflow: hidden; }
-.ks .way-art i { position: absolute; left: 8px; top: 8px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--w-ink); color: var(--w-bg); font-style: normal; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
-.ks .ways b { padding: 8px 8px 0; font-size: clamp(16.5px, 1.3vw, 19px); font-weight: 800; line-height: 1.15; letter-spacing: -.01em; }
-.ks .ways span { padding: 0 8px; font-size: clamp(14px, 1.02vw, 15px); line-height: 1.38; color: color-mix(in srgb, var(--w-ink) 86%, transparent); }
-@media (max-width: 1279px) {
-  .ks .ways li { flex-basis: calc((100% - 36px) / 4); padding: 10px 10px 18px; }
-  .ks .ways b { font-size: 19px; }
-  .ks .ways span { font-size: 15.5px; }
+/* ---------- 5. how: seven ways, each with a detailed picture that moves (Ways.tsx, WayArt.tsx). Ink and
+   cream with one accent colour per method. The default layout is the dashboard wall. ---------- */
+.ks .ways { --i: #1d1a22; --p: #fffaf3; width: 100%; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.ks .ways li { --a: #4f9a6c; position: relative; grid-column: span 3; min-width: 0; display: grid; align-content: start; gap: 3px; padding: 10px 10px 16px; border-radius: 22px; background: var(--p); color: var(--i); box-shadow: var(--lift); }
+.ks .ways li:nth-child(2) { --a: #4a7fc0; }
+.ks .ways li:nth-child(3) { --a: #d2932b; }
+.ks .ways li:nth-child(4) { --a: #d8664a; }
+.ks .ways li:nth-child(5) { --a: #7b67bd; }
+.ks .ways li:nth-child(6) { --a: #2f9aa0; }
+.ks .ways li:nth-child(7) { --a: #c5628b; }
+.ks .ways li:nth-child(1) { grid-column: span 5; }
+.ks .ways li:nth-child(2) { grid-column: span 4; }
+.ks .ways li.rv { transform: translateY(46px) scale(.95); transition: opacity .5s var(--out), transform .85s var(--spring); }
+.ks .ways li.rv.on { transform: none; }
+.ks .way-art { border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--a) 14%, var(--p)); }
+.ks .way-art svg { display: block; width: 100%; height: clamp(128px, 10.6vw, 152px); }
+.ks .ways li > i { position: absolute; left: 18px; top: 18px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--a); color: #fff; font-style: normal; font-weight: 800; font-size: 14.5px; }
+.ks .ways b { padding: 8px 8px 0; font-size: clamp(18px, 1.5vw, 21px); font-weight: 800; line-height: 1.15; letter-spacing: -.01em; }
+.ks .ways span { padding: 0 8px; font-size: 15px; line-height: 1.4; color: color-mix(in srgb, var(--i) 86%, transparent); }
+.ks .ways-tabs { display: none; }
+@media (max-width: 1000px) { .ks .ways li, .ks .ways li:nth-child(n) { grid-column: span 6; } }
+@media (max-width: 640px) { .ks .ways li, .ks .ways li:nth-child(n) { grid-column: span 12; } }
+/* the pictures' parts */
+.ks .ways svg text { font-family: var(--font-hanken), system-ui, sans-serif; fill: var(--i); }
+.ks .ways .g-ink, .ks .ways .g-inktop { fill: var(--i); }
+.ks .ways .g-acc { fill: var(--a); }
+.ks .ways .g-none { fill: none; }
+.ks .ways .g-edge { stroke: var(--i); stroke-width: 2.5; }
+.ks .ways :is(.g-card, .g-chip) { fill: var(--p); stroke: var(--i); stroke-width: 2.5; }
+.ks .ways .g-chip { stroke-width: 2; }
+.ks .ways :is(.g-shade, .g-seat) { fill: color-mix(in srgb, var(--i) 13%, transparent); }
+.ks .ways .g-drop { fill: color-mix(in srgb, var(--i) 16%, transparent); }
+.ks .ways .g-shadeacc { fill: color-mix(in srgb, var(--i) 24%, transparent); }
+.ks .ways .g-shadearc { fill: color-mix(in srgb, var(--i) 7%, transparent); }
+.ks .ways .g-inkbar, .ks .ways .g-seatdot { fill: color-mix(in srgb, var(--i) 42%, transparent); }
+.ks .ways .g-dot { fill: var(--p); }
+.ks .ways .g-shine2 { fill: color-mix(in srgb, var(--p) 28%, transparent); }
+.ks .ways .g-board { fill: color-mix(in srgb, var(--a) 12%, var(--p)); stroke: var(--i); stroke-width: 2; }
+.ks .ways :is(.g-line, .g-thin, .g-tick, .g-cut, .g-shine, .g-accline, .g-dash, .g-arc, .g-ringthin, .g-ringsoft, .g-turn) { fill: none; stroke: var(--i); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.ks .ways .g-thin, .ks .ways .g-ringthin { stroke-width: 2.4; }
+.ks .ways .g-tick, .ks .ways .g-accline { stroke: var(--a); stroke-width: 5; }
+.ks .ways .g-cut { stroke: #fff; stroke-width: 3.6; }
+.ks .ways .g-shine { stroke: rgba(255, 255, 255, .7); stroke-width: 3; }
+.ks .ways .g-dash { stroke-width: 2; stroke-dasharray: 2 7; opacity: .5; }
+.ks .ways .g-arc { stroke: var(--a); stroke-width: 10; stroke-dasharray: 1; transform-box: fill-box; transform-origin: 50% 50%; transform: rotate(-90deg); }
+.ks .ways .g-ringsoft { stroke: color-mix(in srgb, var(--i) 13%, transparent); stroke-width: 10; }
+.ks .ways .g-turn { stroke: var(--a); stroke-width: 4.5; }
+.ks .ways .g-num { font-size: 14px; font-weight: 800; opacity: .6; }
+.ks .ways .g-label { font-size: 13px; font-weight: 800; text-anchor: middle; }
+.ks .ways .g-small { font-size: 12px; font-weight: 700; }
+.ks .ways .g-tiny { font-size: 10px; font-weight: 700; }
+.ks .ways .g-letter { font-size: 13px; font-weight: 800; text-anchor: middle; }
+.ks .ways .g-badge { font-size: 11.5px; font-weight: 800; text-anchor: middle; fill: #fff; }
+.ks .ways .g-big { font-size: 27px; font-weight: 800; text-anchor: middle; letter-spacing: -.02em; }
+.ks .ways :is(.g-tick, .g2-strike, .g2-write, .g2-note, .g7-write) { stroke-dasharray: 1; }
+.ks .ways :is(.g1-box, .g2-badge, .g3-ten, .g3-stop, .g4-cup, .g4-spark, .g4-bar, .g4-bar2, .g5-acc, .g6-bubble, .g6-bar) { transform-box: fill-box; transform-origin: 50% 50%; }
+.ks .ways :is(.g4-bar, .g4-bar2, .g5-acc, .g6-bar) { transform-origin: 0 50%; }
+/* how each picture rests when nothing may move: finished */
+.ks .ways .g1-mark { transform: translateY(-34px); }
+.ks .ways .g2-right, .ks .ways .g4-slip { fill: var(--a); }
+.ks .ways .g2-rightletter { fill: #fff; }
+.ks .ways .g3-token { transform: translate(274px, 132px); }
+.ks .ways .g4-bar { transform: scaleX(.7); }
+.ks .ways .g4-bar2 { transform: scaleX(.3); }
+.ks .ways :is(.g5-n1, .g5-n2) { opacity: 0; }
+.ks .ways .g5-arc { stroke-dashoffset: .4; }
+.ks .ways .g6-ring { stroke-dashoffset: .22; }
+.ks .ways .g6-bar { transform: scaleX(.8); }
+.ks .ways .g7-turn { transform: translate(50px, 46px); }
+/* the motion, once a card is on screen */
+.ks .ways li.on .g1-tick .g-tick { animation: g-draw 5s var(--out) infinite; animation-delay: inherit; }
+.ks .ways li.on .g1-tick { animation: g-hold 5s infinite; }
+.ks .ways li.on .g1-mark { animation: g1-mark 5s var(--spring) infinite; }
+.ks .ways li.on .g1-rung { animation: g1-rung 5s var(--out) infinite; }
+.ks .ways li.on .g1-up { animation: g1-up 5s var(--out) infinite; }
+@keyframes g-hold { from { opacity: 1; } to { opacity: 1; } }
+@keyframes g-draw { 0% { stroke-dashoffset: 1; } 7%, 84% { stroke-dashoffset: 0; opacity: 1; } 92%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes g1-mark { 0%, 44% { transform: none; } 56%, 90% { transform: translateY(-34px); } 97%, 100% { transform: none; } }
+@keyframes g1-rung { 0%, 50% { opacity: 0; } 58%, 90% { opacity: 1; } 97%, 100% { opacity: 0; } }
+@keyframes g1-up { 0%, 46% { opacity: 0; transform: translateY(12px); } 58%, 88% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: translateY(-8px); } }
+.ks .ways li.on .g2-strike { animation: g-draw 6s var(--out) .5s infinite backwards; }
+.ks .ways li.on .g2-right { animation: g2-right 6s var(--out) infinite; }
+.ks .ways li.on .g2-rightletter { animation: g2-letter 6s var(--out) infinite; }
+.ks .ways li.on .g2-badge { animation: g-pop 6s var(--spring) infinite backwards; }
+.ks .ways li.on :is(.g2-write, .g2-note) { animation: g-draw 6s var(--out) infinite backwards; }
+.ks .ways li.on .g2-note { animation-delay: 3.6s; }
+@keyframes g2-right { 0%, 15% { fill: var(--p); } 21%, 90% { fill: var(--a); } 97%, 100% { fill: var(--p); } }
+@keyframes g2-letter { 0%, 15% { fill: var(--i); } 21%, 90% { fill: #fff; } 97%, 100% { fill: var(--i); } }
+@keyframes g-pop { 0% { transform: scale(0); } 6% { transform: scale(1.25); } 10%, 84% { transform: scale(1); opacity: 1; } 92%, 100% { transform: scale(1); opacity: 0; } }
+.ks .ways li.on .g3-ten { animation: g-pop 7s var(--spring) infinite backwards; }
+.ks .ways li.on .g3-stop { animation: g-pop 7s var(--spring) infinite backwards; }
+.ks .ways li.on .g3-token { animation: g3-token 7s cubic-bezier(.4, 0, .4, 1) infinite; }
+@keyframes g3-token { 0%, 12% { transform: translate(50px, 132px); opacity: 1; } 20% { transform: translate(80px, 92px); } 28%, 33% { transform: translate(110px, 132px); } 40% { transform: translate(148px, 84px); } 47%, 52% { transform: translate(186px, 132px); } 59% { transform: translate(230px, 76px); } 66%, 88% { transform: translate(274px, 132px); opacity: 1; } 93% { transform: translate(274px, 132px); opacity: 0; } 94% { transform: translate(50px, 132px); opacity: 0; } 100% { transform: translate(50px, 132px); opacity: 1; } }
+.ks .ways li.on .g4-cup { animation: g4-cup 2.6s ease-in-out infinite; }
+.ks .ways li.on .g4-spark { animation: g4-spark 2s ease-in-out infinite; }
+.ks .ways li.on .g4-bar { animation: g4-bar 5s var(--out) infinite; }
+.ks .ways li.on .g4-bar2 { animation: g4-bar2 5s var(--out) infinite; }
+.ks .ways li.on .g4-slip { animation: g4-slip 5s var(--out) infinite; }
+@keyframes g4-cup { 50% { transform: translateY(-5px) rotate(-2deg); } }
+@keyframes g4-spark { 0%, 100% { transform: scale(.1) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
+@keyframes g4-bar { 0%, 6% { transform: scaleX(0); } 26%, 90% { transform: scaleX(.7); } 98%, 100% { transform: scaleX(0); } }
+@keyframes g4-bar2 { 0%, 16% { transform: scaleX(0); } 36%, 90% { transform: scaleX(.3); } 98%, 100% { transform: scaleX(0); } }
+@keyframes g4-slip { 0%, 40% { fill: var(--p); } 48%, 90% { fill: var(--a); } 98%, 100% { fill: var(--p); } }
+.ks .ways li.on .g5-arc { animation: g5-arc 6s linear infinite; }
+.ks .ways li.on .g5-hand { animation: g-turn 2s linear infinite; }
+.ks .ways li.on .g5-n1 { animation: g5-n1 6s steps(1) infinite; }
+.ks .ways li.on .g5-n2 { animation: g5-n2 6s steps(1) infinite; }
+.ks .ways li.on .g5-n3 { animation: g5-n3 6s steps(1) infinite; }
+.ks .ways li.on .g5-acc { animation: g5-acc 1.6s ease-in-out infinite; }
+@keyframes g-turn { to { transform: rotate(360deg); } }
+@keyframes g5-arc { 0% { stroke-dashoffset: 0; } 33.3% { stroke-dashoffset: 1; } 33.4% { stroke-dashoffset: .2; } 66.6% { stroke-dashoffset: 1; } 66.7% { stroke-dashoffset: .4; } 100% { stroke-dashoffset: 1; } }
+@keyframes g5-n1 { 0% { opacity: 1; } 33.3%, 100% { opacity: 0; } }
+@keyframes g5-n2 { 0%, 66.6%, 100% { opacity: 0; } 33.3% { opacity: 1; } }
+@keyframes g5-n3 { 0%, 100% { opacity: 0; } 66.6% { opacity: 1; } }
+@keyframes g5-acc { 50% { transform: scaleX(.97); } }
+.ks .ways li.on .g6-bubble { animation: g-pop 6s var(--spring) infinite backwards; }
+.ks .ways li.on .g6-go { animation: g6-go 1.4s ease-in-out infinite; }
+.ks .ways li.on .g6-ring { animation: g6-ring 6s var(--out) infinite; }
+.ks .ways li.on .g6-bar { animation: g6-bar 6s var(--out) infinite backwards; }
+@keyframes g6-go { 50% { transform: translateX(5px); } }
+@keyframes g6-ring { 0%, 30% { stroke-dashoffset: 1; } 55%, 90% { stroke-dashoffset: .22; } 98%, 100% { stroke-dashoffset: 1; } }
+@keyframes g6-bar { 0%, 34% { transform: scaleX(0); } 58%, 90% { transform: scaleX(.8); } 98%, 100% { transform: scaleX(0); } }
+.ks .ways li.on .g7-write { animation: g-draw 7s var(--out) infinite backwards; }
+.ks .ways li.on .g7-turn { animation: g7-turn 7.2s steps(1) infinite; }
+@keyframes g7-turn { 0% { transform: translate(0, 0); } 16.6% { transform: translate(50px, 0); } 33.3% { transform: translate(0, 46px); } 50% { transform: translate(50px, 46px); } 66.6% { transform: translate(0, 92px); } 83.3% { transform: translate(50px, 92px); } }
+
+/* ---------- TEMPORARY: the other four layouts he asked to see (WaysLab.tsx sets data-ways). 19, the
+   dashboard wall, is the default above. Delete the ones he passes over. ---------- */
+/* 11, lanterns on the water: seven lit lanterns in a row, bobbing, each with its glow on the water */
+.ks .how[data-ways="11"] .ways { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 84px; }
+.ks .how[data-ways="11"] .ways li { flex: 1 1 0; padding: 12px 9px 16px; border-radius: 46px 46px 18px 18px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--i) 60%, transparent), 0 0 44px 8px color-mix(in srgb, var(--a) 62%, transparent), inset 0 0 26px color-mix(in srgb, var(--a) 22%, transparent); }
+.ks .how[data-ways="11"] .ways li.on { animation: lantern-bob 5.4s ease-in-out infinite; animation-delay: calc(var(--k) * -.77s); }
+.ks .how[data-ways="11"] .ways li::before { content: ""; position: absolute; left: 50%; top: -15px; width: 34px; height: 20px; translate: -50% 0; border: 3px solid var(--i); border-bottom: 0; border-radius: 18px 18px 0 0; }
+.ks .how[data-ways="11"] .ways li::after { content: ""; position: absolute; left: 6%; right: 6%; top: calc(100% + 10px); height: 64px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--a) 70%, #fff), transparent); filter: blur(9px); opacity: .7; animation: lantern-glow 2.7s ease-in-out infinite; animation-delay: calc(var(--k) * -.4s); }
+.ks .how[data-ways="11"] .way-art { border-radius: 34px 34px 12px 12px; }
+.ks .how[data-ways="11"] .way-art svg { height: auto; aspect-ratio: 320 / 220; }
+.ks .how[data-ways="11"] .ways li > i { left: 50%; top: -4px; translate: -50% 0; }
+.ks .how[data-ways="11"] .ways b { font-size: clamp(15.5px, 1.25vw, 18px); }
+.ks .how[data-ways="11"] .ways span { font-size: clamp(13.5px, 1vw, 14.5px); }
+@keyframes lantern-bob { 0%, 100% { transform: translateY(0) rotate(-.9deg); } 50% { transform: translateY(-11px) rotate(.9deg); } }
+@keyframes lantern-glow { 50% { opacity: .38; transform: scaleX(.86); } }
+@media (max-width: 1100px) { .ks .how[data-ways="11"] .ways { flex-wrap: wrap; justify-content: center; gap: 96px 14px; } .ks .how[data-ways="11"] .ways li { flex: 0 1 calc(25% - 12px); } }
+@media (max-width: 760px) { .ks .how[data-ways="11"] .ways li { flex-basis: calc(50% - 8px); } }
+/* 15, the museum wall: seven framed pictures with caption plates; a light passes along the wall */
+.ks .how[data-ways="15"] .ways { display: flex; align-items: flex-start; gap: 16px; }
+.ks .how[data-ways="15"] .ways li { flex: 1 1 0; padding: 0; gap: 0; border-radius: 0; background: none; box-shadow: none; }
+.ks .how[data-ways="15"] .way-art { border-radius: 3px; border: 9px solid var(--i); outline: 2px solid color-mix(in srgb, var(--a) 70%, var(--i)); outline-offset: -5px; padding: 9px; background: var(--p); box-shadow: 0 22px 30px -14px rgba(0, 0, 0, .7); filter: brightness(.6) saturate(.6); }
+.ks .how[data-ways="15"] .way-art svg { height: auto; aspect-ratio: 320 / 220; background: color-mix(in srgb, var(--a) 14%, var(--p)); }
+.ks .how[data-ways="15"] .ways li.on .way-art { animation: wall-lit 11.2s var(--out) infinite; animation-delay: calc(var(--k) * 1.6s); }
+.ks .how[data-ways="15"] .ways li > i { position: static; margin: 14px auto 0; }
+.ks .how[data-ways="15"] .ways b { margin: 6px 0 0; padding: 8px 10px 0; background: var(--p); border-radius: 6px 6px 0 0; font-size: clamp(15px, 1.2vw, 17.5px); text-align: center; }
+.ks .how[data-ways="15"] .ways span { padding: 4px 10px 12px; background: var(--p); border-radius: 0 0 6px 6px; font-size: clamp(13px, .98vw, 14.5px); text-align: center; box-shadow: 0 10px 18px -10px rgba(0, 0, 0, .5); }
+@keyframes wall-lit { 0%, 100% { filter: brightness(.6) saturate(.6); } 4%, 16% { filter: brightness(1.08) saturate(1); } 22% { filter: brightness(.6) saturate(.6); } }
+@media (max-width: 1100px) { .ks .how[data-ways="15"] .ways { flex-wrap: wrap; justify-content: center; } .ks .how[data-ways="15"] .ways li { flex: 0 1 calc(25% - 12px); } }
+@media (max-width: 760px) { .ks .how[data-ways="15"] .ways li { flex-basis: calc(50% - 8px); } }
+/* 18 and 20 pin the section and move with the scroll */
+.ks .how:is([data-ways="18"], [data-ways="20"]) { height: 560vh; padding-top: 0; padding-bottom: 0; }
+.ks .how:is([data-ways="18"], [data-ways="20"]) .inner { position: sticky; top: 0; height: 100vh; height: 100svh; align-content: center; padding-top: 92px; gap: 18px; }
+.ks .how:is([data-ways="18"], [data-ways="20"]) h2 { font-size: clamp(30px, 3.6vw, 52px); }
+.ks .how:is([data-ways="18"], [data-ways="20"]) > .mist { -webkit-mask-image: none; mask-image: none; opacity: .8; }
+/* 18, the stack: seven sheets in a pile; scrolling deals the top one away */
+.ks .how[data-ways="18"] .ways { display: block; position: relative; width: min(900px, 100%); height: min(44vh, 420px); margin: 0 auto 44px; }
+.ks .how[data-ways="18"] .ways li, .ks .how[data-ways="18"] .ways li:nth-child(n) { position: absolute; inset: 0; z-index: calc(10 - var(--k)); grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 6px 22px; padding: 14px; border-radius: 24px; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--i) 22%, transparent), 0 20px 40px -24px rgba(8, 10, 26, .8); transform: translate(calc(var(--k) * 6px), calc(var(--k) * 6px)) rotate(calc((var(--k) - 3) * .55deg)); transition: transform .8s var(--spring), opacity .4s var(--out); transition-delay: 0s !important; }
+.ks .how[data-ways="18"] .ways li.dealt { transform: translate(-118vw, -8vh) rotate(-17deg); }
+.ks .how[data-ways="18"] .way-art { grid-row: span 2; align-self: stretch; display: grid; }
+.ks .how[data-ways="18"] .way-art svg { height: 100%; }
+.ks .how[data-ways="18"] .ways b { align-self: end; padding: 0 6px 0 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(26px, 3vw, 44px); line-height: 1.05; }
+.ks .how[data-ways="18"] .ways span { align-self: start; padding: 0 6px 0 0; font-size: clamp(16px, 1.4vw, 20px); }
+.ks .how[data-ways="18"] .ways li > i { left: 26px; top: 26px; }
+.ks .how[data-ways="18"] .ways-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
+.ks .ways-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--cream) 82%, transparent); color: #1d1a22; font-weight: 700; font-size: 14.5px; transition: background-color .3s var(--out), transform .4s var(--spring); }
+.ks .ways-tabs button i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #1d1a22; color: #fffaf3; font-style: normal; font-weight: 800; font-size: 14px; }
+.ks .ways-tabs button[aria-pressed="true"] { background: #1d1a22; color: #fffaf3; transform: translateY(-3px); }
+.ks .ways-tabs button[aria-pressed="true"] i { background: #fffaf3; color: #1d1a22; }
+@media (max-width: 760px) {
+  .ks .how[data-ways="18"] .ways { height: min(62vh, 520px); }
+  .ks .how[data-ways="18"] .ways li, .ks .how[data-ways="18"] .ways li:nth-child(n) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; }
+  .ks .how[data-ways="18"] .way-art { grid-row: auto; }
+  .ks .how[data-ways="18"] .way-art svg { height: auto; aspect-ratio: 320 / 220; }
+  .ks .ways-tabs button span { display: none; }
+  .ks .ways-tabs button { padding: 0 6px; }
 }
-@media (max-width: 860px) { .ks .ways li { flex-basis: calc((100% - 12px) / 2); } }
-@media (max-width: 520px) {
-  .ks .ways li { flex-basis: 100%; grid-template-columns: 128px minmax(0, 1fr); gap: 2px 4px; align-items: center; padding: 10px; }
-  .ks .way-art { grid-row: span 2; }
-  .ks .way-art svg { aspect-ratio: 128 / 104; }
-  .ks .ways li.rv.on, .ks .ways li.rv.on:nth-child(even) { transform: none; }
-  .ks .ways b { align-self: end; padding-top: 0; }
-  .ks .ways span { align-self: start; font-size: 15px; }
-}
-/* the drawings: ink on the card, in the card's own two colours */
-.ks .ways .w-line, .ks .ways .w-thin, .ks .ways .w-ring, .ks .ways .w-cut { fill: none; stroke: var(--w-ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
-.ks .ways .w-thin, .ks .ways .w-ring { stroke-width: 2.4; }
-.ks .ways .w-cut { stroke: var(--w-bg); stroke-width: 3; }
-.ks .ways .w-ink, .ks .ways .w-block { fill: var(--w-ink); }
-.ks .ways .w-torso { fill: var(--w-ink); stroke: var(--w-ink); stroke-width: 2.4; stroke-linejoin: round; }
-.ks .ways .w-skin, .ks .ways .w-sheet { fill: var(--w-bg); stroke: var(--w-ink); stroke-width: 3; }
-.ks .ways .w-word { fill: var(--w-ink); font: 800 15px var(--font-hanken), system-ui, sans-serif; text-anchor: middle; }
-.ks .ways :is(.s1-step, .s1-star, .s2-bulb, .s3-dot, .s4-cup, .s4-spark, .s5-ring, .s7-say) { transform-box: fill-box; transform-origin: 50% 50%; }
-/* how each scene rests when nothing may move: finished, never half-drawn */
-.ks .ways .s1-hop { transform: translate(127px, 60px); }
-.ks .ways :is(.s2-write, .s3-tick, .s5-ring) { stroke-dasharray: 1; }
-.ks .ways .s5-ring { transform: rotate(-90deg); stroke-dashoffset: .4; }
-.ks .ways :is(.s5-n1, .s5-n2, .s5-wind, .s6-drop) { opacity: 0; }
-/* the scenes play once their card is on screen */
-.ks .ways li.on .nod { animation: wk-nod 1.5s ease-in-out infinite; }
-.ks .ways li.on .wave { animation: wk-wave .55s ease-in-out infinite; }
-.ks .ways li.on .point { animation: wk-point 1.2s ease-in-out infinite; }
-.ks .ways li.on .scribble { animation: wk-scribble .3s ease-in-out infinite; }
-.ks .ways li.on .jump { animation: wk-jump .9s cubic-bezier(.3, 0, .5, 1) infinite; }
-.ks .ways li.on .run { animation: wk-run .3s ease-in-out infinite; }
-.ks .ways li.on .stride { animation: wk-stride .5s ease-in-out infinite; }
-.ks .ways li.on .stride-back { animation: wk-stride .5s ease-in-out -.25s infinite; }
-@keyframes wk-nod { 50% { transform: translateY(-2.5px); } }
-@keyframes wk-wave { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(16deg); } }
-@keyframes wk-point { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(8deg); } }
-@keyframes wk-scribble { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
-@keyframes wk-jump { 0%, 100% { transform: translateY(0) scaleY(.94); } 45% { transform: translateY(-15px) scaleY(1.04); } }
-@keyframes wk-run { 50% { transform: translateY(-3px); } }
-@keyframes wk-stride { 0%, 100% { transform: rotate(40deg); } 50% { transform: rotate(-40deg); } }
-/* 1: three hops up the steps, a star at the top, and round again */
-.ks .ways li.on .s1-hop { animation: s1-hop 4.2s cubic-bezier(.4, 0, .4, 1) infinite; }
-.ks .ways li.on .s1-step { animation: s1-step 4.2s var(--out) infinite; transform-origin: 50% 100%; }
-.ks .ways li.on .s1-star { animation: s1-star 4.2s var(--spring) infinite; }
-@keyframes s1-hop { 0%, 10% { transform: translate(30px, 98px); opacity: 1; } 17% { transform: translate(49px, 68px); } 24%, 34% { transform: translate(67px, 84px); } 41% { transform: translate(82px, 58px); } 48%, 58% { transform: translate(97px, 72px); } 65% { transform: translate(112px, 47px); } 72%, 90% { transform: translate(127px, 60px); opacity: 1; } 94% { transform: translate(127px, 60px); opacity: 0; } 95% { transform: translate(30px, 98px); opacity: 0; } 100% { transform: translate(30px, 98px); opacity: 1; } }
-@keyframes s1-step { 0%, 7%, 100% { transform: none; } 3% { transform: scaleY(.84); } }
-@keyframes s1-star { 0%, 70%, 94%, 100% { transform: scale(0) rotate(-40deg); } 76%, 90% { transform: scale(1) rotate(0deg); } }
-/* 2: four lines write themselves, then the light comes on */
-.ks .ways li.on .s2-write { animation: s2-write 5s var(--out) infinite; }
-.ks .ways li.on .s2-bulb { animation: s2-bulb 5s var(--spring) infinite; }
-@keyframes s2-write { 0% { stroke-dashoffset: 1; } 13%, 80% { stroke-dashoffset: 0; opacity: 1; } 88%, 100% { stroke-dashoffset: 0; opacity: 0; } }
-@keyframes s2-bulb { 0%, 58%, 96%, 100% { transform: scale(0); } 66%, 90% { transform: scale(1); } }
-/* 3: ten dots fill one after another; once all ten are in, the tick */
-.ks .ways li.on .s3-dot { animation: s3-dot 6s var(--out) infinite; }
-.ks .ways li.on .s3-tick { animation: s3-tick 6s var(--out) infinite; }
-@keyframes s3-dot { 0%, 4% { transform: scale(0); } 9% { transform: scale(1.3); } 13%, 70% { transform: scale(1); } 76%, 100% { transform: scale(0); } }
-@keyframes s3-tick { 0%, 56% { stroke-dashoffset: 1; opacity: 1; } 62%, 70% { stroke-dashoffset: 0; opacity: 1; } 76%, 100% { stroke-dashoffset: 0; opacity: 0; } }
-/* 4: the cup bounces between them and the sparks go off */
-.ks .ways li.on .s4-cup { animation: s4-cup 1.3s ease-in-out infinite; }
-.ks .ways li.on .s4-spark { animation: s4-spark 1.9s ease-in-out infinite; }
-@keyframes s4-cup { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-7px) rotate(5deg); } }
-@keyframes s4-spark { 0%, 100% { transform: scale(.1) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
-/* 5: three rounds on the clock, each with less time than the last */
-.ks .ways li.on .s5-wind { animation: s5-wind .66s linear infinite; }
-.ks .ways li.on .s5-ring { animation: s5-ring 6s linear infinite; }
-.ks .ways li.on .s5-hand { animation: s6-turn 2s linear infinite; }
-.ks .ways li.on .s5-n1 { animation: s5-n1 6s steps(1) infinite; }
-.ks .ways li.on .s5-n2 { animation: s5-n2 6s steps(1) infinite; }
-.ks .ways li.on .s5-n3 { animation: s5-n3 6s steps(1) infinite; }
-@keyframes s5-wind { 0% { transform: translateX(34px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateX(-14px); opacity: 0; } }
-@keyframes s5-ring { 0% { stroke-dashoffset: 0; } 33.3% { stroke-dashoffset: 1; } 33.4% { stroke-dashoffset: .2; } 66.6% { stroke-dashoffset: 1; } 66.7% { stroke-dashoffset: .4; } 100% { stroke-dashoffset: 1; } }
-@keyframes s5-n1 { 0% { opacity: 1; } 33.3%, 100% { opacity: 0; } }
-@keyframes s5-n2 { 0%, 66.6%, 100% { opacity: 0; } 33.3% { opacity: 1; } }
-@keyframes s5-n3 { 0%, 100% { opacity: 0; } 66.6% { opacity: 1; } }
-/* 6: the clock runs and a bead of sweat falls */
-.ks .ways li.on .s6-hand { animation: s6-turn 5s linear infinite; }
-.ks .ways li.on .s6-hour { animation: s6-turn 60s linear infinite; }
-.ks .ways li.on .s6-drop { animation: s6-drop 2.6s ease-in infinite; }
-@keyframes s6-turn { to { transform: rotate(360deg); } }
-@keyframes s6-drop { 0%, 20% { transform: translateY(-4px); opacity: 0; } 35% { opacity: 1; } 100% { transform: translateY(20px); opacity: 0; } }
-/* 7: the tutor speaks, the student answers */
-.ks .ways li.on .s7-say { animation: s7-say 3.2s var(--spring) infinite; transform-origin: 20% 100%; }
-@keyframes s7-say { 0%, 4% { transform: scale(0); } 12%, 46% { transform: scale(1); } 54%, 100% { transform: scale(0); } }
-.ks.still-motion .ways * { animation: none !important; }
+/* 20, the filmstrip: one strip of seven frames that slides sideways as the page is scrolled */
+.ks .how[data-ways="20"] .ways { display: flex; flex-wrap: nowrap; gap: 14px; width: max-content; padding: 30px 22px; border-radius: 8px; background: radial-gradient(circle, var(--p) 0 5px, transparent 5.6px) 6px 5px / 30px 20px repeat-x, radial-gradient(circle, var(--p) 0 5px, transparent 5.6px) 6px calc(100% - 5px) / 30px 20px repeat-x, #1d1a22; box-shadow: 0 30px 60px -30px rgba(8, 10, 26, .9); transform: translateX(calc(var(--wp, 0) * (min(1240px, 100vw - var(--gutter) * 2) - 100%))); will-change: transform; }
+.ks .how[data-ways="20"] .ways li, .ks .how[data-ways="20"] .ways li:nth-child(n) { flex: none; width: min(440px, 76vw); border-radius: 8px; box-shadow: none; }
+.ks .how[data-ways="20"] .ways li.rv, .ks .how[data-ways="20"] .ways li.rv:not(.on) { opacity: 1; transform: none; }
+.ks .how[data-ways="20"] .way-art { border-radius: 4px; }
+.ks .how[data-ways="20"] .way-art svg { height: auto; aspect-ratio: 320 / 220; }
+/* the layout switch (development only) */
+.ks .lab-pick { position: fixed; z-index: 60; left: 14px; bottom: 14px; display: flex; align-items: center; gap: 6px; padding: 8px 10px 8px 14px; border-radius: 999px; background: #fffaf3; color: #1d1a22; font: 700 14px/1 var(--font-hanken), system-ui, sans-serif; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .6); }
+.ks .lab-pick button { min-width: 40px; min-height: 40px; padding: 0 10px; border-radius: 999px; font: inherit; color: inherit; }
+.ks .lab-pick button[aria-pressed="true"] { background: #1d1a22; color: #fffaf3; }
+.ks.still-motion .ways *, .ks.still-motion .ways li, .ks.still-motion .ways li::after { animation: none !important; }
 
 /* ---------- 6. their doubts: questions as clouds drifting up the left, and a text conversation with
    Karman in the sky on the right (Doubts.tsx). A picked cloud bursts and its words fly to the message box. ---------- */
@@ -615,8 +706,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home[data-mode="dark"] .btn .go { color: var(--ink); }
 /* anything that is a cream card keeps ink words */
 .ks.page-home[data-mode="dark"] :is(.gua-cards li, .sheet) { color: var(--ink); }
-/* the seven cartoon cards turn black with cream drawings */
-.ks.page-home[data-mode="dark"] .ways { --w-ink: #fffaf3; --w-bg: #1d1a22; --w-tint: #2c2834; }
+/* the seven cards turn black with cream drawings; each keeps its accent */
+.ks.page-home[data-mode="dark"] .ways { --i: #fffaf3; --p: #1d1a22; }
 /* the receipts: cream rules and gains on the night, white school marks; the lit row stays a cream card */
 .ks.page-home[data-mode="dark"] .rcp-list li { border-color: rgba(255, 250, 243, .22); }
 .ks.page-home[data-mode="dark"] .rcp-list button { transition: color .5s var(--out); }
