@@ -1,7 +1,7 @@
 "use client";
 
 // The parent's questions, as clouds, and Karman's answers, as a text conversation in the sky beside them.
-// The clouds drift up the left side, about six in view, fade out at the top and come round again from the
+// The clouds are mist: soft puffs that breathe and thin, with specks drifting off them. They drift up the left side, about six in view, fade out at the top and come round again from the
 // bottom. Picking one makes it burst into puffs; its words fly across to the message box, are typed in and
 // sent, and the answer is typed back (founder, 2026-11-10). The clouds stop while the pointer or the
 // keyboard is on them, so one can be read and picked. The first exchange is already on the page, so it
@@ -213,6 +213,18 @@ export default function Doubts({ items, words }: { items: [string, string][]; wo
               disabled={busy || burst.includes(q)}
               onClick={(e) => ask(q, e.currentTarget)}
             >
+              <span className="cloud-mist" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <b />
+                <b />
+                <b />
+                <b />
+              </span>
               {q}
             </button>
           </li>
