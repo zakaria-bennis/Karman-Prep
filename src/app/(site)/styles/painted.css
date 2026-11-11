@@ -1,22 +1,23 @@
 /* The painted home page (founder's direction, 2026-11-09; the contract is in
-   .impeccable/surfaces/src-app-site-page-tsx.md). One sales argument told across one painted day: Karman's
-   code-made painting sits behind everything and is travelled from dawn to night as the page scrolls
-   (HomeJourney.tsx, lib/painting/journey.ts). Words sit straight on the scene, on a soft band of mist with no
-   edge, never in a box. The page's light is the painting's light, not the device's: ink on cream mist by
-   day, cream on indigo mist at night. Every action is ink, never a bright colour: the painting is the colour.
+   .impeccable/surfaces/src-app-site-page-tsx.md). One sales argument told across one journey: a live, lit
+   landscape sits behind everything and is flown from above the clouds to the sea as the page scrolls
+   (HomeFlight.tsx, lib/flight). Words sit straight on the scene, on a soft band of mist with no edge, never
+   in a box. Light mode is one day: ink on cream mist, and cream on dusk mist for the last section. Dark mode
+   is one night: cream on night mist all the way down (the rules are at the end of this file). Every action is ink, never a bright colour: the painting is the colour.
    Rounded, soft shapes that settle when pressed. The feeling is hand-painted and quiet, like a Ghibli
    background, not a toy. Young Serif for headlines; Hanken Grotesk for everything else and every numeral. */
 @property --glow { syntax: "<color>"; inherits: true; initial-value: rgba(255, 190, 140, 0.6); }
+@property --mist { syntax: "<color>"; inherits: true; initial-value: rgb(255, 246, 236); }
 .ks.page-home {
   --ink: #1d1a22; --ink2: #3a3442; --cream: #fffaf3; --paper: #fffaf3; --card: #fffaf3; --soft: #f1e9dc; --line: rgba(29, 26, 34, .14);
   --go: #1d1a22; --go-edge: #000; --solid: #1d1a22; --on-solid: #fffaf3;
   --accent: var(--go); --marigold: var(--go); --marigold-hi: #37313f; --marigold-ink: #1d1a22; --on-mari: #fffaf3;
-  --mist-rgb: 255, 246, 236;
+  --mist: rgb(255, 246, 236);
   --spring: cubic-bezier(.3, 1.5, .5, 1);
   --out: cubic-bezier(.16, 1, .3, 1);
   --glow: rgba(255, 190, 140, 0.6);
   color: var(--ink); color-scheme: light;
-  transition: --glow 1.6s linear;
+  transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease;
 }
 .ks.page-home[data-light="day"] { --glow: rgba(255, 252, 232, 0.55); }
 .ks.page-home[data-light="sunset"] { --glow: rgba(255, 138, 72, 0.62); }
@@ -27,30 +28,34 @@
 .ks.page-home :focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 12px; }
 .ks .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* ---------- the painting: four lights of one scene, stacked, under one camera ---------- */
-.ks .journey { --p: 0; background: linear-gradient(180deg, #5d6da6 0%, #a79ab5 52%, #f7c6a5 100%); overflow: hidden; pointer-events: none; }
-.ks .journey .cam { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
-.ks .journey canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.ks .journey .cam canvas { opacity: 0; transition: opacity .7s linear; }
-/* the sun, then the moon: a soft light that crosses the sky as the page is scrolled, high at midday */
-.ks .journey .glow { position: absolute; inset: 0; mix-blend-mode: screen; background: radial-gradient(circle at calc(12% + var(--p) * 76%) calc(14% + (var(--p) - .5) * (var(--p) - .5) * 150%), var(--glow) 0, transparent 46%); }
-/* long shafts of light from it at dawn and sunset, turning slowly */
-.ks .journey .rays { position: absolute; left: calc(12% + var(--p) * 76%); top: calc(14% + (var(--p) - .5) * (var(--p) - .5) * 150%); width: 240vmax; height: 240vmax; margin: -120vmax 0 0 -120vmax; opacity: 0; mix-blend-mode: soft-light; background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, .5) 0deg 5deg, transparent 5deg 19deg); -webkit-mask-image: radial-gradient(circle, #000 0, transparent 46%); mask-image: radial-gradient(circle, #000 0, transparent 46%); transition: opacity 1.6s linear; animation: rays-turn 180s linear infinite; }
-.ks[data-light="dawn"] .journey .rays, .ks[data-light="sunset"] .journey .rays { opacity: .38; }
-@keyframes rays-turn { to { transform: rotate(360deg); } }
-.ks.still-motion .journey .rays { animation-play-state: paused; }
-.ks .journey .shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 42%, transparent 52%, rgba(8, 10, 24, .42) 100%); opacity: calc(.3 + var(--p) * .6); }
-.ks .journey::after { content: ""; position: absolute; inset: 0; opacity: .16; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* ---------- the landscape: one canvas, fixed behind the page. Until its first picture is drawn, and in a
+   browser that cannot draw it, a plain sky in the mode's colours shows instead. ---------- */
+.ks .flight { bottom: auto; height: 100vh; height: 100lvh; overflow: hidden; pointer-events: none; background: linear-gradient(180deg, #86aede 0%, #cbdcec 56%, #f4e4d6 100%); }
+.ks[data-mode="dark"] .flight { background: linear-gradient(180deg, #0a0f26 0%, #1a2046 62%, #3b3054 100%); }
+.ks .flight canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .9s linear; }
+.ks .flight[data-painted] canvas { opacity: 1; }
+/* held still, the view changes by a short fade, never by flying */
+.ks .flight[data-painted] canvas[data-swap] { opacity: 0; transition-duration: .24s; }
 
 /* ---------- the top bar: words on the sky, and the one action. The sky is lighter behind the bar and fades
    out below it, with no edge and no shape (founder, 2026-11-10). ---------- */
-.ks.page-home .hd { inset: 22px var(--gutter) auto; height: auto; padding: 0; background: none; border-radius: 0; gap: 12px; color: var(--ink); }
-.ks.page-home .hd::before { content: ""; position: absolute; z-index: -1; inset: -22px calc(var(--gutter) * -1) -54px; pointer-events: none; background: linear-gradient(rgba(255, 250, 243, .86), rgba(255, 250, 243, .55) 46%, rgba(255, 250, 243, 0)); }
+/* the bar travels with the page, so the light and dark switch is always at hand (founder, 2026-11-11) */
+.ks.page-home .hd { position: fixed; inset: 22px var(--gutter) auto; height: auto; padding: 0; background: none; border-radius: 0; gap: 12px; color: var(--ink); }
+.ks.page-home .hd::before { content: ""; position: absolute; z-index: -1; inset: -22px calc(var(--gutter) * -1) -54px; pointer-events: none; background: linear-gradient(color-mix(in srgb, var(--mist) 86%, transparent), color-mix(in srgb, var(--mist) 55%, transparent) 46%, transparent); }
 .ks.page-home .hd .mark { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(28px, 2.4vw, 34px); letter-spacing: -0.01em; transition: transform .5s var(--spring); }
 .ks.page-home .hd nav { position: relative; gap: 4px; font-size: 17px; font-weight: 700; }
 .ks.page-home .hd nav a, .ks.page-home .hd nav button { position: relative; z-index: 1; min-height: 46px; padding: 0 16px; border-radius: 999px; transition: color .25s var(--out), transform .5s var(--spring); }
 .ks.page-home .hd .nl::after { display: none; }
-.ks.page-home .hd .theme { display: none; }
+/* the light and dark switch: a small sky. The sun slides across and becomes the moon, with a spring; the
+   stars come out behind it. The visible pill is 36px tall inside a 46px target. */
+.ks.page-home .hd .theme { position: relative; flex: none; display: inline-block; width: 78px; min-height: 0; height: 46px; padding: 0; margin-left: 4px; border: 5px solid transparent; border-radius: 999px; background: linear-gradient(180deg, #5fa8e8, #b9def5) padding-box; box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2), inset 0 3px 6px rgba(16, 40, 90, .3); cursor: pointer; }
+.ks.page-home .hd .theme svg { display: none; }
+.ks.page-home .hd .theme::after { content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: 0; transition: opacity .7s var(--out); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .28);
+  background: radial-gradient(1.6px 1.6px at 16% 30%, #fff 60%, transparent 62%), radial-gradient(1.2px 1.2px at 30% 68%, #fff 60%, transparent 62%), radial-gradient(1.8px 1.8px at 44% 24%, #fff 60%, transparent 62%), radial-gradient(1.2px 1.2px at 22% 50%, #dfe6ff 60%, transparent 62%), radial-gradient(1.3px 1.3px at 50% 62%, #fff 60%, transparent 62%), linear-gradient(180deg, #0b1030, #2b2f66); }
+.ks.page-home .hd .theme::before { content: ""; position: absolute; z-index: 1; left: 4px; top: 4px; width: 28px; height: 28px; border-radius: 50%; background: #ffd35c; box-shadow: 0 0 0 5px rgba(255, 221, 120, .32), 0 2px 6px rgba(110, 60, 0, .35); transition: translate .65s var(--spring), background-color .45s var(--out), box-shadow .45s var(--out); }
+.ks.page-home[data-mode="dark"] .hd .theme::after { opacity: 1; }
+.ks.page-home[data-mode="dark"] .hd .theme::before { translate: 32px 0; background: #f4f1e6; box-shadow: inset -8px -3px 0 0 #c6c4d6, 0 0 0 5px rgba(206, 216, 255, .13), 0 2px 6px rgba(0, 0, 0, .5); }
+.ks.page-home .hd .theme:active::before { scale: .9; }
 .ks .nav-mark { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--ink); opacity: 0; pointer-events: none; transition: transform .4s var(--spring), width .4s var(--spring), opacity .2s var(--out); }
 .ks.page-home .hd nav .hot { color: var(--cream); }
 .ks.page-home .hd .cta { margin-left: 10px; border: 0; background: var(--go); color: var(--cream); padding: 0 24px; min-height: 48px; font-weight: 700; box-shadow: 0 10px 22px -12px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
@@ -60,7 +65,19 @@
   .ks.page-home .hd .mark:hover { transform: rotate(-3deg) scale(1.05); }
   .ks.page-home .hd .cta:hover { background: #37313f; color: var(--cream); transform: translateY(-2px); }
 }
-@media (max-width: 440px) { .ks.page-home .hd .cta { display: inline-flex; padding: 0 18px; } }
+/* phones: the switch, the action and the menu all stay in the bar, so the menu becomes three lines and
+   everything tightens; on the narrowest phones the action moves into the menu */
+@media (max-width: 440px) {
+  .ks.page-home .hd { gap: 6px; }
+  .ks.page-home .hd nav { gap: 2px; font-size: 15.5px; }
+  .ks.page-home .hd .mark { font-size: 26px; }
+  .ks.page-home .hd .theme { width: 64px; margin-left: 0; }
+  .ks.page-home[data-mode="dark"] .hd .theme::before { translate: 18px 0; }
+  .ks.page-home .hd .cta { display: inline-flex; margin-left: 2px; padding: 0 14px; min-height: 44px; white-space: nowrap; }
+  .ks.page-home .hd .menu { width: 46px; padding: 0; justify-content: center; font-size: 0; }
+  .ks.page-home .hd .menu::before { content: ""; width: 18px; height: 12px; background: linear-gradient(currentColor 0 2px, transparent 2px 5px, currentColor 5px 7px, transparent 7px 10px, currentColor 10px 12px); }
+}
+@media (max-width: 374px) { .ks.page-home .hd .cta { display: none; } }
 /* the phone menu: a small rounded sheet that drops from the Menu button, not a screen of its own */
 .ks.page-home .sheet { inset: 84px 16px auto auto; width: min(330px, calc(100vw - 32px)); max-height: calc(100svh - 110px); padding: 10px 22px 22px; gap: 14px; border-radius: 30px; background: var(--cream); box-shadow: 0 24px 50px -24px rgba(29, 26, 34, .6); transform-origin: 90% 0; animation: sheet-in .45s var(--spring) both; }
 @keyframes sheet-in { from { opacity: 0; transform: scale(.7) translateY(-12px); } }
@@ -105,7 +122,7 @@ html.ks-lock:has(.ks.page-home) { overflow: auto; }
 /* ---------- 1. the claim: the headline on the dawn sky, and a few flocks of birds passing far off ---------- */
 .ks .claim { position: relative; min-height: 100svh; display: flex; align-items: center; padding: 120px var(--gutter) clamp(90px, 16vh, 170px); }
 /* a calm patch of sky behind the words: brightest where they are, gone before any edge could show */
-.ks .claim .mist { position: absolute; inset: 0; background: radial-gradient(ellipse 62% 64% at 26% 50%, rgba(var(--mist-rgb), .5), rgba(var(--mist-rgb), .3) 52%, rgba(var(--mist-rgb), 0) 78%); animation: mist-in 1.4s var(--out) both; }
+.ks .claim .mist { position: absolute; inset: 0; background: radial-gradient(ellipse 62% 64% at 26% 50%, color-mix(in srgb, var(--mist) 62%, transparent), color-mix(in srgb, var(--mist) 40%, transparent) 52%, transparent 78%); animation: mist-in 1.4s var(--out) both; }
 @keyframes mist-in { from { opacity: 0; } }
 .ks .claim .flock { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ks .claim .say { position: relative; display: grid; gap: clamp(18px, 2.2vw, 28px); justify-items: start; width: min(100%, 61vw); }
@@ -148,13 +165,13 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @media (max-width: 1100px) {
   .ks .claim { align-items: flex-end; padding-top: 40svh; padding-bottom: 12svh; }
   .ks.page-home h1 { font-size: clamp(40px, 7.2vw, 62px); }
-  .ks .claim .mist { background: linear-gradient(180deg, rgba(var(--mist-rgb), 0) 26%, rgba(var(--mist-rgb), .62) 46%, rgba(var(--mist-rgb), .62) 88%, rgba(var(--mist-rgb), 0)); }
+  .ks .claim .mist { background: linear-gradient(180deg, transparent 26%, color-mix(in srgb, var(--mist) 62%, transparent) 46%, color-mix(in srgb, var(--mist) 62%, transparent) 88%, transparent); }
 }
 
 /* ---------- every section after the first: words on a band of mist that runs the full width and fades out
    above and below, so the landscape shows between one section and the next ---------- */
 .ks .sect { position: relative; padding: clamp(96px, 17vh, 190px) var(--gutter); }
-.ks .sect > .mist { position: absolute; inset: 0; pointer-events: none; background: rgba(var(--mist-rgb), .66); -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); }
+.ks .sect > .mist { position: absolute; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--mist) 66%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); }
 .ks .sect .inner { position: relative; width: min(1240px, 100%); display: grid; gap: clamp(20px, 2.6vw, 34px); justify-items: start; }
 .ks .sect .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .ks .sect .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
@@ -275,7 +292,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
    Karman in the sky on the right (Doubts.tsx). A picked cloud bursts and its words fly to the message box. ---------- */
 .ks .chat { --skyh: clamp(440px, 64vh, 640px); --lane: 104px; --dur: 62s; position: relative; width: 100%; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
 /* the sky: every cloud makes the same slow climb, one lane apart, so about six are in view and none touch */
-.ks .sky { --pad: 64px; position: relative; height: calc(var(--skyh) + 78px); margin: 0 calc(var(--pad) * -1); padding: 0; list-style: none; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
+.ks .sky { --pad: 110px; position: relative; height: calc(var(--skyh) + 78px); margin: 0 calc(var(--pad) * -1); padding: 0; list-style: none; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
 .ks .sky li { position: absolute; top: 0; left: var(--pad); width: calc(100% - var(--pad) * 2); display: flex; animation: sky-rise var(--dur) linear infinite; animation-delay: calc(var(--i) * var(--dur) / var(--n) * -1); }
 .ks .sky li:nth-child(even) { justify-content: flex-end; }
 .ks .sky li:nth-child(3n) { padding-inline: 7%; }
@@ -343,7 +360,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 /* the message field: a picked question is typed here before it is sent */
 .ks .chat-box { display: flex; align-items: center; gap: 10px; min-height: 52px; margin: 0; padding: 6px 6px 6px 22px; border-radius: 999px; border: 1.5px solid rgba(60, 60, 67, .3); background: rgba(255, 255, 255, .86); }
 .ks .chat-box span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #000; font-size: clamp(16px, 1.35vw, 19px); }
-.ks .chat-box[data-empty] span { color: #636366; }
+.ks .chat-box[data-empty] span { color: #5b5b5f; }
 .ks .chat-box:not([data-empty]) span::after { content: ""; display: inline-block; width: 2px; height: 1.15em; margin-left: 2px; vertical-align: -3px; background: #0a6fe6; animation: chat-caret 1s steps(2) infinite; }
 @keyframes chat-caret { 50% { opacity: 0; } }
 .ks .chat-box i { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(#1a86f7, #0a6fe6); color: #fff; transition: scale .4s cubic-bezier(.25, 1.7, .45, 1), opacity .3s; }
@@ -367,8 +384,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.still-motion .cloud { max-width: none; }
 
 /* ---------- 7. the price and the close, at night: the mist turns to dusk and the words to cream ---------- */
-.ks .sect.night { --mist-rgb: 18, 20, 42; color: var(--cream); padding-bottom: clamp(120px, 22vh, 240px); }
-.ks .sect.night > .mist { background: rgba(var(--mist-rgb), .78); }
+.ks .sect.night { --mist: rgb(18, 20, 42); color: var(--cream); padding-bottom: clamp(120px, 22vh, 240px); }
+.ks .sect.night > .mist { background: color-mix(in srgb, var(--mist) 74%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent); }
 .ks .sect.night :focus-visible { outline-color: var(--cream); }
 .ks .fireflies { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .ks .plans { width: 100%; display: grid; gap: 12px; }
@@ -392,7 +409,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ft .credit .motion[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ks.page-home, .ks .journey .cam canvas, .ks.page-home .btn, .ks .nav-mark { transition: none; }
+  .ks.page-home, .ks .flight canvas, .ks.page-home .btn, .ks .nav-mark, .ks.page-home .hd .theme::before, .ks.page-home .hd .theme::after { transition: none; }
   .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
   .ks .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
   .ks .sky { margin: 0; gap: 60px 50px; padding: 40px 30px; }
@@ -401,7 +418,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks .gua.rv .gua-stamp, .ks .gua.rv .gua-cards li { opacity: 1 !important; transform: rotate(-13deg); transition: none; }
   .ks .gua.rv .gua-cards li { transform: none !important; }
   .ks .ways .sweep, .ks .ways .draw { stroke-dashoffset: 0; }
-  .ks .journey .rays, .ks .claim .mist, .ks.page-home .sheet, .ks.page-home main .btn { animation: none !important; }
+  .ks .claim .mist, .ks.page-home .sheet, .ks.page-home main .btn { animation: none !important; }
 }
 
 /* ---------- The receipts: a plain list beside the orange phone (Receipts.tsx). The heading and the rows
@@ -518,3 +535,35 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.still-motion .rcp-list::before { transition: none; }
 .ks.still-motion .txt-thread { animation: none; }
 .ks.still-motion .txt-view { overflow-y: auto; }
+
+/* ---------- dark mode: one night. Every section takes the look the last section has by day: cream words on
+   night mist, cream buttons, and the cards stay cream like lit windows. Flipping the switch fades the page
+   over the same second and a half the sun takes to set (the "theming" class, ShellBehaviour.tsx). ---------- */
+.ks.page-home[data-mode="dark"] { --mist: rgb(13, 16, 36); --line: rgba(255, 250, 243, .2); color: var(--cream); color-scheme: dark; }
+.ks.page-home.theming { transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease !important; }
+.ks.page-home.theming * { transition-duration: 1.3s !important; }
+.ks.page-home[data-mode="dark"] .hd { color: var(--cream); }
+.ks.page-home[data-mode="dark"] .hd .cta { background: var(--cream); color: var(--ink); }
+.ks.page-home[data-mode="dark"] .hd .menu { color: var(--ink); }
+.ks.page-home[data-mode="dark"] .nav-mark { background: var(--cream); }
+.ks.page-home[data-mode="dark"] .hd nav .hot { color: var(--ink); }
+.ks.page-home[data-mode="dark"] :focus-visible { outline-color: var(--cream); }
+.ks.page-home[data-mode="dark"] ::selection { background: var(--cream); color: var(--ink); }
+/* words and marks that sit straight on the scene turn cream */
+.ks.page-home[data-mode="dark"] :is(.lede, .fine) { color: var(--cream); }
+.ks.page-home[data-mode="dark"] .claim-pill { background: var(--cream); color: var(--ink); mix-blend-mode: normal; }
+.ks.page-home[data-mode="dark"] .gua-sig svg, .ks.page-home[data-mode="dark"] .gua-stamp :is(circle, .thin) { stroke: var(--cream); }
+.ks.page-home[data-mode="dark"] .gua-stamp text { fill: var(--cream); }
+.ks.page-home[data-mode="dark"] .btn { background: var(--cream); color: var(--ink); }
+.ks.page-home[data-mode="dark"] .btn .go { color: var(--ink); }
+/* anything that is a cream card keeps ink words */
+.ks.page-home[data-mode="dark"] :is(.gua-cards li, .ways li, .lanterns li, .cloud, .sheet) { color: var(--ink); }
+/* the receipts: cream rules and gains on the night, white school marks; the lit row stays a cream card */
+.ks.page-home[data-mode="dark"] .rcp-list li { border-color: rgba(255, 250, 243, .22); }
+.ks.page-home[data-mode="dark"] .rcp-list button { transition: color .5s var(--out); }
+.ks.page-home[data-mode="dark"] .rcp-list button.on { color: var(--ink); }
+.ks.page-home[data-mode="dark"] .rcp-list button:not(.on) .gain { background: var(--cream); color: var(--ink); }
+.ks.page-home[data-mode="dark"] .rcp-list button:not(.on) .at img { filter: brightness(0) invert(1); opacity: .92; }
+.ks.page-home[data-mode="dark"] .rcp-list button:not(.on):hover { background: rgba(255, 250, 243, .12); }
+/* the question clouds are thicker at night, so their ink words always have cloud behind them */
+.ks.page-home[data-mode="dark"] .cloud-mist::before { inset: 20% -2% 4%; background: radial-gradient(closest-side, #fff 0 72%, rgba(255, 255, 255, .78) 88%, rgba(255, 255, 255, 0)); }

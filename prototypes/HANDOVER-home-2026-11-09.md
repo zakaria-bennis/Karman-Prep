@@ -9,8 +9,8 @@ server: the `painted-site` entry in `.claude/launch.json` (port 3320, local data
 
 ## What is built
 
-One home page, `src/app/(site)/page.tsx`, in seven sections on one painting that travels from dawn to
-night as the page scrolls. The founder approved this order.
+One home page, `src/app/(site)/page.tsx`, in sections on one live landscape that is flown from above the
+clouds to the sea as the page scrolls (see "Travelling background"). The founder approved this order.
 
 | # | Section | Files | Animation |
 |---|---|---|---|
@@ -22,8 +22,7 @@ night as the page scrolls. The founder approved this order.
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 | 7 | Price and close, at night: "Four ways in. The first one is free." | `Fireflies.tsx` | Rows dealt in; fireflies follow the cursor |
 
-Everywhere: the painting (`HomeJourney.tsx`, `src/lib/painting/journey.ts`), the sun crossing the sky,
-leaves with physics (`leaves.ts`), a button that leans toward the cursor
+Everywhere: the landscape (`HomeFlight.tsx`, `src/lib/flight/`), a button that leans toward the cursor
 and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are in
 `src/app/(site)/styles/painted.css`. All words are in `src/lib/marketing/site-copy.ts`.
 
@@ -90,8 +89,8 @@ a chat as the whole page).
   +100 to 1400, +50 to 1450. Cohort and Private 10 promise +150, +100, +70, +40. None from 1460. Founder's
   choice on 9 November: tiered targets, with every other rule kept exactly as the lawyer reviewed it
   (15 of 18 classes, five tests, 90% of practice, SAT within 60 days, half or all back, claim in 30 days).
-- The home page takes its light from the painting, not from the device: ink on cream mist by day, cream
-  on indigo at night. It has no light and dark switch.
+- The home page follows the device's light or dark mode until the visitor flips the switch in the top bar
+  (11 Nov). Light: ink on cream mist, cream on dusk mist for the last section. Dark: cream on night mist.
 - Logos are from Wikimedia Commons (`public/site/schools/SOURCES.json`). He was told once that a public
   domain mark is still a trademark.
 - The top menu keeps The SAT Program, Private tutoring, Pricing, Sign in and Start free. About, FAQ and
@@ -107,7 +106,7 @@ a chat as the whole page).
 
 ## Checks
 
-- `node scripts/dev/home-journey-check.mjs`: measures text contrast against the real painting pixels in
+- `node scripts/dev/home-journey-check.mjs`: measures text contrast against the real pixels behind the words, in light and dark, in
   all seven sections at desktop, tablet and phone, and tests the guarantee's stamp and cards, the bubbles, the birds, the
   phone menu, the still button and every link. Passing.
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
@@ -124,15 +123,27 @@ real students and the words they sent; nothing may be written for them.
 The phone's Messages screen (11 Nov) is measured from two real iPhone screenshots the founder sent, light
 and dark, and follows the page's mode. Sizes are in points of a 402-point screen (`--pt` in painted.css).
 
-## Travelling background (11 Nov 2026, waiting for the founder's verdict)
+## Travelling background (11 Nov 2026, approved and on the home page)
 
-He asked for a photorealistic, lit, moving background that changes as the page scrolls and differs in light
-and dark mode. A first live version is at `/lab-journey` (dev only): one landscape drawn on the graphics
-card (`lab-journey/flight-shader.ts`), flown from above the clouds, down through them, along a valley and a
-fjord to the open sea. Light mode is one day (just after sunrise to just after sunset); dark mode is one
-night (dusk, stars, northern lights, sunrise). It is not on the home page yet. If he approves it, it
-replaces `src/lib/painting/` on the home page, and needs: a still picture for browsers that cannot draw it,
-a reduced-motion version, contrast checks for the text, and the passive birds and snow he likes.
+The founder asked for a photorealistic, lit, moving background that changes as the page scrolls and differs
+in light and dark mode, and approved the first version ("Yes, keep going"). It replaced the code-made
+painting on the home page. The portals still use `src/lib/painting/`.
+
+- `src/lib/flight/shader.ts` is the landscape, drawn on the graphics card: above the clouds, down through
+  them, past the high peaks where it snows, along a valley and a fjord where birds fly, out to the sea.
+- `src/lib/flight/engine.ts` runs it: scroll flies the camera, it draws softer on slow devices, stops when
+  nobody is there, and steps by short fades when motion is held still.
+- `HomeFlight.tsx` puts it behind the page. A browser that cannot draw it keeps a plain sky.
+- Light mode is one day (just after sunrise to just after sunset). Dark mode is one night (dusk, stars,
+  northern lights, sunrise). Flipping the switch makes the sun set or rise where the visitor is, in about a
+  second and a half, and the page does not move.
+- The switch is the small sky in the top bar (the existing theme button, restyled in painted.css). The top
+  bar is now fixed, so the switch travels with the page. On phones the Menu button shows three lines.
+- Dark mode's colours are at the end of painted.css: every section takes the night section's look.
+- He likes both the Ghibli look and this more realistic one; the realism is on purpose, so the page does
+  not read as low quality. The stamp's leaf burst went with the old engine.
+- Not done: the footer still ends in a solid black block (he wants it to continue the landscape); a real
+  phone has not been tried; the land up close is better but still not a photograph.
 
 ## Questions section (10 Nov 2026)
 

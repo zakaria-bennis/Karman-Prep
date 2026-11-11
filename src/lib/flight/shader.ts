@@ -1,7 +1,11 @@
-// TEMPORARY (lab): one lit landscape the visitor flies down through as they scroll. It is drawn live on
-// the graphics card, so the sun, the shadows, the clouds, the mist and the water are real light, not a
-// picture. uP is how far down the page (0 to 1), uNight is the mode (0 light, 1 dark), uTime moves the
-// clouds, the water, the mist and the stars.
+// The home page's background: one lit landscape the visitor flies down through as they scroll (founder,
+// 2026-11-11). It is drawn live on the graphics card, so the sun, the shadows, the clouds, the mist and the
+// water are real light, not a picture. The route: above the clouds, down through them, past the high peaks
+// where it snows, along a green valley and a fjord where birds fly, out to the open sea.
+// uP is how far down the page (0 to 1). uNight is the mode (0 light, 1 dark): light is one day, from just
+// after sunrise to just after sunset; dark is one night, from dusk through stars and northern lights to
+// sunrise. Between the two the sun really sets or rises, which is what the visitor sees when they flip the
+// switch. uTime moves the clouds, the water, the mist, the stars, the snow and the birds.
 export const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
 export const FRAG = `
@@ -14,7 +18,7 @@ const mat2 M2 = mat2(.8, -.6, .6, .8);
 const float CB = 1.05, CT = 1.3;   /* the cloud deck: bottom and top */
 
 vec3 SUN, MOON, KEY, SUNCOL, KEYCOL, AMB;
-float DAY, NIGHT, LOW;
+float DAY, NIGHT, LOW, FINE;
 
 float tx(vec2 p) { return texture2D(uNoise, (p + .5) / 256.).r; }
 float n2(vec2 x) { vec2 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f); return texture2D(uNoise, (i + f + .5) / 256.).r; }
@@ -41,10 +45,25 @@ TERR(terrL, 3)
 TERR(terrM, 6)
 TERR(terrD, 10)
 /* the finest version adds the bumps of a forest canopy below the tree line */
+/* one tree: a cone somewhere in its cell, of its own height; some cells are clearings */
+vec2 treeCell(vec2 g) {
+  vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id), tx(id + 41.)) - .5) * .8;
+  float size = tx(id + 13.);
+  return vec2(max(0., 1. - length(f) * (2.2 + 1.6 * size)) * (.45 + .85 * size) * step(.28, tx(id + 59.)), tx(id + 77.));
+}
+/* the forest: two sizes of tree laid over each other, thinning out in patches */
+vec2 treeAt(vec2 x) {
+  vec2 a = treeCell(x * 190.), b = treeCell(M2 * x * 330. + 17.);
+  float patchy = smoothstep(.3, .62, n2(x * 21.));
+  return vec2(max(a.x, b.x * .7) * mix(.35, 1., patchy), a.x > b.x * .7 ? a.y : b.y);
+}
 float terrH(vec2 x) {
   float h = terrD(x);
-  float trees = smoothstep(.7, .52, h) * smoothstep(.004, .03, h);
-  return h + trees * .0035 * pow(n2(x * 240.), 1.4);
+  float low = smoothstep(1.2, 4.2, x.y);
+  float band = smoothstep(mix(.74, .5, low), mix(.6, .36, low), h) * smoothstep(.004, .03, h);
+  /* bare rock is cracked and ledged; the forest floor carries its trees */
+  float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
+  return h + (band * .0056 * treeAt(x).x + (1. - band) * crag) * FINE;
 }
 
 vec3 dirFrom(float elev, float az) { float e = radians(elev), a = radians(az); return vec3(sin(a) * cos(e), sin(e), cos(a) * cos(e)); }
@@ -145,6 +164,7 @@ float shadow(vec3 p) {
 
 vec3 ground(vec3 p, float t) {
   float e = .0009 * t + .0004;
+  FINE = clamp(1.6 - t * .55, 0., 1.);
   vec3 n = normalize(vec3(terrH(p.xz - vec2(e, 0.)) - terrH(p.xz + vec2(e, 0.)), 2. * e, terrH(p.xz - vec2(0., e)) - terrH(p.xz + vec2(0., e))));
   float h = p.y, r = n2(p.xz * 46.), r2 = fbm(p.xz * 7.);
   float near = 1. / (1. + t * t * .5);
@@ -155,10 +175,11 @@ vec3 ground(vec3 p, float t) {
   float snow = smoothstep(sl, sl + .12, h + .2 * (r2 - .5)) * smoothstep(.4, .68, n.y);
   /* the grain of the rock: small ledges and cracks that catch the light, fading with distance */
   vec3 d1 = noised(p.xz * 34.), d2 = noised(p.xz * 97.);
-  n = normalize(n + vec3(d1.y + .6 * d2.y, 0., d1.z + .6 * d2.z) * .2 * near * (1. - tree) * (1. - snow * .7));
+  n = normalize(n + vec3(d1.y + .6 * d2.y, 0., d1.z + .6 * d2.z) * .26 * near * (1. - tree) * (1. - snow * .7));
   vec3 rock = mix(vec3(.07, .066, .064), vec3(.25, .21, .17), r2) * (.7 + .6 * n2(vec2(h * 80. + r2 * 5., r * 2.)));
   rock *= mix(.62, 1.08, smoothstep(.3, .75, n.y));
-  vec3 forest = mix(vec3(.01, .034, .016), vec3(.04, .08, .026), r) * (.55 + .9 * pow(n2(p.xz * 310.), 1.6) * near + .45 * (1. - near));
+  vec2 tr = treeAt(p.xz);
+  vec3 forest = mix(vec3(.01, .034, .016), vec3(.045, .085, .024), mix(r, .3 * r + .7 * tr.y, FINE)) * mix(1., .7 + .6 * tr.x, FINE);
   vec3 grass = mix(vec3(.075, .13, .035), vec3(.19, .2, .06), r2);
   vec3 alb = mix(rock, forest, tree);
   alb = mix(alb, grass, mead);
@@ -166,7 +187,8 @@ vec3 ground(vec3 p, float t) {
   alb = mix(alb, vec3(.78, .83, .9), snow);
   float sh = shadow(p + n * .004);
   float dif = max(dot(n, KEY), 0.) * sh;
-  vec3 lin = KEYCOL * dif * 2.6 + AMB * (.35 + .35 * n.y) + KEYCOL * max(dot(n, normalize(vec3(-KEY.x, 0., -KEY.z))), 0.) * .1;
+  float ao = clamp(.8 + (h - terrL(p.xz)) * 3.2, .38, 1.12);
+  vec3 lin = KEYCOL * dif * 2.6 + AMB * (.35 + .35 * n.y) * ao + KEYCOL * max(dot(n, normalize(vec3(-KEY.x, 0., -KEY.z))), 0.) * .1;
   return alb * lin + snow * KEYCOL * pow(max(dot(reflect(-KEY, n), normalize(vec3(0., 1., 0.))), 0.), 6.) * .08 * sh;
 }
 
@@ -181,7 +203,7 @@ vec3 haze(vec3 col, vec3 p, vec3 rd, float t) {
 void main() {
   float P = clamp(uP, 0., 1.);
   /* light mode runs from just after sunrise to just after sunset; dark mode from dusk to first light */
-  float eL = mix(mix(8., 44., smoothstep(0., .45, P)), -3.5, smoothstep(.5, 1., P));
+  float eL = mix(mix(8., 44., smoothstep(0., .45, P)), -8., smoothstep(.5, .96, P));
   float eD = mix(mix(-4.5, -30., smoothstep(0., .22, P)), 1.4, smoothstep(.76, 1., P));
   SUN = dirFrom(mix(eL, eD, uNight), mix(-26., 8., P));
   MOON = dirFrom(36., mix(40., 22., P));
@@ -266,6 +288,40 @@ void main() {
 
   vec4 cl = clouds(ro, rd, tend, jit);
   col = col * (1. - cl.a) + cl.rgb;
+  /* birds: two loose flocks flying on ahead, by day, below the clouds; hills hide them */
+  float fly = smoothstep(.27, .36, P) * (1. - smoothstep(.9, .99, P)) * (1. - NIGHT) * smoothstep(-.05, .05, SUN.y);
+  if (fly > .01) {
+    float ink = 0.;
+    for (int k = 0; k < 2; k++) {
+      float fk = float(k), size = mix(.036, .02, fk), far = mix(.5, 1.5, fk);
+      vec2 c0 = vec2((.55 * sin(uTime * .045 + fk * 2.4) + .2 * sin(uTime * .017 + fk)) * min(1., uRes.x / uRes.y), .34 + .2 * fk + .08 * sin(uTime * .06 + fk * 4.));
+      for (int i = 0; i < 5; i++) {
+        float fi = float(i), rank = floor((fi + 1.) * .5), side = mod(fi, 2.) * 2. - 1.;
+        vec2 c = c0 + vec2(side * rank * 2.7, -rank * 1.25) * size + .25 * size * vec2(sin(uTime * .7 + fi * 2.1), cos(uTime * .53 + fi * 1.3));
+        vec2 q = (uv - c) / size;
+        q.x = abs(q.x);
+        float beat = sin(uTime * (3.4 + fk) + fi * 1.9 + fk * 2.);
+        float lift = q.x * (1.3 - .9 * q.x) * (.25 + .6 * beat) + .22 * sin(min(q.x, 1.) * 3.14159);
+        float wing = abs(q.y - lift) - .13 * (1. - .85 * q.x);
+        float body = length(vec2(q.x * 2.2, q.y + .04)) - .2;
+        ink = max(ink, smoothstep(.06, -.04, min(wing, body)) * step(q.x, 1.) * step(far, tend));
+      }
+    }
+    col = mix(col, AMB * .12, ink * fly * .88);
+  }
+  /* snow: falls around the high peaks, under the clouds, in three depths */
+  float snowing = smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P));
+  if (snowing > .01) {
+    float fl = 0.;
+    for (int k = 0; k < 3; k++) {
+      float fk = float(k), sc = 9. + fk * 9.;
+      vec2 g = vec2(uv.x * sc + .6 * sin(uTime * .3 + fk * 2. + uv.y * 1.3) + uTime * (.16 + .06 * fk), uv.y * sc + uTime * (1.3 - .25 * fk) + fk * 7.);
+      vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id + fk * 19.), tx(id + 53.)) - .5) * .86;
+      float big = tx(id + 23. + fk * 5.);
+      fl += smoothstep(.035 + .05 * big * big, .0, length(f * vec2(1., .72))) * step(.5, tx(id + 7. + fk * 31.)) * (.9 - .22 * fk);
+    }
+    col = mix(col, (AMB * .9 + KEYCOL * .55 + .04) * 1.25, clamp(fl, 0., 1.) * snowing * .8);
+  }
   /* light spilling through the air around the sun */
   col += SUNCOL * pow(max(dot(rd, SUN), 0.), 9.) * .1 * (1. - exp(-tend * .25));
 

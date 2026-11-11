@@ -1,4 +1,5 @@
-// Checks the painted home page in a real browser. Words sit straight on a painting here, so contrast is
+// Checks the home page in a real browser, in light mode and in dark mode. Words sit straight on a live
+// landscape here (lib/flight), so contrast is
 // measured from the pixels actually behind each line of text, not from a background colour. Also checked:
 // no sideways scroll, the birds, the phone menu, the still button, and every link.
 // Usage: node scripts/dev/home-journey-check.mjs [baseUrl]
@@ -6,7 +7,10 @@ import { chromium } from "playwright";
 import sharp from "sharp";
 
 const base = process.argv[2] ?? "http://localhost:3320";
-const browser = await chromium.launch(process.env.PW_BUNDLED ? {} : { channel: "chrome" });
+const gpu = ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"];
+const browser = await chromium.launch(
+  process.env.PW_BUNDLED ? { args: gpu } : { channel: "chrome", args: gpu }
+);
 let failed = 0;
 const say = (ok, what) => {
   if (!ok) failed++;
@@ -17,13 +21,19 @@ const lum = (r, g, b) => {
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 };
 
-for (const [name, width, height] of [
-  ["desktop", 1440, 900],
-  ["tablet", 820, 1180],
-  ["phone", 440, 956],
+for (const [size, width, height, mode] of [
+  ["desktop", 1440, 900, "light"],
+  ["desktop", 1440, 900, "dark"],
+  ["tablet", 820, 1180, "light"],
+  ["phone", 440, 956, "light"],
+  ["phone", 390, 844, "dark"],
 ]) {
+  const name = `${size} ${mode}`;
   const ctx = await browser.newContext({ viewport: { width, height } });
   const page = await ctx.newPage();
+  await page.addInitScript((m) => {
+    localStorage.setItem("karman-site-theme", m);
+  }, mode);
   await page.addInitScript(() => {
     const s = document.createElement("style");
     s.textContent =
@@ -38,32 +48,41 @@ for (const [name, width, height] of [
 
   /* contrast, measured, in every section: hide the words, photograph what is behind them, and compare each
      line's own colour with the darkest and lightest tenth of the pixels under its letters */
-  await page
-    .waitForFunction(
-      () => [...document.querySelectorAll(".journey .cam canvas")].every((c) => c.width !== 300),
-      null,
-      { timeout: 60000 }
-    )
-    .catch(() => {});
+  const painted = await page
+    .waitForSelector(".flight[data-painted]", { timeout: 30000 })
+    .catch(() => null);
+  say(!!painted, `${name}: the landscape is drawn`);
   const bad = [];
-  for (const sel of ["#claim", "#proof", "#offer", "#who", "#how", "#ask", "#price"]) {
+  for (const sel of ["#claim", "#proof", "#offer", "#who", "#how", "#receipts", "#ask", "#price"]) {
+    if (!(await page.locator(sel).count())) continue;
     await page.evaluate((s) => document.querySelector(s).scrollIntoView({ block: "center" }), sel);
     await page.waitForTimeout(1900);
     const lines = await page.evaluate((s) => {
       const out = [];
       const root = document.querySelector(s);
+      const under = document.querySelector(".hd").getBoundingClientRect().bottom + 54;
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       for (let n = walker.nextNode(); n; n = walker.nextNode()) {
         const el = n.parentElement;
         if (!n.textContent.trim() || !el.offsetParent) continue;
         /* text on its own solid surface is checked by colour pair below, not by the painting */
-        if (el.closest(".btn, .claim-pill, .chat-q, .sr, [hidden]")) continue;
+        /* the phone's screen is a picture of Messages in Apple's own colours, and it pans */
+        if (el.closest(".btn, .claim-pill, .chat-q, .txt, .sr, [hidden]")) continue;
+        /* a cloud fading in at the bottom of its sky, or out at the top, is not yet meant to be read */
+        const cloud = el.closest(".cloud");
+        if (cloud) {
+          const sky = cloud.closest(".sky").getBoundingClientRect();
+          const c = cloud.getBoundingClientRect();
+          const at = (c.top + c.height / 2 - sky.top) / sky.height;
+          if (at < 0.24 || at > 0.76) continue;
+        }
         const range = document.createRange();
         range.selectNodeContents(n);
         const cs = getComputedStyle(el);
         const size = parseFloat(cs.fontSize);
         for (const r of range.getClientRects()) {
-          if (r.width < 8 || r.top < 0 || r.bottom > innerHeight) continue;
+          /* words passing under the travelling top bar and its veil are on their way out */
+          if (r.width < 8 || r.top < under || r.bottom > innerHeight) continue;
           out.push({
             text: n.textContent.trim().slice(0, 28),
             color: cs.color
@@ -114,7 +133,7 @@ for (const [name, width, height] of [
   }
   say(
     bad.length === 0,
-    `${name}: measured contrast over the painting, all seven sections${bad.length ? "\n     " + [...new Set(bad)].slice(0, 14).join("\n     ") : ""}`
+    `${name}: measured contrast over the landscape, every section${bad.length ? "\n     " + [...new Set(bad)].slice(0, 14).join("\n     ") : ""}`
   );
 
   /* the guarantee: the stamp comes down and the three cards arrive */
@@ -157,7 +176,7 @@ for (const [name, width, height] of [
   say(drawn > 3, `${name}: birds are in the sky (${drawn} samples)`);
   say(errors.length === 0, `${name}: the opening raises no error`);
 
-  if (name === "phone") {
+  if (size === "phone") {
     await page.locator(".hd .menu").click();
     const sheet = await page.locator("#menu").boundingBox();
     say(
@@ -171,10 +190,30 @@ for (const [name, width, height] of [
     await page.keyboard.press("Escape");
     say(await page.locator("#menu").isHidden(), "phone: Escape closes the menu");
   }
-  if (name === "desktop") {
+  if (size === "desktop") {
+    /* the switch travels with the page; flipping it changes the mode and leaves the reader where they are */
+    await page.evaluate(() =>
+      document.querySelector("#how").scrollIntoView({ behavior: "instant" })
+    );
+    await page.waitForTimeout(1500);
+    const before = await page.evaluate(() => scrollY);
+    await page.locator(".hd .theme").click();
+    await page.waitForTimeout(1900);
+    const after = await page.evaluate(() => ({
+      y: scrollY,
+      mode: document.getElementById("ks").dataset.mode,
+    }));
+    say(
+      after.mode !== mode && Math.abs(after.y - before) < 2 && before > 500,
+      `${name}: the switch flips the mode and the page stays put (${before} to ${after.y})`
+    );
+    await page.locator(".hd .theme").click();
+    await page.waitForTimeout(400);
+  }
+  if (size === "desktop" && mode === "light") {
     say(
       await page.locator('.hd a[href="/auth/sign-in"]').isVisible(),
-      "desktop: Sign in is in the top bar"
+      `${name}: Sign in is in the top bar`
     );
     const still = page.locator(".ft .motion");
     await still.scrollIntoViewIfNeeded();
@@ -191,7 +230,8 @@ for (const [name, width, height] of [
       ...new Set([...document.querySelectorAll("#ks a[href]")].map((a) => a.href)),
     ]);
     for (const href of hrefs) {
-      if (href.startsWith("mailto:")) continue;
+      /* Karman's own pages only: the social links belong to other sites */
+      if (href.startsWith("mailto:") || !href.startsWith(base)) continue;
       const res = await ctx.request
         .get(href, { maxRedirects: 5, timeout: 90000 })
         .catch(() => null);

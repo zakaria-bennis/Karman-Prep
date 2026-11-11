@@ -3,6 +3,7 @@
 // each page is a full load, so the loaders follow the mock's rules exactly.
 import type { ReactNode } from "react";
 import { Anton, Hanken_Grotesk } from "next/font/google";
+import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
@@ -213,6 +214,14 @@ export default function SitePage({
                 {h === "footer legal" ? <a href={`mailto:${SITE.email}`}>{SITE.email}</a> : null}
               </div>
             ))}
+            <div className="col">
+              <p className="h">{SITE["footer follow"]}</p>
+              {(Object.keys(SOCIALS) as (keyof typeof SOCIALS)[]).map((k) => (
+                <a key={k} href={SOCIALS[k]} rel="noopener">
+                  {SITE[`${k} link`]}
+                </a>
+              ))}
+            </div>
           </nav>
         </div>
         {stage ? (
@@ -222,6 +231,7 @@ export default function SitePage({
             </button>
           </p>
         ) : null}
+        <p className="ft-fine">{SITE["sat note"]}</p>
       </footer>
       <ShellBehaviour />
     </div>

@@ -4,7 +4,7 @@
 // +200 stamp that is brought down hard at the top right, level with the headline, and the three outcomes on cards that slide in
 // from the side. Everything else about the guarantee is one link away. The arrival plays when the section
 // scrolls into view (the site's "rv" then "on" classes, painted.css). When the stamp lands, the headline gives
-// a short jolt and a few leaves burst from under it (lib/painting/journey.ts listens for "karman:burst").
+// a short jolt.
 import type { CSSProperties } from "react";
 
 /** How long after the stamp starts to fall it hits the page: 52% of .gua-stamp's .75s (painted.css). */
@@ -54,19 +54,11 @@ export default function Guarantee({
   outcomes: [string, string][];
   words: GuaranteeWords;
 }) {
-  /* the stamp's fall has begun: at the moment it lands, jolt the words and ask the painting for leaves */
+  /* the stamp's fall has begun: at the moment it lands, jolt the words */
   const landed = (e: React.AnimationEvent<HTMLDivElement>) => {
     if (e.animationName !== "gua-stamp") return;
     const stamp = e.currentTarget;
-    setTimeout(() => {
-      stamp.closest(".offer")?.classList.add("hit");
-      const r = stamp.getBoundingClientRect();
-      document.dispatchEvent(
-        new CustomEvent("karman:burst", {
-          detail: { x: r.left + r.width / 2, y: r.top + r.height / 2 },
-        })
-      );
-    }, IMPACT_MS);
+    setTimeout(() => stamp.closest(".offer")?.classList.add("hit"), IMPACT_MS);
   };
 
   return (

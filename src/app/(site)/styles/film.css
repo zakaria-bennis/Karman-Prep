@@ -180,6 +180,9 @@ html.ks-lock { overflow: hidden; }
 .ks .ft .col a { min-height: 40px; display: flex; align-items: center; text-decoration: none; font-size: 15px; transition: color .2s; }
 @media (hover: hover) and (pointer: fine) { .ks .ft .col a:hover { color: var(--marigold); } }
 .ks .ft .credit { max-width: var(--max); margin: 40px auto 0; padding-top: 20px; border-top: 1px solid #222; font-size: 13px; color: #8c877e; }
+/* the trademark line, in fine print at the very bottom of every page */
+.ks .ft .ft-fine { max-width: var(--max); margin: 28px auto 0; padding: 0; font-size: 12.5px; line-height: 1.5; color: #8c877e; }
+.ks .ft .credit + .ft-fine { margin-top: 10px; }
 
 /* ---------- one reveal everywhere: rise a little and fade in, once ---------- */
 .ks .rv { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); transition-delay: var(--d, 0s); }

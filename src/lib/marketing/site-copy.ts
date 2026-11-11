@@ -483,6 +483,12 @@ email: ${CONTACT.general}
 footer programs: Programs
 footer company: Karman
 footer legal: Legal
+footer follow: Follow
+facebook link: Facebook
+instagram link: Instagram
+tiktok link: TikTok
+youtube link: YouTube
+sat note: SAT® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, Karman Prep.
 menu: Menu
 close: Close
 pause: Hold the painting still
