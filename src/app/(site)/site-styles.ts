@@ -1,5 +1,6 @@
-// The marketing site's styles, all scoped under .ks so none of them reach the student app. Loaded by the
-// (site) layout and by the 404 page (src/app/not-found.tsx), which lives outside the (site) group.
+// The marketing site's styles, all scoped under .ks so none of them reach the student app. Loaded only by
+// the (site) layout. Nothing outside (site) may import this file: a root-level file such as
+// src/app/not-found.tsx is loaded by every route, and would carry these styles into the student app.
 import "./styles/film.css";
 import "./styles/phone.css";
 import "./styles/kit.css";
