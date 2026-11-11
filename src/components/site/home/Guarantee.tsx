@@ -46,33 +46,56 @@ function Signature({ name }: { name: string }) {
   );
 }
 
-/** One small moving picture per outcome: the arrow in the bullseye, the coin cut in two, the whole coin coming home. */
+/** One small moving picture per outcome, each acting out its own line: a dart thrown into the bullseye; a
+    banknote torn in two, half sliding home and half landing in the tutors' bowl; one hand passing a whole
+    stack of cash to another. Ink, with green for the money and red for the bullseye. */
 const PICS: ReactNode[] = [
   <>
-    <circle className="p-ring" cx="22" cy="26" r="17" />
-    <circle className="p-ring" cx="22" cy="26" r="10" />
-    <circle className="p-fill" cx="22" cy="26" r="3.6" />
-    <g className="p-arrow">
-      <path className="p-line" d="M22 26L42 6M36 5h7v7" />
+    <g className="p-board">
+      <circle className="p-paper" cx="28" cy="30" r="21" />
+      <circle className="p-ring" cx="28" cy="30" r="21" />
+      <circle className="p-ring" cx="28" cy="30" r="13" />
+      <circle className="p-red" cx="28" cy="30" r="6" />
+    </g>
+    <g transform="translate(28 30)">
+      <g className="p-dart">
+        <path className="p-line" d="M0 0L24 -19" />
+        <path className="p-red p-edge" d="M24 -19l9-2-3-7z" />
+        <path className="p-ink" d="M24 -19l2 9 6-5z" />
+      </g>
     </g>
   </>,
   <>
-    <g className="p-half-l">
-      <path className="p-fill" d="M22 8a16 16 0 0 0 0 32z" />
+    <path className="p-ink" d="M40 44h28a14 14 0 0 1-28 0z" />
+    <g className="p-keep">
+      <path className="p-green p-edge" d="M8 12h22v24H8a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3z" />
+      <path className="p-cut" d="M30 18a6 6 0 0 0 0 12" />
     </g>
-    <g className="p-half-r">
-      <path className="p-ring" d="M26 8a16 16 0 0 1 0 32z" />
-      <path className="p-line" d="M32 30l6 6M38 30v6h-6" />
+    <g className="p-eat">
+      <path className="p-green p-edge" d="M30 12h22a3 3 0 0 1 3 3v18a3 3 0 0 1-3 3H30z" />
+      <path className="p-cut" d="M30 18a6 6 0 0 1 0 12" />
     </g>
+    <path className="p-ink" d="M38 44h32v4H38z" />
   </>,
   <>
-    <g className="p-home">
-      <circle className="p-fill" cx="24" cy="22" r="14" />
-      <text className="p-dollar" x="24" y="28.5">
-        $
-      </text>
+    <g className="p-give">
+      <rect className="p-ink" x="0" y="30" width="9" height="16" rx="2" />
+      <path className="p-paper p-edge" d="M9 33h15a5 5 0 0 1 5 5v1a5 5 0 0 1-5 5H9z" />
+      <path className="p-paper p-edge" d="M13 33v-3a3.5 3.5 0 0 1 7 0v3" />
+      <path className="p-line" d="M24 38.5h5" />
     </g>
-    <path className="p-line p-loop" pathLength={1} d="M6 30a19 19 0 0 0 36 4M42 42v-8h-8" />
+    <g className="p-take">
+      <rect className="p-ink" x="63" y="30" width="9" height="16" rx="2" />
+      <path className="p-paper p-edge" d="M63 33H48a5 5 0 0 0-5 5v1a5 5 0 0 0 5 5h15z" />
+      <path className="p-paper p-edge" d="M59 33v-3a3.5 3.5 0 0 0-7 0v3" />
+      <path className="p-line" d="M48 38.5h-5" />
+    </g>
+    <g className="p-stack">
+      <rect className="p-green p-edge" x="10" y="24" width="22" height="7" rx="2" />
+      <rect className="p-green p-edge" x="10" y="18" width="22" height="7" rx="2" />
+      <rect className="p-green p-edge" x="10" y="12" width="22" height="7" rx="2" />
+      <rect className="p-paper" x="18" y="12" width="6" height="19" />
+    </g>
   </>,
 ];
 
@@ -138,7 +161,7 @@ export default function Guarantee({
       <ul className="gua-cards">
         {outcomes.map(([name, line], i) => (
           <li key={name} style={{ "--k": i } as CSSProperties}>
-            <svg className="gua-pic" viewBox="0 0 48 48" aria-hidden="true">
+            <svg className="gua-pic" viewBox="0 0 72 56" aria-hidden="true">
               {PICS[i % PICS.length]}
             </svg>
             <b>{name}</b>
