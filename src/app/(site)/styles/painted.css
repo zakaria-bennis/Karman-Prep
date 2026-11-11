@@ -46,14 +46,19 @@
 .ks.page-home .hd nav { position: relative; gap: 4px; font-size: 17px; font-weight: 700; }
 .ks.page-home .hd nav a, .ks.page-home .hd nav button { position: relative; z-index: 1; min-height: 46px; padding: 0 16px; border-radius: 999px; transition: color .25s var(--out), transform .5s var(--spring); }
 .ks.page-home .hd .nl::after { display: none; }
-/* the light and dark switch, kept quiet (founder, 2026-11-11: the first one was too loud): a faint track
-   in the page's own ink, and a small sun that slides across with a spring and becomes the moon. No colour
-   of its own beyond the sun's warmth. The visible pill is 28px tall inside a 46px target. */
-.ks.page-home :is(.hd, .ft) .theme { position: relative; flex: none; display: inline-block; width: 62px; min-height: 0; height: 46px; padding: 0; margin-left: 4px; border: solid transparent; border-width: 9px 5px; border-radius: 999px; background: rgba(29, 26, 34, .1) padding-box; box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .22); cursor: pointer; transition: background-color .5s var(--out), box-shadow .5s var(--out); }
-.ks.page-home :is(.hd, .ft) .theme svg { display: none; }
-.ks.page-home :is(.hd, .ft) .theme::before { content: ""; position: absolute; left: 4px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: #f1cf7e; box-shadow: 0 1px 3px rgba(29, 26, 34, .28); transition: translate .6s var(--spring), background-color .45s var(--out), box-shadow .45s var(--out); }
-.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme, .ks.page-home .ft .theme { background-color: rgba(255, 250, 243, .12); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3); }
-.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme::before { translate: 24px 0; background: #ece9df; box-shadow: inset -5px -2px 0 0 #c9c7d6, 0 1px 3px rgba(0, 0, 0, .4); }
+/* the light and dark switch (founder, 2026-11-11: it must be obvious what it does, without loud colour).
+   A sun on the left and a moon on the right, drawn in the page's own ink; a cream disc sits behind the one
+   that is on and slides across with a spring. --sw is the track's inner width; the visible pill is 32px
+   tall inside a 46px target. */
+.ks.page-home :is(.hd, .ft) .theme { --sw: 68px; --sw-off: rgba(29, 26, 34, .62); position: relative; flex: none; display: inline-block; box-sizing: content-box; width: var(--sw); min-height: 0; height: 32px; padding: 0; margin-left: 4px; border: solid transparent; border-width: 7px 5px; border-radius: 999px; background: rgba(29, 26, 34, .11) padding-box; box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2); cursor: pointer; transition: background-color .5s var(--out), box-shadow .5s var(--out); }
+.ks.page-home :is(.hd, .ft) .theme::before { content: ""; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fffaf3; box-shadow: 0 1px 4px rgba(29, 26, 34, .32); transition: translate .6s var(--spring); }
+.ks.page-home :is(.hd, .ft) .theme svg { display: block; position: absolute; top: 8px; width: 16px; height: 16px; stroke-width: 2.1; transition: color .45s var(--out); }
+.ks.page-home :is(.hd, .ft) .theme .sun { left: 8px; color: #1d1a22; }
+.ks.page-home :is(.hd, .ft) .theme .moon { left: calc(var(--sw) - 24px); color: var(--sw-off); }
+.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme, .ks.page-home .ft .theme { --sw-off: rgba(255, 250, 243, .78); background-color: rgba(255, 250, 243, .13); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3); }
+.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme::before { translate: calc(var(--sw) - 32px) 0; }
+.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme .sun { color: var(--sw-off); }
+.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme .moon { color: #1d1a22; }
 .ks.page-home :is(.hd, .ft) .theme:active::before { scale: .9; }
 .ks .nav-mark { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--ink); opacity: 0; pointer-events: none; transition: transform .4s var(--spring), width .4s var(--spring), opacity .2s var(--out); }
 .ks.page-home .hd nav .hot { color: var(--cream); }
@@ -70,7 +75,7 @@
   .ks.page-home .hd { gap: 6px; }
   .ks.page-home .hd nav { gap: 2px; font-size: 15.5px; }
   .ks.page-home .hd .mark { font-size: 26px; }
-  .ks.page-home .hd .theme { margin-left: 0; }
+  .ks.page-home .hd .theme { --sw: 60px; margin-left: 0; }
   .ks.page-home .hd .cta { display: inline-flex; margin-left: 2px; padding: 0 14px; min-height: 44px; white-space: nowrap; }
   .ks.page-home .hd .menu { width: 46px; padding: 0; justify-content: center; font-size: 0; }
   .ks.page-home .hd .menu::before { content: ""; width: 18px; height: 12px; background: linear-gradient(currentColor 0 2px, transparent 2px 5px, currentColor 5px 7px, transparent 7px 10px, currentColor 10px 12px); }
@@ -410,7 +415,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ft .credit .motion[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ks.page-home, .ks .flight canvas, .ks.page-home .btn, .ks .nav-mark, .ks.page-home :is(.hd, .ft) .theme::before { transition: none; }
+  .ks.page-home, .ks .flight canvas, .ks.page-home .btn, .ks .nav-mark, .ks.page-home :is(.hd, .ft) .theme::before, .ks.page-home :is(.hd, .ft) .theme svg { transition: none; }
   .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
   .ks .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
   .ks .sky { margin: 0; gap: 60px 50px; padding: 40px 30px; }
