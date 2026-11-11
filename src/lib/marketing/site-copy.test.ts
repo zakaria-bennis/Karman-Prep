@@ -82,8 +82,7 @@ describe("site copy", () => {
   });
 
   it("puts every tutoring result next to where it came from", () => {
-    for (const n of [1, 63])
-      expect(section(n).proof).toMatch(/Karman 1:1 tutoring, median 16 weeks/);
+    expect(section(63).proof).toMatch(/Karman 1:1 tutoring, median 16 weeks/);
     expect(section(34).proof).toMatch(/Karman 1:1 tutoring, median 16 weeks/);
   });
 

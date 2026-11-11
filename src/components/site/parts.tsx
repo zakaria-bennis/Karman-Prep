@@ -4,6 +4,7 @@ import { Fragment, type CSSProperties, type ReactNode } from "react";
 import type { CopySection } from "@/lib/marketing/site-copy";
 import { MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { ARROW_SVG, iconSvg, type IconName } from "./live/icons";
+import PhoneFrame from "./PhoneFrame";
 
 /** Our own constant drawing markup (screens, drawings, icons). Never pass visitor input here. */
 export function Drawn({
@@ -74,21 +75,16 @@ export function Action({
   );
 }
 
-/** The iPhone 17 Pro in Cosmic Orange, drawn in CSS (phone.css). */
+/** The iPhone 17 Pro in Cosmic Orange (PhoneFrame.tsx), showing a drawn screen or its children. */
 export function Phone({ screen, children }: { screen?: string; children?: ReactNode }) {
   return (
-    <div className="iphone">
-      <span className="btns" aria-hidden="true" />
-      <div className="glass">
-        {children ? (
-          <div className="scr-host">{children}</div>
-        ) : (
-          <Drawn html={screen ?? ""} className="scr-host" />
-        )}
-        <span className="island" aria-hidden="true" />
-        <span className="home" aria-hidden="true" />
-      </div>
-    </div>
+    <PhoneFrame>
+      {children ? (
+        <div className="scr-host">{children}</div>
+      ) : (
+        <Drawn html={screen ?? ""} className="scr-host" />
+      )}
+    </PhoneFrame>
   );
 }
 
