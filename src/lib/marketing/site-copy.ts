@@ -170,7 +170,7 @@ headline: ${UP_TO.private}, or your money back.
 text: Your student does the work, the score goes up, or the money comes back to you.
 stamp unit: points
 stamp ring: or your money back
-outcomes: They hit it. = Promise kept. You owe us a high five. | They came close. = Half your money comes back. | Not even close. = All of your money comes back.
+outcomes: They hit the target. = Say the target is +${G.bands[0].private}. The score goes up ${G.bands[0].private} or more: promise kept. You owe us a high five. | They got at least halfway. = The score goes up ${G.bands[0].private / 2} to ${G.bands[0].private - 10}. Half your money comes back. | They got less than halfway. = The score goes up less than ${G.bands[0].private / 2}. All of your money comes back.
 link: The guarantee, in full
 
 ## 12 Tutors

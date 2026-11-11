@@ -184,7 +184,6 @@ html.ks-lock { overflow: hidden; }
 .ks .ft .ft-base { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 34px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #222; font-size: 15px; }
 .ks .ft .ft-base a { min-height: 40px; display: inline-flex; align-items: center; text-decoration: none; }
 .ks .ft .ft-social { display: flex; flex-wrap: wrap; gap: 0 22px; }
-.ks .ft .ft-set { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-left: auto; }
 /* the trademark line, in fine print at the very bottom of every page */
 .ks .ft .ft-fine { margin: 10px 0 0; padding: 0; font-size: 12.5px; line-height: 1.5; color: #8c877e; }
 

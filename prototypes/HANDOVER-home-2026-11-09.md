@@ -150,21 +150,28 @@ painting on the home page. The portals still use `src/lib/painting/`.
 - Not done: the footer still ends in a solid black block (he wants it to continue the landscape); a real
   phone has not been tried; the land up close is better but still not a photograph.
 
-## Seven ways section (11 Nov 2026, five layouts waiting for his pick)
+## Seven ways section (11 Nov 2026, picked)
 
-He rejected the cartoon stick-figure cards ("low quality, low detail"). What he asked for instead: detailed
-objects combined with real moving diagrams, specific to each method, no people, ink and cream plus one
-accent colour per method. There are seven methods; the seventh is time trials (one section, starting at
-1.25 times the real SAT time and tightening to 0.75 while accuracy holds; `TIME_TRIAL.ready` is still false
-in the student portal). The Challenge has no leaderboard: it shows how everyone did (share right and wrong,
-most common slip), so its picture shows that with no made-up numbers.
+He rejected stick-figure cartoon cards ("low quality") and chose detailed objects combined with real moving
+diagrams, specific to each method, no people, ink and cream plus one accent colour each. Out of five
+layouts he picked the dashboard wall: tiles of different sizes, all moving. `WayArt.tsx` draws the seven
+pictures; their labels are `art words` in site-copy section 6. The seventh method is time trials (one
+section, starting at 1.25 times the real SAT time and tightening to 0.75 while accuracy holds;
+`TIME_TRIAL.ready` is still false in the student portal). The Challenge has no leaderboard: its picture
+shows how everyone did, with no made-up numbers. He wants to be asked before any creative direction is
+taken on his behalf.
 
-- `WayArt.tsx` draws the seven pictures; their labels are `art words` in site-copy section 6.
-- `WaysLab.tsx` (development builds only) adds a "Layout 11 15 18 19 20" switch at the bottom left:
-  11 lanterns on the water, 15 the museum wall, 18 the stack (pinned, scroll deals the sheets), 19 the
-  dashboard wall (the default, and what production shows), 20 the filmstrip (pinned, slides sideways).
-- Once he picks: delete the layouts he passed over in painted.css, and WaysLab if the pick needs no script.
-- He wants to be asked before any creative direction is taken on his behalf.
+## Founder's wrap-up list (11 Nov 2026, done)
+
+- Top bar: the sliding marker covers only the four links and is a soft tint; the light and dark switch is
+  one round button to the right of Start free (the sun sets, the moon rises).
+- At night the actions are marigold. The Start free button's pull is capped so it never reaches the words.
+- Guarantee: three specific outcome cards worked from a +200 target; the signature and "The guarantee, in
+  full" sit level with the last card.
+- Receipts phone: deep blue at night, orange by day. The sky chat uses the phone's own grey and blue.
+- Question clouds come round in 26 seconds, so all nine pass in about 15.
+- Footer: the name rises letter by letter with a sunrise climbing through it; socials are the platforms'
+  marks; no switch and no email there.
 
 ## Price section removed (11 Nov 2026)
 

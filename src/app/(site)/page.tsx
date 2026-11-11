@@ -9,7 +9,6 @@ import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
 import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
-import WaysLab from "@/components/site/home/WaysLab";
 import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
@@ -192,9 +191,6 @@ export default function HomePage() {
             {nums(how.headline)}
           </h2>
           <Ways items={pairs(how.ways)} words={artWords} />
-          {process.env.NODE_ENV !== "production" ? (
-            <WaysLab names={pairs(how.ways).map(([n]) => n)} />
-          ) : null}
           <TextLink label={how["research link"]} href={ROUTES.research} />
         </div>
       </section>

@@ -24,3 +24,17 @@
   .ks.page-home .ft .col a { min-height: 40px; }
   .ks.page-home .ft::before { -webkit-mask-image: linear-gradient(transparent 6%, #000 26%); mask-image: linear-gradient(transparent 6%, #000 26%); }
 }
+/* the name rises letter by letter as the footer comes into view, and a sunrise climbs through it */
+.ks .ft .mark.rv { opacity: 1; transform: none; }
+.ks.page-home .ft .mark span { display: inline-block; color: transparent; background: linear-gradient(0deg, #ff9d4d 0%, #ffcf8a 22%, #fffaf3 46%, #fffaf3 100%) 0 100% / 100% 320% no-repeat; -webkit-background-clip: text; background-clip: text; transform: translateY(.42em); opacity: 0; transition: transform 1.3s var(--spring), opacity .9s var(--out); transition-delay: calc(var(--i) * 95ms); }
+.ks.page-home .ft .mark.on span { transform: none; opacity: 1; animation: foot-sunrise 9s ease-in-out infinite alternate; animation-delay: calc(1.2s + var(--i) * .16s); }
+@keyframes foot-sunrise { from { background-position: 0 100%; } to { background-position: 0 6%; } }
+.ks.page-home .ft .mark { text-shadow: none; filter: drop-shadow(0 6px 44px rgba(255, 160, 90, .28)); }
+@media (prefers-reduced-motion: reduce) { .ks.page-home .ft .mark span { transform: none; opacity: 1; transition: none; animation: none !important; background-position: 0 100%; } }
+.ks.still-motion .ft .mark span { animation: none !important; }
+/* Karman's pages elsewhere, as each platform's own mark */
+.ks .ft .ft-social { gap: 10px; }
+.ks .ft .ft-social a { width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 250, 243, .12); transition: background-color .25s, transform .45s cubic-bezier(.3, 1.5, .5, 1); }
+.ks .ft .ft-social svg { width: 22px; height: 22px; }
+.ks .ft .credit { margin-left: auto; }
+@media (hover: hover) and (pointer: fine) { .ks .ft .ft-social a:hover { background: rgba(255, 250, 243, .24); transform: translateY(-3px); text-decoration: none; } }

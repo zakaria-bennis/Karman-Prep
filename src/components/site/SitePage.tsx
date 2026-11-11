@@ -1,7 +1,7 @@
 // The frame around every marketing page: skip link, header, phone menu, footer and the page's behaviour
 // (ShellBehaviour). Ported from the approved mock's site.js (2026-10-25). Links are plain <a> on purpose:
 // each page is a full load, so the loaders follow the mock's rules exactly.
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Anton, Hanken_Grotesk } from "next/font/google";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
@@ -56,6 +56,41 @@ const MOON = (
     <path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z" />
   </svg>
 );
+
+/** Each platform's own mark, drawn small. */
+const SOCIAL_MARK: Record<keyof typeof SOCIALS, ReactNode> = {
+  facebook: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M13.6 21v-7.2h2.4l.4-3h-2.800V8.900c0-.9.3-1.5 1.5-1.500h1.500V4.700c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.800v2.400H8.300v3h2.400V21z"
+      />
+    </svg>
+  ),
+  instagram: (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9">
+      <rect x="4" y="4" width="16" height="16" rx="4.6" />
+      <circle cx="12" cy="12" r="3.7" />
+      <circle cx="16.7" cy="7.3" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+  tiktok: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M14.2 3.500h2.700c.2 1.9 1.3 3.2 3.1 3.400v2.800c-1.2 0-2.2-.3-3.1-.9v6.100a5.3 5.3 0 1 1-5.3-5.300c.3 0 .6 0 .9.1v2.900a2.5 2.5 0 1 0 1.7 2.400z"
+      />
+    </svg>
+  ),
+  youtube: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M21.3 8a2.6 2.6 0 0 0-1.8-1.800C17.9 5.7 12 5.7 12 5.700s-5.9 0-7.5.5A2.6 2.6 0 0 0 2.7 8C2.3 9.6 2.3 12 2.3 12s0 2.4.4 4a2.6 2.6 0 0 0 1.8 1.800c1.6.5 7.5.5 7.5.5s5.9 0 7.5-.5a2.6 2.6 0 0 0 1.8-1.800c.4-1.6.4-4 .4-4s0-2.4-.4-4zM10.1 15V9l5.1 3z"
+      />
+    </svg>
+  ),
+};
 
 function ThemeButton({ labeled = false }: { labeled?: boolean }) {
   return (
@@ -169,10 +204,10 @@ export default function SitePage({
           <a className="nl" href={ROUTES.signIn}>
             {SITE["sign in link"]}
           </a>
-          <ThemeButton />
           <a className="cta" href={ROUTES.signUp}>
             {SITE["start free"]}
           </a>
+          <ThemeButton />
           <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
             {SITE.menu}
           </button>
@@ -207,7 +242,13 @@ export default function SitePage({
       <footer className="ft">
         <div className="ft-in">
           <div className="cols">
-            <span className="mark">{SITE.logo}</span>
+            <span className="mark rv" aria-label={SITE.logo}>
+              {[...SITE.logo].map((ch, i) => (
+                <span key={i} aria-hidden="true" style={{ "--i": i } as CSSProperties}>
+                  {ch}
+                </span>
+              ))}
+            </span>
             <nav aria-label="Footer">
               {FOOTER.map(([h, links]) => (
                 <div className="col" key={h}>
@@ -222,22 +263,18 @@ export default function SitePage({
             </nav>
           </div>
           <div className="ft-base">
-            <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
             <span className="ft-social">
               {(Object.keys(SOCIALS) as (keyof typeof SOCIALS)[]).map((k) => (
-                <a key={k} href={SOCIALS[k]} rel="noopener">
-                  {SITE[`${k} link`]}
+                <a key={k} href={SOCIALS[k]} rel="noopener" aria-label={SITE[`${k} link`]}>
+                  {SOCIAL_MARK[k]}
                 </a>
               ))}
             </span>
             {stage ? (
-              <span className="ft-set">
-                <ThemeButton />
-                <span className="credit">
-                  <button className="motion" type="button" aria-pressed="false">
-                    {SITE.pause}
-                  </button>
-                </span>
+              <span className="credit">
+                <button className="motion" type="button" aria-pressed="false">
+                  {SITE.pause}
+                </button>
               </span>
             ) : null}
           </div>

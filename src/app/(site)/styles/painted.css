@@ -46,22 +46,19 @@
 .ks.page-home .hd nav { position: relative; gap: 4px; font-size: 17px; font-weight: 700; }
 .ks.page-home .hd nav a, .ks.page-home .hd nav button { position: relative; z-index: 1; min-height: 46px; padding: 0 16px; border-radius: 999px; transition: color .25s var(--out), transform .5s var(--spring); }
 .ks.page-home .hd .nl::after { display: none; }
-/* the light and dark switch (founder, 2026-11-11: it must be obvious what it does, without loud colour).
-   A sun on the left and a moon on the right, drawn in the page's own ink; a cream disc sits behind the one
-   that is on and slides across with a spring. --sw is the track's inner width; the visible pill is 32px
-   tall inside a 46px target. */
-.ks.page-home :is(.hd, .ft) .theme { --sw: 68px; --sw-off: rgba(29, 26, 34, .62); position: relative; flex: none; display: inline-block; box-sizing: content-box; width: var(--sw); min-height: 0; height: 32px; padding: 0; margin-left: 4px; border: solid transparent; border-width: 7px 5px; border-radius: 999px; background: rgba(29, 26, 34, .11) padding-box; box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2); cursor: pointer; transition: background-color .5s var(--out), box-shadow .5s var(--out); }
-.ks.page-home :is(.hd, .ft) .theme::before { content: ""; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fffaf3; box-shadow: 0 1px 4px rgba(29, 26, 34, .32); transition: translate .6s var(--spring); }
-.ks.page-home :is(.hd, .ft) .theme svg { display: block; position: absolute; top: 8px; width: 16px; height: 16px; stroke-width: 2.1; transition: color .45s var(--out); }
-.ks.page-home :is(.hd, .ft) .theme .sun { left: 8px; color: #1d1a22; }
-.ks.page-home :is(.hd, .ft) .theme .moon { left: calc(var(--sw) - 24px); color: var(--sw-off); }
-.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme, .ks.page-home .ft .theme { --sw-off: rgba(255, 250, 243, .78); background-color: rgba(255, 250, 243, .13); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3); }
-.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme::before { translate: calc(var(--sw) - 32px) 0; }
-.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme .sun { color: var(--sw-off); }
-.ks.page-home[data-mode="dark"] :is(.hd, .ft) .theme .moon { color: #1d1a22; }
-.ks.page-home :is(.hd, .ft) .theme:active::before { scale: .9; }
-.ks .nav-mark { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--ink); opacity: 0; pointer-events: none; transition: transform .4s var(--spring), width .4s var(--spring), opacity .2s var(--out); }
-.ks.page-home .hd nav .hot { color: var(--cream); }
+/* the light and dark switch: one round button to the right of Start free (founder, 2026-11-11). It shows
+   the sky as it is: the sun by day, the moon at night. Pressing it sets the sun below the button's rim
+   while the moon rises from it, and the other way round. */
+.ks.page-home .hd .theme { position: relative; flex: none; display: inline-block; width: 46px; min-height: 0; height: 46px; padding: 0; margin-left: 8px; border-radius: 50%; overflow: hidden; background: rgba(29, 26, 34, .09); box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2); cursor: pointer; transition: background-color .6s var(--out), box-shadow .6s var(--out), transform .45s var(--spring); }
+.ks.page-home .hd .theme:active { transform: scale(.92); transition-duration: .08s; }
+.ks.page-home .hd .theme svg { display: block; position: absolute; left: 12px; top: 12px; width: 22px; height: 22px; stroke-width: 2; transition: transform .8s var(--spring), opacity .45s var(--out); }
+.ks.page-home .hd .theme .sun { color: #1d1a22; }
+.ks.page-home .hd .theme .moon { color: #fffaf3; transform: translateY(34px) rotate(-70deg); opacity: 0; }
+.ks.page-home[data-mode="dark"] .hd .theme { background-color: rgba(255, 250, 243, .13); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3); }
+.ks.page-home[data-mode="dark"] .hd .theme .sun { transform: translateY(34px) rotate(70deg); opacity: 0; }
+.ks.page-home[data-mode="dark"] .hd .theme .moon { transform: none; opacity: 1; }
+@media (hover: hover) and (pointer: fine) { .ks.page-home .hd .theme:hover svg { transform: rotate(24deg); } .ks.page-home[data-mode="dark"] .hd .theme:hover .sun { transform: translateY(34px) rotate(70deg); } .ks.page-home:not([data-mode="dark"]) .hd .theme:hover .moon { transform: translateY(34px) rotate(-70deg); } }
+.ks .nav-mark { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; border-radius: 999px; background: color-mix(in srgb, var(--ink) 11%, transparent); opacity: 0; pointer-events: none; transition: transform .4s var(--spring), width .4s var(--spring), opacity .2s var(--out); }
 .ks.page-home .hd .cta { margin-left: 10px; border: 0; background: var(--go); color: var(--cream); padding: 0 24px; min-height: 48px; font-weight: 700; box-shadow: 0 10px 22px -12px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
 .ks.page-home .hd .cta:active { transform: translateY(2px) scale(.97); box-shadow: 0 4px 10px -8px rgba(29, 26, 34, .7); transition-duration: .08s; }
 .ks.page-home .hd .menu { border: 0; background: var(--cream); box-shadow: 0 10px 22px -14px rgba(29, 26, 34, .6); }
@@ -75,7 +72,8 @@
   .ks.page-home .hd { gap: 6px; }
   .ks.page-home .hd nav { gap: 2px; font-size: 15.5px; }
   .ks.page-home .hd .mark { font-size: 26px; }
-  .ks.page-home .hd .theme { --sw: 60px; margin-left: 0; }
+  .ks.page-home .hd .theme { width: 44px; height: 44px; margin-left: 2px; }
+  .ks.page-home .hd .theme svg { left: 11px; top: 11px; }
   .ks.page-home .hd .cta { display: inline-flex; margin-left: 2px; padding: 0 14px; min-height: 44px; white-space: nowrap; }
   .ks.page-home .hd .menu { width: 46px; padding: 0; justify-content: center; font-size: 0; }
   .ks.page-home .hd .menu::before { content: ""; width: 18px; height: 12px; background: linear-gradient(currentColor 0 2px, transparent 2px 5px, currentColor 5px 7px, transparent 7px 10px, currentColor 10px 12px); }
@@ -191,7 +189,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .lanterns img { display: block; width: auto; height: clamp(15px, 1.6vw, 22px); max-width: 118px; object-fit: contain; pointer-events: none; }
 .ks .lanterns li[data-big] img { height: clamp(22px, 2.5vw, 36px); max-width: 176px; }
 /* a school's dark-mode picture waits until the page is dark (SchoolLogo.tsx) */
-.ks img.logo-night { display: none; }
+.ks img.logo-night, .ks .lanterns img.logo-night, .ks .rcp-list .at img.logo-night { display: none; }
 .ks .lanterns.live { display: block; height: clamp(500px, 74vh, 720px); margin-bottom: clamp(-90px, -8vh, -40px); touch-action: pan-y; }
 .ks .lanterns.live li { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform, opacity; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .ks .lanterns.live li[data-held] { cursor: grabbing; z-index: 2; box-shadow: 0 0 34px 10px var(--glow), 0 22px 34px -18px rgba(29, 26, 34, .7); }
@@ -203,6 +201,13 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .gua-say { display: grid; gap: clamp(10px, 1.4vw, 18px); justify-items: start; }
 .ks .gua-line { max-width: 30em; font-size: clamp(19px, 1.9vw, 27px); line-height: 1.4; font-weight: 600; }
 .ks .gua-sig { grid-column: 1 / -1; margin-top: clamp(4px, 1vw, 14px); }
+@media (min-width: 901px) {
+  .ks .gua-say { grid-column: 1; grid-row: 1; }
+  .ks .gua-cards { grid-column: 2; grid-row: 1 / span 2; }
+  .ks .gua-sig { grid-column: 1; grid-row: 2; align-self: end; margin: 0; padding-bottom: 54px; }
+  .ks .offer .inner > .lk { margin-top: calc(-52px - clamp(20px, 2.6vw, 34px)); justify-self: start; }
+  .ks .sect.offer { padding-bottom: clamp(36px, 6vh, 80px); }
+}
 .ks .gua-sig svg { display: block; width: clamp(190px, 24vw, 350px); height: auto; overflow: visible; fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
 .ks .gua-sig .pen { stroke-width: 6.5; }
 .ks .gua-sig .brush { stroke-width: 11; }
@@ -263,7 +268,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 }
 
 /* ---------- 5. how: seven ways, each with a detailed picture that moves (Ways.tsx, WayArt.tsx). Ink and
-   cream with one accent colour per method. The default layout is the dashboard wall. ---------- */
+   cream with one accent colour per method. Laid out as a wall of tiles, the everyday methods largest (founder's pick, 2026-11-11). ---------- */
 .ks .ways { --i: #1d1a22; --p: #fffaf3; width: 100%; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
 .ks .ways li { --a: #4f9a6c; position: relative; grid-column: span 3; min-width: 0; display: grid; align-content: start; gap: 3px; padding: 10px 10px 16px; border-radius: 22px; background: var(--p); color: var(--i); box-shadow: var(--lift); }
 .ks .ways li:nth-child(2) { --a: #4a7fc0; }
@@ -274,14 +279,14 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ways li:nth-child(7) { --a: #c5628b; }
 .ks .ways li:nth-child(1) { grid-column: span 5; }
 .ks .ways li:nth-child(2) { grid-column: span 4; }
-.ks .ways li.rv { transform: translateY(46px) scale(.95); transition: opacity .5s var(--out), transform .85s var(--spring); }
+.ks .ways li.rv { transform: translateY(46px) scale(.95); transition: opacity .5s var(--out), transform .85s var(--spring), box-shadow .35s var(--out); }
 .ks .ways li.rv.on { transform: none; }
+@media (hover: hover) and (pointer: fine) { .ks .ways li.rv.on:hover { transform: translateY(-5px); box-shadow: 0 0 0 2px color-mix(in srgb, var(--a) 55%, transparent), 0 24px 40px -22px color-mix(in srgb, var(--a) 70%, #1d1a22); transition-delay: 0s !important; } }
 .ks .way-art { border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--a) 14%, var(--p)); }
-.ks .way-art svg { display: block; width: 100%; height: clamp(128px, 10.6vw, 152px); }
+.ks .way-art svg { display: block; width: 100%; height: clamp(112px, 8.8vw, 128px); }
 .ks .ways li > i { position: absolute; left: 18px; top: 18px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--a); color: #fff; font-style: normal; font-weight: 800; font-size: 14.5px; }
 .ks .ways b { padding: 8px 8px 0; font-size: clamp(18px, 1.5vw, 21px); font-weight: 800; line-height: 1.15; letter-spacing: -.01em; }
-.ks .ways span { padding: 0 8px; font-size: 15px; line-height: 1.4; color: color-mix(in srgb, var(--i) 86%, transparent); }
-.ks .ways-tabs { display: none; }
+.ks .ways span { padding: 0 8px; font-size: 14.5px; line-height: 1.38; color: color-mix(in srgb, var(--i) 86%, transparent); }
 @media (max-width: 1000px) { .ks .ways li, .ks .ways li:nth-child(n) { grid-column: span 6; } }
 @media (max-width: 640px) { .ks .ways li, .ks .ways li:nth-child(n) { grid-column: span 12; } }
 /* the pictures' parts */
@@ -388,77 +393,11 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ways li.on .g7-turn { animation: g7-turn 7.2s steps(1) infinite; }
 @keyframes g7-turn { 0% { transform: translate(0, 0); } 16.6% { transform: translate(50px, 0); } 33.3% { transform: translate(0, 46px); } 50% { transform: translate(50px, 46px); } 66.6% { transform: translate(0, 92px); } 83.3% { transform: translate(50px, 92px); } }
 
-/* ---------- TEMPORARY: the other four layouts he asked to see (WaysLab.tsx sets data-ways). 19, the
-   dashboard wall, is the default above. Delete the ones he passes over. ---------- */
-/* 11, lanterns on the water: seven lit lanterns in a row, bobbing, each with its glow on the water */
-.ks .how[data-ways="11"] .ways { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 84px; }
-.ks .how[data-ways="11"] .ways li { flex: 1 1 0; padding: 12px 9px 16px; border-radius: 46px 46px 18px 18px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--i) 60%, transparent), 0 0 44px 8px color-mix(in srgb, var(--a) 62%, transparent), inset 0 0 26px color-mix(in srgb, var(--a) 22%, transparent); }
-.ks .how[data-ways="11"] .ways li.on { animation: lantern-bob 5.4s ease-in-out infinite; animation-delay: calc(var(--k) * -.77s); }
-.ks .how[data-ways="11"] .ways li::before { content: ""; position: absolute; left: 50%; top: -15px; width: 34px; height: 20px; translate: -50% 0; border: 3px solid var(--i); border-bottom: 0; border-radius: 18px 18px 0 0; }
-.ks .how[data-ways="11"] .ways li::after { content: ""; position: absolute; left: 6%; right: 6%; top: calc(100% + 10px); height: 64px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--a) 70%, #fff), transparent); filter: blur(9px); opacity: .7; animation: lantern-glow 2.7s ease-in-out infinite; animation-delay: calc(var(--k) * -.4s); }
-.ks .how[data-ways="11"] .way-art { border-radius: 34px 34px 12px 12px; }
-.ks .how[data-ways="11"] .way-art svg { height: auto; aspect-ratio: 320 / 220; }
-.ks .how[data-ways="11"] .ways li > i { left: 50%; top: -4px; translate: -50% 0; }
-.ks .how[data-ways="11"] .ways b { font-size: clamp(15.5px, 1.25vw, 18px); }
-.ks .how[data-ways="11"] .ways span { font-size: clamp(13.5px, 1vw, 14.5px); }
-@keyframes lantern-bob { 0%, 100% { transform: translateY(0) rotate(-.9deg); } 50% { transform: translateY(-11px) rotate(.9deg); } }
-@keyframes lantern-glow { 50% { opacity: .38; transform: scaleX(.86); } }
-@media (max-width: 1100px) { .ks .how[data-ways="11"] .ways { flex-wrap: wrap; justify-content: center; gap: 96px 14px; } .ks .how[data-ways="11"] .ways li { flex: 0 1 calc(25% - 12px); } }
-@media (max-width: 760px) { .ks .how[data-ways="11"] .ways li { flex-basis: calc(50% - 8px); } }
-/* 15, the museum wall: seven framed pictures with caption plates; a light passes along the wall */
-.ks .how[data-ways="15"] .ways { display: flex; align-items: flex-start; gap: 16px; }
-.ks .how[data-ways="15"] .ways li { flex: 1 1 0; padding: 0; gap: 0; border-radius: 0; background: none; box-shadow: none; }
-.ks .how[data-ways="15"] .way-art { border-radius: 3px; border: 9px solid var(--i); outline: 2px solid color-mix(in srgb, var(--a) 70%, var(--i)); outline-offset: -5px; padding: 9px; background: var(--p); box-shadow: 0 22px 30px -14px rgba(0, 0, 0, .7); filter: brightness(.6) saturate(.6); }
-.ks .how[data-ways="15"] .way-art svg { height: auto; aspect-ratio: 320 / 220; background: color-mix(in srgb, var(--a) 14%, var(--p)); }
-.ks .how[data-ways="15"] .ways li.on .way-art { animation: wall-lit 11.2s var(--out) infinite; animation-delay: calc(var(--k) * 1.6s); }
-.ks .how[data-ways="15"] .ways li > i { position: static; margin: 14px auto 0; }
-.ks .how[data-ways="15"] .ways b { margin: 6px 0 0; padding: 8px 10px 0; background: var(--p); border-radius: 6px 6px 0 0; font-size: clamp(15px, 1.2vw, 17.5px); text-align: center; }
-.ks .how[data-ways="15"] .ways span { padding: 4px 10px 12px; background: var(--p); border-radius: 0 0 6px 6px; font-size: clamp(13px, .98vw, 14.5px); text-align: center; box-shadow: 0 10px 18px -10px rgba(0, 0, 0, .5); }
-@keyframes wall-lit { 0%, 100% { filter: brightness(.6) saturate(.6); } 4%, 16% { filter: brightness(1.08) saturate(1); } 22% { filter: brightness(.6) saturate(.6); } }
-@media (max-width: 1100px) { .ks .how[data-ways="15"] .ways { flex-wrap: wrap; justify-content: center; } .ks .how[data-ways="15"] .ways li { flex: 0 1 calc(25% - 12px); } }
-@media (max-width: 760px) { .ks .how[data-ways="15"] .ways li { flex-basis: calc(50% - 8px); } }
-/* 18 and 20 pin the section and move with the scroll */
-.ks .how:is([data-ways="18"], [data-ways="20"]) { height: 560vh; padding-top: 0; padding-bottom: 0; }
-.ks .how:is([data-ways="18"], [data-ways="20"]) .inner { position: sticky; top: 0; height: 100vh; height: 100svh; align-content: center; padding-top: 92px; gap: 18px; }
-.ks .how:is([data-ways="18"], [data-ways="20"]) h2 { font-size: clamp(30px, 3.6vw, 52px); }
-.ks .how:is([data-ways="18"], [data-ways="20"]) > .mist { -webkit-mask-image: none; mask-image: none; opacity: .8; }
-/* 18, the stack: seven sheets in a pile; scrolling deals the top one away */
-.ks .how[data-ways="18"] .ways { display: block; position: relative; width: min(900px, 100%); height: min(44vh, 420px); margin: 0 auto 44px; }
-.ks .how[data-ways="18"] .ways li, .ks .how[data-ways="18"] .ways li:nth-child(n) { position: absolute; inset: 0; z-index: calc(10 - var(--k)); grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 6px 22px; padding: 14px; border-radius: 24px; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--i) 22%, transparent), 0 20px 40px -24px rgba(8, 10, 26, .8); transform: translate(calc(var(--k) * 6px), calc(var(--k) * 6px)) rotate(calc((var(--k) - 3) * .55deg)); transition: transform .8s var(--spring), opacity .4s var(--out); transition-delay: 0s !important; }
-.ks .how[data-ways="18"] .ways li.dealt { transform: translate(-118vw, -8vh) rotate(-17deg); }
-.ks .how[data-ways="18"] .way-art { grid-row: span 2; align-self: stretch; display: grid; }
-.ks .how[data-ways="18"] .way-art svg { height: 100%; }
-.ks .how[data-ways="18"] .ways b { align-self: end; padding: 0 6px 0 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(26px, 3vw, 44px); line-height: 1.05; }
-.ks .how[data-ways="18"] .ways span { align-self: start; padding: 0 6px 0 0; font-size: clamp(16px, 1.4vw, 20px); }
-.ks .how[data-ways="18"] .ways li > i { left: 26px; top: 26px; }
-.ks .how[data-ways="18"] .ways-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
-.ks .ways-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--cream) 82%, transparent); color: #1d1a22; font-weight: 700; font-size: 14.5px; transition: background-color .3s var(--out), transform .4s var(--spring); }
-.ks .ways-tabs button i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #1d1a22; color: #fffaf3; font-style: normal; font-weight: 800; font-size: 14px; }
-.ks .ways-tabs button[aria-pressed="true"] { background: #1d1a22; color: #fffaf3; transform: translateY(-3px); }
-.ks .ways-tabs button[aria-pressed="true"] i { background: #fffaf3; color: #1d1a22; }
-@media (max-width: 760px) {
-  .ks .how[data-ways="18"] .ways { height: min(62vh, 520px); }
-  .ks .how[data-ways="18"] .ways li, .ks .how[data-ways="18"] .ways li:nth-child(n) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; }
-  .ks .how[data-ways="18"] .way-art { grid-row: auto; }
-  .ks .how[data-ways="18"] .way-art svg { height: auto; aspect-ratio: 320 / 220; }
-  .ks .ways-tabs button span { display: none; }
-  .ks .ways-tabs button { padding: 0 6px; }
-}
-/* 20, the filmstrip: one strip of seven frames that slides sideways as the page is scrolled */
-.ks .how[data-ways="20"] .ways { display: flex; flex-wrap: nowrap; gap: 14px; width: max-content; padding: 30px 22px; border-radius: 8px; background: radial-gradient(circle, var(--p) 0 5px, transparent 5.6px) 6px 5px / 30px 20px repeat-x, radial-gradient(circle, var(--p) 0 5px, transparent 5.6px) 6px calc(100% - 5px) / 30px 20px repeat-x, #1d1a22; box-shadow: 0 30px 60px -30px rgba(8, 10, 26, .9); transform: translateX(calc(var(--wp, 0) * (min(1240px, 100vw - var(--gutter) * 2) - 100%))); will-change: transform; }
-.ks .how[data-ways="20"] .ways li, .ks .how[data-ways="20"] .ways li:nth-child(n) { flex: none; width: min(440px, 76vw); border-radius: 8px; box-shadow: none; }
-.ks .how[data-ways="20"] .ways li.rv, .ks .how[data-ways="20"] .ways li.rv:not(.on) { opacity: 1; transform: none; }
-.ks .how[data-ways="20"] .way-art { border-radius: 4px; }
-.ks .how[data-ways="20"] .way-art svg { height: auto; aspect-ratio: 320 / 220; }
-/* the layout switch (development only) */
-.ks .lab-pick { position: fixed; z-index: 60; left: 14px; bottom: 14px; display: flex; align-items: center; gap: 6px; padding: 8px 10px 8px 14px; border-radius: 999px; background: #fffaf3; color: #1d1a22; font: 700 14px/1 var(--font-hanken), system-ui, sans-serif; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .6); }
-.ks .lab-pick button { min-width: 40px; min-height: 40px; padding: 0 10px; border-radius: 999px; font: inherit; color: inherit; }
-.ks .lab-pick button[aria-pressed="true"] { background: #1d1a22; color: #fffaf3; }
-.ks.still-motion .ways *, .ks.still-motion .ways li, .ks.still-motion .ways li::after { animation: none !important; }
+.ks.still-motion .ways * { animation: none !important; }
 
 /* ---------- 6. their doubts: questions as clouds drifting up the left, and a text conversation with
    Karman in the sky on the right (Doubts.tsx). A picked cloud bursts and its words fly to the message box. ---------- */
-.ks .chat { --skyh: clamp(440px, 64vh, 640px); --lane: 104px; --dur: 62s; position: relative; width: 100%; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
+.ks .chat { --skyh: clamp(440px, 64vh, 640px); --lane: 104px; --dur: 26s; position: relative; width: 100%; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
 /* the sky: every cloud makes the same slow climb, one lane apart, so about six are in view and none touch */
 .ks .chat { --fog: 255 255 255; }
 .ks .sky { --pad: 110px; position: relative; height: calc(var(--skyh) + 78px); margin: 0 calc(var(--pad) * -1); padding: 0; list-style: none; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
@@ -509,8 +448,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 /* the two kinds of bubble, as on a phone: the parent's in blue on the right, Karman's in grey on the left,
    each popping up from the corner it hangs by */
 .ks .chat-q, .ks .chat-a { position: relative; max-width: 76%; padding: 11px 18px 12px; border-radius: 22px; font-size: clamp(17px, 1.45vw, 20px); line-height: 1.3; }
-.ks .chat-q { align-self: flex-end; margin: 14px 0 22px; background: linear-gradient(#1a86f7, #0a6fe6); color: #fff; font-weight: 500; transform-origin: 100% 100%; animation: chat-pop-r .5s cubic-bezier(.25, 1.7, .45, 1) both; box-shadow: 0 10px 22px -14px rgba(10, 60, 140, .7); }
-.ks .chat-a { align-self: flex-start; background: rgba(233, 233, 235, .97); color: #000; transform-origin: 0 100%; animation: chat-pop-l .5s cubic-bezier(.25, 1.7, .45, 1) both; box-shadow: 0 10px 22px -16px rgba(29, 26, 34, .6); }
+.ks .chat-q { align-self: flex-end; margin: 14px 0 22px; background: #3cadfb; color: #fff; font-weight: 500; transform-origin: 100% 100%; animation: chat-pop-r .5s cubic-bezier(.25, 1.7, .45, 1) both; box-shadow: 0 10px 22px -14px rgba(10, 60, 140, .7); }
+.ks .chat-a { align-self: flex-start; background: #e9e9eb; color: #000; transform-origin: 0 100%; animation: chat-pop-l .5s cubic-bezier(.25, 1.7, .45, 1) both; box-shadow: 0 10px 22px -16px rgba(29, 26, 34, .6); }
 /* the corner each bubble hangs by is tight, like the last bubble of a run on a phone */
 .ks .chat-q { border-bottom-right-radius: 6px; }
 .ks .chat-a { border-bottom-left-radius: 6px; }
@@ -558,7 +497,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ft .credit .motion[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ks.page-home, .ks .flight canvas, .ks.page-home .btn, .ks .nav-mark, .ks.page-home :is(.hd, .ft) .theme::before, .ks.page-home :is(.hd, .ft) .theme svg { transition: none; }
+  .ks.page-home, .ks .flight canvas, .ks.page-home .btn, .ks .nav-mark, .ks.page-home .hd .theme svg { transition: none; }
   .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
   .ks .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
   .ks .sky { margin: 0; gap: 60px 50px; padding: 40px 30px; }
@@ -691,10 +630,11 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home.theming { transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease !important; }
 .ks.page-home.theming * { transition-duration: 1.3s !important; }
 .ks.page-home[data-mode="dark"] .hd { color: var(--cream); }
-.ks.page-home[data-mode="dark"] .hd .cta { background: var(--cream); color: var(--ink); }
+/* at night the actions are marigold (founder, 2026-11-11) */
+.ks.page-home[data-mode="dark"] .hd .cta { background: #f2b53c; color: #1d1a22; }
+@media (hover: hover) and (pointer: fine) { .ks.page-home[data-mode="dark"] .hd .cta:hover { background: #ffc85c; color: #1d1a22; } }
 .ks.page-home[data-mode="dark"] .hd .menu { color: var(--ink); }
-.ks.page-home[data-mode="dark"] .nav-mark { background: var(--cream); }
-.ks.page-home[data-mode="dark"] .hd nav .hot { color: var(--ink); }
+.ks.page-home[data-mode="dark"] .nav-mark { background: rgba(255, 250, 243, .16); }
 .ks.page-home[data-mode="dark"] :focus-visible { outline-color: var(--cream); }
 .ks.page-home[data-mode="dark"] ::selection { background: var(--cream); color: var(--ink); }
 /* words and marks that sit straight on the scene turn cream */
@@ -702,7 +642,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home[data-mode="dark"] .claim-pill { background: var(--cream); color: var(--ink); mix-blend-mode: normal; }
 .ks.page-home[data-mode="dark"] .gua-sig svg, .ks.page-home[data-mode="dark"] .gua-stamp :is(circle, .thin) { stroke: var(--cream); }
 .ks.page-home[data-mode="dark"] .gua-stamp text { fill: var(--cream); }
-.ks.page-home[data-mode="dark"] .btn { background: var(--cream); color: var(--ink); }
+.ks.page-home[data-mode="dark"] .btn { background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .4), transparent 70%), #f2b53c; color: #1d1a22; }
 .ks.page-home[data-mode="dark"] .btn .go { color: var(--ink); }
 /* anything that is a cream card keeps ink words */
 .ks.page-home[data-mode="dark"] :is(.gua-cards li, .sheet) { color: var(--ink); }
@@ -725,3 +665,6 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list button:not(.on)) img.logo-white { filter: brightness(0) invert(1); }
 .ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list button:not(.on)) img.logo-day { display: none; }
 .ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list button:not(.on)) img.logo-night { display: block; }
+/* the answers in the sky and the phone's frame at night */
+.ks.page-home[data-mode="dark"] .chat-a { background: #262629; color: #fff; }
+.ks.page-home[data-mode="dark"] .chat-q { background: #2b97ff; }
