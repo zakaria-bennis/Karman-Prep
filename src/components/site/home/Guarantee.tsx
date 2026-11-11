@@ -46,9 +46,44 @@ function Signature({ name }: { name: string }) {
   );
 }
 
-/** One small moving picture per outcome, each acting out its own line: a dart thrown into the bullseye; a
-    banknote torn in two, half sliding home and half landing in the tutors' bowl; one hand passing a whole
-    stack of cash to another. Ink, with green for the money and red for the bullseye. */
+/** An open hand seen from above, reaching to the right: a cuff, a palm and four fingers. Its thumb is drawn
+    separately (Thumb) so it can close over whatever the hand is holding. */
+function Hand() {
+  return (
+    <>
+      <rect className="p-ink" x="0" y="4" width="6" height="16" rx="1.5" />
+      <rect className="p-skin" x="14" y="5" width="15" height="3.6" rx="1.8" />
+      <rect className="p-skin" x="14" y="8.6" width="17.5" height="3.6" rx="1.8" />
+      <rect className="p-skin" x="14" y="12.2" width="16.5" height="3.6" rx="1.8" />
+      <rect className="p-skin" x="14" y="15.8" width="13" height="3.6" rx="1.8" />
+      <path
+        className="p-skin"
+        d="M5 6.500a2 2 0 0 1 2-2h8a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H7a2 2 0 0 1-2-2z"
+      />
+    </>
+  );
+}
+function Thumb({ move }: { move: string }) {
+  return (
+    <g transform="translate(9 5)">
+      <g className={move}>
+        <rect
+          className="p-skin"
+          x="0"
+          y="-2"
+          width="12.5"
+          height="4"
+          rx="2"
+          transform="rotate(-24)"
+        />
+      </g>
+    </g>
+  );
+}
+
+/** One small moving picture per outcome, each acting out its own line: a dart thrown into the bullseye;
+    scissors snipping a banknote in two and a hand taking one half; one hand passing a whole stack of cash
+    to another. Ink, with green for the money and red for the bullseye. */
 const PICS: ReactNode[] = [
   <>
     <g className="p-board">
@@ -66,35 +101,62 @@ const PICS: ReactNode[] = [
     </g>
   </>,
   <>
-    <path className="p-ink" d="M40 44h28a14 14 0 0 1-28 0z" />
+    <g transform="translate(74 27) scale(-1 1)">
+      <g className="p-grab">
+        <Hand />
+      </g>
+    </g>
     <g className="p-keep">
-      <path className="p-green p-edge" d="M8 12h22v24H8a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3z" />
-      <path className="p-cut" d="M30 18a6 6 0 0 0 0 12" />
+      <path className="p-green p-edge" d="M9 24h22v18H9a2 2 0 0 1-2-2V26a2 2 0 0 1 2-2z" />
+      <path className="p-cut" d="M31 28.500a4.5 4.5 0 0 0 0 9" />
     </g>
-    <g className="p-eat">
-      <path className="p-green p-edge" d="M30 12h22a3 3 0 0 1 3 3v18a3 3 0 0 1-3 3H30z" />
-      <path className="p-cut" d="M30 18a6 6 0 0 1 0 12" />
+    <g className="p-taken">
+      <path className="p-green p-edge" d="M31 24h22a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H31z" />
+      <path className="p-cut" d="M31 28.500a4.5 4.5 0 0 1 0 9" />
     </g>
-    <path className="p-ink" d="M38 44h32v4H38z" />
+    <g transform="translate(74 27) scale(-1 1)">
+      <g className="p-grab">
+        <Thumb move="p-pinch" />
+      </g>
+    </g>
+    <g transform="translate(31 12)">
+      <g className="p-snip">
+        <g className="p-blade-a">
+          <path className="p-ink" d="M-1.2 0L-2.4 24 1 24z" />
+          <circle className="p-ring" cx="5" cy="-7" r="4" />
+          <path className="p-line" d="M0 0l3-4" />
+        </g>
+        <g className="p-blade-b">
+          <path className="p-ink" d="M1.2 0L2.4 24 -1 24z" />
+          <circle className="p-ring" cx="-5" cy="-7" r="4" />
+          <path className="p-line" d="M0 0l-3-4" />
+        </g>
+        <circle className="p-paper p-edge" r="1.8" />
+      </g>
+    </g>
   </>,
   <>
-    <g className="p-give">
-      <rect className="p-ink" x="0" y="30" width="9" height="16" rx="2" />
-      <path className="p-paper p-edge" d="M9 33h15a5 5 0 0 1 5 5v1a5 5 0 0 1-5 5H9z" />
-      <path className="p-paper p-edge" d="M13 33v-3a3.5 3.5 0 0 1 7 0v3" />
-      <path className="p-line" d="M24 38.5h5" />
+    <g transform="translate(72 26) scale(-1 1)">
+      <g className="p-take">
+        <Hand />
+      </g>
     </g>
-    <g className="p-take">
-      <rect className="p-ink" x="63" y="30" width="9" height="16" rx="2" />
-      <path className="p-paper p-edge" d="M63 33H48a5 5 0 0 0-5 5v1a5 5 0 0 0 5 5h15z" />
-      <path className="p-paper p-edge" d="M59 33v-3a3.5 3.5 0 0 0-7 0v3" />
-      <path className="p-line" d="M48 38.5h-5" />
+    <g className="p-give" transform="translate(0 26)">
+      <Hand />
     </g>
     <g className="p-stack">
-      <rect className="p-green p-edge" x="10" y="24" width="22" height="7" rx="2" />
-      <rect className="p-green p-edge" x="10" y="18" width="22" height="7" rx="2" />
-      <rect className="p-green p-edge" x="10" y="12" width="22" height="7" rx="2" />
-      <rect className="p-paper" x="18" y="12" width="6" height="19" />
+      <rect className="p-green p-edge" x="16" y="33" width="20" height="11" rx="1.8" />
+      <rect className="p-green p-edge" x="14.5" y="30.5" width="20" height="11" rx="1.8" />
+      <rect className="p-green p-edge" x="13" y="28" width="20" height="11" rx="1.8" />
+      <circle className="p-cutfill" cx="23" cy="33.5" r="2.6" />
+    </g>
+    <g className="p-give" transform="translate(0 26)">
+      <Thumb move="p-let" />
+    </g>
+    <g transform="translate(72 26) scale(-1 1)">
+      <g className="p-take">
+        <Thumb move="p-hold" />
+      </g>
     </g>
   </>,
 ];
