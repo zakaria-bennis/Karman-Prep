@@ -120,3 +120,11 @@ which shows the text conversation behind the lit row. Six seconds a row; a tap h
 rows are exactly as tall as the phone. Every row in `src/lib/marketing/receipts.ts` is still a made-up
 sample, so `RECEIPTS_ARE_SAMPLES` keeps the section out of production builds. The founder is supplying the
 real students and the words they sent; nothing may be written for them.
+
+## Questions section (10 Nov 2026)
+
+"Go on. Ask us the hard ones." is a text conversation (`Doubts.tsx`): five topics, 24 questions, all in
+`site-copy.ts` section 13 and built from `offer.ts`. A tapped question is sent as the parent's message,
+Karman types, and the answer lands as two messages; six answers bring a drawing with them (stamp, target
+bars, tutor kinds, a ten-minute clock, the price list, a Start free button). The message box types the next
+unasked question. The founder will add more questions and answers of his own.
