@@ -241,69 +241,94 @@ export function wayArt(k: number, w: ArtWords): ReactNode {
           ))}
         </>
       );
-    /* 5. Time trials: the same section on a clock that gives less time each round, accuracy held */
+    /* 5. Time trials: the watch races to the right. Each round gives less time, so the hand comes round
+       sooner, the watch leans further into it, and the flames streaming off its back grow. */
     case 4:
       return (
         <>
-          {/* the faster the pace, the hotter the watch: flames grow as the rounds go by */}
-          <g className="g5-fire">
+          {[0, 1, 2, 3].map((n) => (
             <path
-              className="g-flame"
-              d="M150 96c14-18 4-34 20-52 2 16 16 22 16 42 0 16-12 28-26 28-8 0-12-8-10-18z"
-            />
-            <path
-              className="g-flame g-flame2"
-              d="M38 108c-10-14-2-26-12-40-6 14-14 20-12 36 2 12 12 20 22 18 6-2 6-8 2-14z"
-            />
-            <path
-              className="g-flame g-flame3"
-              d="M112 36c8-10 0-20 8-30 4 10 12 12 12 24 0 8-6 14-14 14-5 0-8-4-6-8z"
-            />
-          </g>
-          <ellipse className="g-drop" cx="100" cy="200" rx="52" ry="6" />
-          <rect className="g-ink" x="92" y="20" width="16" height="18" rx="4" />
-          <rect className="g-ink" x="84" y="14" width="32" height="10" rx="5" />
-          <rect
-            className="g-ink"
-            x="150"
-            y="52"
-            width="14"
-            height="20"
-            rx="4"
-            transform="rotate(42 157 62)"
-          />
-          <circle className="g-ink" cx="100" cy="116" r="76" />
-          <circle className="g-card" cx="100" cy="116" r="65" />
-          <path className="g-shadearc" d="M100 51a65 65 0 0 1 0 130a80 80 0 0 0 0-130z" />
-          {Array.from({ length: 12 }, (_, i) => (
-            <path
-              key={i}
-              className={i % 3 === 0 ? "g-line" : "g-thin"}
-              d="M100 58v8"
-              transform={`rotate(${i * 30} 100 116)`}
+              key={n}
+              className="g-thin g5-streak"
+              style={at(n * 0.13)}
+              d={`M${150 + n * 34} ${36 + n * 44}h30`}
             />
           ))}
-          <circle className="g-arc g5-arc" pathLength={1} cx="100" cy="116" r="44" />
-          <g transform="translate(100 116)">
-            <g className="g5-hand">
-              <path className="g-line" d="M0 8v-48" />
+          <g className="g5-race">
+            <g className="g5-fire">
+              <path
+                className="g-flame"
+                d="M70 62C46 54 30 64 4 58c14 10 24 12 30 22-12-2-22 2-32 10 16 0 26 6 34 16-12 0-22 6-30 16 14-2 26 2 34 10-10 4-18 12-22 22 14-8 28-8 40-2 8 6 16 8 22 6z"
+              />
+              <path
+                className="g-flame g-flame2"
+                d="M72 78C54 72 40 78 20 76c10 6 18 10 22 18-10 0-18 4-24 10 12 0 22 4 28 12-8 2-16 8-20 16 12-4 24-4 34 2 6 4 12 4 16 2z"
+              />
+              <path
+                className="g-flame g-flame3"
+                d="M74 94c-12-4-22 0-34 0 8 4 12 8 14 14-6 0-12 4-16 8 10 0 18 2 24 8 6 2 10 2 14 0z"
+              />
+              <circle className="g-flame g5-ember" cx="18" cy="48" r="3" />
+              <circle
+                className="g-flame g-flame2 g5-ember"
+                style={at(0.25)}
+                cx="10"
+                cy="150"
+                r="2.5"
+              />
+              <circle
+                className="g-flame g-flame3 g5-ember"
+                style={at(0.4)}
+                cx="26"
+                cy="172"
+                r="2"
+              />
             </g>
+            <ellipse className="g-drop" cx="118" cy="200" rx="50" ry="6" />
+            <rect className="g-ink" x="110" y="20" width="16" height="18" rx="4" />
+            <rect className="g-ink" x="102" y="14" width="32" height="10" rx="5" />
+            <rect
+              className="g-ink"
+              x="166"
+              y="52"
+              width="14"
+              height="20"
+              rx="4"
+              transform="rotate(42 173 62)"
+            />
+            <circle className="g-ink" cx="118" cy="116" r="76" />
+            <circle className="g-card" cx="118" cy="116" r="65" />
+            <path className="g-shadearc" d="M118 51a65 65 0 0 1 0 130a80 80 0 0 0 0-130z" />
+            {Array.from({ length: 12 }, (_, i) => (
+              <path
+                key={i}
+                className={i % 3 === 0 ? "g-line" : "g-thin"}
+                d="M118 58v8"
+                transform={`rotate(${i * 30} 118 116)`}
+              />
+            ))}
+            <circle className="g-arc g5-arc" pathLength={1} cx="118" cy="116" r="44" />
+            <g transform="translate(118 116)">
+              <g className="g5-hand">
+                <path className="g-line" d="M0 8v-48" />
+              </g>
+            </g>
+            <circle className="g-acc g-edge" cx="118" cy="116" r="6" />
           </g>
-          <circle className="g-acc g-edge" cx="100" cy="116" r="6" />
-          <rect className="g-card" x="198" y="40" width="100" height="74" rx="12" />
-          <text className="g-small" x="248" y="60" textAnchor="middle">
+          <rect className="g-card" x="212" y="40" width="94" height="74" rx="12" />
+          <text className="g-small" x="259" y="60" textAnchor="middle">
             {w.pace}
           </text>
           {Array.from({ length: 11 }, (_, n) => (
-            <text key={n} className="g-big g5-pace" style={at(n * 1.6 - 17.6)} x="248" y="98">
+            <text key={n} className={`g-big g5-pace g5-p${n}`} x="259" y="98">
               {(1.25 - n * 0.05).toFixed(2)}×
             </text>
           ))}
-          <text className="g-small" x="198" y="146">
+          <text className="g-small" x="212" y="146">
             {w.accuracy}
           </text>
-          <rect className="g-shade" x="198" y="154" width="100" height="14" rx="7" />
-          <rect className="g-acc g5-acc" x="198" y="154" width="86" height="14" rx="7" />
+          <rect className="g-shade" x="212" y="154" width="94" height="14" rx="7" />
+          <rect className="g-acc g5-acc" x="212" y="154" width="80" height="14" rx="7" />
         </>
       );
     /* 6. Full-length practice tests: the booklet, and the score report it turns into */

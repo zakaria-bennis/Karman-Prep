@@ -355,10 +355,12 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ways .g-barbox { fill: none; stroke: var(--p); stroke-width: 1.8; }
 .ks .ways .g-bartext { fill: var(--p); font-size: 10.5px; font-weight: 800; text-anchor: middle; }
 .ks .ways .g-leave { fill: #d8523f; }
-.ks .ways .g-flame { fill: #f2752b; transform-box: fill-box; transform-origin: 50% 100%; }
+.ks .ways .g-flame { fill: #ee5a24; transform-box: fill-box; transform-origin: 100% 50%; }
 .ks .ways .g-flame2 { fill: #f7a531; }
-.ks .ways .g-flame3 { fill: #f7c948; }
-.ks .ways .g5-fire { transform-box: fill-box; transform-origin: 50% 78%; opacity: 0; }
+.ks .ways .g-flame3 { fill: #ffe27a; }
+.ks .ways .g5-fire { transform-box: fill-box; transform-origin: 100% 50%; opacity: 0; }
+.ks .ways .g5-race { transform-box: fill-box; transform-origin: 60% 90%; }
+.ks .ways .g5-streak { opacity: 0; }
 .ks .ways :is(.g1-box, .g2-badge, .g3-ten, .g3-stop, .g4-cup, .g4-spark, .g4-bar, .g4-bar2, .g5-acc, .g6-bubble, .g6-bar) { transform-box: fill-box; transform-origin: 50% 50%; }
 .ks .ways :is(.g4-bar, .g4-bar2, .g5-acc, .g6-bar) { transform-origin: 0 50%; }
 /* how each picture rests when nothing may move: finished */
@@ -369,7 +371,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ways .g4-bar { transform: scaleX(.7); }
 .ks .ways .g4-bar2 { transform: scaleX(.3); }
 .ks .ways .g5-pace { opacity: 0; }
-.ks .ways .g5-pace:last-of-type { opacity: 1; }
+.ks .ways .g5-p10 { opacity: 1; }
 .ks .ways .g5-arc { stroke-dashoffset: .4; }
 .ks .ways .g6-ring { stroke-dashoffset: .22; }
 .ks .ways .g6-bar { transform: scaleX(.8); }
@@ -410,22 +412,50 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @keyframes g4-bar { 0%, 6% { transform: scaleX(0); } 26%, 90% { transform: scaleX(.7); } 98%, 100% { transform: scaleX(0); } }
 @keyframes g4-bar2 { 0%, 16% { transform: scaleX(0); } 36%, 90% { transform: scaleX(.3); } 98%, 100% { transform: scaleX(0); } }
 @keyframes g4-slip { 0%, 40% { fill: var(--p); } 48%, 90% { fill: var(--a); } 98%, 100% { fill: var(--p); } }
-.ks .ways li.on .g5-arc { animation: g5-arc 1.6s linear infinite; }
-.ks .ways li.on .g5-hand { animation: g-turn 1.6s linear infinite; }
-.ks .ways li.on .g5-pace { animation: g5-pace 17.6s steps(1) infinite; }
+.ks .ways li.on .g5-arc { animation: g5-arc 17.6s linear infinite; }
+.ks .ways li.on .g5-hand { animation: g5-hand 17.6s linear infinite; }
 .ks .ways li.on .g5-acc { animation: g5-acc 1.6s ease-in-out infinite; }
-/* the faster the pace, the hotter the watch: flames grow over the rounds */
-.ks .ways li.on .g5-fire { animation: g5-fire 17.6s ease-in infinite; }
-.ks .ways li.on .g-flame { animation: g5-flick .5s ease-in-out infinite alternate; }
-.ks .ways li.on .g-flame2 { animation-duration: .38s; }
-.ks .ways li.on .g-flame3 { animation-duration: .44s; }
-@keyframes g5-fire { 0%, 30% { transform: scale(.4); opacity: 0; } 40% { transform: scale(.7); opacity: .95; } 96% { transform: scale(1.5); opacity: .95; } 100% { transform: scale(1.5); opacity: 0; } }
-@keyframes g5-flick { from { transform: scaleY(.86) skewX(-4deg); } to { transform: scaleY(1.08) skewX(5deg); } }
-@keyframes g-turn { to { transform: rotate(360deg); } }
-/* the ring is the time left: it empties exactly as the hand comes round */
-@keyframes g5-arc { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1; } }
-@keyframes g5-pace { 0% { opacity: 1; } 9.09%, 100% { opacity: 0; } }
+/* each round is as long as its pace, so the hand's turns get quicker; the ring is the time left in a round */
+@keyframes g5-hand { 0.00% { transform: rotate(0deg); } 11.36% { transform: rotate(360deg); } 22.27% { transform: rotate(720deg); } 32.73% { transform: rotate(1080deg); } 42.73% { transform: rotate(1440deg); } 52.27% { transform: rotate(1800deg); } 61.36% { transform: rotate(2160deg); } 70.00% { transform: rotate(2520deg); } 78.18% { transform: rotate(2880deg); } 85.91% { transform: rotate(3240deg); } 93.18% { transform: rotate(3600deg); } 100.00% { transform: rotate(3960deg); } }
+@keyframes g5-arc { 0.00% { stroke-dashoffset: 0; } 11.35% { stroke-dashoffset: -1; } 11.36% { stroke-dashoffset: 0; } 22.26% { stroke-dashoffset: -1; } 22.27% { stroke-dashoffset: 0; } 32.72% { stroke-dashoffset: -1; } 32.73% { stroke-dashoffset: 0; } 42.72% { stroke-dashoffset: -1; } 42.73% { stroke-dashoffset: 0; } 52.26% { stroke-dashoffset: -1; } 52.27% { stroke-dashoffset: 0; } 61.35% { stroke-dashoffset: -1; } 61.36% { stroke-dashoffset: 0; } 69.99% { stroke-dashoffset: -1; } 70.00% { stroke-dashoffset: 0; } 78.17% { stroke-dashoffset: -1; } 78.18% { stroke-dashoffset: 0; } 85.90% { stroke-dashoffset: -1; } 85.91% { stroke-dashoffset: 0; } 93.17% { stroke-dashoffset: -1; } 93.18% { stroke-dashoffset: 0; } 99.99% { stroke-dashoffset: -1; } }
+.ks .ways li.on .g5-p0 { animation: g5-p0 17.6s steps(1) infinite; }
+@keyframes g5-p0 { 0% { opacity: 1; } 0.00% { opacity: 1; } 11.36% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p1 { animation: g5-p1 17.6s steps(1) infinite; }
+@keyframes g5-p1 { 0% { opacity: 0; } 11.36% { opacity: 1; } 22.27% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p2 { animation: g5-p2 17.6s steps(1) infinite; }
+@keyframes g5-p2 { 0% { opacity: 0; } 22.27% { opacity: 1; } 32.73% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p3 { animation: g5-p3 17.6s steps(1) infinite; }
+@keyframes g5-p3 { 0% { opacity: 0; } 32.73% { opacity: 1; } 42.73% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p4 { animation: g5-p4 17.6s steps(1) infinite; }
+@keyframes g5-p4 { 0% { opacity: 0; } 42.73% { opacity: 1; } 52.27% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p5 { animation: g5-p5 17.6s steps(1) infinite; }
+@keyframes g5-p5 { 0% { opacity: 0; } 52.27% { opacity: 1; } 61.36% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p6 { animation: g5-p6 17.6s steps(1) infinite; }
+@keyframes g5-p6 { 0% { opacity: 0; } 61.36% { opacity: 1; } 70.00% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p7 { animation: g5-p7 17.6s steps(1) infinite; }
+@keyframes g5-p7 { 0% { opacity: 0; } 70.00% { opacity: 1; } 78.18% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p8 { animation: g5-p8 17.6s steps(1) infinite; }
+@keyframes g5-p8 { 0% { opacity: 0; } 78.18% { opacity: 1; } 85.91% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p9 { animation: g5-p9 17.6s steps(1) infinite; }
+@keyframes g5-p9 { 0% { opacity: 0; } 85.91% { opacity: 1; } 93.18% { opacity: 0; } 100% { opacity: 0; } }
+.ks .ways li.on .g5-p10 { animation: g5-p10 17.6s steps(1) infinite; }
+@keyframes g5-p10 { 0% { opacity: 0; } 93.18% { opacity: 1; } 100.00% { opacity: 0; } 100% { opacity: 0; } }
 @keyframes g5-acc { 50% { transform: scaleX(.97); } }
+/* the watch leans into its run and shakes a little more each round; streaks rush past it */
+.ks .ways li.on .g5-race { animation: g5-race 17.6s ease-in infinite; }
+.ks .ways li.on .g5-streak { animation: g5-streak .5s linear infinite, g5-heat 17.6s ease-in infinite; }
+@keyframes g5-race { 0%, 8% { transform: translateX(-6px) rotate(0deg); } 96% { transform: translateX(8px) rotate(9deg); } 100% { transform: translateX(-6px) rotate(0deg); } }
+@keyframes g5-streak { from { translate: 40px 0; } to { translate: -230px 0; } }
+@keyframes g5-heat { 0%, 6% { opacity: 0; } 30% { opacity: .35; } 96% { opacity: .9; } 100% { opacity: 0; } }
+/* the flames stream off the back of the watch: barely there at first, long and fierce by the last round */
+.ks .ways li.on .g5-fire { animation: g5-fire 17.6s ease-in infinite; }
+.ks .ways li.on .g-flame { animation: g5-flick .22s ease-in-out infinite alternate; }
+.ks .ways li.on .g-flame2 { animation-duration: .17s; }
+.ks .ways li.on .g-flame3 { animation-duration: .13s; }
+.ks .ways li.on .g5-ember { animation: g5-ember .7s linear infinite; }
+@keyframes g5-fire { 0%, 4% { transform: scale(.15, .5); opacity: 0; } 14% { transform: scale(.4, .7); opacity: .9; } 98.5% { transform: scale(1.3, 1.14); opacity: 1; } 100% { transform: scale(1.3, 1.14); opacity: 0; } }
+@keyframes g5-flick { from { transform: scale(.9, .94) skewY(-3deg); } to { transform: scale(1.08, 1.05) skewY(3deg); } }
+@keyframes g5-ember { from { translate: 30px 0; opacity: 1; } to { translate: -20px -10px; opacity: 0; } }
 .ks .ways li.on .g6-bubble { animation: g-pop 6s var(--spring) infinite backwards; }
 .ks .ways li.on .g6-go { animation: g6-go 1.4s ease-in-out infinite; }
 .ks .ways li.on .g6-ring { animation: g6-ring 6s var(--out) infinite; }
