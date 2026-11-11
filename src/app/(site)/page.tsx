@@ -2,26 +2,30 @@ import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
 import Fireflies from "@/components/site/home/Fireflies";
 import Flock from "@/components/site/home/Flock";
+import Guarantee from "@/components/site/home/Guarantee";
 import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
 import HomeJourney from "@/components/site/home/HomeJourney";
 import HomeTouches from "@/components/site/home/HomeTouches";
-import Logos from "@/components/site/home/Logos";
-import ScoreTiles from "@/components/site/home/ScoreTiles";
+import Lanterns from "@/components/site/home/Lanterns";
+import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
+import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
+import { RECEIPTS, RECEIPTS_ARE_SAMPLES } from "@/lib/marketing/receipts";
 import { SCHOOLS } from "@/lib/marketing/schools";
-import { pairs, section } from "@/lib/marketing/site-copy";
+import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
+import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
   "Karman Prep: SAT tutors who see every answer",
-  "SAT prep taught by PhD students, quants and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
+  "SAT prep taught by PhD students, medical students and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
 );
 
 const ORG = {
@@ -32,9 +36,6 @@ const ORG = {
   email: CONTACT.general,
   description: section(1).text,
 };
-
-/** The drawing for each kind of tutor, in the order the copy lists them (public/site/tutors/). */
-const TUTOR_ART = ["phd", "quant", "medic", "writer", "researcher", "professor"];
 
 /* The opening plays once per visit: hide the words before they are drawn, then let them arrive when the
    typefaces are in (painted.css, claim-wait and claim-go). Three seconds is the longest it will wait. */
@@ -56,8 +57,18 @@ export default function HomePage() {
   const proof = section(9);
   const offer = section(10);
   const who = section(12);
+  const tutorKinds = pairs(who.credentials);
+  const tutorPhotos = TUTOR_PHOTOS.map((t) => ({
+    src: t.src,
+    kind: Math.max(
+      0,
+      tutorKinds.findIndex(([name]) => name === t.kind)
+    ),
+  }));
   const how = section(6);
   const doubts = section(13);
+  /* sample rows are for designing with: they never reach a production build (receipts.ts) */
+  const showReceipts = !RECEIPTS_ARE_SAMPLES || process.env.NODE_ENV !== "production";
   const price = section(7);
   const close = section(11);
   return (
@@ -92,9 +103,7 @@ export default function HomePage() {
               <Arrow />
             </a>
           </div>
-          <p className="fine">
-            {claim["button note"]} <span>{claim.proof}</span>
-          </p>
+          <p className="fine">{claim["button note"]}</p>
         </div>
       </section>
 
@@ -110,7 +119,7 @@ export default function HomePage() {
             <li key={x.name}>{x.name}</li>
           ))}
         </ul>
-        <Logos schools={SCHOOLS} />
+        <Lanterns schools={SCHOOLS} />
       </section>
 
       {/* 3. The offer */}
@@ -119,35 +128,17 @@ export default function HomePage() {
         <div className="inner" data-paint-keepout>
           <div className="rv">
             <h2 id="offer-h">{nums(offer.headline)}</h2>
-            <p className="lede">{offer.text}</p>
           </div>
-          <div className="offer-cols">
-            <div className="rv">
-              <ScoreTiles
-                bands={GUARANTEE.bands.map((b) => ({ ...b }))}
-                noGuaranteeFrom={GUARANTEE.noGuaranteeFrom}
-                words={{
-                  private: offer.private,
-                  cohort: offer.cohort,
-                  track: offer.track,
-                  now: offer.now,
-                  lower: offer.lower,
-                  higher: offer.higher,
-                  promise: offer.promise,
-                  none: offer.none,
-                }}
-              />
-            </div>
-            <ul className="outcomes">
-              {pairs(offer.outcomes).map(([name, line], k) => (
-                <li className="rv" key={name} style={{ transitionDelay: `${k * 110}ms` }}>
-                  <b>{name}</b>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <p className="fine rv">{offer.free}</p>
+          <Guarantee
+            outcomes={pairs(offer.outcomes)}
+            words={{
+              line: offer.text,
+              signed: SITE.logo,
+              stamp: `+${GUARANTEE.bands[0].private}`,
+              stampUnit: offer["stamp unit"],
+              stampRing: offer["stamp ring"],
+            }}
+          />
           <TextLink label={offer.link} href={ROUTES.guarantee} />
         </div>
       </section>
@@ -159,21 +150,7 @@ export default function HomePage() {
           <h2 className="rv" id="who-h">
             {who.headline}
           </h2>
-          <ul className="tutors">
-            {pairs(who.credentials).map(([name, line], k) => (
-              <li className="rv" key={name} style={{ transitionDelay: `${k * 90}ms` }}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG drawings */}
-                <img
-                  src={`/site/tutors/${TUTOR_ART[k % TUTOR_ART.length]}.svg`}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
-                <b>{name}</b>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
+          <TutorArc photos={tutorPhotos} kinds={tutorKinds} />
         </div>
       </section>
 
@@ -188,6 +165,16 @@ export default function HomePage() {
           <TextLink label={how["research link"]} href={ROUTES.research} />
         </div>
       </section>
+
+      {/* The receipts: what students scored, and the texts behind it */}
+      {showReceipts ? (
+        <section className="sect receipts" id="receipts" aria-labelledby="receipts-h">
+          <div className="mist" aria-hidden="true" />
+          <div className="inner" data-paint-keepout>
+            <Receipts headline={section(14).headline} headingId="receipts-h" rows={RECEIPTS} />
+          </div>
+        </section>
+      ) : null}
 
       {/* 6. Their doubts */}
       <section className="sect ask" id="ask" aria-labelledby="ask-h">
