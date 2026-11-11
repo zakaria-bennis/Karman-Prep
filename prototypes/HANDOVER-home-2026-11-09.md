@@ -15,28 +15,44 @@ night as the page scrolls. The founder approved this order.
 | # | Section | Files | Animation |
 |---|---|---|---|
 | 1 | The claim: "Our average student gains 280 points. Yours doesn't have to be average." | `ClaimPill.tsx`, `Flock.tsx`, `CLAIM_BOOT` in `page.tsx` | Headline comes into focus out of the haze, word by word; the "280 points" shape slams in with its lettering cut out to the sky; two or three small flocks of birds cross the sky |
-| 2 | The proof: "We're twelve for twelve." | `Logos.tsx`, `src/lib/marketing/schools.ts` | 30 real logos land like leaves, then drift in two rows |
-| 3 | The offer: "Up to +200 points, or your money back." | `ScoreTiles.tsx`, `GUARANTEE` in `offer.ts` | Flip tiles: their score now, the score guaranteed; leaves burst when it changes |
-| 4 | Who: "Our tutors are overqualified. That's the point." | `public/site/tutors/*.svg`, `scripts/dev/make-tutor-peeps.mjs` | Six Open Peeps drawings pop up and hop on hover |
+| 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
+| 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence; a +200 ring stamp brought down hard at the top right, level with the headline (the headline jolts and leaves burst); three outcome cards slide in from the side; his own "Karman" signature, kept low, right above the link to the full guarantee |
+| 4 | Who: "Our tutors are overqualified. That's the point." | `TutorArc.tsx`, `src/lib/marketing/tutors.ts` | Photos wait in a stack at the left, fan out along a half circle that turns slowly like a wheel with its lower half out of sight; the title of whoever is at the top pops up in the middle |
 | 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 | 7 | Price and close, at night: "Four ways in. The first one is free." | `Fireflies.tsx` | Rows dealt in; fireflies follow the cursor |
 
 Everywhere: the painting (`HomeJourney.tsx`, `src/lib/painting/journey.ts`), the sun crossing the sky,
-leaves with physics (`leaves.ts`), springy switches (`Seg.tsx`), a button that leans toward the cursor
+leaves with physics (`leaves.ts`), a button that leans toward the cursor
 and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are in
 `src/app/(site)/styles/painted.css`. All words are in `src/lib/marketing/site-copy.ts`.
 
 ## Where the founder's approval stands
 
 - **Approved:** the seven-section order; the headline; "We're twelve for twelve."; Start free as the
-  main action; the "we" voice, confident and a little cocky; the painting; springy switches.
+  main action; the "we" voice, confident and a little cocky; the painting.
 - **Section 1:** settled with him on 10 November 2026, from live options. He chose: the headline coming
   into focus out of the haze (he rejected the particles, a brush wipe, rise, wind, flip and horizon); the
   main button in ink with a breathing ring of the sky's light and no sweep of shine; a soft veil of light
   behind the top bar; bolder small text with no glow and no new background; today's dawn sky; small flocks
   of birds passing, which spell nothing and ignore the pointer ("gimmicky").
-- **Sections 2 to 7:** built in one pass at his request so the page could be handed over whole. He has
+- **Section 2:** settled with him on 10 November 2026. He was "tired of" the double carousel and chose
+  lanterns out of six live options (counted grid, changing wall, clouds, a roll call of names, spotlight,
+  lanterns). He asked for them to be physical: bouncing off each other, able to be handled, all thirty
+  coming round in a loop.
+- **Section 3:** settled with him on 10 November 2026. He disliked the plus and minus score tiles ("huge",
+  "the slider idea") and every version that listed the tiers: too much for the home page, since the full
+  rules are one link away. He wants it short and enticing. He rejected a typed-out signature, his own name,
+  a title under it, an underline and a drawn-on effect, then sent a picture of how he signs "Karman"; it
+  is traced by hand in `Guarantee.tsx`, with the K's lower line carried under the whole word at his
+  request. He asked for the stamp, for its landing to be prominent, and for the cards to come from the side.
+- **Section 4:** on 10 November 2026 he chose the arc out of ten live layouts, and described the motion
+  himself (stack at the left, fan out, slow turn, titles popping up in the middle). He will supply six
+  real photos; until then each place on the arc is a plain frame with no picture (he asked for the
+  stock stand-ins to be removed). The Open Peeps drawings are deleted. "Quants" is gone from the site: there is none
+  on the team. Still open: a word other than "Published" for the researchers, and which kind each real
+  photo is.
+- **Sections 5 to 7:** built in one pass at his request so the page could be handed over whole. He has
   seen a still sketch of them, not the built versions. Treat each as a first draft to be reviewed with
   him, one at a time.
 - **Feeling:** Studio Ghibli. Hand-painted, soft, quietly magical. Not childish, no bright orange.
@@ -59,7 +75,7 @@ a chat as the whole page).
    other rule is the lawyer-reviewed one. The lawyer has not re-read the tiered targets or Terms section 5.
 4. The other site pages (program, pricing, guarantee, private tutoring, FAQ, About, schools, tutors)
    still have the old look, old voice, marigold and generated photos.
-5. The six tutor drawings are stock Open Peeps. He offered to generate custom images in Gemini from
+5. (Closed 10 November: the tutor drawings are gone; real photos are coming.) He had offered custom images from
    prompts if he wants something more his own.
 6. Thirty schools are shown on his word that students attend all of the top 12; four of the thirty were
    my substitutions for schools with no usable logo file. Confirm the list in `schools.ts`.
@@ -92,7 +108,15 @@ a chat as the whole page).
 ## Checks
 
 - `node scripts/dev/home-journey-check.mjs`: measures text contrast against the real painting pixels in
-  all seven sections at desktop, tablet and phone, and tests the tiles, the bubbles, the birds, the
+  all seven sections at desktop, tablet and phone, and tests the guarantee's stamp and cards, the bubbles, the birds, the
   phone menu, the still button and every link. Passing.
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
 - The six checks in `CLAUDE.md` pass on this commit.
+
+## Receipts section (10 Nov 2026, in progress)
+
+Between "How we teach" and the questions: `Receipts.tsx`, a plain list of students beside the orange phone,
+which shows the text conversation behind the lit row. Six seconds a row; a tap holds a row. The heading and
+rows are exactly as tall as the phone. Every row in `src/lib/marketing/receipts.ts` is still a made-up
+sample, so `RECEIPTS_ARE_SAMPLES` keeps the section out of production builds. The founder is supplying the
+real students and the words they sent; nothing may be written for them.
