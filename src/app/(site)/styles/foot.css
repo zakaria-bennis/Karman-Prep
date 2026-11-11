@@ -1,71 +1,26 @@
 /* The home page's footer, over the landscape (founder, 2026-11-11: no black block, the picture carries on to
-   the bottom). The same words in three layouts for him to choose from; FootPicker.tsx switches them by
-   setting data-foot on the footer, and only on a development build. Every other page keeps the plain black
-   footer in film.css until its own redesign.
-   A, the shore: the words sit straight on the sea, on mist that rises from the bottom.
-   B, the dock: one rounded card floating on the water, with the sea all round it.
-   C, the horizon: a last full view with the name on the horizon and one quiet strip of links below.
-   TEMPORARY: once he picks, the other two layouts and the picker go. */
-.ks.page-home .ft { --foot-mist: rgb(18, 20, 42); position: relative; z-index: 1; background: none; color: var(--cream); padding: clamp(150px, 26vh, 300px) var(--gutter) 34px; }
+   the bottom). He picked "the horizon" out of three layouts, with the links in columns: a last full view,
+   the name sitting on the horizon, and under it the four columns, the bottom row and the fine print, on
+   mist that rises from the bottom. Every other page keeps the plain black footer in film.css until its own
+   redesign. */
+.ks.page-home .ft { --foot-mist: rgb(18, 20, 42); position: relative; z-index: 1; min-height: 100vh; min-height: 100svh; display: grid; align-content: end; background: none; color: var(--cream); padding: 120px var(--gutter) 30px; }
 .ks.page-home[data-mode="dark"] .ft { --foot-mist: rgb(11, 13, 30); }
-.ks.page-home .ft::before { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--foot-mist) 84%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 44%); mask-image: linear-gradient(transparent, #000 44%); }
-.ks.page-home .ft .ft-in { max-width: var(--max); margin: 0 auto; }
-.ks.page-home .ft .cols { align-items: flex-end; max-width: none; margin: 0; }
-.ks.page-home .ft .mark { color: var(--cream); font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(64px, 9vw, 132px); line-height: .9; letter-spacing: -.02em; }
-.ks.page-home .ft nav { gap: 28px clamp(28px, 4vw, 60px); }
+.ks.page-home .ft::before { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--foot-mist) 88%, transparent); -webkit-mask-image: linear-gradient(transparent 38%, #000 66%); mask-image: linear-gradient(transparent 38%, #000 66%); }
+.ks.page-home .ft .ft-in { width: 100%; max-width: var(--max); margin: 0 auto; }
+.ks.page-home .ft .cols { display: block; max-width: none; margin: 0; }
+.ks.page-home .ft .mark { display: block; margin-bottom: clamp(30px, 5vh, 56px); color: var(--cream); font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(88px, 19vw, 300px); line-height: .9; letter-spacing: -.02em; text-align: center; text-shadow: 0 4px 60px rgba(8, 10, 30, .5); }
+.ks.page-home .ft nav { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 26px clamp(24px, 4vw, 60px); }
 .ks.page-home .ft .col .h { color: var(--cream); font-size: 16px; }
-.ks.page-home .ft .col a { color: color-mix(in srgb, var(--cream) 84%, transparent); font-size: 16px; font-weight: 600; }
-.ks.page-home .ft .ft-base { max-width: none; border-top-color: color-mix(in srgb, var(--cream) 26%, transparent); }
+.ks.page-home .ft .col a { min-height: 34px; color: color-mix(in srgb, var(--cream) 86%, transparent); font-size: 16px; font-weight: 600; }
+.ks.page-home .ft .ft-base { margin-top: 22px; padding-top: 14px; border-top-color: color-mix(in srgb, var(--cream) 26%, transparent); }
 .ks.page-home .ft .ft-base a, .ks.page-home .ft .credit .motion { color: var(--cream); }
-.ks.page-home .ft .ft-fine { max-width: none; color: color-mix(in srgb, var(--cream) 74%, transparent); }
+.ks.page-home .ft .ft-fine { margin-top: 6px; color: color-mix(in srgb, var(--cream) 74%, transparent); }
 @media (hover: hover) and (pointer: fine) {
   .ks.page-home .ft .col a:hover, .ks.page-home .ft .ft-base a:hover { color: var(--cream); text-decoration: underline; text-underline-offset: 4px; }
 }
 .ks.page-home .ft :focus-visible { outline-color: var(--cream); }
 @media (max-width: 760px) {
-  .ks.page-home .ft .cols { align-items: flex-start; }
-  .ks.page-home .ft nav { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .ks.page-home .ft nav { grid-template-columns: 1fr 1fr; }
+  .ks.page-home .ft .col a { min-height: 40px; }
+  .ks.page-home .ft::before { -webkit-mask-image: linear-gradient(transparent 6%, #000 26%); mask-image: linear-gradient(transparent 6%, #000 26%); }
 }
-
-/* ---------- B, the dock ---------- */
-.ks.page-home .ft[data-foot="b"] { padding: clamp(180px, 34vh, 380px) var(--gutter) max(var(--gutter), 22px); }
-.ks.page-home .ft[data-foot="b"]::before { display: none; }
-.ks.page-home .ft[data-foot="b"] .ft-in { padding: clamp(28px, 4vw, 56px) clamp(22px, 4vw, 60px) 26px; border-radius: clamp(28px, 3vw, 44px); background: var(--cream); color: var(--ink); box-shadow: 0 40px 80px -40px rgba(4, 6, 20, .8), 0 0 60px 6px var(--glow); }
-.ks.page-home .ft[data-foot="b"] .mark { color: var(--ink); font-size: clamp(44px, 5vw, 72px); }
-.ks.page-home .ft[data-foot="b"] .col .h { color: var(--ink); }
-.ks.page-home .ft[data-foot="b"] .col a { color: var(--ink2); }
-.ks.page-home .ft[data-foot="b"] .ft-base { border-top-color: var(--line); }
-.ks.page-home .ft[data-foot="b"] .ft-base a, .ks.page-home .ft[data-foot="b"] .credit .motion { color: var(--ink); }
-.ks.page-home .ft[data-foot="b"] .ft-fine { color: var(--ink2); }
-.ks.page-home .ft[data-foot="b"] :focus-visible { outline-color: var(--ink); }
-@media (hover: hover) and (pointer: fine) {
-  .ks.page-home .ft[data-foot="b"] .col a:hover, .ks.page-home .ft[data-foot="b"] .ft-base a:hover { color: var(--ink); }
-}
-/* at night the dock is black with white words, like the price cards */
-.ks.page-home[data-mode="dark"] .ft[data-foot="b"] .ft-in { background: var(--ink); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .16), 0 40px 80px -40px rgba(0, 0, 0, .9), 0 0 60px 6px var(--glow); }
-.ks.page-home[data-mode="dark"] .ft[data-foot="b"] :is(.mark, .col .h, .ft-base a, .credit .motion) { color: var(--cream); }
-.ks.page-home[data-mode="dark"] .ft[data-foot="b"] .col a, .ks.page-home[data-mode="dark"] .ft[data-foot="b"] .ft-fine { color: #cdc7d6; }
-.ks.page-home[data-mode="dark"] .ft[data-foot="b"] .ft-base { border-top-color: rgba(255, 250, 243, .18); }
-.ks.page-home[data-mode="dark"] .ft[data-foot="b"] :focus-visible { outline-color: var(--cream); }
-
-/* ---------- C, the horizon ---------- */
-.ks.page-home .ft[data-foot="c"] { min-height: 100vh; min-height: 100svh; display: grid; align-content: end; padding-top: 0; }
-.ks.page-home .ft[data-foot="c"]::before { background: color-mix(in srgb, var(--foot-mist) 88%, transparent); -webkit-mask-image: linear-gradient(transparent 46%, #000 72%); mask-image: linear-gradient(transparent 46%, #000 72%); }
-.ks.page-home .ft[data-foot="c"] .cols { display: block; }
-.ks.page-home .ft[data-foot="c"] .mark { display: block; text-align: center; font-size: clamp(88px, 19vw, 300px); margin-bottom: clamp(60px, 13vh, 150px); text-shadow: 0 4px 60px rgba(8, 10, 30, .5); }
-.ks.page-home .ft[data-foot="c"] nav { display: grid; grid-template-columns: 1fr; gap: 2px; }
-.ks.page-home .ft[data-foot="c"] .col { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 22px; }
-.ks.page-home .ft[data-foot="c"] .col .h { width: 7.5em; margin: 0; }
-.ks.page-home .ft[data-foot="c"] .col a { min-height: 36px; }
-.ks.page-home .ft[data-foot="c"] .ft-base { margin-top: 18px; }
-@media (max-width: 760px) {
-  .ks.page-home .ft[data-foot="c"] .col .h { width: 100%; margin-top: 10px; }
-  .ks.page-home .ft[data-foot="c"]::before { -webkit-mask-image: linear-gradient(transparent 10%, #000 34%); mask-image: linear-gradient(transparent 10%, #000 34%); }
-}
-
-/* ---------- the picker (development only) ---------- */
-.ks .foot-pick { position: fixed; z-index: 60; left: 14px; bottom: 14px; display: flex; align-items: center; gap: 6px; padding: 8px 10px 8px 14px; border-radius: 999px; background: #fffaf3; color: #1d1a22; font: 700 14px/1 var(--font-hanken), system-ui, sans-serif; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .6); }
-.ks .foot-pick button { min-width: 40px; min-height: 40px; border-radius: 999px; font: inherit; color: inherit; }
-.ks .foot-pick button[aria-pressed="true"] { background: #1d1a22; color: #fffaf3; }
-/* on the cream dock the switch's track is ink, as in the top bar by day */
-.ks.page-home:not([data-mode="dark"]) .ft[data-foot="b"] .theme { --sw-off: rgba(29, 26, 34, .62); background-color: rgba(29, 26, 34, .11); box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2); }

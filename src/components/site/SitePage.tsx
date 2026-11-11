@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { Anton, Hanken_Grotesk } from "next/font/google";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
-import FootPicker from "./home/FootPicker";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
@@ -244,7 +243,6 @@ export default function SitePage({
           </div>
           <p className="ft-fine">{SITE["sat note"]}</p>
         </div>
-        {stage && process.env.NODE_ENV !== "production" ? <FootPicker /> : null}
       </footer>
       <ShellBehaviour />
     </div>
