@@ -5,8 +5,8 @@
 // from the side. Everything else about the guarantee is one link away. The arrival plays when the section
 // scrolls into view (the site's "rv" then "on" classes, painted.css). When the stamp lands, the headline gives
 // a short jolt.
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import { arman, SIG_STYLES } from "./signature";
+import type { CSSProperties, ReactNode } from "react";
+import { arman, SIG } from "./signature";
 
 /** How long after the stamp starts to fall it hits the page: 52% of .gua-stamp's .75s (painted.css). */
 const IMPACT_MS = 390;
@@ -24,16 +24,8 @@ export interface GuaranteeWords {
 
 /** "Karman" as the founder signs it, traced by hand from the picture he sent, then set lower and wider at
     his request so it takes little height: a K whose leg sweeps away under the whole word, and the rest as
-    one quick run of waves. It is simply there, never drawn on. */
+    the letters he picked out of twelve versions (signature.ts). It is drawn as the section arrives. */
 function Signature({ name }: { name: string }) {
-  /* TEMPORARY: the founder is choosing between twelve versions (SigLab.tsx sends the number) */
-  const [n, setN] = useState(1);
-  useEffect(() => {
-    const pick = (e: Event) => setN((e as CustomEvent<number>).detail);
-    document.addEventListener("karman:sig", pick);
-    return () => document.removeEventListener("karman:sig", pick);
-  }, []);
-  const style = SIG_STYLES[n] ?? SIG_STYLES[1];
   return (
     <p className="gua-sig" role="img" aria-label={name}>
       <svg viewBox="130 118 850 196" aria-hidden="true">
@@ -43,12 +35,7 @@ function Signature({ name }: { name: string }) {
           pathLength={1}
           d="M312 150 C 314 132, 298 126, 284 140 C 256 172, 214 222, 166 266 C 190 240, 232 212, 268 212 C 304 213, 322 250, 360 274 C 400 298, 470 306, 590 302 C 720 298, 850 290, 958 278"
         />
-        <path
-          className="brush"
-          pathLength={1}
-          style={{ strokeWidth: style.pen }}
-          d={arman(style)}
-        />
+        <path className="brush" pathLength={1} style={{ strokeWidth: SIG.pen }} d={arman(SIG)} />
         <path
           className="tail"
           pathLength={1}
@@ -81,7 +68,9 @@ const PICS: ReactNode[] = [
   <>
     <g className="p-home">
       <circle className="p-fill" cx="24" cy="22" r="14" />
-      <path className="p-cut" d="M24 14v16M19 18h7.500a3 3 0 0 1 0 6H20.500a3 3 0 0 0 0 6H29" />
+      <text className="p-dollar" x="24" y="28.5">
+        $
+      </text>
     </g>
     <path className="p-line p-loop" pathLength={1} d="M6 30a19 19 0 0 0 36 4M42 42v-8h-8" />
   </>,

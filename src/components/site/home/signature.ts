@@ -1,7 +1,5 @@
-// The "arman" of the founder's signature, written twelve ways for him to choose from (2026-11-11). Each
-// version is the same five joined letters, leaning to the right like the first "a", with a different lean,
-// width, height and roundness. The letters are laid out on a baseline, sheared to lean, and fitted between
-// the end of the K and the start of the tail. Once he picks, keep that one path and delete the rest.
+// The "arman" of the founder's signature: five joined letters leaning to the right, laid out on a
+// baseline, sheared to lean, and fitted between the end of the K and the start of the tail.
 
 /** Each letter as points on a unit grid: x across, y up from the baseline (1 is the letter's height). */
 const LETTERS: [number, number][][] = [
@@ -81,20 +79,8 @@ export interface SigStyle {
   pen: number;
 }
 
-export const SIG_STYLES: SigStyle[] = [
-  { lean: 0.45, tall: 40, wideM: 1.2, round: 0.3, pen: 7.5 },
-  { lean: 0.7, tall: 40, wideM: 1.2, round: 0.3, pen: 7.5 },
-  { lean: 1, tall: 40, wideM: 1.2, round: 0.3, pen: 7.5 },
-  { lean: 0.6, tall: 54, wideM: 1.1, round: 0.28, pen: 7 },
-  { lean: 0.85, tall: 60, wideM: 1.15, round: 0.3, pen: 6.5 },
-  { lean: 0.6, tall: 28, wideM: 1.5, round: 0.35, pen: 8.5 },
-  { lean: 0.9, tall: 30, wideM: 1.6, round: 0.4, pen: 8 },
-  { lean: 0.55, tall: 46, wideM: 1.3, round: 0.12, pen: 6.5 },
-  { lean: 0.8, tall: 48, wideM: 1.35, round: 0.1, pen: 6 },
-  { lean: 0.65, tall: 44, wideM: 1.25, round: 0.6, pen: 9.5 },
-  { lean: 0.95, tall: 50, wideM: 1.4, round: 0.55, pen: 8.5 },
-  { lean: 1.15, tall: 36, wideM: 1.3, round: 0.22, pen: 5.5 },
-];
+/** The version the founder picked (the twelfth of twelve, 2026-11-11): a strong lean and a fine pen. */
+export const SIG: SigStyle = { lean: 1.15, tall: 36, wideM: 1.3, round: 0.22, pen: 5.5 };
 
 const X0 = 414;
 const X1 = 786;

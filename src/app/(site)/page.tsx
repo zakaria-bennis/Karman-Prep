@@ -1,4 +1,3 @@
-import ActLab from "@/components/site/home/ActLab";
 import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
 import Flock from "@/components/site/home/Flock";
@@ -225,7 +224,6 @@ export default function HomePage() {
           />
         </div>
       </section>
-      {process.env.NODE_ENV !== "production" ? <ActLab /> : null}
     </SitePage>
   );
 }

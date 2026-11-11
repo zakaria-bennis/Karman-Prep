@@ -190,9 +190,9 @@ taken on his behalf.
 Done: night buttons are soft gold (#e7cf9a); UNC and UT Austin lost their extra name (their logos say it);
 the seven-ways number badges are gone; the stopwatch turns a quarter slower; the live teaching picture is a
 video call with a sensible worked equation; the guarantee cards have a joke each and a small moving picture.
-Waiting on him: `ActLab.tsx` (development only) offers twelve light-mode button colours (sets `--go`) and
-twelve versions of the signature's "arman" (`signature.ts`). Once he picks, write the colour into
-painted.css, keep the one signature path, and delete ActLab and the other eleven styles.
+He then picked: signature version 12 (`SIG` in `signature.ts`), cobalt blue (#2449b8) for the light-mode
+buttons, a trinomial on the live teaching board, and flames on the stopwatch as the pace gets faster. The
+tester panel is deleted. Do not run Prettier on the stylesheets: they are kept one rule to a line.
 
 ## Price section removed (11 Nov 2026)
 

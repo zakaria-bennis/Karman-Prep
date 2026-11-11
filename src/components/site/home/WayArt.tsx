@@ -245,6 +245,21 @@ export function wayArt(k: number, w: ArtWords): ReactNode {
     case 4:
       return (
         <>
+          {/* the faster the pace, the hotter the watch: flames grow as the rounds go by */}
+          <g className="g5-fire">
+            <path
+              className="g-flame"
+              d="M150 96c14-18 4-34 20-52 2 16 16 22 16 42 0 16-12 28-26 28-8 0-12-8-10-18z"
+            />
+            <path
+              className="g-flame g-flame2"
+              d="M38 108c-10-14-2-26-12-40-6 14-14 20-12 36 2 12 12 20 22 18 6-2 6-8 2-14z"
+            />
+            <path
+              className="g-flame g-flame3"
+              d="M112 36c8-10 0-20 8-30 4 10 12 12 12 24 0 8-6 14-14 14-5 0-8-4-6-8z"
+            />
+          </g>
           <ellipse className="g-drop" cx="100" cy="200" rx="52" ry="6" />
           <rect className="g-ink" x="92" y="20" width="16" height="18" rx="4" />
           <rect className="g-ink" x="84" y="14" width="32" height="10" rx="5" />
@@ -348,16 +363,16 @@ export function wayArt(k: number, w: ArtWords): ReactNode {
           <rect className="g-card" x="18" y="16" width="282" height="182" rx="14" />
           {/* the shared board: one equation, solved a line at a time */}
           <rect className="g-board" x="28" y="26" width="164" height="134" rx="8" />
-          <text className="g-math g7-step" x="44" y="62">
-            2x + 6 = 14
+          <text className="g-math g7-step" x="110" y="58">
+            x² + 5x + 6 = 0
           </text>
-          <text className="g-math g7-step" style={at(1.3)} x="74" y="98">
-            2x = 8
+          <text className="g-math g7-step" style={at(1.3)} x="110" y="94">
+            (x + 2)(x + 3) = 0
           </text>
-          <text className="g-math g-mathacc g7-step" style={at(2.6)} x="88" y="134">
-            x = 4
+          <text className="g-math g-mathacc g7-step" style={at(2.6)} x="110" y="132">
+            x = −2 or −3
           </text>
-          <path className="g-accline g7-under" pathLength={1} style={at(3.5)} d="M84 144h62" />
+          <path className="g-accline g7-under" pathLength={1} style={at(3.5)} d="M52 142h116" />
           {/* the six seats down the side; the ring is whose turn it is */}
           {Array.from({ length: 6 }, (_, i) => (
             <g key={i}>
