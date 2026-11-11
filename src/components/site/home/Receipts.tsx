@@ -10,6 +10,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import PhoneFrame from "@/components/site/PhoneFrame";
 import type { Receipt } from "@/lib/marketing/receipts";
+import { schoolByLogo } from "@/lib/marketing/schools";
+import SchoolLogo from "./SchoolLogo";
 
 const HOLD_MS = 6000;
 
@@ -130,8 +132,10 @@ export default function Receipts({
                   <span> weeks</span>
                 </span>
                 <span className="at">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG logos */}
-                  <img src={`/site/schools/${r.school}.svg`} alt={r.schoolName} decoding="async" />
+                  <SchoolLogo
+                    school={schoolByLogo(r.school) ?? { name: r.schoolName, logo: r.school }}
+                    alt={r.schoolName}
+                  />
                 </span>
               </button>
             </li>
@@ -142,21 +146,98 @@ export default function Receipts({
         <PhoneFrame>
           <div className="scr-host">
             <div className="scr txt">
-              <div className="txt-top">
-                <span className="txt-face" aria-hidden="true">
-                  {now.name.replace(/[^A-Z]/g, "").slice(-1) || now.name[0]}
-                </span>
-                <b>{now.name}</b>
+              <div className="txt-status" aria-hidden="true">
+                <b>9:41</b>
+                <svg viewBox="0 0 80 14">
+                  <path d="M1 9.6h3v3.4H1zM5.8 7.2h3V13h-3zM10.6 4.600h3V13h-3zM15.4 1.800h3V13h-3z" />
+                  <path d="M35 3.200c2.7 0 5.2 1 7.1 2.800l1.2-1.300A12 12 0 0 0 35 1.300c-3.2 0-6.1 1.3-8.3 3.400L27.9 6A10.2 10.2 0 0 1 35 3.200zm0 3.700c1.7 0 3.3.7 4.5 1.800l1.2-1.300a8.3 8.3 0 0 0-11.4 0l1.2 1.300A6.5 6.5 0 0 1 35 6.900zm0 3.700c-.8 0-1.5.300-2 .800l2 2.2 2-2.200c-.5-.5-1.2-.8-2-.8z" />
+                  <rect x="51" y="1" width="25" height="12" rx="3.8" />
+                  <path
+                    d="M77.4 4.800v4.400c.9-.3 1.6-1.2 1.6-2.200s-.7-1.9-1.6-2.200z"
+                    opacity=".45"
+                  />
+                </svg>
               </div>
               <div className="txt-view">
                 <div className="txt-thread" key={active} ref={thread}>
-                  <small>Text Message</small>
-                  {now.texts.map((t, k) => (
-                    <p key={k} className={t.from === "karman" ? "me" : undefined}>
-                      {t.text}
-                    </p>
-                  ))}
+                  <small>
+                    <span>iMessage</span>
+                    <span>
+                      <svg viewBox="0 0 12 15">
+                        <path d="M3.2 6V4.300a2.8 2.8 0 0 1 5.6 0V6h.400c.9 0 1.6.7 1.6 1.600v4.800c0 .9-.7 1.6-1.6 1.600H2.800c-.9 0-1.6-.7-1.6-1.600V7.600C1.2 6.7 1.9 6 2.8 6zm1.5 0h2.600V4.300a1.3 1.3 0 0 0-2.6 0z" />
+                      </svg>
+                      Encrypted
+                    </span>
+                  </small>
+                  <small>
+                    <span>
+                      <b>Today</b> 9:41 AM
+                    </span>
+                  </small>
+                  {now.texts.map((t, k) => {
+                    const mine = t.from === "karman";
+                    /* the last bubble of a run carries the tail, as on a phone */
+                    const tail = now.texts[k + 1]?.from !== t.from;
+                    return (
+                      <p
+                        key={k}
+                        className={
+                          [mine ? "me" : "", tail ? "tail" : ""].filter(Boolean).join(" ") ||
+                          undefined
+                        }
+                      >
+                        {t.text}
+                      </p>
+                    );
+                  })}
+                  {now.texts.at(-1)?.from === "karman" ? (
+                    <small className="txt-read">
+                      <span>
+                        <b>Read</b> 9:41 AM
+                      </span>
+                    </small>
+                  ) : null}
                 </div>
+              </div>
+              <div className="txt-top">
+                <i className="txt-back" aria-hidden="true">
+                  <svg viewBox="0 0 12 20">
+                    <path d="M10 2 2 10l8 8" />
+                  </svg>
+                </i>
+                <span className="txt-face" aria-hidden="true">
+                  {now.name
+                    .split(/\s+/)
+                    .map((w) => w.replace(/[^A-Za-z]/g, "")[0] ?? "")
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </span>
+                <b>
+                  <span>{now.name}</span>
+                  <svg viewBox="0 0 8 14" aria-hidden="true">
+                    <path d="m1.5 1.5 5 5.5-5 5.5" />
+                  </svg>
+                </b>
+                <i className="txt-video" aria-hidden="true">
+                  <svg viewBox="0 0 30 20">
+                    <rect x="1.2" y="1.8" width="18.6" height="16.4" rx="4.6" />
+                    <path d="m20.8 8.2 6.3-4.100c.7-.4 1.7 0 1.7.900v10c0 .900-1 1.3-1.7.900l-6.3-4.1" />
+                  </svg>
+                </i>
+              </div>
+              <div className="txt-bar" aria-hidden="true">
+                <i>
+                  <svg viewBox="0 0 20 20">
+                    <path d="M10 3v14M3 10h14" />
+                  </svg>
+                </i>
+                <span>
+                  iMessage
+                  <svg viewBox="0 0 22 16">
+                    <path d="M2 6.500v3M6.5 4v8M11 1.500v13M15.5 4v8M20 6.500v3" />
+                  </svg>
+                </span>
               </div>
             </div>
           </div>
