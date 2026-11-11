@@ -60,7 +60,7 @@ const INCLUDES = {
     "A weekly live session",
     `Everything in ${PRO_PLAN.name}: every question, with video explanations as they're recorded`,
     "Your cohort's group chat, answered daily",
-    "Live progress for parents, and a weekly summary",
+    "A progress report for parents every day",
   ],
   private: [
     "Weekly 60-minute sessions with a Karman tutor",
@@ -99,7 +99,7 @@ const COMPARE: [string, string, string, string][] = [
   [
     "Full-length practice tests",
     "On the platform",
-    "Five, the first and the last proctored live",
+    "Five, each in one timed sitting",
     "On the platform",
   ],
   ["The weekly live session", "", "yes", "yes"],

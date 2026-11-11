@@ -91,7 +91,7 @@ export const MARCH_PROGRAM = {
     {
       title: "Five full-length practice tests",
       detail:
-        "Your week-1 baseline is a Bluebook practice test, proctored live. So is the last one, in week nine.",
+        "The baseline is your student's latest SAT or PSAT score. A student with no score yet sits a placement test, proctored live.",
     },
     {
       title: "A weekly live session",
@@ -113,8 +113,8 @@ export const MARCH_PROGRAM = {
       detail: "A group chat for your cohort. Questions are answered by a Karman tutor every day.",
     },
     {
-      title: "Weekly updates for parents",
-      detail: "Practice time, attendance, test scores and what's next.",
+      title: "A daily report for parents",
+      detail: "The work done, the predicted score and a note from the tutor.",
     },
   ] satisfies ProgramInclusion[],
 } as const;
@@ -348,7 +348,7 @@ export const GUARANTEE = {
   /** Days after scores come out to send the claim. */
   claimDays: 30,
   baseline:
-    "an SAT or PSAT score from the last 6 months, or the week-1 Bluebook practice test, proctored live by Karman",
+    "an SAT or PSAT score from the last 6 months, or, for a student with no score yet, a placement test proctored live by Karman",
   /** What the family gets, by SAT result. The family chooses money or a seat. */
   outcomes: [
     { result: "The target or more, or a 1600", remedy: "Nothing back. The promise was kept." },

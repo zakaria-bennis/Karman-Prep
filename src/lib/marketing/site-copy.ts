@@ -148,13 +148,13 @@ art words: Today | Day 2 | Day 7 | Day 21 | 3 in a row | Got it right | Got it w
 headline: The score goes up, or we pay you back.
 text: You've seen guarantees with a trapdoor in the fine print. Ours doesn't have one. Your student does the work, the score goes up, or the money comes back to you. Here is the whole deal, on one line.
 promise: ${UP_TO.cohort}
-promise note: ${TARGETS} Measured from an SAT or PSAT score from the last ${G.baselineMonths} months, or from a week-1 Bluebook practice test we proctor live.
+promise note: ${TARGETS} Measured from an SAT or PSAT score from the last ${G.baselineMonths} months, or, for a student with no score yet, from a placement test we proctor live.
 line start: Starting score
 line weeks: ${W(MP.weeks)} weeks of work
 line end: The SAT
 outcomes: The target or more = The promise was kept. Nothing back. | Half the target or more = Half the price back (${usd(MP.price / 2)}), or the next cohort free. You choose. | Under half the target = The full ${$(MP.price)} back, or the next cohort free. You choose.
 we do title: Our side
-we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | Live progress for parents, and a weekly summary
+we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | A progress report for parents every day
 you do title: Your student's side
 you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the SAT within ${G.satWithinDays} days of the last class
 covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: half back on ${PRIVATE_PACKAGES[0].name}; free hours, then half back on ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
@@ -198,11 +198,11 @@ facts: ${$(MP.price)} = The whole program, all in | ${CLASS} = Students per clas
 
 ## 22 Program: a week
 headline: What a week looks like.
-rows: Twice a week = A live class, ${MP.classMinutes} minutes | Once a week = The live session: test mechanics, or a workshop on the skills students miss most | Every day = The Daily 10, about ten minutes | Every week = Your update: skills, attendance, practice done, test scores
+rows: Twice a week = A live class, ${MP.classMinutes} minutes | Once a week = The live session: test mechanics, or a workshop on the skills students miss most | Every day = The Daily 10, about ten minutes | Every day, for you = Your report: the work done, the predicted score and a note from the tutor
 
 ## 23 Program: the nine weeks
 headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks.
-rows: Week 1 = A baseline: a Bluebook practice test, proctored live | Weeks 3 to 7 = Three more full-length tests, each in one timed sitting | Week ${MP.weeks} = The last full-length, proctored live, and a plan for test day
+rows: Week 1 = A baseline: your student's latest SAT or PSAT score. A student with no score yet sits a placement test, proctored live | Weeks 3 to 7 = Three more full-length tests, each in one timed sitting | Week ${MP.weeks} = The last full-length, in one timed sitting, and a plan for test day
 
 ## 24 Program: who it's for
 headline: Built for an 11th grader with room to grow.
@@ -334,7 +334,7 @@ text: Karman prints every rule of its guarantee where you can read it, and shows
 
 ## 62 About: three things
 headline: Three things we won't do.
-rows: Keep tutors guessing = Every answer your student gives reaches their tutor before the next session | Hide the rules = The guarantee's terms sit on the home page, in full, next to the promise | Stop watching after you pay = Parents get the same numbers the guarantee is measured on, every week
+rows: Keep tutors guessing = Every answer your student gives reaches their tutor before the next session | Hide the rules = The guarantee's terms sit on the home page, in full, next to the promise | Stop watching after you pay = Parents get the same numbers the guarantee is measured on, every day
 
 ## 63 About: how we teach
 headline: A test, then an hour on every mistake.
@@ -347,7 +347,7 @@ list: No testimonials until real ones exist | Every result says where it came fr
 
 ## 65 About: close
 headline: Start with one Saturday.
-text: The free practice test shows you our questions, our proctoring and our feedback before you spend anything.
+text: The free practice test shows you our questions and our feedback before you spend anything.
 button: Take the free practice test
 
 ## 71 FAQ
@@ -495,7 +495,7 @@ form sending: Sending
 form error score: SAT and PSAT scores run from 320 to 1600, in steps of 10.
 form error target: Add the score they're aiming for, between 400 and 1600.
 form error email: That email looks incomplete. It needs an @ and a domain, like name@gmail.com.
-form error name: Add your student's first name, so the proctor can check them in.
+form error name: Add your student's first name, so we know whose test it is.
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form error server: That didn't go through on our side. Your answers are still here. Try again in a minute, or write to ${CONTACT.general}.
 form retry: Try again
